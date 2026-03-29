@@ -1,0 +1,38 @@
+{
+    "id": "1fa1fda4-a345-4896-9da2-d4fe0f099e50",
+    "name": "Advanced Mode Test 1771145251439",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-15 08:47:37",
+    "createdAt": "2026-02-15 08:47:37",
+    "createdBy": "1"
+}

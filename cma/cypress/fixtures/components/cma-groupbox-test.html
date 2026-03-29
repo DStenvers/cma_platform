@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cma-groupbox Component Test</title>
+    <style>
+        /* Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        /* CSS Custom Properties that cma-groupbox uses */
+        :root {
+            --bg-surface: #f4f4f4;
+            --bg-surface-alt: #e8e8e8;
+            --bg-hover: #d0e8f8;
+            --border-color: #ddd;
+            --color-primary: #204496;
+            --color-info: #077ab2;
+        }
+
+        /* Test container styles */
+        .test-section {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+        .test-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .test-section h3 {
+            margin: 15px 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Form table mimicking CMA style */
+        .form-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .form-table tr {
+            border-bottom: 1px solid #eee;
+        }
+        .form-table td {
+            padding: 8px 12px;
+            vertical-align: top;
+        }
+        .form-table .label-cell {
+            width: 150px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* cma-groupbox styling (from CMA) */
+        cma-groupbox {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            border: 1px solid #ced4da;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 15px;
+        }
+        cma-groupbox:hover {
+            background: linear-gradient(to bottom, #fff, #f0f2f5);
+        }
+        cma-groupbox .groupbox-title {
+            flex: 1;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+        cma-groupbox .groupbox-chevron {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--color-primary);
+            transition: transform 0.2s;
+        }
+        cma-groupbox.group_closed .groupbox-chevron {
+            transform: rotate(-90deg);
+        }
+        cma-groupbox.group_open {
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        cma-groupbox.group_closed {
+            border-radius: 4px;
+        }
+
+        /* Group content rows */
+        .group-row {
+            background: #fafbfc;
+            border-left: 1px solid #ced4da;
+            border-right: 1px solid #ced4da;
+        }
+        .group-row:last-child,
+        .groupbox-end {
+            border-bottom: 1px solid #ced4da;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Log output */
+        #test-log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #1a1a2e;
+            color: #0f0;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        #test-log .error { color: #f55; }
+        #test-log .warn { color: #ff0; }
+        #test-log .success { color: #0f0; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #f0f2f5;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="padding: 20px;">cma-groupbox Component Tests</h1>
+
+    <!-- Test 1: Basic Toggle -->
+    <div class="test-section" id="test-basic">
+        <h2>Test 1: Basic Toggle</h2>
+        <p>Click the groupbox header to toggle visibility of group content.</p>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-1"
+                        group-id="1"
+                        form-id="100"
+                        caption="Persoonlijke gegevens">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g1_1" class="group-row">
+                <td class="label-cell">Naam</td>
+                <td><input type="text" value="Jan Jansen" /></td>
+            </tr>
+            <tr id="_g1_2" class="group-row">
+                <td class="label-cell">E-mail</td>
+                <td><input type="text" value="jan@example.nl" /></td>
+            </tr>
+            <tr id="_g1_3" class="group-row groupbox-end">
+                <td class="label-cell">Telefoon</td>
+                <td><input type="text" value="06-12345678" /></td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 15px;">
+            <strong>State:</strong> <span id="state-1">open</span>
+        </div>
+    </div>
+
+    <!-- Test 2: Initially Collapsed -->
+    <div class="test-section" id="test-collapsed">
+        <h2>Test 2: Initially Collapsed</h2>
+        <p>This groupbox starts collapsed (has 'collapsed' attribute).</p>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-2"
+                        group-id="2"
+                        form-id="100"
+                        caption="Adresgegevens"
+                        collapsed>
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g2_1" class="group-row">
+                <td class="label-cell">Straat</td>
+                <td><input type="text" value="Hoofdstraat 1" /></td>
+            </tr>
+            <tr id="_g2_2" class="group-row">
+                <td class="label-cell">Postcode</td>
+                <td><input type="text" value="1234 AB" /></td>
+            </tr>
+            <tr id="_g2_3" class="group-row groupbox-end">
+                <td class="label-cell">Plaats</td>
+                <td><input type="text" value="Amsterdam" /></td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 15px;">
+            <strong>State:</strong> <span id="state-2">collapsed</span>
+        </div>
+    </div>
+
+    <!-- Test 3: Multiple Groups -->
+    <div class="test-section" id="test-multiple">
+        <h2>Test 3: Multiple Groups</h2>
+        <p>Multiple groupboxes on the same form, each independent.</p>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-3a"
+                        group-id="3"
+                        form-id="100"
+                        caption="Groep A">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g3_1" class="group-row groupbox-end">
+                <td class="label-cell">Veld A1</td>
+                <td><input type="text" value="Waarde A1" /></td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-3b"
+                        group-id="4"
+                        form-id="100"
+                        caption="Groep B">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g4_1" class="group-row groupbox-end">
+                <td class="label-cell">Veld B1</td>
+                <td><input type="text" value="Waarde B1" /></td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-3c"
+                        group-id="5"
+                        form-id="100"
+                        caption="Groep C">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g5_1" class="group-row groupbox-end">
+                <td class="label-cell">Veld C1</td>
+                <td><input type="text" value="Waarde C1" /></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Test 4: API Methods -->
+    <div class="test-section" id="test-api">
+        <h2>Test 4: API Methods</h2>
+        <p>Test public API methods: open(), close(), toggle(), isOpen</p>
+
+        <div style="margin-bottom: 15px;">
+            <button class="btn" id="btn-open">open()</button>
+            <button class="btn" id="btn-close">close()</button>
+            <button class="btn" id="btn-toggle">toggle()</button>
+            <button class="btn" id="btn-check">Check isOpen</button>
+        </div>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-api"
+                        group-id="6"
+                        form-id="100"
+                        caption="API Test Groep">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g6_1" class="group-row groupbox-end">
+                <td class="label-cell">API Veld</td>
+                <td><input type="text" value="Test waarde" /></td>
+            </tr>
+        </table>
+
+        <div id="api-result" style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 4px;"></div>
+    </div>
+
+    <!-- Test 5: localStorage Persistence -->
+    <div class="test-section" id="test-storage">
+        <h2>Test 5: localStorage Persistence</h2>
+        <p>Toggle this group, then refresh the page. State should be preserved.</p>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-storage"
+                        group-id="7"
+                        form-id="200"
+                        caption="Opgeslagen staat">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g7_1" class="group-row groupbox-end">
+                <td class="label-cell">Persistent veld</td>
+                <td><input type="text" value="Deze staat wordt onthouden" /></td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 15px;">
+            <button class="btn" id="btn-clear-storage">Clear localStorage</button>
+            <span id="storage-status"></span>
+        </div>
+    </div>
+
+    <!-- Test 6: data-group-row Attribute -->
+    <div class="test-section" id="test-data-attr">
+        <h2>Test 6: data-group-row Attribute</h2>
+        <p>Rows can also use data-group-row attribute instead of id pattern.</p>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-data"
+                        group-id="8"
+                        form-id="100"
+                        caption="Data Attribute Groep">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr data-group-row="8" class="group-row">
+                <td class="label-cell">Data veld 1</td>
+                <td><input type="text" value="Via data-group-row" /></td>
+            </tr>
+            <tr data-group-row="8" class="group-row groupbox-end">
+                <td class="label-cell">Data veld 2</td>
+                <td><input type="text" value="Ook via data-group-row" /></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Test 7: Backward Compatibility -->
+    <div class="test-section" id="test-compat">
+        <h2>Test 7: Backward Compatibility (grp_flip)</h2>
+        <p>Test that legacy grp_flip() function still works.</p>
+
+        <div style="margin-bottom: 15px;">
+            <button class="btn" id="btn-grp-flip">grp_flip(9, 100)</button>
+        </div>
+
+        <table class="form-table">
+            <tr>
+                <td colspan="2">
+                    <cma-groupbox
+                        id="groupbox-compat"
+                        group-id="9"
+                        form-id="100"
+                        caption="Legacy Compatibility">
+                    </cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g9_1" class="group-row groupbox-end">
+                <td class="label-cell">Legacy veld</td>
+                <td><input type="text" value="Backward compatible" /></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Test Log -->
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div id="test-log"></div>
+    </div>
+
+    <!-- Load the component -->
+    <script src="/cma/webcomponents/cma-groupbox.js"></script>
+
+    <script>
+        // Test log helper
+        const log = {
+            el: document.getElementById('test-log'),
+            add: function(msg, type = 'info') {
+                const line = document.createElement('div');
+                line.className = type;
+                line.textContent = `[${new Date().toISOString().substr(11, 8)}] ${msg}`;
+                this.el.appendChild(line);
+                this.el.scrollTop = this.el.scrollHeight;
+            },
+            success: function(msg) { this.add(msg, 'success'); },
+            error: function(msg) { this.add(msg, 'error'); },
+            warn: function(msg) { this.add(msg, 'warn'); }
+        };
+
+        // Wait for DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            log.add('DOM loaded, checking component...');
+
+            // Check registration
+            if (customElements.get('cma-groupbox')) {
+                log.success('cma-groupbox component is registered');
+            } else {
+                log.error('cma-groupbox component NOT registered!');
+                return;
+            }
+
+            // Give components time to initialize
+            setTimeout(runTests, 100);
+        });
+
+        function runTests() {
+            log.add('Running tests...');
+
+            // Test 1: Basic toggle
+            const gb1 = document.getElementById('groupbox-1');
+            const state1 = document.getElementById('state-1');
+            if (gb1) {
+                state1.textContent = gb1.isOpen ? 'open' : 'collapsed';
+                gb1.addEventListener('click', () => {
+                    setTimeout(() => {
+                        state1.textContent = gb1.isOpen ? 'open' : 'collapsed';
+                        log.add(`Test 1: State changed to ${gb1.isOpen ? 'open' : 'collapsed'}`);
+                    }, 50);
+                });
+                log.success('Test 1: Basic groupbox initialized');
+            }
+
+            // Test 2: Initially collapsed
+            const gb2 = document.getElementById('groupbox-2');
+            const state2 = document.getElementById('state-2');
+            if (gb2) {
+                state2.textContent = gb2.isOpen ? 'open' : 'collapsed';
+                if (!gb2.isOpen) {
+                    log.success('Test 2: Groupbox correctly starts collapsed');
+                } else {
+                    log.error('Test 2: Groupbox should start collapsed but is open');
+                }
+                gb2.addEventListener('click', () => {
+                    setTimeout(() => {
+                        state2.textContent = gb2.isOpen ? 'open' : 'collapsed';
+                    }, 50);
+                });
+            }
+
+            // Test 3: Multiple groups
+            const gb3a = document.getElementById('groupbox-3a');
+            const gb3b = document.getElementById('groupbox-3b');
+            const gb3c = document.getElementById('groupbox-3c');
+            if (gb3a && gb3b && gb3c) {
+                log.success('Test 3: All three groupboxes found');
+            }
+
+            // Test 4: API methods
+            const gbApi = document.getElementById('groupbox-api');
+            const apiResult = document.getElementById('api-result');
+
+            document.getElementById('btn-open').onclick = function() {
+                gbApi.open();
+                apiResult.textContent = 'Called open() - isOpen: ' + gbApi.isOpen;
+                log.add('API: open() called, isOpen = ' + gbApi.isOpen);
+            };
+
+            document.getElementById('btn-close').onclick = function() {
+                gbApi.close();
+                apiResult.textContent = 'Called close() - isOpen: ' + gbApi.isOpen;
+                log.add('API: close() called, isOpen = ' + gbApi.isOpen);
+            };
+
+            document.getElementById('btn-toggle').onclick = function() {
+                gbApi.toggle();
+                apiResult.textContent = 'Called toggle() - isOpen: ' + gbApi.isOpen;
+                log.add('API: toggle() called, isOpen = ' + gbApi.isOpen);
+            };
+
+            document.getElementById('btn-check').onclick = function() {
+                apiResult.textContent = 'isOpen property: ' + gbApi.isOpen;
+                log.add('API: isOpen = ' + gbApi.isOpen);
+            };
+
+            // Test 5: localStorage
+            const gbStorage = document.getElementById('groupbox-storage');
+            const storageStatus = document.getElementById('storage-status');
+            const storageKey = `cma_grp_200_7`;
+
+            document.getElementById('btn-clear-storage').onclick = function() {
+                localStorage.removeItem(storageKey);
+                storageStatus.textContent = ' - Storage cleared. Refresh to test.';
+                log.add('Storage: Cleared ' + storageKey);
+            };
+
+            // Show current storage value
+            const storedVal = localStorage.getItem(storageKey);
+            if (storedVal) {
+                storageStatus.textContent = ` - Current storage: ${storedVal}`;
+                log.add('Storage: Found saved value: ' + storedVal);
+            }
+
+            // Test 7: Backward compatibility
+            document.getElementById('btn-grp-flip').onclick = function() {
+                if (typeof grp_flip === 'function') {
+                    grp_flip(9, 100);
+                    log.add('Legacy: grp_flip(9, 100) called');
+                } else {
+                    log.error('Legacy: grp_flip function not found!');
+                }
+            };
+
+            // Verify group row visibility
+            const row1_1 = document.getElementById('_g1_1');
+            if (row1_1 && row1_1.style.display !== 'none') {
+                log.success('Test 1: Group rows are visible when open');
+            }
+
+            const row2_1 = document.getElementById('_g2_1');
+            if (row2_1 && row2_1.style.display === 'none') {
+                log.success('Test 2: Group rows are hidden when collapsed');
+            }
+
+            log.success('All tests initialized');
+        }
+    </script>
+</body>
+</html>

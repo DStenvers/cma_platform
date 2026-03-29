@@ -1,0 +1,29 @@
+<?php
+/**
+ * Bootstrap - Auto-prepended to all requests via IIS URL Rewrite
+ *
+ * This is a thin wrapper that calls the platform Bootstrap class.
+ * Project-specific configuration is passed via the $config array.
+ */
+
+// Bootstrap timing
+$GLOBALS['_bootstrap_start'] = microtime(true);
+
+// Prevent direct access
+if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
+    http_response_code(403);
+    die('Direct access not permitted');
+}
+
+// Load Composer autoloader (includes platform helpers)
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Initialize the application with project-specific configuration
+\App\Library\Bootstrap::init(__DIR__, [
+    'app_config'     => __DIR__ . '/app.php',
+    'global_asa'     => __DIR__ . '/global.asa.php',
+    'session_dir'    => __DIR__ . '/sessions',
+    'constants_file' => __DIR__ . '/_bootstrap_constants.inc',
+    'log_dir'        => __DIR__ . '/logs',
+    'db_dir'         => __DIR__ . '/db',
+]);

@@ -1,0 +1,614 @@
+{
+    "id": "1293f8d2-122d-4231-ac97-1def15d4c5d6",
+    "name": "test",
+    "mode": "quick",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "tblCompetenties",
+            "alias": "t",
+            "joins": [
+                {
+                    "table": "tblDeelname",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblCompetenties].[fkDeelName] = [tblDeelname].[ID]"
+                }
+            ],
+            "relationships": [
+                {
+                    "fkTable": "tblCompetenties",
+                    "fkColumn": "fkDeelName",
+                    "pkTable": "tblDeelname",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblCompetenties",
+                    "fkColumn": "fkCompetentieTemplate",
+                    "pkTable": "tblCompetentieTemplate",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                }
+            ]
+        },
+        {
+            "name": "tblDeelname",
+            "alias": "t",
+            "joins": [],
+            "relationships": [
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkDeelnemer",
+                    "pkTable": "tblDeelnemers",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkOpleiding",
+                    "pkTable": "tblOpleidingen",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkPraktijkOpleider",
+                    "pkTable": "tblPraktijkOpleiders",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                }
+            ]
+        }
+    ],
+    "fields": [
+        {
+            "table": "tblCompetenties",
+            "field": "ID",
+            "dataType": 3,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "fkDeelName",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "fkCompetentieTemplate",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "startdatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "einddatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "VERSLAGNUMMER",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "blnDefinitief",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "DatumIngevuld",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "OpmerkingDeelnemer",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblCompetenties",
+            "field": "OpmerkingPraktijkopleider",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "ID",
+            "dataType": 3,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkDeelnemer",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkOpleiding",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkPraktijkOpleider",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkHoofdDocent",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Dossioma",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaLaatstGewijzigd",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Werkplan",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DeelnemerDatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderGoedgekeurd",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderDatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderGoedgekeurd",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderDatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Deelnemer",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Praktijkopl",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Hoofdopleider",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Halfjaar_Deelnemer",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AssistentWerkplanCheck",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "alleenCursorisch",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "EindDatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Competentie_Deelnemer",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Competentie_Praktijkopl",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderOpmerking_Oud",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderOpmerking_Oud",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaPraktijkinstellingen",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "blnDossiomadefinitief",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datDiploma",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AanvangsdocumentenCompleet",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaHoofdopleiderInfo",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "FotoLijstInfo",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AanvangsdocumentenOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Dossioma_ho_opmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datLoginMail",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datLoginMailPO",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_verzocht",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_ingevuld",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_reminder",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_reminder2",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuur_gegevens",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuur_centraal",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datVerwachteEinddatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkHoofddeelname",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "toegelaten",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "toegelaten_datum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "inhaler",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "OvereenkomstDatumgeplaatst",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Overeenkomst",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "certificaatdatum",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkGedelegeerdPOpleider",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datAangemeld",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusToegelatenOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusTweedeGesprekOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusNietGestartOpmerking",
+            "dataType": 201,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusToegelatenBijlage",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusTweedeGesprekBijlage",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusNietGestartBijlage",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DatumOpleidingsEisenVoldaan",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Certificaat",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "startPraktijk",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "eindePraktijk",
+            "dataType": 135,
+            "visible": true,
+            "showTotal": false
+        }
+    ],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": {
+            "tblCompetenties": {
+                "x": 380,
+                "y": 40
+            },
+            "tblDeelname": {
+                "x": 20,
+                "y": 20
+            }
+        },
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-19 14:34:43",
+    "createdAt": "2026-02-19 14:34:43",
+    "createdBy": "1"
+}

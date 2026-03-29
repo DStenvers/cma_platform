@@ -1,0 +1,1014 @@
+{"ts":"2026-02-07T09:09:23.076","level":"debug","req":"b9b9ba1d","msg":"form_api: JSON output","ctx":{"bytes":2734}}
+{"ts":"2026-02-07T09:09:24.175","level":"debug","req":"87e11796","msg":"form_api: JSON output","ctx":{"bytes":2711}}
+{"ts":"2026-02-07T09:09:25.161","level":"debug","req":"fb7c5761","msg":"form_api: JSON output","ctx":{"bytes":2789}}
+{"ts":"2026-02-07T09:23:00.608","level":"debug","req":"ff37ecef","msg":"form_api: JSON output","ctx":{"bytes":2813}}
+{"ts":"2026-02-07T09:23:06.510","level":"debug","req":"f62db118","msg":"form_api: JSON output","ctx":{"bytes":2262}}
+{"ts":"2026-02-07T09:23:35.232","level":"debug","req":"d5102777","msg":"form_api: JSON output","ctx":{"bytes":2711}}
+{"ts":"2026-02-07T09:23:45.902","level":"debug","req":"0c3b9259","msg":"form_api: JSON output","ctx":{"bytes":2711}}
+{"ts":"2026-02-07T12:52:09.317","level":"debug","req":"2cc238d1","msg":"form_api: JSON output","ctx":{"bytes":19871}}
+{"ts":"2026-02-07T12:52:17.752","level":"debug","req":"6fb9be9a","msg":"form_api: JSON output","ctx":{"bytes":19869}}
+{"ts":"2026-02-07T12:52:19.068","level":"debug","req":"183ac50e","msg":"form_api: JSON output","ctx":{"bytes":1491}}
+{"ts":"2026-02-07T12:52:40.398","level":"debug","req":"0d2d2968","msg":"form_api: JSON output","ctx":{"bytes":19869}}
+{"ts":"2026-02-07T12:52:43.761","level":"debug","req":"8ea57a92","msg":"form_api: JSON output","ctx":{"bytes":1546}}
+{"ts":"2026-02-07T12:52:52.630","level":"debug","req":"1e72dc74","msg":"form_api: JSON output","ctx":{"bytes":19869}}
+{"ts":"2026-02-07T12:52:53.083","level":"debug","req":"76b4b638","msg":"form_api: JSON output","ctx":{"bytes":1491}}
+{"ts":"2026-02-07T12:53:15.092","level":"debug","req":"0eae21f4","msg":"form_api: JSON output","ctx":{"bytes":19869}}
+{"ts":"2026-02-07T14:36:12.265","level":"debug","req":"96a13744","msg":"form_api: JSON output","ctx":{"bytes":2047}}
+{"ts":"2026-02-07T14:36:34.715","level":"debug","req":"a4f33ae9","msg":"form_api: Before json_encode","ctx":{"field":"fields","bytes":2033,"last30hex":"20226461746154797065223a2022626f6f6c65616e220a202020207d0a5d"}}
+{"ts":"2026-02-07T14:36:34.715","level":"debug","req":"a4f33ae9","msg":"form_api: JSON output","ctx":{"bytes":3314}}
+{"ts":"2026-02-07T14:36:35.990","level":"debug","req":"b7ca533a","msg":"form_api: Before json_encode","ctx":{"field":"fields","bytes":1597,"last30hex":"202020226c696d6974656448746d6c223a20747275650a202020207d0a5d"}}
+{"ts":"2026-02-07T14:36:35.990","level":"debug","req":"b7ca533a","msg":"form_api: JSON output","ctx":{"bytes":2982}}
+{"ts":"2026-02-07T16:10:29.145","level":"debug","req":"1d4a1e95","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:30.491","level":"debug","req":"518587b8","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:10:30.645","level":"debug","req":"6311d07c","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:30.795","level":"debug","req":"721265a2","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:10:31.856","level":"debug","req":"c027e381","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:32.940","level":"debug","req":"1c45d720","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:33.113","level":"debug","req":"885a1c22","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:10:33.296","level":"debug","req":"c75daa6b","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:10:33.488","level":"debug","req":"1a69b93f","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:10:34.692","level":"debug","req":"244e4ce5","msg":"form_api: JSON output","ctx":{"bytes":22820}}
+{"ts":"2026-02-07T16:10:34.892","level":"debug","req":"02c6056a","msg":"form_api: JSON output","ctx":{"bytes":7081}}
+{"ts":"2026-02-07T16:10:35.501","level":"debug","req":"711dc1ff","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T16:10:36.794","level":"debug","req":"9c9f8584","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:36.951","level":"debug","req":"6f5bf54a","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:10:37.337","level":"debug","req":"5c05815c","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:37.657","level":"debug","req":"012e6caa","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:37.828","level":"debug","req":"cf402dd7","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:38.575","level":"debug","req":"12859f5e","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:38.724","level":"debug","req":"6243f03c","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:38.887","level":"debug","req":"a39ecbe2","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:39.064","level":"debug","req":"c59b05aa","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:39.226","level":"debug","req":"923ce00d","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:39.438","level":"debug","req":"e2a83e67","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:39.612","level":"debug","req":"e3a628ce","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:39.771","level":"debug","req":"6b85b046","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:39.984","level":"debug","req":"2c00c530","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:40.164","level":"debug","req":"e0cf2215","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:40.772","level":"debug","req":"9f46eca2","msg":"form_api: JSON output","ctx":{"bytes":63434}}
+{"ts":"2026-02-07T16:10:40.929","level":"debug","req":"abcfa5a1","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:41.640","level":"debug","req":"22e95767","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:10:41.784","level":"debug","req":"f66527d1","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:10:41.946","level":"debug","req":"72a06928","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:42.096","level":"debug","req":"15c8dfc7","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T16:10:43.280","level":"debug","req":"bca93574","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:43.441","level":"debug","req":"dac83fb3","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:10:43.733","level":"debug","req":"b00406ef","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T16:10:43.879","level":"debug","req":"4ea69abe","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:10:44.467","level":"debug","req":"09026bb2","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T16:10:45.072","level":"debug","req":"e601d8db","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:10:45.234","level":"debug","req":"4c8e9309","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:10:46.259","level":"debug","req":"d8286b9b","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:46.575","level":"debug","req":"7f4d364f","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:46.869","level":"debug","req":"896663da","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:47.025","level":"debug","req":"1f396616","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:47.484","level":"debug","req":"36dbe599","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:10:47.653","level":"debug","req":"4073f3d7","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:10:48.108","level":"debug","req":"0f47d4aa","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:10:48.274","level":"debug","req":"fdb80988","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:48.429","level":"debug","req":"65ff305c","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:48.593","level":"debug","req":"a665c1e4","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:10:48.765","level":"debug","req":"59f1c9d7","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:48.977","level":"debug","req":"e6e48e36","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:49.485","level":"debug","req":"30ef1280","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:10:49.635","level":"debug","req":"7a9c0b12","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:10:56.334","level":"debug","req":"c86c6e87","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:10:56.958","level":"debug","req":"08b08733","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:10:57.804","level":"debug","req":"c1003f7b","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:10:59.798","level":"debug","req":"90ac0dab","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:11:00.796","level":"debug","req":"049e5195","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T16:11:03.798","level":"debug","req":"d605e9bb","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T16:11:05.810","level":"debug","req":"1efcca60","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T16:11:07.798","level":"debug","req":"0aa183f7","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:11:08.800","level":"debug","req":"f5aca69c","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:11:11.797","level":"debug","req":"e9ba711f","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:11:12.830","level":"debug","req":"9b40b213","msg":"form_api: JSON output","ctx":{"bytes":44846}}
+{"ts":"2026-02-07T16:11:13.850","level":"debug","req":"2e03d2f7","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:11:15.558","level":"debug","req":"816a81d7","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:15.926","level":"debug","req":"22220ade","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T16:11:16.133","level":"debug","req":"0f2afb95","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:16.706","level":"debug","req":"9bf90b64","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:11:16.886","level":"debug","req":"31a73d6d","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:17.047","level":"debug","req":"0c1b50a9","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:17.207","level":"debug","req":"4c7f1fcc","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:17.398","level":"debug","req":"927a85dc","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:17.595","level":"debug","req":"aaf547ed","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:17.754","level":"debug","req":"62d14bfb","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:11:18.099","level":"debug","req":"b4671c76","msg":"form_api: JSON output","ctx":{"bytes":51723}}
+{"ts":"2026-02-07T16:11:18.264","level":"debug","req":"860e0ef0","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:18.424","level":"debug","req":"b27ca808","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:18.579","level":"debug","req":"b0c91516","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:18.743","level":"debug","req":"b0164ff8","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:19.014","level":"debug","req":"719979e0","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:11:19.177","level":"debug","req":"96de47e0","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:11:19.719","level":"debug","req":"cf308c0b","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:14:22.486","level":"debug","req":"7b1e6d71","msg":"form_api: JSON output","ctx":{"bytes":19873}}
+{"ts":"2026-02-07T16:14:22.638","level":"debug","req":"acb202fa","msg":"form_api: JSON output","ctx":{"bytes":19873}}
+{"ts":"2026-02-07T16:14:22.821","level":"debug","req":"7c3ba950","msg":"form_api: Before json_encode","ctx":{"field":"fields","bytes":1597,"last30hex":"202020226c696d6974656448746d6c223a20747275650a202020207d0a5d"}}
+{"ts":"2026-02-07T16:14:22.822","level":"debug","req":"7c3ba950","msg":"form_api: JSON output","ctx":{"bytes":2982}}
+{"ts":"2026-02-07T16:18:06.060","level":"debug","req":"0339337e","msg":"form_api: JSON output","ctx":{"bytes":4032}}
+{"ts":"2026-02-07T16:18:07.847","level":"debug","req":"6edc392c","msg":"form_api: JSON output","ctx":{"bytes":5123}}
+{"ts":"2026-02-07T16:23:22.613","level":"debug","req":"782c5f1a","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:23.906","level":"debug","req":"9664bc3b","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:24.056","level":"debug","req":"a560ae41","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:24.199","level":"debug","req":"b0835160","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:23:25.192","level":"debug","req":"58d23c9b","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:26.137","level":"debug","req":"e452810e","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:26.307","level":"debug","req":"8ac73829","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:23:26.482","level":"debug","req":"4f00b58d","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:23:26.635","level":"debug","req":"49b9da52","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T16:23:27.799","level":"debug","req":"2f0d2266","msg":"form_api: JSON output","ctx":{"bytes":22820}}
+{"ts":"2026-02-07T16:23:27.981","level":"debug","req":"23837d0a","msg":"form_api: JSON output","ctx":{"bytes":7081}}
+{"ts":"2026-02-07T16:23:28.585","level":"debug","req":"1ae6a343","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T16:23:29.752","level":"debug","req":"77c4f7a8","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:29.901","level":"debug","req":"5ae80188","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:23:30.231","level":"debug","req":"d6bac62f","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:30.529","level":"debug","req":"fdb6dde2","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:30.678","level":"debug","req":"189638b8","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:31.415","level":"debug","req":"07ac487c","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:31.575","level":"debug","req":"3490b344","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:31.725","level":"debug","req":"ab5a50f4","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:31.879","level":"debug","req":"d5bcbb00","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:32.027","level":"debug","req":"6102f3c2","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:32.231","level":"debug","req":"0f58077f","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:32.380","level":"debug","req":"f6c999e2","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:32.528","level":"debug","req":"ea04cd2d","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:32.734","level":"debug","req":"5c6de288","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:32.885","level":"debug","req":"468d3039","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:33.475","level":"debug","req":"b262eb84","msg":"form_api: JSON output","ctx":{"bytes":63434}}
+{"ts":"2026-02-07T16:23:33.627","level":"debug","req":"1ccf8b19","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:34.190","level":"debug","req":"9881fc5e","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:23:34.332","level":"debug","req":"ef4bc023","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:23:34.474","level":"debug","req":"5aeb75db","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:34.610","level":"debug","req":"a927cefe","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T16:23:35.623","level":"debug","req":"7077fb1a","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:35.765","level":"debug","req":"56fdfee5","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:23:36.044","level":"debug","req":"d035c609","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T16:23:36.186","level":"debug","req":"64789235","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:36.732","level":"debug","req":"6e98b3e2","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T16:23:37.300","level":"debug","req":"db72e40a","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:37.440","level":"debug","req":"03bf72ef","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:38.422","level":"debug","req":"128eacb8","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:38.689","level":"debug","req":"78064041","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:38.968","level":"debug","req":"fa7d2a85","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:39.114","level":"debug","req":"a5f0284f","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:39.498","level":"debug","req":"6106ecfd","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:23:39.641","level":"debug","req":"9d4bd8c9","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T16:23:40.065","level":"debug","req":"ac341cba","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:23:40.209","level":"debug","req":"78920d7e","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:40.345","level":"debug","req":"ab6548b5","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:40.491","level":"debug","req":"26b3fe50","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:40.629","level":"debug","req":"e3178b90","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:40.766","level":"debug","req":"feeaefdc","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:41.219","level":"debug","req":"ce997120","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:23:41.355","level":"debug","req":"e1e28810","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:23:41.640","level":"debug","req":"a45dd3b0","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:23:41.780","level":"debug","req":"93726819","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T16:23:41.932","level":"debug","req":"752b1fae","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:42.687","level":"debug","req":"ad2110a5","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T16:23:42.781","level":"debug","req":"667086c8","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T16:23:43.029","level":"debug","req":"6b8aa69d","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T16:23:43.231","level":"debug","req":"1109396d","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T16:23:43.353","level":"debug","req":"0e989189","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:43.456","level":"debug","req":"c9661893","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T16:23:43.707","level":"debug","req":"d2b11b37","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:43.814","level":"debug","req":"c0c2ce95","msg":"form_api: JSON output","ctx":{"bytes":44846}}
+{"ts":"2026-02-07T16:23:43.927","level":"debug","req":"08c79cbe","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:23:44.447","level":"debug","req":"78aa8dfc","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:44.676","level":"debug","req":"a2720615","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T16:23:44.854","level":"debug","req":"b32e15c8","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.230","level":"debug","req":"29076835","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:45.306","level":"debug","req":"d1962023","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.398","level":"debug","req":"11b71111","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.480","level":"debug","req":"381d8685","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.586","level":"debug","req":"62b8e99f","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.715","level":"debug","req":"1e15ba0c","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:45.802","level":"debug","req":"6f6ea324","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T16:23:46.126","level":"debug","req":"0e8c51b7","msg":"form_api: JSON output","ctx":{"bytes":51723}}
+{"ts":"2026-02-07T16:23:46.260","level":"debug","req":"a2438e1b","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:46.412","level":"debug","req":"71d60786","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:46.553","level":"debug","req":"5b63dbc5","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:46.694","level":"debug","req":"9bf4fea7","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:46.925","level":"debug","req":"925cdb03","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T16:23:47.082","level":"debug","req":"5c761f34","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:23:47.482","level":"debug","req":"3f01b13e","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T16:35:34.037","level":"debug","req":"fdd48aae","msg":"form_api: JSON output","ctx":{"bytes":4881}}
+{"ts":"2026-02-07T16:35:34.203","level":"debug","req":"9d8181a5","msg":"form_api: JSON output","ctx":{"bytes":231420}}
+{"ts":"2026-02-07T16:35:34.405","level":"debug","req":"2326dc86","msg":"form_api: JSON output","ctx":{"bytes":4881}}
+{"ts":"2026-02-07T16:35:34.562","level":"debug","req":"73e16ef7","msg":"form_api: JSON output","ctx":{"bytes":231418}}
+{"ts":"2026-02-07T16:35:35.314","level":"debug","req":"ab04d9ff","msg":"form_api: JSON output","ctx":{"bytes":18328}}
+{"ts":"2026-02-07T16:35:36.380","level":"debug","req":"5fca80b1","msg":"form_api: JSON output","ctx":{"bytes":2545}}
+{"ts":"2026-02-07T16:35:36.603","level":"debug","req":"198b0e95","msg":"form_api: JSON output","ctx":{"bytes":12662}}
+{"ts":"2026-02-07T16:35:37.162","level":"debug","req":"41dccae2","msg":"form_api: JSON output","ctx":{"bytes":9058}}
+{"ts":"2026-02-07T16:35:41.258","level":"debug","req":"bebc54db","msg":"form_api: JSON output","ctx":{"bytes":231360}}
+{"ts":"2026-02-07T16:35:44.777","level":"debug","req":"a1965608","msg":"form_api: JSON output","ctx":{"bytes":4881}}
+{"ts":"2026-02-07T16:35:49.058","level":"debug","req":"daa22901","msg":"form_api: JSON output","ctx":{"bytes":2734}}
+{"ts":"2026-02-07T18:12:54.948","level":"debug","req":"fa35b8eb","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:12:56.232","level":"debug","req":"b9b470b5","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:12:56.383","level":"debug","req":"9bd071b4","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:12:56.525","level":"debug","req":"f8590bde","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T18:12:57.497","level":"debug","req":"985e232e","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:12:58.381","level":"debug","req":"3f8f29c3","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:12:58.530","level":"debug","req":"030e96c0","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T18:12:58.688","level":"debug","req":"33949871","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T18:12:58.840","level":"debug","req":"b3d7b2da","msg":"form_api: JSON output","ctx":{"bytes":15964}}
+{"ts":"2026-02-07T18:12:59.953","level":"debug","req":"063da923","msg":"form_api: JSON output","ctx":{"bytes":22820}}
+{"ts":"2026-02-07T18:13:00.150","level":"debug","req":"5207de6c","msg":"form_api: JSON output","ctx":{"bytes":7081}}
+{"ts":"2026-02-07T18:13:00.691","level":"debug","req":"64e69720","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T18:13:01.781","level":"debug","req":"a7f1f1f9","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:01.924","level":"debug","req":"ca153cf2","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T18:13:02.667","level":"debug","req":"fc24063e","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:02.937","level":"debug","req":"9880b5d8","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.025","level":"debug","req":"003dfeb9","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.434","level":"debug","req":"d9440067","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.512","level":"debug","req":"18c0fb4e","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.587","level":"debug","req":"70b2582a","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.670","level":"debug","req":"2985d39d","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.748","level":"debug","req":"b0fb8b8b","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.861","level":"debug","req":"fd1baf65","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:03.936","level":"debug","req":"973607a9","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:04.014","level":"debug","req":"6410b89c","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:04.126","level":"debug","req":"bf966763","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:04.201","level":"debug","req":"505162ea","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:04.533","level":"debug","req":"4fce1df9","msg":"form_api: JSON output","ctx":{"bytes":63434}}
+{"ts":"2026-02-07T18:13:04.597","level":"debug","req":"a45cc215","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:04.964","level":"debug","req":"bd994979","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T18:13:05.044","level":"debug","req":"82695a7e","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T18:13:05.141","level":"debug","req":"1f416929","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:05.277","level":"debug","req":"48b13cda","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T18:13:06.281","level":"debug","req":"36464349","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:06.422","level":"debug","req":"7ab51297","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T18:13:06.696","level":"debug","req":"590a3730","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T18:13:06.837","level":"debug","req":"3cdc9a55","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:13:07.385","level":"debug","req":"fdedc3ab","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T18:13:07.939","level":"debug","req":"53cc6445","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:13:08.077","level":"debug","req":"eb424f1f","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:13:09.032","level":"debug","req":"25b34ab6","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:09.311","level":"debug","req":"49b3b809","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:09.580","level":"debug","req":"601d5b89","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:09.715","level":"debug","req":"a13f0674","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:10.107","level":"debug","req":"debbaf75","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T18:13:10.247","level":"debug","req":"63f2fbb1","msg":"form_api: JSON output","ctx":{"bytes":2479}}
+{"ts":"2026-02-07T18:13:10.660","level":"debug","req":"9fb3cef5","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T18:13:10.805","level":"debug","req":"9ca2c3e6","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:10.945","level":"debug","req":"cfbda320","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:11.095","level":"debug","req":"4d242685","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:11.243","level":"debug","req":"3742d0ed","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:11.389","level":"debug","req":"3f097b19","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:11.840","level":"debug","req":"7b07ae08","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T18:13:11.979","level":"debug","req":"ae613235","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T18:13:12.264","level":"debug","req":"b1a90dac","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T18:13:12.405","level":"debug","req":"c1dde80f","msg":"form_api: JSON output","ctx":{"bytes":12024}}
+{"ts":"2026-02-07T18:13:12.551","level":"debug","req":"ee9edbfc","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:12.735","level":"debug","req":"6bdd8259","msg":"form_api: JSON output","ctx":{"bytes":8632}}
+{"ts":"2026-02-07T18:13:12.879","level":"debug","req":"baf3c313","msg":"form_api: JSON output","ctx":{"bytes":6448}}
+{"ts":"2026-02-07T18:13:13.268","level":"debug","req":"e5389869","msg":"form_api: JSON output","ctx":{"bytes":1103}}
+{"ts":"2026-02-07T18:13:13.467","level":"debug","req":"a1921f3b","msg":"form_api: JSON output","ctx":{"bytes":39653}}
+{"ts":"2026-02-07T18:13:13.647","level":"debug","req":"1ac4c7d4","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:13:13.775","level":"debug","req":"9e75f4c7","msg":"form_api: JSON output","ctx":{"bytes":1075}}
+{"ts":"2026-02-07T18:13:14.176","level":"debug","req":"43a42420","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:14.346","level":"debug","req":"9552b945","msg":"form_api: JSON output","ctx":{"bytes":44846}}
+{"ts":"2026-02-07T18:13:14.529","level":"debug","req":"3a3ae595","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T18:13:15.155","level":"debug","req":"a85c81d7","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:15.458","level":"debug","req":"cec84eef","msg":"form_api: JSON output","ctx":{"bytes":1815}}
+{"ts":"2026-02-07T18:13:15.624","level":"debug","req":"caad82f5","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:16.061","level":"debug","req":"446c2385","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:16.198","level":"debug","req":"4f474641","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:16.344","level":"debug","req":"23faf31e","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:16.485","level":"debug","req":"dea9b18d","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:16.676","level":"debug","req":"4106d549","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:16.863","level":"debug","req":"05a4e665","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:17.003","level":"debug","req":"113389d9","msg":"form_api: JSON output","ctx":{"bytes":12496}}
+{"ts":"2026-02-07T18:13:17.330","level":"debug","req":"33f88765","msg":"form_api: JSON output","ctx":{"bytes":51723}}
+{"ts":"2026-02-07T18:13:17.477","level":"debug","req":"50e6f291","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:17.622","level":"debug","req":"639d1591","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:17.763","level":"debug","req":"bd09217b","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:17.903","level":"debug","req":"ca98a595","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:18.133","level":"debug","req":"b64e428f","msg":"form_api: JSON output","ctx":{"bytes":69480}}
+{"ts":"2026-02-07T18:13:18.288","level":"debug","req":"bd4a45f5","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:13:18.753","level":"debug","req":"2cfa9a73","msg":"form_api: JSON output","ctx":{"bytes":16883}}
+{"ts":"2026-02-07T18:14:34.616","level":"debug","req":"8dce9114","msg":"form_api: JSON output","ctx":{"bytes":2044587}}
+{"ts":"2026-02-07T18:14:35.124","level":"debug","req":"70a582e9","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:30.742","level":"debug","req":"55619c5c","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:30.842","level":"debug","req":"e09344a3","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:24:30.844","level":"debug","req":"e09344a3","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:30.844","level":"debug","req":"e09344a3","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:24:30.845","level":"debug","req":"e09344a3","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:24:30.847","level":"debug","req":"e09344a3","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:24:30.847","level":"debug","req":"e09344a3","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:30.847","level":"debug","req":"e09344a3","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:24:30.848","level":"debug","req":"e09344a3","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:24:30.848","level":"error","req":"e09344a3","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:24:31.618","level":"debug","req":"cfb39549","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:31.705","level":"debug","req":"52898956","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:24:31.707","level":"debug","req":"52898956","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:31.707","level":"debug","req":"52898956","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:24:31.707","level":"debug","req":"52898956","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:24:31.709","level":"debug","req":"52898956","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:24:31.709","level":"debug","req":"52898956","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:31.709","level":"debug","req":"52898956","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:24:31.709","level":"debug","req":"52898956","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:24:31.710","level":"error","req":"52898956","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:24:32.488","level":"debug","req":"f0cf1945","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:32.589","level":"debug","req":"b51e4784","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:24:32.591","level":"debug","req":"b51e4784","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:32.592","level":"debug","req":"b51e4784","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:24:32.592","level":"debug","req":"b51e4784","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:24:32.593","level":"debug","req":"b51e4784","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:24:32.594","level":"debug","req":"b51e4784","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:32.594","level":"debug","req":"b51e4784","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:24:32.594","level":"debug","req":"b51e4784","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:24:32.595","level":"error","req":"b51e4784","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:24:33.378","level":"debug","req":"1cfcfbc6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:34.048","level":"debug","req":"64c2ce81","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:34.897","level":"debug","req":"fb7064c2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:35.561","level":"debug","req":"c3e9e9bd","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:36.402","level":"debug","req":"e105ea88","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:37.053","level":"debug","req":"16f768ed","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:37.892","level":"debug","req":"09f3f4ce","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:38.548","level":"debug","req":"3e39eb27","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:39.382","level":"debug","req":"8c9f3236","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:40.075","level":"debug","req":"a56a90ba","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:40.956","level":"debug","req":"fc66c391","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:41.057","level":"debug","req":"691af739","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:24:41.059","level":"debug","req":"691af739","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:41.060","level":"debug","req":"691af739","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:24:41.060","level":"debug","req":"691af739","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:24:41.061","level":"debug","req":"691af739","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:24:41.061","level":"debug","req":"691af739","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:41.062","level":"debug","req":"691af739","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:24:41.062","level":"debug","req":"691af739","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:24:41.062","level":"error","req":"691af739","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:24:41.839","level":"debug","req":"6c21f5f2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:41.934","level":"debug","req":"b9abb50f","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:24:41.937","level":"debug","req":"b9abb50f","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:41.937","level":"debug","req":"b9abb50f","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:24:41.938","level":"debug","req":"b9abb50f","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:24:41.939","level":"debug","req":"b9abb50f","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:24:41.939","level":"debug","req":"b9abb50f","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:24:41.940","level":"debug","req":"b9abb50f","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:24:41.940","level":"debug","req":"b9abb50f","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:24:41.940","level":"error","req":"b9abb50f","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:24:42.716","level":"debug","req":"3abee679","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:43.579","level":"debug","req":"7acd1832","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:24:54.894","level":"debug","req":"b1fc2407","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:24:55.711","level":"debug","req":"6e71e6df","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:25:07.779","level":"debug","req":"bd66d2cd","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:25:08.514","level":"debug","req":"e43ca370","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:25:20.190","level":"debug","req":"231604ca","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:25:20.879","level":"debug","req":"2b7e9332","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:25:32.548","level":"debug","req":"31a8955b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:25:33.206","level":"debug","req":"08d7b415","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:25:44.718","level":"debug","req":"5e8785c8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:25:45.345","level":"debug","req":"183bd986","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:25:55.471","level":"debug","req":"fe1da12c","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:25:56.119","level":"debug","req":"e59e12e0","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:26:07.539","level":"debug","req":"dc4c01a2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:26:08.163","level":"debug","req":"aa1ba431","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:26:19.496","level":"debug","req":"446f650e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:26:20.082","level":"debug","req":"c079620b","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:26:30.181","level":"debug","req":"c93a0a87","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:26:30.223","level":"debug","req":"a9348345","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:26:30.224","level":"debug","req":"a9348345","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:30.224","level":"debug","req":"a9348345","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:26:30.224","level":"debug","req":"a9348345","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:26:30.225","level":"debug","req":"a9348345","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:26:30.225","level":"debug","req":"a9348345","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:30.225","level":"debug","req":"a9348345","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:26:30.225","level":"debug","req":"a9348345","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:26:30.225","level":"error","req":"a9348345","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:26:30.813","level":"debug","req":"420fb277","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:26:30.851","level":"debug","req":"d40c0837","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:26:30.852","level":"debug","req":"d40c0837","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:30.852","level":"debug","req":"d40c0837","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:26:30.852","level":"debug","req":"d40c0837","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:26:30.853","level":"debug","req":"d40c0837","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:26:30.853","level":"debug","req":"d40c0837","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:30.853","level":"debug","req":"d40c0837","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:26:30.853","level":"debug","req":"d40c0837","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:26:30.854","level":"error","req":"d40c0837","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:26:31.413","level":"debug","req":"4b96e9c8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:26:31.451","level":"debug","req":"da8363ce","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:26:31.452","level":"debug","req":"da8363ce","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:31.452","level":"debug","req":"da8363ce","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:26:31.452","level":"debug","req":"da8363ce","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:26:31.452","level":"debug","req":"da8363ce","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:26:31.452","level":"debug","req":"da8363ce","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:26:31.453","level":"debug","req":"da8363ce","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:26:31.453","level":"debug","req":"da8363ce","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:26:31.453","level":"error","req":"da8363ce","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:23.255","level":"debug","req":"64ccadc4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:23.339","level":"debug","req":"32c001d0","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:23.341","level":"debug","req":"32c001d0","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:23.341","level":"debug","req":"32c001d0","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:23.341","level":"debug","req":"32c001d0","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:23.343","level":"debug","req":"32c001d0","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:23.343","level":"debug","req":"32c001d0","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:23.343","level":"debug","req":"32c001d0","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:23.343","level":"debug","req":"32c001d0","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:23.343","level":"error","req":"32c001d0","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:24.056","level":"debug","req":"d527f053","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:24.135","level":"debug","req":"ee19386f","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:24.136","level":"debug","req":"ee19386f","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:24.137","level":"debug","req":"ee19386f","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:24.137","level":"debug","req":"ee19386f","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:24.138","level":"debug","req":"ee19386f","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:24.138","level":"debug","req":"ee19386f","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:24.138","level":"debug","req":"ee19386f","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:24.139","level":"debug","req":"ee19386f","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:24.139","level":"error","req":"ee19386f","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:24.819","level":"debug","req":"f2077a33","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:24.893","level":"debug","req":"005d79dd","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:24.895","level":"debug","req":"005d79dd","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:24.895","level":"debug","req":"005d79dd","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:24.895","level":"debug","req":"005d79dd","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:24.896","level":"debug","req":"005d79dd","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:24.897","level":"debug","req":"005d79dd","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:24.897","level":"debug","req":"005d79dd","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:24.897","level":"debug","req":"005d79dd","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:24.897","level":"error","req":"005d79dd","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:25.598","level":"debug","req":"2c6e25cf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:26.210","level":"debug","req":"5e0d59da","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:26.971","level":"debug","req":"43b2ce65","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:27.597","level":"debug","req":"9a66f547","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:28.345","level":"debug","req":"3b30ae16","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:28.957","level":"debug","req":"058c9fbb","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:29.740","level":"debug","req":"66b7e93e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:30.369","level":"debug","req":"9520ce0a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:31.136","level":"debug","req":"aad02675","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:31.749","level":"debug","req":"e25f50f9","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:32.496","level":"debug","req":"0f972fa7","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:32.574","level":"debug","req":"4f23f7d0","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:32.575","level":"debug","req":"4f23f7d0","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:32.576","level":"debug","req":"4f23f7d0","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:32.576","level":"debug","req":"4f23f7d0","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:32.577","level":"debug","req":"4f23f7d0","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:32.577","level":"debug","req":"4f23f7d0","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:32.577","level":"debug","req":"4f23f7d0","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:32.578","level":"debug","req":"4f23f7d0","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:32.578","level":"error","req":"4f23f7d0","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:33.264","level":"debug","req":"2b69d7a8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:33.337","level":"debug","req":"75c5c48f","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:33.339","level":"debug","req":"75c5c48f","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:33.339","level":"debug","req":"75c5c48f","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:33.340","level":"debug","req":"75c5c48f","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:33.341","level":"debug","req":"75c5c48f","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:33.341","level":"debug","req":"75c5c48f","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:33.341","level":"debug","req":"75c5c48f","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:33.341","level":"debug","req":"75c5c48f","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:33.342","level":"error","req":"75c5c48f","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:34.067","level":"debug","req":"636b3eaf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:34.699","level":"debug","req":"473213a4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:35.712","level":"debug","req":"936a18df","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:36.332","level":"debug","req":"560e04ef","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:37.331","level":"debug","req":"82890f72","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:37.948","level":"debug","req":"bfc33cef","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:38.879","level":"debug","req":"e1902c6b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:39.494","level":"debug","req":"88c6d3e2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:40.480","level":"debug","req":"e9b8b046","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:41.100","level":"debug","req":"1f7bf983","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:42.090","level":"debug","req":"e418494b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:42.698","level":"debug","req":"f1f3773d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:43.633","level":"debug","req":"79ed3fb9","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:44.232","level":"debug","req":"76f6821e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:45.203","level":"debug","req":"a62749cb","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:45.832","level":"debug","req":"6f2d49c8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:46.857","level":"debug","req":"ef2fa5ca","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:47.478","level":"debug","req":"75790047","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:48.481","level":"debug","req":"f27d5669","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:48.555","level":"debug","req":"066bed4b","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:48.557","level":"debug","req":"066bed4b","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:48.557","level":"debug","req":"066bed4b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:48.557","level":"debug","req":"066bed4b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:48.558","level":"debug","req":"066bed4b","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:48.558","level":"debug","req":"066bed4b","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:48.559","level":"debug","req":"066bed4b","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:48.559","level":"debug","req":"066bed4b","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:48.559","level":"error","req":"066bed4b","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:49.240","level":"debug","req":"b80ef0cf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:49.315","level":"debug","req":"dce2fc12","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:49.316","level":"debug","req":"dce2fc12","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:49.317","level":"debug","req":"dce2fc12","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:49.317","level":"debug","req":"dce2fc12","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:49.318","level":"debug","req":"dce2fc12","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:49.318","level":"debug","req":"dce2fc12","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:49.319","level":"debug","req":"dce2fc12","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:49.319","level":"debug","req":"dce2fc12","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:49.319","level":"error","req":"dce2fc12","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:31:50.010","level":"debug","req":"d621faa1","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:31:50.085","level":"debug","req":"2edf4029","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:31:50.087","level":"debug","req":"2edf4029","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:50.087","level":"debug","req":"2edf4029","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:31:50.087","level":"debug","req":"2edf4029","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:31:50.088","level":"debug","req":"2edf4029","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:31:50.088","level":"debug","req":"2edf4029","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:31:50.089","level":"debug","req":"2edf4029","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:31:50.089","level":"debug","req":"2edf4029","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:31:50.089","level":"error","req":"2edf4029","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:20.662","level":"debug","req":"24411680","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:20.754","level":"debug","req":"a0202270","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:20.756","level":"debug","req":"a0202270","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:20.756","level":"debug","req":"a0202270","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:20.756","level":"debug","req":"a0202270","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:20.757","level":"debug","req":"a0202270","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:20.757","level":"debug","req":"a0202270","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:20.758","level":"debug","req":"a0202270","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:20.758","level":"debug","req":"a0202270","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:20.758","level":"error","req":"a0202270","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:21.475","level":"debug","req":"e4b36bff","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:21.545","level":"debug","req":"01e6964e","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:21.547","level":"debug","req":"01e6964e","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:21.547","level":"debug","req":"01e6964e","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:21.547","level":"debug","req":"01e6964e","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:21.548","level":"debug","req":"01e6964e","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:21.548","level":"debug","req":"01e6964e","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:21.549","level":"debug","req":"01e6964e","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:21.549","level":"debug","req":"01e6964e","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:21.549","level":"error","req":"01e6964e","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:22.227","level":"debug","req":"2256a8ec","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:22.294","level":"debug","req":"3f2106b4","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:22.295","level":"debug","req":"3f2106b4","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:22.296","level":"debug","req":"3f2106b4","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:22.296","level":"debug","req":"3f2106b4","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:22.297","level":"debug","req":"3f2106b4","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:22.297","level":"debug","req":"3f2106b4","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:22.297","level":"debug","req":"3f2106b4","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:22.297","level":"debug","req":"3f2106b4","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:22.297","level":"error","req":"3f2106b4","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:22.991","level":"debug","req":"d6dfcfe9","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:23.614","level":"debug","req":"20fec5b4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:24.359","level":"debug","req":"5865ab3b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:24.989","level":"debug","req":"bba71cdc","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:25.734","level":"debug","req":"799f71ed","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:26.365","level":"debug","req":"ec3e2bb2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:27.134","level":"debug","req":"cbc1cd6d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:27.757","level":"debug","req":"3ccbc024","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:28.558","level":"debug","req":"0660a501","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:29.195","level":"debug","req":"0c15ae11","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:29.982","level":"debug","req":"d22f0315","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:30.057","level":"debug","req":"e2207de8","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:30.059","level":"debug","req":"e2207de8","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:30.059","level":"debug","req":"e2207de8","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:30.060","level":"debug","req":"e2207de8","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:30.061","level":"debug","req":"e2207de8","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:30.061","level":"debug","req":"e2207de8","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:30.061","level":"debug","req":"e2207de8","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:30.061","level":"debug","req":"e2207de8","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:30.062","level":"error","req":"e2207de8","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:30.778","level":"debug","req":"afc84557","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:30.850","level":"debug","req":"97aa1fd5","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:30.852","level":"debug","req":"97aa1fd5","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:30.852","level":"debug","req":"97aa1fd5","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:30.853","level":"debug","req":"97aa1fd5","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:30.854","level":"debug","req":"97aa1fd5","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:30.854","level":"debug","req":"97aa1fd5","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:30.854","level":"debug","req":"97aa1fd5","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:30.854","level":"debug","req":"97aa1fd5","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:30.854","level":"error","req":"97aa1fd5","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:31.560","level":"debug","req":"d658a625","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:32.190","level":"debug","req":"12f62adc","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:33.292","level":"debug","req":"6f0dcacd","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:33.909","level":"debug","req":"3485e2e6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:34.923","level":"debug","req":"f7110271","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:35.523","level":"debug","req":"80b9e761","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:36.469","level":"debug","req":"51d2faaf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:37.106","level":"debug","req":"a87df2a8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:38.090","level":"debug","req":"a51f01ec","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:38.719","level":"debug","req":"e0ee65a6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:39.731","level":"debug","req":"017b87df","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:40.334","level":"debug","req":"89498163","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:41.297","level":"debug","req":"4ba6a3e0","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:41.923","level":"debug","req":"8f020db4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:42.904","level":"debug","req":"3a1ac559","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:43.522","level":"debug","req":"4985487c","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:44.538","level":"debug","req":"f8410255","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:45.171","level":"debug","req":"79a80722","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:46.145","level":"debug","req":"4e672f63","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:46.215","level":"debug","req":"55121aee","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:46.216","level":"debug","req":"55121aee","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:46.217","level":"debug","req":"55121aee","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:46.217","level":"debug","req":"55121aee","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:46.218","level":"debug","req":"55121aee","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:46.218","level":"debug","req":"55121aee","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:46.219","level":"debug","req":"55121aee","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:46.219","level":"debug","req":"55121aee","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:46.219","level":"error","req":"55121aee","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:46.900","level":"debug","req":"5cbd1671","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:46.978","level":"debug","req":"51f0cc8b","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:46.980","level":"debug","req":"51f0cc8b","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:46.980","level":"debug","req":"51f0cc8b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:46.980","level":"debug","req":"51f0cc8b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:46.981","level":"debug","req":"51f0cc8b","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:46.982","level":"debug","req":"51f0cc8b","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:46.982","level":"debug","req":"51f0cc8b","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:46.982","level":"debug","req":"51f0cc8b","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:46.982","level":"error","req":"51f0cc8b","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:34:47.684","level":"debug","req":"5d5ceebb","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:34:47.757","level":"debug","req":"b0e6ef6c","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:34:47.759","level":"debug","req":"b0e6ef6c","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:47.759","level":"debug","req":"b0e6ef6c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:34:47.759","level":"debug","req":"b0e6ef6c","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:34:47.760","level":"debug","req":"b0e6ef6c","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:34:47.761","level":"debug","req":"b0e6ef6c","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:34:47.761","level":"debug","req":"b0e6ef6c","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:34:47.761","level":"debug","req":"b0e6ef6c","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:34:47.761","level":"error","req":"b0e6ef6c","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:36:52.859","level":"debug","req":"09c5120a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:52.942","level":"debug","req":"54c22ea6","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:36:52.944","level":"debug","req":"54c22ea6","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:52.944","level":"debug","req":"54c22ea6","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:36:52.944","level":"debug","req":"54c22ea6","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:36:52.946","level":"debug","req":"54c22ea6","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:36:52.946","level":"debug","req":"54c22ea6","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:52.946","level":"debug","req":"54c22ea6","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:36:52.946","level":"debug","req":"54c22ea6","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:36:52.947","level":"error","req":"54c22ea6","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:36:53.645","level":"debug","req":"863d8735","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:53.719","level":"debug","req":"64508831","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:36:53.721","level":"debug","req":"64508831","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:53.721","level":"debug","req":"64508831","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:36:53.721","level":"debug","req":"64508831","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:36:53.722","level":"debug","req":"64508831","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:36:53.722","level":"debug","req":"64508831","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:53.722","level":"debug","req":"64508831","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:36:53.723","level":"debug","req":"64508831","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:36:53.723","level":"error","req":"64508831","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:36:54.383","level":"debug","req":"9e60f26e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:54.454","level":"debug","req":"2ce57517","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:36:54.456","level":"debug","req":"2ce57517","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:54.456","level":"debug","req":"2ce57517","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:36:54.456","level":"debug","req":"2ce57517","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:36:54.457","level":"debug","req":"2ce57517","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:36:54.457","level":"debug","req":"2ce57517","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:36:54.457","level":"debug","req":"2ce57517","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:36:54.457","level":"debug","req":"2ce57517","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:36:54.458","level":"error","req":"2ce57517","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:36:55.135","level":"debug","req":"8a2f25c7","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:55.756","level":"debug","req":"e2f7aef5","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:56.521","level":"debug","req":"d44c14d6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:57.150","level":"debug","req":"c73963c2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:57.918","level":"debug","req":"d4916cdf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:58.543","level":"debug","req":"51b5a0de","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:59.299","level":"debug","req":"ae280e58","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:36:59.923","level":"debug","req":"823dbb97","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:00.699","level":"debug","req":"de25cc79","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:01.354","level":"debug","req":"76ff46a3","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:02.173","level":"debug","req":"2978aed5","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:02.254","level":"debug","req":"b9af1819","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:37:02.256","level":"debug","req":"b9af1819","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:02.256","level":"debug","req":"b9af1819","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:37:02.257","level":"debug","req":"b9af1819","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:37:02.258","level":"debug","req":"b9af1819","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:37:02.258","level":"debug","req":"b9af1819","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:02.258","level":"debug","req":"b9af1819","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:37:02.258","level":"debug","req":"b9af1819","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:37:02.258","level":"error","req":"b9af1819","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:37:02.985","level":"debug","req":"1b8f0382","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:03.058","level":"debug","req":"53fd0cc3","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:37:03.060","level":"debug","req":"53fd0cc3","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:03.060","level":"debug","req":"53fd0cc3","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:37:03.060","level":"debug","req":"53fd0cc3","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:37:03.062","level":"debug","req":"53fd0cc3","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:37:03.062","level":"debug","req":"53fd0cc3","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:03.062","level":"debug","req":"53fd0cc3","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:37:03.062","level":"debug","req":"53fd0cc3","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:37:03.062","level":"error","req":"53fd0cc3","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:37:03.755","level":"debug","req":"e70eb6a8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:04.839","level":"debug","req":"3737278a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:05.866","level":"debug","req":"3674a4de","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:06.844","level":"debug","req":"5e1694b8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:07.880","level":"debug","req":"d6ad1469","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:08.877","level":"debug","req":"edc6f228","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:09.853","level":"debug","req":"0bd0d109","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:10.826","level":"debug","req":"60733819","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:11.823","level":"debug","req":"a1bfc5a7","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:12.776","level":"debug","req":"525e0bdf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:12.851","level":"debug","req":"ca16d8f5","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:37:12.853","level":"debug","req":"ca16d8f5","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:12.853","level":"debug","req":"ca16d8f5","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:37:12.853","level":"debug","req":"ca16d8f5","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:37:12.854","level":"debug","req":"ca16d8f5","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:37:12.854","level":"debug","req":"ca16d8f5","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:12.855","level":"debug","req":"ca16d8f5","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:37:12.855","level":"debug","req":"ca16d8f5","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:37:12.855","level":"error","req":"ca16d8f5","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:37:13.545","level":"debug","req":"93d15272","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:13.618","level":"debug","req":"1552d3ae","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:37:13.620","level":"debug","req":"1552d3ae","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:13.620","level":"debug","req":"1552d3ae","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:37:13.620","level":"debug","req":"1552d3ae","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:37:13.621","level":"debug","req":"1552d3ae","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:37:13.621","level":"debug","req":"1552d3ae","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:13.622","level":"debug","req":"1552d3ae","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:37:13.622","level":"debug","req":"1552d3ae","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:37:13.622","level":"error","req":"1552d3ae","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:37:14.294","level":"debug","req":"862f55ea","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:37:14.365","level":"debug","req":"f764c195","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:37:14.367","level":"debug","req":"f764c195","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:14.367","level":"debug","req":"f764c195","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:37:14.367","level":"debug","req":"f764c195","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:37:14.369","level":"debug","req":"f764c195","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:37:14.369","level":"debug","req":"f764c195","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:37:14.369","level":"debug","req":"f764c195","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:37:14.369","level":"debug","req":"f764c195","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:37:14.370","level":"error","req":"f764c195","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:11.909","level":"debug","req":"cb6216de","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:12.007","level":"debug","req":"a82b7a52","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:40:12.008","level":"debug","req":"a82b7a52","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:12.008","level":"debug","req":"a82b7a52","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:40:12.009","level":"debug","req":"a82b7a52","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:40:12.010","level":"debug","req":"a82b7a52","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:40:12.011","level":"debug","req":"a82b7a52","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:12.011","level":"debug","req":"a82b7a52","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:40:12.011","level":"debug","req":"a82b7a52","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:40:12.011","level":"error","req":"a82b7a52","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:12.687","level":"debug","req":"23ce0c35","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:12.750","level":"debug","req":"b6def05a","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:40:12.752","level":"debug","req":"b6def05a","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:12.752","level":"debug","req":"b6def05a","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:40:12.752","level":"debug","req":"b6def05a","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:40:12.753","level":"debug","req":"b6def05a","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:40:12.753","level":"debug","req":"b6def05a","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:12.753","level":"debug","req":"b6def05a","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:40:12.753","level":"debug","req":"b6def05a","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:40:12.753","level":"error","req":"b6def05a","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:13.425","level":"debug","req":"7c99a41d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:13.486","level":"debug","req":"cd9f0762","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:40:13.488","level":"debug","req":"cd9f0762","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:13.488","level":"debug","req":"cd9f0762","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:40:13.488","level":"debug","req":"cd9f0762","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:40:13.489","level":"debug","req":"cd9f0762","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:40:13.489","level":"debug","req":"cd9f0762","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:13.489","level":"debug","req":"cd9f0762","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:40:13.489","level":"debug","req":"cd9f0762","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:40:13.489","level":"error","req":"cd9f0762","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:14.139","level":"debug","req":"07a68183","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:14.741","level":"debug","req":"9db14857","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:15.460","level":"debug","req":"287ac235","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:16.049","level":"debug","req":"67d5bb05","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:16.732","level":"debug","req":"9ea409b2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:17.337","level":"debug","req":"046fe880","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:18.050","level":"debug","req":"ee6de03b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:18.641","level":"debug","req":"eb0bf228","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:19.341","level":"debug","req":"01db7fbe","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:19.948","level":"debug","req":"8530f2b7","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:20.689","level":"debug","req":"20e15297","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:20.751","level":"debug","req":"5c91a88f","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:40:20.753","level":"debug","req":"5c91a88f","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:20.753","level":"debug","req":"5c91a88f","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:40:20.753","level":"debug","req":"5c91a88f","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:40:20.754","level":"debug","req":"5c91a88f","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:40:20.754","level":"debug","req":"5c91a88f","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:20.755","level":"debug","req":"5c91a88f","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:40:20.755","level":"debug","req":"5c91a88f","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:40:20.755","level":"error","req":"5c91a88f","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:21.437","level":"debug","req":"738ad48f","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:21.496","level":"debug","req":"ef782211","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:40:21.498","level":"debug","req":"ef782211","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:21.498","level":"debug","req":"ef782211","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:40:21.498","level":"debug","req":"ef782211","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:40:21.499","level":"debug","req":"ef782211","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:40:21.499","level":"debug","req":"ef782211","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:40:21.500","level":"debug","req":"ef782211","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:40:21.500","level":"debug","req":"ef782211","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:40:21.500","level":"error","req":"ef782211","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:40:22.161","level":"debug","req":"7adf926b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:22.874","level":"debug","req":"d4a1b376","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:40:35.262","level":"debug","req":"26895476","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:35.966","level":"debug","req":"20582573","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:40:47.313","level":"debug","req":"64f9e248","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:47.987","level":"debug","req":"dae4276a","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:40:58.504","level":"debug","req":"45872f3d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:40:59.179","level":"debug","req":"1dd50fdf","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:41:11.686","level":"debug","req":"815566e1","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:41:12.558","level":"debug","req":"d3ecb977","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:41:25.147","level":"debug","req":"72f1be7b","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:41:26.028","level":"debug","req":"d226a88b","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:41:38.000","level":"debug","req":"6cac8d45","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:41:38.901","level":"debug","req":"c9e0e9aa","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:41:51.444","level":"debug","req":"1ddb1840","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:41:52.384","level":"debug","req":"0429ddd4","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:42:04.120","level":"debug","req":"d2df1eb3","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:42:04.977","level":"debug","req":"17afe507","msg":"form_api: JSON output","ctx":{"bytes":212202}}
+{"ts":"2026-02-07T18:42:18.078","level":"debug","req":"8a9e4f3e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:42:18.189","level":"debug","req":"958f5f25","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:42:18.192","level":"debug","req":"958f5f25","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:18.192","level":"debug","req":"958f5f25","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:42:18.192","level":"debug","req":"958f5f25","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:42:18.194","level":"debug","req":"958f5f25","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:42:18.195","level":"debug","req":"958f5f25","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:18.195","level":"debug","req":"958f5f25","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:42:18.195","level":"debug","req":"958f5f25","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:42:18.196","level":"error","req":"958f5f25","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:42:19.021","level":"debug","req":"e387b71c","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:42:19.122","level":"debug","req":"2f482701","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:42:19.125","level":"debug","req":"2f482701","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:19.126","level":"debug","req":"2f482701","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:42:19.126","level":"debug","req":"2f482701","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:42:19.128","level":"debug","req":"2f482701","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:42:19.128","level":"debug","req":"2f482701","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:19.128","level":"debug","req":"2f482701","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:42:19.128","level":"debug","req":"2f482701","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:42:19.129","level":"error","req":"2f482701","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:42:19.964","level":"debug","req":"244babc3","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:42:20.077","level":"debug","req":"c15796ca","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:42:20.080","level":"debug","req":"c15796ca","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:20.080","level":"debug","req":"c15796ca","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:42:20.080","level":"debug","req":"c15796ca","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:42:20.082","level":"debug","req":"c15796ca","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:42:20.082","level":"debug","req":"c15796ca","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:42:20.083","level":"debug","req":"c15796ca","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:42:20.083","level":"debug","req":"c15796ca","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:42:20.083","level":"error","req":"c15796ca","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:47:51.098","level":"debug","req":"cb958d4e","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:51.200","level":"debug","req":"693a77d2","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:47:51.202","level":"debug","req":"693a77d2","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:51.202","level":"debug","req":"693a77d2","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:47:51.202","level":"debug","req":"693a77d2","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:47:51.206","level":"debug","req":"693a77d2","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:47:51.206","level":"debug","req":"693a77d2","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:51.207","level":"debug","req":"693a77d2","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:47:51.207","level":"debug","req":"693a77d2","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:47:51.207","level":"error","req":"693a77d2","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:47:51.990","level":"debug","req":"77dfc25d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:52.086","level":"debug","req":"acb2a959","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:47:52.088","level":"debug","req":"acb2a959","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:52.088","level":"debug","req":"acb2a959","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:47:52.089","level":"debug","req":"acb2a959","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:47:52.090","level":"debug","req":"acb2a959","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:47:52.091","level":"debug","req":"acb2a959","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:52.091","level":"debug","req":"acb2a959","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:47:52.091","level":"debug","req":"acb2a959","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:47:52.091","level":"error","req":"acb2a959","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:47:52.836","level":"debug","req":"e0e1192d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:52.924","level":"debug","req":"cda114ec","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:47:52.926","level":"debug","req":"cda114ec","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:52.926","level":"debug","req":"cda114ec","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:47:52.926","level":"debug","req":"cda114ec","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:47:52.927","level":"debug","req":"cda114ec","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:47:52.928","level":"debug","req":"cda114ec","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:47:52.928","level":"debug","req":"cda114ec","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:47:52.928","level":"debug","req":"cda114ec","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:47:52.928","level":"error","req":"cda114ec","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:47:53.664","level":"debug","req":"0827a469","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:54.320","level":"debug","req":"37201ca3","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:55.133","level":"debug","req":"231b86ac","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:55.804","level":"debug","req":"182b90c2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:56.606","level":"debug","req":"7b954c16","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:57.252","level":"debug","req":"0764193d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:58.092","level":"debug","req":"15503982","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:58.767","level":"debug","req":"e7c06678","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:47:59.607","level":"debug","req":"864e227a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:00.272","level":"debug","req":"f369f774","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:01.118","level":"debug","req":"134bcaea","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:01.217","level":"debug","req":"4977b116","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:48:01.219","level":"debug","req":"4977b116","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:01.219","level":"debug","req":"4977b116","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:48:01.220","level":"debug","req":"4977b116","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:48:01.221","level":"debug","req":"4977b116","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:48:01.221","level":"debug","req":"4977b116","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:01.222","level":"debug","req":"4977b116","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:48:01.222","level":"debug","req":"4977b116","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:48:01.222","level":"error","req":"4977b116","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:48:02.006","level":"debug","req":"2aeea858","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:02.100","level":"debug","req":"25b0385d","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:48:02.102","level":"debug","req":"25b0385d","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:02.102","level":"debug","req":"25b0385d","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:48:02.103","level":"debug","req":"25b0385d","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:48:02.104","level":"debug","req":"25b0385d","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:48:02.104","level":"debug","req":"25b0385d","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:02.105","level":"debug","req":"25b0385d","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:48:02.105","level":"debug","req":"25b0385d","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:48:02.106","level":"error","req":"25b0385d","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:48:02.885","level":"debug","req":"93c384cf","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:03.762","level":"debug","req":"b6043418","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:48:05.526","level":"debug","req":"52c05703","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:06.330","level":"debug","req":"cce8cb2a","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:48:07.949","level":"debug","req":"8fbd13c8","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:08.737","level":"debug","req":"ff7160ef","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:48:10.311","level":"debug","req":"b0333714","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:10.409","level":"debug","req":"2cd31f59","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:48:10.411","level":"debug","req":"2cd31f59","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:10.411","level":"debug","req":"2cd31f59","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:48:10.412","level":"debug","req":"2cd31f59","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:48:10.413","level":"debug","req":"2cd31f59","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:48:10.413","level":"debug","req":"2cd31f59","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:10.414","level":"debug","req":"2cd31f59","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:48:10.414","level":"debug","req":"2cd31f59","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:48:10.414","level":"error","req":"2cd31f59","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:48:11.154","level":"debug","req":"649ca4f0","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:11.243","level":"debug","req":"81731293","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:48:11.245","level":"debug","req":"81731293","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:11.246","level":"debug","req":"81731293","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:48:11.246","level":"debug","req":"81731293","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:48:11.247","level":"debug","req":"81731293","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:48:11.247","level":"debug","req":"81731293","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:11.248","level":"debug","req":"81731293","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:48:11.248","level":"debug","req":"81731293","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:48:11.248","level":"error","req":"81731293","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:48:11.999","level":"debug","req":"4dc752c6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:48:12.095","level":"debug","req":"ce9e3f18","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:48:12.097","level":"debug","req":"ce9e3f18","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:12.097","level":"debug","req":"ce9e3f18","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:48:12.097","level":"debug","req":"ce9e3f18","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:48:12.099","level":"debug","req":"ce9e3f18","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:48:12.099","level":"debug","req":"ce9e3f18","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:48:12.099","level":"debug","req":"ce9e3f18","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:48:12.099","level":"debug","req":"ce9e3f18","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:48:12.100","level":"error","req":"ce9e3f18","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:22.637","level":"debug","req":"79204d81","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:22.715","level":"debug","req":"40aca6f3","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:22.717","level":"debug","req":"40aca6f3","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:22.717","level":"debug","req":"40aca6f3","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:22.718","level":"debug","req":"40aca6f3","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:22.719","level":"debug","req":"40aca6f3","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:22.719","level":"debug","req":"40aca6f3","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:22.719","level":"debug","req":"40aca6f3","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:22.719","level":"debug","req":"40aca6f3","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:22.719","level":"error","req":"40aca6f3","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:23.419","level":"debug","req":"d358dde2","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:23.493","level":"debug","req":"577b7c83","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:23.495","level":"debug","req":"577b7c83","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:23.495","level":"debug","req":"577b7c83","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:23.495","level":"debug","req":"577b7c83","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:23.496","level":"debug","req":"577b7c83","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:23.496","level":"debug","req":"577b7c83","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:23.497","level":"debug","req":"577b7c83","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:23.497","level":"debug","req":"577b7c83","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:23.497","level":"error","req":"577b7c83","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:24.192","level":"debug","req":"a06ea6c6","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:24.265","level":"debug","req":"ada6f44c","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:24.267","level":"debug","req":"ada6f44c","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:24.268","level":"debug","req":"ada6f44c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:24.268","level":"debug","req":"ada6f44c","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:24.269","level":"debug","req":"ada6f44c","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:24.269","level":"debug","req":"ada6f44c","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:24.269","level":"debug","req":"ada6f44c","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:24.270","level":"debug","req":"ada6f44c","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:24.270","level":"error","req":"ada6f44c","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:24.949","level":"debug","req":"83b63c0d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:25.570","level":"debug","req":"e4616eb9","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:26.321","level":"debug","req":"6efde5e4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:26.921","level":"debug","req":"93c87942","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:27.685","level":"debug","req":"9ce9c30a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:28.301","level":"debug","req":"abb9dbab","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:29.097","level":"debug","req":"1a25f113","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:29.734","level":"debug","req":"4d5e4f62","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:30.535","level":"debug","req":"2286a62d","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:31.170","level":"debug","req":"fba1c6aa","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:31.990","level":"debug","req":"de6546e4","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:32.075","level":"debug","req":"32eb603d","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:32.077","level":"debug","req":"32eb603d","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:32.077","level":"debug","req":"32eb603d","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:32.077","level":"debug","req":"32eb603d","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:32.079","level":"debug","req":"32eb603d","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:32.079","level":"debug","req":"32eb603d","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:32.079","level":"debug","req":"32eb603d","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:32.079","level":"debug","req":"32eb603d","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:32.079","level":"error","req":"32eb603d","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:32.814","level":"debug","req":"7721c83a","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:32.900","level":"debug","req":"26fc5386","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:32.903","level":"debug","req":"26fc5386","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:32.903","level":"debug","req":"26fc5386","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:32.903","level":"debug","req":"26fc5386","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:32.904","level":"debug","req":"26fc5386","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:32.905","level":"debug","req":"26fc5386","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:32.905","level":"debug","req":"26fc5386","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:32.905","level":"debug","req":"26fc5386","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:32.905","level":"error","req":"26fc5386","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:33.640","level":"debug","req":"fd143028","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:34.483","level":"debug","req":"3d31f27a","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:50:36.219","level":"debug","req":"5072d1c3","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:37.028","level":"debug","req":"a08d442f","msg":"form_api: JSON output","ctx":{"bytes":212202}}
+{"ts":"2026-02-07T18:50:38.667","level":"debug","req":"929ed0ab","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:39.462","level":"debug","req":"bbcac8bd","msg":"form_api: JSON output","ctx":{"bytes":212204}}
+{"ts":"2026-02-07T18:50:41.187","level":"debug","req":"9a0df080","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:41.284","level":"debug","req":"b602f4e7","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:41.287","level":"debug","req":"b602f4e7","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:41.287","level":"debug","req":"b602f4e7","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:41.287","level":"debug","req":"b602f4e7","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:41.290","level":"debug","req":"b602f4e7","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:41.290","level":"debug","req":"b602f4e7","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:41.291","level":"debug","req":"b602f4e7","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:41.291","level":"debug","req":"b602f4e7","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:41.291","level":"error","req":"b602f4e7","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:42.097","level":"debug","req":"73066936","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:42.192","level":"debug","req":"242e90fa","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:42.194","level":"debug","req":"242e90fa","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:42.195","level":"debug","req":"242e90fa","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:42.195","level":"debug","req":"242e90fa","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:42.197","level":"debug","req":"242e90fa","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:42.197","level":"debug","req":"242e90fa","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:42.197","level":"debug","req":"242e90fa","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:42.198","level":"debug","req":"242e90fa","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:42.198","level":"error","req":"242e90fa","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-02-07T18:50:42.961","level":"debug","req":"0216fef5","msg":"form_api: JSON output","ctx":{"bytes":212137}}
+{"ts":"2026-02-07T18:50:43.063","level":"debug","req":"d7a58b93","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-02-07T18:50:43.066","level":"debug","req":"d7a58b93","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:43.066","level":"debug","req":"d7a58b93","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-02-07T18:50:43.067","level":"debug","req":"d7a58b93","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-02-07T18:50:43.068","level":"debug","req":"d7a58b93","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-02-07T18:50:43.068","level":"debug","req":"d7a58b93","msg":"SAVE: Received data keys","ctx":{"keys":[]}}
+{"ts":"2026-02-07T18:50:43.069","level":"debug","req":"d7a58b93","msg":"SAVE: userEmail NOT in received data"}
+{"ts":"2026-02-07T18:50:43.069","level":"debug","req":"d7a58b93","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-02-07T18:50:43.069","level":"error","req":"d7a58b93","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}

@@ -1,0 +1,74 @@
+{
+    "id": "3c83b100-f0ed-4368-8414-8a0821de34a2",
+    "name": "Advanced Mode Test 1773223116475",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkDeelname Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Context Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Subcontext Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkLoginGeplaatstDoor Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "AantalDuplicaten",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        }
+    ],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-03-11 09:59:26",
+    "createdAt": "2026-03-11 09:59:26",
+    "createdBy": "1"
+}

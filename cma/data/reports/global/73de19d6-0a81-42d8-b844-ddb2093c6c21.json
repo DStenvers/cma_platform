@@ -1,0 +1,73 @@
+{
+    "id": "73de19d6-0a81-42d8-b844-ddb2093c6c21",
+    "name": "Sync Test 1771506864920",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkDeelname Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Context Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Subcontext Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkLoginGeplaatstDoor Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "AantalDuplicaten",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        }
+    ],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-19 13:14:25",
+    "createdAt": "2026-02-19 13:14:25"
+}

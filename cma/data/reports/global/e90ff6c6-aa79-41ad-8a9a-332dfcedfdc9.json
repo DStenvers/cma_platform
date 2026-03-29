@@ -1,0 +1,37 @@
+{
+    "id": "e90ff6c6-aa79-41ad-8a9a-332dfcedfdc9",
+    "name": "Sync Test 1770838502817",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-11 19:35:11",
+    "createdAt": "2026-02-11 19:35:11"
+}

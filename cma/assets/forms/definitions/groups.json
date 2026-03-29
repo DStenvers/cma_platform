@@ -1,0 +1,61 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "groups",
+        "title": "Groepen",
+        "titleSingular": "Groep",
+        "table": "tblGroups",
+        "database": "users",
+        "idField": "ID",
+        "listQuery": "SELECT ID, grpName as Naam\nFROM tblGroups\nORDER BY grpName",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": false,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "previewUrl": "",
+        "afterPostUrl": "",
+        "onLoadJs": "",
+        "filterIdName": "",
+        "quickSearchFields": "grpName",
+        "detailField": "Naam",
+        "fields": [
+                {
+                        "name": "grpName",
+                        "type": "textbox",
+                        "caption": "Naam groep",
+                        "required": true,
+                        "maxLength": 78
+                },
+                {
+                        "name": "groupIPAddresses",
+                        "type": "textbox",
+                        "caption": "IP adres(sen)",
+                        "hint": "Toegestand IP adres(sen) van leden (;-gescheiden)",
+                        "maxLength": 254,
+                        "dataType": "text"
+                },
+                {
+                        "name": "group_menu_rights",
+                        "type": "custom",
+                        "caption": "Rechten",
+                        "renderer": "group_menu_rights",
+                        "hint": "Toegang tot menu's en formulieren voor deze groep"
+                },
+                {
+                        "name": "group_report_rights",
+                        "type": "custom",
+                        "caption": "Rapporten",
+                        "renderer": "group_report_rights",
+                        "hint": "Toegang tot rapporten voor deze groep"
+                },
+                {
+                        "name": "group_members",
+                        "type": "custom",
+                        "caption": "Leden",
+                        "renderer": "group_members",
+                        "hint": "Gebruikers die lid zijn van deze groep"
+                }
+        ],
+        "subforms": []
+}

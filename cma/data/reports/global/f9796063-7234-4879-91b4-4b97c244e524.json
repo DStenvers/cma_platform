@@ -1,0 +1,1851 @@
+{
+    "id": "f9796063-7234-4879-91b4-4b97c244e524",
+    "name": "Deelnemers en hun hoofddocent",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "tblDocenten",
+            "alias": "t",
+            "joins": [
+                {
+                    "table": "tblDeelname",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblDeelname].[fkHoofdDocent] = [tblDocenten].[ID]"
+                },
+                {
+                    "table": "tblDeelnemers",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblDeelname].[fkDeelnemer] = [tblDeelnemers].[ID]"
+                },
+                {
+                    "table": "tblOpleidingen",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblDeelname].[fkOpleiding] = [tblOpleidingen].[ID]"
+                }
+            ],
+            "relationships": []
+        },
+        {
+            "name": "tblDeelname",
+            "alias": "t",
+            "joins": [],
+            "relationships": [
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkDeelnemer",
+                    "pkTable": "tblDeelnemers",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkOpleiding",
+                    "pkTable": "tblOpleidingen",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkPraktijkOpleider",
+                    "pkTable": "tblPraktijkOpleiders",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkHoofdDocent",
+                    "pkTable": "tblDocenten",
+                    "pkColumn": "ID",
+                    "innerJoin": true,
+                    "manual": true
+                },
+                {
+                    "fkTable": "tblDeelname",
+                    "fkColumn": "fkHoofdDocent",
+                    "pkTable": "tblDocenten",
+                    "pkColumn": "ID",
+                    "manual": true
+                }
+            ]
+        },
+        {
+            "name": "tblDeelnemers",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        },
+        {
+            "name": "tblOpleidingen",
+            "alias": "t",
+            "joins": [],
+            "relationships": [
+                {
+                    "fkTable": "tblOpleidingen",
+                    "fkColumn": "fkOrganisatie",
+                    "pkTable": "tblOrganisaties",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingen",
+                    "fkColumn": "fkCompetentieTemplate",
+                    "pkTable": "tblCompetentieTemplate",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingen",
+                    "fkColumn": "fkDifferentiatie",
+                    "pkTable": "tblDifferentiatie",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingen",
+                    "fkColumn": "fkVATemplate",
+                    "pkTable": "tblVATemplate",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingen",
+                    "fkColumn": "fkKBTTemplate",
+                    "pkTable": "tblKBTTemplates",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                }
+            ]
+        }
+    ],
+    "fields": [
+        {
+            "table": "tblDocenten",
+            "field": "ID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "VolledigeNaam",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Achternaam",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "MV",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Organisatie",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Organisatie2",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Adres",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Huisnummer",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Postcode",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Plaats",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Email",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "EmailNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonPrive",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonPrivePubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonWerk",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonWerkPubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonMobiel",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "TelefoonMobielPubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PriveAdres",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PriveHuisnummer",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PrivePostcode",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PrivePlaats",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "Afdeling",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PromptusID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "guid",
+            "dataType": -11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "sync_teller",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "sync_date",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "bAktief",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "SRH",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "AUTISME",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "EmailForumNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "EmailNieuwsNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "BIG_HO_GZ",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "emailMessageNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "emailTonen",
+            "dataType": -7,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "EmailNotificatiesEvaluaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "SRH_HERSTELDOCENT",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "EmailDraaiboekNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "datReviewEmail",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "datDocentReactie",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "bDocentAkkoord",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "NieuweFoto",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "NieuweIntro",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "NieuweBio",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "datPlanningReminder",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PlanningChanges",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "PlanningVerwerkt",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDocenten",
+            "field": "fkPlanner",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "ID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkDeelnemer",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkOpleiding",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkPraktijkOpleider",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkHoofdDocent",
+            "dataType": 4,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Dossioma",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaLaatstGewijzigd",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Werkplan",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DeelnemerDatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderGoedgekeurd",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderDatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderGoedgekeurd",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderDatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Deelnemer",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Praktijkopl",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Werkplan_Hoofdopleider",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Halfjaar_Deelnemer",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AssistentWerkplanCheck",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "alleenCursorisch",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "EindDatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Competentie_Deelnemer",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Reminder_Competentie_Praktijkopl",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "PraktijkopleiderOpmerking_Oud",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "HoofdopleiderOpmerking_Oud",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaPraktijkinstellingen",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "blnDossiomadefinitief",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datDiploma",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AanvangsdocumentenCompleet",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DossiomaHoofdopleiderInfo",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "FotoLijstInfo",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "AanvangsdocumentenOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Dossioma_ho_opmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datLoginMail",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datLoginMailPO",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_verzocht",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_ingevuld",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_reminder",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuurgegevens_reminder2",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuur_gegevens",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "factuur_centraal",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datVerwachteEinddatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkHoofddeelname",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "toegelaten",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "toegelaten_datum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "inhaler",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "OvereenkomstDatumgeplaatst",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Overeenkomst",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "certificaatdatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "fkGedelegeerdPOpleider",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "datAangemeld",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusToegelatenOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusTweedeGesprekOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusNietGestartOpmerking",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusToegelatenBijlage",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusTweedeGesprekBijlage",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "statusNietGestartBijlage",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "DatumOpleidingsEisenVoldaan",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "Certificaat",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "startPraktijk",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelname",
+            "field": "eindePraktijk",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "ID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "VolledigeNaam",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Achternaam",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "MV",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Organisatie",
+            "dataType": 1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Organisatie2",
+            "dataType": 1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Adres",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Huisnummer",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Postcode",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Plaats",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Email",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "EmailNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonPrive",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonPrivePubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonWerk",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonWerkPubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonMobiel",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "TelefoonMobielPubliceren",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PriveAdres",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PriveHuisnummer",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PrivePostcode",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PrivePlaats",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Afdeling",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PromptusKoppeling",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "PromptusID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "guid",
+            "dataType": -11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "sync_teller",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "sync_date",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "GeboorteDatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "GeboortePlaats",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "EmailForumNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "EmailNieuwsNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "functie1",
+            "dataType": 1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "functie2",
+            "dataType": 1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "emailMessageNotificaties",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "emailTonen",
+            "dataType": -7,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "ID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkOrganisatie",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Titel",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Startdatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact1",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact2",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Literatuurlijst",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "testlijst",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "RichtlijnenBehandelingcasus",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "RichtlijnenDiagnostiekcasus",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Onderzoeksverslag",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Routebeschrijving",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateWerkplan",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateJaarverslag",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateHalfJaarverslag",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact3",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fotoboekPDF",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "supervisieverklaring",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "BNSOpleiding",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Studiegids",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PromptusID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkCompetentieTemplate",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "DigitaalDossioma",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkUrenTemplate",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "ToetsenOverzicht",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "IliasCursusID",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkDifferentiatie",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGO",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGO_Documenten",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGOToetsformulier",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkVATemplate",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Code",
+            "dataType": 12,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "draaiboekDigitaal",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "draaiboekIntro",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datDocentenOnline",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bHerregistratie",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkEvaluatieTemplate",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bMoodleGekoppeld",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bFactuurGegevens",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bNieuweCGOIndeling",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkOplSoort",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "POMagWerkplanPlaatsen",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bTijdelijkeGroep",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPuurOnline",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "blnOvereenkomst",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "blnWijzigbaarDraaiboek",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBlended",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPresentiePilot",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "codeMoeder",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PlanningVerwerkt",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PlanningPrijsNNB",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGVO",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGKJ",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "aantaldagenVoorstartZichtbaar",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "StudiegidsURL",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bReadonly",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bKeuzemodule",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkPlanner",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datBelangstellendenGeinformeerd",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bVerborgen",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Beeld",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "AlgemeneInfo",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datOnSite",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Aanmeldingseisen",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Opleidingsovereenkomst",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VrijstellingsEisen",
+            "dataType": -1,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "sluitdatum",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPilotOPT",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datMedewOnline",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGO",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerstuurMails",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "EindverslagTemplate",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Oms",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Oms",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Oms",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Template",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Template",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Template",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bVerbergPersoonlijsten",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VervangendeOpdrachtTemplate",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateEindverslag",
+            "dataType": 12,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Verplicht",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Verplicht",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Verplicht",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fkKBTTemplate",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "aantalPeriodes",
+            "dataType": 4,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bCheckEindgesprek",
+            "dataType": -7,
+            "visible": false,
+            "showTotal": false
+        }
+    ],
+    "conditions": [
+        {
+            "id": "cond_1769418507072_lxbtz",
+            "table": "tblDocenten",
+            "field": "VolledigeNaam",
+            "alias": "VolledigeNaam",
+            "dataType": 12,
+            "typeCategory": "text",
+            "operator": "<>",
+            "value": "Diederik Stenvers",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "(",
+            "suffix": ""
+        },
+        {
+            "id": "cond_1769418507072_t500l",
+            "table": "tblDocenten",
+            "field": "MV",
+            "alias": "MV",
+            "dataType": 12,
+            "typeCategory": "text",
+            "operator": "notempty",
+            "value": "",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ")"
+        }
+    ],
+    "parameters": [],
+    "sorting": [
+        {
+            "table": "tblOpleidingen",
+            "field": "Code",
+            "direction": "asc"
+        },
+        {
+            "table": "tblDeelnemers",
+            "field": "Achternaam",
+            "direction": "asc"
+        }
+    ],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": {
+            "tblDocenten": {
+                "x": 1140,
+                "y": 100
+            },
+            "tblDeelname": {
+                "x": 360,
+                "y": 40
+            },
+            "tblDeelnemers": {
+                "x": 40,
+                "y": 40
+            },
+            "tblOpleidingen": {
+                "x": 780,
+                "y": 120
+            }
+        },
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-01-26 09:41:23",
+    "createdAt": "2026-01-26 09:41:23"
+}

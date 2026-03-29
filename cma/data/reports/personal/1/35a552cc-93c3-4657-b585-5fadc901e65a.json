@@ -1,0 +1,89 @@
+{
+    "id": "35a552cc-93c3-4657-b585-5fadc901e65a",
+    "name": "Conditions Test 1771030302922",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkDeelname Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Context Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "Subcontext Veld",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkLoginGeplaatstDoor Veld",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "AantalDuplicaten",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        }
+    ],
+    "conditions": [
+        {
+            "id": "cond_1771030313956_zinao",
+            "table": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "field": "fkDeelname Veld",
+            "alias": "fkDeelname Veld",
+            "dataType": 200,
+            "typeCategory": "text",
+            "operator": "",
+            "value": "",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ""
+        }
+    ],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-14 00:52:32",
+    "createdAt": "2026-02-14 00:52:32",
+    "createdBy": "1"
+}

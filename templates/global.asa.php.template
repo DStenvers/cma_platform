@@ -1,0 +1,42 @@
+<?php
+/**
+ * Application Initialization - Environment-specific settings
+ *
+ * Contains database connections, SSO credentials, and other secrets.
+ * This file is loaded ONCE per application lifetime (cached on T/A/P environments).
+ *
+ * DO NOT COMMIT SECRETS TO VERSION CONTROL.
+ * Use .env files for environment-specific values.
+ */
+
+function Application_OnStart()
+{
+    $environment = $GLOBALS['Application']['omgeving'] ?? 'L';
+
+    // Database connection strings
+    // Adjust these paths for your project
+    $dbDir = __DIR__ . '/db';
+
+    switch ($environment) {
+        case 'L': // Local
+        case 'O': // Development
+            $GLOBALS['Application']['conn_data'] = "sqlite:$dbDir/data.sqlite";
+            $GLOBALS['Application']['conn_rep'] = "sqlite:$dbDir/repository.sqlite";
+            $GLOBALS['Application']['conn_users'] = "sqlite:$dbDir/cmausers.sqlite";
+            break;
+
+        case 'T': // Test
+        case 'A': // Acceptance
+        case 'P': // Production
+            // Override with environment-specific connection strings
+            $GLOBALS['Application']['conn_data'] = $_ENV['DB_CONN_DATA'] ?? '';
+            $GLOBALS['Application']['conn_rep'] = $_ENV['DB_CONN_REP'] ?? '';
+            $GLOBALS['Application']['conn_users'] = $_ENV['DB_CONN_USERS'] ?? '';
+            break;
+    }
+
+    // SSO Configuration (if applicable)
+    // $GLOBALS['Application']['sso_client_id'] = $_ENV['SSO_CLIENT_ID'] ?? '';
+    // $GLOBALS['Application']['sso_client_secret'] = $_ENV['SSO_CLIENT_SECRET'] ?? '';
+    // $GLOBALS['Application']['sso_login_url'] = $_ENV['SSO_LOGIN_URL'] ?? '';
+}

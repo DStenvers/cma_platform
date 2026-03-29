@@ -1,0 +1,113 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "cmamonitoring",
+        "title": "CMA monitoring",
+        "titleSingular": "Monitoringrecord",
+        "table": "tblCMAMonitoring",
+        "database": "data",
+        "idField": "ID",
+        "listQuery": "SELECT ID, datestamp, Username, IIf(Form Is Null\n  Or Form='', Formname, Form) AS [Form], Actie, Left(Notificatie, 100) AS [Notificatie]\nFROM tblCMAMonitoring\nORDER BY ID DESC",
+        "listColumns": [
+                {
+                        "field": "datestamp",
+                        "title": "Datum",
+                        "type": "datetime"
+                },
+                {
+                        "field": "Username",
+                        "title": "Gebruiker",
+                        "type": "text"
+                },
+                {
+                        "field": "Form",
+                        "title": "Formulier",
+                        "type": "text"
+                },
+                {
+                        "field": "Actie",
+                        "title": "Actie",
+                        "type": "text"
+                },
+                {
+                        "field": "Notificatie",
+                        "title": "Melding",
+                        "type": "text"
+                }
+        ],
+        "orderField": "ID",
+        "orderDirection": "DESC",
+        "listLimit": 200,
+        "allowAdd": false,
+        "allowDelete": false,
+        "allowCopy": false,
+        "allowEdit": false,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "quickSearchFields": "Username,Formname,Form,Notificatie",
+        "detailField": "Notificatie",
+        "group1Field": "",
+        "group2Field": "",
+        "fields": [
+                {
+                        "name": "datestamp",
+                        "type": "date",
+                        "caption": "Datum/tijd",
+                        "readOnly": true,
+                        "dataType": "datetime",
+                        "maxLength": 19
+                },
+                {
+                        "name": "Username",
+                        "type": "textbox",
+                        "caption": "Gebruiker",
+                        "readOnly": true,
+                        "maxLength": 78
+                },
+                {
+                        "name": "Form",
+                        "type": "textbox",
+                        "caption": "Formulier",
+                        "readOnly": true,
+                        "maxLength": 78
+                },
+                {
+                        "name": "Formname",
+                        "type": "textbox",
+                        "caption": "Formuliernaam",
+                        "readOnly": true,
+                        "maxLength": 78,
+                        "adminOnly": true
+                },
+                {
+                        "name": "RecordID",
+                        "type": "textbox",
+                        "caption": "Record ID",
+                        "readOnly": true,
+                        "dataType": "number",
+                        "maxLength": 10
+                },
+                {
+                        "name": "Actie",
+                        "type": "textbox",
+                        "caption": "Actie",
+                        "readOnly": true,
+                        "maxLength": 78
+                },
+                {
+                        "name": "Notificatie",
+                        "type": "memo",
+                        "caption": "Notificatie",
+                        "readOnly": true,
+                        "html": true,
+                        "useContentBlocks": false
+                },
+                {
+                        "name": "LogLevel",
+                        "type": "textbox",
+                        "caption": "Log Level",
+                        "maxLength": 10
+                }
+        ],
+        "subforms": []
+}

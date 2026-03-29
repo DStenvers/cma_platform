@@ -1,0 +1,775 @@
+{"ts":"2026-01-16T06:48:40.752","level":"debug","req":"d38e0e93","msg":"form_api: JSON output","ctx":{"bytes":209949}}
+{"ts":"2026-01-16T06:48:44.812","level":"debug","req":"0ad3a9fa","msg":"form_api: JSON output","ctx":{"bytes":128062}}
+{"ts":"2026-01-16T06:48:45.230","level":"debug","req":"f7d0d230","msg":"form_api: JSON output","ctx":{"bytes":85584}}
+{"ts":"2026-01-16T06:48:45.547","level":"debug","req":"25ee4e9b","msg":"form_api: JSON output","ctx":{"bytes":85573}}
+{"ts":"2026-01-16T06:48:45.878","level":"debug","req":"3c6af60c","msg":"form_api: JSON output","ctx":{"bytes":210600}}
+{"ts":"2026-01-16T06:48:46.204","level":"debug","req":"146e5e34","msg":"form_api: JSON output","ctx":{"bytes":210588}}
+{"ts":"2026-01-16T06:48:46.502","level":"debug","req":"80d98275","msg":"form_api: JSON output","ctx":{"bytes":209820}}
+{"ts":"2026-01-16T06:48:59.361","level":"debug","req":"c9fad426","msg":"form_api: JSON output","ctx":{"bytes":135799}}
+{"ts":"2026-01-16T06:49:42.994","level":"debug","req":"a45cf626","msg":"form_api: JSON output","ctx":{"bytes":219908}}
+{"ts":"2026-01-16T06:50:01.144","level":"debug","req":"8e9b058a","msg":"form_api: JSON output","ctx":{"bytes":218959}}
+{"ts":"2026-01-16T06:50:01.328","level":"debug","req":"5314deac","msg":"form_api: JSON output","ctx":{"bytes":2199}}
+{"ts":"2026-01-16T06:50:01.573","level":"debug","req":"fc002f64","msg":"form_api: JSON output","ctx":{"bytes":2197}}
+{"ts":"2026-01-16T06:50:10.222","level":"debug","req":"085b8031","msg":"form_api: JSON output","ctx":{"bytes":2202}}
+{"ts":"2026-01-16T06:50:11.488","level":"debug","req":"cdee27db","msg":"form_api: JSON output","ctx":{"bytes":209801}}
+{"ts":"2026-01-16T06:50:22.209","level":"debug","req":"94654fd9","msg":"form_api: JSON output","ctx":{"bytes":210627}}
+{"ts":"2026-01-16T06:50:24.029","level":"debug","req":"839e6527","msg":"form_api: JSON output","ctx":{"bytes":2189}}
+{"ts":"2026-01-16T06:50:28.541","level":"debug","req":"1997d0c0","msg":"form_api: JSON output","ctx":{"bytes":209750}}
+{"ts":"2026-01-16T06:50:37.252","level":"debug","req":"723bf720","msg":"form_api: JSON output","ctx":{"bytes":13738}}
+{"ts":"2026-01-16T06:50:41.841","level":"debug","req":"ea796647","msg":"resolveJsonFormFkLabels: query failed","ctx":{"field":"fkEvaluatieDocumentIncidenteel","sql":"SELECT TOP 1 tblEvalDocument.ID, tblEvalTemplate.afdeling & \"- \" & tblEvalDocument.Naam & iif( tblEvalTemplate.bActive=True and tblEvalDocument.bActive=True,'', ' (NIET ACTIEF)')  as Descr \r\nFROM (tblEvalTemplate INNER JOIN (tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding) ON tblEvalTemplate.ID = tblOpleidingen.fkEvaluatieTemplate) INNER JOIN tblEvalDocument ON tblEvalTemplate.ID = tblEvalDocument.fkEvalTemplate \r\nWHERE ((tblEvalDocument.fkEvalType<>10 and tblAgenda.ID=[id]) AND ([tblEvalDocument].[ID] = 1)) ORDER BY tblEvalDocument.Sortorder, tblEvalDocument.Naam"}}
+{"ts":"2026-01-16T06:50:41.904","level":"debug","req":"ea796647","msg":"form_api: JSON output","ctx":{"bytes":219865}}
+{"ts":"2026-01-16T06:50:42.473","level":"debug","req":"b2da476a","msg":"form_api: JSON output","ctx":{"bytes":135651}}
+{"ts":"2026-01-16T06:50:43.448","level":"debug","req":"371b8d98","msg":"form_api: JSON output","ctx":{"bytes":218680}}
+{"ts":"2026-01-16T06:50:44.064","level":"debug","req":"39cac02b","msg":"form_api: JSON output","ctx":{"bytes":209747}}
+{"ts":"2026-01-16T06:50:44.475","level":"debug","req":"84441027","msg":"form_api: JSON output","ctx":{"bytes":2162}}
+{"ts":"2026-01-16T06:50:44.718","level":"debug","req":"27405f49","msg":"form_api: JSON output","ctx":{"bytes":2162}}
+{"ts":"2026-01-16T06:50:46.426","level":"debug","req":"91582d09","msg":"form_api: JSON output","ctx":{"bytes":218864}}
+{"ts":"2026-01-16T06:51:34.156","level":"debug","req":"511b9c75","msg":"form_api: JSON output","ctx":{"bytes":85567}}
+{"ts":"2026-01-16T06:51:34.458","level":"debug","req":"3ed72c88","msg":"form_api: JSON output","ctx":{"bytes":85573}}
+{"ts":"2026-01-16T06:51:39.820","level":"debug","req":"4c61f4c7","msg":"form_api: JSON output","ctx":{"bytes":209828}}
+{"ts":"2026-01-16T06:51:47.035","level":"debug","req":"c7485c2e","msg":"form_api: JSON output","ctx":{"bytes":135801}}
+{"ts":"2026-01-16T06:58:04.540","level":"debug","req":"2a3e4b6c","msg":"form_api: JSON output","ctx":{"bytes":209848}}
+{"ts":"2026-01-16T06:58:07.584","level":"debug","req":"dd4875f6","msg":"form_api: JSON output","ctx":{"bytes":209747}}
+{"ts":"2026-01-16T06:58:08.522","level":"debug","req":"8d69d655","msg":"form_api: JSON output","ctx":{"bytes":218497}}
+{"ts":"2026-01-16T06:58:16.777","level":"debug","req":"e72c0be5","msg":"form_api: JSON output","ctx":{"bytes":218965}}
+{"ts":"2026-01-16T06:58:17.129","level":"debug","req":"e6369196","msg":"form_api: JSON output","ctx":{"bytes":2199}}
+{"ts":"2026-01-16T06:58:17.355","level":"debug","req":"ce9c236d","msg":"form_api: JSON output","ctx":{"bytes":2201}}
+{"ts":"2026-01-16T06:58:18.429","level":"debug","req":"df1307ae","msg":"form_api: JSON output","ctx":{"bytes":210587}}
+{"ts":"2026-01-16T06:58:20.259","level":"debug","req":"390b87d4","msg":"form_api: JSON output","ctx":{"bytes":209798}}
+{"ts":"2026-01-16T06:58:20.572","level":"debug","req":"3b67debb","msg":"resolveJsonFormFkLabels: query failed","ctx":{"field":"fkEvaluatieDocumentIncidenteel","sql":"SELECT TOP 1 tblEvalDocument.ID, tblEvalTemplate.afdeling & \"- \" & tblEvalDocument.Naam & iif( tblEvalTemplate.bActive=True and tblEvalDocument.bActive=True,'', ' (NIET ACTIEF)')  as Descr \r\nFROM (tblEvalTemplate INNER JOIN (tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding) ON tblEvalTemplate.ID = tblOpleidingen.fkEvaluatieTemplate) INNER JOIN tblEvalDocument ON tblEvalTemplate.ID = tblEvalDocument.fkEvalTemplate \r\nWHERE ((tblEvalDocument.fkEvalType<>10 and tblAgenda.ID=[id]) AND ([tblEvalDocument].[ID] = 1)) ORDER BY tblEvalDocument.Sortorder, tblEvalDocument.Naam"}}
+{"ts":"2026-01-16T06:58:20.700","level":"debug","req":"3b67debb","msg":"form_api: JSON output","ctx":{"bytes":219882}}
+{"ts":"2026-01-16T06:59:49.501","level":"debug","req":"e7b4ea2c","msg":"form_api: JSON output","ctx":{"bytes":219040}}
+{"ts":"2026-01-16T07:00:20.043","level":"debug","req":"5cb93db3","msg":"form_api: JSON output","ctx":{"bytes":219006}}
+{"ts":"2026-01-16T07:00:21.277","level":"debug","req":"dc7cbf8d","msg":"form_api: JSON output","ctx":{"bytes":210566}}
+{"ts":"2026-01-16T07:00:21.584","level":"debug","req":"05582973","msg":"form_api: JSON output","ctx":{"bytes":218872}}
+{"ts":"2026-01-16T07:00:22.065","level":"debug","req":"c6131cf4","msg":"form_api: JSON output","ctx":{"bytes":210585}}
+{"ts":"2026-01-16T07:00:24.646","level":"debug","req":"7f731b21","msg":"form_api: JSON output","ctx":{"bytes":210587}}
+{"ts":"2026-01-16T07:00:24.914","level":"debug","req":"a898ceb8","msg":"form_api: JSON output","ctx":{"bytes":125010}}
+{"ts":"2026-01-16T07:00:27.984","level":"debug","req":"74ff3401","msg":"form_api: JSON output","ctx":{"bytes":210588}}
+{"ts":"2026-01-16T07:00:31.371","level":"debug","req":"b929e6b5","msg":"form_api: JSON output","ctx":{"bytes":209796}}
+{"ts":"2026-01-16T07:00:31.676","level":"debug","req":"e867b89e","msg":"form_api: JSON output","ctx":{"bytes":125090}}
+{"ts":"2026-01-16T07:00:34.081","level":"debug","req":"b18d7454","msg":"form_api: JSON output","ctx":{"bytes":209829}}
+{"ts":"2026-01-16T07:00:34.596","level":"debug","req":"d7a9138a","msg":"form_api: JSON output","ctx":{"bytes":209824}}
+{"ts":"2026-01-16T07:00:39.648","level":"debug","req":"04ad1d1f","msg":"form_api: JSON output","ctx":{"bytes":209837}}
+{"ts":"2026-01-16T07:00:39.963","level":"debug","req":"eba56740","msg":"form_api: JSON output","ctx":{"bytes":125133}}
+{"ts":"2026-01-16T07:00:54.012","level":"debug","req":"9c03bba1","msg":"SAVE REQUEST","ctx":{"jsonForm":"rooster_aanwezigheid","recordId":"21092","POST":{"action":"save","ID":"21092","jsonForm":"rooster_aanwezigheid","inhaler":"True"}}}
+{"ts":"2026-01-16T07:00:54.013","level":"debug","req":"9c03bba1","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","inhaler"]}}
+{"ts":"2026-01-16T07:00:54.014","level":"debug","req":"9c03bba1","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T07:00:54.015","level":"debug","req":"9c03bba1","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T07:00:54.018","level":"debug","req":"9c03bba1","msg":"SAVE: Valid fields","ctx":{"fields":["fkagenda","fkdeelname","aanwezig","inhaler","opmerking","vrijstelling","blokvrijstelling","_group_7","voorkeur_compensatie","voorkeur_compensatie_datum","voorkeur_compensatie_akkoord","voorkeur_compensatie_akkoord_datum","fkvervangendeopdracht","compensatieakkoord"]}}
+{"ts":"2026-01-16T07:00:54.019","level":"debug","req":"9c03bba1","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblAfwezigheid] SET [inhaler] = True WHERE [ID] = 21092"}}
+{"ts":"2026-01-16T07:00:54.023","level":"debug","req":"9c03bba1","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T07:00:54.024","level":"error","req":"9c03bba1","msg":"API Error","ctx":{"action":"save","jsonForm":"rooster_aanwezigheid","exception":{"class":"Error","message":"Call to undefined method App\\Library\\Database::getDatabaseType()","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\classes\\FormDataProvider.php","line":1021,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":879,"function":"saveJsonFormRecord","class":"Cma\\FormDataProvider","type":"::","args":["rooster_aanwezigheid","21092",{"inhaler":"True"},[]]},{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"args":["C:\\lab\\ai_conversion\\site\\cma\\form_api.php"],"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-16T07:00:59.690","level":"debug","req":"594a1ed8","msg":"SAVE REQUEST","ctx":{"jsonForm":"rooster_aanwezigheid","recordId":"21092","POST":{"action":"save","ID":"21092","jsonForm":"rooster_aanwezigheid","inhaler":"True"}}}
+{"ts":"2026-01-16T07:00:59.690","level":"debug","req":"594a1ed8","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","inhaler"]}}
+{"ts":"2026-01-16T07:00:59.690","level":"debug","req":"594a1ed8","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T07:00:59.690","level":"debug","req":"594a1ed8","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T07:00:59.693","level":"debug","req":"594a1ed8","msg":"SAVE: Valid fields","ctx":{"fields":["fkagenda","fkdeelname","aanwezig","inhaler","opmerking","vrijstelling","blokvrijstelling","_group_7","voorkeur_compensatie","voorkeur_compensatie_datum","voorkeur_compensatie_akkoord","voorkeur_compensatie_akkoord_datum","fkvervangendeopdracht","compensatieakkoord"]}}
+{"ts":"2026-01-16T07:00:59.694","level":"debug","req":"594a1ed8","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblAfwezigheid] SET [inhaler] = True WHERE [ID] = 21092"}}
+{"ts":"2026-01-16T07:00:59.697","level":"debug","req":"594a1ed8","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T07:00:59.698","level":"error","req":"594a1ed8","msg":"API Error","ctx":{"action":"save","jsonForm":"rooster_aanwezigheid","exception":{"class":"Error","message":"Call to undefined method App\\Library\\Database::getDatabaseType()","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\classes\\FormDataProvider.php","line":1021,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":879,"function":"saveJsonFormRecord","class":"Cma\\FormDataProvider","type":"::","args":["rooster_aanwezigheid","21092",{"inhaler":"True"},[]]},{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"args":["C:\\lab\\ai_conversion\\site\\cma\\form_api.php"],"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-16T07:01:01.416","level":"debug","req":"4ebf74cd","msg":"SAVE REQUEST","ctx":{"jsonForm":"rooster_aanwezigheid","recordId":"21092","POST":{"action":"save","ID":"21092","jsonForm":"rooster_aanwezigheid","Aanwezig":"False"}}}
+{"ts":"2026-01-16T07:01:01.417","level":"debug","req":"4ebf74cd","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","Aanwezig"]}}
+{"ts":"2026-01-16T07:01:01.417","level":"debug","req":"4ebf74cd","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T07:01:01.417","level":"debug","req":"4ebf74cd","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T07:01:01.417","level":"debug","req":"4ebf74cd","msg":"SAVE: Valid fields","ctx":{"fields":["fkagenda","fkdeelname","aanwezig","inhaler","opmerking","vrijstelling","blokvrijstelling","_group_7","voorkeur_compensatie","voorkeur_compensatie_datum","voorkeur_compensatie_akkoord","voorkeur_compensatie_akkoord_datum","fkvervangendeopdracht","compensatieakkoord"]}}
+{"ts":"2026-01-16T07:01:01.417","level":"debug","req":"4ebf74cd","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblAfwezigheid] SET [Aanwezig] = False WHERE [ID] = 21092"}}
+{"ts":"2026-01-16T07:01:01.419","level":"debug","req":"4ebf74cd","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T07:01:01.419","level":"error","req":"4ebf74cd","msg":"API Error","ctx":{"action":"save","jsonForm":"rooster_aanwezigheid","exception":{"class":"Error","message":"Call to undefined method App\\Library\\Database::getDatabaseType()","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\classes\\FormDataProvider.php","line":1021,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":879,"function":"saveJsonFormRecord","class":"Cma\\FormDataProvider","type":"::","args":["rooster_aanwezigheid","21092",{"Aanwezig":"False"},[]]},{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"args":["C:\\lab\\ai_conversion\\site\\cma\\form_api.php"],"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-16T07:02:13.180","level":"debug","req":"9e55bdca","msg":"form_api: JSON output","ctx":{"bytes":209756}}
+{"ts":"2026-01-16T07:02:13.530","level":"debug","req":"d9dee622","msg":"form_api: JSON output","ctx":{"bytes":125048}}
+{"ts":"2026-01-16T07:03:18.674","level":"debug","req":"91c159d0","msg":"form_api: JSON output","ctx":{"bytes":19373}}
+{"ts":"2026-01-16T07:03:19.052","level":"debug","req":"fa302cb0","msg":"form_api: JSON output","ctx":{"bytes":2094}}
+{"ts":"2026-01-16T07:03:20.066","level":"debug","req":"6b61268c","msg":"form_api: JSON output","ctx":{"bytes":1493}}
+{"ts":"2026-01-16T07:03:50.468","level":"debug","req":"39992390","msg":"form_api: JSON output","ctx":{"bytes":2095}}
+{"ts":"2026-01-16T07:03:54.981","level":"debug","req":"beebb22c","msg":"form_api: JSON output","ctx":{"bytes":2076}}
+{"ts":"2026-01-16T07:04:10.597","level":"debug","req":"a9889d29","msg":"form_api: JSON output","ctx":{"bytes":18675}}
+{"ts":"2026-01-16T07:04:10.870","level":"debug","req":"0a54cdbb","msg":"form_api: JSON output","ctx":{"bytes":23786}}
+{"ts":"2026-01-16T07:04:11.139","level":"debug","req":"72c85c7b","msg":"form_api: JSON output","ctx":{"bytes":23771}}
+{"ts":"2026-01-16T07:04:11.406","level":"debug","req":"838c312f","msg":"form_api: JSON output","ctx":{"bytes":1783}}
+{"ts":"2026-01-16T07:04:11.653","level":"debug","req":"204b8c68","msg":"form_api: JSON output","ctx":{"bytes":1769}}
+{"ts":"2026-01-16T07:04:12.145","level":"debug","req":"76daf9f0","msg":"form_api: JSON output","ctx":{"bytes":1761}}
+{"ts":"2026-01-16T07:04:14.538","level":"debug","req":"004207b2","msg":"form_api: JSON output","ctx":{"bytes":1716}}
+{"ts":"2026-01-16T07:04:15.200","level":"debug","req":"761bcce3","msg":"form_api: JSON output","ctx":{"bytes":2949}}
+{"ts":"2026-01-16T07:04:15.439","level":"debug","req":"314c4467","msg":"form_api: JSON output","ctx":{"bytes":2950}}
+{"ts":"2026-01-16T07:04:21.928","level":"debug","req":"ff0157f8","msg":"form_api: JSON output","ctx":{"bytes":256558}}
+{"ts":"2026-01-16T07:04:22.253","level":"debug","req":"efdcbb98","msg":"form_api: JSON output","ctx":{"bytes":256566}}
+{"ts":"2026-01-16T07:04:22.795","level":"debug","req":"960c0e10","msg":"form_api: JSON output","ctx":{"bytes":224946}}
+{"ts":"2026-01-16T07:04:23.096","level":"debug","req":"db9923ef","msg":"form_api: JSON output","ctx":{"bytes":224951}}
+{"ts":"2026-01-16T07:04:23.919","level":"debug","req":"c01f4da2","msg":"form_api: JSON output","ctx":{"bytes":2972}}
+{"ts":"2026-01-16T07:04:24.185","level":"debug","req":"b4997c42","msg":"form_api: JSON output","ctx":{"bytes":2972}}
+{"ts":"2026-01-16T07:04:25.173","level":"debug","req":"58c9708d","msg":"form_api: JSON output","ctx":{"bytes":224943}}
+{"ts":"2026-01-16T07:04:25.417","level":"debug","req":"881a2967","msg":"form_api: JSON output","ctx":{"bytes":224949}}
+{"ts":"2026-01-16T07:04:27.624","level":"debug","req":"c1a461c3","msg":"form_api: JSON output","ctx":{"bytes":101527}}
+{"ts":"2026-01-16T07:04:29.601","level":"debug","req":"37facb49","msg":"form_api: JSON output","ctx":{"bytes":7666}}
+{"ts":"2026-01-16T07:04:48.878","level":"debug","req":"c892adfc","msg":"form_api: JSON output","ctx":{"bytes":115649}}
+{"ts":"2026-01-16T07:06:22.849","level":"debug","req":"103dd8a7","msg":"form_api: JSON output","ctx":{"bytes":29047}}
+{"ts":"2026-01-16T07:06:23.100","level":"debug","req":"00cd53bb","msg":"form_api: JSON output","ctx":{"bytes":30074}}
+{"ts":"2026-01-16T07:09:22.576","level":"debug","req":"69d4eab9","msg":"form_api: JSON output","ctx":{"bytes":224948}}
+{"ts":"2026-01-16T07:09:22.865","level":"debug","req":"b9090932","msg":"form_api: JSON output","ctx":{"bytes":224947}}
+{"ts":"2026-01-16T07:09:23.174","level":"debug","req":"35f1a239","msg":"form_api: JSON output","ctx":{"bytes":45711}}
+{"ts":"2026-01-16T07:09:23.466","level":"debug","req":"e64a809a","msg":"form_api: JSON output","ctx":{"bytes":45695}}
+{"ts":"2026-01-16T07:09:23.875","level":"debug","req":"5ee4eac6","msg":"form_api: JSON output","ctx":{"bytes":24813}}
+{"ts":"2026-01-16T07:09:24.212","level":"debug","req":"30d70141","msg":"form_api: JSON output","ctx":{"bytes":33875}}
+{"ts":"2026-01-16T07:09:24.650","level":"debug","req":"a595a98d","msg":"form_api: JSON output","ctx":{"bytes":101518}}
+{"ts":"2026-01-16T07:09:24.980","level":"debug","req":"62dcddeb","msg":"form_api: JSON output","ctx":{"bytes":7676}}
+{"ts":"2026-01-16T07:09:26.846","level":"debug","req":"8fe73930","msg":"form_api: JSON output","ctx":{"bytes":8359}}
+{"ts":"2026-01-16T07:09:28.339","level":"debug","req":"9f53a20e","msg":"form_api: JSON output","ctx":{"bytes":56375}}
+{"ts":"2026-01-16T07:09:28.786","level":"debug","req":"f3ff876e","msg":"form_api: JSON output","ctx":{"bytes":56380}}
+{"ts":"2026-01-16T07:09:29.096","level":"debug","req":"e8aa9b32","msg":"form_api: JSON output","ctx":{"bytes":2267}}
+{"ts":"2026-01-16T07:11:12.191","level":"debug","req":"887bc059","msg":"form_api: JSON output","ctx":{"bytes":37392}}
+{"ts":"2026-01-16T07:11:16.196","level":"debug","req":"433d71a8","msg":"form_api: JSON output","ctx":{"bytes":9173}}
+{"ts":"2026-01-16T07:11:16.484","level":"debug","req":"244f8310","msg":"form_api: JSON output","ctx":{"bytes":89675}}
+{"ts":"2026-01-16T07:11:17.018","level":"debug","req":"9fd5deb0","msg":"form_api: JSON output","ctx":{"bytes":89671}}
+{"ts":"2026-01-16T07:11:17.338","level":"debug","req":"318d1439","msg":"form_api: JSON output","ctx":{"bytes":165939}}
+{"ts":"2026-01-16T07:11:17.603","level":"debug","req":"a17cb54a","msg":"form_api: JSON output","ctx":{"bytes":9267}}
+{"ts":"2026-01-16T07:11:18.053","level":"debug","req":"e007eecb","msg":"form_api: JSON output","ctx":{"bytes":165931}}
+{"ts":"2026-01-16T07:11:18.285","level":"debug","req":"f54ed2d5","msg":"form_api: JSON output","ctx":{"bytes":9128}}
+{"ts":"2026-01-16T07:11:18.601","level":"debug","req":"2ff4c0f4","msg":"form_api: JSON output","ctx":{"bytes":165937}}
+{"ts":"2026-01-16T07:11:18.852","level":"debug","req":"bc9e9737","msg":"form_api: JSON output","ctx":{"bytes":79442}}
+{"ts":"2026-01-16T07:11:19.316","level":"debug","req":"61fb8125","msg":"form_api: JSON output","ctx":{"bytes":165933}}
+{"ts":"2026-01-16T07:11:19.725","level":"debug","req":"0b174e1a","msg":"form_api: JSON output","ctx":{"bytes":79442}}
+{"ts":"2026-01-16T07:11:20.036","level":"debug","req":"7a1d1a58","msg":"form_api: JSON output","ctx":{"bytes":2452}}
+{"ts":"2026-01-16T07:11:28.566","level":"debug","req":"12224a35","msg":"form_api: JSON output","ctx":{"bytes":1977}}
+{"ts":"2026-01-16T07:11:28.877","level":"debug","req":"af46fa68","msg":"form_api: JSON output","ctx":{"bytes":12577}}
+{"ts":"2026-01-16T07:17:48.509","level":"debug","req":"2cf413a3","msg":"form_api: JSON output","ctx":{"bytes":1974}}
+{"ts":"2026-01-16T07:22:46.633","level":"debug","req":"64732218","msg":"form_api: JSON output","ctx":{"bytes":165925}}
+{"ts":"2026-01-16T07:22:46.954","level":"debug","req":"1fb7f368","msg":"form_api: JSON output","ctx":{"bytes":165930}}
+{"ts":"2026-01-16T07:22:47.317","level":"debug","req":"b39a46f1","msg":"form_api: JSON output","ctx":{"bytes":79442}}
+{"ts":"2026-01-16T07:22:48.109","level":"debug","req":"db64ffcb","msg":"form_api: JSON output","ctx":{"bytes":79447}}
+{"ts":"2026-01-16T07:22:48.421","level":"debug","req":"feeaaebe","msg":"form_api: JSON output","ctx":{"bytes":2456}}
+{"ts":"2026-01-16T07:22:48.647","level":"debug","req":"7c089386","msg":"form_api: JSON output","ctx":{"bytes":1990}}
+{"ts":"2026-01-16T07:23:04.290","level":"debug","req":"d8800feb","msg":"form_api: JSON output","ctx":{"bytes":82593}}
+{"ts":"2026-01-16T07:23:04.740","level":"debug","req":"6e6b8c5f","msg":"form_api: JSON output","ctx":{"bytes":78709}}
+{"ts":"2026-01-16T07:23:05.092","level":"debug","req":"e26632f8","msg":"form_api: JSON output","ctx":{"bytes":90501}}
+{"ts":"2026-01-16T07:23:18.880","level":"debug","req":"c148c163","msg":"form_api: JSON output","ctx":{"bytes":76261}}
+{"ts":"2026-01-16T07:23:19.802","level":"debug","req":"8fdb2e6e","msg":"form_api: JSON output","ctx":{"bytes":78374}}
+{"ts":"2026-01-16T07:24:03.071","level":"debug","req":"22cc78b2","msg":"form_api: JSON output","ctx":{"bytes":79704}}
+{"ts":"2026-01-16T07:24:06.610","level":"debug","req":"c29be367","msg":"form_api: JSON output","ctx":{"bytes":81593}}
+{"ts":"2026-01-16T07:24:12.514","level":"debug","req":"4bc19516","msg":"form_api: JSON output","ctx":{"bytes":80855}}
+{"ts":"2026-01-16T07:24:12.971","level":"debug","req":"cf46f417","msg":"form_api: JSON output","ctx":{"bytes":77980}}
+{"ts":"2026-01-16T07:24:40.246","level":"debug","req":"ba0477fc","msg":"form_api: JSON output","ctx":{"bytes":165918}}
+{"ts":"2026-01-16T07:24:40.549","level":"debug","req":"f9a03d56","msg":"form_api: JSON output","ctx":{"bytes":165930}}
+{"ts":"2026-01-16T07:24:41.720","level":"debug","req":"f49ae2ae","msg":"form_api: JSON output","ctx":{"bytes":77702}}
+{"ts":"2026-01-16T07:24:42.187","level":"debug","req":"20bf3f1f","msg":"form_api: JSON output","ctx":{"bytes":77703}}
+{"ts":"2026-01-16T07:24:42.496","level":"debug","req":"19974527","msg":"form_api: JSON output","ctx":{"bytes":2447}}
+{"ts":"2026-01-16T07:24:44.206","level":"debug","req":"10cde398","msg":"form_api: JSON output","ctx":{"bytes":1985}}
+{"ts":"2026-01-16T07:25:17.689","level":"debug","req":"bfb36fe5","msg":"form_api: JSON output","ctx":{"bytes":111616}}
+{"ts":"2026-01-16T07:25:18.127","level":"debug","req":"dc7541e9","msg":"form_api: JSON output","ctx":{"bytes":5531}}
+{"ts":"2026-01-16T07:25:18.434","level":"debug","req":"22b77f9d","msg":"form_api: JSON output","ctx":{"bytes":111639}}
+{"ts":"2026-01-16T07:25:18.761","level":"debug","req":"904af650","msg":"form_api: JSON output","ctx":{"bytes":1230}}
+{"ts":"2026-01-16T07:25:20.285","level":"debug","req":"1bbd3e2b","msg":"form_api: JSON output","ctx":{"bytes":88790}}
+{"ts":"2026-01-16T07:25:25.936","level":"debug","req":"4630049f","msg":"form_api: JSON output","ctx":{"bytes":128069}}
+{"ts":"2026-01-16T07:25:26.255","level":"debug","req":"7b1aade6","msg":"form_api: JSON output","ctx":{"bytes":51920}}
+{"ts":"2026-01-16T07:25:26.576","level":"debug","req":"e0044841","msg":"form_api: JSON output","ctx":{"bytes":51901}}
+{"ts":"2026-01-16T07:25:32.606","level":"debug","req":"16fd6d0b","msg":"form_api: JSON output","ctx":{"bytes":92396}}
+{"ts":"2026-01-16T07:25:32.950","level":"debug","req":"b0e3444f","msg":"form_api: JSON output","ctx":{"bytes":92406}}
+{"ts":"2026-01-16T07:25:33.489","level":"debug","req":"38464bb5","msg":"form_api: JSON output","ctx":{"bytes":136302}}
+{"ts":"2026-01-16T07:25:33.907","level":"debug","req":"a27a6c16","msg":"form_api: JSON output","ctx":{"bytes":136296}}
+{"ts":"2026-01-16T07:25:34.816","level":"debug","req":"b907adf6","msg":"form_api: JSON output","ctx":{"bytes":136293}}
+{"ts":"2026-01-16T07:25:35.172","level":"debug","req":"7bc58046","msg":"form_api: JSON output","ctx":{"bytes":125150}}
+{"ts":"2026-01-16T07:25:37.053","level":"debug","req":"9a7c1f25","msg":"form_api: JSON output","ctx":{"bytes":1271}}
+{"ts":"2026-01-16T07:25:48.637","level":"debug","req":"bc1fbacb","msg":"form_api: JSON output","ctx":{"bytes":1230}}
+{"ts":"2026-01-16T07:25:48.919","level":"debug","req":"6c292b5f","msg":"form_api: JSON output","ctx":{"bytes":17592}}
+{"ts":"2026-01-16T07:25:51.820","level":"debug","req":"13357f4f","msg":"form_api: JSON output","ctx":{"bytes":211520}}
+{"ts":"2026-01-16T07:26:04.501","level":"debug","req":"feceaa7c","msg":"form_api: JSON output","ctx":{"bytes":136288}}
+{"ts":"2026-01-16T07:26:05.913","level":"debug","req":"3665bbb1","msg":"form_api: JSON output","ctx":{"bytes":1252}}
+{"ts":"2026-01-16T07:27:40.494","level":"debug","req":"f10951b3","msg":"form_api: JSON output","ctx":{"bytes":92464}}
+{"ts":"2026-01-16T07:27:41.034","level":"debug","req":"e5443f0b","msg":"form_api: JSON output","ctx":{"bytes":92472}}
+{"ts":"2026-01-16T07:27:41.344","level":"debug","req":"8cfaec04","msg":"form_api: JSON output","ctx":{"bytes":92462}}
+{"ts":"2026-01-16T07:27:41.665","level":"debug","req":"3eceaa49","msg":"form_api: JSON output","ctx":{"bytes":92469}}
+{"ts":"2026-01-16T07:27:42.160","level":"debug","req":"c9cc5f6c","msg":"form_api: JSON output","ctx":{"bytes":210319}}
+{"ts":"2026-01-16T07:27:42.735","level":"debug","req":"df3fc9d9","msg":"form_api: JSON output","ctx":{"bytes":210325}}
+{"ts":"2026-01-16T07:27:58.036","level":"debug","req":"1ef829e4","msg":"form_api: JSON output","ctx":{"bytes":136252}}
+{"ts":"2026-01-16T07:28:01.219","level":"debug","req":"2c299ac3","msg":"form_api: JSON output","ctx":{"bytes":92464}}
+{"ts":"2026-01-16T07:28:01.550","level":"debug","req":"ec1bb504","msg":"form_api: JSON output","ctx":{"bytes":92473}}
+{"ts":"2026-01-16T07:28:02.206","level":"debug","req":"dfc20c50","msg":"form_api: JSON output","ctx":{"bytes":210307}}
+{"ts":"2026-01-16T07:28:02.491","level":"debug","req":"aeaf3dfc","msg":"form_api: JSON output","ctx":{"bytes":125156}}
+{"ts":"2026-01-16T07:28:04.333","level":"debug","req":"e4bd2e0d","msg":"form_api: JSON output","ctx":{"bytes":1242}}
+{"ts":"2026-01-16T07:28:09.161","level":"debug","req":"d39692f5","msg":"form_api: JSON output","ctx":{"bytes":210712}}
+{"ts":"2026-01-16T07:28:10.379","level":"debug","req":"db7e4625","msg":"form_api: JSON output","ctx":{"bytes":136260}}
+{"ts":"2026-01-16T07:28:10.999","level":"debug","req":"7b1f248a","msg":"form_api: JSON output","ctx":{"bytes":136255}}
+{"ts":"2026-01-16T07:28:11.337","level":"debug","req":"c08eccc8","msg":"form_api: JSON output","ctx":{"bytes":125166}}
+{"ts":"2026-01-16T07:28:12.692","level":"debug","req":"ec1c5152","msg":"form_api: JSON output","ctx":{"bytes":1229}}
+{"ts":"2026-01-16T07:28:18.506","level":"debug","req":"1310706c","msg":"form_api: JSON output","ctx":{"bytes":1229}}
+{"ts":"2026-01-16T07:28:19.964","level":"debug","req":"cf21d9d0","msg":"form_api: JSON output","ctx":{"bytes":1232}}
+{"ts":"2026-01-16T07:28:22.095","level":"debug","req":"3c53e6f7","msg":"form_api: JSON output","ctx":{"bytes":1226}}
+{"ts":"2026-01-16T07:28:23.723","level":"debug","req":"68bb7c9c","msg":"form_api: JSON output","ctx":{"bytes":219910}}
+{"ts":"2026-01-16T07:28:24.333","level":"debug","req":"29408c7d","msg":"form_api: JSON output","ctx":{"bytes":219912}}
+{"ts":"2026-01-16T07:28:24.668","level":"debug","req":"4ee63d6e","msg":"form_api: JSON output","ctx":{"bytes":125146}}
+{"ts":"2026-01-16T07:28:25.789","level":"debug","req":"35781a52","msg":"form_api: JSON output","ctx":{"bytes":1222}}
+{"ts":"2026-01-16T07:28:36.121","level":"debug","req":"ab090689","msg":"form_api: JSON output","ctx":{"bytes":111621}}
+{"ts":"2026-01-16T07:28:36.352","level":"debug","req":"010418c9","msg":"form_api: JSON output","ctx":{"bytes":111623}}
+{"ts":"2026-01-16T07:28:41.852","level":"debug","req":"79efcca8","msg":"form_api: JSON output","ctx":{"bytes":106070}}
+{"ts":"2026-01-16T07:28:42.533","level":"debug","req":"085c8d8b","msg":"form_api: JSON output","ctx":{"bytes":106072}}
+{"ts":"2026-01-16T07:29:46.890","level":"debug","req":"c69fc126","msg":"form_api: JSON output","ctx":{"bytes":143950}}
+{"ts":"2026-01-16T07:29:49.786","level":"debug","req":"5099f3fb","msg":"form_api: JSON output","ctx":{"bytes":256559}}
+{"ts":"2026-01-16T07:29:50.044","level":"debug","req":"1518e20c","msg":"form_api: JSON output","ctx":{"bytes":256560}}
+{"ts":"2026-01-16T07:29:50.442","level":"debug","req":"7a31986e","msg":"form_api: JSON output","ctx":{"bytes":37147}}
+{"ts":"2026-01-16T07:29:50.774","level":"debug","req":"c2d09842","msg":"form_api: JSON output","ctx":{"bytes":37136}}
+{"ts":"2026-01-16T07:29:51.242","level":"debug","req":"0091a1c4","msg":"form_api: JSON output","ctx":{"bytes":37128}}
+{"ts":"2026-01-16T07:29:51.556","level":"debug","req":"1de131e6","msg":"form_api: JSON output","ctx":{"bytes":2401}}
+{"ts":"2026-01-16T07:29:53.486","level":"debug","req":"c7697c60","msg":"form_api: JSON output","ctx":{"bytes":1968}}
+{"ts":"2026-01-16T07:29:56.757","level":"debug","req":"2f432418","msg":"form_api: JSON output","ctx":{"bytes":2682}}
+{"ts":"2026-01-16T07:29:57.013","level":"debug","req":"def7ba29","msg":"form_api: JSON output","ctx":{"bytes":13258}}
+{"ts":"2026-01-16T07:30:08.042","level":"debug","req":"a0020141","msg":"form_api: JSON output","ctx":{"bytes":40169}}
+{"ts":"2026-01-16T07:30:09.072","level":"debug","req":"345b9fe7","msg":"form_api: JSON output","ctx":{"bytes":42310}}
+{"ts":"2026-01-16T07:30:09.458","level":"debug","req":"aec9f341","msg":"form_api: JSON output","ctx":{"bytes":39285}}
+{"ts":"2026-01-16T07:30:10.013","level":"debug","req":"08bb137e","msg":"form_api: JSON output","ctx":{"bytes":39272}}
+{"ts":"2026-01-16T07:30:10.342","level":"debug","req":"7c461e7a","msg":"form_api: JSON output","ctx":{"bytes":2390}}
+{"ts":"2026-01-16T07:30:13.916","level":"debug","req":"30ca2a2e","msg":"form_api: JSON output","ctx":{"bytes":41678}}
+{"ts":"2026-01-16T07:30:14.495","level":"debug","req":"82ea9f72","msg":"form_api: JSON output","ctx":{"bytes":41675}}
+{"ts":"2026-01-16T07:30:14.827","level":"debug","req":"a2a13dbc","msg":"form_api: JSON output","ctx":{"bytes":2412}}
+{"ts":"2026-01-16T07:30:16.333","level":"debug","req":"cd8d58d4","msg":"form_api: JSON output","ctx":{"bytes":1990}}
+{"ts":"2026-01-16T07:30:36.253","level":"debug","req":"251599d5","msg":"form_api: JSON output","ctx":{"bytes":111621}}
+{"ts":"2026-01-16T07:30:36.571","level":"debug","req":"dad329b9","msg":"form_api: JSON output","ctx":{"bytes":111626}}
+{"ts":"2026-01-16T07:30:37.043","level":"debug","req":"23ad475e","msg":"form_api: JSON output","ctx":{"bytes":143967}}
+{"ts":"2026-01-16T07:30:37.705","level":"debug","req":"8bef5af1","msg":"form_api: JSON output","ctx":{"bytes":143967}}
+{"ts":"2026-01-16T07:30:38.174","level":"debug","req":"77d7dbc3","msg":"form_api: JSON output","ctx":{"bytes":143956}}
+{"ts":"2026-01-16T07:30:54.326","level":"debug","req":"4cd61b27","msg":"form_api: JSON output","ctx":{"bytes":129358}}
+{"ts":"2026-01-16T07:30:54.947","level":"debug","req":"356cbfc2","msg":"form_api: JSON output","ctx":{"bytes":129374}}
+{"ts":"2026-01-16T07:31:10.451","level":"debug","req":"d99fc5ad","msg":"form_api: JSON output","ctx":{"bytes":87241}}
+{"ts":"2026-01-16T07:31:11.033","level":"debug","req":"bac0e35d","msg":"form_api: JSON output","ctx":{"bytes":87263}}
+{"ts":"2026-01-16T07:31:21.767","level":"debug","req":"4508eb6f","msg":"form_api: JSON output","ctx":{"bytes":124969}}
+{"ts":"2026-01-16T07:31:42.326","level":"debug","req":"6c7218df","msg":"form_api: JSON output","ctx":{"bytes":127900}}
+{"ts":"2026-01-16T07:31:42.998","level":"debug","req":"9327dcaf","msg":"form_api: JSON output","ctx":{"bytes":127895}}
+{"ts":"2026-01-16T09:37:46.580","level":"debug","req":"85e2a110","msg":"form_api: JSON output","ctx":{"bytes":111635}}
+{"ts":"2026-01-16T09:37:47.473","level":"debug","req":"f03cb70b","msg":"form_api: JSON output","ctx":{"bytes":5533}}
+{"ts":"2026-01-16T09:37:47.735","level":"debug","req":"5063716a","msg":"form_api: JSON output","ctx":{"bytes":111636}}
+{"ts":"2026-01-16T09:37:48.411","level":"debug","req":"2e5c5292","msg":"form_api: JSON output","ctx":{"bytes":127939}}
+{"ts":"2026-01-16T09:37:48.827","level":"debug","req":"9d7cf79c","msg":"form_api: JSON output","ctx":{"bytes":84261}}
+{"ts":"2026-01-16T09:37:49.050","level":"debug","req":"6fdf4d38","msg":"form_api: JSON output","ctx":{"bytes":1246}}
+{"ts":"2026-01-16T09:37:59.798","level":"debug","req":"dc67c22e","msg":"form_api: JSON output","ctx":{"bytes":27996}}
+{"ts":"2026-01-16T09:38:00.738","level":"debug","req":"532ebf7e","msg":"form_api: JSON output","ctx":{"bytes":367556}}
+{"ts":"2026-01-16T09:38:01.278","level":"debug","req":"364cd9f7","msg":"form_api: JSON output","ctx":{"bytes":164943}}
+{"ts":"2026-01-16T09:38:02.670","level":"debug","req":"66458617","msg":"form_api: JSON output","ctx":{"bytes":1228}}
+{"ts":"2026-01-16T09:38:15.644","level":"debug","req":"66bd4fa9","msg":"form_api: JSON output","ctx":{"bytes":40288}}
+{"ts":"2026-01-16T09:38:15.972","level":"debug","req":"320d6e79","msg":"form_api: JSON output","ctx":{"bytes":5504}}
+{"ts":"2026-01-16T09:38:16.280","level":"debug","req":"bbb0e7b4","msg":"form_api: JSON output","ctx":{"bytes":4791}}
+{"ts":"2026-01-16T09:38:23.139","level":"debug","req":"1d29819c","msg":"form_api: JSON output","ctx":{"bytes":5503}}
+{"ts":"2026-01-16T09:38:39.039","level":"debug","req":"3f320c2f","msg":"form_api: JSON output","ctx":{"bytes":5192}}
+{"ts":"2026-01-16T09:38:39.341","level":"debug","req":"97e37481","msg":"form_api: JSON output","ctx":{"bytes":4469}}
+{"ts":"2026-01-16T09:47:34.969","level":"debug","req":"74ad6e88","msg":"form_api: JSON output","ctx":{"bytes":111619}}
+{"ts":"2026-01-16T09:47:35.254","level":"debug","req":"f141aaea","msg":"form_api: JSON output","ctx":{"bytes":111630}}
+{"ts":"2026-01-16T09:47:35.543","level":"debug","req":"311daecd","msg":"form_api: JSON output","ctx":{"bytes":84228}}
+{"ts":"2026-01-16T09:47:36.169","level":"debug","req":"6b5028db","msg":"form_api: JSON output","ctx":{"bytes":127918}}
+{"ts":"2026-01-16T09:47:36.525","level":"debug","req":"ccb2123e","msg":"form_api: JSON output","ctx":{"bytes":41308}}
+{"ts":"2026-01-16T09:47:37.936","level":"debug","req":"9a67df02","msg":"form_api: JSON output","ctx":{"bytes":367545}}
+{"ts":"2026-01-16T09:47:38.286","level":"debug","req":"bc27cffe","msg":"form_api: JSON output","ctx":{"bytes":164943}}
+{"ts":"2026-01-16T09:47:38.625","level":"debug","req":"6bcb06aa","msg":"form_api: JSON output","ctx":{"bytes":5225}}
+{"ts":"2026-01-16T09:47:38.932","level":"debug","req":"8315be8e","msg":"form_api: JSON output","ctx":{"bytes":4469}}
+{"ts":"2026-01-16T09:47:43.177","level":"debug","req":"6c4c15ab","msg":"form_api: JSON output","ctx":{"bytes":5208}}
+{"ts":"2026-01-16T09:48:19.106","level":"debug","req":"063a4b92","msg":"form_api: JSON output","ctx":{"bytes":111624}}
+{"ts":"2026-01-16T09:48:19.417","level":"debug","req":"e455e911","msg":"form_api: JSON output","ctx":{"bytes":111631}}
+{"ts":"2026-01-16T09:48:20.086","level":"debug","req":"bc07e0eb","msg":"form_api: JSON output","ctx":{"bytes":127911}}
+{"ts":"2026-01-16T09:48:20.423","level":"debug","req":"31011f4d","msg":"form_api: JSON output","ctx":{"bytes":84245}}
+{"ts":"2026-01-16T09:48:21.373","level":"debug","req":"04f56891","msg":"form_api: JSON output","ctx":{"bytes":367552}}
+{"ts":"2026-01-16T09:48:21.922","level":"debug","req":"1cb8a970","msg":"form_api: JSON output","ctx":{"bytes":164943}}
+{"ts":"2026-01-16T09:48:22.267","level":"debug","req":"874cba99","msg":"form_api: JSON output","ctx":{"bytes":5220}}
+{"ts":"2026-01-16T09:48:22.578","level":"debug","req":"9a0976ed","msg":"form_api: JSON output","ctx":{"bytes":4465}}
+{"ts":"2026-01-16T09:48:27.221","level":"debug","req":"b2c4d2fa","msg":"form_api: JSON output","ctx":{"bytes":5209}}
+{"ts":"2026-01-16T10:10:45.121","level":"debug","req":"97dd06a0","msg":"form_api: JSON output","ctx":{"bytes":7287}}
+{"ts":"2026-01-16T10:10:45.908","level":"debug","req":"e8d6be90","msg":"form_api: JSON output","ctx":{"bytes":6559}}
+{"ts":"2026-01-16T10:10:46.861","level":"debug","req":"e4e7d727","msg":"form_api: JSON output","ctx":{"bytes":40317}}
+{"ts":"2026-01-16T10:10:48.433","level":"debug","req":"949f48ee","msg":"form_api: JSON output","ctx":{"bytes":111620}}
+{"ts":"2026-01-16T10:10:48.720","level":"debug","req":"5405ce06","msg":"form_api: JSON output","ctx":{"bytes":5531}}
+{"ts":"2026-01-16T10:10:48.972","level":"debug","req":"73b002a5","msg":"form_api: JSON output","ctx":{"bytes":111632}}
+{"ts":"2026-01-16T10:10:49.832","level":"debug","req":"e49766e4","msg":"form_api: JSON output","ctx":{"bytes":127917}}
+{"ts":"2026-01-16T10:10:50.268","level":"debug","req":"3988a1cd","msg":"form_api: JSON output","ctx":{"bytes":84243}}
+{"ts":"2026-01-16T10:10:51.315","level":"debug","req":"43f814a2","msg":"form_api: JSON output","ctx":{"bytes":367549}}
+{"ts":"2026-01-16T10:10:51.868","level":"debug","req":"0938d6e9","msg":"form_api: JSON output","ctx":{"bytes":164947}}
+{"ts":"2026-01-16T10:10:52.220","level":"debug","req":"20d13b07","msg":"form_api: JSON output","ctx":{"bytes":28029}}
+{"ts":"2026-01-16T10:10:52.638","level":"debug","req":"0a624c8d","msg":"form_api: JSON output","ctx":{"bytes":7308}}
+{"ts":"2026-01-16T10:10:53.268","level":"debug","req":"793b9868","msg":"resolveJsonFormFkLabels: query failed","ctx":{"field":"fkVAVraag","sql":"SELECT TOP 1 [tblVATemplate].[Omschrijving] & \" - \" & [tblVADocument].[Naam] & \" - \" & [Vraag] AS Vraag, tblVAVraag.ID \r\nFROM (tblVATemplate INNER JOIN tblVADocument ON tblVATemplate.ID = tblVADocument.fkTemplate) INNER JOIN tblVAVraag ON tblVADocument.ID = tblVAVraag.fkDocument\r\n WHERE [tblVAVraag].[ID] = 7032 ORDER BY tblVATemplate.Omschrijving, tblVADocument.Sortorder, tblVADocument.Naam, tblVAVraag.sortorder"}}
+{"ts":"2026-01-16T10:11:29.951","level":"debug","req":"d75f3c51","msg":"form_api: JSON output","ctx":{"bytes":139759}}
+{"ts":"2026-01-16T10:11:30.357","level":"debug","req":"ad060c8d","msg":"form_api: JSON output","ctx":{"bytes":137045}}
+{"ts":"2026-01-16T10:51:46.454","level":"debug","req":"fec51273","msg":"form_api: JSON output","ctx":{"bytes":5514}}
+{"ts":"2026-01-16T10:51:47.670","level":"debug","req":"5da755d8","msg":"form_api: JSON output","ctx":{"bytes":137062}}
+{"ts":"2026-01-16T10:51:48.757","level":"debug","req":"da8c86f1","msg":"form_api: JSON output","ctx":{"bytes":82989}}
+{"ts":"2026-01-16T10:52:43.717","level":"debug","req":"5e27ecf8","msg":"form_api: JSON output","ctx":{"bytes":111560}}
+{"ts":"2026-01-16T10:52:48.754","level":"debug","req":"77fa4b98","msg":"form_api: JSON output","ctx":{"bytes":133191}}
+{"ts":"2026-01-16T10:52:49.693","level":"debug","req":"546c99eb","msg":"form_api: JSON output","ctx":{"bytes":133207}}
+{"ts":"2026-01-16T10:52:50.132","level":"debug","req":"57eec7f9","msg":"form_api: JSON output","ctx":{"bytes":84702}}
+{"ts":"2026-01-16T10:52:56.479","level":"debug","req":"d0f951b6","msg":"form_api: JSON output","ctx":{"bytes":111568}}
+{"ts":"2026-01-16T10:53:04.608","level":"debug","req":"f07d52cb","msg":"form_api: JSON output","ctx":{"bytes":106074}}
+{"ts":"2026-01-16T10:53:59.396","level":"debug","req":"13a0a11a","msg":"form_api: JSON output","ctx":{"bytes":131008}}
+{"ts":"2026-01-16T10:54:00.931","level":"debug","req":"b270c9b0","msg":"form_api: JSON output","ctx":{"bytes":137039}}
+{"ts":"2026-01-16T10:54:43.041","level":"debug","req":"20c2487c","msg":"form_api: JSON output","ctx":{"bytes":111620}}
+{"ts":"2026-01-16T10:54:43.324","level":"debug","req":"71a7fdc4","msg":"form_api: JSON output","ctx":{"bytes":111627}}
+{"ts":"2026-01-16T10:54:44.314","level":"debug","req":"1651e56e","msg":"form_api: JSON output","ctx":{"bytes":137042}}
+{"ts":"2026-01-16T10:54:58.809","level":"debug","req":"65223fa7","msg":"form_api: JSON output","ctx":{"bytes":111620}}
+{"ts":"2026-01-16T10:54:59.088","level":"debug","req":"ec2abf44","msg":"form_api: JSON output","ctx":{"bytes":111625}}
+{"ts":"2026-01-16T10:54:59.538","level":"debug","req":"a445aa5d","msg":"form_api: JSON output","ctx":{"bytes":133203}}
+{"ts":"2026-01-16T10:55:00.731","level":"debug","req":"b7403616","msg":"form_api: JSON output","ctx":{"bytes":131007}}
+{"ts":"2026-01-16T10:55:01.055","level":"debug","req":"663719bf","msg":"form_api: JSON output","ctx":{"bytes":84171}}
+{"ts":"2026-01-16T11:00:37.283","level":"debug","req":"d09ba1af","msg":"form_api: JSON output","ctx":{"bytes":111623}}
+{"ts":"2026-01-16T11:00:37.563","level":"debug","req":"acf034c8","msg":"form_api: JSON output","ctx":{"bytes":111625}}
+{"ts":"2026-01-16T11:00:38.310","level":"debug","req":"97b302ef","msg":"form_api: JSON output","ctx":{"bytes":131009}}
+{"ts":"2026-01-16T11:00:38.574","level":"debug","req":"9432a996","msg":"form_api: JSON output","ctx":{"bytes":84171}}
+{"ts":"2026-01-16T11:00:40.526","level":"debug","req":"784a2047","msg":"form_api: JSON output","ctx":{"bytes":27997}}
+{"ts":"2026-01-16T11:00:41.329","level":"debug","req":"58230404","msg":"form_api: JSON output","ctx":{"bytes":375202}}
+{"ts":"2026-01-16T11:00:41.845","level":"debug","req":"91677c23","msg":"form_api: JSON output","ctx":{"bytes":166650}}
+{"ts":"2026-01-16T11:00:43.841","level":"debug","req":"3befc80c","msg":"form_api: JSON output","ctx":{"bytes":1241}}
+{"ts":"2026-01-16T11:00:53.225","level":"debug","req":"db6a2ca8","msg":"form_api: JSON output","ctx":{"bytes":376710}}
+{"ts":"2026-01-16T11:00:53.746","level":"debug","req":"737c6cc3","msg":"form_api: JSON output","ctx":{"bytes":166602}}
+{"ts":"2026-01-16T11:00:54.863","level":"debug","req":"6abab8b3","msg":"form_api: JSON output","ctx":{"bytes":1226}}
+{"ts":"2026-01-16T11:03:15.660","level":"debug","req":"d87278db","msg":"form_api: JSON output","ctx":{"bytes":111617}}
+{"ts":"2026-01-16T11:03:15.906","level":"debug","req":"2f83b4ce","msg":"form_api: JSON output","ctx":{"bytes":111620}}
+{"ts":"2026-01-16T11:03:16.487","level":"debug","req":"efde706e","msg":"form_api: JSON output","ctx":{"bytes":131010}}
+{"ts":"2026-01-16T11:03:16.826","level":"debug","req":"808e17f3","msg":"form_api: JSON output","ctx":{"bytes":84175}}
+{"ts":"2026-01-16T11:03:29.112","level":"debug","req":"90acdca4","msg":"form_api: JSON output","ctx":{"bytes":111621}}
+{"ts":"2026-01-16T11:03:29.410","level":"debug","req":"54cd5d22","msg":"form_api: JSON output","ctx":{"bytes":111631}}
+{"ts":"2026-01-16T11:03:30.064","level":"debug","req":"45a9569d","msg":"form_api: JSON output","ctx":{"bytes":131012}}
+{"ts":"2026-01-16T11:03:37.339","level":"debug","req":"c1add096","msg":"form_api: JSON output","ctx":{"bytes":111631}}
+{"ts":"2026-01-16T11:03:37.645","level":"debug","req":"6f9b9287","msg":"form_api: JSON output","ctx":{"bytes":111633}}
+{"ts":"2026-01-16T11:03:38.309","level":"debug","req":"5a7c1ce9","msg":"form_api: JSON output","ctx":{"bytes":129899}}
+{"ts":"2026-01-16T11:03:38.990","level":"debug","req":"7346da5a","msg":"form_api: JSON output","ctx":{"bytes":133213}}
+{"ts":"2026-01-16T11:03:39.470","level":"debug","req":"e82bfde3","msg":"form_api: JSON output","ctx":{"bytes":124311}}
+{"ts":"2026-01-16T11:03:40.761","level":"debug","req":"4b6c814e","msg":"form_api: JSON output","ctx":{"bytes":124297}}
+{"ts":"2026-01-16T11:03:41.122","level":"debug","req":"ee164cbc","msg":"form_api: JSON output","ctx":{"bytes":83312}}
+{"ts":"2026-01-16T11:06:23.927","level":"debug","req":"297c5187","msg":"form_api: JSON output","ctx":{"bytes":374158}}
+{"ts":"2026-01-16T11:06:24.294","level":"debug","req":"c7086f15","msg":"form_api: JSON output","ctx":{"bytes":164013}}
+{"ts":"2026-01-16T11:06:56.061","level":"debug","req":"3782ccd7","msg":"form_api: JSON output","ctx":{"bytes":111617}}
+{"ts":"2026-01-16T11:06:56.341","level":"debug","req":"b6356b9a","msg":"form_api: JSON output","ctx":{"bytes":111617}}
+{"ts":"2026-01-16T11:06:56.993","level":"debug","req":"8379ba26","msg":"form_api: JSON output","ctx":{"bytes":124291}}
+{"ts":"2026-01-16T11:06:58.765","level":"debug","req":"2a71eb0e","msg":"form_api: JSON output","ctx":{"bytes":111617}}
+{"ts":"2026-01-16T11:06:59.049","level":"debug","req":"01e6bcf2","msg":"form_api: JSON output","ctx":{"bytes":111627}}
+{"ts":"2026-01-16T11:06:59.446","level":"debug","req":"d76eda03","msg":"form_api: JSON output","ctx":{"bytes":124291}}
+{"ts":"2026-01-16T11:08:59.923","level":"debug","req":"449f494d","msg":"form_api: JSON output","ctx":{"bytes":111615}}
+{"ts":"2026-01-16T11:09:00.317","level":"debug","req":"72b30181","msg":"form_api: JSON output","ctx":{"bytes":124303}}
+{"ts":"2026-01-16T11:09:00.636","level":"debug","req":"1f502fda","msg":"form_api: JSON output","ctx":{"bytes":83308}}
+{"ts":"2026-01-16T11:09:00.918","level":"debug","req":"7747fe67","msg":"form_api: JSON output","ctx":{"bytes":111638}}
+{"ts":"2026-01-16T11:09:48.462","level":"debug","req":"a31bd41a","msg":"form_api: JSON output","ctx":{"bytes":111616}}
+{"ts":"2026-01-16T11:09:48.737","level":"debug","req":"72226bff","msg":"form_api: JSON output","ctx":{"bytes":111624}}
+{"ts":"2026-01-16T11:09:49.395","level":"debug","req":"5d3bee5f","msg":"form_api: JSON output","ctx":{"bytes":124290}}
+{"ts":"2026-01-16T11:09:52.986","level":"debug","req":"86e759bd","msg":"form_api: JSON output","ctx":{"bytes":111621}}
+{"ts":"2026-01-16T11:09:53.279","level":"debug","req":"c163549c","msg":"form_api: JSON output","ctx":{"bytes":111625}}
+{"ts":"2026-01-16T11:09:53.899","level":"debug","req":"5ee33a40","msg":"form_api: JSON output","ctx":{"bytes":124289}}
+{"ts":"2026-01-16T22:28:34.181","level":"debug","req":"dab0a9c9","msg":"form_api: JSON output","ctx":{"bytes":1805502}}
+{"ts":"2026-01-16T22:28:39.949","level":"debug","req":"f1c0ada1","msg":"form_api: JSON output","ctx":{"bytes":1805509}}
+{"ts":"2026-01-16T22:28:41.745","level":"debug","req":"18000e83","msg":"form_api: JSON output","ctx":{"bytes":222966}}
+{"ts":"2026-01-16T22:28:46.827","level":"debug","req":"ccc0e474","msg":"form_api: JSON output","ctx":{"bytes":1805519}}
+{"ts":"2026-01-16T22:30:31.044","level":"debug","req":"b556253b","msg":"form_api: JSON output","ctx":{"bytes":5513}}
+{"ts":"2026-01-16T22:30:31.340","level":"debug","req":"222349ac","msg":"form_api: JSON output","ctx":{"bytes":111642}}
+{"ts":"2026-01-16T22:30:31.706","level":"debug","req":"02f35d3f","msg":"form_api: JSON output","ctx":{"bytes":1232}}
+{"ts":"2026-01-16T22:31:45.497","level":"debug","req":"fa4a7cad","msg":"form_api: JSON output","ctx":{"bytes":1490}}
+{"ts":"2026-01-16T22:31:46.077","level":"debug","req":"658f3e90","msg":"form_api: JSON output","ctx":{"bytes":1498}}
+{"ts":"2026-01-16T22:31:46.488","level":"debug","req":"bc9ce815","msg":"form_api: JSON output","ctx":{"bytes":18126}}
+{"ts":"2026-01-16T22:31:47.912","level":"debug","req":"f0f1cfa7","msg":"form_api: JSON output","ctx":{"bytes":18128}}
+{"ts":"2026-01-16T22:31:49.337","level":"debug","req":"ba5e5b66","msg":"form_api: JSON output","ctx":{"bytes":18128}}
+{"ts":"2026-01-16T22:31:50.814","level":"debug","req":"5beadc63","msg":"form_api: JSON output","ctx":{"bytes":18122}}
+{"ts":"2026-01-16T22:31:51.223","level":"debug","req":"c8f32e31","msg":"form_api: JSON output","ctx":{"bytes":18129}}
+{"ts":"2026-01-16T22:31:52.097","level":"debug","req":"7f7b06ac","msg":"form_api: JSON output","ctx":{"bytes":128067}}
+{"ts":"2026-01-16T22:31:52.648","level":"debug","req":"5ae59bea","msg":"form_api: JSON output","ctx":{"bytes":1492}}
+{"ts":"2026-01-16T22:31:53.191","level":"debug","req":"90291a6d","msg":"form_api: JSON output","ctx":{"bytes":1496}}
+{"ts":"2026-01-16T22:31:53.691","level":"debug","req":"3adfc948","msg":"form_api: JSON output","ctx":{"bytes":1496}}
+{"ts":"2026-01-16T22:31:54.239","level":"debug","req":"38722acc","msg":"form_api: JSON output","ctx":{"bytes":1490}}
+{"ts":"2026-01-16T22:40:09.412","level":"debug","req":"45b643df","msg":"form_api: JSON output","ctx":{"bytes":2818}}
+{"ts":"2026-01-16T22:40:10.138","level":"debug","req":"67076503","msg":"form_api: JSON output","ctx":{"bytes":2816}}
+{"ts":"2026-01-16T22:40:10.898","level":"debug","req":"68467fed","msg":"form_api: JSON output","ctx":{"bytes":2818}}
+{"ts":"2026-01-16T22:40:11.539","level":"debug","req":"c9827b31","msg":"form_api: JSON output","ctx":{"bytes":2816}}
+{"ts":"2026-01-16T22:40:12.207","level":"debug","req":"010b39a4","msg":"form_api: JSON output","ctx":{"bytes":2814}}
+{"ts":"2026-01-16T22:59:39.184","level":"debug","req":"5d223ff5","msg":"form_api: JSON output","ctx":{"bytes":2713}}
+{"ts":"2026-01-16T22:59:42.358","level":"debug","req":"cb88a714","msg":"form_api: JSON output","ctx":{"bytes":2717}}
+{"ts":"2026-01-16T22:59:44.251","level":"debug","req":"65db4727","msg":"form_api: JSON output","ctx":{"bytes":2726}}
+{"ts":"2026-01-16T23:00:07.339","level":"debug","req":"adcc342a","msg":"form_api: JSON output","ctx":{"bytes":2717}}
+{"ts":"2026-01-16T23:22:22.895","level":"debug","req":"a54d2034","msg":"form_api: JSON output","ctx":{"bytes":2836}}
+{"ts":"2026-01-16T23:22:23.377","level":"debug","req":"b6d6fc6f","msg":"form_api: JSON output","ctx":{"bytes":2815}}
+{"ts":"2026-01-16T23:23:02.701","level":"debug","req":"60dcea00","msg":"form_api: JSON output","ctx":{"bytes":18742}}
+{"ts":"2026-01-16T23:23:03.012","level":"debug","req":"be70deb8","msg":"form_api: JSON output","ctx":{"bytes":18728}}
+{"ts":"2026-01-16T23:23:03.387","level":"debug","req":"dfde4e28","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:03.388","level":"debug","req":"dfde4e28","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:03.389","level":"debug","req":"dfde4e28","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:03.389","level":"debug","req":"dfde4e28","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:03.392","level":"debug","req":"dfde4e28","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:03.393","level":"debug","req":"dfde4e28","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:03.393","level":"error","req":"dfde4e28","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:03.566","level":"debug","req":"d56d6546","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:03.567","level":"debug","req":"d56d6546","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:03.568","level":"debug","req":"d56d6546","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:03.569","level":"debug","req":"d56d6546","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:03.571","level":"debug","req":"d56d6546","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:03.572","level":"debug","req":"d56d6546","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:03.573","level":"error","req":"d56d6546","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:03.737","level":"debug","req":"8cc5b95b","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:03.738","level":"debug","req":"8cc5b95b","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:03.739","level":"debug","req":"8cc5b95b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:03.740","level":"debug","req":"8cc5b95b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:03.743","level":"debug","req":"8cc5b95b","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:03.743","level":"debug","req":"8cc5b95b","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:03.744","level":"error","req":"8cc5b95b","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:03.922","level":"debug","req":"23cdfc86","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:03.922","level":"debug","req":"23cdfc86","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:03.922","level":"debug","req":"23cdfc86","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:03.923","level":"debug","req":"23cdfc86","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:03.925","level":"debug","req":"23cdfc86","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:03.926","level":"debug","req":"23cdfc86","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:03.927","level":"error","req":"23cdfc86","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:04.105","level":"debug","req":"30354503","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:04.106","level":"debug","req":"30354503","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:04.106","level":"debug","req":"30354503","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:04.107","level":"debug","req":"30354503","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:04.110","level":"debug","req":"30354503","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:04.111","level":"debug","req":"30354503","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:04.112","level":"error","req":"30354503","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:04.291","level":"debug","req":"b8f9f99e","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:04.292","level":"debug","req":"b8f9f99e","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:04.292","level":"debug","req":"b8f9f99e","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:04.293","level":"debug","req":"b8f9f99e","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:04.296","level":"debug","req":"b8f9f99e","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:04.297","level":"debug","req":"b8f9f99e","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:04.298","level":"error","req":"b8f9f99e","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen&id=999999999","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:04.465","level":"debug","req":"5c8589ea","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:04.466","level":"debug","req":"5c8589ea","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:04.466","level":"debug","req":"5c8589ea","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:04.467","level":"debug","req":"5c8589ea","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:04.469","level":"debug","req":"5c8589ea","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:04.470","level":"debug","req":"5c8589ea","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:04.470","level":"error","req":"5c8589ea","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:04.738","level":"debug","req":"bf4a3751","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:04.739","level":"debug","req":"bf4a3751","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:04.740","level":"debug","req":"bf4a3751","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:04.741","level":"debug","req":"bf4a3751","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:04.745","level":"debug","req":"bf4a3751","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:04.746","level":"debug","req":"bf4a3751","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:04.746","level":"error","req":"bf4a3751","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:23:05.021","level":"debug","req":"56995269","msg":"logMonitoring START","ctx":{"form":"opleidingen","action":"delete","recordId":"999999999"}}
+{"ts":"2026-01-16T23:23:05.022","level":"debug","req":"56995269","msg":"logMonitoring: username=Onbekend"}
+{"ts":"2026-01-16T23:23:05.023","level":"debug","req":"56995269","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-16T23:23:05.024","level":"debug","req":"56995269","msg":"logMonitoring: notification_length=99"}
+{"ts":"2026-01-16T23:23:05.025","level":"debug","req":"56995269","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":273}}
+{"ts":"2026-01-16T23:23:05.035","level":"debug","req":"56995269","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-16T23:23:05.036","level":"debug","req":"56995269","msg":"logMonitoring END"}
+{"ts":"2026-01-16T23:23:05.200","level":"debug","req":"fd8d862b","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:23:05.200","level":"debug","req":"fd8d862b","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:23:05.200","level":"debug","req":"fd8d862b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:23:05.201","level":"debug","req":"fd8d862b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:23:05.202","level":"debug","req":"fd8d862b","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:23:05.202","level":"debug","req":"fd8d862b","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:23:05.203","level":"error","req":"fd8d862b","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:26:33.247","level":"debug","req":"9a2ed57c","msg":"form_api: JSON output","ctx":{"bytes":1805615}}
+{"ts":"2026-01-16T23:26:33.764","level":"debug","req":"5fb2f444","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:26:33.766","level":"debug","req":"5fb2f444","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:26:33.766","level":"debug","req":"5fb2f444","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:26:33.767","level":"debug","req":"5fb2f444","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:26:33.774","level":"debug","req":"5fb2f444","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:26:33.775","level":"debug","req":"5fb2f444","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:26:33.776","level":"error","req":"5fb2f444","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:26:38.364","level":"debug","req":"e32211e8","msg":"form_api: JSON output","ctx":{"bytes":1805612}}
+{"ts":"2026-01-16T23:26:38.900","level":"debug","req":"3a2bb8a9","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:26:38.901","level":"debug","req":"3a2bb8a9","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:26:38.902","level":"debug","req":"3a2bb8a9","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:26:38.902","level":"debug","req":"3a2bb8a9","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:26:38.906","level":"debug","req":"3a2bb8a9","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:26:38.907","level":"debug","req":"3a2bb8a9","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:26:38.908","level":"error","req":"3a2bb8a9","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:26:43.495","level":"debug","req":"7ab83d7e","msg":"form_api: JSON output","ctx":{"bytes":1805610}}
+{"ts":"2026-01-16T23:26:44.013","level":"debug","req":"e6b45b4b","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:26:44.014","level":"debug","req":"e6b45b4b","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:26:44.015","level":"debug","req":"e6b45b4b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:26:44.015","level":"debug","req":"e6b45b4b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:26:44.018","level":"debug","req":"e6b45b4b","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:26:44.019","level":"debug","req":"e6b45b4b","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:26:44.020","level":"error","req":"e6b45b4b","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:26:48.324","level":"debug","req":"c910b8f8","msg":"form_api: JSON output","ctx":{"bytes":1805606}}
+{"ts":"2026-01-16T23:26:53.021","level":"debug","req":"53d00e33","msg":"form_api: JSON output","ctx":{"bytes":1805612}}
+{"ts":"2026-01-16T23:26:57.814","level":"debug","req":"ee3bb5cd","msg":"form_api: JSON output","ctx":{"bytes":1805612}}
+{"ts":"2026-01-16T23:27:02.701","level":"debug","req":"a33b68e7","msg":"form_api: JSON output","ctx":{"bytes":1805610}}
+{"ts":"2026-01-16T23:27:07.346","level":"debug","req":"ac20182c","msg":"form_api: JSON output","ctx":{"bytes":1805612}}
+{"ts":"2026-01-16T23:27:12.005","level":"debug","req":"83124f25","msg":"form_api: JSON output","ctx":{"bytes":1805608}}
+{"ts":"2026-01-16T23:27:16.621","level":"debug","req":"76a7e941","msg":"form_api: JSON output","ctx":{"bytes":1805609}}
+{"ts":"2026-01-16T23:27:21.107","level":"debug","req":"659216ec","msg":"form_api: JSON output","ctx":{"bytes":1805613}}
+{"ts":"2026-01-16T23:27:25.732","level":"debug","req":"4b3b6e97","msg":"form_api: JSON output","ctx":{"bytes":1805609}}
+{"ts":"2026-01-16T23:27:30.159","level":"debug","req":"54236a2c","msg":"form_api: JSON output","ctx":{"bytes":1805613}}
+{"ts":"2026-01-16T23:27:34.606","level":"debug","req":"477b1851","msg":"form_api: JSON output","ctx":{"bytes":1805611}}
+{"ts":"2026-01-16T23:27:35.015","level":"debug","req":"44733ceb","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:35.016","level":"debug","req":"44733ceb","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:35.017","level":"debug","req":"44733ceb","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:35.018","level":"debug","req":"44733ceb","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:35.021","level":"debug","req":"44733ceb","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:35.021","level":"debug","req":"44733ceb","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:35.022","level":"error","req":"44733ceb","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:39.090","level":"debug","req":"65acd9de","msg":"form_api: JSON output","ctx":{"bytes":1805610}}
+{"ts":"2026-01-16T23:27:39.483","level":"debug","req":"5878f35c","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:39.484","level":"debug","req":"5878f35c","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:39.485","level":"debug","req":"5878f35c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:39.486","level":"debug","req":"5878f35c","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:39.488","level":"debug","req":"5878f35c","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:39.488","level":"debug","req":"5878f35c","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:39.488","level":"error","req":"5878f35c","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:46.449","level":"debug","req":"9ab1dbf3","msg":"form_api: JSON output","ctx":{"bytes":18735}}
+{"ts":"2026-01-16T23:27:46.786","level":"debug","req":"408f0dc6","msg":"form_api: JSON output","ctx":{"bytes":18733}}
+{"ts":"2026-01-16T23:27:47.099","level":"debug","req":"a4daf549","msg":"form_api: JSON output","ctx":{"bytes":18731}}
+{"ts":"2026-01-16T23:27:47.424","level":"debug","req":"2ee6f1db","msg":"form_api: JSON output","ctx":{"bytes":18735}}
+{"ts":"2026-01-16T23:27:47.762","level":"debug","req":"16057bd5","msg":"form_api: JSON output","ctx":{"bytes":18742}}
+{"ts":"2026-01-16T23:27:48.097","level":"debug","req":"868b1784","msg":"form_api: JSON output","ctx":{"bytes":18758}}
+{"ts":"2026-01-16T23:27:48.432","level":"debug","req":"e0725e80","msg":"form_api: JSON output","ctx":{"bytes":18742}}
+{"ts":"2026-01-16T23:27:48.862","level":"debug","req":"26d2f0db","msg":"form_api: JSON output","ctx":{"bytes":18753}}
+{"ts":"2026-01-16T23:27:49.189","level":"debug","req":"dc317e09","msg":"form_api: JSON output","ctx":{"bytes":18751}}
+{"ts":"2026-01-16T23:27:49.463","level":"debug","req":"aa2cb5d6","msg":"form_api: JSON output","ctx":{"bytes":18756}}
+{"ts":"2026-01-16T23:27:49.788","level":"debug","req":"eaf1c891","msg":"form_api: JSON output","ctx":{"bytes":18733}}
+{"ts":"2026-01-16T23:27:50.143","level":"debug","req":"0350da08","msg":"form_api: JSON output","ctx":{"bytes":18737}}
+{"ts":"2026-01-16T23:27:50.924","level":"debug","req":"c42273e4","msg":"form_api: JSON output","ctx":{"bytes":18735}}
+{"ts":"2026-01-16T23:27:53.966","level":"debug","req":"de7f3d14","msg":"form_api: JSON output","ctx":{"bytes":18738}}
+{"ts":"2026-01-16T23:27:54.233","level":"debug","req":"3fee401d","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:54.234","level":"debug","req":"3fee401d","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:54.235","level":"debug","req":"3fee401d","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:54.235","level":"debug","req":"3fee401d","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:54.239","level":"debug","req":"3fee401d","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:54.240","level":"debug","req":"3fee401d","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:54.240","level":"error","req":"3fee401d","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:54.465","level":"debug","req":"79fdfaba","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:54.466","level":"debug","req":"79fdfaba","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:54.467","level":"debug","req":"79fdfaba","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:54.468","level":"debug","req":"79fdfaba","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:54.471","level":"debug","req":"79fdfaba","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:54.472","level":"debug","req":"79fdfaba","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:54.472","level":"error","req":"79fdfaba","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:54.806","level":"debug","req":"52b09438","msg":"form_api: JSON output","ctx":{"bytes":18737}}
+{"ts":"2026-01-16T23:27:55.037","level":"debug","req":"470a4a11","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:55.038","level":"debug","req":"470a4a11","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:55.038","level":"debug","req":"470a4a11","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:55.039","level":"debug","req":"470a4a11","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:55.042","level":"debug","req":"470a4a11","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:55.043","level":"debug","req":"470a4a11","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:55.044","level":"error","req":"470a4a11","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:55.260","level":"debug","req":"b3f37598","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:55.261","level":"debug","req":"b3f37598","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:55.261","level":"debug","req":"b3f37598","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:55.262","level":"debug","req":"b3f37598","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:55.265","level":"debug","req":"b3f37598","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:55.266","level":"debug","req":"b3f37598","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:55.267","level":"error","req":"b3f37598","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:55.480","level":"debug","req":"f0a8165d","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:55.481","level":"debug","req":"f0a8165d","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:55.481","level":"debug","req":"f0a8165d","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:55.482","level":"debug","req":"f0a8165d","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:55.485","level":"debug","req":"f0a8165d","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:55.486","level":"debug","req":"f0a8165d","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:55.487","level":"error","req":"f0a8165d","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:55.708","level":"debug","req":"e0863ae9","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:55.709","level":"debug","req":"e0863ae9","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:55.710","level":"debug","req":"e0863ae9","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:55.711","level":"debug","req":"e0863ae9","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:55.714","level":"debug","req":"e0863ae9","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:55.715","level":"debug","req":"e0863ae9","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:55.716","level":"error","req":"e0863ae9","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:55.957","level":"debug","req":"3e9d7626","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:55.958","level":"debug","req":"3e9d7626","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:55.959","level":"debug","req":"3e9d7626","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:55.960","level":"debug","req":"3e9d7626","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:55.964","level":"debug","req":"3e9d7626","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:55.964","level":"debug","req":"3e9d7626","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:55.965","level":"error","req":"3e9d7626","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:56.182","level":"debug","req":"e2722b8e","msg":"SAVE REQUEST","ctx":{"jsonForm":"opleidingen","recordId":"","POST":[]}}
+{"ts":"2026-01-16T23:27:56.183","level":"debug","req":"e2722b8e","msg":"SAVE: POST keys","ctx":{"keys":[]}}
+{"ts":"2026-01-16T23:27:56.184","level":"debug","req":"e2722b8e","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:27:56.185","level":"debug","req":"e2722b8e","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:27:56.188","level":"debug","req":"e2722b8e","msg":"SAVE: Valid fields","ctx":{"fields":["_group_0","code","titel","bnsopleiding","startdatum","datonsite","datdocentenonline","datmedewonline","fkoplsoort","fkdifferentiatie","bbigvo","bbigkj","bbigo","bmoodlegekoppeld","bblended","bpuuronline","verstuurmails","breadonly","bverbergpersoonlijsten","_group_19","contact1","contact2","fkplanner","_group_23","fkevaluatietemplate","fkurentemplate","templatewerkplan","fkkbttemplate","templatehalfjaarverslag","templatejaarverslag","verslagbijlage1oms","verslagbijlage1template","verslagbijlage1verplicht","verslagbijlage2oms","verslagbijlage2template","verslagbijlage2verplicht","verslagbijlage3oms","verslagbijlage3template","verslagbijlage3verplicht","eindverslagtemplate","fkcompetentietemplate","vervangendeopdrachttemplate","fkvatemplate","aanmeldingseisen","opleidingsovereenkomst","vrijstellingseisen","_group_46","studiegids","blnwijzigbaardraaiboek","draaiboekintro","supervisieverklaring","promptusid"]}}
+{"ts":"2026-01-16T23:27:56.189","level":"debug","req":"e2722b8e","msg":"SAVE: SQL","ctx":{"sql":"INSERT INTO [tblOpleidingen] () VALUES ()"}}
+{"ts":"2026-01-16T23:27:56.189","level":"error","req":"e2722b8e","msg":"SAVE: No valid fields to insert","ctx":{"form":"opleidingen"},"url":"/cma/form_api.php?action=save&form=opleidingen","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:27:56.519","level":"debug","req":"4e90623d","msg":"form_api: JSON output","ctx":{"bytes":18731}}
+{"ts":"2026-01-16T23:27:56.853","level":"debug","req":"2bdad9a3","msg":"form_api: JSON output","ctx":{"bytes":18735}}
+{"ts":"2026-01-16T23:28:46.676","level":"debug","req":"c6b1120c","msg":"form_api: JSON output","ctx":{"bytes":1383}}
+{"ts":"2026-01-16T23:28:47.042","level":"debug","req":"1cd6eb21","msg":"form_api: JSON output","ctx":{"bytes":18143}}
+{"ts":"2026-01-16T23:28:48.916","level":"debug","req":"df533358","msg":"form_api: JSON output","ctx":{"bytes":1386}}
+{"ts":"2026-01-16T23:28:49.082","level":"debug","req":"0cbd93f2","msg":"form_api: JSON output","ctx":{"bytes":18134}}
+{"ts":"2026-01-16T23:28:51.168","level":"debug","req":"9b1b05c5","msg":"form_api: JSON output","ctx":{"bytes":1385}}
+{"ts":"2026-01-16T23:28:51.345","level":"debug","req":"81d8b0dc","msg":"form_api: JSON output","ctx":{"bytes":18134}}
+{"ts":"2026-01-16T23:28:53.388","level":"debug","req":"794d6fe8","msg":"form_api: JSON output","ctx":{"bytes":1385}}
+{"ts":"2026-01-16T23:28:53.558","level":"debug","req":"915f67b5","msg":"form_api: JSON output","ctx":{"bytes":18136}}
+{"ts":"2026-01-16T23:28:55.610","level":"debug","req":"8c4da1f2","msg":"form_api: JSON output","ctx":{"bytes":1385}}
+{"ts":"2026-01-16T23:28:55.791","level":"debug","req":"f04dde25","msg":"form_api: JSON output","ctx":{"bytes":18130}}
+{"ts":"2026-01-16T23:28:57.784","level":"debug","req":"bab275d4","msg":"form_api: JSON output","ctx":{"bytes":1383}}
+{"ts":"2026-01-16T23:28:57.951","level":"debug","req":"b76371ac","msg":"form_api: JSON output","ctx":{"bytes":18133}}
+{"ts":"2026-01-16T23:28:59.941","level":"debug","req":"55b0a74c","msg":"form_api: JSON output","ctx":{"bytes":1387}}
+{"ts":"2026-01-16T23:29:00.119","level":"debug","req":"8e239b9c","msg":"form_api: JSON output","ctx":{"bytes":18134}}
+{"ts":"2026-01-16T23:29:03.536","level":"debug","req":"0f762480","msg":"form_api: JSON output","ctx":{"bytes":1394}}
+{"ts":"2026-01-16T23:29:03.710","level":"debug","req":"7f8b68fe","msg":"form_api: JSON output","ctx":{"bytes":18138}}
+{"ts":"2026-01-16T23:37:39.341","level":"debug","req":"2fa5a5ee","msg":"form_api: JSON output","ctx":{"bytes":5535}}
+{"ts":"2026-01-16T23:37:39.609","level":"debug","req":"dd04a6ad","msg":"form_api: JSON output","ctx":{"bytes":111638}}
+{"ts":"2026-01-16T23:37:39.910","level":"debug","req":"39d97cbc","msg":"form_api: JSON output","ctx":{"bytes":111631}}
+{"ts":"2026-01-16T23:37:42.660","level":"debug","req":"6ba1555e","msg":"form_api: JSON output","ctx":{"bytes":111638}}
+{"ts":"2026-01-16T23:37:42.966","level":"debug","req":"84e341dd","msg":"form_api: JSON output","ctx":{"bytes":111631}}
+{"ts":"2026-01-16T23:38:29.268","level":"debug","req":"c23d6a17","msg":"form_api: JSON output","ctx":{"bytes":14701}}
+{"ts":"2026-01-16T23:38:30.050","level":"debug","req":"e4176a39","msg":"form_api: JSON output","ctx":{"bytes":92593}}
+{"ts":"2026-01-16T23:39:18.111","level":"debug","req":"bd20f7bc","msg":"form_api: JSON output","ctx":{"bytes":14702}}
+{"ts":"2026-01-16T23:39:18.570","level":"debug","req":"e58450ad","msg":"form_api: JSON output","ctx":{"bytes":92597}}
+{"ts":"2026-01-16T23:39:18.847","level":"debug","req":"8cf4a802","msg":"form_api: JSON output","ctx":{"bytes":9497}}
+{"ts":"2026-01-16T23:39:19.138","level":"debug","req":"a8e7fd68","msg":"form_api: JSON output","ctx":{"bytes":14719}}
+{"ts":"2026-01-16T23:39:19.437","level":"debug","req":"58199271","msg":"form_api: JSON output","ctx":{"bytes":14698}}
+{"ts":"2026-01-16T23:39:19.864","level":"debug","req":"8f4241b6","msg":"form_api: JSON output","ctx":{"bytes":92595}}
+{"ts":"2026-01-16T23:39:20.240","level":"debug","req":"127435e4","msg":"form_api: JSON output","ctx":{"bytes":92605}}
+{"ts":"2026-01-16T23:41:40.202","level":"debug","req":"45f1f5fe","msg":"form_api: JSON output","ctx":{"bytes":5514}}
+{"ts":"2026-01-16T23:41:40.482","level":"debug","req":"e08d4f72","msg":"form_api: JSON output","ctx":{"bytes":18836}}
+{"ts":"2026-01-16T23:41:41.256","level":"debug","req":"e3bc252e","msg":"form_api: JSON output","ctx":{"bytes":18819}}
+{"ts":"2026-01-16T23:46:09.872","level":"debug","req":"8d48f70c","msg":"form_api: JSON output","ctx":{"bytes":12950}}
+{"ts":"2026-01-16T23:46:11.518","level":"debug","req":"8ecd6852","msg":"form_api: JSON output","ctx":{"bytes":13290}}
+{"ts":"2026-01-16T23:46:13.460","level":"debug","req":"a8d95e18","msg":"form_api: JSON output","ctx":{"bytes":1951}}
+{"ts":"2026-01-16T23:46:13.931","level":"debug","req":"6e787710","msg":"form_api: JSON output","ctx":{"bytes":1001}}
+{"ts":"2026-01-16T23:46:26.873","level":"debug","req":"c14b34a1","msg":"form_api: JSON output","ctx":{"bytes":2067}}
+{"ts":"2026-01-16T23:46:27.179","level":"debug","req":"64ca97da","msg":"form_api: JSON output","ctx":{"bytes":3686}}
+{"ts":"2026-01-16T23:46:27.367","level":"debug","req":"04bf88e9","msg":"form_api: JSON output","ctx":{"bytes":3216}}
+{"ts":"2026-01-16T23:46:27.942","level":"debug","req":"f3da5065","msg":"form_api: JSON output","ctx":{"bytes":3686}}
+{"ts":"2026-01-16T23:46:28.101","level":"debug","req":"75b0f70c","msg":"form_api: JSON output","ctx":{"bytes":3216}}
+{"ts":"2026-01-16T23:46:28.430","level":"debug","req":"03f09ed8","msg":"form_api: JSON output","ctx":{"bytes":3198}}
+{"ts":"2026-01-16T23:46:29.005","level":"debug","req":"dd997628","msg":"form_api: JSON output","ctx":{"bytes":2071}}
+{"ts":"2026-01-16T23:46:29.184","level":"debug","req":"7561fa76","msg":"form_api: JSON output","ctx":{"bytes":3688}}
+{"ts":"2026-01-16T23:46:29.347","level":"debug","req":"d387d477","msg":"form_api: JSON output","ctx":{"bytes":3220}}
+{"ts":"2026-01-16T23:46:30.336","level":"debug","req":"988d4c89","msg":"form_api: JSON output","ctx":{"bytes":2071}}
+{"ts":"2026-01-16T23:46:30.504","level":"debug","req":"98dbe97f","msg":"form_api: JSON output","ctx":{"bytes":3686}}
+{"ts":"2026-01-16T23:46:30.690","level":"debug","req":"55bf7242","msg":"form_api: JSON output","ctx":{"bytes":3216}}
+{"ts":"2026-01-16T23:46:33.366","level":"debug","req":"65fae38b","msg":"SAVE REQUEST","ctx":{"jsonForm":"_menu_items","recordId":"128","POST":{"action":"save","ID":"128","jsonForm":"_menu_items","visible":"False"}}}
+{"ts":"2026-01-16T23:46:33.367","level":"debug","req":"65fae38b","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","visible"]}}
+{"ts":"2026-01-16T23:46:33.368","level":"debug","req":"65fae38b","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:46:33.368","level":"debug","req":"65fae38b","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:46:33.370","level":"debug","req":"65fae38b","msg":"ConfigFormService::saveRecord","ctx":{"formName":"_menu_items","data":{"visible":"False","id":"128"}}}
+{"ts":"2026-01-16T23:46:33.372","level":"debug","req":"65fae38b","msg":"ConfigFormService: searching for item","ctx":{"id":"128","parentKey":"menus","nestedKey":"items","parentCount":15}}
+{"ts":"2026-01-16T23:46:33.372","level":"debug","req":"65fae38b","msg":"ConfigFormService: found item, merging","ctx":{"parentIdx":5,"itemIdx":0,"originalItem":{"id":128,"name":"Te inventariseren groepen","order":10,"form":"inventarisatie","formId":201,"visible":true},"cleanedData":{"id":128,"visible":false}}}
+{"ts":"2026-01-16T23:46:33.374","level":"debug","req":"65fae38b","msg":"ConfigFormService: save result","ctx":{"configFile":"menu","saveResult":true}}
+{"ts":"2026-01-16T23:46:33.375","level":"debug","req":"65fae38b","msg":"logMonitoring START","ctx":{"form":"_menu_items","action":"edit","recordId":"128"}}
+{"ts":"2026-01-16T23:46:33.375","level":"debug","req":"65fae38b","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-16T23:46:33.375","level":"debug","req":"65fae38b","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-16T23:46:33.376","level":"debug","req":"65fae38b","msg":"logMonitoring: notification_length=100"}
+{"ts":"2026-01-16T23:46:33.377","level":"debug","req":"65fae38b","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":274}}
+{"ts":"2026-01-16T23:46:33.383","level":"debug","req":"65fae38b","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-16T23:46:33.384","level":"debug","req":"65fae38b","msg":"logMonitoring END"}
+{"ts":"2026-01-16T23:46:33.992","level":"debug","req":"59b01e79","msg":"form_api: JSON output","ctx":{"bytes":3416}}
+{"ts":"2026-01-16T23:46:34.452","level":"debug","req":"5b001aa4","msg":"form_api: JSON output","ctx":{"bytes":3409}}
+{"ts":"2026-01-16T23:46:34.612","level":"debug","req":"2a6a1e5c","msg":"form_api: JSON output","ctx":{"bytes":1249}}
+{"ts":"2026-01-16T23:46:35.045","level":"debug","req":"257d6550","msg":"form_api: JSON output","ctx":{"bytes":1249}}
+{"ts":"2026-01-16T23:46:35.475","level":"debug","req":"dbc067ec","msg":"form_api: JSON output","ctx":{"bytes":3413}}
+{"ts":"2026-01-16T23:46:35.648","level":"debug","req":"39cd4a37","msg":"form_api: JSON output","ctx":{"bytes":1228}}
+{"ts":"2026-01-16T23:46:36.068","level":"debug","req":"d10c5bea","msg":"form_api: JSON output","ctx":{"bytes":1016}}
+{"ts":"2026-01-16T23:46:36.515","level":"debug","req":"9a39285f","msg":"form_api: JSON output","ctx":{"bytes":2069}}
+{"ts":"2026-01-16T23:46:36.677","level":"debug","req":"acd4a998","msg":"form_api: JSON output","ctx":{"bytes":7121}}
+{"ts":"2026-01-16T23:46:36.863","level":"debug","req":"add5dabf","msg":"form_api: JSON output","ctx":{"bytes":6282}}
+{"ts":"2026-01-16T23:46:37.630","level":"debug","req":"3dc46504","msg":"form_api: JSON output","ctx":{"bytes":2071}}
+{"ts":"2026-01-16T23:46:37.792","level":"debug","req":"d96fd435","msg":"form_api: JSON output","ctx":{"bytes":7123}}
+{"ts":"2026-01-16T23:46:37.979","level":"debug","req":"997525a5","msg":"form_api: JSON output","ctx":{"bytes":6280}}
+{"ts":"2026-01-16T23:46:41.358","level":"debug","req":"d75219dd","msg":"form_api: JSON output","ctx":{"bytes":7292}}
+{"ts":"2026-01-16T23:46:41.562","level":"debug","req":"d5d0c42c","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"-1","POST":{"action":"save","form":"users","ID":"-1"}}}
+{"ts":"2026-01-16T23:46:41.563","level":"debug","req":"d5d0c42c","msg":"SAVE: POST keys","ctx":{"keys":["action","form","ID"]}}
+{"ts":"2026-01-16T23:46:41.564","level":"debug","req":"d5d0c42c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:46:41.565","level":"debug","req":"d5d0c42c","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:46:41.567","level":"debug","req":"d5d0c42c","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:46:41.567","level":"debug","req":"d5d0c42c","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET  WHERE [ID] = -1"}}
+{"ts":"2026-01-16T23:46:41.568","level":"error","req":"d5d0c42c","msg":"SAVE: No valid fields to save","ctx":{"form":"users"},"url":"/cma/form_api.php","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:48:59.951","level":"debug","req":"37a934bf","msg":"form_api: JSON output","ctx":{"bytes":1001}}
+{"ts":"2026-01-16T23:49:02.769","level":"debug","req":"73b5c2f4","msg":"form_api: JSON output","ctx":{"bytes":7377}}
+{"ts":"2026-01-16T23:49:02.870","level":"debug","req":"541a82c7","msg":"form_api: JSON output","ctx":{"bytes":18124}}
+{"ts":"2026-01-16T23:49:02.999","level":"debug","req":"9061c58c","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"-1","POST":{"action":"save","form":"users","ID":"-1"}}}
+{"ts":"2026-01-16T23:49:03.000","level":"debug","req":"9061c58c","msg":"SAVE: POST keys","ctx":{"keys":["action","form","ID"]}}
+{"ts":"2026-01-16T23:49:03.000","level":"debug","req":"9061c58c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:49:03.001","level":"debug","req":"9061c58c","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:49:03.003","level":"debug","req":"9061c58c","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:49:03.004","level":"debug","req":"9061c58c","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET  WHERE [ID] = -1"}}
+{"ts":"2026-01-16T23:49:03.005","level":"error","req":"9061c58c","msg":"SAVE: No valid fields to save","ctx":{"form":"users"},"url":"/cma/form_api.php","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:49:48.573","level":"debug","req":"6cd1180b","msg":"form_api: JSON output","ctx":{"bytes":7376}}
+{"ts":"2026-01-16T23:49:48.686","level":"debug","req":"63927fce","msg":"form_api: JSON output","ctx":{"bytes":1041}}
+{"ts":"2026-01-16T23:49:48.864","level":"debug","req":"1bbbfd66","msg":"form_api: JSON output","ctx":{"bytes":18135}}
+{"ts":"2026-01-16T23:49:48.980","level":"debug","req":"2d0a9e77","msg":"form_api: JSON output","ctx":{"bytes":1010}}
+{"ts":"2026-01-16T23:49:49.124","level":"debug","req":"6cf547fb","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"1","POST":{"action":"save","form":"users","ID":"1","userFullName":"Diederik Stenvers"}}}
+{"ts":"2026-01-16T23:49:49.125","level":"debug","req":"6cf547fb","msg":"SAVE: POST keys","ctx":{"keys":["action","form","ID","userFullName"]}}
+{"ts":"2026-01-16T23:49:49.126","level":"debug","req":"6cf547fb","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:49:49.126","level":"debug","req":"6cf547fb","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:49:49.128","level":"debug","req":"6cf547fb","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:49:49.129","level":"debug","req":"6cf547fb","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET [userFullName] = 'Diederik Stenvers' WHERE [ID] = 1"}}
+{"ts":"2026-01-16T23:49:49.130","level":"debug","req":"6cf547fb","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T23:49:49.131","level":"debug","req":"6cf547fb","msg":"SAVE: Verified record exists","ctx":{"id":"1"}}
+{"ts":"2026-01-16T23:49:49.132","level":"info","req":"6cf547fb","msg":"saveUserGroups: Saved group memberships","ctx":{"userId":1,"count":0}}
+{"ts":"2026-01-16T23:49:49.133","level":"debug","req":"6cf547fb","msg":"logMonitoring START","ctx":{"form":"users","action":"edit","recordId":"1"}}
+{"ts":"2026-01-16T23:49:49.134","level":"debug","req":"6cf547fb","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-16T23:49:49.134","level":"debug","req":"6cf547fb","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-16T23:49:49.135","level":"debug","req":"6cf547fb","msg":"logMonitoring: notification_length=98"}
+{"ts":"2026-01-16T23:49:49.136","level":"debug","req":"6cf547fb","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":264}}
+{"ts":"2026-01-16T23:49:49.144","level":"debug","req":"6cf547fb","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-16T23:49:49.145","level":"debug","req":"6cf547fb","msg":"logMonitoring END"}
+{"ts":"2026-01-16T23:49:49.391","level":"debug","req":"e8f2abf2","msg":"form_api: JSON output","ctx":{"bytes":7370}}
+{"ts":"2026-01-16T23:49:49.495","level":"debug","req":"a9365038","msg":"form_api: JSON output","ctx":{"bytes":1045}}
+{"ts":"2026-01-16T23:49:49.677","level":"debug","req":"50009e4f","msg":"form_api: JSON output","ctx":{"bytes":18131}}
+{"ts":"2026-01-16T23:49:51.644","level":"debug","req":"e825be03","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"11","POST":{"action":"save","jsonForm":"users","ID":"11","actie":"","_changelog":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">was</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">gewijzigd in</th></tr>\r\n<TR id=\"Toegangsniveau\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Toegangsniveau</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n</table>","_changelog_flds":"userLevel","_changelog_type":"edit","_changelog_email":"","_changelog_user":"Diederik Stenvers","_changelog_form":"users","_changelog_formname":"users","_changelog_copy":"","_changelog_copy_id":"","required":"","__fully_loaded":"Y","userLogin":"angeliquevanwees","userLogin__label":"Login","userFullName":"Angelique van Wees","userFullName__label":"Volledige naam","userEmail":"angeliquevanwees@rino.nl","userEmail__label":"E-mail","userPassword":"[REDACTED]","userPassword__label":"[REDACTED]","userIPAddresses":"","userIPAddresses__label":"IP Adressen","userLevel":"2","userLevel__label":"Toegangsniveau","user_groups__label":"Lid van groepen","userSkipNotifyOwnRecords":"False","userSkipNotifyOwnRecords__label":"Geen notificaties eigen wijzigingen","userAdministrator":"1","userAdministrator__label":"User Administrator","prefTheme":"","prefTheme__label":"Pref Theme","prefMenuStyle":"","prefMenuStyle__label":"Pref Menu Style","prefPopupStyle":"","prefPopupStyle__label":"Pref Popup Style","prefDebugMode":"","prefDebugMode__label":"Pref Debug Mode","prefDebugOverlay":"","prefDebugOverlay__label":"Pref Debug Overlay","prefSqlLogging":"False","prefSqlLogging__label":"SQL Logging"}}}
+{"ts":"2026-01-16T23:49:51.645","level":"debug","req":"e825be03","msg":"SAVE: POST keys","ctx":{"keys":["action","jsonForm","ID","actie","_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id","required","__fully_loaded","userLogin","userLogin__label","userFullName","userFullName__label","userEmail","userEmail__label","userPassword","userPassword__label","userIPAddresses","userIPAddresses__label","userLevel","userLevel__label","user_groups__label","userSkipNotifyOwnRecords","userSkipNotifyOwnRecords__label","userAdministrator","userAdministrator__label","prefTheme","prefTheme__label","prefMenuStyle","prefMenuStyle__label","prefPopupStyle","prefPopupStyle__label","prefDebugMode","prefDebugMode__label","prefDebugOverlay","prefDebugOverlay__label","prefSqlLogging","prefSqlLogging__label"]}}
+{"ts":"2026-01-16T23:49:51.646","level":"debug","req":"e825be03","msg":"SAVE: userLevel POST value","ctx":{"value":"2"}}
+{"ts":"2026-01-16T23:49:51.647","level":"debug","req":"e825be03","msg":"SAVE changelog data","ctx":{"keys":["_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id"],"changelogLength":616,"changelogPreview":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-"}}
+{"ts":"2026-01-16T23:49:51.649","level":"debug","req":"e825be03","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:49:51.650","level":"debug","req":"e825be03","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET [userLogin] = 'angeliquevanwees', [userFullName] = 'Angelique van Wees', [userEmail] = 'angeliquevanwees@rino.nl', [userPassword] = 'Victor317!', [userIPAddresses] = NULL, [userLevel] = 2, [userSkipNotifyOwnRecords] = False, [userAdministrator] = 1, [prefTheme] = NULL, [prefMenuStyle] = NULL, [prefPopupStyle] = NULL, [prefDebugMode] = NULL, [prefDebugOverlay] = NULL, [prefSqlLogging] = False WHERE [ID] = 11"}}
+{"ts":"2026-01-16T23:49:51.654","level":"debug","req":"e825be03","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T23:49:51.654","level":"debug","req":"e825be03","msg":"SAVE: Verified record exists","ctx":{"id":"11"}}
+{"ts":"2026-01-16T23:49:51.654","level":"info","req":"e825be03","msg":"saveUserGroups: Saved group memberships","ctx":{"userId":11,"count":0}}
+{"ts":"2026-01-16T23:49:51.654","level":"debug","req":"e825be03","msg":"logMonitoring START","ctx":{"form":"users","action":"edit","recordId":"11"}}
+{"ts":"2026-01-16T23:49:51.655","level":"debug","req":"e825be03","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-16T23:49:51.655","level":"debug","req":"e825be03","msg":"logMonitoring: changelog_length=616"}
+{"ts":"2026-01-16T23:49:51.655","level":"debug","req":"e825be03","msg":"logMonitoring: notification_length=723"}
+{"ts":"2026-01-16T23:49:51.655","level":"debug","req":"e825be03","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":890}}
+{"ts":"2026-01-16T23:49:51.656","level":"debug","req":"e825be03","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-16T23:49:51.657","level":"debug","req":"e825be03","msg":"logMonitoring END"}
+{"ts":"2026-01-16T23:49:51.791","level":"debug","req":"3e4cbe37","msg":"form_api: JSON output","ctx":{"bytes":7295}}
+{"ts":"2026-01-16T23:54:32.859","level":"debug","req":"9f168d37","msg":"form_api: JSON output","ctx":{"bytes":7376}}
+{"ts":"2026-01-16T23:54:33.186","level":"debug","req":"d43cb8bf","msg":"form_api: JSON output","ctx":{"bytes":7378}}
+{"ts":"2026-01-16T23:54:33.326","level":"debug","req":"83750a25","msg":"form_api: JSON output","ctx":{"bytes":1047}}
+{"ts":"2026-01-16T23:54:33.659","level":"debug","req":"e679cdec","msg":"form_api: JSON output","ctx":{"bytes":7374}}
+{"ts":"2026-01-16T23:54:33.766","level":"debug","req":"7087b8a4","msg":"form_api: JSON output","ctx":{"bytes":1039}}
+{"ts":"2026-01-16T23:54:34.332","level":"debug","req":"77a8648c","msg":"form_api: JSON output","ctx":{"bytes":7395}}
+{"ts":"2026-01-16T23:54:35.358","level":"debug","req":"4c5b1c7e","msg":"form_api: JSON output","ctx":{"bytes":7375}}
+{"ts":"2026-01-16T23:54:35.502","level":"debug","req":"055c743e","msg":"form_api: JSON output","ctx":{"bytes":1045}}
+{"ts":"2026-01-16T23:54:35.861","level":"debug","req":"c94a360f","msg":"form_api: JSON output","ctx":{"bytes":7376}}
+{"ts":"2026-01-16T23:54:35.982","level":"debug","req":"fa046875","msg":"form_api: JSON output","ctx":{"bytes":1041}}
+{"ts":"2026-01-16T23:54:36.324","level":"debug","req":"95c81ba6","msg":"form_api: JSON output","ctx":{"bytes":7374}}
+{"ts":"2026-01-16T23:54:36.475","level":"debug","req":"6663a173","msg":"form_api: JSON output","ctx":{"bytes":1044}}
+{"ts":"2026-01-16T23:54:37.033","level":"debug","req":"24e0505a","msg":"form_api: JSON output","ctx":{"bytes":7371}}
+{"ts":"2026-01-16T23:54:37.183","level":"debug","req":"66845208","msg":"form_api: JSON output","ctx":{"bytes":1042}}
+{"ts":"2026-01-16T23:54:37.377","level":"debug","req":"95d10dfe","msg":"form_api: JSON output","ctx":{"bytes":18135}}
+{"ts":"2026-01-16T23:54:37.846","level":"debug","req":"602316d0","msg":"form_api: JSON output","ctx":{"bytes":7375}}
+{"ts":"2026-01-16T23:54:37.998","level":"debug","req":"480df8dc","msg":"form_api: JSON output","ctx":{"bytes":1040}}
+{"ts":"2026-01-16T23:54:38.692","level":"debug","req":"ae722203","msg":"form_api: JSON output","ctx":{"bytes":1038}}
+{"ts":"2026-01-16T23:54:38.872","level":"debug","req":"8003c122","msg":"form_api: JSON output","ctx":{"bytes":18150}}
+{"ts":"2026-01-16T23:54:39.364","level":"debug","req":"33732d2d","msg":"form_api: JSON output","ctx":{"bytes":7373}}
+{"ts":"2026-01-16T23:54:40.158","level":"debug","req":"87eb645f","msg":"form_api: JSON output","ctx":{"bytes":7379}}
+{"ts":"2026-01-16T23:54:40.662","level":"debug","req":"1ef201a3","msg":"form_api: JSON output","ctx":{"bytes":7377}}
+{"ts":"2026-01-16T23:54:41.108","level":"debug","req":"e7380551","msg":"form_api: JSON output","ctx":{"bytes":7379}}
+{"ts":"2026-01-16T23:54:41.296","level":"debug","req":"009ccfda","msg":"form_api: JSON output","ctx":{"bytes":1044}}
+{"ts":"2026-01-16T23:54:41.799","level":"debug","req":"7759a034","msg":"form_api: JSON output","ctx":{"bytes":7374}}
+{"ts":"2026-01-16T23:54:42.246","level":"debug","req":"35419ee3","msg":"form_api: JSON output","ctx":{"bytes":7378}}
+{"ts":"2026-01-16T23:54:42.442","level":"debug","req":"b75b9ee0","msg":"form_api: JSON output","ctx":{"bytes":1047}}
+{"ts":"2026-01-16T23:54:42.642","level":"debug","req":"f0033c25","msg":"form_api: JSON output","ctx":{"bytes":18139}}
+{"ts":"2026-01-16T23:54:42.804","level":"debug","req":"0d85b5c7","msg":"form_api: JSON output","ctx":{"bytes":18144}}
+{"ts":"2026-01-16T23:54:43.680","level":"debug","req":"2faa7ef3","msg":"form_api: JSON output","ctx":{"bytes":7376}}
+{"ts":"2026-01-16T23:54:43.881","level":"debug","req":"0713f1f5","msg":"form_api: JSON output","ctx":{"bytes":1049}}
+{"ts":"2026-01-16T23:54:44.082","level":"debug","req":"250897ac","msg":"form_api: JSON output","ctx":{"bytes":18139}}
+{"ts":"2026-01-16T23:54:44.382","level":"debug","req":"00338365","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"-1","POST":{"action":"save","form":"users","ID":"-1"}}}
+{"ts":"2026-01-16T23:54:44.383","level":"debug","req":"00338365","msg":"SAVE: POST keys","ctx":{"keys":["action","form","ID"]}}
+{"ts":"2026-01-16T23:54:44.384","level":"debug","req":"00338365","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:54:44.384","level":"debug","req":"00338365","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:54:44.386","level":"debug","req":"00338365","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:54:44.387","level":"debug","req":"00338365","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET  WHERE [ID] = -1"}}
+{"ts":"2026-01-16T23:54:44.388","level":"error","req":"00338365","msg":"SAVE: No valid fields to save","ctx":{"form":"users"},"url":"/cma/form_api.php","method":"POST","ip":"172.29.210.72"}
+{"ts":"2026-01-16T23:54:44.665","level":"debug","req":"95388ce2","msg":"form_api: JSON output","ctx":{"bytes":1002}}
+{"ts":"2026-01-16T23:54:44.855","level":"debug","req":"1245102d","msg":"SAVE REQUEST","ctx":{"jsonForm":"users","recordId":"1","POST":{"action":"save","form":"users","ID":"1","userFullName":"Diederik Stenvers"}}}
+{"ts":"2026-01-16T23:54:44.857","level":"debug","req":"1245102d","msg":"SAVE: POST keys","ctx":{"keys":["action","form","ID","userFullName"]}}
+{"ts":"2026-01-16T23:54:44.857","level":"debug","req":"1245102d","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-16T23:54:44.858","level":"debug","req":"1245102d","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-16T23:54:44.860","level":"debug","req":"1245102d","msg":"SAVE: Valid fields","ctx":{"fields":["userlogin","userfullname","useremail","userpassword","useripaddresses","userlevel","userskipnotifyownrecords","useradministrator","preftheme","prefmenustyle","prefpopupstyle","prefdebugmode","prefdebugoverlay","prefsqllogging"]}}
+{"ts":"2026-01-16T23:54:44.861","level":"debug","req":"1245102d","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblUsers] SET [userFullName] = 'Diederik Stenvers' WHERE [ID] = 1"}}
+{"ts":"2026-01-16T23:54:44.862","level":"debug","req":"1245102d","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-16T23:54:44.863","level":"debug","req":"1245102d","msg":"SAVE: Verified record exists","ctx":{"id":"1"}}
+{"ts":"2026-01-16T23:54:44.864","level":"info","req":"1245102d","msg":"saveUserGroups: Saved group memberships","ctx":{"userId":1,"count":0}}
+{"ts":"2026-01-16T23:54:44.865","level":"debug","req":"1245102d","msg":"logMonitoring START","ctx":{"form":"users","action":"edit","recordId":"1"}}
+{"ts":"2026-01-16T23:54:44.865","level":"debug","req":"1245102d","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-16T23:54:44.866","level":"debug","req":"1245102d","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-16T23:54:44.867","level":"debug","req":"1245102d","msg":"logMonitoring: notification_length=98"}
+{"ts":"2026-01-16T23:54:44.868","level":"debug","req":"1245102d","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":264}}
+{"ts":"2026-01-16T23:54:44.875","level":"debug","req":"1245102d","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-16T23:54:44.875","level":"debug","req":"1245102d","msg":"logMonitoring END"}
+{"ts":"2026-01-16T23:54:45.432","level":"debug","req":"08c0c069","msg":"form_api: JSON output","ctx":{"bytes":7378}}
+{"ts":"2026-01-16T23:54:45.873","level":"debug","req":"e20c8951","msg":"form_api: JSON output","ctx":{"bytes":7377}}
+{"ts":"2026-01-16T23:54:46.419","level":"debug","req":"4106ac9b","msg":"form_api: JSON output","ctx":{"bytes":7392}}
+{"ts":"2026-01-16T23:54:46.624","level":"debug","req":"c5a2b369","msg":"form_api: JSON output","ctx":{"bytes":1048}}
+{"ts":"2026-01-16T23:54:47.127","level":"debug","req":"391a454f","msg":"form_api: JSON output","ctx":{"bytes":7380}}
+{"ts":"2026-01-16T23:54:47.303","level":"debug","req":"4b9361ea","msg":"form_api: JSON output","ctx":{"bytes":1048}}
+{"ts":"2026-01-16T23:54:47.860","level":"debug","req":"6ce65749","msg":"form_api: JSON output","ctx":{"bytes":7379}}
+{"ts":"2026-01-16T23:54:48.062","level":"debug","req":"d462cc3a","msg":"form_api: JSON output","ctx":{"bytes":1048}}
+{"ts":"2026-01-16T23:54:48.563","level":"debug","req":"0274cb0b","msg":"form_api: JSON output","ctx":{"bytes":7377}}
+{"ts":"2026-01-16T23:54:48.745","level":"debug","req":"df713a8f","msg":"form_api: JSON output","ctx":{"bytes":1001}}
+{"ts":"2026-01-16T23:54:49.634","level":"debug","req":"cad50d0d","msg":"form_api: JSON output","ctx":{"bytes":7379}}
+{"ts":"2026-01-16T23:54:49.836","level":"debug","req":"5764031a","msg":"form_api: JSON output","ctx":{"bytes":1043}}

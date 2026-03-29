@@ -1,0 +1,19 @@
+{
+    "admin": {
+        "username": "admin",
+        "password": "admin123",
+        "level": "developer",
+        "description": "Administrator user with full access"
+    },
+    "testUser": {
+        "username": "testuser",
+        "password": "testpass",
+        "level": "user",
+        "description": "Regular user with limited access"
+    },
+    "invalidUser": {
+        "username": "invaliduser",
+        "password": "wrongpassword",
+        "description": "Invalid credentials for testing login failures"
+    }
+}

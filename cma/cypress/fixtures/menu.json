@@ -1,0 +1,31 @@
+{
+    "groups": [
+        {
+            "name": "Dashboard",
+            "icon": "lnr-home",
+            "singleItem": true,
+            "link": "dashboard.php"
+        },
+        {
+            "name": "Beheer",
+            "icon": "lnr-database",
+            "items": [
+                {"name": "Opleidingen", "link": "form.php?jsonForm=opleidingen"},
+                {"name": "Deelnemers", "link": "form.php?jsonForm=deelnemers"},
+                {"name": "Contactpersonen", "link": "form.php?jsonForm=contactpersonen"}
+            ]
+        },
+        {
+            "name": "Beveiliging",
+            "icon": "lnr-lock",
+            "items": [
+                {"name": "Gebruikers", "link": "form.php?form=users"},
+                {"name": "Groepen", "link": "form.php?form=groups"}
+            ]
+        }
+    ],
+    "userMenu": [
+        {"name": "Voorkeuren", "link": "preferences.php"},
+        {"name": "Uitloggen", "action": "logout"}
+    ]
+}

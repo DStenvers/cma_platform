@@ -1,0 +1,555 @@
+{
+    "$schema": "./schema/reports.schema.json",
+    "reports": [
+        {
+            "id": 83,
+            "title": "Aantal geheimhouding akkoord",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT geheimhouding_datum, count(id) as Aantal from tbllogins group by geheimhouding_datum having geheimhouding_datum is not null"
+        },
+        {
+            "id": 77,
+            "title": "Actieve logins en hun email adressen",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT top 2000 tblLogins.id, tbllogins.roepnaam & \"  \" & tbllogins.achternaamcompleet as Naam,tblDeelnemers.email as deelnemer_email,  tblPraktijkOpleiders.email as Praktijkopleider_email, tblDocenten.email as Docent_Email, tblKlantContactpersonen.email as ContactPersoon_email,  tblContactpersonen.Email AS Assistent_Email, tblP_Praktijkopleiders.eMail as Popleider_Email, tblWerkbegeleiders.email as Werkbegeleider_email, tblSupervisoren.Email as Supervisor_Email FROM tblKlantContactpersonen RIGHT JOIN (tblPraktijkOpleiders RIGHT JOIN (tblWerkbegeleiders RIGHT JOIN (tblSupervisoren RIGHT JOIN (tblP_Praktijkopleiders RIGHT JOIN (tblDocenten RIGHT JOIN (tblDeelnemers RIGHT JOIN (tblContactpersonen RIGHT JOIN (tblServiceBureau RIGHT JOIN tblLogins ON tblServiceBureau.ID = tblLogins.fkServiceBureau) ON tblContactpersonen.ID = tblLogins.fkAssistent) ON tblDeelnemers.ID = tblLogins.fkDeelnemer) ON tblDocenten.ID = tblLogins.fkDocent) ON tblP_Praktijkopleiders.ID = tblLogins.fkP_Praktopl) ON tblSupervisoren.ID = tblLogins.fkSupervisor) ON tblWerkbegeleiders.ID = tblLogins.fkWerkbegeleider) ON tblPraktijkOpleiders.ID = tblLogins.fkPraktijkOpleider) ON tblKlantContactpersonen.ID = tblLogins.fkKlantContactPersoon  where tbllogins.actief=true order by tbllogins.id desc"
+        },
+        {
+            "id": 57,
+            "title": "Berichten : laatste 100",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT top 100 Subject, Details, URL, Datum, fkDeelnemer as Deelnemer, fkDocent as Docent, fkPraktijkopleider as Praktijkopleider, fkP_Praktopl as P_Opleider, fkAssistent as OM, fkSRHServicePakket as SRH_Servicepakket,\tfkSRHForumLid as Contactpersoon_inventarisatie,\tfkWerkbegeleider as Werkbegeleider,\tfkSupervisor as Supverisor, fkKlantContactPersoon as Klant_Contact,\tIsDeleted as Verwijderd,\tbPlanning as Planning, Gelezen from tblmessages order by id desc"
+        },
+        {
+            "id": 68,
+            "title": "BIG: Absenties dit jaar die gecompenseerd moeten worden (in dagdelen)",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.code, Count(tblAfwezigheid.ID) AS Afwezigheid \r\nFROM tblOpleidingen INNER JOIN (tblDeelname INNER JOIN (tblAgenda INNER JOIN tblAfwezigheid ON tblAgenda.ID = tblAfwezigheid.fkAgenda) ON tblDeelname.ID = tblAfwezigheid.fkDeelname) ON (tblOpleidingen.ID = tblDeelname.fkOpleiding) AND (tblOpleidingen.ID = tblAgenda.fkOpleiding)\r\nwhere  (tblOpleidingen.bnsOpleiding=false) and  (((Year([Datum]))=Year(Date())) AND ((tblAfwezigheid.Vrijstelling)=False) AND ((tblAfwezigheid.BlokVrijstelling)=False)) \r\nGROUP BY tblOpleidingen.code, Year([Datum]), tblAfwezigheid.Vrijstelling, tblAfwezigheid.BlokVrijstelling"
+        },
+        {
+            "id": 69,
+            "title": "BIG: Alle roosteritems dit jaar tot nu toe (in dagdelen)",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.code, Count(tblAgenda.ID) AS AantalVanID \r\nFROM tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding \r\nWHERE tblOpleidingen.bnsOpleiding=false and (Year([Datum])=Year(Date()) AND tblAgenda.datum<=Date())\r\nGROUP BY tblOpleidingen.code, Year([Datum]), tblOpleidingen.bnsOpleiding"
+        },
+        {
+            "id": 60,
+            "title": "CGO  controle rapport namen",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT iif( tblDeelnemers.VolledigeNaam=tblVADeelnameAntw.antwoord , \"Ok\",\"Controleren\") as Resultaat, tblOpleidingen.code, tblDeelnemers.VolledigeNaam, tblVADeelnameAntw.antwoord AS kbs_naam, tblVADeelname.datum_ingevuld, tblVADeelname.datum_verzonden, \"https://www.rinoportal.nl/cgo_document2.asp?\" & [tblVADeelname].[guid] AS Expr1, Lcase([Vraag]) AS Expr2\r\nFROM tblOpleidingen INNER JOIN (tblVAVraag RIGHT JOIN (tblDeelnemers INNER JOIN (tblDeelname INNER JOIN (tblVADeelname LEFT JOIN tblVADeelnameAntw ON tblVADeelname.ID = tblVADeelnameAntw.fkVADeelname) ON tblDeelname.ID = tblVADeelname.fkDeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblVAVraag.ID = tblVADeelnameAntw.fkVAVraag) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE trim(Lcase([Vraag]))=\"naam piog\" Or trim(Lcase([Vraag]))=\"naam gios\" Or trim(Lcase([Vraag]))=\"naam piop\"\r\nORDER BY tblOpleidingen.code, tblDeelnemers.Achternaam"
+        },
+        {
+            "id": 66,
+            "title": "CGO : Laatst ingevulde formulieren",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblVADeelname.datum_ingevuld, tblVADocument.Naam, tblOpleidingen.code, tblDeelnemers.VolledigeNaam\r\nFROM (tblDeelnemers INNER JOIN (tblDeelname INNER JOIN ((tblVATemplate INNER JOIN tblVADocument ON tblVATemplate.ID = tblVADocument.fkTemplate) INNER JOIN tblVADeelname ON tblVADocument.ID = tblVADeelname.fkVADocument) ON tblDeelname.ID = tblVADeelname.fkDeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) INNER JOIN tblOpleidingen ON (tblOpleidingen.ID = tblDeelname.fkOpleiding) AND (tblVATemplate.ID = tblOpleidingen.fkVATemplate)\r\nORDER BY tblVADeelname.datum_ingevuld DESC;"
+        },
+        {
+            "id": 80,
+            "title": "Controlerapport blended,readonly en elearning",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.code, tblOpleidingen.Titel, tblOpleidingen.Startdatum, IIf([bBlended]=True,\"Ja\",\"\") AS Blended, IIf([bReadonly]=True,\"Ja\",\"\") AS Readonly, IIf([bPuurOnline]=True,\"Ja\",\"\") AS Elearning\r\nFROM tblOpleidingen\r\nWHERE (((Year([Startdatum]))>=Year(Date()) And (Year([Startdatum]))<2030))\r\nORDER BY tblOpleidingen.code;"
+        },
+        {
+            "id": 64,
+            "title": "Cursussoorten",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT IIf([datOnSite]<Now(),'Online',IIf([datOnSite]=#1/1/2030#,'Niet meer actief','Nog niet actief')) AS OnlineIndic, tblOpleidingen.ID, tblOpleidingen.Code, tblOpleidingen.Titel, tblOpleidingenSoort.Naam\r\nFROM tblOpleidingenSoort RIGHT JOIN tblOpleidingen ON tblOpleidingenSoort.ID = tblOpleidingen.fkoplsoort\r\nORDER BY tblOpleidingen.datOnSite,tblOpleidingen.Code",
+            "groupField1": "OnlineIndic",
+            "editForm": "68"
+        },
+        {
+            "id": 29,
+            "title": "Deelnemers",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblDeelnemers.ID, [Code] & \" - \" & [Titel] AS Opleiding, tblDeelnemers.VolledigeNaam, tblDeelnemers.Achternaam, UCase([MV]) AS Geslacht, tblDeelnemers.Organisatie, tblDeelnemers.Organisatie2, afdeling,  tblDeelnemers.Adres, tblDeelnemers.Huisnummer, tblDeelnemers.Postcode, tblDeelnemers.Plaats, tblDeelnemers.Email, tblDeelnemers.EmailNotificaties, tblDeelnemers.TelefoonPrive, PriveAdres,PriveHuisNummer, PrivePostcode, PrivePlaats, tblDeelnemers.TelefoonPrivePubliceren, tblDeelnemers.TelefoonWerk, tblDeelnemers.TelefoonWerkPubliceren, tblDeelnemers.TelefoonMobiel, tblDeelnemers.TelefoonMobielPubliceren\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nORDER BY [Code] & \" - \" & [Titel],tblDeelnemers.Achternaam;",
+            "groupField1": "Opleiding",
+            "editForm": "61"
+        },
+        {
+            "id": 62,
+            "title": "Deelnemers - responsetijd gemiddeld",
+            "moduleId": 15,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT Avg( 0 - DateDiff(\"d\",[datum_ingevuld],[datum_verzonden]) ) AS dagen\r\nFROM tblEvalDeelname\r\nWHERE (((tblEvalDeelname.fkDocent) Is  Null) AND ((tblEvalDeelname.datum_ingevuld) Is Not Null))"
+        },
+        {
+            "id": 96,
+            "title": "Deelnemers met dubbele logins/deelname",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "id",
+            "query": "select tblDeelnemers.id, tblDeelnemers.Volledigenaam, tblDeelnemers.promptusid as loginCartaID, email   from tblDeelnemers inner join tbllogins on tbllogins.fkdeelnemer=tbldeelnemers.id where  tblDeelnemers.email in ( select concat( email_primair, email_primair_onbevestigd) from tblLogins as L  where actief=true and L.promptusid <>tblDeelnemers .promptusid )",
+            "editForm": "61"
+        },
+        {
+            "id": 30,
+            "title": "Docenten",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblDocenten.ID, tblOpleidingen.Code, tblOpleidingenPerDocent.blnHoofdopleider as Hoofdopleider, tblOpleidingenPerDocent.blnHoofdDocent as Jaargroepopleider, tblOpleidingenPerDocent.blnHoofdDocentNew as HoofdDocent, tblDocenten.VolledigeNaam, tblDocenten.Achternaam,UCase([MV]) AS Geslacht, tblDocenten.Organisatie, tblDocenten.Organisatie2, afdeling, tblDocenten.Adres, tblDocenten.Huisnummer, tblDocenten.Postcode, tblDocenten.Plaats, tblDocenten.Email, tblDocenten.EmailNotificaties, PriveAdres,PriveHuisNummer, PrivePostcode, PrivePlaats, tblDocenten.TelefoonPrive, tblDocenten.TelefoonPrivePubliceren, tblDocenten.TelefoonWerk, tblDocenten.TelefoonWerkPubliceren, tblDocenten.TelefoonMobiel, tblDocenten.TelefoonMobielPubliceren\r\nFROM tblOpleidingen INNER JOIN (tblDocenten INNER JOIN tblOpleidingenPerDocent ON tblDocenten.ID = tblOpleidingenPerDocent.fkDocent) ON tblOpleidingen.ID = tblOpleidingenPerDocent.fkOpleiding\r\nORDER BY tblDocenten.Achternaam,tblOpleidingen.Code",
+            "editForm": "62"
+        },
+        {
+            "id": 61,
+            "title": "Docenten - responsetijd gemiddeld",
+            "moduleId": 15,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT Avg( 0 - DateDiff(\"d\",[datum_ingevuld],[datum_verzonden])) AS dagen\r\nFROM tblEvalDeelname\r\nWHERE (((tblEvalDeelname.fkDocent) Is Not Null) AND ((tblEvalDeelname.datum_ingevuld) Is Not Null))"
+        },
+        {
+            "id": 87,
+            "title": "Docenten die dit jaar optreden met hun email adres en zoom gegevens",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT DISTINCTROW tblDocenten.ID,tblDocenten.VolledigeNaam, tblDocenten.email, tblLogins.emailZoomAccount, tblLogins.bZoomPro\r\nFROM (tblDocenten INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent) INNER JOIN (tblAgenda INNER JOIN tblDocentenPerAgendapunt ON tblAgenda.ID = tblDocentenPerAgendapunt.fkAgenda) ON tblDocenten.ID = tblDocentenPerAgendapunt.fkDocent\r\nWHERE (((Year([Datum]))=Year(Date())))\r\nORDER BY tblDocenten.Achternaam;",
+            "editForm": "62"
+        },
+        {
+            "id": 86,
+            "title": "Docenten met meerdere email adressen zonder Zoom email adres",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDocenten.ID, tblDocenten.Volledigenaam, tblLogins.bZoomPro, tblLogins.ZoomEindeLicensed, tblDocenten.Email\r\nFROM tblDocenten INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent\r\nWHERE (((tblLogins.emailZoomAccount) Is Null) AND (InStr([email],\";\")>\"0\")) order by tblDocenten.Achternaam",
+            "editForm": "62"
+        },
+        {
+            "id": 50,
+            "title": "Docenten-evaluaties vorig jaar",
+            "moduleId": 15,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDocenten.VolledigeNaam, Count(tblDocentenPerAgendapunt.blnEvaluatie) AS AantalVanblnEvaluatie\r\nFROM tblDocenten INNER JOIN (tblAgenda INNER JOIN tblDocentenPerAgendapunt ON tblAgenda.ID = tblDocentenPerAgendapunt.fkAgenda) ON tblDocenten.ID = tblDocentenPerAgendapunt.fkDocent\r\nGROUP BY tblDocenten.Achternaam, Year([Datum]), tblDocenten.VolledigeNaam\r\nHAVING (((Year([Datum]))=year(date())-1) AND ((Count(tblDocentenPerAgendapunt.blnEvaluatie))=True));"
+        },
+        {
+            "id": 81,
+            "title": "Dubbele competentieantwoorden",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT  first(tblCompetentieAntwoorden.id) as eerste,  tblCompetentieAntwoorden.fkCompetentie, tblCompetentieAntwoorden.fkCompetentie, tblCompetentieAntwoorden.Nummer, tblCompetentieAntwoorden.ID, tblCompetentieAntwoorden.Antwoord, tblCompetentieAntwoorden.GeschiktheidsAntwoord\r\nFROM tblCompetentieAntwoorden\r\nWHERE (((tblCompetentieAntwoorden.fkCompetentie) In (SELECT [fkCompetentie] FROM [tblCompetentieAntwoorden] As Tmp GROUP BY [fkCompetentie],[Nummer] HAVING Count(*)>1  And [Nummer] = [tblCompetentieAntwoorden].[Nummer])))\r\ngroup BY tblCompetentieAntwoorden.fkCompetentie, tblCompetentieAntwoorden.Nummer;",
+            "editForm": "105"
+        },
+        {
+            "id": 36,
+            "title": "Dubbele toets-uitwerkingen",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.Code, tblDeelnemers.VolledigeNaam, tblToetsen.Naam, tblToetsPerDeelnemer.Download\r\nFROM tblToetsen INNER JOIN (tblDeelnemers INNER JOIN (tblOpleidingen INNER JOIN (tblDeelname INNER JOIN tblToetsPerDeelnemer ON tblDeelname.ID = tblToetsPerDeelnemer.fkDeelname) ON tblOpleidingen.ID = tblDeelname.fkOpleiding) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblToetsen.ID = tblToetsPerDeelnemer.fkToets\r\nWHERE (((tblToetsPerDeelnemer.Download) In (SELECT [Download] FROM [tblToetsPerDeelnemer] As Tmp GROUP BY [Download] HAVING Count(*)>1 )))\r\nORDER BY tblOpleidingen.Code, tblDeelnemers.VolledigeNaam, tblToetsPerDeelnemer.Download;"
+        },
+        {
+            "id": 35,
+            "title": "Dubbele verslagen",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblDeelnemers.VolledigeNaam, tblVerslagen.Verslag, tblVerslagen.volgnummer, tblVerslagen.PeriodeStart, tblVerslagen.PeriodeEinde, tblVerslagen.DeelnemerDatum\r\nFROM tblDeelnemers INNER JOIN (tblDeelname INNER JOIN tblVerslagen ON tblDeelname.ID = tblVerslagen.fkDeelName) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer\r\nWHERE (((tblVerslagen.Verslag) In (SELECT [Verslag] FROM [tblVerslagen] As Tmp GROUP BY [Verslag] HAVING Count(*)>1 )))\r\nORDER BY tblVerslagen.Verslag;"
+        },
+        {
+            "id": 34,
+            "title": "Dubbele werkplannen",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblDeelnemers.VolledigeNaam, tblDeelname.Werkplan, tblOpleidingen.Code\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE (((tblDeelname.Werkplan) In (SELECT [Werkplan] FROM [tblDeelname] As Tmp GROUP BY [Werkplan] HAVING Count(*)>1 )))\r\nORDER BY tblDeelname.Werkplan;"
+        },
+        {
+            "id": 56,
+            "title": "Email gegevens : deelnemers",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT  tblDeelnemers.ID, tblDeelnemers.VolledigeNaam, tblDeelnemers.Achternaam, tblDeelnemers.MV, tblDeelnemers.Email, tblDeelnemers.EmailNotificaties, tblDeelnemers.EmailForumNotificaties, tblDeelnemers.EmailNieuwsNotificaties\r\nFROM tblDeelnemers\r\nORDER BY tblDeelnemers.Achternaam;",
+            "editForm": "61"
+        },
+        {
+            "id": 43,
+            "title": "Email gegevens : docenten",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblDocenten.ID, tblDocenten.VolledigeNaam, tblDocenten.Achternaam, tblDocenten.MV, tblDocenten.Email, tblDocenten.EmailNotificaties, tblDocenten.EmailForumNotificaties, tblDocenten.EmailNieuwsNotificaties\r\nFROM tblDocenten\r\nORDER BY tblDocenten.Achternaam;",
+            "editForm": "62"
+        },
+        {
+            "id": 55,
+            "title": "Email gegevens : prakijkopleiders",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT  tblPraktijkopleiders.ID, tblPraktijkopleiders.VolledigeNaam, tblPraktijkopleiders.Achternaam, tblPraktijkopleiders.MV, tblPraktijkopleiders.Email, tblPraktijkopleiders.EmailNotificaties, tblPraktijkopleiders.EmailForumNotificaties, tblPraktijkopleiders.EmailNieuwsNotificaties\r\nFROM tblPraktijkopleiders\r\nORDER BY tblPraktijkopleiders.Achternaam;",
+            "editForm": "63"
+        },
+        {
+            "id": 94,
+            "title": "Geen opleidingsovereenkomst",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "select tbldeelname.id,tblopleidingen.code, tbldeelnemers.volledigenaam from tbldeelname inner join tbldeelnemers on tbldeelname.fkdeelnemer=tbldeelnemers.id inner join tblopleidingen on tbldeelname.fkopleiding=tblopleidingen.id where (tblopleidingen.sluitdatum is null or sluitdatum >getdate()) and tblopleidingen.datOnSite<=getDate() and (fkoplsoort=25) and (OvereenkomstDatumgeplaatst is null or overeenkomst is null)  order by tblopleidingen.code, tbldeelnemers.achternaam",
+            "editForm": "69"
+        },
+        {
+            "id": 41,
+            "title": "Import: Deelnemers zonder STB ID",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.Code, tblDeelnemers.*\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE (((tblDeelnemers.[promptusID]) Is Null))\r\nORDER BY tblOpleidingen.Code, tblDeelnemers.achternaam;",
+            "editForm": "61"
+        },
+        {
+            "id": 38,
+            "title": "Import: Docenten zonder STB ID",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT * from tblDocenten where promptusID is null order by achternaam",
+            "editForm": "62"
+        },
+        {
+            "id": 42,
+            "title": "Import: Logins zonder STB ID",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT * from tblLogins where promptusID is null",
+            "editForm": "64"
+        },
+        {
+            "id": 40,
+            "title": "Import: Opleidingen zonder STB ID",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT id, code, titel, startdatum, contact1, contact2 from tblOpleidingen where promptusID is null order by Code",
+            "editForm": "68"
+        },
+        {
+            "id": 39,
+            "title": "Import: Praktijkopleiders zonder STB ID",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT * from tblPraktijkopleiders where promptusID is null order by achternaam",
+            "editForm": "63"
+        },
+        {
+            "id": 99,
+            "title": "Inventarisatie: Alle opgegeven praktijkopleidingsplaatsen dit jaar",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT\r\n    tblDifferentiatie.CODE AS Opleidingstype,\r\n    tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code AS Differentiatie,\r\n    tblPOinstellingen.Naam,\r\n    tblSRHForumLeden.volledigenaam,\r\n        tblOpleidingsplaatsen.AantalPlaatsen as Mutatie, tblOpleidingsplaatsen.SaldoPlaatsen, tblOpleidingsplaatsen.bActueel as Actueel,\r\n    tblOpleidingsplaatsen.datestamp AS Datum_Teruggetrokken\r\nFROM\r\n    tblInventarisatieGroepsomschrijving\r\n    INNER JOIN (\r\n        tblPOinstellingen\r\n        INNER JOIN (\r\n            tblDifferentiatie\r\n            INNER JOIN (\r\n                tblSRHForumLeden\r\n                RIGHT JOIN (\r\n                    tblOpleidingsplaatsen\r\n                    LEFT JOIN tblBIGDifferentiatie ON tblOpleidingsplaatsen.fkBIGDifferentiatie = tblBIGDifferentiatie.ID\r\n                ) ON tblSRHForumLeden.ID = tblOpleidingsplaatsen.fkContactpersoonOpgegeven\r\n            ) ON tblDifferentiatie.ID = tblOpleidingsplaatsen.fkDifferentiatie\r\n        ) ON tblPOinstellingen.ID = tblOpleidingsplaatsen.fkPOInstelling\r\n    ) ON tblInventarisatieGroepsomschrijving.ID = tblOpleidingsplaatsen.fkInventarisatieGroepsomschrijving\r\nWHERE\r\n \r\n         tblOpleidingsplaatsen.datestamp >= CDate (\"01-01-\" & Year(Date())) \r\n\r\n \r\nORDER BY\r\n    tblDifferentiatie.CODE,\r\n    tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code,\r\n    tblPOinstellingen.Naam;"
+        },
+        {
+            "id": 98,
+            "title": "Inventarisatie: Contactpersonen inventarisatie",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT\r\n    tblPOinstellingen.Naam,\r\n    tblSRHForumLeden.achternaam,\r\n    tblSRHForumLeden.Volledigenaam,\r\n    tblSRHForumLeden.email\r\nFROM\r\n    (x1\r\n        tblPOinstellingen\r\n        INNER JOIN tblSRHForumLeden ON tblPOinstellingen.ID = tblSRHForumLeden.fkPOInstelling\r\n    )\r\n    INNER JOIN tblLogins ON tblSRHForumLeden.ID = tblLogins.fkSRHForumLid\r\nORDER BY\r\n    tblPOinstellingen.Naam,\r\n    tblSRHForumLeden.achternaam;"
+        },
+        {
+            "id": 75,
+            "title": "Inventarisatie: Extra aangevraagde praktijkopleidingsplaatsen na 1 april van dit jaar",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT\r\n    tblDifferentiatie.CODE AS Opleidingstype,\r\n    tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code AS Differentiatie,\r\n    tblPOinstellingen.Naam,\r\n    tblSRHForumLeden.volledigenaam,\r\n    tblOpleidingsplaatsen.AantalPlaatsen as Mutatie, tblOpleidingsplaatsen.SaldoPlaatsen, tblOpleidingsplaatsen.bActueel as Actueel,\r\n    tblOpleidingsplaatsen.datestamp AS Datum,\r\n    tblOpleidingsplaatsen.Jaar,\r\n    tblOpleidingsplaatsen.Halfjaar\r\nFROM\r\n    tblInventarisatieGroepsomschrijving\r\n    INNER JOIN (\r\n        tblPOinstellingen\r\n        INNER JOIN (\r\n            tblDifferentiatie\r\n            INNER JOIN (\r\n                tblSRHForumLeden\r\n                RIGHT JOIN (\r\n                    tblOpleidingsplaatsen\r\n                    LEFT JOIN tblBIGDifferentiatie ON tblOpleidingsplaatsen.fkBIGDifferentiatie = tblBIGDifferentiatie.ID\r\n                ) ON tblSRHForumLeden.ID = tblOpleidingsplaatsen.fkContactpersoonOpgegeven\r\n            ) ON tblDifferentiatie.ID = tblOpleidingsplaatsen.fkDifferentiatie\r\n        ) ON tblPOinstellingen.ID = tblOpleidingsplaatsen.fkPOInstelling\r\n    ) ON tblInventarisatieGroepsomschrijving.ID = tblOpleidingsplaatsen.fkInventarisatieGroepsomschrijving\r\nWHERE\r\n    (\r\n        ((tblOpleidingsplaatsen.AantalPlaatsen) <> 0)\r\n        AND (\r\n            (tblOpleidingsplaatsen.datestamp) >= CDate (\"01-04-\" & Year(Date()))\r\n        )\r\n    )\r\nORDER BY\r\n    tblDifferentiatie.CODE,   tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code,\r\n    tblPOinstellingen.Naam;"
+        },
+        {
+            "id": 73,
+            "title": "Inventarisatie: Inventarisatie contactpersonen van organisaties die plekken hebben opgegeven",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT DISTINCT tblPOinstellingen.Naam, tblPOinstellingen.Plaats, tblSRHForumLeden.volledigenaam, tblLogins.Roepnaam, tblSRHForumLeden.Achternaam, tblSRHForumLeden.MV, tblInventarisatiePersonenPerOrg.email, tblDifferentiatie.CODE AS Opl, tblBIGDifferentiatie.Code AS Diff \r\nFROM (tblSRHForumLeden INNER JOIN ((tblPOinstellingen INNER JOIN (tblDifferentiatie RIGHT JOIN (tblBIGDifferentiatie RIGHT JOIN tblOpleidingsplaatsen ON tblBIGDifferentiatie.ID = tblOpleidingsplaatsen.fkBIGDifferentiatie) ON tblDifferentiatie.ID = tblOpleidingsplaatsen.fkDifferentiatie) ON tblPOinstellingen.ID = tblOpleidingsplaatsen.fkPOInstelling) INNER JOIN tblInventarisatiePersonenPerOrg ON tblPOinstellingen.ID = tblInventarisatiePersonenPerOrg.fkPOInstelling) ON tblSRHForumLeden.ID = tblInventarisatiePersonenPerOrg.fkPersoon) INNER JOIN tblLogins ON tblSRHForumLeden.ID = tblLogins.fkSRHForumLid\r\nWHERE (((tblOpleidingsplaatsen.Jaar)=Year(Date())+1) AND ((tblOpleidingsplaatsen.saldoplaatsen)>0) and tblOpleidingsplaatsen.bactueel=true);"
+        },
+        {
+            "id": 97,
+            "title": "Inventarisatie: Praktijkopleiders met optie tot inventariseren",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT\r\n    tblPOinstellingen.Naam,\r\n    tblpraktijkopleiders.achternaam,\r\n    tblpraktijkopleiders.Volledigenaam,\r\n    tblpraktijkopleiders.email\r\nFROM\r\n    (\r\n        tblPOinstellingen\r\n        INNER JOIN tblpraktijkopleiders ON tblPOinstellingen.ID = tblpraktijkopleiders.fkPOInstelling\r\n    )\r\n    INNER JOIN tblLogins ON tblpraktijkopleiders.ID = tblLogins.fkPraktijkOpleider\r\nORDER BY\r\n    tblPOinstellingen.Naam,\r\n    tblpraktijkopleiders.achternaam;"
+        },
+        {
+            "id": 78,
+            "title": "Inventarisatie: Teruggetrokken praktijkopleidingsplaatsen na  1 april  van dit jaar",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT\r\n    tblDifferentiatie.CODE AS Opleidingstype,\r\n    tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code AS Differentiatie,\r\n    tblPOinstellingen.Naam,\r\n    tblSRHForumLeden.volledigenaam,\r\n        tblOpleidingsplaatsen.AantalPlaatsen as Mutatie, tblOpleidingsplaatsen.SaldoPlaatsen, tblOpleidingsplaatsen.bActueel as Actueel,\r\n    tblOpleidingsplaatsen.datestamp AS Datum_Teruggetrokken\r\nFROM\r\n    tblInventarisatieGroepsomschrijving\r\n    INNER JOIN (\r\n        tblPOinstellingen\r\n        INNER JOIN (\r\n            tblDifferentiatie\r\n            INNER JOIN (\r\n                tblSRHForumLeden\r\n                RIGHT JOIN (\r\n                    tblOpleidingsplaatsen\r\n                    LEFT JOIN tblBIGDifferentiatie ON tblOpleidingsplaatsen.fkBIGDifferentiatie = tblBIGDifferentiatie.ID\r\n                ) ON tblSRHForumLeden.ID = tblOpleidingsplaatsen.fkContactpersoonOpgegeven\r\n            ) ON tblDifferentiatie.ID = tblOpleidingsplaatsen.fkDifferentiatie\r\n        ) ON tblPOinstellingen.ID = tblOpleidingsplaatsen.fkPOInstelling\r\n    ) ON tblInventarisatieGroepsomschrijving.ID = tblOpleidingsplaatsen.fkInventarisatieGroepsomschrijving\r\nWHERE\r\n \r\n        tblOpleidingsplaatsen.AantalPlaatsen < 0 AND \r\n            tblOpleidingsplaatsen.datestamp > CDate (\"04-01-\" & Year(Date())) \r\n\r\n \r\nORDER BY\r\n    tblDifferentiatie.CODE,\r\n    tblInventarisatieGroepsomschrijving.Omschrijving,\r\n    tblBIGDifferentiatie.Code,\r\n    tblPOinstellingen.Naam;"
+        },
+        {
+            "id": 47,
+            "title": "Ipad Integratie: teller deelnemers",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT VolledigeNaam,organisatie,email,sync_teller,sync_date from tbldeelnemers where sync_teller>0 order by sync_teller desc"
+        },
+        {
+            "id": 48,
+            "title": "Ipad Integratie: teller docenten",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT VolledigeNaam,organisatie,email,sync_teller,sync_date from tbldocenten where sync_teller>0 order by sync_teller desc"
+        },
+        {
+            "id": 49,
+            "title": "Ipad Integratie: teller praktijkopleiders",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT VolledigeNaam,organisatie,email,sync_teller,sync_date from tblpraktijkopleiders where sync_teller>0 order by sync_teller desc"
+        },
+        {
+            "id": 82,
+            "title": "Keuzemodules gekoppeld aan BNS-opleiding",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDeelname.id, tblOpleidingen_1.code AS HoortBij, tblDeelnemers.VolledigeNaam, tblOpleidingen.code AS Keuzemodule, tblOpleidingen_1.BNSOpleiding\r\nFROM tblDeelnemers INNER JOIN ((tblOpleidingen AS tblOpleidingen_1 INNER JOIN tblDeelname AS tblDeelname_1 ON tblOpleidingen_1.ID = tblDeelname_1.fkOpleiding) INNER JOIN (tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding) ON tblDeelname_1.ID = tblDeelname.fkHoofddeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer\r\nWHERE (((tblOpleidingen_1.BNSOpleiding)=True));",
+            "editForm": "69"
+        },
+        {
+            "id": 95,
+            "title": "Monitoring afgelopen jaar",
+            "moduleId": 31,
+            "visible": true,
+            "idField": "ID",
+            "query": "select Formname as Formulier, Actie, Username as gebruiker, datestamp, left(Notificatie,78) as Beschrijving from tblcmamonitoring  order by id desc"
+        },
+        {
+            "id": 58,
+            "title": "Opleidingen die lopen of gaan starten",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblContactpersonen.Naam, tblOpleidingen.code, tblOpleidingen.Titel, tblOpleidingen.datOnSite\r\nFROM tblContactpersonen INNER JOIN tblOpleidingen ON tblContactpersonen.ID = tblOpleidingen.contact1\r\nwhere year(datonsite)<2030\r\nORDER BY tblContactpersonen.Naam, tblOpleidingen.code;"
+        },
+        {
+            "id": 63,
+            "title": "Opleidingen waarvan de einddatum mogelijk gezet moet worden",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblopleidingen.id, tblOpleidingen.code, tblOpleidingen.datOnSite, tblOpleidingen.titel\r\nFROM tblOpleidingen\r\nWHERE (((tblOpleidingen.[datOnSite])<=Date()) AND ((tblOpleidingen.[id]) Not In (select fkopleiding from tblDeelname where einddatum is null or einddatum>date())));",
+            "editForm": "68"
+        },
+        {
+            "id": 89,
+            "title": "OPT pilot en fallback",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tbllogins.ID, Login, email_primair as Login_email, email_primair_onbevestigd as Login_email_onbevestigd, geheimhouding_datum as geheimhouding_geaccoordeerd_op,  Roepnaam, Achternaamcompleet, tbllogins.PromptusID as 'Carta ID', blnOptpilot as 'OPT pilot', blnOPTfallback as 'OPT fallback' FROM tblLogins  WHERE blnOPTpilot<>0 OR blnOPTfallback<>0"
+        },
+        {
+            "id": 33,
+            "title": "Overzicht wel/niet ingeplande gesprekken per praktijkopleider",
+            "moduleId": 13,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.Code, left(tblOpleidingen.code,2) as OplType, tblPraktijkOpleiders.VolledigeNaam AS Praktijkopleider, tblDeelnemers.VolledigeNaam AS Deelnemer, tblDocenten.VolledigeNaam AS Hoofdopleider, tblGespreksType.Naam AS Gesprekstype, tblUitnodigingGesprekken.vrijvaldatum, tblUitnodigingGesprekken.datum, IIf(IsNull(tblUitnodigingGesprekken.van),\"\",Right(\"0\" & Hour(tblUitnodigingGesprekken.van),2) & \":\" & Right(\"00\" & Minute(tblUitnodigingGesprekken.van),2)) AS Van, IIf(IsNull(tblUitnodigingGesprekken.tot),\"\",Right(\"0\" & Hour(tblUitnodigingGesprekken.tot),2) & \":\" & Right(\"00\" & Minute(tblUitnodigingGesprekken.tot),2)) AS Tot, tblUitnodigingGesprekken.locatie, tblOpleidingen.datOnSite\r\nFROM (tblOpleidingen INNER JOIN (tblGespreksType INNER JOIN tblUitnodigingen ON tblGespreksType.ID = tblUitnodigingen.fkTypeGesprek) ON tblOpleidingen.ID = tblUitnodigingen.fkOpleiding) INNER JOIN (tblPraktijkOpleiders INNER JOIN (tblDocenten RIGHT JOIN (tblDeelnemers INNER JOIN (tblDeelname INNER JOIN (tblUitnodigingPerDeelname LEFT JOIN tblUitnodigingGesprekken ON (tblUitnodigingPerDeelname.fkUitnodiging = tblUitnodigingGesprekken.fkUitnodiging) AND (tblUitnodigingPerDeelname.fkDeelname = tblUitnodigingGesprekken.fkDeelname)) ON tblDeelname.ID = tblUitnodigingPerDeelname.fkDeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblDocenten.ID = tblUitnodigingGesprekken.fkHoofddocent) ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider) ON tblUitnodigingen.ID = tblUitnodigingPerDeelname.fkUitnodiging\r\nWHERE (((tblOpleidingen.datOnSite)<Date()))\r\nORDER BY tblOpleidingen.Code, tblPraktijkOpleiders.Achternaam, tblUitnodigingGesprekken.vrijvaldatum, tblDeelnemers.Achternaam;"
+        },
+        {
+            "id": 67,
+            "title": "P-opleiders en hun praktijkopleiders",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblP_Praktijkopleiders.VolledigeNaam as Popleider, tblPraktijkOpleiders.VolledigeNaam as Praktijkopleider\r\nFROM tblP_Praktijkopleiders INNER JOIN tblPraktijkOpleiders ON tblP_Praktijkopleiders.ID = tblPraktijkOpleiders.fkPOpleider\r\nORDER BY tblP_Praktijkopleiders.Achternaam, tblPraktijkOpleiders.Achternaam;",
+            "groupField1": "Popleider"
+        },
+        {
+            "id": 31,
+            "title": "Praktijkopleiders",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblPraktijkopleiders.ID, tblOpleidingen.Code, tblPraktijkOpleiders.VolledigeNaam, UCase([MV]) AS Geslacht, tblPraktijkOpleiders.Achternaam, tblPraktijkOpleiders.Organisatie, tblPraktijkOpleiders.Organisatie2, afdeling, tblPraktijkOpleiders.Adres, tblPraktijkOpleiders.Huisnummer, tblPraktijkOpleiders.Postcode, tblPraktijkOpleiders.Plaats, tblPraktijkOpleiders.Email, tblPraktijkOpleiders.EmailNotificaties, PriveAdres,PriveHuisNummer, PrivePostcode, PrivePlaats, tblPraktijkOpleiders.TelefoonPrive, tblPraktijkOpleiders.TelefoonPrivePubliceren, tblPraktijkOpleiders.TelefoonWerk, tblPraktijkOpleiders.TelefoonWerkPubliceren, tblPraktijkOpleiders.TelefoonMobiel, tblPraktijkOpleiders.TelefoonMobielPubliceren\r\nFROM tblPraktijkOpleiders INNER JOIN (tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding) ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider\r\nORDER BY tblPraktijkopleiders.Achternaam,tblOpleidingen.Code",
+            "editForm": "63"
+        },
+        {
+            "id": 53,
+            "title": "Profielfoto: Complete opleidingsgroepen",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT  tblOpleidingen.Code , tblOpleidingen.Titel \r\nFROM tblOpleidingen LEFT JOIN qryActieveDeelnamesFotosNietgewijzigd ON tblOpleidingen.ID = qryActieveDeelnamesFotosNietgewijzigd.fkOpleiding\r\nwhere tblopleidingen.datonsite<date()  \r\nGROUP BY tblOpleidingen.Code, tblopleidingen.datonsite, tblOpleidingen.Titel \r\nhaving (((Count(qryActieveDeelnamesFotosNietgewijzigd.fkOpleiding))=0))"
+        },
+        {
+            "id": 52,
+            "title": "Profielfoto: Docenten",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDocenten.VolledigeNaam\r\nFROM tblDocenten INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent\r\nWHERE (((tblLogins.blnFotoGewijzigd)=True));"
+        },
+        {
+            "id": 51,
+            "title": "Profielfoto: P-opleiders",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblP_Praktijkopleiders.VolledigeNaam\r\nFROM tblP_Praktijkopleiders INNER JOIN tblLogins ON tblP_Praktijkopleiders.ID = tblLogins.fkP_Praktopl\r\nWHERE (((tblLogins.blnFotoGewijzigd)=True))\r\nORDER BY tblP_Praktijkopleiders.Achternaam;"
+        },
+        {
+            "id": 54,
+            "title": "Profielfoto: Praktijkopleiders",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblPraktijkopleiders.VolledigeNaam \r\nFROM tblPraktijkopleiders INNER JOIN tblLogins ON tblPraktijkopleiders.id = tblLogins.fkPraktijkOpleider  \r\nWHERE (((tblLogins.blnFotoGewijzigd)=True)) \r\nORDER BY tblPraktijkopleiders.Achternaam;"
+        },
+        {
+            "id": 14,
+            "title": "Repository",
+            "moduleId": 30,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblMenu.Name AS Menu, tblForms.Name AS Formulier, tblControls.Caption AS Veld, tblControlTypes.Description AS Type, IIf(tblControls.IsRequired,\"Ja\",\"\") AS Verplicht, IIf(tblControls.TagsAllowed,\"Ja\",\"\") AS MetOpmaak\r\nFROM tblModules INNER JOIN (tblMenu INNER JOIN ((tblForms INNER JOIN (tblControlTypes INNER JOIN tblControls ON tblControlTypes.ID = tblControls.ControlTypeID) ON tblForms.ID = tblControls.FormID) INNER JOIN tblMenuItems ON tblForms.ID = tblMenuItems.fkFormID) ON tblMenu.ID = tblMenuItems.fkMenuID) ON tblModules.ID = tblForms.fkModule\r\nWHERE (((tblControls.FieldName)<>\"ID\") AND ((tblControls.Enabled)<>False) AND ((tblForms.Visible)<>False) AND (([tblModules].[blnActive])=True))\r\nORDER BY tblMenu.ExecutionOrder, tblMenuItems.ExecutionOrder, tblForms.Name, tblControls.ExecutionOrder;",
+            "groupField1": "Menu",
+            "groupField2": "Formulier"
+        },
+        {
+            "id": 92,
+            "title": "Repository - CMA wijzigingen",
+            "moduleId": 30,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT IIf([tblForms_1].[name]<>\"\",[tblForms_1].[Name] & \" -> \",\"\") & [tblForms].[Name] AS Formulier, tblForms.actie AS Formulieractie, tblControls.Caption AS Veld, tblControls.actie AS Veldactie, tblForms_1.Name\r\nFROM tblForms AS tblForms_1 RIGHT JOIN (tblForms INNER JOIN tblControls ON tblForms.ID = tblControls.FormID) ON tblForms_1.ID = tblForms.fkParentForm\r\nWHERE (((tblControls.Enabled)=True) AND ((tblForms.Visible)=True))\r\nORDER BY IIf([tblForms_1].[name]<>\"\",[tblForms_1].[Name] & \" -> \",\"\") & [tblForms].[Name], tblControls.ExecutionOrder;"
+        },
+        {
+            "id": 28,
+            "title": "Rooster",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblAgenda.fkOpleiding, [code] & \"- \" & [titel] AS opleiding_omschr, tblAgenda.volgnummer, tblAgenda.Datum, tblAgenda.Omschrijving, Left(tblAgenda.Tijd & \"\",5) AS StartTijd, Left(tblAgenda.EindTijd & \"\",5) AS EindTijd, tblDocenten.AchterNaam as AchternaamDocent, tblDocenten.VolledigeNaam AS Docent, IIf(Not IsNull([Tekstdraaiboek]) Or Not IsNull([download]),'Ja','Nee') AS Draaiboek, tblDraaiboek.fkOpleiding, ( hour(EindTijd) + (minute(EindTijd)/60) ) - ( hour(Tijd)  + (minute(Tijd)/60))  as Uren\r\nFROM tblOpleidingen INNER JOIN (tblDraaiboek RIGHT JOIN (tblDocenten RIGHT JOIN (tblAgenda LEFT JOIN tblDocentenPerAgendapunt ON tblAgenda.ID = tblDocentenPerAgendapunt.fkAgenda) ON tblDocenten.ID = tblDocentenPerAgendapunt.fkDocent) ON tblDraaiboek.ID = tblAgenda.fkDraaiboek) ON tblOpleidingen.ID = tblAgenda.fkOpleiding\r\nORDER BY tblOpleidingen.Code, tblOpleidingen.Titel, tblAgenda.volgnummer;",
+            "filterIdField": "tblAgenda.fkOpleiding",
+            "filterDisplayField": "opleiding_omschr"
+        },
+        {
+            "id": 90,
+            "title": "Roosterdownloads afgelopen jaar",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblAgendaDownloads.ID , tblOpleidingen.code, tblAgenda.Datum, 'https://www.rinoportal.nl/downloads/rooster/'+[bestand] AS Document\r\nFROM (tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding) INNER JOIN tblAgendaDownloads ON tblAgenda.ID = tblAgendaDownloads.fkAgenda WHERE datepart(year,tblAgenda.Datum)=datepart(year,getdate())-1 ORDER BY tblOpleidingen.code, tblAgenda.Datum, tblAgendaDownloads.sortorder"
+        },
+        {
+            "id": 91,
+            "title": "Roosterdownloads afgelopen kwartaal",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblAgendaDownloads.ID , tblOpleidingen.code, tblAgenda.Datum, 'https://www.rinoportal.nl/downloads/rooster/'+[bestand] AS Document\r\nFROM (tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding) INNER JOIN tblAgendaDownloads ON tblAgenda.ID = tblAgendaDownloads.fkAgenda WHERE tblAgenda.Datum  between  DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) - 1, 0) and DATEADD(dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()), 0))  ORDER BY tblOpleidingen.code, tblAgenda.Datum, tblAgendaDownloads.sortorder"
+        },
+        {
+            "id": 44,
+            "title": "STB koppeling: dubbele deelnames",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDeelname.[ID] as deelnameID, tblOpleidingen.Code, tblOpleidingen.Titel, tblDeelnemers.VolledigeNaam, tblDeelname.[fkDeelnemer], tblDeelname.[fkOpleiding], tblDeelname.[ID]\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE (((tblDeelname.[fkDeelnemer]) In (SELECT [fkDeelnemer] FROM [tblDeelname] As Tmp GROUP BY [fkDeelnemer],[fkOpleiding] HAVING Count(*)>1  And [fkOpleiding] = [tblDeelname].[fkOpleiding])))\r\nORDER BY tblDeelname.[fkDeelnemer], tblDeelname.[fkOpleiding];",
+            "editForm": "77"
+        },
+        {
+            "id": 45,
+            "title": "STB koppeling: dubbele deelnemers",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblDeelnemers.[ID], tblDeelnemers.[PromptusID], tblDeelnemers.[ID], tblDeelnemers.[VolledigeNaam], tblDeelnemers.[Achternaam], tblDeelnemers.[MV], tblDeelnemers.[Organisatie]\r\nFROM tblDeelnemers\r\nWHERE (((tblDeelnemers.[PromptusID]) In (SELECT [PromptusID] FROM [tblDeelnemers] As Tmp GROUP BY [PromptusID] HAVING Count(*)>1 )))\r\nORDER BY tblDeelnemers.[PromptusID];"
+        },
+        {
+            "id": 88,
+            "title": "Systeemteksten",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "select * from tblSysteemteksten order by TekstType, afdeling, thema, beschrijving",
+            "editForm": "221"
+        },
+        {
+            "id": 93,
+            "title": "Toetsen met status herkansing",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.code, tblDeelnemers.VolledigeNaam, tblToetsperDeelnemer.id, tblToetsperDeelnemer.download, tblToetsperDeelnemer.datuminlevering, tblToetsperDeelnemer.datumcontrole, tblToetsperDeelnemer.blnakkoord, tblToetsperDeelnemer.cijfer\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN (tblDeelname INNER JOIN tblToetsperDeelnemer ON tblDeelname.ID = tblToetsperDeelnemer.fkDeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding \r\n where blnAkkoord =0 and (not (datumcontrole is null)) and blnGeblokkeerd=0 and datumcontrole>cast('2022-01-01' as date) order by id desc",
+            "editForm": "88"
+        },
+        {
+            "id": 76,
+            "title": "Voordrachten praktijkopleiders",
+            "moduleId": 20,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT * from tblVoordrachtenPraktijkopleiders order by id desc"
+        },
+        {
+            "id": 59,
+            "title": "Voorkeurmodules",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "-",
+            "query": "SELECT tblModuleVoorkeuren.id,  tblOpleidingen.code, tblDeelnemers.VolledigeNaam, tblModuleVoorkeuren.datestamp, tblModuleVoorkeuren.voorkeur1, tblModuleVoorkeuren.voorkeur2, tblModuleVoorkeuren.voorkeur3, tblModuleVoorkeuren.voorkeur4, tblModuleVoorkeuren.voorkeur5\r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblModuleVoorkeuren ON tblDeelnemers.ID = tblModuleVoorkeuren.fkDeelnemer) ON tblOpleidingen.ID = tblModuleVoorkeuren.fkOpleiding\r\nORDER BY tblOpleidingen.code, tblDeelnemers.Achternaam;"
+        },
+        {
+            "id": 72,
+            "title": "Vrijstellingen opleidingen na 1-1-2014",
+            "moduleId": 12,
+            "visible": false,
+            "idField": "ID",
+            "query": "SELECT tblOpleidingen.code, tblDeelnemers.VolledigeNaam, tblAgenda.Datum, tblAgenda.Omschrijving, tblAfwezigheid.BlokVrijstelling, datediff( 'h', tblAgenda.Tijd,  tblAgenda.EindTijd) as AantalUren \r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN (tblDeelname INNER JOIN (tblAgenda INNER JOIN tblAfwezigheid ON tblAgenda.ID = tblAfwezigheid.fkAgenda) ON tblDeelname.ID = tblAfwezigheid.fkDeelname) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON (tblOpleidingen.ID = tblDeelname.fkOpleiding) AND (tblOpleidingen.ID = tblAgenda.fkOpleiding)\r\nWHERE (((tblOpleidingen.Startdatum)>=#1/1/2014#) AND ((tblAfwezigheid.Vrijstelling)=True))\r\nORDER BY tblOpleidingen.code, tblDeelnemers.Achternaam, tblAgenda.Datum;"
+        },
+        {
+            "id": 85,
+            "title": "Zoom: handmatige links in draaiboek",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "SELECT tblAgenda.id, tblOpleidingen.code,  tblOpleidingen.titel, format(tblAgenda.Datum,\"dd-MM-yyyy\") as Datum, format(tblAgenda.tijd,\"HH:mm\") as Starttijd FROM tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding WHERE (instr([draaiboekText]&\"\",'rinogroep.zoom.us')>0) and datum>=date() order by datum",
+            "editForm": "58"
+        },
+        {
+            "id": 84,
+            "title": "Zoom: Licensed users",
+            "moduleId": 12,
+            "visible": true,
+            "idField": "ID",
+            "query": "select 'Docent' as type, weergavenaam, bzoompro, emailzoomaccount, ZoomEindeLicensed , tbldocenten.email  FROM tblLogins \r\nINNER JOIN tbldocenten \r\nON tblLogins.fkDocent=tbldocenten.ID\r\nwhere bzoompro=1 OR ZoomEindeLicensed is not null\r\nunion\r\nselect 'Deelnemer' as type, weergavenaam, bzoompro,emailzoomaccount, ZoomEindeLicensed , tbldeelnemers.email  FROM tblLogins \r\nINNER JOIN tbldeelnemers\r\nON tblLogins.fkDeelnemer=tbldeelnemers.ID\r\nwhere bzoompro=1 OR ZoomEindeLicensed is not null\r\nUNION\r\nselect 'RINO_medewerker' as type, weergavenaam, bzoompro, emailzoomaccount, ZoomEindeLicensed , tblContactpersonen.email  FROM tblLogins \r\nINNER JOIN tblContactpersonen \r\nON tblLogins.fkAssistent=tblContactpersonen .ID\r\nwhere bzoompro=1 OR ZoomEindeLicensed is not null"
+        }
+    ]
+}

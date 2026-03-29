@@ -1,0 +1,146 @@
+{
+    "$schema": "../../../config/schema/form-definition.schema.json",
+    "version": "1.0.0",
+    "name": "emaillog",
+    "title": "E-mail log",
+    "titleSingular": "E-mail",
+    "table": "tblEmailLog",
+    "database": "data",
+    "idField": "ID",
+    "listQuery": "SELECT ID, datestamp, mail_to, mail_subject, mail_status, mail_error, mail_from\nFROM tblEmailLog\nORDER BY ID DESC",
+    "listColumns": [
+        {
+            "field": "datestamp",
+            "title": "Datum",
+            "type": "datetime"
+        },
+        {
+            "field": "mail_to",
+            "title": "Aan",
+            "type": "text"
+        },
+        {
+            "field": "mail_subject",
+            "title": "Onderwerp",
+            "type": "text"
+        },
+        {
+            "field": "mail_status",
+            "title": "Status",
+            "type": "text"
+        },
+        {
+            "field": "mail_error",
+            "title": "Fout",
+            "type": "text"
+        }
+    ],
+    "orderField": "ID",
+    "orderDirection": "DESC",
+    "listLimit": 100,
+    "allowAdd": false,
+    "allowDelete": true,
+    "allowCopy": false,
+    "allowEdit": false,
+    "securityByUser": false,
+    "storeLastModified": false,
+    "quickSearchFields": "mail_to,mail_subject,mail_from,mail_error",
+    "detailField": "mail_subject",
+    "fields": [
+        {
+            "name": "datestamp",
+            "type": "date",
+            "caption": "Datum/tijd",
+            "readOnly": true,
+            "dataType": "datetime"
+        },
+        {
+            "name": "mail_to",
+            "type": "memo",
+            "caption": "Aan",
+            "readOnly": true
+        },
+        {
+            "name": "mail_cc",
+            "type": "memo",
+            "caption": "CC",
+            "readOnly": true
+        },
+        {
+            "name": "mail_bcc",
+            "type": "memo",
+            "caption": "BCC",
+            "readOnly": true
+        },
+        {
+            "name": "mail_from",
+            "type": "textbox",
+            "caption": "Van (e-mail)",
+            "readOnly": true,
+            "maxLength": 255
+        },
+        {
+            "name": "mail_from_name",
+            "type": "textbox",
+            "caption": "Van (naam)",
+            "readOnly": true,
+            "maxLength": 255
+        },
+        {
+            "name": "mail_subject",
+            "type": "textbox",
+            "caption": "Onderwerp",
+            "readOnly": true,
+            "maxLength": 255
+        },
+        {
+            "name": "mail_body",
+            "type": "memo",
+            "caption": "Inhoud",
+            "readOnly": true,
+            "html": true,
+            "useContentBlocks": false
+        },
+        {
+            "name": "mail_attachments",
+            "type": "memo",
+            "caption": "Bijlagen",
+            "readOnly": true
+        },
+        {
+            "name": "mail_status",
+            "type": "textbox",
+            "caption": "Status",
+            "readOnly": true,
+            "maxLength": 20
+        },
+        {
+            "name": "mail_error",
+            "type": "memo",
+            "caption": "Foutmelding",
+            "readOnly": true
+        },
+        {
+            "name": "mail_environment",
+            "type": "textbox",
+            "caption": "Omgeving",
+            "readOnly": true,
+            "maxLength": 10
+        },
+        {
+            "name": "mail_user",
+            "type": "textbox",
+            "caption": "Gebruiker",
+            "readOnly": true,
+            "maxLength": 100
+        }
+    ],
+    "extraButtons": [
+        {
+            "icon": "lnr lnr-redo",
+            "title": "Opnieuw verzenden",
+            "url": "javascript:CMA.emailLog.resend([id])"
+        }
+    ],
+    "subforms": []
+}

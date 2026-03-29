@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Menu Configuration",
+  "type": "object",
+  "required": ["menus"],
+  "definitions": {
+    "accessLevel": {
+      "type": "string",
+      "enum": ["user", "admin", "developer"],
+      "default": "user",
+      "description": "Minimum access level required: user (0), admin (1), developer (2)"
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "menus": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique menu identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Menu name/title"
+          },
+          "order": {
+            "type": "integer",
+            "default": 0,
+            "description": "Display order"
+          },
+          "accessLevel": {
+            "$ref": "#/definitions/accessLevel"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "name"],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Unique item identifier"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Menu item display name"
+                },
+                "form": {
+                  "type": "string",
+                  "description": "Form reference name"
+                },
+                "formId": {
+                  "type": "integer",
+                  "description": "Original form ID reference"
+                },
+                "href": {
+                  "type": "string",
+                  "description": "External URL link"
+                },
+                "target": {
+                  "type": "string",
+                  "enum": ["_self", "_blank", "_parent", "_top"],
+                  "description": "Link target"
+                },
+                "order": {
+                  "type": "integer",
+                  "default": 0,
+                  "description": "Display order within menu"
+                },
+                "visible": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Whether item is visible"
+                },
+                "accessLevel": {
+                  "$ref": "#/definitions/accessLevel"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

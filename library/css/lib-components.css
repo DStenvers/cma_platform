@@ -1,0 +1,879 @@
+/**
+ * Shared CSS for lib-* web components (without Shadow DOM)
+ *
+ * These components use regular DOM with BEM-style class names for style isolation.
+ * This avoids Shadow DOM overhead while preventing style collisions.
+ */
+
+/* ============================================================
+   lib-label - Pure CSS custom element (no JavaScript needed)
+   ============================================================ */
+lib-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Hide empty labels */
+lib-label:empty {
+    display: none;
+}
+
+/* Size variations - support both attributes and classes */
+lib-label[size="small"],
+lib-label.small {
+    font-size: var(--font-size-2xs);
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+lib-label[size="normal"],
+lib-label.normal,
+lib-label:not([size]):not(.small):not(.large) {
+    font-size: var(--font-size-sm);
+    padding: 4px 12px;
+}
+
+lib-label[size="large"],
+lib-label.large {
+    font-size: var(--font-size-md);
+    padding: 6px 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Type variations - support both attributes and classes
+   Base colors match lib-toaster: info #0369a1, success #15803d, warning #b45309, error #b91c1c */
+lib-label[type="information"],
+lib-label.information {
+    background: var(--label-info-bg, linear-gradient(135deg, #0369a1 0%, #024a6f 100%));
+    color: var(--label-info-text, #ffffff);
+}
+
+lib-label[type="warning"],
+lib-label.warning {
+    background: var(--label-warning-bg, linear-gradient(135deg, #b45309 0%, #8a3f07 100%));
+    color: var(--label-warning-text, #ffffff);
+}
+
+lib-label[type="error"],
+lib-label.error {
+    background: var(--label-error-bg, linear-gradient(135deg, #b91c1c 0%, #8f1616 100%));
+    color: var(--label-error-text, #ffffff);
+}
+
+lib-label[type="success"],
+lib-label.success {
+    background: var(--label-success-bg, linear-gradient(135deg, #15803d 0%, #0f5c2c 100%));
+    color: var(--label-success-text, #ffffff);
+}
+
+/* Icons inside labels inherit text color */
+lib-label .lnr,
+lib-label .lnr::before {
+    color: inherit;
+}
+
+/* ============================================================
+   lib-switch
+   ============================================================ */
+lib-switch {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.lib-switch {
+    box-shadow: inset 0 2px 3px rgba(0,0,0,.25);
+    background: #f9f8f8;
+    border: 1px solid #f9f8f8;
+    user-select: none;
+    position: relative;
+    display: inline-block;
+    box-sizing: content-box;
+    overflow: visible;
+    width: 52px;
+    height: 19px;
+    padding: 0;
+    margin: 0;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: .3s ease-out all;
+    top: -1px;
+}
+
+.lib-switch--checked {
+    background: #64bd63;
+    border-color: #64bd63;
+}
+
+.lib-switch--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lib-switch--readonly {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.lib-switch--saving {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.lib-switch__track {
+    display: none; /* Not used in this style variant */
+}
+
+.lib-switch__thumb {
+    background: linear-gradient(#f9f9f7, #a9a9a3);
+    border-radius: 100%;
+    width: 19px;
+    height: 19px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: .3s ease-out all;
+}
+
+/* Disable transition when set programmatically (not user-initiated) */
+.lib-switch--no-animate .lib-switch__thumb {
+    transition: none;
+}
+
+.lib-switch--checked .lib-switch__thumb {
+    left: 33px;
+}
+
+.lib-switch--disabled .lib-switch__thumb {
+    background-color: #dedede;
+}
+
+.lib-switch__text {
+    display: none; /* Hide Ja/Nee labels */
+}
+
+.lib-switch__off {
+    display: block;
+    position: absolute;
+    right: 12%;
+    top: 17%;
+    color: #ffffff;
+    z-index: 0;
+}
+
+.lib-switch__on {
+    display: none;
+    color: #fff;
+    position: absolute;
+    left: 18%;
+    top: 17%;
+    z-index: 0;
+}
+
+.lib-switch--checked .lib-switch__off {
+    display: none;
+}
+
+.lib-switch--checked .lib-switch__on {
+    display: block;
+}
+
+/* Focus state for accessibility */
+.lib-switch:focus-visible {
+    outline: 2px solid var(--color-primary, #204496);
+    outline-offset: 2px;
+}
+
+/* Dark mode support */
+.dark-mode .lib-switch {
+    box-shadow: inset 0 2px 3px rgba(0,0,0,.4);
+}
+
+.dark-mode .lib-switch__thumb {
+    background: linear-gradient(#e0e0e0, #909090);
+}
+
+/* ============================================================
+   lib-message
+   ============================================================ */
+lib-message {
+    display: block;
+    margin: 10px 0;
+}
+
+lib-message[hidden] {
+    display: none;
+}
+
+.lib-message {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: var(--font-size-md);
+    line-height: 1.5;
+    gap: 12px;
+}
+
+/* Colors derived from lib-toaster base: info #0369a1, success #15803d, warning #b45309, error #b91c1c */
+.lib-message--info {
+    background-color: var(--message-info-bg, #e0f2fe);
+    border: 1px solid var(--message-info-border, #7dd3fc);
+    color: var(--message-info-text, #0c4a6e);
+}
+
+.lib-message--success {
+    background-color: var(--message-success-bg, #dcfce7);
+    border: 1px solid var(--message-success-border, #86efac);
+    color: var(--message-success-text, #14532d);
+}
+
+.lib-message--warning {
+    background-color: var(--message-warning-bg, #fef3c7);
+    border: 1px solid var(--message-warning-border, #fcd34d);
+    color: var(--message-warning-text, #78350f);
+}
+
+.lib-message--error {
+    background-color: var(--message-error-bg, #fee2e2);
+    border: 1px solid var(--message-error-border, #fca5a5);
+    color: var(--message-error-text, #7f1d1d);
+}
+
+.lib-message__icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.lib-message__content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Details section (collapsible technical info) */
+.lib-message__details {
+    margin-top: 8px;
+    font-size: var(--font-size-sm);
+}
+
+.lib-message__details summary {
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 2px 0;
+}
+
+.lib-message__details summary:hover {
+    opacity: 1;
+}
+
+.lib-message__details-content {
+    margin-top: 6px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.lib-message--error .lib-message__details-content {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.lib-message__close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.lib-message__close:hover {
+    opacity: 1;
+}
+
+.lib-message__close .lnr {
+    font-size: 16px;
+}
+
+/* Actions container (copy + close buttons) */
+.lib-message__actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    align-items: flex-start;
+}
+
+/* Copy button */
+.lib-message__copy {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.lib-message__copy:hover {
+    opacity: 1;
+}
+
+.lib-message__copy .lnr {
+    font-size: 16px;
+}
+
+.lib-message__copy--success {
+    opacity: 1;
+    color: var(--color-success, #00a04a);
+}
+
+/* Action buttons styling */
+.lib-message__actions button {
+    box-shadow: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.lib-message__actions button:hover {
+    background-color: var(--tree-hover-bg, #e8f4fc);
+    color: var(--color-primary, #204496);
+    border: 1px solid var(--color-info, #077ab2);
+    opacity: 1;
+}
+
+.lib-message__actions button.lib-message__close:hover {
+    background-color: var(--popup-close-hover, #E01F3D);
+    border-color: var(--popup-close-hover, #E01F3D);
+}
+
+.lib-message__actions button.lib-message__close:hover span.lnr.lnr-cross::before {
+    color: var(--text-inverse, #fff);
+}
+
+/* Icon colors by type - match lib-toaster base colors */
+.lib-message--info .lib-message__icon {
+    color: var(--color-info, #0369a1);
+}
+
+.lib-message--success .lib-message__icon {
+    color: var(--color-success, #15803d);
+}
+
+.lib-message--warning .lib-message__icon {
+    color: var(--color-warning, #b45309);
+}
+
+.lib-message--error .lib-message__icon {
+    color: var(--color-error, #b91c1c);
+}
+
+.lib-message__icon .lnr {
+    font-size: 20px;
+}
+
+/* Compact mode */
+.lib-message--compact {
+    padding: 8px 12px;
+    font-size: var(--font-size);
+}
+
+.lib-message--compact .lib-message__icon .lnr {
+    font-size: 18px;
+}
+
+/* Animations */
+.lib-message {
+    animation: lib-message-fadeIn 0.2s ease-out;
+}
+
+.lib-message--removing {
+    animation: lib-message-fadeOut 0.2s ease-in forwards;
+}
+
+@keyframes lib-message-fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lib-message-fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ============================================================
+   lib-gauge
+   ============================================================ */
+lib-gauge {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.lib-gauge {
+    min-width: 100px;
+}
+
+.lib-gauge__labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.lib-gauge__label-right {
+    font-weight: bold;
+}
+
+.lib-gauge__track {
+    background: var(--gauge-track-bg, #eee);
+    border-radius: 3px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.lib-gauge__bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Size: lg — tall bar with text below */
+.lib-gauge--lg .lib-gauge__track {
+    height: 20px;
+    border-radius: 4px;
+}
+
+.lib-gauge--lg .lib-gauge__bar {
+    border-radius: 4px;
+}
+
+.lib-gauge--lg .lib-gauge__labels {
+    margin-top: 4px;
+    margin-bottom: 0;
+    font-size: 0.85em;
+}
+
+/* Type: info (blue) */
+.lib-gauge--info .lib-gauge__label-right { color: var(--color-info, #0369a1); }
+.lib-gauge--info .lib-gauge__bar { background: var(--color-info, #0369a1); }
+
+/* Type: success (green) */
+.lib-gauge--success .lib-gauge__label-right { color: var(--color-success, #27ae60); }
+.lib-gauge--success .lib-gauge__bar { background: var(--color-success, #27ae60); }
+
+/* Type: warning (orange) */
+.lib-gauge--warning .lib-gauge__label-right { color: var(--color-warning, #f39c12); }
+.lib-gauge--warning .lib-gauge__bar { background: var(--color-warning, #f39c12); }
+
+/* Type: error (red) */
+.lib-gauge--error .lib-gauge__label-right { color: var(--color-error, #e74c3c); }
+.lib-gauge--error .lib-gauge__bar { background: var(--color-error, #e74c3c); }
+
+/* ============================================================
+   lib-datepicker (styled like classic CMA datepicker)
+   ============================================================ */
+lib-datepicker {
+    display: inline-block;
+    position: relative;
+}
+
+.lib-datepicker {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
+    height: 24px;
+    background: #fff;
+}
+
+.lib-datepicker__input {
+    width: 86px;
+    min-width: 86px;
+    padding: 2px 6px;
+    border: 0 !important;
+    font-size: var(--font-size-sm);
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    line-height: 20px;
+    background: transparent !important;
+    color: #333;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.lib-datepicker__input:focus {
+    outline: none;
+    background: transparent !important;
+}
+
+.lib-datepicker__input:disabled {
+    background: #f5f5f5 !important;
+    cursor: not-allowed;
+}
+
+.lib-datepicker__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    background-color: transparent;
+    border-left: 1px solid #dddddd;
+    border-radius: 0 3px 3px 0;
+    cursor: pointer;
+    color: #666;
+    font-size: var(--font-size-sm);
+}
+
+.lib-datepicker__icon:hover {
+    background: #bbb;
+    color: #333;
+}
+
+/* Disabled state */
+lib-datepicker[disabled] .lib-datepicker {
+    background: #f5f5f5;
+}
+
+lib-datepicker[disabled] .lib-datepicker__icon {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+lib-datepicker[disabled] .lib-datepicker__icon:hover {
+    background: #f5f5f5;
+    color: #999;
+}
+
+lib-datepicker[disabled] .lib-datepicker__input:focus {
+    outline: none;
+    box-shadow: none !important;
+}
+
+lib-datepicker[disabled]:focus,
+lib-datepicker[disabled]:focus-within {
+    outline: none;
+}
+
+/* Calendar popup - classic style */
+.lib-datepicker__popup {
+    position: fixed;
+    z-index: 1000;
+    display: none;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.25);
+    padding: 4px;
+    width: 200px;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+}
+
+.lib-datepicker__popup[hidden] {
+    display: none;
+}
+
+/* Navigation header */
+.lib-datepicker__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 6px;
+    height: 24px;
+    margin-bottom: 4px;
+}
+
+.lib-datepicker__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: #ffffff;
+    border: 1px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+    color: #888888;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.lib-datepicker__nav:hover {
+    color: #077ab2;
+    border-color: #077ab2;
+    background-color: #f5f5f5;
+}
+
+.lib-datepicker__title {
+    text-align: center;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    font-size: var(--font-size);
+    color: #077ab2;
+    font-weight: bold;
+    flex: 1;
+}
+
+/* Weekday headers */
+.lib-datepicker__weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #ffffff;
+}
+
+.lib-datepicker__weekday {
+    text-align: center;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    font-size: var(--font-size-xs);
+    font-weight: normal;
+    color: #333333;
+    padding: 4px 0;
+    height: 29px;
+    line-height: 21px;
+}
+
+.lib-datepicker__weekday--weekend {
+    color: #999999;
+}
+
+/* Days grid */
+.lib-datepicker__days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.lib-datepicker__day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    font-size: var(--font-size-sm);
+    width: 100%;
+    height: 28px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #333333;
+    padding: 0;
+}
+
+.lib-datepicker__day:hover:not(.lib-datepicker__day--disabled):not(.lib-datepicker__day--other) {
+    border: 1px solid #077ab2;
+    background-color: #f5f5f5;
+    color: #077ab2;
+}
+
+.lib-datepicker__day--weekend {
+    color: #999999;
+}
+
+.lib-datepicker__day--today {
+    background: #ff6400;
+    border-radius: 50%;
+    color: #ffffff;
+    font-weight: normal;
+}
+
+.lib-datepicker__day--today:hover {
+    background: #e55a00;
+}
+
+.lib-datepicker__day--selected {
+    background-color: #204496;
+    color: #ffffff;
+    border-radius: 6px;
+}
+
+.lib-datepicker__day--other {
+    color: #cccccc;
+    cursor: default;
+}
+
+.lib-datepicker__day--disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Footer with today/clear buttons */
+.lib-datepicker__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #eeeeee;
+}
+
+.lib-datepicker__btn {
+    background: none;
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    font-size: var(--font-size-xs);
+    color: #077ab2;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.lib-datepicker__btn:hover {
+    background-color: #f5f5f5;
+    border-color: #077ab2;
+    color: #077ab2;
+}
+
+/* ============================================================
+   lib-search-input - Search input with clear button
+   ============================================================ */
+lib-search-input {
+    display: inline-block;
+    width: 100%;
+}
+
+.lib-search-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.lib-search-input input {
+    width: 100%;
+    height: 28px;
+    padding: 4px 28px 4px 8px;
+    border: 1px solid var(--input-border, #ccc);
+    border-radius: 4px;
+    font-size: var(--font-size);
+    font-family: inherit;
+    background: var(--input-bg, #fff);
+    color: var(--text-primary, #333);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.lib-search-input input:focus {
+    outline: none;
+    border-color: var(--color-accent, #ff6400);
+    box-shadow: 0 0 0 2px rgba(255, 100, 0, 0.15);
+}
+
+.lib-search-input input::placeholder {
+    color: var(--text-muted, #999);
+}
+
+.lib-search-input input:disabled {
+    background: var(--bg-disabled, #f5f5f5);
+    cursor: not-allowed;
+}
+
+/* Icon positioning */
+.lib-search-input .search-icon {
+    position: absolute;
+    color: var(--text-muted, #999);
+    font-size: var(--font-size-md);
+    pointer-events: none;
+    z-index: 1;
+    transition: color 0.15s;
+}
+
+.lib-search-input .lnr::before {
+    font-size: 12px;
+}
+
+.lib-search-input .search-icon.has-value {
+    pointer-events: auto;
+    cursor: pointer;
+    color: var(--color-accent, #ff6400);
+}
+
+.lib-search-input .search-icon.has-value:hover {
+    color: var(--color-accent-hover, #e55a00);
+}
+
+.lib-search-input.icon-left .search-icon {
+    left: 2px;
+}
+
+.lib-search-input.icon-left input {
+    padding-left: 24px !important;
+}
+
+.lib-search-input.icon-right .search-icon {
+    right: 4px;
+}
+
+.lib-search-input.icon-right input {
+    padding-right: 48px;
+}
+
+/* Clear button */
+.lib-search-input .clear-btn {
+    position: absolute;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--text-secondary, #666);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, opacity 0.15s;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.lib-search-input .clear-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lib-search-input .clear-btn:hover {
+    background: var(--color-error, #dc3545);
+    color: #ffffff;
+}
+
+.lib-search-input .clear-btn:hover span::before {
+    color: #fff;
+    margin-top: 1px;
+}
+
+.lib-search-input .clear-btn .lnr {
+    font-size: 10px;
+}
+
+/* Disabled state */
+.lib-search-input.disabled .clear-btn {
+    display: none !important;
+}
+
+.lib-search-input.disabled .search-icon {
+    opacity: 0.5;
+}

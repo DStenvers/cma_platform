@@ -1,0 +1,314 @@
+/**
+ * Shared icon CSS for web components using Shadow DOM
+ *
+ * This is the SINGLE source of truth for Linearicons icon codes.
+ * All values must match those in assets/css/style.css
+ *
+ * Usage in a shadow DOM component:
+ *   // In your render method:
+ *   this.shadowRoot.innerHTML = `
+ *       <style>
+ *           ${CMA.getIconStyles()}
+ *           ... your other styles ...
+ *       </style>
+ *       ...
+ *   `;
+ *
+ *   // Or get specific icons only:
+ *   ${CMA.getIconStylesFor(['pencil', 'trash', 'checkmark-circle'])}
+ */
+
+(function() {
+    'use strict';
+
+    // Icon definitions - must match assets/css/style.css
+    const ICON_CODES = {
+        // File operations
+        'file-add': 'e6b4',
+        'file-empty': 'e6b3',
+        'file-check': 'e6b5',
+        'file-preview': 'e911',
+        'file-image': 'e90d',
+        'folder': 'e6ba',
+        'folder-plus': 'e6bc',
+        'document': 'e6d8',
+        'papers': 'e6d4',
+        'diploma': 'e6db',
+        'clipboard-check': 'e6cc',
+        'clipboard-pencil': 'e6ca',
+        'clipboard-user': 'e6d0',
+
+        // Actions
+        'print': 'e6b2',
+        'kopieer': 'e6b8',
+        'copy': 'e6b8',
+        'delete': 'e681',
+        'trash': 'e681',
+        'cancel': 'e92a',
+        'cross': 'e92a',
+        'save': 'e6ae',
+        'back': 'e8d5',
+        'undo': 'e8d5',
+        'redo': 'e8d6',
+        'search': 'e922',
+        'magnifier': 'e922',
+        'file-search': 'e923',
+        'preview': 'e911',
+        'refresh': 'e8da',
+        'sync': 'e8da',
+        'upload': 'e8f4',
+        'download': 'e8f3',
+        'download2': 'e8f5',
+        'play': 'e6f7',
+        'exit': 'e6d3',
+
+        // Edit
+        'pencil': 'e60d',
+        'pencil5': 'e613',
+        'crop': 'e970',
+
+        // Navigation
+        'expandall': 'e95b',
+        'collapseall': 'e95c',
+        'moveup': 'e8ff',
+        'movedown': 'e900',
+        'chevron-down': 'e93a',
+        'chevron-up': 'e939',
+        'chevron-left': 'e93b',
+        'chevron-right': 'e93c',
+        'chevron-right-circle': 'e965',
+        'arrow-left': 'e943',
+        'arrow-right': 'e944',
+
+        // Sort/order
+        'sortaz': 'e9b5',
+        'sortza': 'e9b6',
+
+        // View modes
+        'grouped': 'e930',
+        'table': 'e92b',
+        'menu': 'e92b',
+        'list': 'e92c',
+        'frame-expand': 'e952',
+        'frame-contract': 'e953',
+        'layers': 'e977',
+
+        // Status/feedback
+        'checkmark-circle': 'e959',
+        'cross-circle': 'e95a',
+        'plus-circle': 'e95b',
+        'circle-minus': 'e95c',
+        'warning': 'e955',
+        'question-circle': 'e957',
+        'info': 'e7d9',
+        'bubble-alert': 'e7d9',
+
+        // Users/people
+        'profile': 'e71b',
+        'user': 'e71e',
+        'users': 'e722',
+        'users2': 'e723',
+        'group-work': 'e726',
+
+        // System/settings
+        'home': 'e600',
+        'database': 'e65d',
+        'cog': 'e672',
+        'wrench': 'e674',
+        'hammer-wrench': 'e676',
+        'equalizer': 'e6f2',
+        'lock': 'e66b',
+        'key': 'e66e',
+        'user-lock': 'e721',
+        'laptop': 'e7ad',
+        'laptop-phone': 'e7ae',
+        'code': 'e90b',
+        'construction': 'e7f6',
+
+        // Export formats
+        'excel': 'e914',
+        'csv': 'e913',
+        'word': 'e6d8',
+
+        // Calendar/time
+        'calendar-full': 'e789',
+        'calendar-31': 'e788',
+        'calendar-check': 'e786',
+        'clock': 'e8e6',
+        'hourglass': 'e8cf',
+        'history': 'e8e3',
+
+        // Content types
+        'chart-bars': 'e7fc',
+        'picture': 'e70e',
+        'camera': 'e6ff',
+        'book': 'e712',
+        'reading': 'e6d6',
+        'news': 'e6d5',
+        'bubble': 'e7d6',
+        'tag': 'e755',
+        'link': 'e915',
+        'graduation-hat': 'e6da',
+        'briefcase': 'e83a',
+        'store': 'e744',
+        'site-map': 'e883',
+        'icons2': 'e880',
+        'inbox': 'e69c',
+        'box': 'e69f',
+        'car': 'e84a',
+        'rocket': 'e837',
+        'magic-wand': 'e62b',
+        'sun': 'e657',
+        'palette': 'e626',
+        'heart-pulse': 'e7e8',
+        'earth': 'e884',
+        'map-marker': 'e77a',
+        'road-sign': 'e784',
+
+        // CKEditor / Text formatting
+        'eraser': 'e611',
+        'scissors': 'e6c7',
+        'paste': 'e6c8',
+        'clipboard-text': 'e6cb',
+        'picture2': 'e70f',
+        'picture3': 'e710',
+        'spell-check': 'e795',
+        'file-code': 'e90c',
+        'unlink': 'e916',
+        'find-replace': 'e924',
+        'list2': 'e92d',
+        'minus': 'e937',
+        'expand': 'e94a',
+        'plus-square': 'e98e',
+        'minus-square': 'e98f',
+        'bold': 'e9a3',
+        'italic': 'e9a4',
+        'underline': 'e9a5',
+        'text-align-left': 'e9a8',
+        'text-align-center': 'e9a9',
+        'text-align-right': 'e9aa',
+        'text-align-justify': 'e9ab',
+        'indent-increase': 'e9ad',
+        'indent-decrease': 'e9ae',
+        'border-all': 'e9df',
+
+        // Ratings
+        'star': 'e68d',
+        'star-half': 'e68e',
+        'star-empty': 'e68f',
+        'thumbs-up': 'e919',
+
+        // Visibility
+        'eye': 'e6a5',
+        'eye-crossed': 'e6a6',
+
+        // Navigation/misc
+        'pointer-up': 'e9c0',
+        'select': 'e881',
+        'text-format': 'e9a0',
+        'toggle-on': 'e671',
+        'calculator': 'e766',
+        'expand4': 'e952',
+        'contract3': 'e953',
+        '3d-glasses': 'e6f4',
+        '3d-rotate': 'e875'
+    };
+
+    /**
+     * Get CSS for base linearicons setup
+     * @returns {string} Base CSS for linearicons
+     */
+    function getIconBase() {
+        return `
+.lnr {
+    font-family: 'Linearicons';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+}`;
+    }
+
+    /**
+     * Get CSS for all icon definitions
+     * @returns {string} CSS rules for all icons
+     */
+    function getIconStyles() {
+        let css = getIconBase() + '\n';
+
+        for (const [name, code] of Object.entries(ICON_CODES)) {
+            css += `.lnr-${name}::before { content: "\\${code}"; }\n`;
+        }
+
+        return css;
+    }
+
+    /**
+     * Get CSS for a specific subset of icons
+     * @param {string[]} iconNames - Array of icon names (without 'lnr-' prefix)
+     * @param {Object} options - Optional settings
+     * @param {string} options.prefix - Selector prefix (e.g., 'a.icon' for 'a.icon.lnr-name')
+     * @returns {string} CSS rules for specified icons
+     */
+    function getIconStylesFor(iconNames, options = {}) {
+        let css = getIconBase() + '\n';
+        const prefix = options.prefix ? options.prefix + '.' : '.';
+
+        for (const name of iconNames) {
+            const code = ICON_CODES[name];
+            if (code) {
+                css += `${prefix}lnr-${name}::before { content: "\\${code}"; }\n`;
+            }
+        }
+
+        return css;
+    }
+
+    /**
+     * Get the icon code for a specific icon
+     * @param {string} name - Icon name (without 'lnr-' prefix)
+     * @returns {string|undefined} The icon code or undefined
+     */
+    function getIconCode(name) {
+        return ICON_CODES[name];
+    }
+
+    /**
+     * Format a table name for display - strips 'tbl' and 'dbo.' prefixes
+     * @param {string} tableName - The raw table name
+     * @returns {string} The formatted table name for display
+     */
+    function displayTableName(tableName) {
+        if (!tableName) return '';
+        let name = tableName;
+        // Strip dbo. prefix (case insensitive)
+        if (name.toLowerCase().startsWith('dbo.')) {
+            name = name.substring(4);
+        }
+        // Strip tbl prefix (case insensitive)
+        if (name.toLowerCase().startsWith('tbl')) {
+            name = name.substring(3);
+        }
+        return name;
+    }
+
+    /**
+     * Sanitize an alias - removes spaces and invalid characters
+     * @param {string} alias - The input alias
+     * @returns {string} The sanitized alias
+     */
+    function sanitizeAlias(alias) {
+        if (!alias) return '';
+        // Remove spaces and keep only valid SQL identifier characters
+        return alias.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+    }
+
+    // Export to CMA namespace
+    window.CMA = window.CMA || {};
+    window.CMA.ICON_CODES = ICON_CODES;
+    window.CMA.getIconStyles = getIconStyles;
+    window.CMA.getIconStylesFor = getIconStylesFor;
+    window.CMA.getIconCode = getIconCode;
+    window.CMA.displayTableName = displayTableName;
+    window.CMA.sanitizeAlias = sanitizeAlias;
+
+})();

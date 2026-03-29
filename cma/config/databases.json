@@ -1,0 +1,31 @@
+{
+    "$schema": "./schema/databases.schema.json",
+    "version": "2.0.0",
+    "description": "Database connection mappings - exported from tblDatabases",
+    "databases": [
+        {
+            "id": 4,
+            "name": "DEPRECATED_rep",
+            "type": "access",
+            "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Locale Identifier=1043;Data Source=[db/repository.mdb]",
+            "description": "DEPRECATED: Repository database (was read-only, no longer used)",
+            "deprecated": true,
+            "deprecatedReason": "Formulierdefinities zijn gemigreerd naar JSON bestanden"
+        },
+        {
+            "id": 5,
+            "name": "users",
+            "type": "access",
+            "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Locale Identifier=1043;Data Source=[db/CMAusers.mdb]",
+            "description": "CMA users database (MS Access)"
+        },
+        {
+            "id": 6,
+            "name": "data",
+            "connectionString": "",
+            "description": "Main data database",
+            "type": "access"
+        }
+    ],
+    "lastUpdated": "2026-03-05 12:09:16"
+}

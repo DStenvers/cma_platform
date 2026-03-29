@@ -1,0 +1,57 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "_menus",
+        "title": "Menu's",
+        "titleSingular": "Menu",
+        "table": "_config",
+        "database": "json",
+        "configFile": "menu",
+        "configArrayKey": "menus",
+        "idField": "id",
+        "listQuery": "",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": false,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "quickSearchFields": "name",
+        "detailField": "name",
+        "orderField": "order",
+        "fields": [
+                {
+                        "name": "id",
+                        "type": "textbox",
+                        "caption": "ID",
+                        "dataType": "number",
+                        "readOnly": true,
+                        "required": true,
+                        "width": 60
+                },
+                {
+                        "name": "name",
+                        "type": "textbox",
+                        "caption": "Naam",
+                        "required": true,
+                        "maxLength": 100
+                },
+                {
+                        "name": "order",
+                        "type": "textbox",
+                        "caption": "Volgorde",
+                        "dataType": "number",
+                        "required": true,
+                        "width": 80,
+                        "defaultValue": 100
+                }
+        ],
+        "subforms": [
+                {
+                        "name": "_menu_items",
+                        "title": "Menu-items",
+                        "formName": "_menu_items",
+                        "linkField": "menuId",
+                        "parentIdField": "id"
+                }
+        ]
+}

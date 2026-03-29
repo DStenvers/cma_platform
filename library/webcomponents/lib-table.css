@@ -1,0 +1,885 @@
+/* ==========================================================================
+   lib-table — consolidated table styles
+   Used by <lib-table> web component AND standalone .listtable tables.
+   lib-table.js auto-adds .listtable to child tables, so .listtable is the
+   shared selector for all general table styling.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Host element
+   ========================================================================== */
+lib-table {
+    display: block;
+}
+
+/* ==========================================================================
+   2. Table base
+   ========================================================================== */
+.listtable {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    margin-top: -4px;
+}
+
+.listtable lib-switch {
+    height: 20px;
+    vertical-align: middle;
+}
+
+lib-table table {
+    min-width: 100%;
+}
+
+/* ==========================================================================
+   3. Header styling (thead, th, listheader)
+   ========================================================================== */
+lib-table table thead,
+.listtable thead {
+    position: sticky;
+    top: -4px;
+    z-index: 10;
+    background: linear-gradient(to bottom, var(--bg-surface) 0%, var(--bg-surface-alt) 100%);
+}
+
+lib-table .listheader,
+.listtable .listheader {
+    height: var(--toolbar-height);
+}
+
+lib-table table th,
+.listtable th {
+    background-color: var(--table-header-bg, #e8ecf0);
+    color: var(--text-primary, #003366);
+    border-bottom: 1px solid var(--border-dark, #c0c8d0);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    position: relative;
+}
+
+lib-table table thead th,
+.listtable thead th {
+    background-color: transparent;
+    padding-left: 8px;
+    padding-top: 2px;
+    padding-bottom: 0;
+}
+
+/* First column positioning */
+.listtable thead th:first-child {
+    position: relative;
+}
+
+.listtable thead th:first-child .clicker {
+    margin-top: 3px;
+}
+
+.listtable thead th:not(:first-child) .clicker {
+    margin-top: 4px;
+}
+
+/* Number header padding */
+lib-table table thead th[data-type="number"],
+.listtable thead th[data-type="number"] {
+    padding-right: 0px !important;
+}
+
+/* ==========================================================================
+   4. Cell styling (td, data-types)
+   ========================================================================== */
+.listtable td {
+    padding: 8px 8px;
+    border: none;
+}
+
+/* Date columns - no word wrap */
+.listtable td[data-type="date"],
+.listtable td[data-type="datetime"] {
+    white-space: nowrap;
+}
+
+/* Boolean columns - no word wrap */
+.listtable td[data-type="boolean"] {
+    white-space: nowrap;
+}
+
+/* FK pending cells - show subtle loading indicator */
+.listtable td.fk-pending {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ==========================================================================
+   5. Row interactivity (listrow, hover, active)
+   ========================================================================== */
+lib-table tr.even { background-color: #f6f6f6 }
+lib-table tr.odd { background-color: #fdfdfd }
+
+.listtable .listrow {
+    cursor: pointer;
+}
+
+.listtable .listrow:hover {
+    outline: 1px solid var(--color-info);
+    outline-offset: -1px;
+    border-radius: 6px;
+}
+
+.listtable .listrow.active,
+.listtable .listrow.active td {
+    background-color: var(--sidebar-active) !important;
+    color: var(--text-inverse) !important;
+}
+
+.listtable .listrow.active td a {
+    color: var(--text-inverse) !important;
+}
+
+/* ==========================================================================
+   6. Buttons in tables
+   ========================================================================== */
+/* Neutral foreground unless primary/cancel */
+table .btn:not(.btn-primary):not(.btn-cancel) {
+    color: #333;
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+table .btn:not(.btn-primary):not(.btn-cancel) .lnr::before {
+    color: #333;
+    border: 1px solid #fff0;
+    border-radius: 4px;
+}
+
+table .btn:hover:not(.btn-primary):not(.btn-cancel) .lnr::before {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-hover);
+}
+
+/* lib-table specific button styling */
+lib-table .btn {
+    background-color: transparent;
+    color: var(--text-primary);
+    box-shadow: none;
+    border: 2px solid transparent;
+    padding: 2px 6px;
+    min-width: auto;
+    height: auto;
+}
+
+lib-table .btn:hover {
+    color: var(--color-primary, #204496);
+}
+
+lib-table .btn:not(:has(.lnr)):hover {
+    background-color: var(--bg-hover);
+    border-color: var(--color-primary, #204496);
+}
+
+lib-table .btn .lnr::before {
+    color: var(--text-secondary);
+}
+
+lib-table .btn:hover .lnr::before {
+    color: var(--color-primary, #204496);
+}
+
+/* ==========================================================================
+   7. Header wrapper layout (flex, clicker)
+   ========================================================================== */
+lib-table th .th-header-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: var(--toolbar-height);
+    overflow: visible;
+}
+
+lib-table th .th-header-wrapper .clicker {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 18px;
+    line-height: 18px;
+}
+
+lib-table th span.clicker {
+    color: var(--text-primary, #003366);
+    min-width: 0;
+    flex: 0 1 auto;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+lib-table th span.clicker:hover {
+    cursor: pointer;
+}
+
+/* First column clicker with menutrigger needs smaller height for alignment */
+lib-table th:first-child .menutrigger .clicker {
+    height: 15px;
+    line-height: 15px;
+}
+
+/* ==========================================================================
+   8. Menutrigger (kebab / 3-dot menu)
+   ========================================================================== */
+lib-table div.menutrigger {
+    width: 20px;
+    height: 24px;
+    line-height: 24px;
+    margin-left: -6px;
+    cursor: pointer;
+    position: relative;
+    background-image:
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px);
+    background-size: 4px 4px;
+    background-position: center 6px, center 12px, center 18px;
+    background-repeat: no-repeat;
+}
+
+lib-table div.menutrigger:hover {
+    background-image:
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
+        radial-gradient(circle at center, #2196F3 2px, transparent 2px);
+    background-size: 4px 4px;
+    background-position: center 6px, center 12px, center 18px;
+    background-repeat: no-repeat;
+}
+
+lib-table div.menutrigger.open {
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / .25);
+    border-radius: 3px;
+    height: 28px;
+    top: 1px;
+    border: 1px solid #f9f8f8;
+}
+
+lib-table .menutrigger.open .cma-context-menu.export-menu {
+    margin-top: 4px;
+}
+
+.menutrigger.open .cma-context-menu.export-menu {
+    margin-top: 10px;
+}
+
+/* Legacy hover menu (PHP-generated <nav>) */
+lib-table div.menutrigger nav { display: none; width: 132px; margin-left: 4px; margin-top: -1px; position: absolute }
+lib-table div.menutrigger:hover nav { display: block }
+lib-table div.menutrigger nav ul { list-style-type: none; background-color: #f2f2f2; display: block; margin: 0; margin-top: 24px; padding: 0; box-shadow: 2px 2px 3px 0 rgba(0,0,0,0.15) }
+lib-table div.menutrigger nav li { display: block; margin-left: 0 }
+lib-table div.menutrigger nav li a { display: block; font-weight: normal; text-decoration: none; padding: 6px 12px; white-space: nowrap }
+lib-table div.menutrigger nav li a:hover { background-color: #204496; color: #fff }
+
+/* Click-based export menu (JS-generated .cma-context-menu) */
+lib-table .menutrigger .cma-context-menu { display: none; position: absolute; z-index: 10000; background: #fff; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 160px; margin-top: 4px; left: 0 }
+lib-table .menutrigger.open .cma-context-menu { display: block }
+lib-table .cma-context-menu ul { list-style: none; margin: 0; padding: 5px 0 }
+lib-table .cma-context-menu li { padding: 4px 15px; margin: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: inherit; font-family: inherit; font-weight: inherit; color: #333 }
+lib-table .cma-context-menu li:hover { background: var(--table-header-bg, #e8ecf0) }
+lib-table .cma-context-menu li .lnr { width: 16px; height: 16px; font-size: var(--font-size-md) }
+lib-table .cma-context-menu li .lnr::before { width: 16px; height: 16px; line-height: 16px; font-size: var(--font-size-md) }
+
+/* ==========================================================================
+   9. Row menu trigger
+   ========================================================================== */
+/* First data cell needs position:relative for menu trigger */
+.listtable tbody tr td:first-child {
+    position: relative;
+}
+
+/* Padding for row menu trigger icon */
+lib-table .listtable tbody tr td:first-child:has(.row-menu-trigger) {
+    padding-left: 24px !important;
+}
+
+/* Row menu trigger in table (shown on hover in first cell) */
+.listtable .row-menu-trigger {
+    display: none;
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    padding: 4px !important;
+    padding-top: 2px !important;
+    color: var(--color-primary);
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+    background-color: transparent;
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    text-align: center;
+    z-index: 10;
+}
+
+.listtable .row-menu-trigger:hover {
+    color: var(--color-info);
+    background-color: var(--bg-surface);
+}
+
+.listtable .listrow:hover .row-menu-trigger {
+    display: block;
+}
+
+/* Touch devices: always show row menu trigger since hover is unavailable */
+@media (hover: none) {
+    .listtable .row-menu-trigger {
+        display: block;
+        opacity: 0.5;
+    }
+    .listtable .row-menu-trigger:active {
+        opacity: 1;
+    }
+}
+
+/* Hide row menu trigger on no-data rows */
+td.no-data .row-menu-trigger,
+.no-data .row-menu-trigger {
+    display: none !important;
+}
+
+/* ==========================================================================
+   10. Sorting (sortheader, sorttable indicators)
+   ========================================================================== */
+.listtable .sortheader {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.listtable .sortheader:hover {
+    background-color: var(--bg-surface-alt);
+}
+
+.listtable .LibTableSort {
+    font-size: var(--font-size-2xs);
+    color: var(--text-muted);
+}
+
+/* Sorting indicators for sorttable.js */
+.listtable th.sorttable_sorted,
+.listtable th.sorttable_sorted_reverse {
+    background: var(--bg-surface-alt);
+}
+
+.listtable th.sorttable_sorted::after {
+    content: " \25BC";
+    font-size: var(--font-size-2xs);
+}
+
+.listtable th.sorttable_sorted_reverse::after {
+    content: " \25B2";
+    font-size: var(--font-size-2xs);
+}
+
+/* ==========================================================================
+   11. Filter row (text filter inputs)
+   ========================================================================== */
+.listtable .filter-row {
+    background: var(--bg-surface);
+}
+
+.listtable .filter-row th {
+    padding: 4px;
+    background: var(--bg-surface);
+}
+
+.listtable .filter-input {
+    width: 100%;
+    padding: 3px 5px;
+    border: 1px solid var(--border-dark);
+    border-radius: 2px;
+    font-size: var(--font-size-xs);
+}
+
+.listtable .filter-input:focus {
+    border-color: var(--border-hover);
+    outline: none;
+}
+
+/* ==========================================================================
+   12. Filter count
+   ========================================================================== */
+.filter-count {
+    padding: 4px 8px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    background: var(--table-header-bg, #e8ecf0);
+    border-bottom: 1px solid var(--border-dark);
+}
+
+/* ==========================================================================
+   13. Dropdown filter (icon, panel, search, sort, checkboxes)
+   ========================================================================== */
+
+/* --- Base dropdown filter rules (standalone + lib-table) --- */
+.dropdown-filter-icon {
+    display: flex;
+    align-items: center;
+    height: 18px;
+    line-height: 18px;
+    border: 1px solid transparent;
+}
+
+.dropdown-filter-icon:hover {
+    border: 1px solid var(--border-hover);
+}
+
+.dropdown-filter-content {
+    background: var(--bg-dropdown, #EFF2F4);
+    max-height: 90vh;
+    overflow-y: auto;
+    color: var(--text-primary, #333);
+    text-align: left;
+    z-index: 10000;
+    position: fixed;
+}
+
+.dropdown-filter-content.flip-up {
+    margin-top: 0;
+    margin-bottom: 0px;
+    bottom: 100%;
+    top: auto !important;
+}
+
+.dropdown-filter-content div.close {
+    top: 0;
+    right: 2px;
+}
+
+.dropdown-filter-content div.dropdown-filter-sort span {
+    color: var(--text-primary, #333);
+    background-color: var(--bg-surface, #fff);
+    border-color: var(--border-color, #ddd);
+}
+
+.dropdown-filter-content div.dropdown-filter-sort span:hover {
+    background-color: var(--bg-hover);
+    outline: 1px solid var(--border-hover);
+    outline-offset: -1px;
+}
+
+.dropdown-filter-content div.checkbox-container {
+    max-height: 100%;
+}
+
+/* --- lib-table scoped dropdown filter rules --- */
+lib-table .dropdown-filter-dropdown {
+    position: relative;
+    display: inline-block;
+    float: left;
+    line-height: 16px;
+    margin-top: 2px;
+}
+
+lib-table th .dropdown-filter-dropdown {
+    flex-shrink: 0;
+    margin-left: 4px;
+    height: 18px;
+    line-height: 18px;
+}
+
+lib-table .dropdown-filter-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    margin-left: -4px;
+    margin-right: 3px;
+    width: 20px;
+}
+
+lib-table .dropdown-filter-icon .lnr { width: 14px; height: 18px; line-height: 18px; display: flex; align-items: center; justify-content: center }
+lib-table .dropdown-filter-icon .lnr::before { font-size: 9px; color: #2196F3; padding-left: 3px }
+lib-table .dropdown-filter-icon.active .lnr::before { padding-top: 1px }
+lib-table .dropdown-filter-icon.active .lnr::before,
+lib-table .dropdown-filter-icon.sorted .lnr::before { color: var(--color-primary, #077ab2) }
+
+lib-table .dropdown-filter-icon:hover {
+    border: 1px solid #999;
+    border-radius: 3px;
+    background: var(--bg-hover, #d0e8f8);
+}
+
+lib-table .dropdown-filter-icon:hover .lnr::before { color: #333 }
+
+lib-table .dropdown-filter-icon.active,
+lib-table .dropdown-filter-icon.sorted {
+    background: var(--bg-hover, #d0e8f8);
+    border: 1px solid transparent;
+    border-radius: 3px;
+    box-shadow: inset 2px 2px 4px rgba(0, 80, 140, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Legacy arrow-down (CSS chevron used by jQuery path) */
+lib-table .dropdown-filter-icon .arrow-down {
+    border: solid #666;
+    border-width: 0 1.5px 1.5px 0;
+    display: inline-block;
+    padding: 2.5px;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+lib-table .dropdown-filter-icon.active .arrow-down,
+lib-table .dropdown-filter-icon.sorted .arrow-down { border-color: var(--color-primary, #077ab2); border-width: 0 2px 2px 0 }
+
+/* --- Filter content (dropdown panel) --- */
+lib-table .dropdown-filter-content {
+    display: none;
+    position: fixed;
+    background-color: var(--bg-dropdown, #EFF2F4);
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 10000;
+    padding: 10px 5px 5px 5px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+lib-table th .dropdown-filter-content {
+    margin-top: -2px;
+    top: calc((var(--toolbar-height) * 2) + 0px);
+}
+
+lib-table .dropdown-filter-content.flip-up {
+    /* Position set dynamically via JavaScript */
+}
+
+lib-table .dropdown-filter-content div {
+    margin: 5px;
+    font-weight: normal;
+}
+
+lib-table .dropdown-filter-content div.date-range-filter {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Close button (X icon) */
+lib-table .dropdown-filter-content div.close {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    z-index: 99998;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+lib-table .dropdown-filter-content div.close::before,
+lib-table .dropdown-filter-content div.close::after {
+    content: '';
+    position: absolute;
+    height: 2px;
+    width: 10px;
+    background: #888;
+    top: 50%;
+    left: 50%;
+    margin-left: -5px;
+    margin-top: -1px;
+    transition: background 0.15s ease;
+}
+
+lib-table .dropdown-filter-content div.close::before { transform: rotate(45deg) }
+lib-table .dropdown-filter-content div.close::after { transform: rotate(-45deg) }
+lib-table .dropdown-filter-content div.close:hover { background: #E01F3D }
+lib-table .dropdown-filter-content div.close:hover::before,
+lib-table .dropdown-filter-content div.close:hover::after { background: #fff }
+
+/* --- Search input --- */
+lib-table .dropdown-filter-content div.dropdown-filter-search {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+lib-table .dropdown-filter-content div.dropdown-filter-search input { width: 100% }
+
+/* --- Sort options (A-Z, Z-A) --- */
+lib-table .dropdown-filter-content div.dropdown-filter-sort {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 0;
+    padding-left: 2px;
+    cursor: pointer;
+}
+
+lib-table .dropdown-filter-content div.dropdown-filter-sort:hover { background-color: transparent }
+lib-table .dropdown-filter-content div.dropdown-filter-sort span:hover { background-color: var(--bg-hover, #d0e8f8); border: 1px solid var(--color-header, #204496); border-radius: 4px }
+
+lib-table .dropdown-filter-content div.dropdown-filter-sort span {
+    color: var(--text-primary, #000);
+    padding: 3px 6px;
+    margin: 1px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+lib-table .dropdown-filter-content div.dropdown-filter-sort span.active { color: var(--color-primary, #077ab2); background: var(--bg-hover, #d0e8f8); border-radius: 3px; box-shadow: inset 2px 2px 4px rgba(0, 80, 140, 0.35), inset -1px -1px 2px rgba(255, 255, 255, 0.5); border: 1px solid transparent }
+
+/* --- Checkbox filter items --- */
+lib-table .dropdown-filter-item { height: 24px }
+lib-table .checkbox-container { overflow-y: auto }
+
+lib-table .checkbox-container input[type="checkbox"],
+lib-table .dropdown-filter-item input[type="checkbox"] {
+    display: none;
+}
+
+lib-table .checkbox-container label,
+lib-table .dropdown-filter-item label {
+    position: relative;
+    display: block;
+    padding-left: 22px;
+    line-height: 24px;
+    color: inherit;
+}
+
+lib-table .checkbox-container label::before,
+lib-table .checkbox-container label::after,
+lib-table .dropdown-filter-item label::before,
+lib-table .dropdown-filter-item label::after {
+    position: absolute;
+    content: "";
+    display: inline-block;
+}
+
+lib-table .checkbox-container label::before,
+lib-table .dropdown-filter-item label::before {
+    height: 16px;
+    width: 16px;
+    background-color: #ffffff;
+    left: -3px;
+    top: 4px;
+    border: 0px;
+    border-radius: 3px;
+}
+
+lib-table .checkbox-container input[type="checkbox"] + label::after,
+lib-table .dropdown-filter-item input[type="checkbox"] + label::after {
+    content: none;
+}
+
+lib-table .checkbox-container input[type="checkbox"]:checked + label::after,
+lib-table .dropdown-filter-item input[type="checkbox"]:checked + label::after {
+    height: 4px;
+    width: 9px;
+    border-left: 2px solid;
+    border-bottom: 2px solid;
+    transform: rotate(-45deg);
+    left: -2px;
+    top: 8px;
+    border-color: var(--color-primary, #e84f18);
+    content: "";
+}
+
+lib-table .checkbox-container:hover label::before {
+    border: 1px solid #666;
+}
+
+/* ==========================================================================
+   14. Range filters (date, number, time)
+   ========================================================================== */
+lib-table .date-range-filter { padding: 8px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 6px }
+
+lib-table .date-range-filter label {
+    font-size: var(--font-size-sm);
+    color: #333;
+    white-space: nowrap;
+}
+
+lib-table .date-range-filter lib-datepicker { display: block; width: 100% }
+
+lib-table .date-range-filter .date-filter-input:not(lib-datepicker) {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: var(--font-size-sm);
+}
+
+lib-table .date-range-filter .date-filter-input:not(lib-datepicker):focus {
+    border-color: #e84f18;
+    outline: none;
+}
+
+/* --- Number range filter --- */
+lib-table .number-range-filter { padding: 8px }
+
+lib-table .number-range-filter label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: #333;
+    margin-bottom: 2px;
+    margin-top: 8px;
+}
+
+lib-table .number-range-filter label:first-child { margin-top: 0 }
+
+lib-table .number-range-filter .number-filter-input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: var(--font-size-sm);
+    box-sizing: border-box;
+}
+
+lib-table .number-range-filter .number-filter-input:focus {
+    border-color: #e84f18;
+    outline: none;
+}
+
+/* --- Time range filter --- */
+lib-table .time-range-filter { padding: 8px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 6px }
+
+lib-table .time-range-filter label {
+    font-size: var(--font-size-sm);
+    color: #333;
+    white-space: nowrap;
+}
+
+lib-table .time-range-filter lib-timepicker { display: block; width: 100% }
+
+lib-table .time-range-filter .time-filter-input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: var(--font-size-sm);
+    box-sizing: border-box;
+}
+
+lib-table .time-range-filter .time-filter-input:focus {
+    border-color: #e84f18;
+    outline: none;
+}
+
+/* ==========================================================================
+   15. Column resize handles
+   ========================================================================== */
+.column-resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+}
+
+.column-resize-handle:hover,
+body.resizing-column .column-resize-handle {
+    background: var(--color-primary, #007bff);
+    opacity: 0.5;
+}
+
+body.resizing-column {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+body.resizing-column * {
+    cursor: col-resize !important;
+}
+
+/* ==========================================================================
+   16. Column drag reorder
+   ========================================================================== */
+.listtable thead th[draggable="true"] {
+    cursor: grab;
+}
+
+.listtable thead th.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.listtable thead th.drag-over {
+    background: var(--color-primary-light, #e3f2fd);
+    box-shadow: inset 0 0 0 2px var(--color-primary, #007bff);
+}
+
+/* ==========================================================================
+   17. Numeric column alignment
+   ========================================================================== */
+/* lib-table scoped */
+lib-table th[data-type="number"],
+lib-table th[data-type="decimal"],
+lib-table th[data-type="currency"],
+lib-table th[data-type="integer"] { text-align: right }
+
+lib-table th[data-type="number"] .clicker,
+lib-table th[data-type="decimal"] .clicker,
+lib-table th[data-type="currency"] .clicker,
+lib-table th[data-type="integer"] .clicker { display: inline-block }
+
+lib-table th[data-type="number"] .dropdown-filter-dropdown,
+lib-table th[data-type="decimal"] .dropdown-filter-dropdown,
+lib-table th[data-type="currency"] .dropdown-filter-dropdown,
+lib-table th[data-type="integer"] .dropdown-filter-dropdown { float: none; margin-right: 4px }
+
+lib-table td[data-type="number"],
+lib-table td[data-type="decimal"],
+lib-table td[data-type="currency"],
+lib-table td[data-type="integer"] { text-align: right; min-width: 40px }
+
+/* .listtable scoped (standalone tables) */
+.listtable th[data-type="number"],
+.listtable th[data-type="int"],
+.listtable th[data-type="integer"],
+.listtable th[data-type="decimal"],
+.listtable th[data-type="float"],
+.listtable th[data-type="currency"],
+.listtable td[data-type="number"],
+.listtable td[data-type="int"],
+.listtable td[data-type="integer"],
+.listtable td[data-type="decimal"],
+.listtable td[data-type="float"],
+.listtable td[data-type="currency"] {
+    text-align: right;
+}
+
+/* ==========================================================================
+   18. Utility classes
+   ========================================================================== */
+.listtable th.col-check { width: 30px; }
+.listtable td.col-path { font-size: var(--font-size-xs); }
+.listtable .lnr-database { margin-right: 5px; }
+.listtable td.col-actions { white-space: nowrap; }
+
+/* ==========================================================================
+   19. Tooltips on truncated headers
+   ========================================================================== */
+lib-table th.truncated[data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; left: 0; top: calc(100% + 2px); background: #204496; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: var(--font-size-sm); white-space: normal; max-width: min(300px, calc(100vw - 20px)); word-wrap: break-word; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.2) }
+lib-table th.truncated[data-tooltip]:hover::before { content: ''; position: absolute; left: 8px; top: calc(100% - 4px); border-width: 0 6px 6px 6px; border-style: solid; border-color: transparent transparent #204496 transparent; z-index: 1001 }

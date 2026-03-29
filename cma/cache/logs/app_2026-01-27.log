@@ -1,0 +1,87 @@
+{"ts":"2026-01-27T11:45:29.343","level":"debug","req":"dbd6c59c","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-27T11:45:29.608","level":"debug","req":"69d8f3d5","msg":"form_api: JSON output","ctx":{"bytes":73880}}
+{"ts":"2026-01-27T11:45:29.782","level":"debug","req":"a8f6f45f","msg":"form_api: JSON output","ctx":{"bytes":73882}}
+{"ts":"2026-01-27T11:45:30.765","level":"debug","req":"74ebba44","msg":"form_api: JSON output","ctx":{"bytes":2735}}
+{"ts":"2026-01-27T11:45:31.625","level":"debug","req":"e6b9cd55","msg":"form_api: JSON output","ctx":{"bytes":2280}}
+{"ts":"2026-01-27T11:46:42.461","level":"debug","req":"e6afee71","msg":"form_api: JSON output","ctx":{"bytes":2804}}
+{"ts":"2026-01-27T12:10:36.986","level":"debug","req":"09f7b689","msg":"form_api: JSON output","ctx":{"bytes":2832}}
+{"ts":"2026-01-27T12:10:46.219","level":"debug","req":"9c96c244","msg":"form_api: JSON output","ctx":{"bytes":2806}}
+{"ts":"2026-01-27T12:10:46.800","level":"debug","req":"bf7663f2","msg":"form_api: JSON output","ctx":{"bytes":84553}}
+{"ts":"2026-01-27T12:10:47.039","level":"debug","req":"341c6d9f","msg":"form_api: JSON output","ctx":{"bytes":32228}}
+{"ts":"2026-01-27T12:10:47.407","level":"debug","req":"58ad1174","msg":"form_api: JSON output","ctx":{"bytes":84553}}
+{"ts":"2026-01-27T12:10:47.646","level":"debug","req":"0cfae817","msg":"form_api: JSON output","ctx":{"bytes":32226}}
+{"ts":"2026-01-27T12:10:47.914","level":"debug","req":"f110d28c","msg":"form_api: JSON output","ctx":{"bytes":26423}}
+{"ts":"2026-01-27T12:10:48.140","level":"debug","req":"346be30e","msg":"form_api: JSON output","ctx":{"bytes":26423}}
+{"ts":"2026-01-27T12:10:48.395","level":"debug","req":"50bf975a","msg":"form_api: JSON output","ctx":{"bytes":103378}}
+{"ts":"2026-01-27T12:10:48.638","level":"debug","req":"c66bdfb8","msg":"form_api: JSON output","ctx":{"bytes":103374}}
+{"ts":"2026-01-27T12:10:48.916","level":"debug","req":"52723d9f","msg":"form_api: JSON output","ctx":{"bytes":4113}}
+{"ts":"2026-01-27T12:10:49.398","level":"debug","req":"47da72cb","msg":"form_api: JSON output","ctx":{"bytes":4095}}
+{"ts":"2026-01-27T12:10:51.969","level":"debug","req":"15320942","msg":"form_api: JSON output","ctx":{"bytes":103378}}
+{"ts":"2026-01-27T12:10:52.233","level":"debug","req":"bf078c4b","msg":"form_api: JSON output","ctx":{"bytes":103378}}
+{"ts":"2026-01-27T12:10:52.974","level":"debug","req":"9de88d10","msg":"form_api: JSON output","ctx":{"bytes":1831}}
+{"ts":"2026-01-27T12:10:53.202","level":"debug","req":"b8b63fa3","msg":"form_api: JSON output","ctx":{"bytes":1856}}
+{"ts":"2026-01-27T12:11:13.435","level":"debug","req":"3903823d","msg":"form_api: JSON output","ctx":{"bytes":56068}}
+{"ts":"2026-01-27T12:11:13.682","level":"debug","req":"0eb17569","msg":"form_api: JSON output","ctx":{"bytes":56064}}
+{"ts":"2026-01-27T12:11:14.926","level":"debug","req":"72429851","msg":"form_api: JSON output","ctx":{"bytes":4401}}
+{"ts":"2026-01-27T12:11:15.158","level":"debug","req":"31cb9e07","msg":"form_api: JSON output","ctx":{"bytes":4401}}
+{"ts":"2026-01-27T14:54:28.956","level":"debug","req":"afca8b29","msg":"form_api: JSON output","ctx":{"bytes":39247}}
+{"ts":"2026-01-27T14:54:29.334","level":"debug","req":"d2f8865e","msg":"form_api: JSON output","ctx":{"bytes":39247}}
+{"ts":"2026-01-27T14:54:33.796","level":"debug","req":"77f8d464","msg":"form_api: JSON output","ctx":{"bytes":4411}}
+{"ts":"2026-01-27T14:54:33.997","level":"debug","req":"edc03587","msg":"form_api: JSON output","ctx":{"bytes":4411}}
+{"ts":"2026-01-27T14:54:38.347","level":"debug","req":"c1f07a76","msg":"form_api: JSON output","ctx":{"bytes":103355}}
+{"ts":"2026-01-27T14:54:38.542","level":"debug","req":"d2685443","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-01-27T14:54:38.750","level":"debug","req":"d2da4fe1","msg":"form_api: JSON output","ctx":{"bytes":9152}}
+{"ts":"2026-01-27T15:04:16.739","level":"debug","req":"c77a832f","msg":"form_api: JSON output","ctx":{"bytes":56068}}
+{"ts":"2026-01-27T15:04:17.018","level":"debug","req":"b9995a47","msg":"form_api: JSON output","ctx":{"bytes":56068}}
+{"ts":"2026-01-27T15:04:19.188","level":"debug","req":"71e0fdbe","msg":"form_api: JSON output","ctx":{"bytes":4095}}
+{"ts":"2026-01-27T15:08:54.777","level":"debug","req":"db2f2c45","msg":"form_api: JSON output","ctx":{"bytes":3364}}
+{"ts":"2026-01-27T15:08:56.802","level":"debug","req":"fbef89c6","msg":"form_api: JSON output","ctx":{"bytes":4095}}
+{"ts":"2026-01-27T15:09:00.077","level":"debug","req":"22643b00","msg":"form_api: JSON output","ctx":{"bytes":3346}}
+{"ts":"2026-01-27T15:11:29.873","level":"debug","req":"b183a621","msg":"form_api: JSON output","ctx":{"bytes":2323}}
+{"ts":"2026-01-27T15:11:33.889","level":"debug","req":"8f9254c0","msg":"form_api: JSON output","ctx":{"bytes":2323}}
+{"ts":"2026-01-27T15:11:36.186","level":"debug","req":"7000c531","msg":"form_api: JSON output","ctx":{"bytes":16871}}
+{"ts":"2026-01-27T15:11:43.262","level":"debug","req":"1041f7ad","msg":"form_api: JSON output","ctx":{"bytes":4099}}
+{"ts":"2026-01-27T15:18:21.293","level":"debug","req":"a3582f87","msg":"form_api: JSON output","ctx":{"bytes":4099}}
+{"ts":"2026-01-27T15:23:55.987","level":"debug","req":"1670b5bb","msg":"form_api: JSON output","ctx":{"bytes":329440}}
+{"ts":"2026-01-27T15:23:56.376","level":"debug","req":"86322b6a","msg":"form_api: JSON output","ctx":{"bytes":36870}}
+{"ts":"2026-01-27T15:23:56.676","level":"debug","req":"91b0aff0","msg":"form_api: JSON output","ctx":{"bytes":329440}}
+{"ts":"2026-01-27T15:23:58.230","level":"debug","req":"3eec2f3c","msg":"form_api: JSON output","ctx":{"bytes":242838}}
+{"ts":"2026-01-27T15:23:58.883","level":"debug","req":"2987cf45","msg":"form_api: JSON output","ctx":{"bytes":242838}}
+{"ts":"2026-01-27T15:24:13.574","level":"debug","req":"f712e087","msg":"form_api: JSON output","ctx":{"bytes":4032}}
+{"ts":"2026-01-27T15:24:15.654","level":"debug","req":"6ce27b31","msg":"form_api: JSON output","ctx":{"bytes":1270}}
+{"ts":"2026-01-27T15:24:20.936","level":"debug","req":"8d29818a","msg":"form_api: JSON output","ctx":{"bytes":1270}}
+{"ts":"2026-01-27T15:24:21.124","level":"debug","req":"77739758","msg":"form_api: JSON output","ctx":{"bytes":7938}}
+{"ts":"2026-01-27T15:24:35.287","level":"debug","req":"e56f29db","msg":"logMonitoring START","ctx":{"form":"_menu_items","action":"delete","recordId":"104"}}
+{"ts":"2026-01-27T15:24:35.288","level":"debug","req":"e56f29db","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-27T15:24:35.288","level":"debug","req":"e56f29db","msg":"logMonitoring: changelog_length=1499"}
+{"ts":"2026-01-27T15:24:35.289","level":"debug","req":"e56f29db","msg":"logMonitoring: notification_length=1608"}
+{"ts":"2026-01-27T15:24:35.290","level":"debug","req":"e56f29db","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1784}}
+{"ts":"2026-01-27T15:24:35.308","level":"debug","req":"e56f29db","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-27T15:24:35.309","level":"debug","req":"e56f29db","msg":"logMonitoring END"}
+{"ts":"2026-01-27T15:24:35.530","level":"debug","req":"586e51f5","msg":"form_api: JSON output","ctx":{"bytes":3967}}
+{"ts":"2026-01-27T15:25:07.973","level":"debug","req":"e958d543","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-27T15:25:08.190","level":"debug","req":"f2eb64c1","msg":"form_api: JSON output","ctx":{"bytes":73882}}
+{"ts":"2026-01-27T15:25:08.381","level":"debug","req":"8a3db6ae","msg":"form_api: JSON output","ctx":{"bytes":73880}}
+{"ts":"2026-01-27T15:25:09.642","level":"debug","req":"2cab0172","msg":"form_api: JSON output","ctx":{"bytes":2269}}
+{"ts":"2026-01-27T15:25:10.730","level":"debug","req":"f398e761","msg":"form_api: JSON output","ctx":{"bytes":2269}}
+{"ts":"2026-01-27T15:25:11.011","level":"debug","req":"8dcc1529","msg":"form_api: JSON output","ctx":{"bytes":21537}}
+{"ts":"2026-01-27T15:25:11.529","level":"debug","req":"03a54f1c","msg":"form_api: JSON output","ctx":{"bytes":5462}}
+{"ts":"2026-01-27T15:25:13.874","level":"debug","req":"f757309e","msg":"form_api: JSON output","ctx":{"bytes":1950}}
+{"ts":"2026-01-27T15:25:14.212","level":"debug","req":"eb92a7f1","msg":"form_api: JSON output","ctx":{"bytes":27437}}
+{"ts":"2026-01-27T15:25:14.515","level":"debug","req":"50fd7a86","msg":"form_api: JSON output","ctx":{"bytes":2729}}
+{"ts":"2026-01-27T15:25:15.060","level":"error","req":"62dfaa13","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=198 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":3,"subformName":"Documenten","parentId":"198","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=198&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:15.066","level":"error","req":"62dfaa13","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"opleidingen_deelnemers","subformName":"IOP","subformIndex":4,"jsonFormName":"iop","parentId":"198","sql":"SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, lcase(format([DeelnemerDatum],'dd MMM yyyy')) AS Datum_geplaatst, iif(tblDeelname.HoofdopleiderGoedgekeurd=True,'Ja','Nee') AS HO_Akkoord FROM tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer WHERE tblDeelname.Werkplan IS NOT NULL ORDER BY tblDeelname.DeelnemerDatum DESC"},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=198&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:15.132","level":"error","req":"62dfaa13","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=198 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":9,"subformName":"Toetsing","parentId":"198","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=198&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:15.190","level":"debug","req":"62dfaa13","msg":"form_api: JSON output","ctx":{"bytes":6744}}
+{"ts":"2026-01-27T15:25:15.815","level":"debug","req":"fdd2f5e8","msg":"form_api: JSON output","ctx":{"bytes":2804}}
+{"ts":"2026-01-27T15:25:16.736","level":"debug","req":"029d935a","msg":"form_api: JSON output","ctx":{"bytes":2815}}
+{"ts":"2026-01-27T15:25:17.460","level":"debug","req":"92a3f02a","msg":"form_api: JSON output","ctx":{"bytes":2815}}
+{"ts":"2026-01-27T15:25:17.807","level":"debug","req":"f12cb071","msg":"form_api: JSON output","ctx":{"bytes":11876}}
+{"ts":"2026-01-27T15:25:18.271","level":"debug","req":"fe2bdb3f","msg":"form_api: JSON output","ctx":{"bytes":14752}}
+{"ts":"2026-01-27T15:25:19.004","level":"debug","req":"f7accec2","msg":"form_api: JSON output","ctx":{"bytes":2226}}
+{"ts":"2026-01-27T15:25:19.247","level":"debug","req":"617e1b18","msg":"form_api: JSON output","ctx":{"bytes":21121}}
+{"ts":"2026-01-27T15:25:19.796","level":"error","req":"a6bdcbae","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=220 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":3,"subformName":"Documenten","parentId":"220","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=220&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:19.803","level":"error","req":"a6bdcbae","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"opleidingen_deelnemers","subformName":"IOP","subformIndex":4,"jsonFormName":"iop","parentId":"220","sql":"SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, lcase(format([DeelnemerDatum],'dd MMM yyyy')) AS Datum_geplaatst, iif(tblDeelname.HoofdopleiderGoedgekeurd=True,'Ja','Nee') AS HO_Akkoord FROM tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer WHERE tblDeelname.Werkplan IS NOT NULL ORDER BY tblDeelname.DeelnemerDatum DESC"},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=220&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:19.868","level":"error","req":"a6bdcbae","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=220 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":9,"subformName":"Toetsing","parentId":"220","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=220&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-27T15:25:19.914","level":"debug","req":"a6bdcbae","msg":"form_api: JSON output","ctx":{"bytes":10886}}
+{"ts":"2026-01-27T15:25:57.204","level":"debug","req":"c581e773","msg":"form_api: JSON output","ctx":{"bytes":2733}}

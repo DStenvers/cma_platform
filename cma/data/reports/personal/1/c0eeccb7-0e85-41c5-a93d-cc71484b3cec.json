@@ -1,0 +1,38 @@
+{
+    "id": "c0eeccb7-0e85-41c5-a93d-cc71484b3cec",
+    "name": "Query Options Test 1770838083346",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": true,
+    "topN": 50,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-11 19:28:16",
+    "createdAt": "2026-02-11 19:28:16",
+    "createdBy": "1"
+}

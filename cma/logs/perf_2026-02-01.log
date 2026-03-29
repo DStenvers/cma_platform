@@ -1,0 +1,2 @@
+[2026-02-01 10:45:06] [FETCH] {"type":"fetch","name":"record","duration":334.3,"context":{"url":"\/cma\/form_api.php?action=record&form=taken&id=50","status":200,"ok":true},"ts":1769942702662,"reqId":"kuwmscva"}
+[2026-02-01 10:45:06] [FETCH] {"type":"fetch","name":"record","duration":224.1,"context":{"url":"\/cma\/form_api.php?action=record&form=taken&id=26","status":200,"ok":true},"ts":1769942705270,"reqId":"kuwmscva"}

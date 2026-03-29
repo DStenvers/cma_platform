@@ -1,0 +1,26 @@
+{
+    "$schema": "./schema/databases.schema.json",
+    "databases": [
+        {
+            "id": 4,
+            "name": "repository",
+            "title": "Repository",
+            "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Locale Identifier=1043;Data Source=[db/repository.mdb]",
+            "type": "access"
+        },
+        {
+            "id": 5,
+            "name": "users",
+            "title": "CMAUsers",
+            "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Locale Identifier=1043;Data Source=[db/CMAUsers.mdb]",
+            "type": "access"
+        },
+        {
+            "id": 6,
+            "name": "data",
+            "title": "PDOdomein",
+            "connectionString": "",
+            "type": "access"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "$schema": "./schema/app.schema.json",
+    "company": {
+        "logo": "images/interface/cma_logo.svg",
+        "logoWidth": 214,
+        "logoHeight": 40,
+        "url": "https://mijn.rino.nl",
+        "backgroundColor": "#3F096E"
+    }
+}

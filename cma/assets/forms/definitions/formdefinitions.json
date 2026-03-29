@@ -1,0 +1,243 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "name": "formdefinitions",
+        "title": "Formulierdefinities",
+        "titleSingular": "Formulierdefinitie",
+        "table": "_config",
+        "database": "json",
+        "configDir": "/assets/forms",
+        "idField": "name",
+        "allowAdd": false,
+        "allowDelete": false,
+        "allowCopy": false,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "quickSearchFields": "name,title,table",
+        "detailField": "title",
+        "orderField": "name",
+        "fields": [
+                {
+                        "name": "_group_general",
+                        "type": "groupseparator",
+                        "caption": "Algemeen"
+                },
+                {
+                        "name": "name",
+                        "type": "textbox",
+                        "caption": "Naam",
+                        "readOnly": true,
+                        "required": true,
+                        "maxLength": 50
+                },
+                {
+                        "name": "title",
+                        "type": "textbox",
+                        "caption": "Titel",
+                        "required": true,
+                        "maxLength": 100
+                },
+                {
+                        "name": "titleSingular",
+                        "type": "textbox",
+                        "caption": "Titel enkelvoud",
+                        "maxLength": 100
+                },
+                {
+                        "name": "table",
+                        "type": "textbox",
+                        "caption": "Tabel",
+                        "maxLength": 100,
+                        "skipInTableView": true
+                },
+                {
+                        "name": "database",
+                        "type": "textbox",
+                        "caption": "Database",
+                        "maxLength": 50,
+                        "skipInTableView": true
+                },
+                {
+                        "name": "idField",
+                        "type": "textbox",
+                        "caption": "ID-veld",
+                        "maxLength": 50,
+                        "skipInTableView": true
+                },
+                {
+                        "name": "parentForm",
+                        "type": "textbox",
+                        "caption": "Bovenliggend formulier",
+                        "maxLength": 50
+                },
+                {
+                        "name": "version",
+                        "type": "textbox",
+                        "caption": "Versie",
+                        "maxLength": 20,
+                        "skipInTableView": true
+                },
+                {
+                        "name": "_group_options",
+                        "type": "groupseparator",
+                        "caption": "Opties"
+                },
+                {
+                        "name": "allowAdd",
+                        "type": "checkbox",
+                        "caption": "Toevoegen toegestaan",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "allowDelete",
+                        "type": "checkbox",
+                        "caption": "Verwijderen toegestaan",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "allowCopy",
+                        "type": "checkbox",
+                        "caption": "Kopieren toegestaan",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "securityByUser",
+                        "type": "checkbox",
+                        "caption": "Beveiliging per gebruiker",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "storeLastModified",
+                        "type": "checkbox",
+                        "caption": "Laatste wijziging opslaan",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "_group_list",
+                        "type": "groupseparator",
+                        "caption": "Lijst / zoeken"
+                },
+                {
+                        "name": "listQuery",
+                        "type": "memo",
+                        "caption": "Lijstquery",
+                        "height": 4
+                },
+                {
+                        "name": "quickSearchFields",
+                        "type": "textbox",
+                        "caption": "Snelzoekvelden"
+                },
+                {
+                        "name": "detailField",
+                        "type": "textbox",
+                        "caption": "Detailveld"
+                },
+                {
+                        "name": "activeField",
+                        "type": "textbox",
+                        "caption": "Actief-veld",
+                        "maxLength": 50
+                },
+                {
+                        "name": "filterIdName",
+                        "type": "textbox",
+                        "caption": "Filter ID-naam"
+                },
+                {
+                        "name": "_group_advanced",
+                        "type": "groupseparator",
+                        "caption": "Geavanceerd"
+                },
+                {
+                        "name": "previewUrl",
+                        "type": "textbox",
+                        "caption": "Voorbeeld URL"
+                },
+                {
+                        "name": "afterPostUrl",
+                        "type": "textbox",
+                        "caption": "Na opslaan URL"
+                },
+                {
+                        "name": "postHandler",
+                        "type": "textbox",
+                        "caption": "Post-handler (PHP)",
+                        "maxLength": 100
+                },
+                {
+                        "name": "onLoadJs",
+                        "type": "memo",
+                        "caption": "On load JavaScript",
+                        "height": 4,
+                        "skipInTableView": true
+                },
+                {
+                        "name": "sourceFormId",
+                        "type": "textbox",
+                        "caption": "Bron formulier-ID",
+                        "readOnly": true,
+                        "dataType": "number"
+                },
+                {
+                        "name": "_group_complex",
+                        "type": "groupseparator",
+                        "caption": "Velddefinities en subformulieren"
+                },
+                {
+                        "name": "fields",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Velden (JSON)",
+                        "height": 20
+                },
+                {
+                        "name": "subforms",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Subformulieren (JSON)",
+                        "height": 10
+                },
+                {
+                        "name": "listColumns",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Lijstkolommen (JSON)",
+                        "height": 5
+                },
+                {
+                        "name": "groupFields",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Groepsvelden (JSON)",
+                        "height": 3
+                },
+                {
+                        "name": "extraButtons",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Extra knoppen (JSON)",
+                        "height": 5
+                },
+                {
+                        "name": "filter",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Filter (JSON)",
+                        "height": 3
+                },
+                {
+                        "name": "protectedRecords",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Beschermde records (JSON)",
+                        "height": 3
+                },
+                {
+                        "name": "tips",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Tips (JSON)",
+                        "height": 5
+                }
+        ]
+}

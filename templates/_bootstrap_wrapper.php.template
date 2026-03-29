@@ -1,0 +1,33 @@
+<?php
+/**
+ * Bootstrap Wrapper for IIS
+ * This file is called by IIS URL Rewrite before every PHP file.
+ * DO NOT ACCESS DIRECTLY
+ */
+
+// Start output buffering BEFORE loading bootstrap.
+// Without buffering, trailing whitespace from included files sends headers,
+// causing setcookie() and header() calls to fail silently.
+ob_start();
+
+// Load the bootstrap
+require_once __DIR__ . '/_bootstrap.php';
+
+// Get the original file from server variable (set by IIS URL Rewrite)
+$original_file = $_SERVER['HTTP_X_ORIGINAL_FILE'] ?? '';
+
+// Handle friendly tools URL: /cma/tools/[name]
+if (!empty($_SERVER['HTTP_X_TOOL_NAME'])) {
+    $_GET['tool'] = $_SERVER['HTTP_X_TOOL_NAME'];
+}
+
+// Strip leading slash if present
+$original_file = ltrim($original_file, '/');
+
+if ($original_file && file_exists(__DIR__ . '/' . $original_file)) {
+    include __DIR__ . '/' . $original_file;
+} else {
+    http_response_code(404);
+    echo 'File not found: ' . htmlspecialchars($original_file);
+}
+?>

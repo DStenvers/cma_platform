@@ -1,0 +1,1101 @@
+{
+    "$schema": "./schema/migrations.schema.json",
+    "schemaVersion": "1.0",
+    "targetVersion": "9.8.0",
+    "migrations": [
+        {
+            "version": "0.0.1",
+            "description": "Database configuratie aanmaken (databases.json)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/0.0.1_create_databases_json.php",
+                    "note": "Genereert config/databases.json uit Application globals zodat backups mogelijk zijn"
+                }
+            ]
+        },
+        {
+            "version": "1.0.0",
+            "description": "Initiële versie - versiebeheertabellen aanmaken",
+            "changes": [
+                {
+                    "type": "createVersionTable",
+                    "database": "rep"
+                },
+                {
+                    "type": "createVersionTable",
+                    "database": "users"
+                },
+                {
+                    "type": "createVersionTable",
+                    "database": "data"
+                }
+            ]
+        },
+        {
+            "version": "1.0.1",
+            "description": "CMA monitoring tabel aanmaken",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/1.0.1_create_cmamonitoring.php",
+                    "note": "Maakt tblCMAMonitoring aan in data database als deze nog niet bestaat"
+                }
+            ]
+        },
+        {
+            "version": "1.1.0",
+            "description": "Velden isBeheer en actie toevoegen aan repository",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "isBeheer",
+                    "dataType": "INTEGER",
+                    "default": "0"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "actie",
+                    "dataType": "VARCHAR(254)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "isBeheer",
+                    "dataType": "INTEGER",
+                    "default": "0"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "actie",
+                    "dataType": "VARCHAR(254)"
+                }
+            ]
+        },
+        {
+            "version": "1.2.0",
+            "description": "Schemavelden toevoegen aan tblControls voor databasesynchronisatie",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "schema_datatype",
+                    "dataType": "INTEGER"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "schema_date_prec",
+                    "dataType": "INTEGER"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "schema_char_maxl",
+                    "dataType": "INTEGER"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "schema_num_prec",
+                    "dataType": "INTEGER"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "schema_default",
+                    "dataType": "VARCHAR(255)"
+                }
+            ]
+        },
+        {
+            "version": "1.3.0",
+            "description": "Formulierweergave en kopieeropties toevoegen",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "menuCopy",
+                    "dataType": "YESNO",
+                    "default": "TRUE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "bFullWidth",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "quickfilterfields",
+                    "dataType": "VARCHAR(56)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "filterIDName",
+                    "dataType": "VARCHAR(50)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "SubFormSortorder",
+                    "dataType": "INTEGER"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "onloadJS",
+                    "dataType": "MEMO"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "blnReadOnly",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "blnLimitedHTML",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "bCombineWithNext",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblControls",
+                    "column": "intMaxChars",
+                    "dataType": "INTEGER"
+                }
+            ]
+        },
+        {
+            "version": "1.4.0",
+            "description": "Extra werkbalkiconen toevoegen aan formulieren",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIconURL",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIconResource",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIconTitle",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon2Icon",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon2URL",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon2Resource",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon2Title",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon3Icon",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon3URL",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon3Resource",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon3Title",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon4Icon",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon4URL",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon4Resource",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon4Title",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon5Icon",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon5URL",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon5Resource",
+                    "dataType": "VARCHAR(76)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblForms",
+                    "column": "extraIcon5Title",
+                    "dataType": "VARCHAR(76)"
+                }
+            ]
+        },
+        {
+            "version": "1.5.0",
+            "description": "Beveiligingsknoppen voor groepen toevoegen",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secButton1",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secButton2",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secButton3",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secButton4",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secButton5",
+                    "dataType": "YESNO",
+                    "default": "FALSE"
+                }
+            ]
+        },
+        {
+            "version": "2.1.0",
+            "description": "Drielaags gebruikerssysteem toevoegen (gebruiker/admin/developer)",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "userLevel",
+                    "dataType": "INTEGER",
+                    "note": "0=User, 1=Administrator, 2=Developer"
+                },
+                {
+                    "type": "runSql",
+                    "database": "users",
+                    "sql": "UPDATE tblUsers SET userLevel = 2 WHERE userAdministrator = True",
+                    "optional": true,
+                    "note": "Bestaande administrators worden developer (userLevel=2) - slaat over als userAdministrator niet meer bestaat"
+                }
+            ]
+        },
+        {
+            "version": "2.2.0",
+            "description": "JavaScript error logging tabel aanmaken",
+            "changes": [
+                {
+                    "type": "runSqlScript",
+                    "script": "migrations/sql/2.2.0_javascript_errors.sql",
+                    "database": "rep",
+                    "note": "Tabel voor JavaScript foutmeldingen"
+                }
+            ]
+        },
+        {
+            "version": "2.3.0",
+            "description": "Marketing URL tabel hernoemen naar CMA conventie",
+            "changes": [
+                {
+                    "type": "renameTable",
+                    "database": "data",
+                    "oldName": "tblMarketingUrl",
+                    "newName": "tblCMAMarketingUrl",
+                    "note": "Hernoeming naar CMA naamconventie"
+                }
+            ]
+        },
+        {
+            "version": "2.4.0",
+            "description": "Achtergrondkleur toevoegen aan tblApplications",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "rep",
+                    "table": "tblApplications",
+                    "column": "backgroundColor",
+                    "dataType": "VARCHAR(20)",
+                    "note": "Hex kleurcode voor sidebar header achtergrond (bijv. #1a365d)"
+                }
+            ]
+        },
+        {
+            "version": "2.6.0",
+            "description": "Menu exporteren naar JSON configuratie",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.6.0_export_menu.php",
+                    "note": "Exporteert tblMenu en tblMenuItems naar config/menu.json"
+                }
+            ]
+        },
+        {
+            "version": "2.7.1",
+            "description": "Alle formulieren opnieuw genereren (fix ontbrekende subforms)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.7.1_regenerate_forms.php",
+                    "note": "Verwijdert alle bestaande JSON en exporteert alle formulieren opnieuw"
+                }
+            ]
+        },
+        {
+            "version": "2.7.2",
+            "description": "Formulieren exporteren naar JSON definities",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.7.2_export_forms.php",
+                    "note": "Exporteert alle formulieren van tblForms naar assets/forms/definitions/"
+                }
+            ]
+        },
+        {
+            "version": "2.7.3",
+            "description": "Menu JSON converteren naar formName i.p.v. formId",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.7.3_update_menu_formnames.php",
+                    "note": "Vervangt formId door formName in config/menu.json"
+                }
+            ]
+        },
+        {
+            "version": "2.7.4",
+            "description": "Database connections exporteren naar JSON",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.7.4_export_databases.php",
+                    "note": "Exporteert tblDatabases naar config/databases.json"
+                }
+            ]
+        },
+        {
+            "version": "3.0.0",
+            "description": "Reports exporteren naar JSON",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/3.0.0_export_reports.php",
+                    "note": "Exporteert tblReports naar config/reports.json"
+                }
+            ]
+        },
+        {
+            "version": "3.1.0",
+            "description": "DataSources exporteren naar JSON",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/3.1.0_export_datastores.php",
+                    "note": "Exporteert tblXMLStore naar config/data-sources.json"
+                }
+            ]
+        },
+        {
+            "version": "3.2.0",
+            "description": "ContentBlocks kopieren en versienummer toevoegen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/3.2.0_version_contentblocks.php",
+                    "note": "Kopieert cma_contentblocks.json naar cma/assets/contentblocks/ en voegt versienummer toe"
+                }
+            ]
+        },
+        {
+            "version": "4.0.20",
+            "description": "Applicatie configuratie exporteren naar menu.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/4.0.20_export_application.php",
+                    "note": "Exporteert logo, afmetingen en achtergrondkleur uit tblApplications naar menu.json"
+                }
+            ]
+        },
+        {
+            "version": "5.3.0",
+            "description": "ADO type codes converteren naar leesbare namen in JSON formulieren",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/5.3.0_ado_types_to_names.php",
+                    "note": "Converteert numerieke ADO types (7, 130, etc.) naar strings (date, text, etc.)"
+                }
+            ]
+        },
+        {
+            "version": "5.5.0",
+            "description": "Enkelvoudige titels toevoegen aan formulierdefinities",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/5.5.0_add_title_singular.php",
+                    "note": "Voegt titleSingular veld toe door Nederlandse meervoud naar enkelvoud te converteren"
+                }
+            ]
+        },
+        {
+            "version": "5.6.0",
+            "description": "Form kolom toevoegen aan tblCMAMonitoring voor JSON form naam",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "column": "Form",
+                    "dataType": "VARCHAR(78)",
+                    "note": "JSON form naam (vervangt numerieke Formid)"
+                },
+                {
+                    "type": "addIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "columns": ["Form"],
+                    "indexName": "tblCMAMonitoring_Form",
+                    "note": "Index voor snel zoeken op form naam"
+                }
+            ]
+        },
+        {
+            "version": "5.7.0",
+            "description": "Formid waarden converteren naar Form namen in tblCMAMonitoring",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/5.7.0_monitoring_formid_to_name.php",
+                    "note": "Vertaalt bestaande Formid waarden naar Form namen via JsonFormLoader"
+                }
+            ]
+        },
+        {
+            "version": "5.8.0",
+            "description": "Formid kolom verwijderen uit tblCMAMonitoring (vervangen door Form)",
+            "changes": [
+                {
+                    "type": "dropIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "indexName": "tblCMAMonitoring_formid",
+                    "note": "Index op Formid verwijderen voor kolom kan worden verwijderd"
+                },
+                {
+                    "type": "dropColumn",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "column": "Formid",
+                    "note": "Formid kolom is niet meer nodig - Form bevat nu de JSON form naam"
+                }
+            ]
+        },
+        {
+            "version": "5.9.0",
+            "disabled": true,
+            "description": "userAdministrator kolom verwijderen uit tblUsers (vervangen door userLevel)",
+            "changes": [
+                {
+                    "type": "dropColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "userAdministrator",
+                    "note": "userAdministrator is vervangen door userLevel (0=User, 1=Admin, 2=Developer)"
+                }
+            ]
+        },
+        {
+            "version": "6.0.0",
+            "description": "editForm FormID converteren naar form naam in reports.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.0.0_reports_editform_to_formname.php",
+                    "note": "Converteert numerieke editForm waarden naar form namen (bijv. 68 -> opleidingen)"
+                }
+            ]
+        },
+        {
+            "version": "6.1.0",
+            "description": "moduleId verwijderen uit reports.json (niet meer in gebruik)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.1.0_reports_remove_moduleid.php",
+                    "note": "Verwijdert ongebruikt moduleId veld - ReportsService gebruikt module string i.p.v. moduleId"
+                }
+            ]
+        },
+        {
+            "version": "6.2.0",
+            "description": "accessLevel toevoegen aan menu.json voor rechtenbeheeer",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.2.0_menu_add_accesslevel.php",
+                    "note": "Voegt accessLevel toe aan menus (user/admin/developer), Systeem krijgt admin"
+                }
+            ]
+        },
+        {
+            "version": "6.3.0",
+            "description": "LogLevel kolom toevoegen aan tblCMAMonitoring voor snellere error filtering",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "column": "LogLevel",
+                    "dataType": "VARCHAR(10)",
+                    "note": "Log niveau (info/warning/error) voor geïndexeerde filtering"
+                },
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.3.0_add_log_level.php",
+                    "note": "Vult LogLevel waarden in op basis van Actie tekst (10x snellere queries)"
+                }
+            ]
+        },
+        {
+            "version": "6.4.0",
+            "description": "activeField toevoegen aan formulierdefinities voor actief/inactief indicatie in tree view",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.4.0_add_active_field.php",
+                    "note": "Scant formulieren op actief/active/online_indic velden en voegt activeField property toe"
+                }
+            ]
+        },
+        {
+            "version": "6.5.0",
+            "description": "Gebruikersvoorkeuren kolommen toevoegen aan tblUsers",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefTheme",
+                    "dataType": "VARCHAR(10)",
+                    "note": "Thema voorkeur: light/dark/system"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefMenuStyle",
+                    "dataType": "VARCHAR(10)",
+                    "note": "Menu stijl: sidebar/classic"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefPopupStyle",
+                    "dataType": "VARCHAR(10)",
+                    "note": "Popup stijl: sidepanel/popup"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefDebugMode",
+                    "dataType": "INTEGER",
+                    "default": "0",
+                    "note": "Debug modus: 0=uit, 1=aan (alleen voor developers)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefDebugOverlay",
+                    "dataType": "INTEGER",
+                    "default": "0",
+                    "note": "Debug overlay: 0=uit, 1=aan (alleen voor developers)"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "prefSqlThreshold",
+                    "dataType": "INTEGER",
+                    "default": "0",
+                    "note": "SQL log drempelwaarde in ms (0=alle, 50/100/250)"
+                }
+            ]
+        },
+        {
+            "version": "6.7.0",
+            "description": "Ontbrekende kolommen toevoegen aan tblGroupRights voor rechtenbeheer",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secObjectType",
+                    "dataType": "INTEGER",
+                    "default": "10",
+                    "note": "Type object: 10=menu, 20=report, 30=form"
+                },
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroupRights",
+                    "column": "secAccessType",
+                    "dataType": "INTEGER",
+                    "default": "0",
+                    "note": "Toegangsniveau: 0=geen, 10=lezen, 30=volledig"
+                },
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.7.0_fix_grouprights_schema.php",
+                    "optional": true,
+                    "note": "Migreert bestaande rechten naar nieuwe kolomformaat"
+                }
+            ]
+        },
+        {
+            "version": "6.8.0",
+            "description": "Labelbreedte berekenen en toevoegen aan formulierdefinities",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/6.8.0_add_label_column_width.php",
+                    "note": "Berekent optimale labelColumnWidth op basis van langste caption en voegt toe aan JSON"
+                }
+            ]
+        },
+        {
+            "version": "7.0.0",
+            "description": "Databases.json normaliseren",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/7.0.0_normalize_databases_json.php",
+                    "note": "Normaliseert database configuratie structuur"
+                }
+            ]
+        },
+        {
+            "version": "7.3.0",
+            "description": "Reports queries opnieuw exporteren",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/7.3.0_reexport_reports_queries.php",
+                    "note": "Exporteert report queries opnieuw naar JSON"
+                }
+            ]
+        },
+        {
+            "version": "7.4.0",
+            "description": "SQL logging kolom toevoegen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/7.4.0_sql_logging_column.php",
+                    "note": "Voegt SQL logging kolom toe voor query tracking"
+                }
+            ]
+        },
+        {
+            "version": "7.5.0",
+            "description": "ADO dataType codes normaliseren naar leesbare types",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/7.5.0_normalize_ado_datatypes.php",
+                    "note": "Converteert numerieke ADO types (7, 130, etc.) naar strings (date, text, etc.) in JSON definities"
+                }
+            ]
+        },
+        {
+            "version": "7.6.0",
+            "description": "Verbeterde listQuery export met display kolommen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/2.7.2_export_forms.php",
+                    "note": "Re-exporteert formulieren met verbeterde listQuery die daadwerkelijke kolommen bevat ipv alleen ID"
+                }
+            ]
+        },
+        {
+            "version": "8.0.0",
+            "description": "Form definities repareren - database normalisatie en parentField toevoegen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.0.0_fix_subform_definitions.php",
+                    "note": "Normaliseert database IDs (6->data) en voegt ontbrekende parentField toe via schema detectie"
+                }
+            ]
+        },
+        {
+            "version": "8.1.0",
+            "description": "Subform parentField configuratie controleren en repareren",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.1.0_check_subform_parentfield.php",
+                    "note": "Scant alle subforms op ontbrekende parentField, probeert te repareren en rapporteert issues"
+                }
+            ]
+        },
+        {
+            "version": "8.2.0",
+            "description": "SkipTips kolom toevoegen aan tblUsers voor tips/tours",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "SkipTips",
+                    "dataType": "MEMO",
+                    "note": "JSON array met overgeslagen tip/tour IDs per PHP bestand"
+                }
+            ]
+        },
+        {
+            "version": "8.3.0",
+            "description": "GUID kolom toevoegen aan tblUsers voor unieke identificatie",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblUsers",
+                    "column": "userGUID",
+                    "dataType": "VARCHAR(36)",
+                    "note": "Unieke GUID voor gebruiker identificatie in externe systemen"
+                },
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.3.0_populate_user_guids.php",
+                    "note": "Genereert GUIDs voor bestaande gebruikers"
+                }
+            ]
+        },
+        {
+            "version": "8.4.0",
+            "description": "Default userLevel instellen voor gebruikers zonder niveau",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.4.0_set_default_userlevel.php",
+                    "note": "Zet userLevel op 0 (Gebruiker) voor gebruikers zonder userLevel"
+                }
+            ]
+        },
+        {
+            "version": "8.5.0",
+            "description": "Datum velden type corrigeren van textbox naar date",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.5.0_fix_date_field_types.php",
+                    "note": "Wijzigt field type van textbox naar date voor velden met date/datetime dataType (7, 133, 135)"
+                }
+            ]
+        },
+        {
+            "version": "8.6.0",
+            "description": "Veldtypes en dataTypes normaliseren in formulierdefinities",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.6.0_normalize_field_types.php",
+                    "note": "Converteert ADO codes (7→date, 130→text, etc.) en wijzigt field type textbox→date/time"
+                }
+            ]
+        },
+        {
+            "version": "8.7.0",
+            "description": "Enkelvoudige titels toevoegen aan formulierdefinities (site-specifiek)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.7.0_populate_singular_titles.php",
+                    "note": "Voegt titleSingular veld toe aan site forms en CMA forms door Nederlandse meervoud naar enkelvoud te converteren"
+                }
+            ]
+        },
+        {
+            "version": "8.8.0",
+            "description": "ASP referenties vervangen door PHP in formulier URLs",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.8.0_replace_asp_with_php.php",
+                    "note": "Vervangt .asp door .php in extraButtons URLs, afterPostUrl en previewUrl"
+                }
+            ]
+        },
+        {
+            "version": "8.9.0",
+            "description": "Formulieren: ID's naar onderen verplaatsen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/8.9.0_move_id_fields_to_bottom.php",
+                    "note": "Verplaatst PromptusID, CartaID en STBID velden naar het einde van het formulier"
+                }
+            ]
+        },
+        {
+            "version": "9.0.0",
+            "description": "Testdata opruimen en admin gebruiker herstellen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.0.0_cleanup_test_data.php",
+                    "note": "Herstelt admin userLogin, verwijdert orphaned test users/groups/members/rights"
+                }
+            ]
+        },
+        {
+            "version": "9.1.0",
+            "description": "openInNewWindow toevoegen aan extra buttons met [domein] URL",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.1.0_extra_button_open_in_new_window.php",
+                    "note": "Voegt openInNewWindow=true toe aan extra buttons met [domein] in de URL"
+                }
+            ]
+        },
+        {
+            "version": "9.2.0",
+            "description": "Labelbreedte herberekenen inclusief postcaption/hint tekst",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.2.0_recalculate_label_width.php",
+                    "note": "Herberekent labelColumnWidth op basis van langste caption EN postcaption, overschrijft alle bestaande waarden"
+                }
+            ]
+        },
+        {
+            "version": "9.3.0",
+            "description": "Cascading combo filter: filterByField toevoegen aan combo velden die tblOpleidingenBlokken refereren",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.3.0_combo_filter_by_field.php",
+                    "note": "Voegt filterByField=fkOpleiding toe aan combo's met sourceTable tblOpleidingenBlokken (als het formulier ook een fkOpleiding veld heeft)"
+                }
+            ]
+        },
+        {
+            "version": "9.4.0",
+            "description": "labelColumnWidth verwijderen uit formulierdefinities (wordt nu dynamisch berekend)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.4.0_remove_label_column_width.php",
+                    "note": "Verwijdert labelColumnWidth property - wordt nu dynamisch berekend in JavaScript"
+                }
+            ]
+        },
+        {
+            "version": "9.5.0",
+            "description": "Performance indexen toevoegen aan tblCMAMonitoring",
+            "changes": [
+                {
+                    "type": "addIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "columns": ["datestamp"],
+                    "indexName": "idx_CMAMonitoring_datestamp",
+                    "note": "Index voor ORDER BY datestamp en datumfiltering"
+                },
+                {
+                    "type": "addIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "columns": ["Username"],
+                    "indexName": "idx_CMAMonitoring_Username",
+                    "note": "Index voor zoeken op gebruikersnaam (quickSearchFields)"
+                },
+                {
+                    "type": "addIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "columns": ["Actie"],
+                    "indexName": "idx_CMAMonitoring_Actie",
+                    "note": "Index voor zoeken op actie (quickSearchFields)"
+                },
+                {
+                    "type": "addIndex",
+                    "database": "data",
+                    "table": "tblCMAMonitoring",
+                    "columns": ["LogLevel"],
+                    "indexName": "idx_CMAMonitoring_LogLevel",
+                    "note": "Index voor filteren op log niveau"
+                }
+            ]
+        },
+        {
+            "version": "9.6.0",
+            "description": "SQL queries beautificeren in formulierdefinities",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.6.0_beautify_sql_queries.php",
+                    "note": "Formatteert alle listQuery waarden voor betere leesbaarheid (newlines, indentatie)"
+                }
+            ]
+        },
+        {
+            "version": "9.7.0",
+            "description": "Extra buttons met [domein] openen in nieuw tabblad",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.7.0_domein_buttons_new_tab.php",
+                    "note": "Zet openInNewWindow=true op extra buttons die [domein] in de URL hebben"
+                }
+            ]
+        },
+        {
+            "version": "9.8.0",
+            "description": "E-mail log tabel aanmaken voor het bijhouden van verzonden e-mails",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.8.0_create_email_log.php",
+                    "note": "Maakt tblEmailLog aan in data database met indexen op datestamp en status"
+                }
+            ]
+        }
+    ]
+}

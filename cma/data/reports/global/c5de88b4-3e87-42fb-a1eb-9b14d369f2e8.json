@@ -1,0 +1,566 @@
+{
+    "id": "c5de88b4-3e87-42fb-a1eb-9b14d369f2e8",
+    "name": "CI's waarvan de mail uit staat",
+    "mode": "quick",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "tblLogins",
+            "alias": "t",
+            "joins": [
+                {
+                    "table": "tblSRHServicePakket",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblLogins].[fkSRHServicePakket] = [tblSRHServicePakket].[ID]"
+                }
+            ],
+            "relationships": [
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkDeelnemer",
+                    "pkTable": "tblDeelnemers",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkDocent",
+                    "pkTable": "tblDocenten",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkPraktijkOpleider",
+                    "pkTable": "tblPraktijkOpleiders",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkSRHServicePakket",
+                    "pkTable": "tblSRHServicePakket",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkServiceBureau",
+                    "pkTable": "tblServiceBureau",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkWerkbegeleider",
+                    "pkTable": "tblWerkbegeleiders",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblLogins",
+                    "fkColumn": "fkSupervisor",
+                    "pkTable": "tblSupervisoren",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                }
+            ]
+        },
+        {
+            "name": "tblSRHServicePakket",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "tblLogins",
+            "field": "ID",
+            "dataType": 3,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkDeelnemer",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkDocent",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkPraktijkOpleider",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkAssistent",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "login",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Toegangscode",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "LaatstIngelogd",
+            "dataType": 135,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkP_Praktopl",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "PromptusID",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "SupportInfo",
+            "dataType": 201,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "IliasID",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Linkedin",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Functie",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Werkgever",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Werkervaring",
+            "dataType": 201,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Roepnaam",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "AchternaamCompleet",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Actief",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkSRHServicePakket",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkSRHForumLid",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Fotomeldingen",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "blnFotoGewijzigd",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "Promptus_Kenmerken",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkServiceBureau",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkWerkbegeleider",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkSupervisor",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "fkKlantContactPersoon",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "guid",
+            "dataType": 72,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "bKanTakenKrijgen",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "geheimhouding_datum",
+            "dataType": 135,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "geheimhouding_akkoord",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "bZoomPro",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "emailZoomaccount",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "ZoomEindeLicensed",
+            "dataType": 135,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "resetrequested",
+            "dataType": 135,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "datVerstuurd",
+            "dataType": 135,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "password_enc",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "email_primair",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "email_primair_onbevestigd",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "email_herstel_onbevestigd",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "emailnieuwsnotificaties",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "notificaties_opleidingsgericht",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "notificaties_nieuws",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "blnOPTpilot",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "blnOPTfallback",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "weergavenaam",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblLogins",
+            "field": "tussenvoegsel",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "ID",
+            "dataType": 3,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "VolledigeNaam",
+            "dataType": 200,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "Achternaam",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "MV",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "Organisatie",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "Organisatie2",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "email",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "EmailNotificaties",
+            "dataType": 11,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "PromptusID",
+            "dataType": 200,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "guid",
+            "dataType": 72,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "EmailForumNotificaties",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "EmailNieuwsNotificaties",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "emailMessageNotificaties",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHServicePakket",
+            "field": "emailTonen",
+            "dataType": 11,
+            "visible": false,
+            "showTotal": false
+        }
+    ],
+    "conditions": [
+        {
+            "id": "cond_1771495372665_bgzpv",
+            "table": "tblSRHServicePakket",
+            "field": "EmailNotificaties",
+            "alias": "EmailNotificaties",
+            "dataType": 11,
+            "typeCategory": "date",
+            "operator": "=",
+            "value": "false",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ""
+        }
+    ],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": {
+            "tblLogins": {
+                "x": 290,
+                "y": 40
+            },
+            "tblSRHServicePakket": {
+                "x": 40,
+                "y": 40
+            }
+        },
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-19 10:03:23",
+    "createdAt": "2026-02-19 10:03:23"
+}

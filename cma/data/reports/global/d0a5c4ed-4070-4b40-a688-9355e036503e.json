@@ -1,0 +1,37 @@
+{
+    "id": "d0a5c4ed-4070-4b40-a688-9355e036503e",
+    "name": "Sync Test 1770055282699",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "tblAfspraak",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-02 18:01:32",
+    "createdAt": "2026-02-02 18:01:32"
+}

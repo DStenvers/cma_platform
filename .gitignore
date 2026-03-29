@@ -1,0 +1,15 @@
+/vendor/
+/cma/node_modules/
+/cma/cypress/screenshots/
+/cma/cypress/videos/
+*.mdb
+*.sqlite
+.env
+.env.*
+!.env.example
+.app_started
+/sessions/
+/cache/
+/logs/
+vendor/
+cma/vendor/

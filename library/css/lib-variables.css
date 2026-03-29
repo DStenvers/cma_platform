@@ -1,0 +1,502 @@
+/**
+ * Library Design Tokens — Universal CSS Variables
+ *
+ * Provides the base set of CSS custom properties used across all pages and
+ * library web components.  Loaded BEFORE any application-specific CSS so
+ * that apps (CMA, portal, etc.) can override individual variables simply
+ * by re-declaring them on :root in a later stylesheet.
+ *
+ * Dark mode: toggle via html.dark-mode class on <html>.
+ */
+
+:root {
+    /* ========================================
+       LIGHT MODE (default)
+       ======================================== */
+
+    /* Typography */
+    --font-family: "Trebuchet MS", Verdana;
+    --font-size: 13px;
+    --font-size-2xs: 10px;
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-md: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 20px;
+    --font-size-3xl: 24px;
+
+    /* Primary colors */
+    --color-primary: #204496;           /* Blue - links, buttons */
+    --color-primary-hover: #1a3a7d;     /* Darker blue for hover */
+    --color-primary-dark: #152c5c;      /* Even darker blue for active/pressed */
+    --color-primary-light: #e3f2fd;     /* Light blue background */
+    --color-primary-rgb: 32, 68, 150;   /* RGB values for rgba() usage */
+    --color-accent: #077ab2;            /* Dark blue - highlights, active states */
+    --color-accent-hover: #065d8a;      /* Darker blue for hover */
+    --color-danger: #dc3545;            /* Red - delete buttons, errors */
+    --color-danger-hover: #c82333;      /* Darker red for hover */
+
+    /* Status colors */
+    --color-success: #00a04a;           /* Green */
+    --color-success-bg: #d4edda;        /* Light green background */
+    --color-success-text: #155724;      /* Dark green text */
+    --color-success-border: #c3e6cb;    /* Success border */
+    --color-error: #e01f3d;             /* Red */
+    --color-error-bg: #f8d7da;          /* Light red background */
+    --color-error-text: #721c24;        /* Dark red text */
+    --color-error-border: #f5c6cb;      /* Error border */
+    --color-warning: #fddc0d;           /* Yellow */
+    --color-warning-bg: #fffde7;        /* Light yellow background */
+    --color-warning-text: #7c4a03;      /* Dark yellow/brown text */
+    --color-warning-border: rgba(180, 83, 9, 0.3);  /* Warning border */
+    --color-info: #077ab2;              /* Cyan/blue */
+    --color-info-bg: rgba(7, 122, 178, 0.1);        /* Light blue background */
+    --color-info-text: #0a4a6e;         /* Dark blue text */
+    --color-info-border: rgba(7, 122, 178, 0.3);    /* Info border */
+    --color-highlight: #ffeb3b;         /* Search/text highlight yellow */
+    --color-highlight-text: #000000;    /* Highlight text color */
+
+    /* Background colors */
+    --bg-body: #ffffff;                 /* Main background */
+    --bg-content: #ffffff;              /* Content area */
+    --bg-surface: #f9f9f9;              /* Cards, panels */
+    --bg-surface-alt: #f2f2f2;          /* Alternate surface (toolbar, header) */
+    --bg-card: #fefefe;                 /* Dashboard cards */
+    --tab-bar-bg: #dee1e6;              /* Tab bar background */
+    --bg-hover: #d0e8f8;               /* Hover and active state */
+    --border-hover: #077ab2;            /* Border color for hover states */
+    --bg-input: #ffffff;                /* Input fields */
+    --bg-disabled: #f5f5f5;             /* Disabled elements */
+    --bg-button-primary: #3c64be;       /* Primary button background */
+    --bg-button-primary-hover: #2f519e; /* Primary button hover */
+    --bg-button-primary-active: #264a8e; /* Primary button active/pressed */
+    --bg-button-secondary: #d9d9d9;     /* Secondary button background */
+    --bg-button-secondary-hover: #c4c4c4; /* Secondary button hover */
+    --bg-button-secondary-active: #b0b0b0; /* Secondary button active/pressed */
+    --bg-button-cancel: #c4c4c4;        /* Cancel button background */
+    --bg-button-cancel-hover: #e8e8e8;  /* Cancel button hover */
+    --bg-button-cancel-active: #aaa;    /* Cancel button active/pressed */
+    --bg-button-success: #00a04a;       /* Success button background */
+    --bg-button-success-hover: #008f42; /* Success button hover */
+    --bg-button-success-active: #007a38; /* Success button active/pressed */
+    --gauge-track-bg: #eeeeee;          /* Gauge bar track background */
+    --bg-dropdown: #EFF2F4;             /* Dropdown backgrounds (filters, menus) */
+
+    /* Groupbox header colors */
+    --bg-header: #f8f9fa;               /* Groupbox header gradient start */
+    --bg-header-end: #f0f1f3;           /* Groupbox header gradient end */
+    --bg-header-hover: #e8ecf0;         /* Groupbox header hover */
+
+    /* Text colors */
+    --text-primary: #333333;            /* Main text */
+    --text-secondary: #666666;          /* Secondary text */
+    --text-muted: #999999;              /* Muted/hint text */
+    --text-disabled: #cccccc;           /* Disabled text */
+    --text-inverse: #ffffff;            /* Text on dark backgrounds */
+    --text-link: #204496;               /* Link color */
+    --text-link-hover: #077ab2;         /* Link hover */
+    --color-text: #333333;              /* Alias for text-primary */
+    --text-api-detail-context: #ffffff; /* API detail context text */
+
+    /* Border colors */
+    --border-color: #dddddd;            /* Default borders */
+    --border-light: #eeeeee;            /* Light borders */
+    --border-dark: #cccccc;             /* Darker borders */
+
+    /* Heading colors */
+    --heading-color: #666699;           /* H1, H2 headings */
+    --color-header: #204496;            /* Table headers, same as primary */
+
+    /* Button text color */
+    --button-text: #ffffff;             /* Button text */
+
+    /* Table colors */
+    --table-header-bg: #f2f2f2;         /* Table header background */
+    --table-row-odd: #ffffff;           /* Odd rows */
+    --table-row-even: #f9f9f9;          /* Even rows */
+    --table-row-hover: #eef6ff;         /* Row hover */
+    --table-row-active: #ddeeff;        /* Selected row */
+    --table-border: #dddddd;            /* Table borders */
+
+    /* Form colors */
+    --input-border: #dddddd;            /* Input border */
+    --input-border-focus-dashed: 1px dashed var(--border-dark);  /* Dashed focus border for inputs/groups */
+    --input-bg: #ffffff;                /* Input background */
+    --input-bg-readonly: transparent;   /* Readonly input */
+    --input-ico-hover-bg: #e5e5e5;      /* Input icon hover background */
+
+    /* Toolbar */
+    --toolbar-height: 37px;             /* Standard toolbar height */
+    --toolbar-bg: #f2f2f2;              /* Toolbar background */
+    --toolbar-border: #cccccc;          /* Toolbar border */
+
+    /* Control sizing - for consistent widths across input types */
+    --icon-btn-width: 28px;             /* Standard icon button width (file buttons, add button, calendar) */
+    --control-min-width: 350px;         /* Minimum width for form controls */
+
+    /* Tree/Menu */
+    --tree-hover-bg: #eef6ff;           /* Tree item hover */
+    --tree-active-bg: var(--color-primary, #204496); /* Tree item active background */
+    --tree-active-text: #ffffff;        /* Tree item active text */
+    --tree-active-bordercolor: var(--color-primary-hover, #1a3a7d); /* Tree item active border */
+
+    /* Access level badges */
+    --badge-admin-bg: #d7e2f2;          /* Admin badge background */
+    --badge-admin-text: #333;           /* Admin badge text */
+    --badge-developer-bg: #efefef;      /* Developer badge background */
+    --badge-developer-text: #666;       /* Developer badge text */
+
+    /* Popup/Dialog colors */
+    --popup-bg: #ffffff;                /* Popup background */
+    --popup-caption-bg: #eef6ff;        /* Popup caption/header */
+    --popup-caption-text: #204496;      /* Popup caption text */
+    --popup-text: #204496;              /* Popup body text */
+    --popup-border: #dedede;            /* Popup border */
+    --popup-close-bg: #bbbbbb;          /* Close button icon color */
+    --popup-close-hover: #E01F3D;       /* Close button hover */
+    --popup-shadow: 0.4em 0.4em 1em rgba(0, 0, 0, 0.4);
+
+    /* Close/remove button hover colors (used in web components) */
+    --close-btn-hover-bg: red;
+    --close-btn-hover-color: white;
+
+    /* Shadows */
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    /* Report designer / form specific */
+    --primary-color: #204496;           /* Alias for color-primary */
+    --primary-light: #e3f2fd;           /* Light primary for backgrounds */
+    --text-color: #333333;              /* Alias for text-primary */
+    --bg-alternate: #f5f5f5;            /* Alternating row backgrounds */
+    --row-selected-bg: #e3f2fd;         /* Selected row background */
+    --color-info-light: #e7f3ff;        /* Light info color for backgrounds */
+
+    /* Form layout */
+    --label-column-width: 150px;        /* Default label width */
+    --font-family-sans: "Trebuchet MS", Verdana, sans-serif;
+    --font-family-mono: "Consolas", "Monaco", monospace;
+    --bg-warning: #fff3cd;              /* Warning background */
+    --border-warning: #ffc107;          /* Warning border */
+    --loading-overlay-bg: rgba(255, 255, 255, 0.8);  /* Loading overlay */
+
+    /* Label/badge status colors (used in lib-components) */
+    --label-info-bg: linear-gradient(135deg, #0369a1 0%, #024a6f 100%);
+    --label-info-text: #ffffff;
+    --label-warning-bg: linear-gradient(135deg, #b45309 0%, #8a3f07 100%);
+    --label-warning-text: #ffffff;
+    --label-error-bg: linear-gradient(135deg, #b91c1c 0%, #8f1616 100%);
+    --label-error-text: #ffffff;
+    --label-success-bg: linear-gradient(135deg, #15803d 0%, #0f5c2c 100%);
+    --label-success-text: #ffffff;
+
+    /* Native accent color (checkboxes, radio buttons, range sliders) */
+    --accent-color: #204496;
+}
+
+/* ========================================
+   DARK MODE — via html.dark-mode class
+   ======================================== */
+html.dark-mode {
+    --color-primary: #5a8dee;
+    --color-primary-hover: #7aa3f0;
+    --color-primary-dark: #4070cc;
+    --color-primary-light: #1a3a5c;
+    --color-primary-rgb: 90, 141, 238;
+    --color-accent: #077ab2;
+    --color-accent-hover: #0991d1;
+    --color-danger: #e74c3c;
+    --color-danger-hover: #c0392b;
+
+    --color-success: #2ecc71;
+    --color-success-bg: #1a3326;
+    --color-success-text: #6bdc9a;
+    --color-success-border: #2a5a3a;
+    --color-error: #e74c3c;
+    --color-error-bg: #4a2020;
+    --color-error-text: #f5a5a0;
+    --color-error-border: #6a3030;
+    --color-warning: #f1c40f;
+    --color-warning-bg: #3a3520;
+    --color-warning-text: #f5d77a;
+    --color-warning-border: #5a4a20;
+    --color-info: #3498db;
+    --color-info-bg: #1a3a4a;
+    --color-info-text: #7ac4f5;
+    --color-info-border: #2a5a7a;
+
+    /* Message colors for lib-message component */
+    --message-success-bg: #387757;
+    --message-success-text: #6bdc9a;
+    --message-success-border: #2a5a3a;
+    --message-error-bg: #4a2020;
+    --message-error-text: #f5a5a0;
+    --message-error-border: #6a3030;
+    --message-warning-bg: #3a3520;
+    --message-warning-text: #f5d77a;
+    --message-warning-border: #5a4a20;
+    --message-info-bg: #1a3a4a;
+    --message-info-text: #7ac4f5;
+    --message-info-border: #2a5a7a;
+
+    --bg-body: #1a1a1a;
+    --bg-content: #222222;
+    --bg-surface: #2a2a2a;
+    --bg-surface-alt: #333333;
+    --bg-card: #333333;
+    --tab-bar-bg: #333333;
+    --bg-hover: #404040;
+    --border-hover: #077ab2;
+    --bg-input: #333333;
+    --bg-disabled: #2a2a2a;
+    --bg-button-primary: #5b82d4;
+    --bg-button-primary-hover: #6e92dd;
+    --bg-button-primary-active: #4a6fbf;
+    --bg-button-secondary: #4a4a4a;
+    --bg-button-secondary-hover: #5a5a5a;
+    --bg-button-secondary-active: #3a3a3a;
+    --bg-button-cancel: #555;
+    --bg-button-cancel-hover: #666;
+    --bg-button-cancel-active: #444;
+    --bg-button-success: #2ecc71;
+    --bg-button-success-hover: #45d988;
+    --bg-button-success-active: #2ecc71;
+    --gauge-track-bg: #444444;
+    --bg-dropdown: #333333;
+
+    /* Groupbox header colors */
+    --bg-header: #353545;
+    --bg-header-end: #2d2d3d;
+    --bg-header-hover: #3d3d4d;
+
+    --text-primary: #dedede;
+    --text-secondary: #aaaaaa;
+    --text-muted: #888888;
+    --text-disabled: #555555;
+    --text-inverse: #1a1a1a;
+    --text-link: #5a8dee;
+    --text-link-hover: #ff7a1a;
+    --color-text: #dedede;
+
+    --border-color: #444444;
+    --border-light: #333333;
+    --border-dark: #555555;
+
+    --heading-color: #8888bb;
+    --color-header: #5a8dee;
+
+    --button-text: #ffffff;
+
+    --table-header-bg: #333333;
+    --table-row-odd: #222222;
+    --table-row-even: #2a2a2a;
+    --table-row-hover: #3a3a3a;
+    --table-row-active: #404050;
+    --table-border: #444444;
+
+    --input-border: #444444;
+    --input-border-focus-dashed: 1px dashed var(--border-dark);
+    --input-bg: #333333;
+    --input-bg-readonly: transparent;
+
+    --toolbar-bg: #333333;
+    --toolbar-border: #444444;
+
+    --tree-hover-bg: #3a3a3a;
+    --tree-active-bg: var(--color-primary, #5a8dee);
+    --tree-active-text: #ffffff;
+    --tree-active-bordercolor: var(--color-primary-hover, #7aa3f0);
+
+    /* Access level badges - dark mode */
+    --badge-admin-bg: #3a4a6a;
+    --badge-admin-text: #aaccff;
+    --badge-developer-bg: #4a4a4a;
+    --badge-developer-text: #aaa;
+
+    --popup-bg: #2a2a2a;
+    --popup-caption-bg: #333333;
+    --popup-caption-text: #7aa3f0;
+    --popup-text: #dedede;
+    --popup-border: #444444;
+    --popup-close-bg: #888888;
+    --popup-close-hover: #e74c3c;
+    --popup-shadow: 0.4em 0.4em 1em rgba(0, 0, 0, 0.6);
+
+    /* Close/remove button hover colors (used in web components) */
+    --close-btn-hover-bg: #e74c3c;
+    --close-btn-hover-color: white;
+
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.5);
+
+    /* Report designer / form specific - dark mode */
+    --primary-color: #5a8dee;
+    --primary-light: #1a3a5c;
+    --text-color: #dedede;
+    --bg-alternate: #333333;
+    --row-selected-bg: #404050;
+    --color-info-light: #1a3a4a;
+
+    /* Form layout - dark mode */
+    --bg-warning: #3a3520;
+    --border-warning: #5a4a20;
+    --loading-overlay-bg: rgba(26, 26, 26, 0.8);
+
+    /* Label/badge status colors - dark mode */
+    --label-info-bg: linear-gradient(135deg, #1a5276 0%, #154360 100%);
+    --label-info-text: #7ac4f5;
+    --label-warning-bg: linear-gradient(135deg, #7d5a0b 0%, #5a3e08 100%);
+    --label-warning-text: #f5d77a;
+    --label-error-bg: linear-gradient(135deg, #922b21 0%, #6e2018 100%);
+    --label-error-text: #f5a5a0;
+    --label-success-bg: linear-gradient(135deg, #1e7e34 0%, #155d25 100%);
+    --label-success-text: #6bdc9a;
+
+    /* Native accent color */
+    --accent-color: #5a8dee;
+}
+
+/* ========================================
+   BASE STYLES USING VARIABLES
+   ========================================================================== */
+
+html, body {
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+}
+
+a {
+    color: var(--text-link);
+}
+
+a:hover {
+    color: var(--text-link-hover);
+}
+
+h1, h2, h3, .toolbar_title {
+    color: var(--heading-color);
+}
+
+/* Text-like inputs - use simple selector, exclude non-text types via :not() */
+input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="hidden"]):not([type="color"]):not([type="range"]):not([type="image"]),
+textarea,
+select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="hidden"]):not([type="color"]):not([type="range"]):not([type="image"]):not(:read-only):focus,
+textarea:not(:read-only):focus,
+select:focus {
+    /* Use individual border properties to preserve left border for required field indicator */
+    border-top: var(--input-border-focus-dashed) !important;
+    border-right: var(--input-border-focus-dashed) !important;
+    border-bottom: var(--input-border-focus-dashed) !important;
+    outline: none;
+    box-shadow: none;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="hidden"]):not([type="color"]):not([type="range"]):not([type="image"]):read-only,
+textarea:read-only {
+    background-color: var(--input-bg-readonly);
+    border-color: transparent;
+    color: var(--text-secondary);
+}
+
+.tb {
+    background-color: var(--toolbar-bg);
+    border-bottom-color: var(--toolbar-border);
+}
+
+/* Tables - row striping */
+table.filtering tbody tr:nth-child(odd),
+table.listtable tbody tr:nth-child(odd) {
+    background-color: var(--table-row-odd);
+}
+
+table.filtering tbody tr:nth-child(even),
+table.listtable tbody tr:nth-child(even) {
+    background-color: var(--table-row-even);
+}
+
+table.filtering tbody tr:hover,
+table.listtable tbody tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+table.filtering tr.active,
+table.listtable tr.active {
+    background-color: var(--table-row-active);
+}
+
+/* Placeholder styles */
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted) !important;
+    font-style: italic !important;
+}
+
+/* Status colors */
+.success, .text-success {
+    color: var(--color-success);
+}
+
+.error, .text-error, .text-danger {
+    color: var(--color-error);
+}
+
+.warning, .text-warning {
+    color: var(--color-warning);
+}
+
+/* Borders */
+table, th, td {
+    border-color: var(--border-color);
+}
+
+hr {
+    border-color: var(--border-light);
+}
+
+/* Muted/secondary text */
+.small, .hint, .muted {
+    color: var(--text-muted);
+}
+
+/* No-data message */
+div.no-data {
+    color: var(--text-muted);
+}
+
+/* ========================================
+   SPIN ANIMATION
+   ======================================== */
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+/* Smaller spinner inside buttons */
+.btn .lnr.spin-animation,
+button .lnr.spin-animation {
+    font-size: 12px;
+    width: auto;
+    height: auto;
+    line-height: inherit;
+    vertical-align: middle;
+}

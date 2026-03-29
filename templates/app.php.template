@@ -1,0 +1,34 @@
+<?php
+/**
+ * Application Configuration
+ *
+ * Non-sensitive settings for this project.
+ * Secrets and database credentials go in global.asa.php and .env files.
+ */
+
+// Application environment (L=Local, O=Dev, T=Test, A=Acceptance, P=Production)
+$GLOBALS['Application']['omgeving'] = $_ENV['APP_ENVIRONMENT'] ?? 'L';
+
+// Project name and branding
+$GLOBALS['Application']['organisatie'] = 'My Organization';
+$GLOBALS['Application']['company'] = 'My Company';
+$GLOBALS['Application']['primarycolor'] = '#3498db';
+$GLOBALS['Application']['email_template_bg_color'] = '#f4f4f4';
+
+// Feature flags
+$GLOBALS['Application']['feature_draaiboek'] = true;
+$GLOBALS['Application']['feature_planning'] = true;
+$GLOBALS['Application']['feature_afspraken'] = true;
+$GLOBALS['Application']['feature_evaluatie'] = true;
+$GLOBALS['Application']['feature_taken'] = true;
+$GLOBALS['Application']['feature_gesprekken'] = true;
+$GLOBALS['Application']['feature_inventarisatie'] = true;
+$GLOBALS['Application']['feature_vrijstelling'] = true;
+
+// Paths
+$GLOBALS['Application']['pad_images'] = 'images/';
+$GLOBALS['Application']['pad_uploads'] = 'uploads/';
+
+// CMA Configuration
+$GLOBALS['Application']['cma_upload_wizard'] = true;
+$GLOBALS['Application']['cma_language'] = 'NL';

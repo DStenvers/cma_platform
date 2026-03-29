@@ -1,0 +1,147 @@
+/* LibTable - Styled to match lib-table web component */
+.libTable {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: var(--font-size);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.libTableTR {
+    color: #333;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.15s ease;
+}
+
+.libTableTR_active td {
+    background-color: #e3f2fd !important;
+    color: #333;
+}
+
+.libTableTR_hover td {
+    background-color: #f0f7ff !important;
+    color: #333;
+}
+
+.libTableTH {
+    text-align: left;
+    color: #333;
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: var(--font-size);
+    font-weight: 600;
+    padding: 8px 12px;
+    border-bottom: 2px solid #ddd;
+    border-right: 1px solid #eee;
+    user-select: none;
+}
+
+.libTableTH:last-child {
+    border-right: none;
+}
+
+.libTableTH A:active,
+.libTableTH A:link,
+.libTableTH A:visited {
+    text-decoration: none;
+    color: #333;
+}
+
+.libTableTH A:hover {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.libTableTD1,
+.libTableTD2,
+.libTableTD,
+.libTableTD_deleted {
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: var(--font-size);
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.libTableTD1 {
+    background-color: #fff;
+}
+
+.libTableTD2 {
+    background-color: #fafafa;
+}
+
+.libTableSort {
+    width: 16px;
+    color: #007bff;
+    font-size: var(--font-size-2xs);
+}
+
+.libTableTD_deleted {
+    background-color: #f5f5f5;
+    text-decoration: line-through;
+    color: #999;
+}
+
+/* Filter row styles */
+.filter-row .filter-cell {
+    padding: 4px 8px;
+    background: #f5f5f5;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: var(--font-size-sm);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.filter-input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+.filter-count {
+    font-size: var(--font-size-sm);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #666;
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border-top: 1px solid #ddd;
+}
+
+/* Date range filter styles */
+.date-filter-cell {
+    min-width: 120px;
+}
+
+.date-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-date-from,
+.filter-date-to {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: var(--font-size-xs);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.filter-date-from::placeholder,
+.filter-date-to::placeholder {
+    font-style: italic;
+    color: #999;
+}

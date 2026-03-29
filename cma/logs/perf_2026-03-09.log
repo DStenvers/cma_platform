@@ -1,0 +1,7 @@
+[2026-03-09 16:58:26] [PAGELOAD] {"type":"pageload","name":"login.php","duration":1793.3,"context":{"dns":0,"tcp":0,"ttfb":2,"download":1,"domParse":847,"domReady":1791,"load":1793,"transferSize":0,"type":"back_forward"},"ts":1773075499905,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"main.css&v=20260105l","duration":378.9,"context":{"type":"link","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"jquery.min.js","duration":382.5,"context":{"type":"link","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"main.js&v=20260105l","duration":388.5,"context":{"type":"link","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"lib-loader.js","duration":381,"context":{"type":"script","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"formval_nl.js&v=20260105l","duration":380.9,"context":{"type":"script","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}
+[2026-03-09 16:58:26] [RESOURCE] {"type":"resource","name":"cma_logo.svg","duration":381.3,"context":{"type":"img","size":0,"cached":true},"ts":1773075499906,"reqId":"o198vs6p"}

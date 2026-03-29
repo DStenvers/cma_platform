@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Database Configuration",
+  "type": "object",
+  "required": ["databases"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "databases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "connectionString", "type"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique database identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Short name for referencing (for instance 'data', 'rep', 'users')"
+          },
+          "title": {
+            "type": "string",
+            "description": "Display title for screens"
+          },
+          "connectionString": {
+            "type": "string",
+            "description": "Database connection string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["access", "sqlserver", "mysql"],
+            "description": "Database type"
+          }
+        }
+      }
+    }
+  }
+}

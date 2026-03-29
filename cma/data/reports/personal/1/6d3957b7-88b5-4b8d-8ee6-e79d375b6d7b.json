@@ -1,0 +1,1183 @@
+{
+    "id": "6d3957b7-88b5-4b8d-8ee6-e79d375b6d7b",
+    "name": "Agenda, totaal uren 2",
+    "mode": "quick",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "tblAgenda",
+            "alias": "t",
+            "joins": [
+                {
+                    "table": "tblAgendaDownloads",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblAgendaDownloads].[fkAgenda] = [tblAgenda].[ID]"
+                },
+                {
+                    "table": "tblOpleidingen",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblAgenda].[fkOpleiding] = [tblOpleidingen].[ID]"
+                }
+            ]
+        },
+        {
+            "name": "tblAgendaDownloads",
+            "alias": "t",
+            "joins": []
+        },
+        {
+            "name": "tblOpleidingen",
+            "alias": "t",
+            "joins": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "tblAgenda",
+            "field": "Omschrijving",
+            "alias": "Omschrijving",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Datum",
+            "alias": "Datum",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Tijd",
+            "alias": "Tijd",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "EindTijd",
+            "alias": "EindTijd",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Locatie",
+            "alias": "Locatie",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "volgnummer",
+            "alias": "volgnummer",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "EvaluatieURL",
+            "alias": "EvaluatieURL",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "draaiboekPDF",
+            "alias": "draaiboekPDF",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "PromptusID",
+            "alias": "PromptusID",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "draaiboekTitel",
+            "alias": "draaiboekTitel",
+            "dataType": 1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "draaiboekText",
+            "alias": "draaiboekText",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "locatieadres",
+            "alias": "locatieadres",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "locatiepostcode",
+            "alias": "locatiepostcode",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "locatieplaats",
+            "alias": "locatieplaats",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "route_aanvullend",
+            "alias": "route_aanvullend",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_statistieken_verzonden",
+            "alias": "Evaluatie_statistieken_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bEvaluatieDeelnemer",
+            "alias": "bEvaluatieDeelnemer",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bBlokkeerEindevaluatie",
+            "alias": "bBlokkeerEindevaluatie",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "guid",
+            "alias": "guid",
+            "dataType": -11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_statistieken_hoofdopl_verzonden",
+            "alias": "Evaluatie_statistieken_hoofdopl_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_statistieken_hoofddoc_verzonden",
+            "alias": "Evaluatie_statistieken_hoofddoc_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bBlokkeerBlokevaluatie",
+            "alias": "bBlokkeerBlokevaluatie",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_statistieken_eind_hoofdopl_verzonden",
+            "alias": "Evaluatie_statistieken_eind_hoofdopl_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_statistieken_tussen_hoofdopl_verzonden",
+            "alias": "Evaluatie_statistieken_tussen_hoofdopl_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_tussendoor_statistieken_verzonden",
+            "alias": "Evaluatie_tussendoor_statistieken_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Evaluatie_eind_statistieken_verzonden",
+            "alias": "Evaluatie_eind_statistieken_verzonden",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "RinoZaal",
+            "alias": "RinoZaal",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "presentieOpmerking",
+            "alias": "presentieOpmerking",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "docentAkkoord",
+            "alias": "docentAkkoord",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bVisible",
+            "alias": "bVisible",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bOnline",
+            "alias": "bOnline",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bActief",
+            "alias": "bActief",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "VisibleState",
+            "alias": "VisibleState",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "DatumReminderOM",
+            "alias": "DatumReminderOM",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZoomMeetingID",
+            "alias": "ZoomMeetingID",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "Zoompassword",
+            "alias": "Zoompassword",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZoomResultaat",
+            "alias": "ZoomResultaat",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZoomGemeldOM",
+            "alias": "ZoomGemeldOM",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZoomChecked",
+            "alias": "ZoomChecked",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bHybrid",
+            "alias": "bHybrid",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "bWijzigbaarDocent",
+            "alias": "bWijzigbaarDocent",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZuivereLestijd",
+            "alias": "ZuivereLestijd",
+            "dataType": 2,
+            "visible": true,
+            "filter": null,
+            "showTotal": true
+        },
+        {
+            "table": "tblAgenda",
+            "field": "ZoomJoinUrl",
+            "alias": "ZoomJoinUrl",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgenda",
+            "field": "PresentieReminderOM",
+            "alias": "PresentieReminderOM",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgendaDownloads",
+            "field": "Bestand",
+            "alias": "Bestand",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgendaDownloads",
+            "field": "Titel",
+            "alias": "Titel",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgendaDownloads",
+            "field": "CommentaarHoofdopleider",
+            "alias": "CommentaarHoofdopleider",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblAgendaDownloads",
+            "field": "sortorder",
+            "alias": "sortorder",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Titel",
+            "alias": "Titel",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Startdatum",
+            "alias": "Startdatum",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact1",
+            "alias": "contact1",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact2",
+            "alias": "contact2",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Literatuurlijst",
+            "alias": "Literatuurlijst",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "testlijst",
+            "alias": "testlijst",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "RichtlijnenBehandelingcasus",
+            "alias": "RichtlijnenBehandelingcasus",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "RichtlijnenDiagnostiekcasus",
+            "alias": "RichtlijnenDiagnostiekcasus",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Onderzoeksverslag",
+            "alias": "Onderzoeksverslag",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Routebeschrijving",
+            "alias": "Routebeschrijving",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateWerkplan",
+            "alias": "TemplateWerkplan",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateJaarverslag",
+            "alias": "TemplateJaarverslag",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateHalfJaarverslag",
+            "alias": "TemplateHalfJaarverslag",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "contact3",
+            "alias": "contact3",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "fotoboekPDF",
+            "alias": "fotoboekPDF",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "supervisieverklaring",
+            "alias": "supervisieverklaring",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "BNSOpleiding",
+            "alias": "BNSOpleiding",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Studiegids",
+            "alias": "Studiegids",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PromptusID",
+            "alias": "PromptusID",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "DigitaalDossioma",
+            "alias": "DigitaalDossioma",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "ToetsenOverzicht",
+            "alias": "ToetsenOverzicht",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "IliasCursusID",
+            "alias": "IliasCursusID",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGO",
+            "alias": "CGO",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGO_Documenten",
+            "alias": "CGO_Documenten",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "CGOToetsformulier",
+            "alias": "CGOToetsformulier",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Code",
+            "alias": "Code",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "draaiboekDigitaal",
+            "alias": "draaiboekDigitaal",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "draaiboekIntro",
+            "alias": "draaiboekIntro",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datDocentenOnline",
+            "alias": "datDocentenOnline",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bHerregistratie",
+            "alias": "bHerregistratie",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bMoodleGekoppeld",
+            "alias": "bMoodleGekoppeld",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bFactuurGegevens",
+            "alias": "bFactuurGegevens",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bNieuweCGOIndeling",
+            "alias": "bNieuweCGOIndeling",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "POMagWerkplanPlaatsen",
+            "alias": "POMagWerkplanPlaatsen",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bTijdelijkeGroep",
+            "alias": "bTijdelijkeGroep",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPuurOnline",
+            "alias": "bPuurOnline",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "blnOvereenkomst",
+            "alias": "blnOvereenkomst",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "blnWijzigbaarDraaiboek",
+            "alias": "blnWijzigbaarDraaiboek",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBlended",
+            "alias": "bBlended",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPresentiePilot",
+            "alias": "bPresentiePilot",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "codeMoeder",
+            "alias": "codeMoeder",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PlanningVerwerkt",
+            "alias": "PlanningVerwerkt",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "PlanningPrijsNNB",
+            "alias": "PlanningPrijsNNB",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGVO",
+            "alias": "bBIGVO",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGKJ",
+            "alias": "bBIGKJ",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "aantaldagenVoorstartZichtbaar",
+            "alias": "aantaldagenVoorstartZichtbaar",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "StudiegidsURL",
+            "alias": "StudiegidsURL",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bReadonly",
+            "alias": "bReadonly",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bKeuzemodule",
+            "alias": "bKeuzemodule",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datBelangstellendenGeinformeerd",
+            "alias": "datBelangstellendenGeinformeerd",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bVerborgen",
+            "alias": "bVerborgen",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Beeld",
+            "alias": "Beeld",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "AlgemeneInfo",
+            "alias": "AlgemeneInfo",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datOnSite",
+            "alias": "datOnSite",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Aanmeldingseisen",
+            "alias": "Aanmeldingseisen",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "Opleidingsovereenkomst",
+            "alias": "Opleidingsovereenkomst",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VrijstellingsEisen",
+            "alias": "VrijstellingsEisen",
+            "dataType": -1,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "sluitdatum",
+            "alias": "sluitdatum",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bPilotOPT",
+            "alias": "bPilotOPT",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "datMedewOnline",
+            "alias": "datMedewOnline",
+            "dataType": 11,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bBIGO",
+            "alias": "bBIGO",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerstuurMails",
+            "alias": "VerstuurMails",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "EindverslagTemplate",
+            "alias": "EindverslagTemplate",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Oms",
+            "alias": "VerslagBijlage1Oms",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Oms",
+            "alias": "VerslagBijlage2Oms",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Oms",
+            "alias": "VerslagBijlage3Oms",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Template",
+            "alias": "VerslagBijlage1Template",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Template",
+            "alias": "VerslagBijlage2Template",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Template",
+            "alias": "VerslagBijlage3Template",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bVerbergPersoonlijsten",
+            "alias": "bVerbergPersoonlijsten",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VervangendeOpdrachtTemplate",
+            "alias": "VervangendeOpdrachtTemplate",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "TemplateEindverslag",
+            "alias": "TemplateEindverslag",
+            "dataType": 12,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage1Verplicht",
+            "alias": "VerslagBijlage1Verplicht",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage2Verplicht",
+            "alias": "VerslagBijlage2Verplicht",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "VerslagBijlage3Verplicht",
+            "alias": "VerslagBijlage3Verplicht",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "aantalPeriodes",
+            "alias": "aantalPeriodes",
+            "dataType": 4,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingen",
+            "field": "bCheckEindgesprek",
+            "alias": "bCheckEindgesprek",
+            "dataType": -7,
+            "visible": true,
+            "filter": null,
+            "showTotal": false
+        }
+    ],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "totals": {
+        "showGrandTotal": true,
+        "fields": [
+            {
+                "table": "tblAgenda",
+                "field": "ZuivereLestijd",
+                "alias": "ZuivereLestijd"
+            }
+        ]
+    },
+    "output": {
+        "format": "table"
+    },
+    "updatedAt": "2026-01-23 18:43:10",
+    "createdAt": "2026-01-23 18:43:10",
+    "createdBy": "1"
+}

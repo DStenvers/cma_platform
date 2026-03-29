@@ -1,0 +1,355 @@
+{
+    "$schema": "./schema/data-sources.schema.json",
+    "dataSources": [
+        {
+            "id": 70,
+            "name": "PDO_behandelingcasus",
+            "moduleId": 12,
+            "query": "select id, code, titel, RichtlijnenBehandelingcasus from tblopleidingen WHERE RichtlijnenBehandelingcasus is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 80,
+            "name": "pdo_benodigdheden",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.Code, tblOpleidingen.Titel, tblBenodigdheden.Sortorder, tblBenodigdheden.titel as NAAM, tblBenodigdheden.Bestand\r\nFROM tblOpleidingen INNER JOIN tblBenodigdheden ON tblOpleidingen.ID = tblBenodigdheden.fkOpleiding\r\nORDER BY tblBenodigdheden.Sortorder, tblBenodigdheden.Bestand;",
+            "selectable": false
+        },
+        {
+            "id": 98,
+            "name": "PDO_CGO_documenten",
+            "moduleId": 12,
+            "query": "select id, code, titel, CGO_documenten from tblopleidingen WHERE CGO_documenten is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 92,
+            "name": "PDO_Competenties",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.Code, tblOpleidingen.Titel, tblOpleidingen.id, tblCompetenties.blnDefinitief, tblOpleidingen.fkCompetentieTemplate, tblCompetenties.VERSLAGNUMMER, tblDeelnemers.VolledigeNaam, tblPraktijkOpleiders.VolledigeNaam AS Praktijkopleider, tblDeelname.ID  as deelnameID \r\nFROM tblPraktijkOpleiders RIGHT JOIN (tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN (tblDeelname LEFT JOIN tblCompetenties ON tblDeelname.ID = tblCompetenties.fkDeelName) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding) ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider \r\nWHERE (((tblOpleidingen.fkCompetentieTemplate) Is Not Null) AND ((tblCompetenties.VERSLAGNUMMER)=0 Or (tblCompetenties.VERSLAGNUMMER) Is Null)) and (tblDeelname.einddatum is null or tblDeelname.einddatum>date())\r\nORDER BY tblOpleidingen.Code, tblDeelnemers.Achternaam",
+            "selectable": false
+        },
+        {
+            "id": 93,
+            "name": "PDO_COMPETENTIES_PRAKTOPL",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.Code, tblOpleidingen.Titel, tblOpleidingen.id, tblCompetenties.blnDefinitief, tblOpleidingen.fkCompetentieTemplate, tblCompetenties.VERSLAGNUMMER, tblDeelnemers.VolledigeNaam, tblDeelname.ID as deelnameID \r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN (tblDeelname LEFT JOIN tblCompetenties ON tblDeelname.ID = tblCompetenties.fkDeelName) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE (((tblOpleidingen.fkCompetentieTemplate) Is Not Null) AND ((tblCompetenties.VERSLAGNUMMER)=0 Or (tblCompetenties.VERSLAGNUMMER) Is Null)) and (tblDeelname.einddatum is null or tblDeelname.einddatum>date())\r\nORDER BY tblOpleidingen.Code, tblDeelnemers.Achternaam",
+            "selectable": false
+        },
+        {
+            "id": 54,
+            "name": "pdo_contact",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen order by CODE",
+            "selectable": false
+        },
+        {
+            "id": 88,
+            "name": "pdo_contact_ass",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen order by CODE",
+            "selectable": false
+        },
+        {
+            "id": 83,
+            "name": "pdo_contact_hoofddoc",
+            "moduleId": 12,
+            "query": "SELECT tblDocenten.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblDocenten INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent) INNER JOIN tblOpleidingenPerDocent ON tblDocenten.ID = tblOpleidingenPerDocent.fkDocent\r\nWHERE (((tblOpleidingenPerDocent.blnHoofddocentNew)=True) AND ((tblDocenten.bAktief)=True))\r\nORDER BY tblDocenten.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 55,
+            "name": "pdo_contact_hoofddocent",
+            "moduleId": 12,
+            "query": "SELECT tblDocenten.*, tblLogins.ID AS loginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblDocenten INNER JOIN tblOpleidingenPerDocent ON tblDocenten.ID = tblOpleidingenPerDocent.fkDocent) INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent\r\nWHERE (((tblOpleidingenPerDocent.[blnHoofddocent])=True) AND ((tblDocenten.[bAktief])=True))\r\nORDER BY tblDocenten.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 56,
+            "name": "pdo_contact_hoofdopl",
+            "moduleId": 12,
+            "query": "SELECT tblDocenten.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblDocenten INNER JOIN tblOpleidingenPerDocent ON tblDocenten.ID = tblOpleidingenPerDocent.fkDocent) INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent\r\nWHERE (((tblOpleidingenPerDocent.[blnHoofdOpleider])=True) AND ((tblDocenten.[bAktief])=True))\r\nORDER BY tblDocenten.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 89,
+            "name": "pdo_contact_praktijkopl_ass",
+            "moduleId": 12,
+            "query": "SELECT DISTINCT tblPraktijkOpleiders.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblPraktijkOpleiders INNER JOIN tblDeelname ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider) INNER JOIN tblLogins ON tblPraktijkOpleiders.ID = tblLogins.fkPraktijkOpleider\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date()))\r\nORDER BY tblPraktijkOpleiders.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 57,
+            "name": "PDO_CONTACT_RINO_ASS",
+            "moduleId": 12,
+            "query": "SELECT tblContactpersonen.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblContactpersonen INNER JOIN tblOpleidingen ON tblContactpersonen.ID = tblOpleidingen.contact1) INNER JOIN tblLogins ON tblContactpersonen.ID = tblLogins.fkAssistent;",
+            "selectable": false
+        },
+        {
+            "id": 58,
+            "name": "PDO_CONTACT_RINO_mgr",
+            "moduleId": 12,
+            "query": "SELECT tblContactpersonen.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblContactpersonen INNER JOIN tblOpleidingen ON tblContactpersonen.ID = tblOpleidingen.contact2) INNER JOIN tblLogins ON tblContactpersonen.ID = tblLogins.fkAssistent;",
+            "selectable": false
+        },
+        {
+            "id": 50,
+            "name": "pdo_deeln",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen where bHerregistratie=false and bTijdelijkeGroep=false",
+            "selectable": false
+        },
+        {
+            "id": 90,
+            "name": "PDO_DEELN_ASSISTENTENVIEW",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen order by CODE",
+            "selectable": false
+        },
+        {
+            "id": 51,
+            "name": "pdo_deeln_deeln",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.fotoboekPDF, tblOpleidingen.ID as OpleidingID, tblDeelnemers.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding) INNER JOIN tblLogins ON tblDeelnemers.ID = tblLogins.fkDeelnemer\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date())) and tblOpleidingen.bHerregistratie=false and tblopleidingen.bTijdelijkeGroep=false \r\nORDER BY tblDeelnemers.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 101,
+            "name": "pdo_deeln_deeln_ass",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.fotoboekPDF, tblOpleidingen.ID as OpleidingID, tblDeelnemers.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding) INNER JOIN tblLogins ON tblDeelnemers.ID = tblLogins.fkDeelnemer\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date())) \r\nORDER BY tblDeelnemers.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 82,
+            "name": "PDO_DEELN_DEELN_MEERDERE",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen  where bHerregistratie=false and bTijdelijkeGroep=false order by CODE",
+            "selectable": false
+        },
+        {
+            "id": 52,
+            "name": "pdo_deeln_docenten",
+            "moduleId": 12,
+            "query": "SELECT tblDocenten.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet\r\nFROM tblOpleidingen INNER JOIN ((tblDocenten INNER JOIN tblLogins ON tblDocenten.ID = tblLogins.fkDocent) INNER JOIN tblOpleidingenPerDocent ON tblDocenten.ID = tblOpleidingenPerDocent.fkDocent) ON tblOpleidingen.ID = tblOpleidingenPerDocent.fkOpleiding\r\nWHERE tblDocenten.bAktief=True AND tblOpleidingen.bHerregistratie=False and tblopleidingen.bTijdelijkeGroep=False \r\nORDER BY tblDocenten.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 68,
+            "name": "PDO_DEELN_DOCENTENVIEW",
+            "moduleId": 12,
+            "query": "SELECT id,code,titel from tblOpleidingen  where tblOpleidingen.bHerregistratie=false and tblopleidingen.bTijdelijkeGroep=false",
+            "selectable": false
+        },
+        {
+            "id": 53,
+            "name": "pdo_deeln_praktijkopl",
+            "moduleId": 12,
+            "query": "SELECT DISTINCT tblPraktijkOpleiders.*, tblLogins.ID AS loginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblPraktijkOpleiders INNER JOIN tblDeelname ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider) INNER JOIN tblLogins ON tblPraktijkOpleiders.ID = tblLogins.fkPraktijkOpleider\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date())) \r\nORDER BY tblPraktijkOpleiders.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 91,
+            "name": "pdo_deeln_praktijkopl_ass",
+            "moduleId": 12,
+            "query": "SELECT DISTINCT tblPraktijkOpleiders.*, tblLogins.ID AS LoginID, tblLogins.Roepnaam, tblLogins.AchternaamCompleet \r\nFROM (tblPraktijkOpleiders INNER JOIN tblDeelname ON tblPraktijkOpleiders.ID = tblDeelname.fkPraktijkOpleider) INNER JOIN tblLogins ON tblPraktijkOpleiders.ID = tblLogins.fkPraktijkOpleider\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date()))\r\nORDER BY tblPraktijkOpleiders.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 69,
+            "name": "PDO_DEELN_PRAKTOPLVIEW",
+            "moduleId": 12,
+            "query": "SELECT DISTINCT tblDeelname.fkOpleiding,tblDeelname.fkPraktijkopleider, tblOpleidingen.Code,tblOpleidingen.Titel   \r\nFROM tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding  WHERE  (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date()) and (tblOpleidingen.bHerregistratie=false and tblopleidingen.bTijdelijkeGroep=false )\r\nORDER BY tblOpleidingen.Code",
+            "selectable": false
+        },
+        {
+            "id": 71,
+            "name": "PDO_diagnostiekcasus",
+            "moduleId": 12,
+            "query": "select id, code, titel, RichtlijnenDiagnostiekcasus from tblopleidingen WHERE RichtlijnenDiagnostiekcasus is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 59,
+            "name": "PDO_Dossioma",
+            "moduleId": 12,
+            "query": "SELECT tblDeelname.Dossioma, tblDeelname.DossiomaLaatstGewijzigd, tblOpleidingen.Titel, tblOpleidingen.Code\r\nFROM tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE tblOpleidingen.datOnSite<=Date() AND tblDeelname.alleenCursorisch=false AND (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date()) ORDER BY tblOpleidingen.Code",
+            "selectable": false
+        },
+        {
+            "id": 100,
+            "name": "PDO_DOSSIOMA_ASSISTENT",
+            "moduleId": 12,
+            "query": "SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam, tblDeelname.Dossioma, iif(alleenCursorisch=True,\"1\",\"0\") as Cursorisch, tblDeelname.DossiomaLaatstGewijzigd, tblOpleidingen.Titel, tblOpleidingen.Code, tblOpleidingen.DIGITAALDOSSIOMA \r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding WHERE (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date()) \r\nORDER BY tblOpleidingen.Code, tblDeelnemers.Achternaam",
+            "selectable": false
+        },
+        {
+            "id": 60,
+            "name": "PDO_DOSSIOMA_HOOFDOPL",
+            "moduleId": 12,
+            "query": "SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam, tblDeelname.Dossioma, iif(alleenCursorisch=True,\"1\",\"0\") as Cursorisch, tblDeelname.DossiomaLaatstGewijzigd, tblOpleidingen.Titel, tblOpleidingen.Code, tblOpleidingen.DIGITAALDOSSIOMA \r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding WHERE (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date()) \r\nORDER BY tblOpleidingen.Code, tblDeelnemers.Achternaam",
+            "selectable": false
+        },
+        {
+            "id": 86,
+            "name": "PDO_dossioma_praktijkopl",
+            "moduleId": 12,
+            "query": "SELECT  tblDeelname.ID, tblDeelnemers.VolledigeNaam, iif(alleenCursorisch=True,\"1\",\"0\") as Cursorisch,  tblDeelname.Dossioma, tblDeelname.DossiomaLaatstGewijzigd, tblOpleidingen.Titel, tblOpleidingen.Code, tblOpleidingen.DIGITAALDOSSIOMA \r\nFROM tblOpleidingen INNER JOIN (tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE  (tblDeelname.EindDatum Is Null Or tblDeelname.EindDatum>Date()) \r\nORDER BY tblOpleidingen.Code, tblDeelnemers.Achternaam",
+            "selectable": false
+        },
+        {
+            "id": 78,
+            "name": "PDO_Dossiomas_Verslagen",
+            "moduleId": 12,
+            "query": "SELECT * from tblVerslagen WHERE HoofdopleiderGoedgekeurd=True",
+            "selectable": false
+        },
+        {
+            "id": 77,
+            "name": "PDO_Dossiomas_Werkplan",
+            "moduleId": 12,
+            "query": "SELECT * from tblDeelname WHERE HoofdopleiderGoedgekeurd=True AND (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date())",
+            "selectable": false
+        },
+        {
+            "id": 63,
+            "name": "PDO_draaiboek",
+            "moduleId": 12,
+            "query": "SELECT tblDraaiboek.ID, tblDraaiboek.Naam, tblDraaiboek.Startdatum, tblDraaiboek.Einddatum, tblDraaiboek.TekstDraaiboek, tblDraaiboek.Download\r\nFROM tblDraaiboek",
+            "selectable": false
+        },
+        {
+            "id": 64,
+            "name": "PDO_draaiboek_downloads",
+            "moduleId": 12,
+            "query": "SELECT tblDraaiboekenDownloads.sortorder, tblDraaiboekenDownloads.Titel, tblDraaiboekenDownloads.Bestand\r\nFROM tblDraaiboekenDownloads\r\nORDER BY tblDraaiboekenDownloads.sortorder, tblDraaiboekenDownloads.Titel;",
+            "selectable": false
+        },
+        {
+            "id": 99,
+            "name": "PDO_Factuurverklaringen",
+            "moduleId": 12,
+            "query": "SELECT tblDeelnemers.VolledigeNaam, tblDeelname.factuurgegevens_ingevuld, tbldeelname.factuur_centraal, tblDeelname.factuur_gegevens, tblLogins.ID AS LoginID, tblOpleidingen.bFactuurGegevens\r\nFROM tblOpleidingen INNER JOIN ((tblDeelnemers INNER JOIN tblLogins ON tblDeelnemers.ID = tblLogins.fkDeelnemer) INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nORDER BY tblDeelnemers.Achternaam;",
+            "selectable": false
+        },
+        {
+            "id": 38,
+            "name": "PDO_formulierenlijst",
+            "moduleId": 12,
+            "query": "select * from [tblFormulieren] ORDER BY [Naam]",
+            "selectable": false
+        },
+        {
+            "id": 62,
+            "name": "PDO_halfjaar_template",
+            "moduleId": 12,
+            "query": "SELECT TemplateHalfjaarverslag, TemplateJaarverslag,VerslagBijlage1Template,VerslagBijlage2Template, VerslagBijlage3Template, VerslagBijlage1Oms, VerslagBijlage2Oms,VerslagBijlage3Oms, EindVerslagTemplate as EINDVERSLAGTEMPLATE  from tblOpleidingen",
+            "selectable": false
+        },
+        {
+            "id": 48,
+            "name": "pdo_literatuurlijst",
+            "moduleId": 12,
+            "query": "select id, code, titel, literatuurlijst from tblopleidingen where literatuurlijst is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 72,
+            "name": "PDO_ONDERZOEKSVERSLAG",
+            "moduleId": 12,
+            "query": "select id, code, titel, ONDERZOEKSVERSLAG from tblopleidingen WHERE ONDERZOEKSVERSLAG is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 67,
+            "name": "PDO_OPLEIDING_HOME",
+            "moduleId": 12,
+            "query": "SELECT tblLogins.ID AS AssistentLoginID, tblLogins_1.ID AS ManagerLoginID, tblOpleidingen.ID, tblOpleidingen.Titel, tblOpleidingen.Code, Managers.Naam AS Manager, Managers.Email AS ManagerEMail, Assistenten.Naam AS Assistent, Assistenten.Email AS AssistentEMail, tblOpleidingen.IliasCursusID\r\nFROM tblLogins AS tblLogins_1 RIGHT JOIN (tblLogins RIGHT JOIN (tblContactpersonen AS Assistenten RIGHT JOIN (tblContactpersonen AS Managers RIGHT JOIN tblOpleidingen ON Managers.ID = tblOpleidingen.contact2) ON Assistenten.ID = tblOpleidingen.contact1) ON tblLogins.fkAssistent = Assistenten.ID) ON tblLogins_1.fkAssistent = Managers.ID\r\nORDER BY tblOpleidingen.Code;",
+            "selectable": false
+        },
+        {
+            "id": 97,
+            "name": "PDO_OPLEIDINGEN",
+            "moduleId": 12,
+            "query": "SELECT tblLogins.ID AS AssistentLoginID, tblLogins_1.ID AS ManagerLoginID, tblOpleidingen.ID, tblOpleidingen.Titel, tblOpleidingen.fkoplsoort, tblOpleidingen.Code, Managers.Naam AS Manager, Managers.Email AS ManagerEMail, Assistenten.Naam AS Assistent, Assistenten.Email AS AssistentEMail\r\nFROM tblLogins AS tblLogins_1 RIGHT JOIN (tblLogins RIGHT JOIN (tblContactpersonen AS Assistenten RIGHT JOIN (tblContactpersonen AS Managers RIGHT JOIN tblOpleidingen ON Managers.ID = tblOpleidingen.contact2) ON Assistenten.ID = tblOpleidingen.contact1) ON tblLogins.fkAssistent = Assistenten.ID) ON tblLogins_1.fkAssistent = Managers.ID \r\nORDER BY tblOpleidingen.fkoplsoort, tblOpleidingen.Code;",
+            "selectable": false
+        },
+        {
+            "id": 84,
+            "name": "pdo_studiegids",
+            "moduleId": 12,
+            "query": "select id, code, titel, STUDIEGIDS,StudiegidsURL  from tblopleidingen WHERE (STUDIEGIDS is not null or StudiegidsURL is not null) order by code",
+            "selectable": false
+        },
+        {
+            "id": 94,
+            "name": "pdo_studiegidsbijlagen",
+            "moduleId": 12,
+            "query": "SELECT * from tblOpleidingenBijlagen where Bijlagebij='studiegids' order by sortorder,naam",
+            "selectable": false
+        },
+        {
+            "id": 79,
+            "name": "PDO_SUPERVISIEVERKLARING",
+            "moduleId": 12,
+            "query": "select id, code, titel, SUPERVISIEVERKLARING from tblopleidingen WHERE SUPERVISIEVERKLARING is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 49,
+            "name": "PDO_testlijst",
+            "moduleId": 12,
+            "query": "select id, code, titel, testlijst from tblopleidingen where testlijst is not null order by code",
+            "selectable": false
+        },
+        {
+            "id": 96,
+            "name": "pdo_verklaringen",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.Code, tblOpleidingen.Titel, tblVerklaringen.ID, tblVerklaringen.Referentie, tblVerklaringen.start_document, tblVerklaringen.einde_document, tblDeelname.ID AS DeelnameID, tblVerklaringen.TypeVerklaring, tblVerklaringen.start, tblVerklaringen.Einde, Iif([tblVerklaringen].[start_PraktijkopleiderGoedgekeurd]=true,'J','N') AS PO_START_OK, tblVerklaringen.start_DeelnemerDatum, tblVerklaringen.start_PraktijkopleiderDatum, Iif([tblVerklaringen].[einde_PraktijkopleiderGoedgekeurd]=true,'J','N') AS PO_EINDE_OK, tblVerklaringen.einde_PraktijkopleiderDatum, tblVerklaringen.einde_DeelnemerDatum, tblVerklaringen.NaamContactpersoon\r\nFROM tblOpleidingen RIGHT JOIN (tblDeelnemers LEFT JOIN (tblDeelname LEFT JOIN tblVerklaringen ON tblDeelname.ID = tblVerklaringen.fkDeelName) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding\r\nWHERE (((tblDeelname.EindDatum) Is Null Or (tblDeelname.EindDatum)>Date()))\r\nORDER BY tblOpleidingen.Code DESC , tblVerklaringen.start;",
+            "selectable": false
+        },
+        {
+            "id": 95,
+            "name": "pdo_verklaringen_templates",
+            "moduleId": 12,
+            "query": "SELECT [Code] + '-' + [Titel] AS Descr, tblOpleidingVerklaringenTemplates.Naam, tblOpleidingVerklaringenTemplates.Document, tblOpleidingVerklaringenTemplates.TYPEVERKLARING \r\nFROM tblOpleidingen INNER JOIN tblOpleidingVerklaringenTemplates ON tblOpleidingen.ID = tblOpleidingVerklaringenTemplates.fkOpleiding\r\nORDER BY [Code] + '-' + [Titel], tblOpleidingVerklaringenTemplates.Naam",
+            "selectable": false
+        },
+        {
+            "id": 74,
+            "name": "PDO_verslagen",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.DigitaalDossioma, tblOpleidingen.Code, tblOpleidingen.Titel, tblVerslagen.ID, tblVerslagen.Verslag, tblDeelname.ID AS DeelnameID, tblVerslagen.Verslagtype, tblVerslagen.PO_STATUS, tblVerslagen.Volgnummer, tblVerslagen.PeriodeStart, tblVerslagen.PeriodeEinde, tblVerslagen.DeelnemerDatum, tblVerslagen.PraktijkopleiderDatum, tblVerslagen.PraktijkopleiderOpmerking, tblVerslagen.HoofdopleiderDatum, tblVerslagen.HoofdopleiderOpmerking, Iif([tblVerslagen].[PraktijkopleiderGoedgekeurd]=True,'J','N') AS PO_OK, tblVerslagen.PraktijkopleiderDatum, Iif([tblVerslagen].[HoofdopleiderGoedgekeurd]=True,'J','N') AS HO_OK, tblVerslagen.HoofdopleiderDatum\r\nFROM tblOpleidingen RIGHT JOIN (tblDeelnemers LEFT JOIN (tblDeelname LEFT JOIN tblVerslagen ON tblDeelname.ID = tblVerslagen.fkDeelName) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer) ON tblOpleidingen.ID = tblDeelname.fkOpleiding WHERE ( tblDeelname.EindDatum is null or tblDeelname.EindDatum>date())\r\nORDER BY tblOpleidingen.Code DESC , tblVerslagen.PeriodeEinde DESC",
+            "selectable": false
+        },
+        {
+            "id": 66,
+            "name": "PDO_werkplan",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.Titel, tblOpleidingen.Code,  tblDeelname.Werkplan, PraktijkopleiderOpmerking, HoofdopleiderOpmerking, tblDeelname.DeelnemerDatum, iif([tblDeelname].[PraktijkopleiderGoedgekeurd]=True,'J','N') as PO_OK, tblDeelname.PraktijkopleiderDatum, iif([tblDeelname].[HoofdopleiderGoedgekeurd]=True,'J','N') as HO_OK, tblDeelname.HoofdopleiderDatum, tblDeelname.ID \r\nFROM tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding WHERE tblOpleidingen.datOnSite<=Date() AND tblDeelname.alleenCursorisch=False AND (tblDeelname.EindDatum is null or tblDeelname.EindDatum>date())",
+            "selectable": false
+        },
+        {
+            "id": 61,
+            "name": "PDO_werkplan_template",
+            "moduleId": 12,
+            "query": "SELECT tblOpleidingen.TemplateWerkplan FROM tblOpleidingen ORDER BY CODE",
+            "selectable": false
+        },
+        {
+            "id": 75,
+            "name": "PDO_werkplan_template_ass",
+            "moduleId": 12,
+            "query": "SELECT TemplateWerkplan,CODE FROM tblOpleidingen order by CODE",
+            "selectable": false
+        },
+        {
+            "id": 85,
+            "name": "PDO_werkplan_template_po",
+            "moduleId": 12,
+            "query": "SELECT TemplateWerkplan,CODE FROM tblOpleidingen ORDER BY CODE",
+            "selectable": false
+        }
+    ]
+}

@@ -1,0 +1,64 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "contentblocks",
+        "title": "Content blokken",
+        "titleSingular": "Content blok",
+        "table": "_config",
+        "database": "json",
+        "configFile": "../assets/contentblocks/contentblocks",
+        "configArrayKey": "templates",
+        "idField": "id",
+        "listQuery": "",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": true,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "quickSearchFields": "title,description",
+        "detailField": "title",
+        "orderField": "title",
+        "fields": [
+                {
+                        "name": "id",
+                        "type": "textbox",
+                        "caption": "ID",
+                        "required": true,
+                        "maxLength": 10,
+                        "width": 80,
+                        "helpText": "Unieke code voor dit content block (bijv. C47, B99)"
+                },
+                {
+                        "name": "title",
+                        "type": "textbox",
+                        "caption": "Titel",
+                        "required": true,
+                        "maxLength": 100
+                },
+                {
+                        "name": "description",
+                        "type": "memo",
+                        "caption": "Omschrijving",
+                        "maxLength": 500,
+                        "rows": 2
+                },
+                {
+                        "name": "html",
+                        "type": "memo",
+                        "dataType": "text",
+                        "height": 4,
+                        "caption": "HTML template",
+                        "rows": 20,
+                        "helpText": "HTML template met variabelen zoals {{variable_name}}"
+                },
+                {
+                        "name": "variables",
+                        "type": "memo",
+                        "dataType": "json",
+                        "caption": "Variabelen (JSON)",
+                        "rows": 25,
+                        "height": 12,
+                        "helpText": "JSON object met variabele definities"
+                }
+        ]
+}

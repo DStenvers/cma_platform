@@ -1,0 +1,14 @@
+{
+    "$schema": "./schema/app.schema.json",
+    "company": {
+        "logo": "images/interface/cma_logo.svg",
+        "logoWidth": 214,
+        "logoHeight": 40,
+        "url": "https://mijn.rino.nl"
+    },
+    "settings": {
+        "language": "NL",
+        "dateFormat": "DD-MM-YYYY",
+        "timezone": "Europe/Amsterdam"
+    }
+}

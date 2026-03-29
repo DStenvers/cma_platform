@@ -1,0 +1,603 @@
+{
+    "id": "2cde58bf-acdd-4316-bfde-0668a84b1cc9",
+    "name": "Actuele Opleidingsplaatsen",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": true,
+    "tables": [
+        {
+            "name": "tblOpleidingsplaatsen",
+            "alias": "t",
+            "joins": [
+                {
+                    "table": "tblPOinstellingen",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblOpleidingsplaatsen].[fkPOInstelling] = [tblPOinstellingen].[ID]"
+                },
+                {
+                    "table": "tblSRHForumLeden",
+                    "alias": "",
+                    "type": "LEFT OUTER",
+                    "on": "[tblOpleidingsplaatsen].[fkContactpersoonOpgegeven] = [tblSRHForumLeden].[ID]"
+                },
+                {
+                    "table": "tblInventarisatieGroepsomschrijving",
+                    "alias": "",
+                    "type": "INNER",
+                    "on": "[tblOpleidingsplaatsen].[fkInventarisatieGroepsomschrijving] = [tblInventarisatieGroepsomschrijving].[ID]"
+                }
+            ],
+            "relationships": [
+                {
+                    "fkTable": "tblOpleidingsplaatsen",
+                    "fkColumn": "fkPOInstelling",
+                    "pkTable": "tblPOinstellingen",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingsplaatsen",
+                    "fkColumn": "fkDifferentiatie",
+                    "pkTable": "tblDifferentiatie",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingsplaatsen",
+                    "fkColumn": "fkBIGDifferentiatie",
+                    "pkTable": "tblBIGDifferentiatie",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingsplaatsen",
+                    "fkColumn": "fkInventarisatieGroepsomschrijving",
+                    "pkTable": "tblInventarisatieGroepsomschrijving",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                },
+                {
+                    "fkTable": "tblOpleidingsplaatsen",
+                    "fkColumn": "fkContactpersoonOpgegeven",
+                    "pkTable": "tblSRHForumLeden",
+                    "pkColumn": "ID",
+                    "innerJoin": false,
+                    "manual": true
+                }
+            ]
+        },
+        {
+            "name": "tblPOinstellingen",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        },
+        {
+            "name": "tblSRHForumLeden",
+            "alias": "t",
+            "joins": [],
+            "relationships": [
+                {
+                    "fkTable": "tblSRHForumLeden",
+                    "fkColumn": "fkPOInstelling",
+                    "pkTable": "tblPOinstellingen",
+                    "pkColumn": "ID",
+                    "constraintName": "",
+                    "inferred": true
+                }
+            ]
+        },
+        {
+            "name": "tblInventarisatieGroepsomschrijving",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "ID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "fkPOInstelling",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "fkContactpersoonOpgegeven",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "fkDifferentiatie",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "bGeenplaatsen",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false,
+            "alias": "Geen_plaatsen"
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "AantalPlaatsen",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false,
+            "alias": "Aantal_plaatsen"
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "SaldoPlaatsen",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false,
+            "alias": "Aantal_plaatsen"
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "Jaar",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "Halfjaar",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "datestamp",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "fkBIGDifferentiatie",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "bactueel",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "TerugTrekkingOpmerking",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "SBOpmerking",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblOpleidingsplaatsen",
+            "field": "fkInventarisatieGroepsomschrijving",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "ID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "CartaID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Naam",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Plaats",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "SBOpmerking",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "bHoofdaannemer",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "adres",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "postcode",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "geocode",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_GZ",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_KP",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_KNP",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_PT",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_GZ_KJ",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_GZ_VO",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_KP_KJ",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "Erkend_KP_VO",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "url",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "erkend_pt_kj",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "erkend_pt_vo",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "erkend_go",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "erkend_OG",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblPOinstellingen",
+            "field": "samenwerkingsverband",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "ID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "volledigenaam",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "Achternaam",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "MV",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "organisatie",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "organisatie2",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "EMAIL",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "EmailNotificaties",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "PromptusID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "guid",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "EmailForumNotificaties",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "EmailNieuwsNotificaties",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "emailMessageNotificaties",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "emailTonen",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "Gecontroleerd",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblSRHForumLeden",
+            "field": "fkPOInstelling",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblInventarisatieGroepsomschrijving",
+            "field": "ID",
+            "dataType": 0,
+            "visible": false,
+            "showTotal": false
+        },
+        {
+            "table": "tblInventarisatieGroepsomschrijving",
+            "field": "Omschrijving",
+            "dataType": 0,
+            "visible": true,
+            "showTotal": false
+        }
+    ],
+    "conditions": [
+        {
+            "id": "cond_1769445601245_9wxoy",
+            "table": "tblOpleidingsplaatsen",
+            "field": "SaldoPlaatsen",
+            "alias": "SaldoPlaatsen",
+            "dataType": 4,
+            "typeCategory": "number",
+            "operator": ">",
+            "value": "0",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ""
+        },
+        {
+            "id": "cond_1769445617527_rcngz",
+            "table": "tblOpleidingsplaatsen",
+            "field": "bactueel",
+            "alias": "bactueel",
+            "dataType": -7,
+            "typeCategory": "boolean",
+            "operator": "yes",
+            "value": "",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ""
+        },
+        {
+            "id": "cond_1770104322192_53v3i",
+            "table": "tblOpleidingsplaatsen",
+            "field": "Jaar",
+            "alias": "Jaar",
+            "dataType": 4,
+            "typeCategory": "number",
+            "operator": ">=",
+            "value": "2027",
+            "value2": "",
+            "logic": "AND",
+            "prefix": "",
+            "suffix": ""
+        }
+    ],
+    "parameters": [],
+    "sorting": [
+        {
+            "table": "tblPOinstellingen",
+            "field": "Naam",
+            "alias": "Naam",
+            "direction": "ASC"
+        }
+    ],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": {
+            "tblOpleidingsplaatsen": {
+                "x": 380,
+                "y": 80
+            },
+            "tblPOinstellingen": {
+                "x": 40,
+                "y": 40
+            },
+            "tblSRHForumLeden": {
+                "x": 760,
+                "y": 40
+            },
+            "tblInventarisatieGroepsomschrijving": {
+                "x": 560,
+                "y": 580
+            }
+        },
+        "tableAliases": [],
+        "tableSizes": {
+            "tblBIGDifferentiatie": {
+                "width": 279,
+                "height": 102
+            },
+            "tblPOinstellingen": {
+                "width": 221,
+                "height": 591
+            },
+            "tblSRHForumLeden": {
+                "width": 274,
+                "height": 403
+            }
+        },
+        "panelPosition": {
+            "left": 1320,
+            "top": 20
+        }
+    },
+    "updatedAt": "2026-02-06 13:43:33",
+    "createdAt": "2026-02-06 13:43:33"
+}

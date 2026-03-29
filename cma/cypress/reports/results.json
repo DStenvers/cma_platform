@@ -1,0 +1,36 @@
+{
+    "timestamp": "2026-01-04T12:41:24+00:00",
+    "specs": "accessibility\/a11y,accessibility\/color-contrast,accessibility\/theme-elements",
+    "exitCode": 1,
+    "success": false,
+    "results": {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "pending": 0,
+        "duration": 0,
+        "tests": [],
+        "failures": []
+    },
+    "rawOutput": "",
+    "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\lab\\ai_conversion\\site\\cma\\node_modules\\cypress\\bin\\cypress\" run --headless --browser chrome --reporter json --spec \"cypress\/e2e\/accessibility\/a11y.cy.js,cypress\/e2e\/accessibility\/color-contrast.cy.js,cypress\/e2e\/accessibility\/theme-elements.cy.js\"",
+    "workingDir": "C:\\lab\\ai_conversion\\site\\cma",
+    "diagnostics": {
+        "phpVersion": "8.4.5",
+        "osFamily": "Windows",
+        "executionTime": "4s",
+        "totalTimeMs": 3916,
+        "processTimeout": "1200s",
+        "pollInterval": "100ms",
+        "pollCount": 2,
+        "stdoutLen": 2,
+        "stderrLen": 0,
+        "stdoutRaw": "0d0a",
+        "stderrRaw": "",
+        "cypressCacheFolder": "C:\/Users\/diede\/AppData\/Local\/Cypress\/Cache",
+        "nodejsPath": "C:\\Program Files\\nodejs",
+        "nodeVersionTest": "v22.21.1",
+        "mode": "non-blocking poll",
+        "checkpoints": "START: 0ms -> TIMEOUTS_SET: 1ms -> BUFFERS_FLUSHED: 1ms -> HEADERS_SENT: 2ms -> PARAMS_PARSED: 3ms -> NODEJS_LOOKUP_DONE: 3ms -> CYPRESS_FOUND: 4ms -> ENV_SETUP_DONE: 9ms -> NODE_VERSION_TEST_START: 10ms -> NODE_VERSION_TEST_DONE: 182ms -> PING_SKIPPED: 184ms -> BEFORE_PROC_OPEN: 185ms -> PROC_OPEN_CALL: 187ms -> PROC_OPEN_RETURNED: 201ms -> POLLING_LOOP_START: 202ms -> POLLING_LOOP_END (pollCount=2): 3913ms -> PROC_CLOSE_DONE (code=1): 3914ms -> OUTPUT_PROCESSED: 3915ms -> DONE (total=3916ms): 3916ms"
+    }
+}

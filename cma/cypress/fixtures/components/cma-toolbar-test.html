@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cma-toolbar Component Test</title>
+    <style>
+        /* Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        /* CSS Custom Properties that cma-toolbar uses */
+        :root {
+            --bg-surface: #f5f5f5;
+            --bg-surface-alt: #eaeaea;
+            --border-dark: #ccc;
+            --text-primary: #333;
+            --hover-bg: rgba(0, 0, 0, 0.08);
+            --color-primary: #204496;
+            --color-info: #077ab2;
+        }
+
+        /* Test container styles */
+        .test-section {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+        .test-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .test-section p {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        /* Demo button styles (for slotted content) */
+        .demo-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .demo-btn:hover {
+            background: #f0f0f0;
+        }
+        .demo-btn.primary {
+            background: var(--color-primary);
+            color: #fff;
+            border-color: var(--color-primary);
+        }
+
+        /* Icon button */
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            padding: 4px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-btn:hover {
+            background: rgba(0,0,0,0.08);
+        }
+
+        /* Linearicons (simple placeholders) */
+        .lnr { font-style: normal; }
+        .lnr-plus-circle::before { content: '+'; font-size: 16px; font-weight: bold; }
+        .lnr-trash::before { content: '×'; font-size: 16px; }
+        .lnr-pencil::before { content: '✎'; font-size: 14px; }
+        .lnr-magnifier::before { content: '⌕'; font-size: 14px; }
+
+        /* Log output */
+        #test-log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #1a1a2e;
+            color: #0f0;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        #test-log .error { color: #f55; }
+        #test-log .warn { color: #ff0; }
+        #test-log .success { color: #0f0; }
+
+        /* Scroll container for sticky test */
+        .scroll-container {
+            height: 250px;
+            overflow: auto;
+            border: 2px solid #333;
+            margin-top: 15px;
+        }
+        .scroll-content {
+            height: 600px;
+            padding: 20px;
+            background: linear-gradient(to bottom, #fff, #f0f0f0);
+        }
+
+        /* Search input */
+        .search-input {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Viewport size indicator */
+        #viewport-size {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            font-size: 12px;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewport-size"></div>
+    <h1 style="padding: 20px;">cma-toolbar Component Tests</h1>
+
+    <!-- Test 1: Default Toolbar -->
+    <div class="test-section" id="test-default">
+        <h2>Test 1: Default Toolbar</h2>
+        <p>Basic toolbar with left and right sections.</p>
+
+        <cma-toolbar id="toolbar-default">
+            <left slot="left">
+                <button class="demo-btn primary">Opslaan</button>
+                <button class="demo-btn">Annuleren</button>
+            </left>
+            <right slot="right">
+                <button class="demo-btn">Help</button>
+            </right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 2: Toolbar with Center -->
+    <div class="test-section" id="test-center">
+        <h2>Test 2: Toolbar with Center Section</h2>
+        <p>Toolbar with left, center, and right sections.</p>
+
+        <cma-toolbar id="toolbar-center">
+            <left slot="left">
+                <button class="demo-btn">Vorige</button>
+            </left>
+            <center slot="center">
+                <span style="font-weight: 500;">Pagina 1 van 10</span>
+            </center>
+            <right slot="right">
+                <button class="demo-btn">Volgende</button>
+            </right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 3: Subform Variant -->
+    <div class="test-section" id="test-subform">
+        <h2>Test 3: Subform Variant</h2>
+        <p>Compact toolbar for subforms (variant="subform").</p>
+
+        <cma-toolbar id="toolbar-subform" variant="subform">
+            <left slot="left">
+                <button class="icon-btn" title="Toevoegen">
+                    <span class="lnr lnr-plus-circle"></span>
+                </button>
+                <button class="icon-btn" title="Verwijderen">
+                    <span class="lnr lnr-trash"></span>
+                </button>
+                <button class="icon-btn" title="Bewerken">
+                    <span class="lnr lnr-pencil"></span>
+                </button>
+            </left>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 4: List Variant -->
+    <div class="test-section" id="test-list">
+        <h2>Test 4: List Variant</h2>
+        <p>Toolbar for list views (variant="list").</p>
+
+        <cma-toolbar id="toolbar-list" variant="list">
+            <left slot="left">
+                <button class="demo-btn">Nieuw</button>
+                <button class="demo-btn">Verwijderen</button>
+            </left>
+            <right slot="right">
+                <input type="search" class="search-input" placeholder="Zoeken...">
+                <button class="icon-btn" title="Zoeken">
+                    <span class="lnr lnr-magnifier"></span>
+                </button>
+            </right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 5: Detail Variant -->
+    <div class="test-section" id="test-detail">
+        <h2>Test 5: Detail Variant</h2>
+        <p>Toolbar for detail/form views (variant="detail").</p>
+
+        <cma-toolbar id="toolbar-detail" variant="detail">
+            <left slot="left">
+                <button class="demo-btn primary">Opslaan</button>
+                <button class="demo-btn">Opslaan en sluiten</button>
+                <button class="demo-btn">Annuleren</button>
+            </left>
+            <right slot="right">
+                <button class="demo-btn">Vorige</button>
+                <button class="demo-btn">Volgende</button>
+            </right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 6: Sticky Toolbar -->
+    <div class="test-section" id="test-sticky">
+        <h2>Test 6: Sticky Toolbar</h2>
+        <p>Toolbar that sticks to top when scrolling (sticky attribute).</p>
+
+        <div class="scroll-container" id="scroll-container">
+            <cma-toolbar id="toolbar-sticky" sticky>
+                <left slot="left">
+                    <button class="demo-btn">Sticky Button</button>
+                </left>
+                <right slot="right">
+                    <span>Scroll down to see sticky behavior</span>
+                </right>
+            </cma-toolbar>
+
+            <div class="scroll-content">
+                <p>Scroll this container to see the sticky toolbar.</p>
+                <p style="margin-top: 50px;">Keep scrolling...</p>
+                <p style="margin-top: 50px;">Almost there...</p>
+                <p style="margin-top: 50px;">The toolbar should stick at the top.</p>
+                <p style="margin-top: 50px;">End of content.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 7: Dynamic Content -->
+    <div class="test-section" id="test-dynamic">
+        <h2>Test 7: Dynamic Content</h2>
+        <p>Add/remove buttons dynamically.</p>
+
+        <div style="margin-bottom: 15px;">
+            <button class="demo-btn" id="btn-add-left">Add Left Button</button>
+            <button class="demo-btn" id="btn-add-right">Add Right Button</button>
+            <button class="demo-btn" id="btn-clear">Clear All</button>
+        </div>
+
+        <cma-toolbar id="toolbar-dynamic">
+            <left slot="left" id="dynamic-left">
+                <button class="demo-btn">Initial</button>
+            </left>
+            <right slot="right" id="dynamic-right"></right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 8: Button Click Events -->
+    <div class="test-section" id="test-events">
+        <h2>Test 8: Button Click Events</h2>
+        <p>Click buttons to see events logged.</p>
+
+        <cma-toolbar id="toolbar-events">
+            <left slot="left">
+                <button class="demo-btn" id="btn-save">Opslaan</button>
+                <button class="demo-btn" id="btn-cancel">Annuleren</button>
+            </left>
+            <right slot="right">
+                <button class="demo-btn" id="btn-delete">Verwijderen</button>
+            </right>
+        </cma-toolbar>
+
+        <div id="event-result" style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 4px;">
+            Click a button...
+        </div>
+    </div>
+
+    <!-- Test 9: Disabled Buttons -->
+    <div class="test-section" id="test-disabled">
+        <h2>Test 9: Disabled Buttons</h2>
+        <p>Some buttons are disabled.</p>
+
+        <cma-toolbar id="toolbar-disabled">
+            <left slot="left">
+                <button class="demo-btn">Enabled</button>
+                <button class="demo-btn" disabled>Disabled</button>
+                <button class="demo-btn primary" disabled>Disabled Primary</button>
+            </left>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test 10: Responsive -->
+    <div class="test-section" id="test-responsive">
+        <h2>Test 10: Responsive Behavior</h2>
+        <p>Resize window below 600px - center section should hide.</p>
+
+        <cma-toolbar id="toolbar-responsive">
+            <left slot="left">
+                <button class="demo-btn">Left</button>
+            </left>
+            <center slot="center">
+                <span>Center (hides on mobile)</span>
+            </center>
+            <right slot="right">
+                <button class="demo-btn">Right</button>
+            </right>
+        </cma-toolbar>
+    </div>
+
+    <!-- Test Log -->
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div id="test-log"></div>
+    </div>
+
+    <!-- Load the component -->
+    <script src="/cma/webcomponents/cma-toolbar.js"></script>
+
+    <script>
+        // Test log helper
+        const log = {
+            el: document.getElementById('test-log'),
+            add: function(msg, type = 'info') {
+                const line = document.createElement('div');
+                line.className = type;
+                line.textContent = `[${new Date().toISOString().substr(11, 8)}] ${msg}`;
+                this.el.appendChild(line);
+                this.el.scrollTop = this.el.scrollHeight;
+            },
+            success: function(msg) { this.add(msg, 'success'); },
+            error: function(msg) { this.add(msg, 'error'); },
+            warn: function(msg) { this.add(msg, 'warn'); }
+        };
+
+        // Viewport size indicator
+        function updateViewportSize() {
+            document.getElementById('viewport-size').textContent =
+                `Viewport: ${window.innerWidth}px x ${window.innerHeight}px`;
+        }
+        window.addEventListener('resize', updateViewportSize);
+        updateViewportSize();
+
+        // Wait for DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            log.add('DOM loaded, checking component...');
+
+            // Check registration
+            if (customElements.get('cma-toolbar')) {
+                log.success('cma-toolbar component is registered');
+            } else {
+                log.error('cma-toolbar component NOT registered!');
+                return;
+            }
+
+            // Give components time to initialize
+            setTimeout(runTests, 100);
+        });
+
+        function runTests() {
+            log.add('Running tests...');
+
+            // Test 1: Default toolbar
+            const tb1 = document.getElementById('toolbar-default');
+            if (tb1 && tb1.shadowRoot) {
+                log.success('Test 1: Default toolbar rendered with Shadow DOM');
+            }
+
+            // Test 2: Center section
+            const tb2 = document.getElementById('toolbar-center');
+            if (tb2) {
+                const centerSlot = tb2.shadowRoot.querySelector('slot[name="center"]');
+                if (centerSlot) {
+                    log.success('Test 2: Center slot exists');
+                }
+            }
+
+            // Test 3: Subform variant
+            const tb3 = document.getElementById('toolbar-subform');
+            if (tb3 && tb3.variant === 'subform') {
+                log.success('Test 3: Subform variant applied correctly');
+            }
+
+            // Test 4: List variant
+            const tb4 = document.getElementById('toolbar-list');
+            if (tb4 && tb4.variant === 'list') {
+                log.success('Test 4: List variant applied correctly');
+            }
+
+            // Test 5: Detail variant
+            const tb5 = document.getElementById('toolbar-detail');
+            if (tb5 && tb5.variant === 'detail') {
+                log.success('Test 5: Detail variant applied correctly');
+            }
+
+            // Test 6: Sticky
+            const tb6 = document.getElementById('toolbar-sticky');
+            if (tb6 && tb6.sticky === true) {
+                log.success('Test 6: Sticky attribute detected');
+            }
+
+            // Test 7: Dynamic content
+            let dynamicCounter = 0;
+            document.getElementById('btn-add-left').onclick = function() {
+                const left = document.getElementById('dynamic-left');
+                const btn = document.createElement('button');
+                btn.className = 'demo-btn';
+                btn.textContent = 'Left ' + (++dynamicCounter);
+                left.appendChild(btn);
+                log.add('Test 7: Added left button');
+            };
+            document.getElementById('btn-add-right').onclick = function() {
+                const right = document.getElementById('dynamic-right');
+                const btn = document.createElement('button');
+                btn.className = 'demo-btn';
+                btn.textContent = 'Right ' + (++dynamicCounter);
+                right.appendChild(btn);
+                log.add('Test 7: Added right button');
+            };
+            document.getElementById('btn-clear').onclick = function() {
+                document.getElementById('dynamic-left').innerHTML = '';
+                document.getElementById('dynamic-right').innerHTML = '';
+                dynamicCounter = 0;
+                log.add('Test 7: Cleared all buttons');
+            };
+
+            // Test 8: Button events
+            const eventResult = document.getElementById('event-result');
+            document.getElementById('btn-save').onclick = function() {
+                eventResult.textContent = 'Save button clicked!';
+                eventResult.style.background = '#d4edda';
+                log.add('Test 8: Save clicked');
+            };
+            document.getElementById('btn-cancel').onclick = function() {
+                eventResult.textContent = 'Cancel button clicked!';
+                eventResult.style.background = '#fff3cd';
+                log.add('Test 8: Cancel clicked');
+            };
+            document.getElementById('btn-delete').onclick = function() {
+                eventResult.textContent = 'Delete button clicked!';
+                eventResult.style.background = '#f8d7da';
+                log.add('Test 8: Delete clicked');
+            };
+
+            // Test 9: Disabled buttons
+            const disabledBtns = document.querySelectorAll('#toolbar-disabled button[disabled]');
+            if (disabledBtns.length === 2) {
+                log.success('Test 9: Found ' + disabledBtns.length + ' disabled buttons');
+            }
+
+            // Verify structure
+            const toolbars = document.querySelectorAll('cma-toolbar');
+            log.add('Found ' + toolbars.length + ' toolbar components');
+
+            toolbars.forEach((tb, i) => {
+                if (!tb.shadowRoot) {
+                    log.error(`Toolbar ${i + 1}: No shadow root!`);
+                } else {
+                    const leftSlot = tb.shadowRoot.querySelector('slot[name="left"]');
+                    const rightSlot = tb.shadowRoot.querySelector('slot[name="right"]');
+                    if (leftSlot && rightSlot) {
+                        log.add(`Toolbar ${i + 1}: Slots verified`);
+                    }
+                }
+            });
+
+            log.success('All tests initialized');
+        }
+    </script>
+</body>
+</html>

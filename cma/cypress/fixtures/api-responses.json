@@ -1,0 +1,54 @@
+{
+    "treeSuccess": {
+        "rows": [
+            {"ID": 1, "naam": "Test Record 1"},
+            {"ID": 2, "naam": "Test Record 2"}
+        ],
+        "total": 2,
+        "columns": [
+            {"name": "ID", "label": "ID", "type": "integer"},
+            {"name": "naam", "label": "Naam", "type": "string"}
+        ]
+    },
+    "treeEmpty": {
+        "rows": [],
+        "total": 0
+    },
+    "detailSuccess": {
+        "record": {
+            "ID": 1,
+            "naam": "Test Record",
+            "omschrijving": "Test description"
+        }
+    },
+    "saveSuccess": {
+        "success": true,
+        "id": 1,
+        "message": "Record opgeslagen"
+    },
+    "saveError": {
+        "success": false,
+        "error": "Validation error",
+        "fields": ["naam"]
+    },
+    "deleteSuccess": {
+        "success": true,
+        "message": "Record verwijderd"
+    },
+    "optionsSuccess": {
+        "options": [
+            {"value": "1", "label": "Optie 1"},
+            {"value": "2", "label": "Optie 2"},
+            {"value": "3", "label": "Optie 3"}
+        ]
+    },
+    "errorResponse": {
+        "success": false,
+        "error": "An error occurred"
+    },
+    "authError": {
+        "success": false,
+        "error": "Authentication required",
+        "code": "AUTH_REQUIRED"
+    }
+}

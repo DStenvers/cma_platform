@@ -1,0 +1,15 @@
+{"ts":"2026-02-20T09:41:59.026","level":"debug","req":"6ae667d2","msg":"form_api: JSON output","ctx":{"bytes":5677}}
+{"ts":"2026-02-20T09:41:59.048","level":"debug","req":"70fec0bf","msg":"form_api: JSON output","ctx":{"bytes":5675}}
+{"ts":"2026-02-20T09:42:00.382","level":"debug","req":"fe882c38","msg":"form_api: JSON output","ctx":{"bytes":73984}}
+{"ts":"2026-02-20T09:42:00.406","level":"debug","req":"47114adc","msg":"form_api: JSON output","ctx":{"bytes":73983}}
+{"ts":"2026-02-20T09:42:02.253","level":"debug","req":"86153a6a","msg":"form_api: JSON output","ctx":{"bytes":6866}}
+{"ts":"2026-02-20T09:42:04.191","level":"debug","req":"0a16e7d7","msg":"form_api: JSON output","ctx":{"bytes":6882}}
+{"ts":"2026-02-20T09:42:15.195","level":"debug","req":"fd777382","msg":"form_api: JSON output","ctx":{"bytes":102766}}
+{"ts":"2026-02-20T09:42:15.241","level":"debug","req":"6fd3e73d","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-02-20T09:42:15.261","level":"debug","req":"609f1697","msg":"form_api: JSON output","ctx":{"bytes":25004}}
+{"ts":"2026-02-20T09:42:26.060","level":"debug","req":"74b18e7c","msg":"form_api: JSON output","ctx":{"bytes":102784}}
+{"ts":"2026-02-20T09:42:26.088","level":"debug","req":"6be86273","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-02-20T09:42:26.126","level":"debug","req":"22efd722","msg":"form_api: JSON output","ctx":{"bytes":25004}}
+{"ts":"2026-02-20T09:42:31.294","level":"debug","req":"99bbf1d4","msg":"form_api: JSON output","ctx":{"bytes":102766}}
+{"ts":"2026-02-20T09:42:31.322","level":"debug","req":"ac9aca78","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-02-20T09:42:31.342","level":"debug","req":"6056c3bd","msg":"form_api: JSON output","ctx":{"bytes":25004}}

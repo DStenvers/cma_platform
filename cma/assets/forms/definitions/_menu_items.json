@@ -1,0 +1,90 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "_menu_items",
+        "title": "Menu-items",
+        "titleSingular": "Menu-item",
+        "table": "_config",
+        "activeField": "visible",
+        "database": "json",
+        "configFile": "menu",
+        "configArrayKey": "menus[].items",
+        "idField": "id",
+        "listQuery": "",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": true,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "quickSearchFields": "name,form",
+        "detailField": "name",
+        "orderField": "order",
+        "fields": [
+                {
+                        "name": "menuId",
+                        "type": "hidden",
+                        "caption": "Menu ID"
+                },
+                {
+                        "name": "visible",
+                        "type": "checkbox",
+                        "caption": "Zichtbaar",
+                        "defaultValue": true
+                },
+                {
+                        "name": "id",
+                        "type": "textbox",
+                        "caption": "ID",
+                        "dataType": "number",
+                        "readOnly": true,
+                        "width": 60
+                },
+                {
+                        "name": "name",
+                        "type": "textbox",
+                        "caption": "Weergavenaam",
+                        "maxLength": 100,
+                        "hint": "Leeg = gebruik formuliernaam"
+                },
+                {
+                        "name": "order",
+                        "type": "textbox",
+                        "caption": "Volgorde",
+                        "dataType": "number",
+                        "width": 80,
+                        "defaultValue": 100
+                },
+                {
+                        "name": "form",
+                        "type": "textbox",
+                        "caption": "JSON formulier",
+                        "maxLength": 100,
+                        "hint": "Naam van JSON formulierdefinitie"
+                },
+                {
+                        "name": "formId",
+                        "type": "hidden",
+                        "caption": "Form ID (legacy)"
+                },
+                {
+                        "name": "href",
+                        "type": "textbox",
+                        "caption": "URL",
+                        "maxLength": 255,
+                        "hint": "Alternatief: directe link i.p.v. formulier"
+                }
+        ],
+        "listColumns": [
+                {
+                        "field": "name",
+                        "title": "Weergavenaam",
+                        "type": "text"
+                },
+                {
+                        "field": "form",
+                        "title": "Formulier",
+                        "type": "text"
+                }
+        ],
+        "subforms": []
+}

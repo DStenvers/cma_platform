@@ -1,0 +1,518 @@
+{
+    "$schema": "./schema/menu.schema.json",
+    "version": "1.1.0",
+    "menus": [
+        {
+            "id": 26,
+            "name": "Opleidingen",
+            "order": 10,
+            "items": [
+                {
+                    "id": 83,
+                    "name": "Opleiding",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 68,
+                    "form": "opleidingen"
+                },
+                {
+                    "id": 74,
+                    "name": "",
+                    "order": 30,
+                    "visible": true,
+                    "formId": 58,
+                    "form": "rooster"
+                },
+                {
+                    "id": 99,
+                    "name": "",
+                    "order": 35,
+                    "visible": true,
+                    "formId": 116,
+                    "form": "blokken"
+                },
+                {
+                    "id": 111,
+                    "name": "Locaties",
+                    "order": 38,
+                    "visible": true,
+                    "formId": 157,
+                    "form": "locaties"
+                },
+                {
+                    "id": 98,
+                    "name": "Uren template",
+                    "order": 50,
+                    "visible": true,
+                    "formId": 114,
+                    "form": "urentemplate"
+                },
+                {
+                    "id": 144,
+                    "name": "Competentie templates",
+                    "order": 51,
+                    "visible": true,
+                    "formId": 102,
+                    "form": "competentie_templates"
+                },
+                {
+                    "id": 106,
+                    "name": "",
+                    "order": 99,
+                    "visible": true,
+                    "formId": 144,
+                    "form": "aanmeldingsdocumenten"
+                },
+                {
+                    "id": 66,
+                    "name": "Cursussoorten",
+                    "order": 150,
+                    "visible": true,
+                    "formId": 51,
+                    "form": "opleidingensoort"
+                },
+                {
+                    "id": 143,
+                    "name": "BIG opleidingstypes",
+                    "order": 155,
+                    "visible": true,
+                    "formId": 239,
+                    "form": "differentiatie"
+                },
+                {
+                    "id": 118,
+                    "name": "Opleidingscode",
+                    "order": 210,
+                    "visible": true,
+                    "formId": 179,
+                    "form": "opleidingcode_wijzigen"
+                }
+            ]
+        },
+        {
+            "id": 38,
+            "name": "Toetsen en opdrachten",
+            "order": 20,
+            "items": [
+                {
+                    "id": 148,
+                    "name": "Toetsen",
+                    "order": 5,
+                    "visible": true,
+                    "form": "toetsen",
+                    "formId": null,
+                    "href": null
+                }
+            ]
+        },
+        {
+            "id": 34,
+            "name": "Personen",
+            "order": 30,
+            "items": [
+                {
+                    "id": 80,
+                    "name": "Logins",
+                    "order": 10,
+                    "visible": true,
+                    "formId": "64",
+                    "form": "logins",
+                    "href": null
+                },
+                {
+                    "id": 137,
+                    "name": "",
+                    "order": 11,
+                    "visible": false,
+                    "formId": 229,
+                    "form": "login_email"
+                },
+                {
+                    "id": 77,
+                    "name": "",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 61,
+                    "form": "deelnemers"
+                },
+                {
+                    "id": 78,
+                    "name": "",
+                    "order": 30,
+                    "visible": true,
+                    "formId": 62,
+                    "form": "docenten"
+                },
+                {
+                    "id": 121,
+                    "name": "",
+                    "order": 35,
+                    "visible": true,
+                    "formId": 184,
+                    "form": "contactpersonen"
+                },
+                {
+                    "id": 105,
+                    "name": "",
+                    "order": 45,
+                    "visible": true,
+                    "formId": 137,
+                    "form": "contactpersonen_inventarisatie"
+                },
+                {
+                    "id": 79,
+                    "name": "Praktijkopleiders",
+                    "order": 50,
+                    "visible": true,
+                    "formId": 63,
+                    "form": "praktijkopleiders"
+                },
+                {
+                    "id": 114,
+                    "name": "",
+                    "order": 52,
+                    "visible": true,
+                    "formId": 168,
+                    "form": "werkbegeleiders"
+                },
+                {
+                    "id": 115,
+                    "name": "",
+                    "order": 54,
+                    "visible": true,
+                    "formId": 169,
+                    "form": "supervisoren"
+                },
+                {
+                    "id": 93,
+                    "name": "",
+                    "order": 60,
+                    "visible": true,
+                    "formId": 95,
+                    "form": "p_opleiders"
+                },
+                {
+                    "id": 60,
+                    "name": "",
+                    "order": 99,
+                    "visible": true,
+                    "formId": 43,
+                    "form": "rino_contactpersonen"
+                },
+                {
+                    "id": 107,
+                    "name": "",
+                    "order": 100,
+                    "visible": false,
+                    "formId": 149,
+                    "form": "servicebureau"
+                }
+            ]
+        },
+        {
+            "id": 49,
+            "name": "Taken",
+            "order": 32,
+            "items": [
+                {
+                    "id": 132,
+                    "name": "Taken",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 212,
+                    "form": "taken"
+                }
+            ]
+        },
+        {
+            "id": 46,
+            "name": "Afspraken",
+            "order": 35,
+            "items": [
+                {
+                    "id": 117,
+                    "name": "",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 176,
+                    "form": "afspraak"
+                }
+            ]
+        },
+        {
+            "id": 51,
+            "name": "Inventarisatie",
+            "order": 36,
+            "items": [
+                {
+                    "id": 128,
+                    "name": "Te inventariseren groepen",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 201,
+                    "form": "inventarisatie"
+                },
+                {
+                    "id": 129,
+                    "name": "Praktijkopleidingsinstellingen",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 203,
+                    "form": "praktijkopleidingsinstellingen"
+                },
+                {
+                    "id": 147,
+                    "name": "",
+                    "order": 30,
+                    "visible": true,
+                    "formId": 243,
+                    "form": "inventarisatiegroepsomschrijving"
+                }
+            ]
+        },
+        {
+            "id": 47,
+            "name": "ServiceBureau",
+            "order": 37,
+            "items": [
+                {
+                    "id": 134,
+                    "name": "Dispensatieaanvragen",
+                    "order": 0,
+                    "visible": true,
+                    "formId": 216,
+                    "form": "dispensatie"
+                },
+                {
+                    "id": 133,
+                    "name": "Voordrachten po's",
+                    "order": 0,
+                    "visible": true,
+                    "formId": 213,
+                    "form": "voordrachtenpraktijkopleiders"
+                },
+                {
+                    "id": 119,
+                    "name": "",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 183,
+                    "form": "voordrachten"
+                },
+                {
+                    "id": 71,
+                    "name": "Stichtingen",
+                    "order": 200,
+                    "visible": true,
+                    "formId": 56,
+                    "form": "stichtingen"
+                }
+            ]
+        },
+        {
+            "id": 41,
+            "name": "RINO info",
+            "order": 40,
+            "items": [
+                {
+                    "id": 100,
+                    "name": "",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 120,
+                    "form": "rino_nieuws"
+                },
+                {
+                    "id": 103,
+                    "name": "",
+                    "order": 15,
+                    "visible": true,
+                    "formId": 133,
+                    "form": "rino_nieuws_redactie"
+                },
+                {
+                    "id": 102,
+                    "name": "",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 132,
+                    "form": "algemene_info"
+                }
+            ]
+        },
+        {
+            "id": 44,
+            "name": "Evaluaties",
+            "order": 45,
+            "items": [
+                {
+                    "id": 113,
+                    "name": "",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 160,
+                    "form": "evaluatie_template_evaluatie_document"
+                },
+                {
+                    "id": 112,
+                    "name": "",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 161,
+                    "form": "evaluatie_template"
+                }
+            ]
+        },
+        {
+            "id": 36,
+            "name": "Gesprekken",
+            "order": 60,
+            "items": [
+                {
+                    "id": 84,
+                    "name": "Gesprekken aankondigen",
+                    "order": 10,
+                    "visible": true,
+                    "href": "../cma_gesprek.php?pageaction=aankondigen"
+                },
+                {
+                    "id": 86,
+                    "name": "",
+                    "order": 15,
+                    "visible": true,
+                    "formId": 75,
+                    "form": "aankondigingen"
+                },
+                {
+                    "id": 85,
+                    "name": "Gesprekstijden inroosteren",
+                    "order": 20,
+                    "visible": true,
+                    "href": "../cma_gesprek.php?pageaction=tijden"
+                },
+                {
+                    "id": 122,
+                    "name": "Gereserveerde tijdsblokken",
+                    "order": 50,
+                    "visible": true,
+                    "formId": 189,
+                    "form": "agendareserveringen"
+                },
+                {
+                    "id": 87,
+                    "name": "Tijdsblokken en ingeplande gesprekken",
+                    "order": 999,
+                    "visible": true,
+                    "formId": 84,
+                    "form": "ingeplande_tijdsblokken"
+                }
+            ]
+        },
+        {
+            "id": 43,
+            "name": "CGO",
+            "order": 65,
+            "items": [
+                {
+                    "id": 110,
+                    "name": "CGO Vragenlijsten",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 155,
+                    "form": "cgo_template_cgo_document"
+                },
+                {
+                    "id": 109,
+                    "name": "CGO Template",
+                    "order": 80,
+                    "visible": true,
+                    "formId": 154,
+                    "form": "cgo_template"
+                },
+                {
+                    "id": 145,
+                    "name": "KBT templates",
+                    "order": 100,
+                    "visible": true,
+                    "formId": 240,
+                    "form": "kbt_templates"
+                }
+            ]
+        },
+        {
+            "id": 50,
+            "name": "Teksten",
+            "order": 80,
+            "items": [
+                {
+                    "id": 135,
+                    "name": "",
+                    "order": 10,
+                    "visible": true,
+                    "formId": 221,
+                    "form": "wijzigbare_systeemteksten"
+                },
+                {
+                    "id": 138,
+                    "name": "",
+                    "order": 20,
+                    "visible": true,
+                    "formId": 230,
+                    "form": "snel_naar"
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "name": "Rapporten",
+            "order": 200,
+            "items": [
+                {
+                    "id": 25,
+                    "name": "Alle standaard rapporten",
+                    "order": 1,
+                    "visible": true,
+                    "href": "reports.php",
+                    "formName": null,
+                    "formId": null
+                },
+                {
+                    "id": 150,
+                    "name": "Rapport ontwerper",
+                    "order": 5,
+                    "visible": true,
+                    "href": "report-designer.php"
+                }
+            ]
+        },
+        {
+            "id": 48,
+            "name": "Systeem",
+            "order": 999,
+            "items": [
+                {
+                    "id": 140,
+                    "name": "Gebruikers",
+                    "order": 10,
+                    "visible": true,
+                    "form": "users"
+                },
+                {
+                    "id": 142,
+                    "name": "Groepen",
+                    "order": 20,
+                    "visible": true,
+                    "form": "groups"
+                },
+                {
+                    "id": 144,
+                    "name": "Alle beheerstools",
+                    "order": 30,
+                    "visible": true,
+                    "href": "tools.php"
+                }
+            ],
+            "accessLevel": "admin"
+        }
+    ]
+}

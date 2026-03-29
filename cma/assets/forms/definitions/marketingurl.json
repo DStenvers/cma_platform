@@ -1,0 +1,54 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "marketingurl",
+        "title": "Marketing URLs",
+        "titleSingular": "Marketing URL",
+        "table": "tblMarketingUrl",
+        "database": "data",
+        "idField": "ID",
+        "displayMode": 2,
+        "listQuery": "",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": false,
+        "orderField": "Dir",
+        "quickSearchFields": "Dir,Page",
+        "detailField": "Dir",
+        "fields": [
+                {
+                        "name": "ID",
+                        "type": "autonumber",
+                        "caption": "ID",
+                        "visible": false,
+                        "maxLength": 10
+                },
+                {
+                        "name": "Dir",
+                        "type": "textbox",
+                        "caption": "Directory",
+                        "required": true,
+                        "maxLength": 78,
+                        "helpText": "De korte URL (bijv. 'aanmelden' voor /aanmelden/)"
+                },
+                {
+                        "name": "Page",
+                        "type": "textbox",
+                        "caption": "Doorverwijzen naar",
+                        "required": true,
+                        "maxLength": 78,
+                        "helpText": "De volledige URL waarnaar doorverwezen wordt"
+                },
+                {
+                        "name": "Opmerking",
+                        "type": "textbox",
+                        "caption": "Opmerking"
+                },
+                {
+                        "name": "DATESTAMP",
+                        "type": "date",
+                        "caption": "Datum",
+                        "maxLength": 19
+                }
+        ]
+}

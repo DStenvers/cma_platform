@@ -1,0 +1,24 @@
+{
+    "name": "Test Report",
+    "mode": "advanced",
+    "database": 1,
+    "isGlobal": false,
+    "tables": [],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "id": "4bc6c72f-ef9c-4e28-a6ea-d6073dac4237",
+    "updatedAt": "2026-02-12 00:16:30",
+    "createdAt": "2026-02-12 00:16:30",
+    "createdBy": "1"
+}

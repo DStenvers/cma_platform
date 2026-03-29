@@ -1,0 +1,205 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.2",
+        "name": "users",
+        "title": "Gebruikers",
+        "titleSingular": "Gebruiker",
+        "table": "tblUsers",
+        "database": "users",
+        "idField": "ID",
+        "listQuery": "SELECT ID, userFullName as Descr\nFROM tblUsers\nORDER BY userFullName",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": false,
+        "securityByUser": false,
+        "storeLastModified": false,
+        "previewUrl": "",
+        "afterPostUrl": "",
+        "extraIconURL": "javascript:CMA.Users.loginAsUser(recordId)",
+        "extraIconTitle": "Inloggen als",
+        "filterIdName": "",
+        "quickSearchFields": "userLogin,userFullName,userEmail",
+        "detailField": "Descr",
+        "listColumns": [
+                {
+                        "field": "userLogin",
+                        "title": "Login",
+                        "type": "text"
+                },
+                {
+                        "field": "userFullName",
+                        "title": "Volledige naam",
+                        "type": "text"
+                },
+                {
+                        "field": "userEmail",
+                        "title": "E-mail",
+                        "type": "text"
+                },
+                {
+                        "field": "userLevel",
+                        "title": "Toegangsniveau",
+                        "type": "text"
+                }
+        ],
+        "fields": [
+                {
+                        "name": "userGUID",
+                        "type": "ignorefield",
+                        "caption": "GUID",
+                        "skipInTableView": true,
+                        "skipInSync": true,
+                        "maxLength": 36
+                },
+                {
+                        "name": "userLogin",
+                        "type": "textbox",
+                        "caption": "Login",
+                        "required": true,
+                        "maxLength": 20
+                },
+                {
+                        "name": "userFullName",
+                        "type": "textbox",
+                        "caption": "Volledige naam",
+                        "required": true,
+                        "maxLength": 32
+                },
+                {
+                        "name": "userEmail",
+                        "type": "textbox",
+                        "caption": "E-mail",
+                        "maxLength": 78
+                },
+                {
+                        "name": "userPassword",
+                        "type": "password",
+                        "caption": "Wachtwoord",
+                        "maxLength": 32,
+                        "hint": "Alleen invullen bij nieuwe gebruiker of wachtwoord wijzigen",
+                        "skipInTableView": true,
+                        "skipInSync": true
+                },
+                {
+                        "name": "userIPAddresses",
+                        "type": "textbox",
+                        "caption": "IP Adressen",
+                        "maxLength": 76,
+                        "hint": "Komma-gescheiden (geen beperking)",
+                        "dataType": "text"
+                },
+                {
+                        "name": "userLevel",
+                        "type": "radiogroup",
+                        "caption": "Toegangsniveau",
+                        "required": true,
+                        "defaultValue": "0",
+                        "options": [
+                                {
+                                        "value": "0",
+                                        "text": "Gebruiker"
+                                },
+                                {
+                                        "value": "1",
+                                        "text": "Administrator"
+                                },
+                                {
+                                        "value": "2",
+                                        "text": "Developer"
+                                }
+                        ],
+                        "maxLength": 10
+                },
+                {
+                        "name": "user_groups",
+                        "type": "custom",
+                        "caption": "Lid van groepen",
+                        "renderer": "security_groups",
+                        "hint": "Selecteer de groepen waarvan deze gebruiker lid is"
+                },
+                {
+                        "name": "prefTheme",
+                        "type": "combobox",
+                        "caption": "Thema",
+                        "defaultValue": "light",
+                        "maxLength": 10,
+                        "options": [
+                                {
+                                        "value": "light",
+                                        "text": "Licht"
+                                },
+                                {
+                                        "value": "dark",
+                                        "text": "Donker"
+                                },
+                                {
+                                        "value": "system",
+                                        "text": "Systeem"
+                                }
+                        ]
+                },
+                {
+                        "name": "prefMenuStyle",
+                        "type": "combobox",
+                        "caption": "Menustijl",
+                        "defaultValue": "sidebar",
+                        "maxLength": 10,
+                        "options": [
+                                {
+                                        "value": "sidebar",
+                                        "text": "Zijbalk"
+                                },
+                                {
+                                        "value": "classic",
+                                        "text": "Klassieke tabs"
+                                }
+                        ]
+                },
+                {
+                        "name": "prefPopupStyle",
+                        "type": "combobox",
+                        "caption": "Popup stijl",
+                        "defaultValue": "sidepanel",
+                        "maxLength": 10,
+                        "options": [
+                                {
+                                        "value": "sidepanel",
+                                        "text": "Zijpaneel"
+                                },
+                                {
+                                        "value": "popup",
+                                        "text": "Popup venster"
+                                }
+                        ]
+                },
+                {
+                        "name": "form_notifications",
+                        "type": "custom",
+                        "caption": "Notificaties",
+                        "renderer": "form_notifications",
+                        "hint": "Selecteer de formulieren waarvoor deze gebruiker e-mailnotificaties ontvangt bij wijzigingen"
+                },
+                {
+                        "name": "data_notifications",
+                        "type": "custom",
+                        "caption": "Data meldingen",
+                        "renderer": "data_notifications",
+                        "hint": "Configureer meldingen wanneer gegevensbronnen verlopen"
+                },
+                {
+                        "name": "userSkipNotifyOwnRecords",
+                        "type": "checkbox",
+                        "caption": "Geen notificaties eigen wijzigingen",
+                        "maxLength": 1,
+                        "defaultValue": "0"
+                },
+                {
+                        "name": "SkipTips",
+                        "type": "ignorefield",
+                        "caption": "Skip Tips",
+                        "skipInTableView": true,
+                        "skipInSync": true
+                }
+        ],
+        "subforms": []
+}

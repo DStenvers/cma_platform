@@ -1,0 +1,25 @@
+<?php
+
+// NOTE: : bij wijzigingen even zoeken in de source naar het gebruik en aanvullen in de Forms Wizard
+
+define("CONSTFLDTYPE_COMBOBOX", 2);
+define("CONSTFLDTYPE_TEXTBOX", 3);
+define("CONSTFLDTYPE_CHECKBOX", 5);
+define("CONSTFLDTYPE_MEMO", 6);
+define("CONSTFLDTYPE_CHECKLIST", 8);
+define("CONSTFLDTYPE_IMAGE", 9);
+define("CONSTFLDTYPE_URL", 10);
+define("CONSTFLDTYPE_FILE", 11);
+define("CONSTFLDTYPE_LABEL", 12);
+define("CONSTFLDTYPE_SORTLIST", 13);
+define("CONSTFLDTYPE_DIRECTORY", 14);
+define("CONSTFLDTYPE_GROUPSEPARATOR", 15);
+define("CONSTFLDTYPE_USERLIST", 16);
+define("CONSTFLDTYPE_EMAIL", 17);
+define("CONSTFLDTYPE_XMLSTORE", 18);
+define("CONSTFLDTYPE_HTMLSTRIP", 19);
+define("CONSTFLDTYPE_THUMBNAIL", 20);
+define("CONSTFLDTYPE_TIME", 21);
+define("CONSTFLDTYPE_PASSWORD", 22);
+define("CONSTFLDTYPECOUNT", 18);
+?>

@@ -1,0 +1,28 @@
+# Nginx configuration snippet for auto-prepending bootstrap
+# Add this to your server block in nginx.conf
+
+# Auto-prepend bootstrap to all PHP files
+fastcgi_param PHP_VALUE "auto_prepend_file=/full/path/to/_bootstrap.php";
+
+# Security headers
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+
+# Hide sensitive files
+location ~ /\.(env|app_started) {
+    deny all;
+    return 404;
+}
+
+location ~ /(composer\.json|composer\.lock) {
+    deny all;
+    return 404;
+}
+
+# PHP processing
+location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;  # Adjust to your PHP-FPM socket
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param PHP_VALUE "auto_prepend_file=$document_root/_bootstrap.php";
+}

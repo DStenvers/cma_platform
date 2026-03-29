@@ -1,0 +1,77 @@
+[
+    {
+        "error": "Onbekende actie: ",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_definition.php",
+            "\/cma\/api\/report-export.php",
+            "\/cma\/api\/report-query.php",
+            "\/cma\/api\/report-schema.php"
+        ]
+    },
+    {
+        "error": "formId or formName is required",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_list.php",
+            "\/cma\/api\/form_record.php"
+        ]
+    },
+    {
+        "error": "Record met ID '1' niet gevonden",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_record.php?formName=users&id=1",
+            "\/cma\/api\/form_record.php?formName=rooster&id=1"
+        ]
+    },
+    {
+        "error": "DEPRECATED: Repository database (was read-only, no longer used)\",\n            \"deprecated\": true,\n            \"deprecatedReason\": \"Formulierdefinities zijn gemigreerd naar JSON bestanden\"\n        },\n ",
+        "type": "php",
+        "urls": [
+            "\/cma\/api\/config_api.php?type=databases"
+        ]
+    },
+    {
+        "error": "FormID or form name is required",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_subform.php"
+        ]
+    },
+    {
+        "error": "Geen gebruiker opgegeven",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/user_actions.php"
+        ]
+    },
+    {
+        "error": "Invalid action",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/user_tips.php"
+        ]
+    },
+    {
+        "error": "Record met ID '0' niet gevonden",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_record.php?formName=groups&id=0"
+        ]
+    },
+    {
+        "error": "Record met ID '111' niet gevonden",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_record.php?formName=opleidingen&id=111"
+        ]
+    },
+    {
+        "error": "Record met ID '4252' niet gevonden",
+        "type": "api",
+        "urls": [
+            "\/cma\/api\/form_record.php?formName=docenten&id=4252"
+        ]
+    }
+]

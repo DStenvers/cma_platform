@@ -1,0 +1,9 @@
+.CalenderTable	  {border-collapse:collapse; border:1px solid darkblue; font-family: 'Open Sans',Verdana; font-size:var(--font-size-sm)}
+.CalenderTDTitle  {text-align:center; background-color:darkblue ; font-weight:bold; color: white  }
+.CalenderTDDays	  {text-align:center; background-color:lightblue; border:0 0 0 0px; color: #666666}
+.CalenderTDToday  {text-align:center; background-color:blue     ; color:white}
+.CalenderTDApp	  {text-align:center; background-color:yellow   ; font-weight:bold; border:0 0 0 0px}
+.CalenderTDUnused {text-align:center; background-color:#dddddd  }
+.CalenderTD		  {text-align:center}
+.CalenderTDApp A, .CalenderTDApp A:hover, .CalenderTDApp A:link, .CalenderTDApp A:visited, .CalenderTDApp A:active {color:white; text-decoration:none}
+.CalenderTDTitle, .CalenderTDTitle a, .CalenderTDTitle a:link, .CalenderTDTitle a:visited, .CalenderTDTitle a:active {color:white;font-size:var(--font-size);text-decoration:none}

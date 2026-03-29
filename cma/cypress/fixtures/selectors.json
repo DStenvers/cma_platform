@@ -1,0 +1,93 @@
+{
+    "login": {
+        "usernameField": "#txtLogin",
+        "passwordField": "#txtPW",
+        "submitButton": "#btnLogin",
+        "errorMessage": ".login-error, .alert-error"
+    },
+    "sidebar": {
+        "container": "[data-cy='sidebar'], #sidebar, .cma-sidebar",
+        "toggle": "[data-cy='sidebar-toggle'], .cma-toggle-btn",
+        "menuGroup": "[data-cy='menu-group'], .cma-menu-group",
+        "menuGroupHeader": "[data-cy='menu-group-header'], .cma-menu-group-header",
+        "menuGroupTitle": "[data-cy='menu-group-title'], .cma-menu-group-title",
+        "menuItem": "[data-cy='menu-item'], .cma-menu-item",
+        "menuItemText": "[data-cy='menu-item-text'], .cma-menu-item-text",
+        "menuPopup": "[data-cy='menu-popup'], .cma-menu-popup"
+    },
+    "userMenu": {
+        "container": "[data-cy='user-menu'], .cma-user-menu",
+        "dropdown": "[data-cy='user-dropdown'], .cma-user-dropdown",
+        "userName": "[data-cy='user-name'], .cma-user-name"
+    },
+    "toolbar": {
+        "container": "[data-cy='toolbar'], .toolbar, .cma-toolbar",
+        "saveButton": "[data-cy='btn-save'], .tb-btn.save",
+        "deleteButton": "[data-cy='btn-delete'], .tb-btn.delete",
+        "addButton": "[data-cy='btn-add'], .tb-btn.add",
+        "copyButton": "[data-cy='btn-copy'], .tb-btn.copy",
+        "refreshButton": "[data-cy='btn-refresh'], .tb-btn.refresh",
+        "backButton": "[data-cy='btn-back'], .btn-back"
+    },
+    "table": {
+        "container": "[data-cy='form-table'], table.filtering, .listtable",
+        "header": "thead",
+        "body": "tbody",
+        "row": "tbody tr",
+        "cell": "td",
+        "rowMenu": "[data-cy='row-menu'], .row-menu-trigger, .three-dot-menu",
+        "contextMenu": "[data-cy='context-menu'], .cma-context-menu"
+    },
+    "detail": {
+        "container": "[data-cy='detail-view'], .detail-content, .form-layout",
+        "field": "[data-cy='field'], .form-field",
+        "label": "label, .field-label",
+        "input": "input, select, textarea"
+    },
+    "inlineEdit": {
+        "editingRow": ".editing, .inline-edit-row",
+        "saveButton": "[data-cy='inline-save'], .cma-edit-controls .btn-save",
+        "cancelButton": "[data-cy='inline-cancel'], .cma-edit-controls .btn-cancel"
+    },
+    "tabs": {
+        "container": "[data-cy='subform-tabs'], .cma-tabs, .subform-tabs",
+        "tab": "[data-cy='tab'], .tab",
+        "activeTab": ".active",
+        "content": "[data-cy='subform-content'], .subform-content"
+    },
+    "breadcrumb": {
+        "container": "[data-cy='breadcrumb'], #breadcrumb, .cma-breadcrumb",
+        "item": "a, span",
+        "separator": ".separator, .breadcrumb-separator"
+    },
+    "search": {
+        "quickSearch": "[data-cy='quick-search'], #quickSearch, input[name='search']",
+        "searchButton": "[data-cy='search-button'], .search-btn",
+        "clearButton": "[data-cy='clear-search'], .clear-search",
+        "panel": "[data-cy='search-panel'], .search-panel",
+        "togglePanel": "[data-cy='toggle-search'], .toggle-search"
+    },
+    "dialog": {
+        "container": "[data-cy='dialog'], lib-dialog, .modal",
+        "confirmDialog": "[data-cy='confirm-dialog'], .confirm-dialog",
+        "confirmButton": "[data-cy='confirm-delete'], .btn-confirm",
+        "cancelButton": "[data-cy='cancel-delete'], .btn-cancel"
+    },
+    "notification": {
+        "success": "lib-message[type='success'], .alert-success",
+        "error": "lib-message[type='error'], .alert-error",
+        "warning": "lib-message[type='warning'], .alert-warning",
+        "info": "lib-message[type='info'], .alert-info"
+    },
+    "loading": {
+        "indicator": "[data-cy='loading'], .cma-content-loading",
+        "contentArea": "#contentArea"
+    },
+    "tree": {
+        "container": "cma-tree, [data-cy='tools-tree'], #tools-tree",
+        "node": ".complextree li",
+        "nodeLink": ".complextree li a",
+        "expandIcon": ".plus, .expand-icon",
+        "selectedNode": ".selected"
+    }
+}

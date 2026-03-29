@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cma-fold Component Test</title>
+    <style>
+        /* Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        /* CSS Custom Properties that cma-fold uses */
+        :root {
+            --bg-surface: #f4f4f4;
+            --bg-surface-alt: #e8e8e8;
+            --bg-hover: #d0e8f8;
+            --border-color: #ddd;
+            --color-primary: #204496;
+            --color-info: #077ab2;
+        }
+
+        /* Test container styles */
+        .test-section {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+        .test-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .test-section h3 {
+            margin: 15px 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Validation results */
+        .validation-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .validation-result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .validation-result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .validation-result pre {
+            margin-top: 10px;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        /* ==========================================
+           Test 1: Vertical Fold (default)
+           ========================================== */
+        .test-vertical {
+            display: flex;
+            flex-direction: row;
+            height: 200px;
+            border: 2px solid #333;
+        }
+        .test-vertical .panel-left {
+            flex: 0 0 200px;
+            min-width: 100px;
+            max-width: 400px;
+            background: #e3f2fd;
+            padding: 10px;
+            overflow: auto;
+        }
+        .test-vertical .panel-right {
+            flex: 1;
+            background: #fff;
+            padding: 10px;
+            overflow: auto;
+        }
+
+        /* ==========================================
+           Test 2: Horizontal Fold
+           ========================================== */
+        .test-horizontal {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+            border: 2px solid #333;
+        }
+        .test-horizontal .panel-top {
+            flex: 0 0 100px;
+            min-height: 50px;
+            max-height: 200px;
+            background: #e8f5e9;
+            padding: 10px;
+            overflow: auto;
+        }
+        .test-horizontal .panel-bottom {
+            flex: 1;
+            background: #fff;
+            padding: 10px;
+            overflow: auto;
+        }
+
+        /* ==========================================
+           Test 3: Incorrect CSS (for validation testing)
+           ========================================== */
+        .test-incorrect {
+            /* NOT using flex - this should trigger validation error */
+            display: block;
+            height: 200px;
+            border: 2px solid #c00;
+        }
+        .test-incorrect .panel {
+            width: 200px;
+            height: 100%;
+            background: #ffebee;
+            display: inline-block;
+        }
+
+        /* ==========================================
+           Test 4: Missing flex properties
+           ========================================== */
+        .test-missing-flex {
+            display: flex;
+            height: 200px;
+            border: 2px solid #f90;
+        }
+        .test-missing-flex .panel {
+            /* Missing flex: 0 0 Xpx - width/height won't work properly */
+            width: 200px;
+            background: #fff3e0;
+            padding: 10px;
+        }
+
+        /* ==========================================
+           Test 5: Collapsed state
+           ========================================== */
+        .test-collapsed {
+            display: flex;
+            flex-direction: row;
+            height: 200px;
+            border: 2px solid #333;
+        }
+        .test-collapsed .panel-left {
+            flex: 0 0 200px;
+            background: #fce4ec;
+            padding: 10px;
+        }
+        .test-collapsed .panel-right {
+            flex: 1;
+            background: #fff;
+            padding: 10px;
+        }
+
+        /* Log output */
+        #validation-log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #1a1a2e;
+            color: #0f0;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        #validation-log .error { color: #f55; }
+        #validation-log .warn { color: #ff0; }
+        #validation-log .success { color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1 style="padding: 20px;">cma-fold Component Tests</h1>
+
+    <!-- Test 1: Vertical Fold -->
+    <div class="test-section" id="test-vertical-section">
+        <h2>Test 1: Vertical Fold (Resize Width)</h2>
+        <p>Drag the fold bar to resize the left panel. Double-click to collapse/expand.</p>
+        <div class="test-vertical" id="container-vertical">
+            <div class="panel-left" id="panel-vertical">
+                <strong>Left Panel</strong>
+                <p>This panel should resize when dragging the fold.</p>
+                <p>Current width: <span id="width-display">200px</span></p>
+            </div>
+            <cma-fold
+                id="fold-vertical"
+                orientation="vertical"
+                target="#panel-vertical"
+                min-size="100"
+                max-size="400"
+                storage-key="test_fold_vertical">
+            </cma-fold>
+            <div class="panel-right">
+                <strong>Right Panel</strong>
+                <p>This panel fills remaining space.</p>
+            </div>
+        </div>
+        <div id="validation-vertical" class="validation-result"></div>
+    </div>
+
+    <!-- Test 2: Horizontal Fold -->
+    <div class="test-section" id="test-horizontal-section">
+        <h2>Test 2: Horizontal Fold (Resize Height)</h2>
+        <p>Drag the fold bar to resize the top panel. Double-click to collapse/expand.</p>
+        <div class="test-horizontal" id="container-horizontal">
+            <div class="panel-top" id="panel-horizontal">
+                <strong>Top Panel</strong>
+                <p>This panel should resize when dragging the fold.</p>
+                <p>Current height: <span id="height-display">100px</span></p>
+            </div>
+            <cma-fold
+                id="fold-horizontal"
+                orientation="horizontal"
+                target="#panel-horizontal"
+                min-size="50"
+                max-size="200"
+                storage-key="test_fold_horizontal">
+            </cma-fold>
+            <div class="panel-bottom">
+                <strong>Bottom Panel</strong>
+                <p>This panel fills remaining space.</p>
+            </div>
+        </div>
+        <div id="validation-horizontal" class="validation-result"></div>
+    </div>
+
+    <!-- Test 3: Incorrect CSS (validation should fail) -->
+    <div class="test-section" id="test-incorrect-section">
+        <h2>Test 3: Incorrect CSS (Should Show Validation Errors)</h2>
+        <p>This container has incorrect CSS (display: block instead of flex). Validation should fail.</p>
+        <div class="test-incorrect" id="container-incorrect">
+            <div class="panel" id="panel-incorrect">Panel</div>
+            <cma-fold
+                id="fold-incorrect"
+                orientation="vertical"
+                target="#panel-incorrect"
+                min-size="100"
+                max-size="300">
+            </cma-fold>
+        </div>
+        <div id="validation-incorrect" class="validation-result"></div>
+    </div>
+
+    <!-- Test 4: Missing flex shorthand -->
+    <div class="test-section" id="test-missing-flex-section">
+        <h2>Test 4: Missing Flex Shorthand (Should Show Warning)</h2>
+        <p>This container uses flex but panel lacks flex: 0 0 Xpx. May cause resize issues.</p>
+        <div class="test-missing-flex" id="container-missing-flex">
+            <div class="panel" id="panel-missing-flex">Panel (width: 200px, no flex shorthand)</div>
+            <cma-fold
+                id="fold-missing-flex"
+                orientation="vertical"
+                target="#panel-missing-flex"
+                min-size="100"
+                max-size="300">
+            </cma-fold>
+        </div>
+        <div id="validation-missing-flex" class="validation-result"></div>
+    </div>
+
+    <!-- Test 5: Collapse/Expand -->
+    <div class="test-section" id="test-collapsed-section">
+        <h2>Test 5: Collapse/Expand via API</h2>
+        <p>Use the buttons to test the public API methods.</p>
+        <div style="margin-bottom: 10px;">
+            <button id="btn-collapse">collapse()</button>
+            <button id="btn-expand">expand()</button>
+            <button id="btn-toggle">toggle()</button>
+            <button id="btn-setsize">setSize(250)</button>
+        </div>
+        <div class="test-collapsed" id="container-collapsed">
+            <div class="panel-left" id="panel-collapsed">
+                <strong>Collapsible Panel</strong>
+                <p>State: <span id="collapsed-state">open</span></p>
+            </div>
+            <cma-fold
+                id="fold-collapsed"
+                orientation="vertical"
+                target="#panel-collapsed"
+                min-size="100"
+                max-size="300"
+                collapsed-size="0"
+                storage-key="test_fold_collapsed">
+            </cma-fold>
+            <div class="panel-right">
+                <strong>Right Panel</strong>
+            </div>
+        </div>
+        <div id="validation-collapsed" class="validation-result"></div>
+    </div>
+
+    <!-- Validation Log -->
+    <div class="test-section">
+        <h2>Validation Log</h2>
+        <div id="validation-log"></div>
+    </div>
+
+    <!-- cmaLog shim for standalone testing -->
+    <script>
+        if (typeof cmaLog === 'undefined') {
+            window.cmaLog = { log: console.log, warn: console.warn, error: console.error };
+        }
+    </script>
+
+    <!-- Load the component -->
+    <script src="/cma/webcomponents/cma-fold.js"></script>
+
+    <script>
+        // Validation log helper
+        const log = {
+            el: document.getElementById('validation-log'),
+            add: function(msg, type = 'info') {
+                const line = document.createElement('div');
+                line.className = type;
+                line.textContent = `[${new Date().toISOString().substr(11, 8)}] ${msg}`;
+                this.el.appendChild(line);
+                this.el.scrollTop = this.el.scrollHeight;
+            },
+            success: function(msg) { this.add(msg, 'success'); },
+            error: function(msg) { this.add(msg, 'error'); },
+            warn: function(msg) { this.add(msg, 'warn'); }
+        };
+
+        // Wait for components to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            log.add('DOM loaded, waiting for components...');
+
+            // Check if component is registered
+            if (customElements.get('cma-fold')) {
+                log.success('cma-fold component is registered');
+            } else {
+                log.error('cma-fold component NOT registered!');
+                return;
+            }
+
+            // Give components time to initialize
+            setTimeout(runTests, 100);
+        });
+
+        function runTests() {
+            log.add('Running validation tests...');
+
+            // Test 1: Vertical fold
+            const fold1 = document.getElementById('fold-vertical');
+            if (fold1 && typeof fold1.validateSetup === 'function') {
+                const result1 = fold1.validateSetup();
+                displayValidation('validation-vertical', result1);
+                if (result1.valid) {
+                    log.success('Test 1 (vertical): CSS validation passed');
+                } else {
+                    log.error('Test 1 (vertical): CSS validation failed - ' + result1.errors.join(', '));
+                }
+            } else {
+                log.warn('Test 1: validateSetup() not available on component');
+            }
+
+            // Test 2: Horizontal fold
+            const fold2 = document.getElementById('fold-horizontal');
+            if (fold2 && typeof fold2.validateSetup === 'function') {
+                const result2 = fold2.validateSetup();
+                displayValidation('validation-horizontal', result2);
+                if (result2.valid) {
+                    log.success('Test 2 (horizontal): CSS validation passed');
+                } else {
+                    log.error('Test 2 (horizontal): CSS validation failed - ' + result2.errors.join(', '));
+                }
+            }
+
+            // Test 3: Incorrect CSS (should fail)
+            const fold3 = document.getElementById('fold-incorrect');
+            if (fold3 && typeof fold3.validateSetup === 'function') {
+                const result3 = fold3.validateSetup();
+                displayValidation('validation-incorrect', result3);
+                if (!result3.valid) {
+                    log.success('Test 3 (incorrect CSS): Correctly detected CSS errors');
+                } else {
+                    log.error('Test 3 (incorrect CSS): Should have failed but passed!');
+                }
+            }
+
+            // Test 4: Missing flex
+            const fold4 = document.getElementById('fold-missing-flex');
+            if (fold4 && typeof fold4.validateSetup === 'function') {
+                const result4 = fold4.validateSetup();
+                displayValidation('validation-missing-flex', result4);
+                if (result4.warnings && result4.warnings.length > 0) {
+                    log.warn('Test 4 (missing flex): Warnings detected - ' + result4.warnings.join(', '));
+                }
+            }
+
+            // Test 5: Collapse/Expand API
+            const fold5 = document.getElementById('fold-collapsed');
+            const stateSpan = document.getElementById('collapsed-state');
+
+            // API buttons
+            document.getElementById('btn-collapse').onclick = function() {
+                fold5.collapse();
+                stateSpan.textContent = fold5._collapsed ? 'collapsed' : 'open';
+                log.add('Called collapse() - state: ' + (fold5._collapsed ? 'collapsed' : 'open'));
+            };
+            document.getElementById('btn-expand').onclick = function() {
+                fold5.expand();
+                stateSpan.textContent = fold5._collapsed ? 'collapsed' : 'open';
+                log.add('Called expand() - state: ' + (fold5._collapsed ? 'collapsed' : 'open'));
+            };
+            document.getElementById('btn-toggle').onclick = function() {
+                fold5.toggle();
+                stateSpan.textContent = fold5._collapsed ? 'collapsed' : 'open';
+                log.add('Called toggle() - state: ' + (fold5._collapsed ? 'collapsed' : 'open'));
+            };
+            document.getElementById('btn-setsize').onclick = function() {
+                fold5.setSize(250);
+                log.add('Called setSize(250)');
+            };
+
+            // Validate test 5
+            if (fold5 && typeof fold5.validateSetup === 'function') {
+                const result5 = fold5.validateSetup();
+                displayValidation('validation-collapsed', result5);
+            }
+
+            // Update width/height displays
+            const panel1 = document.getElementById('panel-vertical');
+            const widthDisplay = document.getElementById('width-display');
+            const fold1El = document.getElementById('fold-vertical');
+            if (fold1El) {
+                fold1El.addEventListener('fold-resize', function(e) {
+                    widthDisplay.textContent = e.detail.size + 'px';
+                });
+            }
+
+            const panel2 = document.getElementById('panel-horizontal');
+            const heightDisplay = document.getElementById('height-display');
+            const fold2El = document.getElementById('fold-horizontal');
+            if (fold2El) {
+                fold2El.addEventListener('fold-resize', function(e) {
+                    heightDisplay.textContent = e.detail.size + 'px';
+                });
+            }
+
+            log.success('All tests initialized');
+        }
+
+        function displayValidation(elementId, result) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            let html = '';
+            if (result.valid) {
+                el.className = 'validation-result success';
+                html = '<strong>✓ CSS Validation Passed</strong>';
+                if (result.warnings && result.warnings.length > 0) {
+                    html += '<pre>Warnings:\n- ' + result.warnings.join('\n- ') + '</pre>';
+                }
+            } else {
+                el.className = 'validation-result error';
+                html = '<strong>✗ CSS Validation Failed</strong>';
+                html += '<pre>Errors:\n- ' + result.errors.join('\n- ') + '</pre>';
+                if (result.suggestions && result.suggestions.length > 0) {
+                    html += '<pre>Suggestions:\n- ' + result.suggestions.join('\n- ') + '</pre>';
+                }
+            }
+            el.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

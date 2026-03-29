@@ -1,0 +1,201 @@
+/**
+ * CMA-specific style overrides
+ *
+ * Base variables and dark mode tokens are in library/css/lib-variables.css.
+ * This file contains only CMA-specific component theming and 3rd-party
+ * dark mode hacks (CKEditor, Select2).
+ *
+ * To override a base variable for CMA, re-declare it here on :root:
+ *   :root { --color-primary: #ff0000; }
+ *   html.dark-mode { --color-primary: #ff6666; }
+ */
+
+/* ========================================
+   TREE / MENU STYLES (CMA-specific selectors)
+   ======================================== */
+#simpletree a:hover,
+.complextree li a:hover {
+    background-color: var(--tree-hover-bg);
+}
+
+.complextree li a.active,
+#listContent a.active {
+    background-color: var(--tree-active-bg);
+    color: var(--tree-active-text, #fff);
+    border-color: var(--tree-active-bordercolor, transparent);
+}
+
+/* ========================================
+   SELECT2 BASE THEMING
+   ======================================== */
+.select2-container .select2-choice,
+.select2-container-multi .select2-choices {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+.select2-drop {
+    background-color: var(--bg-surface);
+    border-color: var(--border-color);
+}
+
+.select2-drop-active,
+.select2-drop.select2-drop-above.select2-drop-active {
+    border: none !important;
+}
+
+.select2-results li {
+    color: var(--text-primary);
+}
+
+.select2-results .select2-highlighted {
+    background-color: var(--color-accent);
+    color: var(--text-inverse);
+}
+
+.select2-default {
+    color: var(--text-muted) !important;
+    font-style: italic !important;
+}
+
+/* Select2 focus state */
+.select2-container-active .select2-choice,
+.select2-container-active .select2-choices,
+.select2-dropdown-open .select2-choice {
+    border-color: var(--color-accent) !important; outline: none; box-shadow: none;
+}
+
+/* Input group focus states (file, url groups) */
+.file-input-group:focus-within,
+.url-input-group:focus-within {
+    border-color: var(--color-accent) !important; outline: none; box-shadow: none;
+}
+
+/* Button styles moved to library.css */
+
+/* ========================================
+   CKEDITOR DARK MODE OVERRIDES
+   ======================================== */
+html.dark-mode .cke_chrome { border-color: var(--border-color) !important; }
+html.dark-mode .cke_inner { background: var(--bg-surface) !important; }
+html.dark-mode .cke_top { background-color: var(--bg-surface-alt) !important; border-bottom-color: var(--border-color) !important; }
+html.dark-mode .cke_bottom { background-color: var(--bg-surface-alt) !important; border-top-color: var(--border-color) !important; }
+html.dark-mode .cke_wysiwyg_frame,
+html.dark-mode .cke_wysiwyg_div { background-color: var(--bg-content) !important; }
+html.dark-mode .cke_button_icon::before { color: var(--text-secondary) !important; }
+html.dark-mode .cke_button:hover .cke_button_icon::before { color: var(--color-accent) !important; }
+html.dark-mode .cke_button_on { background: var(--bg-hover) !important; }
+html.dark-mode a.cke_button_off:hover,
+html.dark-mode a.cke_button_off:focus { background: var(--bg-hover) !important; }
+html.dark-mode .cke_button_label,
+html.dark-mode .cke_combo_text { color: var(--text-primary) !important; text-shadow: none !important; }
+html.dark-mode .cke_toolbar_separator { background-color: var(--border-color) !important; }
+html.dark-mode .cke_combo_button { background: var(--bg-surface) !important; border-color: var(--border-color) !important; }
+html.dark-mode .cke_combo_arrow { border-top-color: var(--text-secondary) !important; }
+html.dark-mode .cke_panel { background-color: var(--bg-surface) !important; border-color: var(--border-color) !important; }
+html.dark-mode .cke_panel_grouptitle { background: var(--bg-surface-alt) !important; color: var(--text-primary) !important; }
+html.dark-mode .cke_panel_listItem a { color: var(--text-primary) !important; }
+html.dark-mode .cke_panel_listItem a:hover,
+html.dark-mode .cke_panel_listItem.cke_selected a { background-color: var(--bg-hover) !important; }
+html.dark-mode .cke_path_item { color: var(--text-muted) !important; }
+html.dark-mode .cke_menubutton_label { color: var(--text-primary) !important; }
+html.dark-mode .cke_menubutton:hover { background-color: var(--bg-hover) !important; }
+html.dark-mode .cke_colorblock { background-color: var(--bg-surface) !important; color: var(--text-primary) !important; }
+html.dark-mode .cke_dialog { background-color: var(--bg-surface) !important; }
+html.dark-mode .cke_dialog_title { background-color: var(--bg-surface-alt) !important; color: var(--text-primary) !important; }
+html.dark-mode .cke_dialog_body { background-color: var(--bg-surface) !important; color: var(--text-primary) !important; }
+html.dark-mode .cke_dialog input,
+html.dark-mode .cke_dialog textarea { background-color: var(--input-bg) !important; border-color: var(--input-border) !important; color: var(--text-primary) !important; }
+html.dark-mode .cke_resizer { border-color: transparent var(--text-muted) transparent transparent !important; }
+
+/* ========================================
+   SELECT2 DARK MODE OVERRIDES
+   ======================================== */
+html.dark-mode .select2-container .select2-choice { background-color: var(--input-bg) !important; background-image: none !important; border-color: var(--input-border) !important; color: var(--text-primary) !important; }
+html.dark-mode .select2-container .select2-choice > .select2-chosen { color: var(--text-primary) !important; }
+html.dark-mode .select2-container .select2-choice .select2-arrow { background-color: var(--input-bg) !important; background-image: none !important; border-left-color: var(--border-color) !important; }
+html.dark-mode .select2-drop { background-color: var(--bg-surface) !important; border-color: var(--border-color) !important; color: var(--text-primary) !important; }
+html.dark-mode .select2-drop.select2-drop-active { border-color: var(--color-accent) !important; }
+html.dark-mode .select2-search { background-color: var(--bg-surface) !important; }
+html.dark-mode .select2-search input { background-color: var(--input-bg) !important; border-color: var(--input-border) !important; color: var(--text-primary) !important; }
+html.dark-mode .select2-results { background-color: var(--bg-surface) !important; }
+html.dark-mode .select2-results li { color: var(--text-primary) !important; background-color: var(--bg-surface) !important; }
+html.dark-mode .select2-results .select2-highlighted { background-color: var(--color-accent) !important; color: var(--text-inverse) !important; }
+html.dark-mode .select2-results li.select2-result-with-children > .select2-result-label { background-color: var(--bg-surface-alt) !important; color: var(--text-primary) !important; }
+html.dark-mode .select2-results .select2-no-results,
+html.dark-mode .select2-results .select2-searching { background-color: var(--bg-surface) !important; color: var(--text-muted) !important; }
+html.dark-mode .select2-results .select2-disabled { background-color: var(--bg-disabled) !important; color: var(--text-disabled) !important; }
+html.dark-mode .select2-container.select2-container-disabled .select2-choice { background-color: var(--bg-disabled) !important; color: var(--text-disabled) !important; }
+html.dark-mode .select2-container-multi .select2-choices { background-color: var(--input-bg) !important; background-image: none !important; border-color: var(--input-border) !important; }
+html.dark-mode .select2-container-multi .select2-choices .select2-search-choice { background-color: var(--bg-surface-alt) !important; background-image: none !important; border-color: var(--border-color) !important; color: var(--text-primary) !important; }
+html.dark-mode .select2-container-multi .select2-choices .select2-search-field input { color: var(--text-primary) !important; }
+html.dark-mode .select2-results .select2-match,
+html.dark-mode span.select2-match { background-color: var(--color-warning) !important; color: var(--text-inverse) !important; }
+html.dark-mode .select2-container-active .select2-choice,
+html.dark-mode .select2-container-active .select2-choices { border-color: var(--color-accent) !important; box-shadow: none !important; }
+html.dark-mode .select2-dropdown-open .select2-choice { background-color: var(--input-bg) !important; border-color: var(--color-accent) !important; }
+html.dark-mode .select2-search-choice-close { filter: invert(0.7); }
+
+/* Password view eye icon - invert for dark mode */
+html.dark-mode span.pwd_view { filter: invert(0.7); }
+
+/* ========================================
+   DASHBOARD CARDS
+   ======================================== */
+.dashboard-card-body {
+    background-color: var(--bg-card);
+    border-collapse: collapse;
+}
+.stats-card,
+.dashboard-card {
+    background-color: var(--bg-card);
+}
+html.dark-mode .stats-card,
+html.dark-mode .dashboard-card {
+    border: 1px solid #222222;
+}
+
+/* ========================================
+   SELECT2 ADDITIONAL FIXES
+   ======================================== */
+
+/* Remove gradient background from multi-select choices */
+ul.select2-choices {
+    background-image: none !important;
+    background-color: var(--input-bg);
+}
+
+/* ========================================
+   LIB_TABLE LEGACY STYLES
+   ======================================== */
+
+table.lib_table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-surface);
+}
+
+table.lib_table th,
+table.lib_table td {
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+table.lib_table th {
+    background-color: var(--table-header-bg);
+    font-weight: bold;
+}
+
+table.lib_table tr:nth-child(odd) td {
+    background-color: var(--table-row-odd);
+}
+
+table.lib_table tr:nth-child(even) td {
+    background-color: var(--table-row-even);
+}
+
+table.lib_table tr:hover td {
+    background-color: var(--table-row-hover);
+}

@@ -1,0 +1,38 @@
+{
+    "id": "cf6e6289-c616-454d-acb3-ba5d27d7944c",
+    "name": "Query Options Test 1770033192511",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "tblAfspraak",
+            "alias": "t",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": true,
+    "topN": 50,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-02 11:53:21",
+    "createdAt": "2026-02-02 11:53:21",
+    "createdBy": "1"
+}

@@ -1,0 +1,36 @@
+{
+    "opleidingen": {
+        "name": "opleidingen",
+        "displayName": "Opleidingen",
+        "primaryKey": "ID",
+        "testData": {
+            "naam": "Test Opleiding",
+            "omschrijving": "Test omschrijving voor Cypress test",
+            "status": "actief"
+        },
+        "searchableFields": ["naam", "omschrijving"],
+        "requiredFields": ["naam"]
+    },
+    "deelnemers": {
+        "name": "deelnemers",
+        "displayName": "Deelnemers",
+        "primaryKey": "ID",
+        "testData": {
+            "naam": "Test Deelnemer",
+            "email": "test@example.com"
+        },
+        "searchableFields": ["naam", "email"],
+        "requiredFields": ["naam"]
+    },
+    "contactpersonen": {
+        "name": "contactpersonen",
+        "displayName": "Contactpersonen",
+        "primaryKey": "ID",
+        "testData": {
+            "naam": "Test Contact",
+            "telefoon": "0612345678"
+        },
+        "searchableFields": ["naam", "telefoon"],
+        "requiredFields": ["naam"]
+    }
+}

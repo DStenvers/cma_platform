@@ -1,0 +1,78 @@
+<html>
+<head>
+	<style>
+		select {font-family: "Trebuchet MS"}
+		span.select2-chosen, .select2-result-label, .select2-drop.select2-drop-above .select2-search input, .select2-no-results, .select2-searching {font-family: "Trebuchet MS"; font-size:13px}
+		.standard {width:300px}
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+	<link href="select2/select2.css" rel="stylesheet"/>
+	<script src="select2/select2.min.js"></script>
+	<script src="select2/select2_locale_nl.js"></script>
+	<script>
+		$(document).ready(function() { 	
+			
+			$('#basic').select2();
+			
+			$('#simple_clear').select2( {allowClear: true} );
+
+			$("#simple_data").select2({
+				minimumInputLength: 1,
+				query: function (query) {
+					var data = {results: []}, i, j, s;
+					for (i = 1; i < 5; i++) {
+					s = "";
+					for (j = 0; j < i; j++) {s = s + query.term;}
+						data.results.push({id: query.term + i, text: s});
+					}
+					query.callback(data);
+				}
+			});
+			
+			$('#ajax_list_1').select2({
+				minimumInputLength:1,
+				initSelection: function(element, callback) {
+					callback({id: 1, text: 'default selection with id 1' });
+				},
+				ajax: {
+					url: 'http://localhost/master_dev/_tests/select2/sample_data.asp',
+					dataType: 'json',
+					quietMillis: 100,
+					data: function (term, page) {
+						return {
+							q: term //search term
+						};
+					},
+					results: function (data, page) {
+						return {results: data.data};
+					}
+				}
+			});			
+		});
+	</script>
+</head>
+<body>
+	<h2>Basisvorm</h2>
+	<select id=basic  class=standard>
+		<option value=1>Eerste item</option>
+		<option value=2>Tweede item</option>
+		<option value=3>Derde item</option>
+		<option value=3>Dit is het vierde item, best lang om eens te kijken hoe hij daarmee omgaat..</option>
+	</select>
+
+	<h2>Met clear optie</h2>
+	<select id=simple_clear  class=standard>
+		<option value=1>Eerste item</option>
+		<option value=2>Tweede item</option>
+		<option value=3>Derde item</option>
+		<option value=3>Dit is het vierde item, best lang om eens te kijken hoe hij daarmee omgaat..</option>
+	</select>
+
+	<h2>Eenvoudige dynamische data</h2>
+	<input id=simple_data class=standard></select>
+	
+	<h2>Ajax met zoekmogelijkheid en default waarde</h2>
+	<input id=ajax_list_1 class=standard value="1" />
+
+</body>
+</html>

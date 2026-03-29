@@ -1,0 +1,215 @@
+/**
+ * Responsive Tabs Component CSS
+ *
+ * Switches between tabs and select dropdown based on viewport width.
+ * Uses CSS-only approach with media queries where possible.
+ */
+
+/* Container */
+.responsive-tabs {
+    --tabs-bg: var(--bg-surface-alt, #f5f5f5);
+    --tabs-active-bg: var(--toolbar-bg, #ffffff);
+    --tabs-text: var(--text-secondary, #666666);
+    --tabs-active-text: var(--color-primary, #204496);
+    --tabs-border: var(--border-color, #cccccc);
+    --tabs-radius: 6px;
+    --tabs-height: 32px;
+    --tabs-breakpoint: 600px;
+
+    position: relative;
+    width: 100%;
+}
+
+/* === TABS VIEW (Desktop) === */
+.responsive-tabs .tabs-container {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-top: 3px;
+    height: var(--tabs-height);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+.responsive-tabs .tabs-container li {
+    border-radius: var(--tabs-radius) var(--tabs-radius) 0 0;
+    float: left;
+    width: auto;
+    min-width: 50px;
+    max-width: 200px;
+    list-style-type: none;
+    padding: 0;
+    margin-right: 3px;
+    box-shadow: 3px 3px 3px rgba(128, 128, 128, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.responsive-tabs .tabs-container li.selected {
+    z-index: 3;
+}
+
+.responsive-tabs .tabs-container li a,
+.responsive-tabs .tabs-container li a:link {
+    border-radius: var(--tabs-radius) var(--tabs-radius) 0 0;
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    padding: 6px 12px;
+    padding-bottom: 8px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: var(--tabs-text);
+    background-color: var(--tabs-bg);
+    text-decoration: none;
+    font: 12px "Trebuchet MS", Verdana, Arial, sans-serif;
+    transition: background-color 0.3s ease-in;
+}
+
+.responsive-tabs .tabs-container li a:hover {
+    background-color: var(--tabs-active-bg);
+    color: var(--text-primary, #333);
+}
+
+.responsive-tabs .tabs-container li.selected a,
+.responsive-tabs .tabs-container li.selected a:link {
+    color: var(--tabs-active-text);
+    margin-top: -1px;
+    border-top: solid 1px var(--bg-body, #fff);
+    background-color: var(--tabs-active-bg);
+}
+
+/* Tab shadow (bottom border effect) */
+.responsive-tabs .tabs-container li.shadow {
+    width: 100%;
+    height: 2px;
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    box-shadow: 0 1px 2px 2px rgba(128, 128, 128, 0.3);
+    z-index: 2;
+    float: left;
+}
+
+/* === SELECT VIEW (Mobile) === */
+.responsive-tabs .select-container {
+    display: none;
+    width: 100%;
+    padding: 4px;
+}
+
+.responsive-tabs .select-container select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid var(--tabs-border);
+    border-radius: 4px;
+    background-color: var(--tabs-active-bg);
+    color: var(--text-primary, #333);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+.responsive-tabs .select-container select:focus {
+    outline: none;
+    border-color: var(--tabs-active-text);
+    box-shadow: 0 0 0 2px rgba(32, 68, 150, 0.2);
+}
+
+/* === TAB PANES === */
+.responsive-tabs .tab-panes {
+    position: relative;
+}
+
+.responsive-tabs .tab-pane {
+    display: none;
+    padding: 0;
+}
+
+.responsive-tabs .tab-pane.active {
+    display: block;
+}
+
+/* Loading state */
+.responsive-tabs .tab-pane.loading {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.responsive-tabs .tab-pane.loaded {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* === RESPONSIVE BREAKPOINT === */
+@media screen and (max-width: 600px) {
+    .responsive-tabs .tabs-container {
+        display: none;
+    }
+
+    .responsive-tabs .select-container {
+        display: block;
+    }
+}
+
+/* Allow custom breakpoint via CSS variable */
+@supports (--custom: true) {
+    /* This is handled in JavaScript for dynamic breakpoint support */
+}
+
+/* === FORCED MODES (via class) === */
+.responsive-tabs.force-tabs .tabs-container {
+    display: flex !important;
+}
+
+.responsive-tabs.force-tabs .select-container {
+    display: none !important;
+}
+
+.responsive-tabs.force-select .tabs-container {
+    display: none !important;
+}
+
+.responsive-tabs.force-select .select-container {
+    display: block !important;
+}
+
+/* === SUBFORM SPECIFIC STYLES === */
+.subform-section .responsive-tabs .tabs-container li a {
+    min-width: 120px;
+    box-sizing: border-box;
+}
+
+/* Record count badge */
+.responsive-tabs .tab-count {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    background-color: var(--bg-surface-alt, #e0e0e0);
+    color: var(--text-secondary, #666);
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+.responsive-tabs .tabs-container li.selected .tab-count {
+    background-color: var(--color-primary, #204496);
+    color: #fff;
+}
+
+/* In select mode, show count in option text */
+.responsive-tabs .select-container option .tab-count {
+    display: none; /* Can't style option content - count added to text in JS */
+}

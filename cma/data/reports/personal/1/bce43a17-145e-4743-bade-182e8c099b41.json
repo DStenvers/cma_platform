@@ -1,0 +1,23 @@
+{
+    "name": "Test Report Fix",
+    "mode": "advanced",
+    "database": 1,
+    "isGlobal": false,
+    "tables": [],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "id": "bce43a17-145e-4743-bade-182e8c099b41",
+    "updatedAt": "2026-02-12 00:17:54",
+    "createdAt": "2026-02-12 00:17:54",
+    "createdBy": "1"
+}

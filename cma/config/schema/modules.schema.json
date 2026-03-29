@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Module Configuration",
+  "type": "object",
+  "required": ["modules"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "database"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique module identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Module name"
+          },
+          "database": {
+            "type": "string",
+            "description": "Database name reference"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether module is active"
+          },
+          "order": {
+            "type": "integer",
+            "default": 0,
+            "description": "Execution/display order"
+          },
+          "cachePrefix": {
+            "type": "string",
+            "description": "Cache key prefix"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "caption": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": ["string", "number", "boolean"]
+                },
+                "postCaption": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

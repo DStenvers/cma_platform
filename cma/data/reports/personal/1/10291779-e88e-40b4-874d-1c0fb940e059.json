@@ -1,0 +1,44 @@
+{
+    "id": "10291779-e88e-40b4-874d-1c0fb940e059",
+    "name": "Multi Table Test 1771118209133",
+    "mode": "advanced",
+    "database": 6,
+    "isGlobal": false,
+    "tables": [
+        {
+            "name": "Duplicaten zoeken voor tblDeelnameAfspraken",
+            "alias": "d",
+            "joins": [],
+            "relationships": []
+        },
+        {
+            "name": "EersteEvaluaties",
+            "alias": "e",
+            "joins": [],
+            "relationships": []
+        }
+    ],
+    "fields": [],
+    "conditions": [],
+    "parameters": [],
+    "sorting": [],
+    "grouping": [],
+    "distinct": false,
+    "topN": null,
+    "totals": {
+        "showGrandTotal": false,
+        "fields": []
+    },
+    "output": {
+        "format": "table"
+    },
+    "layout": {
+        "tablePositions": [],
+        "tableAliases": [],
+        "tableSizes": [],
+        "panelPosition": null
+    },
+    "updatedAt": "2026-02-15 01:17:03",
+    "createdAt": "2026-02-15 01:17:03",
+    "createdBy": "1"
+}

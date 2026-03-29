@@ -1,0 +1,192 @@
+{
+    "light": {
+        "name": "Light Mode",
+        "cookieValue": "light",
+        "htmlClass": "",
+        "colors": {
+            "primary": {
+                "bg-body": "#ffffff",
+                "bg-content": "#ffffff",
+                "bg-surface": "#f9f9f9",
+                "bg-surface-alt": "#f2f2f2",
+                "bg-hover": "#eef6ff",
+                "bg-active": "#ddeeff",
+                "bg-input": "#ffffff",
+                "bg-disabled": "#f5f5f5"
+            },
+            "text": {
+                "text-primary": "#333333",
+                "text-secondary": "#666666",
+                "text-muted": "#999999",
+                "text-disabled": "#cccccc",
+                "text-inverse": "#ffffff",
+                "text-link": "#204496",
+                "text-link-hover": "#077ab2"
+            },
+            "borders": {
+                "border-color": "#dddddd",
+                "border-light": "#eeeeee",
+                "border-dark": "#cccccc",
+                "border-focus": "#077ab2"
+            },
+            "accent": {
+                "color-primary": "#204496",
+                "color-primary-hover": "#1a3a7d",
+                "color-accent": "#077ab2",
+                "color-accent-hover": "#065d8a"
+            },
+            "status": {
+                "color-success": "#00a04a",
+                "color-success-bg": "#d4edda",
+                "color-success-text": "#155724",
+                "color-error": "#e01f3d",
+                "color-error-bg": "#f8d7da",
+                "color-error-text": "#721c24",
+                "color-warning": "#fddc0d",
+                "color-warning-bg": "#fffde7",
+                "color-warning-text": "#7c4a03",
+                "color-info": "#077ab2",
+                "color-info-bg": "rgba(7, 122, 178, 0.1)",
+                "color-info-text": "#0a4a6e"
+            },
+            "table": {
+                "table-header-bg": "#f2f2f2",
+                "table-row-odd": "#ffffff",
+                "table-row-even": "#f9f9f9",
+                "table-row-hover": "#eef6ff",
+                "table-row-active": "#ddeeff",
+                "table-border": "#dddddd"
+            },
+            "toolbar": {
+                "toolbar-bg": "#f2f2f2",
+                "toolbar-border": "#cccccc"
+            },
+            "sidebar": {
+                "sidebar-bg": "#343450",
+                "sidebar-bg-end": "#232335",
+                "sidebar-hover": "#454560",
+                "sidebar-active": "#077ab2",
+                "sidebar-text": "#b0b0c0"
+            },
+            "popup": {
+                "popup-bg": "#ffffff",
+                "popup-caption-bg": "#eef6ff",
+                "popup-caption-text": "#204496",
+                "popup-text": "#204496",
+                "popup-border": "#dedede"
+            }
+        },
+        "rgb": {
+            "bg-body": "rgb(255, 255, 255)",
+            "text-primary": "rgb(51, 51, 51)",
+            "color-primary": "rgb(32, 68, 150)",
+            "toolbar-bg": "rgb(242, 242, 242)",
+            "table-header-bg": "rgb(242, 242, 242)",
+            "input-bg": "rgb(255, 255, 255)",
+            "border-color": "rgb(221, 221, 221)"
+        }
+    },
+    "dark": {
+        "name": "Dark Mode",
+        "cookieValue": "dark",
+        "htmlClass": "dark-mode",
+        "colors": {
+            "primary": {
+                "bg-body": "#1a1a1a",
+                "bg-content": "#222222",
+                "bg-surface": "#2a2a2a",
+                "bg-surface-alt": "#333333",
+                "bg-hover": "#3a3a3a",
+                "bg-active": "#404040",
+                "bg-input": "#333333",
+                "bg-disabled": "#2a2a2a"
+            },
+            "text": {
+                "text-primary": "#dedede",
+                "text-secondary": "#aaaaaa",
+                "text-muted": "#888888",
+                "text-disabled": "#555555",
+                "text-inverse": "#1a1a1a",
+                "text-link": "#5a8dee",
+                "text-link-hover": "#ff7a1a"
+            },
+            "borders": {
+                "border-color": "#444444",
+                "border-light": "#333333",
+                "border-dark": "#555555",
+                "border-focus": "#ff7a1a"
+            },
+            "accent": {
+                "color-primary": "#5a8dee",
+                "color-primary-hover": "#7aa3f0",
+                "color-accent": "#7aa3f0",
+                "color-accent-hover": "#9dbef5"
+            },
+            "status": {
+                "color-success": "#2ecc71",
+                "color-success-bg": "#1d3a29",
+                "color-success-text": "#6bdc9a",
+                "color-error": "#e74c3c",
+                "color-error-bg": "#4a2020",
+                "color-error-text": "#f5a5a0",
+                "color-warning": "#f1c40f",
+                "color-warning-bg": "#3a3520",
+                "color-warning-text": "#f5d77a",
+                "color-info": "#3498db",
+                "color-info-bg": "#1a3a4a",
+                "color-info-text": "#7ac4f5"
+            },
+            "table": {
+                "table-header-bg": "#333333",
+                "table-row-odd": "#222222",
+                "table-row-even": "#2a2a2a",
+                "table-row-hover": "#3a3a3a",
+                "table-row-active": "#404050",
+                "table-border": "#444444"
+            },
+            "toolbar": {
+                "toolbar-bg": "#333333",
+                "toolbar-border": "#444444"
+            },
+            "sidebar": {
+                "sidebar-bg": "#252530",
+                "sidebar-bg-end": "#303045",
+                "sidebar-hover": "#35354a",
+                "sidebar-active": "#5a8dee",
+                "sidebar-text": "#a0a0b0"
+            },
+            "popup": {
+                "popup-bg": "#2a2a2a",
+                "popup-caption-bg": "#333333",
+                "popup-caption-text": "#7aa3f0",
+                "popup-text": "#dedede",
+                "popup-border": "#444444"
+            }
+        },
+        "rgb": {
+            "bg-body": "rgb(26, 26, 26)",
+            "text-primary": "rgb(222, 222, 222)",
+            "color-primary": "rgb(90, 141, 238)",
+            "toolbar-bg": "rgb(51, 51, 51)",
+            "table-header-bg": "rgb(51, 51, 51)",
+            "input-bg": "rgb(51, 51, 51)",
+            "border-color": "rgb(68, 68, 68)"
+        }
+    },
+    "system": {
+        "name": "System Preference",
+        "cookieValue": "system",
+        "description": "Follows OS preference (prefers-color-scheme media query)"
+    },
+    "wcag": {
+        "aa": {
+            "normalText": 4.5,
+            "largeText": 3,
+            "uiComponents": 3
+        },
+        "aaa": {
+            "normalText": 7,
+            "largeText": 4.5
+        }
+    }
+}

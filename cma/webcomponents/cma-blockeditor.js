@@ -1,0 +1,1019 @@
+/**
+ * cma-blockeditor Web Component
+ *
+ * A block-based rich text editor.
+ *
+ * Usage:
+ *   <cma-blockeditor name="content"></cma-blockeditor>
+ *
+ * Attributes:
+ *   - name: Form field name
+ *   - value: Initial content (JSON string)
+ *   - disabled: Disable editing
+ *   - placeholder: Placeholder text for empty blocks
+ *   - blocks: Comma-separated allowed block types (default: all)
+ *
+ * Block types:
+ *   - paragraph: Text paragraph
+ *   - heading: H1-H6 heading
+ *   - image: Image with caption
+ *   - list: Bullet or numbered list
+ *   - quote: Blockquote
+ *   - divider: Horizontal line
+ *   - html: Raw HTML block
+ *
+ * Events:
+ *   - change: Fired when content changes
+ *   - block-add: Fired when a block is added
+ *   - block-remove: Fired when a block is removed
+ */
+// Guard against double registration
+if (!customElements.get('cma-blockeditor')) {
+
+class CmaBlockeditor extends HTMLElement {
+    static get observedAttributes() {
+        return ['value', 'disabled'];
+    }
+
+    static blockTypes = {
+        paragraph: { icon: 'P', label: 'Paragraaf', create: () => ({ type: 'paragraph', content: '' }) },
+        heading: { icon: 'H', label: 'Kop', create: () => ({ type: 'heading', level: 2, content: '' }) },
+        image: { icon: 'Img', label: 'Afbeelding', create: () => ({ type: 'image', src: '', alt: '', caption: '' }) },
+        list: { icon: 'Li', label: 'Lijst', create: () => ({ type: 'list', style: 'bullet', items: [''] }) },
+        quote: { icon: '"', label: 'Citaat', create: () => ({ type: 'quote', content: '', citation: '' }) },
+        divider: { icon: '—', label: 'Scheidingslijn', create: () => ({ type: 'divider' }) },
+        html: { icon: '<>', label: 'HTML', create: () => ({ type: 'html', content: '' }) }
+    };
+
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this._blocks = [];
+        this._selectedBlockIndex = -1;
+        this._draggedIndex = -1;
+        // Bind document click handler for cleanup in disconnectedCallback
+        this._handleDocumentClick = this._handleDocumentClick.bind(this);
+    }
+
+    disconnectedCallback() {
+        // Clean up document-level event listener to prevent memory leaks
+        document.removeEventListener('click', this._handleDocumentClick);
+    }
+
+    _handleDocumentClick(e) {
+        const menu = this.shadowRoot?.querySelector('.block-menu');
+        if (menu && !menu.contains(e.target) && !e.target.closest('#addBlockBtn')) {
+            menu.classList.remove('visible');
+        }
+    }
+
+    connectedCallback() {
+        // Adopt shared styles if available
+        if (typeof LibSharedStyles !== 'undefined' && LibSharedStyles.isSupported()) {
+            LibSharedStyles.adopt(this.shadowRoot, 'base', 'button', 'input');
+        }
+
+        this.render();
+        this._setupEventListeners();
+
+        const initialValue = this.getAttribute('value');
+        if (initialValue) {
+            try {
+                this._blocks = JSON.parse(initialValue);
+                this._renderBlocks();
+            } catch (e) {
+                cmaLog.warn('[cma-blockeditor] Invalid initial value:', e.message);
+            }
+        }
+
+        if (this._blocks.length === 0) {
+            this._addBlock('paragraph', 0);
+        }
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return;
+
+        switch (name) {
+            case 'value':
+                if (newValue) {
+                    try {
+                        this._blocks = JSON.parse(newValue);
+                        this._renderBlocks();
+                    } catch (e) {
+                        cmaLog.warn('[cma-blockeditor] Invalid blocks JSON:', e.message);
+                    }
+                }
+                break;
+            case 'disabled':
+                this._updateDisabledState();
+                break;
+        }
+    }
+
+    get value() {
+        return this._blocks;
+    }
+
+    set value(val) {
+        if (Array.isArray(val)) {
+            this._blocks = val;
+        } else if (typeof val === 'string') {
+            try {
+                this._blocks = JSON.parse(val);
+            } catch (e) {
+                this._blocks = [];
+            }
+        }
+        this._renderBlocks();
+        this._updateHiddenInput();
+    }
+
+    getHTML() {
+        return this._blocks.map(block => this._blockToHTML(block)).join('\n');
+    }
+
+    render() {
+        const isDisabled = this.hasAttribute('disabled');
+        const name = this.getAttribute('name') || '';
+        const allowedBlocks = this.getAttribute('blocks')?.split(',').map(b => b.trim()) || Object.keys(CmaBlockeditor.blockTypes);
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: block;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-size: 15px;
+                    line-height: 1.6;
+                }
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                .editor-container {
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    background-color: #fff;
+                    overflow: hidden;
+                }
+
+                .editor-container.disabled {
+                    opacity: 0.7;
+                    pointer-events: none;
+                }
+
+                .editor-toolbar {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 8px 12px;
+                    background-color: #f8f9fa;
+                    border-bottom: 1px solid #e0e0e0;
+                    flex-wrap: wrap;
+                }
+
+                .toolbar-btn {
+                    padding: 6px 12px;
+                    border: 1px solid #ddd;
+                    background-color: #fff;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: #333;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    transition: all 0.15s ease;
+                }
+
+                .toolbar-btn:hover {
+                    background-color: #e9ecef;
+                    border-color: #204496;
+                }
+
+                .toolbar-btn .icon {
+                    font-weight: 700;
+                    font-size: 11px;
+                    color: #666;
+                }
+
+                .toolbar-separator {
+                    width: 1px;
+                    height: 24px;
+                    background-color: #ddd;
+                    margin: 0 8px;
+                }
+
+                .editor-content {
+                    min-height: 200px;
+                    padding: 16px 16px 16px 48px;
+                }
+
+                .block-wrapper {
+                    position: relative;
+                    margin-bottom: 8px;
+                    border: 1px solid transparent;
+                    border-radius: 4px;
+                    transition: border-color 0.15s ease;
+                }
+
+                .block-wrapper:hover,
+                .block-wrapper.selected {
+                    border-color: #e0e0e0;
+                }
+
+                .block-wrapper.selected {
+                    border-color: #204496;
+                }
+
+                .block-wrapper.dragging {
+                    opacity: 0.5;
+                }
+
+                .block-wrapper.drag-over {
+                    border-top: 3px solid #204496;
+                }
+
+                .block-controls {
+                    position: absolute;
+                    left: -36px;
+                    top: 4px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    opacity: 0;
+                    transition: opacity 0.15s ease;
+                }
+
+                .block-wrapper:hover .block-controls,
+                .block-wrapper.selected .block-controls {
+                    opacity: 1;
+                }
+
+                .block-control {
+                    width: 28px;
+                    height: 28px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: none;
+                    background-color: #f0f0f0;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    color: #666;
+                    font-size: 12px;
+                    transition: all 0.1s ease;
+                }
+
+                .block-control:hover {
+                    background-color: #204496;
+                    color: #fff;
+                }
+
+                .block-control.handle {
+                    cursor: grab;
+                }
+
+                .block-content {
+                    padding: 8px 12px;
+                }
+
+                /* Block type styles */
+                .block-paragraph {
+                    min-height: 24px;
+                    outline: none;
+                }
+
+                .block-paragraph:empty::before {
+                    content: attr(data-placeholder);
+                    color: #999;
+                }
+
+                .block-heading {
+                    outline: none;
+                    font-weight: 600;
+                }
+
+                .block-heading[data-level="1"] { font-size: 2em; }
+                .block-heading[data-level="2"] { font-size: 1.5em; }
+                .block-heading[data-level="3"] { font-size: 1.25em; }
+                .block-heading[data-level="4"] { font-size: 1.1em; }
+                .block-heading[data-level="5"] { font-size: 1em; }
+                .block-heading[data-level="6"] { font-size: 0.9em; }
+
+                .block-image {
+                    text-align: center;
+                }
+
+                .block-image img {
+                    max-width: 100%;
+                    border-radius: 4px;
+                }
+
+                .block-image .image-placeholder {
+                    padding: 40px;
+                    background-color: #f5f5f5;
+                    border: 2px dashed #ddd;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                }
+
+                .block-image .image-placeholder:hover {
+                    border-color: #204496;
+                    background-color: #f0f4ff;
+                }
+
+                .block-image .image-caption {
+                    margin-top: 8px;
+                    font-size: 13px;
+                    color: #666;
+                    font-style: italic;
+                    outline: none;
+                    text-align: center;
+                }
+
+                .block-list {
+                    padding-left: 24px;
+                }
+
+                .block-list li {
+                    margin-bottom: 4px;
+                }
+
+                .block-list [contenteditable] {
+                    outline: none;
+                }
+
+                .block-quote {
+                    border-left: 4px solid #204496;
+                    padding-left: 16px;
+                    font-style: italic;
+                    color: #555;
+                }
+
+                .block-quote .quote-content {
+                    outline: none;
+                }
+
+                .block-quote .quote-citation {
+                    margin-top: 8px;
+                    font-size: 13px;
+                    color: #888;
+                    outline: none;
+                }
+
+                .block-quote .quote-citation::before {
+                    content: '— ';
+                }
+
+                .block-divider {
+                    text-align: center;
+                    padding: 12px 0;
+                }
+
+                .block-divider hr {
+                    border: none;
+                    border-top: 2px solid #e0e0e0;
+                    margin: 0;
+                }
+
+                .block-html {
+                    font-family: 'Monaco', 'Menlo', monospace;
+                    font-size: 13px;
+                    background-color: #f5f5f5;
+                    padding: 12px;
+                    border-radius: 4px;
+                }
+
+                .block-html textarea {
+                    width: 100%;
+                    min-height: 100px;
+                    border: none;
+                    background: none;
+                    font-family: inherit;
+                    font-size: inherit;
+                    resize: vertical;
+                    outline: none;
+                }
+
+                /* Heading level selector */
+                .heading-level {
+                    display: inline-flex;
+                    gap: 2px;
+                    margin-left: 12px;
+                }
+
+                .heading-level button {
+                    width: 28px;
+                    height: 24px;
+                    border: 1px solid #ddd;
+                    background: #fff;
+                    cursor: pointer;
+                    font-size: 11px;
+                    border-radius: 3px;
+                }
+
+                .heading-level button.active {
+                    background-color: #204496;
+                    color: #fff;
+                    border-color: #204496;
+                }
+
+                /* List style selector */
+                .list-style {
+                    display: inline-flex;
+                    gap: 4px;
+                    margin-left: 12px;
+                }
+
+                .list-style button {
+                    padding: 4px 8px;
+                    border: 1px solid #ddd;
+                    background: #fff;
+                    cursor: pointer;
+                    font-size: 12px;
+                    border-radius: 3px;
+                }
+
+                .list-style button.active {
+                    background-color: #204496;
+                    color: #fff;
+                    border-color: #204496;
+                }
+
+                /* Empty state */
+                .editor-empty {
+                    padding: 40px;
+                    text-align: center;
+                    color: #999;
+                }
+
+                /* Add block button */
+                .add-block-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    width: 100%;
+                    padding: 12px;
+                    border: 2px dashed #ddd;
+                    background: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    color: #666;
+                    transition: all 0.15s ease;
+                    margin-top: 8px;
+                }
+
+                .add-block-btn:hover {
+                    border-color: #204496;
+                    color: #204496;
+                    background-color: #f0f4ff;
+                }
+
+                /* Block type menu */
+                .block-type-menu {
+                    position: absolute;
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    padding: 6px;
+                    z-index: 1000;
+                    display: none;
+                }
+
+                .block-type-menu.visible {
+                    display: block;
+                }
+
+                .block-type-option {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 12px;
+                    border: none;
+                    background: none;
+                    cursor: pointer;
+                    width: 100%;
+                    text-align: left;
+                    border-radius: 4px;
+                    font-size: 13px;
+                }
+
+                .block-type-option:hover {
+                    background-color: #f0f4f8;
+                }
+
+                .block-type-option .icon {
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #e3ecf6;
+                    border-radius: 4px;
+                    font-weight: 700;
+                    font-size: 11px;
+                    color: #1a365d;
+                }
+            </style>
+            <div class="editor-container ${isDisabled ? 'disabled' : ''}">
+                <div class="editor-toolbar">
+                    ${allowedBlocks.map(type => {
+                        const blockType = CmaBlockeditor.blockTypes[type];
+                        if (!blockType) return '';
+                        return `
+                            <button type="button" class="toolbar-btn" data-add-block="${type}">
+                                <span class="icon">${blockType.icon}</span>
+                                <span>${blockType.label}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="editor-content" id="editorContent"></div>
+                <input type="hidden" name="${name}">
+            </div>
+            <div class="block-type-menu" id="blockTypeMenu">
+                ${allowedBlocks.map(type => {
+                    const blockType = CmaBlockeditor.blockTypes[type];
+                    if (!blockType) return '';
+                    return `
+                        <button type="button" class="block-type-option" data-type="${type}">
+                            <span class="icon">${blockType.icon}</span>
+                            <span>${blockType.label}</span>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    _renderBlocks() {
+        const container = this.shadowRoot.getElementById('editorContent');
+        if (!container) return;
+
+        const placeholder = this.getAttribute('placeholder') || 'Typ hier...';
+
+        container.innerHTML = this._blocks.map((block, index) => {
+            return `
+                <div class="block-wrapper" data-index="${index}" draggable="true">
+                    <div class="block-controls">
+                        <button type="button" class="block-control handle" title="Verplaatsen">&#8942;</button>
+                        <button type="button" class="block-control" data-action="delete" title="Verwijderen">&#10005;</button>
+                    </div>
+                    <div class="block-content">
+                        ${this._renderBlockContent(block, index, placeholder)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML += `
+            <button type="button" class="add-block-btn" id="addBlockBtn">
+                <span>+</span> Blok toevoegen
+            </button>
+        `;
+
+        this._updateHiddenInput();
+    }
+
+    _renderBlockContent(block, index, placeholder) {
+        switch (block.type) {
+            case 'paragraph':
+                return `<div class="block-paragraph" contenteditable="true" data-placeholder="${placeholder}" data-index="${index}">${this._escapeHtml(block.content)}</div>`;
+
+            case 'heading':
+                return `
+                    <div class="block-heading" contenteditable="true" data-level="${block.level}" data-index="${index}">${this._escapeHtml(block.content)}</div>
+                    <div class="heading-level">
+                        ${[1,2,3,4,5,6].map(l => `<button type="button" data-level="${l}" class="${block.level === l ? 'active' : ''}">H${l}</button>`).join('')}
+                    </div>
+                `;
+
+            case 'image':
+                if (block.src) {
+                    return `
+                        <div class="block-image">
+                            <img src="${this._escapeHtml(block.src)}" alt="${this._escapeHtml(block.alt || '')}">
+                            <div class="image-caption" contenteditable="true" data-index="${index}" data-field="caption">${this._escapeHtml(block.caption || '')}</div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="block-image">
+                            <div class="image-placeholder" data-index="${index}">
+                                Klik om een afbeelding te selecteren
+                            </div>
+                        </div>
+                    `;
+                }
+
+            case 'list':
+                const tag = block.style === 'numbered' ? 'ol' : 'ul';
+                return `
+                    <${tag} class="block-list" data-index="${index}">
+                        ${(block.items || ['']).map((item, i) => `<li><span contenteditable="true" data-item="${i}">${this._escapeHtml(item)}</span></li>`).join('')}
+                    </${tag}>
+                    <div class="list-style">
+                        <button type="button" data-style="bullet" class="${block.style !== 'numbered' ? 'active' : ''}">Bullets</button>
+                        <button type="button" data-style="numbered" class="${block.style === 'numbered' ? 'active' : ''}">Nummers</button>
+                    </div>
+                `;
+
+            case 'quote':
+                return `
+                    <div class="block-quote">
+                        <div class="quote-content" contenteditable="true" data-index="${index}" data-field="content">${this._escapeHtml(block.content)}</div>
+                        <div class="quote-citation" contenteditable="true" data-index="${index}" data-field="citation">${this._escapeHtml(block.citation || '')}</div>
+                    </div>
+                `;
+
+            case 'divider':
+                return `<div class="block-divider"><hr></div>`;
+
+            case 'html':
+                return `
+                    <div class="block-html">
+                        <textarea data-index="${index}">${this._escapeHtml(block.content)}</textarea>
+                    </div>
+                `;
+
+            default:
+                return `<div>Unknown block type: ${block.type}</div>`;
+        }
+    }
+
+    _setupEventListeners() {
+        const container = this.shadowRoot.querySelector('.editor-container');
+        const content = this.shadowRoot.getElementById('editorContent');
+        const toolbar = this.shadowRoot.querySelector('.editor-toolbar');
+        const menu = this.shadowRoot.getElementById('blockTypeMenu');
+
+        // Toolbar add block
+        toolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-add-block]');
+            if (btn) {
+                this._addBlock(btn.dataset.addBlock);
+            }
+        });
+
+        // Content editing
+        content.addEventListener('input', (e) => {
+            const target = e.target;
+            const index = parseInt(target.dataset.index, 10);
+
+            if (!isNaN(index)) {
+                const block = this._blocks[index];
+                if (!block) return;
+
+                if (target.classList.contains('block-paragraph') || target.classList.contains('block-heading')) {
+                    block.content = target.textContent;
+                } else if (target.dataset.field) {
+                    block[target.dataset.field] = target.textContent;
+                } else if (target.tagName === 'TEXTAREA') {
+                    block.content = target.value;
+                } else if (target.dataset.item !== undefined) {
+                    const itemIndex = parseInt(target.dataset.item, 10);
+                    if (block.items) {
+                        block.items[itemIndex] = target.textContent;
+                    }
+                }
+
+                this._updateHiddenInput();
+                this._dispatchChange();
+            }
+        });
+
+        // Block selection
+        content.addEventListener('click', (e) => {
+            const wrapper = e.target.closest('.block-wrapper');
+            if (wrapper) {
+                const index = parseInt(wrapper.dataset.index, 10);
+                this._selectBlock(index);
+            }
+
+            // Delete block
+            if (e.target.closest('[data-action="delete"]')) {
+                const wrapper = e.target.closest('.block-wrapper');
+                const index = parseInt(wrapper.dataset.index, 10);
+                this._removeBlock(index);
+                return;
+            }
+
+            // Image placeholder
+            if (e.target.classList.contains('image-placeholder')) {
+                const index = parseInt(e.target.dataset.index, 10);
+                this._selectImage(index);
+                return;
+            }
+
+            // Heading level
+            const levelBtn = e.target.closest('.heading-level button');
+            if (levelBtn) {
+                const wrapper = e.target.closest('.block-wrapper');
+                const index = parseInt(wrapper.dataset.index, 10);
+                this._blocks[index].level = parseInt(levelBtn.dataset.level, 10);
+                this._renderBlocks();
+                this._dispatchChange();
+                return;
+            }
+
+            // List style
+            const styleBtn = e.target.closest('.list-style button');
+            if (styleBtn) {
+                const wrapper = e.target.closest('.block-wrapper');
+                const index = parseInt(wrapper.dataset.index, 10);
+                this._blocks[index].style = styleBtn.dataset.style;
+                this._renderBlocks();
+                this._dispatchChange();
+                return;
+            }
+
+            // Add block button
+            if (e.target.closest('#addBlockBtn')) {
+                this._showBlockMenu(e);
+                return;
+            }
+        });
+
+        // Block menu
+        menu.addEventListener('click', (e) => {
+            const option = e.target.closest('.block-type-option');
+            if (option) {
+                this._addBlock(option.dataset.type);
+                menu.classList.remove('visible');
+            }
+        });
+
+        // Close menu on outside click (uses bound handler for cleanup in disconnectedCallback)
+        document.addEventListener('click', this._handleDocumentClick);
+
+        // Keyboard shortcuts
+        content.addEventListener('keydown', (e) => {
+            // Enter in paragraph creates new paragraph
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const target = e.target;
+                if (target.classList.contains('block-paragraph')) {
+                    e.preventDefault();
+                    const index = parseInt(target.dataset.index, 10);
+                    this._addBlock('paragraph', index + 1);
+                    // Focus new block
+                    setTimeout(() => {
+                        const newBlock = content.querySelector(`[data-index="${index + 1}"] .block-paragraph`);
+                        if (newBlock) newBlock.focus();
+                    }, 10);
+                }
+            }
+
+            // Backspace on empty block removes it
+            if (e.key === 'Backspace') {
+                const target = e.target;
+                if ((target.classList.contains('block-paragraph') || target.classList.contains('block-heading')) && target.textContent === '') {
+                    const index = parseInt(target.dataset.index, 10);
+                    if (this._blocks.length > 1) {
+                        e.preventDefault();
+                        this._removeBlock(index);
+                        // Focus previous block
+                        const prevIndex = Math.max(0, index - 1);
+                        setTimeout(() => {
+                            const prevBlock = content.querySelector(`[data-index="${prevIndex}"] [contenteditable]`);
+                            if (prevBlock) prevBlock.focus();
+                        }, 10);
+                    }
+                }
+            }
+        });
+
+        // Drag and drop
+        content.addEventListener('dragstart', (e) => {
+            const wrapper = e.target.closest('.block-wrapper');
+            if (!wrapper) return;
+
+            this._draggedIndex = parseInt(wrapper.dataset.index, 10);
+            wrapper.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        content.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const wrapper = e.target.closest('.block-wrapper');
+            if (!wrapper) return;
+
+            content.querySelectorAll('.block-wrapper').forEach(w => w.classList.remove('drag-over'));
+            wrapper.classList.add('drag-over');
+        });
+
+        content.addEventListener('dragend', (e) => {
+            const wrapper = e.target.closest('.block-wrapper');
+            if (wrapper) wrapper.classList.remove('dragging');
+
+            const overWrapper = content.querySelector('.block-wrapper.drag-over');
+            if (overWrapper && this._draggedIndex >= 0) {
+                const targetIndex = parseInt(overWrapper.dataset.index, 10);
+                if (targetIndex !== this._draggedIndex) {
+                    const [block] = this._blocks.splice(this._draggedIndex, 1);
+                    this._blocks.splice(targetIndex, 0, block);
+                    this._renderBlocks();
+                    this._dispatchChange();
+                }
+            }
+
+            content.querySelectorAll('.block-wrapper').forEach(w => w.classList.remove('drag-over'));
+            this._draggedIndex = -1;
+        });
+
+        // List item enter key
+        content.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.closest('.block-list')) {
+                e.preventDefault();
+                const listItem = e.target.closest('li');
+                const list = e.target.closest('.block-list');
+                const index = parseInt(list.dataset.index, 10);
+                const itemIndex = parseInt(e.target.dataset.item, 10);
+
+                // Add new item after current
+                this._blocks[index].items.splice(itemIndex + 1, 0, '');
+                this._renderBlocks();
+
+                // Focus new item
+                setTimeout(() => {
+                    const newItem = content.querySelector(`[data-index="${index}"] [data-item="${itemIndex + 1}"]`);
+                    if (newItem) newItem.focus();
+                }, 10);
+            }
+        });
+    }
+
+    _addBlock(type, position = -1) {
+        const blockType = CmaBlockeditor.blockTypes[type];
+        if (!blockType) return;
+
+        const newBlock = blockType.create();
+
+        if (position < 0 || position >= this._blocks.length) {
+            this._blocks.push(newBlock);
+        } else {
+            this._blocks.splice(position, 0, newBlock);
+        }
+
+        this._renderBlocks();
+        this._updateHiddenInput();
+
+        this.dispatchEvent(new CustomEvent('block-add', {
+            detail: { type, block: newBlock, index: position < 0 ? this._blocks.length - 1 : position },
+            bubbles: true
+        }));
+        this._dispatchChange();
+
+        // Focus the new block
+        setTimeout(() => {
+            const newIndex = position < 0 ? this._blocks.length - 1 : position;
+            const newBlockEl = this.shadowRoot.querySelector(`[data-index="${newIndex}"] [contenteditable]`);
+            if (newBlockEl) newBlockEl.focus();
+        }, 10);
+    }
+
+    _removeBlock(index) {
+        if (index < 0 || index >= this._blocks.length) return;
+
+        const removed = this._blocks.splice(index, 1)[0];
+
+        if (this._blocks.length === 0) {
+            this._addBlock('paragraph', 0);
+        } else {
+            this._renderBlocks();
+        }
+
+        this._updateHiddenInput();
+
+        this.dispatchEvent(new CustomEvent('block-remove', {
+            detail: { block: removed, index },
+            bubbles: true
+        }));
+        this._dispatchChange();
+    }
+
+    _selectBlock(index) {
+        this._selectedBlockIndex = index;
+        this.shadowRoot.querySelectorAll('.block-wrapper').forEach((w, i) => {
+            w.classList.toggle('selected', i === index);
+        });
+    }
+
+    _selectImage(index) {
+        // Use the image wizard if available
+        if (window.CMA_IMAGE_WIZARD) {
+            window.CMA_IMAGE_WIZARD.init({
+                maxWidth: 1200,
+                maxHeight: 800,
+                mode: 'max',
+                onComplete: (result) => {
+                    this._blocks[index].src = result.fullPath;
+                    this._blocks[index].alt = result.filename;
+                    this._renderBlocks();
+                    this._dispatchChange();
+                }
+            });
+        } else {
+            // Fallback: prompt for URL using libPrompt
+            libPrompt('Voer de afbeelding URL in:', { title: 'Afbeelding URL' }).then(url => {
+                if (url) {
+                    this._blocks[index].src = url;
+                    this._renderBlocks();
+                    this._dispatchChange();
+                }
+            });
+        }
+    }
+
+    _showBlockMenu(e) {
+        const menu = this.shadowRoot.getElementById('blockTypeMenu');
+        const btn = e.target.closest('#addBlockBtn');
+        if (!btn) return;
+
+        const rect = btn.getBoundingClientRect();
+        const containerRect = this.shadowRoot.querySelector('.editor-container').getBoundingClientRect();
+
+        menu.style.left = (rect.left - containerRect.left) + 'px';
+        menu.style.bottom = (containerRect.bottom - rect.top + 8) + 'px';
+        menu.classList.add('visible');
+    }
+
+    _updateHiddenInput() {
+        const input = this.shadowRoot.querySelector('input[type="hidden"]');
+        if (input) {
+            input.value = JSON.stringify(this._blocks);
+        }
+    }
+
+    _updateDisabledState() {
+        const container = this.shadowRoot.querySelector('.editor-container');
+        if (container) {
+            container.classList.toggle('disabled', this.hasAttribute('disabled'));
+        }
+    }
+
+    _dispatchChange() {
+        this.dispatchEvent(new CustomEvent('change', {
+            detail: { blocks: this._blocks, html: this.getHTML() },
+            bubbles: true
+        }));
+    }
+
+    _blockToHTML(block) {
+        switch (block.type) {
+            case 'paragraph':
+                return `<p>${this._escapeHtml(block.content)}</p>`;
+
+            case 'heading':
+                return `<h${block.level}>${this._escapeHtml(block.content)}</h${block.level}>`;
+
+            case 'image':
+                let html = `<figure>`;
+                html += `<img src="${this._escapeHtml(block.src)}" alt="${this._escapeHtml(block.alt || '')}">`;
+                if (block.caption) {
+                    html += `<figcaption>${this._escapeHtml(block.caption)}</figcaption>`;
+                }
+                html += `</figure>`;
+                return html;
+
+            case 'list':
+                const tag = block.style === 'numbered' ? 'ol' : 'ul';
+                return `<${tag}>${(block.items || []).map(item => `<li>${this._escapeHtml(item)}</li>`).join('')}</${tag}>`;
+
+            case 'quote':
+                let quote = `<blockquote><p>${this._escapeHtml(block.content)}</p>`;
+                if (block.citation) {
+                    quote += `<cite>${this._escapeHtml(block.citation)}</cite>`;
+                }
+                quote += `</blockquote>`;
+                return quote;
+
+            case 'divider':
+                return `<hr>`;
+
+            case 'html':
+                return block.content; // Raw HTML
+
+            default:
+                return '';
+        }
+    }
+
+    _escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Register the component
+customElements.define('cma-blockeditor', CmaBlockeditor);
+
+} // end guard

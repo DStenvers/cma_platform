@@ -1,0 +1,19 @@
+{
+    "action": "save",
+    "name": "Test Report for Tips 1771877504928",
+    "database": 1,
+    "tables": [
+        "users"
+    ],
+    "fields": [
+        {
+            "table": "users",
+            "field": "usrLogin",
+            "visible": true
+        }
+    ],
+    "id": "a4e21bca-e65f-4681-8ff1-890bf77118d9",
+    "updatedAt": "2026-02-23 20:11:45",
+    "createdAt": "2026-02-23 20:11:45",
+    "createdBy": "1"
+}

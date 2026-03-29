@@ -1,0 +1,329 @@
+{"ts":"2026-01-23T06:31:18.480","level":"debug","req":"ddcba7c7","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T06:31:18.979","level":"debug","req":"737328f0","msg":"form_api: JSON output","ctx":{"bytes":73888}}
+{"ts":"2026-01-23T06:31:19.525","level":"debug","req":"397dd889","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T06:31:19.702","level":"debug","req":"62e98492","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T06:45:18.375","level":"debug","req":"316ba3fc","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T06:45:20.020","level":"debug","req":"c23fdab3","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T06:45:20.336","level":"debug","req":"ff65a203","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T06:45:20.819","level":"debug","req":"aeb94586","msg":"form_api: JSON output","ctx":{"bytes":5742}}
+{"ts":"2026-01-23T06:45:21.580","level":"debug","req":"544072b9","msg":"form_api: JSON output","ctx":{"bytes":13144}}
+{"ts":"2026-01-23T06:45:24.898","level":"debug","req":"fee022b4","msg":"form_api: JSON output","ctx":{"bytes":27441}}
+{"ts":"2026-01-23T06:45:25.206","level":"debug","req":"69c0d75d","msg":"form_api: JSON output","ctx":{"bytes":2215}}
+{"ts":"2026-01-23T06:45:52.120","level":"debug","req":"0ce85842","msg":"form_api: JSON output","ctx":{"bytes":2215}}
+{"ts":"2026-01-23T06:45:52.478","level":"debug","req":"f7fc55d3","msg":"form_api: JSON output","ctx":{"bytes":11097}}
+{"ts":"2026-01-23T06:45:53.531","level":"debug","req":"96dedb21","msg":"form_api: JSON output","ctx":{"bytes":10285}}
+{"ts":"2026-01-23T06:46:44.469","level":"debug","req":"161ac386","msg":"form_api: JSON output","ctx":{"bytes":2215}}
+{"ts":"2026-01-23T06:46:45.352","level":"debug","req":"ba6836d4","msg":"form_api: JSON output","ctx":{"bytes":11097}}
+{"ts":"2026-01-23T06:46:45.891","level":"debug","req":"671a4f0c","msg":"form_api: JSON output","ctx":{"bytes":10285}}
+{"ts":"2026-01-23T06:49:51.998","level":"debug","req":"a4c7eca2","msg":"form_api: JSON output","ctx":{"bytes":73888}}
+{"ts":"2026-01-23T06:49:52.356","level":"debug","req":"92054fec","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T06:49:52.688","level":"debug","req":"4383e5c4","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T06:49:52.928","level":"debug","req":"f6eec54d","msg":"form_api: JSON output","ctx":{"bytes":73884}}
+{"ts":"2026-01-23T06:49:55.272","level":"debug","req":"2db43570","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T06:49:55.768","level":"debug","req":"f6bf037f","msg":"form_api: JSON output","ctx":{"bytes":2215}}
+{"ts":"2026-01-23T06:49:58.447","level":"debug","req":"610fdff2","msg":"form_api: JSON output","ctx":{"bytes":5742}}
+{"ts":"2026-01-23T06:49:58.756","level":"debug","req":"bdaf44be","msg":"form_api: JSON output","ctx":{"bytes":11097}}
+{"ts":"2026-01-23T06:49:59.219","level":"debug","req":"9831532f","msg":"form_api: JSON output","ctx":{"bytes":13144}}
+{"ts":"2026-01-23T06:49:59.911","level":"debug","req":"38d50130","msg":"form_api: JSON output","ctx":{"bytes":10285}}
+{"ts":"2026-01-23T06:50:24.740","level":"debug","req":"0584f9a8","msg":"form_api: JSON output","ctx":{"bytes":73828}}
+{"ts":"2026-01-23T06:53:55.699","level":"debug","req":"4b113fed","msg":"form_api: JSON output","ctx":{"bytes":27441}}
+{"ts":"2026-01-23T06:53:56.014","level":"debug","req":"0c0354f5","msg":"form_api: JSON output","ctx":{"bytes":2215}}
+{"ts":"2026-01-23T06:53:56.898","level":"debug","req":"7287e30f","msg":"form_api: JSON output","ctx":{"bytes":11097}}
+{"ts":"2026-01-23T06:53:57.510","level":"debug","req":"cc6db47f","msg":"form_api: JSON output","ctx":{"bytes":10285}}
+{"ts":"2026-01-23T07:17:08.141","level":"error","req":"e7c6735b","msg":"API Error","ctx":{"action":"logJsError","jsonForm":"","exception":{"class":"Error","message":"Undefined constant Cma\\SecurityHelper::COOKIE_LOGIN","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":997,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-23T07:18:41.186","level":"error","req":"b716981b","msg":"API Error","ctx":{"action":"logJsError","jsonForm":"","exception":{"class":"Error","message":"Undefined constant Cma\\SecurityHelper::COOKIE_LOGIN","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":997,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-23T07:22:34.378","level":"error","req":"1ada161f","msg":"API Error","ctx":{"action":"logJsError","jsonForm":"","exception":{"class":"Error","message":"Undefined constant Cma\\SecurityHelper::COOKIE_LOGIN","code":0,"file":"C:\\lab\\ai_conversion\\site\\cma\\form_api.php","line":997,"trace":[{"file":"C:\\lab\\ai_conversion\\site\\_bootstrap_wrapper.php","line":26,"function":"include"}]}},"url":"/cma/form_api.php","method":"POST","ip":"172.29.208.1"}
+{"ts":"2026-01-23T07:24:22.302","level":"warning","req":"64255071","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"105","reportId":81}}
+{"ts":"2026-01-23T07:24:22.303","level":"warning","req":"64255071","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"69","reportId":94}}
+{"ts":"2026-01-23T07:24:22.304","level":"warning","req":"64255071","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"69","reportId":82}}
+{"ts":"2026-01-23T07:24:22.305","level":"warning","req":"64255071","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"77","reportId":44}}
+{"ts":"2026-01-23T07:24:22.305","level":"warning","req":"64255071","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"88","reportId":93}}
+{"ts":"2026-01-23T07:34:36.464","level":"debug","req":"4fe439dd","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T07:34:37.118","level":"debug","req":"43d51085","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T07:34:46.083","level":"debug","req":"f9b3384e","msg":"form_api: JSON output","ctx":{"bytes":2731}}
+{"ts":"2026-01-23T07:34:46.564","level":"debug","req":"84bbe279","msg":"form_api: JSON output","ctx":{"bytes":5742}}
+{"ts":"2026-01-23T07:34:47.312","level":"debug","req":"5b4e62dd","msg":"form_api: JSON output","ctx":{"bytes":13144}}
+{"ts":"2026-01-23T07:34:51.823","level":"debug","req":"de615aca","msg":"form_api: JSON output","ctx":{"bytes":127515}}
+{"ts":"2026-01-23T07:34:52.386","level":"debug","req":"7d803cef","msg":"form_api: JSON output","ctx":{"bytes":127515}}
+{"ts":"2026-01-23T07:35:05.563","level":"debug","req":"9e55cf73","msg":"form_api: JSON output","ctx":{"bytes":71485}}
+{"ts":"2026-01-23T07:35:05.830","level":"debug","req":"391e3bf7","msg":"form_api: JSON output","ctx":{"bytes":71485}}
+{"ts":"2026-01-23T07:35:08.044","level":"debug","req":"38e19c15","msg":"resolveJsonFormFkLabels: query failed","ctx":{"field":"fkEindEvaluatie","sql":"SELECT TOP 1 tblEvalDocument.ID, tblEvalTemplate.afdeling & \"- \" & tblEvalDocument.Naam & iif( tblEvalTemplate.bActive=True and tblEvalDocument.bActive=True,'', ' (NIET ACTIEF)')  as Descr \r\nFROM (tblEvalTemplate INNER JOIN (tblOpleidingen INNER JOIN tblAgenda ON tblOpleidingen.ID = tblAgenda.fkOpleiding) ON tblEvalTemplate.ID = tblOpleidingen.fkEvaluatieTemplate) INNER JOIN tblEvalDocument ON tblEvalTemplate.ID = tblEvalDocument.fkEvalTemplate \r\nWHERE ((tblEvalDocument.fkEvalType<>10 and tblAgenda.ID=[id]) AND ([tblEvalDocument].[ID] = 38)) ORDER BY tblEvalDocument.Sortorder, tblEvalDocument.Naam","error":"Het opgegeven veld [id] kan naar meer dan een tabel verwijzen in de component FROM van uw SQL-instructie."}}
+{"ts":"2026-01-23T07:35:08.045","level":"debug","req":"38e19c15","msg":"form_api: JSON output","ctx":{"bytes":1699}}
+{"ts":"2026-01-23T07:35:09.579","level":"debug","req":"240eb705","msg":"form_api: JSON output","ctx":{"bytes":1592}}
+{"ts":"2026-01-23T07:35:11.875","level":"debug","req":"46e7a525","msg":"form_api: JSON output","ctx":{"bytes":127515}}
+{"ts":"2026-01-23T07:35:12.107","level":"debug","req":"fb23165e","msg":"form_api: JSON output","ctx":{"bytes":1592}}
+{"ts":"2026-01-23T07:35:12.717","level":"debug","req":"4473a134","msg":"form_api: JSON output","ctx":{"bytes":7663}}
+{"ts":"2026-01-23T07:35:13.141","level":"error","req":"b0f4ce30","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"rooster","subformName":"Docenten","subformIndex":1,"jsonFormName":"rooster_docenten","parentId":"3536","sql":"SELECT tblDocentenPerAgendapunt.ID, tblDocenten.VolledigeNaam as Naam,  bVoorlopig as Voorlopig, iif(tblDocentenPerAgendapunt.blnEvaluatie=true,\"Ja\" & iif(tblDocentenPerAgendapunt.bBlokkeerEvaluatie=True,\" (geblokkeerd)\",\"\") ,\"Nee\")  as Evaluatie, tblDocentenPerAgendapunt.EersteBijeenkomstMail as [Stuur voorbereidingsmail] \r\nFROM tblDocenten INNER JOIN tblDocentenPerAgendapunt ON tblDocenten.ID = tblDocentenPerAgendapunt.fkDocent\r\nORDER BY tblDocenten.Achternaam"},"url":"/cma/form_api.php?action=subforms&form=rooster&ParentID=3536&indices=1,2,3,4","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T07:35:13.247","level":"error","req":"b0f4ce30","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"rooster","subformName":"Evaluatie verzoeken","subformIndex":4,"jsonFormName":"rooster_evaluatie_verzoeken","parentId":"3536","sql":"SELECT tblEvalDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, tblDocenten.VolledigeNaam AS Docent, tblEvalDocument.Naam AS SoortEvaluatie, lcase(format(tblEvalDeelname.datum_verzonden,'dd MMM yyyy')) as Datum_Verzonden, lcase(format(tblEvalDeelname.datum_reminder,'dd MMM yyyy')) as Datum_Reminder, lcase(format(tblEvalDeelname.datum_ingevuld,'dd MMM yyyy')) as Datum_Ingevuld\r\nFROM tblEvalDocument INNER JOIN (tblDocenten RIGHT JOIN (tblDeelnemers RIGHT JOIN tblEvalDeelname ON tblDeelnemers.ID = tblEvalDeelname.fkDeelnemer) ON tblDocenten.ID = tblEvalDeelname.fkDocent) ON tblEvalDocument.ID = tblEvalDeelname.fkEvalDocument\r\nORDER BY  tblEvalDocument.Naam, tblDeelnemers.VolledigeNaam, tblDocenten.VolledigeNaam;"},"url":"/cma/form_api.php?action=subforms&form=rooster&ParentID=3536&indices=1,2,3,4","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T07:35:13.248","level":"debug","req":"b0f4ce30","msg":"form_api: JSON output","ctx":{"bytes":2057}}
+{"ts":"2026-01-23T08:00:52.163","level":"debug","req":"7a0a8fd4","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T08:00:52.809","level":"debug","req":"0e7a86f4","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T08:06:06.550","level":"warning","req":"f12d176b","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"105","reportId":81}}
+{"ts":"2026-01-23T08:06:06.553","level":"warning","req":"f12d176b","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"69","reportId":94}}
+{"ts":"2026-01-23T08:06:06.554","level":"warning","req":"f12d176b","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"69","reportId":82}}
+{"ts":"2026-01-23T08:06:06.554","level":"warning","req":"f12d176b","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"77","reportId":44}}
+{"ts":"2026-01-23T08:06:06.556","level":"warning","req":"f12d176b","msg":"Migration: FormID niet gevonden in menu/form definities","ctx":{"formId":"88","reportId":93}}
+{"ts":"2026-01-23T08:23:25.638","level":"debug","req":"15aa9a52","msg":"form_api: JSON output","ctx":{"bytes":127515}}
+{"ts":"2026-01-23T08:23:25.948","level":"debug","req":"d6eea630","msg":"form_api: JSON output","ctx":{"bytes":71552}}
+{"ts":"2026-01-23T08:23:26.251","level":"debug","req":"f215e2e8","msg":"form_api: JSON output","ctx":{"bytes":71552}}
+{"ts":"2026-01-23T08:30:15.926","level":"debug","req":"bac0c072","msg":"form_api: JSON output","ctx":{"bytes":71552}}
+{"ts":"2026-01-23T08:30:16.235","level":"debug","req":"add65f3b","msg":"form_api: JSON output","ctx":{"bytes":71552}}
+{"ts":"2026-01-23T08:30:18.135","level":"debug","req":"e705a91d","msg":"form_api: JSON output","ctx":{"bytes":1592}}
+{"ts":"2026-01-23T08:30:18.458","level":"debug","req":"8c2ec1b0","msg":"form_api: JSON output","ctx":{"bytes":7663}}
+{"ts":"2026-01-23T08:30:18.851","level":"error","req":"12441f0e","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"rooster","subformName":"Docenten","subformIndex":1,"jsonFormName":"rooster_docenten","parentId":"3536","sql":"SELECT tblDocentenPerAgendapunt.ID, tblDocenten.VolledigeNaam as Naam,  bVoorlopig as Voorlopig, iif(tblDocentenPerAgendapunt.blnEvaluatie=true,\"Ja\" & iif(tblDocentenPerAgendapunt.bBlokkeerEvaluatie=True,\" (geblokkeerd)\",\"\") ,\"Nee\")  as Evaluatie, tblDocentenPerAgendapunt.EersteBijeenkomstMail as [Stuur voorbereidingsmail] \r\nFROM tblDocenten INNER JOIN tblDocentenPerAgendapunt ON tblDocenten.ID = tblDocentenPerAgendapunt.fkDocent\r\nORDER BY tblDocenten.Achternaam"},"url":"/cma/form_api.php?action=subforms&form=rooster&ParentID=3536&indices=1,2,3,4","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:30:18.877","level":"error","req":"12441f0e","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"rooster","subformName":"Evaluatie verzoeken","subformIndex":4,"jsonFormName":"rooster_evaluatie_verzoeken","parentId":"3536","sql":"SELECT tblEvalDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, tblDocenten.VolledigeNaam AS Docent, tblEvalDocument.Naam AS SoortEvaluatie, lcase(format(tblEvalDeelname.datum_verzonden,'dd MMM yyyy')) as Datum_Verzonden, lcase(format(tblEvalDeelname.datum_reminder,'dd MMM yyyy')) as Datum_Reminder, lcase(format(tblEvalDeelname.datum_ingevuld,'dd MMM yyyy')) as Datum_Ingevuld\r\nFROM tblEvalDocument INNER JOIN (tblDocenten RIGHT JOIN (tblDeelnemers RIGHT JOIN tblEvalDeelname ON tblDeelnemers.ID = tblEvalDeelname.fkDeelnemer) ON tblDocenten.ID = tblEvalDeelname.fkDocent) ON tblEvalDocument.ID = tblEvalDeelname.fkEvalDocument\r\nORDER BY  tblEvalDocument.Naam, tblDeelnemers.VolledigeNaam, tblDocenten.VolledigeNaam;"},"url":"/cma/form_api.php?action=subforms&form=rooster&ParentID=3536&indices=1,2,3,4","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:30:18.878","level":"debug","req":"12441f0e","msg":"form_api: JSON output","ctx":{"bytes":2057}}
+{"ts":"2026-01-23T08:31:27.798","level":"debug","req":"7c075952","msg":"form_api: JSON output","ctx":{"bytes":71552}}
+{"ts":"2026-01-23T08:31:28.107","level":"debug","req":"ff89f042","msg":"form_api: JSON output","ctx":{"bytes":71550}}
+{"ts":"2026-01-23T08:31:30.741","level":"debug","req":"536524fa","msg":"form_api: JSON output","ctx":{"bytes":18364}}
+{"ts":"2026-01-23T08:31:30.980","level":"debug","req":"8cf8dba1","msg":"form_api: JSON output","ctx":{"bytes":18364}}
+{"ts":"2026-01-23T08:31:35.223","level":"debug","req":"200ffc64","msg":"form_api: JSON output","ctx":{"bytes":73821}}
+{"ts":"2026-01-23T08:31:36.573","level":"debug","req":"79350bb5","msg":"form_api: JSON output","ctx":{"bytes":2282}}
+{"ts":"2026-01-23T08:31:37.504","level":"debug","req":"8dddca26","msg":"form_api: JSON output","ctx":{"bytes":2282}}
+{"ts":"2026-01-23T08:31:37.841","level":"debug","req":"fcaadbd4","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T08:31:38.120","level":"debug","req":"4025bd23","msg":"form_api: JSON output","ctx":{"bytes":4702}}
+{"ts":"2026-01-23T08:31:38.592","level":"debug","req":"46431c6e","msg":"form_api: JSON output","ctx":{"bytes":5474}}
+{"ts":"2026-01-23T08:31:39.788","level":"debug","req":"4653544b","msg":"form_api: JSON output","ctx":{"bytes":1963}}
+{"ts":"2026-01-23T08:31:40.131","level":"debug","req":"f1ccbde5","msg":"form_api: JSON output","ctx":{"bytes":27441}}
+{"ts":"2026-01-23T08:31:40.411","level":"debug","req":"6e175e34","msg":"form_api: JSON output","ctx":{"bytes":4889}}
+{"ts":"2026-01-23T08:31:40.920","level":"error","req":"b75f9027","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=255 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":3,"subformName":"Documenten","parentId":"255","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=255&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:31:40.927","level":"error","req":"b75f9027","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"opleidingen_deelnemers","subformName":"IOP","subformIndex":4,"jsonFormName":"iop","parentId":"255","sql":"SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, lcase(format([DeelnemerDatum],'dd MMM yyyy')) AS Datum_geplaatst, iif(tblDeelname.HoofdopleiderGoedgekeurd=True,'Ja','Nee') AS HO_Akkoord FROM tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer WHERE tblDeelname.Werkplan IS NOT NULL ORDER BY tblDeelname.DeelnemerDatum DESC"},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=255&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:31:40.995","level":"error","req":"b75f9027","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=255 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":9,"subformName":"Toetsing","parentId":"255","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=255&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:31:41.054","level":"debug","req":"b75f9027","msg":"form_api: JSON output","ctx":{"bytes":6744}}
+{"ts":"2026-01-23T08:50:04.212","level":"debug","req":"d9b484a9","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T08:50:04.510","level":"debug","req":"fa8ef40a","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T08:50:04.720","level":"debug","req":"4e820751","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T08:50:08.061","level":"debug","req":"171f80eb","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T08:50:08.317","level":"debug","req":"a3f2a7ca","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T08:50:09.013","level":"debug","req":"33e9638d","msg":"form_api: JSON output","ctx":{"bytes":2755}}
+{"ts":"2026-01-23T08:50:09.406","level":"debug","req":"69efbb56","msg":"form_api: JSON output","ctx":{"bytes":2560}}
+{"ts":"2026-01-23T08:50:09.728","level":"debug","req":"bbe5915c","msg":"form_api: JSON output","ctx":{"bytes":2811}}
+{"ts":"2026-01-23T08:50:10.585","level":"debug","req":"ffd04317","msg":"form_api: JSON output","ctx":{"bytes":2811}}
+{"ts":"2026-01-23T08:56:02.163","level":"debug","req":"34d970a2","msg":"form_api: JSON output","ctx":{"bytes":73884}}
+{"ts":"2026-01-23T08:56:02.422","level":"debug","req":"1c1474eb","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T08:56:03.654","level":"debug","req":"c31c40fb","msg":"form_api: JSON output","ctx":{"bytes":2728}}
+{"ts":"2026-01-23T08:56:04.938","level":"debug","req":"eb538dec","msg":"form_api: JSON output","ctx":{"bytes":2728}}
+{"ts":"2026-01-23T08:56:05.278","level":"debug","req":"e99f93a2","msg":"form_api: JSON output","ctx":{"bytes":11873}}
+{"ts":"2026-01-23T08:56:05.765","level":"debug","req":"10d0d5d1","msg":"form_api: JSON output","ctx":{"bytes":19786}}
+{"ts":"2026-01-23T08:56:09.279","level":"debug","req":"441b546d","msg":"form_api: JSON output","ctx":{"bytes":2244}}
+{"ts":"2026-01-23T08:56:09.564","level":"debug","req":"fdda45cf","msg":"form_api: JSON output","ctx":{"bytes":18517}}
+{"ts":"2026-01-23T08:56:10.147","level":"error","req":"e9746a33","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=157 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":3,"subformName":"Documenten","parentId":"157","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=157&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:56:10.154","level":"error","req":"e9746a33","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"opleidingen_deelnemers","subformName":"IOP","subformIndex":4,"jsonFormName":"iop","parentId":"157","sql":"SELECT tblDeelname.ID, tblDeelnemers.VolledigeNaam AS Deelnemer, lcase(format([DeelnemerDatum],'dd MMM yyyy')) AS Datum_geplaatst, iif(tblDeelname.HoofdopleiderGoedgekeurd=True,'Ja','Nee') AS HO_Akkoord FROM tblDeelnemers INNER JOIN tblDeelname ON tblDeelnemers.ID = tblDeelname.fkDeelnemer WHERE tblDeelname.Werkplan IS NOT NULL ORDER BY tblDeelname.DeelnemerDatum DESC"},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=157&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:56:10.233","level":"error","req":"e9746a33","msg":"Subform table query failed","ctx":{"error":"Er is een ongeldige SQL-instructie gevonden. DELETE, INSERT, PROCEDURE, SELECT of UPDATE werd verwacht.","sql":" WHERE fkDeelname=157 ","sqlOriginal":"","parentFormId":"opleidingen_deelnemers","subformIndex":9,"subformName":"Toetsing","parentId":"157","parentField":"fkDeelname","jsonFormName":null},"url":"/cma/form_api.php?action=subforms&form=opleidingen_deelnemers&ParentID=157&indices=1,2,3,4,5,6,7,8,9,10,11,12,13","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T08:56:10.295","level":"debug","req":"e9746a33","msg":"form_api: JSON output","ctx":{"bytes":11760}}
+{"ts":"2026-01-23T08:56:13.437","level":"debug","req":"9c7ad901","msg":"form_api: JSON output","ctx":{"bytes":29404}}
+{"ts":"2026-01-23T08:56:14.893","level":"debug","req":"8f681e4e","msg":"form_api: JSON output","ctx":{"bytes":2810}}
+{"ts":"2026-01-23T08:56:15.817","level":"debug","req":"e029ef68","msg":"form_api: JSON output","ctx":{"bytes":170651}}
+{"ts":"2026-01-23T08:56:16.205","level":"debug","req":"8e6cb106","msg":"form_api: JSON output","ctx":{"bytes":127515}}
+{"ts":"2026-01-23T08:56:16.500","level":"debug","req":"76bf5b82","msg":"form_api: JSON output","ctx":{"bytes":170651}}
+{"ts":"2026-01-23T08:56:24.174","level":"debug","req":"54a468e7","msg":"form_api: JSON output","ctx":{"bytes":60454}}
+{"ts":"2026-01-23T08:56:27.668","level":"debug","req":"8bb60369","msg":"form_api: JSON output","ctx":{"bytes":67050}}
+{"ts":"2026-01-23T08:56:27.956","level":"debug","req":"f051e2be","msg":"form_api: JSON output","ctx":{"bytes":67050}}
+{"ts":"2026-01-23T08:56:32.224","level":"debug","req":"cf97ab61","msg":"form_api: JSON output","ctx":{"bytes":68324}}
+{"ts":"2026-01-23T08:56:37.167","level":"debug","req":"6029f369","msg":"form_api: JSON output","ctx":{"bytes":2203}}
+{"ts":"2026-01-23T08:56:37.392","level":"debug","req":"12567511","msg":"form_api: JSON output","ctx":{"bytes":2203}}
+{"ts":"2026-01-23T08:56:39.883","level":"debug","req":"7fb7ec22","msg":"form_api: JSON output","ctx":{"bytes":22744}}
+{"ts":"2026-01-23T08:56:40.105","level":"debug","req":"7cf836bc","msg":"form_api: JSON output","ctx":{"bytes":22746}}
+{"ts":"2026-01-23T08:56:46.120","level":"debug","req":"b10e4c23","msg":"form_api: JSON output","ctx":{"bytes":2265}}
+{"ts":"2026-01-23T08:56:50.546","level":"debug","req":"2ce356aa","msg":"form_api: JSON output","ctx":{"bytes":2304}}
+{"ts":"2026-01-23T08:58:19.187","level":"debug","req":"83fa822b","msg":"form_api: JSON output","ctx":{"bytes":5779}}
+{"ts":"2026-01-23T08:58:19.362","level":"debug","req":"0696a24a","msg":"form_api: JSON output","ctx":{"bytes":5781}}
+{"ts":"2026-01-23T08:58:21.079","level":"debug","req":"dc6440ab","msg":"form_api: JSON output","ctx":{"bytes":4749}}
+{"ts":"2026-01-23T08:58:21.287","level":"debug","req":"200d59b6","msg":"form_api: JSON output","ctx":{"bytes":4749}}
+{"ts":"2026-01-23T08:58:22.699","level":"debug","req":"89b7f468","msg":"form_api: JSON output","ctx":{"bytes":2371}}
+{"ts":"2026-01-23T08:58:22.923","level":"debug","req":"a01e7bd7","msg":"form_api: JSON output","ctx":{"bytes":2371}}
+{"ts":"2026-01-23T08:58:34.160","level":"debug","req":"2be52a46","msg":"form_api: JSON output","ctx":{"bytes":18102}}
+{"ts":"2026-01-23T08:58:34.670","level":"debug","req":"833c5d55","msg":"form_api: JSON output","ctx":{"bytes":18102}}
+{"ts":"2026-01-23T08:59:19.673","level":"debug","req":"b8d206a7","msg":"form_api: JSON output","ctx":{"bytes":32798}}
+{"ts":"2026-01-23T08:59:19.920","level":"debug","req":"11edef94","msg":"form_api: JSON output","ctx":{"bytes":32796}}
+{"ts":"2026-01-23T08:59:21.698","level":"debug","req":"44638cbc","msg":"form_api: JSON output","ctx":{"bytes":63196}}
+{"ts":"2026-01-23T08:59:22.156","level":"debug","req":"64119e92","msg":"form_api: JSON output","ctx":{"bytes":63196}}
+{"ts":"2026-01-23T08:59:27.726","level":"debug","req":"2cba99fa","msg":"form_api: JSON output","ctx":{"bytes":69586}}
+{"ts":"2026-01-23T08:59:28.066","level":"debug","req":"3a90275d","msg":"form_api: JSON output","ctx":{"bytes":69586}}
+{"ts":"2026-01-23T08:59:30.394","level":"debug","req":"e042d7a2","msg":"form_api: JSON output","ctx":{"bytes":63196}}
+{"ts":"2026-01-23T08:59:35.408","level":"debug","req":"e9fc42f6","msg":"form_api: JSON output","ctx":{"bytes":63196}}
+{"ts":"2026-01-23T09:06:42.490","level":"debug","req":"10e9f545","msg":"form_api: JSON output","ctx":{"bytes":36870}}
+{"ts":"2026-01-23T09:06:42.898","level":"debug","req":"9f6f2a79","msg":"form_api: JSON output","ctx":{"bytes":329440}}
+{"ts":"2026-01-23T09:06:43.267","level":"debug","req":"cab2f0a0","msg":"form_api: JSON output","ctx":{"bytes":36870}}
+{"ts":"2026-01-23T09:06:43.607","level":"debug","req":"70c373ec","msg":"form_api: JSON output","ctx":{"bytes":329440}}
+{"ts":"2026-01-23T09:06:48.455","level":"debug","req":"bc83abd0","msg":"form_api: JSON output","ctx":{"bytes":1378}}
+{"ts":"2026-01-23T09:06:49.429","level":"debug","req":"196c8008","msg":"form_api: JSON output","ctx":{"bytes":330972}}
+{"ts":"2026-01-23T09:06:49.767","level":"debug","req":"554773ec","msg":"form_api: JSON output","ctx":{"bytes":330972}}
+{"ts":"2026-01-23T09:06:50.005","level":"debug","req":"9d788623","msg":"form_api: JSON output","ctx":{"bytes":1262}}
+{"ts":"2026-01-23T09:06:56.738","level":"debug","req":"067a0e85","msg":"form_api: JSON output","ctx":{"bytes":36870}}
+{"ts":"2026-01-23T09:06:56.958","level":"debug","req":"a12bec37","msg":"form_api: JSON output","ctx":{"bytes":1370}}
+{"ts":"2026-01-23T09:06:58.703","level":"debug","req":"dd85966f","msg":"form_api: JSON output","ctx":{"bytes":331479}}
+{"ts":"2026-01-23T09:06:58.928","level":"debug","req":"2ca86157","msg":"form_api: JSON output","ctx":{"bytes":1432}}
+{"ts":"2026-01-23T09:06:59.239","level":"debug","req":"815b7cad","msg":"form_api: JSON output","ctx":{"bytes":331479}}
+{"ts":"2026-01-23T09:06:59.452","level":"debug","req":"34a355f8","msg":"form_api: JSON output","ctx":{"bytes":1362}}
+{"ts":"2026-01-23T09:07:02.172","level":"debug","req":"22041561","msg":"form_api: JSON output","ctx":{"bytes":310668}}
+{"ts":"2026-01-23T09:07:05.610","level":"debug","req":"47322afa","msg":"form_api: JSON output","ctx":{"bytes":310668}}
+{"ts":"2026-01-23T09:22:35.751","level":"debug","req":"a1663ea9","msg":"form_api: JSON output","ctx":{"bytes":73884}}
+{"ts":"2026-01-23T09:22:36.127","level":"debug","req":"03ca9923","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T09:22:36.376","level":"debug","req":"341ee03c","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T09:22:37.856","level":"debug","req":"77cccbd8","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T09:22:38.868","level":"debug","req":"1a08588a","msg":"form_api: JSON output","ctx":{"bytes":2735}}
+{"ts":"2026-01-23T09:22:39.226","level":"debug","req":"d845be9e","msg":"form_api: JSON output","ctx":{"bytes":10746}}
+{"ts":"2026-01-23T09:22:39.701","level":"debug","req":"c2bc8a29","msg":"form_api: JSON output","ctx":{"bytes":12286}}
+{"ts":"2026-01-23T09:22:43.089","level":"debug","req":"882eee3a","msg":"form_api: JSON output","ctx":{"bytes":2806}}
+{"ts":"2026-01-23T09:22:43.393","level":"debug","req":"5b73ab6a","msg":"form_api: JSON output","ctx":{"bytes":2755}}
+{"ts":"2026-01-23T09:22:43.710","level":"debug","req":"4d6e8b8f","msg":"form_api: JSON output","ctx":{"bytes":2832}}
+{"ts":"2026-01-23T09:22:44.852","level":"debug","req":"84b776a3","msg":"form_api: JSON output","ctx":{"bytes":2832}}
+{"ts":"2026-01-23T09:22:45.167","level":"debug","req":"66994b55","msg":"form_api: JSON output","ctx":{"bytes":11334}}
+{"ts":"2026-01-23T09:22:45.652","level":"debug","req":"6b4c0483","msg":"form_api: JSON output","ctx":{"bytes":15044}}
+{"ts":"2026-01-23T09:22:49.005","level":"debug","req":"2213fb02","msg":"form_api: JSON output","ctx":{"bytes":2785}}
+{"ts":"2026-01-23T09:22:49.434","level":"debug","req":"105f9f62","msg":"form_api: JSON output","ctx":{"bytes":2728}}
+{"ts":"2026-01-23T09:22:51.221","level":"debug","req":"47c5898d","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T09:22:51.480","level":"debug","req":"1a156043","msg":"form_api: JSON output","ctx":{"bytes":2728}}
+{"ts":"2026-01-23T09:22:51.790","level":"debug","req":"3e28313a","msg":"form_api: JSON output","ctx":{"bytes":11469}}
+{"ts":"2026-01-23T09:22:52.392","level":"debug","req":"6b15c31c","msg":"form_api: JSON output","ctx":{"bytes":22151}}
+{"ts":"2026-01-23T09:23:31.413","level":"debug","req":"c9b37bdf","msg":"form_api: JSON output","ctx":{"bytes":2728}}
+{"ts":"2026-01-23T09:23:31.951","level":"debug","req":"8efb35a6","msg":"form_api: JSON output","ctx":{"bytes":11469}}
+{"ts":"2026-01-23T09:23:32.447","level":"debug","req":"824d406c","msg":"form_api: JSON output","ctx":{"bytes":22151}}
+{"ts":"2026-01-23T09:23:42.943","level":"debug","req":"728c5667","msg":"form_api: JSON output","ctx":{"bytes":2865}}
+{"ts":"2026-01-23T09:23:55.292","level":"debug","req":"414944c0","msg":"form_api: JSON output","ctx":{"bytes":1254}}
+{"ts":"2026-01-23T09:23:55.714","level":"debug","req":"a9783a1d","msg":"form_api: JSON output","ctx":{"bytes":1369}}
+{"ts":"2026-01-23T09:24:30.792","level":"debug","req":"3747fb79","msg":"form_api: JSON output","ctx":{"bytes":1435}}
+{"ts":"2026-01-23T09:31:42.328","level":"debug","req":"4abaf45b","msg":"form_api: JSON output","ctx":{"bytes":1390}}
+{"ts":"2026-01-23T09:31:42.637","level":"debug","req":"b10682b0","msg":"form_api: JSON output","ctx":{"bytes":1396}}
+{"ts":"2026-01-23T09:31:44.107","level":"debug","req":"9da1fe31","msg":"form_api: JSON output","ctx":{"bytes":1396}}
+{"ts":"2026-01-23T09:31:44.482","level":"debug","req":"06803a74","msg":"form_api: JSON output","ctx":{"bytes":36870}}
+{"ts":"2026-01-23T09:31:45.776","level":"debug","req":"839296f9","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:31:47.124","level":"debug","req":"bb29fcf8","msg":"form_api: JSON output","ctx":{"bytes":238850}}
+{"ts":"2026-01-23T09:31:48.065","level":"debug","req":"c300962e","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:31:48.347","level":"debug","req":"cf59211b","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:31:54.594","level":"debug","req":"5b02da16","msg":"form_api: JSON output","ctx":{"bytes":238850}}
+{"ts":"2026-01-23T09:31:54.874","level":"debug","req":"5a8c67b1","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:31:58.429","level":"debug","req":"e7052205","msg":"form_api: JSON output","ctx":{"bytes":1179}}
+{"ts":"2026-01-23T09:31:58.860","level":"debug","req":"7510f115","msg":"form_api: JSON output","ctx":{"bytes":1077}}
+{"ts":"2026-01-23T09:31:59.347","level":"error","req":"a63affc7","msg":"Subform configuration error: parentField is empty and SQL has no [id] placeholder","ctx":{"parentFormId":"docenten","subformName":"Hoofd-/jaargroepopleider toegewezen aan","subformIndex":3,"jsonFormName":"docenten_hoofd_jaargroepopleider_toegewezen_aan","parentId":"4256","sql":"SELECT tblDeelname.ID, [code] & \"- \" & [titel] AS Opleiding, tblDeelnemers.VolledigeNaam as Deelnemer  \r\nFROM tblDeelnemers INNER JOIN (tblOpleidingen INNER JOIN tblDeelname ON tblOpleidingen.ID = tblDeelname.fkOpleiding) ON tblDeelnemers.ID = tblDeelname.fkDeelnemer\r\nORDER BY [code] & \"- \" & [titel], tblDeelnemers.Achternaam"},"url":"/cma/form_api.php?action=subforms&form=docenten&ParentID=4256&indices=1,2,3","method":"GET","ip":"172.29.208.1"}
+{"ts":"2026-01-23T09:31:59.349","level":"debug","req":"a63affc7","msg":"form_api: JSON output","ctx":{"bytes":4936}}
+{"ts":"2026-01-23T09:32:29.970","level":"debug","req":"44ce3493","msg":"form_api: JSON output","ctx":{"bytes":2448}}
+{"ts":"2026-01-23T09:32:30.172","level":"debug","req":"6c9ace71","msg":"form_api: JSON output","ctx":{"bytes":2448}}
+{"ts":"2026-01-23T09:32:33.824","level":"debug","req":"23e3aaac","msg":"form_api: JSON output","ctx":{"bytes":242838}}
+{"ts":"2026-01-23T09:32:34.162","level":"debug","req":"5a0655d0","msg":"form_api: JSON output","ctx":{"bytes":242838}}
+{"ts":"2026-01-23T09:32:38.031","level":"debug","req":"80e262db","msg":"form_api: JSON output","ctx":{"bytes":238846}}
+{"ts":"2026-01-23T09:32:38.320","level":"debug","req":"e1b7ebc9","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:32:41.717","level":"debug","req":"a66d12b8","msg":"form_api: JSON output","ctx":{"bytes":2446}}
+{"ts":"2026-01-23T09:32:41.942","level":"debug","req":"14036cfb","msg":"form_api: JSON output","ctx":{"bytes":2448}}
+{"ts":"2026-01-23T09:32:49.196","level":"debug","req":"008a68fd","msg":"form_api: JSON output","ctx":{"bytes":8677}}
+{"ts":"2026-01-23T09:32:49.410","level":"debug","req":"0252cdad","msg":"form_api: JSON output","ctx":{"bytes":8677}}
+{"ts":"2026-01-23T09:32:49.664","level":"debug","req":"b1e7faf6","msg":"form_api: JSON output","ctx":{"bytes":94327}}
+{"ts":"2026-01-23T09:32:49.926","level":"debug","req":"10ba68ec","msg":"form_api: JSON output","ctx":{"bytes":94327}}
+{"ts":"2026-01-23T09:32:51.577","level":"debug","req":"faa80e36","msg":"form_api: JSON output","ctx":{"bytes":8755}}
+{"ts":"2026-01-23T09:32:51.855","level":"debug","req":"becd9aa1","msg":"form_api: JSON output","ctx":{"bytes":175557}}
+{"ts":"2026-01-23T09:32:52.069","level":"debug","req":"874970b6","msg":"form_api: JSON output","ctx":{"bytes":8755}}
+{"ts":"2026-01-23T09:32:52.363","level":"debug","req":"f5f7e858","msg":"form_api: JSON output","ctx":{"bytes":175559}}
+{"ts":"2026-01-23T09:33:12.541","level":"debug","req":"ed831400","msg":"form_api: JSON output","ctx":{"bytes":4032}}
+{"ts":"2026-01-23T09:33:18.672","level":"debug","req":"27c5490b","msg":"form_api: JSON output","ctx":{"bytes":1973}}
+{"ts":"2026-01-23T09:33:26.764","level":"debug","req":"742c41f6","msg":"SAVE REQUEST","ctx":{"jsonForm":"_menu_items","recordId":"25","POST":{"action":"save","jsonForm":"_menu_items","ID":"25","actie":"","_changelog":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">was</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">gewijzigd in</th></tr>\r\n<TR id=\"Menu ID\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Menu ID</TD><TD style=\"border-bottom:1px solid #003366\">&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">9&nbsp;</TD></TR>\r\n<TR id=\"Weergavenaam\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Weergavenaam</TD><TD style=\"border-bottom:1px solid #003366\">Alle rapporten&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Alle standaard rapporten&nbsp;</TD></TR>\r\n<TR id=\"Zichtbaar\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Zichtbaar</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n</table>","_changelog_flds":"menuId,name,visible","_changelog_type":"edit","_changelog_email":"","_changelog_user":"Diederik Stenvers","_changelog_form":"_menu_items","_changelog_formname":"_menu_items","_changelog_copy":"","_changelog_copy_id":"","required":"","__fully_loaded":"Y","menuId":"9","menuId__label":"Menu ID","visible":"True","visible__label":"Zichtbaar","id":"25","name":"Alle standaard rapporten","name__label":"Weergavenaam","order":"1","order__label":"Volgorde","form":"","form__label":"JSON formulier","formId":"","formId__label":"Form ID (legacy)","href":"reports.php","href__label":"URL"}}}
+{"ts":"2026-01-23T09:33:26.766","level":"debug","req":"742c41f6","msg":"SAVE: POST keys","ctx":{"keys":["action","jsonForm","ID","actie","_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id","required","__fully_loaded","menuId","menuId__label","visible","visible__label","id","name","name__label","order","order__label","form","form__label","formId","formId__label","href","href__label"]}}
+{"ts":"2026-01-23T09:33:26.767","level":"debug","req":"742c41f6","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-23T09:33:26.768","level":"debug","req":"742c41f6","msg":"SAVE changelog data","ctx":{"keys":["_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id"],"changelogLength":1183,"changelogPreview":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-"}}
+{"ts":"2026-01-23T09:33:26.770","level":"debug","req":"742c41f6","msg":"ConfigFormService::saveRecord","ctx":{"formName":"_menu_items","data":{"actie":"","required":"","menuId":"9","menuId__label":"Menu ID","visible":"True","visible__label":"Zichtbaar","name":"Alle standaard rapporten","name__label":"Weergavenaam","order":"1","order__label":"Volgorde","form__label":"JSON formulier","formId":"","formId__label":"Form ID (legacy)","href":"reports.php","href__label":"URL","id":"25"}}}
+{"ts":"2026-01-23T09:33:26.772","level":"debug","req":"742c41f6","msg":"ConfigFormService: searching for item","ctx":{"id":"25","parentKey":"menus","nestedKey":"items","parentCount":15}}
+{"ts":"2026-01-23T09:33:26.772","level":"debug","req":"742c41f6","msg":"ConfigFormService: found item, merging","ctx":{"parentIdx":13,"itemIdx":0,"originalItem":{"id":25,"name":"Alle rapporten","order":1,"visible":true,"href":"reports.php","formName":null},"cleanedData":{"id":25,"visible":true,"name":"Alle standaard rapporten","order":1,"formId":null,"href":"reports.php"}}}
+{"ts":"2026-01-23T09:33:26.775","level":"debug","req":"742c41f6","msg":"ConfigFormService: save result","ctx":{"configFile":"menu","saveResult":true}}
+{"ts":"2026-01-23T09:33:26.776","level":"debug","req":"742c41f6","msg":"logMonitoring START","ctx":{"form":"_menu_items","action":"edit","recordId":"25"}}
+{"ts":"2026-01-23T09:33:26.777","level":"debug","req":"742c41f6","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-23T09:33:26.777","level":"debug","req":"742c41f6","msg":"logMonitoring: changelog_length=1183"}
+{"ts":"2026-01-23T09:33:26.779","level":"debug","req":"742c41f6","msg":"logMonitoring: notification_length=1290"}
+{"ts":"2026-01-23T09:33:26.780","level":"debug","req":"742c41f6","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1463}}
+{"ts":"2026-01-23T09:33:26.794","level":"debug","req":"742c41f6","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-23T09:33:26.795","level":"debug","req":"742c41f6","msg":"logMonitoring END"}
+{"ts":"2026-01-23T09:33:27.219","level":"debug","req":"d090397b","msg":"form_api: JSON output","ctx":{"bytes":3967}}
+{"ts":"2026-01-23T09:33:33.284","level":"debug","req":"b954722d","msg":"form_api: JSON output","ctx":{"bytes":2031}}
+{"ts":"2026-01-23T09:33:46.589","level":"debug","req":"fc933547","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:33:46.883","level":"debug","req":"304070c4","msg":"form_api: JSON output","ctx":{"bytes":238848}}
+{"ts":"2026-01-23T09:33:49.367","level":"debug","req":"e63c32fc","msg":"form_api: JSON output","ctx":{"bytes":1360}}
+{"ts":"2026-01-23T09:33:50.148","level":"debug","req":"65d5ae25","msg":"form_api: JSON output","ctx":{"bytes":1360}}
+{"ts":"2026-01-23T09:33:50.715","level":"debug","req":"df7daf91","msg":"form_api: JSON output","ctx":{"bytes":3532}}
+{"ts":"2026-01-23T09:33:57.147","level":"debug","req":"1a144d6c","msg":"SAVE REQUEST","ctx":{"jsonForm":"docenten","recordId":"4252","POST":{"action":"save","jsonForm":"docenten","ID":"4252","actie":"","_changelog":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">was</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">gewijzigd in</th></tr>\r\n<TR id=\"STB ID\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">STB ID</TD><TD style=\"border-bottom:1px solid #003366\">&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">99999&nbsp;</TD></TR>\r\n<TR id=\"Aktief?\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Aktief?</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n<TR id=\"E-mail notificaties\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">E-mail notificaties</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n<TR id=\"E-mail notificaties nieuws\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">E-mail notificaties nieuws</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n<TR id=\"E-mail notificaties evaluaties\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">E-mail notificaties evaluaties</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n<TR id=\"E-mail notificaties draaiboek-wijzigingen\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">E-mail notificaties draaiboek-wijzigingen</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n<TR id=\"Verwerkt?\" vAlign=\"Top\"><TD style=\"border-bottom:1px solid #003366;border-left:1px solid #003366\">Verwerkt?</TD><TD style=\"border-bottom:1px solid #003366\">Uit&nbsp;</TD><TD style=\"border-bottom:1px solid #003366;border-right:1px solid #003366\">Aan&nbsp;</TD></TR>\r\n</table>","_changelog_flds":"PromptusID,bAktief,EmailNotificaties,EmailNieuwsNotificaties,EmailNotificatiesEvaluaties,EmailDraaiboekNotificaties,PlanningVerwerkt","_changelog_type":"edit","_changelog_email":"","_changelog_user":"Diederik Stenvers","_changelog_form":"docenten","_changelog_formname":"docenten","_changelog_copy":"","_changelog_copy_id":"","required":"","__fully_loaded":"Y","PromptusID":"99999","PromptusID__label":"STB ID","bAktief":"True","bAktief__label":"Aktief?","VolledigeNaam":"Tommie","VolledigeNaam__label":"Weergavenaam","Achternaam":"Sesamstraat","MV":"M","Organisatie":"","Organisatie2":"","Email":"tommie@sesamstrasse.de","Email__label":"E-mail","EmailNotificaties":"True","EmailNotificaties__label":"E-mail notificaties","EmailNieuwsNotificaties":"True","EmailNieuwsNotificaties__label":"E-mail notificaties nieuws","EmailNotificatiesEvaluaties":"True","EmailNotificatiesEvaluaties__label":"E-mail notificaties evaluaties","EmailDraaiboekNotificaties":"True","EmailDraaiboekNotificaties__label":"E-mail notificaties draaiboek-wijzigingen","SRH":"False","SRH__label":"SRH docent","SRH_HERSTELDOCENT":"False","SRH_HERSTELDOCENT__label":"SRH hersteldocent","Autisme":"False","Autisme__label":"Autisme docent","BIG_HO_GZ":"False","BIG_HO_GZ__label":"BIG GZ hoofdopleider","datReviewEmail__label":"Datum e-mail verzoek","datDocentReactie__label":"Datum reactie docent","bDocentAkkoord":"False","bDocentAkkoord__label":"Docent akkoord?","datPlanningReminder__label":"Datum reminder","NieuweFoto__label":"Foto url","NieuweIntro":"Hoi ik ben Tommie, de vrolijke hond die woont op Sesamstraat 1.","NieuweIntro__label":"Intro","NieuweBio":"Van ongewassen hippie die woonde op de Dam tot TV-ster van wereldse proporties. Tommie is een inspiratie voor iedereen die zichzelf wilt ontstijgen.","NieuweBio__label":"Bio","PlanningVerwerkt":"True","PlanningVerwerkt__label":"Verwerkt?","guid__label":"Unieke code"}}}
+{"ts":"2026-01-23T09:33:57.149","level":"debug","req":"1a144d6c","msg":"SAVE: POST keys","ctx":{"keys":["action","jsonForm","ID","actie","_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id","required","__fully_loaded","PromptusID","PromptusID__label","bAktief","bAktief__label","VolledigeNaam","VolledigeNaam__label","Achternaam","MV","Organisatie","Organisatie2","Email","Email__label","EmailNotificaties","EmailNotificaties__label","EmailNieuwsNotificaties","EmailNieuwsNotificaties__label","EmailNotificatiesEvaluaties","EmailNotificatiesEvaluaties__label","EmailDraaiboekNotificaties","EmailDraaiboekNotificaties__label","SRH","SRH__label","SRH_HERSTELDOCENT","SRH_HERSTELDOCENT__label","Autisme","Autisme__label","BIG_HO_GZ","BIG_HO_GZ__label","datReviewEmail__label","datDocentReactie__label","bDocentAkkoord","bDocentAkkoord__label","datPlanningReminder__label","NieuweFoto__label","NieuweIntro","NieuweIntro__label","NieuweBio","NieuweBio__label","PlanningVerwerkt","PlanningVerwerkt__label","guid__label"]}}
+{"ts":"2026-01-23T09:33:57.149","level":"debug","req":"1a144d6c","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-23T09:33:57.150","level":"debug","req":"1a144d6c","msg":"SAVE changelog data","ctx":{"keys":["_changelog","_changelog_flds","_changelog_type","_changelog_email","_changelog_user","_changelog_form","_changelog_formname","_changelog_copy","_changelog_copy_id"],"changelogLength":2399,"changelogPreview":"<table cellspacing=\"0\" cellpadding=\"3\"><tr><th style=\"font-size:10pt;background-color:#002350;color:white;text-align:left\">Veld</th><th style=\"font-size:10pt;background-color:#002350;color:white;text-"}}
+{"ts":"2026-01-23T09:33:57.153","level":"debug","req":"1a144d6c","msg":"SAVE: Valid fields","ctx":{"fields":["promptusid","baktief","volledigenaam","achternaam","mv","organisatie","organisatie2","email","emailnotificaties","emailnieuwsnotificaties","emailnotificatiesevaluaties","emaildraaiboeknotificaties","_group_12","srh","srh_hersteldocent","autisme","big_ho_gz","_group_17","datreviewemail","datdocentreactie","bdocentakkoord","datplanningreminder","nieuweintro","nieuwebio","planningverwerkt"]}}
+{"ts":"2026-01-23T09:33:57.154","level":"debug","req":"1a144d6c","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblDocenten] SET [PromptusID] = 99999, [bAktief] = True, [VolledigeNaam] = 'Tommie', [Achternaam] = 'Sesamstraat', [MV] = 'M', [Organisatie] = NULL, [Organisatie2] = NULL, [Email] = 'tommie@sesamstrasse.de', [EmailNotificaties] = True, [EmailNieuwsNotificaties] = True, [EmailNotificatiesEvaluaties] = True, [EmailDraaiboekNotificaties] = True, [SRH] = False, [SRH_HERSTELDOCENT] = False, [Autisme] = False, [BIG_HO_GZ] = False, [bDocentAkkoord] = False, [NieuweIntro] = 'Hoi ik ben Tommie, de vrolijke hond die woont op Sesamstraat 1.', [NieuweBio] = 'Van ongewassen hippie die woonde op de Dam tot TV-ster van wereldse proporties. Tommie is een inspiratie voor iedereen die zichzelf wilt ontstijgen.', [PlanningVerwerkt] = True WHERE [ID] = 4252"}}
+{"ts":"2026-01-23T09:33:57.162","level":"debug","req":"1a144d6c","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-23T09:33:57.163","level":"debug","req":"1a144d6c","msg":"SAVE: Skipping verification for Access","ctx":{"id":"4252"}}
+{"ts":"2026-01-23T09:33:57.164","level":"debug","req":"1a144d6c","msg":"logMonitoring START","ctx":{"form":"docenten","action":"edit","recordId":"4252"}}
+{"ts":"2026-01-23T09:33:57.164","level":"debug","req":"1a144d6c","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-23T09:33:57.165","level":"debug","req":"1a144d6c","msg":"logMonitoring: changelog_length=2399"}
+{"ts":"2026-01-23T09:33:57.166","level":"debug","req":"1a144d6c","msg":"logMonitoring: notification_length=2506"}
+{"ts":"2026-01-23T09:33:57.166","level":"debug","req":"1a144d6c","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":2676}}
+{"ts":"2026-01-23T09:33:57.170","level":"debug","req":"1a144d6c","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-23T09:33:57.171","level":"debug","req":"1a144d6c","msg":"logMonitoring END"}
+{"ts":"2026-01-23T09:33:57.666","level":"debug","req":"c848d32f","msg":"form_api: JSON output","ctx":{"bytes":238783}}
+{"ts":"2026-01-23T09:34:29.857","level":"debug","req":"cc37cd91","msg":"form_api: JSON output","ctx":{"bytes":1164}}
+{"ts":"2026-01-23T09:41:54.378","level":"debug","req":"a4e5c65c","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:54.942","level":"debug","req":"fdedb166","msg":"form_api: JSON output","ctx":{"bytes":1209}}
+{"ts":"2026-01-23T09:41:55.674","level":"debug","req":"27260133","msg":"SAVE REQUEST","ctx":{"jsonForm":"docenten","recordId":"4262","POST":{"action":"save","ID":"4262","jsonForm":"docenten","bAktief":"False"}}}
+{"ts":"2026-01-23T09:41:55.675","level":"debug","req":"27260133","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","bAktief"]}}
+{"ts":"2026-01-23T09:41:55.676","level":"debug","req":"27260133","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-23T09:41:55.677","level":"debug","req":"27260133","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-23T09:41:55.680","level":"debug","req":"27260133","msg":"SAVE: Valid fields","ctx":{"fields":["promptusid","baktief","volledigenaam","achternaam","mv","organisatie","organisatie2","email","emailnotificaties","emailnieuwsnotificaties","emailnotificatiesevaluaties","emaildraaiboeknotificaties","_group_12","srh","srh_hersteldocent","autisme","big_ho_gz","_group_17","datreviewemail","datdocentreactie","bdocentakkoord","datplanningreminder","nieuweintro","nieuwebio","planningverwerkt"]}}
+{"ts":"2026-01-23T09:41:55.681","level":"debug","req":"27260133","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblDocenten] SET [bAktief] = False WHERE [ID] = 4262"}}
+{"ts":"2026-01-23T09:41:55.684","level":"debug","req":"27260133","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-23T09:41:55.685","level":"debug","req":"27260133","msg":"SAVE: Skipping verification for Access","ctx":{"id":"4262"}}
+{"ts":"2026-01-23T09:41:55.685","level":"debug","req":"27260133","msg":"logMonitoring START","ctx":{"form":"docenten","action":"edit","recordId":"4262"}}
+{"ts":"2026-01-23T09:41:55.686","level":"debug","req":"27260133","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-23T09:41:55.687","level":"debug","req":"27260133","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-23T09:41:55.687","level":"debug","req":"27260133","msg":"logMonitoring: notification_length=99"}
+{"ts":"2026-01-23T09:41:55.688","level":"debug","req":"27260133","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":269}}
+{"ts":"2026-01-23T09:41:55.694","level":"debug","req":"27260133","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-23T09:41:55.695","level":"debug","req":"27260133","msg":"logMonitoring END"}
+{"ts":"2026-01-23T09:41:56.479","level":"debug","req":"4ca5d135","msg":"SAVE REQUEST","ctx":{"jsonForm":"docenten","recordId":"4262","POST":{"action":"save","ID":"4262","jsonForm":"docenten","bAktief":"True"}}}
+{"ts":"2026-01-23T09:41:56.480","level":"debug","req":"4ca5d135","msg":"SAVE: POST keys","ctx":{"keys":["action","ID","jsonForm","bAktief"]}}
+{"ts":"2026-01-23T09:41:56.481","level":"debug","req":"4ca5d135","msg":"SAVE: userLevel NOT in POST"}
+{"ts":"2026-01-23T09:41:56.481","level":"debug","req":"4ca5d135","msg":"SAVE changelog data","ctx":{"keys":[],"changelogLength":0,"changelogPreview":""}}
+{"ts":"2026-01-23T09:41:56.485","level":"debug","req":"4ca5d135","msg":"SAVE: Valid fields","ctx":{"fields":["promptusid","baktief","volledigenaam","achternaam","mv","organisatie","organisatie2","email","emailnotificaties","emailnieuwsnotificaties","emailnotificatiesevaluaties","emaildraaiboeknotificaties","_group_12","srh","srh_hersteldocent","autisme","big_ho_gz","_group_17","datreviewemail","datdocentreactie","bdocentakkoord","datplanningreminder","nieuweintro","nieuwebio","planningverwerkt"]}}
+{"ts":"2026-01-23T09:41:56.486","level":"debug","req":"4ca5d135","msg":"SAVE: SQL","ctx":{"sql":"UPDATE [tblDocenten] SET [bAktief] = True WHERE [ID] = 4262"}}
+{"ts":"2026-01-23T09:41:56.489","level":"debug","req":"4ca5d135","msg":"SAVE: Rows affected","ctx":{"count":1}}
+{"ts":"2026-01-23T09:41:56.490","level":"debug","req":"4ca5d135","msg":"SAVE: Skipping verification for Access","ctx":{"id":"4262"}}
+{"ts":"2026-01-23T09:41:56.491","level":"debug","req":"4ca5d135","msg":"logMonitoring START","ctx":{"form":"docenten","action":"edit","recordId":"4262"}}
+{"ts":"2026-01-23T09:41:56.492","level":"debug","req":"4ca5d135","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-01-23T09:41:56.492","level":"debug","req":"4ca5d135","msg":"logMonitoring: changelog_length=0"}
+{"ts":"2026-01-23T09:41:56.493","level":"debug","req":"4ca5d135","msg":"logMonitoring: notification_length=99"}
+{"ts":"2026-01-23T09:41:56.494","level":"debug","req":"4ca5d135","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":269}}
+{"ts":"2026-01-23T09:41:56.497","level":"debug","req":"4ca5d135","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-01-23T09:41:56.498","level":"debug","req":"4ca5d135","msg":"logMonitoring END"}
+{"ts":"2026-01-23T09:41:56.745","level":"debug","req":"888ea677","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:56.967","level":"debug","req":"c7c00500","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:57.186","level":"debug","req":"7017f649","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:57.396","level":"debug","req":"2cfd00c2","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:57.608","level":"debug","req":"9b08c852","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:57.809","level":"debug","req":"33624270","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:58.024","level":"debug","req":"b6a25ea9","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:58.226","level":"debug","req":"07f65304","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:58.452","level":"debug","req":"25780cd3","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:58.673","level":"debug","req":"be6c8ad0","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:58.887","level":"debug","req":"27bb0438","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:59.098","level":"debug","req":"4a265549","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:59.300","level":"debug","req":"6ca57812","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:59.513","level":"debug","req":"bf61f53f","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:59.730","level":"debug","req":"fcec39e0","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:41:59.936","level":"debug","req":"57616b7c","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:00.146","level":"debug","req":"534e3143","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:00.356","level":"debug","req":"7b3b5caf","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:00.550","level":"debug","req":"7cd5b608","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:00.755","level":"debug","req":"faddf417","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:01.146","level":"debug","req":"af1415d1","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:01.356","level":"debug","req":"6ced440f","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:01.570","level":"debug","req":"894b02c3","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:01.779","level":"debug","req":"a53921ef","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T09:42:04.511","level":"debug","req":"0794a0e6","msg":"form_api: JSON output","ctx":{"bytes":1174}}
+{"ts":"2026-01-23T13:07:13.411","level":"debug","req":"11069756","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T13:07:13.680","level":"debug","req":"41539196","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T13:07:13.927","level":"debug","req":"69d7bdbd","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T13:53:57.960","level":"debug","req":"21eaccf8","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T13:54:00.173","level":"debug","req":"68fc8847","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T13:54:00.564","level":"debug","req":"7b38eacc","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T13:54:04.418","level":"debug","req":"a514f019","msg":"form_api: JSON output","ctx":{"bytes":10144}}
+{"ts":"2026-01-23T13:54:05.217","level":"debug","req":"f9ac1b6c","msg":"form_api: JSON output","ctx":{"bytes":12281}}
+{"ts":"2026-01-23T13:55:03.262","level":"debug","req":"7175cb69","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T13:55:03.498","level":"debug","req":"16b5d919","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T13:55:03.823","level":"debug","req":"bcf46f64","msg":"form_api: JSON output","ctx":{"bytes":4898}}
+{"ts":"2026-01-23T13:55:04.069","level":"debug","req":"e7e14378","msg":"form_api: JSON output","ctx":{"bytes":73886}}
+{"ts":"2026-01-23T13:55:05.583","level":"debug","req":"a99264dd","msg":"form_api: JSON output","ctx":{"bytes":2704}}
+{"ts":"2026-01-23T13:55:06.037","level":"debug","req":"761313b1","msg":"form_api: JSON output","ctx":{"bytes":10144}}
+{"ts":"2026-01-23T13:55:06.705","level":"debug","req":"fd7188b3","msg":"form_api: JSON output","ctx":{"bytes":12281}}

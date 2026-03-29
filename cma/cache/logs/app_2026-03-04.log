@@ -1,0 +1,119 @@
+{"ts":"2026-03-04T07:04:36.286","level":"debug","req":"2b7eff83","msg":"form_api: JSON output","ctx":{"bytes":1136}}
+{"ts":"2026-03-04T07:04:37.210","level":"debug","req":"2d8d2807","msg":"form_api: JSON output","ctx":{"bytes":1136}}
+{"ts":"2026-03-04T07:04:37.245","level":"debug","req":"7e6656d9","msg":"form_api: JSON output","ctx":{"bytes":18148}}
+{"ts":"2026-03-04T07:04:43.188","level":"debug","req":"ccfe0bc5","msg":"form_api: JSON output","ctx":{"bytes":32824}}
+{"ts":"2026-03-04T07:04:43.379","level":"debug","req":"65dbc865","msg":"form_api: JSON output","ctx":{"bytes":32822}}
+{"ts":"2026-03-04T07:04:45.930","level":"debug","req":"02dec067","msg":"form_api: JSON output","ctx":{"bytes":4957}}
+{"ts":"2026-03-04T07:04:46.215","level":"debug","req":"a04a037a","msg":"form_api: JSON output","ctx":{"bytes":774405}}
+{"ts":"2026-03-04T07:04:46.497","level":"debug","req":"bef7d485","msg":"form_api: JSON output","ctx":{"bytes":774405}}
+{"ts":"2026-03-04T07:04:48.209","level":"debug","req":"f2a8c72e","msg":"form_api: JSON output","ctx":{"bytes":12755}}
+{"ts":"2026-03-04T07:04:56.435","level":"debug","req":"df2f72d2","msg":"form_api: JSON output","ctx":{"bytes":14439}}
+{"ts":"2026-03-04T07:04:57.090","level":"debug","req":"de2924f4","msg":"form_api: JSON output","ctx":{"bytes":14439}}
+{"ts":"2026-03-04T07:04:57.445","level":"debug","req":"f1f2c55d","msg":"form_api: JSON output","ctx":{"bytes":12281}}
+{"ts":"2026-03-04T07:04:59.233","level":"debug","req":"a5ea10a9","msg":"form_api: JSON output","ctx":{"bytes":14033}}
+{"ts":"2026-03-04T07:04:59.949","level":"debug","req":"012046d6","msg":"form_api: JSON output","ctx":{"bytes":12231}}
+{"ts":"2026-03-04T07:05:00.276","level":"debug","req":"ceb14926","msg":"form_api: JSON output","ctx":{"bytes":12231}}
+{"ts":"2026-03-04T07:05:00.571","level":"debug","req":"c3e1d880","msg":"form_api: JSON output","ctx":{"bytes":7099}}
+{"ts":"2026-03-04T07:14:33.485","level":"debug","req":"cea2bbfc","msg":"form_api: JSON output","ctx":{"bytes":16305}}
+{"ts":"2026-03-04T07:14:34.429","level":"debug","req":"f5a97f0f","msg":"form_api: JSON output","ctx":{"bytes":10602}}
+{"ts":"2026-03-04T07:14:34.957","level":"debug","req":"a2bedca0","msg":"form_api: JSON output","ctx":{"bytes":10602}}
+{"ts":"2026-03-04T07:14:35.295","level":"debug","req":"68817c74","msg":"form_api: JSON output","ctx":{"bytes":6235}}
+{"ts":"2026-03-04T07:14:39.904","level":"debug","req":"37a0f0a0","msg":"form_api: JSON output","ctx":{"bytes":27482}}
+{"ts":"2026-03-04T07:14:39.923","level":"debug","req":"042f153f","msg":"form_api: JSON output","ctx":{"bytes":3152}}
+{"ts":"2026-03-04T07:14:40.513","level":"debug","req":"070f7652","msg":"form_api: JSON output","ctx":{"bytes":10713}}
+{"ts":"2026-03-04T07:14:47.310","level":"debug","req":"7588fe46","msg":"form_api: JSON output","ctx":{"bytes":13375}}
+{"ts":"2026-03-04T07:14:47.923","level":"debug","req":"e63d030a","msg":"form_api: JSON output","ctx":{"bytes":15454}}
+{"ts":"2026-03-04T07:14:48.722","level":"debug","req":"46a2fdbd","msg":"form_api: JSON output","ctx":{"bytes":15454}}
+{"ts":"2026-03-04T07:14:49.012","level":"debug","req":"07b9eabe","msg":"form_api: JSON output","ctx":{"bytes":9078}}
+{"ts":"2026-03-04T07:15:01.823","level":"debug","req":"603bc849","msg":"form_api: JSON output","ctx":{"bytes":15850}}
+{"ts":"2026-03-04T08:34:08.375","level":"debug","req":"50a33c31","msg":"form_api: JSON output","ctx":{"bytes":2315}}
+{"ts":"2026-03-04T10:22:57.621","level":"debug","req":"69da7b2f","msg":"form_api: JSON output","ctx":{"bytes":44146}}
+{"ts":"2026-03-04T10:22:57.630","level":"debug","req":"ce149aaa","msg":"form_api: JSON output","ctx":{"bytes":44148}}
+{"ts":"2026-03-04T10:23:00.642","level":"debug","req":"0af96287","msg":"form_api: JSON output","ctx":{"bytes":11161}}
+{"ts":"2026-03-04T10:23:00.739","level":"debug","req":"c7077a64","msg":"form_api: JSON output","ctx":{"bytes":11161}}
+{"ts":"2026-03-04T10:23:13.822","level":"debug","req":"8fceb7a7","msg":"form_api: JSON output","ctx":{"bytes":55571}}
+{"ts":"2026-03-04T10:23:13.994","level":"debug","req":"c7c46ffc","msg":"form_api: JSON output","ctx":{"bytes":7014}}
+{"ts":"2026-03-04T10:32:06.281","level":"debug","req":"c788856a","msg":"form_api: JSON output","ctx":{"bytes":55571}}
+{"ts":"2026-03-04T10:32:06.500","level":"debug","req":"9929d9fb","msg":"form_api: JSON output","ctx":{"bytes":7014}}
+{"ts":"2026-03-04T12:26:41.259","level":"debug","req":"3b09edb1","msg":"form_api: JSON output","ctx":{"bytes":102376}}
+{"ts":"2026-03-04T12:26:47.588","level":"debug","req":"54a1db6d","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"19"}}
+{"ts":"2026-03-04T12:26:47.589","level":"debug","req":"54a1db6d","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:26:47.589","level":"debug","req":"54a1db6d","msg":"logMonitoring: changelog_length=821"}
+{"ts":"2026-03-04T12:26:47.590","level":"debug","req":"54a1db6d","msg":"logMonitoring: notification_length=956"}
+{"ts":"2026-03-04T12:26:47.591","level":"debug","req":"54a1db6d","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1123}}
+{"ts":"2026-03-04T12:26:47.613","level":"debug","req":"54a1db6d","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:26:47.614","level":"debug","req":"54a1db6d","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:26:51.399","level":"debug","req":"d301c1ec","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"24"}}
+{"ts":"2026-03-04T12:26:51.401","level":"debug","req":"d301c1ec","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:26:51.401","level":"debug","req":"d301c1ec","msg":"logMonitoring: changelog_length=820"}
+{"ts":"2026-03-04T12:26:51.402","level":"debug","req":"d301c1ec","msg":"logMonitoring: notification_length=954"}
+{"ts":"2026-03-04T12:26:51.403","level":"debug","req":"d301c1ec","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1121}}
+{"ts":"2026-03-04T12:26:51.409","level":"debug","req":"d301c1ec","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:26:51.410","level":"debug","req":"d301c1ec","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:26:54.456","level":"debug","req":"7e530a3a","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"28"}}
+{"ts":"2026-03-04T12:26:54.458","level":"debug","req":"7e530a3a","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:26:54.459","level":"debug","req":"7e530a3a","msg":"logMonitoring: changelog_length=817"}
+{"ts":"2026-03-04T12:26:54.459","level":"debug","req":"7e530a3a","msg":"logMonitoring: notification_length=949"}
+{"ts":"2026-03-04T12:26:54.460","level":"debug","req":"7e530a3a","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1116}}
+{"ts":"2026-03-04T12:26:54.463","level":"debug","req":"7e530a3a","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:26:54.464","level":"debug","req":"7e530a3a","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:26:59.303","level":"debug","req":"9064407f","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"33"}}
+{"ts":"2026-03-04T12:26:59.304","level":"debug","req":"9064407f","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:26:59.305","level":"debug","req":"9064407f","msg":"logMonitoring: changelog_length=820"}
+{"ts":"2026-03-04T12:26:59.306","level":"debug","req":"9064407f","msg":"logMonitoring: notification_length=954"}
+{"ts":"2026-03-04T12:26:59.307","level":"debug","req":"9064407f","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1121}}
+{"ts":"2026-03-04T12:26:59.310","level":"debug","req":"9064407f","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:26:59.311","level":"debug","req":"9064407f","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:27:11.289","level":"debug","req":"7ef53636","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"35"}}
+{"ts":"2026-03-04T12:27:11.290","level":"debug","req":"7ef53636","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:27:11.291","level":"debug","req":"7ef53636","msg":"logMonitoring: changelog_length=817"}
+{"ts":"2026-03-04T12:27:11.291","level":"debug","req":"7ef53636","msg":"logMonitoring: notification_length=949"}
+{"ts":"2026-03-04T12:27:11.292","level":"debug","req":"7ef53636","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1116}}
+{"ts":"2026-03-04T12:27:11.295","level":"debug","req":"7ef53636","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:27:11.296","level":"debug","req":"7ef53636","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:27:28.937","level":"debug","req":"980f9d6a","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"17"}}
+{"ts":"2026-03-04T12:27:28.938","level":"debug","req":"980f9d6a","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:27:28.939","level":"debug","req":"980f9d6a","msg":"logMonitoring: changelog_length=795"}
+{"ts":"2026-03-04T12:27:28.940","level":"debug","req":"980f9d6a","msg":"logMonitoring: notification_length=905"}
+{"ts":"2026-03-04T12:27:28.941","level":"debug","req":"980f9d6a","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1072}}
+{"ts":"2026-03-04T12:27:28.944","level":"debug","req":"980f9d6a","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:27:28.945","level":"debug","req":"980f9d6a","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:27:39.751","level":"debug","req":"68f9a2ba","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"688"}}
+{"ts":"2026-03-04T12:27:39.752","level":"debug","req":"68f9a2ba","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:27:39.753","level":"debug","req":"68f9a2ba","msg":"logMonitoring: changelog_length=818"}
+{"ts":"2026-03-04T12:27:39.757","level":"debug","req":"68f9a2ba","msg":"logMonitoring: notification_length=951"}
+{"ts":"2026-03-04T12:27:39.758","level":"debug","req":"68f9a2ba","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1119}}
+{"ts":"2026-03-04T12:27:39.762","level":"debug","req":"68f9a2ba","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:27:39.763","level":"debug","req":"68f9a2ba","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:27:45.529","level":"debug","req":"ae8493f5","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"677"}}
+{"ts":"2026-03-04T12:27:45.530","level":"debug","req":"ae8493f5","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:27:45.531","level":"debug","req":"ae8493f5","msg":"logMonitoring: changelog_length=818"}
+{"ts":"2026-03-04T12:27:45.532","level":"debug","req":"ae8493f5","msg":"logMonitoring: notification_length=951"}
+{"ts":"2026-03-04T12:27:45.533","level":"debug","req":"ae8493f5","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1119}}
+{"ts":"2026-03-04T12:27:45.536","level":"debug","req":"ae8493f5","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:27:45.537","level":"debug","req":"ae8493f5","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:28:04.887","level":"debug","req":"8b26d73f","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:28:05.014","level":"debug","req":"a3b88de0","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:28:05.152","level":"debug","req":"d170c6ff","msg":"form_api: JSON output","ctx":{"bytes":2762}}
+{"ts":"2026-03-04T12:28:18.578","level":"debug","req":"dac8eded","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:28:18.697","level":"debug","req":"bb898970","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:28:18.805","level":"debug","req":"0e281fd8","msg":"form_api: JSON output","ctx":{"bytes":2754}}
+{"ts":"2026-03-04T12:28:24.866","level":"debug","req":"e2bc1357","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:28:24.984","level":"debug","req":"f87157d7","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:28:25.106","level":"debug","req":"a5910190","msg":"form_api: JSON output","ctx":{"bytes":2754}}
+{"ts":"2026-03-04T12:28:27.579","level":"debug","req":"54f0fbaa","msg":"logMonitoring START","ctx":{"form":"groups","action":"delete","recordId":"665"}}
+{"ts":"2026-03-04T12:28:27.581","level":"debug","req":"54f0fbaa","msg":"logMonitoring: username=Diederik Stenvers"}
+{"ts":"2026-03-04T12:28:27.581","level":"debug","req":"54f0fbaa","msg":"logMonitoring: changelog_length=818"}
+{"ts":"2026-03-04T12:28:27.582","level":"debug","req":"54f0fbaa","msg":"logMonitoring: notification_length=951"}
+{"ts":"2026-03-04T12:28:27.583","level":"debug","req":"54f0fbaa","msg":"logMonitoring: Executing INSERT","ctx":{"sqlLength":1119}}
+{"ts":"2026-03-04T12:28:27.589","level":"debug","req":"54f0fbaa","msg":"logMonitoring: INSERT successful"}
+{"ts":"2026-03-04T12:28:27.589","level":"debug","req":"54f0fbaa","msg":"logMonitoring END"}
+{"ts":"2026-03-04T12:28:32.261","level":"debug","req":"8867d85f","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:28:32.334","level":"debug","req":"de3fa802","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:28:32.393","level":"debug","req":"23e90cb4","msg":"form_api: JSON output","ctx":{"bytes":2754}}
+{"ts":"2026-03-04T12:36:13.567","level":"debug","req":"d699b31b","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:36:13.586","level":"debug","req":"e8f98685","msg":"form_api: JSON output","ctx":{"bytes":102854}}
+{"ts":"2026-03-04T12:36:13.692","level":"debug","req":"1b51dc07","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:36:13.796","level":"debug","req":"49162cda","msg":"form_api: JSON output","ctx":{"bytes":9442}}
+{"ts":"2026-03-04T12:36:13.905","level":"debug","req":"068732bd","msg":"form_api: JSON output","ctx":{"bytes":2754}}
+{"ts":"2026-03-04T12:36:13.929","level":"debug","req":"b76b915e","msg":"form_api: JSON output","ctx":{"bytes":2754}}

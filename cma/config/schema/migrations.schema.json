@@ -1,0 +1,111 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CMA Migrations Configuration",
+    "description": "Schema for database migration definitions",
+    "type": "object",
+    "required": ["schemaVersion", "targetVersion", "migrations"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference"
+        },
+        "schemaVersion": {
+            "type": "string",
+            "description": "Version of this schema format"
+        },
+        "targetVersion": {
+            "type": "string",
+            "description": "Target version after all migrations are applied"
+        },
+        "migrations": {
+            "type": "array",
+            "description": "List of migration definitions",
+            "items": {
+                "type": "object",
+                "required": ["version", "description", "changes"],
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "description": "Migration version number (semver)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of what this migration does"
+                    },
+                    "disabled": {
+                        "type": "boolean",
+                        "description": "Whether this migration is disabled"
+                    },
+                    "changes": {
+                        "type": "array",
+                        "description": "List of changes in this migration",
+                        "items": {
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["createVersionTable", "addColumn", "dropColumn", "addIndex", "dropIndex", "renameTable", "runSql", "runSqlScript", "runPhp"],
+                                    "description": "Type of change"
+                                },
+                                "database": {
+                                    "type": "string",
+                                    "description": "Database name (rep, users, data)"
+                                },
+                                "table": {
+                                    "type": "string",
+                                    "description": "Table name"
+                                },
+                                "column": {
+                                    "type": "string",
+                                    "description": "Column name"
+                                },
+                                "columns": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Column names for indexes"
+                                },
+                                "dataType": {
+                                    "type": "string",
+                                    "description": "Data type for new column"
+                                },
+                                "default": {
+                                    "type": "string",
+                                    "description": "Default value"
+                                },
+                                "oldName": {
+                                    "type": "string",
+                                    "description": "Old table name (for rename)"
+                                },
+                                "newName": {
+                                    "type": "string",
+                                    "description": "New table name (for rename)"
+                                },
+                                "indexName": {
+                                    "type": "string",
+                                    "description": "Index name"
+                                },
+                                "sql": {
+                                    "type": "string",
+                                    "description": "SQL statement to execute"
+                                },
+                                "script": {
+                                    "type": "string",
+                                    "description": "Path to SQL or PHP script"
+                                },
+                                "optional": {
+                                    "type": "boolean",
+                                    "description": "Whether failure is acceptable"
+                                },
+                                "note": {
+                                    "type": "string",
+                                    "description": "Additional notes about this change"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,1248 @@
+/**
+ * Report Designer Styles
+ * Styles for the query designer and report generator wizard
+ *
+ * NOTE: Web components (cma-schema-canvas, cma-field-config, cma-query-preview, etc.)
+ * have their own styles in shadow DOM. Only layout/positioning styles are needed here.
+ */
+
+/* =========================================================================
+   Report Designer Layout
+   ========================================================================= */
+
+body.report-designer-page { height:100%}
+
+/* Database select in main toolbar */
+.toolbar-database-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--input-bg, white);
+    color: var(--text-color, #333);
+    font-size: var(--font-size-sm);
+    margin-right: 8px;
+    min-width: 80px;
+}
+
+.toolbar-database-select:focus {
+    outline: none;
+    border-color: var(--primary-color, #204496);
+}
+
+.report-designer {
+    display: flex;
+    flex-direction: column;
+    height: calc( 100% - var(--toolbar-height) );
+    background: var(--bg-surface, white);
+    overflow: hidden
+}
+
+.report-designer-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    height: 100%;
+}
+
+/* Main tabs (using cma-tabs component) */
+#mainTabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.main-tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Results split view */
+.results-split-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Wizard wrapper - contains tabs, preview, and toolbar */
+.report-designer-wizard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    height:100%
+}
+
+/* cma-tabs in wizard mode should fill available space */
+.report-designer-wizard cma-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Preview and toolbar at bottom */
+.report-designer-wizard cma-query-preview {
+    flex-shrink: 0;
+}
+
+/* Step content area */
+.report-designer-step {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+#fieldConfigComponent {
+    width: 100%;
+}
+
+/* =========================================================================
+   Step Panels
+   ========================================================================= */
+
+.step-panel {
+    display: none;
+}
+
+.step-panel.active {
+    display: block;
+}
+
+/* Two-column layout for step 1 (tables) */
+.step-layout-split {
+    display: grid;
+    grid-template-columns: 250px 6px 1fr;
+    gap: 0;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+}
+
+/* Vertical splitter (draggable divider) between panels */
+.vertical-splitter {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    z-index: 10;
+    background: var(--bg-alternate, #f5f5f5);
+    cursor: ew-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid var(--border-color, #ddd);
+    border-right: 1px solid var(--border-color, #ddd);
+    user-select: none;
+}
+
+.vertical-splitter:hover,
+.vertical-splitter.dragging {
+    background: var(--bg-hover, #e8e8e8);
+}
+
+.vertical-splitter::after {
+    content: '\22EE';
+    color: var(--text-muted, #999);
+    font-size: var(--font-size-sm);
+}
+
+/* Three-column layout with canvas */
+.step-layout-canvas {
+    display: grid;
+    grid-template-columns: 250px 1fr 300px;
+    gap: 20px;
+    height: 100%;
+    min-height: 400px;
+}
+
+/* Single column layout */
+.step-layout-single {
+    width: 100%;
+    height: 100%;
+}
+
+/* Fields layout with conditions panel */
+.step-layout-fields {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    padding: 0 16px 16px 16px;
+    overflow: hidden;
+}
+
+.step-layout-fields .fields-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    border-right: 0;
+}
+
+.step-layout-fields .fields-main p {
+    height: 40px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.step-layout-fields .fields-conditions {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 375px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.step-layout-fields cma-field-config {
+    flex: 1;
+    overflow: hidden;
+}
+
+.step-layout-fields cma-conditions-panel {
+    height: 100%;
+}
+
+cma-field-config {
+    height: 100%;
+}
+
+/* =========================================================================
+   Table List Panel (Step 1 - left side)
+   ========================================================================= */
+
+.table-list-panel {
+    display: flex;
+    flex-direction: column;
+    border: 0px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--bg-surface, white);
+}
+
+/* Table search in left panel */
+.table-list-panel .search-wrapper { flex: 1; min-width: 80px; max-width: 100% }
+.table-list-panel .toolbar .toolbar-center { display: none }
+.table-list-panel .toolbar .toolbar-right { display: none }
+
+/* Relationships panel in schema canvas */
+.relationships-panel { max-width: 360px }
+
+/* Table list toolbar - flex layout for search wrapper */
+.table-list-toolbar left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.table-list-toolbar .search-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: 0;
+}
+
+.table-list-toolbar .search-icon {
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    pointer-events: none;
+}
+
+.table-list-toolbar .search-wrapper input[type="text"] {
+    flex: 1;
+    width: 100%;
+    padding: 4px 8px 4px 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color, #333);
+    font-size: var(--font-size-sm);
+}
+
+input#tableSearch {
+    padding-left: 24px;
+}
+
+.table-list-items {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.table-list-item {
+    display: flex;
+    align-items: center;
+    padding: 3px 0 3px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.table-list-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.table-list-item.selected {
+    background: var(--row-selected-bg, #e3f2fd);
+    font-weight: 500;
+}
+
+.table-list-item .table-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--font-size);
+}
+
+/* =========================================================================
+   Schema Canvas (Step 1 - center)
+   ========================================================================= */
+
+.schema-canvas-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-surface, white);
+    overflow: visible;
+    position: relative;
+}
+
+cma-schema-canvas {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    min-height: 200px;
+}
+
+/* =========================================================================
+   Sorting & Grouping (Step 4)
+   ========================================================================= */
+
+.sort-group-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    height: 100%;
+}
+
+#sortConfigComponent {
+    height: 100%;
+}
+
+.sort-section,
+.group-section {
+    border: 0;
+    border-radius: 4px;
+}
+
+.sort-section-header,
+.group-section-header {
+    height: 45px;
+    padding: 12px 15px;
+    background: var(--bg-alternate, #f5f5f5);
+    border: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+/* Help icon with tooltip */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    cursor: help;
+    color: var(--text-muted, #666);
+    position: relative;
+    background: transparent;
+    border: 0px;
+    outline: none;
+    box-shadow: none;
+}
+
+.help-icon .lnr {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.help-icon:hover {
+    color: var(--color-primary, #204496);
+}
+
+/* Sort and Group Config Components (no Shadow DOM) */
+cma-sort-config,
+cma-group-config {
+    display: block;
+    font-size: var(--font-size);
+}
+
+.sort-config-container,
+.group-config-container {
+    border: 0;
+    border-radius: 4px;
+}
+
+.sort-header,
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+.sort-field-select,
+.group-field-select {
+    flex: 1;
+}
+
+.sort-field-select:focus,
+.group-field-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #204496);
+}
+
+.sort-add-btn,
+.group-add-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--color-primary, #204496);
+    background: white;
+    color: var(--color-primary, #204496);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size);
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.sort-add-btn:hover:not(:disabled),
+.group-add-btn:hover:not(:disabled) {
+    background: var(--color-primary, #204496);
+    color: white;
+}
+
+.sort-add-btn:disabled,
+.group-add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.sort-list,
+.group-list {
+    min-height: 100px;
+    padding-top: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 10px;
+}
+
+.sort-item,
+.group-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: grab;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.sort-item:last-child,
+.group-item:last-child {
+    margin-bottom: 0;
+}
+
+.sort-item:hover,
+.group-item:hover {
+    border-color: var(--color-primary, #204496);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sort-item.dragging,
+.group-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.sort-handle,
+.group-handle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    cursor: grab;
+}
+
+.sort-handle span,
+.group-handle span {
+    width: 14px;
+    height: 1px;
+    background-color: #999;
+    border-radius: 1px;
+}
+
+.sort-item:hover .sort-handle span,
+.group-item:hover .group-handle span {
+    background-color: var(--color-primary, #204496);
+}
+
+.sort-field-info,
+.group-field-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sort-field-name,
+.group-field-name {
+    font-weight: 500;
+}
+
+.sort-field-table,
+.group-field-table {
+    font-size: var(--font-size-xs);
+    color: #888;
+}
+
+.sort-direction {
+    padding: 4px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    background: white;
+    cursor: pointer;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
+}
+
+.sort-direction:focus {
+    outline: none;
+    border-color: var(--color-primary, #204496);
+}
+
+.sort-remove,
+.group-remove {
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #888;
+    font-size: var(--font-size-2xl);
+    line-height: 1;
+    transition: all 0.15s;
+    box-shadow: none;
+}
+
+.sort-remove:hover,
+.group-remove:hover {
+    background: var(--close-btn-hover-bg, red);
+    color: var(--close-btn-hover-color, white);
+}
+
+.sort-placeholder,
+.group-placeholder {
+    height: 52px;
+    border: 2px dashed var(--color-primary, #204496);
+    border-radius: 6px;
+    background-color: #f0f4ff;
+    margin-bottom: 6px;
+}
+
+cma-sort-config .empty-state,
+cma-group-config .empty-state {
+    padding: 30px 20px;
+    text-align: center;
+    color: #888;
+}
+
+cma-sort-config .empty-state .empty-icon,
+cma-group-config .empty-state .empty-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+    color: var(--text-muted, #888);
+}
+
+cma-sort-config .empty-state .empty-text,
+cma-group-config .empty-state .empty-text {
+    font-size: var(--font-size-md);
+}
+
+/* Readonly state */
+cma-sort-config[readonly] .sort-field-select,
+cma-sort-config[readonly] .sort-add-btn,
+cma-sort-config[readonly] .sort-direction,
+cma-sort-config[readonly] .sort-remove,
+cma-sort-config[readonly] .sort-item,
+cma-group-config[readonly] .group-field-select,
+cma-group-config[readonly] .group-add-btn,
+cma-group-config[readonly] .group-remove,
+cma-group-config[readonly] .group-item {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+cma-sort-config[readonly] .sort-item,
+cma-group-config[readonly] .group-item {
+    cursor: default;
+}
+
+/* =========================================================================
+   Output Configuration (Step 5)
+   ========================================================================= */
+
+.output-config {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 800px;
+}
+
+.output-section {
+    padding: 20px;
+}
+
+.output-section h3 {
+    margin: 0 0 15px 0;
+    font-size: var(--font-size-lg);
+}
+
+.format-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.format-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.format-option:hover {
+    background: var(--bg-alternate, #f5f5f5);
+}
+
+.format-option.selected {
+    border-color: var(--primary-color, #204496);
+    background: var(--primary-light, #e3f2fd);
+}
+
+.format-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.format-option.disabled:hover {
+    background: transparent;
+    border-color: var(--border-color);
+}
+
+.format-option input[type="radio"] {
+    margin: 0;
+}
+
+.format-option .format-label {
+    font-weight: 500;
+}
+
+.format-option .format-desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+/* =========================================================================
+   Save Step - Inline form instead of popup
+   ========================================================================= */
+
+.save-step-content {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.save-step-intro {
+    margin-bottom: 24px;
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
+}
+
+.save-step-form {
+    background: var(--bg-surface-alt, #f9f9f9);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.save-step-form .form-group {
+    margin-bottom: 20px;
+}
+
+.save-step-form .form-group:last-of-type {
+    margin-bottom: 24px;
+}
+
+.save-step-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.save-step-form .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: var(--font-size-md);
+    background: var(--input-bg, white);
+}
+
+.save-step-form .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color, #204496);
+    box-shadow: 0 0 0 3px rgba(32, 68, 150, 0.1);
+}
+
+.save-step-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+.save-step-form .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.save-step-form .form-actions {
+    text-align: center;
+}
+
+.save-step-status {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: var(--font-size);
+}
+
+.save-step-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.save-step-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* =========================================================================
+   Step Navigation (Above Preview) - Positioning only
+   ========================================================================= */
+
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--bg-surface, white);
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.step-navigation .btn-prev {
+    margin-right: auto;
+}
+
+.step-navigation .btn-next {
+    margin-left: auto;
+}
+
+.step-navigation .btn.hidden {
+    display: none;
+}
+
+/* Hide step navigation entirely on step 1 - Volgende button is in the grid */
+.report-designer-wizard.step-0 .step-navigation {
+    display: none;
+}
+
+/* Inline step navigation for step 1 - button positioned absolutely in container */
+.inline-step-nav {
+    position: absolute;
+    bottom: 11px;
+    right: 16px;
+    z-index: 100;
+}
+
+/* Only show inline nav on step 1 */
+.report-designer-wizard:not(.step-0) .inline-step-nav {
+    display: none;
+}
+
+/* =========================================================================
+   Mode Selection Dialog
+   ========================================================================= */
+
+/* Make mode dialog 50% wider than default large (640px -> 960px) */
+#modeDialog {
+    --lib-dialog-max-width: 960px;
+}
+
+.mode-selection {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* 4-column mode selection (wider) */
+.mode-selection-4 {
+    gap: 15px;
+}
+
+.mode-selection-4 .mode-option {
+    padding: 20px;
+}
+
+.mode-option {
+    flex: 1;
+    padding: 25px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    background: var(--bg-surface, #fff);
+}
+
+.mode-option:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-hover);
+}
+
+.mode-option .mode-icon {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.mode-option .mode-icon::before {
+    font-size: 36px;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    color: var(--color-info);
+}
+
+.mode-option:hover .mode-icon::before {
+    color: var(--color-primary, #1a365d);
+}
+
+.mode-option .mode-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.mode-option .mode-desc {
+    font-size: var(--font-size);
+    color: var(--text-muted);
+}
+
+/* =========================================================================
+   Empty States
+   ========================================================================= */
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state .empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+    color: var(--text-muted);
+    display: block;
+}
+
+.empty-state .empty-text {
+    font-size: var(--font-size-md);
+}
+
+/* =========================================================================
+   Responsive Adjustments
+   ========================================================================= */
+
+@media (max-width: 1200px) {
+    .step-layout-canvas {
+        grid-template-columns: 200px 1fr;
+    }
+
+    .step-layout-canvas .selected-fields-panel {
+        display: none;
+    }
+
+    .step-layout-fields .fields-conditions {
+        flex: 0 0 280px;
+    }
+}
+
+@media (max-width: 900px) {
+    .step-layout-split,
+    .step-layout-canvas {
+        grid-template-columns: 1fr;
+    }
+
+    .sort-group-layout,
+    .output-config {
+        grid-template-columns: 1fr;
+    }
+
+    .step-layout-fields {
+        flex-direction: column;
+    }
+
+    .step-layout-fields .fields-conditions {
+        display: none;
+    }
+
+    .step-layout-fields cma-fold {
+        display: none;
+    }
+}
+
+/* =========================================================================
+   SQL Editor Mode (Step for SQL mode)
+   ========================================================================= */
+
+/* SQL Mode Container */
+.report-designer-sql-mode {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.report-designer-sql-mode cma-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.report-designer-sql-mode cma-query-preview {
+    flex-shrink: 0;
+}
+
+.report-designer-sql-mode .step-navigation {
+    flex-shrink: 0;
+}
+
+/* SQL Editor Layout */
+.sql-editor-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px;
+    gap: 12px;
+}
+
+.sql-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.sql-editor-toolbar .toolbar-database-select {
+    min-width: 200px;
+}
+
+.sql-editor-toolbar .toolbar-label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+cma-sql-editor {
+    flex: 1;
+    min-height: 300px;
+}
+
+/* SQL Mode info banner */
+.sql-mode-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--color-info-light, #e7f3ff);
+    border: 1px solid var(--color-info-border, #b3d7ff);
+    border-radius: 4px;
+    font-size: var(--font-size);
+    color: var(--color-info-text, #0055cc);
+    flex-shrink: 0;
+}
+
+.sql-mode-info .lnr {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.sql-mode-info p {
+    margin: 0;
+}
+
+/* SQL Mode security warning */
+.sql-security-note {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    background: var(--bg-alternate, #f9f9f9);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.sql-security-note .lnr {
+    margin-right: 4px;
+}
+
+/* =========================================================================
+   Field Config Table Fixes
+   ========================================================================= */
+
+.field-config-table tbody tr:hover {
+    border-color: var(--color-primary, #204496);
+}
+
+/* Group Config Fixes */
+.group-config-container {
+    border: 0;
+}
+
+cma-group-config {
+    height: 100%;
+}
+
+.group-handle span {
+    height: 1px;
+}
+
+.group-item:hover {
+    border-color: var(--color-primary, #204496);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: var(--bg-hover, #f5f5f5);
+}
+
+/* Subform Content */
+.subform-content {
+    background-color: #ffffff;
+}
+
+/* Table List Toolbar Adjustments */
+.table-list-toolbar .toolbar-left {
+    width: 100%;
+}
+
+/* Field list toolbar (Step 3) */
+.field-list-toolbar {
+    margin: 0;
+}
+
+#fieldListToolbar {
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+}
+
+.toolbar-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary, #555);
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 0 8px;
+}
+
+.toolbar-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--color-primary, #204496);
+}
+
+.field-list-toolbar left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.field-list-toolbar .search-wrapper {
+    flex: 0 1 200px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: 100px;
+}
+
+.field-list-toolbar .search-icon {
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    pointer-events: none;
+    padding: 0;
+}
+
+.field-list-toolbar #fieldSearch {
+    padding-left: 24px;
+}
+
+.field-list-toolbar .search-wrapper input[type="text"] {
+    flex: 1;
+    width: 100%;
+    padding: 6px 10px 6px 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: var(--font-size);
+}
+
+.field-list-toolbar .search-wrapper input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* Field Alias Width */
+.field-alias-input {
+    width: 150%;
+    min-width: 120px;
+}
+
+/* =========================================================================
+   Query Options Section (Step 4)
+   ========================================================================= */
+
+.query-options-section {
+    margin-top: 20px;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface-alt, #f9f9f9);
+    border-radius: 0 0 4px 4px;
+}
+
+.query-options-header {
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.query-options-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.query-options-content .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.query-options-content .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color, #204496);
+}
+
+.topn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topn-row label {
+    font-weight: 500;
+}
+
+.topn-row input[type="number"] {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg, white);
+    color: var(--text-color, #333);
+    font-size: var(--font-size);
+}
+
+.topn-row input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color, #204496);
+    box-shadow: 0 0 0 2px rgba(32, 68, 150, 0.1);
+}
+
+.topn-row .help-text {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* =========================================================================
+   Field Search Dialog
+   ========================================================================= */
+
+.field-search-list {
+    min-height: 200px;
+}
+
+.field-search-item:hover {
+    background: var(--bg-hover);
+}
