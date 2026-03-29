@@ -20,6 +20,7 @@ require_once __DIR__ . '/bootstrap.inc';
 */
 function main()
 {
+    global $lang_LoginInvalid, $lang_welcome, $lang_password_change;
     Response::noCache();
     $strError = '';
     $sIPAdres = Request::server('REMOTE_HOST', '');
