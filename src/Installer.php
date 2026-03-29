@@ -93,15 +93,7 @@ class Installer
             $io->write('  - cma/ synced');
         }
 
-        // 3. Sync module → /module/
-        $moduleSrc = $platformDir . '/module';
-        $moduleDest = $projectRoot . '/module';
-        if (is_dir($moduleSrc)) {
-            self::syncDirectory($moduleSrc, $moduleDest, [], $io);
-            $io->write('  - module/ synced');
-        }
-
-        // 5. Copy template files (only if they don't exist in project)
+        // 3. Copy template files (only if they don't exist in project)
         $templatesDir = $platformDir . '/templates';
         if (is_dir($templatesDir)) {
             foreach (self::TEMPLATE_FILES as $template => $target) {
@@ -246,7 +238,7 @@ class Installer
             'package' => 'stenversonline/platform',
             'version' => $version,
             'synced_at' => date('Y-m-d H:i:s'),
-            'directories' => ['library/', 'cma/', 'module/'],
+            'directories' => ['library/', 'cma/'],
             'protected_configs' => self::PROTECTED_PATHS,
         ];
 

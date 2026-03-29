@@ -315,15 +315,8 @@ function Lib_QueryString_IntAndGuid($sParam)
 */
 function Lib_CleanUserInput($sInput)
 {
-    $objRegExp = new Regexp();
-    $cTemp = null;
-    $objRegExp->IgnoreCase = true;
-    $objRegExp->Global = true;
-    // Completely remove all scripts, powerfull!
-    $objRegExp->Pattern = '<script(.|\\n)+?</script>';
-    $cTemp = $objRegExp->Replace($sInput, '');
-    $objRegExp = null;
-    return $cTemp;
+    // Completely remove all scripts
+    return preg_replace('/<script(.|\n)+?<\/script>/is', '', $sInput);
 }
 /**
 * Lib Random

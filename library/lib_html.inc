@@ -274,7 +274,7 @@ function lib_HTML_clear($sInput)
 */
 function HTMLToAscii($strHTML)
 {
-    $strOutput = STRHTML;
+    $strOutput = $strHTML;
     $objRegExp = null;
     if ($strOutput!= '') {
         $strOutput = lib_HTML_clear($strOutput);
