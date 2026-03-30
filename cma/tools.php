@@ -549,15 +549,17 @@ function buildToolsTreeData(bool $isDeveloper): array
     $folders[] = $reportsFolder;
 
     // === FRONT-END ===
+    $frontendChildren = [];
+    if (file_exists(dirname(__DIR__) . '/data/contentblocks.json') || file_exists(__DIR__ . '/config/contentblocks.json')) {
+        $frontendChildren[] = ['type' => 'item', 'label' => 'Content blocks', 'href' => 'form.php?form=contentblocks', 'target' => 'R', 'icon' => 'lnr-text-format'];
+    }
+    $frontendChildren[] = ['type' => 'item', 'label' => 'Marketing URLs/Redirects', 'href' => 'form.php?form=marketingurl', 'target' => 'R', 'icon' => 'lnr-link'];
+    $frontendChildren[] = ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'];
     $frontendFolder = [
         'type' => 'folder',
         'label' => 'Front-end',
         'icon' => 'lnr-screen',
-        'children' => [
-            ['type' => 'item', 'label' => 'Content blocks', 'href' => 'form.php?form=contentblocks', 'target' => 'R', 'icon' => 'lnr-text-format'],
-            ['type' => 'item', 'label' => 'Marketing URLs/Redirects', 'href' => 'form.php?form=marketingurl', 'target' => 'R', 'icon' => 'lnr-link'],
-            ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'],
-        ]
+        'children' => $frontendChildren
     ];
     $folders[] = $frontendFolder;
 
