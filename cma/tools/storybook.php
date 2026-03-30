@@ -3820,7 +3820,7 @@ use App\Library\ResponsiveImage;
 use App\Library\Server;
 use App\Library\Image;
 
-$demoImage = '/uploads/storybook-demo/s6ae2hwbqrouwdqy920230514181618.jpg';
+$demoImage = '/cma/assets/images/placeholder-landscape.jpg';
 $demoPath = Server::mapPath($demoImage);
 
 // Generate variants if not yet present

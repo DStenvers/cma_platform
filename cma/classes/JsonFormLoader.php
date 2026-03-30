@@ -350,7 +350,7 @@ class JsonFormLoader
      */
     private static function normalizeFormName(string $formName): string
     {
-        return strtolower($formName);
+        return strtolower(str_replace(' ', '_', $formName));
     }
 
     /**
