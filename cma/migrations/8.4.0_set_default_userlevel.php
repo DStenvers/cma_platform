@@ -15,6 +15,14 @@ if (!$conn) {
     return false;
 }
 
+// Ensure userLevel column exists
+try {
+    $conn->exec("ALTER TABLE [tblUsers] ADD COLUMN [userLevel] INTEGER");
+    echo "Added userLevel column\n";
+} catch (\Throwable $e) {
+    // Column already exists — OK
+}
+
 // Find users without userLevel
 $result = Database::fetchAll(
     "SELECT ID, userFullName FROM tblUsers WHERE userLevel IS NULL OR userLevel = ''",
