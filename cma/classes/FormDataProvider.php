@@ -1887,7 +1887,7 @@ class FormDataProvider
                 // Boolean field - handle various representations
                 $displayValue = self::toBool($value) ? 'Ja' : 'Nee';
             } elseif (Arr::isArray($value)) {
-                $displayValue = Server::htmlEncode(implode(', ', $value));
+                $displayValue = Server::htmlEncode(json_encode($value, JSON_UNESCAPED_UNICODE));
             } else {
                 // Truncate very long values
                 $strValue = (string)$value;
