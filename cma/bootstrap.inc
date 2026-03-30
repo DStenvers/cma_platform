@@ -584,7 +584,7 @@ function cma_body_end() {
  * Core CSS bundle - used by all CMA pages
  */
 function cma_css_bundle(): array {
-    return [
+    $bundle = [
         '../library/css/lib-variables.css',
         'assets/css/colors.css',
         '../library/library.css',
@@ -597,6 +597,11 @@ function cma_css_bundle(): array {
         'assets/css/inline-edit.css',
         'assets/css/main.css'
     ];
+    // Project-specific overrides (outside cma/ so composer update doesn't overwrite)
+    if (file_exists(dirname(__DIR__) . '/assets/css/cma.css')) {
+        $bundle[] = '../assets/css/cma.css';
+    }
+    return $bundle;
 }
 
 /**
