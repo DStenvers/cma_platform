@@ -179,7 +179,15 @@ class SecurityHelper
     public static function getUserLevel(): int
     {
         $userData = self::getCurrentUserData();
-        return (int)($userData['userLevel'] ?? self::LEVEL_USER);
+        // Use userLevel if available, otherwise fall back to userAdministrator (legacy)
+        if (isset($userData['userLevel']) && $userData['userLevel'] !== null) {
+            return (int)$userData['userLevel'];
+        }
+        // Legacy: userAdministrator=true maps to LEVEL_ADMIN
+        if (!empty($userData['userAdministrator'])) {
+            return self::LEVEL_ADMIN;
+        }
+        return self::LEVEL_USER;
     }
 
     /**
