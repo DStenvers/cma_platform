@@ -409,7 +409,7 @@ function exportFormFromDatabase(int $formId, string $formName, string $version):
         'version' => $version,
         'name' => $formName,
         'title' => $formData['FormName'] ?? '',
-        'table' => $formData['SqlTable'] ?? '',
+        'table' => $formData['SqlTable'] ?? extractTableFromQuery($formData['NameQuery'] ?? ''),
         'database' => (string)($formData['fkDatabase'] ?? ''),
         'idField' => $formData['IDField'] ?? 'ID',
         'listQuery' => $formData['NameQuery'] ?? '',
@@ -858,6 +858,18 @@ function detectSubformParentField(int $subformId, string $parentTable): ?string
     }
 
     return null;
+}
+
+/**
+ * Extract table name from a SELECT query's FROM clause
+ */
+function extractTableFromQuery(string $query): string
+{
+    if (empty($query)) return '';
+    if (preg_match('/\bFROM\s+\[?(\w+)\]?/i', $query, $m)) {
+        return $m[1];
+    }
+    return '';
 }
 
 /**
