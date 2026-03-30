@@ -132,16 +132,10 @@ class SecurityHelper
      */
     public static function isAdmin(): bool
     {
-        $isLoggedIn = self::isLoggedIn();
-        if (!$isLoggedIn) {
-            error_log("[SecurityHelper::isAdmin] Not logged in, returning false");
+        if (!self::isLoggedIn()) {
             return false;
         }
-        // Check userLevel from database - cookies are no longer trusted
-        $level = self::getUserLevel();
-        $result = $level >= self::LEVEL_ADMIN;
-        error_log("[SecurityHelper::isAdmin] userLevel=$level, LEVEL_ADMIN=" . self::LEVEL_ADMIN . ", result=" . ($result ? 'true' : 'false'));
-        return $result;
+        return self::getUserLevel() >= self::LEVEL_ADMIN;
     }
 
     /**
