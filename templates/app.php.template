@@ -2,33 +2,56 @@
 /**
  * Application Configuration
  *
- * Non-sensitive settings for this project.
- * Secrets and database credentials go in global.asa.php and .env files.
+ * Only settings that differ from platform defaults need to be here.
+ * Secrets and credentials go in .env files, not here.
  */
 
-// Application environment (L=Local, O=Dev, T=Test, A=Acceptance, P=Production)
-$GLOBALS['Application']['omgeving'] = $_ENV['APP_ENVIRONMENT'] ?? 'L';
+$GLOBALS['Application']['omgeving'] = $_ENV['APP_ENVIRONMENT'] ?? 'O';
 
-// Project name and branding
-$GLOBALS['Application']['organisatie'] = 'My Organization';
-$GLOBALS['Application']['company'] = 'My Company';
-$GLOBALS['Application']['primarycolor'] = '#3498db';
-$GLOBALS['Application']['email_template_bg_color'] = '#f4f4f4';
+// PATHS
+$GLOBALS['Application']['base_path'] = '/';
+$GLOBALS['Application']['path_images'] = $GLOBALS['Application']['base_path'] . 'images/';
+$GLOBALS['Application']['pict_pixel'] = $GLOBALS['Application']['base_path'] . 'library/images/filler.gif';
+$GLOBALS['Application']['cma_htmledit_img_path'] = $GLOBALS['Application']['path_images'] . 'html/';
 
-// Feature flags
-$GLOBALS['Application']['feature_draaiboek'] = true;
-$GLOBALS['Application']['feature_planning'] = true;
-$GLOBALS['Application']['feature_afspraken'] = true;
-$GLOBALS['Application']['feature_evaluatie'] = true;
-$GLOBALS['Application']['feature_taken'] = true;
-$GLOBALS['Application']['feature_gesprekken'] = true;
-$GLOBALS['Application']['feature_inventarisatie'] = true;
-$GLOBALS['Application']['feature_vrijstelling'] = true;
+// DATABASE
+$db_type = $_ENV['DB_TYPE'] ?? 'access';
+$db_basepath = __DIR__ . '/';
 
-// Paths
-$GLOBALS['Application']['pad_images'] = 'images/';
-$GLOBALS['Application']['pad_uploads'] = 'uploads/';
+if ($db_type === 'access') {
+    $db_driver = $_ENV['DB_DRIVER'] ?? 'Microsoft Access Driver (*.mdb, *.accdb)';
+    $GLOBALS['Application']['pdo_driver'] = 'odbc';
+    $GLOBALS['Application']['conn_data'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/main.mdb';
+    $GLOBALS['Application']['conn_users'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/CMAusers.mdb';
+    $GLOBALS['Application']['conn_rep'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/repository.mdb';
+} else {
+    $db_host = $_ENV['DB_HOST'] ?? 'localhost';
+    $db_charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
+    $GLOBALS['Application']['pdo_driver'] = $db_type;
+    $dsn = $db_type . ':host=' . $db_host;
+    if (!empty($_ENV['DB_NAME'])) $dsn .= ';dbname=' . $_ENV['DB_NAME'];
+    if (!empty($db_charset)) $dsn .= ';charset=' . $db_charset;
+    $GLOBALS['Application']['conn_data'] = $dsn;
+    $GLOBALS['Application']['conn_users'] = $dsn;
+    $GLOBALS['Application']['conn_rep'] = $dsn;
+}
 
-// CMA Configuration
-$GLOBALS['Application']['cma_upload_wizard'] = true;
+// EMAIL
+$GLOBALS['Application']['email_from'] = 'info@example.com';
+$GLOBALS['Application']['email_fromname'] = 'My Project';
+
+// BRANDING
+$GLOBALS['Application']['appname'] = 'My Project';
+$GLOBALS['Application']['company'] = $GLOBALS['Application']['appname'];
+$GLOBALS['Application']['name'] = $GLOBALS['Application']['company'];
+
+// CMA
 $GLOBALS['Application']['cma_language'] = 'NL';
+$GLOBALS['Application']['mod_language'] = 'NL';
+
+// RUNTIME
+$GLOBALS['Application']['start'] = new DateTime();
+$GLOBALS['Application']['local'] = ($GLOBALS['Application']['omgeving'] === 'O');
+$GLOBALS['Application']['test'] = ($GLOBALS['Application']['omgeving'] !== 'P');
+
+require_once __DIR__ . '/global.asa.php';
