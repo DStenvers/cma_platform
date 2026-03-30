@@ -5,6 +5,7 @@
         "title": "Menu's",
         "titleSingular": "Menu",
         "table": "_config",
+        "activeField": "enabled",
         "database": "json",
         "configFile": "menu",
         "configArrayKey": "menus",
@@ -19,6 +20,12 @@
         "detailField": "name",
         "orderField": "order",
         "fields": [
+                {
+                        "name": "enabled",
+                        "type": "checkbox",
+                        "caption": "Actief",
+                        "defaultValue": true
+                },
                 {
                         "name": "id",
                         "type": "textbox",
@@ -43,6 +50,19 @@
                         "required": true,
                         "width": 80,
                         "defaultValue": 100
+                }
+        ],
+        "listColumns": [
+                {
+                        "field": "enabled",
+                        "title": "",
+                        "type": "active",
+                        "width": 30
+                },
+                {
+                        "field": "name",
+                        "title": "Menu",
+                        "type": "text"
                 }
         ],
         "subforms": [

@@ -5,7 +5,7 @@
         "title": "Menu-items",
         "titleSingular": "Menu-item",
         "table": "_config",
-        "activeField": "visible",
+        "activeField": "enabled",
         "database": "json",
         "configFile": "menu",
         "configArrayKey": "menus[].items",
@@ -24,6 +24,12 @@
                         "name": "menuId",
                         "type": "hidden",
                         "caption": "Menu ID"
+                },
+                {
+                        "name": "enabled",
+                        "type": "checkbox",
+                        "caption": "Actief",
+                        "defaultValue": true
                 },
                 {
                         "name": "visible",
@@ -76,6 +82,12 @@
         ],
         "listColumns": [
                 {
+                        "field": "enabled",
+                        "title": "",
+                        "type": "active",
+                        "width": 30
+                },
+                {
                         "field": "name",
                         "title": "Weergavenaam",
                         "type": "text"
@@ -83,6 +95,11 @@
                 {
                         "field": "form",
                         "title": "Formulier",
+                        "type": "text"
+                },
+                {
+                        "field": "href",
+                        "title": "URL",
                         "type": "text"
                 }
         ],
