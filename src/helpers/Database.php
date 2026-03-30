@@ -2516,7 +2516,8 @@ class Database
             $msg = $e->getMessage();
             // If index doesn't exist, treat as success
             if (stripos($msg, 'not found') !== false || stripos($msg, 'does not exist') !== false ||
-                stripos($msg, 'niet gevonden') !== false || stripos($msg, 'kan niet vinden') !== false) {
+                stripos($msg, 'niet gevonden') !== false || stripos($msg, 'kan niet vinden') !== false ||
+                stripos($msg, 'bestaat niet') !== false) {
                 return ['success' => true, 'error' => null, 'message' => 'Index bestaat niet (al verwijderd)'];
             }
             return ['success' => false, 'error' => $msg, 'sql' => $sql ?? ''];
