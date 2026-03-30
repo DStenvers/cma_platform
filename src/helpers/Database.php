@@ -720,8 +720,23 @@ class Database
      * @param int|null $cursorType Cursor type constant (null = forward-only)
      * @return RecordSet|null RecordSet on success, null on error
      */
-    public static function openRS(string $sql, $connection = null, ?int $cursorType = null): ?RecordSet
+    public static function openRS($sql, $connection = null, ?int $cursorType = null, ?int $lockType = null): ?RecordSet
     {
+        // Support ASP-style by-ref calling pattern: openRS($rs, $sql, $conn, $cursor)
+        // Detect by checking if $sql is not a string (null or RecordSet) and $connection is a string that looks like SQL
+        if (!is_string($sql) && is_string($connection)) {
+            // Shift arguments: ($rs, $sql, $conn, $cursor) -> ($sql, $conn, $cursor)
+            $sql = $connection;
+            $connection = $cursorType !== null ? (is_string($cursorType) ? $cursorType : null) : null;
+            // Re-read connection from the original 3rd argument
+            $args = func_get_args();
+            $connection = $args[2] ?? null;
+            $cursorType = isset($args[3]) ? (int)$args[3] : null;
+        }
+        if (!is_string($sql)) {
+            self::$lastError = 'openRS: invalid SQL argument';
+            return null;
+        }
         $sqlLogStart = self::$sqlLogEnabled ? microtime(true) : null;
         $sqlSnippet = substr(preg_replace('/\s+/', ' ', $sql), 0, 100);
         try {
@@ -1843,20 +1858,9 @@ class Database
     public static function getFieldValue($connection, string $sql, ?string $fieldName = null)
     {
         try {
-            // Handle connection parameter
-            if ($connection instanceof \PDO) {
-                $conn = $connection;
-            } elseif ($connection === null || $connection === '') {
-                $conn = self::getConnection();
-            } else {
-                // Check if it's the repository connection string
-                $repConn = \App\Library\Application::get('conn_rep', '');
-                if ($connection === $repConn) {
-                    $conn = self::getRepConnection();
-                } else {
-                    $conn = self::getConnection();
-                }
-            }
+            // Handle connection parameter - getConnection() handles aliases
+            // ('users' => conn_users, 'rep' => conn_rep, 'data' => conn_data)
+            $conn = self::getConnection($connection);
 
             $stmt = $conn->prepare($sql);
             $stmt->execute();
@@ -1891,20 +1895,8 @@ class Database
     public static function getIds($connection, string $sql): array
     {
         try {
-            // Handle connection parameter
-            if ($connection instanceof \PDO) {
-                $conn = $connection;
-            } elseif ($connection === null || $connection === '') {
-                $conn = self::getConnection();
-            } else {
-                // Check if it's the repository connection string
-                $repConn = \App\Library\Application::get('conn_rep', '');
-                if ($connection === $repConn) {
-                    $conn = self::getRepConnection();
-                } else {
-                    $conn = self::getConnection();
-                }
-            }
+            // Handle connection parameter - getConnection() handles aliases
+            $conn = self::getConnection($connection);
 
             $stmt = $conn->prepare($sql);
             $stmt->execute();
