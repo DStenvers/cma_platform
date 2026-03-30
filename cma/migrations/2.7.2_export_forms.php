@@ -863,9 +863,9 @@ function detectSubformParentField(int $subformId, string $parentTable): ?string
 /**
  * Generate a safe form name from a display name
  */
-function generateSafeFormName(string $displayName): string
+function generateSafeFormName(?string $displayName): string
 {
-    $name = strtolower($displayName);
+    $name = strtolower($displayName ?? 'form');
     $name = preg_replace('/[^a-z0-9]+/', '_', $name);
     $name = trim($name, '_');
     return substr($name, 0, 64) ?: 'form';

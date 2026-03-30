@@ -70,27 +70,26 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
         $this->scrollable = $scrollable;
         $this->arrayMode = $arrayMode;
 
-        // If array mode (ODBC), data is already in the ArrayIterator
+        // ASP compatibility: position on first row immediately (like ADO Recordset.Open)
         if ($arrayMode) {
-            // Convert ArrayIterator to array for easy access
             $this->all_rows = iterator_to_array($stmt);
             $this->eof = (count($this->all_rows) == 0);
+            $this->position = $this->eof ? -1 : 0;
             if (!$this->eof) {
-                $this->position = 0;
                 $this->current_row = $this->all_rows[0];
             }
         } elseif ($scrollable) {
-            // If scrollable, fetch all rows immediately
-            // Use FETCH_BOTH for ADO compatibility (numeric and associative keys)
             $this->all_rows = $this->stmt->fetchAll(PDO::FETCH_BOTH);
             $this->eof = (count($this->all_rows) == 0);
+            $this->position = $this->eof ? -1 : 0;
             if (!$this->eof) {
-                $this->position = 0;
                 $this->current_row = $this->all_rows[0];
             }
         } else {
-            // For forward-only, load first row
-            $this->MoveNext();
+            // For forward-only, fetch first row immediately (ASP compatibility)
+            $this->current_row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+            $this->eof = ($this->current_row === false);
+            $this->position = $this->eof ? -1 : 0;
         }
     }
 
