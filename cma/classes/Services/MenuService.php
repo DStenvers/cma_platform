@@ -135,6 +135,11 @@ class MenuService
         $filteredMenus = [];
 
         foreach ($menus as $menu) {
+            // Skip disabled menus
+            if (isset($menu['enabled']) && $menu['enabled'] === false) {
+                continue;
+            }
+
             // Check menu-level access
             $menuLevel = self::ACCESS_LEVELS[$menu['accessLevel'] ?? 'user'] ?? 0;
             if ($menuLevel > $userLevel) {
@@ -144,6 +149,13 @@ class MenuService
             // Filter items within the menu
             $filteredItems = [];
             foreach ($menu['items'] ?? [] as $item) {
+                // Skip disabled or invisible items
+                if (isset($item['enabled']) && $item['enabled'] === false) {
+                    continue;
+                }
+                if (isset($item['visible']) && $item['visible'] === false) {
+                    continue;
+                }
                 $itemLevel = self::ACCESS_LEVELS[$item['accessLevel'] ?? 'user'] ?? 0;
                 if ($itemLevel <= $userLevel) {
                     $filteredItems[] = $item;
@@ -363,7 +375,18 @@ class MenuService
         $rows = [];
 
         foreach (self::$menuData['menus'] ?? [] as $menu) {
+            // Skip disabled menus
+            if (isset($menu['enabled']) && $menu['enabled'] === false) {
+                continue;
+            }
             foreach ($menu['items'] ?? [] as $item) {
+                // Skip disabled or invisible items
+                if (isset($item['enabled']) && $item['enabled'] === false) {
+                    continue;
+                }
+                if (isset($item['visible']) && $item['visible'] === false) {
+                    continue;
+                }
                 $rows[] = [
                     'mName' => $menu['name'] ?? '',
                     'formName' => $item['formName'] ?? null,
