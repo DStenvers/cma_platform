@@ -51,22 +51,22 @@ function main()
     $dbconn = Database::getConnection('users');
     if (Request::post('naam', '') != '') {
         // Case-insensitive login lookup
-        // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
+        // Access ODBC's lower() corrupts field values, so always use PHP scan
         $postLogin = strtolower(Request::post('Naam', '') ?? '');
-        $SQL = 'select * from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
+        $SQL = 'select * from tblUsers';
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
-        // If lower() fails (ODBC Access), fall back to scanning all users in PHP
-        if ($rs !== null && $rs->EOF) {
-            $SQL = 'select * from tblUsers';
-            $rsAll = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
-            if ($rsAll !== null) {
-                while (!$rsAll->EOF) {
-                    if (strtolower($rsAll->fields['userLogin'] ?? '') === $postLogin) {
-                        $rs = $rsAll; // found - use this recordset positioned at the match
-                        break;
-                    }
-                    $rsAll->MoveNext();
+        if ($rs !== null) {
+            $found = false;
+            while (!$rs->EOF) {
+                if (strtolower($rs->fields['userLogin'] ?? '') === $postLogin) {
+                    $found = true;
+                    break;
                 }
+                $rs->MoveNext();
+            }
+            if (!$found) {
+                // Position at EOF so the password check below sees "not found"
+                while (!$rs->EOF) { $rs->MoveNext(); }
             }
         }
         if ($rs === null) {
