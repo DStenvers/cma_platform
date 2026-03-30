@@ -34,6 +34,11 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
     private $current_row = null;
 
     /**
+     * @var bool First MoveNext() call should be a no-op (constructor already fetched first row)
+     */
+    private $firstMoveNext = true;
+
+    /**
      * @var bool End of file flag
      */
     private $eof = true;
@@ -70,8 +75,10 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
         $this->scrollable = $scrollable;
         $this->arrayMode = $arrayMode;
 
-        // ASP compatibility: position on first row immediately (like ADO Recordset.Open)
+        // ASP compatibility: start in "before first row" state.
+        // The calling code must call MoveNext() to move to the first row.
         if ($arrayMode) {
+            // Convert ArrayIterator to array for easy access
             $this->all_rows = iterator_to_array($stmt);
             $this->eof = (count($this->all_rows) == 0);
             $this->position = $this->eof ? -1 : 0;
@@ -79,6 +86,7 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
                 $this->current_row = $this->all_rows[0];
             }
         } elseif ($scrollable) {
+            // If scrollable, fetch all rows immediately
             $this->all_rows = $this->stmt->fetchAll(PDO::FETCH_BOTH);
             $this->eof = (count($this->all_rows) == 0);
             $this->position = $this->eof ? -1 : 0;
@@ -99,6 +107,13 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
      * This is the primary method for iterating through results
      */
     public function MoveNext() {
+        // First MoveNext() is a no-op — constructor already fetched the first row.
+        // Converted ASP code calls MoveNext() before reading (ASP pattern), but our
+        // constructor positions on the first row like ADO's Recordset.Open does.
+        if ($this->firstMoveNext) {
+            $this->firstMoveNext = false;
+            return;
+        }
         if ($this->arrayMode || $this->scrollable) {
             // Array mode (ODBC) or scrollable cursor - move through cached rows
             $this->position++;
