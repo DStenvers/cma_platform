@@ -1137,11 +1137,15 @@ class ConfigFormService
 
         foreach ($fields as $field) {
             $name = $field['name'] ?? '';
+            $type = $field['type'] ?? 'textbox';
             if (empty($name) || str_starts_with($name, '_')) {
                 continue;
             }
             if (isset($data[$name])) {
-                $result[$name] = self::convertValue($data[$name], $field['type'] ?? 'textbox', $field['dataType'] ?? '');
+                $result[$name] = self::convertValue($data[$name], $type, $field['dataType'] ?? '');
+            } elseif ($type === 'checkbox') {
+                // Unchecked checkboxes are not sent by the browser
+                $result[$name] = false;
             }
         }
 
