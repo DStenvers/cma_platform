@@ -137,11 +137,12 @@ function main()
                         try {
                             $guidConn = Database::getConnection('users');
                             if ($guidConn) {
-                                Database::query("UPDATE tblUsers SET userGUID = ? WHERE ID = ?", [$userGUID, intval($rs->fields['ID'])], $guidConn);
+                                // Use direct PDO to avoid Database class error output
+                                $stmt = $guidConn->prepare("UPDATE tblUsers SET userGUID = ? WHERE ID = ?");
+                                $stmt->execute([$userGUID, intval($rs->fields['ID'])]);
                             }
-                        } catch (\Exception $e) {
-                            // GUID column may not exist yet - non-fatal
-                            error_log("[login] Could not save userGUID: " . $e->getMessage());
+                        } catch (\Throwable $e) {
+                            // GUID column may not exist yet - non-fatal, skip silently
                         }
                     }
                     Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID);
