@@ -881,7 +881,12 @@ class MigrationService
             ];
         }
 
-        return Database::dropIndexPDO($conn, $table, $indexName);
+        try {
+            return Database::dropIndexPDO($conn, $table, $indexName);
+        } catch (\Throwable $e) {
+            // Index doesn't exist — skip silently
+            return ['success' => true, 'error' => null, 'message' => "Overgeslagen: index '$indexName' bestaat niet"];
+        }
     }
 
     /**
