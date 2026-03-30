@@ -826,7 +826,11 @@ class ConfigFormService
                 }
 
                 if (ConfigLoader::save($configFile, $config)) {
-                    return ['success' => true];
+                    $result = ['success' => true];
+                    if ($configFile === 'menu') {
+                        $result['reloadMenu'] = true;
+                    }
+                    return $result;
                 }
 
                 return self::error("Verwijderen mislukt");
