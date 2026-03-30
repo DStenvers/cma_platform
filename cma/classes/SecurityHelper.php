@@ -213,19 +213,14 @@ class SecurityHelper
                 return null;
             }
             $safeId = intval($userId);
-            // Use SELECT * to avoid errors from missing columns (userSkipNotifyOwnRecords, userGUID etc.)
-            $rs = \App\Library\Database::openRS(
-                "SELECT * FROM tblUsers WHERE ID = $safeId",
-                $conn,
-                0
-            );
+            // Use direct PDO instead of RecordSet — RecordSet has field lookup issues with Access ODBC
+            $stmt = $conn->prepare("SELECT * FROM tblUsers WHERE ID = ?");
+            $stmt->execute([$safeId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $userData = null;
-            if ($rs && !$rs->EOF) {
-                $row = $rs->fields;
-                // Debug: log raw database values to help diagnose userLevel issues
+            if ($row) {
                 $dbLevel = $row['userLevel'] ?? null;
                 $dbAdmin = $row['userAdministrator'] ?? null;
-                error_log("[SecurityHelper::getCurrentUserData] Raw DB values for ID=$safeId: userLevel=" . var_export($dbLevel, true) . ", userAdministrator=" . var_export($dbAdmin, true));
 
                 // Use userLevel column if available and > 0, fall back to userAdministrator boolean
                 if ($dbLevel !== null && $dbLevel !== '' && intval($dbLevel) > 0) {
