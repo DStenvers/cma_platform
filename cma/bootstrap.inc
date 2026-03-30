@@ -4,6 +4,9 @@
  * Consolidated from multiple include files for simpler maintenance
  */
 
+// Legacy constants from lib_table.inc (used by reportdetails.php, ToolbarHelper.php)
+if (!defined('CONST_STRSORTPARAM')) define('CONST_STRSORTPARAM', 'Sort');
+
 // CMA application version — read from Composer package version (git tag)
 if (class_exists('\App\Library\Bootstrap')) {
     define('CMA_APP_VERSION', \App\Library\Bootstrap::getPlatformVersion());
