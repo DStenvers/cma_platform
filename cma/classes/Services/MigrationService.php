@@ -826,10 +826,8 @@ class MigrationService
             if (Database::tableExistsPDO($conn, $newName)) {
                 return ['success' => true, 'error' => null, 'message' => 'Tabel is al hernoemd'];
             }
-            return [
-                'success' => false,
-                'error' => "Brontabel '$oldName' bestaat niet"
-            ];
+            // Neither old nor new table exists — skip (table doesn't apply to this site)
+            return ['success' => true, 'error' => null, 'message' => "Overgeslagen: tabel '$oldName' bestaat niet in deze database"];
         }
 
         return Database::renameTablePDO($conn, $oldName, $newName);
