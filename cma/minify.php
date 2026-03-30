@@ -1,40 +1,21 @@
 <?php
-// Capture any PHP startup warnings (e.g., "Module PDO_ODBC is already loaded")
-// These occur during PHP engine initialization, BEFORE any code can call error_reporting().
-// Without ob_start(), they would be output as text and corrupt the JS/CSS response,
-// causing "Uncaught SyntaxError: Unexpected identifier 'Warning'" in the browser.
-ob_start();
-
 /**
  * Minify.php - CSS/JS file server with minification support
  * Uses matthiasmullie/minify library
  *
- * Usage: minify.php?f=path/to/file.css or minify.php?f=path/to/file.js
- *        minify.php?f=file1.css,file2.css (combine multiple files)
- *
- * Features:
- * - Combines multiple files
- * - Minifies CSS and JS using matthiasmullie/minify
- * - Caches minified output to disk
- * - Sets appropriate cache headers with ETag support
- * - Gzip compression when supported
+ * Loaded via bootstrap wrapper — autoloader and helpers are already available.
+ * Release session lock since we only serve static assets.
  */
 
-// Suppress warnings during require loading (e.g., from autoloaders).
-// Errors (E_ERROR) still halt execution normally.
-$_prevErrorReporting = error_reporting(E_ERROR | E_PARSE);
+// Release session lock — minify serves static assets, doesn't need sessions
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
 
-// Load composer autoloader
-require_once __DIR__ . '/../vendor/autoload.php';
-
-// Include Request helper for safe parameter access
-require_once __DIR__ . '/../app/library/Request.php';
-
-// Restore normal error reporting
-error_reporting($_prevErrorReporting);
-
-// Discard any captured PHP startup warnings — only clean JS/CSS content from here
-ob_end_clean();
+// Clean the wrapper's output buffer — we set our own content-type headers
+if (ob_get_level() > 0) {
+    ob_end_clean();
+}
 
 use MatthiasMullie\Minify\CSS;
 use MatthiasMullie\Minify\JS;
