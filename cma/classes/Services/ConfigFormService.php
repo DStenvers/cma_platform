@@ -470,7 +470,11 @@ class ConfigFormService
                     'saveResult' => $saveResult,
                 ]);
                 if ($saveResult) {
-                    return ['success' => true, 'id' => $data['id']];
+                    $result = ['success' => true, 'id' => $data['id']];
+                    if ($configFile === 'menu') {
+                        $result['reloadMenu'] = true;
+                    }
+                    return $result;
                 }
 
                 return self::error("Opslaan mislukt");
@@ -554,7 +558,11 @@ class ConfigFormService
             $config[$configArrayKey] = $items;
 
             if (ConfigLoader::save($configFile, $config)) {
-                return ['success' => true, 'id' => $data['id']];
+                $result = ['success' => true, 'id' => $data['id']];
+                if ($configFile === 'menu') {
+                    $result['reloadMenu'] = true;
+                }
+                return $result;
             }
 
             return self::error("Opslaan mislukt");

@@ -8967,6 +8967,11 @@ class CmaFormController {
 
                 cmaPerf.end(perfId, { success: true, isNew: result.isNew, recordId: result.id });
                 cmaPerf.count('saveRecord.success');
+
+                // Reload menu frame if menu config was changed
+                if (result.reloadMenu && parent.frames['M']) {
+                    parent.frames['M'].location.reload();
+                }
             } else {
                 // SAVE FAILED - Log prominently for developer visibility
                 const errorMsg = result.error || 'Opslaan mislukt (geen foutmelding van server)';
