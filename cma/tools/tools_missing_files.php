@@ -64,7 +64,7 @@ function main()
             if ($fieldsRS->fields['ConnectionString'] != $sOldConnection) {
                 if (is_object($conn)) {
                 }
-                OpenConnection($fieldsRS->fields['ConnectionString']);
+                $conn = Database::getConnection($fieldsRS->fields['ConnectionString']);
                 $sOldConnection = $fieldsRS->fields['ConnectionString'];
             }
             // retrieve the expected files and try to find them on the server

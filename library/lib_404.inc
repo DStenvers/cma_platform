@@ -80,7 +80,7 @@ function lib_404ScanDir($sDir)
                 $filesRS = null;
                 while (!($fieldsRS->eof())) {
                     // TODO: : Optimize this, is a bit sluggish!
-                    OpenConnection(Arr::field($fieldsRS_current_row, 'ConnectionString'));
+                    $conn = Database::getConnection(Arr::field($fieldsRS_current_row, 'ConnectionString'));
                     $filesSQL = 'SELECT ID FROM ' . Arr::field($fieldsRS_current_row, 'Table');
                     // 'response.write filesSQL
                     $filesRS = Database::openRS($filesSQL, $conn, adOpenForwardOnly, adLockReadOnly);

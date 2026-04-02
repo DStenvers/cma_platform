@@ -1097,10 +1097,9 @@ class FormDefinition
             }
         }
 
-        // Database form with numeric ID
+        // Database form with numeric ID - resolve to connection string first
         $connString = CmaRepository::getConnectionStringById((int)($dbId ?? 0));
-        \OpenConnection($connString);
-        return $conn;
+        return \App\Library\Database::getConnection($connString);
     }
 
     /**

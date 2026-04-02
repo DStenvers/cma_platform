@@ -54,7 +54,7 @@ function main()
         while (!$fieldsRS->EOF) {
             echo '<TR><TH colspan=2 align=left><B>' . $fieldsRS->fields['FormName'] . ' (' . $fieldsRS->fields['Caption'] . ')</B></TH></TR>';
             // TODO: : Optimize this, is a bit sluggish!
-            OpenConnection($fieldsRS->fields['ConnectionString']);
+            $conn = Database::getConnection($fieldsRS->fields['ConnectionString']);
             // retrieve the expected files and try to find them on the server
             $picturesSQL = 'SELECT ' . $fieldsRS->fields['FieldName'] . ' as Filename, ID FROM ' . $fieldsRS->fields['Table'] . ' WHERE (' . $fieldsRS->fields['FieldName'] . "<>'')  ORDER BY 1";
             $picturesRS = Database::openRS($picturesSQL, $conn, adOpenForwardOnly, adLockReadOnly);

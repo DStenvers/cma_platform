@@ -64,8 +64,7 @@ class TableService extends BaseFormService
             $afterPostUrl = $formDef->getAfterPostUrl() ?? '';
 
             // Open data connection
-            \OpenConnection($connectionString);
-            global $conn;
+            $conn = Database::getConnection($connectionString);
 
             // Get filter settings
             $search = $options['search'] ?? '';
@@ -509,8 +508,7 @@ class TableService extends BaseFormService
             $filterFieldName = $formDef->getFilterFieldName();
             $connectionString = $formDef->getConnectionString();
 
-            \OpenConnection($connectionString);
-            global $conn;
+            $conn = Database::getConnection($connectionString);
 
             // Get pagination and filter options
             $search = $options['search'] ?? '';

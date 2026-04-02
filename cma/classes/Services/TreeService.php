@@ -68,9 +68,8 @@ class TreeService extends BaseFormService
                 $blnCheckUser = $rights == SecurityHelper::ACCESS_CHANGE_OWN_DATA;
             }
 
-            // Open data connection using connection string
-            \OpenConnection($connectionString);
-            global $conn;
+            // Open data connection
+            $conn = Database::getConnection($connectionString);
 
             // Get search/filter options
             $search = $options['search'] ?? '';
