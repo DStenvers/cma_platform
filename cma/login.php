@@ -52,7 +52,7 @@ function main()
     if (Request::post('naam', '') != '') {
         // Case-insensitive login lookup
         // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
-        $postLogin = strtolower(Request::post('Naam', '') ?? '');
+        $postLogin = strtolower(Request::post('naam', '') ?? '');
         $SQL = 'select * from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
         // If lower() fails (ODBC Access), fall back to scanning all users in PHP

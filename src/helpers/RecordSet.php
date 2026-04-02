@@ -70,20 +70,25 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
         $this->scrollable = $scrollable;
         $this->arrayMode = $arrayMode;
 
-        // Start in "before first row" state.
-        // Calling code must call MoveNext() to position on the first row.
+        // Load first row immediately (ASP ADO compatibility).
+        // All existing code expects $rs->EOF and $rs->fields to work right after openRS().
         if ($arrayMode) {
             $this->all_rows = iterator_to_array($stmt);
             $this->eof = (count($this->all_rows) == 0);
-            $this->position = -1;
+            if (!$this->eof) {
+                $this->position = 0;
+                $this->current_row = $this->all_rows[0];
+            }
         } elseif ($scrollable) {
             $this->all_rows = $this->stmt->fetchAll(PDO::FETCH_BOTH);
             $this->eof = (count($this->all_rows) == 0);
-            $this->position = -1;
+            if (!$this->eof) {
+                $this->position = 0;
+                $this->current_row = $this->all_rows[0];
+            }
         } else {
-            // Forward-only: don't fetch yet, MoveNext() will fetch first row
-            $this->eof = false;
-            $this->position = -1;
+            // Forward-only: fetch first row now
+            $this->MoveNext();
         }
     }
 
