@@ -365,7 +365,7 @@ function exportFormFromDatabase(int $formId, string $formName, string $version):
     if ($formRs === null || $formRs->EOF) {
         return null;
     }
-    $formData = $formRs->fields;
+    $formData = $formRs->fetchAssoc();
 
     // Get SQL statement info if SqlID exists
     $sqlId = (int)($formData['SqlID'] ?? 0);
@@ -398,7 +398,7 @@ function exportFormFromDatabase(int $formId, string $formName, string $version):
     $controls = [];
     if ($controlRs !== null) {
         while (!$controlRs->EOF) {
-            $controls[] = $controlRs->fields;
+            $controls[] = $controlRs->fetchAssoc();
             $controlRs->MoveNext();
         }
     }
@@ -834,7 +834,7 @@ function detectSubformParentField(int $subformId, string $parentTable): ?string
             try {
                 $conn = Database::getConnection((string)$databaseId);
                 if ($conn !== null) {
-                    $columns = Database::getSchema($conn, 4, [null, null, $tableName]);
+                    $columns = Database::getTableSchema($conn, $tableName);
                     if ($columns !== null) {
                         $columnMap = [];
                         while (!$columns->EOF) {
