@@ -51,22 +51,22 @@ function main()
     $dbconn = Database::getConnection('users');
     if (Request::post('naam', '') != '') {
         // Case-insensitive login lookup
-        // Access ODBC's lower() corrupts field values, so always use PHP scan
+        // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
         $postLogin = strtolower(Request::post('Naam', '') ?? '');
-        $SQL = 'select * from tblUsers';
+        $SQL = 'select * from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
-        if ($rs !== null) {
-            $found = false;
-            while (!$rs->EOF) {
-                if (strtolower($rs->fields['userLogin'] ?? '') === $postLogin) {
-                    $found = true;
-                    break;
+        // If lower() fails (ODBC Access), fall back to scanning all users in PHP
+        if ($rs !== null && $rs->EOF) {
+            $SQL = 'select * from tblUsers';
+            $rsAll = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
+            if ($rsAll !== null) {
+                while (!$rsAll->EOF) {
+                    if (strtolower($rsAll->fields['userLogin'] ?? '') === $postLogin) {
+                        $rs = $rsAll; // found - use this recordset positioned at the match
+                        break;
+                    }
+                    $rsAll->MoveNext();
                 }
-                $rs->MoveNext();
-            }
-            if (!$found) {
-                // Position at EOF so the password check below sees "not found"
-                while (!$rs->EOF) { $rs->MoveNext(); }
             }
         }
         if ($rs === null) {
@@ -137,12 +137,11 @@ function main()
                         try {
                             $guidConn = Database::getConnection('users');
                             if ($guidConn) {
-                                // Use direct PDO to avoid Database class error output
-                                $stmt = $guidConn->prepare("UPDATE tblUsers SET userGUID = ? WHERE ID = ?");
-                                $stmt->execute([$userGUID, intval($rs->fields['ID'])]);
+                                Database::query("UPDATE tblUsers SET userGUID = ? WHERE ID = ?", [$userGUID, intval($rs->fields['ID'])], $guidConn);
                             }
-                        } catch (\Throwable $e) {
-                            // GUID column may not exist yet - non-fatal, skip silently
+                        } catch (\Exception $e) {
+                            // GUID column may not exist yet - non-fatal
+                            error_log("[login] Could not save userGUID: " . $e->getMessage());
                         }
                     }
                     Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID);

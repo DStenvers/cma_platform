@@ -63,8 +63,9 @@ class Session
             'samesite' => 'Lax'
         ]);
 
-        // Start session
-        if (@session_start()) {
+        // Start session - use read_and_close to avoid holding the session file lock
+        // for the entire request duration, which blocks other requests from the same browser.
+        if (@session_start(['read_and_close' => true])) {
             self::$started = true;
             return true;
         }

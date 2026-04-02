@@ -61,6 +61,20 @@ class Arr
      */
     public static function field($row, string $key, $default = null)
     {
+        // Support RecordSet objects (ArrayAccess) — use direct offset access
+        if ($row instanceof \ArrayAccess) {
+            if ($row->offsetExists($key)) {
+                return $row[$key];
+            }
+            // Case-insensitive fallback via iteration
+            $lowerKey = strtolower($key);
+            foreach ($row as $k => $v) {
+                if (strtolower($k) === $lowerKey) {
+                    return $v;
+                }
+            }
+            return $default;
+        }
         if (!is_array($row)) {
             return $default;
         }

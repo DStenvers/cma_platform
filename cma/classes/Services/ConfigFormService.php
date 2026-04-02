@@ -470,11 +470,7 @@ class ConfigFormService
                     'saveResult' => $saveResult,
                 ]);
                 if ($saveResult) {
-                    $result = ['success' => true, 'id' => $data['id']];
-                    if ($configFile === 'menu') {
-                        $result['reloadMenu'] = true;
-                    }
-                    return $result;
+                    return ['success' => true, 'id' => $data['id']];
                 }
 
                 return self::error("Opslaan mislukt");
@@ -558,11 +554,7 @@ class ConfigFormService
             $config[$configArrayKey] = $items;
 
             if (ConfigLoader::save($configFile, $config)) {
-                $result = ['success' => true, 'id' => $data['id']];
-                if ($configFile === 'menu') {
-                    $result['reloadMenu'] = true;
-                }
-                return $result;
+                return ['success' => true, 'id' => $data['id']];
             }
 
             return self::error("Opslaan mislukt");
@@ -826,11 +818,7 @@ class ConfigFormService
                 }
 
                 if (ConfigLoader::save($configFile, $config)) {
-                    $result = ['success' => true];
-                    if ($configFile === 'menu') {
-                        $result['reloadMenu'] = true;
-                    }
-                    return $result;
+                    return ['success' => true];
                 }
 
                 return self::error("Verwijderen mislukt");

@@ -421,19 +421,8 @@ function lib_event_get_key( evt ) {
 	return (evt.charCode ? evt.charCode : (evt.keyCode ? evt.keyCode : (evt.which ? evt.which : (window.event ? window.event.keyCode : null) )));
 }
 
-function addEvent(elm, evType, fn, useCapture) {
-	if (elm.addEventListener){
-		elm.addEventListener(evType, fn, useCapture);
-		return true;
-	} else if (elm.attachEvent){
-		var r = elm.attachEvent("on"+evType, fn);
-		return r;
-	}
-}
-
-// wrapper function
 function lib_addEvent(elm, evType, fn, useCapture) {
-	addEvent(elm, evType, fn, useCapture)
+	elm.addEventListener(evType, fn, useCapture);
 }
 
 

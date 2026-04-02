@@ -1,4 +1,4 @@
-addEvent(window, "load", sortables_init);
+window.addEventListener("load", sortables_init);
 var SORT_COLUMN_INDEX = -1;
 function sortables_initial( iFirst ) {	SORT_COLUMN_INDEX = iFirst;
 }
@@ -73,7 +73,7 @@ function ts_resortTable(lnk) {
 	
     sortfn = ts_sort_caseinsensitive;
  // provide data-sort   if (itm.match(/(\d{1,2})-(\d{1,2})-(\d{2})(\d{2})?/) ) sortfn = ts_sort_date;
-    if (itm.match(/^[£$€]/)) sortfn = ts_sort_currency;
+    if (itm.match(/^[ï¿½$ï¿½]/)) sortfn = ts_sort_currency;
     if (itm.match(/^[\d\.]+$/)) sortfn = ts_sort_numeric;
     SORT_COLUMN_INDEX = column;
     var firstRow = new Array();

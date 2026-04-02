@@ -1,7 +1,7 @@
 // Ensure lib_addEvent is available (normally provided by library.js)
 if (typeof lib_addEvent === 'undefined') {
-	var lib_addEvent = function(elm, evType, fn, useCapture) {
-		elm.addEventListener(evType, fn, useCapture);
+	var lib_addEvent = function(elm, evType, fn) {
+		elm.addEventListener(evType, fn);
 	};
 }
 

@@ -72,8 +72,13 @@ class ColumnMajorArray extends ArrayObject
 
         $columnNames = array_keys($firstRow);
 
-        // Transpose: for each column, collect all row values
+        // Transpose: for each column, collect all row values using array_column (much faster)
         foreach ($columnNames as $columnName) {
+            $columns[$columnName] = array_column($rows, $columnName);
+        }
+
+        // Legacy nested loop (replaced by array_column above)
+        if (false) foreach ($columnNames as $columnName) {
             $columns[$columnName] = [];
             foreach ($rows as $rowIndex => $row) {
                 $columns[$columnName][$rowIndex] = $row[$columnName] ?? null;
