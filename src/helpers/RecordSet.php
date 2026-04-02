@@ -191,8 +191,11 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
                 return $this->eof;
 
             case 'FIELDS':
-                // Return self so $rs->Fields[$name] uses ArrayAccess (handles missing keys gracefully)
-                return $this;
+                // Return a snapshot array of the current row.
+                // Uses CaseArray for case-insensitive key access (Access ODBC returns varying case).
+                // This is a copy, so $row = $rs->fields captures data before MoveNext().
+                if (!$this->current_row) return [];
+                return new CaseArray($this->current_row);
 
             case 'RECORDCOUNT':
                 // Only available for scrollable cursors
@@ -378,5 +381,35 @@ function lib_openRS(&$rs, $sql, $conn, $cursorType = PDO::CURSOR_FWDONLY) {
     } catch (\Exception $e) {
         error_log("lib_openRS failed: " . $e->getMessage());
         throw $e;
+    }
+}
+
+/**
+ * Case-insensitive array snapshot for RecordSet fields.
+ *
+ * Behaves like a plain array (is_array, foreach, array_values, Str::toUtf8 all work)
+ * but provides case-insensitive key access via ArrayAccess.
+ */
+class CaseArray extends \ArrayObject
+{
+    private array $lowerMap = [];
+
+    public function __construct(array $data) {
+        parent::__construct($data, \ArrayObject::ARRAY_AS_PROPS);
+        foreach ($data as $k => $v) {
+            $this->lowerMap[strtolower($k)] = $k;
+        }
+    }
+
+    public function offsetGet(mixed $offset): mixed {
+        if (parent::offsetExists($offset)) {
+            return parent::offsetGet($offset);
+        }
+        $real = $this->lowerMap[strtolower($offset)] ?? null;
+        return $real !== null ? parent::offsetGet($real) : null;
+    }
+
+    public function offsetExists(mixed $offset): bool {
+        return parent::offsetExists($offset) || isset($this->lowerMap[strtolower($offset)]);
     }
 }
