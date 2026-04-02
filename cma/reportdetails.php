@@ -272,9 +272,8 @@ function main()
         $strGroupField2 = $rsRep->fields['GroupField2'];
         $strGroupField3 = $rsRep->fields['GroupField3'];
     }
-    // TODO: , now it assumes a numerical field for filtering, fix this (like below, looking at the fieldtype)
-    // will open the actual database in a connection object called Conn
-    OpenConnection($rsRep->fields['ConnectionString']);
+    // Open database connection using the resolved connection string
+    $conn = Database::getConnection($connectionString);
     $rs = Database::openRS($sql, $conn, adOpenForwardOnly);
     if ($rs === null) {
         throw new \Exception(Database::getLastError());

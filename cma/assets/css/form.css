@@ -2316,6 +2316,10 @@ span.dateselect .cal_arrow:hover::before {
     color: var(--text-muted);
 }
 
+.combo-clear::before {
+    line-height: 27px;
+}
+
 /* Clear button inside file display input (like combo-clear) */
 .file-input-group .file-display-input .file-clear-btn {
     position: absolute;
@@ -2419,7 +2423,7 @@ span.dateselect .cal_arrow:hover::before {
 .url-input-group .url-display-input {
     flex: 1;
     min-width: calc(var(--control-min-width) - var(--icon-btn-width) - 2px);
-    border: 0;
+    border: 0 !important;
     padding: 4px 8px;
     font-family: inherit;
     font-size: inherit;
@@ -2819,6 +2823,13 @@ body.mode-table #btn_columns {
     height: auto;
     display: block;
     border-radius: 2px;
+}
+
+.image-404 {
+    font-size: 20px;
+    color: var(--color-error, #c0392b);
+    opacity: 0.6;
+    cursor: help;
 }
 
 /* Disabled state for image control buttons */

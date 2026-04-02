@@ -938,7 +938,7 @@ function cmaGetRecordId(element) {
 function cmaSetRecordId(value, element) {
     const formLayout = element ? element.closest('.form-layout') : document.querySelector('.form-layout');
     if (formLayout) {
-        if (value) {
+        if (value !== null && value !== undefined && value !== '') {
             formLayout.dataset.recordId = String(value);
         } else {
             delete formLayout.dataset.recordId;
@@ -1869,7 +1869,7 @@ class CmaFormController {
             return;
         }
 
-        const recordId = data.id || cmaGetRecordId();
+        const recordId = (data.id !== null && data.id !== undefined && data.id !== '') ? data.id : cmaGetRecordId();
         // cmaLog.log('applyRecordData: applying record', recordId);
 
         // Hide detail content during population to prevent visible "painting"
@@ -2379,7 +2379,7 @@ class CmaFormController {
         // Check for copy mode (from data attribute, not window global)
         this.isCopyMode = this._dataCopyMode;
 
-        if (this.directRecordId === 0 || this.directRecordId === '0') {
+        if (this.directRecordId === null || this.directRecordId === undefined || this.directRecordId === '') {
             // cmaLog.log('initDirectRecordMode: new record mode');
             // Add mode: show empty form, hide subforms
             this.newRecord();
@@ -3880,6 +3880,19 @@ class CmaFormController {
         // Update preview if it's an image
         const preview = this.mainForm.querySelector(`[data-image-preview="${fieldName}"]`);
         if (preview) {
+            preview.onerror = function() {
+                this.style.display = 'none';
+                this.src = '';
+                const icon = this.parentElement.querySelector('.image-404');
+                if (!icon) {
+                    const el = document.createElement('span');
+                    el.className = 'image-404 lnr lnr-picture';
+                    el.title = 'Afbeelding niet gevonden';
+                    this.parentElement.appendChild(el);
+                }
+            };
+            const old404 = preview.parentElement.querySelector('.image-404');
+            if (old404) old404.remove();
             preview.src = filename ? (path + filename) : '';
             preview.style.display = filename ? '' : 'none';
         }
@@ -4180,7 +4193,7 @@ class CmaFormController {
 
         // Determine action suffix based on mode
         let actionSuffix = '';
-        if (!recordId) {
+        if (recordId === null || recordId === undefined || recordId === '') {
             actionSuffix = ' toevoegen';
         } else if (this.config.accessLevel < 2) {
             // accessLevel 0 or 1 = readonly
@@ -4239,7 +4252,7 @@ class CmaFormController {
 
         // Build URL - always use form= parameter
         let url = `form.php?form=${encodeURIComponent(formId)}`;
-        if (recordId === null || recordId === 0 || recordId === '0') {
+        if (recordId === null || recordId === undefined || recordId === '') {
             url += '&New=Y';
         } else {
             url += `&id=${recordId}`;
@@ -4297,7 +4310,7 @@ class CmaFormController {
                 if (topWin.CMA && topWin.CMA.url) {
                     // Use clean URL format
                     const currentState = topWin.CMA.url.parse();
-                    const effectiveRecordId = (recordId && recordId !== 0 && recordId !== '0') ? recordId : null;
+                    const effectiveRecordId = (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : null;
 
                     if (parentId) {
                         // This is a subform popup
@@ -4325,7 +4338,7 @@ class CmaFormController {
 
                     const newItem = [
                         formId || '',
-                        (recordId && recordId !== 0 && recordId !== '0') ? recordId : '0',
+                        (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : '0',
                         parentId || '',
                         parentField || ''
                     ].join(':');
@@ -6286,7 +6299,7 @@ class CmaFormController {
      */
     _saveFilterId(recordId) {
         const filterIdName = this.config.filterIdName;
-        if (!filterIdName || !recordId) return;
+        if (!filterIdName || recordId === null || recordId === undefined || recordId === '') return;
 
         try {
             const key = 'cma_filter_field_' + filterIdName;
@@ -7972,11 +7985,27 @@ class CmaFormController {
                     // Note: crop button is NEVER disabled - it's used to upload new images
                     if (preview && value) {
                         const path = field.dataset.path || '';
+                        preview.onerror = function() {
+                            this.style.display = 'none';
+                            this.src = '';
+                            const icon = this.parentElement.querySelector('.image-404');
+                            if (!icon) {
+                                const el = document.createElement('span');
+                                el.className = 'image-404 lnr lnr-picture';
+                                el.title = 'Afbeelding niet gevonden';
+                                this.parentElement.appendChild(el);
+                            }
+                        };
+                        // Remove previous 404 icon if re-loading
+                        const old404 = preview.parentElement.querySelector('.image-404');
+                        if (old404) old404.remove();
                         preview.src = value.startsWith('http') ? value : path + value;
                         preview.style.display = '';
                     } else if (preview) {
                         preview.src = '';
                         preview.style.display = 'none';
+                        const old404 = preview.parentElement.querySelector('.image-404');
+                        if (old404) old404.remove();
                     }
                     // Toggle disabled state on buttons based on whether image exists
                     // Note: crop button is NEVER disabled - it's used to upload and crop new images
@@ -8828,7 +8857,8 @@ class CmaFormController {
     async saveRecord(closeAfter = false) {
         // Performance tracking
         const perfId = 'saveRecord_' + Date.now();
-        const isNew = !cmaGetRecordId();
+        const currentId = cmaGetRecordId();
+        const isNew = currentId === null || currentId === undefined || currentId === '';
         cmaPerf.start(perfId, { formId: this.formId, isNew: isNew });
         cmaPerf.count('saveRecord.calls');
 
@@ -8967,11 +8997,6 @@ class CmaFormController {
 
                 cmaPerf.end(perfId, { success: true, isNew: result.isNew, recordId: result.id });
                 cmaPerf.count('saveRecord.success');
-
-                // Reload menu frame if menu config was changed
-                if (result.reloadMenu && parent.frames['M']) {
-                    parent.frames['M'].location.reload();
-                }
             } else {
                 // SAVE FAILED - Log prominently for developer visibility
                 const errorMsg = result.error || 'Opslaan mislukt (geen foutmelding van server)';
@@ -9017,8 +9042,8 @@ class CmaFormController {
             const changeSummary = this.formatChangeSummary();
             const confirmed = await libConfirm('Weet je zeker dat je de wijzigingen wilt annuleren?' + changeSummary, {
                 title: 'Wijzigingen annuleren?',
-                confirmText: 'Ja, annuleren',
-                cancelText: 'Nee, terug',
+                confirmText: 'Annuleren',
+                cancelText: 'Terug',
                 type: 'warning',
                 html: true
             });
@@ -12207,7 +12232,12 @@ window.cmaCheckUnsavedChanges = () => {
             resolve(true);
             return;
         }
-        libConfirm('Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je wilt navigeren?').then(function(leave) {
+        libConfirm('Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je wilt navigeren?', {
+            title: 'Niet-opgeslagen wijzigingen',
+            confirmText: 'Verlaat pagina',
+            cancelText: 'Blijven',
+            type: 'warning'
+        }).then(function(leave) {
             resolve(leave);
         });
     });

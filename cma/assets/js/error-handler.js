@@ -194,6 +194,9 @@
                     background-color: #ff3333;
                     color: #ffffff;
                 }
+                #cma-error-panel .error-btn:hover .lnr::before {
+                    color: #ffffff;
+                }
                 #cma-error-panel #cma-error-list {
                     max-height: 250px;
                     overflow-y: auto;
