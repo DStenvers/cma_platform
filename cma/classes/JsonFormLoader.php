@@ -350,7 +350,7 @@ class JsonFormLoader
      */
     private static function normalizeFormName(string $formName): string
     {
-        return strtolower(str_replace(' ', '_', $formName));
+        return strtolower($formName);
     }
 
     /**
@@ -426,6 +426,11 @@ class JsonFormLoader
             ]);
             self::$cache[$cacheKey] = null;
             return null;
+        }
+
+        // Auto-generate fields from database schema when fields array is empty
+        if (empty($data['fields']) && !empty($data['table'])) {
+            $data['fields'] = self::generateFieldsFromSchema($data);
         }
 
         // Write to file cache for future requests
@@ -839,6 +844,60 @@ class JsonFormLoader
 
         $filterField = $def['filter']['field'] ?? $def['filterIdName'] ?? '';
         return $filterField !== '' ? $filterField : null;
+    }
+
+    /**
+     * Auto-generate field definitions from database table schema.
+     * Used when a form JSON has an empty fields array but a valid table name.
+     */
+    private static function generateFieldsFromSchema(array $data): array
+    {
+        $tableName = $data['table'];
+        $database = $data['database'] ?? '';
+        $idField = strtolower($data['idField'] ?? 'ID');
+
+        try {
+            $conn = \Cma\Services\ListServiceHelper::getJsonFormConnection($database);
+            if (!$conn) return [];
+
+            $columns = SchemaHelper::getColumns($conn, $tableName);
+            if (empty($columns)) return [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $fields = [];
+        foreach ($columns as $col) {
+            $name = $col['name'] ?? '';
+            if (empty($name)) continue;
+            // Skip the ID field — it's handled automatically
+            if (strtolower($name) === $idField) continue;
+
+            $dataType = $col['dataType'] ?? 0;
+            $typeName = strtolower($col['dataTypeName'] ?? '');
+            $length = $col['length'] ?? null;
+
+            // Map database type to form control type
+            $type = 'textbox';
+            if (in_array($typeName, ['bit', 'boolean', 'yesno'])) {
+                $type = 'checkbox';
+            } elseif (in_array($typeName, ['text', 'ntext', 'memo', 'longchar'])) {
+                $type = 'memo';
+            } elseif ($length !== null && (int)$length > 255) {
+                $type = 'memo';
+            }
+
+            $field = [
+                'name' => $name,
+                'type' => $type,
+                'caption' => ucfirst(preg_replace('/([a-z])([A-Z])/', '$1 $2', $name)),
+                'dataType' => $typeName,
+            ];
+
+            $fields[] = $field;
+        }
+
+        return $fields;
     }
 
     /**
