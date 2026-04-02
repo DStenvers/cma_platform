@@ -10,6 +10,7 @@ use Cma\CmaRepository;
 use Cma\JsonFormLoader;
 use Cma\ListMode;
 use Cma\SecurityHelper;
+use Cma\SqlParser;
 
 /**
  * JSON Form Service
@@ -167,6 +168,22 @@ class JsonFormService extends BaseFormService
                             'type' => $colType,
                         ];
                         $colCount++;
+                    }
+                }
+
+                // Fallback: derive columns from listQuery when fields array is empty
+                if (empty($listColumns) && !empty($listQuery)) {
+                    $tables = SqlParser::extractTables($listQuery) ?? [];
+                    $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
+                    foreach ($parsedFields as $pf) {
+                        $colName = $pf['alias'] ?? $pf['field'] ?? '';
+                        if (empty($colName)) continue;
+                        if (strtolower($colName) === strtolower($idField)) continue;
+                        $listColumns[] = [
+                            'field' => $colName,
+                            'title' => ucfirst(str_replace('_', ' ', $colName)),
+                            'type' => 'text',
+                        ];
                     }
                 }
             }
@@ -887,6 +904,22 @@ class JsonFormService extends BaseFormService
                         $colCount++;
                     }
                 }
+
+                // Fallback: derive columns from listQuery when fields array is empty
+                if (empty($listColumns) && !empty($listQuery)) {
+                    $tables = SqlParser::extractTables($listQuery) ?? [];
+                    $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
+                    foreach ($parsedFields as $pf) {
+                        $colName = $pf['alias'] ?? $pf['field'] ?? '';
+                        if (empty($colName)) continue;
+                        if (strtolower($colName) === strtolower($idField)) continue;
+                        $listColumns[] = [
+                            'field' => $colName,
+                            'title' => ucfirst(str_replace('_', ' ', $colName)),
+                            'type' => 'text',
+                        ];
+                    }
+                }
             }
 
             // Get database connection and fetch the record
@@ -1582,6 +1615,22 @@ class JsonFormService extends BaseFormService
             }
         }
 
+        // Fallback: derive columns from listQuery when fields array is empty
+        if (empty($listColumns) && !empty($listQuery)) {
+            $tables = SqlParser::extractTables($listQuery) ?? [];
+            $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
+            foreach ($parsedFields as $pf) {
+                $colName = $pf['alias'] ?? $pf['field'] ?? '';
+                if (empty($colName)) continue;
+                if (strtolower($colName) === strtolower($idField)) continue;
+                $listColumns[] = [
+                    'field' => $colName,
+                    'title' => ucfirst(str_replace('_', ' ', $colName)),
+                    'type' => 'text',
+                ];
+            }
+        }
+
         // Apply search filter
         $search = strtolower($options['search'] ?? '');
         if ($search !== '') {
@@ -1788,6 +1837,22 @@ class JsonFormService extends BaseFormService
                     'type' => $colType,
                 ];
                 $colCount++;
+            }
+        }
+
+        // Fallback: derive columns from listQuery when fields array is empty
+        if (empty($listColumns) && !empty($listQuery)) {
+            $tables = SqlParser::extractTables($listQuery) ?? [];
+            $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
+            foreach ($parsedFields as $pf) {
+                $colName = $pf['alias'] ?? $pf['field'] ?? '';
+                if (empty($colName)) continue;
+                if (strtolower($colName) === strtolower($idField)) continue;
+                $listColumns[] = [
+                    'field' => $colName,
+                    'title' => ucfirst(str_replace('_', ' ', $colName)),
+                    'type' => 'text',
+                ];
             }
         }
 

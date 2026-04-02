@@ -4,9 +4,6 @@
  * Consolidated from multiple include files for simpler maintenance
  */
 
-// Legacy constants from lib_table.inc (used by reportdetails.php, ToolbarHelper.php)
-if (!defined('CONST_STRSORTPARAM')) define('CONST_STRSORTPARAM', 'Sort');
-
 // CMA application version — read from Composer package version (git tag)
 if (class_exists('\App\Library\Bootstrap')) {
     define('CMA_APP_VERSION', \App\Library\Bootstrap::getPlatformVersion());
@@ -460,7 +457,7 @@ function cma_html_header($title = '', $extraHead = '', $closeHead = true) {
     echo '<head>' . PHP_EOL;
     echo '<meta charset="' . STRCHARSET . '">' . PHP_EOL;
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . PHP_EOL;
-    echo '<meta name="apple-mobile-web-app-capable" content="yes">' . PHP_EOL;
+    echo '<meta name="mobile-web-app-capable" content="yes">' . PHP_EOL;
 
     // PERFORMANCE: Preload critical resources to speed up rendering
     // Use same URLs as actual loads for cache consistency
@@ -587,7 +584,7 @@ function cma_body_end() {
  * Core CSS bundle - used by all CMA pages
  */
 function cma_css_bundle(): array {
-    $bundle = [
+    return [
         '../library/css/lib-variables.css',
         'assets/css/colors.css',
         '../library/library.css',
@@ -600,11 +597,6 @@ function cma_css_bundle(): array {
         'assets/css/inline-edit.css',
         'assets/css/main.css'
     ];
-    // Project-specific overrides (outside cma/ so composer update doesn't overwrite)
-    if (file_exists(dirname(__DIR__) . '/assets/css/cma.css')) {
-        $bundle[] = '../assets/css/cma.css';
-    }
-    return $bundle;
 }
 
 /**
