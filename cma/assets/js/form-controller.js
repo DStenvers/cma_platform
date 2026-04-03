@@ -1386,6 +1386,11 @@ class CmaFormController {
                     }
                 })();
             }
+        } else if (document.body.classList.contains('is-creating')) {
+            // New record mode (New=Y or add related) — show detail form only
+            this.directRecordMode = true;
+            this.setDisplayModeClass('detail');
+            this.formInit();
         } else {
             // cmaLog.log('init: no data-record-id, calling formInit without record');
             this.directRecordMode = false;
