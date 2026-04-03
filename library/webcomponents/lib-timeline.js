@@ -255,15 +255,18 @@ class VerticalTimeline extends HTMLElement {
               html += '<input type="radio" name="vis_' + itemId + '" value="1"' + (vs == 1 ? ' checked' : '') + '> Alvast tonen</label>';
               html += '</div>';
 
-              // Edit button
-              html += '<div class="tl-edit-bar">';
-              html += '<button class="tl-edit-btn" data-roosterid="' + (item.roosterId || '') + '" data-field="draaiboektext">Wijzig inhoud</button>';
+              // Edit bar with save button
+              html += '<div class="tl-edit-bar" data-roosterid="' + (item.roosterId || '') + '">';
+              html += '<button class="tl-edit-btn" data-roosterid="' + (item.roosterId || '') + '">Wijzig</button>';
+              html += '<button class="tl-save-btn" data-roosterid="' + (item.roosterId || '') + '" style="display:none">Opslaan</button>';
+              html += '<button class="tl-cancel-btn" data-roosterid="' + (item.roosterId || '') + '" style="display:none">Annuleren</button>';
               html += '</div>';
 
-              // Content
+              // Content (view mode) and editor container
               if (item.content) {
                 html += '<div class="tl-content" data-roosterid="' + (item.roosterId || '') + '">' + item.content + '</div>';
               }
+              html += '<div class="tl-editor-container" data-roosterid="' + (item.roosterId || '') + '" style="display:none"></div>';
 
               // Downloads
               html += '<div class="tl-downloads" data-roosterid="' + (item.roosterId || '') + '">';
@@ -470,16 +473,104 @@ class VerticalTimeline extends HTMLElement {
       });
     });
 
-    // Edit button
+    // Edit button: toggle CKEditor via cma-htmledit
     this.querySelectorAll('.tl-edit-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         var roosterId = this.getAttribute('data-roosterid');
-        var field = this.getAttribute('data-field');
-        self.dispatchEvent(new CustomEvent('tl-edit', {
-          detail: { roosterId: roosterId, field: field },
+        var bar = this.closest('.tl-edit-bar');
+        var body = bar.closest('.tl-item-body');
+        var contentDiv = body.querySelector('.tl-content[data-roosterid="' + roosterId + '"]');
+        var editorContainer = body.querySelector('.tl-editor-container[data-roosterid="' + roosterId + '"]');
+        var saveBtn = bar.querySelector('.tl-save-btn');
+        var cancelBtn = bar.querySelector('.tl-cancel-btn');
+
+        // Switch to edit mode
+        if (contentDiv) contentDiv.style.display = 'none';
+        editorContainer.style.display = 'block';
+        this.style.display = 'none';
+        saveBtn.style.display = '';
+        cancelBtn.style.display = '';
+
+        // Create cma-htmledit if not already present
+        if (!editorContainer.querySelector('cma-htmledit')) {
+          var htmlContent = contentDiv ? contentDiv.innerHTML : '';
+          var editorEl = document.createElement('cma-htmledit');
+          editorEl.setAttribute('name', 'draaiboek_' + roosterId);
+          editorEl.setAttribute('height', '350');
+          editorEl.setAttribute('mode', 'full');
+          editorEl.setAttribute('allow-br', '');
+          editorEl.setAttribute('value', htmlContent);
+          editorContainer.appendChild(editorEl);
+        }
+      });
+    });
+
+    // Save button: get editor content, fire event, switch back to view
+    this.querySelectorAll('.tl-save-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var roosterId = this.getAttribute('data-roosterid');
+        var bar = this.closest('.tl-edit-bar');
+        var body = bar.closest('.tl-item-body');
+        var contentDiv = body.querySelector('.tl-content[data-roosterid="' + roosterId + '"]');
+        var editorContainer = body.querySelector('.tl-editor-container[data-roosterid="' + roosterId + '"]');
+        var editorEl = editorContainer.querySelector('cma-htmledit');
+        var editBtn = bar.querySelector('.tl-edit-btn');
+
+        // Get content from editor
+        var newContent = editorEl ? editorEl.value : '';
+
+        // Update view
+        if (contentDiv) {
+          contentDiv.innerHTML = newContent;
+          contentDiv.style.display = '';
+        }
+
+        // Destroy editor
+        if (editorEl) {
+          if (editorEl.editor) { try { editorEl.editor.destroy(true); } catch(ex) {} }
+          editorEl.remove();
+        }
+        editorContainer.style.display = 'none';
+
+        // Switch buttons back
+        editBtn.style.display = '';
+        this.style.display = 'none';
+        bar.querySelector('.tl-cancel-btn').style.display = 'none';
+
+        // Fire save event
+        self.dispatchEvent(new CustomEvent('tl-save', {
+          detail: { roosterId: roosterId, field: 'draaiboektext', content: newContent },
           bubbles: true
         }));
+      });
+    });
+
+    // Cancel button: discard changes, switch back to view
+    this.querySelectorAll('.tl-cancel-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var roosterId = this.getAttribute('data-roosterid');
+        var bar = this.closest('.tl-edit-bar');
+        var body = bar.closest('.tl-item-body');
+        var contentDiv = body.querySelector('.tl-content[data-roosterid="' + roosterId + '"]');
+        var editorContainer = body.querySelector('.tl-editor-container[data-roosterid="' + roosterId + '"]');
+        var editorEl = editorContainer.querySelector('cma-htmledit');
+        var editBtn = bar.querySelector('.tl-edit-btn');
+
+        // Destroy editor without saving
+        if (editorEl) {
+          if (editorEl.editor) { try { editorEl.editor.destroy(true); } catch(ex) {} }
+          editorEl.remove();
+        }
+        editorContainer.style.display = 'none';
+        if (contentDiv) contentDiv.style.display = '';
+
+        // Switch buttons back
+        editBtn.style.display = '';
+        this.style.display = 'none';
+        bar.querySelector('.tl-save-btn').style.display = 'none';
       });
     });
 

@@ -780,20 +780,53 @@ vertical-timeline {
     margin-bottom: 8px;
 }
 
-.tl-edit-btn {
+.tl-edit-btn,
+.tl-save-btn,
+.tl-cancel-btn {
     font-size: 11px;
     padding: 4px 12px;
     border: 1px solid var(--tl-card-border);
     border-radius: 4px;
     background: #fff;
-    color: var(--tl-line-color);
     cursor: pointer;
     transition: all 0.15s ease;
+}
+
+.tl-edit-btn {
+    color: var(--tl-line-color);
 }
 
 .tl-edit-btn:hover {
     background: #eff6ff;
     border-color: var(--tl-line-color);
+}
+
+.tl-save-btn {
+    color: #fff;
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.tl-save-btn:hover {
+    background: #15803d;
+}
+
+.tl-cancel-btn {
+    color: #64748b;
+}
+
+.tl-cancel-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+/* Editor container */
+.tl-editor-container {
+    margin: 8px 0;
+}
+
+.tl-editor-container cma-htmledit {
+    display: block;
 }
 
 /* ============================================================
