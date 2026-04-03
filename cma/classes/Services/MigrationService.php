@@ -356,10 +356,14 @@ class MigrationService
             }
         }
 
+        // Map migration aliases to database config names
+        $aliasMap = ['rep' => 'repository', 'data' => 'database', 'users' => 'cmausers'];
+
         $backupService = $this->getBackupService();
 
         foreach ($affectedDatabases as $dbName) {
-            $dbConfig = $databaseConfigs[strtolower($dbName)] ?? null;
+            $key = strtolower($dbName);
+            $dbConfig = $databaseConfigs[$key] ?? $databaseConfigs[$aliasMap[$key] ?? ''] ?? null;
 
             if (!$dbConfig) {
                 $this->log[] = "  ⚠ Database '$dbName' niet gevonden in configuratie, backup overgeslagen";
