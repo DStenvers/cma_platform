@@ -194,6 +194,20 @@
                     cursor: pointer;
                     font-size: var(--font-size-xs);
                     font-family: Consolas, Monaco, monospace;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                #cma-error-panel .error-btn .lnr {
+                    width: 14px;
+                    height: 14px;
+                }
+                #cma-error-panel .error-btn .lnr::before {
+                    color: red;
+                    font-size: 12px;
+                    line-height: 14px;
+                    width: 14px;
+                    height: 14px;
                 }
                 #cma-error-panel .error-btn:hover {
                     background-color: #ff3333;
@@ -521,6 +535,9 @@
         var tag = target.tagName.toLowerCase();
         var url = target.src || target.href || '';
         if (!url) return;
+
+        // Ignore CMA image preview 404s — handled by onerror on the element
+        if (tag === 'img' && target.hasAttribute('data-image-preview')) return;
 
         // Ignore browser extension resources
         if (url.includes('chrome-extension://') || url.includes('moz-extension://')) return;
