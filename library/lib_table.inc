@@ -2,7 +2,7 @@
 use App\Library\Application;
 use App\Library\Request;
 
-define("CONST_STRSORTPARAM", 'Sort');
+if (!defined('CONST_STRSORTPARAM')) define("CONST_STRSORTPARAM", 'Sort');
 // Displays a header with sort-option
 /**
 * Writesortheader

@@ -355,7 +355,7 @@ class ConfigFormService
                 $parentItems = $config[$parentKey] ?? [];
 
                 $id = $data[$idField] ?? '';
-                $isNew = empty($id) || $id === 'new';
+                $isNew = ($id === '' || $id === null || $id === 'new');
 
                 // For readOnly ID fields, check if record actually exists
                 // If ID is provided but doesn't exist, treat as new record
@@ -479,7 +479,7 @@ class ConfigFormService
             // Simple path - direct array access
             $items = $config[$configArrayKey] ?? [];
             $id = $data[$idField] ?? '';
-            $isNew = empty($id) || $id === 'new';
+            $isNew = ($id === '' || $id === null || $id === 'new');
 
             // For readOnly ID fields, check if record actually exists
             // If ID is provided but doesn't exist, treat as new record
@@ -716,10 +716,17 @@ class ConfigFormService
                         $html .= '<td data-field="' . htmlspecialchars($col) . '" data-type="boolean" data-value="' . ($boolVal ? '1' : '0') . '">' . $prefix . $switchHtml . '</td>';
                     } else {
                         $displayValue = is_string($value) ? $value : strval($value);
+                        // Show fallback for empty name: use form field value
+                        $isFallback = false;
+                        if ($displayValue === '' && $col === 'name' && !empty($item['form'])) {
+                            $displayValue = $item['form'];
+                            $isFallback = true;
+                        }
                         if (strlen($displayValue) > 50) {
                             $displayValue = substr($displayValue, 0, 47) . '...';
                         }
-                        $html .= '<td data-field="' . htmlspecialchars($col) . '">' . $prefix . htmlspecialchars($displayValue) . '</td>';
+                        $style = $isFallback ? ' style="opacity: 0.5; font-style: italic;"' : '';
+                        $html .= '<td data-field="' . htmlspecialchars($col) . '"' . $style . '>' . $prefix . htmlspecialchars($displayValue) . '</td>';
                     }
                 }
                 $html .= '</tr>';

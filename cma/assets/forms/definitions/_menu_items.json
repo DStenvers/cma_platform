@@ -5,7 +5,7 @@
         "title": "Menu-items",
         "titleSingular": "Menu-item",
         "table": "_config",
-        "activeField": "enabled",
+        "activeField": "visible",
         "database": "json",
         "configFile": "menu",
         "configArrayKey": "menus[].items",
@@ -26,18 +26,6 @@
                         "caption": "Menu ID"
                 },
                 {
-                        "name": "enabled",
-                        "type": "checkbox",
-                        "caption": "Actief",
-                        "defaultValue": true
-                },
-                {
-                        "name": "visible",
-                        "type": "checkbox",
-                        "caption": "Zichtbaar",
-                        "defaultValue": true
-                },
-                {
                         "name": "id",
                         "type": "textbox",
                         "caption": "ID",
@@ -51,6 +39,12 @@
                         "caption": "Weergavenaam",
                         "maxLength": 100,
                         "hint": "Leeg = gebruik formuliernaam"
+                },
+                {
+                        "name": "visible",
+                        "type": "checkbox",
+                        "caption": "Zichtbaar",
+                        "defaultValue": true
                 },
                 {
                         "name": "order",
@@ -82,12 +76,6 @@
         ],
         "listColumns": [
                 {
-                        "field": "enabled",
-                        "title": "",
-                        "type": "active",
-                        "width": 30
-                },
-                {
                         "field": "name",
                         "title": "Weergavenaam",
                         "type": "text"
@@ -95,11 +83,6 @@
                 {
                         "field": "form",
                         "title": "Formulier",
-                        "type": "text"
-                },
-                {
-                        "field": "href",
-                        "title": "URL",
                         "type": "text"
                 }
         ],

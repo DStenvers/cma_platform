@@ -122,7 +122,7 @@ class JsonFormRenderer
     {
         $connrep = Database::getRepConnection();
 
-        if (!$recordId) {
+        if ($recordId === null || $recordId === '') {
             return '<div class="small">Opslaan om data meldingen te configureren</div>';
         }
 

@@ -2144,7 +2144,7 @@
                     topWindow.CMA.url.update({
                         form: formNameForUrl,
                         recordId: recordId,
-                        isNew: !recordId
+                        isNew: recordId === null || recordId === undefined || recordId === ''
                     });
                 } else if (currentDepth === 1) {
                     // First sidepanel - opening a subform record (level 2)
@@ -2153,7 +2153,7 @@
                         recordId: currentState.recordId,
                         subform: formNameForUrl,
                         subformId: recordId,
-                        isSubformNew: !recordId
+                        isSubformNew: recordId === null || recordId === undefined || recordId === ''
                     });
                 } else if (currentDepth === 2) {
                     // Second sidepanel - opening a sub-subform record (level 3)
@@ -2164,7 +2164,7 @@
                         subformId: currentState.subformId,
                         subsubform: formNameForUrl,
                         subsubformId: recordId,
-                        isSubsubformNew: !recordId
+                        isSubsubformNew: recordId === null || recordId === undefined || recordId === ''
                     });
                 }
                 // For 4th+ levels, don't update URL (not supported)
@@ -2175,7 +2175,7 @@
             // Use singular form name with action suffix
             const formName = this.options.formNameSingular || this.options.formName || jsonFormToUse || 'Record';
             let actionSuffix = '';
-            if (!recordId) {
+            if (recordId === null || recordId === undefined || recordId === '') {
                 actionSuffix = ' toevoegen';
             } else if (copy) {
                 actionSuffix = ' kopiëren';
@@ -2209,8 +2209,8 @@
         async deleteRow(rowId) {
             const confirmed = await libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
                 title: 'Record verwijderen',
-                confirmText: 'Ja, verwijderen',
-                cancelText: 'Nee',
+                confirmText: 'Verwijderen',
+                cancelText: 'Niet verwijderen',
                 type: 'danger'
             });
             if (!confirmed) {

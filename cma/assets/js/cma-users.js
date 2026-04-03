@@ -108,14 +108,23 @@
             toolbar.appendChild(separator);
 
             // Login as button (for developers, and admins only for regular users)
+            var currentUserId = window.CMA_CURRENT_USER_ID || (window.top && window.top.CMA_CURRENT_USER_ID) || '';
+            var isCurrentUser = String(recordId) === String(currentUserId);
+
             var loginAsBtn = document.createElement('span');
-            loginAsBtn.className = 'tb-btn responsive-btn requires-record user-action-buttons';
-            loginAsBtn.title = 'Log in als deze gebruiker';
+            loginAsBtn.className = 'tb-btn responsive-btn requires-record user-action-buttons' + (isCurrentUser ? ' disabled' : '');
+            loginAsBtn.title = isCurrentUser ? 'Dit is de huidige gebruiker' : 'Log in als deze gebruiker';
             loginAsBtn.innerHTML = '<a href="#" data-action="loginAs"><span class="lnr lnr-enter"></span><span class="btn-text">Inloggen als</span></a>';
-            loginAsBtn.querySelector('a').onclick = function(e) {
-                e.preventDefault();
-                CMA.Users.loginAsUser(recordId);
-            };
+            if (isCurrentUser) {
+                loginAsBtn.querySelector('a').onclick = function(e) { e.preventDefault(); };
+                loginAsBtn.style.opacity = '0.4';
+                loginAsBtn.style.pointerEvents = 'none';
+            } else {
+                loginAsBtn.querySelector('a').onclick = function(e) {
+                    e.preventDefault();
+                    CMA.Users.loginAsUser(recordId);
+                };
+            }
             toolbar.appendChild(loginAsBtn);
         },
 

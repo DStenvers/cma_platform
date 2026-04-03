@@ -504,7 +504,8 @@ try {
 
             // 1. Load tree/table HTML
             // Use queryId() - handles numeric, GUID, and alphanumeric IDs like "C47"
-            $activeId = Request::queryId('ID') ?: null;
+            $activeIdRaw = Request::queryId('ID');
+            $activeId = $activeIdRaw !== '' ? $activeIdRaw : null;
             $displayMode = Request::queryInt('displayMode') ?: 2; // default to table mode
             $search = Request::query('search', '');
             $filtersJson = Request::query('filters', '');
@@ -601,7 +602,8 @@ try {
             addDebug('case:tree');
             // Get tree/table HTML for list panel
             // Use queryId() - handles numeric, GUID, and alphanumeric IDs like "C47"
-            $activeId = Request::queryId('ID') ?: null;
+            $activeIdRaw = Request::queryId('ID');
+            $activeId = $activeIdRaw !== '' ? $activeIdRaw : null;
             $search = Request::query('search', '');
             $displayMode = Request::queryInt('displayMode') ?: 2; // 1=tree, 2=table (default to table)
             $filtersJson = Request::query('filters', '');
@@ -717,14 +719,15 @@ try {
             addDebug('case:getRow');
             // Get single row HTML for refresh after edit (popup close)
             // Accept both 'id' (preferred) and 'ID' (legacy)
-            $recordId = Request::query('id', '') ?: Request::query('ID', '');
+            $recordId = Request::query('id', '');
+            if ($recordId === '') $recordId = Request::query('ID', '');
             $displayMode = Request::queryInt('displayMode') ?: 2; // Default to table mode
             // Accept columns parameter to ensure we use the same columns as displayed
             $columnsParam = Request::query('columns', '');
             $columns = !empty($columnsParam) ? explode(',', $columnsParam) : [];
             addDebug("recordId=$recordId, displayMode=$displayMode, columns=" . count($columns));
 
-            if (empty($recordId)) {
+            if ($recordId === '') {
                 addDebug('EXIT: no id');
                 sendDebugHeader();
                 outputJson(['success' => false, 'error' => 'id parameter is verplicht']);
@@ -748,10 +751,11 @@ try {
             addDebug('case:record');
             // Get record data for form population
             // Accept both 'id' (preferred) and 'ID' (legacy)
-            $recordId = Request::query('id', '') ?: Request::query('ID', '');
+            $recordId = Request::query('id', '');
+            if ($recordId === '') $recordId = Request::query('ID', '');
             addDebug("recordId=$recordId");
             // Use === '' instead of empty() because empty('0') is true in PHP
-            // and 0 is a valid ID for new record mode
+            // and 0 is a valid record ID
             if ($recordId === '') {
                 addDebug('EXIT: no id');
                 sendDebugHeader();
@@ -960,9 +964,12 @@ try {
             addDebug('case:delete');
             // Delete a record
             // Accept from POST (JavaScript sends it here) or GET (legacy), both 'id' and 'ID'
-            $recordId = Request::post('id', '') ?: Request::post('ID', '') ?: Request::query('id', '') ?: Request::query('ID', '');
+            $recordId = Request::post('id', '');
+            if ($recordId === '') $recordId = Request::post('ID', '');
+            if ($recordId === '') $recordId = Request::query('id', '');
+            if ($recordId === '') $recordId = Request::query('ID', '');
             addDebug("recordId=$recordId");
-            if (empty($recordId)) {
+            if ($recordId === '') {
                 addDebug('EXIT: no id');
                 sendDebugHeader();
                 outputJson(['success' => false, 'error' => 'id parameter is verplicht']);
@@ -1101,7 +1108,8 @@ try {
             // Get checklist options (controlId is the field name)
             $controlId = Request::query('controlId', '');
             // Accept both 'id' (preferred) and 'ID' (legacy)
-            $recordId = Request::query('id', '') ?: Request::query('ID', '-1');
+            $recordId = Request::query('id', '');
+            if ($recordId === '') $recordId = Request::query('ID', '-1');
             addDebug("controlId=$controlId, recordId=$recordId");
             if (empty($controlId)) {
                 addDebug('EXIT: no controlId');
@@ -1121,7 +1129,8 @@ try {
             $renderer = Request::query('renderer', '');
             $fieldName = Request::query('field', '');
             // Accept both 'id' (preferred) and 'ID' (legacy)
-            $recordId = Request::query('id', '') ?: Request::query('ID', '');
+            $recordId = Request::query('id', '');
+            if ($recordId === '') $recordId = Request::query('ID', '');
             $optionsJson = Request::query('options', '{}');
             addDebug("renderer=$renderer, field=$fieldName");
 

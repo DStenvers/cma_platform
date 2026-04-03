@@ -106,7 +106,7 @@ const cmaRecordCache = (function() {
          * @returns {Object|null} - Cached record data or null if not found/expired
          */
         get(formName, recordId) {
-            if (!isAvailable() || !formName || !recordId) return null;
+            if (!isAvailable() || !formName || (recordId === null || recordId === undefined || recordId === '')) return null;
 
             const key = buildKey(formName, recordId);
             try {
@@ -137,7 +137,7 @@ const cmaRecordCache = (function() {
          * @param {Object} recordData - Record data object (full API response)
          */
         set(formName, recordId, recordData) {
-            if (!isAvailable() || !formName || !recordId || !recordData) return;
+            if (!isAvailable() || !formName || (recordId === null || recordId === undefined || recordId === '') || !recordData) return;
 
             // Prune if at limit
             if (getCacheCount() >= MAX_CACHED_RECORDS) {

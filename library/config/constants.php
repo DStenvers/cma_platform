@@ -62,3 +62,9 @@ define('constFldType_Time', 21);
 define('constFldType_Password', 22);
 
 define('constFldTypeCount', 18);
+
+// ============================================================
+// Table/Report Constants (from library/lib_table.inc)
+// ============================================================
+
+define('CONST_STRSORTPARAM', 'Sort');

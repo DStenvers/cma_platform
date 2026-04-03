@@ -402,7 +402,7 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
      * Any such changes will break error catching and form controllers.
      */
     ?>
-    <script>window.CMA_IS_ADMIN = <?= $isAdmin ? 'true' : 'false' ?>; window.CMA_IS_DEVELOPER = <?= $isDeveloper ? 'true' : 'false' ?>;</script>
+    <script>window.CMA_IS_ADMIN = <?= $isAdmin ? 'true' : 'false' ?>; window.CMA_IS_DEVELOPER = <?= $isDeveloper ? 'true' : 'false' ?>; window.CMA_CURRENT_USER_ID = <?= json_encode(SecurityHelper::getCurrentUserId()) ?>;</script>
     <?php cma_script('/cma/assets/js/cma-utils.js'); ?>
     <?php cma_script('/library/error-handler.js'); ?>
     <script src="/library/jquery.min.js"></script>

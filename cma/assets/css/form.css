@@ -442,7 +442,7 @@ form#mainForm {
     background: var(--bg-surface);
     height: 250px; /* Fallback */
     height: var(--subform-height);
-    flex: 0 0 auto; /* Don't grow or shrink */
+    flex: 1 0 auto; /* Grow to fill space when detail-content is resized by fold */
     min-height: 150px;
     overflow: visible; /* Changed from hidden to allow filter dropdowns */
     flex-direction: column;

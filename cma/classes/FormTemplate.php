@@ -487,14 +487,14 @@ class FormTemplate
         }
 
         // Determine detail content state classes
-        // - is-creating: new record mode (ID=0 or New=Y or popup with parentID) - shows empty form
-        // - has-record: editing existing record (ID > 0 or guid) - shows form with data
+        // - is-creating: new record mode (New=Y or popup with parentID without ID) - shows empty form
+        // - has-record: editing existing record (any ID including 0, or guid) - shows form with data
         $detailStateClass = '';
         $hasGuid = Request::query('guid', '') !== '';
-        $isAddRelatedRecord = Request::query('parentID', '') !== '' && Request::query('parentField', '') !== '';
-        if ($isNewMode || $directRecordId === 0 || $isAddRelatedRecord) {
+        $isAddRelatedRecord = Request::query('parentID', '') !== '' && Request::query('parentField', '') !== '' && $directRecordId === null;
+        if ($isNewMode || $isAddRelatedRecord) {
             $detailStateClass = ' is-creating';
-        } elseif (($directRecordId !== null && $directRecordId > 0) || $hasGuid) {
+        } elseif (($directRecordId !== null && $directRecordId !== '') || $hasGuid) {
             $detailStateClass = ' has-record';
         } elseif ($isPopup) {
             // Popup without explicit ID - JavaScript will set the correct class

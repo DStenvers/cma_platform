@@ -65,7 +65,7 @@ try {
                     }
 
                     // Use JsonFormService for database-backed JSON forms
-                    $result = JsonFormService::getRecord($formName, $rawRecordId ?: $recordId);
+                    $result = JsonFormService::getRecord($formName, $rawRecordId !== '' ? $rawRecordId : $recordId);
                     echo json_encode($result, JSON_UNESCAPED_UNICODE);
                     exit;
                 }
@@ -77,7 +77,7 @@ try {
                 exit;
             }
 
-            if (empty($recordId)) {
+            if ($recordId === '' || $recordId === null) {
                 echo json_encode(['success' => false, 'error' => 'Record ID is required']);
                 exit;
             }
@@ -152,7 +152,7 @@ try {
                 exit;
             }
 
-            if (empty($recordId)) {
+            if ($recordId === '' || $recordId === null) {
                 echo json_encode(['success' => false, 'error' => 'Record ID is required']);
                 exit;
             }

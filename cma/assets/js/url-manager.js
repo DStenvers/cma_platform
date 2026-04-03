@@ -195,7 +195,7 @@
         const state = {
             form: form,
             recordId: recordId,
-            isNew: !recordId || recordId === 'new'
+            isNew: (recordId === null || recordId === undefined || recordId === '') || recordId === 'new'
         };
         updateUrl(state, false);
     }
@@ -213,7 +213,7 @@
             recordId: recordId,
             subform: subform,
             subformId: subformId,
-            isSubformNew: !subformId || subformId === 'new'
+            isSubformNew: (subformId === null || subformId === undefined || subformId === '') || subformId === 'new'
         };
         updateUrl(state, false);
     }

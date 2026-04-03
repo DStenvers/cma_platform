@@ -804,7 +804,12 @@ ToolbarHelper::end(true);
                     // Store the previous value to restore if user cancels
                     const previousValue = state.databaseId;
 
-                    if (!await libConfirm('Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je van database wilt wisselen? Alle wijzigingen gaan verloren.')) {
+                    if (!await libConfirm('Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je van database wilt wisselen? Alle wijzigingen gaan verloren.', {
+                        title: 'Niet-opgeslagen wijzigingen',
+                        confirmText: 'Wisselen',
+                        cancelText: 'Annuleren',
+                        type: 'warning'
+                    })) {
                         // User cancelled - restore previous selection
                         elements.databaseSelect.value = previousValue;
                         return;

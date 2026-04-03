@@ -254,11 +254,11 @@ class CmaFold extends HTMLElement {
                 }
 
                 .fold-arrow[data-action="collapse"]::before {
-                    content: "\\e93b"; /* chevron-left */
+                    content: "${isVert ? '\\e93b' : '\\e939'}"; /* ${isVert ? 'chevron-left' : 'chevron-up'} */
                 }
 
                 .fold-arrow[data-action="expand"]::before {
-                    content: "\\e93c"; /* chevron-right */
+                    content: "${isVert ? '\\e93c' : '\\e93a'}"; /* ${isVert ? 'chevron-right' : 'chevron-down'} */
                 }
             </style>
             <div class="grip-container">

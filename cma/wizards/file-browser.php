@@ -2150,7 +2150,12 @@ $appBasePath = Application::get('base_path', '/');
         window.deleteSelected = async function() {
             if (!selectedFile) return;
 
-            if (!await libConfirm('Weet je zeker dat je "' + selectedFile.name + '" wilt verwijderen?')) {
+            if (!await libConfirm('Weet je zeker dat je "' + selectedFile.name + '" wilt verwijderen?', {
+                title: 'Bestand verwijderen',
+                confirmText: 'Verwijderen',
+                cancelText: 'Annuleren',
+                type: 'danger'
+            })) {
                 return;
             }
 

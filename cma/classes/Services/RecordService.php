@@ -238,7 +238,7 @@ class RecordService extends BaseFormService
     {
         $startTime = microtime(true);
         $timing = [];
-        $isInsert = empty($recordId);
+        $isInsert = $recordId === null || $recordId === '';
         PerformanceLogger::startTimer('saveRecord');
 
         try {

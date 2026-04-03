@@ -822,7 +822,7 @@ class FormDataProvider
             // Check if this is a JSON config form
             if ($database === 'json') {
                 $data['id'] = $recordId;
-                $isNew = empty($recordId);
+                $isNew = $recordId === null || $recordId === '';
                 $result = ConfigFormService::saveRecord($formName, $data);
                 if ($result['success']) {
                     $result['isNew'] = $isNew;
@@ -869,7 +869,7 @@ class FormDataProvider
                 Logger::debug("SAVE: userEmail NOT in received data");
             }
 
-            $isNew = empty($recordId);
+            $isNew = $recordId === null || $recordId === '';
 
             if ($isNew) {
                 // INSERT
@@ -989,7 +989,7 @@ class FormDataProvider
                 }
 
                 // Fallback to SQL query if PDO method fails
-                if (empty($recordId)) {
+                if ($recordId === '' || $recordId === null || $recordId === false) {
                     if ($isSqlite) {
                         $idSql = "SELECT last_insert_rowid() AS NewID";
                     } else {
@@ -1001,7 +1001,7 @@ class FormDataProvider
                     Logger::debug("SAVE: ID query returned", ['id' => $recordId ?: 'empty']);
                 }
 
-                if (empty($recordId)) {
+                if ($recordId === '' || $recordId === null || $recordId === false) {
                     $errorMsg = "Record ingevoegd maar kon geen ID ophalen";
                     Logger::error("SAVE: Could not get ID after insert");
                     return self::error($errorMsg);

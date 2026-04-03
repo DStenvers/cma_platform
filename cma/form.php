@@ -79,7 +79,7 @@ if ($idParam !== '') {
     if ($idParam !== '') {
         $directRecordId = $idParam;
     } elseif ($isNewMode) {
-        $directRecordId = 0; // 0 = new record mode
+        $directRecordId = null; // null = new record mode
     }
 }
 // Copy mode: load the record but treat as new (ID provided + copy=Y)
@@ -269,22 +269,22 @@ try {
     }
 
     // Inject body classes based on current request (template is cached without these)
-    // - is-creating: new record mode (ID=0 or New=Y or parentID+parentField)
-    // - has-record: editing existing record (ID > 0)
+    // - is-creating: new record mode (New=Y or parentID+parentField without ID)
+    // - has-record: editing existing record (any ID including 0)
     // - mode-detail: direct record access (hides list panel) - unless view param is set
     // - mode-tree/mode-table: when view param is explicitly set
     // - data-loading: hides form until data is loaded (prevents empty form flash)
     $bodyClasses = [];
     // isAddRelatedRecord only applies when there's NO existing record ID
     // When both parentID+parentField AND a record ID exist, we're editing, not creating
-    $isAddRelatedRecord = $parentID !== '' && $parentField !== '' && ($directRecordId === null || $directRecordId === 0);
+    $isAddRelatedRecord = $parentID !== '' && $parentField !== '' && $directRecordId === null;
     $viewParam = Request::query('view', '');
     $hasExplicitView = !empty($viewParam);
 
-    if ($isNewMode || $directRecordId === 0 || $isAddRelatedRecord) {
+    if ($isNewMode || $isAddRelatedRecord) {
         $bodyClasses[] = 'is-creating';
         $bodyClasses[] = 'mode-detail';
-    } elseif ($directRecordId !== null && $directRecordId > 0) {
+    } elseif ($directRecordId !== null && $directRecordId !== '') {
         $bodyClasses[] = 'has-record';
         // Hide form until data is loaded - prevents skeleton flash (red borders, empty fields)
         // JS removes this class once record data has been applied

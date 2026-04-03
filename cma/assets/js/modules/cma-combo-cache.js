@@ -73,7 +73,7 @@ const cmaComboCache = (function() {
          */
         buildKey(formId, field, recordId) {
             let key = CACHE_PREFIX + formId + '_' + field;
-            if (recordId) {
+            if (recordId !== null && recordId !== undefined && recordId !== '') {
                 key += '_' + recordId;
             }
             return key;

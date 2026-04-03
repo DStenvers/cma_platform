@@ -181,7 +181,7 @@ function findParentFieldInTable(string $dbId, string $table, string $parentTable
         if (!$conn) return null;
 
         // Get columns from table schema
-        $columns = Database::getSchema($conn, 4, [null, null, $table]);
+        $columns = Database::getTableSchema($conn, $table);
         if (!$columns || $columns->EOF) return null;
 
         // Build FK name variations from parent table
@@ -229,7 +229,7 @@ function getTableColumns(string $dbId, string $table): array
         $conn = Database::getConnection($dbId);
         if (!$conn) return $cols;
 
-        $columns = Database::getSchema($conn, 4, [null, null, $table]);
+        $columns = Database::getTableSchema($conn, $table);
         if (!$columns || $columns->EOF) return $cols;
 
         while (!$columns->EOF) {

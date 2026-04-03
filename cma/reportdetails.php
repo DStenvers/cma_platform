@@ -8,7 +8,9 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\SQL;
 use App\Library\Server;
+use App\Library\StringBuffer;
 use Cma\CmaRepository;
+use Cma\ReportExporter;
 use Cma\SecurityHelper;
 use Cma\Services\Logger;
 use Cma\Services\ReportsService;
@@ -792,7 +794,7 @@ function WordExportRS($rs, $rsSubs, $strTitle)
     // TODO: Title
     // create the titles for the file
     $intColumns = 0;
-    $oContent = new Stringbuffer();
+    $oContent = new StringBuffer();
     $oContent->AppendLine('<html><head><style>body{font-family:verdana;font-size:var(--font-size-2xs)}H1{font-size:var(--font-size-lg)};div,span{display:inline !important}</style></head><h1>' . $strTitle . '</H1>');
     if ($blnVertical) {
         $intColumns = 2;
@@ -945,20 +947,46 @@ function WordExportRS($rs, $rsSubs, $strTitle)
 */
 function ExcelExportRS($rs, $rsSubs, $bCSV)
 {
-    $strFileName = "";
-    $blnHaveData = null;
-    $ExcelObj = new ExcelExport();
-    $ExcelObj->SkipFields($rsRep->fields['IDField'] . ',' . $rsRep->fields['FilterIDField'] . ',' . $rsRep->fields['FilterDisplayField']);
-    $ExcelObj->useCSV = $bCSV;
-    $blnHaveData = $ExcelObj->DoExport($rs);
-    $strFileName = $ExcelObj->FilenameUrl();
-    $ExcelObj = null;
-    // create the titles for the file
-    // write all records
-    if ($blnHaveData) {
-        echo '<script>window.location = \'' . $strFileName . '\';</script>';
-    } else {
-        echo 'No data or error writing to ' . $strFileName;
+    global $rsRep;
+
+    try {
+        // Determine which fields to skip
+        $skipFields = array_filter(array_map('trim', explode(',', ($rsRep->fields['IDField'] ?? '') . ',' . ($rsRep->fields['FilterIDField'] ?? '') . ',' . ($rsRep->fields['FilterDisplayField'] ?? ''))));
+
+        // Convert recordset to array data
+        $data = [];
+        $headers = [];
+        $headersSet = false;
+
+        while (!$rs->EOF) {
+            $row = [];
+            foreach ($rs->fields as $key => $value) {
+                if (is_numeric($key)) continue; // Skip numeric indices
+                if (in_array($key, $skipFields)) continue;
+                if (!$headersSet) {
+                    $headers[] = $key;
+                }
+                $row[$key] = $value;
+            }
+            $headersSet = true;
+            $data[] = $row;
+            $rs->MoveNext();
+        }
+
+        if (empty($data)) {
+            echo 'Geen gegevens gevonden om te exporteren.';
+            return;
+        }
+
+        // Use ReportExporter for download
+        if ($bCSV) {
+            ReportExporter::downloadCSV($data, $headers, 'rapport');
+        } else {
+            ReportExporter::downloadExcel($data, $headers, 'rapport');
+        }
+    } catch (\Throwable $e) {
+        error_log('[reportdetails.php] ExcelExportRS failed: ' . $e->getMessage());
+        echo '<lib-message type="error">Fout bij exporteren: ' . htmlspecialchars($e->getMessage()) . '</lib-message>';
     }
 }
 // Schrijf naar een bestand

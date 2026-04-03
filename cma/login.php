@@ -9,6 +9,7 @@ use App\Library\Database;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\SQL;
+use App\Library\Email;
 use Cma\SecurityHelper;
 use Cma\Services\SsoService;
 
@@ -280,11 +281,13 @@ function main()
                     }
                     $bShowForgotten = true;
                 } else {
-                    $Mailer = new LibMailer();
-                    $Mailer->body = 'Zoals verzocht sturen wij je hierbij jouw login gegevens voor de Content Management Applicatie van ' . str_replace('www.', '', (is_null(Request::server('SERVER_NAME', '')) ? "" : strtolower(Request::server('SERVER_NAME', '')))) . '.<BR><BR>Login : ' . $rs->fields['userLogin'] . '<br>Wachtwoord : ' . $rs->fields['userPassword'] . '<br><br>Beide zijn niet hoofdlettergevoelig.';
-                    $Mailer->subject = 'Login informatie CMA ' . str_replace('www.', '', (is_null(Request::server('SERVER_NAME', '')) ? "" : strtolower(Request::server('SERVER_NAME', ''))));
-                    $Mailer->AddRecipient( Request::post('email', ''));
-                    $Mailer->Send();
+                    $Mailer = new Email();
+                    $Mailer->setBody('Zoals verzocht sturen wij je hierbij jouw login gegevens voor de Content Management Applicatie van ' . str_replace('www.', '', (is_null(Request::server('SERVER_NAME', '')) ? "" : strtolower(Request::server('SERVER_NAME', '')))) . '.<BR><BR>Login : ' . $rs->fields['userLogin'] . '<br>Wachtwoord : ' . $rs->fields['userPassword'] . '<br><br>Beide zijn niet hoofdlettergevoelig.');
+                    $Mailer->setSubject('Login informatie CMA ' . str_replace('www.', '', (is_null(Request::server('SERVER_NAME', '')) ? "" : strtolower(Request::server('SERVER_NAME', '')))));
+                    $Mailer->addRecipient(Request::post('email', ''));
+                    if (!$Mailer->send()) {
+                        error_log('[login.php] Failed to send password recovery email: ' . $Mailer->getError());
+                    }
                     $Mailer = null;
                 }
                 if ($strError == '') {

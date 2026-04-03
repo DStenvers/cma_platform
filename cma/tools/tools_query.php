@@ -38,7 +38,7 @@ if ($iDatabase === '' && count($databases) >= 1) {
 $strHistory = "";
 $libSQL_KeepOffQuotes = true;
 $libSQL_KeepOffAmp = true;
-ErrorHandler::setVerbose(true);
+\App\Library\ErrorHandler::setVerbose(true);
 Error::setSendMail(false); // Don't email admin for ad-hoc query errors
 
 // Build database type map for JS (id -> type) and determine current type

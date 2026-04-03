@@ -82,7 +82,7 @@ class CmaRepository
      */
     public static function getRecordDescription($formId, $recordId, ?\PDO $repConnection, ?\PDO &$dataConnection = null): string
     {
-        if (empty($recordId) || empty($formId)) {
+        if (($recordId === '' || $recordId === null) || empty($formId)) {
             return '';
         }
 

@@ -91,7 +91,7 @@ function handleSave(array $config, string $configFile, string $configArrayKey, $
         // Array-based config
         $items = $config[$configArrayKey] ?? [];
 
-        if (empty($recordId) || $recordId === 'new') {
+        if ($recordId === '' || $recordId === null || $recordId === 'new') {
             // New record - generate ID
             $maxId = 0;
             foreach ($items as $item) {

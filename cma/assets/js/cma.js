@@ -1131,8 +1131,8 @@
             if (typeof libConfirm === 'function') {
                 libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
                     title: 'Verwijderen',
-                    confirmText: 'Ja, verwijderen',
-                    cancelText: 'Nee, annuleren',
+                    confirmText: 'Verwijderen',
+                    cancelText: 'Behouden',
                     type: 'warning'
                 }).then(function(confirmed) {
                     if (confirmed) {
@@ -1142,7 +1142,12 @@
                     }
                 });
             } else {
-                libConfirm('Weet je zeker dat je dit record wilt verwijderen?').then(function(confirmed) {
+                libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
+                    title: 'Verwijderen',
+                    confirmText: 'Verwijderen',
+                    cancelText: 'Behouden',
+                    type: 'warning'
+                }).then(function(confirmed) {
                     if (confirmed) {
                         if (actionElt) actionElt.value = 'delete';
                         CMA.form.changeLogDelete(frm);
@@ -1907,8 +1912,14 @@
     // CMA.emailLog - Email log management actions
     // ========================================================================
     CMA.emailLog = {
-        resend: function(id) {
-            if (!confirm('Wil je deze e-mail opnieuw verzenden?')) return;
+        resend: async function(id) {
+            var doResend = await libConfirm('Wil je deze e-mail opnieuw verzenden?', {
+                title: 'E-mail opnieuw verzenden',
+                confirmText: 'Verzenden',
+                cancelText: 'Annuleren',
+                type: 'info'
+            });
+            if (!doResend) return;
             jQuery.post('/cma/api/email-actions.php', { action: 'resend', id: id }, function(resp) {
                 if (resp.success) {
                     libToast.success('E-mail opnieuw verzonden');
