@@ -1,0 +1,848 @@
+/**
+ * Styles for <vertical-timeline> web component (No Shadow DOM)
+ *
+ * Include via: <link rel="stylesheet" href="library/css/lib-timeline.css">
+ *
+ * CSS Custom Properties (set on vertical-timeline element or ancestor):
+ *   --tl-line-color      (default: #3b82f6)
+ *   --tl-line-width      (default: 3px)
+ *   --tl-font-family     (default: inherit)
+ *   --tl-card-bg         (default: #f8fafc)
+ *   --tl-card-border     (default: #e2e8f0)
+ *   --tl-past-opacity    (default: 0.6)
+ */
+
+vertical-timeline {
+    display: block;
+    font-family: var(--tl-font-family, inherit);
+    --tl-line-color: #3b82f6;
+    --tl-line-width: 3px;
+    --tl-card-bg: #f8fafc;
+    --tl-card-border: #e2e8f0;
+    --tl-past-opacity: 0.6;
+}
+
+/* ============================================================
+   Root container & vertical line
+   ============================================================ */
+
+.tl-root {
+    position: relative;
+    padding: 8px 0;
+}
+
+/* Continuous vertical line on the left */
+.tl-root::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 18px;
+    width: var(--tl-line-width);
+    background: var(--tl-line-color);
+    border-radius: 2px;
+}
+
+/* ============================================================
+   Row layout: node left, content right
+   ============================================================ */
+
+.tl-row {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 4px 0 4px 48px;
+}
+
+/* ============================================================
+   Toggle rows (year / month / day headers)
+   ============================================================ */
+
+.tl-toggle {
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease;
+}
+
+.tl-toggle:hover .tl-label {
+    color: var(--tl-line-color);
+}
+
+/* ============================================================
+   Group action buttons (+/- on year & month hover)
+   ============================================================ */
+
+.tl-group-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+}
+
+.tl-toggle:hover .tl-group-actions {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.tl-action-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.tl-action-btn:hover {
+    border-color: var(--tl-line-color);
+    color: var(--tl-line-color);
+    background: #eff6ff;
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.tl-action-btn:active {
+    transform: scale(0.92);
+    transition-duration: 0.08s;
+}
+
+/* ============================================================
+   Labels
+   ============================================================ */
+
+.tl-label {
+    flex: 1;
+}
+
+.tl-label--year {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 1px;
+    background-color: #7b41f7;
+    width: 120px;
+    max-width: 90px;
+    border-radius: 12px;
+    margin-left: -72px;
+    z-index: 9999;
+    text-align: center;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.25s ease;
+}
+
+.tl-toggle:hover .tl-label--year {
+    transform: scale(1.04);
+    box-shadow: 0 4px 16px rgba(123, 65, 247, 0.3);
+}
+
+.tl-toggle[aria-expanded="false"] .tl-label--year {
+    opacity: 0.5;
+}
+
+.tl-toggle[aria-expanded="false"]:hover .tl-label--year {
+    opacity: 0.75;
+}
+
+.tl-label--month {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--tl-line-color);
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), letter-spacing 0.2s ease;
+    flex: none;
+}
+
+.tl-toggle:hover .tl-label--month {
+    color: #1d4ed8;
+}
+
+.tl-toggle[aria-expanded="false"] .tl-label--month {
+    opacity: 0.55;
+}
+
+.tl-toggle[aria-expanded="false"]:hover .tl-label--month {
+    opacity: 0.85;
+}
+
+/* Day header: horizontal line with day number in a circle */
+.tl-day-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.tl-day-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    grid-row: 1;
+    grid-column: 2;
+    border-radius: 50%;
+    border: 2px solid var(--tl-line-color);
+    background: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    gap: 0;
+    color: var(--tl-line-color);
+    z-index: 1;
+    line-height: 1;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.tl-toggle:hover .tl-day-circle {
+    border-color: #1d4ed8;
+    color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.tl-day-circle .tl-day-weekname {
+    font-size: 7px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    opacity: 0.5;
+}
+
+.tl-day-circle .tl-day-num {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+    margin-top: -1px;
+}
+
+.tl-day-circle .tl-day-monthname {
+    font-size: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    opacity: 0.5;
+}
+
+.tl-day--today .tl-day-circle {
+    background: var(--tl-line-color);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.tl-day--past .tl-day-circle {
+    opacity: 1;
+}
+
+.tl-day-line {
+    width: 32px;
+    height: 3px;
+    background-color: #3b82f6;
+    border-radius: 4px;
+    margin-left: 11px;
+    align-self: start;
+    margin-top: 24px;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+/* Day: grid layout — line | circle | items */
+.tl-day {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+.tl-day > .tl-toggle {
+    display: contents;
+}
+
+.tl-day-header {
+    display: contents;
+}
+
+.tl-day > .tl-children {
+    min-width: 0;
+    padding-left: 10px;
+    padding-top: 2px;
+    grid-row: 1;
+    grid-column: 3;
+}
+
+/* Block info icon between day header and items */
+.tl-blok-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    margin: 2px 0 2px 40px;
+    font-size: 12px;
+    color: var(--tl-line-color);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.tl-blok-info:hover {
+    background: #eff6ff;
+}
+
+.tl-blok-info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--tl-line-color);
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    text-align: center;
+    line-height: 13px;
+    color: var(--tl-line-color);
+    flex-shrink: 0;
+}
+
+/* Blok popup: handled by lib-dialog component */
+
+/* ============================================================
+   Badges
+   ============================================================ */
+
+.tl-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tl-badge--today {
+    background: #dbeafe;
+    color: #1d4ed8;
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: center;
+    margin-top: 2px;
+}
+
+.tl-badge--hybrid {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ============================================================
+   Node circles on the line
+   ============================================================ */
+
+.tl-line-node {
+    position: absolute;
+    left: 13px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: var(--tl-line-width) solid var(--tl-line-color);
+    background: #fff;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.tl-node--year {
+    display: none;
+}
+
+.tl-node--month {
+    width: 20px;
+    height: 20px;
+    left: 6px;
+    background: #dbeafe;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tl-toggle[aria-expanded="false"] .tl-node--month {
+    background: #fff;
+}
+
+.tl-node--day {
+    display: none;
+}
+
+.tl-node--today {
+    background: var(--tl-line-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.tl-node--item {
+    width: 10px;
+    height: 10px;
+    left: 14px;
+    background: #fff;
+    display: none;
+}
+
+/* ============================================================
+   Indent children
+   ============================================================ */
+
+.tl-year > .tl-children {
+    padding-left: 4px;
+}
+
+.tl-month > .tl-children {
+    padding-left: 4px;
+}
+
+
+/* ============================================================
+   Past days dimmed
+   ============================================================ */
+
+.tl-day--past > .tl-toggle {
+    opacity: 1;
+}
+
+/* ============================================================
+   Item cards
+   ============================================================ */
+
+.tl-item {
+    margin: 3px 0;
+    animation: tl-fadeSlideIn 0.25s ease both;
+}
+
+@keyframes tl-fadeSlideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tl-item--hidden {
+    opacity: 0.4;
+}
+
+.tl-item-header {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    padding: 8px 12px 8px 48px;
+    background: var(--tl-card-bg);
+    border: 1px solid var(--tl-card-border);
+    border-radius: 6px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tl-item-header:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tl-item-header--expandable {
+    cursor: pointer;
+}
+
+.tl-item-header--expandable::before {
+    content: "+";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    font-size: 14px;
+    font-weight: 400;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.15s;
+}
+
+.tl-item-header--expandable:hover::before {
+    border-color: var(--tl-line-color);
+    color: var(--tl-line-color);
+}
+
+.tl-item-header--open::before {
+    content: "\2212";
+    border-color: var(--tl-line-color);
+    color: #fff;
+    background: var(--tl-line-color);
+}
+
+.tl-item-header--expandable:hover {
+    border-color: var(--tl-line-color);
+}
+
+.tl-item-header--open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+
+.tl-item-summary {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ============================================================
+   Time + Title (single line)
+   ============================================================ */
+
+.tl-item-headline {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.tl-time {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tl-line-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    margin-left: auto;
+    order: 1;
+}
+
+.tl-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ============================================================
+   Meta row (location, instructors)
+   ============================================================ */
+
+.tl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.tl-meta-item {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.tl-meta-loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.tl-meta-loc::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z'/%3E%3C/svg%3E") center/contain no-repeat;
+    flex-shrink: 0;
+}
+
+.tl-meta-doc {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.tl-meta-doc::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   Description
+   ============================================================ */
+
+.tl-item-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* ============================================================
+   Expand hint
+   ============================================================ */
+
+.tl-expand-hint {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: none;
+}
+
+/* ============================================================
+   Item body (expanded content)
+   ============================================================ */
+
+.tl-item-body {
+    padding: 12px 12px 12px 48px;
+    background: #fff;
+    border: 1px solid var(--tl-card-border);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+}
+
+/* ============================================================
+   HTML content area
+   ============================================================ */
+
+.tl-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #334155;
+}
+
+.tl-content p {
+    margin: 0 0 8px 0;
+}
+
+.tl-content ul,
+.tl-content ol {
+    margin: 0 0 8px 0;
+    padding-left: 20px;
+}
+
+.tl-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.tl-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+}
+
+.tl-content td,
+.tl-content th {
+    border: 1px solid #e2e8f0;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* ============================================================
+   Downloads
+   ============================================================ */
+
+.tl-downloads {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tl-card-border);
+}
+
+.tl-downloads-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.tl-download {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--tl-line-color);
+    text-decoration: none;
+    padding: 3px 8px;
+    margin: 2px 4px 2px 0;
+    border: 1px solid var(--tl-card-border);
+    border-radius: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tl-download:hover {
+    background: #eff6ff;
+    border-color: var(--tl-line-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
+}
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+
+.tl-empty {
+    padding: 24px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* ============================================================
+   Hover effects
+   ============================================================ */
+
+.tl-item-header:hover .tl-node--item {
+    background: var(--tl-line-color);
+}
+
+/* ============================================================
+   Visibility controls
+   ============================================================ */
+
+.tl-visibility {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0 10px;
+    border-bottom: 1px solid var(--tl-card-border);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.tl-visibility-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-right: 4px;
+}
+
+.tl-vis-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #64748b;
+    background: #fff;
+}
+
+.tl-vis-option input[type="radio"] {
+    display: none;
+}
+
+.tl-vis-option:hover {
+    border-color: #94a3b8;
+}
+
+.tl-vis-off.tl-vis-active {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.tl-vis-auto.tl-vis-active {
+    background: #f0f9ff;
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+
+.tl-vis-on.tl-vis-active {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #16a34a;
+}
+
+/* ============================================================
+   Edit bar
+   ============================================================ */
+
+.tl-edit-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.tl-edit-btn {
+    font-size: 11px;
+    padding: 4px 12px;
+    border: 1px solid var(--tl-card-border);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--tl-line-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tl-edit-btn:hover {
+    background: #eff6ff;
+    border-color: var(--tl-line-color);
+}
+
+/* ============================================================
+   Download rows with delete
+   ============================================================ */
+
+.tl-download-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 4px 2px 0;
+}
+
+.tl-dl-delete {
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    color: #cbd5e1;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.15s;
+}
+
+.tl-dl-delete:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.tl-dl-add {
+    display: inline-block;
+    font-size: 11px;
+    padding: 4px 10px;
+    margin-top: 6px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    background: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tl-dl-add:hover {
+    border-color: var(--tl-line-color);
+    color: var(--tl-line-color);
+    background: #eff6ff;
+}
