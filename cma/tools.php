@@ -173,18 +173,6 @@ if (!$isNomenuMode) {
         height: 100%;
     }
 
-    /* Welcome message when no tool selected */
-    .tools-welcome {
-        text-align: center;
-        padding: 60px 40px;
-        color: var(--text-muted);
-    }
-    .tools-welcome h3 {
-        color: var(--text-primary);
-        margin-bottom: 10px;
-        font-size: 1.2em;
-    }
-
     </style>
     </head>
     <?php
@@ -220,7 +208,7 @@ if (!$isNomenuMode) {
     max-size="500"
     storage-key="tools_fold">
 </cma-fold>
-<iframe name="R" id="details_iframe" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'about:blank' ?>" frameborder="0"></iframe>
+<iframe name="R" id="details_iframe" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'tools/tools_welcome.php' ?>" frameborder="0"></iframe>
 
 <script>
 (function() {
@@ -340,7 +328,7 @@ if (!$isNomenuMode) {
     max-size="500"
     storage-key="tools_fold">
 </cma-fold>
-<iframe name="R" id="tools-content" class="tools-content-area" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'about:blank' ?>" frameborder="0"></iframe>
+<iframe name="R" id="tools-content" class="tools-content-area" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'tools/tools_welcome.php' ?>" frameborder="0"></iframe>
 
 <script>
 (function() {
@@ -549,17 +537,15 @@ function buildToolsTreeData(bool $isDeveloper): array
     $folders[] = $reportsFolder;
 
     // === FRONT-END ===
-    $frontendChildren = [];
-    if (file_exists(dirname(__DIR__) . '/data/contentblocks.json') || file_exists(__DIR__ . '/config/contentblocks.json')) {
-        $frontendChildren[] = ['type' => 'item', 'label' => 'Content blocks', 'href' => 'form.php?form=contentblocks', 'target' => 'R', 'icon' => 'lnr-text-format'];
-    }
-    $frontendChildren[] = ['type' => 'item', 'label' => 'Marketing URLs/Redirects', 'href' => 'form.php?form=marketingurl', 'target' => 'R', 'icon' => 'lnr-link'];
-    $frontendChildren[] = ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'];
     $frontendFolder = [
         'type' => 'folder',
         'label' => 'Front-end',
         'icon' => 'lnr-screen',
-        'children' => $frontendChildren
+        'children' => [
+            ['type' => 'item', 'label' => 'Content blocks', 'href' => 'form.php?form=contentblocks', 'target' => 'R', 'icon' => 'lnr-text-format'],
+            ['type' => 'item', 'label' => 'Marketing URLs/Redirects', 'href' => 'form.php?form=marketingurl', 'target' => 'R', 'icon' => 'lnr-link'],
+            ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'],
+        ]
     ];
     $folders[] = $frontendFolder;
 
