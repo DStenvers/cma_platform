@@ -118,6 +118,22 @@ class LibToaster extends HTMLElement {
                     animation: slideIn 0.25s ease-out;
                     max-width: 100%;
                     word-break: break-word;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .toast-timer {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 2px;
+                    background: rgba(255,255,255,0.5);
+                    animation: timerShrink var(--toast-duration) linear forwards;
+                }
+
+                @keyframes timerShrink {
+                    from { width: 100%; }
+                    to { width: 0%; }
                 }
 
                 .toast.removing {
@@ -320,9 +336,13 @@ class LibToaster extends HTMLElement {
         container.appendChild(toast);
         this._toasts.push(toast);
 
-        // Auto-dismiss
+        // Auto-dismiss with timer gauge
         const dismissDuration = duration !== undefined ? duration : this._duration;
         if (dismissDuration > 0) {
+            const timer = document.createElement('div');
+            timer.className = 'toast-timer';
+            timer.style.setProperty('--toast-duration', dismissDuration + 'ms');
+            toast.appendChild(timer);
             setTimeout(() => this.removeToast(toast), dismissDuration);
         }
 
