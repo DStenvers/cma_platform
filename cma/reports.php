@@ -148,10 +148,7 @@ body.tools-layout cma-fold {
 
 <!-- Content area -->
 <main id="reports-content" class="detail-panel">
-    <div class="tools-welcome">
-        <h3>Rapportages</h3>
-        <p>Selecteer een rapportage uit het menu links.</p>
-    </div>
+    <div class="empty-state">Selecteer een rapportage uit het menu links.</div>
 </main>
 
 <script>
@@ -290,17 +287,6 @@ body.tools-layout cma-fold {
     padding: 20px;
 }
 
-/* Welcome message */
-.tools-welcome {
-    text-align: center;
-    padding: 60px 40px;
-    color: var(--text-muted);
-}
-.tools-welcome h3 {
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    font-size: 1.2em;
-}
 .tools-loading {
     display: flex;
     align-items: center;

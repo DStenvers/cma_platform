@@ -393,7 +393,8 @@ form#mainForm {
 }
 
 /* No record selected message */
-.no-data {
+.no-data,
+.empty-state {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -401,6 +402,12 @@ form#mainForm {
     color: var(--text-muted);
     text-align: center;
     padding: 40px;
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-size: 1.2em;
 }
 
 /* Loading state - positioned absolutely so it doesn't push content */
@@ -751,7 +758,7 @@ td.c2_g:has(.postcaption-inline) {
 .toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 4px 8px 4px 10px;
     background: linear-gradient(to bottom, var(--bg-surface) 0%, var(--bg-surface-alt) 100%);
     border-bottom: 1px solid var(--border-dark);
@@ -760,6 +767,10 @@ td.c2_g:has(.postcaption-inline) {
     flex-shrink: 0;
     container-type: inline-size;
     container-name: toolbar;
+}
+
+.toolbar:has(.toolbar-right) {
+    justify-content: space-between;
 }
 
 div.toolbar .tb-btn {

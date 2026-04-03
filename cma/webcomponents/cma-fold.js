@@ -335,7 +335,7 @@ class CmaFold extends HTMLElement {
                 e.stopPropagation();
                 if (!this._target) return;
                 const action = btn.dataset.action;
-                const isCollapse = this.reverse ? action === 'collapse' : action === 'expand';
+                const isCollapse = action === 'collapse';
                 const size = isCollapse ? this.minSize : this.maxSize;
                 this._target.style.transition = (this.isVertical ? 'width' : 'height') + ' 0.2s ease, flex 0.2s ease';
                 if (this.isVertical) {
