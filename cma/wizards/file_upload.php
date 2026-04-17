@@ -94,7 +94,7 @@ echo '<BODY style="margin:0px" class="wizardcontent">';
 
 // Handle folder creation
 if (Request::post('name_dir', '') != '') {
-    $newFolderName = Str::stripIllegalChars(str_replace(' ', '_', Request::post('name_dir', '')));
+    $newFolderName = preg_replace('/[^a-zA-Z0-9_\-]/', '', str_replace(' ', '_', Request::post('name_dir', '')));
     $newFolderPath = Server::mapPath($sRootURL . $sSubPath) . '/' . $newFolderName;
     File::createFolder($newFolderPath);
     echo '<script>';
@@ -113,10 +113,12 @@ echo '<div id="formulier">';
 
 $sRootMap = Server::mapPath($sRootURL);
 $sFile = Request::query('file', '');
+// Strip ?versie= cache buster for filesystem operations, keep original for display/callback
+$sFileClean = strtok($sFile, '?');
 
 // Extract subpath from file if present
-if (strpos($sFile, '/') !== false) {
-    $sSubPath = substr($sFile, 0, strrpos($sFile, '/') + 1);
+if (strpos($sFileClean, '/') !== false) {
+    $sSubPath = substr($sFileClean, 0, strrpos($sFileClean, '/') + 1);
 }
 
 echo '<font class="small">Selecteer \'Bladeren\' om een ';
@@ -125,7 +127,7 @@ echo ' te selec&shy;teren. Druk daarna op \'Plaats ';
 echo ($bImage ? 'afbeelding' : 'bestand');
 echo '\' om het bestand op de server te zetten.<br><br></font>';
 
-$formAction = Request::addAllToURL('file_outputfile.php' . ($bImage ? '' : 'x'));
+$formAction = Request::addAllToURL('file_outputfile.php');
 echo '<FORM METHOD="POST" name="Main" id="Main" style="margin:0px" ENCTYPE="multipart/form-data" ACTION="/cma/wizards/' . htmlspecialchars($formAction) . '" onsubmit=\'return fCheckFileName(this.blob.value, ' . ($bImage ? 'true' : 'false') . ');\'>';
 echo '<INPUT TYPE="file" NAME="blob" style="width:' . (PAGE_WIDTH - LEGEND_MARGIN) . 'px"><BR />';
 echo '<INPUT TYPE="hidden" NAME="hid_path" VALUE="' . htmlspecialchars($sSubPath) . '">';
@@ -134,8 +136,8 @@ echo '<INPUT TYPE="hidden" NAME="resizeheight" id="resizeheight" VALUE="">';
 echo '<INPUT TYPE="hidden" NAME="resizewidth" id="resizewidth" VALUE="">';
 echo '<INPUT TYPE="hidden" NAME="random" id="random" VALUE="J">';
 
-if ($sFile != '') {
-    echo '<INPUT TYPE="hidden" NAME="replacefilename" value="' . htmlspecialchars($sFile) . '">';
+if ($sFileClean != '') {
+    echo '<INPUT TYPE="hidden" NAME="replacefilename" value="' . htmlspecialchars($sFileClean) . '">';
     echo '<INPUT TYPE="checkbox" NAME="replacefileJN" value="Y"><font style="font-size:var(--font-size-2xs)">Vervang geselecteerde bestand</font><br/><br/>';
 } else {
     echo '<INPUT TYPE="checkbox" NAME="OverWriteFile" value="Y"><font style="font-size:var(--font-size-2xs)">Overschrijf bestand</font><br/><br/>';

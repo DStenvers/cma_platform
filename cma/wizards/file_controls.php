@@ -18,7 +18,7 @@ Response::noCache();
 $sRootURL = Request::query('basepath', '');
 $bImage = Request::query('image', '') != '';
 $sSubPath = Request::query('path', '');
-$sFile = Request::query('file', '');
+$sFile = strtok(Request::query('file', ''), '?'); // Strip ?versie= cache buster
 
 // Check if file is an image
 $ext = strtolower(pathinfo($sFile, PATHINFO_EXTENSION));

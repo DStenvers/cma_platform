@@ -33,17 +33,25 @@ function main()
         $sRootURL = '/';
     }
     $objUpload = new LibUpload();
-    $sSubPath = $objUpload->objUpload['hid_path'];
-    $objUpload->Random = (is_null($objUpload->objUpload['random']) ? "" : strtoupper($objUpload->objUpload['random'])) == 'Y';
+    $sSubPath = $objUpload->objUpload('hid_path')->value;
+    $objUpload->Random = (is_null($objUpload->objUpload('random')->value) ? "" : strtoupper($objUpload->objUpload('random')->value)) == 'Y';
     $objUpload->Path = $sRootURL . $sSubPath;
     $objUpload->Fieldname = 'blob';
+
+    // Detect overwrite: replace selected file with uploaded file
+    $bOverwrite = false;
+    if (($_POST['replacefilename'] ?? '') !== '' && ($_POST['replacefileJN'] ?? '') !== '') {
+        $objUpload->Filename = basename($_POST['replacefilename']);
+        $bOverwrite = true;
+    }
+
     $objUpload->Save();
     $filename = $objUpload->filename();
-    $sResizeType = $objUpload->objUpload['resizetype'];
+    $sResizeType = $objUpload->objUpload('resizetype')->value;
     if ($sResizeType == strval(FormControlHelper::IMG_MAXIMUM) || $sResizeType == strval(FormControlHelper::IMG_FIXED)) {
         $sFullName = $sRootURL . $sSubPath . $filename;
-        $lReqHeight = intval(round(floatval($objUpload->objUpload['resizeheight'])));
-        $lReqWidth = intval(round(floatval($objUpload->objUpload['resizewidth'])));
+        $lReqHeight = intval(round(floatval($objUpload->objUpload('resizeheight')->value)));
+        $lReqWidth = intval(round(floatval($objUpload->objUpload('resizewidth')->value)));
         $dummy = null;
         gfxSpex(Server::mapPath($sFullName), $lCurWidth, $lCurHeight, $dummy, $dummy);
         if ($lCurWidth!= '' && $lCurHeight!= '') {
@@ -54,7 +62,7 @@ function main()
                     echo '				<html>';
                     echo '				<body class="wizardbody">';
                     echo '				<script type="text/javascript">;
-                    alert(\'Het formaat van de afbeelding (hoogte/breedte verhouding) komt niet overeen met de vereiste afmetingen van ' . (lReqWidth) . '' . 'pixels breed bij ' . (lReqHeight) . '' . 'pixels hoog!\');
+                    alert(\'Het formaat van de afbeelding (hoogte/breedte verhouding) komt niet overeen met de vereiste afmetingen van ' . ($lReqWidth) . '' . 'pixels breed bij ' . ($lReqHeight) . '' . 'pixels hoog!\');
                     window.location = \'' . (Request::addAllToURL("file_upload.php")) . '' . '\';
                     </script>';
                     echo '				</body>';
@@ -63,19 +71,24 @@ function main()
                 }
             }
             if ($lReqHeight != $lCurHeight || $lReqWidth != $lCurWidth) {
-                $sNewname = substr($filename, 0, max(0, min((($pos = stripos($filename, '.')) !== false ? $pos + 1 : 0) - 1, strlen($filename)))) . '_chk.' . substr($filename, max(0, (($pos = stripos($filename, '.')) !== false ? $pos + 1 : 0) + 1 - 1));
+                $info = pathinfo($filename);
+                $sNewname = $info['filename'] . '_chk.' . $info['extension'];
                 Image::thumbnail($sFullName, $sRootURL . $sSubPath . $sNewname, $lReqHeight, $lReqWidth);
-                if (file_exists(Server::mapPath($sNewname))) {
+                if (file_exists(Server::mapPath($sRootURL . $sSubPath . $sNewname))) {
                     $filename = $sNewname;
                 }
             }
         }
     }
     $objUpload = null;
+
+    // Cache busting: append ?versie= timestamp so browsers reload overwritten files
+    $sFileParam = $bOverwrite ? $filename . '?versie=' . time() : $filename;
+
     $sURL = Request::addAllToURL('file_upload.php');
-    $sURL = Request::addToURL($sURL, 'file', $filename);
+    $sURL = Request::addToURL($sURL, 'file', $sFileParam);
     $sURL = Request::addToURL($sURL, 'upload', 'true');
-    $sURL = Request::addToURL($sURL, 'filename', $filename);
+    $sURL = Request::addToURL($sURL, 'filename', $sFileParam);
     Response::redirect($sURL);
 }
 // Call main function

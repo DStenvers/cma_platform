@@ -42,7 +42,7 @@ Response::noCache();
 $basePath = Request::query('basepath', '');
 $fieldName = Request::query('fieldname', '');
 $imageOnly = Request::query('image', '') !== '';
-$currentFile = Request::query('file', '');
+$currentFile = strtok(Request::query('file', ''), '?'); // Strip ?versie= cache buster if present
 $currentPath = Request::query('path', '');
 
 // Image constraint parameters (from old file-pages.php wizard)
@@ -88,6 +88,15 @@ if ($basePath !== '' && substr($basePath, -1) !== '/') {
 $siteRoot = Server::mapPath('/');
 $fullBasePath = $siteRoot . str_replace('/', DIRECTORY_SEPARATOR, $basePath);
 
+// Security: verify basePath resolves within the site root
+$resolvedBase = realpath($fullBasePath);
+$resolvedRoot = realpath($siteRoot);
+if ($resolvedBase !== false && $resolvedRoot !== false && strpos($resolvedBase, $resolvedRoot) !== 0) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Ongeldig basispad']);
+    exit;
+}
+
 // Ensure the base directory exists (use URL path with File::createFolder)
 $basePathError = '';
 $basePathDetails = '';
@@ -127,6 +136,14 @@ if ($action !== '') {
     $path = str_replace('..', '', $path);
     $path = preg_replace('#/+#', '/', $path);
     $fullPath = $fullBasePath . str_replace('/', DIRECTORY_SEPARATOR, $path);
+
+    // Security: verify resolved path is within basePath (catches bypass of str_replace)
+    $resolvedFull = realpath($fullPath);
+    $resolvedBase = realpath($fullBasePath);
+    if ($resolvedFull !== false && $resolvedBase !== false && strpos($resolvedFull, $resolvedBase) !== 0) {
+        echo json_encode(['success' => false, 'error' => 'Ongeldig pad']);
+        exit;
+    }
 
     switch ($action) {
         case 'list':
@@ -283,6 +300,7 @@ function listDirectory(string $fullPath, string $basePath, string $relativePath,
                 'size' => $size,
                 'sizeFormatted' => formatFileSize($size),
                 'modified' => date('d-m-Y H:i', $modified),
+                'modifiedTs' => $modified,
                 'isImage' => $isImage,
                 'path' => ($relativePath ? $relativePath . '/' : '') . $file
             ];
@@ -332,6 +350,14 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite): arr
 
     // Sanitize filename
     $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $file['name']);
+
+    // Block dangerous executable extensions
+    $blockedExtensions = ['php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'asp', 'aspx', 'jsp', 'sh', 'cgi', 'pl', 'exe', 'bat', 'cmd', 'com', 'htaccess', 'htpasswd'];
+    $uploadExt = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (in_array($uploadExt, $blockedExtensions)) {
+        return ['success' => false, 'error' => 'Bestandstype niet toegestaan'];
+    }
+
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $filename;
 
     // Check if file exists
@@ -345,7 +371,7 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite): arr
     }
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-        return ['success' => true, 'filename' => $filename, 'message' => 'Bestand geüpload'];
+        return ['success' => true, 'filename' => $filename, 'message' => 'Bestand geüpload', 'modifiedTs' => filemtime($targetPath)];
     } else {
         return ['success' => false, 'error' => 'Kan bestand niet opslaan'];
     }
@@ -359,8 +385,8 @@ function deleteFile(string $fullPath, string $file): array {
         return ['success' => false, 'error' => 'Ongeldige bestandsnaam'];
     }
 
-    // Sanitize
-    $file = basename($file);
+    // Sanitize — strip ?versie= cache buster before filesystem operations
+    $file = stripVersionQuery(basename($file));
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
 
     if (!file_exists($targetPath)) {
@@ -419,7 +445,7 @@ function createDirectory(string $fullPath, string $urlPath, string $name): array
  * Get file details
  */
 function getFileDetails(string $fullPath, string $file, string $webPath): array {
-    $file = basename($file);
+    $file = stripVersionQuery(basename($file));
 
     // Ensure webPath ends with / so URL is correctly formed (e.g. /templates/subfolder/ + file.jpg)
     if ($webPath !== '' && substr($webPath, -1) !== '/') {
@@ -444,8 +470,9 @@ function getFileDetails(string $fullPath, string $file, string $webPath): array 
         'size' => $size,
         'sizeFormatted' => formatFileSize($size),
         'modified' => date('d-m-Y H:i:s', $modified),
+        'modifiedTs' => $modified,
         'isImage' => $isImage,
-        'url' => $webPath . $file
+        'url' => $webPath . $file . '?versie=' . $modified
     ];
 
     if ($isImage && $ext !== 'svg') {
@@ -472,10 +499,19 @@ function formatFileSize(int $bytes): string {
 }
 
 /**
+ * Strip ?versie= (or any query string) from a filename.
+ * Cache-busting parameters must not reach filesystem operations.
+ */
+function stripVersionQuery(string $filename): string {
+    $pos = strpos($filename, '?');
+    return $pos !== false ? substr($filename, 0, $pos) : $filename;
+}
+
+/**
  * Rotate an image
  */
 function rotateImage(string $fullPath, string $file, int $degrees): array {
-    $file = basename($file);
+    $file = stripVersionQuery(basename($file));
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
 
     if (!file_exists($targetPath)) {
@@ -509,7 +545,7 @@ function rotateImage(string $fullPath, string $file, int $degrees): array {
  * Resize an image
  */
 function resizeImage(string $fullPath, string $file, int $maxWidth, int $maxHeight): array {
-    $file = basename($file);
+    $file = stripVersionQuery(basename($file));
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
 
     if (!file_exists($targetPath)) {
@@ -547,7 +583,7 @@ function resizeImage(string $fullPath, string $file, int $maxWidth, int $maxHeig
  * Crop an image
  */
 function cropImage(string $fullPath, string $file, int $x, int $y, int $width, int $height, int $destWidth, int $destHeight): array {
-    $file = basename($file);
+    $file = stripVersionQuery(basename($file));
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
 
     if (!file_exists($targetPath)) {
@@ -592,7 +628,7 @@ function cropImage(string $fullPath, string $file, int $x, int $y, int $width, i
  * Apply image filter (brightness, sharpen)
  */
 function applyImageFilter(string $fullPath, string $file, string $filter, string $arg): array {
-    $file = basename($file);
+    $file = stripVersionQuery(basename($file));
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
 
     if (!file_exists($targetPath)) {
@@ -658,8 +694,12 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
         return ['success' => false, 'error' => 'Filter kon niet worden toegepast'];
     }
 
-    // Save image
+    // Save image — preserve alpha for transparency-capable formats
     $saved = false;
+    if (in_array($ext, ['png', 'gif', 'webp'])) {
+        imagealphablending($source, false);
+        imagesavealpha($source, true);
+    }
     switch ($ext) {
         case 'png':
             $saved = imagepng($source, $targetPath, 9);
@@ -668,8 +708,6 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             $saved = imagegif($source, $targetPath);
             break;
         case 'webp':
-            imagealphablending($source, false);
-            imagesavealpha($source, true);
             $saved = imagewebp($source, $targetPath, 80);
             break;
         default:
@@ -1654,15 +1692,16 @@ $appBasePath = Application::get('base_path', '/');
                 const meta = item.sizeFormatted || '';
 
                 html += '<div class="file-item" data-type="' + item.type + '" data-name="' + escapeHtml(item.name) + '" data-path="' + escapeHtml(item.path || '') + '"';
-                // Store dimensions for validation
+                // Store dimensions for validation and modifiedTs for cache busting
                 if (item.width) html += ' data-width="' + item.width + '"';
                 if (item.height) html += ' data-height="' + item.height + '"';
+                if (item.modifiedTs) html += ' data-modifiedts="' + item.modifiedTs + '"';
                 html += '>';
 
                 // For images under 2MB, show actual thumbnail in both list and thumb view
                 const maxThumbSize = 2 * 1024 * 1024; // 2MB
                 if (item.isImage && item.size && item.size < maxThumbSize) {
-                    const thumbUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + item.name;
+                    const thumbUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + item.name + '?versie=' + (item.modifiedTs || '');
                     html += '<img class="thumb-img" src="' + escapeHtml(thumbUrl) + '" alt="" loading="lazy">';
                 } else {
                     html += '<span class="icon ' + icon.class + '"></span>';
@@ -1718,6 +1757,7 @@ $appBasePath = Application::get('base_path', '/');
             const path = el.dataset.path;
             const width = el.dataset.width;
             const height = el.dataset.height;
+            const modifiedTs = el.dataset.modifiedts;
 
             // Single click on folder/parent navigates into it
             if (type === 'folder' || type === 'parent') {
@@ -1730,7 +1770,7 @@ $appBasePath = Application::get('base_path', '/');
 
             if (type === 'file') {
                 el.classList.add('selected');
-                selectedFile = { name, path, width, height };
+                selectedFile = { name, path, width, height, modifiedTs };
                 loadFileDetails(name);
                 updateButtons();
             } else {
@@ -1778,10 +1818,11 @@ $appBasePath = Application::get('base_path', '/');
             if (file.width && file.height) {
                 html += '<tr><td>Afmetingen:</td><td>' + file.width + ' x ' + file.height + ' px</td></tr>';
 
-                // Store dimensions in selectedFile for validation
+                // Store dimensions and modifiedTs in selectedFile for validation/cache busting
                 if (selectedFile) {
                     selectedFile.width = file.width;
                     selectedFile.height = file.height;
+                    if (file.modifiedTs) selectedFile.modifiedTs = file.modifiedTs;
                 }
 
                 // Show dimension constraint warning if applicable
@@ -1961,7 +2002,9 @@ $appBasePath = Application::get('base_path', '/');
             if (!selectedFile) return;
 
             // Build path relative to basepath (excluding basepath from result)
-            const relativePath = (currentPath ? currentPath + '/' : '') + selectedFile.name;
+            // Append ?versie= cache buster so browsers reload overwritten files
+            const relativePath = (currentPath ? currentPath + '/' : '') + selectedFile.name
+                + (selectedFile.modifiedTs ? '?versie=' + selectedFile.modifiedTs : '');
 
             // Image dimension validation (from old file-pages.php)
             if (selectedFile.width && selectedFile.height && CONFIG.resizeType > 0) {
@@ -2331,7 +2374,7 @@ $appBasePath = Application::get('base_path', '/');
                 document.getElementById('zoomValue').textContent = '100%';
 
                 // Build image URL (basePath already starts with /)
-                const imageUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + filename + '?t=' + Date.now();
+                const imageUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + filename + '?versie=' + Date.now();
                 editorImage.src = imageUrl;
 
                 // Load image to get dimensions
@@ -2472,7 +2515,7 @@ $appBasePath = Application::get('base_path', '/');
 
             function reloadEditorImage() {
                 // Reload the image to show filter changes
-                const imageUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + currentFile + '?t=' + Date.now();
+                const imageUrl = CONFIG.basePath + currentPath + (currentPath ? '/' : '') + currentFile + '?versie=' + Date.now();
 
                 // Destroy and recreate cropper to reload image
                 const cropData = cropper ? cropper.getData() : null;
