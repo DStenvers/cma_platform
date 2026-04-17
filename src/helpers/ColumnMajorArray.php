@@ -77,14 +77,6 @@ class ColumnMajorArray extends ArrayObject
             $columns[$columnName] = array_column($rows, $columnName);
         }
 
-        // Legacy nested loop (replaced by array_column above)
-        if (false) foreach ($columnNames as $columnName) {
-            $columns[$columnName] = [];
-            foreach ($rows as $rowIndex => $row) {
-                $columns[$columnName][$rowIndex] = $row[$columnName] ?? null;
-            }
-        }
-
         return $columns;
     }
 

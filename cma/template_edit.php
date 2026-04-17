@@ -67,13 +67,6 @@ function template_CreateFKEditor( fieldname, bSpamJS, nHeight )
     if (HTMLEdit.bSpamJS) {config.emailProtection = \'encode\';}
     config.disableObjectResizing = true;
     config.resize_enabled = false;
-    <% if false then %>
-    // TODO : config.disableNativeSpellChecker = false;??
-    //		  filebrowserBrowseUrl
-    //		  config.readOnly = true
-    //		key handler: my_keyhandler
-    //? \'PasteText\', \'PasteFromWord\',, \'Blockquote\', \'CreateDiv\'
-    <% end if %>
     config.toolbar = [;
     { name: \'basic\', items: [ \'Cut\', \'Copy\', \'Paste\', \'PasteText\', \'-\', \'Undo\', \'Redo\', \'-\', \'Find\', \'Scayt\', \'-\', \'Bold\', \'Italic\', \'Underline\', \'-\', \'RemoveFormat\' ] },
     { name: \'paragraph\', items: [ \'-\', \'NumberedList\', \'BulletedList\', \'-\', \'Outdent\', \'Indent\', \'-\', \'JustifyLeft\', \'JustifyCenter\', \'JustifyRight\', \'JustifyBlock\'] },

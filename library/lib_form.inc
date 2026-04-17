@@ -60,8 +60,18 @@ function lib_FormCheckUniqueCode()
 */
 function lib_FormCheckUniqueCodeTabel()
 {
-    if (!Database::tableExists('data', FORM_UNIQUE_CODE_TABLE)) {
-        if (!Database::execute('CREATE TABLE ' . FORM_UNIQUE_CODE_TABLE . ' (ID AUTOINCREMENT PRIMARY KEY, ' . FORM_UNIQUE_CODE_FLDNAME . ' varchar(254))', [])) {
+    // Check if table exists by querying it directly (ODBC doesn't support tableExists reliably)
+    $conn = Database::getConnection('data');
+    if ($conn) {
+        try {
+            $conn->query('SELECT TOP 1 ID FROM ' . FORM_UNIQUE_CODE_TABLE);
+        } catch (\PDOException $e) {
+            // Table doesn't exist — create it
+            try {
+                $conn->exec('CREATE TABLE ' . FORM_UNIQUE_CODE_TABLE . ' (ID AUTOINCREMENT PRIMARY KEY, ' . FORM_UNIQUE_CODE_FLDNAME . ' varchar(254))');
+            } catch (\PDOException $e2) {
+                // Ignore — table may have been created concurrently
+            }
         }
     }
 }
