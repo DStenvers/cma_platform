@@ -123,6 +123,14 @@ class ListService extends BaseFormService
                 $sortDir = 'ASC';
             }
 
+            // Validate sortColumn against known field names to prevent SQL injection
+            if ($sortColumn !== '') {
+                $validColumns = array_map('strval', $arrRep[\Q_FIELDNAME] ?? []);
+                if (!in_array($sortColumn, $validColumns, true)) {
+                    $sortColumn = '';
+                }
+            }
+
             // DEBUG: capture SQL before sorting
             $debugInfo = [
                 'sortColumn' => $sortColumn,

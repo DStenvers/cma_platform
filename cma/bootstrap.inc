@@ -1604,8 +1604,9 @@ if (stripos($_scriptPath, 'test_combo_internal') !== false || stripos($_scriptPa
     $_skipLoginCheck = true;
 }
 // Skip login for test token (used by endpoint tester HTTP requests)
+// Only allowed in non-production environments (O=Development, L=Local, T=Test)
 $_testToken = \App\Library\Request::server('HTTP_X_CMA_TEST_TOKEN', '');
-if ($_testToken === 'cma_endpoint_test_2025') {
+if ($_testToken === 'cma_endpoint_test_2025' && in_array(strtoupper($_cmaEnv), ['O', 'L', 'T'])) {
     $_skipLoginCheck = true;
     // Look up first admin user from DB and set real auth cookies
     try {

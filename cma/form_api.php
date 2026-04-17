@@ -400,8 +400,12 @@ try {
 
     switch ($action) {
         case 'debug_access':
-            // Debug action to diagnose access rights issues
+            // Debug action to diagnose access rights issues — developer only
             // Call: /cma/form_api.php?form=formname&action=debug_access
+            if (!SecurityHelper::isDeveloper()) {
+                outputJson(['success' => false, 'error' => 'Geen toegang']);
+                exit;
+            }
             // Clear menu cache to get fresh results
             \Cma\Services\MenuService::clearCache();
 

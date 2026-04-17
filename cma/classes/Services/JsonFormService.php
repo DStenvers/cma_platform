@@ -1342,6 +1342,19 @@ class JsonFormService extends BaseFormService
                 $sortDir = 'ASC';
             }
 
+            // Validate sortColumn against known column names to prevent SQL injection
+            if ($sortColumn !== '') {
+                $validColumns = [$idField];
+                foreach ($listColumns as $col) {
+                    if (!empty($col['field'])) {
+                        $validColumns[] = $col['field'];
+                    }
+                }
+                if (!in_array($sortColumn, $validColumns, true)) {
+                    $sortColumn = '';
+                }
+            }
+
             if (!empty($sortColumn)) {
                 // Qualify sort column with table name when query has JOIN
                 $qualifiedSort = ($hasJoin && $tableName) ? "[$tableName].[$sortColumn]" : "[$sortColumn]";

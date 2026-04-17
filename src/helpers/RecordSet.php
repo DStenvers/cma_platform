@@ -251,6 +251,10 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
             return $this->all_rows;
         } else {
             // For forward-only, return remaining rows
+            // If still in "before first row" state, advance to first row
+            if ($this->position === -1 && !$this->eof) {
+                $this->MoveNext();
+            }
             $rows = array();
             while (!$this->eof) {
                 $rows[] = $this->current_row;

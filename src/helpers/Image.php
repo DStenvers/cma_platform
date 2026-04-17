@@ -551,6 +551,66 @@ class Image
     }
 
     /**
+     * Rotate an image by the given number of degrees (clockwise)
+     *
+     * @param string $sourcePath Source image path
+     * @param string $destPath Destination path (may be the same as source)
+     * @param int $degrees Clockwise rotation in degrees (typically 90, 180, 270)
+     * @param int $quality Quality (1-100, default 85)
+     * @return bool True if successful
+     */
+    public static function rotate(string $sourcePath, string $destPath, int $degrees, int $quality = 85): bool
+    {
+        if (!file_exists($sourcePath)) {
+            return false;
+        }
+
+        $imageInfo = @getimagesize($sourcePath);
+        if ($imageInfo === false) {
+            return false;
+        }
+
+        list($origWidth, $origHeight, $type) = $imageInfo;
+
+        $sourceImage = self::createFromAny($sourcePath, $type);
+        if ($sourceImage === false) {
+            return false;
+        }
+
+        $sourceImage = self::applyExifOrientation($sourceImage, $sourcePath, $type);
+
+        // Determine background color for rotation
+        // For formats with transparency, use a transparent background
+        if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF || $type === IMAGETYPE_WEBP) {
+            imagealphablending($sourceImage, false);
+            imagesavealpha($sourceImage, true);
+            $bgColor = imagecolorallocatealpha($sourceImage, 255, 255, 255, 127);
+        } else {
+            $bgColor = 0;
+        }
+
+        // GD's imagerotate() rotates counter-clockwise, negate for clockwise
+        $rotated = imagerotate($sourceImage, -$degrees, $bgColor);
+        if ($rotated === false) {
+            imagedestroy($sourceImage);
+            return false;
+        }
+
+        // Preserve alpha channel on the rotated image for transparency-capable formats
+        if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF || $type === IMAGETYPE_WEBP) {
+            imagealphablending($rotated, false);
+            imagesavealpha($rotated, true);
+        }
+
+        $success = self::saveAs($rotated, $destPath, $quality);
+
+        imagedestroy($sourceImage);
+        imagedestroy($rotated);
+
+        return $success;
+    }
+
+    /**
      * Calculate thumbnail dimensions while preserving aspect ratio
      *
      * @param int $origWidth Original width

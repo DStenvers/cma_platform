@@ -82,7 +82,8 @@ class SQL
         if (is_bool($value)) {
             $bTmp = $value;
         } else {
-            $bTmp = $value != '';
+            // Treat "0", "false", "no", "n" as falsy (not just empty string)
+            $bTmp = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? ($value !== '' && $value !== null);
         }
 
         if ($isSQLServer) {

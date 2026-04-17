@@ -274,10 +274,9 @@ class LibDialog extends HTMLElement {
         this._keydownDoc = this.ownerDocument || document;
         this._keydownHandler = (e) => {
             if (!this._isOpen) return;
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && this.isClosable) {
                 e.preventDefault();
                 e.stopPropagation();
-                // Always allow Escape to cancel (close with false)
                 this.close(false);
             } else if (e.key === 'Enter' && !e.target.matches('textarea, button')) {
                 e.preventDefault();
