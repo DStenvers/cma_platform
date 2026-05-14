@@ -122,6 +122,20 @@ if ($deleteAction) {
                 $deleteMessage = 'Log bestand niet gevonden';
             }
             break;
+
+        case 'deploy':
+            // Truncate (don't delete) the deploy log so the next deploy
+            // can append. Same pattern as case 'php'.
+            $deployLogFile = dirname(dirname(__DIR__)) . '/logs/deploy.log';
+            if (file_exists($deployLogFile)) {
+                $deleteResult = (file_put_contents($deployLogFile, '') !== false);
+                $deleteMessage = $deleteResult
+                    ? 'Deploy log geleegd'
+                    : 'Kon deploy log niet legen';
+            } else {
+                $deleteMessage = 'Deploy log niet gevonden';
+            }
+            break;
     }
 
     // Redirect to remove action from URL (prevents re-delete on refresh)
@@ -214,6 +228,14 @@ $logSources = [
         'path' => $cmaLogsDir . '/404_' . $selectedDate . '.log',
         'pattern' => '/^{.*}$/m',
         'hasDateSelect' => true
+    ],
+    'deploy' => [
+        'name' => 'Deploy Log',
+        // Site-level log written by App\Library\DeployWebhook;
+        // lives outside cma/ because deploys are a site-level concern.
+        'path' => dirname(dirname(__DIR__)) . '/logs/deploy.log',
+        'pattern' => null,
+        'hasDateSelect' => false
     ]
 ];
 
