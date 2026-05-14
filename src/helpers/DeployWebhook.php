@@ -138,7 +138,38 @@ class DeployWebhook
 
         $commit = substr((string)($data['after'] ?? ''), 0, 7);
         $pusher = (string)($data['pusher']['name'] ?? '?');
-        $log("START: deploy $commit by $pusher");
+        $log("ACCEPTED: deploy $commit by $pusher (running async)");
+
+        // GitHub webhook timeout is ~10s historically (now 30s). Our
+        // deploy (git pull + composer install + post-install sync) often
+        // runs 12-15s. If we wait for the full deploy before responding,
+        // GitHub records the delivery as "EOF / failed" even though the
+        // server-side work completes. Solution: respond 202 Accepted
+        // immediately, then continue the deploy in the background.
+        // Cook (or whoever's watching) sees full output in deploy.log.
+
+        http_response_code(202);
+        header('Content-Type: text/plain; charset=utf-8');
+        $earlyMsg = "Accepted ($commit by $pusher). Running async — see logs/deploy.log for output.\n";
+        header('Content-Length: ' . strlen($earlyMsg));
+        echo $earlyMsg;
+
+        // Flush response to GitHub. fastcgi_finish_request() (when
+        // available — IIS FastCGI build supports it) cleanly closes the
+        // connection so PHP can keep running. Falls back to manual ob
+        // flush + connection_aborted-aware loop on plain-CLI builds.
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            while (ob_get_level() > 0) { @ob_end_flush(); }
+            @flush();
+        }
+
+        // Belt-and-braces: keep running even if the connection closes
+        // (which it just did) and give the deploy enough time even on
+        // a slow composer fetch.
+        ignore_user_abort(true);
+        @set_time_limit(180);
 
         $failed = false;
         $out    = '';
@@ -170,13 +201,9 @@ class DeployWebhook
         }
 
         if ($failed) {
-            http_response_code(500);
             $log("FAIL: deploy $commit");
-            echo "Deploy failed:\n\n$out\n";
-            return;
+        } else {
+            $log("OK: deploy $commit");
         }
-
-        $log("OK: deploy $commit");
-        echo "Deploy OK ($commit by $pusher)\n\n$out";
     }
 }
