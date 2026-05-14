@@ -585,7 +585,6 @@ class Image
         // GD's imagerotate() rotates counter-clockwise, negate for clockwise
         $rotated = imagerotate($sourceImage, -$degrees, $bgColor);
         if ($rotated === false) {
-            imagedestroy($sourceImage);
             return false;
         }
 
@@ -597,8 +596,6 @@ class Image
 
         $success = self::saveAs($rotated, $destPath, $quality);
 
-        imagedestroy($sourceImage);
-        imagedestroy($rotated);
 
         return $success;
     }
