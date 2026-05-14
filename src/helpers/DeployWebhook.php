@@ -34,7 +34,11 @@ class DeployWebhook
      * @param array<string,mixed> $config Optional overrides:
      *   - 'site_root'    string  Project root. Default: Bootstrap::getRootDir() if available, else 4 levels up from this file.
      *   - 'log_file'     string  Where to write the deploy log. Default: <site_root>/logs/deploy.log
-     *   - 'branch'       string  Branch to deploy. Default: 'main'.
+     *   - 'branch'       string  Branch to deploy. Default: env DEPLOY_BRANCH if set, else 'main'.
+     *                            Lets a staging server deploy from `staging` while production
+     *                            tracks `main`, with no code change.
+     *   - 'branch_env'   string  Env var name to read for the branch. Default: 'DEPLOY_BRANCH'.
+     *                            Set to '' to disable env lookup and force the literal 'branch' value.
      *   - 'secret_env'   string  Env var name holding the HMAC secret. Default: 'DEPLOY_SECRET'.
      *   - 'composer'     bool    Run composer install after git pull. Default: true.
      *   - 'composer_args' string Args to composer. Default: '--no-dev --optimize-autoloader --no-interaction'.
@@ -46,6 +50,7 @@ class DeployWebhook
             'site_root'     => null,
             'log_file'      => null,
             'branch'        => 'main',
+            'branch_env'    => 'DEPLOY_BRANCH',
             'secret_env'    => 'DEPLOY_SECRET',
             'composer'      => true,
             'composer_args' => '--no-dev --optimize-autoloader --no-interaction',
@@ -60,6 +65,18 @@ class DeployWebhook
         }
         if ($cfg['log_file'] === null) {
             $cfg['log_file'] = $cfg['site_root'] . '/logs/deploy.log';
+        }
+
+        // Branch precedence: explicit caller arg with non-default value wins;
+        // otherwise env var if set; otherwise the default ('main').
+        // Detection of "explicit non-default" is done by the caller passing
+        // 'branch' in $config — if absent, $cfg['branch'] === 'main' from
+        // the merge, and we look at the env var.
+        if (!array_key_exists('branch', $config) && $cfg['branch_env'] !== '') {
+            $envBranch = (string)($_ENV[$cfg['branch_env']] ?? getenv($cfg['branch_env']) ?: '');
+            if ($envBranch !== '') {
+                $cfg['branch'] = $envBranch;
+            }
         }
 
         header('Content-Type: text/plain; charset=utf-8');

@@ -20,9 +20,16 @@
  * composer in PATH, and the IIS app pool user needs write access to
  * the site root.
  *
- * Per-site customisation (different branch, no composer, etc.) is
- * done by passing config to DeployWebhook::handle() — copy this file
- * into the project's cma/tools/ override, or wrap it.
+ * Per-environment branch: set DEPLOY_BRANCH in .env (e.g. "staging"
+ * on the test server, leave unset on production so it defaults to
+ * "main"). One repo can fan out to multiple environments by
+ * configuring two GitHub webhooks — one per host — both with the
+ * same secret; each only deploys its own branch and skips the others.
+ *
+ * Other per-site customisation (no composer, different branch
+ * regardless of env, etc.) is done by passing config to
+ * DeployWebhook::handle() — copy this file into the project's
+ * cma/tools/ override, or wrap it.
  */
 
 declare(strict_types=1);
