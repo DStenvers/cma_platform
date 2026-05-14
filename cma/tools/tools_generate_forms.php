@@ -323,7 +323,7 @@ function generateFormJson($formId, $repConn, $controlTypeMap, $dataTypeMap, $par
 
     // Build the JSON structure
     $json = [
-        '$schema' => '../cma/config/schema/form-definition.schema.json',
+        '$schema' => '../schema/form-definition.schema.json',
         'version' => '1.0.0',
         'name' => $jsonName,
         'title' => $formName,

@@ -40,7 +40,7 @@ function internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, 
     $sendmail_objMail->body = str_replace(PHP_EOL, '<BR>', $strBody);
     $sendmail_objMail->subject = $strSubject;
     $sendmail_objMail->from = $strFromEMail;
-    $sendmail_objMail->fromName = $strFromName;
+    $sendmail_objMail->fromName = Application::get('company', '') ? Application::get('company', '') : $strFromEMail;
     $sendmail_objMail->useTemplate = $blnTemplate;
     $sendmail_objMail->AddRecipient($strToEMail);
     $sendmail_objMail->AddRecipientsCC($strCCEMail);
@@ -100,6 +100,7 @@ class LibMailer
     */
     public function AddAttachment($sFilename)
     {
+        global $strAttachment;
         if ($sFilename != '') {
             if ($this->CheckSend()) {
                 if ($strAttachment != '') {
@@ -115,12 +116,15 @@ class LibMailer
     */
     public function AddRecipient($strToEMail)
     {
-        $strToEmail = Str::trim($strToEmail);
+        global $strRecipients, $strSaveTo;
+        $strRecipients = $strRecipients ?? '';
+        $strSaveTo = $strSaveTo ?? '';
+        $strToEMail = Str::trim($strToEMail);
         if ($this->CheckSend()) {
-            if ($strToEmail == '' || (($pos = stripos($strRecipients, '|' . $strToEmail . '|', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
+            if ($strToEMail == '' || (($pos = stripos($strRecipients, '|' . $strToEMail . '|')) !== false)) {
             } else {
-                $strSaveTo = ($strSaveTo == '' ? '' : $strSaveTo . ' ') . $strToEmail;
-                $strRecipients = $strRecipients . '|' . $strToEmail . '|';
+                $strSaveTo = ($strSaveTo == '' ? '' : $strSaveTo . ' ') . $strToEMail;
+                $strRecipients = $strRecipients . '|' . $strToEMail . '|';
             }
         }
     }
@@ -130,12 +134,15 @@ class LibMailer
     */
     public function AddRecipientCC($strToEMail)
     {
-        $strToEmail = Str::trim($strToEmail);
+        global $strRecipients, $strSaveCC;
+        $strRecipients = $strRecipients ?? '';
+        $strSaveCC = $strSaveCC ?? '';
+        $strToEMail = Str::trim($strToEMail);
         if ($this->CheckSend()) {
-            if ($strToEmail == '' || (($pos = stripos($strRecipients, '|' . $strToEmail . '|', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
+            if ($strToEMail == '' || (($pos = stripos($strRecipients, '|' . $strToEMail . '|')) !== false)) {
             } else {
-                $strSaveCC = ($strSaveCC == '' ? '' : $strSaveCC . ' ') . $strToEmail;
-                $strRecipients = $strRecipients . '|' . $strToEmail . '|';
+                $strSaveCC = ($strSaveCC == '' ? '' : $strSaveCC . ' ') . $strToEMail;
+                $strRecipients = $strRecipients . '|' . $strToEMail . '|';
             }
         }
     }
@@ -145,12 +152,15 @@ class LibMailer
     */
     public function AddRecipientBCC($strToEMail)
     {
-        $strToEmail = Str::trim($strToEmail);
+        global $strRecipients, $strSaveBCC;
+        $strRecipients = $strRecipients ?? '';
+        $strSaveBCC = $strSaveBCC ?? '';
+        $strToEMail = Str::trim($strToEMail);
         if ($this->CheckSend()) {
-            if ($strToEmail == '' || (($pos = stripos($strRecipients, '|' . $strToEmail . '|', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
+            if ($strToEMail == '' || (($pos = stripos($strRecipients, '|' . $strToEMail . '|')) !== false)) {
             } else {
-                $strSaveBCC = ($strSaveBCC == '' ? '' : $strSaveBCC . ' ') . $strToEmail;
-                $strRecipients = $strRecipients . '|' . $strToEmail . '|';
+                $strSaveBCC = ($strSaveBCC == '' ? '' : $strSaveBCC . ' ') . $strToEMail;
+                $strRecipients = $strRecipients . '|' . $strToEMail . '|';
             }
         }
     }
@@ -259,164 +269,76 @@ class LibMailer
                     }
                     $blnMailisSend = true;
                     if ($blnSimulation) {
-                        ShowPreview();
+                        $this->ShowPreview();
                     } else {
-                        $strObject = 'cdo';
-                        $objMail = CreateObject('CDO.Message');
-                        if (!is_object($objMail)) {
-                            // ON ERROR RESUME NEXT - Errors handled by ErrorHandler.php
-                            $objMail = CreateObject('JMail.Message');
-                            if (!is_object($objMail)) {
-                                Error::show('Kan geen e-mail object aanmaken (JMail en CDONTS geprobeerd)');
-                                exit();
-                            } else {
-                                $strObject = 'jmail';
+                        // Use PHPMailer instead of CDO/JMail COM objects
+                        $objMail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                        try {
+                            $objMail->CharSet = 'UTF-8';
+                            $objMail->isHTML(true);
+
+                            // SMTP configuration
+                            $smtpServer = $strMailServer ?: Application::get('mail_server', '');
+                            if ($smtpServer !== '' && $smtpServer !== 'localhost') {
+                                $objMail->isSMTP();
+                                $objMail->Host = $smtpServer;
+                                $objMail->Port = $strMailServerPort ?: 25;
+                                if (Application::get('mail_username', '') !== '') {
+                                    $objMail->SMTPAuth = true;
+                                    $objMail->Username = Application::get('mail_username', '');
+                                    $objMail->Password = Application::get('mail_password', '');
+                                }
                             }
-                        }
-                        // ON ERROR GOTO 0 - Error handling via ErrorHandler.php
-                        // Generic functions for each object
-                        $objMail->Subject = $strSubject;
-                        // De attachments
-                        if ($strAttachment != '') {
-                            $arrAttachments = Arr::splitAlways(str_replace(' ; ', ';', $strAttachment), ';');
-                            for ($teller = 0; $teller <= (count($arrAttachments) - 1); $teller++) {
-                                $objMail->addAttachment($arrAttachments[$teller]);
-                            }
-                        }
-                        // Object specific calls
-                        if ($strObject == 'cdo') {
-                            $objMail->TextBody = HTMLstrip($strBody);
-                            $objMail->HTMLBody = $strBody;
-                            $objMail->TextBodyPart();
-                            $objMail->Charset = 'utf-8';
-                            $objMail->BodyPart();
-                            $objMail->Charset = 'utf-8';
+
+                            // From
+                            $objMail->setFrom($strFromeMail, $strFromName ?: '');
                             if ($strReplyTo != '') {
-                                $objMail->ReplyTo = $strReplyTo;
+                                $objMail->addReplyTo($strReplyTo);
                             }
+
+                            // Recipients
                             if ($strSaveTo != '') {
-                                $objMail->to = str_replace(' ', ';', $strSaveTo);
+                                foreach (explode(' ', $strSaveTo) as $to) {
+                                    if (trim($to) !== '') $objMail->addAddress(trim($to));
+                                }
                             }
                             if ($strSaveCC != '') {
-                                $objMail->cc = str_replace(' ', ';', $strSaveCC);
+                                foreach (explode(' ', $strSaveCC) as $cc) {
+                                    if (trim($cc) !== '') $objMail->addCC(trim($cc));
+                                }
                             }
                             if ($strSaveBCC != '') {
-                                $objMail->bcc = str_replace(' ', ';', $strSaveBCC);
+                                foreach (explode(' ', $strSaveBCC) as $bcc) {
+                                    if (trim($bcc) !== '') $objMail->addBCC(trim($bcc));
+                                }
                             }
-                            if ($strFromName!= '') {
-                                $objMail->From = chr(34) . $strFromName . chr(34) . ' <' . $strFromeMail . '>';
-                            } else {
-                                $objMail->From = $strFromeMail;
+
+                            // Subject and body
+                            $objMail->Subject = $strSubject;
+                            $objMail->Body = $strBody;
+                            $objMail->AltBody = strip_tags(str_ireplace(['<br>', '<br/>'], "\n", $strBody));
+
+                            // Attachments
+                            if ($strAttachment != '') {
+                                $arrAttachments = Arr::splitAlways(str_replace(' ; ', ';', $strAttachment), ';');
+                                for ($teller = 0; $teller <= (count($arrAttachments) - 1); $teller++) {
+                                    if (trim($arrAttachments[$teller]) !== '' && file_exists($arrAttachments[$teller])) {
+                                        $objMail->addAttachment($arrAttachments[$teller]);
+                                    }
+                                }
                             }
-                            $bRetried = false;
-                            $objMail->Configuration();
-                            $objMail->Fields();
-                            $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpserverpickupdirectory');
-                            $objMail->Configuration();
-                            $objMail->Fields();
-                            $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpserver');
-                            ($strMailServer != '' ? $strMailServer : 'localhost');
-                            $objMail->Configuration();
-                            $objMail->Fields();
-                            $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpserverport');
-                            strMailServerPort();
-                            if (Application::get('mail_username', '')!= '') {
-                                $objMail->Configuration();
-                                $objMail->Fields();
-                                $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpauthenticate');
-                                $objMail->Configuration();
-                                $objMail->Fields();
-                                $objMail->Item('http://schemas.microsoft.com/cdo/configuration/sendusername');
-                                Application::get('mail_username', '');
-                                $objMail->Configuration();
-                                $objMail->Fields();
-                                $objMail->Item('http://schemas.microsoft.com/cdo/configuration/sendpassword');
-                                Application::get('mail_password', '');
-                            }
-                            $objMail->Configuration();
-                            $objMail->Fields();
-                            $objMail->Item('http://schemas.microsoft.com/cdo/configuration/sendusing');
-                            $objMail->Configuration();
-                            $objMail->Fields();
-                            $objMail->Update();
-                            $lib_error_verbose = true;
-                            if (trim($strBody . '') != '') {
+
+                            if (trim($strBody) !== '') {
                                 $objMail->send();
                             }
-                            if ($php_error_number != 0) {
-                                if (Application::get('test', '')) {
-                                    echo 'Error occurred: ' . $php_error_message . ' (' . $php_error_number . ')';
-                                    exit();
-                                }
-                                $blnMailisSend = false;
-                                if ($strMailServer != 'localhost' && $strMailServer != '' && $strMailServer != '127.0.0.1') {
-                                    $blnMailisSend = true;
-                                    $bRetried = true;
-                                    $objMail->Configuration();
-                                    $objMail->Fields();
-                                    $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpserver');
-                                    $objMail->Configuration();
-                                    $objMail->Fields();
-                                    $objMail->Item('http://schemas.microsoft.com/cdo/configuration/smtpserverport');
-                                    $objMail->TextBodyPart();
-                                    $objMail->Charset = 'utf-8';
-                                    $objMail->HTMLBodyPart();
-                                    $objMail->Charset = 'utf-8';
-                                    $objMail->send();
-                                    if ($php_error_number != 0) {
-                                        $blnMailisSend = false;
-                                    }
-                                }
-                                if (!$blnMailisSend) {
-                                    Error::page('Locaal versturen mail mislukt' . ($bRetried ? ' (2e poging)' : ''), $php_error_message, false);
-                                    if (Application::get('test', '')) {
-                                        ShowPreview();
-                                    }
-                                }
-                            }
-                            // ON ERROR GOTO 0 - Error handling via ErrorHandler.php
-                        } elseif ($strObject == 'jmail') {
-                            $objMail->Silent = true;
-                            $objMail->Logging = $blnLogging;
-                            $objMail->Body = HTMLstrip($strBody);
-                            $objMail->HTMLBody = $strBody;
-                            $objMail->From = $strFromeMail;
-                            $objMail->FromName = $strFromName;
-                            $objMail->Maildomain = Request::server('SERVER_NAME', '');
-                            $objMail->ISOEncodeHeaders = false;
-                            if ($strReplyTo != '') {
-                                $objMail->ReplyTo = $strReplyTo;
-                            }
-                            if ($strSaveTo != '') {
-                                $arrRec = Arr::splitAlways($strSaveTo, ' ');
-                                for ($teller = 0; $teller <= (count($arrRec) - 1); $teller++) {
-                                    $objMail->AddRecipient($arrRec[$teller], $arrRec[$teller]);
-                                }
-                            }
-                            if ($strSaveCC != '') {
-                                $arrRec = Arr::splitAlways($strSaveCC, ' ');
-                                for ($teller = 0; $teller <= (count($arrRec) - 1); $teller++) {
-                                    $objMail->AddRecipientCC($arrRec[$teller], $arrRec[$teller]);
-                                }
-                            }
-                            if ($strSaveBCC != '') {
-                                $arrRec = Arr::splitAlways($strSaveBCC, ' ');
-                                for ($teller = 0; $teller <= (count($arrRec) - 1); $teller++) {
-                                    $objMail->AddRecipientBCC($arrRec[$teller], $arrRec[$teller]);
-                                }
-                            }
-                            if (!$objMail->Send($strMailServer)) {
-                                if ($objMail->Errorcode != 0) {
-                                    $strError = $objMail->ErrorCode . ' : ' . $objMail->ErrorMessage;
-                                } else {
-                                    $strError = 'Error sending email:' . $objMail->Log;
-                                }
+                        } catch (\Exception $e) {
+                            $blnMailisSend = false;
+                            $this->strError = $objMail->ErrorInfo;
+                            if (Application::get('test', '')) {
+                                echo 'Mail error: ' . $objMail->ErrorInfo;
                             }
                         }
                     }
-                }
-                if (is_object($objMail)) {
-                    $objMail = null;
                 }
                 return $blnMailisSend;
             }
@@ -540,7 +462,12 @@ class LibMailer
         // Adds multiple CC recipients ;-delimited
         // Adds multiple recipients ;-delimited
         // ------------------------------------------------------------------------------------------------------------
-        // Private Properties
+        // Reset global state for each new LibMailer instance
+        global $objMail, $strBody, $strSubject, $strFromName, $strFromEMail,
+               $strMailServer, $strMailServerPort, $strAttachment, $strFont,
+               $strFontColor, $strfontSize, $strTemplate, $blnUseTemplate,
+               $blnCMATemplate, $blnSimulation, $strSaveTo, $strSaveCC,
+               $strSaveBCC, $strRecipients, $strReplyTo, $strHeader, $blnMailisSend;
         $objMail = null;
         $strBody = "";
         $strSubject = "";
@@ -562,7 +489,7 @@ class LibMailer
         $strRecipients = "";
         $strReplyTo = "";
         $strHeader = "";
-        $blnMailisSend = null;
+        $blnMailisSend = false;
         // ------------------------------------------------------------------------------------------------------------
         // Private Functions
         // ------------------------------------------------------------------------------------------------------------

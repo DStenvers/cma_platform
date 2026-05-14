@@ -63,6 +63,11 @@ class DatabasesService
 
     /**
      * Laad databases uit JSON bestand
+     *
+     * Self-healing: when the file is missing or has an empty databases[]
+     * array, write a minimal default with the "main" data database so
+     * the rest of the system can boot. Without this, fresh installs
+     * fail anywhere DatabasesService::getById() is called.
      */
     private static function loadDatabases(): void
     {
@@ -72,20 +77,52 @@ class DatabasesService
 
         self::$databases = [];
 
-        if (!file_exists(self::$configPath)) {
-            return;
+        $data = null;
+        if (file_exists(self::$configPath)) {
+            $content = file_get_contents(self::$configPath);
+            if ($content !== false) {
+                $data = json_decode($content, true);
+            }
         }
 
-        $content = file_get_contents(self::$configPath);
-        if ($content === false) {
-            return;
+        if (!is_array($data) || empty($data['databases'])) {
+            $data = self::writeDefaultConfig();
         }
 
-        $data = json_decode($content, true);
-        if ($data === null || !isset($data['databases'])) {
-            return;
-        }
+        self::$databases = $data['databases'] ?? [];
+    }
 
-        self::$databases = $data['databases'];
+    /**
+     * Write a minimal databases.json with the "main" data database
+     * and return the resulting structure.
+     */
+    private static function writeDefaultConfig(): array
+    {
+        $default = [
+            '$schema'     => './schema/databases.schema.json',
+            'version'     => '2.0.0',
+            'description' => 'Auto-generated default — populate via /cma/preferences.php or migrations.',
+            'databases'   => [
+                [
+                    'id'               => 6,
+                    'name'             => 'data',
+                    'type'             => 'access',
+                    'connectionString' => '',
+                    'description'      => 'Main data database',
+                ],
+            ],
+            'lastUpdated' => date('Y-m-d H:i:s'),
+        ];
+
+        $dir = dirname(self::$configPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents(
+            self::$configPath,
+            json_encode($default, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+
+        return $default;
     }
 }

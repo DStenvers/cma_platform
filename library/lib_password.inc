@@ -15,8 +15,6 @@
 function lib_PasswordGenerate($nLength)
 {
 
-    global $Rnd;
-
     $cTemp = '';
 
     $t = null;
@@ -29,17 +27,17 @@ function lib_PasswordGenerate($nLength)
 
         mt_srand();
 
-        $x = round(2 * Rnd, 0);
+        $x = round(2 * (mt_rand() / mt_getrandmax()), 0);
 
         // Randomize
 
         if ($x == 1) {
 
-            $cTemp .= chr(64 + floor(26 * Rnd + 1));
+            $cTemp .= chr(64 + floor(26 * (mt_rand() / mt_getrandmax()) + 1));
 
         } else {
 
-            $cTemp .= chr(49 + floor(8 * Rnd + 1));
+            $cTemp .= chr(49 + floor(8 * (mt_rand() / mt_getrandmax()) + 1));
 
         }
 

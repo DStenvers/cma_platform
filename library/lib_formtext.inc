@@ -33,7 +33,7 @@ function lib_FormText($strHeader, $strFooter)
     if ($lib_formtext_sensitive_fields != '') {
         $strHTMLBody .= '<br>' . internal_lib_FormText($fieldorder, $arrExclude, false);
     }
-    return ($strHeader != '' ? $strHeader . '<BR><BR>' : '') . $strHTMLBody . ($strFooter != '' ? '<BR>' + $strFooter : '') + ($lib_formtext_ip_info ? '<BR><font size=-2>ip: ' + Request::server('REMOTE_ADDR', '') + ' | Browser: ' + $strUserAgent : '');
+    return ($strHeader != '' ? $strHeader . '<BR><BR>' : '') . $strHTMLBody . ($strFooter != '' ? '<BR>' . $strFooter : '') . ($lib_formtext_ip_info ? '<BR><font size=-2>ip: ' . Request::server('REMOTE_ADDR', '') . ' | Browser: ' . $strUserAgent : '');
 }
 /**
 * Lib Formhoneypot Write
@@ -229,29 +229,16 @@ function lib_FormtoXML($cFormType, $cFormVersion)
 */
 function lib_FormFieldList()
 {
-    $str = "";
-    $i = null;
-    $name = null;
-    $veld = null;
-    $str = '';
-    Request::postAll();
-    for ($i = 1; $i <= Request::postAll(); $i++) {
-        Request::postAll();
-        foreach (Request::postAll() as $veld) {
-            $name = (is_null($veld) ? "" : strtolower($veld));
-            if (substr($name, 0, max(0, min(1, strlen($name)))) != '_' && Request::post($name, '')) {
-                is(Request::post($i, ''));
-                if ($name != 'to' && $name != 'subject' && $name != 'body' && $name != 'cc' && $name != 'check' && $name != 'css' && $name != 'from' && $name != 'font' && $name != 'file' && $name != 'nextpage' && $name != 'fieldorder' && $name != 'submit' && $name != 'verstuur' && $name != 'nextpage' && $name != 'danktekst' && $name != 'bewaar' && $name != 'logging' && $name != 'required' && $name != 'to_name' && $name != 'from_name' && substr($name, max(0, strlen($name) - 6)) != '_check' && substr($name, max(0, strlen($name) - 7)) != '__label' && substr($name, max(0, strlen($name) - 2)) != '.y' && substr($name, max(0, strlen($name) - 2)) != '.x') {
-                    if ($str != '') {
-                        $str .= ',';
-                    }
-                    $str .= $veld;
-                    break; // EXIT FOR
-                }
-            }
-        }
+    $skipFields = ['to','subject','body','cc','check','css','from','font','file','nextpage','fieldorder','submit','verstuur','danktekst','bewaar','logging','required','to_name','from_name'];
+    $result = [];
+    foreach (Request::postAll() as $name => $value) {
+        $lower = strtolower($name);
+        if (substr($lower, 0, 1) === '_') continue;
+        if (in_array($lower, $skipFields)) continue;
+        if (str_ends_with($lower, '_check') || str_ends_with($lower, '__label') || str_ends_with($lower, '.y') || str_ends_with($lower, '.x')) continue;
+        $result[] = $name;
     }
-    return explode(',', $str);
+    return $result;
 }
 // Haalt vooraf gedefinieerde tussenvoegsel uit een achternaamveld (wanneer deze voor EN na de naam staan!)
 /**

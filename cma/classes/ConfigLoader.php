@@ -27,7 +27,7 @@ class ConfigLoader
     private static function getConfigPath(): string
     {
         if (self::$configPath === null) {
-            self::$configPath = __DIR__ . '/../config/';
+            self::$configPath = dirname(__DIR__, 2) . '/data/';
         }
         return self::$configPath;
     }
@@ -39,6 +39,8 @@ class ConfigLoader
     /** @var array Config name aliases for relocated files */
     private static array $aliases = [
         'data-sources' => '/assets/datastores/data-sources',
+        'control-types' => '/cma/control-types',
+        'migrations' => '/cma/migrations/migrations',
     ];
 
     private static function resolveFilePath(string $name): string
@@ -51,13 +53,7 @@ class ConfigLoader
             return $siteRoot . $name . '.json';
         }
 
-        // Customer data configs: prefer /site/data/ (survives CMA updates)
-        $siteDataPath = dirname(__DIR__, 2) . '/data/' . $name . '.json';
-        if (file_exists($siteDataPath)) {
-            return $siteDataPath;
-        }
-
-        // Application configs (migrations, control-types, schema): /cma/config/
+        // All configs are in /data/
         return self::getConfigPath() . $name . '.json';
     }
 

@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CMA Control Types",
+    "description": "Schema for CMA field/control type definitions",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Reference to this schema file"
+        },
+        "controlTypes": {
+            "type": "array",
+            "description": "List of available control types for form fields",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Unique control type ID (matches constFldType_* constants)"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Internal name (lowercase, e.g. 'pctcombobox')"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Display name (e.g. 'pctCombobox')"
+                    }
+                },
+                "required": ["id", "name", "description"]
+            }
+        }
+    },
+    "required": ["controlTypes"]
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reports Configuration",
+  "type": "object",
+  "required": ["reports"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique report identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Report title"
+          },
+          "query": {
+            "type": "string",
+            "description": "SQL query for the report data"
+          },
+          "idField": {
+            "type": "string",
+            "description": "Field name used as the ID column for edit links"
+          },
+          "editForm": {
+            "type": "string",
+            "description": "Form name to open when editing a row (e.g., 'opleidingen')"
+          },
+          "visible": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether report is visible in the reports list"
+          },
+          "groupField1": {
+            "type": "string",
+            "description": "First grouping field for report results"
+          },
+          "groupField2": {
+            "type": "string",
+            "description": "Second grouping field for report results"
+          },
+          "filterIdField": {
+            "type": "string",
+            "description": "ID field for filter dropdown"
+          },
+          "filterDisplayField": {
+            "type": "string",
+            "description": "Display field for filter dropdown"
+          }
+        }
+      }
+    }
+  }
+}

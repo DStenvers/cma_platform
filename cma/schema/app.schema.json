@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CMA Application Configuration",
+    "description": "Schema for CMA application branding settings (app.json)",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Reference to this schema file"
+        },
+        "company": {
+            "type": "object",
+            "description": "Company branding settings",
+            "properties": {
+                "logo": {
+                    "type": "string",
+                    "description": "Path to company logo image (relative to site root)"
+                },
+                "logoWidth": {
+                    "type": "integer",
+                    "description": "Logo width in pixels",
+                    "minimum": 50,
+                    "maximum": 500,
+                    "default": 200
+                },
+                "logoHeight": {
+                    "type": "integer",
+                    "description": "Logo height in pixels",
+                    "minimum": 20,
+                    "maximum": 200,
+                    "default": 50
+                },
+                "url": {
+                    "type": "string",
+                    "description": "URL to link the logo to (e.g. company website)",
+                    "format": "uri"
+                },
+                "backgroundColor": {
+                    "type": "string",
+                    "description": "Background color for logo area (CSS color value)",
+                    "pattern": "^#[0-9A-Fa-f]{6}$",
+                    "default": "#3F096E"
+                }
+            },
+            "required": ["logo"]
+        }
+    },
+    "required": ["company"]
+}

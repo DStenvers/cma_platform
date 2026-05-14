@@ -1585,6 +1585,15 @@ $_excludedPages = [
     'api/test_ip_match.php',  // Test endpoint for IP CIDR matching (env-protected)
 ];
 $_skipLoginCheck = false;
+
+// CLI mode and migration scripts have no logged-in user and no browser to
+// redirect — skipping the login check here lets CLI tools (migrations, batch
+// scripts) work without faking cookies. Web requests are unaffected
+// (php_sapi for IIS/FastCGI is 'cgi-fcgi', not 'cli').
+if (PHP_SAPI === 'cli' || defined('MIGRATION_RUNNING')) {
+    $_skipLoginCheck = true;
+}
+
 foreach ($_excludedPages as $_excluded) {
     if (stripos($_scriptPath, $_excluded) !== false) {
         $_skipLoginCheck = true;

@@ -425,6 +425,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
                 { label: 'lib-switch', href: '#lib-switch', icon: 'lnr-sync' },
+                { label: 'lib-field', href: '#lib-field', icon: 'lnr-pencil' },
                 { label: 'lib-table', href: '#lib-table', icon: 'lnr-table' },
                 { label: 'lib-timepicker', href: '#lib-timepicker', icon: 'lnr-clock' },
                 { label: 'lib-tip', href: '#lib-tip', icon: 'lnr-question-circle' },
@@ -1071,6 +1072,74 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Na succesvolle upload. <code>detail: { filename, originalName, path }</code></dd>
                     <dt>upload-error</dt>
                     <dd>Bij uploadfout. <code>detail: { error, fileName }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="lib-field">
+        <div class="component-header">
+            <h2>lib-field</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Material-style tekstveld met floating label.  Het label staat in het veld als het leeg is en zweeft omhoog zodra het focus krijgt of inhoud heeft.  Wikkelt een echte &lt;input&gt; / &lt;textarea&gt; zodat formulierlogica, autofill en validatie native blijven.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div style="max-width:32rem;">
+    <lib-field label="Naam"></lib-field>
+    <lib-field label="E-mailadres" type="email" autocomplete="email" required></lib-field>
+    <lib-field label="Wachtwoord" type="password" minlength="12" helper="Minimaal 12 tekens"></lib-field>
+    <lib-field label="Telefoon" type="tel" inputmode="tel" autocomplete="tel"></lib-field>
+    <lib-field label="Land" value="Nederland" readonly></lib-field>
+    <lib-field label="Aantal" type="number" min="1" max="50" value="4"></lib-field>
+    <lib-field label="Bio" multiline rows="4" maxlength="500" helper="Vertel iets over jezelf — max 500 tekens"></lib-field>
+    <lib-field label="Disabled veld" value="Niet bewerkbaar" disabled></lib-field>
+    <lib-field label="Met fout" value="ongeldig@@@" type="email" error="Vul een geldig e-mailadres in"></lib-field>
+</div></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>label</dt>
+                    <dd>Floating label tekst (verplicht)</dd>
+                    <dt>name, type, value</dt>
+                    <dd>Standaard form-attributen.  Worden doorgegeven aan het interne &lt;input&gt; / &lt;textarea&gt;.</dd>
+                    <dt>helper</dt>
+                    <dd>Hint-tekst onder het veld</dd>
+                    <dt>error</dt>
+                    <dd>Foutmelding onder het veld; veld kleurt rood en krijgt class <code>has-error</code></dd>
+                    <dt>multiline</dt>
+                    <dd>Boolean — schakelt naar &lt;textarea&gt;.  Combineer met <code>rows</code></dd>
+                    <dt>placeholder</dt>
+                    <dd>Optioneel.  Meestal niet nodig — de label fungeert als placeholder als het veld leeg en niet-gefocused is</dd>
+                    <dt>required, disabled, readonly, autofocus</dt>
+                    <dd>Standaard input attributen</dd>
+                    <dt>minlength, maxlength, min, max, step, pattern</dt>
+                    <dd>Validatie-attributen — door HTML native afgehandeld</dd>
+                    <dt>autocomplete, inputmode</dt>
+                    <dd>Autofill / mobiele toetsenbord-hints</dd>
+                </dl>
+                <h4>CSS variabelen</h4>
+                <dl>
+                    <dt>--lib-field-border / --lib-field-focus / --lib-field-focus-ring</dt>
+                    <dd>Rand-, focus- en focus-ring kleuren</dd>
+                    <dt>--lib-field-label / --lib-field-label-bg</dt>
+                    <dd>Label kleur en achtergrond (achtergrond moet matchen met de pagina-achtergrond zodat de label "in" de rand zit)</dd>
+                    <dt>--lib-field-helper / --lib-field-error</dt>
+                    <dd>Hint- en fout-tekst kleuren</dd>
+                    <dt>--lib-field-readonly-bg / --lib-field-readonly-color</dt>
+                    <dd>Disabled / readonly stijl</dd>
+                </dl>
+                <h4>Notities</h4>
+                <dl>
+                    <dt>CSS-only floating label</dt>
+                    <dd>Werkt via <code>:placeholder-shown</code>.  We zetten standaard een spatie als placeholder zodat het selectorgedrag matcht.</dd>
+                    <dt>Native input</dt>
+                    <dd>Geen Shadow DOM — autofill, password managers, screen readers en form submit werken zoals altijd.</dd>
+                    <dt>Properties</dt>
+                    <dd><code>field.value</code>, <code>field.name</code>, <code>field.focus()</code>, <code>field.blur()</code>, <code>field.select()</code></dd>
                 </dl>
             </div>
         </div>

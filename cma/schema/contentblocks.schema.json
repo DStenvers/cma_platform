@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Content Blocks Schema",
+    "description": "Schema for content block templates used in rich content editing",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference"
+        },
+        "version": {
+            "type": "string",
+            "description": "Version of the contentblocks file"
+        },
+        "description": {
+            "type": "string",
+            "description": "Description of the contentblocks collection"
+        },
+        "templates": {
+            "type": "array",
+            "description": "Array of content block templates",
+            "items": {
+                "type": "object",
+                "required": ["id", "title"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the template"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Display title of the template"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of what the template does"
+                    },
+                    "html": {
+                        "type": "string",
+                        "description": "HTML template with variable placeholders"
+                    },
+                    "variables": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": "#/definitions/variable"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ],
+                        "description": "Variables that can be substituted in the template"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "variable": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["text", "longtext", "array", "select", "number", "boolean"]
+                },
+                "defaultvalue": {
+                    "type": ["string", "number", "boolean"]
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "variables": {
+                    "type": "object",
+                    "description": "Nested variables for array types",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/variable"
+                    }
+                }
+            }
+        }
+    }
+}

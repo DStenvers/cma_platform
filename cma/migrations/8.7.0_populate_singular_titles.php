@@ -28,6 +28,10 @@ $results = [
  * - Words ending in 's' -> remove 's' (Gebruikers -> Gebruiker)
  * - Special cases handled manually
  */
+// Wrapped in function_exists guard because 5.5.0_add_title_singular.php
+// also defines dutchPluralToSingular. CLI migration runner loads both files
+// in one PHP process; without the guard, PHP errors on redeclaration.
+if (!function_exists('dutchPluralToSingular')) {
 function dutchPluralToSingular(string $plural): string
 {
     // Special cases that don't follow standard rules
@@ -271,6 +275,7 @@ function dutchPluralToSingular(string $plural): string
     // No change if no pattern matches
     return $plural;
 }
+} // end if (!function_exists('dutchPluralToSingular'))
 
 /**
  * Process forms in a directory

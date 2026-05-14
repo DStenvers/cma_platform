@@ -95,6 +95,11 @@ class ErrorHandler
             // Use app name from Application config
             $config['app_name'] = $config['app_name'] ??
                 ($GLOBALS['Application']['appname_simple'] ?? $GLOBALS['Application']['appname'] ?? 'PHP Application');
+
+            // On production, exclude E_DEPRECATED to avoid deprecated warnings breaking pages
+            if (!($config['debug'] ?? false)) {
+                $config['error_handling_level'] = $config['error_handling_level'] ?? (E_ALL & ~E_DEPRECATED);
+            }
         }
 
         // Merge custom configuration with defaults
@@ -201,7 +206,7 @@ class ErrorHandler
                             .error-meta strong { color: #555; }
                             .handler-error { background: #fff3f3; border-left: 4px solid #ff5757; margin-top: 30px; padding: 15px; }
                         </style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 
                     </head>
                     <body>
@@ -273,7 +278,7 @@ class ErrorHandler
                     .error-meta strong { color: #555; }
                     .handler-error { background: #fff3f3; border-left: 4px solid #ff5757; margin-top: 30px; padding: 15px; }
                 </style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 
             </head>
             <body>
@@ -358,7 +363,7 @@ class ErrorHandler
                         h1 { color: #e74c3c; }
                         .code { font-family: monospace; background: #f0f0f0; padding: 10px; overflow-x: auto; }
                     </style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 
                 </head>
                 <body>
@@ -522,7 +527,7 @@ class ErrorHandler
                         margin-top: 20px;
                     }
                 </style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 
             </head>
             <body>
@@ -1303,7 +1308,7 @@ class ErrorHandler
                     display: none !important;
                 }
             </style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 
         </head>
         <body>
@@ -2938,7 +2943,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         echo '.technical-details { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; }';
         echo '.code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace; }';
         echo '</style>
-    <link rel="stylesheet" href="/app/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/css/errorhandler.css">
 ';
         echo '</head>';
         echo '<body>';

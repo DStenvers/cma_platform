@@ -877,3 +877,122 @@ lib-search-input {
 .lib-search-input.disabled .search-icon {
     opacity: 0.5;
 }
+
+/* ============================================================
+   lib-field — material-style floating-label input/textarea wrapper
+   ============================================================ */
+lib-field {
+    display: block;
+    margin-bottom: 1rem;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+lib-field .lib-field__inner {
+    position: relative;
+}
+
+lib-field .lib-field__control {
+    display: block;
+    width: 100%;
+    padding: 1.25rem 0.75rem 0.45rem;
+    font: inherit;
+    color: var(--lib-field-color, inherit);
+    background: var(--lib-field-bg, transparent);
+    border: 1px solid var(--lib-field-border, #c9c4b9);
+    border-radius: var(--lib-field-radius, 6px);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+lib-field textarea.lib-field__control {
+    min-height: 5.25rem;
+    padding-top: 1.4rem;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+/* The placeholder is just a sentinel for `:placeholder-shown` — hide it
+   visually so the floating label can own that space. */
+lib-field .lib-field__control::placeholder {
+    color: transparent;
+}
+
+lib-field .lib-field__control:focus {
+    border-color: var(--lib-field-focus, #1f6e3f);
+    box-shadow: 0 0 0 3px var(--lib-field-focus-ring, rgba(31, 110, 63, 0.18));
+}
+
+lib-field .lib-field__control:disabled,
+lib-field .lib-field__control[readonly] {
+    background: var(--lib-field-readonly-bg, #f7f5ee);
+    color: var(--lib-field-readonly-color, #5a5e66);
+    cursor: not-allowed;
+}
+
+lib-field {
+    /* Theming hook for the floating-label "knockout" colour.  Consumers
+       set this to whatever the field's container background is (white by
+       default, dark in inverted UIs) so the floated label cleanly
+       interrupts the input border. */
+    --lib-field-label-bg: #ffffff;
+}
+
+lib-field .lib-field__label {
+    position: absolute;
+    top: 0.95rem;
+    left: 0.6rem;
+    padding: 0 0.35rem;
+    font-size: 1rem;
+    color: var(--lib-field-label, #5a5e66);
+    /* Resting state sits inside the input — no background needed.  The
+       floating state below paints var(--lib-field-label-bg) to knock out
+       the border line behind the small floated label. */
+    background-color: transparent;
+    pointer-events: none;
+    transform-origin: left top;
+    transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+    line-height: 1.1;
+    max-width: calc(100% - 1.2rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Floating state: focused OR has content (placeholder hidden by typed text). */
+lib-field .lib-field__control:focus + .lib-field__label,
+lib-field .lib-field__control:not(:placeholder-shown) + .lib-field__label {
+    transform: translate(-0.1rem, -0.7rem) scale(0.78);
+    color: var(--lib-field-focus, #1f6e3f);
+    background-color: var(--lib-field-label-bg, #fff);
+}
+
+/* Disabled fields don't get the accent colour. */
+lib-field .lib-field__control:disabled + .lib-field__label,
+lib-field .lib-field__control[readonly] + .lib-field__label {
+    color: var(--lib-field-readonly-color, #5a5e66);
+}
+
+lib-field .lib-field__helper,
+lib-field .lib-field__error {
+    display: block;
+    margin: 0.3rem 0 0 0.2rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+lib-field .lib-field__helper { color: var(--lib-field-helper, #6b6f78); }
+lib-field .lib-field__error  { color: var(--lib-field-error,  #b00020); }
+
+lib-field.has-error .lib-field__control {
+    border-color: var(--lib-field-error, #b00020);
+}
+lib-field.has-error .lib-field__control:focus {
+    box-shadow: 0 0 0 3px rgba(176, 0, 32, 0.18);
+}
+lib-field.has-error .lib-field__label,
+lib-field.has-error .lib-field__control:focus + .lib-field__label,
+lib-field.has-error .lib-field__control:not(:placeholder-shown) + .lib-field__label {
+    color: var(--lib-field-error, #b00020);
+}

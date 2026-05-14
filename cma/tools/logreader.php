@@ -524,7 +524,11 @@ async function confirmDelete() {
             window.parent.CMA.loadPage('preferences.php', 'Voorkeuren');
             return false;
         }
-        return true;
+        // Fallback: outside the CMA shell (or shell JS failed to load).
+        // The button has no href, so just navigate the iframe directly.
+        var target = (window.top || window).location;
+        target.href = '/cma/main.php?page=preferences.php';
+        return false;
     }
     </script>
 

@@ -25,10 +25,10 @@ class Installer
      * These contain project-specific configuration.
      */
     private const PROTECTED_PATHS = [
-        'cma/config/app.json',
-        'cma/config/databases.json',
-        'cma/config/menu.json',
-        'cma/config/reports.json',
+        'data/app.json',
+        'data/databases.json',
+        'data/menu.json',
+        'data/reports.json',
     ];
 
     /**

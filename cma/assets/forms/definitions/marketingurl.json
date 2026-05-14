@@ -4,7 +4,7 @@
         "name": "marketingurl",
         "title": "Marketing URLs",
         "titleSingular": "Marketing URL",
-        "table": "tblMarketingUrl",
+        "table": "tblCMAMarketingUrl",
         "database": "data",
         "idField": "ID",
         "displayMode": 2,

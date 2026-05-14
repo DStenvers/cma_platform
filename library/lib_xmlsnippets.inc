@@ -410,7 +410,7 @@ function XMLStore_GetStoreData($strParamStoreName)
     $connectionString = '';
     if ($dbName !== 'data') {
         // For non-data databases, resolve the connection string from databases.json
-        $dbConfigFile = __DIR__ . '/../cma/config/databases.json';
+        $dbConfigFile = __DIR__ . '/../data/databases.json';
         if (file_exists($dbConfigFile)) {
             $dbData = json_decode(file_get_contents($dbConfigFile), true);
             foreach ($dbData['databases'] ?? [] as $db) {

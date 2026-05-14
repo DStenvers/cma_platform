@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CMA Data Sources",
+    "description": "Schema for CMA data source (PDO) definitions used in form fields",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Reference to this schema file"
+        },
+        "dataSources": {
+            "type": "array",
+            "description": "List of data sources for dropdowns and lookups",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Unique data source ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Data source name (used in form definitions)"
+                    },
+                    "moduleId": {
+                        "type": "integer",
+                        "description": "Legacy module ID (deprecated, kept for reference)"
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "SQL query to fetch the data"
+                    },
+                    "selectable": {
+                        "type": "boolean",
+                        "description": "Whether items can be selected (true for dropdowns)",
+                        "default": true
+                    },
+                    "database": {
+                        "type": "string",
+                        "description": "Database connection name to use",
+                        "default": "data"
+                    }
+                },
+                "required": ["id", "name", "query"]
+            }
+        }
+    },
+    "required": ["dataSources"]
+}

@@ -185,26 +185,26 @@ class Image
                 break;
             case 3:
                 $rotated = imagerotate($image, 180, 0);
-                if ($rotated) { imagedestroy($image); $image = $rotated; }
+                if ($rotated) {$image = $rotated; }
                 break;
             case 4:
                 imageflip($image, IMG_FLIP_VERTICAL);
                 break;
             case 5:
                 $rotated = imagerotate($image, -90, 0);
-                if ($rotated) { imagedestroy($image); imageflip($rotated, IMG_FLIP_HORIZONTAL); $image = $rotated; }
+                if ($rotated) {imageflip($rotated, IMG_FLIP_HORIZONTAL); $image = $rotated; }
                 break;
             case 6:
                 $rotated = imagerotate($image, -90, 0);
-                if ($rotated) { imagedestroy($image); $image = $rotated; }
+                if ($rotated) {$image = $rotated; }
                 break;
             case 7:
                 $rotated = imagerotate($image, 90, 0);
-                if ($rotated) { imagedestroy($image); imageflip($rotated, IMG_FLIP_HORIZONTAL); $image = $rotated; }
+                if ($rotated) {imageflip($rotated, IMG_FLIP_HORIZONTAL); $image = $rotated; }
                 break;
             case 8:
                 $rotated = imagerotate($image, 90, 0);
-                if ($rotated) { imagedestroy($image); $image = $rotated; }
+                if ($rotated) {$image = $rotated; }
                 break;
         }
 
@@ -369,7 +369,6 @@ class Image
         }
 
         $success = imagewebp($sourceImage, $destPath, $quality);
-        imagedestroy($sourceImage);
 
         return $success;
     }
@@ -452,8 +451,6 @@ class Image
 
         $success = self::saveAs($destImage, $destPath, $quality);
 
-        imagedestroy($sourceImage);
-        imagedestroy($destImage);
 
         return $success;
     }
@@ -497,8 +494,6 @@ class Image
 
         $success = self::saveAs($destImage, $destPath, $quality);
 
-        imagedestroy($sourceImage);
-        imagedestroy($destImage);
 
         return $success;
     }
@@ -544,8 +539,6 @@ class Image
 
         $success = self::saveAs($destImage, $destPath, $quality);
 
-        imagedestroy($sourceImage);
-        imagedestroy($destImage);
 
         return $success;
     }
@@ -665,7 +658,6 @@ class Image
         $tempFilename = $filename . '.tmp';
         $success = self::saveAs($sourceImage, $tempFilename, $quality);
 
-        imagedestroy($sourceImage);
 
         if ($success) {
             unlink($filename);
@@ -740,8 +732,6 @@ class Image
 
         $success = self::saveAs($destImage, $destFile, $quality);
 
-        imagedestroy($sourceImage);
-        imagedestroy($destImage);
 
         return $success;
     }

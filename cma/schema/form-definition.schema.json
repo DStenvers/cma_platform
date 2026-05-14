@@ -1,0 +1,476 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cma.local/schemas/form-definition.schema.json",
+  "title": "CMA Form Definition",
+  "description": "Schema for CMA form definitions that configure data entry forms",
+  "type": "object",
+  "required": ["name", "table", "fields"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "Unique form identifier (lowercase, underscores allowed)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title (Dutch)"
+    },
+    "titleEnglish": {
+      "type": "string",
+      "description": "Display title (English)"
+    },
+    "table": {
+      "type": "string",
+      "description": "Database table name"
+    },
+    "database": {
+      "type": "string",
+      "enum": ["data", "rep", "users", "json"],
+      "default": "data",
+      "description": "Database connection name"
+    },
+    "idField": {
+      "type": "string",
+      "default": "ID",
+      "description": "Primary key field name"
+    },
+    "parentForm": {
+      "type": "string",
+      "description": "Parent form name (for subforms)"
+    },
+    "allowAdd": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow creating new records"
+    },
+    "allowDelete": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow deleting records"
+    },
+    "allowCopy": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allow copying records"
+    },
+    "securityByUser": {
+      "type": "boolean",
+      "default": false,
+      "description": "Restrict records by user ownership"
+    },
+    "storeLastModified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Track last modified timestamp"
+    },
+
+    "postHandler": {
+      "type": "string",
+      "description": "Custom PHP file for POST handling"
+    },
+    "afterPostUrl": {
+      "type": "string",
+      "description": "URL to redirect after save"
+    },
+    "previewUrl": {
+      "type": "string",
+      "description": "URL template for preview button"
+    },
+    "onLoadJs": {
+      "type": "string",
+      "description": "JavaScript to execute on form load"
+    },
+
+    "listQuery": {
+      "type": "string",
+      "description": "SQL query for list/tree display"
+    },
+    "listColumns": {
+      "type": "array",
+      "description": "Columns to display in list view",
+      "items": {
+        "$ref": "#/definitions/listColumn"
+      }
+    },
+    "quickSearchFields": {
+      "type": "string",
+      "description": "Comma-separated field names for quick search"
+    },
+    "protectedRecords": {
+      "type": "array",
+      "items": {"type": ["integer", "string"]},
+      "description": "Record IDs that cannot be deleted"
+    },
+
+    "activeField": {
+      "type": "string",
+      "description": "Field name that indicates record active status (1=active/green, 0=inactive/red in tree view)"
+    },
+
+    "filter": {
+      "type": "object",
+      "description": "Filter dropdown configuration",
+      "properties": {
+        "field": {"type": "string"},
+        "description": {"type": "string"},
+        "sql": {"type": "string"}
+      }
+    },
+
+    "extraButtons": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "Custom toolbar buttons",
+      "items": {
+        "$ref": "#/definitions/extraButton"
+      }
+    },
+
+    "fields": {
+      "type": "array",
+      "description": "Form field definitions",
+      "items": {
+        "$ref": "#/definitions/field"
+      }
+    },
+
+    "subforms": {
+      "type": "array",
+      "description": "Embedded subform definitions",
+      "items": {
+        "$ref": "#/definitions/subform"
+      }
+    },
+
+    "tips": {
+      "type": "array",
+      "description": "Help tips displayed in sidebar",
+      "items": {
+        "$ref": "#/definitions/tip"
+      }
+    }
+  },
+
+  "definitions": {
+    "listColumn": {
+      "type": "object",
+      "required": ["field"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Field name from listQuery"
+        },
+        "title": {
+          "type": "string",
+          "description": "Column header (Dutch)"
+        },
+        "titleEnglish": {
+          "type": "string",
+          "description": "Column header (English)"
+        },
+        "width": {
+          "type": "string",
+          "pattern": "^[0-9]+(px|%|em)$",
+          "description": "Column width (e.g., '150px', '20%')"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["text", "boolean", "date", "datetime", "number"],
+          "default": "text",
+          "description": "Data type for formatting"
+        },
+        "align": {
+          "type": "string",
+          "enum": ["left", "center", "right"],
+          "default": "left"
+        }
+      }
+    },
+
+    "extraButton": {
+      "type": "object",
+      "required": ["icon", "title", "url"],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "description": "CSS icon class (e.g., 'lnr lnr-preview')"
+        },
+        "title": {
+          "type": "string",
+          "description": "Button tooltip (Dutch)"
+        },
+        "titleEnglish": {
+          "type": "string",
+          "description": "Button tooltip (English)"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL template (use [FieldName] for field values)"
+        },
+        "target": {
+          "type": "string",
+          "enum": ["_self", "_blank", "_parent", "_top"],
+          "default": "_self"
+        },
+        "openInNewWindow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open URL in new browser tab instead of popup overlay"
+        },
+        "condition": {
+          "$ref": "#/definitions/condition",
+          "description": "Show button only when condition is met"
+        }
+      }
+    },
+
+    "field": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Field name (matches database column or starts with _ for virtual)"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "textbox", "memo", "checkbox", "combobox", "date", "time", "datetime", "dropdown",  
+            "email", "password", "file", "image", "url", "checklist", "checklisttree",
+            "checklistinline", "sortlist", "label", "groupseparator", "readonly",  
+            "radiogroup", "custom", "userlist", "xmlstore", "directory"
+          ],
+          "description": "Control type"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Field label (Dutch)"
+        },
+        "captionEnglish": {
+          "type": "string",
+          "description": "Field label (English)"
+        },
+        "hint": {
+          "type": "string",
+          "description": "Help text below field (Dutch)"
+        },
+        "hintEnglish": {
+          "type": "string",
+          "description": "Help text below field (English)"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Field is required"
+        },
+        "readonly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Field is read-only"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum character length"
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Height in rows (for memo fields)"
+        },
+        "useContentBlocks": {
+          "type": "boolean",
+          "default": true,
+          "description": "For memo fields with allowHtml: set to false to disable blockedit interface"
+        },
+
+        "validation": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Validation rules (e.g., 'email', 'ip-address-list')"
+        },
+
+        "source": {
+          "type": "object",
+          "description": "Data source for combo/checklist fields",
+          "properties": {
+            "table": {"type": "string"},
+            "valueField": {"type": "string"},
+            "displayField": {"type": "string"},
+            "filter": {"type": "string"}
+          }
+        },
+        "sql": {
+          "type": "string",
+          "description": "SQL query for combo/checklist options"
+        },
+        "database": {
+          "type": "string",
+          "description": "Database connection for sql query"
+        },
+        "filterByField": {
+          "type": "string",
+          "description": "Filter combo options by another field's value. Source table must have a column matching this field name. Combo reloads when referenced field changes."
+        },
+
+        "renderer": {
+          "type": "string",
+          "description": "Custom renderer name for special field types"
+        },
+        "options": {
+          "oneOf": [
+            {
+              "type": "object",
+              "description": "Additional options for renderer or control"
+            },
+            {
+              "type": "array",
+              "description": "Static options for radiogroup/select fields",
+              "items": {
+                "type": "object",
+                "required": ["value", "text"],
+                "properties": {
+                  "value": {
+                    "type": ["string", "integer"],
+                    "description": "Option value to store"
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Display text for option"
+                  }
+                }
+              }
+            }
+          ],
+          "description": "Static options (array for radiogroup/select) or additional control options (object)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["date", "datetime", "currency", "percentage"],
+          "description": "Display format for readonly fields"
+        },
+
+        "dependencies": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/dependency"},
+          "description": "Show/hide based on other field values"
+        },
+
+        "image": {
+          "type": "object",
+          "description": "Image field configuration",
+          "properties": {
+            "path": {"type": "string", "description": "Upload path"},
+            "resizeType": {
+              "type": "string",
+              "enum": ["none", "maximum", "crop", "stretch"]
+            },
+            "maxWidth": {"type": "integer"},
+            "maxHeight": {"type": "integer"},
+            "widthField": {"type": "string"},
+            "heightField": {"type": "string"}
+          }
+        },
+
+        "file": {
+          "type": "object",
+          "description": "File upload configuration",
+          "properties": {
+            "path": {"type": "string"},
+            "randomize": {"type": "boolean", "default": false}
+          }
+        },
+
+        "beheer": {
+          "type": "boolean",
+          "default": false,
+          "description": "Field only visible to beheer (admin) users"
+        }
+      }
+    },
+
+    "dependency": {
+      "type": "object",
+      "required": ["field", "condition", "value"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Field name to check"
+        },
+        "condition": {
+          "type": "string",
+          "enum": ["=", "!=", ">", "<", ">=", "<=", "contains", "empty", "notEmpty"],
+          "description": "Comparison operator"
+        },
+        "value": {
+          "description": "Value to compare against"
+        }
+      }
+    },
+
+    "condition": {
+      "type": "object",
+      "properties": {
+        "field": {"type": "string"},
+        "value": {}
+      }
+    },
+
+    "subform": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Subform tab title"
+        },
+        "titleEnglish": {
+          "type": "string"
+        },
+        "form": {
+          "type": "string",
+          "description": "JSON form name (without .json extension)"
+        },
+        "file": {
+          "type": "string",
+          "description": "JSON file name (e.g., 'parentform_subform.json') - deprecated, use 'form'"
+        },
+        "sourceFormId": {
+          "type": "integer",
+          "description": "Legacy form ID (for migration)"
+        },
+        "parentField": {
+          "type": "string",
+          "description": "Foreign key field in subform table that links to parent"
+        },
+        "linkField": {
+          "type": "string",
+          "description": "Foreign key field in subform table - deprecated, use 'parentField'"
+        },
+        "order": {
+          "type": "integer",
+          "description": "Display order (lower numbers appear first)"
+        }
+      }
+    },
+
+    "tip": {
+      "type": "object",
+      "required": ["id", "content"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique tip identifier"
+        },
+        "content": {
+          "type": "string",
+          "description": "Tip content HTML (Dutch)"
+        },
+        "contentEnglish": {
+          "type": "string",
+          "description": "Tip content HTML (English)"
+        }
+      }
+    }
+  }
+}

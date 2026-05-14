@@ -685,12 +685,10 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             break;
 
         default:
-            imagedestroy($source);
             return ['success' => false, 'error' => 'Onbekend filter'];
     }
 
     if (!$success) {
-        imagedestroy($source);
         return ['success' => false, 'error' => 'Filter kon niet worden toegepast'];
     }
 
@@ -714,7 +712,6 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             $saved = imagejpeg($source, $targetPath, 92);
     }
 
-    imagedestroy($source);
 
     if ($saved) {
         // Regenerate responsive variants

@@ -1,7 +1,7 @@
 {
-    "$schema": "./schema/migrations.schema.json",
+    "$schema": "../schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.8.0",
+    "targetVersion": "9.10.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -649,8 +649,7 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.0.0_reports_editform_to_formname.php",
-                    "requires": ["rep"],
-                    "note": "Converteert numerieke editForm waarden naar form namen. Transitief afhankelijk van rep — leest reports.json die door 3.0.0_export_reports.php uit rep wordt gegenereerd."
+                    "note": "Converteert numerieke editForm waarden naar form namen (bijv. 68 -> opleidingen)"
                 }
             ]
         },
@@ -661,8 +660,7 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.1.0_reports_remove_moduleid.php",
-                    "requires": ["rep"],
-                    "note": "Verwijdert ongebruikt moduleId veld. Transitief afhankelijk van rep — leest reports.json die door 3.0.0_export_reports.php uit rep wordt gegenereerd."
+                    "note": "Verwijdert ongebruikt moduleId veld - ReportsService gebruikt module string i.p.v. moduleId"
                 }
             ]
         },
@@ -673,8 +671,7 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.2.0_menu_add_accesslevel.php",
-                    "requires": ["rep"],
-                    "note": "Voegt accessLevel toe aan menus. Transitief afhankelijk van rep — leest menu.json die door 2.6.0_export_menu.php uit rep wordt gegenereerd."
+                    "note": "Voegt accessLevel toe aan menus (user/admin/developer), Systeem krijgt admin"
                 }
             ]
         },
@@ -1107,6 +1104,28 @@
                     "type": "runPhp",
                     "script": "migrations/9.8.0_create_email_log.php",
                     "note": "Maakt tblEmailLog aan in data database met indexen op datestamp en status"
+                }
+            ]
+        },
+        {
+            "version": "9.9.0",
+            "description": "Site-specifieke configuratie verplaatsen van cma/config/ naar data/",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.9.0_move_config_to_data.php",
+                    "note": "Verplaatst JSON configs en schema's van cma/config/ naar data/ en ruimt lege mappen op"
+                }
+            ]
+        },
+        {
+            "version": "9.10.0",
+            "description": "tblCMAMarketingUrl aanmaken op fresh installs (rename in 2.3.0 was no-op zonder pre-existing tabel)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.10.0_create_tblcmamarketingurl.php",
+                    "note": "Maakt tblCMAMarketingUrl aan in data database met unieke index op Dir; idempotent (skip als tabel bestaat)"
                 }
             ]
         }

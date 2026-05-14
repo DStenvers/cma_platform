@@ -58,7 +58,7 @@ class BackupService
         $indexPath = $this->backupDir . '/' . self::BACKUP_INDEX_FILE;
 
         $data = [
-            '$schema' => '../cma/config/schema/backups.schema.json',
+            '$schema' => '../schema/backups.schema.json',
             'lastUpdated' => date('Y-m-d H:i:s'),
             'backups' => $this->backupIndex
         ];

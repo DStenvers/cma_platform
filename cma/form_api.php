@@ -1406,7 +1406,6 @@ try {
                     imagefilledrectangle($resized, 0, 0, $newWidth, $newHeight, $transparent);
                 }
                 imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                imagedestroy($image);
                 $image = $resized;
             }
 
@@ -1421,7 +1420,6 @@ try {
             }
 
             if ($saved) {
-                imagedestroy($image);
                 addDebug('Image saved: ' . $filename);
 
                 // Generate responsive variants
@@ -1439,7 +1437,6 @@ try {
                     'height' => $newHeight
                 ]);
             } else {
-                imagedestroy($image);
                 outputJson(['success' => false, 'error' => 'Kan afbeelding niet opslaan']);
             }
             break;

@@ -1,0 +1,100 @@
+{
+    "$schema": "../cma/schema/control-types.schema.json",
+    "controlTypes": [
+        {
+            "id": 2,
+            "name": "pctcombobox",
+            "description": "pctCombobox"
+        },
+        {
+            "id": 3,
+            "name": "pcttextbox",
+            "description": "pctTextbox"
+        },
+        {
+            "id": 5,
+            "name": "pctcheckbox",
+            "description": "pctCheckBox"
+        },
+        {
+            "id": 6,
+            "name": "pctmemo",
+            "description": "pctMemo"
+        },
+        {
+            "id": 8,
+            "name": "pctchecklist",
+            "description": "pctCheckList"
+        },
+        {
+            "id": 9,
+            "name": "pctimageselect",
+            "description": "pctImageSelect"
+        },
+        {
+            "id": 10,
+            "name": "pcturl",
+            "description": "pctURL"
+        },
+        {
+            "id": 11,
+            "name": "pctfileselect",
+            "description": "pctFileSelect"
+        },
+        {
+            "id": 12,
+            "name": "pctlabel",
+            "description": "pctLabel"
+        },
+        {
+            "id": 13,
+            "name": "pctsortlistbox",
+            "description": "pctSortListbox"
+        },
+        {
+            "id": 14,
+            "name": "pctdirectory",
+            "description": "pctDirectory"
+        },
+        {
+            "id": 15,
+            "name": "pctgroupseparator",
+            "description": "pctGroupSeparator"
+        },
+        {
+            "id": 16,
+            "name": "pctuserlist",
+            "description": "pctUserList"
+        },
+        {
+            "id": 17,
+            "name": "pctemail",
+            "description": "pctEmail"
+        },
+        {
+            "id": 18,
+            "name": "pctxmlstore",
+            "description": "pctXMLStore"
+        },
+        {
+            "id": 19,
+            "name": "pcthtmlstrip",
+            "description": "pctHTMLStrip"
+        },
+        {
+            "id": 20,
+            "name": "pctthumbnail",
+            "description": "pctThumbnail"
+        },
+        {
+            "id": 21,
+            "name": "pcttime",
+            "description": "pctTime"
+        },
+        {
+            "id": 22,
+            "name": "pctpassword",
+            "description": "pctPassword"
+        }
+    ]
+}

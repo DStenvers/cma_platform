@@ -85,7 +85,6 @@ class Bootstrap
         self::recordTiming('helpers');
 
         self::loadLegacyClasses();
-        self::loadGlobalFunctions();
         self::recordTiming('aliases');
 
         self::loadLegacyLibFiles();
@@ -491,14 +490,6 @@ class Bootstrap
         }
     }
 
-    private static function loadGlobalFunctions(): void
-    {
-        $file = self::$rootDir . '/config/global_functions.php';
-        if (file_exists($file)) {
-            require_once $file;
-        }
-    }
-
     private static function loadLegacyLibFiles(): void
     {
         $libraryDir = self::$rootDir . '/library';
@@ -592,7 +583,7 @@ class Bootstrap
 
         $_SESSION['_migration_check_done'] = true;
 
-        $migrationsFile = self::$rootDir . '/cma/config/migrations.json';
+        $migrationsFile = self::$rootDir . '/cma/migrations/migrations.json';
         if (!file_exists($migrationsFile)) {
             return;
         }
