@@ -177,7 +177,6 @@ class HttpClient
     public function close()
     {
         if ($this->ch) {
-            curl_close($this->ch);
             $this->ch = null;
         }
     }
