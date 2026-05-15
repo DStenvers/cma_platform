@@ -3,9 +3,20 @@
  * Minify.php - CSS/JS file server with minification support
  * Uses matthiasmullie/minify library
  *
- * Loaded via bootstrap wrapper — autoloader and helpers are already available.
- * Release session lock since we only serve static assets.
+ * Self-bootstrapping: some consumer-site web.configs ship a "Skip
+ * Bootstrap for Minify" URL Rewrite rule that hands minify.php
+ * straight to PHP-CGI without going through _bootstrap_wrapper.php
+ * (saves the session-start cost on every CSS/JS bundle). When that
+ * happens, the autoloader hasn't been loaded — so we load it
+ * ourselves. require_once is a no-op when the wrapper already ran,
+ * so the file works either way.
  */
+
+// Self-load the autoloader if it isn't already in the require chain.
+if (!class_exists(\App\Library\Request::class, false)) {
+    $autoload = dirname(__DIR__) . '/vendor/autoload.php';
+    if (is_file($autoload)) { require_once $autoload; }
+}
 
 // Release session lock — minify serves static assets, doesn't need sessions
 if (session_status() === PHP_SESSION_ACTIVE) {
