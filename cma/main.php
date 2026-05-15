@@ -465,7 +465,14 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
             <div class="cma-sidebar-header">
                 <a href="<?= Server::htmlEncode($appLogoUrl) ?>" class="cma-logo" target="_blank">
                     <?php if (!empty($appLogoPath)): ?>
-                    <img src="<?= Server::htmlEncode($appLogoPath) ?>" alt="<?= Server::htmlEncode($appTitle) ?>">
+                    <?php /* onerror: when the configured logo file is
+                       missing on the consumer site, swap the broken
+                       <img> for a text-only span so the sidebar header
+                       still reads the app title. Same defensive pattern
+                       as sso_login.php. */ ?>
+                    <img src="<?= Server::htmlEncode($appLogoPath) ?>"
+                         alt="<?= Server::htmlEncode($appTitle) ?>"
+                         onerror="this.outerHTML='<span class=&quot;cma-logo-text&quot;><?= Server::htmlEncode($appTitle) ?></span>'">
                     <?php else: ?>
                     <span class="cma-logo-text"><?= Server::htmlEncode($appTitle) ?></span>
                     <?php endif; ?>
