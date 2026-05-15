@@ -1,10 +1,11 @@
 {
     "$schema": "./schema/app.schema.json",
+    "_doc": "Defaults bundled with cma_platform. Per-site overrides go in /data/app.json (not synced by composer). cma_get_app_logo() reads /data/app.json first, then falls back to this file.",
     "company": {
-        "logo": "images/interface/cma_logo.svg",
+        "logo": "cma/assets/images/cma_logo.svg",
         "logoWidth": 214,
         "logoHeight": 40,
-        "url": "https://mijn.rino.nl",
+        "url": "/",
         "backgroundColor": "#3F096E"
     }
 }

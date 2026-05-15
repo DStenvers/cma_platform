@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 40" width="214" height="40" role="img" aria-label="CMA admin">
+    <rect width="214" height="40" rx="6" fill="transparent"/>
+    <text x="107" y="27" text-anchor="middle"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-size="22" font-weight="700" letter-spacing="2" fill="#ffffff">CMA</text>
+</svg>
