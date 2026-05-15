@@ -167,10 +167,15 @@ foreach ($endpointList as $i => $endpoint) {
     $httpCode = 200;
     $error = '';
 
-    if (isset($http_response_header)) {
-        foreach ($http_response_header as $header) {
-            if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $m)) $httpCode = (int)$m[1];
-        }
+    // PHP 8.5 deprecated the locally-scoped $http_response_header magic
+    // variable in favour of http_get_last_response_headers(). Use the
+    // function when available (PHP 8.5+), fall back to the legacy
+    // variable on older runtimes.
+    $headers = function_exists('http_get_last_response_headers')
+        ? (http_get_last_response_headers() ?: [])
+        : ($http_response_header ?? []);
+    foreach ($headers as $header) {
+        if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $m)) $httpCode = (int)$m[1];
     }
 
     if ($response === false) $error = error_get_last()['message'] ?? 'Unknown error';
