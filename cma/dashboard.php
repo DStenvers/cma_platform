@@ -1208,8 +1208,10 @@ if ($isAdmin) {
     </div>
     <?php endif; ?>
 
-    <?php if (!$isAdmin && !$isDeveloper): ?>
-    <!-- Menu grid only for normal users -->
+    <?php /* Menu grid — same group structure as the sidebar menu, rendered
+       at the bottom of every dashboard regardless of role. Earlier
+       gated to normal-users-only, but admins/developers also want it
+       back as the quick-jump panel under the stats widgets. */ ?>
     <div class="menu-grid">
         <?php foreach ($menuGroups as $groupName => $items): ?>
         <div class="menu-card">
@@ -1222,7 +1224,6 @@ if ($isAdmin) {
         </div>
         <?php endforeach; ?>
     </div>
-    <?php endif; ?>
 
     <script>
     (function() {
