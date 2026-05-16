@@ -835,7 +835,10 @@ $extraScript = '
             }
 
             // New form-level properties
-            document.getElementById("gs-quickSearchFields").value = (def.quickSearchFields || []).join(", ");
+            // quickSearchFields may be an array (editor-saved) or a comma/semicolon string (legacy / hand-written)
+            var qsf = def.quickSearchFields;
+            if (Array.isArray(qsf)) qsf = qsf.join(", ");
+            document.getElementById("gs-quickSearchFields").value = (typeof qsf === "string" ? qsf : "");
             document.getElementById("gs-activeField").value = def.activeField || "";
             this.setSwitch("gs-securityByUser", def.securityByUser === true);
 
@@ -850,7 +853,10 @@ $extraScript = '
             document.getElementById("ls-listQuery").value = rawQuery ? SqlUtils.formatSql(rawQuery) : "";
             document.getElementById("ls-detailField").value = def.detailField || "";
 
-            var gf = def.groupFields || [];
+            // groupFields may be an array (editor-saved) or a comma/semicolon string (legacy)
+            var gf = def.groupFields;
+            if (typeof gf === "string") gf = gf.split(/[,;]\s*/).filter(function(s) { return s; });
+            if (!Array.isArray(gf)) gf = [];
             document.getElementById("ls-groupField1").value = gf[0] || "";
             document.getElementById("ls-groupField2").value = gf[1] || "";
             document.getElementById("ls-groupField3").value = gf[2] || "";
@@ -1017,10 +1023,29 @@ $extraScript = '
                     self.isDirty = false;
                     self.definition = def;
                     self.updateDirtyIndicator();
-                    // Show dev notice with actual filename
+                    // Show dev notice with actual filename + download button
                     var notice = document.getElementById("fe-save-notice");
                     if (notice) {
-                        notice.show("Opgeslagen: /assets/forms/" + self.currentForm + ".json. Update locale kopie\u00ebn zodat deze meegaat in updates in het versiebeheer-systeem.", "info");
+                        // Match server-side serialization (JSON_PRETTY_PRINT = 4-space indent, JSON_UNESCAPED_UNICODE = default in JS)
+                        self._lastSavedJson = JSON.stringify(def, null, 4);
+                        self._lastSavedName = self.currentForm + ".json";
+                        var formNameSafe = self.escapeHtml(self.currentForm);
+                        var msg = "Opgeslagen: /assets/forms/" + formNameSafe + ".json. Update lokale kopie\u00ebn zodat deze meegaat in updates in het versiebeheer-systeem. " +
+                                  \'<button type="button" class="btn btn-primary btn-sm" id="feSaveDownloadBtn" style="margin-left:8px"><span class="lnr lnr-download"></span> Downloaden</button>\';
+                        notice.show(msg, "info");
+                        var dlBtn = document.getElementById("feSaveDownloadBtn");
+                        if (dlBtn) {
+                            dlBtn.addEventListener("click", function() {
+                                var blob = new Blob([self._lastSavedJson], { type: "application/json" });
+                                var a = document.createElement("a");
+                                a.href = URL.createObjectURL(blob);
+                                a.download = self._lastSavedName;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(a.href);
+                            });
+                        }
                     }
                     // Reload tree in case subforms changed
                     self.loadTree();
@@ -1830,6 +1855,9 @@ $extraScript = '
             return div.innerHTML;
         }
     };
+
+    // Expose for inline onclick handlers in toolbar / dialog buttons
+    window.FormEditor = FormEditor;
 
     document.addEventListener("DOMContentLoaded", function() { FormEditor.init(); });
 })();
