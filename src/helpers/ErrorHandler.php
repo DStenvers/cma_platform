@@ -1493,7 +1493,7 @@ class ErrorHandler
                         
             echo '</div>
 
-                    <div class="tab-content" id="stack-tab" class="eh-tab-content-visible">
+                    <div class="tab-content eh-tab-content-visible" id="stack-tab">
                         <table class="request-data">
                             <tr>
                                 <th class="eh-stack-frame-number">#</th>
@@ -1583,7 +1583,7 @@ class ErrorHandler
                         echo '</table>
                     </div>
 
-                    <div class="tab-content" id="request-tab" class="eh-tab-content-hidden">
+                    <div class="tab-content eh-tab-content-hidden" id="request-tab">
                         <table class="request-data">
                             <tr>
                                 <th>Parameter</th>
@@ -1611,7 +1611,7 @@ class ErrorHandler
             echo '</table>
                     </div>
 
-                    <div class="tab-content" id="server-tab" class="eh-tab-content-hidden">
+                    <div class="tab-content eh-tab-content-hidden" id="server-tab">
                         <table class="request-data">
                             <tr>
                                 <th>Parameter</th>
@@ -1631,7 +1631,7 @@ class ErrorHandler
             echo '</table>
                     </div>
 
-                    <div class="tab-content" id="cookies-tab" class="eh-tab-content-hidden">
+                    <div class="tab-content eh-tab-content-hidden" id="cookies-tab">
                         <table class="request-data">
                             <tr>
                                 <th>Parameter</th>
@@ -1654,7 +1654,7 @@ class ErrorHandler
             echo '</table>
                     </div>
 
-                    <div class="tab-content" id="session-tab" class="eh-tab-content-hidden">
+                    <div class="tab-content eh-tab-content-hidden" id="session-tab">
                         <table class="request-data">
                             <tr>
                                 <th>Parameter</th>
@@ -1677,7 +1677,7 @@ class ErrorHandler
             echo '</table>
                     </div>
                     
-                    <div class="tab-content" id="odbc-tab" class="eh-tab-content-hidden">
+                    <div class="tab-content eh-tab-content-hidden" id="odbc-tab">
                         <table class="request-data">
                             <tr>
                                 <th>ODBC Driver / Source</th>
@@ -1915,7 +1915,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                                     }
                                     // Skip empty lines when comments are hidden
                                     elseif ($trimmedLine === '') {
-                                        echo '<span class="ini-comment" class="eh-tab-content-hidden">' . "\n" . '</span>';
+                                        echo '<span class="ini-comment">' . "\n" . '</span>';
                                     }
                                     // Colorize section headers
                                     elseif (preg_match('/^\[.*\]/', $trimmedLine)) {
@@ -2096,7 +2096,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             </div>
                             
 
-                            <div class="tab-content" id="env-file-tab" class="eh-tab-content-visible">
+                            <div class="tab-content eh-tab-content-visible" id="env-file-tab">
                                 <div class="eh-section-header">
                                     <div>';
                     
@@ -2188,7 +2188,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     echo '</div>
                             
                             <!-- Database Tests Tab -->
-                            <div class="tab-content" id="db-test-tab" class="eh-tab-content-hidden">
+                            <div class="tab-content eh-tab-content-hidden" id="db-test-tab">
                                 <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px 4px 0 0;">
                                     <strong>Database Connection Tests</strong>
                                 </div>
@@ -2329,7 +2329,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             </div>
                             
                             <!-- File System Status Tab -->
-                            <div class="tab-content" id="filesystem-tab" class="eh-tab-content-hidden">
+                            <div class="tab-content eh-tab-content-hidden" id="filesystem-tab">
                                 <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px 4px 0 0;">
                                     <strong>File System Status</strong>
                                 </div>
@@ -2440,7 +2440,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         $logEntries = self::getRecentLogEntries(self::$config['error_log_file'], 100);
                         
                         if (!empty($logEntries)) {
-                            echo '<div class="tab-content" id="logs-tab" class="eh-tab-content-hidden">
+                            echo '<div class="tab-content eh-tab-content-hidden" id="logs-tab">
                                     <div class="eh-section-header">
                                         <div>
                                             <strong>Log File:</strong> ' . htmlspecialchars(self::$config['error_log_file']) . '

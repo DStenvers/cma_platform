@@ -157,7 +157,9 @@ function llm_probe(string $url, float $timeout = 1.5): array
     $body = curl_exec($ch);
     $err  = curl_error($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    // PHP 8.0+ auto-closes the handle when it goes out of scope; curl_close
+    // is a no-op and was formally deprecated in 8.5.
+    unset($ch);
 
     $result['ms']     = round((microtime(true) - $started) * 1000, 1);
     $result['status'] = $code ?: null;
