@@ -84,6 +84,8 @@ $toolNameMap = [
     'formdefinitions' => 'tools/tools_formedit.php',
     'webp' => 'tools/tools_webp_convert.php',
     'webp_convert' => 'tools/tools_webp_convert.php',
+    'llm' => 'tools/tools_llm.php',
+    'llm_analyzer' => 'tools/tools_llm.php',
 ];
 
 // Get initial tool to load (may be friendly name or full path)
@@ -505,6 +507,7 @@ function buildToolsTreeData(bool $isDeveloper): array
         'children' => [
             ['type' => 'item', 'label' => 'Logbestanden lezen', 'href' => 'tools/logreader.php', 'target' => 'R', 'icon' => 'lnr-list'],
             ['type' => 'item', 'label' => 'Controleer bestanden', 'badge' => 'A', 'href' => 'tools/tools_db_consistency.php', 'target' => 'R', 'icon' => 'lnr-sync'],
+            ['type' => 'item', 'label' => 'LLM analyzer', 'badge' => 'A', 'href' => 'tools/tools_llm.php', 'target' => 'R', 'icon' => 'lnr-brain'],
         ]
     ];
     $folders[] = $healthFolder;

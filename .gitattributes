@@ -1,0 +1,13 @@
+# Files excluded from `composer install` (composer respects .gitattributes
+# `export-ignore` when building the package archive). Dev-only tooling that
+# has no business on a consumer's prod server lives here.
+
+cma/cypress/                  export-ignore
+cma/cypress.config.js         export-ignore
+cma/package.json              export-ignore
+cma/package-lock.json         export-ignore
+cma/node_modules/             export-ignore
+
+# Build / repo housekeeping that consumers don't need
+.gitattributes                export-ignore
+.gitignore                    export-ignore
