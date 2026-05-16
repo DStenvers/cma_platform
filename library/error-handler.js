@@ -434,7 +434,7 @@
         formData.append('userAgent', navigator.userAgent);
         formData.append('extraInfo', JSON.stringify(errorData.extra || {}));
 
-        const endpoint = 'form_api.php';
+        const endpoint = '/cma/form_api.php';
 
         if (navigator.sendBeacon) {
             navigator.sendBeacon(endpoint, formData);
