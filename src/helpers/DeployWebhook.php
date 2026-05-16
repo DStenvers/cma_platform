@@ -192,7 +192,13 @@ class DeployWebhook
         $out .= "=== git pull ===\n" . $run('git pull --ff-only origin ' . escapeshellarg($cfg['branch'])) . "\n\n";
 
         if (!$failed && $cfg['composer']) {
-            $out .= "=== composer install ===\n" . $run('composer install ' . $cfg['composer_args']) . "\n\n";
+            $composerCmd = self::resolveComposerCommand($cfg['site_root']);
+            if ($composerCmd === null) {
+                $log("FAIL: composer not found on PATH / standard locations / composer.phar in site root. Install composer or drop composer.phar into the site root.");
+                $failed = true;
+            } else {
+                $out .= "=== composer install ($composerCmd) ===\n" . $run($composerCmd . ' install ' . $cfg['composer_args']) . "\n\n";
+            }
         }
 
         if (!$failed && $cfg['recycle']) {
@@ -205,5 +211,43 @@ class DeployWebhook
         } else {
             $log("OK: deploy $commit");
         }
+    }
+
+    /**
+     * Find a usable composer command. On Windows IIS the deploy webhook
+     * runs as the app pool identity (e.g. ApplicationPoolIdentity) which
+     * doesn't share the interactive PATH, so a bare `composer` often
+     * exits 127 even when composer is installed for the operator account.
+     *
+     * Tries in order:
+     *   1. `composer` — bare command (works when on the app pool's PATH).
+     *   2. C:\ProgramData\ComposerSetup\bin\composer.bat — standard
+     *      Windows installer location (machine-wide).
+     *   3. <site_root>\composer.phar — drop the phar into the site root
+     *      as a last resort, runs via the local `php`.
+     *
+     * Returns the full command prefix to use, or null if nothing works.
+     */
+    private static function resolveComposerCommand(string $siteRoot): ?string
+    {
+        // 1. Bare `composer`. Probe via `where` (Windows) so we don't
+        //    accidentally run something with side effects.
+        @exec('cmd /c where composer 2>nul', $out1, $ex1);
+        if ($ex1 === 0 && !empty($out1)) {
+            return 'composer';
+        }
+        // 2. Standard Windows installer path.
+        $std = 'C:\\ProgramData\\ComposerSetup\\bin\\composer.bat';
+        if (is_file($std)) {
+            return '"' . $std . '"';
+        }
+        // 3. composer.phar dropped into the site root. Use the same PHP
+        //    binary that's running this code so PATH for `php` is also
+        //    moot — PHP_BINARY is always absolute under FastCGI.
+        $phar = $siteRoot . DIRECTORY_SEPARATOR . 'composer.phar';
+        if (is_file($phar) && defined('PHP_BINARY') && PHP_BINARY !== '') {
+            return '"' . PHP_BINARY . '" "' . $phar . '"';
+        }
+        return null;
     }
 }
