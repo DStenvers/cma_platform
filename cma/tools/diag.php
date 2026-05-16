@@ -213,12 +213,41 @@ if ($gitOk) {
     foreach (explode("\n", (string)shell_exec($cmd)) as $line) echo "    " . preg_replace('/(github_pat_[A-Za-z0-9_]+)/', '***PAT***', $line) . "\n";
 }
 
+$h('ENV FILE (which one actually got loaded)');
+// Bootstrap leaves the picked filename in $GLOBALS['_env_file'] and the
+// resolved env code in $GLOBALS['_app_env']. If those are missing,
+// Bootstrap never ran — fall back to a best-guess from APP_ENVIRONMENT.
+$loadedFile = (string)($GLOBALS['_env_file'] ?? '');
+$resolvedEnv = (string)($GLOBALS['_app_env'] ?? '');
+$appEnvRaw   = (string)($_ENV['APP_ENVIRONMENT'] ?? getenv('APP_ENVIRONMENT') ?? '');
+$envFileMap = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
+if ($loadedFile === '' && $appEnvRaw !== '' && isset($envFileMap[$appEnvRaw])) {
+    $loadedFile = $envFileMap[$appEnvRaw] . ' (inferred — Bootstrap globals not set)';
+}
+$kv('Loaded env file', $loadedFile !== '' ? $loadedFile : '(unknown — Bootstrap never ran)');
+$kv('Resolved APP_ENVIRONMENT', $resolvedEnv !== '' ? $resolvedEnv : $appEnvRaw);
+// Validate: does the file that should have been loaded actually exist
+// + when was it last modified? Catches the "deployed .env.production
+// has a typo / wasn't copied" class of bug.
+$loadedPath = $siteRoot . '/' . preg_replace('/\s*\(.*$/', '', $loadedFile);
+if (is_file($loadedPath)) {
+    $kv('  → exists on disk', 'yes');
+    $kv('  → size (bytes)', filesize($loadedPath));
+    $kv('  → mtime', date('Y-m-d H:i:s', (int)filemtime($loadedPath)));
+} else {
+    $kv('  → exists on disk', 'NO — ' . $loadedPath);
+}
+
 $h('ENV VARS (relevant + masked)');
 $envKeys = ['APP_ENVIRONMENT', 'CLOSED_SITE', 'DB_TYPE', 'DEPLOY_BRANCH', 'DEPLOY_SECRET',
             'MAIL_FROM', 'MAIL_FROM_NAME', 'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER',
-            'EMAIL_LOG_ENABLED', 'COOKING_DEMO', 'LLM_URL', 'LLM_MODEL',
+            'EMAIL_LOG_ENABLED', 'COOKING_DEMO',
+            'LLM_PROVIDER', 'LLM_URL', 'LLM_MODEL', 'LLM_KEY',
+            'TESSERACT_BIN', 'TESSERACT_LANGS', 'OCR_PRIMARY',
+            'OCR_VISION_PROVIDER', 'OCR_VISION_MODEL', 'OCR_VISION_KEY',
             'GOOGLE_CSE_KEY', 'GOOGLE_CSE_CX', 'PEXELS_API_KEY', 'PIXABAY_API_KEY'];
-$secretLike = ['DEPLOY_SECRET', 'SMTP_PASS', 'GOOGLE_CSE_KEY', 'PEXELS_API_KEY', 'PIXABAY_API_KEY', 'SSO_CLIENT_SECRET'];
+$secretLike = ['DEPLOY_SECRET', 'SMTP_PASS', 'LLM_KEY', 'OCR_VISION_KEY',
+               'GOOGLE_CSE_KEY', 'PEXELS_API_KEY', 'PIXABAY_API_KEY', 'SSO_CLIENT_SECRET'];
 foreach ($envKeys as $k) {
     $v = $_ENV[$k] ?? getenv($k);
     if ($v === false) $v = '';
