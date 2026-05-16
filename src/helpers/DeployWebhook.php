@@ -236,10 +236,22 @@ class DeployWebhook
         if ($ex1 === 0 && !empty($out1)) {
             return 'composer';
         }
-        // 2. Standard Windows installer path.
-        $std = 'C:\\ProgramData\\ComposerSetup\\bin\\composer.bat';
-        if (is_file($std)) {
-            return '"' . $std . '"';
+        // 2. Common Windows install locations. Checked in order — first
+        //    hit wins. C:\composer\ is our convention; ProgramData is
+        //    the official installer's default.
+        $candidates = [
+            'C:\\composer\\composer.bat',
+            'C:\\composer\\composer.phar',
+            'C:\\ProgramData\\ComposerSetup\\bin\\composer.bat',
+        ];
+        foreach ($candidates as $path) {
+            if (!is_file($path)) { continue; }
+            if (str_ends_with($path, '.phar') && defined('PHP_BINARY') && PHP_BINARY !== '') {
+                return '"' . PHP_BINARY . '" "' . $path . '"';
+            }
+            if (str_ends_with($path, '.bat')) {
+                return '"' . $path . '"';
+            }
         }
         // 3. composer.phar dropped into the site root. Use the same PHP
         //    binary that's running this code so PATH for `php` is also
