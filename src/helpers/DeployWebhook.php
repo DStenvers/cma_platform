@@ -206,6 +206,27 @@ class DeployWebhook
             $out .= "=== recycled app pool (touched web.config) ===\n";
         }
 
+        // Project-side post-deploy hook.  If <site_root>/deploy_post.php
+        // exists we require it once the platform-side deploy has
+        // succeeded — typical use cases: project-local cache flushes
+        // (recipe page cache, search-index rebuild) that the platform
+        // doesn't know about.  Hook runs even when 'recycle' is off so
+        // a consumer can pick its own restart story.  Failures inside
+        // the hook are logged but don't flip $failed; the deploy itself
+        // is already complete by this point.
+        if (!$failed) {
+            $hookFile = $cfg['site_root'] . '/deploy_post.php';
+            if (is_file($hookFile)) {
+                $log("RUN: deploy_post.php");
+                try {
+                    require $hookFile;
+                    $log("OK: deploy_post.php");
+                } catch (\Throwable $e) {
+                    $log("WARN: deploy_post.php threw " . get_class($e) . ': ' . $e->getMessage());
+                }
+            }
+        }
+
         if ($failed) {
             $log("FAIL: deploy $commit");
         } else {
