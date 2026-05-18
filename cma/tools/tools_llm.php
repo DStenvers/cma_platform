@@ -627,14 +627,16 @@ if ($action === 'scan') {
     $results = $workingLocal + $workingFallback + $notWorking;
 
     // --- Summary strip ---
+    // OS + webserver detection still drives the per-engine install
+    // steps below (which install command per OS, IIS-specific firewall
+    // note, etc.). Not surfaced here above the cards — those facts
+    // belong INSIDE the install info, not as a header above engines.
     echo '<div class="summary">';
-    echo '<div class="pill">OS: <strong>' . htmlspecialchars(PHP_OS) . '</strong> (' . htmlspecialchars($os) . ')</div>';
-    echo '<div class="pill">Webserver: <strong>' . htmlspecialchars($server['software']) . '</strong></div>';
     if ($configuredUrl !== '') {
-        echo '<div class="pill">LLM_URL: <strong>' . htmlspecialchars($configuredUrl) . '</strong></div>';
+        echo '<div class="pill">In gebruik: <strong>' . htmlspecialchars($configuredUrl) . '</strong></div>';
     }
     if ($configuredModel !== '') {
-        echo '<div class="pill">LLM_MODEL: <strong>' . htmlspecialchars($configuredModel) . '</strong></div>';
+        echo '<div class="pill">Model: <strong>' . htmlspecialchars($configuredModel) . '</strong></div>';
     }
     if (!$anyOk) {
         echo '<lib-message type="warning" style="margin-top:12px">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message>';
