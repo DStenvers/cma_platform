@@ -29,6 +29,17 @@ if (!SecurityHelper::isAdmin()) {
 }
 
 // =========================================================================
+// Link to llm_models.php — that tool uses DEPLOY_SECRET (?key=) auth so it
+// also works when CMA bootstrap is half-broken. THIS page is already
+// behind admin login, so we can safely pre-attach the secret server-side
+// and the operator clicks straight through. Empty secret → bare link
+// (will 403 with a friendly hint, same as before).
+// =========================================================================
+$deploySecret = trim((string)($_ENV['DEPLOY_SECRET'] ?? getenv('DEPLOY_SECRET') ?: ''));
+$llmModelsUrl = 'llm_models.php' . ($deploySecret !== '' ? '?key=' . urlencode($deploySecret) : '');
+$llmModelsHref = htmlspecialchars($llmModelsUrl, ENT_QUOTES, 'UTF-8');
+
+// =========================================================================
 // Engine registry
 // =========================================================================
 
@@ -144,14 +155,14 @@ $engines = [
         },
         'setup' => [
             'windows' => [
-                ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Open <a href="llm_models.php" target="_blank">Local LLM models</a> (vereist ?key=&lt;DEPLOY_SECRET&gt;) en kies een curated GGUF, of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
+                ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> en kies een curated GGUF, of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
                 ['title' => 'Pak llama-server binary',  'body' => 'Download een release uit https://github.com/ggerganov/llama.cpp/releases en pak uit naar C:\\llama\\bin\\.'],
                 ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => 'C:\\llama\\bin\\llama-server.exe -m C:\\llama\\models\\qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
                 ['title' => 'Wrap als Windows-service met NSSM', 'body' => 'NSSM van https://nssm.cc/ download. Daarna (cmd as Admin):', 'code' => "nssm install LlamaServer C:\\llama\\bin\\llama-server.exe\nnssm set LlamaServer AppParameters \"-m C:\\llama\\models\\qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080 --host 0.0.0.0\"\nnssm set LlamaServer Start SERVICE_AUTO_START\nnssm start LlamaServer"],
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
             ],
             'linux' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Open <a href="llm_models.php" target="_blank">Local LLM models</a> (key=DEPLOY_SECRET) of curl direct uit Hugging Face. Default storage: ~/llama-models.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of curl direct uit Hugging Face. Default storage: ~/llama-models.'],
                 ['title' => 'Bouw of pak llama.cpp', 'body' => '', 'code' => "git clone https://github.com/ggerganov/llama.cpp\ncd llama.cpp && make -j"],
                 ['title' => 'Test handmatig', 'body' => '', 'code' => './llama-server -m ~/llama-models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
                 ['title' => 'Systemd-unit voor auto-start', 'body' => 'Schrijf /etc/systemd/system/llama-server.service:', 'code' => "[Unit]\nDescription=llama.cpp OpenAI-compat server\nAfter=network.target\n[Service]\nExecStart=/opt/llama.cpp/llama-server -m /opt/models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080\nRestart=always\nUser=llama\n[Install]\nWantedBy=multi-user.target"],
@@ -159,7 +170,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
             ],
             'darwin' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="llm_models.php" target="_blank">Local LLM models</a> of brew/curl.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of brew/curl.'],
                 ['title' => 'Installeer llama.cpp', 'body' => '', 'code' => 'brew install llama.cpp'],
                 ['title' => 'Test handmatig', 'body' => '', 'code' => 'llama-server -m ~/llama-models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
                 ['title' => 'Auto-start via brew services', 'body' => 'llama.cpp heeft geen native service-recept; wrap met een launchd plist of run via brew-services-template.'],
@@ -181,14 +192,14 @@ $engines = [
         },
         'setup' => [
             'windows' => [
-                ['title' => 'Download een GGUF-model (optioneel — kan ook in-webui)', 'body' => 'Via <a href="llm_models.php" target="_blank">Local LLM models</a> of in webui later via tab Model.'],
+                ['title' => 'Download een GGUF-model (optioneel — kan ook in-webui)', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui later via tab Model.'],
                 ['title' => 'Clone + initial setup', 'body' => 'start_windows.bat draait éénmalig de installer (Python venv, deps).', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\nstart_windows.bat"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt — voeg toe:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Wrap als Windows-service met NSSM', 'body' => '', 'code' => "nssm install TextGenWebui C:\\pad\\start_windows.bat\nnssm set TextGenWebui AppDirectory C:\\pad\\text-generation-webui\nnssm set TextGenWebui Start SERVICE_AUTO_START\nnssm start TextGenWebui"],
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
             ],
             'linux' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="llm_models.php" target="_blank">Local LLM models</a> of in webui.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
                 ['title' => 'Clone + initial setup', 'body' => '', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\n./start_linux.sh"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Systemd-unit', 'body' => 'Schrijf /etc/systemd/system/textgen-webui.service:', 'code' => "[Unit]\nDescription=text-generation-webui API\nAfter=network.target\n[Service]\nWorkingDirectory=/opt/text-generation-webui\nExecStart=/opt/text-generation-webui/start_linux.sh\nRestart=always\nUser=textgen\n[Install]\nWantedBy=multi-user.target"],
@@ -196,7 +207,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
             ],
             'darwin' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="llm_models.php" target="_blank">Local LLM models</a> of in webui.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
                 ['title' => 'Clone + initial setup', 'body' => '', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\n./start_macos.sh"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Auto-start na login via launchd', 'body' => 'Schrijf ~/Library/LaunchAgents/com.oobabooga.textgen.plist met ProgramArguments wijzend naar start_macos.sh + RunAtLoad=true.'],
