@@ -216,7 +216,8 @@ function llm_env(string $key, string $default = ''): string
 }
 
 // =========================================================================
-// Run probes
+// Run probes (only when invoked as ?action=scan — see Render below for
+// the page-load shell that fetches this endpoint after the spinner shows)
 // =========================================================================
 
 $configuredUrl   = llm_env('LLM_URL');
@@ -224,42 +225,121 @@ $configuredModel = llm_env('LLM_MODEL');
 $os              = llm_detect_os();
 $server          = llm_detect_server();
 
-$results = [];
-foreach ($engines as $key => $eng) {
-    // Allow env var (e.g. Ollama via LLM_URL) to override the default URL
-    $base = $eng['default_url'];
-    if (!empty($eng['env_var']) && $configuredUrl !== '') {
-        // Use configured URL as base if it matches the engine's expected host pattern;
-        // otherwise stick with default. Crude heuristic: same port = same engine.
-        $defParts = parse_url($eng['default_url']);
-        $cfgParts = parse_url($configuredUrl);
-        if (($cfgParts['port'] ?? null) === ($defParts['port'] ?? null)) {
-            $base = (($cfgParts['scheme'] ?? 'http') . '://' . ($cfgParts['host'] ?? 'localhost') . (isset($cfgParts['port']) ? ':' . $cfgParts['port'] : ''));
+$action = strtolower(trim((string)($_GET['action'] ?? '')));
+
+if ($action === 'scan') {
+    Response::noCache();
+    header('Content-Type: text/html; charset=utf-8');
+
+    $results = [];
+    foreach ($engines as $key => $eng) {
+        // Allow env var (e.g. Ollama via LLM_URL) to override the default URL
+        $base = $eng['default_url'];
+        if (!empty($eng['env_var']) && $configuredUrl !== '') {
+            // Use configured URL as base if it matches the engine's expected host pattern;
+            // otherwise stick with default. Crude heuristic: same port = same engine.
+            $defParts = parse_url($eng['default_url']);
+            $cfgParts = parse_url($configuredUrl);
+            if (($cfgParts['port'] ?? null) === ($defParts['port'] ?? null)) {
+                $base = (($cfgParts['scheme'] ?? 'http') . '://' . ($cfgParts['host'] ?? 'localhost') . (isset($cfgParts['port']) ? ':' . $cfgParts['port'] : ''));
+            }
         }
-    }
-    $url    = $base . $eng['probe_path'];
-    $probe  = llm_probe($url);
-    $models = null;
-    if ($probe['ok']) {
-        $json = json_decode((string)$probe['body'], true);
-        if (is_array($json)) {
-            $models = $eng['extract']($json);
+        $url    = $base . $eng['probe_path'];
+        $probe  = llm_probe($url);
+        $models = null;
+        if ($probe['ok']) {
+            $json = json_decode((string)$probe['body'], true);
+            if (is_array($json)) {
+                $models = $eng['extract']($json);
+            }
         }
+        $results[$key] = [
+            'engine' => $eng,
+            'url'    => $url,
+            'base'   => $base,
+            'probe'  => $probe,
+            'models' => $models,
+        ];
     }
-    $results[$key] = [
-        'engine' => $eng,
-        'url'    => $url,
-        'base'   => $base,
-        'probe'  => $probe,
-        'models' => $models,
-    ];
+
+    $anyOk = false;
+    foreach ($results as $r) { if ($r['probe']['ok']) { $anyOk = true; break; } }
+
+    // --- Summary strip ---
+    echo '<div class="summary">';
+    echo '<div class="pill">OS: <strong>' . htmlspecialchars(PHP_OS) . '</strong> (' . htmlspecialchars($os) . ')</div>';
+    echo '<div class="pill">Webserver: <strong>' . htmlspecialchars($server['software']) . '</strong></div>';
+    if ($configuredUrl !== '') {
+        echo '<div class="pill">LLM_URL: <strong>' . htmlspecialchars($configuredUrl) . '</strong></div>';
+    }
+    if ($configuredModel !== '') {
+        echo '<div class="pill">LLM_MODEL: <strong>' . htmlspecialchars($configuredModel) . '</strong></div>';
+    }
+    if (!$anyOk) {
+        echo '<lib-message type="warning" style="margin-top:12px">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message>';
+    }
+    echo '</div>';
+
+    // --- Cards ---
+    echo '<div class="llm-grid">';
+    foreach ($results as $key => $r) {
+        $eng = $r['engine'];
+        $ok  = $r['probe']['ok'];
+        echo '<div class="llm-card">';
+        echo '<h3>' . htmlspecialchars($eng['name']);
+        echo ' <span class="' . ($ok ? 'badge-ok">actief' : 'badge-down">niet bereikbaar') . '</span>';
+        echo '</h3>';
+        echo '<div class="url">' . htmlspecialchars($r['url']) . '   (' . number_format($r['probe']['ms'], 1) . ' ms)</div>';
+
+        if ($ok) {
+            $models = $r['models'];
+            if ($models === null) {
+                echo '<lib-message type="warning" compact style="margin-top:8px">Antwoord ontvangen, maar geen modellen-lijst herkend.</lib-message>';
+            } elseif (count($models) === 0) {
+                echo '<div class="install-tip">Engine draait, maar er zijn nog geen modellen geladen.<br><strong>Eerste model:</strong><code>' . htmlspecialchars($eng['first_model']) . '</code></div>';
+            } else {
+                echo '<div class="models"><table>';
+                echo '<thead><tr><th>Model</th><th>Detail</th><th class="size">Schijf</th></tr></thead><tbody>';
+                foreach ($models as $m) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars((string)$m['id']) . '</td>';
+                    echo '<td>' . htmlspecialchars((string)($m['detail'] ?? '—')) . '</td>';
+                    echo '<td class="size">' . htmlspecialchars(llm_format_bytes($m['size'] ?? null)) . '</td>';
+                    echo '</tr>';
+                }
+                echo '</tbody></table></div>';
+                echo '<div style="margin-top:8px;font-size:12px;color:var(--text-muted,#6c757d)">' . count($models) . ' model' . (count($models) === 1 ? '' : 'len') . ' geladen</div>';
+            }
+        } else {
+            $err = $r['probe']['error'] ?: 'geen verbinding';
+            echo '<div class="err" style="margin-top:8px">Probe-fout: ' . htmlspecialchars($err) . '</div>';
+            $install = $eng['install'][$os] ?? $eng['install']['linux'];
+            echo '<div class="install-tip">';
+            echo '<strong>Installeren (' . htmlspecialchars($os) . '):</strong>';
+            echo '<code>' . htmlspecialchars($install) . '</code>';
+            if ($server['iis']) {
+                echo '<div style="margin-top:8px;font-size:12px">';
+                echo 'Op IIS: de LLM-engine draait náást IIS als losse service op een lokale poort. ';
+                echo 'Sta uitgaand HTTP-verkeer richting 127.0.0.1 toe (Windows Firewall blokkeert localhost normaliter niet). ';
+                echo 'Open géén externe poort — de PHP-proxy in de app praat met de engine op localhost.';
+                echo '</div>';
+            }
+            echo '<div style="margin-top:6px;font-size:12px"><a href="' . htmlspecialchars($eng['docs']) . '" target="_blank" rel="noopener">Documentatie ↗</a></div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+
+    // --- Refresh button at the bottom ---
+    echo '<div style="text-align:center; padding:16px 0;">';
+    echo '<a href="tools_llm.php" class="btn btn-primary"><span class="lnr lnr-sync"></span> Opnieuw scannen</a>';
+    echo '</div>';
+    exit;
 }
 
-$anyOk = false;
-foreach ($results as $r) { if ($r['probe']['ok']) { $anyOk = true; break; } }
-
 // =========================================================================
-// Render
+// Render — page shell with spinner; JS calls ?action=scan after load
 // =========================================================================
 
 Response::noCache();
@@ -268,7 +348,7 @@ echo '<body class="contentbody tools tool-llm" style="margin:0;">';
 ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server');
 
 echo '<style>
-.tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; padding:16px; }
+.tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; }
 .tool-llm .llm-card { border:1px solid var(--border-color,#dee2e6); border-radius:8px; padding:16px; background:var(--surface,#fff); }
 .tool-llm .llm-card h3 { margin:0 0 8px 0; display:flex; align-items:center; gap:8px; }
 .tool-llm .llm-card .url { font-family:Menlo,Consolas,monospace; font-size:12px; color:var(--text-muted,#6c757d); word-break:break-all; }
@@ -282,84 +362,42 @@ echo '<style>
 .tool-llm .install-tip { margin-top:10px; padding:10px 12px; background:var(--surface-alt,#f6f8fa); border-left:3px solid #c69; border-radius:4px; font-size:13px; }
 .tool-llm .install-tip code { display:block; padding:6px 8px; background:#1c1c1f; color:#e6e6e6; border-radius:4px; margin-top:6px; word-break:break-all; font-family:Menlo,Consolas,monospace; font-size:12px; }
 .tool-llm .install-tip a { color:#1a5dbf; }
-.tool-llm .summary { padding:16px; }
 .tool-llm .summary .pill { display:inline-block; padding:3px 10px; border-radius:12px; background:var(--surface-alt,#f6f8fa); font-size:12px; margin-right:8px; }
 .tool-llm .summary .pill strong { font-weight:600; }
 .tool-llm .err { color:#c0392b; font-size:13px; }
+.tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:48px 16px; color:var(--text-muted,#6c757d); }
 </style>';
 
 echo '<div id="c" class="tools">';
 
-// --- Summary strip ---
-echo '<div class="summary">';
-echo '<div class="pill">OS: <strong>' . htmlspecialchars(PHP_OS) . '</strong> (' . htmlspecialchars($os) . ')</div>';
-echo '<div class="pill">Webserver: <strong>' . htmlspecialchars($server['software']) . '</strong></div>';
-if ($configuredUrl !== '') {
-    echo '<div class="pill">LLM_URL: <strong>' . htmlspecialchars($configuredUrl) . '</strong></div>';
-}
-if ($configuredModel !== '') {
-    echo '<div class="pill">LLM_MODEL: <strong>' . htmlspecialchars($configuredModel) . '</strong></div>';
-}
-if (!$anyOk) {
-    echo '<lib-message type="warning" style="margin-top:12px">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message>';
-}
+// Spinner shown immediately while the JS below fetches the scan endpoint.
+// Server-side probes take ~5-8s total (1.5s timeout × 4 engines + parsing);
+// without this the page would sit blank for that whole window.
+echo '<div id="llm-scan-target">';
+echo   '<div class="scan-state" id="llm-scan-state">';
+echo     '<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>';
+echo   '</div>';
 echo '</div>';
 
-// --- Cards ---
-echo '<div class="llm-grid">';
-foreach ($results as $key => $r) {
-    $eng = $r['engine'];
-    $ok  = $r['probe']['ok'];
-    echo '<div class="llm-card">';
-    echo '<h3>' . htmlspecialchars($eng['name']);
-    echo ' <span class="' . ($ok ? 'badge-ok">actief' : 'badge-down">niet bereikbaar') . '</span>';
-    echo '</h3>';
-    echo '<div class="url">' . htmlspecialchars($r['url']) . '   (' . number_format($r['probe']['ms'], 1) . ' ms)</div>';
-
-    if ($ok) {
-        $models = $r['models'];
-        if ($models === null) {
-            echo '<lib-message type="warning" compact style="margin-top:8px">Antwoord ontvangen, maar geen modellen-lijst herkend.</lib-message>';
-        } elseif (count($models) === 0) {
-            echo '<div class="install-tip">Engine draait, maar er zijn nog geen modellen geladen.<br><strong>Eerste model:</strong><code>' . htmlspecialchars($eng['first_model']) . '</code></div>';
-        } else {
-            echo '<div class="models"><table>';
-            echo '<thead><tr><th>Model</th><th>Detail</th><th class="size">Schijf</th></tr></thead><tbody>';
-            foreach ($models as $m) {
-                echo '<tr>';
-                echo '<td>' . htmlspecialchars((string)$m['id']) . '</td>';
-                echo '<td>' . htmlspecialchars((string)($m['detail'] ?? '—')) . '</td>';
-                echo '<td class="size">' . htmlspecialchars(llm_format_bytes($m['size'] ?? null)) . '</td>';
-                echo '</tr>';
-            }
-            echo '</tbody></table></div>';
-            echo '<div style="margin-top:8px;font-size:12px;color:var(--text-muted,#6c757d)">' . count($models) . ' model' . (count($models) === 1 ? '' : 'len') . ' geladen</div>';
-        }
-    } else {
-        $err = $r['probe']['error'] ?: 'geen verbinding';
-        echo '<div class="err" style="margin-top:8px">Probe-fout: ' . htmlspecialchars($err) . '</div>';
-        $install = $eng['install'][$os] ?? $eng['install']['linux'];
-        echo '<div class="install-tip">';
-        echo '<strong>Installeren (' . htmlspecialchars($os) . '):</strong>';
-        echo '<code>' . htmlspecialchars($install) . '</code>';
-        if ($server['iis']) {
-            echo '<div style="margin-top:8px;font-size:12px">';
-            echo 'Op IIS: de LLM-engine draait náást IIS als losse service op een lokale poort. ';
-            echo 'Sta uitgaand HTTP-verkeer richting 127.0.0.1 toe (Windows Firewall blokkeert localhost normaliter niet). ';
-            echo 'Open géén externe poort — de PHP-proxy in de app praat met de engine op localhost.';
-            echo '</div>';
-        }
-        echo '<div style="margin-top:6px;font-size:12px"><a href="' . htmlspecialchars($eng['docs']) . '" target="_blank" rel="noopener">Documentatie ↗</a></div>';
-        echo '</div>';
-    }
-    echo '</div>';
-}
-echo '</div>';
-
-// --- Refresh button at the bottom ---
-echo '<div style="padding:16px; text-align:center;">';
-echo '<a href="tools_llm.php" class="btn btn-primary"><span class="lnr lnr-sync"></span> Opnieuw scannen</a>';
-echo '</div>';
+echo '<script>
+(function () {
+    var target = document.getElementById("llm-scan-target");
+    if (!target) return;
+    fetch("tools_llm.php?action=scan", { credentials: "same-origin" })
+        .then(function (r) {
+            if (!r.ok) { throw new Error("HTTP " + r.status); }
+            return r.text();
+        })
+        .then(function (html) {
+            target.innerHTML = html;
+        })
+        .catch(function (err) {
+            target.innerHTML = \'<div class="scan-state"><lib-message type="error">Scan mislukt: \'
+                + (err && err.message ? err.message : "onbekende fout")
+                + \' — probeer opnieuw.</lib-message></div>\';
+        });
+})();
+</script>';
 
 echo '</div>';
 echo '</body>';
