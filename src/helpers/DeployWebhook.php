@@ -209,6 +209,29 @@ class DeployWebhook
         $out .= "=== git pull ===\n" . $run('git pull --ff-only origin ' . escapeshellarg($cfg['branch'])) . "\n\n";
 
         if (!$failed && $cfg['composer']) {
+            // Pre-composer app-pool recycle. PHP-FPM workers on IIS hold
+            // file handles to autoloaded classes inside vendor/, and any
+            // background composer/git process can hold whole directory
+            // handles open. When composer's next step is "delete the old
+            // package directory before extracting the new dist zip", a
+            // single live handle anywhere in that tree turns the delete
+            // into a partial — empty/half-populated package dir — and the
+            // install bails mid-way. Touching web.config here forces IIS
+            // to cycle the worker BEFORE composer touches vendor/, so
+            // file locks are released. We touch it AGAIN after install
+            // to load the new code; this pre-touch is just for hygiene.
+            //
+            // Skipped when 'recycle' is disabled (op doesn't want any
+            // automatic pool recycles for this deploy).
+            if ($cfg['recycle']) {
+                @touch($cfg['site_root'] . '/web.config');
+                $out .= "=== pre-composer recycle (release vendor/ file locks) ===\n";
+                // Tiny sleep so the worker shutdown actually starts releasing
+                // handles before composer races in. 500ms is well under any
+                // human-perceptible deploy latency.
+                usleep(500_000);
+            }
+
             $composerCmd = self::resolveComposerCommand($cfg['site_root']);
             if ($composerCmd === null) {
                 $log("FAIL: composer not found on PATH / standard locations / composer.phar in site root. Install composer or drop composer.phar into the site root.");
