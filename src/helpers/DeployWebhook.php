@@ -215,6 +215,28 @@ class DeployWebhook
                 $failed = true;
             } else {
                 $out .= "=== composer install ($composerCmd) ===\n" . $run($composerCmd . ' install ' . $cfg['composer_args']) . "\n\n";
+
+                // Canary: did composer leave the platform package in a
+                // usable state?  We've seen a silent half-install where
+                // the directory exists but src/helpers/Bootstrap.php is
+                // missing — every subsequent request then dies with
+                // "Class App\Library\Bootstrap not found".  Retry once,
+                // fail loud if still broken.  When we fail here we SKIP
+                // the web.config touch + the post-deploy hook so the
+                // currently-running app pool keeps serving the previous
+                // (working) commit instead of getting recycled into a
+                // broken one.
+                $canary = $cfg['site_root'] . '/vendor/stenversonline/platform/src/helpers/Bootstrap.php';
+                if (!is_file($canary)) {
+                    $log("WARN: canary missing after composer install ($canary) — retrying");
+                    $out .= "=== composer install (RETRY after missing canary) ===\n"
+                          . $run($composerCmd . ' install ' . $cfg['composer_args']) . "\n\n";
+                    clearstatcache(true, $canary);
+                }
+                if (!is_file($canary)) {
+                    $log("FAIL: canary STILL missing after retry ($canary) — vendor/stenversonline/platform is half-installed.  NOT recycling app pool; previous deploy stays live.");
+                    $failed = true;
+                }
             }
         }
 
