@@ -30,6 +30,7 @@ $cacheDir = $siteRoot . '/cache';
 $cmaLogsDir = dirname(__DIR__) . '/logs';
 
 // Get request parameters
+$logExplicit  = isset($_GET['log']) && $_GET['log'] !== '';
 $selectedLog = Request::query('log', 'perf');
 $lines = min(Request::queryInt('lines') ?: 100, 500); // Hard cap at 500 lines
 $filter = Request::query('filter', '');
@@ -461,9 +462,37 @@ ToolbarHelper::title('Logbestanden lezen');
     <?php endif; ?>
 </form>
 <script>
+// Remember which log was opened last so the next /cma/tools/logreader.php
+// hit (no ?log= in URL) auto-loads the same one. Storage key is namespaced
+// per origin via the localStorage origin scope. Sanitised on read so a
+// stale value from a removed log type can't redirect to a 404.
+(function () {
+    var KEY = 'cma.logreader.last';
+    var current = <?= json_encode($selectedLog) ?>;
+    var explicit = <?= $logExplicit ? 'true' : 'false' ?>;
+    try {
+        if (explicit) {
+            // User landed here with ?log= in URL — remember that choice.
+            localStorage.setItem(KEY, current);
+        } else {
+            // No ?log= → menu/direct hit. Restore the last-opened log if
+            // we have one stored AND it's different from the current
+            // default ('perf'), otherwise the page is already showing it.
+            var last = localStorage.getItem(KEY);
+            if (last && /^[a-z0-9_-]+$/i.test(last) && last !== current) {
+                window.location.replace('logreader.php?log=' + encodeURIComponent(last));
+            }
+        }
+    } catch (e) { /* localStorage disabled — fall back to default */ }
+})();
 function submitLogFilter() {
     var form = document.getElementById('logFilterForm');
-    var params = new URLSearchParams(new FormData(form));
+    var fd = new FormData(form);
+    try {
+        var pick = fd.get('log');
+        if (pick) { localStorage.setItem('cma.logreader.last', pick); }
+    } catch (e) {}
+    var params = new URLSearchParams(fd);
     // Stay within current frame - logreader is loaded inside tools.php iframe
     window.location.href = 'logreader.php?' + params.toString();
 }
