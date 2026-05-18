@@ -84,36 +84,10 @@ if (!is_dir($modelsDir)) {
 // 2. Curated suggestions.  Update this list as the SOTA shifts; users
 //    can always paste a custom URL into the form below.
 // ---------------------------------------------------------------------------
-$suggestions = [
-    [
-        'name'  => 'google_gemma-4-E4B-it-Q4_K_M.gguf',
-        'label' => 'Gemma 4 E4B-it (Q4_K_M)',
-        'note'  => '~5.4 GB · Google · 35+ languages incl. Dutch · 128K context · function-calling native',
-        'url'   => 'https://huggingface.co/bartowski/google_gemma-4-E4B-it-GGUF/resolve/main/google_gemma-4-E4B-it-Q4_K_M.gguf?download=true',
-        'sizeApprox' => 5_660_000_000,
-    ],
-    [
-        'name'  => 'Qwen3-8B-Q4_K_M.gguf',
-        'label' => 'Qwen 3-8B Instruct (Q4_K_M)',
-        'note'  => '~5 GB · Alibaba · strong multilingual · JSON-disciplined',
-        'url'   => 'https://huggingface.co/bartowski/Qwen_Qwen3-8B-GGUF/resolve/main/Qwen_Qwen3-8B-Q4_K_M.gguf?download=true',
-        'sizeApprox' => 5_000_000_000,
-    ],
-    [
-        'name'  => 'Qwen3-4B-Q4_K_M.gguf',
-        'label' => 'Qwen 3-4B Instruct (Q4_K_M)',
-        'note'  => '~2.5 GB · smaller, ~2× throughput on CPU · good enough for clean recipe text',
-        'url'   => 'https://huggingface.co/bartowski/Qwen_Qwen3-4B-GGUF/resolve/main/Qwen_Qwen3-4B-Q4_K_M.gguf?download=true',
-        'sizeApprox' => 2_500_000_000,
-    ],
-    [
-        'name'  => 'Qwen2.5-7B-Instruct-Q4_K_M.gguf',
-        'label' => 'Qwen 2.5-7B Instruct (Q4_K_M)  [legacy fallback]',
-        'note'  => '~4.7 GB · battle-tested late-2024 release · safe choice on older Windows',
-        'url'   => 'https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf?download=true',
-        'sizeApprox' => 4_700_000_000,
-    ],
-];
+// Curated suggestions live in cma/data/llm_suggested_models.php so this
+// page AND the CMA-side install steps (tools_llm.php) read from the same
+// list. Update one file, both surfaces follow.
+$suggestions = require __DIR__ . '/../data/llm_suggested_models.php';
 
 // ---------------------------------------------------------------------------
 // 3. Helpers

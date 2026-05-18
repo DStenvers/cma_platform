@@ -40,6 +40,33 @@ $llmModelsUrl = 'llm_models.php' . ($deploySecret !== '' ? '?key=' . urlencode($
 $llmModelsHref = htmlspecialchars($llmModelsUrl, ENT_QUOTES, 'UTF-8');
 
 // =========================================================================
+// Recommended model — index 0 from the shared curated list. The install
+// steps below interpolate these values into their `code` blocks so when
+// llm_suggested_models.php changes (new SOTA release), this page follows
+// without touching strings everywhere.
+//   - $recGGUF       e.g. "$recGGUF"
+//   - $recLlmModel   strip the quant suffix + .gguf → bare model id used
+//                    in the .env LLM_MODEL value
+//   - $recOllamaTag  the curated entry's ollama_tag override, or a sane
+//                    fallback when the row predates that field
+//   - $recLabel      human-readable label for hints in the body text
+// =========================================================================
+$llmSuggested = require __DIR__ . '/../data/llm_suggested_models.php';
+$recPick      = is_array($llmSuggested) && isset($llmSuggested[0]) ? $llmSuggested[0] : [];
+$recGGUF      = (string)($recPick['name']  ?? 'model.gguf');
+$recLabel     = (string)($recPick['label'] ?? 'het curated model');
+$recOllamaTag = (string)($recPick['ollama_tag'] ?? 'gemma3:4b');
+// Strip ".Q4_K_M" / similar quant suffix + ".gguf" to derive the bare
+// model id used as the .env LLM_MODEL value. Matches the way llama.cpp
+// + text-generation-webui report the loaded model over the OpenAI-compat
+// /v1/models endpoint.
+$recLlmModel  = (string)preg_replace('/\.[A-Z][A-Z0-9_]*\.gguf$|\.gguf$/i', '', $recGGUF) ?: 'model';
+// LM Studio CLI: bartowski packages GGUF quant collections at
+// <namespace>/<bare>-GGUF — derive that pattern so the `lms get …`
+// command works for whichever model is at index 0.
+$recLmsRepo = 'bartowski/' . $recLlmModel . '-GGUF';
+
+// =========================================================================
 // Engine registry
 // =========================================================================
 
@@ -85,21 +112,21 @@ $engines = [
         'setup' => [
             'windows' => [
                 ['title' => 'Installeer Ollama', 'body' => 'De installer maakt een Windows-service ("Ollama") die bij elke reboot automatisch start — geen handwerk om het draaiend te houden.', 'code' => 'winget install Ollama.Ollama'],
-                ['title' => 'Pull een model',    'body' => 'Eenmalig — Ollama beheert zijn eigen model-storage. Daarna start het instant.', 'code' => 'ollama pull qwen2.5:7b'],
+                ['title' => 'Pull een model',    'body' => 'Eenmalig — Ollama beheert zijn eigen model-storage. Daarna start het instant.', 'code' => "ollama pull $recOllamaTag"],
                 ['title' => 'Verifieer auto-start', 'body' => 'services.msc → Ollama → Startup type moet "Automatic" zijn. Standaard zo door de installer ingesteld; controleer na een Windows-update.'],
-                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production op de site:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=qwen2.5:7b"],
+                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production op de site:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=$recOllamaTag"],
             ],
             'linux' => [
                 ['title' => 'Installeer Ollama', 'body' => 'Installer maakt een systemd-unit aan en enabled hem direct — auto-start na reboot is dus al geregeld.', 'code' => 'curl -fsSL https://ollama.com/install.sh | sh'],
-                ['title' => 'Pull een model',    'body' => 'Eenmalig.', 'code' => 'ollama pull qwen2.5:7b'],
+                ['title' => 'Pull een model',    'body' => 'Eenmalig.', 'code' => "ollama pull $recOllamaTag"],
                 ['title' => 'Verifieer auto-start', 'body' => 'systemctl status ollama moet "enabled" tonen.', 'code' => 'systemctl status ollama'],
-                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=qwen2.5:7b"],
+                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=$recOllamaTag"],
             ],
             'darwin' => [
                 ['title' => 'Installeer Ollama', 'body' => 'Via brew of de installer van de site.', 'code' => 'brew install ollama'],
                 ['title' => 'Auto-start aanzetten', 'body' => 'Zonder dit moet je ollama na elke login zelf opstarten.', 'code' => 'brew services start ollama'],
-                ['title' => 'Pull een model',    'body' => '', 'code' => 'ollama pull qwen2.5:7b'],
-                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=qwen2.5:7b"],
+                ['title' => 'Pull een model',    'body' => '', 'code' => "ollama pull $recOllamaTag"],
+                ['title' => 'Configureer .env',  'body' => 'Voeg toe aan .env.production:', 'code' => "LLM_URL=http://localhost:11434/api/generate\nLLM_MODEL=$recOllamaTag"],
             ],
         ],
         'docs'        => 'https://ollama.com',
@@ -120,24 +147,24 @@ $engines = [
         'setup' => [
             'windows' => [
                 ['title' => 'Installeer LM Studio', 'body' => 'Download de Windows-installer van https://lmstudio.ai/. GUI-tool — geen aparte CLI nodig.'],
-                ['title' => 'Download een model',   'body' => 'In de app: tab "Discover" → zoek bv. "qwen2.5 7b instruct gguf" → druk Download. Modellen landen in %USERPROFILE%\\.lmstudio\\models.'],
+                ['title' => 'Download een model',   'body' => 'In de app: tab "Discover" → zoek bv. "gemma 4 E4B-it gguf" (zelfde model als de curated #1 in <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a>) → druk Download. Modellen landen in %USERPROFILE%\\.lmstudio\\models.'],
                 ['title' => 'Start de Local Server', 'body' => 'Tab "Local Server" → kies het gedownloade model → "Start Server" (poort 1234). Vink "Start server when LM Studio starts" aan zodat hij na een herstart van de app meteen draait.'],
                 ['title' => 'Auto-start na Windows-reboot', 'body' => 'Settings → "Run LM Studio at Windows login" aanvinken. Zonder dit start LM Studio NIET na een server-reboot en is je LLM-API offline.'],
-                ['title' => 'Configureer .env', 'body' => 'Het LLM_MODEL is de id zoals je hem in LM Studio ziet. Voorbeeld:', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => 'Het LLM_MODEL is de id zoals je hem in LM Studio ziet. Voorbeeld:', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'linux' => [
                 ['title' => 'Installeer LM Studio', 'body' => 'Download AppImage van https://lmstudio.ai/, maak executable.'],
-                ['title' => 'Download een model',   'body' => 'In-app via Discover, of CLI:', 'code' => 'lms get qwen/qwen2.5-7b-instruct'],
+                ['title' => 'Download een model',   'body' => 'In-app via Discover, of CLI:', 'code' => "lms get $recLmsRepo"],
                 ['title' => 'Start de server',      'body' => 'Eénmalig handmatig om te testen:', 'code' => 'lms server start --port 1234'],
                 ['title' => 'Auto-start als user-service', 'body' => 'Maak ~/.config/systemd/user/lmstudio.service met:', 'code' => "[Unit]\nDescription=LM Studio API\n[Service]\nExecStart=/pad/naar/lms server start --port 1234\nRestart=always\n[Install]\nWantedBy=default.target"],
                 ['title' => 'Enable + start', 'body' => '', 'code' => "systemctl --user enable --now lmstudio\nloginctl enable-linger \$USER  # ook draaien zonder ingelogde sessie"],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'darwin' => [
                 ['title' => 'Installeer LM Studio', 'body' => '', 'code' => 'brew install --cask lm-studio'],
                 ['title' => 'Download een model + start server', 'body' => 'In de app: Discover → Download → Local Server → Start.'],
                 ['title' => 'Auto-start na login', 'body' => 'System Settings → General → Login Items → LM Studio toevoegen. (En in LM Studio: "Start server when LM Studio starts".)'],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=$recLlmModel"],
             ],
         ],
         'docs'        => 'https://lmstudio.ai/',
@@ -157,24 +184,25 @@ $engines = [
             'windows' => [
                 ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> en kies een curated GGUF, of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
                 ['title' => 'Pak llama-server binary',  'body' => 'Download een release uit https://github.com/ggerganov/llama.cpp/releases en pak uit naar C:\\llama\\bin\\.'],
-                ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => 'C:\\llama\\bin\\llama-server.exe -m C:\\llama\\models\\qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
-                ['title' => 'Wrap als Windows-service met NSSM', 'body' => 'NSSM van https://nssm.cc/ download. Daarna (cmd as Admin):', 'code' => "nssm install LlamaServer C:\\llama\\bin\\llama-server.exe\nnssm set LlamaServer AppParameters \"-m C:\\llama\\models\\qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080 --host 0.0.0.0\"\nnssm set LlamaServer Start SERVICE_AUTO_START\nnssm start LlamaServer"],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => 'C:\\llama\\llama-server.exe -m C:\\llama\\models\\$recGGUF --port 8080'],
+                ['title' => 'Auto-start via Task Scheduler', 'body' => 'Geen extra install nodig — Task Scheduler zit in elk Windows Server. Run als SYSTEM zodat de service draait zonder ingelogde gebruiker. PowerShell as Admin:', 'code' => "\$action    = New-ScheduledTaskAction -Execute 'C:\\llama\\llama-server.exe' -Argument '-m C:\\llama\\models\\$recGGUF --port 8080 --host 0.0.0.0'\n\$trigger   = New-ScheduledTaskTrigger -AtStartup\n\$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable\n\$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest\nRegister-ScheduledTask -TaskName 'LlamaServer' -Action \$action -Trigger \$trigger -Settings \$settings -Principal \$principal -Force\nStart-ScheduledTask    -TaskName 'LlamaServer'"],
+                ['title' => 'Status / stop / verwijderen', 'body' => 'Het verschijnt niet in services.msc — gebruik Task Scheduler GUI of:', 'code' => "Get-ScheduledTaskInfo  -TaskName 'LlamaServer'    # laatste run + status\nStop-ScheduledTask     -TaskName 'LlamaServer'\nUnregister-ScheduledTask -TaskName 'LlamaServer' -Confirm:\$false"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'linux' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of curl direct uit Hugging Face. Default storage: ~/llama-models.'],
                 ['title' => 'Bouw of pak llama.cpp', 'body' => '', 'code' => "git clone https://github.com/ggerganov/llama.cpp\ncd llama.cpp && make -j"],
-                ['title' => 'Test handmatig', 'body' => '', 'code' => './llama-server -m ~/llama-models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
-                ['title' => 'Systemd-unit voor auto-start', 'body' => 'Schrijf /etc/systemd/system/llama-server.service:', 'code' => "[Unit]\nDescription=llama.cpp OpenAI-compat server\nAfter=network.target\n[Service]\nExecStart=/opt/llama.cpp/llama-server -m /opt/models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080\nRestart=always\nUser=llama\n[Install]\nWantedBy=multi-user.target"],
+                ['title' => 'Test handmatig', 'body' => '', 'code' => './llama-server -m ~/llama-models/$recGGUF --port 8080'],
+                ['title' => 'Systemd-unit voor auto-start', 'body' => 'Schrijf /etc/systemd/system/llama-server.service:', 'code' => "[Unit]\nDescription=llama.cpp OpenAI-compat server\nAfter=network.target\n[Service]\nExecStart=/opt/llama.cpp/llama-server -m /opt/models/$recGGUF --port 8080\nRestart=always\nUser=llama\n[Install]\nWantedBy=multi-user.target"],
                 ['title' => 'Enable + start', 'body' => '', 'code' => 'sudo systemctl enable --now llama-server'],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'darwin' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of brew/curl.'],
                 ['title' => 'Installeer llama.cpp', 'body' => '', 'code' => 'brew install llama.cpp'],
-                ['title' => 'Test handmatig', 'body' => '', 'code' => 'llama-server -m ~/llama-models/qwen2.5-7b-instruct.Q4_K_M.gguf --port 8080'],
+                ['title' => 'Test handmatig', 'body' => '', 'code' => 'llama-server -m ~/llama-models/$recGGUF --port 8080'],
                 ['title' => 'Auto-start via brew services', 'body' => 'llama.cpp heeft geen native service-recept; wrap met een launchd plist of run via brew-services-template.'],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
         ],
         'docs'        => 'https://github.com/ggerganov/llama.cpp',
@@ -195,8 +223,9 @@ $engines = [
                 ['title' => 'Download een GGUF-model (optioneel — kan ook in-webui)', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui later via tab Model.'],
                 ['title' => 'Clone + initial setup', 'body' => 'start_windows.bat draait éénmalig de installer (Python venv, deps).', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\nstart_windows.bat"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt — voeg toe:', 'code' => '--api --api-port 5000 --listen'],
-                ['title' => 'Wrap als Windows-service met NSSM', 'body' => '', 'code' => "nssm install TextGenWebui C:\\pad\\start_windows.bat\nnssm set TextGenWebui AppDirectory C:\\pad\\text-generation-webui\nnssm set TextGenWebui Start SERVICE_AUTO_START\nnssm start TextGenWebui"],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Auto-start via Task Scheduler', 'body' => 'Built-in Windows, geen extra install. Wrap start_windows.bat als SYSTEM-task. PowerShell as Admin:', 'code' => "\$action    = New-ScheduledTaskAction -Execute 'C:\\pad\\text-generation-webui\\start_windows.bat' -WorkingDirectory 'C:\\pad\\text-generation-webui'\n\$trigger   = New-ScheduledTaskTrigger -AtStartup\n\$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 2) -StartWhenAvailable\n\$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest\nRegister-ScheduledTask -TaskName 'TextGenWebui' -Action \$action -Trigger \$trigger -Settings \$settings -Principal \$principal -Force\nStart-ScheduledTask    -TaskName 'TextGenWebui'"],
+                ['title' => 'Status / verwijderen', 'body' => '', 'code' => "Get-ScheduledTaskInfo  -TaskName 'TextGenWebui'\nUnregister-ScheduledTask -TaskName 'TextGenWebui' -Confirm:\$false"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'linux' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
@@ -204,14 +233,14 @@ $engines = [
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Systemd-unit', 'body' => 'Schrijf /etc/systemd/system/textgen-webui.service:', 'code' => "[Unit]\nDescription=text-generation-webui API\nAfter=network.target\n[Service]\nWorkingDirectory=/opt/text-generation-webui\nExecStart=/opt/text-generation-webui/start_linux.sh\nRestart=always\nUser=textgen\n[Install]\nWantedBy=multi-user.target"],
                 ['title' => 'Enable + start', 'body' => '', 'code' => 'sudo systemctl enable --now textgen-webui'],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'darwin' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
                 ['title' => 'Clone + initial setup', 'body' => '', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\n./start_macos.sh"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Auto-start na login via launchd', 'body' => 'Schrijf ~/Library/LaunchAgents/com.oobabooga.textgen.plist met ProgramArguments wijzend naar start_macos.sh + RunAtLoad=true.'],
-                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=qwen2.5-7b-instruct"],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=$recLlmModel"],
             ],
         ],
         'docs'        => 'https://github.com/oobabooga/text-generation-webui',
