@@ -651,10 +651,6 @@ if ($action === 'scan') {
     }
     $results = $inUse + $workingLocal + $workingFallback + $notWorking;
 
-    // Optional warning when nothing is reachable. The URL/model that's
-    // configured shows on the engine card itself via the "In gebruik"
-    // badge — pulling them up here turned out to be redundant once
-    // that badge exists.
     if (!$anyOk) {
         echo '<div class="summary"><lib-message type="warning">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message></div>';
     }
@@ -743,9 +739,6 @@ if ($action === 'scan') {
         echo '</div>';
     }
     echo '</div>';
-
-    // Refresh-button moved to the toolbar (see ToolbarHelper::report
-    // call below with $extraHtml). No bottom-of-fragment button.
     exit;
 }
 
