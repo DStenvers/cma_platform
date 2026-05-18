@@ -207,6 +207,13 @@ $engines = [
         ],
         'docs'        => 'https://github.com/ggerganov/llama.cpp',
     ],
+    // text-generation-webui (oobabooga) is parked in source so the
+    // 4-card grid (Ollama, LM Studio, llama.cpp, Anthropic-fallback)
+    // renders evenly. Uncomment to reinstate; setup steps + probe path
+    // are kept verbatim. Embedded "$recLmsRepo / $recLlmModel" tokens
+    // resolve correctly when the entry is re-enabled — block comments
+    // don't process content, so the strings just sit dormant.
+    /*
     'textgen' => [
         'name'         => 'text-generation-webui (oobabooga)',
         'default_url'  => 'http://localhost:5000',
@@ -245,6 +252,7 @@ $engines = [
         ],
         'docs'        => 'https://github.com/oobabooga/text-generation-webui',
     ],
+    */
     // Backup route — used by App\Llm::generate() when the configured
     // local Ollama can't be reached. Probed against api.anthropic.com
     // with the resolved key (LLM_KEY > OCR_VISION_KEY) so the operator
@@ -641,13 +649,32 @@ if ($action === 'scan') {
                 if (count($models) === 0) {
                     echo '<lib-message type="info" compact style="margin-top:8px">Engine draait, maar er zijn nog geen modellen geladen.</lib-message>';
                 } else {
+                    // Hide Detail / Schijf columns when no row carries
+                    // either value. llama.cpp's /v1/models endpoint
+                    // only returns ids — the previous table rendered
+                    // two columns full of "—" for it. Only show a
+                    // column when at least one row has data for it.
+                    $hasDetail = false;
+                    $hasSize   = false;
+                    foreach ($models as $m) {
+                        if (!empty($m['detail'])) { $hasDetail = true; }
+                        if (!empty($m['size']))   { $hasSize   = true; }
+                        if ($hasDetail && $hasSize) { break; }
+                    }
                     echo '<div class="models"><table>';
-                    echo '<thead><tr><th>Model</th><th>Detail</th><th class="size">Schijf</th></tr></thead><tbody>';
+                    echo '<thead><tr><th>Model</th>';
+                    if ($hasDetail) { echo '<th>Detail</th>'; }
+                    if ($hasSize)   { echo '<th class="size">Schijf</th>'; }
+                    echo '</tr></thead><tbody>';
                     foreach ($models as $m) {
                         echo '<tr>';
                         echo '<td>' . htmlspecialchars((string)$m['id']) . '</td>';
-                        echo '<td>' . htmlspecialchars((string)($m['detail'] ?? '—')) . '</td>';
-                        echo '<td class="size">' . htmlspecialchars(llm_format_bytes($m['size'] ?? null)) . '</td>';
+                        if ($hasDetail) {
+                            echo '<td>' . htmlspecialchars((string)($m['detail'] ?? '')) . '</td>';
+                        }
+                        if ($hasSize) {
+                            echo '<td class="size">' . htmlspecialchars(llm_format_bytes($m['size'] ?? null)) . '</td>';
+                        }
                         echo '</tr>';
                     }
                     echo '</tbody></table></div>';
