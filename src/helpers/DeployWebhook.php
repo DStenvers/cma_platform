@@ -189,6 +189,23 @@ class DeployWebhook
             return $text;
         };
 
+        // Discard local edits to tracked files BEFORE pulling.  The
+        // server is a read-only mirror of the repo — `composer install`
+        // running here can (and does, for `dev-*` constraints) mutate
+        // composer.lock's source.reference SHA every deploy, and that
+        // counts as a "local change" that blocks the next ff-only
+        // pull with "would be overwritten by merge".  `checkout -- .`
+        // reverts working-tree changes to tracked files only — new
+        // untracked files (logs, uploads, cache) are preserved.
+        //
+        // Opt out by setting DEPLOY_NO_RESET=1 in .env (e.g. on a
+        // server where an operator actively hand-edits files between
+        // deploys — generally a smell, but supported).
+        $skipReset = (string)($_ENV['DEPLOY_NO_RESET'] ?? getenv('DEPLOY_NO_RESET') ?: '') === '1';
+        if (!$skipReset) {
+            $out .= "=== git checkout -- . (discard local drift) ===\n"
+                  . $run('git checkout -- .') . "\n\n";
+        }
         $out .= "=== git pull ===\n" . $run('git pull --ff-only origin ' . escapeshellarg($cfg['branch'])) . "\n\n";
 
         if (!$failed && $cfg['composer']) {
