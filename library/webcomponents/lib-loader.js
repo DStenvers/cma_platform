@@ -25,6 +25,18 @@
  *   --loader-color: Spinner color (default: var(--color-info, #3F096E))
  *   --loader-bg: Background color for overlay (default: rgba(255,255,255,0.9))
  *   --loader-text-color: Text color (default: var(--text-secondary, #666))
+ *
+ * Pre-upgrade behaviour:
+ *   A spinner is useless if it depends on the very JS load it's meant
+ *   to wait for. lib-components.css ships in the critical-path
+ *   stylesheet block (loaded by cma/bootstrap.inc before any JS) and
+ *   includes rules targeting `lib-loader:not(:defined)` that paint
+ *   a CSS-only spinner immediately. Once this file finishes loading
+ *   and registers the custom-element class, `:not(:defined)` no
+ *   longer matches and the shadow-DOM render below takes over.
+ *   The fallback honours the `size` and `text` attributes via
+ *   attribute selectors + attr() so it carries the same visual
+ *   intent as the post-upgrade render.
  */
 // Guard against double registration
 if (!customElements.get('lib-loader')) {

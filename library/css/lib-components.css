@@ -997,53 +997,18 @@ lib-field.has-error .lib-field__control:not(:placeholder-shown) + .lib-field__la
     color: var(--lib-field-error, #b00020);
 }
 
-/* ============================================================
-   lib-loader pre-upgrade fallback
-   ------------------------------------------------------------
-   A spinner that needs JavaScript to be visible is useless during
-   the cold load it's meant to cover — the lib-loader.js bundle
-   races whatever fetch the page is waiting on, and the browser
-   tag stays empty until the custom element registers.
-   Browser sets `:not(:defined)` on every custom element until the
-   class is registered. Targeting that pseudo-class lets us paint
-   a CSS-only spinner immediately, BEFORE any JS runs. Once
-   lib-loader.js defines the class, `:not(:defined)` no longer
-   matches and the component's shadow-DOM render takes over.
-   This file ships in the critical-path stylesheet block (loaded
-   from cma/bootstrap.inc), so the rules are available on first
-   paint.
-   ============================================================ */
-lib-loader:not(:defined) {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    vertical-align: middle;
-    box-sizing: border-box;
-}
+/* lib-loader pre-upgrade fallback — see lib-loader.js docblock. */
+lib-loader:not(:defined) { display: inline-block; width: 32px; height: 32px; vertical-align: middle; box-sizing: border-box; }
 lib-loader:not(:defined)[size="small"]  { width: 20px; height: 20px; }
-lib-loader:not(:defined)[size="medium"] { width: 32px; height: 32px; }
 lib-loader:not(:defined)[size="large"]  { width: 48px; height: 48px; }
 lib-loader:not(:defined)::before {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
+    content: ''; display: block; width: 100%; height: 100%; box-sizing: border-box;
     border: 3px solid var(--lib-loader-track, var(--color-border, #dee2e6));
     border-top-color: var(--lib-loader-color, var(--color-accent, var(--color-info, #3F096E)));
-    border-radius: 50%;
-    animation: lib-loader-spin 0.8s linear infinite;
+    border-radius: 50%; animation: lib-loader-spin 0.8s linear infinite;
 }
-/* Text="..." attribute renders below the spinner once upgraded —
-   show it pre-upgrade too so the caller's message is visible from
-   the very first paint. CSS attr() in `content` is widely
-   supported; positions it as a sibling label via ::after on the
-   host (block flow forces a new line below the spinner). */
 lib-loader:not(:defined)[text]::after {
-    content: attr(text);
-    display: block;
-    margin-top: 0.4rem;
-    font-size: 0.9rem;
+    content: attr(text); display: block; margin-top: 0.4rem; font-size: 0.9rem;
     color: var(--lib-loader-text-color, var(--text-secondary, #666));
 }
 @keyframes lib-loader-spin { to { transform: rotate(360deg); } }
