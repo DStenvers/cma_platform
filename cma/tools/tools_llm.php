@@ -605,18 +605,43 @@ if ($action === 'scan') {
     $anyOk = false;
     foreach ($results as $r) { if ($r['probe']['ok']) { $anyOk = true; break; } }
 
-    // Reorder cards: working local engines first, then working fallback
-    // (Anthropic), then anything not reachable. Within each group the
-    // original registry order is preserved. The operator sees what's
-    // actually working at the top of the grid and the install steps
-    // for missing engines stay below — same data, more useful at a
-    // glance when one local is up.
+    // Decide which card matches the configured LLM_URL — that's the
+    // engine the app is actually pointing at. Local engines: match by
+    // port (LLM_URL port == base URL port). Anthropic-fallback: match
+    // when LLM_PROVIDER=anthropic OR LLM_URL host is api.anthropic.com.
+    $configuredPort = $configuredUrl !== '' ? (parse_url($configuredUrl, PHP_URL_PORT) ?: null) : null;
+    $configuredHost = $configuredUrl !== '' ? strtolower((string)parse_url($configuredUrl, PHP_URL_HOST)) : '';
+    $providerEnv    = strtolower(trim((string)($_ENV['LLM_PROVIDER'] ?? getenv('LLM_PROVIDER') ?: '')));
+    $inUseKey = null;
+    foreach ($results as $key => $r) {
+        $kind = (string)($r['engine']['probe_kind'] ?? 'local');
+        if ($kind === 'anthropic') {
+            if ($providerEnv === 'anthropic' || str_contains($configuredHost, 'anthropic.com')) {
+                $inUseKey = $key; break;
+            }
+        } else {
+            $resPort = parse_url($r['url'], PHP_URL_PORT) ?: null;
+            if ($configuredPort !== null && (int)$resPort === (int)$configuredPort) {
+                $inUseKey = $key; break;
+            }
+        }
+    }
+    foreach ($results as $key => &$r) { $r['in_use'] = ($key === $inUseKey); }
+    unset($r);
+
+    // Reorder cards: in-use first (whichever engine is actually active),
+    // then other working engines, then working fallback (Anthropic),
+    // then anything not reachable. Within each group the original
+    // registry order is preserved.
+    $inUse           = [];
     $workingLocal    = [];
     $workingFallback = [];
     $notWorking      = [];
     foreach ($results as $key => $r) {
         $kind = (string)($r['engine']['probe_kind'] ?? 'local');
-        if (!$r['probe']['ok']) {
+        if (!empty($r['in_use'])) {
+            $inUse[$key] = $r;
+        } elseif (!$r['probe']['ok']) {
             $notWorking[$key] = $r;
         } elseif ($kind === 'anthropic') {
             $workingFallback[$key] = $r;
@@ -624,33 +649,28 @@ if ($action === 'scan') {
             $workingLocal[$key] = $r;
         }
     }
-    $results = $workingLocal + $workingFallback + $notWorking;
+    $results = $inUse + $workingLocal + $workingFallback + $notWorking;
 
-    // --- Summary strip ---
-    // OS + webserver detection still drives the per-engine install
-    // steps below (which install command per OS, IIS-specific firewall
-    // note, etc.). Not surfaced here above the cards — those facts
-    // belong INSIDE the install info, not as a header above engines.
-    echo '<div class="summary">';
-    if ($configuredUrl !== '') {
-        echo '<div class="pill">In gebruik: <strong>' . htmlspecialchars($configuredUrl) . '</strong></div>';
-    }
-    if ($configuredModel !== '') {
-        echo '<div class="pill">Model: <strong>' . htmlspecialchars($configuredModel) . '</strong></div>';
-    }
+    // Optional warning when nothing is reachable. The URL/model that's
+    // configured shows on the engine card itself via the "In gebruik"
+    // badge — pulling them up here turned out to be redundant once
+    // that badge exists.
     if (!$anyOk) {
-        echo '<lib-message type="warning" style="margin-top:12px">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message>';
+        echo '<div class="summary"><lib-message type="warning">Geen lokale LLM-engine bereikbaar op de standaard poorten. Zie de installatiesuggesties hieronder.</lib-message></div>';
     }
-    echo '</div>';
 
     // --- Cards ---
     echo '<div class="llm-grid">';
     foreach ($results as $key => $r) {
         $eng = $r['engine'];
         $ok  = $r['probe']['ok'];
-        echo '<div class="llm-card">';
+        $isInUse = !empty($r['in_use']);
+        echo '<div class="llm-card' . ($isInUse ? ' llm-card--in-use' : '') . '">';
         echo '<h3>' . htmlspecialchars($eng['name']);
         echo ' <span class="' . ($ok ? 'badge-ok">actief' : 'badge-down">niet bereikbaar') . '</span>';
+        if ($isInUse) {
+            echo ' <span class="badge-in-use">In gebruik</span>';
+        }
         echo '</h3>';
         echo '<div class="url">' . htmlspecialchars($r['url']) . '   (' . number_format($r['probe']['ms'], 1) . ' ms)</div>';
 
@@ -690,8 +710,13 @@ if ($action === 'scan') {
                     if ($hasSize)   { echo '<th class="size">Schijf</th>'; }
                     echo '</tr></thead><tbody>';
                     foreach ($models as $m) {
-                        echo '<tr>';
-                        echo '<td>' . htmlspecialchars((string)$m['id']) . '</td>';
+                        $isActiveModel = $isInUse && $configuredModel !== '' && (string)$m['id'] === $configuredModel;
+                        echo '<tr' . ($isActiveModel ? ' class="model-row--in-use"' : '') . '>';
+                        echo '<td>' . htmlspecialchars((string)$m['id']);
+                        if ($isActiveModel) {
+                            echo ' <span class="badge-in-use">In gebruik</span>';
+                        }
+                        echo '</td>';
                         if ($hasDetail) {
                             echo '<td>' . htmlspecialchars((string)($m['detail'] ?? '')) . '</td>';
                         }
@@ -719,10 +744,8 @@ if ($action === 'scan') {
     }
     echo '</div>';
 
-    // --- Refresh button at the bottom ---
-    echo '<div style="text-align:center; padding:16px 0;">';
-    echo '<a href="tools_llm.php" class="btn btn-primary"><span class="lnr lnr-sync"></span> Opnieuw scannen</a>';
-    echo '</div>';
+    // Refresh-button moved to the toolbar (see ToolbarHelper::report
+    // call below with $extraHtml). No bottom-of-fragment button.
     exit;
 }
 
@@ -733,7 +756,8 @@ if ($action === 'scan') {
 Response::noCache();
 cma_html_header('CMA - LLM management');
 echo '<body class="contentbody tools tool-llm" style="margin:0;">';
-ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server');
+$rescanBtn = '<span class="tb-btn"><a href="javascript:void(0)" id="llm-rescan-btn" title="Opnieuw scannen"><span class="lnr lnr-sync"></span><span class="tb-btn-text">Opnieuw scannen</span></a></span>';
+ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server', $rescanBtn);
 
 echo '<style>
 .tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; }
@@ -742,6 +766,9 @@ echo '<style>
 .tool-llm .llm-card .url { font-family:Menlo,Consolas,monospace; font-size:12px; color:var(--text-muted,#6c757d); word-break:break-all; }
 .tool-llm .badge-ok { background:#1b8a3a; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
 .tool-llm .badge-down { background:#888; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.tool-llm .badge-in-use { background:#1a5dbf; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.tool-llm .llm-card--in-use { box-shadow: 0 0 0 2px #1a5dbf; }
+.tool-llm .model-row--in-use td { background:rgba(26,93,191,0.08); font-weight:600; }
 .tool-llm .models { margin-top:10px; }
 .tool-llm .models table { width:100%; border-collapse:collapse; font-size:13px; }
 .tool-llm .models th, .tool-llm .models td { text-align:left; padding:4px 8px; border-bottom:1px solid var(--border-color,#eee); }
@@ -779,19 +806,29 @@ echo '<script>
 (function () {
     var target = document.getElementById("llm-scan-target");
     if (!target) return;
-    fetch("tools_llm.php?action=scan", { credentials: "same-origin" })
-        .then(function (r) {
-            if (!r.ok) { throw new Error("HTTP " + r.status); }
-            return r.text();
-        })
-        .then(function (html) {
-            target.innerHTML = html;
-        })
-        .catch(function (err) {
-            target.innerHTML = \'<div class="scan-state"><lib-message type="error">Scan mislukt: \'
-                + (err && err.message ? err.message : "onbekende fout")
-                + \' — probeer opnieuw.</lib-message></div>\';
-        });
+    function runScan() {
+        // Reset to spinner state — used both on first load and when
+        // the toolbar "Opnieuw scannen" button is clicked.
+        target.innerHTML = \'<div class="scan-state" id="llm-scan-state">\'
+            + \'<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>\'
+            + \'</div>\';
+        fetch("tools_llm.php?action=scan", { credentials: "same-origin", cache: "no-store" })
+            .then(function (r) {
+                if (!r.ok) { throw new Error("HTTP " + r.status); }
+                return r.text();
+            })
+            .then(function (html) {
+                target.innerHTML = html;
+            })
+            .catch(function (err) {
+                target.innerHTML = \'<div class="scan-state"><lib-message type="error">Scan mislukt: \'
+                    + (err && err.message ? err.message : "onbekende fout")
+                    + \' — probeer opnieuw.</lib-message></div>\';
+            });
+    }
+    runScan();
+    var rescan = document.getElementById("llm-rescan-btn");
+    if (rescan) { rescan.addEventListener("click", function (e) { e.preventDefault(); runScan(); }); }
 })();
 </script>';
 

@@ -138,6 +138,18 @@ class DeployWebhook
 
         $commit = substr((string)($data['after'] ?? ''), 0, 7);
         $pusher = (string)($data['pusher']['name'] ?? '?');
+
+        // Visual deploy-separator. Each deploy is bracketed by an
+        // unprefixed start/end banner so scrolling the log finds the
+        // run boundaries instantly. The body keeps the per-line
+        // [timestamp] prefix from $log() — banners deliberately bypass
+        // it (the timestamp is IN the banner) for visual punch.
+        $bannerLine = str_repeat('-', 60) . "\n";
+        $startBanner = "\n" . $bannerLine
+                     . 'deploy started: ' . date('Y-m-d H:i:s') . ' ' . $cfg['branch']
+                     . " (commit $commit by $pusher)\n"
+                     . $bannerLine;
+        @file_put_contents($cfg['log_file'], $startBanner, FILE_APPEND);
         $log("ACCEPTED: deploy $commit by $pusher (running async)");
 
         // GitHub webhook timeout is ~10s historically (now 30s). Our
@@ -294,6 +306,13 @@ class DeployWebhook
         } else {
             $log("OK: deploy $commit");
         }
+
+        // Matching footer banner — close the visual block.
+        $endBanner = $bannerLine
+                   . 'deploy ended:   ' . date('Y-m-d H:i:s') . ' ' . $cfg['branch']
+                   . " (commit $commit, " . ($failed ? 'FAILED' : 'OK') . ")\n"
+                   . $bannerLine . "\n";
+        @file_put_contents($cfg['log_file'], $endBanner, FILE_APPEND);
     }
 
     /**
