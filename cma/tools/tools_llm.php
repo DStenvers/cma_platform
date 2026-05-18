@@ -216,6 +216,55 @@ $engines = [
         ],
         'docs'        => 'https://github.com/oobabooga/text-generation-webui',
     ],
+    // Backup route — used by App\Llm::generate() when the configured
+    // local Ollama can't be reached. Probed against api.anthropic.com
+    // with the resolved key (LLM_KEY > OCR_VISION_KEY) so the operator
+    // sees whether the fallback would actually work, side by side with
+    // the local engines.
+    'anthropic_fallback' => [
+        'name'         => 'Anthropic Claude (fallback)',
+        'default_url'  => 'https://api.anthropic.com',
+        'env_var'      => null,
+        'probe_path'   => '/v1/models',
+        'probe_kind'   => 'anthropic',
+        'extract'      => function (array $j): ?array {
+            if (!isset($j['data']) || !is_array($j['data'])) return null;
+            $out = [];
+            foreach ($j['data'] as $m) {
+                $name = (string)($m['display_name'] ?? $m['id'] ?? '');
+                if ($name === '') continue;
+                $out[] = [
+                    'id'     => $name,
+                    'size'   => null,
+                    'detail' => isset($m['created_at']) ? substr((string)$m['created_at'], 0, 10) : null,
+                ];
+            }
+            // Anthropic returns a long list; show the 6 newest to keep
+            // the card compact. Caller's "show all" is a click-through
+            // to docs.
+            return array_slice($out, 0, 6);
+        },
+        'setup' => [
+            'windows' => [
+                ['title' => 'Maak een Anthropic-account + API-key', 'body' => 'https://console.anthropic.com → Account → API Keys → Create Key. Kopieer eenmalig (Anthropic toont hem daarna niet meer).'],
+                ['title' => 'Topup credits', 'body' => 'Anthropic Console → Plans &amp; Billing → kies "Build" (pay-as-you-go) en zet €5-10 op. Recipe-parse-call kost ~€0,001-0,005.'],
+                ['title' => 'Configureer .env', 'body' => 'Zet in .env.production. LLM_KEY wordt automatisch ook als OCR-vision-key gebruikt mits OCR_VISION_PROVIDER ongezet of "anthropic" is.', 'code' => "LLM_KEY=sk-ant-api03-XXXXXXXXXXXX\nLLM_FALLBACK_MODEL=claude-haiku-4-5"],
+                ['title' => 'Geen Ollama? Forceer Anthropic als primair', 'body' => 'Standaard is Ollama de primary en Anthropic de fallback. Wil je vanaf nul Anthropic gebruiken, zet:', 'code' => "LLM_PROVIDER=anthropic"],
+            ],
+            'linux' => [
+                ['title' => 'Maak een Anthropic-account + API-key', 'body' => 'https://console.anthropic.com → API Keys → Create Key.'],
+                ['title' => 'Topup credits', 'body' => 'Console → Plans &amp; Billing → "Build" plan, ~€5-10 startbudget.'],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_KEY=sk-ant-api03-XXXXXXXXXXXX\nLLM_FALLBACK_MODEL=claude-haiku-4-5"],
+                ['title' => 'Forceer als primair (optioneel)', 'body' => '', 'code' => "LLM_PROVIDER=anthropic"],
+            ],
+            'darwin' => [
+                ['title' => 'Maak een Anthropic-account + API-key', 'body' => 'https://console.anthropic.com → API Keys → Create Key.'],
+                ['title' => 'Topup credits', 'body' => 'Console → Plans &amp; Billing.'],
+                ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_KEY=sk-ant-api03-XXXXXXXXXXXX\nLLM_FALLBACK_MODEL=claude-haiku-4-5"],
+            ],
+        ],
+        'docs' => 'https://docs.anthropic.com/en/api/getting-started',
+    ],
 ];
 
 // =========================================================================
@@ -224,8 +273,13 @@ $engines = [
 
 /**
  * Returns ['ok' => bool, 'status' => int|null, 'body' => string|null, 'error' => string|null, 'ms' => float]
+ *
+ * Optional $headers lets the caller add request headers (Anthropic
+ * fallback uses this for x-api-key + anthropic-version). HTTPS callers
+ * get the same two-tier TLS retry as RecipeFetcher / recipe_ocr —
+ * fall back to peer-verify=off on dev/test if curl.cainfo is missing.
  */
-function llm_probe(string $url, float $timeout = 1.5): array
+function llm_probe(string $url, float $timeout = 1.5, array $headers = []): array
 {
     $started = microtime(true);
     $result = ['ok' => false, 'status' => null, 'body' => null, 'error' => null, 'ms' => 0];
@@ -235,34 +289,103 @@ function llm_probe(string $url, float $timeout = 1.5): array
         return $result;
     }
 
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT_MS     => (int)($timeout * 1000),
-        CURLOPT_CONNECTTIMEOUT_MS => (int)(min($timeout, 1.0) * 1000),
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_USERAGENT      => 'cma-llm-management/1.0',
-    ]);
-    $body = curl_exec($ch);
-    $err  = curl_error($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    // PHP 8.0+ auto-closes the handle when it goes out of scope; curl_close
-    // is a no-op and was formally deprecated in 8.5.
-    unset($ch);
+    $r = llm_probe_once($url, $timeout, $headers, true);
+
+    $isCaError = $r['body'] === null && (
+        stripos((string)$r['error'], 'unable to get local issuer certificate') !== false
+        || stripos((string)$r['error'], 'CAfile') !== false
+        || stripos((string)$r['error'], 'self-signed') !== false
+    );
+    if ($isCaError) {
+        error_log('[tools_llm] TLS CA store missing — retrying without peer verification. '
+                . 'Configure curl.cainfo in php.ini before deploying.');
+        $r = llm_probe_once($url, $timeout, $headers, false);
+    }
 
     $result['ms']     = round((microtime(true) - $started) * 1000, 1);
-    $result['status'] = $code ?: null;
-    if ($body === false || $err !== '') {
-        $result['error'] = $err ?: 'onbekende fout';
+    $result['status'] = $r['status'] ?: null;
+    if ($r['body'] === null) {
+        $result['error'] = $r['error'] !== '' ? $r['error'] : 'onbekende fout';
         return $result;
     }
+    $code = (int)$r['status'];
     if ($code >= 200 && $code < 300) {
-        $result['ok'] = true;
-        $result['body'] = $body;
+        $result['ok']   = true;
+        $result['body'] = $r['body'];
     } else {
-        $result['error'] = "HTTP $code";
+        // 4xx with a JSON error body — surface the message so e.g. an
+        // Anthropic 401 reads "invalid x-api-key" instead of just "HTTP 401".
+        $msg = "HTTP $code";
+        $j   = json_decode((string)$r['body'], true);
+        if (is_array($j) && isset($j['error']['message'])) {
+            $msg .= ' — ' . (string)$j['error']['message'];
+        }
+        $result['error'] = $msg;
     }
     return $result;
+}
+
+/**
+ * Single curl attempt for llm_probe.
+ *
+ * @return array{body:?string, status:int, error:string}
+ */
+function llm_probe_once(string $url, float $timeout, array $headers, bool $verifyPeer): array
+{
+    $ch = curl_init($url);
+    if ($ch === false) {
+        return ['body' => null, 'status' => 0, 'error' => 'curl_init failed'];
+    }
+    $opts = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT_MS     => (int)($timeout * 1000),
+        CURLOPT_CONNECTTIMEOUT_MS => (int)(min($timeout, 2.0) * 1000),
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_USERAGENT      => 'cma-llm-management/1.0',
+        CURLOPT_SSL_VERIFYPEER => $verifyPeer,
+        CURLOPT_SSL_VERIFYHOST => $verifyPeer ? 2 : 0,
+    ];
+    if ($headers !== []) {
+        $opts[CURLOPT_HTTPHEADER] = $headers;
+    }
+    curl_setopt_array($ch, $opts);
+    $body   = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err    = (string)curl_error($ch);
+    // PHP 8.0+ auto-closes; curl_close deprecated in 8.5.
+    if ($body === false) {
+        return ['body' => null, 'status' => $status, 'error' => $err];
+    }
+    return ['body' => (string)$body, 'status' => $status, 'error' => ''];
+}
+
+/**
+ * Resolve a usable Anthropic API key — mirrors App\Llm::anthropicFallbackKey.
+ * Prefers LLM_KEY, falls back to OCR_VISION_KEY when OCR_VISION_PROVIDER
+ * is "anthropic" (or unset, which defaults to anthropic).
+ */
+function llm_anthropic_key(): string
+{
+    $k = trim((string)($_ENV['LLM_KEY'] ?? (getenv('LLM_KEY') ?: '')));
+    if ($k !== '') { return $k; }
+    $ocrKey      = trim((string)($_ENV['OCR_VISION_KEY']      ?? (getenv('OCR_VISION_KEY') ?: '')));
+    $ocrProvider = strtolower(trim((string)($_ENV['OCR_VISION_PROVIDER'] ?? (getenv('OCR_VISION_PROVIDER') ?: 'anthropic'))));
+    if ($ocrKey !== '' && $ocrProvider === 'anthropic') {
+        return $ocrKey;
+    }
+    return '';
+}
+
+/**
+ * Mask the visible part of an API key so the operator can confirm
+ * "the right key is configured" without exposing the whole secret on
+ * a page that survives in browser-history caches. sk-ant-api03-AbC…XyZ.
+ */
+function llm_mask_key(string $k): string
+{
+    $n = strlen($k);
+    if ($n <= 12) return $k === '' ? '(geen)' : str_repeat('*', $n);
+    return substr($k, 0, 8) . '…' . substr($k, -4);
 }
 
 function llm_detect_os(): string
@@ -367,6 +490,51 @@ if ($action === 'scan') {
 
     $results = [];
     foreach ($engines as $key => $eng) {
+        $kind = (string)($eng['probe_kind'] ?? 'local');
+
+        // ---- Anthropic-fallback path -----------------------------------
+        // No port; auth via x-api-key header from .env. If no key is
+        // resolvable we surface a clear "geen API-key" state instead of
+        // making a doomed 401 round-trip.
+        if ($kind === 'anthropic') {
+            $apiKey = llm_anthropic_key();
+            $url    = $eng['default_url'] . $eng['probe_path'];
+            if ($apiKey === '') {
+                $probe = [
+                    'ok' => false, 'status' => null, 'body' => null,
+                    'error' => 'Geen API-key in .env (zet LLM_KEY of OCR_VISION_KEY)',
+                    'ms' => 0.0,
+                ];
+                $models = null;
+                $extras = ['key_masked' => '(geen)'];
+            } else {
+                $probe = llm_probe($url, 5.0, [
+                    'x-api-key: ' . $apiKey,
+                    'anthropic-version: 2023-06-01',
+                    'accept: application/json',
+                ]);
+                $models = null;
+                if ($probe['ok']) {
+                    $j = json_decode((string)$probe['body'], true);
+                    if (is_array($j)) {
+                        $models = $eng['extract']($j);
+                    }
+                }
+                $fbModel = trim((string)($_ENV['LLM_FALLBACK_MODEL'] ?? getenv('LLM_FALLBACK_MODEL') ?: '')) ?: 'claude-haiku-4-5';
+                $extras = ['key_masked' => llm_mask_key($apiKey), 'fallback_model' => $fbModel];
+            }
+            $results[$key] = [
+                'engine' => $eng,
+                'url'    => $url,
+                'base'   => $eng['default_url'],
+                'probe'  => $probe,
+                'models' => $models,
+                'extras' => $extras,
+            ];
+            continue;
+        }
+
+        // ---- Local-engine path (Ollama / LM Studio / llama.cpp / textgen)
         // Allow env var (e.g. Ollama via LLM_URL) to override the default URL
         $base = $eng['default_url'];
         if (!empty($eng['env_var']) && $configuredUrl !== '') {
@@ -393,6 +561,7 @@ if ($action === 'scan') {
             'base'   => $base,
             'probe'  => $probe,
             'models' => $models,
+            'extras' => null,
         ];
     }
 
@@ -424,6 +593,16 @@ if ($action === 'scan') {
         echo ' <span class="' . ($ok ? 'badge-ok">actief' : 'badge-down">niet bereikbaar') . '</span>';
         echo '</h3>';
         echo '<div class="url">' . htmlspecialchars($r['url']) . '   (' . number_format($r['probe']['ms'], 1) . ' ms)</div>';
+
+        // Anthropic-fallback card surfaces the configured key (masked) +
+        // which model the fallback would route to — same info the cook
+        // gets at runtime if Ollama drops off.
+        if (!empty($r['extras']['key_masked'])) {
+            echo '<div class="url" style="margin-top:2px">API-key: ' . htmlspecialchars((string)$r['extras']['key_masked']) . '</div>';
+        }
+        if (!empty($r['extras']['fallback_model'])) {
+            echo '<div class="url" style="margin-top:2px">Fallback-model: <strong>' . htmlspecialchars((string)$r['extras']['fallback_model']) . '</strong></div>';
+        }
 
         if ($ok) {
             $models = $r['models'];
