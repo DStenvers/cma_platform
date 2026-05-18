@@ -316,7 +316,7 @@ $engines = [
  * get the same two-tier TLS retry as RecipeFetcher / recipe_ocr —
  * fall back to peer-verify=off on dev/test if curl.cainfo is missing.
  */
-function llm_probe(string $url, float $timeout = 1.5, array $headers = []): array
+function llm_probe(string $url, float $timeout = 0.8, array $headers = []): array
 {
     $started = microtime(true);
     $result = ['ok' => false, 'status' => null, 'body' => null, 'error' => null, 'ms' => 0];
@@ -605,6 +605,27 @@ if ($action === 'scan') {
     $anyOk = false;
     foreach ($results as $r) { if ($r['probe']['ok']) { $anyOk = true; break; } }
 
+    // Reorder cards: working local engines first, then working fallback
+    // (Anthropic), then anything not reachable. Within each group the
+    // original registry order is preserved. The operator sees what's
+    // actually working at the top of the grid and the install steps
+    // for missing engines stay below — same data, more useful at a
+    // glance when one local is up.
+    $workingLocal    = [];
+    $workingFallback = [];
+    $notWorking      = [];
+    foreach ($results as $key => $r) {
+        $kind = (string)($r['engine']['probe_kind'] ?? 'local');
+        if (!$r['probe']['ok']) {
+            $notWorking[$key] = $r;
+        } elseif ($kind === 'anthropic') {
+            $workingFallback[$key] = $r;
+        } else {
+            $workingLocal[$key] = $r;
+        }
+    }
+    $results = $workingLocal + $workingFallback + $notWorking;
+
     // --- Summary strip ---
     echo '<div class="summary">';
     echo '<div class="pill">OS: <strong>' . htmlspecialchars(PHP_OS) . '</strong> (' . htmlspecialchars($os) . ')</div>';
@@ -738,7 +759,18 @@ echo '<style>
 .tool-llm .summary .pill { display:inline-block; padding:3px 10px; border-radius:12px; background:var(--surface-alt,#f6f8fa); font-size:12px; margin-right:8px; }
 .tool-llm .summary .pill strong { font-weight:600; }
 .tool-llm .err { color:#c0392b; font-size:13px; }
-.tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:48px 16px; color:var(--text-muted,#6c757d); }
+.tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:48px 16px; color:var(--text-muted,#6c757d); }
+/* CSS-only spinner — visible immediately on page load, no dependency
+   on the lib-loader web-component upgrade timing (which races the fetch). */
+.tool-llm .scan-state__spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border-color, #dee2e6);
+    border-top-color: var(--color-accent, #1f6e3f);
+    border-radius: 50%;
+    animation: tool-llm-spin 0.8s linear infinite;
+}
+@keyframes tool-llm-spin { to { transform: rotate(360deg); } }
+.tool-llm .scan-state__label { margin: 0; font-size: 14px; }
 </style>';
 
 echo '<div id="c" class="tools">';
@@ -748,7 +780,8 @@ echo '<div id="c" class="tools">';
 // without this the page would sit blank for that whole window.
 echo '<div id="llm-scan-target">';
 echo   '<div class="scan-state" id="llm-scan-state">';
-echo     '<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>';
+echo     '<div class="scan-state__spinner" aria-hidden="true"></div>';
+echo     '<p class="scan-state__label">Bezig met scannen van LLM-engines…</p>';
 echo   '</div>';
 echo '</div>';
 
