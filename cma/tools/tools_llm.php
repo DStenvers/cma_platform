@@ -760,17 +760,6 @@ echo '<style>
 .tool-llm .summary .pill strong { font-weight:600; }
 .tool-llm .err { color:#c0392b; font-size:13px; }
 .tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:48px 16px; color:var(--text-muted,#6c757d); }
-/* CSS-only spinner — visible immediately on page load, no dependency
-   on the lib-loader web-component upgrade timing (which races the fetch). */
-.tool-llm .scan-state__spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border-color, #dee2e6);
-    border-top-color: var(--color-accent, #1f6e3f);
-    border-radius: 50%;
-    animation: tool-llm-spin 0.8s linear infinite;
-}
-@keyframes tool-llm-spin { to { transform: rotate(360deg); } }
-.tool-llm .scan-state__label { margin: 0; font-size: 14px; }
 </style>';
 
 echo '<div id="c" class="tools">';
@@ -780,8 +769,7 @@ echo '<div id="c" class="tools">';
 // without this the page would sit blank for that whole window.
 echo '<div id="llm-scan-target">';
 echo   '<div class="scan-state" id="llm-scan-state">';
-echo     '<div class="scan-state__spinner" aria-hidden="true"></div>';
-echo     '<p class="scan-state__label">Bezig met scannen van LLM-engines…</p>';
+echo     '<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>';
 echo   '</div>';
 echo '</div>';
 
