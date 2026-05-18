@@ -1,6 +1,6 @@
 <?php
 /**
- * LLM analyzer — detects local LLM engines reachable from the server,
+ * LLM management — detects local LLM engines reachable from the server,
  * lists installed models, and shows install hints when nothing is found.
  *
  * Engines probed (default ports):
@@ -152,7 +152,7 @@ function llm_probe(string $url, float $timeout = 1.5): array
         CURLOPT_TIMEOUT_MS     => (int)($timeout * 1000),
         CURLOPT_CONNECTTIMEOUT_MS => (int)(min($timeout, 1.0) * 1000),
         CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_USERAGENT      => 'cma-llm-analyzer/1.0',
+        CURLOPT_USERAGENT      => 'cma-llm-management/1.0',
     ]);
     $body = curl_exec($ch);
     $err  = curl_error($ch);
@@ -263,9 +263,9 @@ foreach ($results as $r) { if ($r['probe']['ok']) { $anyOk = true; break; } }
 // =========================================================================
 
 Response::noCache();
-cma_html_header('CMA - LLM analyzer');
+cma_html_header('CMA - LLM management');
 echo '<body class="contentbody tools tool-llm" style="margin:0;">';
-ToolbarHelper::report('LLM analyzer', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server');
+ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server');
 
 echo '<style>
 .tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; padding:16px; }
