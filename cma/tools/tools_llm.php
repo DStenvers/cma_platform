@@ -183,8 +183,8 @@ $engines = [
         'setup' => [
             'windows' => [
                 ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> en kies een curated GGUF, of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
-                ['title' => 'Pak llama-server binary',  'body' => 'Download een release uit https://github.com/ggerganov/llama.cpp/releases en pak uit naar C:\\llama\\bin\\.'],
-                ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => 'C:\\llama\\llama-server.exe -m C:\\llama\\models\\$recGGUF --port 8080'],
+                ['title' => 'Pak llama-server binary',  'body' => 'Download een release uit https://github.com/ggerganov/llama.cpp/releases (bv. llama-bXXXX-bin-win-cpu-x64.zip voor CPU-only, of -cuda-… als je een NVIDIA GPU hebt) en pak het zip uit naar C:\\llama\\. llama-server.exe + de DLLs landen direct in die map, niet in een bin/-submap.'],
+                ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => "C:\\llama\\llama-server.exe -m C:\\llama\\models\\$recGGUF --port 8080"],
                 ['title' => 'Auto-start via Task Scheduler', 'body' => 'Geen extra install nodig — Task Scheduler zit in elk Windows Server. Run als SYSTEM zodat de service draait zonder ingelogde gebruiker. PowerShell as Admin:', 'code' => "\$action    = New-ScheduledTaskAction -Execute 'C:\\llama\\llama-server.exe' -Argument '-m C:\\llama\\models\\$recGGUF --port 8080 --host 0.0.0.0'\n\$trigger   = New-ScheduledTaskTrigger -AtStartup\n\$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable\n\$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest\nRegister-ScheduledTask -TaskName 'LlamaServer' -Action \$action -Trigger \$trigger -Settings \$settings -Principal \$principal -Force\nStart-ScheduledTask    -TaskName 'LlamaServer'"],
                 ['title' => 'Status / stop / verwijderen', 'body' => 'Het verschijnt niet in services.msc — gebruik Task Scheduler GUI of:', 'code' => "Get-ScheduledTaskInfo  -TaskName 'LlamaServer'    # laatste run + status\nStop-ScheduledTask     -TaskName 'LlamaServer'\nUnregister-ScheduledTask -TaskName 'LlamaServer' -Confirm:\$false"],
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
@@ -192,7 +192,7 @@ $engines = [
             'linux' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of curl direct uit Hugging Face. Default storage: ~/llama-models.'],
                 ['title' => 'Bouw of pak llama.cpp', 'body' => '', 'code' => "git clone https://github.com/ggerganov/llama.cpp\ncd llama.cpp && make -j"],
-                ['title' => 'Test handmatig', 'body' => '', 'code' => './llama-server -m ~/llama-models/$recGGUF --port 8080'],
+                ['title' => 'Test handmatig', 'body' => '', 'code' => "./llama-server -m ~/llama-models/$recGGUF --port 8080"],
                 ['title' => 'Systemd-unit voor auto-start', 'body' => 'Schrijf /etc/systemd/system/llama-server.service:', 'code' => "[Unit]\nDescription=llama.cpp OpenAI-compat server\nAfter=network.target\n[Service]\nExecStart=/opt/llama.cpp/llama-server -m /opt/models/$recGGUF --port 8080\nRestart=always\nUser=llama\n[Install]\nWantedBy=multi-user.target"],
                 ['title' => 'Enable + start', 'body' => '', 'code' => 'sudo systemctl enable --now llama-server'],
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
@@ -200,7 +200,7 @@ $engines = [
             'darwin' => [
                 ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of brew/curl.'],
                 ['title' => 'Installeer llama.cpp', 'body' => '', 'code' => 'brew install llama.cpp'],
-                ['title' => 'Test handmatig', 'body' => '', 'code' => 'llama-server -m ~/llama-models/$recGGUF --port 8080'],
+                ['title' => 'Test handmatig', 'body' => '', 'code' => "llama-server -m ~/llama-models/$recGGUF --port 8080"],
                 ['title' => 'Auto-start via brew services', 'body' => 'llama.cpp heeft geen native service-recept; wrap met een launchd plist of run via brew-services-template.'],
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
