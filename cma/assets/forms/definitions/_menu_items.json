@@ -56,10 +56,13 @@
                 },
                 {
                         "name": "form",
-                        "type": "textbox",
+                        "type": "combobox",
                         "caption": "JSON formulier",
                         "maxLength": 100,
-                        "hint": "Naam van JSON formulierdefinitie"
+                        "isDynamic": true,
+                        "ajaxUrl": "api/forms_index.php",
+                        "minSearch": 0,
+                        "hint": "Kies een bestaand formulier; leeg laten als je een externe URL (href) gebruikt"
                 },
                 {
                         "name": "formId",

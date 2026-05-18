@@ -1,0 +1,30 @@
+{
+    "$schema": "./schema/menu.schema.json",
+    "version": "1.1.0",
+    "_comment": "Copy to <site>/cma/config/menu.json and edit. Each top-level entry in `menus` becomes a dropdown in the CMA header; each `items` entry is a clickable row. Most items link to a form definition (file in cma/assets/forms/definitions/<name>.json) — set `form` to that file's basename (no .json). For external/tool URLs use `href` instead. accessLevel limits visibility to user (0) / admin (1) / developer (2).",
+    "menus": [
+        {
+            "id": 10,
+            "name": "Beheer",
+            "order": 10,
+            "accessLevel": "admin",
+            "items": [
+                {
+                    "id": 101,
+                    "name": "Gebruikers",
+                    "order": 10,
+                    "visible": true,
+                    "form": "users"
+                },
+                {
+                    "id": 102,
+                    "name": "Externe link voorbeeld",
+                    "order": 20,
+                    "visible": true,
+                    "href": "tools/diag.php",
+                    "target": "_self"
+                }
+            ]
+        }
+    ]
+}

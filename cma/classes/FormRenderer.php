@@ -374,14 +374,20 @@ class FormRenderer
             'filter-by-field' => $filterByField,
         ], $newChangableOnly, $caption);
 
-        // Dynamic combos use lib-combo with AJAX
+        // Dynamic combos use lib-combo with AJAX.  min-search defaults
+        // to 3 (big-table-style: type to filter), but small directories
+        // — e.g. the form list on _menu_items — want min-search=0 so
+        // the full set is fetched on first focus.
         if ($isDynamic && $ajaxUrl !== '') {
+            $minSearch = (int) ($config['minSearch'] ?? 3);
+            if ($minSearch < 0) $minSearch = 0;
             $html = sprintf(
-                '<lib-combo id="%s_id" name="%s" %s ajax-url="%s" ajax-id="id" ajax-text="text" min-search="3"%s></lib-combo>',
+                '<lib-combo id="%s_id" name="%s" %s ajax-url="%s" ajax-id="id" ajax-text="text" min-search="%d"%s></lib-combo>',
                 self::escape($name),
                 self::escape($name),
                 $dataAttrs,
                 self::escape($ajaxUrl),
+                $minSearch,
                 $required ? '' : ' placeholder=" "'
             );
 
