@@ -237,60 +237,38 @@ copy .env.production.example .env.production
 
 ### 2. Automatische deploy via GitHub webhook
 
-#### a. Deploy-script op de server
+Het platform levert kant-en-klare webhook receivers — geen eigen `deploy.php` nodig.
 
-Maak `deploy.php` aan in de project root (NIET committen — zie `.gitignore`):
+#### a. Kies een receiver
 
-```php
-<?php
-// deploy.php — receiver voor GitHub webhook pushes
-// Plaats in project root; secret moet matchen met de GitHub webhook config
+| Script | URL op je site | Wanneer kiezen |
+|--------|---------------|----------------|
+| `cma/tools/deploy_webhook.php` | `https://<host>/cma/tools/deploy_webhook.php` | **Aanbevolen voor platform-sites.** Wordt mee-geleverd via composer, gebruikt `App\Library\DeployWebhook::handle()` voor signature-check, HMAC, branch-filter en async pipeline. |
+| `cma/tools/deploy_webhook_standalone.php` | dropt het bestand waar je wilt | Voor sites zónder composer/framework (statische sites, andere stacks). Single-file, geen autoloader. |
 
-$secret = getenv('DEPLOY_SECRET') ?: '';  // zet als env var of in .env
-$payload = file_get_contents('php://input');
-$signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
+Beide bevatten:
+- HMAC-SHA256 signature verificatie tegen `DEPLOY_SECRET`
+- Per-environment branch via `DEPLOY_BRANCH` (default `main`)
+- Configurable pipeline via `DEPLOY_PIPELINE`
+- Logging naar `logs/deploy.log` met start/eind banners
+- 202 response + `fastcgi_finish_request()` zodat GitHub niet timeout't tijdens lange composer-installs
 
-// Verifieer GitHub signature
-if ($secret === '' || !hash_equals('sha256=' . hash_hmac('sha256', $payload, $secret), $signature)) {
-    http_response_code(403);
-    exit('Invalid signature');
-}
+#### b. .env config op de server
 
-// Verifieer dat het een push naar main is
-$event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
-$data = json_decode($payload, true);
-if ($event !== 'push' || ($data['ref'] ?? '') !== 'refs/heads/main') {
-    http_response_code(200);
-    exit('Ignored (not a push to main)');
-}
+Voeg toe aan `.env.production` (of `.env.acceptance`, etc.):
 
-// Schrijf logs
-$logFile = __DIR__ . '/logs/deploy.log';
-file_put_contents($logFile, "[" . date('c') . "] Deploy gestart\n", FILE_APPEND);
-
-// Voer deploy stappen uit
-chdir(__DIR__);
-$steps = [
-    'git pull origin main 2>&1',
-    'composer install --no-dev --optimize-autoloader 2>&1',
-];
-
-foreach ($steps as $cmd) {
-    $output = shell_exec($cmd);
-    file_put_contents($logFile, "[" . date('c') . "] $ $cmd\n$output\n", FILE_APPEND);
-}
-
-// Clear caches
-foreach (glob(__DIR__ . '/cache/*.html') as $f) @unlink($f);
-foreach (glob(__DIR__ . '/cache/*.json') as $f) @unlink($f);
-file_put_contents($logFile, "[" . date('c') . "] Cache gewist, deploy klaar\n", FILE_APPEND);
-
-echo "OK";
+```env
+DEPLOY_SECRET=<willekeurige-32-char-string>
+DEPLOY_BRANCH=main
+# Optioneel — default is "git pull --ff-only origin {branch}":
+DEPLOY_PIPELINE=git pull --ff-only origin {branch}; composer install --no-dev --optimize-autoloader
+# Optioneel — op productie kun je 'web.config' touchen om de IIS app-pool te recyclen:
+DEPLOY_RECYCLE_TOUCH=web.config
+# Optioneel — zet op "1" om git reset --hard te skippen (bv. op een staging machine met lokale dev edits):
+DEPLOY_NO_RESET=0
 ```
 
-Bescherm de URL via IIS — alleen GitHub IP-ranges toelaten of via webhook secret check (zoals hierboven).
-
-#### b. Server-side permissies
+#### c. Server-side permissies
 
 De PHP/IIS gebruiker (typisch `IIS APPPOOL\DefaultAppPool` of `IUSR`) moet:
 - **Lees+schrijf** rechten op de project directory (voor `git pull`)
@@ -302,17 +280,25 @@ Test handmatig eerst als de IIS-user:
 runas /user:"IIS APPPOOL\DefaultAppPool" "git pull"
 ```
 
-#### c. GitHub webhook configureren
+#### d. GitHub webhook configureren
 
 In de GitHub repo:
 1. **Settings → Webhooks → Add webhook**
-2. **Payload URL**: bv. `https://karaat.stenversonline.nl/deploy.php` (vervang door je eigen domain)
+2. **Payload URL**: bv. `https://karaat.stenversonline.nl/cma/tools/deploy_webhook.php` (vervang door je eigen domain; voor standalone-versie: het pad waar je het bestand neerzette)
 3. **Content type**: `application/json`
-4. **Secret**: genereer een willekeurig 32-char string, vul ook in als `DEPLOY_SECRET` env var op de server (of in `.env.production`)
+4. **Secret**: zelfde waarde als `DEPLOY_SECRET` in je `.env`
 5. **Events**: alleen `push`
 6. **Active**: aanvinken
 
-Test door op de "Recent Deliveries" tab naar de response code te kijken (moet 200 zijn).
+Test door op de "Recent Deliveries" tab naar de response code te kijken (moet 202 zijn, niet 200 — de receiver returnt direct en draait async verder). Check `logs/deploy.log` voor de start/eind banners en command output.
+
+#### e. Multi-environment fanout (optioneel)
+
+Eén GitHub repo kan deployen naar meerdere servers/branches:
+- Maak per environment één webhook (zelfde repo, andere payload URL per host)
+- Gebruik dezelfde `DEPLOY_SECRET`
+- Per server: andere `DEPLOY_BRANCH` in `.env` (bv. `staging` op test, `main` op productie)
+- Elke server reageert alleen op zijn eigen branch en skipt de andere events
 
 ### 3. Alternatief: scheduled pull (eenvoudiger, polling delay)
 
