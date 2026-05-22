@@ -208,6 +208,14 @@ lib-switch {
 lib-radio-group {
     display: inline-flex;
     vertical-align: middle;
+    /* Resist parent flex-stretch — `.form-stack` and friends use the
+       default align-items: stretch, which would otherwise widen this
+       host to the column's full width even though display: inline-flex
+       was supposed to keep it content-sized.  align-self overrides the
+       parent's setting on this child only. */
+    align-self: flex-start;
+    width: max-content;
+    max-width: 100%;
 }
 
 .lib-radio-group {
