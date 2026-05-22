@@ -200,6 +200,102 @@ lib-switch {
 }
 
 /* ============================================================
+   lib-radio-group
+   Segmented radio control — single bordered container with options
+   sitting side-by-side; the selected option appears pressed via an
+   inset shadow.
+   ============================================================ */
+lib-radio-group {
+    display: inline-flex;
+    vertical-align: middle;
+}
+
+.lib-radio-group {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--color-border, #c4c8d0);
+    border-radius: 6px;
+    background: var(--color-bg-input, #ffffff);
+    padding: 2px;
+    gap: 0;
+    user-select: none;
+    box-sizing: border-box;
+    /* Subtle outer shadow so the inset on the selected option reads more clearly */
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.lib-radio-group__option {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--color-text, #1d2230);
+    font: inherit;
+    line-height: 1.4;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+    /* Keep options from collapsing on long labels */
+    white-space: nowrap;
+}
+
+.lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.lib-radio-group__option:focus-visible {
+    outline: 2px solid var(--color-primary, #204496);
+    outline-offset: -2px;
+}
+
+.lib-radio-group__option--selected {
+    background: var(--color-bg-selected, #e6ebf5);
+    color: var(--color-primary, #204496);
+    font-weight: 600;
+    /* Pressed-in look — inset shadow + slight darker top edge */
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.18),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.lib-radio-group--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lib-radio-group--disabled .lib-radio-group__option,
+.lib-radio-group--readonly .lib-radio-group__option {
+    cursor: not-allowed;
+}
+
+.lib-radio-group--readonly {
+    opacity: 0.8;
+}
+
+/* Dark mode */
+.dark-mode .lib-radio-group {
+    background: var(--color-bg-input, #2a2f3a);
+    border-color: var(--color-border, #3d4452);
+}
+
+.dark-mode .lib-radio-group__option {
+    color: var(--color-text, #e6e9ef);
+}
+
+.dark-mode .lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dark-mode .lib-radio-group__option--selected {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-primary, #6db1ff);
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* ============================================================
    lib-message
    ============================================================ */
 lib-message {

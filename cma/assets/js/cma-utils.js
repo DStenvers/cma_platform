@@ -276,6 +276,53 @@ CMA.utils.formatHtml = function(html) {
 };
 
 /**
+ * Replace all occurrences of a substring (regex-aware).
+ * Migrated from CMA.util (cma.js) — kept here under the canonical CMA.utils
+ * namespace; CMA.util remains as a back-compat alias.
+ */
+CMA.utils.replaceString = function(strWhat, strWith, strOrig) {
+    while (strOrig.search(strWhat) !== -1) {
+        strOrig = strOrig.replace(strWhat, strWith);
+    }
+    return strOrig;
+};
+
+/**
+ * Read a cookie value by name.
+ * Migrated from CMA.util.
+ */
+CMA.utils.getCookie = function(name) {
+    const dc = document.cookie;
+    const prefix = name + '=';
+    let begin = dc.indexOf('; ' + prefix);
+    if (begin === -1) {
+        begin = dc.indexOf(prefix);
+        if (begin !== 0) return null;
+    } else {
+        begin += 2;
+    }
+    let end = document.cookie.indexOf(';', begin);
+    if (end === -1) end = dc.length;
+    return unescape(dc.substring(begin + prefix.length, end));
+};
+
+/**
+ * Set a cookie with a 1-year expiry on path=/.
+ * Migrated from CMA.util.
+ */
+CMA.utils.setCookie = function(name, value) {
+    const expires = new Date();
+    expires.setFullYear(expires.getFullYear() + 1);
+    document.cookie = name + '=' + escape(value) + ';expires=' + expires.toGMTString() + ';path=/';
+};
+
+// Back-compat alias — CMA.util (singular) used to be a separate object with
+// its own copies of replaceString/getCookie/setCookie. Some legacy templates
+// and inline scripts call CMA.util.x() directly. Aliasing keeps them working
+// while CMA.utils is the canonical name going forward.
+CMA.util = CMA.utils;
+
+/**
  * Debounce utility - delays function execution until after wait milliseconds
  * have elapsed since the last time the debounced function was invoked.
  *

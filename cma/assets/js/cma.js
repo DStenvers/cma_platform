@@ -1362,43 +1362,10 @@
     })();
 
     // ========================================================================
-    // Utility functions
+    // Utility functions — replaceString/getCookie/setCookie now live in
+    // cma-utils.js under the canonical CMA.utils namespace. CMA.util remains
+    // a back-compat alias (CMA.util = CMA.utils), set in cma-utils.js.
     // ========================================================================
-    CMA.util = (function() {
-        function replaceString(strWhat, strWith, strOrig) {
-            while (strOrig.search(strWhat) !== -1) {
-                strOrig = strOrig.replace(strWhat, strWith);
-            }
-            return strOrig;
-        }
-
-        function getCookie(name) {
-            const dc = document.cookie;
-            const prefix = name + '=';
-            let begin = dc.indexOf('; ' + prefix);
-            if (begin === -1) {
-                begin = dc.indexOf(prefix);
-                if (begin !== 0) return null;
-            } else {
-                begin += 2;
-            }
-            let end = document.cookie.indexOf(';', begin);
-            if (end === -1) end = dc.length;
-            return unescape(dc.substring(begin + prefix.length, end));
-        }
-
-        function setCookie(name, value) {
-            const expires = new Date();
-            expires.setFullYear(expires.getFullYear() + 1);
-            document.cookie = name + '=' + escape(value) + ';expires=' + expires.toGMTString() + ';path=/';
-        }
-
-        return {
-            replaceString: replaceString,
-            getCookie: getCookie,
-            setCookie: setCookie
-        };
-    })();
 
     // ========================================================================
     // Group folding (form sections)

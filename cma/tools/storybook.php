@@ -425,6 +425,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
                 { label: 'lib-switch', href: '#lib-switch', icon: 'lnr-sync' },
+                { label: 'lib-radio-group', href: '#lib-radio-group', icon: 'lnr-list' },
                 { label: 'lib-field', href: '#lib-field', icon: 'lnr-pencil' },
                 { label: 'lib-table', href: '#lib-table', icon: 'lnr-table' },
                 { label: 'lib-timepicker', href: '#lib-timepicker', icon: 'lnr-clock' },
@@ -1764,6 +1765,96 @@ html.dark-mode .hex-dark { display: inline; }
                 <dl>
                     <dt>change</dt>
                     <dd>Bij wijziging. Detail: <code>{checked, value, field}</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="lib-radio-group">
+        <div class="component-header">
+            <h2>lib-radio-group</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Gesegmenteerde radioknopgroep — één omrande container, geselecteerde optie staat ingedrukt.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <span class="demo-label">Drie opties (tri-state):</span>
+    <lib-radio-group name="rg1" value="2" options="1:Open|2:Bezig|3:Gesloten"></lib-radio-group>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Twee opties (Ja/Nee):</span>
+    <lib-radio-group name="rg2" value="ja" options="ja:Ja|nee:Nee"></lib-radio-group>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Vier opties:</span>
+    <lib-radio-group name="rg3" value="m" options="xs:XS|s:S|m:M|l:L"></lib-radio-group>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Geen selectie (default):</span>
+    <lib-radio-group name="rg4" options="a:Een|b:Twee|c:Drie"></lib-radio-group>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Readonly:</span>
+    <lib-radio-group name="rg5" value="b" readonly options="a:Een|b:Twee|c:Drie"></lib-radio-group>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Disabled:</span>
+    <lib-radio-group name="rg6" value="a" disabled options="a:Een|b:Twee|c:Drie"></lib-radio-group>
+</div>
+
+<p><strong>Methodes / Properties</strong></p>
+<div class="demo-row">
+    <span class="demo-label">Demo:</span>
+    <lib-radio-group id="rgMethods" name="rgDemo" options="1:Een|2:Twee|3:Drie"></lib-radio-group>
+</div>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#rgMethods').value='1'">value='1'</button>
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#rgMethods').value='2'">value='2'</button>
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#rgMethods').value='3'">value='3'</button>
+    <button class="btn btn-cancel" onclick="var r=this.closest('.playground-preview').querySelector('#rgMethods'); libAlert('value: '+r.value+'\nfield: '+r.field)">getValue()</button>
+</div></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>name</dt>
+                    <dd>Veldnaam voor formulier-submit (formAssociated).</dd>
+                    <dt>value</dt>
+                    <dd>Waarde van de momenteel geselecteerde optie.</dd>
+                    <dt>options</dt>
+                    <dd>Opties als <code>value1:label1|value2:label2|…</code>. Zonder dubbele punt is value gelijk aan label.</dd>
+                    <dt>disabled</dt>
+                    <dd>Geen interactie mogelijk.</dd>
+                    <dt>readonly</dt>
+                    <dd>Zichtbaar maar niet selecteerbaar.</dd>
+                    <dt>data-field</dt>
+                    <dd>Veldnaam voor inline editing (default: <code>name</code>).</dd>
+                </dl>
+                <h4>Properties</h4>
+                <dl>
+                    <dt>value</dt>
+                    <dd>String — get/set de geselecteerde waarde.</dd>
+                    <dt>options</dt>
+                    <dd>Array <code>[{value,label},…]</code> — get/set de optielijst.</dd>
+                    <dt>field</dt>
+                    <dd>Veldnaam (<code>data-field</code> of <code>name</code>).</dd>
+                </dl>
+                <h4>Toetsenbord</h4>
+                <dl>
+                    <dt>← / →</dt>
+                    <dd>Vorige / volgende optie (navigeert + selecteert).</dd>
+                    <dt>Home / End</dt>
+                    <dd>Eerste / laatste optie.</dd>
+                    <dt>Spatie / Enter</dt>
+                    <dd>Selecteer de gefocuste optie.</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>change</dt>
+                    <dd>Bij selectie. Detail: <code>{value, field}</code>.</dd>
                 </dl>
             </div>
         </div>

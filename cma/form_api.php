@@ -1499,20 +1499,35 @@ function validateUsersSave($recordId, $data) {
         ];
     }
 
-    // Handle password
-    if (!$isNew) {
-        // Editing existing user - if password is empty, don't update it
-        if (isset($data['userPassword']) && trim($data['userPassword']) === '') {
-            unset($data['userPassword']);
+    // Handle password.
+    //
+    // Under SSO the users.json form definition hides userPassword entirely
+    // (via hiddenWhen), so the field is never rendered and never persisted.
+    // Skip the "password required for new user" check in that case —
+    // otherwise admins can't create users while SSO is on.
+    $ssoEnabled = \Cma\Services\SsoService::isEnabled();
+    if (!$ssoEnabled) {
+        if (!$isNew) {
+            // Editing existing user - if password is empty, don't update it
+            if (isset($data['userPassword']) && trim($data['userPassword']) === '') {
+                unset($data['userPassword']);
+            }
+        } else {
+            // New user - password is required
+            if (!isset($data['userPassword']) || trim($data['userPassword']) === '') {
+                return [
+                    'success' => false,
+                    'error' => 'Wachtwoord is verplicht voor nieuwe gebruikers.'
+                ];
+            }
         }
     } else {
-        // New user - password is required
-        if (!isset($data['userPassword']) || trim($data['userPassword']) === '') {
-            return [
-                'success' => false,
-                'error' => 'Wachtwoord is verplicht voor nieuwe gebruikers.'
-            ];
-        }
+        // Belt and braces: drop any submitted password under SSO. The form
+        // definition already filters it out at translateToLegacy(), so
+        // RecordService::save will not write the column even if it slips
+        // through here, but stripping it from $data avoids surprises in any
+        // other consumer of $data downstream.
+        unset($data['userPassword']);
     }
 
     return ['success' => true, 'data' => $data];

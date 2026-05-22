@@ -985,8 +985,29 @@ class JsonFormLoader
             $legacy[$idx] = [];
         }
 
-        // Process fields
-        $fields = $data['fields'] ?? [];
+        // Process fields.
+        //
+        // `hiddenWhen` lets a field disappear entirely when a condition is true
+        // — not just visually disabled, but absent from both render and save.
+        // We filter here, before the legacy parallel-arrays are built, so the
+        // field is invisible to every downstream consumer that iterates
+        // $arrRep[Q_FIELDNAME] (template renderer, RecordService::save, etc.).
+        //
+        // Expression syntax: see Cma\FormExpressionEvaluator.
+        //
+        // Cache caveat: this result is cached per formId by GetFormDef and
+        // BaseFormService. Toggling a referenced Application value (e.g.
+        // `cma_sso_enabled`) at runtime requires busting the form-def cache
+        // (BaseFormService::clearAllFormDefCache()) for the change to take
+        // effect. In practice `cma_sso_enabled` is deploy-time configuration,
+        // so this is acceptable.
+        $fields = array_values(array_filter(
+            $data['fields'] ?? [],
+            static function ($field) {
+                $expr = $field['hiddenWhen'] ?? '';
+                return !($expr !== '' && FormExpressionEvaluator::isTrue($expr));
+            }
+        ));
         foreach ($fields as $i => $field) {
             // Resolve control type from name to ID
             $controlType = $field['type'] ?? 'textbox';

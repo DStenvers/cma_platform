@@ -13,6 +13,7 @@ import './commands/auth';
 import './commands/navigation';
 import './commands/api';
 import './commands/forms';  // forms.js last - has the most up-to-date form commands
+import './commands/tripwire';  // identity-mismatch watcher (verifyIdentity check)
 
 // Prevent Cypress from failing on uncaught exceptions from the app
 Cypress.on('uncaught:exception', (err, runnable) => {

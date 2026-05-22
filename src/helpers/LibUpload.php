@@ -73,11 +73,16 @@ class LibUpload
         // Get original filename
         $originalFilename = basename($uploadedFile['name']);
 
-        // Generate random filename if requested
+        // Determine final filename:
+        //   - Random: always generate a unique name (overrides any pre-set Filename)
+        //   - Pre-set Filename: caller wants to control the name — e.g. the
+        //     "Vervang bestand" / replace mode in file_outputfile.php sets
+        //     Filename to the target before calling Save(). Don't clobber it.
+        //   - Otherwise: use the uploaded file's original name.
         if ($this->Random) {
             $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
             $this->Filename = uniqid('upload_', true) . '.' . $extension;
-        } else {
+        } elseif ($this->Filename === '') {
             $this->Filename = $originalFilename;
         }
 
@@ -135,9 +140,20 @@ class LibUpload
      */
     public function __call($name, $arguments)
     {
-        // Check if this is actually a public property
+        // Check if this is actually a public property.
+        // PHP method calls are case-insensitive but property_exists() is
+        // case-sensitive, so we resolve case-insensitively here to match the
+        // VBScript-converted call sites (e.g. $obj->filename() must reach the
+        // Filename property). Without this, lowercase calls throw a
+        // BadMethodCallException AFTER the file is already written, leaving
+        // the file on disk but the user thinking the upload failed.
         if (property_exists($this, $name)) {
             return $this->$name;
+        }
+        foreach (get_object_vars($this) as $prop => $_) {
+            if (strcasecmp($prop, $name) === 0) {
+                return $this->$prop;
+            }
         }
 
         throw new \BadMethodCallException("Call to undefined method " . __CLASS__ . "::$name()");

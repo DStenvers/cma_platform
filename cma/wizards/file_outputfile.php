@@ -1,4 +1,5 @@
 <?php
+use App\Library\Image;
 use App\Library\LibUpload;
 use App\Library\Request;
 use App\Library\Response;
@@ -45,7 +46,34 @@ function main()
         $bOverwrite = true;
     }
 
-    $objUpload->Save();
+    // Save() returns false on any PHP upload error (file too big, no tmp
+    // dir, no write permission, partial upload, …) AND on move_uploaded_file
+    // failure. Previously the return value was discarded and the wizard
+    // redirected to a "success" page with no file on disk — the user got
+    // no feedback at all. Now: surface the underlying UPLOAD_ERR_* cause
+    // in a localised alert and send them back to the upload form.
+    if (!$objUpload->Save()) {
+        $uploadError = $_FILES[$objUpload->Fieldname]['error'] ?? UPLOAD_ERR_NO_FILE;
+        $maxSize = ini_get('upload_max_filesize');
+        $messages = [
+            UPLOAD_ERR_INI_SIZE   => 'Het bestand is te groot (limiet van de server: ' . $maxSize . ').',
+            UPLOAD_ERR_FORM_SIZE  => 'Het bestand overschrijdt de toegestane formuliergrootte.',
+            UPLOAD_ERR_PARTIAL    => 'Het bestand is slechts gedeeltelijk geüpload. Probeer het opnieuw.',
+            UPLOAD_ERR_NO_FILE    => 'Geen bestand geselecteerd.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Serverfout: tijdelijke map ontbreekt. Neem contact op met de beheerder.',
+            UPLOAD_ERR_CANT_WRITE => 'Serverfout: kan niet schrijven naar de doelmap.',
+            UPLOAD_ERR_EXTENSION  => 'Upload geblokkeerd door een PHP-extensie.',
+        ];
+        $errorMsg = $messages[$uploadError]
+            ?? ('Uploadfout (code ' . (int) $uploadError . '). Het bestand is niet opgeslagen.');
+        $backUrl = Request::addAllToURL('file_upload.php');
+
+        echo '<html><body class="wizardbody"><script>';
+        echo 'alert(' . json_encode($errorMsg) . ');';
+        echo 'window.location = ' . json_encode($backUrl) . ';';
+        echo '</script></body></html>';
+        exit();
+    }
     $filename = $objUpload->filename();
     $sResizeType = $objUpload->objUpload('resizetype')->value;
     if ($sResizeType == strval(FormControlHelper::IMG_MAXIMUM) || $sResizeType == strval(FormControlHelper::IMG_FIXED)) {

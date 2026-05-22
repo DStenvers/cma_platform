@@ -1094,6 +1094,100 @@ class CmaFormController {
     }
 
     // =========================================================================
+    // IDENTITY INTEGRITY CHECK
+    // The .form-layout div is the single source of truth for form identity
+    // (jsonForm, formId, recordId). Instance properties like this.jsonForm /
+    // this.formId are cached at construction time from CMA.formConfig — if
+    // an AJAX page swap replaces the DOM but a stale controller closure or
+    // an old CMA.formConfig outlives it, those caches can drift and a save
+    // could land on the wrong form/record.
+    //
+    // This method is the tripwire. Call it before any action that depends
+    // on identity (saveRecord first and foremost). On mismatch the DOM wins
+    // and instance properties + CMA.formConfig are silently re-synced; the
+    // action then proceeds with the corrected identity.
+    // =========================================================================
+
+    /**
+     * Verify that this controller's identity matches the .form-layout DOM.
+     *
+     * @param {string} context - Caller name, used in log/telemetry payloads
+     *                           (e.g. 'saveRecord', 'init', 'deleteRecord').
+     * @returns {boolean} true if identity was consistent; false if it was
+     *                    re-synced from the DOM. Callers should proceed
+     *                    either way — false is informational, not fatal.
+     */
+    verifyIdentity(context = 'unknown') {
+        const formLayout = document.querySelector('.form-layout');
+        if (!formLayout) {
+            cmaLog.warn(`[verifyIdentity:${context}] no .form-layout in DOM — cannot verify`);
+            return false;
+        }
+
+        const dom = {
+            jsonForm: formLayout.dataset.jsonForm || null,
+            formId: formLayout.dataset.formId || null,
+            recordId: formLayout.dataset.recordId || null,
+        };
+        const ctrl = {
+            jsonForm: this.jsonForm || null,
+            formId: this.formId != null ? String(this.formId) : null,
+            directRecordId: this.directRecordId != null ? String(this.directRecordId) : null,
+        };
+        const cfg = (typeof window !== 'undefined' && window.CMA && window.CMA.formConfig) || null;
+
+        const mismatches = [];
+
+        if (dom.jsonForm && ctrl.jsonForm !== dom.jsonForm) {
+            mismatches.push({ field: 'jsonForm', controller: ctrl.jsonForm, dom: dom.jsonForm });
+            this.jsonForm = dom.jsonForm;
+            this.jsonFormName = dom.jsonForm;
+            this.isJsonForm = true;
+        }
+        if (dom.formId && ctrl.formId !== dom.formId) {
+            mismatches.push({ field: 'formId', controller: ctrl.formId, dom: dom.formId });
+            const parsed = parseInt(dom.formId, 10);
+            this.formId = Number.isNaN(parsed) ? dom.formId : parsed;
+        }
+        if (cfg && dom.jsonForm && cfg.jsonForm && cfg.jsonForm !== dom.jsonForm) {
+            mismatches.push({ field: 'CMA.formConfig.jsonForm', controller: cfg.jsonForm, dom: dom.jsonForm });
+            cfg.jsonForm = dom.jsonForm;
+        }
+        // Object-identity check: this.config is a reference captured at
+        // construction time (FormTemplate.php emits `new CMA.FormController(id,
+        // CMA.formConfig)`). If a page swap re-emits `CMA.formConfig = {...}`,
+        // the variable points to a fresh object while this.config still holds
+        // the previous one. Every per-form field (accessLevel, canAdd/Delete/
+        // Copy, filterIdName, formName, …) reads through this.config — when
+        // it's stale the wrong permissions/buttons/filters are used. Compare
+        // references and resync the whole object on mismatch.
+        if (cfg && this.config && this.config !== cfg) {
+            mismatches.push({
+                field: 'this.config (object identity)',
+                controllerJsonForm: this.config.jsonForm,
+                cfgJsonForm: cfg.jsonForm,
+            });
+            this.config = cfg;
+        }
+
+        if (mismatches.length === 0) {
+            return true;
+        }
+
+        const details = { context, instanceId: this._instanceId, dom, controller: ctrl, mismatches };
+        cmaLog.warn(`[verifyIdentity:${context}] identity mismatch — DOM wins, controller re-synced`, details);
+
+        // Telemetry — best effort, never throws.
+        try {
+            if (window.CMA && window.CMA.requestTracker && typeof window.CMA.requestTracker.recordEvent === 'function') {
+                window.CMA.requestTracker.recordEvent('form_identity_mismatch', details);
+            }
+        } catch (e) { /* swallow — telemetry must never break the action */ }
+
+        return false;
+    }
+
+    // =========================================================================
     // EVENT LISTENER MANAGEMENT
     // Track event listeners so they can be properly removed in destroy()
     // =========================================================================
@@ -1256,6 +1350,16 @@ class CmaFormController {
         // Store controller reference on the form-layout element for DOM-based lookup
         // This eliminates global state pollution - each form has its own controller reference
         const formLayout = document.querySelector('.form-layout');
+
+        // Identity tripwire — must run BEFORE we write this.jsonForm onto the
+        // div below. The constructor reads identity from CMA.formConfig, but
+        // the server-rendered div is the canonical source. If they disagree
+        // (e.g. a stale CMA.formConfig survived an AJAX page swap), DOM wins
+        // and the controller is silently re-synced. Without this check, the
+        // dataset.jsonForm = this.jsonForm line below would clobber the
+        // correct value with the stale one and the drift would go undetected.
+        this.verifyIdentity('init');
+
         if (formLayout) {
             formLayout._cmaFormController = this;
             // Also store form name as data attribute for debugging
@@ -7530,6 +7634,7 @@ class CmaFormController {
      * Load record data via AJAX
      */
     async loadRecord(recordId, forceRefresh = false) {
+        this.verifyIdentity('loadRecord');
         const currentRecordIdCheck = cmaGetRecordId();
         const formLayout = document.querySelector('.form-layout');
         const dataLoaded = formLayout?.dataset.dataloaded === 'true';
@@ -8141,19 +8246,26 @@ class CmaFormController {
                     }
                     break;
 
-                case 'radiogroup':
-                    // Radio button group - find the matching radio by value
-                    const radioGroup = field.querySelectorAll('input[type="radio"]');
-                    // Convert value to string, handling null/undefined
-                    // If empty/null, use the default value from data-default attribute
+                case 'radiogroup': {
+                    // Convert value to string, handling null/undefined.
+                    // If empty/null, fall back to data-default.
                     let radioValue = (value !== null && value !== undefined && value !== '') ? String(value) : '';
                     if (radioValue === '' && field.dataset.default) {
                         radioValue = field.dataset.default;
                     }
-                    radioGroup.forEach(radio => {
-                        radio.checked = radio.value === radioValue;
-                    });
+                    // FormRenderer now emits <lib-radio-group> for this type;
+                    // older/legacy markup may still use a <div> wrapping
+                    // <input type="radio"> children — handle both.
+                    if (field.tagName && field.tagName.toLowerCase() === 'lib-radio-group') {
+                        field.value = radioValue;
+                    } else {
+                        const radioGroup = field.querySelectorAll('input[type="radio"]');
+                        radioGroup.forEach(radio => {
+                            radio.checked = radio.value === radioValue;
+                        });
+                    }
                     break;
+                }
 
                 default:
                     if (field.tagName === 'TEXTAREA') {
@@ -8465,6 +8577,7 @@ class CmaFormController {
      * Create new record
      */
     async newRecord() {
+        this.verifyIdentity('newRecord');
         if (this.hasUnsavedChanges()) {
             const changeSummary = this.formatChangeSummary();
             const confirmed = await libConfirm('Je hebt niet-opgeslagen wijzigingen.' + changeSummary, {
@@ -8860,6 +8973,12 @@ class CmaFormController {
      * @param {boolean} closeAfter - If true, close form after save
      */
     async saveRecord(closeAfter = false) {
+        // Tripwire: bail out before doing anything if the controller's idea
+        // of which form/record we're on disagrees with the .form-layout DOM.
+        // verifyIdentity() does NOT abort — it re-syncs from DOM and continues
+        // — so the rest of saveRecord uses the corrected identity below.
+        this.verifyIdentity('saveRecord');
+
         // Performance tracking
         const perfId = 'saveRecord_' + Date.now();
         const currentId = cmaGetRecordId();
@@ -8948,6 +9067,13 @@ class CmaFormController {
 
             if (result.success) {
                 // cmaLog.log('saveRecord: SUCCESS, id=', result.id, 'isNew=', result.isNew, 'message=', result.message);
+                // Invalidate combo dropdown caches — the saved record may have
+                // added/changed a value that other forms' combos depend on.
+                // 5-min TTL was masking this; explicit clear ensures combos
+                // refetch on next render.
+                if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
+                    cmaComboCache.clear();
+                }
                 cmaSetRecordId(result.id);
                 this.setDirty(false);
                 this.updateStatus(result.message);
@@ -9832,6 +9958,7 @@ class CmaFormController {
      * Delete record
      */
     async deleteRecord() {
+        this.verifyIdentity('deleteRecord');
         if (!cmaGetRecordId()) return;
 
         const confirmed = await libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
@@ -9856,6 +9983,12 @@ class CmaFormController {
             const result = await response.json();
 
             if (result.success) {
+                // Invalidate combo caches — a deleted row may have been an
+                // option in some other form's combo. See saveRecord for the
+                // matching call.
+                if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
+                    cmaComboCache.clear();
+                }
                 const deletedRecordId = cmaGetRecordId();
                 cmaSetRecordId(null);
                 this.setDirty(false);  // Clear dirty state before closing
@@ -9896,6 +10029,7 @@ class CmaFormController {
      * Copy record (load as new)
      */
     copyRecord() {
+        this.verifyIdentity('copyRecord');
         if (!cmaGetRecordId()) return;
 
         // Keep data but clear ID - this creates a new record with copied data

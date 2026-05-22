@@ -8,6 +8,12 @@
 describe('Formulierdefinities Form', () => {
     beforeEach(() => {
         cy.loginAsAdmin();
+        cy.startIdentityWatcher();
+    });
+
+    afterEach(() => {
+        // verifyIdentity() tripwire — must stay silent during healthy flow.
+        cy.assertNoIdentityMismatch();
     });
 
     describe('List view', () => {

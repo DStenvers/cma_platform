@@ -2,6 +2,7 @@
 /**
 * Main
 */
+use App\Library\Image;
 use App\Library\LibUpload;
 use App\Library\Request;
 use App\Library\Response;

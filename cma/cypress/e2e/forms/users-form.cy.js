@@ -21,6 +21,13 @@ describe('Users Form CRUD Operations', () => {
 
     beforeEach(() => {
         cy.loginAsAdmin();
+        cy.startIdentityWatcher();
+    });
+
+    afterEach(() => {
+        // verifyIdentity() emits form_identity_mismatch via cmaRequestTracker
+        // on drift. In a healthy CRUD flow this must stay silent.
+        cy.assertNoIdentityMismatch();
     });
 
     describe('SQLite Database Integration', () => {

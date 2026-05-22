@@ -385,6 +385,11 @@
           "type": "boolean",
           "default": false,
           "description": "Field only visible to beheer (admin) users"
+        },
+
+        "hiddenWhen": {
+          "type": "string",
+          "description": "Safe expression — when it evaluates to true, the field is omitted entirely (not rendered, not saved). Grammar: literals (strings 'x', numbers, true/false/null), operators ==, !=, &&, ||, !, parentheses, identifiers of the form app.<key> (mapped to Application::get). Example: \"app.cma_sso_enabled == 'true'\". See Cma\\FormExpressionEvaluator. NOTE: form definitions are cached per formId — toggling a referenced Application value at runtime requires busting the form-def cache."
         }
       }
     },

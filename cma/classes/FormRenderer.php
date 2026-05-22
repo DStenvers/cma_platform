@@ -514,27 +514,31 @@ class FormRenderer
             'default' => $defaultValue,
         ], $newChangableOnly, $caption);
 
-        $html = sprintf('<div class="radiocontrolgroup" %s>', $dataAttrs);
-
+        // Build pipe-separated "value:label" options for lib-radio-group.
+        // Bar/colon characters in either side of an option would break the
+        // round-trip parser; encode them so the component receives them
+        // verbatim. JSON-form definitions don't normally use these, but the
+        // safety is cheap.
+        $optionParts = [];
         foreach ($options as $option) {
-            // Cast value to string to handle both string and integer values from JSON
             $value = (string)($option['value'] ?? '');
             $text = (string)($option['text'] ?? $option['label'] ?? $value);
-            $id = self::escape($name . '_' . $value);
-            $disabledAttr = $readonly ? ' disabled' : '';
-
-            $html .= sprintf(
-                '<label><input type="radio" id="%s" name="%s" value="%s"%s> %s</label>',
-                $id,
-                self::escape($name),
-                self::escape($value),
-                $disabledAttr,
-                self::escape($text)
-            );
+            $optionParts[] = strtr($value, ['|' => '%7C', ':' => '%3A'])
+                . ':' . strtr($text, ['|' => '%7C', ':' => '%3A']);
         }
+        $optionsAttr = self::escape(implode('|', $optionParts));
 
-        $html .= '</div>';
-        return $html;
+        $valueAttr = $defaultValue !== '' ? ' value="' . self::escape((string) $defaultValue) . '"' : '';
+        $disabledAttr = $readonly ? ' readonly' : '';
+
+        return sprintf(
+            '<lib-radio-group name="%s" options="%s"%s%s %s></lib-radio-group>',
+            self::escape($name),
+            $optionsAttr,
+            $valueAttr,
+            $disabledAttr,
+            $dataAttrs
+        );
     }
 
     /**

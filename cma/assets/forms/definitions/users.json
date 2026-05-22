@@ -78,7 +78,8 @@
                         "maxLength": 32,
                         "hint": "Alleen invullen bij nieuwe gebruiker of wachtwoord wijzigen",
                         "skipInTableView": true,
-                        "skipInSync": true
+                        "skipInSync": true,
+                        "hiddenWhen": "app.cma_sso_enabled == 'true'"
                 },
                 {
                         "name": "userIPAddresses",

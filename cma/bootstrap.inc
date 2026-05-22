@@ -122,6 +122,7 @@ require_once __DIR__ . '/classes/FormDefinition.php';
 require_once __DIR__ . '/classes/FormRenderer.php';
 require_once __DIR__ . '/classes/FormTemplate.php';
 require_once __DIR__ . '/classes/FormDataProvider.php';
+require_once __DIR__ . '/classes/FormExpressionEvaluator.php';
 require_once __DIR__ . '/classes/JsonFormLoader.php';
 
 // Load service classes
@@ -243,6 +244,7 @@ define("CMA_JS_FILES", implode(',', [
     'assets/js/request-tracker.js',
     '../library/webcomponents/lib-shared-styles.js',  // Shared styles for web components (must be before components)
     '../library/webcomponents/lib-switch.js',
+    '../library/webcomponents/lib-radio-group.js',
     '../library/webcomponents/lib-dialog.js',
     '../library/webcomponents/lib-message.js',
     '../library/webcomponents/lib-menu.js',
@@ -631,6 +633,7 @@ function cma_js_bundle(): array {
         // Library Web Components - ALL must be included, no exceptions
         '../library/webcomponents/lib-loader.js',
         '../library/webcomponents/lib-switch.js',
+        '../library/webcomponents/lib-radio-group.js',
         '../library/webcomponents/lib-dialog.js',
         '../library/webcomponents/lib-message.js',
         '../library/webcomponents/lib-menu.js',

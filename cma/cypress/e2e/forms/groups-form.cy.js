@@ -17,6 +17,12 @@ describe('Groups Form CRUD Operations', () => {
 
     beforeEach(() => {
         cy.loginAsAdmin();
+        cy.startIdentityWatcher();
+    });
+
+    afterEach(() => {
+        // verifyIdentity() tripwire — must stay silent during healthy CRUD.
+        cy.assertNoIdentityMismatch();
     });
 
     describe('Table View Setup', () => {
