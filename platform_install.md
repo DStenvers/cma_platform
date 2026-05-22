@@ -194,6 +194,209 @@ cma_platform/
     └── ...
 ```
 
+## Deployment vanuit GitHub
+
+Onderstaande beschrijft hoe je een platform-gebaseerd project (zoals `karaat` of `rec`) automatisch deploy't vanuit een GitHub repository naar een Windows/IIS server. De stappen werken voor elk project dat het platform gebruikt.
+
+### Server-vereisten
+
+Op de productieserver eenmalig installeren:
+
+- **Git for Windows** — `https://git-scm.com/download/win` (zorg dat `git.exe` in PATH staat)
+- **Composer** — `https://getcomposer.org/download/` (globaal in PATH)
+- **PHP** — versie matchend met `composer.json` van het project (≥7.4 voor karaat, ≥8.0 voor rec)
+- **IIS** met URL Rewrite module + FastCGI configuratie voor PHP
+
+### 1. Initiële deploy (eenmalig per project)
+
+```powershell
+# Op de server: clone het project repo
+cd C:\inetpub\wwwroot
+git clone https://github.com/DStenvers/karaatedelstenen.git karaat
+cd karaat
+
+# Auth voor private platform package (zie sectie "GitHub authenticatie" hierboven)
+# Maak auth.json met PAT in dezelfde map als composer.json
+
+# Composer install (haalt platform binnen, kopieert library/cma/module bestanden)
+composer install --no-dev --optimize-autoloader
+
+# Maak runtime directories aan (worden door installer normaal aangemaakt)
+mkdir sessions cache logs
+
+# Project-specifieke config
+copy .env.production.example .env.production
+# Bewerk .env.production met DB credentials, mail SMTP, etc.
+
+# Database files plaatsen
+# Voor Access: kopieer .mdb files naar /db/ (NIET via git — zie .gitignore)
+# Voor SQL: voer migraties uit via cma/tools/tools_db_migrations.php
+
+# IIS: maak een Site die naar deze map wijst (zie sectie "IIS configureren")
+```
+
+### 2. Automatische deploy via GitHub webhook
+
+#### a. Deploy-script op de server
+
+Maak `deploy.php` aan in de project root (NIET committen — zie `.gitignore`):
+
+```php
+<?php
+// deploy.php — receiver voor GitHub webhook pushes
+// Plaats in project root; secret moet matchen met de GitHub webhook config
+
+$secret = getenv('DEPLOY_SECRET') ?: '';  // zet als env var of in .env
+$payload = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
+
+// Verifieer GitHub signature
+if ($secret === '' || !hash_equals('sha256=' . hash_hmac('sha256', $payload, $secret), $signature)) {
+    http_response_code(403);
+    exit('Invalid signature');
+}
+
+// Verifieer dat het een push naar main is
+$event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
+$data = json_decode($payload, true);
+if ($event !== 'push' || ($data['ref'] ?? '') !== 'refs/heads/main') {
+    http_response_code(200);
+    exit('Ignored (not a push to main)');
+}
+
+// Schrijf logs
+$logFile = __DIR__ . '/logs/deploy.log';
+file_put_contents($logFile, "[" . date('c') . "] Deploy gestart\n", FILE_APPEND);
+
+// Voer deploy stappen uit
+chdir(__DIR__);
+$steps = [
+    'git pull origin main 2>&1',
+    'composer install --no-dev --optimize-autoloader 2>&1',
+];
+
+foreach ($steps as $cmd) {
+    $output = shell_exec($cmd);
+    file_put_contents($logFile, "[" . date('c') . "] $ $cmd\n$output\n", FILE_APPEND);
+}
+
+// Clear caches
+foreach (glob(__DIR__ . '/cache/*.html') as $f) @unlink($f);
+foreach (glob(__DIR__ . '/cache/*.json') as $f) @unlink($f);
+file_put_contents($logFile, "[" . date('c') . "] Cache gewist, deploy klaar\n", FILE_APPEND);
+
+echo "OK";
+```
+
+Bescherm de URL via IIS — alleen GitHub IP-ranges toelaten of via webhook secret check (zoals hierboven).
+
+#### b. Server-side permissies
+
+De PHP/IIS gebruiker (typisch `IIS APPPOOL\DefaultAppPool` of `IUSR`) moet:
+- **Lees+schrijf** rechten op de project directory (voor `git pull`)
+- **Execute** rechten op `git.exe` en `composer.phar`
+- Een schrijfbaar `.gitconfig` of `HOME` env var
+
+Test handmatig eerst als de IIS-user:
+```powershell
+runas /user:"IIS APPPOOL\DefaultAppPool" "git pull"
+```
+
+#### c. GitHub webhook configureren
+
+In de GitHub repo:
+1. **Settings → Webhooks → Add webhook**
+2. **Payload URL**: `https://www.karaatedelstenen.nl/deploy.php`
+3. **Content type**: `application/json`
+4. **Secret**: genereer een willekeurig 32-char string, vul ook in als `DEPLOY_SECRET` env var op de server (of in `.env.production`)
+5. **Events**: alleen `push`
+6. **Active**: aanvinken
+
+Test door op de "Recent Deliveries" tab naar de response code te kijken (moet 200 zijn).
+
+### 3. Alternatief: scheduled pull (eenvoudiger, polling delay)
+
+Als de webhook-aanpak te complex is, kun je een Windows Task Scheduler taak instellen die periodiek pult:
+
+```powershell
+# Maak een script auto-pull.ps1 in de project root
+$projectPath = 'C:\inetpub\wwwroot\karaat'
+cd $projectPath
+$result = git pull origin main 2>&1
+if ($result -match 'Already up to date') {
+    exit 0
+}
+# Er was een wijziging — composer + cache wis
+composer install --no-dev --optimize-autoloader
+Get-ChildItem "$projectPath\cache\*.html" | Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$projectPath\cache\*.json" | Remove-Item -Force -ErrorAction SilentlyContinue
+Add-Content "$projectPath\logs\deploy.log" "[$(Get-Date -Format o)] auto-pull: $result"
+```
+
+Plan via Task Scheduler:
+- **Trigger**: Daily, repeat every 5 minutes
+- **Action**: `powershell.exe -ExecutionPolicy Bypass -File C:\inetpub\wwwroot\karaat\auto-pull.ps1`
+- **Run as**: account met git+composer rechten
+
+Nadeel t.o.v. webhook: tot 5 min vertraging na een push.
+
+### 4. Handmatige deploy (als auto-deploy uit staat / fallback)
+
+Via RDP/SSH op de server:
+
+```powershell
+cd C:\inetpub\wwwroot\karaat
+git pull origin main
+composer install --no-dev --optimize-autoloader
+
+# Clear caches
+Remove-Item cache\*.html, cache\*.json -Force -ErrorAction SilentlyContinue
+
+# Optioneel: forceer .app_started reset om Application cache te verversen
+Remove-Item .app_started -ErrorAction SilentlyContinue
+```
+
+### 5. Rollback
+
+Bij een mislukte deploy:
+
+```powershell
+# Bekijk recente commits
+git log --oneline -10
+
+# Rollback naar vorige werkende commit
+git reset --hard <commit-hash>
+
+# Composer naar matching state
+composer install --no-dev --optimize-autoloader
+
+# Cache wissen
+Remove-Item cache\*.html, cache\*.json -Force -ErrorAction SilentlyContinue
+```
+
+**Belangrijk:** rollback via `git reset --hard` wist lokale wijzigingen. Maak backups van `.env*`, `db/*.mdb`, en custom config files (die staan in `.gitignore` dus blijven veilig).
+
+### 6. Veelvoorkomende deploy-problemen
+
+| Probleem | Oorzaak | Oplossing |
+|----------|---------|-----------|
+| `git pull` faalt op auth | Geen credentials store of expired PAT | Gebruik PAT in URL: `git remote set-url origin https://USER:PAT@github.com/...` |
+| `composer install` faalt op platform package | Geen `auth.json` met PAT | Plaats `auth.json` (zie sectie "GitHub authenticatie") |
+| Site geeft 500 na deploy | Permissies op `sessions/`, `cache/`, `logs/` | Geef IIS-user schrijfrechten op deze mappen |
+| Wijzigingen niet zichtbaar | OPcache | Restart IIS App Pool of zet `opcache.validate_timestamps=1` in php.ini |
+| `prod_detail_*.html` cache stale | Mijn-cache niet gewist | Run `Cache leegmaken` via `/cma/tools_clearcache.php` of voeg cache-wis stap toe in deploy script |
+
+### 7. .gitignore aanvulling voor deploy
+
+Zorg dat het project `.gitignore` deze server-only bestanden uitsluit:
+
+```gitignore
+# Deploy-only files (server-side, niet committen)
+/deploy.php
+/auto-pull.ps1
+/auth.json
+```
+
 ## Veelgestelde vragen
 
 ### Kan ik CMA bestanden aanpassen in mijn project?
