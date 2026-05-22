@@ -277,9 +277,20 @@ lib-radio-group {
 }
 
 /* No left divider on the first option (host border owns that edge);
-   no right divider on the last option (same). */
-.lib-radio-group__option--selected:first-child { border-left-color: transparent; }
-.lib-radio-group__option--selected:last-child  { border-right-color: transparent; }
+   no right divider on the last option (same).  When the selected
+   option sits at an edge we also round its outer corners to match
+   the host's radius so the background fill follows the rounded
+   wrapper instead of showing a square corner. */
+.lib-radio-group__option--selected:first-child {
+    border-left-color: transparent;
+    border-top-left-radius:    var(--radius, 6px);
+    border-bottom-left-radius: var(--radius, 6px);
+}
+.lib-radio-group__option--selected:last-child  {
+    border-right-color: transparent;
+    border-top-right-radius:    var(--radius, 6px);
+    border-bottom-right-radius: var(--radius, 6px);
+}
 
 .lib-radio-group--disabled {
     opacity: 0.5;
