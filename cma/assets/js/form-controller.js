@@ -10060,15 +10060,19 @@ class CmaFormController {
         let url = this.config.previewUrl;
         url = url.replace(/\[ID\]/gi, currentRecordIdForPreview);
 
-        // Handle other placeholders
-        const codeField = this.mainForm.querySelector('[name="code"]');
-        if (codeField && url.includes('[code]')) {
-            url = url.replace(/\[code\]/gi, codeField.value);
-        }
-
-        const guidField = this.mainForm.querySelector('[name="guid"]');
-        if (guidField && url.includes('[guid]')) {
-            url = url.replace(/\[guid\]/gi, guidField.value);
+        // Generic placeholder substitution — every `[fieldname]` left
+        // in the template is looked up as the value of an input with
+        // that name attribute.  Previously this method had hardcoded
+        // branches for `[code]` and `[guid]` only, so adding `[slug]`
+        // (and any future field) needed a code change here.  Now any
+        // field a form exposes is usable in the previewUrl template.
+        const placeholders = url.match(/\[[a-z_][a-z0-9_]*\]/gi) || [];
+        for (const ph of placeholders) {
+            const name = ph.slice(1, -1);
+            const field = this.mainForm.querySelector('[name="' + name + '"]');
+            if (field) {
+                url = url.split(ph).join(encodeURIComponent(field.value || ''));
+            }
         }
 
         window.open(url, '_blank');
