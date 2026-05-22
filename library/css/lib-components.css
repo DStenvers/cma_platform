@@ -216,28 +216,34 @@ lib-radio-group {
     border: 1px solid var(--color-border, #c4c8d0);
     border-radius: 6px;
     background: var(--color-bg-input, #ffffff);
-    padding: 2px;
     gap: 0;
     user-select: none;
     box-sizing: border-box;
     /* Subtle outer shadow so the inset on the selected option reads more clearly */
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+    overflow: hidden; /* keeps the selected option's inset shadow inside the rounded corners */
 }
 
 .lib-radio-group__option {
     appearance: none;
     -webkit-appearance: none;
-    border: 0;
+    /* Reserve the same 1px on left + right so the conditional vertical
+       dividers below toggle on/off without shifting any neighbour. */
+    border: 0 solid transparent;
+    border-left-width: 1px;
+    border-right-width: 1px;
     background: transparent;
     color: var(--color-text, #1d2230);
     font: inherit;
     line-height: 1.4;
     padding: 6px 14px;
-    border-radius: 4px;
+    /* Auto-sized to the label content — no flex grow, no fixed width.
+       The host (inline-flex) lays them out side-by-side without any
+       segment forcing the others to match its size. */
+    flex: 0 0 auto;
+    text-align: center;
     cursor: pointer;
     transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
-    /* Keep options from collapsing on long labels */
-    white-space: nowrap;
 }
 
 .lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
@@ -252,12 +258,20 @@ lib-radio-group {
 .lib-radio-group__option--selected {
     background: var(--color-bg-selected, #e6ebf5);
     color: var(--color-primary, #204496);
-    font-weight: 600;
+    /* font-weight stays inherited — bolding the active label shifts the
+       text on every neighbour as widths re-balance. */
+    border-left-color:  var(--color-border, #c4c8d0);
+    border-right-color: var(--color-border, #c4c8d0);
     /* Pressed-in look — inset shadow + slight darker top edge */
     box-shadow:
         inset 0 1px 3px rgba(0, 0, 0, 0.18),
         inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
+
+/* No left divider on the first option (host border owns that edge);
+   no right divider on the last option (same). */
+.lib-radio-group__option--selected:first-child { border-left-color: transparent; }
+.lib-radio-group__option--selected:last-child  { border-right-color: transparent; }
 
 .lib-radio-group--disabled {
     opacity: 0.5;
