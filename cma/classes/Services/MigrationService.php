@@ -452,8 +452,15 @@ class MigrationService
             return ['success' => true, 'backups' => [], 'errors' => []];
         }
 
-        // Load database configurations
-        $databasesFile = __DIR__ . '/../../../data/databases.json';
+        // Load database configurations.  Path is relative to
+        // cma/classes/Services/ — two `..` jumps land at `cma/`,
+        // then `config/databases.json` (matches the location used
+        // by cma/tools/tools_backup.php).  The previous path
+        // `../../../data/databases.json` resolved to `cma/data/`
+        // which doesn't exist, so every migration logged
+        // "Database '…' niet gevonden in configuratie, backup
+        // overgeslagen" even when the config was perfectly fine.
+        $databasesFile = __DIR__ . '/../../config/databases.json';
         $databaseConfigs = [];
         if (file_exists($databasesFile)) {
             $content = file_get_contents($databasesFile);
