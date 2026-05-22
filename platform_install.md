@@ -306,7 +306,7 @@ runas /user:"IIS APPPOOL\DefaultAppPool" "git pull"
 
 In de GitHub repo:
 1. **Settings → Webhooks → Add webhook**
-2. **Payload URL**: `https://www.karaatedelstenen.nl/deploy.php`
+2. **Payload URL**: bv. `https://karaat.stenversonline.nl/deploy.php` (vervang door je eigen domain)
 3. **Content type**: `application/json`
 4. **Secret**: genereer een willekeurig 32-char string, vul ook in als `DEPLOY_SECRET` env var op de server (of in `.env.production`)
 5. **Events**: alleen `push`
