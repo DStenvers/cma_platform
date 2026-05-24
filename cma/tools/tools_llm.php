@@ -749,8 +749,13 @@ if ($action === 'scan') {
 Response::noCache();
 cma_html_header('CMA - LLM management');
 echo '<body class="contentbody tools tool-llm" style="margin:0;">';
-$rescanBtn = '<span class="tb-btn"><a href="javascript:void(0)" id="llm-rescan-btn" title="Opnieuw scannen"><span class="lnr lnr-sync"></span><span class="tb-btn-text">Opnieuw scannen</span></a></span>';
-ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen op deze server', $rescanBtn);
+$rescanBtn  = '<span class="tb-btn"><a href="javascript:void(0)" id="llm-rescan-btn" title="Opnieuw scannen"><span class="lnr lnr-sync"></span><span class="tb-btn-text">Opnieuw scannen</span></a></span>';
+// Companion tool: llm_models.php downloads GGUF model files into
+// LLM_MODELS_DIR. Discovery (this tool) + provisioning (that tool)
+// stay separate processes; the toolbar shortcut keeps them one
+// click apart so the cook never has to hunt for the menu item.
+$installBtn = '<span class="tb-btn"><a href="' . $llmModelsHref . '" id="llm-install-btn" title="Installeer / download een GGUF-model"><span class="lnr lnr-download"></span><span class="tb-btn-text">Modellen installeren</span></a></span>';
+ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen + installeer nieuwe', $rescanBtn . $installBtn);
 
 echo '<style>
 .tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; }
