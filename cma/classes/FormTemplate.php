@@ -637,7 +637,7 @@ class FormTemplate
         $canEdit = $this->formDef->allowEdit() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
         if (!$canEdit) {
             $html .= '<span class="tb-sep"></span>' . PHP_EOL;
-            $html .= '<span id="listReadonlyIndicator" class="toolbar-readonly-indicator" data-tooltip="Alleen lezen" data-tooltip-pos="top"><span class="lnr lnr-lock"></span></span>' . PHP_EOL;
+            $html .= '<span id="listReadonlyIndicator" class="toolbar-readonly-indicator" data-tooltip="Dit formulier is alleen-lezen ingericht — wijzigingen lopen via automatisering/audit zodat de geschiedenis traceerbaar blijft" data-tooltip-pos="top" title="Dit formulier is alleen-lezen ingericht — wijzigingen lopen via automatisering/audit zodat de geschiedenis traceerbaar blijft"><span class="lnr lnr-lock"></span></span>' . PHP_EOL;
         }
 
         $html .= '</div>' . PHP_EOL;

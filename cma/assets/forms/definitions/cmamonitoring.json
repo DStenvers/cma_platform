@@ -7,7 +7,7 @@
         "table": "tblCMAMonitoring",
         "database": "data",
         "idField": "ID",
-        "listQuery": "SELECT ID, datestamp, Username, IIf(Form Is Null\n  Or Form='', Formname, Form) AS [Form], Actie, Left(Notificatie, 100) AS [Notificatie]\nFROM tblCMAMonitoring\nORDER BY ID DESC",
+        "listQuery": "SELECT ID, datestamp, Username, IIf(Form Is Null\n  Or Form='', Formname, Form) AS [FormHandle], Actie, Left(Notificatie, 100) AS [Notificatie]\nFROM tblCMAMonitoring\nORDER BY ID DESC",
         "listColumns": [
                 {
                         "field": "datestamp",
@@ -20,7 +20,7 @@
                         "type": "text"
                 },
                 {
-                        "field": "Form",
+                        "field": "FormHandle",
                         "title": "Formulier",
                         "type": "text"
                 },

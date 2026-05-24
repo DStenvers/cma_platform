@@ -261,12 +261,55 @@ cma_html_header('WebP conversie');
 echo '<body class="contentbody tools tool-webp-convert" style="margin: 0;">';
 ToolbarHelper::report('WebP conversie', false, false, false, false, 'Converteer afbeeldingen naar WebP met responsieve varianten', '', 'helpDialog');
 ?>
+<?php
+// Build a directory selector from a server-side scan: any folder under
+// the site root that holds image files (jpg/jpeg/png/gif/webp) becomes
+// an option. Two-level deep so /assets/images shows up alongside
+// /images. Big projects with hundreds of dirs would benefit from a
+// proper tree picker — for now this list comfortably covers the
+// typical image folder layout.
+$siteRoot = Server::mapPath('/');
+$imageDirs = [];
+$scanRoot  = static function (string $base, string $relBase, int $depth, array &$out) use (&$scanRoot): void {
+    if ($depth > 2) { return; }
+    $entries = @scandir($base) ?: [];
+    foreach ($entries as $e) {
+        if ($e === '.' || $e === '..' || $e === '.responsive' || $e[0] === '.') { continue; }
+        $path = $base . DIRECTORY_SEPARATOR . $e;
+        if (!is_dir($path)) { continue; }
+        $rel = $relBase . '/' . $e;
+        // Skip vendored / cma-internal trees so the list stays useful.
+        if (preg_match('#^/(vendor|node_modules|cma|cache|logs|tools|library|migrations)(/|$)#i', $rel)) {
+            continue;
+        }
+        // Does this directory contain image files at top level?
+        $hasImg = false;
+        foreach (@scandir($path) ?: [] as $f) {
+            if (preg_match('/\.(jpe?g|png|gif|webp)$/i', $f)) { $hasImg = true; break; }
+        }
+        if ($hasImg) { $out[] = $rel . '/'; }
+        $scanRoot($path, $rel, $depth + 1, $out);
+    }
+};
+$scanRoot($siteRoot, '', 0, $imageDirs);
+$imageDirs = array_values(array_unique($imageDirs));
+sort($imageDirs);
+?>
 <div id="c" class="tools" style="padding: 24px;">
 
 <div style="margin-bottom: 20px;">
     <label for="directory" style="font-weight: bold; display: block; margin-bottom: 4px;">Map om te scannen:</label>
     <div style="display: flex; gap: 0; align-items: stretch;">
-        <input type="text" id="directory" value="/images/" class="form-control" style="max-width: 400px; height: 32px; box-sizing: border-box; border-radius: 3px 0 0 3px;">
+        <?php if (!empty($imageDirs)): ?>
+            <select id="directory" class="form-control" style="max-width: 400px; height: 32px; box-sizing: border-box; border-radius: 3px 0 0 3px;">
+                <?php $defaultDir = in_array('/images/', $imageDirs, true) ? '/images/' : $imageDirs[0]; ?>
+                <?php foreach ($imageDirs as $dir): ?>
+                    <option value="<?php echo htmlspecialchars($dir); ?>"<?php echo $dir === $defaultDir ? ' selected' : ''; ?>><?php echo htmlspecialchars($dir); ?></option>
+                <?php endforeach; ?>
+            </select>
+        <?php else: ?>
+            <input type="text" id="directory" value="/images/" class="form-control" style="max-width: 400px; height: 32px; box-sizing: border-box; border-radius: 3px 0 0 3px;" placeholder="/images/">
+        <?php endif; ?>
         <button class="btn btn-primary" onclick="scanDirectory()" style="height: 32px; box-sizing: border-box; border-radius: 0 3px 3px 0;">
             <span class="lnr lnr-magnifier"></span> Scannen
         </button>

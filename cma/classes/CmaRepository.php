@@ -244,6 +244,24 @@ class CmaRepository
             }
         }
 
+        // Fallback: when databases.json is missing or yielded zero
+        // selectable rows for this viewer (e.g. an Admin with only the
+        // users DB filtered out), every CMA tool that reads the
+        // database-selector list silently degrades to a blank state.
+        // Synthesize one default "data" entry so tools always have a
+        // database to render against. Id is 0 because the synthetic
+        // row isn't backed by a config row; downstream lookups via
+        // ConfigLoader::getDatabase(0) need to handle that gracefully
+        // — for tools that just want a name + isData flag (db summary,
+        // query tool toolbar) the placeholder is enough.
+        if (empty($options)) {
+            $options[] = [
+                'id'     => 0,
+                'title'  => 'data',
+                'isData' => true,
+            ];
+        }
+
         return $options;
     }
 

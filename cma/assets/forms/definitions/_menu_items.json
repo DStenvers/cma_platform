@@ -79,6 +79,12 @@
         ],
         "listColumns": [
                 {
+                        "field": "visible",
+                        "title": "",
+                        "type": "active",
+                        "width": 30
+                },
+                {
                         "field": "name",
                         "title": "Weergavenaam",
                         "type": "text"

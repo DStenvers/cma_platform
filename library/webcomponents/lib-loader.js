@@ -202,19 +202,28 @@ class LibLoader extends HTMLElement {
             <style>
                 :host {
                     display: none;
-                    position: absolute;
-                    inset: 0;
                     align-items: center;
                     justify-content: center;
+                    min-height: ${s.spinner + 20}px;
+                    padding: 12px;
+                    box-sizing: border-box;
                 }
 
                 :host(.visible) {
                     display: flex;
                 }
 
+                /* Overlay mode (legacy default) covers the parent container
+                   with absolute positioning. Without [overlay] the loader
+                   sits inline in normal flow — that way an empty parent
+                   doesn't collapse to 0×0 and hide the spinner. */
                 :host([overlay]) {
+                    position: absolute;
+                    inset: 0;
                     z-index: 100;
                     pointer-events: none;
+                    min-height: 0;
+                    padding: 0;
                 }
 
                 :host([overlay].visible) {

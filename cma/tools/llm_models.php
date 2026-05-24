@@ -61,10 +61,28 @@ $resolveEnv = static function (string $siteRoot, string $key): string {
 $secret = $resolveEnv($siteRoot, 'DEPLOY_SECRET');
 $given  = (string)($_GET['key'] ?? '');
 
-if ($secret === '' || !hash_equals($secret, $given)) {
+$authOk = ($secret !== '' && hash_equals($secret, $given));
+
+// Alt auth: a Developer-level CMA-session counts the same as the
+// DEPLOY_SECRET key. Lets the cook click "LLM modellen" from the
+// menu without having to glue ?key=... onto the URL by hand. Wrap
+// in try/catch so a half-broken bootstrap (the original use case
+// for the secret-only path) still leaves the secret door open.
+if (!$authOk) {
+    try {
+        require_once __DIR__ . '/../bootstrap.inc';
+        if (class_exists(\Cma\SecurityHelper::class) && \Cma\SecurityHelper::isDeveloper()) {
+            $authOk = true;
+        }
+    } catch (\Throwable $_) {
+        // Bootstrap broke — only the secret key works now. Drop through.
+    }
+}
+
+if (!$authOk) {
     http_response_code(403);
     header('Content-Type: text/plain; charset=utf-8');
-    echo "403 — pass ?key=<DEPLOY_SECRET>.\n";
+    echo "403 — log in als developer of pas ?key=<DEPLOY_SECRET> toe.\n";
     return;
 }
 

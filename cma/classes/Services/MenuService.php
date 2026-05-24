@@ -124,6 +124,27 @@ class MenuService
     }
 
     /**
+     * Treat any of the common "disabled" representations the same way.
+     * Missing key / null → not disabled (default-on). Anything else
+     * runs through the truthy mapping that mirrors
+     * ConfigFormService::convertFieldValue for checkbox/switch types,
+     * with one extra: a bare "0" / "false" / "no" / "n" / "off" all
+     * count as off so legacy saved values (notably the
+     * form-associated lib-switch "N") drop out cleanly.
+     */
+    private static function isFlagDisabled($v): bool
+    {
+        if ($v === null) { return false; }
+        if (is_bool($v)) { return $v === false; }
+        if (is_int($v) || is_float($v)) { return ((int)$v) === 0; }
+        if (is_string($v)) {
+            $s = strtolower(trim($v));
+            return in_array($s, ['', '0', 'false', 'no', 'n', 'off'], true);
+        }
+        return false;
+    }
+
+    /**
      * Filter menus based on user's access level
      *
      * @param array $menus
@@ -135,8 +156,11 @@ class MenuService
         $filteredMenus = [];
 
         foreach ($menus as $menu) {
-            // Skip disabled menus
-            if (isset($menu['enabled']) && $menu['enabled'] === false) {
+            // Skip disabled menus.  Robust against legacy "N" / "false"
+            // strings the form-associated lib-switch used to save —
+            // older saved configs may have flag values that aren't
+            // strictly `=== false` but still mean disabled.
+            if (self::isFlagDisabled($menu['enabled'] ?? null)) {
                 continue;
             }
 
@@ -150,10 +174,10 @@ class MenuService
             $filteredItems = [];
             foreach ($menu['items'] ?? [] as $item) {
                 // Skip disabled or invisible items
-                if (isset($item['enabled']) && $item['enabled'] === false) {
+                if (self::isFlagDisabled($item['enabled'] ?? null)) {
                     continue;
                 }
-                if (isset($item['visible']) && $item['visible'] === false) {
+                if (self::isFlagDisabled($item['visible'] ?? null)) {
                     continue;
                 }
                 $itemLevel = self::ACCESS_LEVELS[$item['accessLevel'] ?? 'user'] ?? 0;

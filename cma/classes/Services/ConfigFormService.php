@@ -1189,10 +1189,16 @@ class ConfigFormService
         // This prevents converting "1" to true for number fields like 'order'
         if ($type === 'checkbox' || $type === 'switch' || $type === 'boolean' || $dataType === 'boolean') {
             $lowerValue = is_string($value) ? strtolower($value) : $value;
-            if ($lowerValue === 'true' || $value === '1' || $lowerValue === 'on' || $value === true || $value === 1) {
+            // 'y' / 'n' added because form-associated lib-switch posts
+            // literal "Y" / "N" on submit (not bools, not "1"/"0").
+            // Without recognising those, a switched-off toggle saved
+            // "N" as a string and downstream `=== false` checks (e.g.
+            // MenuService::filterMenusByAccessLevel) treated it as
+            // "still enabled" → disabled menu items kept rendering.
+            if ($lowerValue === 'true' || $value === '1' || $lowerValue === 'on' || $lowerValue === 'y' || $lowerValue === 'yes' || $value === true || $value === 1) {
                 return true;
             }
-            if ($lowerValue === 'false' || $value === '0' || $lowerValue === 'off' || $value === false || $value === 0) {
+            if ($lowerValue === 'false' || $value === '0' || $lowerValue === 'off' || $lowerValue === 'n' || $lowerValue === 'no' || $value === false || $value === 0) {
                 return false;
             }
         }

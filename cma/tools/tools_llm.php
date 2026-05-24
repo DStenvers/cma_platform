@@ -791,7 +791,7 @@ echo '<div id="c" class="tools">';
 // without this the page would sit blank for that whole window.
 echo '<div id="llm-scan-target">';
 echo   '<div class="scan-state" id="llm-scan-state">';
-echo     '<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>';
+echo     '<lib-loader size="medium" active delay="0" text="Bezig met scannen van LLM-engines…"></lib-loader>';
 echo   '</div>';
 echo '</div>';
 
@@ -801,9 +801,11 @@ echo '<script>
     if (!target) return;
     function runScan() {
         // Reset to spinner state — used both on first load and when
-        // the toolbar "Opnieuw scannen" button is clicked.
+        // the toolbar "Opnieuw scannen" button is clicked. `active
+        // delay="0"` makes the spinner appear immediately rather than
+        // waiting for the lib-loader 500 ms grace period.
         target.innerHTML = \'<div class="scan-state" id="llm-scan-state">\'
-            + \'<lib-loader size="medium" text="Bezig met scannen van LLM-engines…"></lib-loader>\'
+            + \'<lib-loader size="medium" active delay="0" text="Bezig met scannen van LLM-engines…"></lib-loader>\'
             + \'</div>\';
         fetch("tools_llm.php?action=scan", { credentials: "same-origin", cache: "no-store" })
             .then(function (r) {
