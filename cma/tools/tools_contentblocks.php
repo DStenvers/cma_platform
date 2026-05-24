@@ -203,8 +203,9 @@ cma_html_header('CMA - Content blocks');
                         <tr>
                             <td class="label-cell"><label for="block_id">ID</label></td>
                             <td class="field-cell">
-                                <input type="text" id="block_id" name="id" class="form-input" style="width:200px;" required>
-                                <span class="field-hint">Unieke identifier (bijv: hero_banner)</span>
+                                <input type="text" id="block_id" name="id" class="form-input" style="width:200px;" required
+                                       placeholder="hero_banner">
+                                <span class="field-hint">Kleine letters + underscores, bijv. <code>hero_banner</code> of <code>cookie_notice</code></span>
                             </td>
                         </tr>
                         <tr>
@@ -225,8 +226,9 @@ cma_html_header('CMA - Content blocks');
                         <tr>
                             <td class="label-cell"><label for="block_html">HTML</label></td>
                             <td class="field-cell">
-                                <textarea id="block_html" name="html" class="form-input code-editor" rows="8" style="width:100%;font-family:monospace;"></textarea>
-                                <span class="field-hint">Gebruik {{variabele}} voor placeholders</span>
+                                <textarea id="block_html" name="html" class="form-input code-editor" rows="8" style="width:100%;font-family:monospace;"
+                                          placeholder='<section class="hero">&#10;    <h1>{{title}}</h1>&#10;    <p>{{subtitle}}</p>&#10;    <a class="btn" href="{{cta_href}}">{{cta_label}}</a>&#10;</section>'></textarea>
+                                <span class="field-hint">HTML met <code>{{variabele}}</code>-placeholders — namen moeten exact matchen met de variabelen-JSON hieronder.</span>
                             </td>
                         </tr>
                         <tr>
@@ -235,8 +237,9 @@ cma_html_header('CMA - Content blocks');
                         <tr>
                             <td class="label-cell"><label for="block_variables">JSON</label></td>
                             <td class="field-cell">
-                                <textarea id="block_variables" name="variables" class="form-input code-editor" rows="10" style="width:100%;font-family:monospace;"></textarea>
-                                <span class="field-hint">{"var_naam": {"description": "...", "type": "text|longtext|url|array", "required": true/false}}</span>
+                                <textarea id="block_variables" name="variables" class="form-input code-editor" rows="10" style="width:100%;font-family:monospace;"
+                                          placeholder='{&#10;    "title": { "description": "Koptekst", "type": "text", "required": true },&#10;    "subtitle": { "description": "Ondertekst", "type": "longtext", "required": false },&#10;    "cta_href": { "description": "Knop-link", "type": "url", "required": true },&#10;    "cta_label": { "description": "Knop-tekst", "type": "text", "required": true }&#10;}'></textarea>
+                                <span class="field-hint">JSON-object dat elk <code>{{placeholder}}</code> beschrijft. Types: <code>text</code> (korte tekst), <code>longtext</code> (textarea), <code>url</code>, <code>array</code> (lijst-items).</span>
                             </td>
                         </tr>
                     </table>
@@ -274,7 +277,7 @@ cma_html_header('CMA - Content blocks');
     // Render list
     function renderList(blocks) {
         if (blocks.length === 0) {
-            listContent.innerHTML = '<div class="list-empty">Geen blokken gevonden</div>';
+            listContent.innerHTML = '<div class="list-empty">Maak je eerste content-block aan.</div>';
             return;
         }
 

@@ -1,7 +1,7 @@
 {
     "$schema": "../schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.10.0",
+    "targetVersion": "9.11.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1126,6 +1126,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.10.0_create_tblcmamarketingurl.php",
                     "note": "Maakt tblCMAMarketingUrl aan in data database met unieke index op Dir; idempotent (skip als tabel bestaat)"
+                }
+            ]
+        },
+        {
+            "version": "9.11.0",
+            "description": "api_call_log aanmaken voor het bijhouden van uitgaande LLM/vision/API calls (kosten, fouten, patronen)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.11.0_create_api_call_log.php",
+                    "note": "Maakt api_call_log aan in data database (snake_case naam — wordt door bestaande CMA monitoring forms direct gequeried). Indexen op called_at, provider+called_at en user_id+called_at. Idempotent."
                 }
             ]
         }

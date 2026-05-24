@@ -78,6 +78,19 @@ class ConfigFormService
         }
 
         try {
+            // Missing-file is empty-list, not an error: the form is the
+            // CRUD UI for this config file, so seeing it before the
+            // first record exists must show "0 rows" instead of
+            // "Config file not found: ..." (which reads as a broken
+            // install). The save handler will create the file on the
+            // first row.
+            if (!ConfigLoader::exists($configFile)) {
+                return [
+                    'success' => true,
+                    'data' => [],
+                    'total' => 0,
+                ];
+            }
             $config = ConfigLoader::load($configFile);
 
             if (empty($configArrayKey) || ($formDef['singleRecord'] ?? false)) {

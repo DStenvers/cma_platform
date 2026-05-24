@@ -65,7 +65,12 @@ if ($iDatabase !== '') {
 
 // Build toolbar extras (database selector)
 $extras = '';
-if (count($databases) > 1) {
+// Always render the selector — even with a single database — so the
+// JS schema fetch (which reads dbId from #toolbarDatabase) has its
+// anchor element and the operator can see WHICH database is in scope.
+// Without this the tool silently degraded to "no tables/fields" when
+// only the data DB was selectable for a non-developer admin.
+if (count($databases) >= 1) {
     $extras = '<SELECT style="width:150px" id="toolbarDatabase" onchange="syncDatabaseAndSubmit(this)">';
     $dataDbId = CmaRepository::getDefaultDatabaseId();
     $effectiveDefault = $iDatabase !== '' ? $iDatabase : ($dataDbId ?? '');

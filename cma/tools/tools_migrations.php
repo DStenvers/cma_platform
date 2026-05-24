@@ -911,7 +911,25 @@ echo '<div class="migration-tab-content">';
 // Tab 1: Pending migrations
 echo '<div class="migration-tab-panel" id="tabPending">';
 if (empty($pendingMigrationsList)) {
-    echo '<p style="color:var(--text-muted);padding:15px 0;">Geen openstaande migraties.</p>';
+    echo '<p style="color:var(--text-muted);padding:15px 0 15px 12px;">Geen openstaande migraties.</p>';
+
+    // Diagnostic panel — when there's nothing to do, show which DBs
+    // the runner is actually connected to. Helps confirm you're
+    // looking at the right environment (lokaal vs prod, etc.).
+    $dbStatus = $migrationService->getCurrentVersions();
+    if (!empty($dbStatus)) {
+        echo '<div style="padding:0 0 15px 12px;color:var(--text-muted);font-size:var(--font-size-sm);">';
+        echo '<strong>Bekeken databases:</strong>';
+        echo '<ul style="margin:6px 0 0 0;padding-left:20px;">';
+        foreach ($dbStatus as $name => $info) {
+            $isErr = in_array($info, ['fout', 'geen verbinding', 'onbekend'], true);
+            $icon  = $isErr ? '✗' : '✓';
+            $color = $isErr ? 'var(--color-error,#c0392b)' : 'var(--color-success,#2e7d4f)';
+            echo '<li><span style="color:' . $color . ';">' . $icon . '</span> '
+                . htmlspecialchars($name) . ' <span style="opacity:.7;">— ' . htmlspecialchars((string)$info) . '</span></li>';
+        }
+        echo '</ul></div>';
+    }
 } else {
     echo '<table class="lib_table">';
     echo '<thead><tr>';
