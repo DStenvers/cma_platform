@@ -12,6 +12,7 @@
  */
 use App\Library\Application;
 use App\Library\Image;
+use App\Library\ImageProfiles;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\ResponsiveImage;
@@ -280,6 +281,13 @@ $scanRoot  = static function (string $base, string $relBase, int $depth, array &
         $rel = $relBase . '/' . $e;
         // Skip vendored / cma-internal trees so the list stays useful.
         if (preg_match('#^/(vendor|node_modules|cma|cache|logs|tools|library|migrations)(/|$)#i', $rel)) {
+            continue;
+        }
+        // Skip paths managed by the project's ImageProfiles pipeline —
+        // those already have curated WebP variants per upload, generating
+        // a parallel `.responsive/` tree there would only duplicate work
+        // and clutter the upload folder.
+        if (ImageProfiles::isManaged($rel)) {
             continue;
         }
         // Does this directory contain image files at top level?

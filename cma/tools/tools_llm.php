@@ -734,7 +734,15 @@ if ($action === 'scan') {
         } else {
             $err = $r['probe']['error'] ?: 'geen verbinding';
             echo '<div class="err" style="margin-top:8px">Probe-fout: ' . htmlspecialchars($err) . '</div>';
+            // Installatie-tips altijd in een collapsible. Default
+            // ingeklapt zodat de probe-status van de engine voorop
+            // staat; de cook klapt 'm open wanneer hij echt aan de
+            // installatie gaat. Zelfde patroon als de succes-tak een
+            // paar regels hierboven.
+            echo '<details class="setup-toggle" style="margin-top:10px">';
+            echo '<summary style="cursor:pointer;color:var(--text-muted,#6c757d);font-size:13px;">Toon installatie-stappen</summary>';
             llm_render_setup($eng, $os, $server['iis']);
+            echo '</details>';
         }
         echo '</div>';
     }
