@@ -56,6 +56,12 @@
  *   DEPLOY_RECYCLE_TOUCH  File to touch on success — defaults to
  *                         <site_root>/web.config. Set "-" to skip.
  *   DEPLOY_LOG_FILE       Log path (default: <site_root>/logs/deploy.log)
+ *   DEPLOY_POST_HOOK      Path to a PHP script that gets included AFTER
+ *                         the pipeline + recycle. Default: <site_root>/deploy_post.php.
+ *                         Set "-" to skip.  Mirror of the class-version's
+ *                         project-side hook so cache-flushes, schema
+ *                         migrations and other post-deploy work fire from
+ *                         the standalone too.
  *
  * Single file. No external dependencies. Copy anywhere.
  */
@@ -224,6 +230,32 @@ $recycle = $envRead('DEPLOY_RECYCLE_TOUCH', $siteRoot . '/web.config');
 if (!$failed && $recycle !== '-' && $recycle !== '' && is_file($recycle)) {
     @touch($recycle);
     $log("RECYCLE: touched $recycle");
+}
+
+// ---------------------------------------------------------------------------
+// 7b. Project-side post-deploy hook — same contract as the class-based
+//     DeployWebhook so cache flushes / migration runners / image-profile
+//     backfills fire after a standalone deploy too. Default path is
+//     <site_root>/deploy_post.php; override via DEPLOY_POST_HOOK env, "-"
+//     to skip. Output is captured + appended to the deploy log; failures
+//     are logged but don't flip $failed (deploy itself is complete).
+// ---------------------------------------------------------------------------
+$postHook = $envRead('DEPLOY_POST_HOOK', $siteRoot . '/deploy_post.php');
+if (!$failed && $postHook !== '-' && $postHook !== '' && is_file($postHook)) {
+    $log("RUN: deploy_post.php");
+    ob_start();
+    try {
+        require $postHook;
+        $hookOut = (string)ob_get_clean();
+        if ($hookOut !== '') {
+            $log("OUTPUT:\n" . $hookOut);
+        }
+        $log("OK: deploy_post.php");
+    } catch (\Throwable $e) {
+        $hookOut = (string)ob_get_clean();
+        if ($hookOut !== '') { $log("OUTPUT:\n" . $hookOut); }
+        $log("WARN: deploy_post.php threw " . get_class($e) . ': ' . $e->getMessage());
+    }
 }
 
 // ---------------------------------------------------------------------------
