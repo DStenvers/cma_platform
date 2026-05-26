@@ -260,6 +260,39 @@ html.dark-mode .component-body {
     margin-top: 10px;
 }
 
+/* Collapsible code-blocks: JS hieronder pakt elke .code-block en
+   wrappert 'm in een <details class="code-toggle"> zodat de
+   eindgebruiker eerst het resultaat ziet en pas op "Toon code"
+   klikt voor de implementatie. */
+.code-toggle {
+    margin-top: 10px;
+}
+.code-toggle > summary {
+    cursor: pointer;
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--bg-surface-alt, #f4f4f4);
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary, #555);
+    user-select: none;
+}
+.code-toggle[open] > summary {
+    background: var(--bg-surface, #fff);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: -1px;
+}
+.code-toggle > summary::-webkit-details-marker { display: none; }
+.code-toggle > summary::before {
+    content: '▸ ';
+    font-size: 0.8em;
+    color: var(--text-muted, #999);
+}
+.code-toggle[open] > summary::before { content: '▾ '; }
+.code-toggle > .code-block { margin-top: 0; }
+
 /* Playground - editable code with live preview */
 .playground {
     margin-top: 0;
@@ -5005,6 +5038,25 @@ function showLoader(id) {
         }
     });
 })();
+</script>
+
+<script>
+/* Wrap elke .code-block in een <details>-paneel zodat het resultaat
+   het oog vangt en de code een opt-in is. Loopt op DOMContentLoaded
+   één keer; latere mutaties (dialogs, async injects) raken hooguit
+   geen toggle — niet kritiek. */
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.code-block').forEach(function (block) {
+        if (block.closest('.code-toggle')) return; // al gewrapped
+        var details = document.createElement('details');
+        details.className = 'code-toggle';
+        var summary = document.createElement('summary');
+        summary.textContent = 'Toon code';
+        details.appendChild(summary);
+        block.parentNode.insertBefore(details, block);
+        details.appendChild(block);
+    });
+});
 </script>
 
 </BODY>
