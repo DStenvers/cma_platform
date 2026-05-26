@@ -8,6 +8,13 @@
 * {box-sizing:border-box;outline:0}
 body,html{margin:0}
 body {-webkit-text-size-adjust: 100%}
+/* Tap-targets: schakel de ~300ms double-tap-to-zoom delay uit van
+   mobile Safari/Chrome. Snel dubbel-klikken op een knop registreerde
+   anders als browser-zoom in plaats van twee aparte clicks. `manipulation`
+   houdt pinch-zoom in stand (gesture-based) maar laat double-tap
+   direct als twee tap-events doorgaan. */
+button, a, input[type="button"], input[type="submit"], summary,
+[role="button"], .btn, .toolbar-btn { touch-action: manipulation }
 /* ------------------------------------------------------------------------------------------------------------------------------------------ Generic clearfix method --- */
 .clearfix::after {content:"";display:block;clear:both}
 /* ------------------------------------------------------------------------------------------------------------------------------------------ Misc generic definitions used in the library --- */
