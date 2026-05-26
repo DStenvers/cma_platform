@@ -608,8 +608,12 @@ echo '<div id="tabManage" style="' . $manageTabStyle . '">';
         // Show list of backups
 
         if (empty($backupFiles)) {
+            // 16 px padding zodat de empty-state niet pal tegen de
+            // toolbar / tab-randen aan zit.
+            echo '<div style="padding: 16px;">';
             echo '<p class="text-muted">Geen backups gevonden in /backup</p>';
             echo '<p><a href="?tab=create" class="btn btn-primary"><span class="lnr lnr-download"></span> Backup maken</a></p>';
+            echo '</div>';
         } else {
             echo '<lib-table resizable>';
             echo'<table >';
