@@ -11,6 +11,7 @@ This directory contains reusable web components for the application.
 - **lib-dialog** - Modal dialog component
 - **lib-message** - Message/notification component
 - **lib-menu** - Menu component
+- **lib-sheet** - Bottom sliding panel (action/bottom sheet); slot-projected content, `.open()`/`.close()` + `sheet-open`/`sheet-close` events, CSS-variable theming
 - **lib-toaster** - Toast notification component
 - **lib-datepicker** - Date picker component
 - **lib-table** - Table component
