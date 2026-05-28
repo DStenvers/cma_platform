@@ -113,10 +113,31 @@ class Bootstrap
 
     /**
      * Get the platform package version from Composer.
+     *
+     * Resolution order:
+     *   1. The version field in the installed package's own composer.json
+     *      (vendor/stenversonline/platform/composer.json). We always set
+     *      this on release, so it survives `composer update` regardless
+     *      of whether the consumer site requires the package as
+     *      `dev-main` (a branch — which Composer would otherwise report
+     *      as "dev-main") or as a tagged constraint like `^1.0`.
+     *   2. Composer's installed.json — reflects the source ref Composer
+     *      picked; useful when the package was installed via a tag.
+     *   3. Composer's InstalledVersions runtime API.
+     *   4. "dev" as a last-resort sentinel.
      */
     public static function getPlatformVersion(): string
     {
-        // Try reading from Composer's installed.json
+        // 1. Package's own composer.json — the canonical source.
+        $pkgComposer = self::$rootDir . '/vendor/stenversonline/platform/composer.json';
+        if (file_exists($pkgComposer)) {
+            $data = json_decode(file_get_contents($pkgComposer), true);
+            if (is_array($data) && !empty($data['version'])) {
+                return (string)$data['version'];
+            }
+        }
+
+        // 2. Composer's installed.json.
         $installedFile = self::$rootDir . '/vendor/composer/installed.json';
         if (file_exists($installedFile)) {
             $data = json_decode(file_get_contents($installedFile), true);
@@ -128,7 +149,7 @@ class Bootstrap
             }
         }
 
-        // Fallback: try InstalledVersions (Composer 2 runtime API)
+        // 3. Runtime API.
         if (class_exists('Composer\InstalledVersions')) {
             try {
                 return \Composer\InstalledVersions::getPrettyVersion('stenversonline/platform') ?? 'dev';
