@@ -523,13 +523,13 @@ function llm_render_setup(array $engine, string $os, bool $iis): void
     }
     echo '</ol>';
     if ($iis) {
-        echo '<div class="setup-iis-note">';
+        echo '<lib-message type="info" compact style="margin-top:10px">';
         echo '<strong>IIS-context:</strong> de LLM-engine draait náást IIS als losse service op een lokale poort. ';
         echo 'Sta uitgaand HTTP-verkeer richting 127.0.0.1 toe (Windows Firewall blokkeert localhost normaliter niet). ';
         echo 'Open géén externe poort — de PHP-proxy in de app praat met de engine op localhost.';
-        echo '</div>';
+        echo '</lib-message>';
     }
-    echo '<div style="margin-top:8px;font-size:12px"><a href="' . htmlspecialchars((string)$engine['docs']) . '" target="_blank" rel="noopener">Documentatie ↗</a></div>';
+    echo '<div class="setup-docs"><a class="btn btn-secondary btn-sm" href="' . htmlspecialchars((string)$engine['docs']) . '" target="_blank" rel="noopener"><span class="lnr lnr-book"></span> Documentatie</a></div>';
     echo '</div>';
 }
 
@@ -695,12 +695,27 @@ if ($action === 'scan') {
         $isInUse = !empty($r['in_use']);
         echo '<div class="llm-card' . ($isInUse ? ' llm-card--in-use' : '') . '">';
         echo '<h3>' . htmlspecialchars($eng['name']);
-        echo ' <span class="' . ($ok ? 'badge-ok">actief' : 'badge-down">niet bereikbaar') . '</span>';
+        // Status label: an unreachable engine that isn't the configured
+        // one is simply "not installed" — connection-refused / timeout
+        // are not errors in that context, just facts. Reserve a red-ish
+        // treatment for the engine the app is actually configured to use.
+        if ($ok) {
+            echo ' <span class="badge-ok">actief</span>';
+        } elseif ($isInUse) {
+            echo ' <span class="badge-down">niet bereikbaar</span>';
+        } else {
+            echo ' <span class="badge-absent">niet geïnstalleerd</span>';
+        }
         if ($isInUse) {
             echo ' <span class="badge-in-use">In gebruik</span>';
         }
         echo '</h3>';
-        echo '<div class="url">' . htmlspecialchars($r['url']) . '   (' . number_format($r['probe']['ms'], 1) . ' ms)</div>';
+        // Timing only on the engines we actually reached — for a not-installed
+        // engine the milliseconds are just "how long we waited before timing
+        // out", which sounds like an error report and isn't useful.
+        echo '<div class="url">' . htmlspecialchars($r['url'])
+           . ($ok ? '   (' . number_format($r['probe']['ms'], 1) . ' ms)' : '')
+           . '</div>';
 
         // Anthropic-fallback card surfaces the configured key (masked) +
         // which model the fallback would route to — same info the cook
@@ -813,6 +828,7 @@ echo '<style>
 .tool-llm .llm-card .url { font-family:Menlo,Consolas,monospace; font-size:12px; color:var(--text-muted,#6c757d); word-break:break-all; }
 .tool-llm .badge-ok { background:#1b8a3a; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
 .tool-llm .badge-down { background:#888; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.tool-llm .badge-absent { background:transparent; color:var(--text-muted,#6c757d); border:1px solid var(--border-color,#dee2e6); padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; }
 .tool-llm .badge-in-use { background:#1a5dbf; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
 .tool-llm .llm-card--in-use { box-shadow: 0 0 0 2px #1a5dbf; }
 .tool-llm .model-row--in-use td { background:rgba(26,93,191,0.08); font-weight:600; }
@@ -821,28 +837,31 @@ echo '<style>
 .tool-llm .models th, .tool-llm .models td { text-align:left; padding:4px 8px; border-bottom:1px solid var(--border-color,#eee); }
 .tool-llm .models th { font-weight:600; color:var(--text-muted,#6c757d); }
 .tool-llm .models .size { white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
-.tool-llm .install-tip { margin-top:10px; padding:10px 12px; background:var(--surface-alt,#f6f8fa); border-left:3px solid #c69; border-radius:4px; font-size:13px; }
-.tool-llm .install-tip code { display:block; padding:6px 8px; background:#1c1c1f; color:#e6e6e6; border-radius:4px; margin-top:6px; word-break:break-all; white-space:pre-wrap; font-family:Menlo,Consolas,monospace; font-size:12px; }
-.tool-llm .install-tip a { color:#1a5dbf; }
-.tool-llm .setup-steps { margin:8px 0 0; padding-left:1.4rem; }
-.tool-llm .setup-steps > li { margin:0 0 10px; padding-left:4px; }
-.tool-llm .setup-step__title { font-weight:600; margin-bottom:2px; }
+.tool-llm .install-tip { margin-top:10px; padding:12px 14px; background:var(--bg-surface-alt,#f6f8fa); border:1px solid var(--border-color,#dee2e6); border-radius:6px; font-size:13px; }
+.tool-llm .install-tip > strong:first-child { display:block; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted,#6c757d); margin-bottom:8px; }
+.tool-llm .install-tip code { display:block; padding:6px 10px; background:#1e1e1e; color:#d4d4d4; border-radius:4px; margin-top:6px; word-break:break-all; white-space:pre-wrap; font-family:Menlo,Consolas,monospace; font-size:12px; }
+.tool-llm .install-tip a { color:var(--color-info,#077ab2); }
+.tool-llm .setup-steps { margin:0; padding-left:1.4rem; counter-reset:setup-step; }
+.tool-llm .setup-steps > li { margin:0 0 12px; padding-left:4px; }
+.tool-llm .setup-steps > li:last-child { margin-bottom:0; }
+.tool-llm .setup-step__title { font-weight:600; margin-bottom:2px; color:var(--text-primary,#1a1a1a); }
 .tool-llm .setup-step__body { color:var(--text-muted,#5a5042); }
-.tool-llm .setup-step__body a { color:#1a5dbf; }
-.tool-llm .setup-iis-note { margin-top:8px; padding:6px 8px; background:#fffbe6; border-left:3px solid #d4a017; border-radius:3px; font-size:12px; }
-.tool-llm .setup-toggle > summary { padding:4px 0; }
+.tool-llm .setup-step__body a { color:var(--color-info,#077ab2); }
+.tool-llm .setup-docs { margin-top:10px; }
+.tool-llm .setup-toggle > summary { padding:4px 0; color:var(--text-muted,#6c757d); font-size:13px; }
 .tool-llm .setup-toggle > summary:hover { color:var(--text-strong,#1a1a1a); }
 .tool-llm .summary .pill { display:inline-block; padding:3px 10px; border-radius:12px; background:var(--surface-alt,#f6f8fa); font-size:12px; margin-right:8px; }
 .tool-llm .summary .pill strong { font-weight:600; }
 .tool-llm .err { color:#c0392b; font-size:13px; }
 .tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:48px 16px; color:var(--text-muted,#6c757d); }
-.tool-llm .ollama-recommends { margin-top:10px; padding:10px 12px; background:var(--surface-alt,#f6f8fa); border-left:3px solid #1a5dbf; border-radius:4px; font-size:13px; }
-.tool-llm .ollama-recommends__list { list-style:none; margin:6px 0 0; padding:0; }
-.tool-llm .ollama-recommends__item { margin:0 0 8px; padding:6px 8px; background:var(--surface,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:4px; }
+.tool-llm .ollama-recommends { margin-top:10px; padding:12px 14px; background:var(--bg-surface-alt,#f6f8fa); border:1px solid var(--border-color,#dee2e6); border-radius:6px; font-size:13px; }
+.tool-llm .ollama-recommends > strong:first-child { display:block; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted,#6c757d); margin-bottom:8px; }
+.tool-llm .ollama-recommends__list { list-style:none; margin:0; padding:0; }
+.tool-llm .ollama-recommends__item { margin:0 0 8px; padding:8px 10px; background:var(--bg-surface,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:4px; }
 .tool-llm .ollama-recommends__item:last-child { margin-bottom:0; }
-.tool-llm .ollama-recommends__title { display:flex; align-items:center; gap:6px; }
-.tool-llm .ollama-recommends__note { color:var(--text-muted,#6c757d); font-size:12px; margin:2px 0 4px; }
-.tool-llm .ollama-recommends code { display:block; padding:6px 8px; background:#1c1c1f; color:#e6e6e6; border-radius:4px; word-break:break-all; font-family:Menlo,Consolas,monospace; font-size:12px; }
+.tool-llm .ollama-recommends__title { display:flex; align-items:center; gap:6px; color:var(--text-primary,#1a1a1a); }
+.tool-llm .ollama-recommends__note { color:var(--text-muted,#6c757d); font-size:12px; margin:2px 0 6px; }
+.tool-llm .ollama-recommends code { display:block; padding:6px 10px; background:#1e1e1e; color:#d4d4d4; border-radius:4px; word-break:break-all; font-family:Menlo,Consolas,monospace; font-size:12px; }
 </style>';
 
 echo '<div id="c" class="tools">';
