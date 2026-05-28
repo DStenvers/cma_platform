@@ -457,6 +457,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-menu', href: '#lib-menu', icon: 'lnr-menu' },
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
+                { label: 'lib-sheet', href: '#lib-sheet', icon: 'lnr-arrow-up' },
                 { label: 'lib-switch', href: '#lib-switch', icon: 'lnr-sync' },
                 { label: 'lib-radio-group', href: '#lib-radio-group', icon: 'lnr-list' },
                 { label: 'lib-field', href: '#lib-field', icon: 'lnr-pencil' },
@@ -473,7 +474,8 @@ html.dark-mode .hex-dark { display: inline; }
             children: [
                 { label: 'libAlert', href: '#libAlert', icon: 'lnr-warning' },
                 { label: 'libConfirm', href: '#libConfirm', icon: 'lnr-question-circle' },
-                { label: 'libPrompt', href: '#libPrompt', icon: 'lnr-text-format' }
+                { label: 'libPrompt', href: '#libPrompt', icon: 'lnr-text-format' },
+                { label: 'LibLog', href: '#LibLog', icon: 'lnr-bug' }
             ]
         },
         {
@@ -486,6 +488,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'cma-groupbox', href: '#cma-groupbox', icon: 'lnr-layers' },
                 { label: 'cma-htmledit', href: '#cma-htmledit', icon: 'lnr-code' },
                 { label: 'cma-sortlist', href: '#cma-sortlist', icon: 'lnr-list' },
+                { label: 'cma-combo', href: '#cma-combo', icon: 'lnr-list' },
                 { label: 'cma-tabs', href: '#cma-tabs', icon: 'lnr-layers' },
                 { label: 'cma-toolbar', href: '#cma-toolbar', icon: 'lnr-wrench' },
                 { label: 'cma-tree', href: '#cma-tree', icon: 'lnr-layers' }
@@ -1720,6 +1723,156 @@ html.dark-mode .hex-dark { display: inline; }
         </div>
     </section>
 
+    <section class="component-section" id="lib-sheet">
+        <div class="component-header">
+            <h2>lib-sheet</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Onderaan opklappend paneel (bottom/action sheet) met backdrop en slot-inhoud</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <button class="btn btn-primary" onclick="document.getElementById('demoSheet1').open()">
+        <span class="lnr lnr-arrow-up"></span> Open sheet (met heading)
+    </button>
+    <button class="btn btn-primary" onclick="document.getElementById('demoSheet2').open()">
+        <span class="lnr lnr-arrow-up"></span> Chrome-loos (geen header)
+    </button>
+    <button class="btn btn-secondary" onclick="document.getElementById('demoSheet3').open()">
+        <span class="lnr lnr-arrow-up"></span> Niet-sluitbaar (closable=false)
+    </button>
+    <button class="btn btn-secondary" onclick="document.getElementById('demoSheet4').open()">
+        <span class="lnr lnr-arrow-up"></span> Met formulier
+    </button>
+</div>
+
+<lib-sheet id="demoSheet1" heading="Acties">
+    <p style="margin: 0 0 0.5rem;">Kies een actie voor dit item:</p>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button class="btn btn-secondary" onclick="this.closest('lib-sheet').close()">
+            <span class="lnr lnr-pencil"></span> Bewerken
+        </button>
+        <button class="btn btn-secondary" onclick="this.closest('lib-sheet').close()">
+            <span class="lnr lnr-archive"></span> Archiveren
+        </button>
+        <button class="btn btn-cancel" onclick="this.closest('lib-sheet').close()">
+            <span class="lnr lnr-trash"></span> Verwijderen
+        </button>
+    </div>
+</lib-sheet>
+
+<lib-sheet id="demoSheet2">
+    <div style="padding: 0.5rem 0;">
+        <p>Een sheet zonder heading rendert geen header-balk.  Sluit via Escape, klik op de backdrop, of:</p>
+        <button class="btn btn-primary" onclick="this.closest('lib-sheet').close()">Sluiten</button>
+    </div>
+</lib-sheet>
+
+<lib-sheet id="demoSheet3" heading="Bevestiging vereist" closable="false">
+    <p>Deze sheet sluit niet via Escape of backdrop-klik — je moet een knop kiezen.</p>
+    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+        <button class="btn btn-cancel" onclick="this.closest('lib-sheet').close()">Annuleren</button>
+        <button class="btn btn-primary" onclick="this.closest('lib-sheet').close()">Bevestigen</button>
+    </div>
+</lib-sheet>
+
+<lib-sheet id="demoSheet4" heading="Nieuwe notitie">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <lib-field label="Titel"></lib-field>
+        <lib-field label="Inhoud" multiline rows="4"></lib-field>
+        <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button class="btn btn-cancel" onclick="this.closest('lib-sheet').close()">Annuleren</button>
+            <button class="btn btn-primary" onclick="this.closest('lib-sheet').close()">Opslaan</button>
+        </div>
+    </div>
+</lib-sheet>
+
+<p><strong>Methodes</strong></p>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <lib-sheet id="sheetMethods" heading="Methode-demo">
+        <p>Open via <code>open()</code>, sluit via <code>close()</code>, of wissel met <code>toggle()</code>.</p>
+        <button class="btn btn-primary" onclick="this.closest('lib-sheet').close()">Sluiten</button>
+    </lib-sheet>
+    <button class="btn btn-secondary" onclick="document.getElementById('sheetMethods').open()">open()</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('sheetMethods').close()">close()</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('sheetMethods').toggle()">toggle()</button>
+</div></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>heading</dt>
+                    <dd>Titel in de header. Laat weg voor een chrome-loos paneel (geen header-balk)</dd>
+                    <dt>open</dt>
+                    <dd>Boolean — weerspiegelt de zichtbare staat. Zetten triggert de slide-in, verwijderen de slide-out</dd>
+                    <dt>closable</dt>
+                    <dd>Zet op <code>"false"</code> om de sluitknop te verbergen en Escape / backdrop-klik uit te schakelen (default: <code>true</code>)</dd>
+                </dl>
+                <h4>Slots</h4>
+                <dl>
+                    <dt>(default)</dt>
+                    <dd>Inhoud van het paneel — wordt door de host pagina gestyled (geen scoping via shadow DOM)</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>open()</dt>
+                    <dd>Open het paneel</dd>
+                    <dt>close()</dt>
+                    <dd>Sluit het paneel</dd>
+                    <dt>toggle()</dt>
+                    <dd>Wissel open/dicht</dd>
+                </dl>
+                <h4>Properties</h4>
+                <dl>
+                    <dt>isClosable</dt>
+                    <dd>Of het paneel sluitbaar is (boolean)</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>sheet-open</dt>
+                    <dd>Bij openen (bubbles)</dd>
+                    <dt>sheet-close</dt>
+                    <dd>Bij sluiten (bubbles)</dd>
+                </dl>
+                <h4>CSS variabelen</h4>
+                <dl>
+                    <dt>--lib-sheet-bg</dt>
+                    <dd>Achtergrondkleur paneel (default: <code>#ffffff</code>)</dd>
+                    <dt>--lib-sheet-color</dt>
+                    <dd>Tekstkleur paneel (default: <code>inherit</code>)</dd>
+                    <dt>--lib-sheet-backdrop</dt>
+                    <dd>Backdrop kleur (default: <code>rgba(0,0,0,0.45)</code>)</dd>
+                    <dt>--lib-sheet-radius</dt>
+                    <dd>Bovenhoek-radius (default: <code>14px</code>)</dd>
+                    <dt>--lib-sheet-max-height</dt>
+                    <dd>Max hoogte van het paneel (default: <code>80vh</code>)</dd>
+                    <dt>--lib-sheet-max-width</dt>
+                    <dd>Max breedte (default: <code>none</code> — vult viewport op mobiel, op brede schermen centreren door hier b.v. <code>520px</code> te zetten)</dd>
+                    <dt>--lib-sheet-shadow</dt>
+                    <dd>Schaduw boven het paneel</dd>
+                    <dt>--lib-sheet-z</dt>
+                    <dd>Z-index van de host (default: <code>1000</code>)</dd>
+                    <dt>--lib-sheet-border</dt>
+                    <dd>Bovenrand van het paneel (default: <code>none</code>)</dd>
+                </dl>
+                <h4>Shadow parts</h4>
+                <dl>
+                    <dt>backdrop, panel, header, title, close, body</dt>
+                    <dd>Aangrijpingspunten voor <code>::part()</code> styling vanuit de host</dd>
+                </dl>
+                <h4>Toegankelijkheid</h4>
+                <dl>
+                    <dt>Focus</dt>
+                    <dd>Bij open: focus gaat naar het eerste focusbare element (of de sluitknop). Bij close: focus keert terug naar het element dat vóór openen actief was</dd>
+                    <dt>Scroll-lock</dt>
+                    <dd>Body-scroll wordt vastgezet zolang de sheet open is</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
     <section class="component-section" id="lib-switch">
         <div class="component-header">
             <h2>lib-switch</h2>
@@ -2450,6 +2603,127 @@ LibTip.reset();</div>
         </div>
     </section>
 
+    <section class="component-section" id="LibLog">
+        <div class="component-header">
+            <h2>LibLog</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Gecentraliseerde logging-API: onderschept console.*, batched naar de server (log.php), respecteert debug-mode</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><p><strong>Basis-logging</strong></p>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="LibLog.debug('Debug-bericht uit de storybook', {source:'storybook'}); libToast.info('LibLog.debug() aangeroepen — bekijk de console en /cma/api/log.php')">LibLog.debug()</button>
+    <button class="btn btn-secondary" onclick="LibLog.info('Info-bericht', {action:'demo'}); libToast.info('LibLog.info() aangeroepen')">LibLog.info()</button>
+    <button class="btn btn-secondary" onclick="LibLog.warning('Trage query gedetecteerd', {ms:850}); libToast.warning('LibLog.warning() aangeroepen')">LibLog.warning()</button>
+    <button class="btn btn-cancel" onclick="LibLog.error('Demo-fout ter illustratie', {context:'storybook button'}); libToast.error('LibLog.error() aangeroepen — verschijnt ook in het error-paneel')">LibLog.error()</button>
+</div>
+
+<p><strong>Server-buffer beheren</strong></p>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="LibLog.flush(); libToast.info('Buffer naar server geflusht')">flush()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Request-ID: ' + LibLog.getRequestId())">getRequestId()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + (LibLog.isDebug() ? 'aan' : 'uit'))">isDebug()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Config:\n' + JSON.stringify(LibLog.getConfig(), null, 2))">getConfig()</button>
+</div>
+
+<p><strong>Bypass de interceptor (originele console)</strong></p>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="LibLog.console.log('Direct naar de echte console — niet via LibLog'); libToast.info('Direct naar console.log()')">LibLog.console.log()</button>
+</div>
+
+<p><strong>Niveau wijzigen</strong></p>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="LibLog.setDebug(true); libToast.success('Debug-mode aangezet (deze sessie)')">setDebug(true)</button>
+    <button class="btn btn-secondary" onclick="LibLog.setDebug(false); libToast.success('Debug-mode uitgezet (deze sessie)')">setDebug(false)</button>
+    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + LibLog.refreshFromCookie())">refreshFromCookie()</button>
+</div></textarea>
+                </div>
+                <div class="code-block" style="white-space: pre;">// Direct gebruik
+LibLog.info('Gebruiker ingelogd', { userId: 123 });
+LibLog.warning('Trage query', { ms: 500 });
+LibLog.error('Opslaan mislukt', { error: err.message });
+
+// Aliassen voor compatibiliteit
+window.libLog === LibLog;  // library.js context
+window.cmaLog === LibLog;  // CMA context
+
+// Console-onderschepping: deze calls lopen automatisch
+// door LibLog heen (debug-niveau, geen server-flush tenzij
+// debug-mode aan staat)
+console.log('foo');     // → LibLog.debug
+console.warn('bar');    // → LibLog.warning
+console.error('boom');  // → LibLog.error
+
+// Eigen configuratie vooraf zetten (vóór lib-log.js laadt)
+window.LIBLOG_CONFIG = {
+    apiEndpoint: '/cma/api/log.php',
+    sendToServer: true,
+    batchSize: 10,
+    flushInterval: 5000,
+    interceptConsole: true,
+    minLevelForServer: 'error'
+};</div>
+            </div>
+            <div class="component-options">
+                <h4>Niveaus</h4>
+                <dl>
+                    <dt>LibLog.error(msg, ctx?)</dt>
+                    <dd>Hoogste prioriteit. Altijd naar server, altijd in console. Toont ook in het CMA-foutenpaneel</dd>
+                    <dt>LibLog.warning(msg, ctx?)</dt>
+                    <dd>Alias: <code>LibLog.warn</code>. Toont in foutenpaneel als debug-mode aan staat</dd>
+                    <dt>LibLog.info(msg, ctx?)</dt>
+                    <dd>Informatief. Alleen naar server wanneer debug-mode aan staat</dd>
+                    <dt>LibLog.debug(msg, ctx?)</dt>
+                    <dd>Alias: <code>LibLog.log</code>. Laagste prioriteit, alleen console output in debug-mode</dd>
+                </dl>
+                <h4>Beheer-methodes</h4>
+                <dl>
+                    <dt>LibLog.flush()</dt>
+                    <dd>Stuur de huidige buffer direct naar <code>/cma/api/log.php</code></dd>
+                    <dt>LibLog.getRequestId()</dt>
+                    <dd>Het correlatie-ID dat aan elke log-regel in deze pageview hangt</dd>
+                    <dt>LibLog.configure(opts)</dt>
+                    <dd>Wijzig config at runtime (endpoint, batchSize, interceptConsole, etc.)</dd>
+                    <dt>LibLog.setDebug(bool)</dt>
+                    <dd>Schakel debug-mode aan/uit (sessie-lokaal — geen cookie-schrijven)</dd>
+                    <dt>LibLog.refreshFromCookie()</dt>
+                    <dd>Herlees <code>cma_debug_mode</code> cookie zonder page-reload. Aanroepen na opslaan van voorkeuren</dd>
+                    <dt>LibLog.isDebug() / isEnabled()</dt>
+                    <dd>Of debug-mode actief is</dd>
+                    <dt>LibLog.getConfig()</dt>
+                    <dd>Effectieve configuratie (alleen-lezen snapshot)</dd>
+                    <dt>LibLog.console.{log,info,warn,error,debug}</dt>
+                    <dd>Originele console-methodes vóór onderschepping — voor wanneer je echt direct naar DevTools wilt</dd>
+                </dl>
+                <h4>Configuratie (window.LIBLOG_CONFIG)</h4>
+                <dl>
+                    <dt>apiEndpoint</dt>
+                    <dd>Server-endpoint voor batched logs (default: <code>/cma/api/log.php</code>)</dd>
+                    <dt>sendToServer</dt>
+                    <dd>Server-logging in-/uitschakelen (default: <code>true</code>)</dd>
+                    <dt>batchSize</dt>
+                    <dd>Aantal entries voordat auto-flush triggert (default: <code>10</code>)</dd>
+                    <dt>flushInterval</dt>
+                    <dd>Periodieke flush in ms (default: <code>5000</code>)</dd>
+                    <dt>interceptConsole</dt>
+                    <dd>console.* methodes overschrijven (default: <code>true</code>)</dd>
+                    <dt>minLevelForServer</dt>
+                    <dd>Niveaus &le; deze worden naar de server gestuurd (default: <code>"error"</code> — buiten debug-mode dus alleen errors)</dd>
+                </dl>
+                <h4>Gedrag</h4>
+                <ul style="font-size:var(--font-size-sm); color: var(--text-secondary); margin:0; padding-left:18px;">
+                    <li>Errors gaan <em>altijd</em> naar de server, ongeacht debug-mode — productie-incidenten verliezen we niet</li>
+                    <li>Warnings/info/debug alleen naar server wanneer <code>cma_debug_mode</code> cookie op <code>J</code> staat</li>
+                    <li>Bij <code>beforeunload</code> wordt de buffer via <code>navigator.sendBeacon</code> geflusht zodat pageviews niet verloren gaan</li>
+                    <li>Bron-detectie via stack-trace parsing — log-regel toont <code>file.js:lineno</code> van de aanroeper</li>
+                    <li>Errors triggeren ook <code>window.CmaErrorHandler.report()</code> wanneer beschikbaar</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
     <!-- ================================================================ -->
     <!-- CMA COMPONENTEN -->
     <!-- ================================================================ -->
@@ -2560,6 +2834,48 @@ LibTip.reset();</div>
                     <dd>Rich text editing per veld</dd>
                     <dt>blockedit.js</dt>
                     <dd><code>assets/js/blockedit.js</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-combo">
+        <div class="component-header">
+            <h2>cma-combo</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Alias voor <a href="#lib-combo"><code>lib-combo</code></a> — zelfde klasse, beide tag-namen werken</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <span class="demo-label">cma-combo:</span>
+    <div style="width: 250px;">
+        <cma-combo id="cmaComboDemo" placeholder="Selecteer..."></cma-combo>
+    </div>
+</div>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#cmaComboDemo').setOptions([{value:'1',label:'Optie 1'},{value:'2',label:'Optie 2'},{value:'3',label:'Optie 3'}])">setOptions()</button>
+    <button class="btn btn-cancel" onclick="var c=this.closest('.playground-preview').querySelector('#cmaComboDemo'); libAlert('value: '+JSON.stringify(c.value))">getValue()</button>
+</div>
+<p style="margin-top: 12px; font-size: var(--font-size-sm); color: var(--text-secondary);">
+    De API is identiek aan <a href="#lib-combo"><code>lib-combo</code></a> — attributen, methodes, properties en events zijn dezelfde.
+    <code>cma-combo.js</code> is een lege placeholder; <code>lib-combo.js</code> registreert <em>beide</em> tag-namen.
+</p></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Status</h4>
+                <dl>
+                    <dt>Achterwaartse compatibiliteit</dt>
+                    <dd>Bestaande templates / forms die <code>&lt;cma-combo&gt;</code> gebruiken blijven werken. Nieuw werk: gebruik <code>&lt;lib-combo&gt;</code></dd>
+                    <dt>Implementatie</dt>
+                    <dd><code>library/webcomponents/lib-combo.js</code> roept <code>customElements.define('cma-combo', ...)</code> aan met dezelfde klasse</dd>
+                </dl>
+                <h4>API</h4>
+                <dl>
+                    <dt>Volledige documentatie</dt>
+                    <dd>Zie <a href="#lib-combo">lib-combo</a> voor attributen, AJAX-config, methodes, properties en events</dd>
                 </dl>
             </div>
         </div>
