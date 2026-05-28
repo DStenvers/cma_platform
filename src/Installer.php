@@ -32,6 +32,19 @@ class Installer
     ];
 
     /**
+     * Paths (relative to project root) of files that were once shipped by
+     * this package but have since been retired. syncDirectory() only copies
+     * from source → dest; without an explicit list a consumer site keeps
+     * the dead file forever after `composer update`. Add a row here when
+     * you delete a file from the package and want it gone from existing
+     * installs. Safe to leave entries here long-term — the cleanup just
+     * no-ops once the file isn't there anymore.
+     */
+    private const REMOVED_PATHS = [
+        'cma/tools/llm_models.php',
+    ];
+
+    /**
      * Template files that are copied to the project root only if they don't exist.
      * These are one-time setup files.
      */
@@ -77,6 +90,18 @@ class Installer
         }
 
         $io->write('<info>stenversonline/platform: syncing shared files...</info>');
+
+        // 0. Clean up files that have been retired from the package. Without
+        //    this step, composer update copies the new files but leaves the
+        //    old ones lingering on the consumer site. Runs before sync so
+        //    a re-added file with the same path isn't accidentally wiped.
+        foreach (self::REMOVED_PATHS as $relPath) {
+            $abs = $projectRoot . '/' . $relPath;
+            if (is_file($abs)) {
+                @unlink($abs);
+                $io->write('  - removed (retired): ' . $relPath);
+            }
+        }
 
         // 1. Sync library → /library/
         $librarySrc = $platformDir . '/library';
