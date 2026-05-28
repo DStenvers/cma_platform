@@ -153,7 +153,7 @@ if ($action !== '') {
 
         case 'upload':
             $urlPath = rtrim($basePath . $path, '/');
-            echo json_encode(handleUpload($fullPath, $urlPath, Request::post('overwrite', '0')));
+            echo json_encode(handleUpload($fullPath, $urlPath, Request::post('overwrite', '0'), Request::post('targetName', '')));
             break;
 
         case 'delete':
@@ -328,8 +328,14 @@ function listDirectory(string $fullPath, string $basePath, string $relativePath,
 
 /**
  * Handle file upload
+ *
+ * $targetName, when non-empty, redirects the upload onto an existing file
+ * with a different name (the "Ja, overschrijf bestand" branch of the
+ * client-side overwrite-the-selected-file prompt). The uploaded file's
+ * extension is still enforced — we'll only overwrite when it matches the
+ * target's extension, so a .jpg can't silently replace a .pdf.
  */
-function handleUpload(string $fullPath, string $urlPath, string $overwrite): array {
+function handleUpload(string $fullPath, string $urlPath, string $overwrite, string $targetName = ''): array {
     if (!isset($_FILES['file'])) {
         return ['success' => false, 'error' => 'Geen bestand ontvangen'];
     }
@@ -351,10 +357,18 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite): arr
     // Sanitize filename
     $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $file['name']);
 
-    // Block dangerous executable extensions
+    // Redirect onto the selected file when the client asked for "overwrite
+    // the selected file". basename() + the same charset filter as the
+    // upload name keeps path traversal out.
+    if ($targetName !== '') {
+        $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', basename($targetName));
+        $overwrite = '1';
+    }
+
+    // Block dangerous executable extensions — run AFTER any targetName
+    // substitution so the final on-disk name is what's validated.
     $blockedExtensions = ['php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'asp', 'aspx', 'jsp', 'sh', 'cgi', 'pl', 'exe', 'bat', 'cmd', 'com', 'htaccess', 'htpasswd'];
-    $uploadExt = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    if (in_array($uploadExt, $blockedExtensions)) {
+    if (in_array(strtolower(pathinfo($filename, PATHINFO_EXTENSION)), $blockedExtensions)) {
         return ['success' => false, 'error' => 'Bestandstype niet toegestaan'];
     }
 
@@ -2282,17 +2296,43 @@ $appBasePath = Application::get('base_path', '/');
             });
         }
 
-        function uploadFiles(files) {
+        async function uploadFiles(files) {
+            // Single-file uploads (file-picker or drag-drop) onto a wizard
+            // with a selected file of the same extension get an explicit
+            // "overschrijven of plaats ernaast" prompt — useful when the
+            // operator picked a recipe photo, then dragged in a new
+            // version under a different filename and wants to keep the
+            // original URL intact.
+            if (files.length === 1 && selectedFile) {
+                const uploadExt = (files[0].name.split('.').pop() || '').toLowerCase();
+                const targetExt = (selectedFile.name.split('.').pop() || '').toLowerCase();
+                if (uploadExt && uploadExt === targetExt && files[0].name !== selectedFile.name) {
+                    const overwriteSelected = await libConfirm(
+                        'Overschrijf "' + selectedFile.name + '" met "' + files[0].name + '"?',
+                        {
+                            title: 'Bestand overschrijven?',
+                            type: 'warning',
+                            confirmText: 'Ja, overschrijf bestand',
+                            cancelText: 'Nee, plaats ernaast'
+                        }
+                    );
+                    uploadFile(files[0], overwriteSelected, overwriteSelected ? selectedFile.name : null);
+                    return;
+                }
+            }
             for (let i = 0; i < files.length; i++) {
                 uploadFile(files[i], false);
             }
         }
 
-        async function uploadFile(file, overwrite) {
+        async function uploadFile(file, overwrite, targetName) {
             const formData = new FormData();
             formData.append('action', 'upload');
             formData.append('file', file);
             formData.append('overwrite', overwrite ? '1' : '0');
+            if (targetName) {
+                formData.append('targetName', targetName);
+            }
             formData.append('path', currentPath);
 
             try {
