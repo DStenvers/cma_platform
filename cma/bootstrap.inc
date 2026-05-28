@@ -531,6 +531,27 @@ function cma_html_header($title = '', $extraHead = '', $closeHead = true) {
         </script>' . PHP_EOL;
     }
 
+    // Surface a failed migration check directly to the admin so they
+    // can see WHY no banner / no pending list shows up. Previously the
+    // exception was silently swallowed, which produced exactly the
+    // "migrations don't seem to run" symptom with no clue what broke.
+    if (!empty($GLOBALS['_migration_check_error'])) {
+        $msg = json_encode((string)$GLOBALS['_migration_check_error']);
+        echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var toolbar = document.querySelector(".tbcontent, #c.toolbar");
+            if (toolbar && !document.querySelector(".migration-check-error")) {
+                var notice = document.createElement("div");
+                notice.className = "migration-check-error";
+                notice.innerHTML = \'<span class="lnr lnr-warning"></span> Migratie-controle mislukt: \' + ' . $msg . ' + \' &mdash; <a href="tools_migrations.php" target="_top">open de migraties-tool</a> voor details.\';
+                notice.style.cssText = "background:#f8d7da;border:1px solid #f5c2c7;color:#842029;padding:8px 12px;margin:5px 0;border-radius:4px;font-size:12px;";
+                notice.querySelector("a").style.cssText = "color:#842029;font-weight:600;text-decoration:underline;";
+                toolbar.parentNode.insertBefore(notice, toolbar.nextSibling);
+            }
+        });
+        </script>' . PHP_EOL;
+    }
+
     if ($closeHead) {
         echo '</head>' . PHP_EOL;
     }
@@ -1673,6 +1694,7 @@ if (!$_skipLoginCheck) {
 // Check for pending migrations (only for admin users on non-API pages)
 // This stores pending migrations in a global for optional display in header
 $GLOBALS['_pending_migrations'] = [];
+$GLOBALS['_migration_check_error'] = null;
 
 if (!$_skipLoginCheck && !$_isApiEndpoint) {
     // Only check if user is admin - use SecurityHelper for robust admin check
@@ -1684,8 +1706,16 @@ if (!$_skipLoginCheck && !$_isApiEndpoint) {
             if (!empty($pendingMigrations)) {
                 $GLOBALS['_pending_migrations'] = $pendingMigrations;
             }
-        } catch (\Exception $e) {
-            // Silently fail - don't break the application if migration check fails
+        } catch (\Throwable $e) {
+            // Page must not break here — bootstrap runs on every admin
+            // request — but a swallowed exception is exactly why the
+            // operator sees "migrations don't seem to run" without any
+            // explanation. Log to the PHP error log (so postmortem is
+            // possible) and stash for the admin banner to display.
+            error_log('[MigrationService] Migration check failed: '
+                . $e->getMessage()
+                . ' at ' . $e->getFile() . ':' . $e->getLine());
+            $GLOBALS['_migration_check_error'] = $e->getMessage();
         }
     }
 }
