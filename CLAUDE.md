@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Hard rules — not negotiable
+
+These are not "defaults"; treat them as laws.
+
+- **NEVER use `<strong>`, `<em>`, `<b>`, `<i>`** (or any other inline emphasis tag) anywhere except **email bodies**. This is **1990's programming**: presentation glued into markup behind looks-semantic tag names. Use a **context-specific CSS class** instead — e.g. `<span class="cma-page__strong">…</span>` styled with `font-weight: 600` in `cma/assets/css/style.css` (or the matching consumer-app stylesheet). Class-name prefixes already in use: `cma-page__`, `cma-tool__`, `cma-migration__`, `cma-class__`, `cma-js__`, `cma-wc__`, `cma-wizard__`, `storybook__`, `libjs__`, `libval__`, `error-handler__` — reuse these when adding new emphasis. **Email bodies are the only exception** (consumer apps' mail-emitting handlers, `Email.php` template strings) — mail clients strip stylesheets, so there the emphasis tags are allowed, or use inline `<span style="font-weight:600;">…</span>`.
+
 ## Project Overview
 
 This is `stenversonline/platform` — a Composer package providing shared components for multiple projects: PHP helper classes, a shared frontend library, and the CMA (Content Management Application) admin interface. It is distributed to consumer projects via `composer install/update`, which triggers `Installer.php` to sync `library/`, `cma/`, and template files into the project root.
