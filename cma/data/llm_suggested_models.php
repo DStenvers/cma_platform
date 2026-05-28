@@ -3,10 +3,10 @@
  * Curated GGUF model suggestions — single source of truth.
  *
  * Required by:
- *   - cma/tools/llm_models.php  (the downloader UI: each row gets a download button)
- *   - cma/tools/tools_llm.php   (the LLM-management install steps: the FIRST entry is
- *                                 the recommended one whose filename gets interpolated
- *                                 into the per-engine setup-step `code` blocks)
+ *   - cma/tools/tools_llm.php   (the LLM-management page: the Ollama card lists
+ *                                 every entry's `ollama_tag` as a `ollama pull …`
+ *                                 command; index 0 also gets interpolated into
+ *                                 the per-engine setup-step `code` blocks)
  *
  * Ordering matters: tools_llm.php uses index 0 as the "current recommendation".
  * When a newer-better GGUF lands, prepend it here and both surfaces follow

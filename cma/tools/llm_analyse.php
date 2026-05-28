@@ -7,16 +7,17 @@
  * What it shows:
  *   - Active LLM env config (LLM_PROVIDER / LLM_URL / LLM_MODEL).
  *   - Live reachability probe of LLM_URL (HEAD / GET /v1/models).
- *   - Whether any GGUF models are installed locally + a one-click
- *     button to the install tool (llm_models.php) when none are.
+ *   - Whether any GGUF models are installed locally + a CTA over to
+ *     LLM-management (tools_llm.php) when none are.
  *   - Anthropic fallback presence — confirms the safety net is wired.
  *   - Last few /api/recipe-parse errors from logs/php_errors.log so
  *     the operator can see what's failing without scraping the box.
  *
  * "For an LLM to be able to start we need a model first" — that flow
- * is now: open this page → see no installed models → click button →
- * land on llm_models.php → install one → return here, configure
- * LLM_URL / LLM_MODEL in .env, start llama-server.
+ * is now: open this page → see no installed models → click CTA → land
+ * on tools_llm.php → use the curated `ollama pull` commands or follow
+ * the engine-specific install steps → return here, configure LLM_URL /
+ * LLM_MODEL in .env, restart the engine.
  *
  * Auth: DEPLOY_SECRET (same pattern as diag.php + deploy_webhook.php).
  * Self-contained — runs without composer autoload so the page works
@@ -98,7 +99,8 @@ if ($llmUrl !== '') {
 }
 
 // ---------------------------------------------------------------------------
-// Local models directory scan (same default as llm_models.php).
+// Local models directory scan. LLM_MODELS_DIR env override; falls back to
+// the same C:\llama\models / ~/llama-models defaults the rest of the app uses.
 // ---------------------------------------------------------------------------
 $isWin = stripos(PHP_OS_FAMILY, 'WIN') === 0;
 $modelsDir = $resolveEnv($siteRoot, 'LLM_MODELS_DIR');
@@ -130,7 +132,10 @@ if (is_file($logFile)) {
 
 $h = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 $installRoute = '?key=' . urlencode($given);
-$modelsRoute  = 'llm_models.php?key=' . urlencode($given);
+// Used to point at llm_models.php; that tool was retired. The curated
+// model recommendations + per-engine install steps now live on the
+// LLM-management page (tools_llm.php), so this CTA goes there.
+$modelsRoute  = 'tools_llm.php';
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -183,9 +188,9 @@ li { margin: 0.15rem 0; }
 <?php if (!$installed): ?>
   <div class="callout callout--warn">
     <strong>Nog geen GGUF-modellen geïnstalleerd.</strong>
-    <p class="muted">Een lokale LLM heeft een model nodig om mee te starten. Installeer er één via de modellenbeheer-pagina.</p>
+    <p class="muted">Een lokale LLM heeft een model nodig om mee te starten. Bekijk de aanbevolen modellen + installatie-stappen op de LLM-management pagina.</p>
     <div class="cta-row">
-      <a class="btn" href="<?= $h($modelsRoute) ?>">Installeer een model</a>
+      <a class="btn" href="<?= $h($modelsRoute) ?>">Naar LLM-management</a>
     </div>
   </div>
 <?php else: ?>

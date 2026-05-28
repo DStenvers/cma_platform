@@ -29,17 +29,6 @@ if (!SecurityHelper::isAdmin()) {
 }
 
 // =========================================================================
-// Link to llm_models.php — that tool uses DEPLOY_SECRET (?key=) auth so it
-// also works when CMA bootstrap is half-broken. THIS page is already
-// behind admin login, so we can safely pre-attach the secret server-side
-// and the operator clicks straight through. Empty secret → bare link
-// (will 403 with a friendly hint, same as before).
-// =========================================================================
-$deploySecret = trim((string)($_ENV['DEPLOY_SECRET'] ?? getenv('DEPLOY_SECRET') ?: ''));
-$llmModelsUrl = 'llm_models.php' . ($deploySecret !== '' ? '?key=' . urlencode($deploySecret) : '');
-$llmModelsHref = htmlspecialchars($llmModelsUrl, ENT_QUOTES, 'UTF-8');
-
-// =========================================================================
 // Recommended model — index 0 from the shared curated list. The install
 // steps below interpolate these values into their `code` blocks so when
 // llm_suggested_models.php changes (new SOTA release), this page follows
@@ -147,7 +136,7 @@ $engines = [
         'setup' => [
             'windows' => [
                 ['title' => 'Installeer LM Studio', 'body' => 'Download de Windows-installer van https://lmstudio.ai/. GUI-tool — geen aparte CLI nodig.'],
-                ['title' => 'Download een model',   'body' => 'In de app: tab "Discover" → zoek bv. "gemma 4 E4B-it gguf" (zelfde model als de curated #1 in <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a>) → druk Download. Modellen landen in %USERPROFILE%\\.lmstudio\\models.'],
+                ['title' => 'Download een model',   'body' => 'In de app: tab "Discover" → zoek bv. "gemma 4 E4B-it gguf" → druk Download. Modellen landen in %USERPROFILE%\\.lmstudio\\models.'],
                 ['title' => 'Start de Local Server', 'body' => 'Tab "Local Server" → kies het gedownloade model → "Start Server" (poort 1234). Vink "Start server when LM Studio starts" aan zodat hij na een herstart van de app meteen draait.'],
                 ['title' => 'Auto-start na Windows-reboot', 'body' => 'Settings → "Run LM Studio at Windows login" aanvinken. Zonder dit start LM Studio NIET na een server-reboot en is je LLM-API offline.'],
                 ['title' => 'Configureer .env', 'body' => 'Het LLM_MODEL is de id zoals je hem in LM Studio ziet. Voorbeeld:', 'code' => "LLM_URL=http://localhost:1234/v1\nLLM_MODEL=$recLlmModel"],
@@ -182,7 +171,7 @@ $engines = [
         },
         'setup' => [
             'windows' => [
-                ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> en kies een curated GGUF, of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
+                ['title' => 'Download eerst een GGUF-model', 'body' => 'llama.cpp draait niet zonder model. Pak een curated GGUF van bartowski op Hugging Face (zie de aanbevolen-modellen-lijst in de Ollama-kaart hierboven voor de actuele picks), of plak een eigen Hugging Face URL. Default storage: C:\\llama\\models.'],
                 ['title' => 'Pak llama-server binary',  'body' => 'Download een release uit https://github.com/ggerganov/llama.cpp/releases (bv. llama-bXXXX-bin-win-cpu-x64.zip voor CPU-only, of -cuda-… als je een NVIDIA GPU hebt) en pak het zip uit naar C:\\llama\\. llama-server.exe + de DLLs landen direct in die map, niet in een bin/-submap.'],
                 ['title' => 'Test handmatig', 'body' => 'Verifieer eerst dat het werkt:', 'code' => "C:\\llama\\llama-server.exe -m C:\\llama\\models\\$recGGUF --port 8080"],
                 ['title' => 'Auto-start via Task Scheduler', 'body' => 'Geen extra install nodig — Task Scheduler zit in elk Windows Server. Run als SYSTEM zodat de service draait zonder ingelogde gebruiker. PowerShell as Admin:', 'code' => "\$action    = New-ScheduledTaskAction -Execute 'C:\\llama\\llama-server.exe' -Argument '-m C:\\llama\\models\\$recGGUF --port 8080 --host 0.0.0.0'\n\$trigger   = New-ScheduledTaskTrigger -AtStartup\n\$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable\n\$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest\nRegister-ScheduledTask -TaskName 'LlamaServer' -Action \$action -Trigger \$trigger -Settings \$settings -Principal \$principal -Force\nStart-ScheduledTask    -TaskName 'LlamaServer'"],
@@ -190,7 +179,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'linux' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Open <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of curl direct uit Hugging Face. Default storage: ~/llama-models.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Curl direct uit Hugging Face (zie de Ollama-kaart hierboven voor aanbevolen modellen). Default storage: ~/llama-models.'],
                 ['title' => 'Bouw of pak llama.cpp', 'body' => '', 'code' => "git clone https://github.com/ggerganov/llama.cpp\ncd llama.cpp && make -j"],
                 ['title' => 'Test handmatig', 'body' => '', 'code' => "./llama-server -m ~/llama-models/$recGGUF --port 8080"],
                 ['title' => 'Systemd-unit voor auto-start', 'body' => 'Schrijf /etc/systemd/system/llama-server.service:', 'code' => "[Unit]\nDescription=llama.cpp OpenAI-compat server\nAfter=network.target\n[Service]\nExecStart=/opt/llama.cpp/llama-server -m /opt/models/$recGGUF --port 8080\nRestart=always\nUser=llama\n[Install]\nWantedBy=multi-user.target"],
@@ -198,7 +187,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:8080/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'darwin' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of brew/curl.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Pak een curated GGUF van Hugging Face (zie de Ollama-kaart hierboven), of via brew/curl.'],
                 ['title' => 'Installeer llama.cpp', 'body' => '', 'code' => 'brew install llama.cpp'],
                 ['title' => 'Test handmatig', 'body' => '', 'code' => "llama-server -m ~/llama-models/$recGGUF --port 8080"],
                 ['title' => 'Auto-start via brew services', 'body' => 'llama.cpp heeft geen native service-recept; wrap met een launchd plist of run via brew-services-template.'],
@@ -227,7 +216,7 @@ $engines = [
         },
         'setup' => [
             'windows' => [
-                ['title' => 'Download een GGUF-model (optioneel — kan ook in-webui)', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui later via tab Model.'],
+                ['title' => 'Download een GGUF-model (optioneel — kan ook in-webui)', 'body' => 'Via Hugging Face direct, of in webui later via tab Model.'],
                 ['title' => 'Clone + initial setup', 'body' => 'start_windows.bat draait éénmalig de installer (Python venv, deps).', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\nstart_windows.bat"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt — voeg toe:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Auto-start via Task Scheduler', 'body' => 'Built-in Windows, geen extra install. Wrap start_windows.bat als SYSTEM-task. PowerShell as Admin:', 'code' => "\$action    = New-ScheduledTaskAction -Execute 'C:\\pad\\text-generation-webui\\start_windows.bat' -WorkingDirectory 'C:\\pad\\text-generation-webui'\n\$trigger   = New-ScheduledTaskTrigger -AtStartup\n\$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 2) -StartWhenAvailable\n\$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest\nRegister-ScheduledTask -TaskName 'TextGenWebui' -Action \$action -Trigger \$trigger -Settings \$settings -Principal \$principal -Force\nStart-ScheduledTask    -TaskName 'TextGenWebui'"],
@@ -235,7 +224,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'linux' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Via Hugging Face direct, of in webui.'],
                 ['title' => 'Clone + initial setup', 'body' => '', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\n./start_linux.sh"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Systemd-unit', 'body' => 'Schrijf /etc/systemd/system/textgen-webui.service:', 'code' => "[Unit]\nDescription=text-generation-webui API\nAfter=network.target\n[Service]\nWorkingDirectory=/opt/text-generation-webui\nExecStart=/opt/text-generation-webui/start_linux.sh\nRestart=always\nUser=textgen\n[Install]\nWantedBy=multi-user.target"],
@@ -243,7 +232,7 @@ $engines = [
                 ['title' => 'Configureer .env', 'body' => '', 'code' => "LLM_URL=http://localhost:5000/v1\nLLM_MODEL=$recLlmModel"],
             ],
             'darwin' => [
-                ['title' => 'Download een GGUF-model', 'body' => 'Via <a href="' . $llmModelsHref . '" target="_blank">Local LLM models</a> of in webui.'],
+                ['title' => 'Download een GGUF-model', 'body' => 'Via Hugging Face direct, of in webui.'],
                 ['title' => 'Clone + initial setup', 'body' => '', 'code' => "git clone https://github.com/oobabooga/text-generation-webui\ncd text-generation-webui\n./start_macos.sh"],
                 ['title' => 'Enable API mode', 'body' => 'Bewerk CMD_FLAGS.txt:', 'code' => '--api --api-port 5000 --listen'],
                 ['title' => 'Auto-start na login via launchd', 'body' => 'Schrijf ~/Library/LaunchAgents/com.oobabooga.textgen.plist met ProgramArguments wijzend naar start_macos.sh + RunAtLoad=true.'],
@@ -469,10 +458,45 @@ function llm_env(string $key, string $default = ''): string
  * Used in the install-tip block (probe-failure) and inside the
  * "Toon installatie-stappen" details on probe-success.
  *
- * Steps are written with HTML allowed in `body` (links to llm_models.php
- * etc) so we deliberately do NOT escape body. The title and code blocks
- * ARE escaped. Trust boundary: the registry is server-controlled.
+ * Steps are written with HTML allowed in `body` so we deliberately do NOT
+ * escape body. The title and code blocks ARE escaped. Trust boundary: the
+ * registry is server-controlled.
  */
+/**
+ * Render the "Aanbevolen modellen" block for the Ollama card. Lists the
+ * curated GGUF picks from data/llm_suggested_models.php as ready-to-paste
+ * `ollama pull <tag>` commands. Index 0 is flagged as the current pick.
+ *
+ * Lives inline on the Ollama card (not hidden behind the install-steps
+ * collapsible) so the cook can pick a model without expanding anything.
+ */
+function llm_render_ollama_recommendations(array $suggestions): void
+{
+    if ($suggestions === []) {
+        return;
+    }
+    echo '<div class="ollama-recommends">';
+    echo '<strong>Aanbevolen modellen:</strong>';
+    echo '<ul class="ollama-recommends__list">';
+    foreach ($suggestions as $i => $s) {
+        $tag = (string)($s['ollama_tag'] ?? '');
+        if ($tag === '') { continue; }
+        echo '<li class="ollama-recommends__item">';
+        echo '<div class="ollama-recommends__title">';
+        echo '<strong>' . htmlspecialchars((string)($s['label'] ?? $tag)) . '</strong>';
+        if ($i === 0) {
+            echo ' <span class="badge-in-use">aanbevolen</span>';
+        }
+        echo '</div>';
+        if (!empty($s['note'])) {
+            echo '<div class="ollama-recommends__note">' . htmlspecialchars((string)$s['note']) . '</div>';
+        }
+        echo '<code>ollama pull ' . htmlspecialchars($tag) . '</code>';
+        echo '</li>';
+    }
+    echo '</ul></div>';
+}
+
 function llm_render_setup(array $engine, string $os, bool $iis): void
 {
     $steps = $engine['setup'][$os] ?? $engine['setup']['linux'] ?? [];
@@ -488,8 +512,8 @@ function llm_render_setup(array $engine, string $os, bool $iis): void
             echo '<div class="setup-step__title">' . htmlspecialchars((string)$step['title']) . '</div>';
         }
         if (!empty($step['body'])) {
-            // Body may contain anchor tags pointing at sibling tools
-            // (llm_models.php). Server-controlled string, no user input.
+            // Body is a server-controlled string from the engine registry
+            // and may contain inline HTML (anchors, <code>) — not escaped.
             echo '<div class="setup-step__body">' . (string)$step['body'] . '</div>';
         }
         if (!empty($step['code'])) {
@@ -656,6 +680,14 @@ if ($action === 'scan') {
     }
 
     // --- Cards ---
+    // When llama.cpp's server is reachable the operator already has a
+    // working local engine — the Ollama card with its 4-step install
+    // recipe is just noise in that case. Drop it from the render set.
+    $llamaCppOk = isset($results['llamacpp']) && !empty($results['llamacpp']['probe']['ok']);
+    if ($llamaCppOk) {
+        unset($results['ollama']);
+    }
+
     echo '<div class="llm-grid">';
     foreach ($results as $key => $r) {
         $eng = $r['engine'];
@@ -678,6 +710,13 @@ if ($action === 'scan') {
         }
         if (!empty($r['extras']['fallback_model'])) {
             echo '<div class="url" style="margin-top:2px">Fallback-model: <strong>' . htmlspecialchars((string)$r['extras']['fallback_model']) . '</strong></div>';
+        }
+
+        // Ollama card: surface the curated model list inline so the cook
+        // has a copy-paste `ollama pull <tag>` for each curated pick
+        // without having to expand the install steps.
+        if ($key === 'ollama') {
+            llm_render_ollama_recommendations($llmSuggested);
         }
 
         if ($ok) {
@@ -732,8 +771,15 @@ if ($action === 'scan') {
                 echo '</details>';
             }
         } else {
-            $err = $r['probe']['error'] ?: 'geen verbinding';
-            echo '<div class="err" style="margin-top:8px">Probe-fout: ' . htmlspecialchars($err) . '</div>';
+            // Only surface the raw probe error for the engine the app is
+            // actually configured to use — for the other cards the
+            // "niet bereikbaar" badge already conveys everything the
+            // operator needs, and a timeout on an unused engine is just
+            // noise.
+            if ($isInUse) {
+                $err = $r['probe']['error'] ?: 'geen verbinding';
+                echo '<div class="err" style="margin-top:8px">Probe-fout: ' . htmlspecialchars($err) . '</div>';
+            }
             // Installatie-tips altijd in een collapsible. Default
             // ingeklapt zodat de probe-status van de engine voorop
             // staat; de cook klapt 'm open wanneer hij echt aan de
@@ -758,12 +804,7 @@ Response::noCache();
 cma_html_header('CMA - LLM management');
 echo '<body class="contentbody tools tool-llm" style="margin:0;">';
 $rescanBtn  = '<span class="tb-btn"><a href="javascript:void(0)" id="llm-rescan-btn" title="Opnieuw scannen"><span class="lnr lnr-sync"></span><span class="tb-btn-text">Opnieuw scannen</span></a></span>';
-// Companion tool: llm_models.php downloads GGUF model files into
-// LLM_MODELS_DIR. Discovery (this tool) + provisioning (that tool)
-// stay separate processes; the toolbar shortcut keeps them one
-// click apart so the cook never has to hunt for the menu item.
-$installBtn = '<span class="tb-btn"><a href="' . $llmModelsHref . '" id="llm-install-btn" title="Installeer / download een GGUF-model"><span class="lnr lnr-download"></span><span class="tb-btn-text">Modellen installeren</span></a></span>';
-ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen + installeer nieuwe', $rescanBtn . $installBtn);
+ToolbarHelper::report('LLM management', false, false, false, false, 'Detecteer lokale LLM-engines en geïnstalleerde modellen', $rescanBtn);
 
 echo '<style>
 .tool-llm .llm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; }
@@ -795,6 +836,13 @@ echo '<style>
 .tool-llm .summary .pill strong { font-weight:600; }
 .tool-llm .err { color:#c0392b; font-size:13px; }
 .tool-llm .scan-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:48px 16px; color:var(--text-muted,#6c757d); }
+.tool-llm .ollama-recommends { margin-top:10px; padding:10px 12px; background:var(--surface-alt,#f6f8fa); border-left:3px solid #1a5dbf; border-radius:4px; font-size:13px; }
+.tool-llm .ollama-recommends__list { list-style:none; margin:6px 0 0; padding:0; }
+.tool-llm .ollama-recommends__item { margin:0 0 8px; padding:6px 8px; background:var(--surface,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:4px; }
+.tool-llm .ollama-recommends__item:last-child { margin-bottom:0; }
+.tool-llm .ollama-recommends__title { display:flex; align-items:center; gap:6px; }
+.tool-llm .ollama-recommends__note { color:var(--text-muted,#6c757d); font-size:12px; margin:2px 0 4px; }
+.tool-llm .ollama-recommends code { display:block; padding:6px 8px; background:#1c1c1f; color:#e6e6e6; border-radius:4px; word-break:break-all; font-family:Menlo,Consolas,monospace; font-size:12px; }
 </style>';
 
 echo '<div id="c" class="tools">';

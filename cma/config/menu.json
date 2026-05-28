@@ -517,13 +517,6 @@
                     "order": 40,
                     "visible": true,
                     "href": "tools/llm_analyse.php"
-                },
-                {
-                    "id": 146,
-                    "name": "LLM-modellen",
-                    "order": 50,
-                    "visible": true,
-                    "href": "tools/llm_models.php"
                 }
             ],
             "accessLevel": "admin"
