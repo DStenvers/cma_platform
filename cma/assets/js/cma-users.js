@@ -170,7 +170,7 @@
                     // Show the temporary password in a dialog
                     await libAlert(
                         '<p>' + result.message + '</p>' +
-                        '<p style="margin-top: 15px;"><strong>Tijdelijk wachtwoord:</strong></p>' +
+                        '<p style="margin-top: 15px;"><span class="cma-js__strong">Tijdelijk wachtwoord:</span></p>' +
                         '<code style="display: block; padding: 10px; background: var(--bg-surface-alt); border-radius: 4px; font-size: var(--font-size-lg); text-align: center; user-select: all;">' +
                         result.tempPassword +
                         '</code>' +

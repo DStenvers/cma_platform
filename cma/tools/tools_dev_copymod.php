@@ -26,7 +26,7 @@ echo '<div id="c" class="tools">';
 // Note: This tool requires filesystem access and direct database file access
 // which is limited in the PHP version
 echo '<lib-message type="warning">';
-echo '<strong>Let op:</strong> Deze tool is niet volledig beschikbaar in de PHP versie.<br>';
+echo '<span class="cma-tool__strong">Let op:</span> Deze tool is niet volledig beschikbaar in de PHP versie.<br>';
 echo 'Het kopiëren van modules tussen repositories vereist toegang tot de repository bestanden.<br>';
 echo 'Gebruik de ASP/VBScript versie of kopieer handmatig via de database.';
 echo '</lib-message>';
@@ -56,7 +56,7 @@ function displayform()
     if ($iRepository != '') {
         echo '<input type=text value="' . htmlspecialchars($iRepository) . '" style=width:240px name=repository readonly> ';
     } else {
-        echo '<em>(Repository selectie niet beschikbaar in PHP versie)</em>';
+        echo '<span class="cma-tool__em">(Repository selectie niet beschikbaar in PHP versie)</span>';
         echo '<input type=text style=width:240px name=Repository placeholder="Pad naar repository...">';
     }
     echo '&nbsp;</td></tr>';

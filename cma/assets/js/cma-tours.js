@@ -149,10 +149,10 @@
                 content: `
                     <p>Als beheerder heb je hier snelle toegang tot:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>Gebruikers</strong> - Beheer accounts</li>
-                        <li><strong>Groepen</strong> - Beheer toegangsrechten</li>
-                        <li><strong>Tools</strong> - Systeemhulpmiddelen</li>
-                        <li><strong>Cache</strong> - Wis de cache</li>
+                        <li><span class="cma-js__strong">Gebruikers</span> - Beheer accounts</li>
+                        <li><span class="cma-js__strong">Groepen</span> - Beheer toegangsrechten</li>
+                        <li><span class="cma-js__strong">Tools</span> - Systeemhulpmiddelen</li>
+                        <li><span class="cma-js__strong">Cache</span> - Wis de cache</li>
                     </ul>
                 `,
                 position: 'bottom'
@@ -167,9 +167,9 @@
                 content: `
                     <p>Overzicht van de systeemgezondheid:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>Errors</strong> - Recente foutmeldingen</li>
-                        <li><strong>Cache</strong> - Cache hit ratio</li>
-                        <li><strong>Performance</strong> - Trage API calls</li>
+                        <li><span class="cma-js__strong">Errors</span> - Recente foutmeldingen</li>
+                        <li><span class="cma-js__strong">Cache</span> - Cache hit ratio</li>
+                        <li><span class="cma-js__strong">Performance</span> - Trage API calls</li>
                     </ul>
                 `,
                 position: 'left'
@@ -289,7 +289,7 @@
             steps.push({
                 target: '#listToolbar',
                 title: 'Werkbalk',
-                content: '<p>De werkbalk bevat alle acties voor <strong>' + formTitle + '</strong>.</p>',
+                content: '<p>De werkbalk bevat alle acties voor <span class="cma-js__strong">' + formTitle + '</span>.</p>',
                 position: 'bottom'
             });
         }
@@ -301,7 +301,7 @@
             steps.push({
                 target: '#btn_treeview',
                 title: 'Weergave wisselen',
-                content: '<p>Schakel tussen <strong>boomweergave</strong> (gegroepeerd) en <strong>tabelweergave</strong> (platte lijst).</p>',
+                content: '<p>Schakel tussen <span class="cma-js__strong">boomweergave</span> (gegroepeerd) en <span class="cma-js__strong">tabelweergave</span> (platte lijst).</p>',
                 position: 'bottom'
             });
         }
@@ -331,7 +331,7 @@
             steps.push({
                 target: '#btn_add',
                 title: 'Nieuw record',
-                content: '<p>Voeg een nieuw record toe.</p><p><strong>Sneltoets:</strong> <kbd>Ctrl+N</kbd></p>',
+                content: '<p>Voeg een nieuw record toe.</p><p><span class="cma-js__strong">Sneltoets:</span> <kbd>Ctrl+N</kbd></p>',
                 position: 'bottom'
             });
         }
@@ -352,8 +352,8 @@
                 target: '#listContent',
                 title: 'Recordlijst',
                 content: `
-                    <p><strong>Klik</strong> op een record om het te selecteren.</p>
-                    <p><strong>Rechtermuisklik</strong> om te bewerken in een zijpaneel.</p>
+                    <p><span class="cma-js__strong">Klik</span> op een record om het te selecteren.</p>
+                    <p><span class="cma-js__strong">Rechtermuisklik</span> om te bewerken in een zijpaneel.</p>
                     <p>Gebruik <kbd>&#8593;</kbd><kbd>&#8595;</kbd> pijltjestoetsen om te navigeren.</p>
                 `,
                 position: 'right'
@@ -365,7 +365,7 @@
             steps.push({
                 target: '#toolbar_save',
                 title: 'Opslaan',
-                content: '<p>Sla je wijzigingen op.</p><p><strong>Sneltoets:</strong> <kbd>Ctrl+S</kbd></p>',
+                content: '<p>Sla je wijzigingen op.</p><p><span class="cma-js__strong">Sneltoets:</span> <kbd>Ctrl+S</kbd></p>',
                 position: 'bottom'
             });
         }
@@ -387,8 +387,8 @@
                 title: 'Subformulieren',
                 content: `
                     <p>Gerelateerde records bij het huidige record.</p>
-                    <p><strong>+</strong> = Toevoegen</p>
-                    <p><strong>Rechtermuisklik</strong> = Bewerken</p>
+                    <p><span class="cma-js__strong">+</span> = Toevoegen</p>
+                    <p><span class="cma-js__strong">Rechtermuisklik</span> = Bewerken</p>
                 `,
                 position: 'top'
             });
@@ -416,7 +416,7 @@
                 target: '#listTable tbody tr:first-child, .record-table tbody tr:first-child',
                 title: 'Inline bewerken',
                 content: `
-                    <p><strong>Rechtermuisklik</strong> op een cel om direct in de tabel te bewerken.</p>
+                    <p><span class="cma-js__strong">Rechtermuisklik</span> op een cel om direct in de tabel te bewerken.</p>
                     <p><kbd>Enter</kbd> = Opslaan</p>
                     <p><kbd>Escape</kbd> = Annuleren</p>
                     <p><kbd>Tab</kbd> = Volgende cel</p>
@@ -465,9 +465,9 @@
                 target: '#modeDialog',
                 title: 'Kies een modus',
                 content: `
-                    <p><strong>Snel</strong> - Maak eenvoudige rapporten zonder parameters.</p>
-                    <p><strong>Geavanceerd</strong> - Volledige controle met parameters en filters.</p>
-                    <p><strong>Laden</strong> - Open een bestaand rapport.</p>
+                    <p><span class="cma-js__strong">Snel</span> - Maak eenvoudige rapporten zonder parameters.</p>
+                    <p><span class="cma-js__strong">Geavanceerd</span> - Volledige controle met parameters en filters.</p>
+                    <p><span class="cma-js__strong">Laden</span> - Open een bestaand rapport.</p>
                 `,
                 position: 'bottom'
             });
@@ -513,7 +513,7 @@
                 title: 'Schema canvas',
                 content: `
                     <p>Dit toont je geselecteerde tabellen en hun relaties.</p>
-                    <p><strong>Sleep</strong> tabellen om ze te ordenen.</p>
+                    <p><span class="cma-js__strong">Sleep</span> tabellen om ze te ordenen.</p>
                     <p>Lijnen tonen de koppelingen tussen tabellen.</p>
                 `,
                 position: 'left'
@@ -545,7 +545,7 @@
                 target: '#btnNextStep',
                 title: 'Navigatie',
                 content: `
-                    <p>Gebruik <strong>Volgende/Vorige</strong> om door de stappen te gaan.</p>
+                    <p>Gebruik <span class="cma-js__strong">Volgende/Vorige</span> om door de stappen te gaan.</p>
                     <p>Je kunt ook direct op een stap klikken in de tabs.</p>
                 `,
                 position: 'top'
@@ -567,7 +567,7 @@
                 title: 'Geladen rapport',
                 content: `
                     <p>Je bewerkt nu een bestaand rapport.</p>
-                    <p>Wijzigingen worden pas opgeslagen als je op <strong>Opslaan</strong> klikt.</p>
+                    <p>Wijzigingen worden pas opgeslagen als je op <span class="cma-js__strong">Opslaan</span> klikt.</p>
                 `,
                 position: 'bottom'
             });
@@ -594,8 +594,8 @@
                 content: `
                     <p>Schakel tussen:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>Ontwerper</strong> - Pas het rapport aan</li>
-                        <li><strong>Resultaten</strong> - Test en bekijk output</li>
+                        <li><span class="cma-js__strong">Ontwerper</span> - Pas het rapport aan</li>
+                        <li><span class="cma-js__strong">Resultaten</span> - Test en bekijk output</li>
                     </ul>
                 `,
                 position: 'bottom'
@@ -687,9 +687,9 @@
                 content: `
                     <p>Bepaalt de rechten van de gebruiker:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>U</strong> = Gebruiker (basis)</li>
-                        <li><strong>A</strong> = Administrator (beheer)</li>
-                        <li><strong>D</strong> = Developer (volledig)</li>
+                        <li><span class="cma-js__strong">U</span> = Gebruiker (basis)</li>
+                        <li><span class="cma-js__strong">A</span> = Administrator (beheer)</li>
+                        <li><span class="cma-js__strong">D</span> = Developer (volledig)</li>
                     </ul>
                 `,
                 position: 'right'
@@ -716,7 +716,7 @@
                 title: 'Inloggen als',
                 content: `
                     <p>Log in als deze gebruiker om te testen wat ze zien.</p>
-                    <p><strong>Alleen voor administrators!</strong></p>
+                    <p><span class="cma-js__strong">Alleen voor administrators!</span></p>
                     <p>Klik op je eigen naam in de header om terug te keren.</p>
                 `,
                 position: 'bottom'
@@ -847,8 +847,8 @@
             content: `
                 <p>Tools zijn gemarkeerd met badges:</p>
                 <ul style="margin: 8px 0; padding-left: 20px;">
-                    <li><strong>A</strong> = Alleen voor Administrators</li>
-                    <li><strong>D</strong> = Alleen voor Developers</li>
+                    <li><span class="cma-js__strong">A</span> = Alleen voor Administrators</li>
+                    <li><span class="cma-js__strong">D</span> = Alleen voor Developers</li>
                 </ul>
                 <p>Je ziet alleen tools waartoe je toegang hebt.</p>
             `,
@@ -932,7 +932,7 @@
                 content: `
                     <p>Schrijf hier je SQL query.</p>
                     <p>Ondersteunt: SELECT, INSERT, UPDATE, DELETE</p>
-                    <p><strong>Tip:</strong> Wees voorzichtig met UPDATE en DELETE!</p>
+                    <p><span class="cma-js__strong">Tip:</span> Wees voorzichtig met UPDATE en DELETE!</p>
                 `,
                 position: 'bottom'
             });
@@ -945,7 +945,7 @@
                 title: 'Uitvoeren',
                 content: `
                     <p>Voer de query uit.</p>
-                    <p><strong>Sneltoets:</strong> <kbd>Ctrl+Enter</kbd></p>
+                    <p><span class="cma-js__strong">Sneltoets:</span> <kbd>Ctrl+Enter</kbd></p>
                 `,
                 position: 'bottom'
             });
@@ -1086,7 +1086,7 @@
                 title: 'Uitvoeren',
                 content: `
                     <p>Voer pending migraties uit om de database bij te werken.</p>
-                    <p><strong>Let op:</strong> Maak eerst een backup!</p>
+                    <p><span class="cma-js__strong">Let op:</span> Maak eerst een backup!</p>
                 `,
                 position: 'bottom'
             });
@@ -1224,7 +1224,7 @@
                 target: '.dropzone, .upload-area, #dropzone',
                 title: 'Afbeelding uploaden',
                 content: `
-                    <p><strong>Sleep</strong> een afbeelding hierheen, of <strong>klik</strong> om te bladeren.</p>
+                    <p><span class="cma-js__strong">Sleep</span> een afbeelding hierheen, of <span class="cma-js__strong">klik</span> om te bladeren.</p>
                 `,
                 position: 'bottom'
             });
@@ -1279,9 +1279,9 @@
                 content: `
                     <p>Kies je voorkeursthema:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>Licht</strong> - Klassiek licht thema</li>
-                        <li><strong>Donker</strong> - Makkelijker voor de ogen</li>
-                        <li><strong>Systeem</strong> - Volgt je systeeminstelling</li>
+                        <li><span class="cma-js__strong">Licht</span> - Klassiek licht thema</li>
+                        <li><span class="cma-js__strong">Donker</span> - Makkelijker voor de ogen</li>
+                        <li><span class="cma-js__strong">Systeem</span> - Volgt je systeeminstelling</li>
                     </ul>
                 `,
                 position: 'right'
@@ -1296,8 +1296,8 @@
                 content: `
                     <p>Kies hoe records openen:</p>
                     <ul style="margin: 8px 0; padding-left: 20px;">
-                        <li><strong>Zijpaneel</strong> - Schuift in vanaf rechts</li>
-                        <li><strong>Popup</strong> - Opent in een venster</li>
+                        <li><span class="cma-js__strong">Zijpaneel</span> - Schuift in vanaf rechts</li>
+                        <li><span class="cma-js__strong">Popup</span> - Opent in een venster</li>
                     </ul>
                 `,
                 position: 'right'
@@ -1346,9 +1346,9 @@
                 title: 'Subformulieren',
                 content: `
                     <p>Dit zijn gerelateerde records.</p>
-                    <p><strong>+</strong> = Nieuw record toevoegen</p>
-                    <p><strong>Dubbelklik</strong> = Record bewerken</p>
-                    <p><strong>Delete</strong> = Record verwijderen</p>
+                    <p><span class="cma-js__strong">+</span> = Nieuw record toevoegen</p>
+                    <p><span class="cma-js__strong">Dubbelklik</span> = Record bewerken</p>
+                    <p><span class="cma-js__strong">Delete</span> = Record verwijderen</p>
                 `,
                 position: 'top'
             });

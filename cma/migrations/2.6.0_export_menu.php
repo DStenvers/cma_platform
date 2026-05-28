@@ -67,20 +67,20 @@ if ($isMigration) {
     if ($result['success']) {
         $detailsHtml = '';
         if (!empty($result['details'])) {
-            $detailsHtml = '<br><strong>Details:</strong><ul>';
+            $detailsHtml = '<br><span class="cma-migration__strong">Details:</span><ul>';
             foreach ($result['details'] as $detail) {
                 $detailsHtml .= '<li>' . htmlspecialchars($detail) . '</li>';
             }
             $detailsHtml .= '</ul>';
         }
-        echo '<lib-message type="success"><strong>Menu succesvol geëxporteerd!</strong><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
+        echo '<lib-message type="success"><span class="cma-migration__strong">Menu succesvol geëxporteerd!</span><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
 
         echo '<h3>Gegenereerd bestand</h3>';
         echo '<pre style="background:#f5f5f5;padding:15px;border-radius:4px;max-height:500px;overflow:auto;">';
         echo htmlspecialchars(file_get_contents(dirname(__DIR__, 2) . '/data/menu.json'));
         echo '</pre>';
     } else {
-        echo '<lib-message type="error"><strong>Export mislukt!</strong><br>' . htmlspecialchars($result['message']) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Export mislukt!</span><br>' . htmlspecialchars($result['message']) . '</lib-message>';
     }
 
     echo '</div></body></html>';

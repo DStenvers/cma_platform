@@ -251,9 +251,9 @@ if ($errorCount === 0) {
 
 echo '<h3>Samenvatting</h3>';
 echo '<table class="listtable"><tbody>';
-echo '<tr><td><strong>Getest</strong></td><td>' . $tested . '</td></tr>';
-echo '<tr><td><strong>Overgeslagen</strong></td><td>' . $skipped . '</td></tr>';
-echo '<tr><td><strong>Fouten</strong></td><td>' . $errorCount . '</td></tr>';
+echo '<tr><td><span class="cma-tool__strong">Getest</span></td><td>' . $tested . '</td></tr>';
+echo '<tr><td><span class="cma-tool__strong">Overgeslagen</span></td><td>' . $skipped . '</td></tr>';
+echo '<tr><td><span class="cma-tool__strong">Fouten</span></td><td>' . $errorCount . '</td></tr>';
 echo '</tbody></table>';
 
 if ($errorCount > 0) {
@@ -262,7 +262,7 @@ if ($errorCount > 0) {
     foreach ($groupedErrors as $group) {
         $count = count($group['urls']);
         $urlList = implode('<br>', array_map('htmlspecialchars', array_slice($group['urls'], 0, 5)));
-        if ($count > 5) $urlList .= '<br><em>... en ' . ($count - 5) . ' meer</em>';
+        if ($count > 5) $urlList .= '<br><span class="cma-tool__em">... en ' . ($count - 5) . ' meer</span>';
         echo '<tr>';
         echo '<td>' . $count . '</td>';
         echo '<td><code>' . htmlspecialchars($group['type']) . '</code></td>';
@@ -273,5 +273,5 @@ if ($errorCount > 0) {
     echo '</tbody></table>';
 }
 
-echo '<p style="color:var(--text-secondary); margin-top:10px"><em>Gegenereerd: ' . date('Y-m-d H:i:s') . '</em></p>';
+echo '<p style="color:var(--text-secondary); margin-top:10px"><span class="cma-tool__em">Gegenereerd: ' . date('Y-m-d H:i:s') . '</span></p>';
 echo '</div></body></html>';

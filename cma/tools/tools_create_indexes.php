@@ -120,7 +120,7 @@ if ($action === 'create') {
     echo '<button type="submit" class="btn-success">Create All Indexes</button>';
     echo '</form>';
 
-    echo '<br><p><strong>Note:</strong> If an index already exists, it will be skipped.</p>';
+    echo '<br><p><span class="cma-tool__strong">Note:</span> If an index already exists, it will be skipped.</p>';
 }
 
 echo '</div></BODY></HTML>';

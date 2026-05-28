@@ -350,7 +350,7 @@ sort($imageDirs);
 <lib-dialog id="helpDialog" heading="WebP conversie — Help" size="large">
     <div style="font-size: 0.95em; line-height: 1.6;">
         <h3 style="margin-top: 0;">Wat doet deze tool?</h3>
-        <p>Scant afbeeldingsmappen en genereert <strong>responsieve WebP-varianten</strong> in een <code>.responsive/</code> submap.
+        <p>Scant afbeeldingsmappen en genereert <span class="cma-tool__strong">responsieve WebP-varianten</span> in een <code>.responsive/</code> submap.
         WebP is een modern beeldformaat dat kleinere bestanden oplevert bij gelijke kwaliteit.</p>
 
         <h3>Gedeelde configuratie</h3>
@@ -365,17 +365,17 @@ sort($imageDirs);
             <tbody>
                 <tr>
                     <td style="padding: 6px 8px;">Kwaliteit</td>
-                    <td style="padding: 6px 8px;"><strong><?= ResponsiveImage::DEFAULT_QUALITY ?></strong></td>
+                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= ResponsiveImage::DEFAULT_QUALITY ?></span></td>
                     <td style="padding: 6px 8px;"><code>ResponsiveImage::DEFAULT_QUALITY</code></td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 8px;">Responsive breedtes</td>
-                    <td style="padding: 6px 8px;"><strong><?= implode(', ', ResponsiveImage::SIZES) ?></strong> px</td>
+                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= implode(', ', ResponsiveImage::SIZES) ?></span> px</td>
                     <td style="padding: 6px 8px;"><code>ResponsiveImage::SIZES</code></td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 8px;">Submap</td>
-                    <td style="padding: 6px 8px;"><strong><?= ResponsiveImage::RESPONSIVE_DIR ?></strong></td>
+                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= ResponsiveImage::RESPONSIVE_DIR ?></span></td>
                     <td style="padding: 6px 8px;"><code>ResponsiveImage::RESPONSIVE_DIR</code></td>
                 </tr>
             </tbody>
@@ -390,15 +390,15 @@ sort($imageDirs);
 
         <h3>Vergelijken</h3>
         <p>Klik op een bestandsnaam of variant-thumbnail om het beeld te openen in een preview.
-        Bij afbeeldingen met een volledige WebP-variant verschijnt een <strong>Vergelijk</strong>-tab
+        Bij afbeeldingen met een volledige WebP-variant verschijnt een <span class="cma-tool__strong">Vergelijk</span>-tab
         waarmee je het origineel en de WebP-versie naast elkaar kunt vergelijken met een versleepbare scheidslijn.</p>
 
         <h3>Wanneer worden varianten automatisch aangemaakt?</h3>
         <ul style="margin: 0; padding-left: 20px;">
-            <li><strong>Formulier upload</strong> — bij het uploaden van afbeeldingen via CMA formulieren</li>
-            <li><strong>Beeld bijsnijden</strong> — na het bijsnijden in de image crop wizard</li>
-            <li><strong>Bestandsbeheer</strong> — bij bewerken (draaien/bijsnijden/formaat wijzigen) in de bestandsbrowser</li>
-            <li><strong>Batch conversie</strong> — via deze tool voor bestaande afbeeldingen</li>
+            <li><span class="cma-tool__strong">Formulier upload</span> — bij het uploaden van afbeeldingen via CMA formulieren</li>
+            <li><span class="cma-tool__strong">Beeld bijsnijden</span> — na het bijsnijden in de image crop wizard</li>
+            <li><span class="cma-tool__strong">Bestandsbeheer</span> — bij bewerken (draaien/bijsnijden/formaat wijzigen) in de bestandsbrowser</li>
+            <li><span class="cma-tool__strong">Batch conversie</span> — via deze tool voor bestaande afbeeldingen</li>
         </ul>
 
         <h3>Implementatie in de front-end</h3>
@@ -414,14 +414,14 @@ echo ResponsiveImage::imgTag('/images/photo.jpg', 'Alt', '100vw', 'hero-image', 
     'width' => 1200, 'height' => 800, 'fetchpriority' => 'high',
 ]);</pre>
 
-        <p style="margin-top: 12px;">In <strong>JavaScript</strong> (dynamische content):</p>
+        <p style="margin-top: 12px;">In <span class="cma-tool__strong">JavaScript</span> (dynamische content):</p>
         <pre style="background: var(--bg-surface, #f5f5f5); padding: 12px; border-radius: 4px; font-size: 0.85em; overflow-x: auto;">const dir = '/images';
 const name = 'photo';  // zonder extensie
 const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
     .map(w => `${dir}/.responsive/${name}-${w}w.webp ${w}w`)
     .join(', ');</pre>
 
-        <p style="margin-top: 12px;">Als <strong>CSS achtergrond</strong>:</p>
+        <p style="margin-top: 12px;">Als <span class="cma-tool__strong">CSS achtergrond</span>:</p>
         <pre style="background: var(--bg-surface, #f5f5f5); padding: 12px; border-radius: 4px; font-size: 0.85em; overflow-x: auto;">.hero { background-image: url('/images/.responsive/photo.webp'); }</pre>
     </div>
     <div slot="footer">
@@ -559,14 +559,14 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
                 // Show detailed diagnostics when WebP is not supported
                 if (!data.webpSupported && gd) {
                     statusHtml += '<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 12px;">';
-                    statusHtml += '<strong style="color: var(--color-danger, #c00);">WebP is niet beschikbaar</strong>';
+                    statusHtml += '<span class="cma-tool__strong" style="color: var(--color-danger, #c00);">WebP is niet beschikbaar</span>';
                     statusHtml += '<table style="margin-top: 8px; font-size: 0.9em;">';
-                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">PHP versie:</td><td><strong>' + (gd.phpVersion || '?') + '</strong></td></tr>';
-                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">PHP SAPI:</td><td><strong>' + (gd.phpSapi || '?') + '</strong></td></tr>';
-                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">OS:</td><td><strong>' + (gd.os || '?') + '</strong></td></tr>';
-                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">GD extensie geladen:</td><td><strong style="color:' + (gd.gdLoaded ? 'green' : 'red') + ';">' + (gd.gdLoaded ? 'Ja' : 'Nee') + '</strong></td></tr>';
+                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">PHP versie:</td><td><span class="cma-tool__strong">' + (gd.phpVersion || '?') + '</span></td></tr>';
+                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">PHP SAPI:</td><td><span class="cma-tool__strong">' + (gd.phpSapi || '?') + '</span></td></tr>';
+                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">OS:</td><td><span class="cma-tool__strong">' + (gd.os || '?') + '</span></td></tr>';
+                    statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">GD extensie geladen:</td><td><span class="cma-tool__strong" style="color:' + (gd.gdLoaded ? 'green' : 'red') + ';">' + (gd.gdLoaded ? 'Ja' : 'Nee') + '</span></td></tr>';
                     if (gd.gdLoaded) {
-                        statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">GD versie:</td><td><strong>' + (gd.gdVersion || '?') + '</strong></td></tr>';
+                        statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">GD versie:</td><td><span class="cma-tool__strong">' + (gd.gdVersion || '?') + '</span></td></tr>';
                         statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">JPEG:</td><td>' + (gd.jpegSupport ? '<span style="color:green;">Ja</span>' : '<span style="color:red;">Nee</span>') + '</td></tr>';
                         statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">PNG:</td><td>' + (gd.pngSupport ? '<span style="color:green;">Ja</span>' : '<span style="color:red;">Nee</span>') + '</td></tr>';
                         statusHtml += '<tr><td style="padding: 2px 12px 2px 0;">WebP:</td><td>' + (gd.webpSupport ? '<span style="color:green;">Ja</span>' : '<span style="color:red;">Nee</span>') + '</td></tr>';
@@ -578,7 +578,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
 
                     // Show fix instructions based on diagnosis
                     statusHtml += '<div style="margin-top: 12px; padding: 10px; background: var(--bg-body); border-radius: 4px;">';
-                    statusHtml += '<strong>Oplossing:</strong><br>';
+                    statusHtml += '<span class="cma-tool__strong">Oplossing:</span><br>';
                     if (!gd.gdLoaded) {
                         statusHtml += '<ol style="margin: 6px 0 0 20px; padding: 0;">';
                         if (platformInfo.isWindows) {
@@ -947,7 +947,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
                 totalWebp += filesWithWebp[s].webpSize;
             }
             html += '<div style="display:flex;align-items:center;gap:16px;margin-top:12px;padding:10px 16px;background:var(--bg-surface,#f5f5f5);border:1px solid var(--border-color,#ddd);border-radius:4px;font-size:0.9em;">';
-            html += '<span><strong>' + filesWithWebp.length + '</strong> bestanden met varianten</span>';
+            html += '<span><span class="cma-tool__strong">' + filesWithWebp.length + '</span> bestanden met varianten</span>';
             html += '<span style="color:var(--text-muted,#888);">&mdash;</span>';
             html += '<span>Totaal: ' + formatSize(totalOriginal) + ' &rarr; ' + formatSize(totalWebp) + '</span>';
             html += '<lib-gauge value="' + totalWebp + '" max="' + totalOriginal + '" format="size" label="Gemiddeld" min-width="180"></lib-gauge>';
@@ -1054,9 +1054,9 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
                             var errHtml = '<div style="margin-top: 8px; max-height: 200px; overflow-y: auto; ' +
                                 'background: var(--bg-surface, #f9f9f9); border: 1px solid var(--border-color, #ddd); ' +
                                 'border-radius: 4px; padding: 8px; font-size: 0.85em;">';
-                            errHtml += '<strong style="color: var(--color-danger, #c00);">Fouten:</strong><ul style="margin: 4px 0 0 16px; padding: 0;">';
+                            errHtml += '<span class="cma-tool__strong" style="color: var(--color-danger, #c00);">Fouten:</span><ul style="margin: 4px 0 0 16px; padding: 0;">';
                             for (var ei = 0; ei < allErrorDetails.length; ei++) {
-                                errHtml += '<li><strong>' + allErrorDetails[ei].file + '</strong>: ' + allErrorDetails[ei].error + '</li>';
+                                errHtml += '<li><span class="cma-tool__strong">' + allErrorDetails[ei].file + '</span>: ' + allErrorDetails[ei].error + '</li>';
                             }
                             errHtml += '</ul></div>';
                             progressText.innerHTML = doneText + errHtml;

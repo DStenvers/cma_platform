@@ -187,7 +187,7 @@ li { margin: 0.15rem 0; }
 <h2>2. Lokale modellen <span class="muted">(<?= $h($modelsDir) ?>)</span></h2>
 <?php if (!$installed): ?>
   <div class="callout callout--warn">
-    <strong>Nog geen GGUF-modellen geïnstalleerd.</strong>
+    <span class="cma-tool__strong">Nog geen GGUF-modellen geïnstalleerd.</span>
     <p class="muted">Een lokale LLM heeft een model nodig om mee te starten. Bekijk de aanbevolen modellen + installatie-stappen op de LLM-management pagina.</p>
     <div class="cta-row">
       <a class="btn" href="<?= $h($modelsRoute) ?>">Naar LLM-management</a>
@@ -211,12 +211,12 @@ li { margin: 0.15rem 0; }
 <h2>3. Endpoint-probe</h2>
 <?php if ($llmUrl === ''): ?>
   <div class="callout">
-    <strong>LLM_URL niet gezet</strong> — recipe-parser valt direct terug op Anthropic
+    <span class="cma-tool__strong">LLM_URL niet gezet</span> — recipe-parser valt direct terug op Anthropic
     <?= $visionKey === '' && $llmKey === '' ? '<span class="badge badge--err">geen API-key gevonden</span>' : '<span class="badge badge--ok">API-key beschikbaar</span>' ?>.
   </div>
 <?php elseif ($probe['http'] >= 200 && $probe['http'] < 300): ?>
   <div class="callout">
-    <strong><?= $h($probe['url']) ?></strong> <span class="badge badge--ok">HTTP <?= $probe['http'] ?></span> <span class="muted"><?= $h($probe['kind']) ?>-shape</span>
+    <span class="cma-tool__strong"><?= $h($probe['url']) ?></span> <span class="badge badge--ok">HTTP <?= $probe['http'] ?></span> <span class="muted"><?= $h($probe['kind']) ?>-shape</span>
     <?php if ($probe['models']): ?>
       <p class="muted" style="margin:0.4rem 0 0;">Geladen modellen volgens de server:</p>
       <ul>
@@ -228,7 +228,7 @@ li { margin: 0.15rem 0; }
   </div>
 <?php else: ?>
   <div class="callout callout--err">
-    <strong>Endpoint onbereikbaar</strong> — HTTP <?= (int)$probe['http'] ?>
+    <span class="cma-tool__strong">Endpoint onbereikbaar</span> — HTTP <?= (int)$probe['http'] ?>
     <?php if ($probe['err'] !== ''): ?><br><span class="cmd"><?= $h($probe['err']) ?></span><?php endif; ?>
     <p class="muted">Anthropic-vangnet werkt nog wel als <span class="cmd">OCR_VISION_KEY</span> of <span class="cmd">LLM_KEY</span> is gezet.</p>
   </div>

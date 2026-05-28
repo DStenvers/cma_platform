@@ -267,7 +267,7 @@ if (!empty($testFiles)):
     <?php foreach ($testFiles as $test): ?>
         <tr data-test="<?= htmlspecialchars($test['name']) ?>">
             <td><input type="checkbox" class="test-check" value="<?= htmlspecialchars($test['name']) ?>"></td>
-            <td><strong><?= htmlspecialchars($test['name']) ?></strong></td>
+            <td><span class="cma-tool__strong"><?= htmlspecialchars($test['name']) ?></span></td>
             <td><code><?= htmlspecialchars($test['file']) ?></code></td>
             <td><?= date('d-m-Y H:i', $test['mtime']) ?></td>
             <td class="test-result"></td>

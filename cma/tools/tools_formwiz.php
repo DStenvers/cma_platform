@@ -462,7 +462,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (saveResult.saved) {
                     previewContainer.innerHTML = `
                         <lib-message type="success">
-                            <strong>Opgeslagen!</strong><br>
+                            <span class="cma-tool__strong">Opgeslagen!</span><br>
                             Bestand: <code>${saveResult.filename}</code><br>
                             Pad: <code>${saveResult.path}</code>
                         </lib-message>

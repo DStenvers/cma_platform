@@ -154,14 +154,14 @@ echo '<div id="c" class="tools">';
 if ($result !== null) {
     if ($result['success']) {
         echo '<lib-message type="success" closable>';
-        echo '<strong>Migraties succesvol toegepast!</strong>';
+        echo '<span class="cma-tool__strong">Migraties succesvol toegepast!</span>';
         if (!empty($result['applied'])) {
             echo '<br>Toegepaste versies: ' . implode(' → ', $result['applied']);
         }
         echo '</lib-message>';
     } else {
         echo '<lib-message type="error" closable>';
-        echo '<strong>Migratie is mislukt</strong>';
+        echo '<span class="cma-tool__strong">Migratie is mislukt</span>';
         echo '</lib-message>';
     }
 
@@ -191,7 +191,7 @@ if ($result !== null) {
 
 // Show errors from service
 if (!empty($errors)) {
-    echo '<lib-message type="error" closable><strong>Fouten:</strong><ul style="margin:5px 0 0 0;">';
+    echo '<lib-message type="error" closable><span class="cma-tool__strong">Fouten:</span><ul style="margin:5px 0 0 0;">';
     foreach ($errors as $error) {
         // Converteer newlines naar <br> voor betere weergave van multi-line errors
         $formattedError = nl2br(htmlspecialchars($error));
@@ -670,7 +670,7 @@ async function submitMigration(e) {
 
     if (failedVersion) {
         resultDiv.setAttribute("type", "error");
-        resultDiv.innerHTML = "<strong>Migratie mislukt bij versie " + failedVersion + "</strong><br>" + successCount + " van " + migrationsToApply.length + " migraties toegepast.";
+        resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " migraties toegepast.";
         button.textContent = "Opnieuw proberen";
         button.disabled = false;
         // Store remaining migrations for retry
@@ -680,7 +680,7 @@ async function submitMigration(e) {
         fetch("/cma/tools/tools_clearcache.php?silent=1").catch(function() {});
 
         resultDiv.setAttribute("type", "success");
-        resultDiv.innerHTML = "<strong>Alle migraties succesvol toegepast!</strong><br>" + successCount + " migraties uitgevoerd.<br><em>Caches zijn geleegd.</em>";
+        resultDiv.innerHTML = "<span class="cma-tool__strong">Alle migraties succesvol toegepast!</span><br>" + successCount + " migraties uitgevoerd.<br><span class="cma-tool__em">Caches zijn geleegd.</span>";
         countSpan.textContent = "";
 
         // Update pending versions array
@@ -788,14 +788,14 @@ async function rerunMigration(version) {
                 statusCell.innerHTML = "<span class=\"badge badge-success\">Toegepast</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "success");
-            resultDiv.innerHTML = "<strong>Migratie " + version + " succesvol uitgevoerd!</strong>";
+            resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie " + version + " succesvol uitgevoerd!</span>";
         } else {
             if (statusCell) {
                 statusCell.innerHTML = "<span class=\"badge badge-error\">Mislukt</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "error");
             var errorMsg = result.error || "Onbekende fout, controleer de uitvoeringslog voor details";
-            resultDiv.innerHTML = "<strong>Migratie " + version + " mislukt</strong><br>" + errorMsg;
+            resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie " + version + " mislukt</span><br>" + errorMsg;
         }
 
         // Show log
@@ -919,7 +919,7 @@ if (empty($pendingMigrationsList)) {
     $dbStatus = $migrationService->getCurrentVersions();
     if (!empty($dbStatus)) {
         echo '<div style="padding:0 0 15px 12px;color:var(--text-muted);font-size:var(--font-size-sm);">';
-        echo '<strong>Bekeken databases:</strong>';
+        echo '<span class="cma-tool__strong">Bekeken databases:</span>';
         echo '<ul style="margin:6px 0 0 0;padding-left:20px;">';
         foreach ($dbStatus as $name => $info) {
             $isErr = in_array($info, ['fout', 'geen verbinding', 'onbekend'], true);
@@ -943,7 +943,7 @@ if (empty($pendingMigrationsList)) {
         $checked = $isLast ? ' checked' : '';
         echo '<input type="radio" name="target_version" value="' . htmlspecialchars($migration['version']) . '" form="migrationForm"' . $checked . ' onchange="updateMigrationButton()">';
         echo '</td>';
-        echo '<td><strong>' . htmlspecialchars($migration['version']) . '</strong></td>';
+        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($migration['version']) . '</span></td>';
         echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
         echo '<td><span class="badge badge-warning">Openstaand</span></td>';
         echo '</tr>';
@@ -963,7 +963,7 @@ if (empty($completedMigrationsList)) {
     echo '<tbody id="completedMigrations">';
     foreach ($completedMigrationsList as $migration) {
         echo '<tr data-version="' . htmlspecialchars($migration['version']) . '">';
-        echo '<td><strong>' . htmlspecialchars($migration['version']) . '</strong></td>';
+        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($migration['version']) . '</span></td>';
         echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
         echo '<td>';
         echo '<span class="badge badge-success">Toegepast</span>';

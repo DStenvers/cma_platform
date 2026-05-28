@@ -502,7 +502,7 @@ echo '<div id="tabCreate" style="' . $createTabStyle . '">';
 
             echo '<tr>';
             echo '<td><input type="checkbox" name="databases[]" value="' . $index . '"' . ($exists ? '' : ' disabled') . '></td>';
-            echo '<td><strong>' . htmlspecialchars($db['title'] ?? $db['name']) . '</strong></td>';
+            echo '<td><span class="cma-tool__strong">' . htmlspecialchars($db['title'] ?? $db['name']) . '</span></td>';
             echo '<td><span class="lnr lnr-database"></span>' . $typeLabel . '</td>';
 
             if (!empty($db['path'])) {
@@ -571,14 +571,14 @@ echo '<div id="tabManage" style="' . $manageTabStyle . '">';
             echo '<h3>Backup herstellen</h3>';
 
             echo '<lib-message type="warning">';
-            echo '<strong>Let op:</strong> Het herstellen van een backup overschrijft de huidige database. ';
+            echo '<span class="cma-tool__strong">Let op:</span> Het herstellen van een backup overschrijft de huidige database. ';
             echo 'Er wordt automatisch een backup gemaakt van de huidige database voordat het herstel plaatsvindt.';
             echo '</lib-message>';
 
             echo '<div class="backup-details">';
             echo '<table>';
             echo '<tr><td>Bestand:</td><td>' . htmlspecialchars($fileInfo['name']) . '</td></tr>';
-            echo '<tr><td>Database:</td><td><strong>' . htmlspecialchars($dbNameFromFile) . '</strong></td></tr>';
+            echo '<tr><td>Database:</td><td><span class="cma-tool__strong">' . htmlspecialchars($dbNameFromFile) . '</span></td></tr>';
             if (!empty($description)) {
                 echo '<tr><td>Omschrijving:</td><td>' . htmlspecialchars($description) . '</td></tr>';
             }

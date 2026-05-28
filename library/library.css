@@ -918,3 +918,11 @@ table tr.odd { background-color: #fdfdfd }
 .colorpicker-cell:hover {
     border: 1px dotted #000000;
 }
+
+/* No-<strong>/<em> replacement classes for library JS-emitted markup
+   (library.js, formval_nl.js). Keep here so library consumers get the
+   styling automatically. */
+.libjs__strong,
+.libval__strong { font-weight: 600; }
+.libjs__em,
+.libval__em { font-style: italic; }

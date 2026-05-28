@@ -1560,7 +1560,7 @@ $appBasePath = Application::get('base_path', '/');
     <!-- Resize Confirm Dialog (for upload) -->
     <lib-dialog id="resizeConfirmDialog" heading="Afbeelding te groot" size="small" modal>
         <p>De afbeelding is groter dan de toegestane afmetingen (<span id="resizeMaxDims"></span>).</p>
-        <p>Huidige afmetingen: <strong id="resizeCurrentDims"></strong></p>
+        <p>Huidige afmetingen: <span class="cma-wizard__strong" id="resizeCurrentDims"></span></p>
         <p>Wat wil je doen?</p>
         <div slot="footer">
             <button class="btn btn-cancel" onclick="resizeConfirm.cancel()">Annuleren</button>

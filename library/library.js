@@ -1365,7 +1365,7 @@ function lib_storage_debug(prefix) {
 			var value = localStorage.getItem(key);
 			var displayValue = value && value.length > 50 ? value.substring(0, 50) + '...' : value;
 			content += '<div style="margin-bottom:6px;padding:4px;background:#f5f5f5;border-radius:3px;">' +
-				'<strong style="color:#0066cc;">' + key + '</strong><br>' +
+				'<span class="libjs__strong" style="color:#0066cc;">' + key + '</span><br>' +
 				'<span style="color:#666;">' + (displayValue || '(empty)') + '</span>' +
 				'<span onclick="lib_storage_remove(\'' + key + '\');lib_storage_debug(\'' + (prefix || '') + '\')" style="float:right;cursor:pointer;color:red;font-size:var(--font-size-2xs);">delete</span>' +
 				'</div>';

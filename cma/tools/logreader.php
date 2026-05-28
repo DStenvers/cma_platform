@@ -545,7 +545,7 @@ async function confirmDelete() {
     <?php endif; ?>
 
     <div class="log-settings-info" id="logSettingsInfo" style="display: none;">
-        <p style="margin: 0 0 10px;"><strong>Log instellingen</strong> (via Voorkeuren → Systeeminstellingen)</p>
+        <p style="margin: 0 0 10px;"><span class="cma-tool__strong">Log instellingen</span> (via Voorkeuren → Systeeminstellingen)</p>
         <table class="listtable" style="width: auto;">
             <thead>
                 <tr>

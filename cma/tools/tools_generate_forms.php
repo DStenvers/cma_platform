@@ -565,10 +565,10 @@ cma_html_header('Genereer form definities');
 
     <?php if ($mode === 'preview'): ?>
     <p>Dit script genereert JSON form definities voor ontbrekende formulieren.</p>
-    <p><strong>Modus:</strong> Preview (geen bestanden worden geschreven)</p>
+    <p><span class="cma-tool__strong">Modus:</span> Preview (geen bestanden worden geschreven)</p>
     <p><a href="?mode=generate" class="btn btn-primary" onclick="event.preventDefault(); var href=this.href; libConfirm('Weet je zeker dat je <?= count($results) ?> form definities wilt genereren?').then(function(ok){if(ok){window.location.href=href}})">Genereer bestanden</a></p>
     <?php else: ?>
-    <p><strong>Modus:</strong> Genereren</p>
+    <p><span class="cma-tool__strong">Modus:</span> Genereren</p>
     <lib-message type="success"><?= count($results) ?> form definities gegenereerd!</lib-message>
     <?php endif; ?>
 

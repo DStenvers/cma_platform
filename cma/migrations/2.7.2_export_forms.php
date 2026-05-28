@@ -104,13 +104,13 @@ if ($isMigration) {
     if ($result['success']) {
         $detailsHtml = '';
         if (!empty($result['details'])) {
-            $detailsHtml = '<br><strong>Details:</strong><ul>';
+            $detailsHtml = '<br><span class="cma-migration__strong">Details:</span><ul>';
             foreach ($result['details'] as $detail) {
                 $detailsHtml .= '<li>' . htmlspecialchars($detail) . '</li>';
             }
             $detailsHtml .= '</ul>';
         }
-        echo '<lib-message type="success"><strong>Formulieren succesvol geexporteerd!</strong><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
+        echo '<lib-message type="success"><span class="cma-migration__strong">Formulieren succesvol geexporteerd!</span><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
     } else {
         $errorsHtml = '';
         if (!empty($result['errors'])) {
@@ -120,7 +120,7 @@ if ($isMigration) {
             }
             $errorsHtml .= '</ul>';
         }
-        echo '<lib-message type="error"><strong>Export mislukt!</strong><br>' . htmlspecialchars($result['message']) . $errorsHtml . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Export mislukt!</span><br>' . htmlspecialchars($result['message']) . $errorsHtml . '</lib-message>';
     }
 
     echo '</div></body></html>';
@@ -134,7 +134,7 @@ if ($isMigration) {
         echo '✗ Fout: ' . $errorMsg . "\n";
         exit(1);
     } else {
-        echo '<lib-message type="error"><strong>Fout:</strong> ' . htmlspecialchars($errorMsg) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Fout:</span> ' . htmlspecialchars($errorMsg) . '</lib-message>';
     }
 }
 

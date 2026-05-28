@@ -370,7 +370,7 @@ ToolbarHelper::end(true);
                             <div class="output-section">
                                 <h3>Uitvoerformaat</h3>
                                 <div id="exportLimitNotice" class="export-limit-notice" style="display: none; padding: 8px 12px; background: #fff8e6; border: 1px solid #ffd666; border-radius: 4px; margin-bottom: 12px; font-size: var(--font-size-sm); color: #666;">
-                                    <strong>Let op:</strong> Bij meer dan 15.000 records is alleen CSV export beschikbaar vanwege prestatiebeperkingen.
+                                    <span class="cma-page__strong">Let op:</span> Bij meer dan 15.000 records is alleen CSV export beschikbaar vanwege prestatiebeperkingen.
                                 </div>
                                 <div class="format-options">
                                     <label class="format-option selected">
@@ -2962,7 +2962,7 @@ ToolbarHelper::end(true);
                                     ${escapeHtml(result.field)}${caption}
                                 </div>
                                 <div style="font-size: var(--font-size-sm); color: var(--text-muted);">
-                                    Tabel: <strong style="color: #000;">${escapeHtml(CMA.displayTableName(result.table))}</strong>
+                                    Tabel: <span class="cma-page__strong" style="color: #000;">${escapeHtml(CMA.displayTableName(result.table))}</span>
                                 </div>
                             </div>
                         </div>

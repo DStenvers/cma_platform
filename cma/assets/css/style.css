@@ -1930,3 +1930,24 @@ body.backup #c.tools {
     color: var(--text-muted);
     font-size: var(--font-size-md);
 }
+
+/* ===== no-<strong>/<em> sweep — replacement classes (cma_platform) =====
+   Page/family-scoped classes replacing all inline emphasis tags.
+   See feedback_no_inline_emphasis_tags.md + the rec CLAUDE.md
+   "Hard rules" section: NEVER use <strong>/<em>/<b>/<i>. */
+.cma-page__strong,
+.cma-tool__strong,
+.cma-migration__strong,
+.cma-class__strong,
+.cma-js__strong,
+.cma-wc__strong,
+.cma-wizard__strong,
+.storybook__strong { font-weight: 600; }
+.cma-page__em,
+.cma-tool__em,
+.cma-migration__em,
+.cma-class__em,
+.cma-js__em,
+.cma-wc__em,
+.cma-wizard__em,
+.storybook__em { font-style: italic; }

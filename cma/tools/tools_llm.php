@@ -476,14 +476,14 @@ function llm_render_ollama_recommendations(array $suggestions): void
         return;
     }
     echo '<div class="ollama-recommends">';
-    echo '<strong>Aanbevolen modellen:</strong>';
+    echo '<span class="cma-tool__strong">Aanbevolen modellen:</span>';
     echo '<ul class="ollama-recommends__list">';
     foreach ($suggestions as $i => $s) {
         $tag = (string)($s['ollama_tag'] ?? '');
         if ($tag === '') { continue; }
         echo '<li class="ollama-recommends__item">';
         echo '<div class="ollama-recommends__title">';
-        echo '<strong>' . htmlspecialchars((string)($s['label'] ?? $tag)) . '</strong>';
+        echo '<span class="cma-tool__strong">' . htmlspecialchars((string)($s['label'] ?? $tag)) . '</span>';
         if ($i === 0) {
             echo ' <span class="badge-in-use">aanbevolen</span>';
         }
@@ -504,7 +504,7 @@ function llm_render_setup(array $engine, string $os, bool $iis): void
         return;
     }
     echo '<div class="install-tip">';
-    echo '<strong>Stap-voor-stap op ' . htmlspecialchars($os) . ':</strong>';
+    echo '<span class="cma-tool__strong">Stap-voor-stap op ' . htmlspecialchars($os) . ':</span>';
     echo '<ol class="setup-steps">';
     foreach ($steps as $i => $step) {
         echo '<li>';
@@ -524,7 +524,7 @@ function llm_render_setup(array $engine, string $os, bool $iis): void
     echo '</ol>';
     if ($iis) {
         echo '<lib-message type="info" compact style="margin-top:10px">';
-        echo '<strong>IIS-context:</strong> de LLM-engine draait náást IIS als losse service op een lokale poort. ';
+        echo '<span class="cma-tool__strong">IIS-context:</span> de LLM-engine draait náást IIS als losse service op een lokale poort. ';
         echo 'Sta uitgaand HTTP-verkeer richting 127.0.0.1 toe (Windows Firewall blokkeert localhost normaliter niet). ';
         echo 'Open géén externe poort — de PHP-proxy in de app praat met de engine op localhost.';
         echo '</lib-message>';
@@ -724,7 +724,7 @@ if ($action === 'scan') {
             echo '<div class="url" style="margin-top:2px">API-key: ' . htmlspecialchars((string)$r['extras']['key_masked']) . '</div>';
         }
         if (!empty($r['extras']['fallback_model'])) {
-            echo '<div class="url" style="margin-top:2px">Fallback-model: <strong>' . htmlspecialchars((string)$r['extras']['fallback_model']) . '</strong></div>';
+            echo '<div class="url" style="margin-top:2px">Fallback-model: <span class="cma-tool__strong">' . htmlspecialchars((string)$r['extras']['fallback_model']) . '</span></div>';
         }
 
         // Ollama card: surface the curated model list inline so the cook

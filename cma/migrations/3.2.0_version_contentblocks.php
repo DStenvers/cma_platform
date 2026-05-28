@@ -64,9 +64,9 @@ if ($isMigration) {
             }
             $detailsHtml .= '</ul>';
         }
-        echo '<lib-message type="success"><strong>ContentBlocks bijgewerkt!</strong><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
+        echo '<lib-message type="success"><span class="cma-migration__strong">ContentBlocks bijgewerkt!</span><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
     } else {
-        echo '<lib-message type="error"><strong>Update mislukt!</strong><br>' . htmlspecialchars($result['message']) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Update mislukt!</span><br>' . htmlspecialchars($result['message']) . '</lib-message>';
     }
 
     echo '</div></body></html>';

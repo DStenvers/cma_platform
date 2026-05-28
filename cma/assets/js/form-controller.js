@@ -11508,8 +11508,8 @@ class CmaFormController {
         for (let i = 0; i < showCount; i++) {
             const change = changes[i];
             const isLongValue = change.newValue.length > maxValueLength || change.oldValue.length > maxValueLength;
-            const oldDisplay = isLongValue ? '<em>(gewijzigd)</em>' : (change.oldValue || '<em>leeg</em>');
-            const newDisplay = isLongValue ? '<em>(gewijzigd)</em>' : (change.newValue || '<em>leeg</em>');
+            const oldDisplay = isLongValue ? '<span class="cma-js__em">(gewijzigd)</span>' : (change.oldValue || '<span class="cma-js__em">leeg</span>');
+            const newDisplay = isLongValue ? '<span class="cma-js__em">(gewijzigd)</span>' : (change.newValue || '<span class="cma-js__em">leeg</span>');
 
             html += `<tr style="border-bottom:1px solid var(--border-color-light, #eee);">`;
             html += `<td style="padding:4px 8px;font-weight:500;">${change.label}</td>`;

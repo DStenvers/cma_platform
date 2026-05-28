@@ -215,25 +215,25 @@ class ErrorHandler
                             <p class="error-message">The error handler encountered a problem while processing the original error.</p>
                             
                             <div class="handler-error">
-                                <strong>Error Handler Failed:</strong> ' . htmlspecialchars($lastError['message']) . '<br>
-                                <strong>In file:</strong> ' . htmlspecialchars($lastError['file']) . '<br>
-                                <strong>On line:</strong> ' . $lastError['line'] . '
+                                <span class="error-handler__strong">Error Handler Failed:</span> ' . htmlspecialchars($lastError['message']) . '<br>
+                                <span class="error-handler__strong">In file:</span> ' . htmlspecialchars($lastError['file']) . '<br>
+                                <span class="error-handler__strong">On line:</span> ' . $lastError['line'] . '
                             </div>
                             
                             <h3>Original Error:</h3>
                             <div class="error-detail">
-                                <strong>' . htmlspecialchars($errorType) . ':</strong> ' . htmlspecialchars($errorMessage) . '<br>
-                                <strong>In file:</strong> ' . htmlspecialchars($errorFile) . '<br>
-                                <strong>On line:</strong> ' . $errorLine . '
+                                <span class="error-handler__strong">' . htmlspecialchars($errorType) . ':</span> ' . htmlspecialchars($errorMessage) . '<br>
+                                <span class="error-handler__strong">In file:</span> ' . htmlspecialchars($errorFile) . '<br>
+                                <span class="error-handler__strong">On line:</span> ' . $errorLine . '
                             </div>
                             
                             <h3>Stack Trace:</h3>
                             <div class="error-trace">' . htmlspecialchars($errorTrace) . '</div>
                             
                             <div class="error-meta">
-                                <strong>Time:</strong> ' . date('Y-m-d H:i:s') . ' |
-                                <strong>PHP Version:</strong> ' . PHP_VERSION . ' |
-                                <strong>Server:</strong> ' . PHP_SAPI . '
+                                <span class="error-handler__strong">Time:</span> ' . date('Y-m-d H:i:s') . ' |
+                                <span class="error-handler__strong">PHP Version:</span> ' . PHP_VERSION . ' |
+                                <span class="error-handler__strong">Server:</span> ' . PHP_SAPI . '
                             </div>
                         </div>
                     </body>
@@ -287,16 +287,16 @@ class ErrorHandler
                     <p class="error-message">The error handler encountered a problem while processing an error.</p>
                     
                     <div class="handler-error">
-                        <strong>Error in Error Handler:</strong> ' . htmlspecialchars($internalException->getMessage()) . '<br>
-                        <strong>In file:</strong> ' . htmlspecialchars($internalException->getFile()) . '<br>
-                        <strong>On line:</strong> ' . $internalException->getLine() . '
+                        <span class="error-handler__strong">Error in Error Handler:</span> ' . htmlspecialchars($internalException->getMessage()) . '<br>
+                        <span class="error-handler__strong">In file:</span> ' . htmlspecialchars($internalException->getFile()) . '<br>
+                        <span class="error-handler__strong">On line:</span> ' . $internalException->getLine() . '
                     </div>
                     
                     <h3>Original Error:</h3>
                     <div class="error-detail">
-                        <strong>' . htmlspecialchars(get_class($exception)) . ':</strong> ' . htmlspecialchars($exception->getMessage()) . '<br>
-                        <strong>In file:</strong> ' . htmlspecialchars($exception->getFile()) . '<br>
-                        <strong>On line:</strong> ' . $exception->getLine() . '
+                        <span class="error-handler__strong">' . htmlspecialchars(get_class($exception)) . ':</span> ' . htmlspecialchars($exception->getMessage()) . '<br>
+                        <span class="error-handler__strong">In file:</span> ' . htmlspecialchars($exception->getFile()) . '<br>
+                        <span class="error-handler__strong">On line:</span> ' . $exception->getLine() . '
                     </div>
                     
                     <h3>Error Handler Stack Trace:</h3>
@@ -306,9 +306,9 @@ class ErrorHandler
                     <div class="error-trace">' . htmlspecialchars($exception->getTraceAsString()) . '</div>
                     
                     <div class="error-meta">
-                        <strong>Time:</strong> ' . date('Y-m-d H:i:s') . ' |
-                        <strong>PHP Version:</strong> ' . PHP_VERSION . ' |
-                        <strong>Server:</strong> ' . PHP_SAPI . '
+                        <span class="error-handler__strong">Time:</span> ' . date('Y-m-d H:i:s') . ' |
+                        <span class="error-handler__strong">PHP Version:</span> ' . PHP_VERSION . ' |
+                        <span class="error-handler__strong">Server:</span> ' . PHP_SAPI . '
                     </div>
                 </div>
             </body>
@@ -371,7 +371,7 @@ class ErrorHandler
                         <h1>Fatal Error</h1>
                         <p>A critical error occurred that could not be handled by the error handler:</p>
                         <div class="code">
-                            <strong>' . htmlspecialchars($error['message']) . '</strong><br>
+                            <span class="error-handler__strong">' . htmlspecialchars($error['message']) . '</span><br>
                             in file: ' . htmlspecialchars($error['file']) . '<br>
                             on line: ' . $error['line'] . '
                         </div>
@@ -1353,7 +1353,7 @@ class ErrorHandler
                 foreach ($diagnostics['solutions'] as $solution) {
                     echo '
                         <div class="eh-solution-box">
-                            <strong class="eh-solution-title">' . htmlspecialchars($solution['title']) . '</strong>
+                            <span class="error-handler__strong eh-solution-title">' . htmlspecialchars($solution['title']) . '</span>
                             <ol class="eh-solution-steps">';
                     foreach ($solution['steps'] as $step) {
                         echo '<li>' . htmlspecialchars($step) . '</li>';
@@ -1594,7 +1594,7 @@ class ErrorHandler
             foreach ($_GET as $key => $value) {
                 $formattedValue = is_array($value) ? json_encode($value) : $value;
                 echo '<tr>
-                        <td><strong>$_GET[\'' . htmlspecialchars($key) . '\']</strong></td>
+                        <td><span class="error-handler__strong">$_GET[\'' . htmlspecialchars($key) . '\']</span></td>
                         <td>' . htmlspecialchars($formattedValue) . '</td>
                       </tr>';
             }
@@ -1603,7 +1603,7 @@ class ErrorHandler
             foreach ($_POST as $key => $value) {
                 $formattedValue = is_array($value) ? json_encode($value) : $value;
                 echo '<tr>
-                        <td><strong>$_POST[\'' . htmlspecialchars($key) . '\']</strong></td>
+                        <td><span class="error-handler__strong">$_POST[\'' . htmlspecialchars($key) . '\']</span></td>
                         <td>' . htmlspecialchars($formattedValue) . '</td>
                       </tr>';
             }
@@ -1622,7 +1622,7 @@ class ErrorHandler
             foreach ($_SERVER as $key => $value) {
                 if (!is_array($value) && !is_object($value)) {
                     echo '<tr>
-                            <td><strong>$_SERVER[\'' . htmlspecialchars($key) . '\']</strong></td>
+                            <td><span class="error-handler__strong">$_SERVER[\'' . htmlspecialchars($key) . '\']</span></td>
                             <td>' . htmlspecialchars($value) . '</td>
                           </tr>';
                 }
@@ -1643,7 +1643,7 @@ class ErrorHandler
                 foreach ($_COOKIE as $key => $value) {
                     $formattedValue = is_array($value) ? json_encode($value) : $value;
                     echo '<tr>
-                            <td><strong>$_COOKIE[\'' . htmlspecialchars($key) . '\']</strong></td>
+                            <td><span class="error-handler__strong">$_COOKIE[\'' . htmlspecialchars($key) . '\']</span></td>
                             <td>' . htmlspecialchars($formattedValue) . '</td>
                           </tr>';
                 }
@@ -1666,7 +1666,7 @@ class ErrorHandler
                 foreach ($_SESSION as $key => $value) {
                     $formattedValue = is_array($value) ? json_encode($value) : (is_object($value) ? get_class($value) : $value);
                     echo '<tr>
-                            <td><strong>$_SESSION[\'' . htmlspecialchars($key) . '\']</strong></td>
+                            <td><span class="error-handler__strong">$_SESSION[\'' . htmlspecialchars($key) . '\']</span></td>
                             <td>' . htmlspecialchars($formattedValue) . '</td>
                           </tr>';
                 }
@@ -1709,7 +1709,7 @@ class ErrorHandler
                             if (!empty($odbcSources)) {
                                 foreach ($odbcSources as $name => $type) {
                                     echo '<tr>
-                                            <td><strong>' . htmlspecialchars($name) . '</strong></td>
+                                            <td><span class="error-handler__strong">' . htmlspecialchars($name) . '</span></td>
                                             <td>' . htmlspecialchars($type) . '</td>
                                             <td>-</td>
                                             <td>-</td>
@@ -1743,7 +1743,7 @@ class ErrorHandler
                                     }
                                     
                                     echo '<tr>
-                                            <td><strong>' . htmlspecialchars($driver) . '</strong></td>
+                                            <td><span class="error-handler__strong">' . htmlspecialchars($driver) . '</span></td>
                                             <td>Driver</td>
                                             <td>' . htmlspecialchars($driverVersion) . '</td>
                                             <td>' . htmlspecialchars($driverFile) . '</td>
@@ -1757,7 +1757,7 @@ class ErrorHandler
                             
                             echo '</table>
                                   <div class="eh-info-box">
-                                    <strong>PHP ODBC Functions:</strong>
+                                    <span class="error-handler__strong">PHP ODBC Functions:</span>
                                     <ul>';
                                     
                             $odbcFunctions = [
@@ -1793,13 +1793,13 @@ class ErrorHandler
                                     
                             // Display PDO drivers and connection examples
                             if ($pdoAvailable) {
-                                echo '<strong>PDO Drivers Available:</strong><br>';
+                                echo '<span class="error-handler__strong">PDO Drivers Available:</span><br>';
                                 echo '<code>' . implode(', ', \PDO::getAvailableDrivers()) . '</code><br><br>';
                             }
                             
                             // Show PDO ODBC connection examples if available
                             if ($pdoOdbcAvailable) {
-                                echo '<strong>PDO ODBC Connection Examples:</strong>
+                                echo '<span class="error-handler__strong">PDO ODBC Connection Examples:</span>
                                 <pre><code>// DSN-less connection to MS Access
 $dsn = "odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:/path/to/database.accdb";
 $pdo = new PDO($dsn, "", "");
@@ -1812,9 +1812,9 @@ $pdo = new PDO($dsn, "username", "password");
 $dsn = "odbc:Driver={SQL Server};Server=ServerName;Database=DatabaseName";
 $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             } elseif (!$pdoOdbcAvailable && $pdoAvailable) {
-                                echo '<div class="eh-warning"><strong>Warning:</strong> PDO is available, but the ODBC driver is not enabled. Enable the PDO_ODBC extension in php.ini to use PDO with ODBC.</div>';
+                                echo '<div class="eh-warning"><span class="error-handler__strong">Warning:</span> PDO is available, but the ODBC driver is not enabled. Enable the PDO_ODBC extension in php.ini to use PDO with ODBC.</div>';
                             } else {
-                                echo '<div class="eh-warning"><strong>Warning:</strong> PDO is not available. Enable the PDO and PDO_ODBC extensions in php.ini.</div>';
+                                echo '<div class="eh-warning"><span class="error-handler__strong">Warning:</span> PDO is not available. Enable the PDO and PDO_ODBC extensions in php.ini.</div>';
                             }
                                     
                             echo '
@@ -1825,7 +1825,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     echo '<div class="tab-content" id="phpini-tab">
                             <div class="eh-section-header">
                                 <div>
-                                    <strong>PHP.ini File:</strong> ';
+                                    <span class="error-handler__strong">PHP.ini File:</span> ';
                     
                     // Get loaded php.ini file
                     $iniFile = php_ini_loaded_file();
@@ -1865,7 +1865,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     // Show additional ini scan dir if available
                     if ($iniScanDir) {
                         echo '<div class="eh-info-box-border">
-                                <strong>Additional .ini files scan directory:</strong> ' . str_replace("\n", '<br>', htmlspecialchars($iniScanDir)) . '
+                                <span class="error-handler__strong">Additional .ini files scan directory:</span> ' . str_replace("\n", '<br>', htmlspecialchars($iniScanDir)) . '
                               </div>';
                     }
                     
@@ -1878,7 +1878,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             // Check if we can actually read the file
                             if (!is_readable($iniFile)) {
                                 echo '<div style="color: #d9534f; margin-bottom: 10px;">
-                                    <strong>Warning:</strong> php.ini file exists but is not readable. This may be due to file permissions.
+                                    <span class="error-handler__strong">Warning:</span> php.ini file exists but is not readable. This may be due to file permissions.
                                     <ul>
                                         <li>File: ' . htmlspecialchars($iniFile) . '</li>
                                         <li>Permissions: ' . substr(sprintf('%o', fileperms($iniFile)), -4) . '</li>
@@ -1940,7 +1940,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             }
                         } catch (\Throwable $e) {
                             echo '<div style="color: #d9534f; margin-bottom: 10px;">
-                                <strong>Error reading php.ini file:</strong> ' . htmlspecialchars($e->getMessage()) . '
+                                <span class="error-handler__strong">Error reading php.ini file:</span> ' . htmlspecialchars($e->getMessage()) . '
                             </div>';
                             
                             // Fallback to showing active PHP settings
@@ -1969,7 +1969,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     
                     // Important directives section
                     echo '<div class="eh-info-box-border">
-                            <strong>Important Directives:</strong>
+                            <span class="error-handler__strong">Important Directives:</span>
                             <table class="request-data" style="margin-top: 10px;">
                                 <tr>
                                     <th style="width: 30%;">Directive</th>
@@ -2010,19 +2010,19 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             if (!empty($matchingSettings)) {
                                 foreach ($matchingSettings as $settingName => $settingValue) {
                                     echo '<tr>
-                                            <td><strong>' . htmlspecialchars($settingName) . '</strong><br><small>' . htmlspecialchars($description) . '</small></td>
+                                            <td><span class="error-handler__strong">' . htmlspecialchars($settingName) . '</span><br><small>' . htmlspecialchars($description) . '</small></td>
                                             <td>' . htmlspecialchars($settingValue ?: '(not set)') . '</td>
                                           </tr>';
                                 }
                             } else {
                                 echo '<tr>
-                                        <td><strong>' . htmlspecialchars($directive) . '</strong><br><small>' . htmlspecialchars($description) . '</small></td>
-                                        <td><em>No matching settings found</em></td>
+                                        <td><span class="error-handler__strong">' . htmlspecialchars($directive) . '</span><br><small>' . htmlspecialchars($description) . '</small></td>
+                                        <td><span class="error-handler__em">No matching settings found</span></td>
                                       </tr>';
                             }
                         } else {
                             echo '<tr>
-                                    <td><strong>' . htmlspecialchars($directive) . '</strong><br><small>' . htmlspecialchars($description) . '</small></td>
+                                    <td><span class="error-handler__strong">' . htmlspecialchars($directive) . '</span><br><small>' . htmlspecialchars($description) . '</small></td>
                                     <td>' . htmlspecialchars($value ?: '(not set)') . '</td>
                                   </tr>';
                         }
@@ -2032,7 +2032,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                           </div>
                           
                           <div class="eh-info-box-border">
-                            <strong>Loaded Extensions:</strong><br>
+                            <span class="error-handler__strong">Loaded Extensions:</span><br>
                             <div style="margin-top: 5px; line-height: 1.8;">';
                     
                     $extensions = get_loaded_extensions();
@@ -2050,9 +2050,9 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     // PHP Info tab content with custom styling
                     echo '<div class="tab-content" id="phpinfo-tab">
                             <div class="eh-phpinfo-header">
-                                <strong>PHP Version:</strong> ' . htmlspecialchars(PHP_VERSION) . '
-                                <span class="eh-phpinfo-header-item"><strong>Zend Engine Version:</strong> ' . htmlspecialchars(zend_version()) . '</span>
-                                <span class="eh-phpinfo-header-item"><strong>Server API:</strong> ' . htmlspecialchars(PHP_SAPI) . '</span>
+                                <span class="error-handler__strong">PHP Version:</span> ' . htmlspecialchars(PHP_VERSION) . '
+                                <span class="eh-phpinfo-header-item"><span class="error-handler__strong">Zend Engine Version:</span> ' . htmlspecialchars(zend_version()) . '</span>
+                                <span class="eh-phpinfo-header-item"><span class="error-handler__strong">Server API:</span> ' . htmlspecialchars(PHP_SAPI) . '</span>
                             </div>
                             <div id="phpinfo-content" class="eh-phpinfo-content">';
                     
@@ -2078,7 +2078,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         // Output the cleaned content
                         echo $phpinfoBody;
                     } else {
-                        echo '<div class="eh-warning"><strong>Error:</strong> Unable to parse phpinfo() output.</div>';
+                        echo '<div class="eh-warning"><span class="error-handler__strong">Error:</span> Unable to parse phpinfo() output.</div>';
                     }
                     
                     echo '</div>
@@ -2087,7 +2087,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     // Add diagnostics tab group specifically for tests
                     echo '<div class="card eh-diagnostics-card-mt">
                             <div class="card-header">
-                                <strong>Diagnostics & Tests</strong>
+                                <span class="error-handler__strong">Diagnostics & Tests</span>
                             </div>
                             <div class="tab-buttons">
                                 <button class="tab-button active" onclick="showTab(\'env-file\');" data-tab="env-file">Environment File</button>
@@ -2125,14 +2125,14 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     $envFiles = array_unique($envFiles);
 
                     if (!empty($envFiles)) {
-                        echo '<strong>Environment Files:</strong> ' . count($envFiles) . ' file(s) found';
+                        echo '<span class="error-handler__strong">Environment Files:</span> ' . count($envFiles) . ' file(s) found';
                         echo '<div style="margin-top: 5px;">';
                         foreach ($envFiles as $file) {
                             echo '<div style="margin-left: 10px;">- ' . htmlspecialchars(basename($file)) . '</div>';
                         }
                         echo '</div>';
                     } else {
-                        echo '<strong>Environment Files:</strong> <span class="eh-warning">No .env files found</span>';
+                        echo '<span class="error-handler__strong">Environment Files:</span> <span class="eh-warning">No .env files found</span>';
                     }
 
                     echo '</div>
@@ -2177,7 +2177,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         }
 
                         echo '<div class="eh-info-box-border">
-                                <span style="color:var(--blue);"><strong>Note:</strong> Sensitive information (passwords, tokens, etc.) has been automatically redacted.</span>
+                                <span style="color:var(--blue);"><span class="error-handler__strong">Note:</span> Sensitive information (passwords, tokens, etc.) has been automatically redacted.</span>
                               </div>';
                     } else {
                         echo '<pre style="margin: 0; max-height: 400px; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 10px;">
@@ -2190,7 +2190,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             <!-- Database Tests Tab -->
                             <div class="tab-content eh-tab-content-hidden" id="db-test-tab">
                                 <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px 4px 0 0;">
-                                    <strong>Database Connection Tests</strong>
+                                    <span class="error-handler__strong">Database Connection Tests</span>
                                 </div>
                                 <div style="padding: 15px;">';
                     
@@ -2311,7 +2311,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             $details = $status['message'] ?? '';
                             
                             echo '<tr>
-                                    <td><strong>' . htmlspecialchars($name) . '</strong></td>
+                                    <td><span class="error-handler__strong">' . htmlspecialchars($name) . '</span></td>
                                     <td>' . htmlspecialchars($driver) . '</td>
                                     <td style="color: ' . $statusClass . ';">' . $statusText . '</td>
                                     <td>' . htmlspecialchars($details) . '</td>
@@ -2331,7 +2331,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             <!-- File System Status Tab -->
                             <div class="tab-content eh-tab-content-hidden" id="filesystem-tab">
                                 <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px 4px 0 0;">
-                                    <strong>File System Status</strong>
+                                    <span class="error-handler__strong">File System Status</span>
                                 </div>
                                 <div style="padding: 15px;">';
                     
@@ -2417,7 +2417,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         $perms = substr(sprintf('%o', fileperms($path)), -4);
 
                         echo '<tr>
-                                <td><strong>' . htmlspecialchars($label) . '</strong><br><small>' . htmlspecialchars($path) . '</small></td>
+                                <td><span class="error-handler__strong">' . htmlspecialchars($label) . '</span><br><small>' . htmlspecialchars($path) . '</small></td>
                                 <td>' . self::renderPermissionStatus($readable) . '</td>
                                 <td>' . self::renderPermissionStatus($writable) . '</td>
                                 <td>' . self::renderPermissionStatus($executable) . '</td>
@@ -2443,8 +2443,8 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             echo '<div class="tab-content eh-tab-content-hidden" id="logs-tab">
                                     <div class="eh-section-header">
                                         <div>
-                                            <strong>Log File:</strong> ' . htmlspecialchars(self::$config['error_log_file']) . '
-                                            <span class="eh-phpinfo-header-item"><strong>Size:</strong> ' . 
+                                            <span class="error-handler__strong">Log File:</span> ' . htmlspecialchars(self::$config['error_log_file']) . '
+                                            <span class="eh-phpinfo-header-item"><span class="error-handler__strong">Size:</span> ' . 
                                             htmlspecialchars(self::formatFileSize(filesize(self::$config['error_log_file']))) . '</span>
                                         </div>
                                         <div class="button-group">
@@ -2511,7 +2511,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     <div class="card-header">Previous Exception</div>
                     <div class="card-body">
                         <div class="error-details">
-                            <strong>' . get_class($previous) . ':</strong> ' . htmlspecialchars($previous->getMessage()) . '
+                            <span class="error-handler__strong">' . get_class($previous) . ':</span> ' . htmlspecialchars($previous->getMessage()) . '
                             <div class="file-path">
                                 in ' . htmlspecialchars($previous->getFile()) . ' on line ' . $previous->getLine() . '
                             </div>
@@ -2954,17 +2954,17 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         echo '</div>';
         echo '<div class="error-body">';
         echo '<div class="error-message">';
-        echo '<strong>What happened:</strong><br>';
+        echo '<span class="error-handler__strong">What happened:</span><br>';
         echo htmlspecialchars($errorInfo['description']);
         echo '</div>';
         echo '<div class="error-solution">';
-        echo '<strong>How to fix:</strong><br>';
+        echo '<span class="error-handler__strong">How to fix:</span><br>';
         echo $errorInfo['solution']; // Allow HTML for <code> tags
         echo '</div>';
 
         if ($debug) {
             echo '<div class="technical-details">';
-            echo '<strong>Technical Details (Debug Mode):</strong><br>';
+            echo '<span class="error-handler__strong">Technical Details (Debug Mode):</span><br>';
             echo 'Error Code: ' . htmlspecialchars($errorCode) . '<br>';
             echo 'Message: ' . htmlspecialchars($message) . '<br>';
             echo 'PHP Version: ' . PHP_VERSION . '<br>';

@@ -128,7 +128,7 @@ function showFormError(string $title, string $message, int $httpCode = 400): voi
 <body>
     <div class="error-container">
         <lib-message type="error">
-            <strong><?= htmlspecialchars($title) ?></strong><br>
+            <span class="cma-page__strong"><?= htmlspecialchars($title) ?></span><br>
             <?= $message ?>
         </lib-message>
     </div>
@@ -202,7 +202,7 @@ if ($accessLevel == SecurityHelper::ACCESS_NONE) {
     // Debug info for 403 errors - helps diagnose cookie/session issues
     // ALWAYS show debug info for now to diagnose the issue
     $debugInfo = sprintf(
-        '<br><br><strong>Debug info (access denied):</strong><br>' .
+        '<br><br><span class="cma-page__strong">Debug info (access denied):</span><br>' .
         '<small style="color:#666; font-family:monospace;">' .
         'formName: %s<br>' .
         'Cookies: %s<br>' .

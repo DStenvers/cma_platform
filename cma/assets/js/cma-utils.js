@@ -195,7 +195,7 @@ window.cmaErrorParser = {
             return phpError.type === suffix || phpError.type.endsWith(suffix);
         });
         if (typeToShow) {
-            message = '<strong>' + this.escapeHtml(phpError.type) + ':</strong> ';
+            message = '<span class="cma-js__strong">' + this.escapeHtml(phpError.type) + ':</span> ';
         }
         message += this.escapeHtml(cleanedMessage);
 

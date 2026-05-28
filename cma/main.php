@@ -43,7 +43,7 @@ if (!SecurityHelper::isLoggedIn()) {
     if (Request::hasQuery('nomenu')) {
         http_response_code(401);
         echo '<div class="session-expired-message" style="padding: 40px; text-align: center;">';
-        echo '<lib-message type="warning"><strong>Sessie verlopen</strong><br>Je sessie is verlopen of cookies zijn niet beschikbaar.</lib-message>';
+        echo '<lib-message type="warning"><span class="cma-page__strong">Sessie verlopen</span><br>Je sessie is verlopen of cookies zijn niet beschikbaar.</lib-message>';
         echo '<a href="/cma/default.php" class="btn btn-primary" onclick="window.top.location.href=this.href; return false;" style="margin-top: 16px;">Opnieuw inloggen</a>';
         echo '</div>';
         exit;
@@ -120,7 +120,7 @@ if (Request::hasQuery('nomenu')) {
             'requestUri' => Request::server('REQUEST_URI'),
         ];
         echo '<div style="padding: 40px; text-align: center;">';
-        echo '<lib-message type="warning"><strong>Oeps, die kan ik niet vinden</strong><br>' . Server::htmlEncode($page) . '</lib-message>';
+        echo '<lib-message type="warning"><span class="cma-page__strong">Oeps, die kan ik niet vinden</span><br>' . Server::htmlEncode($page) . '</lib-message>';
         echo '<details style="text-align: left; max-width: 600px; margin: 20px auto 0;">';
         echo '<summary style="cursor: pointer; color: var(--text-muted, #999); font-size: var(--font-size-sm);">Details</summary>';
         echo '<pre style="background: var(--bg-surface-alt, #f5f5f5); padding: 12px; border-radius: 4px; font-size: var(--font-size-xs); overflow-x: auto; margin-top: 8px;">' . Server::htmlEncode(json_encode($debugInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '</pre>';

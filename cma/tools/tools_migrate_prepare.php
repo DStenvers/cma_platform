@@ -44,7 +44,7 @@ if (!$bJSON) {
 // Show warning about ADOX limitations
 if (!$bJSON) {
     echo '<lib-message type="warning">';
-    echo '<strong>Let op:</strong> Deze tool maakt gebruik van ADOX (ActiveX Data Objects Extensions) ';
+    echo '<span class="cma-tool__strong">Let op:</span> Deze tool maakt gebruik van ADOX (ActiveX Data Objects Extensions) ';
     echo 'en directe schema-toegang wat niet volledig beschikbaar is in PHP.<br>';
     echo 'Voor volledige migratie-ondersteuning, gebruik de ASP/VBScript versie of database migration tools.';
     echo '</lib-message>';
@@ -101,7 +101,7 @@ function dbSummary($intDatabase)
     // Note: In PHP we use PDO which doesn't have direct schema access like ADO
     // This would need Database::getSchema() which may not be fully implemented
     echo '<tr><td colspan="99">';
-    echo '<p><em>Schema informatie ophalen vereist ADOX catalog - niet beschikbaar in PHP versie</em></p>';
+    echo '<p><span class="cma-tool__em">Schema informatie ophalen vereist ADOX catalog - niet beschikbaar in PHP versie</span></p>';
     echo '<p>Voor SQL Server migratie, overweeg:</p>';
     echo '<ul>';
     echo '<li>SQL Server Migration Assistant (SSMA) voor Access</li>';
@@ -127,6 +127,6 @@ function GetTableDetails($strTable, $bFirst)
 {
     // Note: This function requires ADOX which is not available in PHP
     // The original VBScript used ADOX.Catalog to enumerate columns and indexes
-    echo '<tr><td colspan="5"><em>Tabel details voor ' . htmlspecialchars($strTable) . ' niet beschikbaar (ADOX vereist)</em></td></tr>';
+    echo '<tr><td colspan="5"><span class="cma-tool__em">Tabel details voor ' . htmlspecialchars($strTable) . ' niet beschikbaar (ADOX vereist)</span></td></tr>';
 }
 ?>

@@ -152,9 +152,9 @@ cma_html_header('Validatie parentField waarden');
 
     <h3>Samenvatting</h3>
     <ul>
-        <li><strong style="color:green">Geldig:</strong> <?= count($uniqueValid) ?> unieke kolommen (<?= count($results['valid']) ?> subforms)</li>
-        <li><strong style="color:red">Ongeldig:</strong> <?= count($uniqueInvalid) ?> unieke kolommen (<?= count($results['invalid']) ?> subforms)</li>
-        <li><strong style="color:orange">Geen tabel:</strong> <?= count($results['noTable']) ?> subforms (form definitie niet gevonden)</li>
+        <li><span class="cma-tool__strong" style="color:green">Geldig:</span> <?= count($uniqueValid) ?> unieke kolommen (<?= count($results['valid']) ?> subforms)</li>
+        <li><span class="cma-tool__strong" style="color:red">Ongeldig:</span> <?= count($uniqueInvalid) ?> unieke kolommen (<?= count($results['invalid']) ?> subforms)</li>
+        <li><span class="cma-tool__strong" style="color:orange">Geen tabel:</span> <?= count($results['noTable']) ?> subforms (form definitie niet gevonden)</li>
     </ul>
 
     <?php if (!empty($results['invalid'])): ?>

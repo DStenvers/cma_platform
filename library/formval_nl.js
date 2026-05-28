@@ -72,7 +72,7 @@ function form_valid(form) {
 		if (reqAttr && reqAttr !== 'N' && reqAttr !== 'FALSE' && reqAttr !== '0' && reqAttr !== 'NO') {
 							strfieldname = objfield.name;
 							if (!form_check_required_radio_checkbox(form,strfieldname)) {
-								form_valid_add_error( objfield, '<strong>' + objfield.getAttribute("data-label") + '</strong> is niet ' + (objfield.type=='checkbox'?'aangevinkt':'geselecteerd'), (objfield.type=='checkbox' ? 'Veld is niet aangevinkt':'Geen waarde geselecteerd') );
+								form_valid_add_error( objfield, '<span class="libval__strong">' + objfield.getAttribute("data-label") + '</span> is niet ' + (objfield.type=='checkbox'?'aangevinkt':'geselecteerd'), (objfield.type=='checkbox' ? 'Veld is niet aangevinkt':'Geen waarde geselecteerd') );
 								if (!objFocus) {objFocus = objfield}
 							} else {
 								form_valid_add_error( objfield, '','');
@@ -182,7 +182,7 @@ function form_valid_field( objfield ) {
 					case 'checkbox':
 					case 'radio':
 						if (!form_check_required_radio_checkbox(objfield.form,strfieldname)) {
-							form_valid_add_error( objfield, '<strong>' + objfield.getAttribute("data-label") + '</strong> is niet ' + (objfield.type=='checkbox' ? 'aangevinkt' : 'geselecteerd'), 'Geen waarde ' + (objfield.type=='checkbox' ? 'aangevinkt' : 'geselecteerd'));
+							form_valid_add_error( objfield, '<span class="libval__strong">' + objfield.getAttribute("data-label") + '</span> is niet ' + (objfield.type=='checkbox' ? 'aangevinkt' : 'geselecteerd'), 'Geen waarde ' + (objfield.type=='checkbox' ? 'aangevinkt' : 'geselecteerd'));
 							bfld_error = true;
 						} else {
 							form_valid_add_error( objfield, '');
@@ -191,7 +191,7 @@ function form_valid_field( objfield ) {
 						
 					default:
 						if (objfield.value=='') {
-							form_valid_add_error( objfield, '<strong>'+sNiceField+'</strong> is niet ' + (objfield.type=='select-one'?'geselecteerd':'ingevuld'), 'Een waarde is vereist' );
+							form_valid_add_error( objfield, '<span class="libval__strong">'+sNiceField+'</span> is niet ' + (objfield.type=='select-one'?'geselecteerd':'ingevuld'), 'Een waarde is vereist' );
 							bfld_error = true;
 						}
 						break;
@@ -206,7 +206,7 @@ function form_valid_field( objfield ) {
 			var sFixedLength = objfield.getAttribute("data-length");
 			if (sFixedLength) {
 				if (objfield.value.length!=sFixedLength) {
-					form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> moet '+sFixedLength+' karakters lang zijn','Dit veld moet '+sFixedLength+' karakters lang zijn');
+					form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> moet '+sFixedLength+' karakters lang zijn','Dit veld moet '+sFixedLength+' karakters lang zijn');
 					bfld_error = true;
 				}
 			}
@@ -214,7 +214,7 @@ function form_valid_field( objfield ) {
 			var sMaxLength = objfield.getAttribute("data-length-max");
 			if (sMaxLength) {
 				if (objfield.value.length>sMaxLength) {
-					form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> mag niet langer zijn dan '+sMaxLength+' karakters','Dit veld moet maximaal '+sMaxLength+' karakters bevatten');
+					form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> mag niet langer zijn dan '+sMaxLength+' karakters','Dit veld moet maximaal '+sMaxLength+' karakters bevatten');
 					bfld_error = true;
 				}
 			}
@@ -227,7 +227,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.lib_trim_all();
 					if (objfield.value.length>0) {
 						if (!re.test( objfield.value)) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> ongeldig ip-adres','Een IP adres mag alleen nummers, punten en ; bevatten');	
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> ongeldig ip-adres','Een IP adres mag alleen nummers, punten en ; bevatten');	
 							bfld_error = true;
 						}
 					}
@@ -237,7 +237,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.lib_trim_all();
 					if (objfield.value.length>0) {
 						if (isNaN(objfield.value.replace(",", "."))) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> mag alleen nummers bevatten','Alleen nummers zijn toegestaan');	
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> mag alleen nummers bevatten','Alleen nummers zijn toegestaan');	
 							bfld_error = true;
 						}
 					}
@@ -248,7 +248,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.lib_trim_all();
 					if (objfield.value.length>0) {
 						if (!re.test( objfield.value)) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> moet nummers bevatten','Een huisnummer moet nummers bevatten');	
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> moet nummers bevatten','Een huisnummer moet nummers bevatten');	
 							bfld_error = true;
 						}
 					}
@@ -257,11 +257,11 @@ function form_valid_field( objfield ) {
 				case 'address', 'adres':
 					if (objfield.value.length>0) {
 						if (!objfield.value.lib_contains_numbers()) {
-							form_valid_add_error( objfield, 'bij <strong>' + sNiceField + '</strong> ontbreekt het huisnummer','Het huisnummer ontbreekt');
+							form_valid_add_error( objfield, 'bij <span class="libval__strong">' + sNiceField + '</span> ontbreekt het huisnummer','Het huisnummer ontbreekt');
 							bfld_error = true;
 						}
 						if (objfield.value.length>0 && objfield.value.length<3) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is geen volledig adres','Geen volledig adres');
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is geen volledig adres','Geen volledig adres');
 							bfld_error = true;
 						}
 					}
@@ -271,7 +271,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.lib_trim_all();
 					if (objfield.value.length>0) {
 						if (!lib_form_valid_email(objfield)) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is geen geldig email adres','Ongeldig email adres');
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is geen geldig email adres','Ongeldig email adres');
 							bfld_error = true;
 						}
 					}
@@ -304,18 +304,18 @@ function form_valid_field( objfield ) {
 						if(regs[4]) { 
 							// 12-hour time format with am/pm 
 							if(regs[1] < 1 || regs[1] > 12) { 
-								form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldige uren-indicatie ' + regs[1],'Ongeldige uur-indicatie'); 
+								form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige uren-indicatie ' + regs[1],'Ongeldige uur-indicatie'); 
 								bfld_error = true;
 							} 
 						} else { 
 							// 24-hour time format 
 							if(regs[1] > 23) { 
-								form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldige uren-indicatie ' + regs[1],'Ongeldige uren-indicatie'); 
+								form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige uren-indicatie ' + regs[1],'Ongeldige uren-indicatie'); 
 								bfld_error = true;
 							} 
 						} 
 						if (regs[2] < 0 || regs[2] > 59) { 
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldige minuten-indicatie ' + regs[2],'Ongeldige minuten-indicatie'); 
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige minuten-indicatie ' + regs[2],'Ongeldige minuten-indicatie'); 
 							bfld_error = true;
 						} 
 						// assure time has right format, adding zero's
@@ -323,7 +323,7 @@ function form_valid_field( objfield ) {
 						
 					} else { 
 					
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldig tijdformaat (uu:mm)', 'Ongeldige tijd (uu:mm)'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig tijdformaat (uu:mm)', 'Ongeldige tijd (uu:mm)'); 
 						bfld_error = true;
 						
 					} 
@@ -374,10 +374,10 @@ function form_valid_field( objfield ) {
 					
 					if(regs = objfield.value.match(re)) { 
 						if(regs[1] < 1 || regs[1] > 31) { 
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldige dag ' + regs[1], 'Ongeldig dag'); 
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige dag ' + regs[1], 'Ongeldig dag'); 
 							bfld_error = true;
 						} else if(regs[2] < 1 || regs[2] > 12) { 
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldige maand ' + regs[2], 'Ongeldig maand'); 										
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige maand ' + regs[2], 'Ongeldig maand'); 										
 							bfld_error = true;
 						} else {
 							if (regs[3]<=40) { 
@@ -390,7 +390,7 @@ function form_valid_field( objfield ) {
 								regs[3]=parseInt(regs[3])+1000 
 							}
 							if (regs[3] < minYear || regs[3] > maxYear) { 
-								form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een ongeldig jaar ' + regs[3], 'Ongeldig jaar'); 
+								form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldig jaar ' + regs[3], 'Ongeldig jaar'); 
 								bfld_error = true;
 							}
 
@@ -398,14 +398,14 @@ function form_valid_field( objfield ) {
 							if (bfld_error == false && dMinimum != "") { 
 								var minDate = dMinimum.replace(/-/g,'/');
 								if(minDate > chkDate) {
-									form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een datum in het verleden', 'Datum in verleden'); 
+									form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum in het verleden', 'Datum in verleden'); 
 									bfld_error = true;
 								}
 							} 
 							if (bfld_error == false && dMaximum != "") { 
 								var maxDate = dMaximum.replace(/-/g,'/');
 								if(maxDate < chkDate) {
-									form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> bevat een datum te ver in de toekomst', 'Datum te ver in toekomst'); 
+									form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum te ver in de toekomst', 'Datum te ver in toekomst'); 
 									bfld_error = true;
 								}
 							} 
@@ -414,7 +414,7 @@ function form_valid_field( objfield ) {
 						// assure date has right format, adding zero's
 						objfield.value = lib_right('0'+regs[1].toString(),2)+"-"+lib_right('0'+regs[2].toString(),2)+"-"+regs[3].toString()
 					} else { 
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldig datumformaat (dd-mm-jjjj)', 'Ongeldige datum (dd-mm-jjjj)'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig datumformaat (dd-mm-jjjj)', 'Ongeldige datum (dd-mm-jjjj)'); 
 						bfld_error = true;
 					} 
 					break;
@@ -424,7 +424,7 @@ function form_valid_field( objfield ) {
 					// strip spaces, outer and inner
 					objfield.value = objfield.value.lib_trim_all();
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldig telefoonnummer (10 cijfers)', 'Ongeldig telefoonummer'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig telefoonnummer (10 cijfers)', 'Ongeldig telefoonummer'); 
 						bfld_error = true;
 					};
 					break;
@@ -434,7 +434,7 @@ function form_valid_field( objfield ) {
 					// strip spaces, outer and inner
 					objfield.value = objfield.value.lib_trim_all();
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldig telefoonnummer', 'Ongeldig telefoonummer'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig telefoonnummer', 'Ongeldig telefoonummer'); 
 						bfld_error = true;
 					};
 					break;
@@ -443,7 +443,7 @@ function form_valid_field( objfield ) {
 					var re = /[0-9]{4}\s*[a-zA-Z]{2}$/;
 					objfield.value = objfield.value.lib_trim_all();
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldige postcode', 'Ongeldige postcode'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldige postcode', 'Ongeldige postcode'); 
 						bfld_error = true;
 					} else {
 						objfield.value = objfield.value.toUpperCase();
@@ -455,7 +455,7 @@ function form_valid_field( objfield ) {
 					// strip spaces, outer and inner
 					objfield.value = objfield.value.lib_trim_all();
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldige postcode', 'Ongeldige postcode'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldige postcode', 'Ongeldige postcode'); 
 						bfld_error = true;
 					};
 					break;
@@ -468,7 +468,7 @@ function form_valid_field( objfield ) {
 						objfield.value = objfield.value.replace(" ","%20");
 						var re = /(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:\/~\+#]*[\w\-\@?^=%&amp;\/~\+#])?/;
                         if (!re.test(objfield.value.toLowerCase())) {
-							form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is een ongeldig internet adres', 'Ongeldig internet adres'); 
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig internet adres', 'Ongeldig internet adres'); 
 							bfld_error = true;
 						}
 					}
@@ -480,7 +480,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.toUpperCase();
 					var re = /[A-Z]{1,5}[0-9]{1,4}[A-Z]{0,1}?/;
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is geen geldige opleidingscode', 'Ongeldige opleidingscode'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is geen geldige opleidingscode', 'Ongeldige opleidingscode'); 
 						bfld_error = true;
 					}
 					break;					
@@ -491,7 +491,7 @@ function form_valid_field( objfield ) {
 					objfield.value = objfield.value.toUpperCase();
 					var re = /(KP|GZ|PT|PJ|NP|KNP|OG)[1-9]{2,4}[A-Z]{0,1}?/;
 					if (!re.test( objfield.value)) {
-						form_valid_add_error( objfield, '<strong>' + sNiceField + '</strong> is geen geldige BIG-opleidingscode', 'Ongeldige BIG-opleidingscode'); 
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is geen geldige BIG-opleidingscode', 'Ongeldige BIG-opleidingscode'); 
 						bfld_error = true;
 					}
 					break;	
@@ -506,7 +506,7 @@ function form_valid_field( objfield ) {
 //
 function form_valid_add_error( fld, cLongError, cShortError) {
 	if (!cShortError) {
-		cShortError = cLongError.replace("<strong>","").replace("</strong>","")
+		cShortError = cLongError.replace("<span class='libval__strong'>","").replace("</span>","")
 	}
 	if (cLongError!="") {
 		if (strValidationError.indexOf( cLongError )==-1) {

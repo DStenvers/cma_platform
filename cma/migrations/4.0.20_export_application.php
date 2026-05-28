@@ -51,9 +51,9 @@ if ($isMigration) {
     echo '<div id="c">';
 
     if ($result['success']) {
-        echo '<lib-message type="success"><strong>Applicatie configuratie succesvol geëxporteerd!</strong><br>' . htmlspecialchars($result['message']) . '</lib-message>';
+        echo '<lib-message type="success"><span class="cma-migration__strong">Applicatie configuratie succesvol geëxporteerd!</span><br>' . htmlspecialchars($result['message']) . '</lib-message>';
     } else {
-        echo '<lib-message type="error"><strong>Export mislukt!</strong><br>' . htmlspecialchars($result['message']) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Export mislukt!</span><br>' . htmlspecialchars($result['message']) . '</lib-message>';
     }
 
     echo '</div></body></html>';

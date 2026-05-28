@@ -352,7 +352,7 @@ class JsonFormRenderer
             // Section header row with bulk-set radio buttons
             $groupId = 'group_' . $groupIdx;
             $html .= '<tr class="section-header" data-group-id="' . $groupId . '">';
-            $html .= '<td class="label-col"><strong>' . Server::htmlEncode($group['mainMenuName']) . '</strong></td>';
+            $html .= '<td class="label-col"><span class="cma-class__strong">' . Server::htmlEncode($group['mainMenuName']) . '</span></td>';
             // Add radio buttons for bulk selection
             foreach ($columns as $col) {
                 $html .= '<td class="access-col">';

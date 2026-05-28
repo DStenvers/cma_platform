@@ -793,7 +793,7 @@ function displayResults($data, $isPrevious = false): void
         echo '<tbody>';
         foreach ($results['failures'] as $failure) {
             echo '<tr>';
-            echo '<td><strong>' . htmlspecialchars($failure['test'] ?? '') . '</strong></td>';
+            echo '<td><span class="cma-tool__strong">' . htmlspecialchars($failure['test'] ?? '') . '</span></td>';
             echo '<td><code>' . htmlspecialchars($failure['error'] ?? '') . '</code></td>';
             echo '</tr>';
         }
@@ -813,17 +813,17 @@ function displayResults($data, $isPrevious = false): void
     echo '<div id="rawOutput" style="display:none; max-height:400px; overflow:auto; background:var(--bg-code,#f5f5f5); padding:10px; border-radius:4px; font-size:var(--font-size-xs);">';
 
     if ($command) {
-        echo '<strong>Command:</strong> <button type="button" onclick="copyCommand()" class="btn" style="font-size:var(--font-size-2xs); padding:2px 8px;">Kopiëren</button><br>';
+        echo '<span class="cma-tool__strong">Command:</span> <button type="button" onclick="copyCommand()" class="btn" style="font-size:var(--font-size-2xs); padding:2px 8px;">Kopiëren</button><br>';
         echo '<code id="cypressCommand" style="display:block; padding:5px; background:#fff; margin:5px 0 10px 0; word-break:break-all; cursor:pointer;" onclick="copyCommand()" title="Klik om te kopiëren">' . htmlspecialchars($command) . '</code>';
         echo '<script>function copyCommand() { navigator.clipboard.writeText(' . json_encode($command) . '); libToast("Command gekopieerd!"); }</script>';
     }
     if ($workingDir) {
-        echo '<strong>Working directory:</strong> ' . htmlspecialchars($workingDir) . '<br><br>';
+        echo '<span class="cma-tool__strong">Working directory:</span> ' . htmlspecialchars($workingDir) . '<br><br>';
     }
 
     // Show diagnostics if available
     if (!empty($diagnostics)) {
-        echo '<strong>Diagnostics:</strong><br>';
+        echo '<span class="cma-tool__strong">Diagnostics:</span><br>';
         echo '<table style="font-size:var(--font-size-xs); margin:5px 0 10px 0; border-collapse:collapse;">';
         foreach ($diagnostics as $key => $value) {
             echo '<tr><td style="padding:2px 10px 2px 0; color:#666;">' . htmlspecialchars($key) . ':</td>';
@@ -832,7 +832,7 @@ function displayResults($data, $isPrevious = false): void
         echo '</table>';
     }
 
-    echo '<strong>Output:</strong><pre style="margin:5px 0 0 0; white-space:pre-wrap;">';
+    echo '<span class="cma-tool__strong">Output:</span><pre style="margin:5px 0 0 0; white-space:pre-wrap;">';
     if ($rawOutput) {
         echo htmlspecialchars($rawOutput);
     } else {
@@ -884,7 +884,7 @@ if (!empty($specs)) {
             <?php foreach ($categorySpecs as $spec): ?>
                 <tr>
                     <td><input type="checkbox" class="spec-check" value="<?= htmlspecialchars($spec['relativePath']) ?>" data-category="<?= htmlspecialchars($categoryId) ?>"></td>
-                    <td><strong><?= htmlspecialchars($spec['name']) ?></strong></td>
+                    <td><span class="cma-tool__strong"><?= htmlspecialchars($spec['name']) ?></span></td>
                     <td><code><?= htmlspecialchars($spec['relativePath']) ?>.cy.js</code></td>
                     <td><?= date('d-m-Y H:i', $spec['mtime']) ?></td>
                 </tr>
@@ -1070,12 +1070,12 @@ if (!empty($specs)) {
         var html = '<h3>Cypress Test Command</h3>';
         html += '<lib-message type="info" style="margin-bottom:15px;">Kopieer en voer uit in een terminal (Cypress kan niet vanuit IIS draaien)</lib-message>';
 
-        html += '<p><strong>1. Open een terminal en ga naar:</strong></p>';
+        html += '<p><span class="cma-tool__strong">1. Open een terminal en ga naar:</span></p>';
         html += '<div class="command-box" onclick="copyToClipboard(this)" title="Klik om te kopiëren">';
         html += '<code>cd "' + escapeHtml(workingDir) + '"</code>';
         html += '<span class="copy-hint">📋</span></div>';
 
-        html += '<p style="margin-top:15px;"><strong>2. Voer uit:</strong></p>';
+        html += '<p style="margin-top:15px;"><span class="cma-tool__strong">2. Voer uit:</span></p>';
         html += '<div class="command-box" onclick="copyToClipboard(this)" title="Klik om te kopiëren">';
         html += '<code>' + escapeHtml(command) + '</code>';
         html += '<span class="copy-hint">📋</span></div>';
@@ -1151,7 +1151,7 @@ if (!empty($specs)) {
         html += '<lib-message type="error" style="margin-bottom:15px;">Er is een fout opgetreden</lib-message>';
 
         if (statusCode) {
-            html += '<p><strong>HTTP Status:</strong> ' + statusCode + '</p>';
+            html += '<p><span class="cma-tool__strong">HTTP Status:</span> ' + statusCode + '</p>';
         }
 
         html += '<div style="background:#1e1e1e;color:#ff6b6b;padding:15px;border-radius:4px;font-family:monospace;white-space:pre-wrap;max-height:400px;overflow:auto;">';

@@ -76,21 +76,21 @@ function main()
                 $vscodeUrl = 'vscode://file/' . str_replace('\\', '/', $phpIniPath);
                 echo '<div style="display:flex;align-items:center;gap:15px;margin-bottom:10px;">';
                 echo '<div style="flex:1;">';
-                echo '<strong>php.ini:</strong><br>';
+                echo '<span class="cma-tool__strong">php.ini:</span><br>';
                 echo '<code style="font-size:var(--font-size-sm);">' . htmlspecialchars($phpIniPath) . '</code>';
                 echo '</div>';
                 echo '<a href="' . htmlspecialchars($vscodeUrl) . '" class="btn btn-primary" style="white-space:nowrap;text-decoration:none;">';
                 echo '<span class="lnr lnr-pencil"></span> Open in VS Code</a>';
                 echo '</div>';
             } else {
-                echo '<div style="margin-bottom:10px;"><strong>php.ini:</strong> <em>Niet gevonden</em></div>';
+                echo '<div style="margin-bottom:10px;"><span class="cma-tool__strong">php.ini:</span> <span class="cma-tool__em">Niet gevonden</span></div>';
             }
 
             // Additional scanned ini files
             if ($additionalInis) {
                 $iniFiles = array_filter(array_map('trim', explode(',', $additionalInis)));
                 echo '<div style="margin-bottom:10px;">';
-                echo '<strong>Extra ini bestanden:</strong><br>';
+                echo '<span class="cma-tool__strong">Extra ini bestanden:</span><br>';
                 foreach ($iniFiles as $iniFile) {
                     $vscodeUrl = 'vscode://file/' . str_replace('\\', '/', $iniFile);
                     echo '<a href="' . htmlspecialchars($vscodeUrl) . '" style="font-size:var(--font-size-xs);color:var(--text-link);display:block;margin:2px 0;">';
@@ -102,7 +102,7 @@ function main()
             // User ini filename (.user.ini)
             if ($userIniFilename) {
                 echo '<div>';
-                echo '<strong>User ini bestand:</strong> <code>' . htmlspecialchars($userIniFilename) . '</code>';
+                echo '<span class="cma-tool__strong">User ini bestand:</span> <code>' . htmlspecialchars($userIniFilename) . '</code>';
                 echo ' <span style="color:var(--text-muted);font-size:var(--font-size-sm);">(per-directory override)</span>';
                 echo '</div>';
             }
@@ -112,7 +112,7 @@ function main()
             // APCu status warning
             if (!function_exists('apcu_enabled') || !apcu_enabled()) {
                 echo '<lib-message type="warning" style="margin-bottom:15px;">';
-                echo '<strong>APCu is niet actief!</strong> Voeg de volgende regels toe aan php.ini voor betere performance:<br>';
+                echo '<span class="cma-tool__strong">APCu is niet actief!</span> Voeg de volgende regels toe aan php.ini voor betere performance:<br>';
                 echo '<code style="display:block;margin-top:10px;padding:10px;background:var(--bg-surface);border-radius:4px;">';
                 echo 'extension=apcu<br>apc.enabled=1<br>apc.shm_size=128M';
                 echo '</code>';

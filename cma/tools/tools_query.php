@@ -529,7 +529,7 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
     $prevExHandler = set_exception_handler(null);
     restore_exception_handler();
     set_exception_handler(function(\Throwable $e) {
-        echo '<lib-message type="error"><strong>Fout</strong><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-tool__strong">Fout</span><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
     });
 
     try {
@@ -568,14 +568,14 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
                         break;
                 }
             } catch (\Throwable $e) {
-                echo '<lib-message type="error"><strong>SQL fout</strong><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
+                echo '<lib-message type="error"><span class="cma-tool__strong">SQL fout</span><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
             }
         }
         $nQueryMs = floor((microtime(true) - $nTussenStand) * 1000);
         $nTotalMs = floor(Profiler::getElapsed());
         echo '<br><i>Query : ' . $nQueryMs . 'ms' . ($nTotalMs > $nQueryMs ? ', totaal ' . $nTotalMs . 'ms' : '') . '</i>';
     } catch (\Throwable $e) {
-        echo '<lib-message type="error"><strong>Verbindingsfout</strong><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-tool__strong">Verbindingsfout</span><br>' . htmlspecialchars(Database::cleanErrorMessage($e->getMessage())) . '</lib-message>';
     }
 
     // Restore original exception handler

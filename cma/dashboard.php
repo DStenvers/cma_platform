@@ -1791,7 +1791,7 @@ if ($isAdmin) {
                                     '<span class="donut-value ' + ratioClass + '">' + ratio + '%</span>' +
                                 '</div>' +
                                 '<div style="margin-top: 6px; font-size: var(--font-size-xs); color: var(--text-muted); text-align: center;">' +
-                                    'Backend: <strong>' + (cache.backend || '-') + '</strong>' +
+                                    'Backend: <span class="cma-page__strong">' + (cache.backend || '-') + '</span>' +
                                 '</div>' +
                             '</div>' +
                             '<div style="flex: 1;">' +

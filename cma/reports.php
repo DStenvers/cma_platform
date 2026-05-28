@@ -222,7 +222,7 @@ body.tools-layout cma-fold {
                         }
 
                         var errorHtml = '<lib-message type="error">' +
-                            '<strong>Fout bij laden rapportage</strong><br>' +
+                            '<span class="cma-page__strong">Fout bij laden rapportage</span><br>' +
                             errorContent +
                             '</lib-message>';
                         contentArea.innerHTML = errorHtml;

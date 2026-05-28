@@ -703,7 +703,7 @@ html.dark-mode .hex-dark { display: inline; }
     </div>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">setOptions:</span>
     <div style="width: 250px;">
@@ -718,7 +718,7 @@ html.dark-mode .hex-dark { display: inline; }
     <button class="btn btn-cancel" onclick="var c=this.closest('.playground-preview').querySelector('#comboMethods'); libAlert('value: '+JSON.stringify(c.value)+'\nselectedOptions: '+JSON.stringify(c.selectedOptions))">getValue()</button>
 </div>
 
-<p><strong>Multiple methodes</strong></p>
+<p><span class="storybook__strong">Multiple methodes</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#comboMulti').setOptions([{value:'a',label:'Appel'},{value:'b',label:'Banaan'},{value:'c',label:'Citroen'},{value:'d',label:'Druif'},{value:'e',label:'Aardbei'}])">setOptions()</button>
     <button class="btn btn-secondary" onclick="var c=this.closest('.playground-preview').querySelector('#comboMulti'); c.value=['a','c','e']">Selecteer 3</button>
@@ -824,7 +824,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-datepicker name="datum7" value="2026-01-15" data-required="true" required></lib-datepicker>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">Methode demo:</span>
     <lib-datepicker id="dpMethods" name="datumMethods" value="2026-01-15"></lib-datepicker>
@@ -1026,7 +1026,7 @@ html.dark-mode .hex-dark { display: inline; }
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><p><strong>Standaard upload (documenten)</strong></p>
+                    <textarea><p><span class="storybook__strong">Standaard upload (documenten)</span></p>
 <input type="hidden" id="demo-upload-field" value="">
 <lib-fileuploader
     field="demo-upload-field"
@@ -1054,7 +1054,7 @@ html.dark-mode .hex-dark { display: inline; }
     })();
 </script>
 
-<p style="margin-top: 20px"><strong>Alleen afbeeldingen (100 MB, aangepaste tekst)</strong></p>
+<p style="margin-top: 20px"><span class="storybook__strong">Alleen afbeeldingen (100 MB, aangepaste tekst)</span></p>
 <input type="hidden" id="demo-upload-images" value="">
 <lib-fileuploader
     field="demo-upload-images"
@@ -1066,7 +1066,7 @@ html.dark-mode .hex-dark { display: inline; }
     show-link="false">
 </lib-fileuploader>
 
-<p style="margin-top: 20px"><strong>Reset</strong></p>
+<p style="margin-top: 20px"><span class="storybook__strong">Reset</span></p>
 <div class="demo-row" style="gap: 6px;">
     <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('lib-fileuploader').reset()">reset()</button>
 </div></textarea>
@@ -1231,7 +1231,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-gauge value="8" max="403" size="lg" type="error" format="raw" label="8 / 403 fouten" min-width="300"></lib-gauge>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">update() demo:</span>
     <lib-gauge id="gaugeMethods" value="30" max="100" type="info" format="raw" label="Voortgang" min-width="200"></lib-gauge>
@@ -1313,7 +1313,7 @@ html.dark-mode .hex-dark { display: inline; }
     style="height: 180px;">
 </lib-histogram>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <lib-histogram id="histMethods"
     data="3,4,5,4,3,4,5,5,4,3"
     min-value="1"
@@ -1463,7 +1463,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-loader id="loaderSmall" size="small"></lib-loader>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">Methode demo:</span>
     <lib-loader id="loaderMethods" text="Bezig..."></lib-loader>
@@ -1585,14 +1585,14 @@ html.dark-mode .hex-dark { display: inline; }
 <lib-message type="warning" closable>Let op: deze actie kan niet ongedaan worden gemaakt.</lib-message>
 <lib-message type="error" closable>Er is een fout opgetreden bij het opslaan.</lib-message>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <lib-message id="msgDemo" type="info" closable>Dit bericht kan gesloten en weer getoond worden.</lib-message>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap; margin-top: 10px;">
     <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#msgDemo').show()">show()</button>
     <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#msgDemo').close()">close()</button>
 </div>
 
-<p><strong>JavaScript API</strong></p>
+<p><span class="storybook__strong">JavaScript API</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.info('Info bericht via JavaScript API'); else libToast.info('libMessage niet beschikbaar')">libMessage.info()</button>
     <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.success('Succes bericht via API'); else libToast.success('libMessage niet beschikbaar')">libMessage.success()</button>
@@ -1675,7 +1675,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-search-input disabled placeholder="Zoeken..." style="width: 200px;"></lib-search-input>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">Methode demo:</span>
     <lib-search-input id="searchMethods" value="Test waarde" placeholder="Zoeken..." style="width: 200px;"></lib-search-input>
@@ -1788,7 +1788,7 @@ html.dark-mode .hex-dark { display: inline; }
     </div>
 </lib-sheet>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <lib-sheet id="sheetMethods" heading="Methode-demo">
         <p>Open via <code>open()</code>, sluit via <code>close()</code>, of wissel met <code>toggle()</code>.</p>
@@ -1901,7 +1901,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-switch name="switch4b" disabled checked></lib-switch>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row">
     <span class="demo-label">Methode demo:</span>
     <lib-switch id="switchMethods" name="switchDemo"></lib-switch>
@@ -1990,7 +1990,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-radio-group name="rg6" value="a" disabled options="a:Een|b:Twee|c:Drie"></lib-radio-group>
 </div>
 
-<p><strong>Methodes / Properties</strong></p>
+<p><span class="storybook__strong">Methodes / Properties</span></p>
 <div class="demo-row">
     <span class="demo-label">Demo:</span>
     <lib-radio-group id="rgMethods" name="rgDemo" options="1:Een|2:Twee|3:Drie"></lib-radio-group>
@@ -2159,7 +2159,7 @@ html.dark-mode .hex-dark { display: inline; }
     <lib-timepicker name="tijd7" value="14:30" data-required="true" required></lib-timepicker>
 </div>
 
-<p><strong>Properties</strong></p>
+<p><span class="storybook__strong">Properties</span></p>
 <div class="demo-row">
     <span class="demo-label">Property demo:</span>
     <lib-timepicker id="tpMethods" name="tijdMethods" value="14:30"></lib-timepicker>
@@ -2322,7 +2322,7 @@ LibTip.reset();</div>
     <button class="btn btn-primary" onclick="libToast.error('Fout bij opslaan')">Fout toast</button>
 </div>
 
-<p><strong>Methodes</strong></p>
+<p><span class="storybook__strong">Methodes</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="libToast.info('Persistent toast', 0)">Persistent (0ms)</button>
     <button class="btn btn-secondary" onclick="libToast.configure({position:'bottom-right'}); libToast.info('Rechtsonder!')">Positie: bottom-right</button>
@@ -2385,7 +2385,7 @@ LibTip.reset();</div>
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><p><strong>Type varianten</strong></p>
+                    <textarea><p><span class="storybook__strong">Type varianten</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libAlert('Bestand opgeslagen')">Info (standaard)</button>
     <button class="btn btn-primary" onclick="libAlert('Actie voltooid', {type:'success', title:'Gelukt'})">Success</button>
@@ -2393,22 +2393,22 @@ LibTip.reset();</div>
     <button class="btn btn-primary" onclick="libAlert('Fout bij opslaan van het formulier', {type:'danger', title:'Fout'})">Danger</button>
 </div>
 
-<p><strong>Aangepaste knoptekst</strong></p>
+<p><span class="storybook__strong">Aangepaste knoptekst</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libAlert('Export is gereed', {title:'Download', buttonText:'Sluiten', type:'success'})">Aangepaste knop</button>
 </div>
 
-<p><strong>HTML inhoud</strong></p>
+<p><span class="storybook__strong">HTML inhoud</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libAlert('&lt;p&gt;Gebruik &lt;strong&gt;Ctrl+S&lt;/strong&gt; om op te slaan.&lt;/p&gt;&lt;p&gt;Of klik op de &lt;em&gt;Opslaan&lt;/em&gt; knop in de toolbar.&lt;/p&gt;', {title:'Tip', html:true})">HTML melding</button>
 </div>
 
-<p><strong>Technische details (inklapbaar)</strong></p>
+<p><span class="storybook__strong">Technische details (inklapbaar)</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libAlert('Kan het bestand niet opslaan', {type:'danger', title:'Fout', details:'Error: EPERM - permission denied\nPath: /var/data/export.csv\nTimestamp: 2026-02-09T08:42:00Z'})">Met details</button>
 </div>
 
-<p><strong>Await / chaining</strong></p>
+<p><span class="storybook__strong">Await / chaining</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libAlert('Stap 1: Eerste melding').then(() => libAlert('Stap 2: Tweede melding', {type:'success', title:'Voltooid'}))">Chained alerts</button>
 </div></textarea>
@@ -2442,7 +2442,7 @@ LibTip.reset();</div>
                 </dl>
                 <h4>Gedrag</h4>
                 <ul style="font-size:var(--font-size); color: var(--text-secondary); margin:0; padding-left:18px;">
-                    <li>Dialoog is <strong>closable</strong> &mdash; sluitbaar via Escape, backdrop-klik of knop</li>
+                    <li>Dialoog is <span class="storybook__strong">closable</span> &mdash; sluitbaar via Escape, backdrop-klik of knop</li>
                     <li>HTML in message wordt automatisch gedetecteerd, tenzij <code>html</code> expliciet is opgegeven</li>
                     <li>Bij <code>details</code> wordt de dialoog groter (size: medium i.p.v. small)</li>
                 </ul>
@@ -2459,24 +2459,24 @@ LibTip.reset();</div>
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><p><strong>Standaard bevestiging (warning)</strong></p>
+                    <textarea><p><span class="storybook__strong">Standaard bevestiging (warning)</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libConfirm('Weet u het zeker?').then(ok => libAlert(ok ? 'Bevestigd' : 'Geannuleerd'))">Standaard (Ja/Nee)</button>
 </div>
 
-<p><strong>Type varianten</strong></p>
+<p><span class="storybook__strong">Type varianten</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libConfirm('Dit record verwijderen?', {type:'danger', title:'Verwijderen', confirmText:'Verwijderen', cancelText:'Behouden'}).then(ok => libAlert(ok ? 'Verwijderd' : 'Behouden'))">Danger</button>
     <button class="btn btn-primary" onclick="libConfirm('Wilt u doorgaan?', {type:'info', title:'Doorgaan'}).then(ok => libAlert(ok ? 'Doorgegaan' : 'Gestopt'))">Info</button>
 </div>
 
-<p><strong>Aangepaste knopteksten</strong></p>
+<p><span class="storybook__strong">Aangepaste knopteksten</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libConfirm('Wijzigingen opslaan voordat u verdergaat?', {title:'Onopgeslagen wijzigingen', confirmText:'Opslaan', cancelText:'Niet opslaan'}).then(ok => libAlert(ok ? 'Opgeslagen' : 'Niet opgeslagen'))">Opslaan / Niet opslaan</button>
     <button class="btn btn-primary" onclick="libConfirm('Alle geselecteerde items archiveren?', {title:'Archiveren', confirmText:'Archiveer alles', cancelText:'Annuleren', type:'info'}).then(ok => libAlert(ok ? 'Gearchiveerd' : 'Geannuleerd'))">Archiveren</button>
 </div>
 
-<p><strong>HTML inhoud</strong></p>
+<p><span class="storybook__strong">HTML inhoud</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libConfirm('&lt;p&gt;U staat op het punt &lt;strong&gt;3 records&lt;/strong&gt; te verwijderen.&lt;/p&gt;&lt;p style=\'color:var(--color-error)\'&gt;Dit kan niet ongedaan worden gemaakt.&lt;/p&gt;', {type:'danger', title:'Definitief verwijderen', html:true, confirmText:'Verwijderen', cancelText:'Annuleren'}).then(ok => libAlert(ok ? 'Verwijderd' : 'Geannuleerd'))">HTML bevestiging</button>
 </div></textarea>
@@ -2510,8 +2510,8 @@ LibTip.reset();</div>
                 </dl>
                 <h4>Gedrag</h4>
                 <ul style="font-size:var(--font-size); color: var(--text-secondary); margin:0; padding-left:18px;">
-                    <li>Dialoog is <strong>niet closable</strong> &mdash; Escape en backdrop-klik zijn uitgeschakeld</li>
-                    <li>Gebruiker <em>moet</em> een keuze maken via een van de twee knoppen</li>
+                    <li>Dialoog is <span class="storybook__strong">niet closable</span> &mdash; Escape en backdrop-klik zijn uitgeschakeld</li>
+                    <li>Gebruiker <span class="storybook__em">moet</span> een keuze maken via een van de twee knoppen</li>
                     <li>Enter-toets bevestigt de actie</li>
                 </ul>
             </div>
@@ -2527,32 +2527,32 @@ LibTip.reset();</div>
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><p><strong>Standaard tekstinvoer</strong></p>
+                    <textarea><p><span class="storybook__strong">Standaard tekstinvoer</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('Wat is uw naam?', {title:'Naam', placeholder:'Typ uw naam...'}).then(v => v !== null ? libAlert('Hallo, ' + v + '!', {type:'success'}) : libAlert('Geannuleerd'))">Tekst prompt</button>
 </div>
 
-<p><strong>Met standaardwaarde</strong></p>
+<p><span class="storybook__strong">Met standaardwaarde</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('Bestandsnaam:', {title:'Hernoemen', defaultValue:'document.pdf', placeholder:'Bestandsnaam...'}).then(v => v !== null ? libAlert('Hernoemd naar: ' + v, {type:'success'}) : libAlert('Geannuleerd'))">Met defaultValue</button>
 </div>
 
-<p><strong>Verplicht veld (required)</strong></p>
+<p><span class="storybook__strong">Verplicht veld (required)</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('E-mailadres:', {title:'Inschrijven', inputType:'email', required:true, placeholder:'naam@voorbeeld.nl', confirmText:'Inschrijven', cancelText:'Annuleren'}).then(v => v !== null ? libAlert('Ingeschreven: ' + v, {type:'success'}) : libAlert('Geannuleerd'))">Verplicht e-mail</button>
 </div>
 
-<p><strong>Multiline (textarea)</strong></p>
+<p><span class="storybook__strong">Multiline (textarea)</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('Opmerking:', {title:'Notitie toevoegen', multiline:true, placeholder:'Typ uw opmerking...', confirmText:'Toevoegen'}).then(v => v !== null ? libAlert('Opmerking opgeslagen', {type:'success'}) : libAlert('Geannuleerd'))">Multiline</button>
 </div>
 
-<p><strong>Numerieke invoer</strong></p>
+<p><span class="storybook__strong">Numerieke invoer</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('Aantal:', {title:'Hoeveelheid', inputType:'number', defaultValue:'1', confirmText:'Toepassen'}).then(v => v !== null ? libAlert('Aantal: ' + v) : libAlert('Geannuleerd'))">Nummer invoer</button>
 </div>
 
-<p><strong>Aangepaste knopteksten en type</strong></p>
+<p><span class="storybook__strong">Aangepaste knopteksten en type</span></p>
 <div class="demo-row">
     <button class="btn btn-primary" onclick="libPrompt('Reden van afwijzing:', {title:'Afwijzen', type:'danger', multiline:true, required:true, confirmText:'Afwijzen', cancelText:'Terug', placeholder:'Geef een reden op...'}).then(v => v !== null ? libAlert('Afgewezen met reden: ' + v, {type:'danger'}) : libAlert('Geannuleerd'))">Danger prompt</button>
 </div></textarea>
@@ -2594,7 +2594,7 @@ LibTip.reset();</div>
                 </dl>
                 <h4>Gedrag</h4>
                 <ul style="font-size:var(--font-size); color: var(--text-secondary); margin:0; padding-left:18px;">
-                    <li>Dialoog is <strong>closable</strong> &mdash; Escape, sluitknop en backdrop-klik sluiten de dialoog (retourneert null)</li>
+                    <li>Dialoog is <span class="storybook__strong">closable</span> &mdash; Escape, sluitknop en backdrop-klik sluiten de dialoog (retourneert null)</li>
                     <li>Enter-toets in het invoerveld bevestigt (behalve bij multiline)</li>
                     <li>Bij <code>required:true</code> wordt het veld rood gemarkeerd met foutmelding bij leeg bevestigen</li>
                     <li>Het invoerveld krijgt automatisch focus bij openen</li>
@@ -2612,7 +2612,7 @@ LibTip.reset();</div>
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><p><strong>Basis-logging</strong></p>
+                    <textarea><p><span class="storybook__strong">Basis-logging</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="LibLog.debug('Debug-bericht uit de storybook', {source:'storybook'}); libToast.info('LibLog.debug() aangeroepen — bekijk de console en /cma/api/log.php')">LibLog.debug()</button>
     <button class="btn btn-secondary" onclick="LibLog.info('Info-bericht', {action:'demo'}); libToast.info('LibLog.info() aangeroepen')">LibLog.info()</button>
@@ -2620,7 +2620,7 @@ LibTip.reset();</div>
     <button class="btn btn-cancel" onclick="LibLog.error('Demo-fout ter illustratie', {context:'storybook button'}); libToast.error('LibLog.error() aangeroepen — verschijnt ook in het error-paneel')">LibLog.error()</button>
 </div>
 
-<p><strong>Server-buffer beheren</strong></p>
+<p><span class="storybook__strong">Server-buffer beheren</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="LibLog.flush(); libToast.info('Buffer naar server geflusht')">flush()</button>
     <button class="btn btn-secondary" onclick="libAlert('Request-ID: ' + LibLog.getRequestId())">getRequestId()</button>
@@ -2628,12 +2628,12 @@ LibTip.reset();</div>
     <button class="btn btn-secondary" onclick="libAlert('Config:\n' + JSON.stringify(LibLog.getConfig(), null, 2))">getConfig()</button>
 </div>
 
-<p><strong>Bypass de interceptor (originele console)</strong></p>
+<p><span class="storybook__strong">Bypass de interceptor (originele console)</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="LibLog.console.log('Direct naar de echte console — niet via LibLog'); libToast.info('Direct naar console.log()')">LibLog.console.log()</button>
 </div>
 
-<p><strong>Niveau wijzigen</strong></p>
+<p><span class="storybook__strong">Niveau wijzigen</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
     <button class="btn btn-secondary" onclick="LibLog.setDebug(true); libToast.success('Debug-mode aangezet (deze sessie)')">setDebug(true)</button>
     <button class="btn btn-secondary" onclick="LibLog.setDebug(false); libToast.success('Debug-mode uitgezet (deze sessie)')">setDebug(false)</button>
@@ -2714,7 +2714,7 @@ window.LIBLOG_CONFIG = {
                 </dl>
                 <h4>Gedrag</h4>
                 <ul style="font-size:var(--font-size-sm); color: var(--text-secondary); margin:0; padding-left:18px;">
-                    <li>Errors gaan <em>altijd</em> naar de server, ongeacht debug-mode — productie-incidenten verliezen we niet</li>
+                    <li>Errors gaan <span class="storybook__em">altijd</span> naar de server, ongeacht debug-mode — productie-incidenten verliezen we niet</li>
                     <li>Warnings/info/debug alleen naar server wanneer <code>cma_debug_mode</code> cookie op <code>J</code> staat</li>
                     <li>Bij <code>beforeunload</code> wordt de buffer via <code>navigator.sendBeacon</code> geflusht zodat pageviews niet verloren gaan</li>
                     <li>Bron-detectie via stack-trace parsing — log-regel toont <code>file.js:lineno</code> van de aanroeper</li>
@@ -2860,7 +2860,7 @@ window.LIBLOG_CONFIG = {
 </div>
 <p style="margin-top: 12px; font-size: var(--font-size-sm); color: var(--text-secondary);">
     De API is identiek aan <a href="#lib-combo"><code>lib-combo</code></a> — attributen, methodes, properties en events zijn dezelfde.
-    <code>cma-combo.js</code> is een lege placeholder; <code>lib-combo.js</code> registreert <em>beide</em> tag-namen.
+    <code>cma-combo.js</code> is een lege placeholder; <code>lib-combo.js</code> registreert <span class="storybook__em">beide</span> tag-namen.
 </p></textarea>
                 </div>
             </div>
@@ -2892,7 +2892,7 @@ window.LIBLOG_CONFIG = {
                 <div class="playground">
                     <textarea><div style="display: flex; height: 150px; border: 1px solid var(--border-color);">
     <div class="fold-left-panel" style="width: 200px; min-width: 100px; max-width: 400px; background: var(--bg-surface-alt); padding: 10px; overflow: auto;">
-        <strong>Links paneel</strong>
+        <span class="storybook__strong">Links paneel</span>
         <p style="font-size: var(--font-size-sm);">Sleep de scheidingslijn om dit paneel te vergroten of verkleinen.</p>
     </div>
     <cma-fold
@@ -2902,7 +2902,7 @@ window.LIBLOG_CONFIG = {
         max-size="400">
     </cma-fold>
     <div style="flex: 1; background: var(--bg-surface); padding: 10px; overflow: auto;">
-        <strong>Rechts paneel</strong>
+        <span class="storybook__strong">Rechts paneel</span>
         <p style="font-size: var(--font-size-sm);">Dit paneel groeit/krimpt automatisch mee.</p>
     </div>
 </div>
@@ -2910,7 +2910,7 @@ window.LIBLOG_CONFIG = {
 <!-- Met reverse attribuut (target rechts van fold) -->
 <div style="display: flex; height: 150px; border: 1px solid var(--border-color); margin-top: 15px;">
     <div style="flex: 1; background: var(--bg-surface); padding: 10px; overflow: auto;">
-        <strong>Links paneel</strong>
+        <span class="storybook__strong">Links paneel</span>
         <p style="font-size: var(--font-size-sm);">Dit paneel groeit/krimpt automatisch mee.</p>
     </div>
     <cma-fold
@@ -2921,7 +2921,7 @@ window.LIBLOG_CONFIG = {
         reverse>
     </cma-fold>
     <div class="fold-right-panel" style="width: 200px; min-width: 100px; max-width: 400px; background: var(--bg-surface-alt); padding: 10px; overflow: auto;">
-        <strong>Rechts paneel (met reverse)</strong>
+        <span class="storybook__strong">Rechts paneel (met reverse)</span>
         <p style="font-size: var(--font-size-sm);">Target staat NA de fold, dus reverse is nodig.</p>
     </div>
 </div></textarea>
@@ -3040,8 +3040,8 @@ window.LIBLOG_CONFIG = {
                 </dl>
                 <h4>Modi</h4>
                 <p style="font-size: var(--font-size-xs); color: var(--text-muted);">
-                    <strong>Standalone:</strong> Zonder group-id. Toggelt het volgende sibling element.<br>
-                    <strong>Formulier:</strong> Met group-id/form-id. Toggelt rijen met <code>id="_g{groupId}_{index}"</code>.
+                    <span class="storybook__strong">Standalone:</span> Zonder group-id. Toggelt het volgende sibling element.<br>
+                    <span class="storybook__strong">Formulier:</span> Met group-id/form-id. Toggelt rijen met <code>id="_g{groupId}_{index}"</code>.
                 </p>
             </div>
         </div>
@@ -3066,14 +3066,14 @@ window.LIBLOG_CONFIG = {
     <span class="demo-label">Full modus:</span>
 </div>
 <cma-htmledit name="demo-htmledit-full" height="200">
-    <textarea name="demo-htmledit-full"><p>Voorbeeld tekst in <strong>full</strong> modus.</p></textarea>
+    <textarea name="demo-htmledit-full"><p>Voorbeeld tekst in <span class="storybook__strong">full</span> modus.</p></textarea>
 </cma-htmledit>
 
 <div class="demo-row" style="margin-top: 20px;">
     <span class="demo-label">Simple modus:</span>
 </div>
 <cma-htmledit name="demo-htmledit-simple" height="150" mode="simple">
-    <textarea name="demo-htmledit-simple"><p>Voorbeeld tekst in <em>simple</em> modus.</p></textarea>
+    <textarea name="demo-htmledit-simple"><p>Voorbeeld tekst in <span class="storybook__em">simple</span> modus.</p></textarea>
 </cma-htmledit>
 
 <div class="demo-row" style="margin-top: 20px;">
@@ -4060,7 +4060,7 @@ box-shadow: var(--shadow-md);</div>
                     <dt>In gebruik</dt>
                     <dd>Iconen gedefinieerd in shared-icons.js en style.css</dd>
                     <dt>Toevoegen</dt>
-                    <dd>Klik op de <strong>+</strong> knop bij een icoon, of handmatig toevoegen aan shared-icons.js en style.css. Daarna: <code>python3 tools/build-icon-font.py</code></dd>
+                    <dd>Klik op de <span class="storybook__strong">+</span> knop bij een icoon, of handmatig toevoegen aan shared-icons.js en style.css. Daarna: <code>python3 tools/build-icon-font.py</code></dd>
                 </dl>
             </div>
         </div>
@@ -4258,7 +4258,7 @@ box-shadow: var(--shadow-md);</div>
                         <tr><td style="padding: 6px;"><code>--font-size-2xs</code></td><td style="padding: 6px;">10px</td><td style="padding: 6px; font-size: var(--font-size-2xs);">De snelle bruine vos</td></tr>
                         <tr><td style="padding: 6px;"><code>--font-size-xs</code></td><td style="padding: 6px;">11px</td><td style="padding: 6px; font-size: var(--font-size-xs);">De snelle bruine vos</td></tr>
                         <tr><td style="padding: 6px;"><code>--font-size-sm</code></td><td style="padding: 6px;">12px</td><td style="padding: 6px; font-size: var(--font-size-sm);">De snelle bruine vos</td></tr>
-                        <tr style="background: var(--bg-surface-alt);"><td style="padding: 6px;"><code>--font-size</code></td><td style="padding: 6px;">13px</td><td style="padding: 6px; font-size: var(--font-size);"><strong>De snelle bruine vos</strong> (basis)</td></tr>
+                        <tr style="background: var(--bg-surface-alt);"><td style="padding: 6px;"><code>--font-size</code></td><td style="padding: 6px;">13px</td><td style="padding: 6px; font-size: var(--font-size);"><span class="storybook__strong">De snelle bruine vos</span> (basis)</td></tr>
                         <tr><td style="padding: 6px;"><code>--font-size-md</code></td><td style="padding: 6px;">14px</td><td style="padding: 6px; font-size: var(--font-size-md);">De snelle bruine vos</td></tr>
                         <tr><td style="padding: 6px;"><code>--font-size-lg</code></td><td style="padding: 6px;">16px</td><td style="padding: 6px; font-size: var(--font-size-lg);">De snelle bruine vos</td></tr>
                         <tr><td style="padding: 6px;"><code>--font-size-xl</code></td><td style="padding: 6px;">18px</td><td style="padding: 6px; font-size: var(--font-size-xl);">De snelle bruine vos</td></tr>
@@ -4274,7 +4274,7 @@ box-shadow: var(--shadow-md);</div>
                     <h3 style="margin: 0 0 8px 0;">Kop 3</h3>
                     <p style="margin: 0 0 8px 0;">Bodytekst - Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     <p class="text-muted" style="margin: 0 0 8px 0;">Gedempte tekst voor secundaire informatie.</p>
-                    <p style="margin: 0;"><a href="#">Linktekst</a> &middot; <strong>Vetgedrukt</strong> &middot; <em>Cursief</em> &middot; <code>code</code></p>
+                    <p style="margin: 0;"><a href="#">Linktekst</a> &middot; <span class="storybook__strong">Vetgedrukt</span> &middot; <span class="storybook__em">Cursief</span> &middot; <code>code</code></p>
                 </div>
             </div>
             <div class="component-options">

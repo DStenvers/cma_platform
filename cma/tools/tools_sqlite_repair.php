@@ -88,7 +88,7 @@ function translateSqliteErrors($errors) {
     if (count($indexErrors) > 0) {
         $uniqueIndexes = array_unique($indexErrors);
         $translated[] = 'Indexen met fouten: ' . implode(', ', $uniqueIndexes);
-        $translated[] = '<em>Oplossing: gebruik "Indexen herstellen" om de indexen opnieuw op te bouwen</em>';
+        $translated[] = '<span class="cma-tool__em">Oplossing: gebruik "Indexen herstellen" om de indexen opnieuw op te bouwen</span>';
     }
 
     return $translated;
@@ -136,17 +136,17 @@ if ($action === 'schedule_recovery') {
     if (@file_put_contents($flagPath, $flagContent)) {
         echo '<h3>Noodherstel ingepland</h3>';
         echo '<lib-message type="success">';
-        echo '<strong>Noodherstel is ingepland!</strong><br><br>';
+        echo '<span class="cma-tool__strong">Noodherstel is ingepland!</span><br><br>';
         echo 'De volgende keer dat de webserver (IIS) herstart wordt, zullen de WAL en SHM bestanden automatisch worden verwijderd.';
         echo '</lib-message>';
 
         echo '<lib-message type="info">';
-        echo '<strong>Volgende stappen:</strong><br><br>';
-        echo '1. <strong>Herstart IIS</strong> via command prompt (als administrator):<br>';
+        echo '<span class="cma-tool__strong">Volgende stappen:</span><br><br>';
+        echo '1. <span class="cma-tool__strong">Herstart IIS</span> via command prompt (als administrator):<br>';
         echo '&nbsp;&nbsp;&nbsp;<code>iisreset</code><br><br>';
         echo '2. Of herstart de server volledig<br><br>';
         echo '3. Na herstart wordt het herstel automatisch uitgevoerd<br><br>';
-        echo '<em>Let op: Alle niet-opgeslagen wijzigingen in de WAL gaan verloren!</em>';
+        echo '<span class="cma-tool__em">Let op: Alle niet-opgeslagen wijzigingen in de WAL gaan verloren!</span>';
         echo '</lib-message>';
 
         echo '<p style="margin-top:15px;">';
@@ -211,7 +211,7 @@ if ($action === 'reindex') {
             $messages[] = ['type' => 'info', 'text' => 'Sluit alle CMA vensters, wacht 30 seconden, en probeer opnieuw.'];
         } elseif (strpos($errorMsg, 'malformed') !== false || strpos($errorMsg, 'corrupt') !== false) {
             $messages[] = ['type' => 'error', 'text' => 'Database is beschadigd en kan niet worden gerepareerd met REINDEX.'];
-            $messages[] = ['type' => 'info', 'text' => '<strong>Aanbevolen actie:</strong> Probeer eerst "Noodherstel" om de WAL/SHM bestanden te verwijderen. Dit herstelt de database naar de laatste stabiele staat.'];
+            $messages[] = ['type' => 'info', 'text' => '<span class="cma-tool__strong">Aanbevolen actie:</span> Probeer eerst "Noodherstel" om de WAL/SHM bestanden te verwijderen. Dit herstelt de database naar de laatste stabiele staat.'];
             $messages[] = ['type' => 'info', 'text' => 'Als dat niet werkt, moet de database worden hersteld vanaf een backup.'];
             echo '<p style="margin-top:15px;"><a href="?action=rebuild" class="btn btn-primary"><span class="lnr lnr-warning"></span> Noodherstel uitvoeren</a></p>';
         } else {
@@ -234,15 +234,15 @@ if ($action === 'rebuild') {
     if (Request::query('confirm', '') !== 'ja') {
         echo '<h3>Noodherstel bevestigen</h3>';
         echo '<lib-message type="warning">';
-        echo '<strong>Let op!</strong> U staat op het punt om de WAL en SHM bestanden te verwijderen.<br><br>';
-        echo '<strong>Dit betekent:</strong><br>';
-        echo '• Alle wijzigingen die nog niet naar het hoofdbestand zijn geschreven gaan <strong>verloren</strong><br>';
+        echo '<span class="cma-tool__strong">Let op!</span> U staat op het punt om de WAL en SHM bestanden te verwijderen.<br><br>';
+        echo '<span class="cma-tool__strong">Dit betekent:</span><br>';
+        echo '• Alle wijzigingen die nog niet naar het hoofdbestand zijn geschreven gaan <span class="cma-tool__strong">verloren</span><br>';
         echo '• De database wordt teruggebracht naar de staat van de laatste checkpoint<br>';
         echo '• Dit kan minuten tot uren aan werk verliezen<br>';
-        echo '• Er wordt <strong>geen backup</strong> gemaakt (een backup van corrupte data is zinloos)<br><br>';
-        echo '<strong>Controleer eerst:</strong><br>';
+        echo '• Er wordt <span class="cma-tool__strong">geen backup</span> gemaakt (een backup van corrupte data is zinloos)<br><br>';
+        echo '<span class="cma-tool__strong">Controleer eerst:</span><br>';
         echo '• Heb je een recente backup via het backup-systeem?<br><br>';
-        echo '<strong>Alleen gebruiken als:</strong><br>';
+        echo '<span class="cma-tool__strong">Alleen gebruiken als:</span><br>';
         echo '• De database corrupt of vergrendeld is<br>';
         echo '• Bovenstaande controle een fout gaf';
         echo '</lib-message>';
@@ -296,7 +296,7 @@ if ($action === 'rebuild') {
     }
     if (count($failed) > 0) {
         $messages[] = ['type' => 'error', 'text' => 'Kon niet verwijderen: ' . implode(', ', $failed) . ' - bestand is in gebruik door een ander proces.'];
-        $messages[] = ['type' => 'info', 'text' => '<strong>Tip:</strong> Sluit alle browservensters met CMA, wacht 30 seconden, en probeer opnieuw. Als dat niet werkt, herstart IIS (iisreset) of de webserver.'];
+        $messages[] = ['type' => 'info', 'text' => '<span class="cma-tool__strong">Tip:</span> Sluit alle browservensters met CMA, wacht 30 seconden, en probeer opnieuw. Als dat niet werkt, herstart IIS (iisreset) of de webserver.'];
     }
     if (count($removed) === 0 && count($failed) === 0) {
         $messages[] = ['type' => 'info', 'text' => 'Geen WAL/SHM bestanden gevonden om te verwijderen.'];
@@ -341,13 +341,13 @@ if (file_exists($dbPath)) {
         }
         echo '</td></tr>';
     } else {
-        echo '<tr><td>WAL bestand</td><td><em>Niet aanwezig</em></td></tr>';
+        echo '<tr><td>WAL bestand</td><td><span class="cma-tool__em">Niet aanwezig</span></td></tr>';
     }
 
     if (file_exists($shmPath)) {
         echo '<tr><td>SHM bestand</td><td>' . formatSize(filesize($shmPath)) . '</td></tr>';
     } else {
-        echo '<tr><td>SHM bestand</td><td><em>Niet aanwezig</em></td></tr>';
+        echo '<tr><td>SHM bestand</td><td><span class="cma-tool__em">Niet aanwezig</span></td></tr>';
     }
 } else {
     $hasProblems = true;
@@ -357,8 +357,8 @@ echo '</table>';
 
 // Brief explanation of WAL/SHM
 echo '<p class="info-text"><span class="lnr lnr-question-circle"></span> ';
-echo '<strong>WAL</strong> (Write-Ahead Log) bevat recente wijzigingen die nog niet naar het hoofdbestand zijn geschreven. ';
-echo '<strong>SHM</strong> (Shared Memory) coördineert toegang tussen processen. ';
+echo '<span class="cma-tool__strong">WAL</span> (Write-Ahead Log) bevat recente wijzigingen die nog niet naar het hoofdbestand zijn geschreven. ';
+echo '<span class="cma-tool__strong">SHM</span> (Shared Memory) coördineert toegang tussen processen. ';
 echo 'Beide bestanden zijn normaal en worden automatisch beheerd.';
 echo '</p>';
 
@@ -483,7 +483,7 @@ if (file_exists($dbPath)) {
         // Overall status message and repair options
         if ($hasProblems) {
             echo '<lib-message type="warning" style="margin-top:15px;">';
-            echo '<strong>Database heeft problemen.</strong>';
+            echo '<span class="cma-tool__strong">Database heeft problemen.</span>';
             echo '</lib-message>';
 
             echo '<div class="repair-options">';
@@ -504,7 +504,7 @@ if (file_exists($dbPath)) {
 
             echo '<div class="repair-option">';
             echo '<h4><span class="lnr lnr-clock"></span> Noodherstel (ingepland)</h4>';
-            echo '<p>Plant herstel in voor na server herstart. <strong>Aanbevolen</strong> als directe poging mislukt vanwege vergrendeling.</p>';
+            echo '<p>Plant herstel in voor na server herstart. <span class="cma-tool__strong">Aanbevolen</span> als directe poging mislukt vanwege vergrendeling.</p>';
             $flagPath = dirname(__DIR__, 2) . '/db/sqlite_emergency_recovery.flag';
             if (file_exists($flagPath)) {
                 echo '<lib-message type="info">Herstel is al ingepland. Herstart de server om uit te voeren.</lib-message>';
@@ -522,7 +522,7 @@ if (file_exists($dbPath)) {
     } catch (PDOException $e) {
         $hasProblems = true;
         echo '<lib-message type="error">';
-        echo '<strong>Database fout:</strong> ' . htmlspecialchars($e->getMessage());
+        echo '<span class="cma-tool__strong">Database fout:</span> ' . htmlspecialchars($e->getMessage());
         echo '</lib-message>';
 
         echo '<lib-message type="warning" style="margin-top:10px;">';
@@ -539,7 +539,7 @@ if (file_exists($dbPath)) {
 
         echo '<div class="repair-option">';
         echo '<h4><span class="lnr lnr-clock"></span> Noodherstel (ingepland)</h4>';
-        echo '<p>Plant herstel in voor na server herstart. <strong>Aanbevolen</strong> als directe poging mislukt.</p>';
+        echo '<p>Plant herstel in voor na server herstart. <span class="cma-tool__strong">Aanbevolen</span> als directe poging mislukt.</p>';
         $flagPath = dirname(__DIR__, 2) . '/db/sqlite_emergency_recovery.flag';
         if (file_exists($flagPath)) {
             echo '<lib-message type="info">Herstel is al ingepland. Herstart de server om uit te voeren.</lib-message>';

@@ -1882,7 +1882,7 @@ class FormDataProvider
             $displayValue = '';
             if ($value === null || $value === '') {
                 // Empty value - could be NULL from outer join or just empty
-                $displayValue = '<em>(leeg)</em>';
+                $displayValue = '<span class="cma-class__em">(leeg)</span>';
             } elseif ($fieldType === 'boolean' || is_bool($value)) {
                 // Boolean field - handle various representations
                 $displayValue = self::toBool($value) ? 'Ja' : 'Nee';

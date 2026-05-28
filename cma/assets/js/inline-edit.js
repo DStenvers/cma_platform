@@ -1681,9 +1681,9 @@
                 const change = changes[i];
                 const isLongValue = change.newValue.length > maxValueLength || change.oldValue.length > maxValueLength;
                 if (isLongValue) {
-                    html += `<li><strong>${change.label}</strong></li>`;
+                    html += `<li><span class="cma-js__strong">${change.label}</span></li>`;
                 } else {
-                    html += `<li><strong>${change.label}</strong>: ${truncate(change.oldValue, maxValueLength)} → ${truncate(change.newValue, maxValueLength)}</li>`;
+                    html += `<li><span class="cma-js__strong">${change.label}</span>: ${truncate(change.oldValue, maxValueLength)} → ${truncate(change.newValue, maxValueLength)}</li>`;
                 }
             }
 

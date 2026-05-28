@@ -754,9 +754,9 @@ if ($anyFailed) {
 // OPcache warning - critical for performance
 if (!$caches['OPcache']['available']) {
     echo '<lib-message type="warning" style="margin-bottom:15px;" closable="false">';
-    echo '<strong>OPcache is niet geïnstalleerd of uitgeschakeld!</strong> Dit heeft een grote impact op performance.<br><br>';
+    echo '<span class="cma-tool__strong">OPcache is niet geïnstalleerd of uitgeschakeld!</span> Dit heeft een grote impact op performance.<br><br>';
     echo 'PHP scripts worden bij elk request opnieuw gecompileerd. Dit kan pagina\'s 5-10x trager maken.<br><br>';
-    echo '<strong>Oplossing:</strong> Voeg toe aan php.ini:<br>';
+    echo '<span class="cma-tool__strong">Oplossing:</span> Voeg toe aan php.ini:<br>';
     echo '<code style="display:block;margin:10px 0;padding:10px;background:var(--bg-surface);border-radius:4px;">';
     echo 'zend_extension=opcache<br>';
     echo 'opcache.enable=1<br>';
@@ -774,9 +774,9 @@ if (!$caches['OPcache']['available']) {
 // APCu warning - critical for performance
 if (!$caches['APCu']['available']) {
     echo '<lib-message type="warning" style="margin-bottom:15px;" closable="false">';
-    echo '<strong>APCu is niet geïnstalleerd!</strong> Dit heeft een grote impact op performance.<br><br>';
+    echo '<span class="cma-tool__strong">APCu is niet geïnstalleerd!</span> Dit heeft een grote impact op performance.<br><br>';
     echo 'De cache valt nu terug op trage file-based caching. Formulieren laden langzamer en API calls duren langer.<br><br>';
-    echo '<strong>Oplossing:</strong> Voeg toe aan php.ini:<br>';
+    echo '<span class="cma-tool__strong">Oplossing:</span> Voeg toe aan php.ini:<br>';
     echo '<code style="display:block;margin:10px 0;padding:10px;background:var(--bg-surface);border-radius:4px;">';
     echo 'extension=apcu<br>';
     echo 'apc.enabled=1<br>';
@@ -866,7 +866,7 @@ foreach ($caches as $name => $info) {
 
         if ($hasCount && $count > 0) {
             // Emphasize count when items were cleared
-            echo '<td><strong>' . $count . '</strong> ' . ($count === 1 ? 'item' : 'items') . '</td>';
+            echo '<td><span class="cma-tool__strong">' . $count . '</span> ' . ($count === 1 ? 'item' : 'items') . '</td>';
         } elseif ($alwaysRuns) {
             echo '<td class="always-detail">' . htmlspecialchars($info['detail'] ?? '') . '</td>';
         } elseif ($noAction) {
@@ -886,7 +886,7 @@ if (!$_terserAvailable) {
     $nodeFound = !empty($_nodePath);
     $moduleFound = $_terserModuleExists;
     echo '<lib-message type="warning" style="margin-top:15px;" closable="false">';
-    echo '<strong>JS Minificatie niet beschikbaar</strong><br><br>';
+    echo '<span class="cma-tool__strong">JS Minificatie niet beschikbaar</span><br><br>';
     echo 'Terser comprimeert JavaScript bestanden voor sneller laden. ';
     echo 'De volgende vereisten worden gecontroleerd:<br><br>';
 
@@ -897,7 +897,7 @@ if (!$_terserAvailable) {
     $nodeIcon = $nodeFound ? '✓' : '✗';
     $nodeColor = $nodeFound ? 'green' : 'red';
     echo '<tr><td style="padding:4px 8px;font-size:var(--font-size-lg);color:' . $nodeColor . ';width:24px">' . $nodeIcon . '</td>';
-    echo '<td style="padding:4px 8px"><strong>Stap 1:</strong> Node.js geïnstalleerd</td>';
+    echo '<td style="padding:4px 8px"><span class="cma-tool__strong">Stap 1:</span> Node.js geïnstalleerd</td>';
     echo '<td style="padding:4px 8px;color:var(--text-secondary)">';
     if ($nodeFound) {
         echo '<code style="background:var(--bg-code,#f0f0f0);padding:1px 4px;border-radius:3px">' . htmlspecialchars($_nodePath) . '</code>';
@@ -910,7 +910,7 @@ if (!$_terserAvailable) {
     $modIcon = $moduleFound ? '✓' : '✗';
     $modColor = $moduleFound ? 'green' : 'red';
     echo '<tr><td style="padding:4px 8px;font-size:var(--font-size-lg);color:' . $modColor . '">' . $modIcon . '</td>';
-    echo '<td style="padding:4px 8px"><strong>Stap 2:</strong> terser geïnstalleerd</td>';
+    echo '<td style="padding:4px 8px"><span class="cma-tool__strong">Stap 2:</span> terser geïnstalleerd</td>';
     echo '<td style="padding:4px 8px;color:var(--text-secondary)">';
     if ($moduleFound) {
         echo 'Module gevonden';
@@ -926,7 +926,7 @@ if (!$_terserAvailable) {
 
     // Step 3: IIS restart
     echo '<tr><td style="padding:4px 8px;font-size:var(--font-size-lg);color:var(--text-secondary)">3</td>';
-    echo '<td style="padding:4px 8px"><strong>Stap 3:</strong> IIS herstarten</td>';
+    echo '<td style="padding:4px 8px"><span class="cma-tool__strong">Stap 3:</span> IIS herstarten</td>';
     echo '<td style="padding:4px 8px;color:var(--text-secondary)">';
     $iisCmd = 'iisreset';
     echo '<code id="iisResetCmd" style="display:inline-block;padding:4px 8px;background:var(--bg-code,#f0f0f0);border-radius:3px;user-select:all">'
@@ -953,7 +953,7 @@ if ($hasDetails) {
     echo '<div id="detailsPanel" style="display:none; margin-top:15px;">';
 
     // Browser cache note
-    echo '<lib-message type="info" id="browser-cache-note" style="margin-bottom:15px;"><strong>Browser cache:</strong> Ververs handmatig met <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></lib-message>';
+    echo '<lib-message type="info" id="browser-cache-note" style="margin-bottom:15px;"><span class="cma-tool__strong">Browser cache:</span> Ververs handmatig met <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></lib-message>';
 
     // Memory/Runtime cache details
     $hasExtraInfo = array_filter($caches, fn($c) => !empty($c['extra']));
@@ -1052,7 +1052,7 @@ function toggleDetails() {
 // ==================== FAILURE HINTS ====================
 if ($anyFailed) {
     echo '<lib-message type="warning" closable>';
-    echo '<p style="margin:0 0 10px 0;"><strong>Handmatig legen:</strong></p>';
+    echo '<p style="margin:0 0 10px 0;"><span class="cma-tool__strong">Handmatig legen:</span></p>';
     echo '<ul style="margin:0;padding-left:20px;font-size:var(--font-size-sm);">';
 
     // Default hints per cache type (Dutch) - may contain safe HTML (links)
@@ -1075,7 +1075,7 @@ if ($anyFailed) {
         // Use hintHtml (with copy button etc.) first, then plain hint, then default
         $hintHtml = $caches[$name]['hintHtml'] ?? '';
         $hint = $caches[$name]['hint'] ?? ($defaultHints[$name] ?? null);
-        echo '<li><strong>' . htmlspecialchars($name) . ':</strong> ';
+        echo '<li><span class="cma-tool__strong">' . htmlspecialchars($name) . ':</span> ';
         if ($hintHtml) {
             echo $hintHtml;
         } elseif ($hint) {
@@ -1130,7 +1130,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 var msg = document.getElementById("browser-cache-note");
                 if (msg) {
                     msg.setAttribute("type", "success");
-                    msg.innerHTML = "<strong>Browser cache:</strong> Formulier cache automatisch geleegd";
+                    msg.innerHTML = "<span class="cma-tool__strong">Browser cache:</span> Formulier cache automatisch geleegd";
                 }
             }
         });

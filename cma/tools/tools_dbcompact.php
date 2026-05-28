@@ -55,7 +55,7 @@ function dbCompact($iDatabase)
     // Note: Database compaction via JRO.JetEngine is not available in PHP
     // This would require COM objects which are Windows/IIS specific
     echo '<lib-message type="warning">';
-    echo '<strong>Opmerking:</strong> Database optimalisatie (compacting) via JRO.JetEngine is niet beschikbaar in de PHP versie.<br>';
+    echo '<span class="cma-tool__strong">Opmerking:</span> Database optimalisatie (compacting) via JRO.JetEngine is niet beschikbaar in de PHP versie.<br>';
     echo 'Gebruik Microsoft Access om de database "' . htmlspecialchars($strDBName) . '" handmatig te comprimeren.<br>';
     echo 'Database pad: ' . htmlspecialchars($strFullName);
     echo '</lib-message>';

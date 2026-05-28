@@ -1744,18 +1744,18 @@ class CmaSchemaCanvas extends HTMLElement {
                      data-to-column="${this._escapeHtml(rel.to.column)}"
                      data-inner-join="${rel.innerJoin !== false}"
                      title="Klik om te wijzigen (${joinType} JOIN)">
-                    <span><strong>${this._escapeHtml(this._displayTableName(rel.to.table))}</strong>.${this._escapeHtml(rel.to.column)}</span>
+                    <span><span class="cma-wc__strong">${this._escapeHtml(this._displayTableName(rel.to.table))}</span>.${this._escapeHtml(rel.to.column)}</span>
                     <span class="rel-cardinality">1</span>
                     <span class="rel-join-symbol">${joinSymbol}</span>
                     <span class="rel-cardinality">∞</span>
-                    <span><strong>${this._escapeHtml(this._displayTableName(rel.from.table))}</strong>.${this._escapeHtml(rel.from.column)}</span>
+                    <span><span class="cma-wc__strong">${this._escapeHtml(this._displayTableName(rel.from.table))}</span>.${this._escapeHtml(rel.from.column)}</span>
                 </div>`;
             }).join('');
 
             // Add warning for unrelated tables
             let warning = '';
             if (unrelatedTables.length > 0) {
-                const tableList = unrelatedTables.map(t => `<strong>${this._escapeHtml(this._displayTableName(t))}</strong>`).join(', ');
+                const tableList = unrelatedTables.map(t => `<span class="cma-wc__strong">${this._escapeHtml(this._displayTableName(t))}</span>`).join(', ');
                 warning = `<div class="unrelated-warning">
                     ${unrelatedTables.length === 1 ? 'Tabel' : 'Tabellen'} ${tableList}
                     ${unrelatedTables.length === 1 ? 'heeft' : 'hebben'} geen relatie met de andere tabellen.

@@ -516,7 +516,7 @@ foreach ($formsWithTables as $formName => $formInfo) {
         echo '<label class="action-add"><input type="radio" name="' . $radioName . '" value="add" data-form="' . $safeFormName . '" data-field-index="' . $fieldIndex . '" onchange="handleActionRadio(this)"> + form</label>';
         echo '<label class="action-dropdb"><input type="radio" name="' . $radioName . '" value="dropColumn" data-form="' . $safeFormName . '" data-field-index="' . $fieldIndex . '" data-drop-db="1" onchange="handleActionRadio(this)"> - DB</label>';
         echo '</td>';
-        echo '<td><strong>' . htmlspecialchars($col['name']) . '</strong></td>';
+        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($col['name']) . '</span></td>';
         echo '<td>' . htmlspecialchars($col['type']) . '</td>';
         echo '<td>' . ($col['length'] ?: '-') . '</td>';
         echo '<td>-</td>';
@@ -534,9 +534,9 @@ foreach ($formsWithTables as $formName => $formInfo) {
         echo '<td><input type="checkbox" name="' . $inputName . '[name]" value="' . htmlspecialchars($field['name']) . '" data-form="' . $safeFormName . '" data-delete="1">';
         echo '<input type="hidden" name="' . $inputName . '[type]" value="delete" disabled>';
         echo '</td>';
-        echo '<td><strong>- uit form</strong></td>';
-        echo '<td><strong>' . htmlspecialchars($field['name']) . '</strong></td>';
-        echo '<td><em>(' . htmlspecialchars($field['type']) . ')</em></td>';
+        echo '<td><span class="cma-tool__strong">- uit form</span></td>';
+        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($field['name']) . '</span></td>';
+        echo '<td><span class="cma-tool__em">(' . htmlspecialchars($field['type']) . ')</span></td>';
         echo '<td>-</td>';
         echo '<td>' . ($field['maxLength'] ?: '-') . '</td>';
         echo '<td>-</td>';
@@ -558,7 +558,7 @@ echo '</div>';
 
 // Global summary
 echo '<div class="summary-box" style="margin-top:20px; font-size:var(--font-size-md);">';
-echo '<strong>Totaal overzicht:</strong><br>';
+echo '<span class="cma-tool__strong">Totaal overzicht:</span><br>';
 echo 'Formulieren OK: <span style="color:green;">' . $formsOk . '</span> | ';
 echo 'Met problemen: <span style="color:orange;">' . $formsWithIssues . '</span> | ';
 echo 'Overgeslagen: <span style="color:gray;">' . $formsSkipped . '</span><br>';

@@ -55,15 +55,15 @@ if ($isMigration) {
     if ($result['success']) {
         $detailsHtml = '';
         if (!empty($result['details'])) {
-            $detailsHtml = '<br><strong>Details:</strong><ul>';
+            $detailsHtml = '<br><span class="cma-migration__strong">Details:</span><ul>';
             foreach ($result['details'] as $detail) {
                 $detailsHtml .= '<li>' . htmlspecialchars($detail) . '</li>';
             }
             $detailsHtml .= '</ul>';
         }
-        echo '<lib-message type="success"><strong>Menu succesvol bijgewerkt!</strong><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
+        echo '<lib-message type="success"><span class="cma-migration__strong">Menu succesvol bijgewerkt!</span><br>' . htmlspecialchars($result['message']) . $detailsHtml . '</lib-message>';
     } else {
-        echo '<lib-message type="error"><strong>Bijwerken mislukt!</strong><br>' . htmlspecialchars($result['message']) . '</lib-message>';
+        echo '<lib-message type="error"><span class="cma-migration__strong">Bijwerken mislukt!</span><br>' . htmlspecialchars($result['message']) . '</lib-message>';
     }
 
     echo '</div></body></html>';

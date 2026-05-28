@@ -205,9 +205,9 @@ include dirname(__DIR__) . '/include/header.inc';
     <div style="margin-top: 20px;">
         <h3>Resultaat</h3>
         <div class="result-info <?= $result['success'] ? 'success' : 'error' ?>">
-            <strong>Status:</strong> <?= $result['success'] ? 'Geslaagd' : 'Mislukt' ?><br>
-            <strong>Exit code:</strong> <?= $result['exitCode'] ?><br>
-            <strong>Duur:</strong> <?= $result['duration'] ?> seconden
+            <span class="cma-tool__strong">Status:</span> <?= $result['success'] ? 'Geslaagd' : 'Mislukt' ?><br>
+            <span class="cma-tool__strong">Exit code:</span> <?= $result['exitCode'] ?><br>
+            <span class="cma-tool__strong">Duur:</span> <?= $result['duration'] ?> seconden
         </div>
 
         <h4>Output:</h4>
