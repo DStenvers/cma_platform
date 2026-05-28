@@ -10116,6 +10116,22 @@ class CmaFormController {
             // Replace [domein] placeholder with current domain (without https://)
             url = url.replace(/\[domein\]/gi, window.location.hostname);
 
+            // Generic field-based substitution — any remaining `[fieldname]`
+            // placeholder is looked up as the value of a form input with
+            // that name attribute. Lets a URL template reference e.g.
+            // [slug] without needing a hardcoded branch here. Matches the
+            // pattern used by previewRecord() above.
+            if (this.mainForm) {
+                const placeholders = url.match(/\[[a-z_][a-z0-9_]*\]/gi) || [];
+                for (const ph of placeholders) {
+                    const name = ph.slice(1, -1);
+                    const field = this.mainForm.querySelector('[name="' + name + '"]');
+                    if (field) {
+                        url = url.split(ph).join(encodeURIComponent(field.value || ''));
+                    }
+                }
+            }
+
             // Match protocol to current page (avoid https on localhost/IP)
             if (window.location.protocol === 'http:') {
                 url = url.replace(/^https:\/\//i, 'http://');
