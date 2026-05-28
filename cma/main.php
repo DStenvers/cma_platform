@@ -544,14 +544,12 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
                     <div class="cma-user-menu" id="userMenu">
                         <span class="cma-user-name" id="userName"><?= Server::htmlEncode($userName) ?><?php if ($isImpersonating): ?> <span class="impersonating-label">(ingelogd als)</span><?php endif; ?></span>
                         <div class="cma-user-dropdown" id="userDropdown">
-                            <?php if ($isAdmin || $isDeveloper): ?>
                             <div class="cma-user-dropdown-item cma-user-level-item">
                                 <span class="cma-dropdown-icon lnr lnr-user"></span>
                                 <span class="cma-user-level-label"><?= SecurityHelper::getUserLevelName(SecurityHelper::getUserLevel()) ?></span>
-                                <span class="cma-version"><?= htmlspecialchars(CMA_APP_VERSION) ?></span>
+                                <span class="cma-version" title="CMA platform versie">v<?= htmlspecialchars(CMA_APP_VERSION) ?></span>
                             </div>
                             <div class="cma-user-dropdown-divider"></div>
-                            <?php endif; ?>
                             <a href="/cma/preferences" class="cma-user-dropdown-item" id="menuPreferences" onclick="loadPage('preferences.php'); history.pushState(null, '', '/cma/preferences'); return false;">
                                 <span class="cma-dropdown-icon lnr lnr-cog"></span>Voorkeuren
                             </a>
