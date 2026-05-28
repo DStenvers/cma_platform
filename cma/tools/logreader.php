@@ -126,10 +126,15 @@ if ($deleteAction) {
 
         case 'deploy':
             // Truncate (don't delete) the deploy log so the next deploy
-            // can append. Same pattern as case 'php'.
+            // can append. Same pattern as case 'php' — including the
+            // @ prefix on file_put_contents: a permissions/lock warning
+            // landing in the response buffer would prevent the
+            // header('Location: ...') below from firing, leaving the
+            // browser with a 200 OK + warning text. iOS Safari then
+            // prompts to save the response as "logreader.php".
             $deployLogFile = dirname(dirname(__DIR__)) . '/logs/deploy.log';
             if (file_exists($deployLogFile)) {
-                $deleteResult = (file_put_contents($deployLogFile, '') !== false);
+                $deleteResult = @file_put_contents($deployLogFile, '') !== false;
                 $deleteMessage = $deleteResult
                     ? 'Deploy log geleegd'
                     : 'Kon deploy log niet legen';
