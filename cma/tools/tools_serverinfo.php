@@ -18,20 +18,24 @@ $envSwitchResult = null;
 $emailAvailable = class_exists(\App\Library\Email::class);
 
 // =========================================================================
-// Env-switch handler — writes APP_ENVIRONMENT to the site-root .env file
+// Env-switch handler — writes APP_ENVIRONMENT to the currently loaded
+// .env file (set by Bootstrap::prepareDotenv into $GLOBALS['_env_file'])
 // and redirects so the next request reads the new value. Developers only.
 // Runs before any output so the Location header can fire.
 // =========================================================================
+$activeEnvName = (string)($GLOBALS['_env_file'] ?? '.env');
+$activeEnvPath = dirname(__DIR__, 2) . '/' . $activeEnvName;
+
 if (Request::post('action', '') === 'switch_env' && SecurityHelper::isDeveloper()) {
     $target = strtoupper(trim((string)Request::post('target', '')));
     if (!in_array($target, ['O', 'L', 'T', 'A', 'P'], true)) {
         $envSwitchResult = ['ok' => false, 'msg' => 'Ongeldige doel-omgeving.'];
     } else {
-        $envFile = dirname(__DIR__, 2) . '/.env';
+        $envFile = $activeEnvPath;
         if (!is_file($envFile)) {
-            $envSwitchResult = ['ok' => false, 'msg' => '<code>.env</code> bestaat niet op site-root (' . htmlspecialchars($envFile) . ').'];
+            $envSwitchResult = ['ok' => false, 'msg' => 'Actief env-bestand <code>' . htmlspecialchars($activeEnvName) . '</code> bestaat niet (' . htmlspecialchars($envFile) . ').'];
         } elseif (!is_writable($envFile)) {
-            $envSwitchResult = ['ok' => false, 'msg' => '<code>.env</code> is niet schrijfbaar — controleer rechten op ' . htmlspecialchars($envFile) . '.'];
+            $envSwitchResult = ['ok' => false, 'msg' => '<code>' . htmlspecialchars($activeEnvName) . '</code> is niet schrijfbaar — controleer rechten op ' . htmlspecialchars($envFile) . '.'];
         } else {
             $contents = (string)file_get_contents($envFile);
             $newLine  = 'APP_ENVIRONMENT=' . $target;
@@ -92,7 +96,7 @@ if (Request::post('action', '') === 'send_test_mail' && SecurityHelper::isDevelo
 */
 function main(): void
 {
-    global $testMailResult, $envSwitchResult;
+    global $testMailResult, $envSwitchResult, $activeEnvName, $activeEnvPath;
 
     Response::noCache();
     cma_html_header('CMA - Server informatie');
@@ -115,7 +119,7 @@ function main(): void
     //                  + environment switcher
     // =====================================================================
     echo '<div slot="tab-0">';
-    renderEnvironmentTab($testMailResult, $envSwitchResult);
+    renderEnvironmentTab($testMailResult, $envSwitchResult, $activeEnvName, $activeEnvPath);
     echo '</div>';
 
     // Tab 1: Application settings (was tab-0)
@@ -240,7 +244,7 @@ function main(): void
  * Render the Omgeving tab — environment summary, test-email form, the
  * differences-between-test-and-prod table, and a env-switch shortcut.
  */
-function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult): void
+function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, string $activeEnvName, string $activeEnvPath): void
 {
     // ---- Environment summary ----
     $envCode  = strtoupper((string)Application::get('omgeving', '?'));
@@ -285,8 +289,21 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult): 
         echo '<lib-message type="' . $type . '" closable style="margin-bottom:15px;">' . $envSwitchResult['msg'] . '</lib-message>';
     }
 
+    // Active .env file — set by Bootstrap::prepareDotenv based on either
+    // APP_ENVIRONMENT in the OS env or the first existing .env.* file.
+    // Show its basename (operator-visible) and flag whether it actually
+    // exists on disk; an "unset" badge points at a misconfigured install.
+    $envFileExists = is_file($activeEnvPath);
+    $envFileCell = '<code>' . htmlspecialchars($activeEnvName) . '</code>';
+    if (!$envFileExists) {
+        $envFileCell .= ' <lib-label type="warning">bestaat niet</lib-label>';
+    } elseif (!is_writable($activeEnvPath)) {
+        $envFileCell .= ' <lib-label type="warning">alleen-lezen</lib-label>';
+    }
+
     $summaryRows = [
         ['Omgeving',           '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>' . $envSwitchCell],
+        ['Actief .env bestand', $envFileCell],
         ['CMA platform versie', '<code>v' . htmlspecialchars($cmaVersion) . '</code>'],
         ['PHP versie',         '<code>' . htmlspecialchars(PHP_VERSION) . ' (' . PHP_SAPI . ')</code>'],
         ['Host',               '<code>' . htmlspecialchars($_SERVER['HTTP_HOST'] ?? '?') . '</code>'],
