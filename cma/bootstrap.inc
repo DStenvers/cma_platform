@@ -156,13 +156,23 @@ require_once __DIR__ . '/classes/Services/EmailLogService.php';
 // Controlled by EMAIL_LOG_ENABLED env variable (default: true).
 $emailLogEnabled = ($_ENV['EMAIL_LOG_ENABLED'] ?? 'true') !== 'false';
 if ($emailLogEnabled) {
-    \App\Library\Email::$afterSend = function(array $data) {
-        try {
-            \Cma\Services\EmailLogService::log($data);
-        } catch (\Exception $e) {
-            error_log('EmailLogService::log failed: ' . $e->getMessage());
-        }
-    };
+    // Only register the hook when the Email class is actually
+    // autoloadable. Some consumer sites (older composer.lock pins, or
+    // ones whose vendor/ hasn't been refreshed) end up with this
+    // bootstrap running against a project where App\Library\Email
+    // doesn't resolve — a hard crash here would take the whole CMA
+    // down. Surface the situation via error_log so it's not silent.
+    if (class_exists(\App\Library\Email::class)) {
+        \App\Library\Email::$afterSend = function(array $data) {
+            try {
+                \Cma\Services\EmailLogService::log($data);
+            } catch (\Exception $e) {
+                error_log('EmailLogService::log failed: ' . $e->getMessage());
+            }
+        };
+    } else {
+        error_log('[bootstrap] App\\Library\\Email not autoloadable — afterSend hook skipped. Run composer update stenversonline/platform on this site.');
+    }
 }
 
 // =========================================================================

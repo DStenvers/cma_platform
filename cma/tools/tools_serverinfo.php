@@ -14,30 +14,35 @@ require_once __DIR__ . '/../bootstrap.inc';
 // resend) lives here so it runs before any HTML output.
 // =========================================================================
 $testMailResult = null;
+$emailAvailable = class_exists(\App\Library\Email::class);
 if (Request::post('action', '') === 'send_test_mail' && SecurityHelper::isDeveloper()) {
-    $to      = trim(Request::post('to', ''));
-    $subject = trim(Request::post('subject', '')) ?: 'Test e-mail vanuit CMA';
-    $body    = trim(Request::post('body', '')) ?: 'Dit is een test-e-mail vanuit de CMA Omgeving-tab.';
-    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
-        $testMailResult = ['ok' => false, 'msg' => 'Geen geldig e-mailadres opgegeven.'];
+    if (!$emailAvailable) {
+        $testMailResult = ['ok' => false, 'msg' => 'App\\Library\\Email is niet beschikbaar op deze site. Voer <code>composer update stenversonline/platform</code> uit.'];
     } else {
-        try {
-            $email = Email::create()
-                ->setSubject($subject)
-                ->setBody(nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')))
-                ->addRecipient($to);
-            $sent = $email->send();
-            if ($sent) {
-                $sim = Application::get('local', false);
-                $testMailResult = ['ok' => true, 'msg' => $sim
-                    ? 'E-mail gesimuleerd (local-mode actief — er is niets echt verzonden).'
-                    : 'E-mail succesvol verzonden naar ' . htmlspecialchars($to) . '.'];
-            } else {
-                $err = method_exists($email, 'getError') ? $email->getError() : '';
-                $testMailResult = ['ok' => false, 'msg' => 'Verzending mislukt' . ($err ? ': ' . htmlspecialchars($err) : '.')];
+        $to      = trim(Request::post('to', ''));
+        $subject = trim(Request::post('subject', '')) ?: 'Test e-mail vanuit CMA';
+        $body    = trim(Request::post('body', '')) ?: 'Dit is een test-e-mail vanuit de CMA Omgeving-tab.';
+        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $testMailResult = ['ok' => false, 'msg' => 'Geen geldig e-mailadres opgegeven.'];
+        } else {
+            try {
+                $email = Email::create()
+                    ->setSubject($subject)
+                    ->setBody(nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')))
+                    ->addRecipient($to);
+                $sent = $email->send();
+                if ($sent) {
+                    $sim = Application::get('local', false);
+                    $testMailResult = ['ok' => true, 'msg' => $sim
+                        ? 'E-mail gesimuleerd (local-mode actief — er is niets echt verzonden).'
+                        : 'E-mail succesvol verzonden naar ' . htmlspecialchars($to) . '.'];
+                } else {
+                    $err = method_exists($email, 'getError') ? $email->getError() : '';
+                    $testMailResult = ['ok' => false, 'msg' => 'Verzending mislukt' . ($err ? ': ' . htmlspecialchars($err) : '.')];
+                }
+            } catch (\Throwable $e) {
+                $testMailResult = ['ok' => false, 'msg' => 'Verzending mislukt: ' . htmlspecialchars($e->getMessage())];
             }
-        } catch (\Throwable $e) {
-            $testMailResult = ['ok' => false, 'msg' => 'Verzending mislukt: ' . htmlspecialchars($e->getMessage())];
         }
     }
 }
@@ -278,21 +283,28 @@ function renderEnvironmentTab(?array $testMailResult): void
             $type = $testMailResult['ok'] ? 'success' : 'error';
             echo '<lib-message type="' . $type . '" closable style="margin-bottom:15px;">' . $testMailResult['msg'] . '</lib-message>';
         }
-        $prefillTo = htmlspecialchars($adminMail);
-        echo '<form method="post" action="" style="max-width:600px;display:grid;gap:12px;">';
-        echo '<input type="hidden" name="action" value="send_test_mail">';
-        echo '<label style="display:grid;gap:4px;"><span>Naar</span>';
-        echo '<input type="email" name="to" required value="' . $prefillTo . '" placeholder="ontvanger@voorbeeld.nl"></label>';
-        echo '<label style="display:grid;gap:4px;"><span>Onderwerp</span>';
-        echo '<input type="text" name="subject" value="Test e-mail vanuit CMA"></label>';
-        echo '<label style="display:grid;gap:4px;"><span>Bericht</span>';
-        echo '<textarea name="body" rows="4">Dit is een test-e-mail vanuit de CMA Omgeving-tab.</textarea></label>';
-        echo '<div><button type="submit" class="btn btn-primary"><span class="lnr lnr-paper-plane"></span> Verstuur test</button></div>';
-        echo '</form>';
-        if ($simulation) {
-            echo '<lib-message type="info" compact style="margin-top:10px;">';
-            echo 'Local-mode is actief — de verzending wordt gesimuleerd en de body wordt in een preview-venster getoond i.p.v. via SMTP geleverd.';
+        if (!class_exists(\App\Library\Email::class)) {
+            echo '<lib-message type="warning">';
+            echo 'De <code>App\\Library\\Email</code> klasse is op deze site niet beschikbaar. ';
+            echo 'Voer <code>composer update stenversonline/platform</code> uit zodat <code>vendor/</code> wordt bijgewerkt.';
             echo '</lib-message>';
+        } else {
+            $prefillTo = htmlspecialchars($adminMail);
+            echo '<form method="post" action="" style="max-width:600px;display:grid;gap:12px;">';
+            echo '<input type="hidden" name="action" value="send_test_mail">';
+            echo '<label style="display:grid;gap:4px;"><span>Naar</span>';
+            echo '<input type="email" name="to" required value="' . $prefillTo . '" placeholder="ontvanger@voorbeeld.nl"></label>';
+            echo '<label style="display:grid;gap:4px;"><span>Onderwerp</span>';
+            echo '<input type="text" name="subject" value="Test e-mail vanuit CMA"></label>';
+            echo '<label style="display:grid;gap:4px;"><span>Bericht</span>';
+            echo '<textarea name="body" rows="4">Dit is een test-e-mail vanuit de CMA Omgeving-tab.</textarea></label>';
+            echo '<div><button type="submit" class="btn btn-primary"><span class="lnr lnr-paper-plane"></span> Verstuur test</button></div>';
+            echo '</form>';
+            if ($simulation) {
+                echo '<lib-message type="info" compact style="margin-top:10px;">';
+                echo 'Local-mode is actief — de verzending wordt gesimuleerd en de body wordt in een preview-venster getoond i.p.v. via SMTP geleverd.';
+                echo '</lib-message>';
+            }
         }
     }
 
