@@ -156,3 +156,17 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## Documentation maintenance
+
+The in-CMA documentation hub lives at `cma/tools/documentation.php`. Each topic is a `render_doc_<slug>()` function inside that same file, registered in the `$topics` map at the top. Add new topics by extending both. The page is reachable from **Alle beheerstools → Documentatie** (tile group in `tools.php`).
+
+**Stale documentation is worse than missing documentation** — it actively misleads. Treat the docs as part of the surface that the PR touches, not as an optional after-thought:
+
+- When you change behavior described in a topic (env vars, hook names, deployment steps, install steps, web component APIs, etc.), update that topic in the same PR. Mention the doc update in the commit message.
+- When you delete or rename something that's documented, grep `cma/tools/documentation.php` for the old name and either remove the mention or rewrite the section. The same goes for any leftover `cma/docs/*.md` markdown files.
+- When you add a new tool, web component, or significant helper class, add a docs topic for it (or extend an existing one) — even a small one. A two-paragraph topic beats a swept-under-the-rug feature.
+- Never write "TODO: update this" or "this section is out of date" — fix it in the same PR, or delete the stale section. Readers trust the doc; broken trust is hard to rebuild.
+- When releasing a new version that introduces behavior described in the docs, mention the version in the relevant topic (e.g. "Sinds v1.13.0 …") so readers can correlate the docs to what their site actually has.
+
+The `$topics` map is intentionally flat. Once it grows past ~12 entries, group it — not before. Premature hierarchy makes things harder to find, not easier.

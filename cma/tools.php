@@ -81,6 +81,9 @@ $toolNameMap = [
     'rapport' => 'report-designer.php',
     'storybook' => 'tools/storybook.php',
     'components' => 'tools/storybook.php',
+    'docs' => 'tools/documentation.php',
+    'documentation' => 'tools/documentation.php',
+    'deployment' => 'tools/documentation.php?topic=deployment',
     'formdefinitions' => 'tools/tools_formedit.php',
     'webp' => 'tools/tools_webp_convert.php',
     'webp_convert' => 'tools/tools_webp_convert.php',
@@ -553,6 +556,22 @@ function buildToolsTreeData(bool $isDeveloper): array
     ];
     $folders[] = $frontendFolder;
 
+    // === DOCUMENTATIE ===
+    // Centrale plek voor onderwerpen die een beheerder of ontwikkelaar
+    // moet kennen. Storybook hoort hier ook bij omdat het levende
+    // component-documentatie is, geen tool die data manipuleert.
+    $docsFolder = [
+        'type' => 'folder',
+        'label' => 'Documentatie',
+        'icon' => 'lnr-book',
+        'children' => [
+            ['type' => 'item', 'label' => 'Overzicht',          'href' => 'tools/documentation.php', 'target' => 'R', 'icon' => 'lnr-book'],
+            ['type' => 'item', 'label' => 'Deployment',         'href' => 'tools/documentation.php?topic=deployment', 'target' => 'R', 'icon' => 'lnr-rocket'],
+            ['type' => 'item', 'label' => 'Component Storybook','badge' => 'D', 'href' => 'tools/storybook.php', 'target' => 'R', 'icon' => 'lnr-bubble'],
+        ]
+    ];
+    $folders[] = $docsFolder;
+
     // === DEVELOPER HULPMIDDELEN (Developer only) ===
     if ($isDeveloper) {
         $devFolder = [
@@ -564,7 +583,6 @@ function buildToolsTreeData(bool $isDeveloper): array
                 ['type' => 'item', 'label' => 'CMA menu', 'href' => 'form.php?form=_menus', 'target' => 'R', 'icon' => 'lnr-menu'],
                 ['type' => 'item', 'label' => 'Formulierdefinities', 'href' => 'tools/tools_formedit.php', 'target' => 'R', 'icon' => 'lnr-file-empty'],
                 ['type' => 'item', 'label' => 'CMA definitie sync', 'href' => 'tools/tools_db_sync.php', 'target' => 'R', 'icon' => 'lnr-sync'],
-                ['type' => 'item', 'label' => 'Component Storybook', 'href' => 'tools/storybook.php', 'target' => 'R', 'icon' => 'lnr-book'],
                 ['type' => 'folder', 'label' => 'Testen', 'icon' => 'lnr-checkmark-circle', 'children' => [
                     ['type' => 'item', 'label' => 'Cypress browsertests', 'href' => 'tools/tools_testrunner.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                     ['type' => 'item', 'label' => 'PHP unit tests', 'href' => 'tools/tools_phpunit.php', 'target' => 'R', 'icon' => 'lnr-checkmark-circle'],
