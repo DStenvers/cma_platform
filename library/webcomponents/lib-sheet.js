@@ -111,31 +111,15 @@ class LibSheet extends HTMLElement {
     }
 
     open() {
-        // Belt-and-braces opening:
-        //   1. Wipe any inline transform/transition the panel may have
-        //      inherited from an interrupted drag (pointercancel without
-        //      pointerup leaves transition:none on the panel).
-        //   2. Pin the panel to the closed position with no transition,
-        //      then force a synchronous reflow so the browser commits
-        //      that state.
-        //   3. Restore the CSS-driven transition + transform, then set
-        //      the [open] attribute. The browser now sees translateY
-        //      change from 100% → 0 with a transition active, which is
-        //      the situation in which CSS interpolates instead of
-        //      snapping straight to the end.
+        // Wipe any leftover inline styles from an interrupted drag, then
+        // flip the attribute. _activate handles the slide animation.
         if (this._panel) {
-            this._panel.style.transition = 'none';
-            this._panel.style.transform  = 'translateY(100%)';
-            void this._panel.offsetWidth; // commit closed state
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
         }
         this.setAttribute('open', '');
     }
     close() {
-        // Clear any inline drag-leftover so the closing transition
-        // starts from the actual visible position (CSS translateY(0))
-        // rather than the inline drag offset.
         if (this._panel) {
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
@@ -146,11 +130,37 @@ class LibSheet extends HTMLElement {
 
     /* ---- internal ---- */
 
+    _prefersReducedMotion() {
+        try {
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        } catch (_) {
+            return false;
+        }
+    }
+
     _activate() {
         this.removeAttribute('aria-hidden');
         this._lastFocus = this.ownerDocument.activeElement;
         this._lockScroll(true);
         document.addEventListener('keydown', this._onKeydown);
+
+        // Slide-in via Web Animations API. The CSS rule for :host([open])
+        // already moved the panel to translateY(0), so this animate()
+        // call paints the in-flight slide from 100% → 0 explicitly.
+        // WAAPI fires reliably regardless of whether the browser had
+        // committed the closed state — that's the property the CSS
+        // transition couldn't guarantee on first-open after attach,
+        // direct setAttribute, or after an interrupted drag (which left
+        // the panel with inline transition:none).
+        if (this._panel
+            && typeof this._panel.animate === 'function'
+            && !this._prefersReducedMotion()) {
+            this._panel.animate(
+                [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+                { duration: 260, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
+            );
+        }
+
         // Defer focus a frame so the slide-in has started and the panel is
         // hit-testable.
         requestAnimationFrame(() => {
@@ -169,6 +179,21 @@ class LibSheet extends HTMLElement {
         if (this._lastFocus && typeof this._lastFocus.focus === 'function') {
             this._lastFocus.focus();
         }
+
+        // Slide-out via WAAPI. CSS already moved the panel to
+        // translateY(100%); we paint the transition from the previously-
+        // visible position back to fully off-screen. This still runs
+        // when the user dismissed the sheet via close() OR by simply
+        // removing the [open] attribute externally.
+        if (this._panel
+            && typeof this._panel.animate === 'function'
+            && !this._prefersReducedMotion()) {
+            this._panel.animate(
+                [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
+                { duration: 260, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
+            );
+        }
+
         this.dispatchEvent(new CustomEvent('sheet-close', { bubbles: true }));
     }
 
