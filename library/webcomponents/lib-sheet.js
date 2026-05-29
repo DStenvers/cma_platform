@@ -85,11 +85,15 @@ class LibSheet extends HTMLElement {
             if (this.isClosable) { this.close(); }
         });
         this._closeBtn.addEventListener('click', () => this.close());
-        // Drag-to-dismiss: pointerdown on the visible grab handle starts
-        // the gesture. Restricted to the handle (not the entire panel)
-        // so a touch-drag inside scrollable body content still scrolls
-        // the body instead of trying to dismiss the sheet.
+        // Drag-to-dismiss: bound on BOTH the grab handle and the header
+        // row. The visible handle bar is intentionally thin (~12px) and
+        // easy to miss on touch — extending the drag region to the
+        // whole header gives users a comfortable hit area without
+        // co-opting the scrollable body. _onDragStart bails out when
+        // the pointer landed on the close button or any other
+        // interactive control inside the header.
         this._handle.addEventListener('pointerdown', this._onDragStart);
+        this._header.addEventListener('pointerdown', this._onDragStart);
     }
 
     disconnectedCallback() {
@@ -217,14 +221,30 @@ class LibSheet extends HTMLElement {
     _onDragStart(e) {
         if (!this.isClosable) { return; }
         if (typeof e.button === 'number' && e.button !== 0) { return; } // primary button only
+
+        // Don't co-opt taps on interactive elements inside the header
+        // (close button, future links/buttons in heading area). Walk the
+        // event path to handle shadow-DOM correctly.
+        const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target];
+        for (const node of path) {
+            if (node === this._handle || node === this._header) { break; }
+            if (node && node.nodeType === 1 && /^(button|a|input|select|textarea|label)$/i.test(node.tagName)) {
+                return;
+            }
+        }
+
+        // Bind move/end on the same element pointerdown fired on, so
+        // setPointerCapture targets the right node. Stored on the
+        // instance so _onDragEnd knows where to detach from.
+        this._dragSurface = e.currentTarget;
         this._dragStartY = e.clientY;
         this._dragStartTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
         this._dragDelta = 0;
         this._panel.style.transition = 'none';
-        try { this._handle.setPointerCapture(e.pointerId); } catch (_) {}
-        this._handle.addEventListener('pointermove',   this._onDragMove);
-        this._handle.addEventListener('pointerup',     this._onDragEnd);
-        this._handle.addEventListener('pointercancel', this._onDragEnd);
+        try { this._dragSurface.setPointerCapture(e.pointerId); } catch (_) {}
+        this._dragSurface.addEventListener('pointermove',   this._onDragMove);
+        this._dragSurface.addEventListener('pointerup',     this._onDragEnd);
+        this._dragSurface.addEventListener('pointercancel', this._onDragEnd);
     }
 
     _onDragMove(e) {
@@ -239,14 +259,16 @@ class LibSheet extends HTMLElement {
         const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - this._dragStartTime;
         const velocity = elapsed > 0 ? this._dragDelta / elapsed : 0; // px/ms
         const shouldDismiss = this._dragDelta > 80 || velocity > 0.5;
-        this._handle.removeEventListener('pointermove',   this._onDragMove);
-        this._handle.removeEventListener('pointerup',     this._onDragEnd);
-        this._handle.removeEventListener('pointercancel', this._onDragEnd);
-        try { this._handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        const surface = this._dragSurface || this._handle;
+        surface.removeEventListener('pointermove',   this._onDragMove);
+        surface.removeEventListener('pointerup',     this._onDragEnd);
+        surface.removeEventListener('pointercancel', this._onDragEnd);
+        try { surface.releasePointerCapture(e.pointerId); } catch (_) {}
         this._panel.style.transition = '';
         this._panel.style.transform  = '';
         this._dragStartY = null;
         this._dragDelta  = 0;
+        this._dragSurface = null;
         if (shouldDismiss) {
             this.close();
         }
@@ -329,7 +351,11 @@ class LibSheet extends HTMLElement {
                     justify-content: space-between;
                     gap: 0.5rem;
                     padding: 0.85rem 1rem 0.5rem;
+                    cursor: grab;
+                    touch-action: none;
+                    -webkit-tap-highlight-color: transparent;
                 }
+                .header:active { cursor: grabbing; }
                 .title {
                     margin: 0;
                     font-size: 1rem;
