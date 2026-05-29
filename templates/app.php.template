@@ -39,6 +39,10 @@ if ($db_type === 'access') {
 // EMAIL
 $GLOBALS['Application']['email_from'] = 'info@example.com';
 $GLOBALS['Application']['email_fromname'] = 'My Project';
+// Afzender/CC voor bestelbevestiging + winkel-notificatie (views/afrekenen.inc gebruikt
+// cc_email/email_cc). Niet leeg laten: een lege From geeft "Invalid address (From)".
+$GLOBALS['Application']['cc_email'] = $GLOBALS['Application']['email_from'];
+$GLOBALS['Application']['email_cc'] = $GLOBALS['Application']['email_from'];
 
 // BRANDING
 $GLOBALS['Application']['appname'] = 'My Project';
