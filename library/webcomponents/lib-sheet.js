@@ -59,12 +59,18 @@ class LibSheet extends HTMLElement {
         this.shadowRoot.innerHTML = this._template();
         this._backdrop = this.shadowRoot.querySelector('.backdrop');
         this._panel    = this.shadowRoot.querySelector('.panel');
+        this._handle   = this.shadowRoot.querySelector('.handle');
         this._header   = this.shadowRoot.querySelector('.header');
         this._title    = this.shadowRoot.querySelector('.title');
         this._closeBtn = this.shadowRoot.querySelector('.close');
         this._lastFocus = null;
         this._prevOverflow = '';
-        this._onKeydown = this._onKeydown.bind(this);
+        this._dragStartY = null;
+        this._dragDelta  = 0;
+        this._onKeydown    = this._onKeydown.bind(this);
+        this._onDragStart  = this._onDragStart.bind(this);
+        this._onDragMove   = this._onDragMove.bind(this);
+        this._onDragEnd    = this._onDragEnd.bind(this);
     }
 
     connectedCallback() {
@@ -79,6 +85,11 @@ class LibSheet extends HTMLElement {
             if (this.isClosable) { this.close(); }
         });
         this._closeBtn.addEventListener('click', () => this.close());
+        // Drag-to-dismiss: pointerdown on the visible grab handle starts
+        // the gesture. Restricted to the handle (not the entire panel)
+        // so a touch-drag inside scrollable body content still scrolls
+        // the body instead of trying to dismiss the sheet.
+        this._handle.addEventListener('pointerdown', this._onDragStart);
     }
 
     disconnectedCallback() {
@@ -134,6 +145,54 @@ class LibSheet extends HTMLElement {
     _onKeydown(e) {
         if (e.key === 'Escape' && this.isClosable) {
             e.preventDefault();
+            this.close();
+        }
+    }
+
+    /* ---- drag-to-dismiss ----
+     * Pointer Events give us unified touch/mouse handling. We translate
+     * the panel down by the pointer's delta during the drag (downward
+     * only — upward delta clamps to 0 so the sheet doesn't lift off the
+     * bottom edge) and decide on release whether to close or snap back.
+     *
+     * Threshold: 80px of downward movement OR a release velocity above
+     * 0.5 px/ms commits the dismiss. Anything less snaps back. Matches
+     * what most native bottom sheets feel like.
+     */
+    _onDragStart(e) {
+        if (!this.isClosable) { return; }
+        if (typeof e.button === 'number' && e.button !== 0) { return; } // primary button only
+        this._dragStartY = e.clientY;
+        this._dragStartTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        this._dragDelta = 0;
+        this._panel.style.transition = 'none';
+        try { this._handle.setPointerCapture(e.pointerId); } catch (_) {}
+        this._handle.addEventListener('pointermove',   this._onDragMove);
+        this._handle.addEventListener('pointerup',     this._onDragEnd);
+        this._handle.addEventListener('pointercancel', this._onDragEnd);
+    }
+
+    _onDragMove(e) {
+        if (this._dragStartY === null) { return; }
+        const delta = e.clientY - this._dragStartY;
+        this._dragDelta = delta > 0 ? delta : 0;
+        this._panel.style.transform = 'translateY(' + this._dragDelta + 'px)';
+    }
+
+    _onDragEnd(e) {
+        if (this._dragStartY === null) { return; }
+        const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - this._dragStartTime;
+        const velocity = elapsed > 0 ? this._dragDelta / elapsed : 0; // px/ms
+        const shouldDismiss = this._dragDelta > 80 || velocity > 0.5;
+        this._handle.removeEventListener('pointermove',   this._onDragMove);
+        this._handle.removeEventListener('pointerup',     this._onDragEnd);
+        this._handle.removeEventListener('pointercancel', this._onDragEnd);
+        try { this._handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        this._panel.style.transition = '';
+        this._panel.style.transform  = '';
+        this._dragStartY = null;
+        this._dragDelta  = 0;
+        if (shouldDismiss) {
             this.close();
         }
     }
@@ -242,15 +301,29 @@ class LibSheet extends HTMLElement {
                     padding: 0.25rem 1rem 1rem;
                 }
 
-                /* A small grab handle for the mobile bottom-sheet affordance. */
-                .panel::before {
+                /* Grab handle — also the drag target. Padding around the
+                 * visible bar widens the hit area so it's tappable on
+                 * mobile without making the bar itself look chunky. */
+                .handle {
+                    display: block;
+                    width: 100%;
+                    padding: 0.5rem 0 0.25rem;
+                    cursor: grab;
+                    touch-action: none;
+                    background: transparent;
+                    border: none;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .handle:active { cursor: grabbing; }
+                .handle::before {
                     content: "";
+                    display: block;
                     width: 2.25rem;
                     height: 0.25rem;
                     border-radius: 999px;
                     background: currentColor;
                     opacity: 0.2;
-                    margin: 0.5rem auto 0;
+                    margin: 0 auto;
                 }
 
                 @media (prefers-reduced-motion: reduce) {
@@ -259,6 +332,7 @@ class LibSheet extends HTMLElement {
             </style>
             <div class="backdrop" part="backdrop"></div>
             <div class="panel" part="panel">
+                <div class="handle" part="handle" role="button" tabindex="-1" aria-label="Drag to dismiss"></div>
                 <div class="header" part="header">
                     <h2 class="title" part="title"></h2>
                     <button class="close" part="close" type="button" aria-label="Close" title="Close">&times;</button>

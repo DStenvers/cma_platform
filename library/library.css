@@ -141,6 +141,22 @@ button.btn:disabled, button.btn-primary:disabled, button.btn-secondary:disabled,
     color: var(--text-disabled, #999999) !important;
 }
 
+/* Click-feedback pulse — the :active styles above only show while the
+   mouse is held down, so a quick click leaves no visible trace that the
+   button registered. The .btn--clicked class is added briefly by the
+   delegated click handler in library.js to confirm the click landed. */
+.btn--clicked {
+    animation: lib-btn-click-feedback 220ms ease-out;
+}
+@keyframes lib-btn-click-feedback {
+    0%   { transform: scale(0.96); filter: brightness(0.88); }
+    60%  { transform: scale(1.02); filter: brightness(1.05); }
+    100% { transform: scale(1);    filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn--clicked { animation: none; }
+}
+
 /* Button icon styling */
 .btn .lnr, .btn-primary .lnr, .btn-secondary .lnr, .btn-cancel .lnr, .btn-success .lnr,
 button:not([class]) .lnr {

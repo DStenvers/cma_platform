@@ -2562,3 +2562,26 @@ $("#notification_top, #notification_fixed").click( function () {
 		});
 	});
 }
+
+/* Click feedback on .btn variants — purely a confirmation that the click
+ * landed. The :active CSS rules already darken the button while the
+ * mouse is held down, but a brisk click never paints those styles
+ * long enough to be perceived. Adding .btn--clicked for ~220ms runs a
+ * small scale-bounce keyframe that the user sees regardless of click
+ * speed. Vanilla JS / document-level delegation so it covers every
+ * existing button without per-component wiring. */
+(function () {
+    if (typeof document === 'undefined') { return; }
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn, .btn-primary, .btn-secondary, .btn-cancel, .btn-success, .btn-nav');
+        if (!btn || btn.disabled) { return; }
+        // Restart the animation if the user double-clicks: removing the
+        // class and re-adding it on the next frame forces a replay.
+        btn.classList.remove('btn--clicked');
+        // void reading offsetWidth forces a style flush so the
+        // re-added class actually re-fires the animation.
+        void btn.offsetWidth;
+        btn.classList.add('btn--clicked');
+        setTimeout(function () { btn.classList.remove('btn--clicked'); }, 240);
+    }, true);
+})();
