@@ -92,7 +92,7 @@ if (Request::post('action', '') === 'send_test_mail' && SecurityHelper::isDevelo
 */
 function main(): void
 {
-    global $testMailResult;
+    global $testMailResult, $envSwitchResult;
 
     Response::noCache();
     cma_html_header('CMA - Server informatie');
