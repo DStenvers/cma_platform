@@ -8,6 +8,19 @@
         <!-- Note: allowedServerVariables (HTTP_X_ORIGINAL_FILE, HTTP_X_TOOL_NAME) are configured at IIS server level -->
         <rewrite>
             <rules>
+                <!-- IMPORTANT: hand /cma/* requests off to cma/web.config without
+                     applying any of the parent's rewrite rules. Without this,
+                     parent-level routers (typical pattern: catch-all `_bootstrap_wrapper.php`)
+                     hijack URLs like /cma/dashboard before the child config can
+                     rewrite them, producing 404s. action=None + stopProcessing=true
+                     means "leave this URL untouched and stop here". If you add
+                     HTTPS / www-subdomain redirects to this file, place them
+                     BEFORE this rule so /cma/* still gets force-redirected. -->
+                <rule name="Skip /cma to child config" stopProcessing="true">
+                    <match url="^cma($|/)" />
+                    <action type="None" />
+                </rule>
+
                 <!-- Handle directory requests (e.g., /cma/) - check for default.php -->
                 <rule name="Bootstrap Directory Default" stopProcessing="true">
                     <match url="^(.*?)/?$" ignoreCase="true" />
