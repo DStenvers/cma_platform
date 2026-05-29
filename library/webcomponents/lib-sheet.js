@@ -121,14 +121,37 @@ class LibSheet extends HTMLElement {
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
         }
+        this.removeAttribute('closing'); // belt-and-braces if a previous close was interrupted
         this.setAttribute('open', '');
     }
     close() {
+        if (!this.hasAttribute('open')) { return; }
         if (this._panel) {
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
         }
-        this.removeAttribute('open');
+        // For the close animation we add [closing] (drives the slide-out
+        // keyframe) but keep [open] until the animation has actually
+        // ended — that way scroll-lock, aria-hidden, focus-restore all
+        // happen at the moment the panel disappears, not 240ms earlier.
+        if (this._prefersReducedMotion() || typeof this._panel.animate !== 'function') {
+            this.removeAttribute('open');
+            return;
+        }
+        this.setAttribute('closing', '');
+        const onEnd = (e) => {
+            // Only react to OUR slide-out keyframe (not the backdrop's
+            // opacity transition or anything inside the slot).
+            if (e && e.animationName && e.animationName.indexOf('lib-sheet-slide-out') === -1) {
+                return;
+            }
+            this._panel.removeEventListener('animationend',    onEnd);
+            this._panel.removeEventListener('animationcancel', onEnd);
+            this.removeAttribute('closing');
+            this.removeAttribute('open');
+        };
+        this._panel.addEventListener('animationend',    onEnd);
+        this._panel.addEventListener('animationcancel', onEnd);
     }
     toggle() { this.hasAttribute('open') ? this.close() : this.open(); }
 
@@ -148,25 +171,9 @@ class LibSheet extends HTMLElement {
         this._lockScroll(true);
         document.addEventListener('keydown', this._onKeydown);
 
-        // Slide-in via Web Animations API. The CSS rule for :host([open])
-        // already moved the panel to translateY(0), so this animate()
-        // call paints the in-flight slide from 100% → 0 explicitly.
-        // WAAPI fires reliably regardless of whether the browser had
-        // committed the closed state — that's the property the CSS
-        // transition couldn't guarantee on first-open after attach,
-        // direct setAttribute, or after an interrupted drag (which left
-        // the panel with inline transition:none).
-        if (this._panel
-            && typeof this._panel.animate === 'function'
-            && !this._prefersReducedMotion()) {
-            this._panel.animate(
-                [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
-                { duration: 260, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
-            );
-        }
-
-        // Defer focus a frame so the slide-in has started and the panel is
-        // hit-testable.
+        // The slide-in is driven by the CSS @keyframes rule on
+        // :host([open]) .panel. Defer focus a frame so the slide-in has
+        // started and the panel is hit-testable.
         requestAnimationFrame(() => {
             const focusable = this.querySelector(
                 'input, button, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'
@@ -183,21 +190,12 @@ class LibSheet extends HTMLElement {
         if (this._lastFocus && typeof this._lastFocus.focus === 'function') {
             this._lastFocus.focus();
         }
-
-        // Slide-out via WAAPI. CSS already moved the panel to
-        // translateY(100%); we paint the transition from the previously-
-        // visible position back to fully off-screen. This still runs
-        // when the user dismissed the sheet via close() OR by simply
-        // removing the [open] attribute externally.
-        if (this._panel
-            && typeof this._panel.animate === 'function'
-            && !this._prefersReducedMotion()) {
-            this._panel.animate(
-                [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
-                { duration: 260, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
-            );
-        }
-
+        // The slide-out is driven by the CSS @keyframes rule on
+        // :host([closing]) .panel — set by close() before [open] is
+        // removed. If the consumer drops [open] without going through
+        // close(), the panel just disappears (no closing animation),
+        // which matches the "instant" semantics of a direct attribute
+        // change.
         this.dispatchEvent(new CustomEvent('sheet-close', { bubbles: true }));
     }
 
@@ -340,10 +338,32 @@ class LibSheet extends HTMLElement {
                     border-radius: var(--_radius) var(--_radius) 0 0;
                     box-shadow: var(--lib-sheet-shadow, 0 -8px 28px rgba(0, 0, 0, 0.28));
                     padding-bottom: env(safe-area-inset-bottom, 0px);
+                    pointer-events: auto;
+                    /* Closed state — sits below the viewport. The :host([open])
+                     * rule below moves it to translateY(0); the animation
+                     * properties paint the in-flight slide. CSS @keyframes is
+                     * more reliable than transition for this case: transitions
+                     * can be elided when the browser hasn't committed the
+                     * starting state yet, but a keyframe animation that runs
+                     * on [open]-add always paints the from-frame first. */
                     transform: translateY(100%);
-                    transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1);
                 }
-                :host([open]) .panel { transform: translateY(0); }
+                :host([open]) .panel {
+                    transform: translateY(0);
+                    animation: lib-sheet-slide-in 280ms cubic-bezier(0.32, 0.72, 0, 1);
+                }
+                :host([closing]) .panel {
+                    transform: translateY(100%);
+                    animation: lib-sheet-slide-out 240ms cubic-bezier(0.32, 0.72, 0, 1);
+                }
+                @keyframes lib-sheet-slide-in {
+                    from { transform: translateY(100%); }
+                    to   { transform: translateY(0); }
+                }
+                @keyframes lib-sheet-slide-out {
+                    from { transform: translateY(0); }
+                    to   { transform: translateY(100%); }
+                }
 
                 .header {
                     display: flex;
@@ -353,6 +373,7 @@ class LibSheet extends HTMLElement {
                     padding: 0.85rem 1rem 0.5rem;
                     cursor: grab;
                     touch-action: none;
+                    pointer-events: auto;
                     -webkit-tap-highlight-color: transparent;
                 }
                 .header:active { cursor: grabbing; }
@@ -382,33 +403,43 @@ class LibSheet extends HTMLElement {
                     padding: 0.25rem 1rem 1rem;
                 }
 
-                /* Grab handle — also the drag target. Padding around the
-                 * visible bar widens the hit area so it's tappable on
-                 * mobile without making the bar itself look chunky. */
+                /* Grab handle — also the drag target. Generous vertical
+                 * padding makes the hit area ~28px tall (the WCAG/AAA
+                 * minimum for touch targets) without making the visible
+                 * bar look chunky. Explicit pointer-events + position
+                 * relative + high z-index inside the panel so nothing the
+                 * consumer slots above can swallow the gesture. */
                 .handle {
                     display: block;
                     width: 100%;
-                    padding: 0.5rem 0 0.25rem;
+                    padding: 0.85rem 0 0.5rem;
                     cursor: grab;
                     touch-action: none;
                     background: transparent;
                     border: none;
+                    pointer-events: auto;
+                    position: relative;
+                    z-index: 1;
                     -webkit-tap-highlight-color: transparent;
+                    -webkit-user-select: none;
+                            user-select: none;
                 }
                 .handle:active { cursor: grabbing; }
                 .handle::before {
                     content: "";
                     display: block;
-                    width: 2.25rem;
-                    height: 0.25rem;
+                    width: 2.5rem;
+                    height: 0.3rem;
                     border-radius: 999px;
                     background: currentColor;
-                    opacity: 0.2;
+                    opacity: 0.25;
                     margin: 0 auto;
                 }
+                .handle:hover::before  { opacity: 0.4; }
+                .handle:active::before { opacity: 0.55; }
 
                 @media (prefers-reduced-motion: reduce) {
-                    .backdrop, .panel { transition: none; }
+                    .backdrop, .panel { transition: none; animation: none !important; }
                 }
             </style>
             <div class="backdrop" part="backdrop"></div>
