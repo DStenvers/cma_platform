@@ -53,6 +53,11 @@
  *   DEPLOY_BRANCH         Branch to deploy (default: main)
  *   DEPLOY_SITE_ROOT      Repo root (default: dir containing this file)
  *   DEPLOY_PIPELINE       ; -separated commands (default: git pull only)
+ *   DEPLOY_COMPOSER_UPDATE Comma-separated package list to `composer
+ *                         update` after the pipeline. Default:
+ *                         "stenversonline/platform". Set "-" to skip
+ *                         (e.g. if your deploy already runs composer
+ *                         outside the webhook).
  *   DEPLOY_RECYCLE_TOUCH  File to touch on success — defaults to
  *                         <site_root>/web.config. Set "-" to skip.
  *   DEPLOY_LOG_FILE       Log path (default: <site_root>/logs/deploy.log)
@@ -218,6 +223,41 @@ foreach ($commands as $cmd) {
     if ($exit !== 0) {
         $failed = true;
         break; // abort pipeline on first failure
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 6b. composer update — refreshes vendor/ so the autoloaded App\Library
+//     classes (Email, Bootstrap, etc.) stay in sync with the cma/ files
+//     the Installer syncs to the project root. Without this step sites
+//     can drift into a half-updated state where cma/ has the new tools
+//     but vendor/ is stale, causing "Class not found" fatals.
+//
+//     Default: update the platform package only — safer than a blanket
+//     `composer update` that could shift other dependencies. Override
+//     with a comma-separated list of packages, or set "-" to skip
+//     entirely (e.g. sites that run composer update outside the webhook).
+// ---------------------------------------------------------------------------
+$composerUpdate = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
+if (!$failed && $composerUpdate !== '-' && $composerUpdate !== '') {
+    $packages = preg_split('/\s*,\s*/', $composerUpdate, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $pkgArgs  = implode(' ', array_map('escapeshellarg', $packages));
+    $cmd = 'composer update ' . $pkgArgs . ' --no-interaction';
+    $log("RUN: $cmd");
+    $output = [];
+    $exit   = 0;
+    if ($isWin) {
+        exec('cmd /c "cd /d "' . $siteRoot . '" && ' . $cmd . ' 2>&1"', $output, $exit);
+    } else {
+        exec('cd ' . escapeshellarg($siteRoot) . ' && ' . $cmd . ' 2>&1', $output, $exit);
+    }
+    $text = implode("\n", $output);
+    $log("EXIT: $exit\n--- output ---\n$text\n--- end ---");
+    if ($exit !== 0) {
+        // Don't set $failed — pipeline succeeded; vendor refresh is a
+        // best-effort step. The error is logged so the operator can fix
+        // it (missing composer binary in PATH is the most common cause).
+        $log("WARN: composer update failed — vendor may be out of sync with cma/ files");
     }
 }
 

@@ -14,7 +14,47 @@ require_once __DIR__ . '/../bootstrap.inc';
 // resend) lives here so it runs before any HTML output.
 // =========================================================================
 $testMailResult = null;
+$envSwitchResult = null;
 $emailAvailable = class_exists(\App\Library\Email::class);
+
+// =========================================================================
+// Env-switch handler — writes APP_ENVIRONMENT to the site-root .env file
+// and redirects so the next request reads the new value. Developers only.
+// Runs before any output so the Location header can fire.
+// =========================================================================
+if (Request::post('action', '') === 'switch_env' && SecurityHelper::isDeveloper()) {
+    $target = strtoupper(trim((string)Request::post('target', '')));
+    if (!in_array($target, ['O', 'L', 'T', 'A', 'P'], true)) {
+        $envSwitchResult = ['ok' => false, 'msg' => 'Ongeldige doel-omgeving.'];
+    } else {
+        $envFile = dirname(__DIR__, 2) . '/.env';
+        if (!is_file($envFile)) {
+            $envSwitchResult = ['ok' => false, 'msg' => '<code>.env</code> bestaat niet op site-root (' . htmlspecialchars($envFile) . ').'];
+        } elseif (!is_writable($envFile)) {
+            $envSwitchResult = ['ok' => false, 'msg' => '<code>.env</code> is niet schrijfbaar — controleer rechten op ' . htmlspecialchars($envFile) . '.'];
+        } else {
+            $contents = (string)file_get_contents($envFile);
+            $newLine  = 'APP_ENVIRONMENT=' . $target;
+            $newContents = preg_match('/^APP_ENVIRONMENT=.*$/m', $contents)
+                ? preg_replace('/^APP_ENVIRONMENT=.*$/m', $newLine, $contents)
+                : rtrim($contents) . "\n" . $newLine . "\n";
+            if (file_put_contents($envFile, $newContents) === false) {
+                $envSwitchResult = ['ok' => false, 'msg' => 'Schrijven naar <code>.env</code> mislukt.'];
+            } else {
+                header('Location: tools_serverinfo.php?env_switched=' . urlencode($target));
+                exit;
+            }
+        }
+    }
+}
+
+// Pick up the success flash from the POST-Redirect-GET round-trip
+if ($envSwitchResult === null && Request::query('env_switched', '') !== '') {
+    $newEnv = strtoupper(trim((string)Request::query('env_switched', '')));
+    if (in_array($newEnv, ['O', 'L', 'T', 'A', 'P'], true)) {
+        $envSwitchResult = ['ok' => true, 'msg' => 'Omgeving omgeschakeld — <code>APP_ENVIRONMENT=' . $newEnv . '</code> staat nu in <code>.env</code>.'];
+    }
+}
 if (Request::post('action', '') === 'send_test_mail' && SecurityHelper::isDeveloper()) {
     if (!$emailAvailable) {
         $testMailResult = ['ok' => false, 'msg' => 'App\\Library\\Email is niet beschikbaar op deze site. Voer <code>composer update stenversonline/platform</code> uit.'];
@@ -75,7 +115,7 @@ function main(): void
     //                  + environment switcher
     // =====================================================================
     echo '<div slot="tab-0">';
-    renderEnvironmentTab($testMailResult);
+    renderEnvironmentTab($testMailResult, $envSwitchResult);
     echo '</div>';
 
     // Tab 1: Application settings (was tab-0)
@@ -200,7 +240,7 @@ function main(): void
  * Render the Omgeving tab — environment summary, test-email form, the
  * differences-between-test-and-prod table, and a env-switch shortcut.
  */
-function renderEnvironmentTab(?array $testMailResult): void
+function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult): void
 {
     // ---- Environment summary ----
     $envCode  = strtoupper((string)Application::get('omgeving', '?'));
@@ -218,8 +258,35 @@ function renderEnvironmentTab(?array $testMailResult): void
 
     $cmaVersion = defined('CMA_APP_VERSION') ? CMA_APP_VERSION : 'onbekend';
 
+    // Switch target — flip between T and P. From any other env (O/L/A)
+    // the default target is P. Developers only.
+    $envSwitchCell = '';
+    if (SecurityHelper::isDeveloper()) {
+        $target = $envCode === 'P' ? 'T' : 'P';
+        $targetName = $envNames[$target] ?? $target;
+        $confirmMsg = htmlspecialchars(
+            'Schakel APP_ENVIRONMENT om naar ' . $target . ' (' . $targetName . ')? '
+            . 'Deze wijziging wordt in .env weggeschreven en geldt voor alle gebruikers van deze site.',
+            ENT_QUOTES, 'UTF-8'
+        );
+        $envSwitchCell  = '<form method="post" action="" style="display:inline-block;margin-left:12px;">';
+        $envSwitchCell .= '<input type="hidden" name="action" value="switch_env">';
+        $envSwitchCell .= '<input type="hidden" name="target" value="' . $target . '">';
+        $envSwitchCell .= '<button type="submit" class="btn btn-secondary btn-sm" '
+                       .  'onclick="return confirm(\'' . $confirmMsg . '\')" '
+                       .  'title="Schakel APP_ENVIRONMENT om naar ' . htmlspecialchars($targetName) . '">';
+        $envSwitchCell .= '<span class="lnr lnr-sync"></span> Wissel naar ' . htmlspecialchars($target);
+        $envSwitchCell .= '</button>';
+        $envSwitchCell .= '</form>';
+    }
+
+    if ($envSwitchResult !== null) {
+        $type = $envSwitchResult['ok'] ? 'success' : 'error';
+        echo '<lib-message type="' . $type . '" closable style="margin-bottom:15px;">' . $envSwitchResult['msg'] . '</lib-message>';
+    }
+
     $summaryRows = [
-        ['Omgeving',           '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>'],
+        ['Omgeving',           '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>' . $envSwitchCell],
         ['CMA platform versie', '<code>v' . htmlspecialchars($cmaVersion) . '</code>'],
         ['PHP versie',         '<code>' . htmlspecialchars(PHP_VERSION) . ' (' . PHP_SAPI . ')</code>'],
         ['Host',               '<code>' . htmlspecialchars($_SERVER['HTTP_HOST'] ?? '?') . '</code>'],
@@ -308,37 +375,6 @@ function renderEnvironmentTab(?array $testMailResult): void
         }
     }
 
-    // ---- Environment switcher ----
-    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
-    $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $uri  = (string)($_SERVER['REQUEST_URI'] ?? '/');
-    $hasTestPrefix = str_starts_with($host, 'test.');
-    if ($hasTestPrefix) {
-        $otherHost = substr($host, 5);
-        $otherLabel = 'productie';
-        $otherIcon  = 'lnr-rocket';
-    } else {
-        $otherHost = 'test.' . $host;
-        $otherLabel = 'testomgeving';
-        $otherIcon  = 'lnr-bug';
-    }
-    $otherUrl = $proto . '://' . $otherHost . $uri;
-
-    echo '<h2 style="margin-top:30px;"><span class="lnr lnr-sync"></span> Wissel van omgeving</h2>';
-    echo '<p style="color:var(--text-muted);">';
-    echo 'Snelle sprong naar dezelfde URL op de andere omgeving. Gebaseerd op het <code>test.</code> subdomein-patroon.';
-    echo '</p>';
-    echo '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
-    echo '<a href="' . htmlspecialchars($otherUrl) . '" class="btn btn-primary" target="_top">';
-    echo '<span class="lnr ' . $otherIcon . '"></span> Naar ' . htmlspecialchars($otherLabel);
-    echo '</a>';
-    echo '<code style="font-size:var(--font-size-sm);color:var(--text-muted);">' . htmlspecialchars($otherUrl) . '</code>';
-    echo '</div>';
-    if (!$hasTestPrefix) {
-        echo '<lib-message type="warning" compact style="margin-top:10px;">';
-        echo 'Je zit op de productie-host. Klikken opent de equivalente URL op <code>test.' . htmlspecialchars($host) . '</code> — alleen relevant als dat subdomein bestaat.';
-        echo '</lib-message>';
-    }
 }
 
 // Call main function
