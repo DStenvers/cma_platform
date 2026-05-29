@@ -110,8 +110,38 @@ class LibSheet extends HTMLElement {
         return this.getAttribute('closable') !== 'false';
     }
 
-    open()  { this.setAttribute('open', ''); }
-    close() { this.removeAttribute('open'); }
+    open() {
+        // Belt-and-braces opening:
+        //   1. Wipe any inline transform/transition the panel may have
+        //      inherited from an interrupted drag (pointercancel without
+        //      pointerup leaves transition:none on the panel).
+        //   2. Pin the panel to the closed position with no transition,
+        //      then force a synchronous reflow so the browser commits
+        //      that state.
+        //   3. Restore the CSS-driven transition + transform, then set
+        //      the [open] attribute. The browser now sees translateY
+        //      change from 100% → 0 with a transition active, which is
+        //      the situation in which CSS interpolates instead of
+        //      snapping straight to the end.
+        if (this._panel) {
+            this._panel.style.transition = 'none';
+            this._panel.style.transform  = 'translateY(100%)';
+            void this._panel.offsetWidth; // commit closed state
+            this._panel.style.transition = '';
+            this._panel.style.transform  = '';
+        }
+        this.setAttribute('open', '');
+    }
+    close() {
+        // Clear any inline drag-leftover so the closing transition
+        // starts from the actual visible position (CSS translateY(0))
+        // rather than the inline drag offset.
+        if (this._panel) {
+            this._panel.style.transition = '';
+            this._panel.style.transform  = '';
+        }
+        this.removeAttribute('open');
+    }
     toggle() { this.hasAttribute('open') ? this.close() : this.open(); }
 
     /* ---- internal ---- */
