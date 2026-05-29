@@ -8,8 +8,8 @@
  *   - Whether any GGUF models are installed locally + a CTA over to
  *     LLM-management (tools_llm.php) when none are.
  *   - Anthropic fallback presence — confirms the safety net is wired.
- *   - Last few /api/recipe-parse errors from logs/php_errors.log so
- *     the operator can see what's failing without scraping the box.
+ *   - Last few LLM-related errors from logs/php_errors.log so the
+ *     operator can see what's failing without scraping the box.
  *
  * Auth: standard CMA admin login (was a DEPLOY_SECRET ?key= flow until
  * v1.13.x — refactored to match every other tools/ page now that the
@@ -100,7 +100,11 @@ if ($modelsDir === '') {
 $installed = is_dir($modelsDir) ? glob($modelsDir . DIRECTORY_SEPARATOR . '*.gguf') : [];
 
 // ---------------------------------------------------------------------------
-// Recent recipe-parse errors from the app's PHP error log (best-effort).
+// Recent LLM-related errors from the app's PHP error log (best-effort).
+// Filter is intentionally narrow — [Llm] is the tag App\Library\Llm emits
+// on every log call, and `LLM ` catches occasional ad-hoc messages. Other
+// errors stay out of view so this surface doesn't become a generic log
+// reader.
 // ---------------------------------------------------------------------------
 $logFile = $siteRoot . '/logs/php_errors.log';
 $recentErrors = [];
@@ -112,8 +116,7 @@ if (is_file($logFile)) {
         $tail = (string)stream_get_contents($f);
         @fclose($f);
         foreach (preg_split('/\r?\n/', $tail) ?: [] as $line) {
-            if (stripos($line, 'recipe_parse') !== false
-             || stripos($line, '[Llm]') !== false
+            if (stripos($line, '[Llm]') !== false
              || stripos($line, 'LLM ') !== false) {
                 $recentErrors[] = $line;
             }
@@ -132,7 +135,7 @@ echo '<body class="contentbody tools tool-llm-analyse">';
 ToolbarHelper::start(true);
 ToolbarHelper::title('LLM-status');
 ToolbarHelper::separator();
-ToolbarHelper::status('Snelle controle van de receptenparser-keten');
+ToolbarHelper::status('Configuratie, endpoint-probe en recente fouten van de LLM-pipeline');
 ToolbarHelper::startRight();
 ToolbarHelper::button($modelsRoute, 'lnr-brain', true, 'LLM management', 'Engine-status, installatie-stappen en aanbevolen modellen');
 ToolbarHelper::button('javascript:location.reload()', 'lnr-sync', true, 'Vernieuwen', 'Probe opnieuw uitvoeren');
@@ -187,7 +190,7 @@ echo '<div id="c" class="tools">';
 <h2 style="margin-top:25px;"><span class="lnr lnr-cloud-sync"></span> Endpoint-probe</h2>
 <?php if ($llmUrl === ''): ?>
 <lib-message type="info">
-    <code>LLM_URL</code> is niet gezet — de recipe-parser valt direct terug op Anthropic.
+    <code>LLM_URL</code> is niet gezet — alle LLM-calls vallen direct terug op de Anthropic-fallback.
     Status van de API-key:
     <?= $visionKey === '' && $llmKey === ''
         ? '<lib-label type="error">geen API-key gevonden</lib-label>'
@@ -219,7 +222,7 @@ echo '<div id="c" class="tools">';
 <?php if ($recentErrors): ?>
 <pre class="log-output" style="max-height:18rem;overflow-y:auto;color:var(--color-error,#c0392b);"><?= htmlspecialchars(implode("\n", $recentErrors)) ?></pre>
 <?php else: ?>
-<lib-message type="info" compact>Geen recente <code>recipe_parse</code> / <code>[Llm]</code> regels in de laatste 64KB van het logbestand.</lib-message>
+<lib-message type="info" compact>Geen recente <code>[Llm]</code> regels in de laatste 64KB van het logbestand.</lib-message>
 <?php endif; ?>
 
 <h2 style="margin-top:25px;"><span class="lnr lnr-list"></span> Volgende stappen</h2>
