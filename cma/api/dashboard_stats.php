@@ -532,8 +532,11 @@ function getRecentActivityStats(): array
     try {
         $conn = Database::getConnection('data');
 
-        // Use Form (handle) preferentially, fallback to Formname for legacy records
-        $sql = "SELECT TOP 10 ID, Format(datestamp, 'dd-mm hh:nn') AS timestamp,
+        // Use Form (handle) preferentially, fallback to Formname for legacy records.
+        // NB: [timestamp] is bracketed — JET treats the bare word as a reserved
+        // identifier in the alias position and the prepare step throws
+        // "De instructie SELECT bevat een gereserveerd woord". Brackets stop that.
+        $sql = "SELECT TOP 10 ID, Format(datestamp, 'dd-mm hh:nn') AS [timestamp],
                        Username, Actie, IIf(Form Is Null Or Form='', Formname, Form) AS FormHandle, RecordID
                 FROM tblCMAMonitoring
                 ORDER BY datestamp DESC";
@@ -629,8 +632,9 @@ function getFailedLoginStats(): array
         }
         // Skip $rs->Close() - ODBC recordsets don't support closeCursor()
 
-        // Get recent failed attempts
-        $sql = "SELECT TOP 5 Format(datestamp, 'dd-mm hh:nn') AS timestamp,
+        // Get recent failed attempts — [timestamp] bracketed, see note
+        // at the earlier query.
+        $sql = "SELECT TOP 5 Format(datestamp, 'dd-mm hh:nn') AS [timestamp],
                        Username, Actie, Notificatie
                 FROM tblCMAMonitoring
                 WHERE $errorFilter

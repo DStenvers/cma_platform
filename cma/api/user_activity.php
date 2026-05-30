@@ -52,10 +52,13 @@ try {
     // Get user's recent activity (last 10-20 items they viewed/edited)
     $usernameEscaped = str_replace("'", "''", $username);
 
-    // Use Form (handle) preferentially, fallback to Formname for legacy records
+    // Use Form (handle) preferentially, fallback to Formname for legacy records.
+    // NB: [timestamp] is bracketed — JET treats the bare word as a reserved
+    // identifier in the alias position and the prepare step throws
+    // "De instructie SELECT bevat een gereserveerd woord". Brackets stop that.
     $sql = "SELECT TOP $limit
                 ID,
-                Format(datestamp, 'dd-mm hh:nn') AS timestamp,
+                Format(datestamp, 'dd-mm hh:nn') AS [timestamp],
                 Actie,
                 IIf(Form Is Null Or Form='', Formname, Form) AS FormHandle,
                 RecordID
