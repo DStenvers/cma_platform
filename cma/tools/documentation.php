@@ -446,8 +446,8 @@ function render_doc_deployment(): void
         Pad op de schijf: <code><?= htmlspecialchars($logFile) ?></code> (override via <code>DEPLOY_LOG_FILE</code>). Elke run heeft een banner met branch + commit; <code>OK: deploy &lt;sha&gt;</code> betekent succes, <code>FAILED: deploy &lt;sha&gt;</code> betekent een breek in de pipeline.
     </p>
 
-    <h2>Remote deploy-status check (sinds v1.19.0)</h2>
-    <p>Publiek read-only endpoint dat de laatste run uit <code>logs/deploy.log</code> als JSON teruggeeft. Geen auth — status / commit-SHA / branch / timestamp zijn niet gevoelig (commit-SHAs staan al in de public git history, branch-namen ook), en het log bevat per conventie geen secrets in zijn pipeline-output.</p>
+    <h2>Remote deploy-status check (sinds v1.19.1)</h2>
+    <p>Publiek read-only endpoint dat de laatste run uit <code>logs/deploy.log</code> als JSON teruggeeft. Geen auth — status / commit-SHA / branch / timestamp zijn niet gevoelig (commit-SHAs staan al in de public git history, branch-namen ook), en het log bevat per conventie geen secrets in zijn pipeline-output. Volledig standalone: geen Composer autoload, geen platform-bootstrap, geen <code>.env</code>-reader — werkt dus ook als <code>vendor/</code> of <code>.env</code> stuk is.</p>
     <pre><code>curl 'https://&lt;host&gt;/cma/tools/deploy_status.php'</code></pre>
     <p>Success-respons:</p>
     <pre><code>{
@@ -481,7 +481,7 @@ function render_doc_deployment(): void
             <tr><td><code>DEPLOY_PIPELINE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>git pull --ff-only origin {branch}</code></td><td><code>;</code>-gescheiden commando's. <code>{branch}</code> wordt vervangen.</td></tr>
             <tr><td><code>DEPLOY_COMPOSER_UPDATE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>stenversonline/platform</code></td><td>Pakketten om na de pipeline te updaten. Comma-separated. Set <code>-</code> om over te slaan.</td></tr>
             <tr><td><code>DEPLOY_RECYCLE_TOUCH</code></td><td><lib-label type="information">nee</lib-label></td><td><code>web.config</code></td><td>Bestand om te touch'en na succes (IIS app-pool recycle). Set <code>-</code> om over te slaan.</td></tr>
-            <tr><td><code>DEPLOY_LOG_FILE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>logs/deploy.log</code></td><td>Locatie van de deploy-log. Schrijfbaar voor de webserver-user.</td></tr>
+            <tr><td><code>DEPLOY_LOG_FILE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>logs/deploy.log</code></td><td>Locatie van de deploy-log voor de webhook-writer. <span class="cma-tool__strong">Let op</span>: <code>deploy_status.php</code> leest sinds v1.19.1 alleen het default pad <code>logs/deploy.log</code> — een override hier wordt door de reader genegeerd.</td></tr>
             <tr><td><code>DEPLOY_POST_HOOK</code></td><td><lib-label type="information">nee</lib-label></td><td><code>deploy_post.php</code></td><td>Project-side PHP-script NA recycle. Cache-flushes, schema-migraties, image-profile backfills. Set <code>-</code> om over te slaan.</td></tr>
         </tbody>
     </table>
