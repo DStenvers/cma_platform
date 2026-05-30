@@ -251,10 +251,18 @@ if (!$isNomenuMode) {
             if (iframe) {
                 iframe.src = href;
             }
-            // Update URL to reflect selected tool
+            // Update URL to reflect selected tool.
+            // Hardcoded base "/cma/tools" instead of window.location.pathname:
+            // if the user landed here via /cma/main.php?page=tools.php (the SPA
+            // fallback path) then pathname is "/cma/main.php" and the previous
+            // concat produced "/cma/main.php?tool=…" — that URL routes nowhere
+            // on refresh and surfaces as "Geen toegang" because the wrapper
+            // includes the wrong file. Anchoring on /cma/tools always yields
+            // the canonical clean URL whose Tools Directory rewrite rule
+            // routes correctly.
             var toolName = extractToolName(href);
             if (toolName) {
-                var newUrl = window.location.pathname + '?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             }
         }
@@ -372,15 +380,21 @@ if (!$isNomenuMode) {
             // Load tool page in iframe
             iframe.src = href;
 
-            // Update URL to reflect selected tool (for main.php wrapper)
+            // Update URL to reflect selected tool. Always anchor on
+            // /cma/tools (canonical clean URL) so refresh routes through
+            // the Tools Directory rewrite rule cleanly. Concatenating
+            // window.location.pathname caused broken URLs when the
+            // current pathname was /cma/main.php?page=tools.php — see
+            // explanatory comment in the standalone-mode click handler
+            // above.
             var toolName = extractToolName(href);
             if (toolName && window.parent === window) {
-                var newUrl = window.location.pathname + '?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             } else if (toolName && window.parent !== window) {
-                // Update parent URL when loaded in main.php
+                // Loaded inside an outer SPA frame — also anchor on /cma/tools.
                 try {
-                    var parentUrl = window.parent.location.pathname + '?page=tools.php&tool=' + encodeURIComponent(toolName);
+                    var parentUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                     window.parent.history.pushState({ tool: toolName }, '', parentUrl);
                 } catch (e) {
                     // Cross-origin, ignore
