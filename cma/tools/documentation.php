@@ -446,6 +446,49 @@ function render_doc_deployment(): void
         Pad op de schijf: <code><?= htmlspecialchars($logFile) ?></code> (override via <code>DEPLOY_LOG_FILE</code>). Elke run heeft een banner met branch + commit; <code>OK: deploy &lt;sha&gt;</code> betekent succes, <code>FAILED: deploy &lt;sha&gt;</code> betekent een breek in de pipeline.
     </p>
 
+    <h2>Remote deploy-status check (sinds v1.19.0)</h2>
+    <p>Voor monitoring of een AI-assistant die wil verifiëren of een deploy slaagde zonder SSH naar de box: <code>cma/tools/deploy_status.php</code> retourneert de samenvatting van de laatste run als JSON, gegate via <code>DEPLOY_SECRET</code>.</p>
+    <pre><code>curl 'https://&lt;host&gt;/cma/tools/deploy_status.php?key=&lt;DEPLOY_SECRET&gt;'</code></pre>
+    <p>Success-respons:</p>
+    <pre><code>{
+    "ok":               true,
+    "status":           "OK",            // of "FAILED" of "RUNNING"
+    "branch":           "main",
+    "commit":           "c4ed4d5",
+    "ended_at":         "2026-05-30 14:23:14",
+    "duration_seconds": 13,
+    "age_seconds":      312,
+    "running":          false,
+    "log_tail":         "...laatste 40 regels van deploy.log..."
+}
+</code></pre>
+    <p>Foutgevallen:</p>
+    <ul>
+        <li><code>401</code> — ontbrekend of fout <code>?key</code>.</li>
+        <li><code>404</code> — geen <code>deploy.log</code> gevonden (geen deploys ooit gedraaid, of het env-pad klopt niet).</li>
+        <li><code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log bestaat maar bevat geen banner die op een afgesloten deploy duidt.</li>
+    </ul>
+
+    <h3>CLAUDE.md-snippet voor consumer-sites</h3>
+    <p>Plak dit blok in de <code>CLAUDE.md</code> van een consumer-site zodat een AI-assistent na een <code>git push</code> kan controleren of de deploy succesvol was zonder verdere instructies:</p>
+    <pre><code>## Deploy verificatie
+
+Na een `git push` naar de productie-branch kan ik bevestigen of de
+deploy succesvol was door <code>cma/tools/deploy_status.php</code> op te halen:
+
+```bash
+curl 'https://&lt;host&gt;/cma/tools/deploy_status.php?key=$DEPLOY_SECRET'
+```
+
+(`$DEPLOY_SECRET` staat in dit project's `.env`.) De respons is JSON met
+`status: "OK"` als de laatste run slaagde, `"FAILED"` als hij faalde, of
+`"RUNNING"` als er nog een deploy bezig is. `age_seconds` toont hoe oud
+de status is — pollen met 10-30s interval is genoeg voor de meeste
+deploys (gemiddelde duur is &lt; 30s). Bij FAILED bevat `log_tail` de
+laatste 40 regels van `logs/deploy.log` voor diagnose.
+</code></pre>
+    <p>Vraag aan een AI-assistent: <span class="cma-tool__em">"voeg het deploy-verificatie blok uit de Documentatie → Deployment toe aan deze site's CLAUDE.md"</span>. De assistent kopieert dan exact bovenstaand fragment naar het juiste bestand.</p>
+
     <h2>Vereiste .env instellingen</h2>
     <table class="listtable">
         <thead>
