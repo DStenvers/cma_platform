@@ -76,6 +76,15 @@ $topics = [
             'releasing'     => ['label' => 'Releasen &amp; versies',      'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
         ],
     ],
+    'reference' => [
+        'label' => 'Troubleshooting &amp; referentie',
+        'icon'  => 'lnr-magnifier',
+        'children' => [
+            'troubleshooting' => ['label' => 'Troubleshooting',     'icon' => 'lnr-warning',  'render' => 'render_doc_troubleshooting'],
+            'mail'            => ['label' => 'Mail-configuratie',   'icon' => 'lnr-envelope', 'render' => 'render_doc_mail'],
+            'llm'             => ['label' => 'LLM-configuratie',    'icon' => 'lnr-brain',    'render' => 'render_doc_llm'],
+        ],
+    ],
     'storybook' => [
         'label' => 'Component Storybook',
         'icon'  => 'lnr-bubble',
@@ -229,6 +238,16 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
             <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>LibLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
             <tr><td><a href="documentation.php?topic=releasing"><span class="lnr lnr-tag"></span> Releasen &amp; versies</a></td><td>composer.json version bump, git tag, semver, REMOVED_PATHS voor retired bestanden.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Troubleshooting &amp; referentie</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Onderwerp</th><th>Inhoud</th></tr></thead>
+        <tbody>
+            <tr><td><a href="documentation.php?topic=troubleshooting"><span class="lnr lnr-warning"></span> Troubleshooting</a></td><td>Catalog van bekende symptomen + root cause + fix-versie.</td></tr>
+            <tr><td><a href="documentation.php?topic=mail"><span class="lnr lnr-envelope"></span> Mail-configuratie</a></td><td>Email API, SMTP config-keys, test/local-mode, EmailLogService afterSend hook.</td></tr>
+            <tr><td><a href="documentation.php?topic=llm"><span class="lnr lnr-brain"></span> LLM-configuratie</a></td><td>Engines, env-vars, curated modellenlijst, Anthropic-fallback.</td></tr>
         </tbody>
     </table>
 
@@ -1492,6 +1511,247 @@ git add composer.json &lt;files&gt; &amp;&amp; \
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (consumer-side composer update), <a href="documentation.php?topic=installation">Installatie</a>.
+    </div>
+    <?php
+}
+
+// -------------------------------------------------------------------------
+// TROUBLESHOOTING & REFERENTIE
+// -------------------------------------------------------------------------
+
+function render_doc_troubleshooting(): void
+{
+    ?>
+    <h1>Troubleshooting</h1>
+    <p class="docs-meta">Catalog van bekende symptomen, hun root cause, en de versie waarin ze gefixed zijn. Vóórdat je hier zoekt: check de juiste topic-specifieke troubleshooting-sectie eerst.</p>
+
+    <h2>Versies, vendor &amp; install</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td><code>vdev-main</code> in profielmenu i.p.v. echte versie</td><td>vendor/ stale t.o.v. cma/ files; Bootstrap::getPlatformVersion() pre-v1.9.1 las eerst installed.json, die zegt <code>dev-main</code> bij branch-installs.</td><td><code>composer update stenversonline/platform</code>. v1.9.1+ leest eerst de package's eigen composer.json — daarna verschijnt vanzelf <code>v&lt;X.Y.Z&gt;</code>.</td></tr>
+            <tr><td>Fatal: <code>Class "App\Library\Email" not found</code></td><td>Zelfde oorzaak — vendor refresh ontbrak, Email.php nog niet autoloadable maar bootstrap.inc raakt 'm aan.</td><td>v1.12.1+ heeft <code>class_exists</code> guard zodat CMA niet meer crash't; voor permanent: composer update.</td></tr>
+            <tr><td>Composer update draait, maar cma/ files niet ververst</td><td><code>composer.json</code> mist de <code>post-install-cmd</code> / <code>post-update-cmd</code> scripts die <code>App\Library\Installer</code> aanroepen.</td><td>Scripts sectie toevoegen aan consumer's composer.json — zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
+            <tr><td>Retired bestand blijft op consumer-site na upgrade</td><td>Installer's syncDirectory kopieert alleen forward; verwijderde bestanden propageren niet.</td><td>Voeg het pad toe aan <code>REMOVED_PATHS</code> in <code>src/Installer.php</code>. Bij volgende composer update opgeruimd. Zie <a href="documentation.php?topic=releasing">Releasen &amp; versies</a>.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>IIS &amp; URL Rewrite</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td><code>/cma/dashboard</code> → 404, maar <code>/cma/dashboard.php</code> wel 200</td><td>Parent web.config vangt <code>/cma/*</code> op vóór het kind <code>cma/web.config</code>.</td><td>Voeg "Skip /cma to child config" regel bovenaan parent <code>&lt;rules&gt;</code> toe — sinds v1.14.2 standaard in <code>templates/web.config.template</code>. Zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
+            <tr><td>500 op alle <code>/cma/*</code> requests, parent IIS-error over locked config-sectie</td><td>Allowed server variables nog niet ontgrendeld op server-niveau.</td><td><code>appcmd unlock</code> — zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
+            <tr><td>Friendly URL <code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt</td><td>"CMA Tools Friendly URL" regel ontbreekt in site-root web.config, of URL Rewrite Module niet geïnstalleerd.</td><td>Module installeren via iis.net; regel kopiëren uit een werkende consumer-site.</td></tr>
+            <tr><td>iOS Safari prompt "Download logreader.php?" bij Log leegmaken</td><td><code>file_put_contents()</code> in delete-handler emitterde PHP-warning, polluatie van response-buffer brak de Location-redirect. Browser kreeg 200 OK met warning-tekst, geen Content-Type → download.</td><td>Gefixed in v1.10.1 met <code>@</code>-suppress op de truncate-call.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Omgeving / .env</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>Env-switch knop drukt, refresh, niks gewijzigd</td><td>v1.13.0 schreef altijd naar hardcoded <code>.env</code>, ook als bootstrap <code>.env.test</code> of <code>.env.production</code> had geladen. Regel landde in het verkeerde bestand.</td><td>v1.14.3+ schrijft naar het ACTIEVE env-bestand (zichtbaar als "Actief .env bestand" op de Omgeving-tab).</td></tr>
+            <tr><td>"Schrijven naar .env mislukt" foutmelding</td><td>IIS-user heeft geen schrijfrechten op het env-bestand.</td><td>NTFS ACL aanpassen voor <code>IIS APPPOOL\&lt;sitename&gt;</code>.</td></tr>
+            <tr><td>APP_ENVIRONMENT staat goed in .env, maar omgeving-code blijft P</td><td>OS-level <code>APP_ENVIRONMENT</code> (in IIS app-pool environment variables) overrulet de file-content tijdens <code>Bootstrap::prepareDotenv</code>.</td><td>Verwijder de OS-level setting in IIS Manager → Application Pools → Advanced Settings → Environment Variables.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Deployment &amp; webhook</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>GitHub-webhook delivery faalt met 401</td><td><code>DEPLOY_SECRET</code> mismatch tussen server en GitHub.</td><td>Roteer beide tegelijk; valideer met curl tegen het endpoint.</td></tr>
+            <tr><td>202 Accepted maar er gebeurt niks zichtbaars</td><td>Pipeline-fout post-acceptatie.</td><td>Tail <code>logs/deploy.log</code> — failed step staat onder <code>RUN: ...</code> / <code>EXIT: 1</code>.</td></tr>
+            <tr><td>"composer update failed" WARN in deploy-log</td><td>Composer niet in PATH van de IIS-user.</td><td>Path toevoegen of composer.phar absoluut pad gebruiken in <code>DEPLOY_COMPOSER_UPDATE</code> — beide niet automatisch.</td></tr>
+            <tr><td>Migration-banner verschijnt niet ondanks pending migrations</td><td>Tot v1.10.4 werd de bootstrap-side migration-check fout silent ingeslikt.</td><td>v1.10.4+ surface't de exception als rode banner + <code>error_log</code>.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>LLM &amp; LLM-status</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>"Probe-fout: Connection timed out…" op een engine die je niet gebruikt</td><td>Tot v1.10.2 toonde tools_llm.php de raw probe-error op elke kaart, ook engines die niet geïnstalleerd zijn.</td><td>v1.10.2+ onderdrukt de regel voor niet-in-use engines en gebruikt "niet geïnstalleerd" badge in neutrale styling.</td></tr>
+            <tr><td>"Modellen installeren" knop deed niks</td><td>llm_models.php's install-knop liep tegen permissions/PowerShell-paden aan.</td><td>v1.13.0 retirde de page; aanbevolen modellen leven nu inline op de Ollama-kaart met <code>ollama pull &lt;tag&gt;</code> copy-paste.</td></tr>
+            <tr><td>Recipe-parser specifieke teksten op een niet-recipe site</td><td>llm_analyse.php had hardgecodeerde "receptenparser" wording uit mijntoprecepten-context.</td><td>v1.14.1 generieked naar "LLM-pipeline" / "Anthropic-fallback".</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Web components</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>lib-sheet animeert niet bij open</td><td>CSS-transitions kunnen door browsers worden overgeslagen als de closed-state niet eerst gecommit is (first-open na attach, of na een onderbroken drag).</td><td>v1.11.4+ gebruikt CSS <code>@keyframes</code> i.p.v. transition — keyframes hebben dit probleem niet.</td></tr>
+            <tr><td>lib-sheet grab-bar niet draggable op mobiel</td><td>Hit-area van ~12px is te klein voor touch.</td><td>v1.11.3+ bindt drag óók op het hele <code>.header</code>-element (~50px); v1.11.4+ heeft de bar zelf ook gepromoot naar ~28px hit-area.</td></tr>
+            <tr><td>Knop-klik geeft geen visuele feedback</td><td>CSS <code>:active</code> styles bestaan wel, maar een korte klik laat ze nooit lang genoeg zien.</td><td>v1.11.0+ heeft <code>.btn--clicked</code> animatie die door een document-level click handler 220ms wordt aangezet.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>File-browser wizard</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>Upload met zelfde extensie als geselecteerd bestand vraagt niet "overschrijven?"</td><td>Feature niet geïmplementeerd tot v1.10.0.</td><td>v1.10.0+ vraagt "Ja, overschrijf bestand" / "Nee, plaats ernaast" wanneer een single-file upload dezelfde extensie heeft.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="seealso">
+        Zie ook: alle topics hebben eigen "Troubleshooting" subsecties voor onderwerp-specifieke issues. Deze pagina is de cross-cutting catalog.
+    </div>
+    <?php
+}
+
+function render_doc_mail(): void
+{
+    ?>
+    <h1>Mail-configuratie</h1>
+    <p class="docs-meta">Hoe de Email-helper SMTP gebruikt, en welke environment/Application keys hij leest.</p>
+
+    <h2>Application-keys</h2>
+    <p><code>App\Library\Email</code> leest in zijn <code>initialize()</code> deze waardes via <code>Application::get()</code>:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:240px">Application-key</th><th>Default</th><th>Doel</th></tr></thead>
+        <tbody>
+            <tr><td><code>mail_server</code></td><td><code>localhost</code></td><td>SMTP-host.</td></tr>
+            <tr><td><code>mail_server_port</code></td><td><code>25</code></td><td>SMTP-poort. Voor TLS: 587. Voor SSL: 465.</td></tr>
+            <tr><td><code>mail_username</code></td><td><code>''</code></td><td>SMTP-username. Lege string → geen auth.</td></tr>
+            <tr><td><code>mail_password</code></td><td><code>''</code></td><td>SMTP-password.</td></tr>
+            <tr><td><code>email_fromname</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-adres.</td></tr>
+            <tr><td><code>company</code></td><td><code>RINO amsterdam</code></td><td>Default From-name.</td></tr>
+            <tr><td><code>email_template</code></td><td><code>''</code></td><td>HTML-template voor de body. Leeg = geen template.</td></tr>
+            <tr><td><code>app_beheerder_email</code></td><td><code>''</code></td><td>Auto-BCC op alle uitgaande mail. Gehandhaafd voor audit-trail.</td></tr>
+            <tr><td><code>local</code></td><td><code>false</code></td><td>True → simulatie-modus: <code>showPreview()</code> i.p.v. echte SMTP.</td></tr>
+            <tr><td><code>test</code></td><td><code>false</code></td><td>True → <code>wrapTestEnvironmentWarning()</code> plakt een "TEST" banner bovenaan de body.</td></tr>
+        </tbody>
+    </table>
+    <p>Deze keys leef in <code>app.php</code> (template-bestand op de site-root, NIET in git). Voor production-secrets is dat de juiste plek.</p>
+
+    <h2>Email API</h2>
+    <pre><code>use App\Library\Email;
+
+// Factory + fluent interface
+$ok = Email::create()
+    -&gt;setSubject('Welkom bij ...')
+    -&gt;setBody('&lt;p&gt;Beste ...&lt;/p&gt;')
+    -&gt;setFrom('noreply@example.nl', 'Naam')   // override default
+    -&gt;setReplyTo('support@example.nl')
+    -&gt;addRecipient('user@example.com', 'Naam')
+    -&gt;addRecipientCC('cc@example.com')
+    -&gt;addRecipientBCC('audit@example.com')
+    -&gt;addAttachment('/path/to/file.pdf')
+    -&gt;setTemplate('&lt;html&gt;&lt;body&gt;{{BODY}}&lt;/body&gt;&lt;/html&gt;')
+    -&gt;send();
+// returns bool
+</code></pre>
+
+    <h2>Test-mode (Application::get('test'))</h2>
+    <p>Als de <code>test</code> flag in Application aan staat, voegt <code>send()</code> een rode warning-banner bovenaan elke body:</p>
+    <pre><code>&lt;div style="background:#fee; border:2px solid red; padding:10px;"&gt;
+    LET OP - TEST OMGEVING (origineel naar: original-recipient@example.com)
+&lt;/div&gt;
+</code></pre>
+    <p>De originele To/CC/BCC-lijsten worden NIET aangepast — die staan in de banner zodat je ziet waar de mail "echt" naartoe ging. Default: BCC blijft op <code>app_beheerder_email</code> staan en die ontvangt 'm dus ook.</p>
+
+    <h2>Local-mode (Application::get('local'))</h2>
+    <p>Als de <code>local</code> flag aan staat, draait <code>showPreview()</code> in plaats van <code>$this-&gt;mailer-&gt;send()</code>:</p>
+    <ul>
+        <li>De rendered HTML (inclusief test-wrap als <code>test</code> ook aan staat) wordt in een pop-up venster geserveerd.</li>
+        <li>SMTP wordt niet geraakt — handig voor lokale dev zonder mail-server.</li>
+        <li>De Omgeving-tab's test-mail formulier surface't dit als "E-mail gesimuleerd (local-mode actief)".</li>
+    </ul>
+
+    <h2>EmailLogService afterSend hook</h2>
+    <p><code>cma/bootstrap.inc</code> registreert sinds altijd een afterSend-callback op de static <code>Email::$afterSend</code> property:</p>
+    <pre><code>\App\Library\Email::$afterSend = function(array $data) {
+    \Cma\Services\EmailLogService::log($data);
+};
+</code></pre>
+    <p>Elke <code>Email::send()</code> roept deze hook aan met <code>$data</code> dat bevat: <code>success</code>, <code>from</code>, <code>to</code> (originele recipients, vóór test-clearing), <code>cc</code>, <code>bcc</code>, <code>subject</code>, <code>body</code>, <code>error</code>. <code>EmailLogService</code> persist deze naar <code>tblEmailLog</code> voor admin-review.</p>
+    <p>Controleerbaar via env-var <code>EMAIL_LOG_ENABLED</code> (default <code>true</code>). Sinds v1.12.1 staat er een <code>class_exists</code> guard om de afterSend-assignment heen zodat half-updated installs (waar <code>Email.php</code> nog niet autoloadable is) niet crash'en op deze regel.</p>
+
+    <h2>Test-mail formulier</h2>
+    <p>Op de Omgeving-tab van <a href="tools_serverinfo.php" target="_top">Server informatie</a> staat een test-mail form dat <code>Email::create()-&gt;send()</code> aanroept tegen de huidige config — handig om SMTP-bereikbaarheid te testen zonder een echte form-action te triggeren. Developers-only.</p>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=logs">Logs &amp; monitoring</a> (waar email-fouten landen), <a href="documentation.php?topic=security">Beveiliging</a> (secrets in app.php).
+    </div>
+    <?php
+}
+
+function render_doc_llm(): void
+{
+    ?>
+    <h1>LLM-configuratie</h1>
+    <p class="docs-meta">Engines, env-vars, en de curated modellenlijst die <code>tools_llm.php</code> en <code>llm_analyse.php</code> beide voeden.</p>
+
+    <h2>Engines die het platform kent</h2>
+    <p><code>tools_llm.php</code> definieert vier engine-entries:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Engine-key</th><th>Default URL</th><th>Probe-pad</th></tr></thead>
+        <tbody>
+            <tr><td><code>ollama</code></td><td><code>http://localhost:11434</code></td><td><code>/api/tags</code></td></tr>
+            <tr><td><code>lmstudio</code></td><td><code>http://localhost:1234</code></td><td><code>/v1/models</code></td></tr>
+            <tr><td><code>llamacpp</code></td><td><code>http://localhost:8080</code></td><td><code>/v1/models</code></td></tr>
+            <tr><td><code>anthropic_fallback</code></td><td><code>https://api.anthropic.com</code></td><td><code>/v1/models</code> met <code>x-api-key</code> header</td></tr>
+        </tbody>
+    </table>
+    <p>De Ollama-kaart toont sinds v1.13.0 de curated modellenlijst inline. Wanneer <code>llamacpp</code>'s probe succesvol is, wordt de Ollama-kaart overgeslagen — de cook heeft dan al een werkende engine.</p>
+
+    <h2>Env-vars</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:200px">Variabele</th><th>Doel</th></tr></thead>
+        <tbody>
+            <tr><td><code>LLM_PROVIDER</code></td><td>Forceer een specifieke provider. Default: auto-detect op basis van <code>LLM_URL</code>.</td></tr>
+            <tr><td><code>LLM_URL</code></td><td>OpenAI-compatible endpoint voor de primary LLM. Bijv. <code>http://localhost:11434/api/generate</code> voor Ollama, <code>http://localhost:8080/v1</code> voor llama.cpp.</td></tr>
+            <tr><td><code>LLM_MODEL</code></td><td>Modelnaam die de primary engine moet gebruiken. Op de LLM-status pagina wordt deze gematcht tegen wat de engine zelf zegt te hebben geladen.</td></tr>
+            <tr><td><code>LLM_KEY</code></td><td>API-key voor de Anthropic-fallback. <code>App\Library\Llm::anthropicFallbackKey()</code> leest deze EERST.</td></tr>
+            <tr><td><code>LLM_FALLBACK_MODEL</code></td><td>Anthropic-model voor de fallback (bijv. <code>claude-haiku-4-5</code>).</td></tr>
+            <tr><td><code>OCR_VISION_KEY</code></td><td>API-key voor vision-OCR. Als <code>LLM_KEY</code> leeg is, valt de fallback-resolver hier op terug — mits <code>OCR_VISION_PROVIDER</code> op <code>anthropic</code> staat (of unset, default = anthropic).</td></tr>
+            <tr><td><code>OCR_VISION_PROVIDER</code></td><td>Provider voor de vision-OCR. Standaard <code>anthropic</code>; alternatieven blokken de fallback-share met <code>LLM_KEY</code>.</td></tr>
+            <tr><td><code>LLM_MODELS_DIR</code></td><td>Waar GGUF-bestanden lokaal leven. Default: <code>C:\llama\models</code> op Windows, <code>~/llama-models</code> elders.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Curated modellenlijst</h2>
+    <p>Single source of truth: <code>cma/data/llm_suggested_models.php</code>. Per entry:</p>
+    <ul>
+        <li><code>name</code> — GGUF-bestandsnaam op disk.</li>
+        <li><code>label</code> — human-readable label.</li>
+        <li><code>note</code> — one-line context (grootte, vendor, sterke punten).</li>
+        <li><code>url</code> — Hugging Face direct-download URL.</li>
+        <li><code>sizeApprox</code> — bytes (voor download-progress estimate).</li>
+        <li><code>ollama_tag</code> — Ollama-registry tag (bv. <code>gemma3:4b</code>).</li>
+    </ul>
+    <p>Index 0 is de current recommendation; zowel <code>tools_llm.php</code>'s install-steps (interpoleert <code>$recOllamaTag</code> / <code>$recGGUF</code> / <code>$recLlmModel</code> in code-blocks) als de Ollama-kaart's "Aanbevolen modellen" sectie gebruiken die. Nieuw SOTA-model? Prepend in de array — beide surfaces volgen automatisch.</p>
+
+    <h2>Resolutie van de Anthropic-fallback key</h2>
+    <p>De fallback-resolver in <code>App\Library\Llm::anthropicFallbackKey()</code> volgt deze volgorde:</p>
+    <ol>
+        <li><code>LLM_KEY</code> als die niet leeg is.</li>
+        <li><code>OCR_VISION_KEY</code> als <code>OCR_VISION_PROVIDER</code> op <code>anthropic</code> staat (of unset).</li>
+        <li>Anders: geen key — fallback werkt niet.</li>
+    </ol>
+    <p>Op de <a href="tools/llm_analyse.php" target="_top">LLM-status pagina</a> staat een gemaskeerde versie van de gebruikte key (<code>sk-ant-…XyZ</code>) zodat je kan verifiëren dat de juiste env-var aanslaat.</p>
+
+    <h2>llm_analyse.php vs tools_llm.php</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:200px">Page</th><th>Doel</th></tr></thead>
+        <tbody>
+            <tr><td><a href="tools/llm_analyse.php" target="_top"><code>llm_analyse.php</code></a></td><td>Status-dashboard: config-tabel, endpoint-probe, lokale modellen-lijst, recente <code>[Llm]</code> fouten uit php_errors.log. Sinds v1.14.0 standaard CMA-login (was DEPLOY_SECRET).</td></tr>
+            <tr><td><a href="tools/tools_llm.php" target="_top"><code>tools_llm.php</code></a></td><td>Management-page: probe per engine, inline modellen-lijst per engine, install-steps per OS in collapsible details. De Ollama-kaart heeft de curated <code>ollama pull</code>-lijst inline.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Probe-kind sturing</h2>
+    <p>Per engine kun je het probe-gedrag overrulen via <code>probe_kind</code>:</p>
+    <ul>
+        <li>Default: <code>local</code> — eenvoudige GET, geen extra headers.</li>
+        <li><code>anthropic</code> — voegt <code>x-api-key</code> + <code>anthropic-version</code> headers toe, leest de key via <code>llm_anthropic_key()</code> resolver.</li>
+    </ul>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=environment">Omgeving &amp; .env</a> (waar LLM_* leeft), <a href="documentation.php?topic=troubleshooting">Troubleshooting</a> (LLM-sectie).
     </div>
     <?php
 }
