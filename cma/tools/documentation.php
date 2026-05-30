@@ -462,7 +462,20 @@ function render_doc_deployment(): void
     "log_tail":         "...laatste 40 regels van deploy.log..."
 }
 </code></pre>
-    <p>Foutgevallen: <code>404</code> als <code>deploy.log</code> niet bestaat, <code>200</code> met <code>{"ok": false}</code> als het log er wel is maar geen complete run bevat.</p>
+    <p>Foutgevallen:</p>
+    <ul>
+        <li>HTTP <code>404</code> met <code>{"ok": false, "error": "deploy.log not found", "path": "..."}</code> — de webhook heeft nog nooit op deze site gedraaid, of de <code>logs/</code> directory bestaat niet.</li>
+        <li>HTTP <code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log-bestand bestaat wel maar er staat nog geen banner-bracketed run in.</li>
+    </ul>
+
+    <h3>Triage-flow</h3>
+    <ol>
+        <li>Curl het endpoint. Krijg je een netwerkfout of HTML in plaats van JSON, dan is de site down of <code>web.config</code> stuk — fix dat eerst.</li>
+        <li><code>status: "OK"</code> + lage <code>age_seconds</code> → deploy is geslaagd.</li>
+        <li><code>status: "FAILED"</code> → lees <code>log_tail</code> om te zien welke stap omviel. Usual suspects: <code>git pull</code>, <code>composer update</code>, de post-deploy hook.</li>
+        <li><code>status: "RUNNING"</code> waarbij <code>age_seconds</code> blijft groeien voorbij een paar minuten → de deploy hangt. Kijk direct in <code>logs/deploy.log</code> op de server.</li>
+        <li><code>404 "deploy.log not found"</code> → de webhook heeft nog niet gevuurd op deze site. Check de GitHub webhook delivery log en <code>DEPLOY_SECRET</code>.</li>
+    </ol>
 
     <h2>Vereiste .env instellingen</h2>
     <table class="listtable">
