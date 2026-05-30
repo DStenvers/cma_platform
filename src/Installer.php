@@ -48,6 +48,12 @@ class Installer
         // "No new .md documentation files" rule.
         'cma/docs/iis-setup.md',
         'cma/docs/logging.md',
+        // Phase 2 retirements (v1.17.0)
+        'cma/docs/architecture_review.md',
+        'cma/docs/json.md',
+        'cma/docs/forms.md',
+        'cma/docs/api-reference.md',
+        'cma/docs/menuicons.md',
     ];
 
     /**

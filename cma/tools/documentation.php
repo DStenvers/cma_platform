@@ -62,6 +62,20 @@ $topics = [
             'iis_config'   => ['label' => 'IIS-configuratie',      'icon' => 'lnr-server',      'render' => 'render_doc_iis_config'],
         ],
     ],
+    'dev' => [
+        'label' => 'Voor ontwikkelaars',
+        'icon'  => 'lnr-code',
+        'children' => [
+            'architecture'  => ['label' => 'Architectuur',                'icon' => 'lnr-layers',     'render' => 'render_doc_architecture'],
+            'new_tool'      => ['label' => 'Een CMA-tool toevoegen',      'icon' => 'lnr-construction','render' => 'render_doc_new_tool'],
+            'database'      => ['label' => 'Database & RecordSet',        'icon' => 'lnr-database',   'render' => 'render_doc_database'],
+            'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
+            'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
+            'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
+            'errors'        => ['label' => 'Logging &amp; errors (dev)',  'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
+            'releasing'     => ['label' => 'Releasen &amp; versies',      'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
+        ],
+    ],
     'storybook' => [
         'label' => 'Component Storybook',
         'icon'  => 'lnr-bubble',
@@ -200,6 +214,21 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=logs"><span class="lnr lnr-list"></span> Logs &amp; monitoring</a></td><td>Welke log waar ligt, logreader, cmamonitoring, retentie.</td></tr>
             <tr><td><a href="documentation.php?topic=security"><span class="lnr lnr-lock"></span> Beveiliging</a></td><td>Secrets, sessie-cookies, geblokkeerde extensies, hiddenSegments.</td></tr>
             <tr><td><a href="documentation.php?topic=iis_config"><span class="lnr lnr-server"></span> IIS-configuratie</a></td><td>web.config layering, URL Rewrite Module, app-pool recycle.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Voor ontwikkelaars</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Onderwerp</th><th>Inhoud</th></tr></thead>
+        <tbody>
+            <tr><td><a href="documentation.php?topic=architecture"><span class="lnr lnr-layers"></span> Architectuur</a></td><td>Layer-map, namespace-conventies, boot sequence, legacy ASP-erfenis.</td></tr>
+            <tr><td><a href="documentation.php?topic=new_tool"><span class="lnr lnr-construction"></span> Een CMA-tool toevoegen</a></td><td>File-skeleton, registratie in tools.php tile-grid, URL-aliassen, isAdmin/isDeveloper.</td></tr>
+            <tr><td><a href="documentation.php?topic=database"><span class="lnr lnr-database"></span> Database &amp; RecordSet</a></td><td>Database::executeQuery PDO, RecordSet ADO-emulatie, connectie-namen, SQL-helpers.</td></tr>
+            <tr><td><a href="documentation.php?topic=migrations"><span class="lnr lnr-arrow-right"></span> Migraties schrijven</a></td><td>Bestandsnaam, MigrationService flow, change-types, idempotente-invariant.</td></tr>
+            <tr><td><a href="documentation.php?topic=json_forms"><span class="lnr lnr-text-format"></span> JSON-gedreven formulieren</a></td><td>JsonFormLoader + JsonFormRenderer, schema basics, form.php entry point, extraButtons placeholders.</td></tr>
+            <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
+            <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>LibLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
+            <tr><td><a href="documentation.php?topic=releasing"><span class="lnr lnr-tag"></span> Releasen &amp; versies</a></td><td>composer.json version bump, git tag, semver, REMOVED_PATHS voor retired bestanden.</td></tr>
         </tbody>
     </table>
 
@@ -736,6 +765,733 @@ function render_doc_iis_config(): void
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=installation">Installatie</a>, <a href="documentation.php?topic=deployment">Deployment</a> (web.config touch voor recycle), <a href="documentation.php?topic=security">Beveiliging</a> (security-headers).
+    </div>
+    <?php
+}
+
+// -------------------------------------------------------------------------
+// VOOR ONTWIKKELAARS
+// -------------------------------------------------------------------------
+
+function render_doc_architecture(): void
+{
+    ?>
+    <h1>Architectuur</h1>
+    <p class="docs-meta">Hoe het platform is opgebouwd: lagen, namespaces, boot sequence, en wat van legacy ASP komt.</p>
+
+    <h2>Lagen</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:170px">Map</th><th>Namespace</th><th>Inhoud</th></tr></thead>
+        <tbody>
+            <tr><td><code>src/helpers/</code></td><td><code>App\Library\*</code> (PSR-4, Composer-autoloaded)</td><td>Stateless static-method helpers: Database, Application, Bootstrap, Request, Response, RecordSet, SQL, Session, Email, etc. Worden door alle consumer-sites geconsumeerd via composer.</td></tr>
+            <tr><td><code>library/</code></td><td>—</td><td>Gedeelde frontend: jQuery, CSS, JS, plus legacy <code>lib_*.inc</code> include files met procedurele helpers. <code>library/webcomponents/</code> bevat alle <code>lib-*</code> web components.</td></tr>
+            <tr><td><code>cma/</code></td><td><code>Cma\*</code> (require_once, NIET PSR-4)</td><td>CMA admin-applicatie. Entry: <code>bootstrap.inc</code>. <code>cma/classes/Services/</code> bevat service-classes (BackupService, MigrationService, MenuService, JsonFormService, etc.). <code>cma/webcomponents/</code> bevat <code>cma-*</code> componenten.</td></tr>
+            <tr><td><code>templates/</code></td><td>—</td><td>Project-level templates (<code>.template</code> extensie). Eenmalig gekopieerd bij de eerste install van een consumer-site; daarna nooit overschreven.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Namespace conventies</h2>
+    <ul>
+        <li><span class="cma-tool__strong"><code>App\Library\*</code></span> — PSR-4 mapping naar <code>src/helpers/</code> via composer.json. Wordt door Composer's autoloader gevonden zonder require's.</li>
+        <li><span class="cma-tool__strong"><code>Cma\*</code></span> — <span class="cma-tool__em">geen</span> autoloading. Wordt expliciet via <code>require_once</code> uit <code>cma/bootstrap.inc</code> geladen. Services staan in <code>cma/classes/Services/&lt;Name&gt;.php</code>.</li>
+    </ul>
+    <p>De reden voor het splits: <code>App\Library\</code> moet ook werken in standalone contexten (CLI-scripts, deploy webhooks) waar <code>cma/bootstrap.inc</code> mogelijk niet draait. Composer autoload is genoeg om die te bereiken.</p>
+
+    <h2>Boot sequence</h2>
+    <ol>
+        <li><span class="cma-tool__strong">IIS request komt binnen</span> — web.config rewrites routen naar <code>_bootstrap_wrapper.php</code> of een specifiek PHP-bestand.</li>
+        <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
+        <li><span class="cma-tool__strong">Bootstrap::init()</span> doet: <code>prepareDotenv</code> (kiest welke .env), <code>loadDotenv</code> (phpdotenv), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), en zet <code>$GLOBALS['Application']</code> op.</li>
+        <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (sinds v1.12.1 met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
+        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait.</li>
+    </ol>
+
+    <h2>Legacy ASP-erfenis</h2>
+    <p>De codebase is een conversie van een originele Classic ASP applicatie. Veel patronen weerspiegelen dat:</p>
+    <ul>
+        <li><span class="cma-tool__strong">RecordSet</span> — ADO-cursor emulatie boven PDOStatement. <code>$rs-&gt;EOF</code>, <code>$rs-&gt;Fields['kolom']</code>, <code>$rs-&gt;MoveNext()</code> komen letterlijk uit het ASP-tijdperk. Zie <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.</li>
+        <li><span class="cma-tool__strong">SQL::postString / SQL::postNumber</span> — escaping-helpers met "post" in de naam (ASP-jargon voor "form post variable"). Acceptabel in legacy code; nieuw werk gebruikt prepared statements.</li>
+        <li><span class="cma-tool__strong">global.asa.php</span> — legacy locatie voor app-bootstrapping en secrets. In ASP was <code>global.asa</code> het standaard application-onload script.</li>
+        <li><span class="cma-tool__strong">Application::get/set</span> — wrapper rond <code>$GLOBALS['Application']</code>, geïnspireerd op ASP's <code>Application</code> object.</li>
+        <li><span class="cma-tool__strong">Veel <code>.inc</code> files</span> in <code>library/</code> — ASP gebruikte <code>.inc</code> voor include-bestanden; PHP-conversies behielden de extensie.</li>
+        <li><span class="cma-tool__strong">ODBC-driver standaard</span> — historische binding aan MS Access (<code>.mdb</code>) databases. PDO ODBC is daarbovenop gebouwd; SQL Server en MySQL zijn ook ondersteund maar minder uitgewerkt.</li>
+    </ul>
+
+    <h2>Service classes</h2>
+    <p>Hoger-niveau orkestratie zit in <code>cma/classes/Services/</code>. Belangrijkste:</p>
+    <ul>
+        <li><code>BackupService</code> — DB-backup workflow, zie <a href="documentation.php?topic=backups">Backups</a>.</li>
+        <li><code>MigrationService</code> — migration runner, zie <a href="documentation.php?topic=migrations">Migraties schrijven</a>.</li>
+        <li><code>JsonFormService</code> + <code>JsonFormLoader</code> + <code>JsonFormRenderer</code> — JSON form pipeline, zie <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.</li>
+        <li><code>ListService</code>, <code>TableService</code>, <code>TreeService</code> — list / detail rendering en navigatie.</li>
+        <li><code>Logger</code> + <code>PerformanceLogger</code> — server-side logging, zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</li>
+        <li><code>MenuService</code> — leest <code>data/menu.json</code> (per-site) of <code>cma/config/menu.json</code> (platform-default fallback).</li>
+        <li><code>SystemSettings</code> — leest env-vars zoals <code>PERF_LOG_ENABLED</code> / <code>CACHE_LOG_ENABLED</code> + persisted UI-settings.</li>
+    </ul>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=new_tool">Een CMA-tool toevoegen</a>, <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.
+    </div>
+    <?php
+}
+
+function render_doc_new_tool(): void
+{
+    ?>
+    <h1>Een CMA-tool toevoegen</h1>
+    <p class="docs-meta">Wat het skeleton is, hoe je 'm registreert, en welke gates de juiste zijn.</p>
+
+    <h2>File-skeleton</h2>
+    <p>Plaats het bestand in <code>cma/tools/&lt;name&gt;.php</code>. Minimaal:</p>
+    <pre><code>&lt;?php
+use App\Library\Request;
+use App\Library\Response;
+use Cma\SecurityHelper;
+use Cma\ToolbarHelper;
+
+require_once __DIR__ . '/../bootstrap.inc';
+
+if (!SecurityHelper::isAdmin()) {        // of isDeveloper(), afhankelijk van scope
+    echo '&lt;lib-message type="error"&gt;Geen toegang&lt;/lib-message&gt;';
+    exit;
+}
+
+Response::noCache();
+
+// POST-handlers HIER, vóór HTML output, zodat header()/Location kan vuren.
+if (Request::post('action') === 'do_something') {
+    // doe iets; sla resultaat op in een var voor de render
+}
+
+cma_html_header('CMA - &lt;Titel&gt;');
+echo '&lt;body class="contentbody tools tool-&lt;naam&gt;"&gt;';
+ToolbarHelper::start(true);
+ToolbarHelper::title('&lt;Titel&gt;');
+ToolbarHelper::separator();
+ToolbarHelper::status('&lt;Korte beschrijving&gt;');
+ToolbarHelper::end();
+echo '&lt;div id="c" class="tools"&gt;';
+
+// content rendering hier
+
+echo '&lt;/div&gt;&lt;/body&gt;';
+</code></pre>
+
+    <h2>Klassen voor de chrome</h2>
+    <ul>
+        <li><span class="cma-tool__strong"><code>contentbody tools</code></span> op het body-element — gebruikt door de basis CSS voor padding, font, etc.</li>
+        <li><span class="cma-tool__strong"><code>tool-&lt;name&gt;</code></span> als derde class — geeft je een prefix om tool-specifieke CSS scopen onder (zoals <code>.tool-llm .llm-grid { … }</code>).</li>
+        <li><span class="cma-tool__strong"><code>&lt;div id="c" class="tools"&gt;</code></span> als content-wrapper — vereist door layout JS dat scroll-behavior, sticky elements en form-state hierin verwacht.</li>
+    </ul>
+
+    <h2>Toolbar helpers</h2>
+    <p>Gebruik <code>Cma\ToolbarHelper</code> in plaats van zelf HTML te bouwen:</p>
+    <pre><code>ToolbarHelper::start(true);
+ToolbarHelper::title('Title');
+ToolbarHelper::separator();
+ToolbarHelper::status('Subtitle / status text');
+ToolbarHelper::button('javascript:doSomething()', 'lnr-cog', true, 'Doe X', 'Tooltip');
+ToolbarHelper::startRight();                 // rechter-uitlijning vanaf hier
+ToolbarHelper::button('?reset=1', 'lnr-sync', true, 'Reset');
+ToolbarHelper::end();
+</code></pre>
+    <p>Voor "report-style" pagina's met een title-block kun je <code>ToolbarHelper::report('Title', false, false, false, false, 'subtitle', $extraButtonHtml)</code> in één call doen.</p>
+
+    <h2>Registreren in de tile-grid</h2>
+    <p>Voeg een entry toe aan <code>buildToolsTreeData()</code> in <code>cma/tools.php</code>:</p>
+    <pre><code>['type' =&gt; 'item', 'label' =&gt; 'Mijn Tool', 'href' =&gt; 'tools/my_tool.php',
+ 'target' =&gt; 'R', 'icon' =&gt; 'lnr-cog', 'badge' =&gt; 'A']
+</code></pre>
+    <p>Plaats in de juiste folder-array (<code>$standardFolder</code>, <code>$healthFolder</code>, <code>$dbFolder</code>, <code>$docsFolder</code>, <code>$devFolder</code>, etc.) zodat hij in de logische groep verschijnt.</p>
+
+    <h2>Friendly URL alias</h2>
+    <p>Optioneel: voeg een entry toe aan <code>$toolNameMap</code> bovenaan <code>cma/tools.php</code> om een korte URL te krijgen:</p>
+    <pre><code>$toolNameMap = [
+    // …
+    'mijntool' =&gt; 'tools/my_tool.php',
+];
+</code></pre>
+    <p>De URL <code>/cma/tools/mijntool</code> wordt dan door IIS URL Rewrite + de wrapper afgehandeld als <code>tools/my_tool.php</code>. Vereist dat de "CMA Tools Friendly URL" regel in de site-root web.config aanwezig is.</p>
+
+    <h2>Welke access-gate?</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:200px">Wanneer</th><th>Gate</th></tr></thead>
+        <tbody>
+            <tr><td>Tool muteert site-data of triggert side-effects (deploy, migration, backup, cache clear).</td><td><code>SecurityHelper::isAdmin()</code></td></tr>
+            <tr><td>Tool toont alleen platform-internals of code-reflectie (storybook, formulier-editor, env-switch, test-mail).</td><td><code>SecurityHelper::isDeveloper()</code></td></tr>
+            <tr><td>Tool is een raw diagnose-endpoint die ook moet werken als CMA stuk is.</td><td><code>DEPLOY_SECRET</code> via <code>?key=</code> (zoals <code>diag.php</code>). Zelden de juiste keuze — eerst <code>isAdmin()</code> proberen.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>POST-Redirect-GET</h2>
+    <p>Voor formulier-acties: handle de POST <span class="cma-tool__em">vóór</span> <code>cma_html_header</code> aangeroepen wordt. Bij succes <code>header('Location: ...')</code> + <code>exit</code>. Belangrijk: <code>file_put_contents</code>, <code>error_log</code>, <code>echo</code> in je handler-pad voorkomen het redirect (zie de logreader v1.10.1 fix waar een ontbrekende <code>@</code> de Location header brak en mobile Safari een download-prompt liet zien).</p>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a>, <a href="documentation.php?topic=security">Beveiliging</a> (toegangsniveaus).
+    </div>
+    <?php
+}
+
+function render_doc_database(): void
+{
+    ?>
+    <h1>Database &amp; RecordSet</h1>
+    <p class="docs-meta">PDO-laag + ADO-cursor emulatie. Welke API voor welk patroon.</p>
+
+    <h2>Connectie-namen</h2>
+    <p>Databases zijn benoemd in <code>data/databases.json</code> (per-site overrides) of <code>cma/config/databases.json</code> (platform-defaults). Standaard-namen:</p>
+    <ul>
+        <li><code>data</code> — de primaire applicatie-database (default voor <code>Database::getConnection()</code>).</li>
+        <li><code>platform</code> — alias / fallback voor <code>data</code> in migration-context.</li>
+        <li><code>users</code> — CMA-gebruikers DB (typisch <code>CMAusers.mdb</code>).</li>
+        <li><code>rep</code> — DEPRECATED repository DB (formulier-definities zijn naar JSON gemigreerd).</li>
+    </ul>
+    <p><code>Database::getConnection($name = 'data')</code> retourneert een <code>PDO</code> object. <code>$conn === null</code> betekent dat de connectie niet gemaakt kon worden — handle dat expliciet.</p>
+
+    <h2>Prepared statements (voorkeur)</h2>
+    <pre><code>use App\Library\Database;
+
+// Single row
+$row = Database::executeSingleRecord(
+    'SELECT * FROM tblUsers WHERE userID = :id',
+    ['id' =&gt; $userId]
+);
+// $row is een associative array of null.
+
+// Multiple rows
+$rows = Database::executeQuery(
+    'SELECT * FROM tblOrders WHERE status = :status',
+    ['status' =&gt; 'pending']
+);
+// $rows is een array van associative arrays.
+
+// Mutation (geen result expected)
+$rowsAffected = Database::execute(
+    'UPDATE tblUsers SET lastLogin = NOW() WHERE userID = :id',
+    ['id' =&gt; $userId]
+);
+
+// Single value
+$count = Database::fetchOne(
+    'SELECT COUNT(*) FROM tblOrders WHERE userID = :id',
+    ['id' =&gt; $userId]
+);
+</code></pre>
+    <p>Voor een specifieke connectie: <code>Database::query($sql, $params, $connectionName)</code>. <code>fetchOne</code> en <code>fetchAll</code> hebben ook een optionele <code>$connection</code> derde parameter.</p>
+
+    <h2>RecordSet (ADO-emulatie)</h2>
+    <p>Voor legacy-stijl iteratie (vooral handig in oude form-callbacks):</p>
+    <pre><code>$rs = Database::openRS('SELECT * FROM tblUsers ORDER BY userName');
+while (!$rs-&gt;EOF) {
+    echo $rs-&gt;Fields['userName'];
+    $rs-&gt;MoveNext();
+}
+$rs-&gt;Close();
+</code></pre>
+    <p><code>RecordSet</code> wraps een <code>PDOStatement</code> en implementeert <code>ArrayAccess</code> + <code>IteratorAggregate</code>, dus je kan ook gewoon <code>foreach</code> gebruiken:</p>
+    <pre><code>foreach ($rs as $row) {
+    echo $row['userName'];
+}
+</code></pre>
+    <p>Andere methodes: <code>MoveNext</code>, <code>MoveFirst</code>, <code>MoveLast</code>, <code>MovePrevious</code>, <code>Close</code>, <code>isEOF</code>, <code>fetchAll</code>, <code>GetRows</code>, <code>fetchAssoc</code>, <code>fetch</code>. <code>__get</code> handelt de <code>EOF</code> en <code>Fields</code> properties af.</p>
+
+    <h2>SQL-helpers (legacy)</h2>
+    <p>Voor escaping in legacy code waar prepared statements niet handig zijn:</p>
+    <pre><code>use App\Library\SQL;
+
+$sql = "SELECT * FROM tblUsers WHERE userName = " . SQL::postString($_POST['username'])
+     . " AND age &gt; " . SQL::postNumber($_POST['minAge']);
+</code></pre>
+    <p>Helpers per type: <code>postString</code>, <code>postNumber</code>, <code>postDate</code>, <code>postBool</code>. De "post" prefix komt uit het ASP-tijdperk ("form post variable"). <span class="cma-tool__strong">Nieuw werk gebruikt prepared statements</span>; SQL-helpers blijven voor de tienduizenden legacy-regels die er al zijn.</p>
+
+    <h2>ODBC-modes</h2>
+    <p>De Database-class ondersteunt twee ODBC-backends:</p>
+    <ul>
+        <li><span class="cma-tool__strong"><code>odbc</code></span> (default) — native PHP <code>odbc_*</code> functies. Stabiel voor MS Access.</li>
+        <li><span class="cma-tool__strong"><code>pdo</code></span> — PDO ODBC. Modernere syntax, ondersteunt prepared statements direct.</li>
+    </ul>
+    <p>Schakelen met <code>Database::setOdbcMode('pdo')</code> tijdens bootstrap. Per-DB instelling via <code>databases.json</code>'s <code>odbcMode</code> property.</p>
+
+    <h2>Connection-strings</h2>
+    <p>Zoals gebruikt in <code>databases.json</code>:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>DB-type</th><th>Connection-string voorbeeld</th></tr></thead>
+        <tbody>
+            <tr><td>MS Access (Jet)</td><td><code>Provider=Microsoft.Jet.OLEDB.4.0;Locale Identifier=1043;Data Source=[db/mydata.mdb]</code></td></tr>
+            <tr><td>MS Access ODBC</td><td><code>Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=[db/mydata.mdb]</code></td></tr>
+            <tr><td>SQLite (PDO)</td><td><code>sqlite:[db/mydata.sqlite]</code></td></tr>
+            <tr><td>MySQL (PDO)</td><td><code>mysql:host=localhost;dbname=mydata;charset=utf8mb4</code></td></tr>
+            <tr><td>SQL Server</td><td><code>sqlsrv:Server=localhost;Database=mydata</code></td></tr>
+        </tbody>
+    </table>
+    <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASS</code>) of uit <code>app.php</code>.</p>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=migrations">Migraties schrijven</a>, <a href="documentation.php?topic=architecture">Architectuur</a>.
+    </div>
+    <?php
+}
+
+function render_doc_migrations(): void
+{
+    ?>
+    <h1>Migraties schrijven</h1>
+    <p class="docs-meta">Hoe je een database-wijziging laat uitvoeren via <code>MigrationService</code>.</p>
+
+    <h2>File-naming en plaatsing</h2>
+    <ul>
+        <li>Platform-migrations leven in <code>cma/migrations/</code>.</li>
+        <li>Project-migrations leven in <code>migrations/</code> op de site-root.</li>
+        <li>Bestandsnaam-conventie: <code>&lt;X.Y.Z&gt;_&lt;slug&gt;.php</code> — bijvoorbeeld <code>2.6.0_export_menu.php</code>.</li>
+        <li>De versie in de bestandsnaam wordt vergeleken met de huidige tracking-versie in de DB. Alleen migrations met versie &gt; current draaien.</li>
+    </ul>
+
+    <h2>migrations.json</h2>
+    <p>Naast het PHP-bestand registreer je elke migratie in <code>cma/config/migrations.json</code> (platform) of <code>config/migrations.json</code> (project). Voorbeeld-entry:</p>
+    <pre><code>{
+    "version": "2.6.0",
+    "description": "Menu structuur naar JSON exporteren",
+    "changes": [
+        {
+            "type": "runPhp",
+            "script": "migrations/2.6.0_export_menu.php",
+            "note": "Genereert config/menu.json uit tblMenu"
+        }
+    ]
+}
+</code></pre>
+    <p>De <code>migrations</code> array moet op versie-volgorde gesorteerd zijn; <code>targetVersion</code> bovenaan zegt waar de current versie naartoe moet.</p>
+
+    <h2>Change-types in <code>changes[]</code></h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:180px">Type</th><th>Doel</th></tr></thead>
+        <tbody>
+            <tr><td><code>createVersionTable</code></td><td>Eerste keer-setup van het tracking-table.</td></tr>
+            <tr><td><code>addColumn</code> / <code>dropColumn</code></td><td>Schema-wijziging op een bestaande tabel.</td></tr>
+            <tr><td><code>addIndex</code> / <code>dropIndex</code></td><td>Index management.</td></tr>
+            <tr><td><code>renameTable</code> / <code>dropTable</code></td><td>Tabel-niveau structuur-wijziging.</td></tr>
+            <tr><td><code>runSql</code></td><td>Voer een inline SQL-statement uit.</td></tr>
+            <tr><td><code>runSqlScript</code></td><td>Voer een SQL-bestand uit.</td></tr>
+            <tr><td><code>runPhp</code></td><td>Voer een PHP-script uit — meest flexibele optie voor data-migrations.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Idempotent &amp; rerunnable</h2>
+    <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is:</p>
+    <pre><code>// In je migration PHP:
+if (!Database::tableExists('tblNewThing', $conn)) {
+    Database::execute('CREATE TABLE tblNewThing (...)', [], $conn);
+}
+
+if (!Database::columnExists('tblOrders', 'discountCode', $conn)) {
+    Database::execute('ALTER TABLE tblOrders ADD COLUMN discountCode VARCHAR(50)', [], $conn);
+}
+</code></pre>
+    <p>De if-check voorkomt dat een rerun een fout geeft op "tabel bestaat al" / "kolom bestaat al". Voor data-migrations: check eerst of de target-rows al de gewenste staat hebben en sla over.</p>
+
+    <h2>MIGRATION_RUNNING constant</h2>
+    <p>Sommige migration-scripts hebben volledige bootstrap niet nodig en willen 'm zelfs vermijden (b.v. omdat een migration een tabel wijzigt die bootstrap zelf leest). Definieer aan het begin:</p>
+    <pre><code>define('MIGRATION_RUNNING', true);
+</code></pre>
+    <p>Bootstrap-paden die deze constant zien skippen niet-essentiële initialisatie.</p>
+
+    <h2>Pre-migration backup</h2>
+    <p>De Migraties-tool heeft een toggle "Auto-backup voor migratie". Aan: <code>BackupService::createMigrationBackup()</code> draait per affected database voordat de migratie start, met de migratie-versie als label. Uit: skip — zinvol voor data-only migrations die geen schema raken.</p>
+
+    <h2>Multi-source migrations</h2>
+    <p><code>MigrationService::getPendingMigrations()</code> walks BOTH sources: platform-migrations eerst (<code>cma/migrations/</code>), dan project-migrations (<code>migrations/</code>), dan eventuele module-migrations. Versie-volgorde is gegarandeerd per source maar source-volgorde wordt strikt aangehouden — dus een project-migration die hangt van een platform-tabel moet versie-genoeg hebben dat de platform-tabel zeker eerder gemaakt is.</p>
+
+    <h2>Test &amp; deploy workflow</h2>
+    <ol>
+        <li>Schrijf de migratie + registreer in <code>migrations.json</code>.</li>
+        <li>Run op je dev-omgeving via <a href="tools/tools_migrations.php" target="_top">Tools → Migraties</a>. Auto-backup aan voor dev-safety.</li>
+        <li>Voer Rerun uit om idempotentie te valideren — moet "geen wijzigingen" rapporteren.</li>
+        <li>Commit + push. Productie-deploy draait de migratie automatisch als <code>deploy_post.php</code> dat triggert; anders handmatig na de deploy via de Migraties-tool.</li>
+    </ol>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=database">Database &amp; RecordSet</a>, <a href="documentation.php?topic=backups">Backups</a>, <a href="documentation.php?topic=deployment">Deployment</a> (deploy_post.php).
+    </div>
+    <?php
+}
+
+function render_doc_json_forms(): void
+{
+    ?>
+    <h1>JSON-gedreven formulieren</h1>
+    <p class="docs-meta">Hoe het formulier-systeem werkt: definitie → loader → renderer → form.php entry point.</p>
+
+    <h2>Definitie-bestanden</h2>
+    <p>Form-definities zijn JSON-bestanden die de oude MS Access repository hebben vervangen. Locaties:</p>
+    <ul>
+        <li><code>cma/assets/forms/definitions/&lt;form_name&gt;.json</code> — platform-bundled forms (CMA-internal: gebruikers, groepen, etc.). Worden door composer update overschreven.</li>
+        <li><code>assets/forms/&lt;form_name&gt;.json</code> op site-root — project-eigen forms. Niet door Installer aangeraakt.</li>
+    </ul>
+    <p>Schema-validatie: <code>cma/config/schema/&lt;naam&gt;.schema.json</code> bevat de JSON Schema's. Editors lezen deze in voor IntelliSense.</p>
+
+    <h2>JsonFormLoader</h2>
+    <p>De loader leest het JSON-bestand, cached het in memory + op disk, en lost <code>includes</code> / inherited fields op. Belangrijkste API:</p>
+    <pre><code>use Cma\Services\JsonFormLoader; // namespace, NIET autoloaded — require_once in bootstrap.inc
+
+$def = JsonFormLoader::load('opleidingen');
+//   Returns ?array (null als form niet bestaat). Hierarchical, met
+//   inherited definities reeds gemerged.
+
+$raw = JsonFormLoader::loadRaw('opleidingen');
+//   Zelfde maar zonder inheritance — voor formulier-editor gebruik.
+
+JsonFormLoader::exists('opleidingen');                    // bool
+JsonFormLoader::listForms();                              // array van slugs
+JsonFormLoader::getSubforms('opleidingen');               // array van subform-defs
+JsonFormLoader::clearCache('opleidingen');                // invalidate cache
+JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
+</code></pre>
+    <p>Caching is automatisch on (in-memory per request + disk in <code>cache/forms/</code>). Editor-tools roepen <code>clearCache</code> aan na een save.</p>
+
+    <h2>Definitie-schema basics</h2>
+    <p>Een minimale form-definitie:</p>
+    <pre><code>{
+    "$schema": "../../../config/schema/form.schema.json",
+    "name": "opleidingen",
+    "title": "Opleidingen",
+    "titleSingular": "Opleiding",
+    "database": "data",
+    "table": "tblOpleidingen",
+    "primaryKey": "ID",
+    "fields": [
+        {"name": "ID",        "type": "autonumber", "primaryKey": true},
+        {"name": "naam",      "type": "text",       "label": "Naam",      "required": true},
+        {"name": "startDatum","type": "date",       "label": "Startdatum"},
+        {"name": "actief",    "type": "switch",     "label": "Actief",    "default": true}
+    ],
+    "views": {
+        "list": {"columns": ["naam", "startDatum", "actief"]},
+        "detail": {"layout": "vertical"}
+    }
+}
+</code></pre>
+    <p>Field-types: <code>text</code>, <code>textarea</code>, <code>number</code>, <code>date</code>, <code>datetime</code>, <code>switch</code>, <code>combo</code> (dropdown), <code>radio-group</code>, <code>file</code>, <code>image</code>, <code>richtext</code>, <code>code</code>, <code>autonumber</code>, etc. De full lijst staat in <code>cma/config/control-types.json</code>.</p>
+
+    <h2>Subforms</h2>
+    <p>Een subform is een form-definitie waarvan records gekoppeld zijn aan een parent-record via een foreign key:</p>
+    <pre><code>"subforms": [
+    {
+        "name": "opleiding_modules",
+        "title": "Modules",
+        "parentField": "opleidingID",
+        "form": "modules"
+    }
+]
+</code></pre>
+    <p>De URL <code>form.php?form=opleidingen/ID/opleiding_modules</code> rendert dan de modules-list onder de opleiding-detail.</p>
+
+    <h2>form.php entry point</h2>
+    <p>Alle form-views lopen door <code>cma/form.php</code>. Belangrijke URL-parameters:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:160px">Parameter</th><th>Effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>form=&lt;name&gt;</code></td><td>Welk form laden (verplicht).</td></tr>
+            <tr><td><code>ID=&lt;n&gt;</code></td><td>Detail-view voor record <code>n</code>.</td></tr>
+            <tr><td><code>New=Y</code></td><td>Nieuw-record formulier.</td></tr>
+            <tr><td><code>view=list</code> / <code>view=table</code> / <code>view=tree</code></td><td>Forceer een view-type voor lists.</td></tr>
+            <tr><td><code>filter=&lt;json&gt;</code></td><td>Pre-applied filter op de list.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>extraButtons + placeholder substitution</h2>
+    <p>Een form-definitie kan extra knoppen toevoegen aan het detail-view:</p>
+    <pre><code>"extraButtons": [
+    {
+        "label": "Bekijk online",
+        "icon": "lnr-eye",
+        "url": "https://www.[domein]/r/[slug]"
+    }
+]
+</code></pre>
+    <p>Placeholders worden vervangen door waardes uit het huidige record. Het platform substitueert hardgecodeerd: <code>[id]</code>, <code>[guid]</code>, <code>[guid2]</code>, <code>[domein]</code>. Sinds v1.10.0 worden <span class="cma-tool__em">alle</span> overige <code>[fieldname]</code> placeholders ook geresolveerd door naar het form-veld met die naam te kijken — zo werkt <code>[slug]</code> automatisch als er een veld <code>slug</code> bestaat.</p>
+
+    <h2>JsonFormRenderer</h2>
+    <p>Server-side rendering gebeurt door <code>Cma\Services\JsonFormRenderer</code>. Die produceert de HTML; het form-controller.js framework in de browser handelt validatie, AJAX-save, subform navigation, etc. af. Custom render-overrides plaats je in <code>cma/classes/Services/</code> met eigen subclassen — zelden nodig, meestal volstaat een nieuwe field-type via <code>control-types.json</code>.</p>
+
+    <h2>Form_api.php</h2>
+    <p>AJAX-endpoint <code>cma/form_api.php</code> handelt alle save/load/list/delete operaties af. Common parameters:</p>
+    <ul>
+        <li><code>jsonForm=&lt;name&gt;</code> of <code>form=&lt;name&gt;</code> — het form (verplicht).</li>
+        <li><code>action=&lt;actie&gt;</code> — operatie (load, save, list, delete, getOptions, etc.).</li>
+    </ul>
+    <p>Response is altijd JSON: <code>{"success": true|false, "error": "...", ...action-specific fields}</code>. In dev mode (omgeving ≠ P) bevat de response ook <code>_debugPath</code>, <code>_exception</code>, <code>_badFields</code> velden voor debugging.</p>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a> (waar Services in <code>Cma\</code> namespace leven), <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.
+    </div>
+    <?php
+}
+
+function render_doc_web_components(): void
+{
+    ?>
+    <h1>Web components ontwikkelen</h1>
+    <p class="docs-meta">Hoe je een <code>lib-*</code> of <code>cma-*</code> component schrijft, en wat de prefix-conventies betekenen.</p>
+
+    <h2>Prefix-conventies</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:140px">Prefix</th><th>Locatie</th><th>Bedoeld voor</th></tr></thead>
+        <tbody>
+            <tr><td><code>lib-*</code></td><td><code>library/webcomponents/</code></td><td>Reusable building blocks zonder CMA-specifieke afhankelijkheden. Voorbeelden: lib-dialog, lib-combo, lib-datepicker, lib-sheet. Ook bruikbaar in front-end pages van consumer-sites.</td></tr>
+            <tr><td><code>cma-*</code></td><td><code>cma/webcomponents/</code></td><td>CMA-specifieke componenten die afhankelijk zijn van CMA-context (tools, forms, layout). Voorbeelden: cma-tree, cma-toolbar, cma-tabs, cma-fold, cma-groupbox.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Bestandsstructuur</h2>
+    <p>Elk component is één JavaScript-bestand met de extensie <code>.js</code>, plus een meegegenereerd <code>.min.js</code> dat door de build-stap geproduceerd wordt. Het component-bestand bevat:</p>
+    <pre><code>// Guard tegen dubbele declaratie wanneer het script meerdere keren wordt geladen.
+if (!customElements.get('lib-mything')) {
+
+class LibMything extends HTMLElement {
+    static get observedAttributes() {
+        return ['heading', 'open', 'closable'];
+    }
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.innerHTML = this._template();
+    }
+    connectedCallback() { /* … */ }
+    disconnectedCallback() { /* cleanup event listeners */ }
+    attributeChangedCallback(name, oldValue, newValue) { /* react */ }
+    _template() {
+        return `&lt;style&gt;…&lt;/style&gt;&lt;div class="root"&gt;…&lt;/div&gt;`;
+    }
+}
+
+customElements.define('lib-mything', LibMything);
+
+}</code></pre>
+
+    <h2>Shadow DOM</h2>
+    <p>Use <code>mode: 'open'</code> zodat dev-tools de shadow root kunnen inspecteren. Style-encapsulation gebeurt automatisch — selectors in het shadow-template raken alleen het component.</p>
+    <p>CSS Custom Properties (<code>--lib-sheet-bg</code>, etc.) gebruiken om consumers toe te staan kleuren / sizes te theming-en. Documenteer ze bovenaan het bestand als een `Theming` blok in JSDoc.</p>
+    <p>Voor styling vanuit de host-pagina: <code>::part(...)</code> hooks. Markeer interne elementen met <code>part="…"</code> attributen:</p>
+    <pre><code>&lt;div class="panel" part="panel"&gt;…&lt;/div&gt;
+// Host page kan dan:
+// lib-sheet::part(panel) { border-radius: 0; }</code></pre>
+
+    <h2>Events</h2>
+    <p>Dispatch custom events vanuit het component zodat de host code kan reageren:</p>
+    <pre><code>this.dispatchEvent(new CustomEvent('sheet-open', { bubbles: true }));
+this.dispatchEvent(new CustomEvent('change', { detail: { value: this.value }, bubbles: true }));
+</code></pre>
+    <p>Naam-conventie: korte, semantische names (<code>change</code>, <code>open</code>, <code>close</code>, <code>sheet-open</code>). Detail-object alleen wanneer waardes nuttig zijn.</p>
+
+    <h2>Touch / pointer events</h2>
+    <p>Gebruik Pointer Events (<code>pointerdown</code> / <code>pointermove</code> / <code>pointerup</code>) voor unified touch + mouse handling. Voor drag-gestures (zoals lib-sheet's drag-to-dismiss): <code>setPointerCapture</code> op het target zodat moves na de eerste frame nog steeds binnenkomen.</p>
+    <p>Op het drag-target: <code>touch-action: none</code> in CSS zodat het browser-niveau scroll-gesture niet inschiet.</p>
+
+    <h2>Minified counterpart</h2>
+    <p>Iedere component heeft een <code>.min.js</code> sibling. Genereer met:</p>
+    <pre><code>cd cma
+npm run build:minify          # alleen minify
+npm run build                 # icons + minify
+</code></pre>
+    <p>De build-stap slaat over wanneer <code>.min.js</code> nieuwer is dan de source. Wanneer terser een fout geeft, fix de source — minified output committeer je NIET als je deps niet hebt; CI of de pre-commit hook zou dat moeten regenereren.</p>
+
+    <h2>Storybook-integratie</h2>
+    <p>Elk nieuwe component hoort een entry in <code>cma/tools/storybook.php</code>. Sectie-structuur:</p>
+    <ul>
+        <li>Voeg een entry toe aan de <code>navData</code> array (binnen ofwel "Library componenten" of "CMA componenten").</li>
+        <li>Voeg een <code>&lt;section class="component-section" id="lib-mything"&gt;</code> toe met een <code>&lt;textarea&gt;</code> playground en een <code>&lt;div class="component-options"&gt;</code> met DL-blocks voor attributen, methodes, properties, events.</li>
+    </ul>
+    <p>Bekijk een bestaand component-section voor het patroon (de file is groot, ~5000 regels — copy-paste een sectie en pas aan).</p>
+
+    <h2>Icon-conventies (Linearicons)</h2>
+    <p>Alle iconen komen uit de paid Linearicons font (<a href="https://linearicons.com" target="_blank" rel="noopener">linearicons.com</a>) — 1000+ glyphs. Gebruik via class:</p>
+    <pre><code>&lt;span class="lnr lnr-home"&gt;&lt;/span&gt;
+&lt;span class="lnr lnr-rocket"&gt;&lt;/span&gt;
+&lt;span class="lnr lnr-bubble"&gt;&lt;/span&gt;
+</code></pre>
+    <p>Beschikbare icon-namen staan in <code>cma/docs/linearicons.css</code>. De Storybook-pagina (sectie "Linearicons") rendert de complete lijst zodat je visueel kan kiezen.</p>
+
+    <h2>Menu-group iconen</h2>
+    <p>Sidebar menu-groups krijgen automatisch een icon op basis van de slug. Het <code>$menuGroupIcons</code> array in <code>cma/main.php</code> mapt slug → lnr-class:</p>
+    <pre><code>$menuGroupIcons = [
+    'dashboard'    =&gt; 'lnr-home',
+    'systeem'      =&gt; 'lnr-cog',
+    'beheer'       =&gt; 'lnr-database',
+    'content'      =&gt; 'lnr-file-add',
+    'rapportages'  =&gt; 'lnr-chart-bars',
+    'tools'        =&gt; 'lnr-construction',
+    'formulieren'  =&gt; 'lnr-layers',
+    'opleidingen'  =&gt; 'lnr-graduation-hat',
+    // …
+];
+</code></pre>
+    <p>Voeg een entry toe wanneer je een nieuwe menu-group introduceert. Voor menu-items zelf: zet <code>"icon": "lnr-..."</code> in <code>data/menu.json</code>.</p>
+
+    <div class="seealso">
+        Zie ook: <a href="storybook.php">Component Storybook</a> (levende voorbeelden), <a href="documentation.php?topic=architecture">Architectuur</a> (library/ vs cma/ scheiding).
+    </div>
+    <?php
+}
+
+function render_doc_errors(): void
+{
+    ?>
+    <h1>Logging &amp; errors (dev)</h1>
+    <p class="docs-meta">De ontwikkelaars-kant van logging — interna van LibLog en CmaErrorHandler.</p>
+
+    <h2>Twee lagen</h2>
+    <p>Het platform heeft een JavaScript-laag en een PHP-laag die samen werken:</p>
+    <ul>
+        <li><span class="cma-tool__strong">LibLog</span> (<code>library/webcomponents/lib-log.js</code>) — onderschept <code>console.*</code> calls, batched naar de server.</li>
+        <li><span class="cma-tool__strong">CmaErrorHandler</span> (<code>cma/assets/js/error-handler.js</code>) — vangt <code>window.onerror</code> en <code>unhandledrejection</code>, toont visueel paneel in dev-mode, post naar <code>form_api.php?action=logJsError</code>.</li>
+        <li><span class="cma-tool__strong">Logger</span> (<code>cma/classes/Services/Logger.php</code>) — server-side PSR-3 logger.</li>
+        <li><span class="cma-tool__strong">PerformanceLogger</span> (<code>cma/classes/Services/PerformanceLogger.php</code>) — timing metrics.</li>
+    </ul>
+    <p>Voor de operator-kant (welke log-bron waar): zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>. Hier focus op de code-API.</p>
+
+    <h2>LibLog runtime config</h2>
+    <pre><code>window.LIBLOG_CONFIG = {
+    apiEndpoint:       '/cma/api/log.php',
+    sendToServer:      true,
+    batchSize:         10,
+    flushInterval:     5000,
+    interceptConsole:  true,
+    minLevelForServer: 'error',       // alleen errors gaan naar server
+    debugMode:         false          // override via cma_debug_mode cookie
+};</code></pre>
+    <p>De config wordt gelezen <span class="cma-tool__em">vóór</span> lib-log.js draait. Zet 'm in een inline script-tag boven de lib-log.js include als je defaults wilt overrulen.</p>
+
+    <h2>Per-niveau gedrag</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Niveau</th><th>Console</th><th>Error panel</th><th>Naar server</th></tr></thead>
+        <tbody>
+            <tr><td><code>error</code></td><td>Altijd</td><td>Altijd</td><td>Altijd</td></tr>
+            <tr><td><code>warning</code></td><td>Alleen debug=AAN</td><td>Alleen debug=AAN</td><td>Als minLevel ≤ warning</td></tr>
+            <tr><td><code>info</code></td><td>Alleen debug=AAN</td><td>Nee</td><td>Als minLevel ≤ info</td></tr>
+            <tr><td><code>debug</code></td><td>Alleen debug=AAN</td><td>Nee</td><td>Als minLevel ≤ debug</td></tr>
+        </tbody>
+    </table>
+
+    <h2>CmaErrorHandler interna</h2>
+    <ul>
+        <li><span class="cma-tool__strong">Rate-limit client-side</span>: 5 errors per minuut in het visuele paneel. Verdere errors worden in een queue gehouden tot het minuut-venster opnieuw begint.</li>
+        <li><span class="cma-tool__strong">Rate-limit server-side</span>: 100 errors per IP per uur in <code>tblCMAJavascriptErrors</code>. <code>form_api.php?action=logJsError</code> negeert verdere posts.</li>
+        <li><span class="cma-tool__strong">Deduplicatie</span>: identieke errors binnen 60 seconden window worden niet opnieuw gepost. Bewust om error-storms op te vangen wanneer een onbedoelde loop oneindig dezelfde error gooit.</li>
+        <li><span class="cma-tool__strong">window.CmaErrorHandler.report()</span> — interface die LibLog en custom code kunnen gebruiken om handmatig een error in het paneel te krijgen. Signature: <code>report(source, message, context)</code>.</li>
+    </ul>
+
+    <h2>Logger PHP API</h2>
+    <pre><code>use Cma\Services\Logger;
+
+Logger::debug('Probably wrong', ['ctx' =&gt; …]);
+Logger::info('Happened', ['ctx' =&gt; …]);
+Logger::notice('Significant', ['ctx' =&gt; …]);
+Logger::warning('Probably wrong', ['ctx' =&gt; …]);
+Logger::error('Wrong', ['ctx' =&gt; …]);
+Logger::critical('Very wrong', ['ctx' =&gt; …]);
+Logger::alert('Pager-worthy', ['ctx' =&gt; …]);
+Logger::emergency('System down', ['ctx' =&gt; …]);
+
+// Exception-shortcut:
+Logger::exception($e, 'Wrapper message', ['ctx' =&gt; …]);
+</code></pre>
+    <p>ERROR, CRITICAL, ALERT, EMERGENCY → óók naar <code>error_log()</code>. Andere levels alleen naar het app-log-bestand.</p>
+
+    <h2>Sensitive-data scrubbing</h2>
+    <p>De Logger redacteert automatisch keys die matchen op <code>password</code>, <code>token</code>, <code>secret</code>, <code>api_key</code>, <code>credentials</code> in context-arrays, recursief. De redactie vervangt de waarde door <code>'[REDACTED]'</code> zodat je in het log nog ziet DAT er een password-key was, maar niet de waarde.</p>
+    <p>Voor custom keys: pas <code>Logger::$sensitivePatterns</code> aan in <code>bootstrap.inc</code> als je <code>credit_card</code>, <code>ssn</code>, etc. ook wilt blokken.</p>
+
+    <h2>PerformanceLogger</h2>
+    <pre><code>use Cma\Services\PerformanceLogger;
+
+// Timer
+PerformanceLogger::startTimer('expensive_op');
+doExpensiveOp();
+$ms = PerformanceLogger::endTimer('expensive_op', ['rows' =&gt; $count]);
+
+// Convenience-shortcuts
+PerformanceLogger::logQuery($sql, $ms, ['table' =&gt; 'users']);
+PerformanceLogger::logApi('endpoint_name', $ms, ['arg' =&gt; …]);
+PerformanceLogger::logMemory('checkpoint');
+</code></pre>
+    <p>Wordt door <code>PERF_LOG_ENABLED=true</code> aangezet. Output naar <code>cache/perf_logs/perf_YYYY-MM-DD.log</code> als JSON-per-regel.</p>
+
+    <h2>Best practices</h2>
+    <ul>
+        <li>Structured logging: <span class="cma-tool__strong">altijd</span> context-array meegeven. <code>Logger::error('Save failed')</code> alleen is onbruikbaar; <code>Logger::error('Save failed', ['formId' =&gt; …, 'error' =&gt; …])</code> wel.</li>
+        <li>Errors die je catch't en niet opnieuw throw't moeten gelogd worden. Geen "silent catch" — zie <code>memory/feedback_defensive_checks.md</code>.</li>
+        <li>JS-side: prefereer <code>LibLog.error(…)</code> boven raw <code>console.error</code> — context is rijker en de error landt in het visuele paneel.</li>
+    </ul>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=logs">Logs &amp; monitoring</a> (operator-kant), <a href="documentation.php?topic=security">Beveiliging</a> (sensitive-data scrubbing context).
+    </div>
+    <?php
+}
+
+function render_doc_releasing(): void
+{
+    ?>
+    <h1>Releasen &amp; versies</h1>
+    <p class="docs-meta">Hoe een nieuwe versie van het platform gepublic'd wordt en wat semver hier betekent.</p>
+
+    <h2>De release-stappen</h2>
+    <ol>
+        <li>Bump <code>composer.json</code>'s <code>version</code> field volgens semver.</li>
+        <li>Commit met een release-message: <code>Release X.Y.Z: &lt;wat veranderde&gt;</code>.</li>
+        <li>Tag de commit: <code>git tag vX.Y.Z</code>.</li>
+        <li>Push commits én tags: <code>git push &amp;&amp; git push --tags</code>.</li>
+        <li>Consumer-sites pullen de nieuwe versie via <code>composer update stenversonline/platform</code>. Hun deploy-webhook (sinds v1.13.0) doet dit automatisch.</li>
+    </ol>
+
+    <h2>Semver-richtlijn</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:120px">Bump</th><th>Wanneer</th></tr></thead>
+        <tbody>
+            <tr><td><span class="cma-tool__strong">PATCH</span> (x.y.Z)</td><td>Alleen bugfixes; geen gedragsverandering voor callers.</td></tr>
+            <tr><td><span class="cma-tool__strong">MINOR</span> (x.Y.0)</td><td>Nieuwe features, interne uitbreidingen, removal van internal-only surfaces.</td></tr>
+            <tr><td><span class="cma-tool__strong">MAJOR</span> (X.0.0)</td><td>Breaking changes voor consumer-code (Composer-installed classes, web components, JSON form contracts).</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Waar de versie geleest wordt</h2>
+    <p><code>App\Library\Bootstrap::getPlatformVersion()</code> lost de versie op in deze volgorde (sinds v1.9.1):</p>
+    <ol>
+        <li><code>vendor/stenversonline/platform/composer.json</code>'s <code>version</code> field — bron-van-waarheid; werkt ook als de consumer's composer.json een branch-constraint (<code>dev-main</code>) gebruikt.</li>
+        <li><code>vendor/composer/installed.json</code> — wat Composer registreerde tijdens install.</li>
+        <li><code>Composer\InstalledVersions::getPrettyVersion()</code> — runtime API.</li>
+        <li>Fallback: <code>'dev'</code>.</li>
+    </ol>
+    <p><code>CMA_APP_VERSION</code> constant wordt in <code>cma/bootstrap.inc</code> gezet vanuit deze functie. Zichtbaar in het profielmenu (sinds v1.9.0).</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">vdev-main symptoom:</span> stap 1 ontbreekt of mislukt → installed.json valt door, dat zegt <code>dev-main</code> bij branch-installs. Fix sinds v1.9.1: lees <span class="cma-tool__em">eerst</span> de package's eigen composer.json — die heeft altijd de tagged versie.
+    </div>
+
+    <h2>REMOVED_PATHS voor retired bestanden</h2>
+    <p>Wanneer je een bestand verwijdert uit <code>library/</code>, <code>cma/</code> of <code>module/</code>: voeg het ook toe aan <code>REMOVED_PATHS</code> in <code>src/Installer.php</code>. De Installer's syncDirectory kopieert alleen forward — zonder REMOVED_PATHS blijft het oude bestand voor altijd op consumer-sites bestaan na een upgrade.</p>
+    <pre><code>private const REMOVED_PATHS = [
+    'cma/tools/llm_models.php',     // retired v1.9.0
+    'cma/docs/iis-setup.md',        // retired v1.16.0 (inlined in docs)
+    'cma/docs/logging.md',          // retired v1.16.0
+    // …
+];</code></pre>
+    <p>Entries kunnen voor altijd blijven staan — <code>is_file()</code> guard zorgt dat de cleanup idempotent is.</p>
+
+    <h2>Automatisch melden in de response</h2>
+    <p>Per CLAUDE.md / memory <code>feedback_version_bump</code>: na elke push noem ik de nieuwe versie expliciet in de user-facing message. Zonder dat moeten consumer-operators in de profiel-balk kijken om te weten welke versie ze net binnen krijgen.</p>
+
+    <h2>De afgeronde release-bash macro</h2>
+    <p>Voor commit + tag + push in één:</p>
+    <pre><code>VERSION=X.Y.Z
+git add composer.json &lt;files&gt; &amp;&amp; \
+  git commit -m "Release $VERSION: &lt;short description&gt;" &amp;&amp; \
+  git tag v$VERSION &amp;&amp; \
+  git push &amp;&amp; git push --tags
+</code></pre>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (consumer-side composer update), <a href="documentation.php?topic=installation">Installatie</a>.
     </div>
     <?php
 }
