@@ -1,13 +1,17 @@
 <?php
 /**
  * deploy_status.php — read-only JSON endpoint that summarises the last
- * deploy run from logs/deploy.log. Designed to be polled remotely
- * (curl, monitoring, AI assistant) to confirm whether a deploy actually
- * succeeded without SSH-ing to the box.
+ * deploy run from logs/deploy.log. Standalone: only uses standard PHP
+ * (no Composer autoload, no platform bootstrap, no .env reader). Works
+ * even when CMA / vendor is completely broken.
  *
- * URL:    https://<host>/cma/tools/deploy_status.php?key=<DEPLOY_SECRET>
- * Auth:   DEPLOY_SECRET (?key= query parameter, timing-safe compare).
- *         Same secret as deploy_webhook_standalone.php — no extra config.
+ * URL:    https://<host>/cma/tools/deploy_status.php
+ * Auth:   NONE. Status + commit-SHA + branch + timestamp are not
+ *         sensitive; commit-SHAs are already in public git history,
+ *         branch names too, and deploy-state is observable anyway by
+ *         hitting the site. log_tail contains pipeline output (git
+ *         pull, composer update) which by convention contains no
+ *         secrets.
  * Output: application/json; charset=utf-8
  *
  * Sample success response:
@@ -23,54 +27,21 @@
  *     "log_tail":        "...last 40 lines of deploy.log..."
  *   }
  *
- * Sample in-progress response (deploy started, not yet ended):
+ * In-progress:
  *   {"ok": true, "status": "RUNNING", "branch":"main", "commit":"...",
  *    "started_at":"...", "age_seconds":18, "running": true}
  *
- * Sample failure modes:
- *   401  — bad / missing ?key
+ * Failure modes:
  *   404  — deploy.log not found
  *   200  — but {"ok": false, "error": "no completed deploy in log"}
  */
 
-declare(strict_types=1);
-
-// Self-contained (no platform bootstrap) so this works even when CMA is
-// half-broken — same rationale as deploy_webhook_standalone.php.
-
-$siteRoot = dirname(__DIR__, 2);
-
-$envRead = static function (string $key) use ($siteRoot): string {
-    $v = getenv($key);
-    if ($v !== false && $v !== '') { return (string)$v; }
-    if (!empty($_ENV[$key])) { return (string)$_ENV[$key]; }
-    foreach (['.env.production', '.env.acceptance', '.env.test', '.env.development', '.env.local', '.env'] as $f) {
-        $path = $siteRoot . '/' . $f;
-        if (!is_file($path)) { continue; }
-        foreach ((array)file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-            if (preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*["\']?([^"\'\r\n#]+)/', $line, $m)) {
-                return trim($m[1]);
-            }
-        }
-    }
-    return '';
-};
-
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-$secret = $envRead('DEPLOY_SECRET');
-$given  = (string)($_GET['key'] ?? '');
-if ($secret === '' || !hash_equals($secret, $given)) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'error' => 'invalid or missing ?key']);
-    return;
-}
-
-$logFile = $envRead('DEPLOY_LOG_FILE');
-if ($logFile === '') {
-    $logFile = $siteRoot . '/logs/deploy.log';
-}
+// Log file lives at <site-root>/logs/deploy.log. dirname(__DIR__, 2)
+// resolves: __DIR__ = cma/tools, parent = cma, parent of parent = site root.
+$logFile = dirname(__DIR__, 2) . '/logs/deploy.log';
 
 if (!is_file($logFile)) {
     http_response_code(404);
@@ -78,9 +49,7 @@ if (!is_file($logFile)) {
     return;
 }
 
-// Read last ~16KB — far more than one banner-bracketed deploy needs,
-// but plenty to find the last "deploy ended" line and capture a useful
-// tail for the operator.
+// Read last ~16KB — plenty for one banner-bracketed deploy + a useful tail.
 $size      = filesize($logFile) ?: 0;
 $chunkSize = (int)min($size, 16 * 1024);
 $tail      = '';
@@ -94,7 +63,8 @@ if ($chunkSize > 0) {
 }
 $lines = preg_split('/\r?\n/', $tail) ?: [];
 
-// Walk backwards looking for the most recent banner lines.
+// Walk backwards looking for the most recent banner lines (format defined
+// by deploy_webhook_standalone.php — kept in sync there).
 $endedAt = null; $endedStatus = null; $endedBranch = null; $endedCommit = null;
 $startedAt = null; $startedBranch = null; $startedCommit = null;
 foreach (array_reverse($lines) as $line) {
@@ -110,7 +80,7 @@ foreach (array_reverse($lines) as $line) {
         $startedAt     = $m[1];
         $startedBranch = $m[2];
         $startedCommit = $m[3];
-        // Stop once we've found a started-banner OLDER-or-equal than the
+        // Stop once we've found a started-banner OLDER-or-equal to the
         // ended-banner we found above; for an in-progress deploy this
         // is the started-banner without a matching end.
         if ($endedAt === null || $startedCommit !== $endedCommit) {
@@ -144,7 +114,6 @@ if ($isRunning) {
 }
 
 if ($endedAt === null) {
-    http_response_code(200);
     $result['ok']    = false;
     $result['error'] = 'no completed deploy in log';
     echo json_encode($result);
