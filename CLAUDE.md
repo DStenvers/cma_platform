@@ -34,15 +34,16 @@ The codebase is a PHP application originally converted from Classic ASP. Many pa
 - **Environment detection**: `Application::get('omgeving')` returns `O` (development), `L` (local), `T` (test), `A` (acceptance), `P` (production). Debug mode auto-enables for non-production.
 - **Web server**: Runs on IIS with URL Rewrite. `_bootstrap.php` is auto-prepended to all requests. `web.config` handles routing.
 
-### Config Files (per-project, protected from overwrites)
+### Config files
 
-- `cma/config/app.json` — Branding, features
-- `cma/config/databases.json` — Database connection mappings
-- `cma/config/menu.json` — CMA navigation menu structure
-- `cma/config/reports.json` — Report definitions
-- `app.php` — Application globals (paths, DB connections, branding)
-- `global.asa.php` — Secrets, credentials
-- `.env` / `.env.*` — Environment variables
+The platform splits JSON config into two layers:
+- `cma/config/<name>.json` — **platform-bundled defaults**. Overwritten by `composer update`. Don't edit for site-specific values.
+- `data/<name>.json` on the site root — **per-site overrides**. The Installer never touches `data/`. `MenuService::CONFIG_PATH` and `ReportsService::$configPath` point directly here; `cma_get_app_logo()` and similar helpers read `data/app.json` first, then fall back to `cma/config/app.json`.
+
+Other per-site files (also untouched by the Installer once they exist):
+- `app.php` — Application globals (paths, DB connections, branding). Template at `templates/app.php.template`, copied to site root only if missing.
+- `global.asa.php` — Secrets / credentials. Template; never overwritten.
+- `.env` / `.env.*` — Environment variables. Same template treatment.
 
 ## Commands
 
@@ -169,4 +170,20 @@ The in-CMA documentation hub lives at `cma/tools/documentation.php`. Each topic 
 - Never write "TODO: update this" or "this section is out of date" — fix it in the same PR, or delete the stale section. Readers trust the doc; broken trust is hard to rebuild.
 - When releasing a new version that introduces behavior described in the docs, mention the version in the relevant topic (e.g. "Sinds v1.13.0 …") so readers can correlate the docs to what their site actually has.
 
-The `$topics` map is intentionally flat. Once it grows past ~12 entries, group it — not before. Premature hierarchy makes things harder to find, not easier.
+The `$topics` map supports nested `'children' => [...]` for groups. Current groups: **Voor beheerders** (admin operations: installation, env, deploy, backups, logs, security, IIS), **Voor ontwikkelaars** (developer authoring — added in v1.17.0), **Troubleshooting + reference** (cross-cutting — added in v1.18.0). Only add a new group when a topic genuinely doesn't fit any existing one; premature hierarchy makes things harder to find, not easier.
+
+### Verifying facts before writing
+
+Every concrete claim in a topic (constant name, file path, env-var default, function signature, version number) MUST be verified against the current code before writing. Don't trust memory of past sessions or stale `.md` files. When inlining content from one of the retired markdown files, re-verify each technical claim — those files predate years of changes and routinely contain drifted facts. See `memory/feedback_verify_doc_facts.md` (saved 2026-05-30) for the rule's origin and worked examples.
+
+### Cross-topic linking
+
+Link between topics with `<a href="documentation.php?topic=<slug>">…</a>`. Never quote text from another topic — that creates a synchronization debt. Either inline once in the canonical topic and link to it from elsewhere, OR write each topic to stand alone and accept that some concepts repeat.
+
+### Deprecation
+
+When a documented feature is retired, mark the topic with `<lib-label type="warning">Verwijderd in vX.Y.Z</lib-label>` at the top and keep the topic for one release cycle as a redirect/explainer. Then `git rm` the render function and remove the topic from `$topics`. Add the path to `Installer.php::REMOVED_PATHS` if you also removed associated `.md` or PHP files from `cma/`.
+
+### No new `.md` documentation files
+
+From v1.16.0 forward, all reference documentation lives in `cma/tools/documentation.php`. Do not create new `.md` files in `cma/docs/`. Do not resurrect deleted ones. The `cma/docs/linearicons.css` file stays — it's not a doc, it's a data file used by the storybook.

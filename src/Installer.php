@@ -42,6 +42,12 @@ class Installer
      */
     private const REMOVED_PATHS = [
         'cma/tools/llm_models.php',
+        // Markdown docs retired in v1.16.0 (Phase 1 of the in-CMA
+        // documentation hub at cma/tools/documentation.php). Their
+        // content was inlined into the topics there. See CLAUDE.md
+        // "No new .md documentation files" rule.
+        'cma/docs/iis-setup.md',
+        'cma/docs/logging.md',
     ];
 
     /**
