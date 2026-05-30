@@ -303,6 +303,7 @@ Dit gebeurt wanneer de sectie is vergrendeld op bovenliggend niveau.</code></pre
             De <code>scripts</code> sectie is cruciaal — zonder die hooks draait de Installer niet en blijven <code>cma/</code>, <code>library/</code> bestanden achter in <code>vendor/</code> in plaats van naar de project-root gesynct te worden.
         </li>
         <li><code>composer install</code> uitvoeren. De Installer runt automatisch en kopieert <code>library/</code>, <code>cma/</code>, <code>module/</code> naar de project-root, en plaatst eenmalige template-bestanden (<code>_bootstrap.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>) als die nog niet bestaan.</li>
+        <li>De Installer kopieert tegelijk eenmalig de template-bestanden uit <code>templates/</code> als ze nog niet bestaan op de site-root: <code>_bootstrap.php</code>, <code>_bootstrap_wrapper.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>, en <code>assets/css/cma.css</code> (uit <code>cma.css.template</code>). <code>_bootstrap_constants.inc</code> wordt apart gekopieerd. Bestaande bestanden worden NOOIT overschreven.</li>
         <li><code>.env</code> aanmaken op basis van <code>.env.example</code> met minimaal:
             <pre><code>APP_ENVIRONMENT=T
 DEPLOY_SECRET=&lt;64-char hex via openssl rand -hex 32&gt;</code></pre>
@@ -372,7 +373,7 @@ function render_doc_environment(): void
     <p>Debug-mode wordt automatisch geactiveerd voor alles wat niet <code>P</code> is — error_reporting=E_ALL en display_errors=on.</p>
 
     <h2>Bestandskeuze: welke .env wordt geladen?</h2>
-    <p><code>Bootstrap::prepareDotenv()</code> bepaalt het in deze volgorde:</p>
+    <p><code>Bootstrap::detectAndLoadEnv()</code> bepaalt het in deze volgorde:</p>
     <ol>
         <li>Als de aanroeper een explicit <code>env_file</code> meegaf in de Bootstrap::init() config — gebruik die.</li>
         <li>Als <code>$_ENV['APP_ENVIRONMENT']</code> of <code>$_SERVER['APP_ENVIRONMENT']</code> gezet is op O/L/T/A/P — gebruik het bijbehorende <code>.env.development</code>/<code>.env.local</code>/<code>.env.test</code>/<code>.env.acceptance</code>/<code>.env.production</code>.</li>
@@ -827,7 +828,7 @@ function render_doc_architecture(): void
     <ol>
         <li><span class="cma-tool__strong">IIS request komt binnen</span> — web.config rewrites routen naar <code>_bootstrap_wrapper.php</code> of een specifiek PHP-bestand.</li>
         <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
-        <li><span class="cma-tool__strong">Bootstrap::init()</span> doet: <code>prepareDotenv</code> (kiest welke .env), <code>loadDotenv</code> (phpdotenv), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), en zet <code>$GLOBALS['Application']</code> op.</li>
+        <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
         <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (sinds v1.12.1 met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
         <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait.</li>
     </ol>
@@ -1103,16 +1104,19 @@ function render_doc_migrations(): void
     </table>
 
     <h2>Idempotent &amp; rerunnable</h2>
-    <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is:</p>
+    <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is. Let op de exact-signatures: <code>Database::tableExists</code> neemt de connection-string eerst, <code>MigrationService::columnExists</code> neemt de tabel eerst:</p>
     <pre><code>// In je migration PHP:
-if (!Database::tableExists('tblNewThing', $conn)) {
-    Database::execute('CREATE TABLE tblNewThing (...)', [], $conn);
+$connString = 'data';   // of welke databases.json-entry je ook target
+
+if (!Database::tableExists($connString, 'tblNewThing')) {
+    Database::execute('CREATE TABLE tblNewThing (...)');
 }
 
-if (!Database::columnExists('tblOrders', 'discountCode', $conn)) {
-    Database::execute('ALTER TABLE tblOrders ADD COLUMN discountCode VARCHAR(50)', [], $conn);
+if (!MigrationService::columnExists('tblOrders', 'discountCode', $connString)) {
+    Database::execute('ALTER TABLE tblOrders ADD COLUMN discountCode VARCHAR(50)');
 }
 </code></pre>
+    <p>Voor PDO-handles in plaats van connection-strings: <code>Database::tableExistsPDO(PDO $conn, string $table)</code>.</p>
     <p>De if-check voorkomt dat een rerun een fout geeft op "tabel bestaat al" / "kolom bestaat al". Voor data-migrations: check eerst of de target-rows al de gewenste staat hebben en sla over.</p>
 
     <h2>MIGRATION_RUNNING constant</h2>
@@ -1560,7 +1564,7 @@ function render_doc_troubleshooting(): void
         <tbody>
             <tr><td>Env-switch knop drukt, refresh, niks gewijzigd</td><td>v1.13.0 schreef altijd naar hardcoded <code>.env</code>, ook als bootstrap <code>.env.test</code> of <code>.env.production</code> had geladen. Regel landde in het verkeerde bestand.</td><td>v1.14.3+ schrijft naar het ACTIEVE env-bestand (zichtbaar als "Actief .env bestand" op de Omgeving-tab).</td></tr>
             <tr><td>"Schrijven naar .env mislukt" foutmelding</td><td>IIS-user heeft geen schrijfrechten op het env-bestand.</td><td>NTFS ACL aanpassen voor <code>IIS APPPOOL\&lt;sitename&gt;</code>.</td></tr>
-            <tr><td>APP_ENVIRONMENT staat goed in .env, maar omgeving-code blijft P</td><td>OS-level <code>APP_ENVIRONMENT</code> (in IIS app-pool environment variables) overrulet de file-content tijdens <code>Bootstrap::prepareDotenv</code>.</td><td>Verwijder de OS-level setting in IIS Manager → Application Pools → Advanced Settings → Environment Variables.</td></tr>
+            <tr><td>APP_ENVIRONMENT staat goed in .env, maar omgeving-code blijft P</td><td>OS-level <code>APP_ENVIRONMENT</code> (in IIS app-pool environment variables) overrulet de file-content tijdens <code>Bootstrap::detectAndLoadEnv</code>.</td><td>Verwijder de OS-level setting in IIS Manager → Application Pools → Advanced Settings → Environment Variables.</td></tr>
         </tbody>
     </table>
 
