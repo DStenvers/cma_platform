@@ -2,7 +2,7 @@
 
 For completed items, see [done.md](done.md)
 
-**Last updated:** 2026-02-18
+**Last updated:** 2026-05-31
 
 See also: [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) for system-wide issues.
 
@@ -59,7 +59,7 @@ apc.enable_cli=1  ; if using CLI scripts
 - ✅ Added `$_POST` fallback in `saveGroupRights()` if $data array incomplete
 
 **Still TODO:**
-- Server-side changelog for Edit operations (requires fetching old values before update)
+- ~~Server-side changelog for Edit operations (requires fetching old values before update)~~ ✅ FIXED in v1.20.1: `FormDataProvider::buildEditChangelog()` + pre-update `SELECT *` fetch + fallback when client `_changelog` is empty.
 
 **Side-effects:** Low - adds missing functionality
 
@@ -138,17 +138,21 @@ Remaining:
 ---
 
 ### 6. Test Coverage Critically Low (6%)
-**Status**: HIGH - Cannot catch regressions
+**Status**: HIGH - Cannot catch regressions — strategie gepubliceerd v1.20.1
 **Added**: 2026-01-30
+**Updated**: 2026-05-31
 
 Only 8 of 125 forms have CRUD tests:
 - users, groups, opleidingen (basic CRUD)
 - 117+ forms have NO tests
 
-**Fix Required:**
-- Add CRUD tests for top 20 most-used forms
-- Replace "implementation specific" test placeholders with real assertions
-- Add security tests (XSS, SQL injection, CSRF)
+**Strategy doc**: zie documentation-hub topic [Tests & coverage strategie](tools/documentation.php?topic=testing). Bevat live-tellingen, risico-zone analyse, drie-laags aanpak (unit / service-integration / Cypress), en een sprint-1 quick-win plan (SQLite test-harness + 5 service-tests + composer-test CI-gate in deploy-webhook).
+
+**Fix Required (kort samengevat — zie doc-topic voor details):**
+- SQLite test-harness in `cma/tests/IntegrationTestCase.php`
+- 5 service-laag tests (RecordService, FormDataProvider edit-changelog, MigrationService, Installer, Database error paths)
+- `composer test` gate in deploy-webhook vóór `composer update`
+- Daarna geleidelijk uitbreiden naar form-CRUD coverage
 
 **Side-effects:** Low - test-only changes
 

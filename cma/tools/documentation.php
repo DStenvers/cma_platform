@@ -73,6 +73,7 @@ $topics = [
             'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
             'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
             'errors'        => ['label' => 'Logging &amp; errors (dev)',  'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
+            'testing'       => ['label' => 'Tests &amp; coverage strategie','icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
             'releasing'     => ['label' => 'Releasen &amp; versies',      'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
         ],
     ],
@@ -1847,6 +1848,103 @@ PerformanceLogger::logMemory('checkpoint');
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=logs">Logs &amp; monitoring</a> (operator-kant), <a href="documentation.php?topic=security">Beveiliging</a> (sensitive-data scrubbing context).
+    </div>
+    <?php
+}
+
+function render_doc_testing(): void
+{
+    // Live counts so the doc page never lies about scope.
+    $unitTests   = glob(dirname(__DIR__) . '/tests/*Test.php') ?: [];
+    $cypressSpecs = [];
+    $cypressDir = dirname(__DIR__) . '/cypress/e2e';
+    if (is_dir($cypressDir)) {
+        $iter = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($cypressDir, \RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($iter as $f) {
+            if ($f->isFile() && str_ends_with($f->getFilename(), '.cy.js')) {
+                $cypressSpecs[] = $f->getPathname();
+            }
+        }
+    }
+    $platformClasses = count(glob(dirname(__DIR__, 2) . '/src/helpers/*.php') ?: []);
+    $cmaClasses      = count(glob(dirname(__DIR__) . '/classes/*.php') ?: []);
+    $cmaServices     = count(glob(dirname(__DIR__) . '/classes/Services/*.php') ?: []);
+    $unitCount   = count($unitTests);
+    $cypressCount = count($cypressSpecs);
+    ?>
+    <h1>Tests &amp; coverage strategie</h1>
+    <p class="docs-meta">Waar het CMA-platform staat met geautomatiseerde tests, waar de gaten zitten, en welk volgende stuk werk de meeste regressie-risico afdekt per uur investering.</p>
+
+    <h2>Huidige stand (live geteld)</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Test-laag</th><th>Aantal</th><th>Dekt</th></tr></thead>
+        <tbody>
+            <tr><td>PHP unit-tests (<code>cma/tests/*Test.php</code>)</td><td><?= $unitCount ?></td><td>Pure-logic helpers: <code>Arr</code>, <code>Date</code>, <code>Encryption</code>, <code>Html</code>, <code>Str</code>, <code>SQL</code>, <code>StringBuffer</code>, <code>FormExpressionEvaluator</code>, <code>QueryBuilder</code>, <code>SqlParser</code>, <code>ColumnMajorArray</code>, <code>EmailLog</code></td></tr>
+            <tr><td>Cypress E2E-specs (<code>cma/cypress/e2e/**/*.cy.js</code>)</td><td><?= $cypressCount ?></td><td>UI-flows: forms, components, auth, navigation, tools, wizards, search, reports, integration, performance, accessibility, responsive, visual, email-log, readonly-forms</td></tr>
+        </tbody>
+    </table>
+    <p class="docs-meta">Productie-PHP-classes ter referentie: <code>src/helpers/</code> = <?= $platformClasses ?>, <code>cma/classes/</code> = <?= $cmaClasses ?>, <code>cma/classes/Services/</code> = <?= $cmaServices ?>. De unit-tests dekken <strong class="cma-tool__strong">geen</strong> van de service-classes (RecordService, FormDataProvider, ListService, MigrationService) of de data-laag (<code>Database</code>, <code>RecordSet</code>). Daar zit de risico-zone.</p>
+
+    <h2>Risico-zones (waar regressies wegglippen)</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Zone</th><th>Wat misgaat zonder dekking</th><th>Huidige observatie</th></tr></thead>
+        <tbody>
+            <tr><td><code>Database</code> + <code>RecordSet</code></td><td>PDOException paths retourneren <code>null</code>/<code>[]</code>; veranderde SQL-quoting; ODBC ↔ SQLite ↔ MySQL edge cases.</td><td>Sinds v1.19.8 worden errors ge-logged, maar geen test bewijst dat de catches gaat-niet-stuk-paden hetzelfde gedragen na refactor.</td></tr>
+            <tr><td><code>FormDataProvider::saveJsonFormRecord</code></td><td>Add/Edit/Delete branches; custom-renderer save; veld-validatie; monitoring/changelog.</td><td>Sinds v1.20.1 ook server-side changelog fallback — geen test die de oud↔nieuw diff bewijst.</td></tr>
+            <tr><td><code>Services\RecordService</code> + <code>ListService</code></td><td>Subform piggyback, group-rights save, custom renderer waarde-collectie.</td><td>Cypress dekt de happy-path UI; de service-laag heeft geen geïsoleerde test.</td></tr>
+            <tr><td><code>MigrationService</code></td><td>Migratie-volgorde, rerunbaarheid, rollback-gedrag bij partial failure.</td><td>Geen test. Wel changelog in <code>migrations.json</code> maar dat is geen contract.</td></tr>
+            <tr><td>Web components met state (cma-blockeditor, cma-tree, lib-fileuploader)</td><td>Attribute-change handlers, JSON.parse fallbacks, drag-and-drop volgorde, fetch-failure UX.</td><td>Storybook-aanwezigheid garandeert syntax, geen gedrag. Eén Cypress-spec voor lib-sheet sinds v1.19, rest niet.</td></tr>
+            <tr><td><code>Installer</code></td><td>File-sync van platform naar consumer-site; <code>REMOVED_PATHS</code> opschoning; protected-paths bewaring.</td><td>Sinds v1.19.7 throwen op copy/mkdir failure, maar geen test bewijst dat de juiste files bewaard blijven.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Drie-laags aanpak</h2>
+    <p>Niet alle code-laag verdient dezelfde test-stijl. De juiste keuze per laag:</p>
+    <ol>
+        <li><span class="cma-tool__strong">Pure-logic units</span> — al goed gedekt (12 testklassen). Vuistregel: <em>elke nieuwe pure functie in <code>src/helpers/</code> krijgt een <code>*Test.php</code></em>. Geen DB, geen filesystem, runt in &lt; 1s totaal.</li>
+        <li><span class="cma-tool__strong">Service-laag integration-tests</span> — bestaande TestRunner uitbreiden met een <code>cma/tests/integration/</code> map die wél een SQLite test-DB opspant. Doel: één test per service-methode-contract (<code>RecordService::save</code> Add ↔ Edit ↔ Delete, <code>FormDataProvider::buildEditChangelog</code> diff, <code>MigrationService::run</code> idempotency).</li>
+        <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases).</li>
+    </ol>
+
+    <h2>Quick-win plan (sprint-1 deliverable)</h2>
+    <p>Eén PR die het meeste regressie-risico per uur afdekt:</p>
+    <ol>
+        <li><span class="cma-tool__strong">SQLite test-DB harness</span> in <code>cma/tests/IntegrationTestCase.php</code>: opent in-memory SQLite, voert minimale schema-migraties uit (tblUsers, tblGroups, tblCMAMonitoring), tear-down per test. ~80 regels, eenmalige investering.</li>
+        <li><span class="cma-tool__strong">5 happy-path service-tests</span>:
+            <ul>
+                <li><code>RecordServiceSaveTest</code> — Add/Edit/Delete tegen tblUsers</li>
+                <li><code>FormDataProviderChangelogTest</code> — server-side <code>buildEditChangelog</code> diff voor v1.20.1</li>
+                <li><code>MigrationServiceRunTest</code> — idempotent op herstart, error op corrupte file</li>
+                <li><code>InstallerSyncTest</code> — protected files blijven, REMOVED_PATHS cleanen, mkdir-fail throwt</li>
+                <li><code>DatabaseErrorPathTest</code> — broken SQL = <code>null</code> retour én <code>error_log</code> entry</li>
+            </ul>
+        </li>
+        <li><span class="cma-tool__strong">CI-gate</span> in deploy-webhook: <code>composer test</code> runt vóór <code>composer update</code>. Failure = no deploy. Sinds v1.19.8 worden errors al ge-logged dus een nieuwe regressie wordt zichtbaar in de log-tail van <code>deploy_status.php</code>.</li>
+    </ol>
+
+    <h2>Coverage-doel</h2>
+    <p>Geen absoluut percentage nastreven — een 80%-target dat in 80% van de niet-belangrijke loops zit is misleidend. Wel <span class="cma-tool__em">gedrags-doelen</span>:</p>
+    <ul>
+        <li>Iedere methode in <code>src/helpers/</code> heeft minstens 1 test op happy-path + 1 op edge case (null, leeg, max-grootte).</li>
+        <li>Iedere methode in <code>cma/classes/Services/</code> heeft minstens 1 integration-test per public contract.</li>
+        <li>Iedere web component in <code>library/webcomponents/</code> heeft een Cypress-spec die <em>connectedCallback → attribute change → user event → expected state</em> doorloopt (lib-sheet is de blueprint).</li>
+        <li>Geen merge naar main zonder dat <code>composer test</code> groen is — gedwongen via deploy webhook.</li>
+    </ul>
+
+    <h2>Hoe tests draaien</h2>
+    <pre><code>cd cma
+php tests/TestRunner.php                        # alle PHP unit-tests
+php tests/TestRunner.php ArrTest                # één klasse
+php tests/TestRunner.php ArrTest --filter=testFlatten   # één methode
+
+npx cypress open                                # interactief
+npx cypress run                                 # headless (CI)
+npx cypress run --spec 'cypress/e2e/forms/**/*.cy.js'  # selectief
+</code></pre>
+    <p>De PHP-runner is custom (<code>cma/tests/TestRunner.php</code>) en heeft géén PHPUnit-dependency — bewust kept zo zodat consumer-sites niets extra hoeven te installeren. Wel ondersteunt de TestCase-base PHPUnit-compatible asserties zodat eventueel naar PHPUnit migreren een grep-and-replace is.</p>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a> (welke laag wat doet), <a href="documentation.php?topic=releasing">Releasen &amp; versies</a> (semver + tagging), <a href="documentation.php?topic=errors">Logging &amp; errors</a> (waar regressies opduiken na deploy).
     </div>
     <?php
 }

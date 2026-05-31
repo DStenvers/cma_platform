@@ -871,6 +871,28 @@ class FormDataProvider
 
             $isNew = $recordId === null || $recordId === '';
 
+            // Server-side changelog: fetch old record state BEFORE update so we
+            // can diff old vs new and render a changelog if the client failed
+            // to ship one. Pre-1.20.1 the Notificatie field in tblCMAMonitoring
+            // was empty for any edit where the client-side JS that builds
+            // _changelog had errored, leaving the operator with no audit
+            // trail. The fetch is bounded by try/throwable so a read failure
+            // never blocks the save itself.
+            $oldFields = [];
+            if (!$isNew) {
+                $idValueQ = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId);
+                $oldSql = "SELECT * FROM " . self::quoteIdentifier($tableName, $isSqlite)
+                        . " WHERE " . self::quoteIdentifier($idField, $isSqlite) . " = " . $idValueQ;
+                try {
+                    $oldRs = Database::openRS($oldSql, $conn);
+                    if ($oldRs && !$oldRs->EOF) {
+                        $oldFields = (array)$oldRs->fields;
+                    }
+                } catch (\Throwable $e) {
+                    Logger::debug('SAVE: pre-update record fetch failed (changelog fallback skipped)', ['error' => $e->getMessage()]);
+                }
+            }
+
             if ($isNew) {
                 // INSERT
                 $fields = [];
@@ -1034,6 +1056,20 @@ class FormDataProvider
             $formDefObj = FormDefinition::fromArray($formDef);
             if ($formDefObj->isValid()) {
                 RecordService::saveCustomRendererValues($formDefObj, $recordId, $data);
+            }
+
+            // Server-side changelog fallback for edits (sinds v1.20.1). When the
+            // client-side JS that builds _changelog erred, the POST arrives
+            // without it; pre-1.20.1 the Notificatie ended up empty. Now we
+            // diff the pre-update $oldFields vs the saved $data and render a
+            // changelog table — but only when the client hasn't already shipped
+            // one (so we never overwrite the operator's richer client-side
+            // diff with our server-side approximation).
+            if (!$isNew && empty($changelog['_changelog']) && !empty($oldFields)) {
+                $generated = self::buildEditChangelog($formDef, $oldFields, $data);
+                if ($generated !== '') {
+                    $changelog['_changelog'] = $generated;
+                }
             }
 
             // Log to CMA Monitoring with changelog
@@ -1906,6 +1942,138 @@ class FormDataProvider
 
         $html .= '</table>';
         return $html;
+    }
+
+    /**
+     * Build server-side changelog for edit operations. Mirrors the buildDelete
+     * Changelog HTML style but renders three columns (Veld / Oud / Nieuw)
+     * and only includes rows where the normalised value actually changed.
+     * Returns '' when nothing changed — caller treats that as "skip the
+     * fallback, leave _changelog empty".
+     *
+     * Called from saveJsonFormRecord when the client-side _changelog is
+     * absent (JS error, POST size truncation, etc).
+     */
+    private static function buildEditChangelog(array $formDef, array $oldFields, array $newData): string
+    {
+        $jsonData = $formDef['_json'] ?? $formDef;
+        $fieldDefs = $jsonData['fields'] ?? [];
+
+        // Build label + type lookups (mirrors buildDeleteChangelog).
+        $fieldLabels = [];
+        $fieldTypes  = [];
+        foreach ($fieldDefs as $fieldDef) {
+            $name = $fieldDef['name'] ?? '';
+            $label = $fieldDef['label'] ?? $name;
+            $dataType = $fieldDef['dataType'] ?? '';
+            $controlType = $fieldDef['controlType'] ?? '';
+            if ($name) {
+                $fieldLabels[$name] = $label;
+                $fieldLabels[strtolower($name)] = $label;
+                $isBoolean = $dataType === 'boolean' || $controlType === 'checkbox' || $controlType === 'switch';
+                $fieldTypes[$name] = $isBoolean ? 'boolean' : $dataType;
+                $fieldTypes[strtolower($name)] = $fieldTypes[$name];
+            }
+        }
+
+        // Build a case-insensitive lookup over $oldFields once.
+        $oldByLower = [];
+        foreach ($oldFields as $k => $v) {
+            $oldByLower[strtolower((string)$k)] = $v;
+        }
+
+        $changes = [];
+        foreach ($newData as $fieldName => $newValue) {
+            // Skip internal/virtual fields.
+            if (str_starts_with((string)$fieldName, '_') || str_ends_with((string)$fieldName, '__label')) {
+                continue;
+            }
+            // Only consider fields the form defined as DB columns.
+            if (!isset($fieldLabels[strtolower((string)$fieldName)])) {
+                continue;
+            }
+
+            $oldValue = $oldByLower[strtolower((string)$fieldName)] ?? null;
+            $fieldType = $fieldTypes[$fieldName] ?? $fieldTypes[strtolower((string)$fieldName)] ?? '';
+
+            // Normalise for the equality check so e.g. "1" == 1 == true.
+            $oldNorm = self::normalizeChangelogValue($oldValue, $fieldType);
+            $newNorm = self::normalizeChangelogValue($newValue, $fieldType);
+            if ($oldNorm === $newNorm) {
+                continue;
+            }
+
+            $changes[] = [
+                'label' => $fieldLabels[$fieldName] ?? $fieldLabels[strtolower((string)$fieldName)] ?? $fieldName,
+                'old'   => $oldValue,
+                'new'   => $newValue,
+                'type'  => $fieldType,
+            ];
+        }
+
+        if (empty($changes)) {
+            return '';
+        }
+
+        // Render in the same visual style as buildDeleteChangelog (different
+        // header color so an audit reader can tell edit vs delete at a glance).
+        $html  = '<table cellspacing="0" cellpadding="3">';
+        $html .= '<tr>';
+        $html .= '<th style="font-size:10pt;background-color:#1a4d72;color:white;text-align:left">Veld</th>';
+        $html .= '<th style="font-size:10pt;background-color:#1a4d72;color:white;text-align:left">Oude waarde</th>';
+        $html .= '<th style="font-size:10pt;background-color:#1a4d72;color:white;text-align:left">Nieuwe waarde</th>';
+        $html .= '</tr>';
+        foreach ($changes as $c) {
+            $html .= '<tr>';
+            $html .= '<td style="border-bottom:1px solid #1a4d72;border-left:1px solid #1a4d72">' . Server::htmlEncode((string)$c['label']) . '</td>';
+            $html .= '<td style="border-bottom:1px solid #1a4d72">' . self::formatChangelogValueHtml($c['old'], $c['type']) . '</td>';
+            $html .= '<td style="border-bottom:1px solid #1a4d72;border-right:1px solid #1a4d72">' . self::formatChangelogValueHtml($c['new'], $c['type']) . '</td>';
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+        return $html;
+    }
+
+    /**
+     * Normalise a value to a comparable string for change detection.
+     * Mirrors how toBool / Arr::isArray are used in buildDeleteChangelog
+     * formatting — same rules, so old vs new compares apples to apples.
+     */
+    private static function normalizeChangelogValue($value, string $fieldType): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if ($fieldType === 'boolean' || is_bool($value)) {
+            return self::toBool($value) ? '1' : '0';
+        }
+        if (Arr::isArray($value)) {
+            return (string)(json_encode($value, JSON_UNESCAPED_UNICODE) ?: '');
+        }
+        return trim((string)$value);
+    }
+
+    /**
+     * Render a single changelog cell value — empty placeholder, Ja/Nee for
+     * booleans, JSON for arrays, escaped + 500-char truncated otherwise.
+     * Same visual contract as buildDeleteChangelog's inline formatting.
+     */
+    private static function formatChangelogValueHtml($value, string $fieldType): string
+    {
+        if ($value === null || $value === '') {
+            return '<span class="cma-class__em">(leeg)</span>';
+        }
+        if ($fieldType === 'boolean' || is_bool($value)) {
+            return self::toBool($value) ? 'Ja' : 'Nee';
+        }
+        if (Arr::isArray($value)) {
+            return Server::htmlEncode((string)json_encode($value, JSON_UNESCAPED_UNICODE));
+        }
+        $strValue = (string)$value;
+        if (strlen($strValue) > 500) {
+            return Server::htmlEncode(substr($strValue, 0, 500)) . '...';
+        }
+        return Server::htmlEncode($strValue);
     }
 
     /**
