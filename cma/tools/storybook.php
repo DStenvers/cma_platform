@@ -484,6 +484,7 @@ html.dark-mode .hex-dark { display: inline; }
             icon: 'lnr-layers',
             children: [
                 { label: 'blockeditor (CKEditor)', href: '#blockeditor', icon: 'lnr-text-format' },
+                { label: 'cma-blockeditor', href: '#cma-blockeditor', icon: 'lnr-pencil2' },
                 { label: 'cma-fold', href: '#cma-fold', icon: 'lnr-folder' },
                 { label: 'cma-groupbox', href: '#cma-groupbox', icon: 'lnr-layers' },
                 { label: 'cma-htmledit', href: '#cma-htmledit', icon: 'lnr-code' },
@@ -2876,6 +2877,68 @@ window.LIBLOG_CONFIG = {
                 <dl>
                     <dt>Volledige documentatie</dt>
                     <dd>Zie <a href="#lib-combo">lib-combo</a> voor attributen, AJAX-config, methodes, properties en events</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-blockeditor">
+        <div class="component-header">
+            <h2>cma-blockeditor</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Block-gebaseerde rich-text editor. Niet hetzelfde als de legacy <code>blockeditor (CKEditor)</code>: dit is een vanilla-JS web component dat zijn inhoud opslaat als JSON-array van getypeerde blokken (paragraph, heading, image, list, quote, divider, html).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <span class="demo-label">Lege editor (begint met 1 lege paragraaf):</span>
+</div>
+<cma-blockeditor name="demo-blockeditor-empty"></cma-blockeditor>
+
+<div class="demo-row" style="margin-top: 20px;">
+    <span class="demo-label">Met initiële inhoud (value-attribuut, JSON):</span>
+</div>
+<cma-blockeditor name="demo-blockeditor-prefilled" value='[{"type":"heading","level":2,"content":"Titel boven"},{"type":"paragraph","content":"Een alinea met tekst."},{"type":"list","style":"bullet","items":["Eerste","Tweede","Derde"]},{"type":"quote","content":"Citaat hier.","citation":"— Bron"},{"type":"divider"},{"type":"paragraph","content":"Alinea onder de divider."}]'></cma-blockeditor>
+
+<div class="demo-row" style="margin-top: 20px;">
+    <span class="demo-label">Beperkte block-types (alleen paragraph + heading):</span>
+</div>
+<cma-blockeditor name="demo-blockeditor-limited" blocks="paragraph,heading" placeholder="Typ hier…"></cma-blockeditor>
+
+<div class="demo-row" style="margin-top: 20px;">
+    <span class="demo-label">Disabled (alleen-lezen):</span>
+</div>
+<cma-blockeditor name="demo-blockeditor-disabled" disabled value='[{"type":"paragraph","content":"Deze inhoud is niet bewerkbaar."}]'></cma-blockeditor></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>name</dt>
+                    <dd>Veldnaam voor form-submit</dd>
+                    <dt>value</dt>
+                    <dd>Initiële inhoud als JSON-string (array van block-objecten)</dd>
+                    <dt>disabled</dt>
+                    <dd>Schakel naar readonly modus</dd>
+                    <dt>placeholder</dt>
+                    <dd>Placeholder-tekst voor lege blokken</dd>
+                    <dt>blocks</dt>
+                    <dd>Comma-separated toegestane block-types. Default: alle. Mogelijk: <code>paragraph</code>, <code>heading</code>, <code>image</code>, <code>list</code>, <code>quote</code>, <code>divider</code>, <code>html</code>.</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>change</dt>
+                    <dd>Inhoud gewijzigd. Detail bevat de nieuwe block-array.</dd>
+                    <dt>block-add</dt>
+                    <dd>Block toegevoegd. Detail: <code>{type, index}</code>.</dd>
+                    <dt>block-remove</dt>
+                    <dd>Block verwijderd. Detail: <code>{index}</code>.</dd>
+                </dl>
+                <h4>Opslag</h4>
+                <dl>
+                    <dt>Formaat</dt>
+                    <dd>JSON-array van blokken. Elk block heeft minstens <code>type</code>. Specifieke velden per type (heading: <code>level</code> + <code>content</code>, image: <code>src</code> + <code>alt</code> + <code>caption</code>, list: <code>style</code> + <code>items[]</code>, quote: <code>content</code> + <code>citation</code>, html: <code>content</code>).</dd>
                 </dl>
             </div>
         </div>
