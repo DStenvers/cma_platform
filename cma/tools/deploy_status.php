@@ -32,8 +32,9 @@
  *    "started_at":"...", "age_seconds":18, "running": true}
  *
  * Failure modes:
- *   404  — deploy.log not found
- *   200  — but {"ok": false, "error": "no completed deploy in log"}
+ *   404  — {"ok": false, "error": "deploy.log not found"}
+ *   500  — {"ok": false, "error": "log file unreadable"} (perms / lock)
+ *   200  — {"ok": false, "error": "no completed deploy in log"}
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -54,12 +55,19 @@ $size      = filesize($logFile) ?: 0;
 $chunkSize = (int)min($size, 16 * 1024);
 $tail      = '';
 if ($chunkSize > 0) {
+    // @ on fopen prevents a PHP warning from leaking into the JSON response,
+    // but we MUST distinguish "fopen failed" from "log has no banner" — the
+    // pre-v1.19.6 version returned "no completed deploy in log" in both
+    // cases, masking a permissions issue as an empty-log status.
     $fh = @fopen($logFile, 'rb');
-    if ($fh) {
-        @fseek($fh, -$chunkSize, SEEK_END);
-        $tail = (string)stream_get_contents($fh);
-        @fclose($fh);
+    if (!$fh) {
+        http_response_code(500);
+        echo json_encode(['ok' => false, 'error' => 'log file unreadable', 'path' => $logFile]);
+        return;
     }
+    @fseek($fh, -$chunkSize, SEEK_END);
+    $tail = (string)stream_get_contents($fh);
+    @fclose($fh);
 }
 $lines = preg_split('/\r?\n/', $tail) ?: [];
 

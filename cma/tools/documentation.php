@@ -465,6 +465,7 @@ function render_doc_deployment(): void
     <p>Foutgevallen:</p>
     <ul>
         <li>HTTP <code>404</code> met <code>{"ok": false, "error": "deploy.log not found", "path": "..."}</code> — de webhook heeft nog nooit op deze site gedraaid, of de <code>logs/</code> directory bestaat niet.</li>
+        <li>HTTP <code>500</code> met <code>{"ok": false, "error": "log file unreadable", "path": "..."}</code> — <span class="cma-tool__strong">sinds v1.19.6</span>: bestand bestaat maar is niet leesbaar (permissies of lock). Pre-v1.19.6 viel deze case stilletjes door en eindigde als "no completed deploy" — wat de operator de verkeerde kant op stuurde.</li>
         <li>HTTP <code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log-bestand bestaat wel maar er staat nog geen banner-bracketed run in.</li>
     </ul>
 
@@ -508,7 +509,7 @@ function render_doc_deployment(): void
         <li>Secret: zelfde waarde als <code>DEPLOY_SECRET</code> in <code>.env</code>.</li>
         <li>Events: alleen "Push" events.</li>
     </ol>
-    <p class="docs-meta">Succesvolle response is HTTP 202 (asynchrone acceptatie). 401 = secret-mismatch; 403 = verkeerde branch.</p>
+    <p class="docs-meta">Succesvolle response is HTTP 202 (asynchrone acceptatie). 401 = secret-mismatch; 403 = verkeerde branch. <span class="cma-tool__strong">Sinds v1.19.6</span>: 503 als <code>logs/</code> niet schrijfbaar is voor de IIS-user — de fix-instructie staat in de response body en in <code>php_errors.log</code>. Eerder verdween de deploy stilletjes na een 202.</p>
 
     <h2>Eerste deploy</h2>
     <ol>

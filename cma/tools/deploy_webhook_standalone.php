@@ -167,6 +167,27 @@ $commit = substr((string)($data['after'] ?? ''), 0, 7);
 $pusher = (string)($data['pusher']['name'] ?? '?');
 
 // ---------------------------------------------------------------------------
+// 4b. Writability check. After fastcgi_finish_request() the deploy runs
+//     async — if logs/ is unwritable for the web-server user, the entire
+//     pipeline would vanish without leaving a trace anywhere (pre-v1.19.6
+//     behaviour: GitHub gets 202, deploy_status.php returns 404 "deploy.log
+//     not found", operator sees nothing). Now we fail loud and synchronous
+//     before any async handoff: GitHub records a 503 delivery failure
+//     (visible in repo Settings → Webhooks → recent deliveries) AND we
+//     write to PHP's own error_log so diag.php / php_errors.log surface it.
+// ---------------------------------------------------------------------------
+$canWriteLog = is_writable($logFile) || (!is_file($logFile) && is_writable($logDir));
+if (!$canWriteLog) {
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=utf-8');
+    $msg = "Deploy log not writable for the web-server user: $logFile\n"
+         . "Fix permissions on $logDir then redeliver the webhook.\n";
+    error_log('DEPLOY: ' . trim(str_replace("\n", ' | ', $msg)));
+    echo $msg;
+    return;
+}
+
+// ---------------------------------------------------------------------------
 // 5. Banner + early 202. The deploy runs async via fastcgi_finish_request
 //    so GitHub doesn't time out waiting for composer/npm to finish.
 // ---------------------------------------------------------------------------
