@@ -189,3 +189,9 @@ When a documented feature is retired, mark the topic with `<lib-label type="warn
 ### No new `.md` documentation files
 
 From v1.16.0 forward, all reference documentation lives in `cma/tools/documentation.php`. Do not create new `.md` files in `cma/docs/`. Do not resurrect deleted ones. The `cma/docs/linearicons.css` file stays — it's not a doc, it's a data file used by the storybook.
+
+### Live self-checks per topic (sinds v1.20.0)
+
+Topics that describe configuration (web.config rules, .env settings, log directories, deploy secrets) include inline live checks against the actual site state. The pattern: `cma_doc_check_<name>()` returns `['label','status','detail','fix']` with status in `pass`/`fail`/`warn`/`info`; the topic's render function calls `cma_doc_render_check_table($title, cma_doc_run_checks([...]))` near the top of the topic. Helpers live above the `=== TOPIC RENDERERS ===` divider.
+
+When you add or change a documented config rule — a new web.config outbound rule, a new required env var, a new log path — add the matching check at the same time. The point is that the doc and the site can't drift unnoticed: when the doc claims "rule X should be in web.config", the operator opens the topic and immediately sees ✓ or ✗ for their site. Checks must be fail-safe (try/catch in `cma_doc_run_checks` handles thrown checks) and read-only (no side effects).

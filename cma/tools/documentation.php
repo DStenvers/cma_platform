@@ -196,6 +196,314 @@ function slug_to_href(string $slug): string
 }
 
 // =========================================================================
+// === SELF-CHECK HELPERS =================================================
+// Each cma_doc_check_<name>() function returns ['label','status','detail','fix']
+// where status is one of 'pass'|'fail'|'warn'|'info'. Topics inline the
+// results via cma_doc_render_check_table() so operators see at a glance
+// whether the rule/file/setting being documented actually exists on this
+// site. The checks are cheap (file-stat + simplexml parse) so they run on
+// every doc page-load — no caching layer, no staleness risk.
+//
+// CMA layout invariant: cma/ is at the site root, so from cma/tools/
+// documentation.php the site root is dirname(__DIR__, 2). Same anchor
+// as deploy_status.php uses.
+// =========================================================================
+
+function cma_doc_site_root(): string {
+    return dirname(__DIR__, 2);
+}
+
+function cma_doc_parent_webconfig(): ?\SimpleXMLElement {
+    static $xml = null;
+    static $loaded = false;
+    if (!$loaded) {
+        $loaded = true;
+        $path = cma_doc_site_root() . '/web.config';
+        if (is_file($path)) {
+            $xml = @simplexml_load_file($path);
+            if ($xml === false) { $xml = null; }
+        }
+    }
+    return $xml;
+}
+
+function cma_doc_child_webconfig(): ?\SimpleXMLElement {
+    static $xml = null;
+    static $loaded = false;
+    if (!$loaded) {
+        $loaded = true;
+        $path = cma_doc_site_root() . '/cma/web.config';
+        if (is_file($path)) {
+            $xml = @simplexml_load_file($path);
+            if ($xml === false) { $xml = null; }
+        }
+    }
+    return $xml;
+}
+
+function cma_doc_check_parent_skip_cma(): array {
+    $label = 'Parent web.config: "Skip /cma to child config" rule';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden in site-root — site draait niet onder IIS of staat ergens anders.', 'fix' => ''];
+    }
+    $hit = $xml->xpath("//rewrite/rules/rule[@name='Skip /cma to child config']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt — <code>/cma/dashboard</code> en andere extension-less URLs eindigen in 404.', 'fix' => 'Kopieer uit <code>templates/web.config.template</code>, plaats bovenaan parent <code>&lt;rules&gt;</code>.'];
+}
+
+function cma_doc_check_parent_default_content_type(): array {
+    $label = 'Parent web.config: outbound "Default Content-Type" rule';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
+    }
+    $hit = $xml->xpath("//rewrite/outboundRules/rule[@name='Default Content-Type to text/html']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — mobile Safari download-prompt bij Content-Type-loze responses is afgevangen.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt — een PHP-response zonder Content-Type wordt door iOS Safari als download aangeboden.', 'fix' => 'Sinds v1.19.9 standaard in <code>templates/web.config.template</code>. Doe <code>composer update stenversonline/platform</code> en kopieer de outbound rule.'];
+}
+
+function cma_doc_check_parent_nosniff(): array {
+    $label = 'Parent web.config: X-Content-Type-Options: nosniff';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
+    }
+    $hit = $xml->xpath("//httpProtocol/customHeaders/add[@name='X-Content-Type-Options']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Header niet gezet — MIME-sniffing aanvallen mogelijk.', 'fix' => 'Voeg toe in <code>&lt;httpProtocol&gt;&lt;customHeaders&gt;</code>.'];
+}
+
+function cma_doc_check_parent_frame_options(): array {
+    $label = 'Parent web.config: X-Frame-Options: SAMEORIGIN';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
+    }
+    $hit = $xml->xpath("//httpProtocol/customHeaders/add[@name='X-Frame-Options']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Header niet gezet — clickjacking mogelijk.', 'fix' => 'Voeg toe in <code>&lt;httpProtocol&gt;&lt;customHeaders&gt;</code>.'];
+}
+
+function cma_doc_check_parent_hidden_segments(): array {
+    $label = 'Parent web.config: hiddenSegments (.env / composer.json / composer.lock)';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
+    }
+    $required = ['.env', 'composer.json', 'composer.lock'];
+    $present  = [];
+    foreach ($xml->xpath("//security/requestFiltering/hiddenSegments/add") as $node) {
+        $present[] = (string)$node['segment'];
+    }
+    $missing = array_diff($required, $present);
+    if (empty($missing)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Alle drie gehide.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Ontbreekt: <code>' . htmlspecialchars(implode('</code>, <code>', $missing)) . '</code> — publiek bereikbaar.', 'fix' => 'Voeg <code>&lt;add segment="…"/&gt;</code> toe in <code>&lt;hiddenSegments&gt;</code>.'];
+}
+
+function cma_doc_check_child_default_content_type(): array {
+    $label = 'Child cma/web.config: outbound "Default Content-Type" rule';
+    $xml = cma_doc_child_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Child <code>cma/web.config</code> niet gevonden.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+    }
+    $hit = $xml->xpath("//rewrite/outboundRules/rule[@name='Default Content-Type to text/html']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt in kind-config (outbound rules erven niet over).', 'fix' => 'Sinds v1.19.9 standaard. <code>composer update stenversonline/platform</code>.'];
+}
+
+function cma_doc_check_child_404_handler(): array {
+    $label = 'Child cma/web.config: 404 handler → /cma/404.php';
+    $xml = cma_doc_child_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Child <code>cma/web.config</code> niet gevonden.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+    }
+    $hit = $xml->xpath("//httpErrors/error[@statusCode='404']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Geconfigureerd.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Geen custom 404-handler — IIS-default error-pagina verschijnt.', 'fix' => 'Voeg <code>&lt;httpErrors&gt;</code> blok toe.'];
+}
+
+function cma_doc_check_env_file(): array {
+    $label = 'Actief .env-bestand';
+    $envName = (string)($GLOBALS['_env_file'] ?? '.env');
+    $envPath = cma_doc_site_root() . '/' . $envName;
+    if (is_file($envPath) && is_readable($envPath)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> aanwezig + leesbaar.', 'fix' => ''];
+    }
+    if (is_file($envPath)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> bestaat maar is niet leesbaar voor de IIS-user.', 'fix' => 'Geef leesrechten aan de application-pool identity.'];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> ontbreekt op <code>' . htmlspecialchars($envPath) . '</code>.', 'fix' => 'Kopieer uit <code>.env.template</code> of unset <code>APP_ENVIRONMENT</code>.'];
+}
+
+function cma_doc_check_app_environment_match(): array {
+    $label = 'APP_ENVIRONMENT vs. actief .env-bestand';
+    $envName = (string)($GLOBALS['_env_file'] ?? '.env');
+    $appEnv  = (string)($GLOBALS['_app_env'] ?? '');
+    $expected = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
+    if ($appEnv === '' || !isset($expected[$appEnv])) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Auto-detect actief (<code>APP_ENVIRONMENT</code> niet gezet). Gebruikt: <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => ''];
+    }
+    if ($envName === $expected[$appEnv]) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> ↔ <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> verwacht <code>' . htmlspecialchars($expected[$appEnv]) . '</code> maar geladen is <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => 'Sinds v1.19.7 zou de bootstrap loud falen — als je dit ziet draai je nog een oudere versie.'];
+}
+
+function cma_doc_check_deploy_secret(): array {
+    // Read DEPLOY_SECRET length WITHOUT echoing the value. Privacy.
+    $label = 'DEPLOY_SECRET';
+    $secret = (string)(getenv('DEPLOY_SECRET') ?: ($_ENV['DEPLOY_SECRET'] ?? ''));
+    if ($secret === '') {
+        // Try .env scan since Dotenv::safeLoad doesn't necessarily expose to getenv depending on config
+        $envFile = cma_doc_site_root() . '/' . ($GLOBALS['_env_file'] ?? '.env');
+        if (is_file($envFile)) {
+            foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+                if (preg_match('/^\s*DEPLOY_SECRET\s*=\s*["\']?([^"\'\r\n#]+)/', $line, $m)) {
+                    $secret = trim($m[1]);
+                    break;
+                }
+            }
+        }
+    }
+    if ($secret === '') {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Niet gezet — deploy-webhook returnt 503. OK voor dev-machines zonder webhook.', 'fix' => 'Genereer met <code>openssl rand -hex 32</code> en zet in <code>.env</code>.'];
+    }
+    $len = strlen($secret);
+    if ($len >= 32 && ctype_xdigit($secret)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Gezet, ' . $len . ' hex-chars.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Gezet, ' . $len . ' chars — niet hex of korter dan 32. Webhook werkt maar entropie is laag.', 'fix' => 'Roteer met <code>openssl rand -hex 32</code> + zelfde waarde in GitHub-webhook.'];
+}
+
+function cma_doc_check_dir_writable(string $relPath, string $description, string $severityIfMissing = 'fail'): array {
+    $label = $description;
+    $path = cma_doc_site_root() . '/' . $relPath;
+    if (!is_dir($path)) {
+        return ['label' => $label, 'status' => $severityIfMissing, 'detail' => '<code>' . htmlspecialchars($relPath) . '/</code> bestaat niet.', 'fix' => 'Maak de directory aan en geef schrijfrechten aan de IIS-user.'];
+    }
+    if (!is_writable($path)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($relPath) . '/</code> bestaat maar is niet schrijfbaar voor de IIS-user.', 'fix' => 'Geef Modify-rechten aan de application-pool identity.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($relPath) . '/</code> schrijfbaar.', 'fix' => ''];
+}
+
+function cma_doc_check_logs_dir(): array {
+    return cma_doc_check_dir_writable('logs', 'logs/ — deploy.log + php_errors.log');
+}
+
+function cma_doc_check_data_logs_dir(): array {
+    return cma_doc_check_dir_writable('data/logs', 'data/logs/ — app/performance/debug logs', 'warn');
+}
+
+function cma_doc_check_cache_dir(): array {
+    return cma_doc_check_dir_writable('cache', 'cache/ — OpCache + form-cache', 'warn');
+}
+
+function cma_doc_check_php_error_log(): array {
+    $label = 'php.ini error_log destination';
+    $cfg = ini_get('error_log');
+    if ($cfg === '' || $cfg === false) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Niet expliciet geconfigureerd — gaat naar webserver default (IIS event log of stderr).', 'fix' => 'Stel in <code>php.ini</code> in: <code>error_log = "C:\\…\\logs\\php_errors.log"</code>.'];
+    }
+    if (!file_exists($cfg) && !is_writable(dirname($cfg))) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Geconfigureerd op <code>' . htmlspecialchars($cfg) . '</code> maar pad niet bestaande + dir niet schrijfbaar.', 'fix' => 'Maak het pad aan en geef rechten.'];
+    }
+    if (file_exists($cfg) && !is_writable($cfg)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($cfg) . '</code> bestaat maar is niet schrijfbaar.', 'fix' => 'Geef Modify-rechten.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($cfg) . '</code> schrijfbaar.', 'fix' => ''];
+}
+
+function cma_doc_check_vendor_in_sync(): array {
+    $label = 'vendor/stenversonline/platform versie ↔ Bootstrap::getPlatformVersion()';
+    if (!class_exists('\\App\\Library\\Bootstrap')) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Bootstrap-class niet geladen.', 'fix' => ''];
+    }
+    $detected = \App\Library\Bootstrap::getPlatformVersion();
+    // CMA_APP_VERSION wordt in cma/bootstrap.inc op zelfde manier gezet.
+    $constant = defined('CMA_APP_VERSION') ? (string)constant('CMA_APP_VERSION') : '';
+    if ($constant === '' || $constant === $detected) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Versie: <code>' . htmlspecialchars($detected) . '</code>.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Detected <code>' . htmlspecialchars($detected) . '</code> vs constant <code>' . htmlspecialchars($constant) . '</code>.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+}
+
+function cma_doc_check_deploy_log(): array {
+    $label = 'logs/deploy.log';
+    $path = cma_doc_site_root() . '/logs/deploy.log';
+    if (!file_exists($path)) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Nog niet aangemaakt — webhook is op deze site nog niet gevuurd.', 'fix' => ''];
+    }
+    $age = time() - filemtime($path);
+    $ageStr = $age < 3600 ? round($age / 60) . ' min' : ($age < 86400 ? round($age / 3600) . ' uur' : round($age / 86400) . ' dagen');
+    if (!is_readable($path)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Bestaat maar niet leesbaar voor de IIS-user.', 'fix' => 'Geef Read-rechten.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Laatst gewijzigd: ' . $ageStr . ' geleden, ' . number_format(filesize($path)) . ' bytes.', 'fix' => ''];
+}
+
+function cma_doc_run_checks(array $checks): array {
+    $results = [];
+    foreach ($checks as $fn) {
+        try {
+            $r = $fn();
+        } catch (\Throwable $e) {
+            $r = ['label' => '(check ' . $fn . ')', 'status' => 'warn', 'detail' => 'Check threw: ' . htmlspecialchars($e->getMessage()), 'fix' => ''];
+        }
+        if (is_array($r) && isset($r['label'], $r['status'], $r['detail'])) {
+            if (!isset($r['fix'])) { $r['fix'] = ''; }
+            $results[] = $r;
+        }
+    }
+    return $results;
+}
+
+function cma_doc_render_check_table(string $title, array $results): void {
+    $labelType = ['pass' => 'success', 'fail' => 'error', 'warn' => 'warning', 'info' => 'information'];
+    $statusText = ['pass' => 'OK', 'fail' => 'FOUT', 'warn' => 'LET OP', 'info' => 'INFO'];
+    $counts = ['pass' => 0, 'fail' => 0, 'warn' => 0, 'info' => 0];
+    foreach ($results as $r) { $counts[$r['status']] = ($counts[$r['status']] ?? 0) + 1; }
+    ?>
+    <h2><?= htmlspecialchars($title) ?></h2>
+    <p class="docs-meta">
+        Live check op deze site —
+        <lib-label type="success"><?= $counts['pass'] ?> OK</lib-label>
+        <?php if ($counts['fail'] > 0): ?> <lib-label type="error"><?= $counts['fail'] ?> fout</lib-label><?php endif; ?>
+        <?php if ($counts['warn'] > 0): ?> <lib-label type="warning"><?= $counts['warn'] ?> waarschuwing</lib-label><?php endif; ?>
+        <?php if ($counts['info'] > 0): ?> <lib-label type="information"><?= $counts['info'] ?> info</lib-label><?php endif; ?>
+    </p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Check</th><th style="width:110px">Status</th><th>Detail</th><th>Fix</th></tr></thead>
+        <tbody>
+            <?php foreach ($results as $r): ?>
+                <tr>
+                    <td><?= $r['label'] ?></td>
+                    <td><lib-label type="<?= $labelType[$r['status']] ?? 'information' ?>"><?= $statusText[$r['status']] ?? '?' ?></lib-label></td>
+                    <td><?= $r['detail'] ?></td>
+                    <td><?= $r['fix'] !== '' ? $r['fix'] : '—' ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php
+}
+
+// =========================================================================
 // === TOPIC RENDERERS ====================================================
 // One render_doc_<slug>() function per leaf topic. Output goes into the
 // right pane. Use the standard tools-page classes (cma-tool__strong,
@@ -358,6 +666,14 @@ function render_doc_environment(): void
     <h1>Omgeving &amp; .env</h1>
     <p class="docs-meta">Hoe het platform bepaalt welke <code>.env</code> wordt geladen en wat <code>APP_ENVIRONMENT</code> precies betekent.</p>
 
+    <?php
+    cma_doc_render_check_table('Omgeving — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_env_file',
+        'cma_doc_check_app_environment_match',
+        'cma_doc_check_vendor_in_sync',
+    ]));
+    ?>
+
     <h2>Omgeving-codes</h2>
     <p>Alle omgeving-bewuste code leest <code>Application::get('omgeving')</code> dat een ééncijferige code teruggeeft:</p>
     <table class="listtable">
@@ -423,6 +739,14 @@ function render_doc_deployment(): void
     ?>
     <h1>Deployment</h1>
     <p class="docs-meta">Hoe code op een consumer-site terechtkomt en welke instellingen daarvoor nodig zijn.</p>
+
+    <?php
+    cma_doc_render_check_table('Deployment — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_deploy_secret',
+        'cma_doc_check_logs_dir',
+        'cma_doc_check_deploy_log',
+    ]));
+    ?>
 
     <h2>Overzicht</h2>
     <p>Deploys verlopen via <code>cma/tools/deploy_webhook_standalone.php</code> — een standalone single-file webhook-endpoint dat GitHub push-events ontvangt en in de site-root een commando-pipeline draait. Belangrijkste stappen:</p>
@@ -595,6 +919,15 @@ function render_doc_logs(): void
     <h1>Logs &amp; monitoring</h1>
     <p class="docs-meta">Wat elke log-bron bevat, waar hij ligt, en hoe je hem leest.</p>
 
+    <?php
+    cma_doc_render_check_table('Logs — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_logs_dir',
+        'cma_doc_check_data_logs_dir',
+        'cma_doc_check_cache_dir',
+        'cma_doc_check_php_error_log',
+    ]));
+    ?>
+
     <h2>Welke log waar?</h2>
     <p>Alle paden relatief aan de site-root (typisch <code>C:\wwwroot\&lt;site&gt;\</code>).</p>
     <table class="listtable">
@@ -747,6 +1080,18 @@ function render_doc_iis_config(): void
     ?>
     <h1>IIS-configuratie</h1>
     <p class="docs-meta">Hoe het platform IIS gebruikt — URL Rewrite, web.config layering, app-pool recycle.</p>
+
+    <?php
+    cma_doc_render_check_table('web.config — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_parent_skip_cma',
+        'cma_doc_check_parent_default_content_type',
+        'cma_doc_check_parent_nosniff',
+        'cma_doc_check_parent_frame_options',
+        'cma_doc_check_parent_hidden_segments',
+        'cma_doc_check_child_default_content_type',
+        'cma_doc_check_child_404_handler',
+    ]));
+    ?>
 
     <h2>Vereisten</h2>
     <ul>
