@@ -4647,6 +4647,33 @@ $origSize = filesize($demoPath);
         </div>
     </section>
 
+    <section class="component-section" id="lib-arrowsteps">
+        <div class="component-header">
+            <h2>lib-arrowsteps</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Horizontale pijl-/chevron stappenbalk voor meerstaps-flows (checkout, wizards). Stappen zijn done (klikbaar), current (gemarkeerd) of future (inactief). Self-contained via Shadow DOM.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="demo-row" style="flex-direction: column; align-items: stretch; gap: 16px;">
+                    <div>
+                        <span class="demo-label">Stap 1 actief (labels-only):</span>
+                        <lib-arrowsteps current="1" labels="Winkelwagen|Verzendkosten|Afrekenen|Betaling"></lib-arrowsteps>
+                    </div>
+                    <div>
+                        <span class="demo-label">Stap 2 actief (met links naar eerdere stappen):</span>
+                        <lib-arrowsteps current="2" steps='[{"label":"Winkelwagen","url":"#"},{"label":"Verzendkosten","url":"#"},{"label":"Afrekenen","url":"#"},{"label":"Betaling","url":"#"}]'></lib-arrowsteps>
+                    </div>
+                    <div>
+                        <span class="demo-label">Laatste stap actief:</span>
+                        <lib-arrowsteps current="4" steps='[{"label":"Winkelwagen","url":"#"},{"label":"Verzendkosten","url":"#"},{"label":"Afrekenen","url":"#"},{"label":"Betaling","url":"#"}]'></lib-arrowsteps>
+                    </div>
+                </div>
+                <p class="component-description" style="margin-top: 12px;">Zie <code>library/webcomponents/lib-arrowsteps.md</code> voor attributen (current/steps/labels/linkable), properties en het <code>step-click</code> event.</p>
+            </div>
+        </div>
+    </section>
+
 
 <?php
 // Parse linearicons.css to extract all icons
