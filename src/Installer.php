@@ -107,12 +107,8 @@ class Installer
         //    this step, composer update copies the new files but leaves the
         //    old ones lingering on the consumer site. Runs before sync so
         //    a re-added file with the same path isn't accidentally wiped.
-        foreach (self::REMOVED_PATHS as $relPath) {
-            $abs = $projectRoot . '/' . $relPath;
-            if (is_file($abs)) {
-                @unlink($abs);
-                $io->write('  - removed (retired): ' . $relPath);
-            }
+        foreach (self::cleanRemovedPaths($projectRoot) as $relPath) {
+            $io->write('  - removed (retired): ' . $relPath);
         }
 
         // 1. Sync library → /library/
@@ -176,6 +172,31 @@ class Installer
 
     /**
      * Recursively sync a source directory to a destination.
+     * Delete files listed in REMOVED_PATHS from the consumer site root.
+     * Public for testability — `run()` is composer-bound, this isn't.
+     *
+     * Each REMOVED_PATHS entry is a relative path under $projectRoot;
+     * existing files are unlinked, missing ones are no-ops (idempotent).
+     * Returns the list of paths that were actually removed so the caller
+     * can log them. Symlinks are left alone — only regular files match
+     * is_file().
+     *
+     * @param string $projectRoot Absolute path to the consumer site root.
+     * @return string[] Relative paths that were actually removed.
+     */
+    public static function cleanRemovedPaths(string $projectRoot): array
+    {
+        $removed = [];
+        foreach (self::REMOVED_PATHS as $relPath) {
+            $abs = $projectRoot . '/' . $relPath;
+            if (is_file($abs) && @unlink($abs)) {
+                $removed[] = $relPath;
+            }
+        }
+        return $removed;
+    }
+
+    /**
      * Skips protected paths. Overwrites everything else.
      *
      * @param string $src Source directory

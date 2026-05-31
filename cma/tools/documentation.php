@@ -1907,20 +1907,21 @@ function render_doc_testing(): void
         <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases) of waar het écht eind-tot-eind moet draaien tegen een echte CMA-DB.</li>
     </ol>
 
-    <h2>Quick-win plan (sprint-1 deliverable)</h2>
+    <h2>Quick-win plan (sprint-1 status)</h2>
     <p>Eén PR die het meeste regressie-risico per uur afdekt — start bij wat <span class="cma-tool__em">geen</span> DB-harness nodig heeft:</p>
     <ol>
         <li><span class="cma-tool__strong">Pure-data tests die nu direct kunnen</span> (geen connection vereist):
             <ul>
-                <li><code>FormDataProviderChangelogTest</code> — voer arrays in voor <code>buildEditChangelog(formDef, oldFields, newData)</code> en assert op de drie-koloms HTML; dekt de v1.20.1 fix volledig.</li>
-                <li><code>FormDataProviderDeleteChangelogTest</code> — zelfde stijl voor de bestaande <code>buildDeleteChangelog</code>; valideert dat boolean / array / null-rendering klopt.</li>
-                <li><code>InstallerRemovedPathsTest</code> — voer een fake project-root in een tmp-dir, leg er files neer, run <code>Installer::cleanRemovedPaths</code>, assert dat de juiste verdwenen zijn (geen DB, alleen filesystem-stubs).</li>
+                <li><lib-label type="success">v1.20.3</lib-label> <code>FormDataProviderChangelogTest</code> — 17 tests dekken <code>buildEditChangelog</code> incl. no-change paths, field-filtering, value-rendering, regression-guards. Pure-data, reflectie voor private method.</li>
+                <li><lib-label type="success">v1.20.4</lib-label> <code>FormDataProviderDeleteChangelogTest</code> — 14 tests voor <code>buildDeleteChangelog</code>; ook dekt boolean/array/null-rendering en de twee-koloms structuur.</li>
+                <li><lib-label type="success">v1.20.4</lib-label> <code>InstallerRemovedPathsTest</code> — 7 tests met tmp-dir filesystem fixtures, REMOVED_PATHS via reflectie zodat nieuwe retirements automatisch meedoen.</li>
             </ul>
         </li>
-        <li><span class="cma-tool__strong">Daarna: PDO-stub harness</span> in <code>cma/tests/StubConnection.php</code>: implementeert <code>PDO</code>-interface met een queue van vooraf gedefinieerde results, registreert SQL + params zodat de test kan asserten "exact deze UPDATE met deze parameters is uitgevoerd". Niet representatief voor ODBC-dialect-issues, wel voor query-shape regressies. Dekt <code>RecordService::save</code> en <code>FormDataProvider::saveJsonFormRecord</code> contract-niveau.</li>
+        <li><lib-label type="success">v1.20.4</lib-label> <span class="cma-tool__strong">PDO-stub harness</span> in <code>cma/tests/StubConnection.php</code> + <code>StubConnectionTest.php</code> (12 tests). Extends <code>\PDO</code> met <code>newInstanceWithoutConstructor</code>-trick zodat <code>instanceof PDO</code> blijft passen ook zonder pdo_sqlite-driver in CI. Queue van vooraf-gedefinieerde results, recordt alle SQL + params zodat tests kunnen asserten "exact deze UPDATE met deze parameters". Niet representatief voor ODBC-dialect-issues, wel voor query-shape regressies. Klaar voor gebruik in RecordService / saveJsonFormRecord tests.</li>
         <li><span class="cma-tool__strong">Voor ODBC-specifiek</span> (dialect-quirks, identifier-quoting, fetch-encoding): een gedeelde <code>tests/fixtures/blank.mdb</code> die per test wordt gekopieerd naar tmp en daar weer wordt opgeruimd. Dat is een tweede sprint; eerste prioriteit zijn de pure-data tests.</li>
         <li><span class="cma-tool__strong">CI-gate</span> in deploy-webhook: <code>composer test</code> runt vóór <code>composer update</code>. Failure = no deploy. Sinds v1.19.8 worden DB-errors al ge-logged dus een nieuwe regressie wordt sowieso zichtbaar in de log-tail van <code>deploy_status.php</code>, maar de gate maakt dat preventief.</li>
     </ol>
+    <p class="docs-meta">Status na v1.20.4: <strong class="cma-tool__strong">385/385 tests groen</strong> (van 12 testklassen naar 17 testklassen, van ~190 cases naar 385). PDO-stub harness staat klaar voor de volgende sprint waarin RecordService::save en saveJsonFormRecord contract-tests worden toegevoegd.</p>
 
     <h2>Coverage-doel</h2>
     <p>Geen absoluut percentage nastreven — een 80%-target dat in 80% van de niet-belangrijke loops zit is misleidend. Wel <span class="cma-tool__em">gedrags-doelen</span>:</p>
