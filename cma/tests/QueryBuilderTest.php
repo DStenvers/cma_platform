@@ -7,7 +7,6 @@
  */
 
 // Setup autoloading
-require_once __DIR__ . '/../vendor/autoload.php';
 
 // Include the QueryBuilder class
 require_once __DIR__ . '/../classes/QueryBuilder.php';

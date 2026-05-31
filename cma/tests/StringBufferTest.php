@@ -6,7 +6,6 @@
  */
 
 require_once __DIR__ . '/TestRunner.php';
-require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Library\StringBuffer;
 

@@ -183,6 +183,20 @@ class TestCase
         }
     }
 
+    protected function assertStringNotContainsString(string $needle, string $haystack, string $message = ''): void
+    {
+        if (str_contains($haystack, $needle)) {
+            throw new AssertionError($message ?: "'{$needle}' should NOT appear in '{$haystack}'");
+        }
+    }
+
+    protected function assertNotEquals($expected, $actual, string $message = ''): void
+    {
+        if ($expected === $actual) {
+            throw new AssertionError($message ?: "Expected value NOT to equal " . var_export($expected, true));
+        }
+    }
+
     protected function assertGreaterThan($expected, $actual, string $message = ''): void
     {
         if ($actual <= $expected) {
@@ -232,9 +246,21 @@ if (!class_exists('AssertionError')) {
 
 // --- CLI entry point ---
 if (php_sapi_name() === 'cli' && realpath($argv[0]) === realpath(__FILE__)) {
-    // Set up autoloading
+    // Set up autoloading. Two layouts to support:
+    //  - Consumer site: composer ran in cma/ → cma/vendor/autoload.php
+    //  - Platform repo: composer ran at root → ../vendor/autoload.php
+    // We try cma/vendor first (the consumer-site default), fall back to
+    // ../vendor so `php tests/TestRunner.php` works in both contexts.
     $baseDir = dirname(__DIR__);
-    require_once $baseDir . '/vendor/autoload.php';
+    $autoload = null;
+    foreach ([$baseDir . '/vendor/autoload.php', dirname($baseDir) . '/vendor/autoload.php'] as $candidate) {
+        if (is_file($candidate)) { $autoload = $candidate; break; }
+    }
+    if ($autoload === null) {
+        fwrite(STDERR, "ERROR: No vendor/autoload.php found. Run `composer install` in cma/ or in the repo root.\n");
+        exit(2);
+    }
+    require_once $autoload;
 
     $filter = null;
     $specificTest = null;

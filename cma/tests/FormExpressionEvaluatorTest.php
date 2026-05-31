@@ -18,7 +18,6 @@
  */
 
 require_once __DIR__ . '/TestRunner.php';
-require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '/classes/FormExpressionEvaluator.php';
 
 use App\Library\Application;

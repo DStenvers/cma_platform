@@ -6,7 +6,6 @@
  */
 
 require_once __DIR__ . '/TestRunner.php';
-require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 // Date class may not be in the helpers package - load from app/library if available
 if (!class_exists('App\Library\Date')) {

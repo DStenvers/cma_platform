@@ -11,12 +11,15 @@
  */
 
 require_once __DIR__ . '/TestRunner.php';
-require_once dirname(__DIR__) . '/bootstrap.inc';
-
-use App\Library\Database;
-use App\Library\Email;
-use App\Library\Application;
-use Cma\Services\EmailLogService;
+// This test needs a full CMA + DB (it queries tblEmailLog directly). The
+// parent _bootstrap.php lives one level up from cma/ in a consumer site,
+// but is absent in the bare platform repo. PHP "hoists" top-level class
+// declarations at compile time so a plain `return` here would still
+// register the class with TestRunner; we wrap the whole declaration in
+// an if-block so the class is only declared when the bootstrap is
+// reachable.
+if (file_exists(dirname(dirname(__DIR__)) . '/_bootstrap.php')) {
+    require_once dirname(__DIR__) . '/bootstrap.inc';
 
 class EmailLogTest extends TestCase
 {
@@ -168,3 +171,6 @@ class EmailLogTest extends TestCase
         $this->assertTrue(true);
     }
 }
+
+} // end if (file_exists parent bootstrap)
+
