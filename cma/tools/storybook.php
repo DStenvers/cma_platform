@@ -464,7 +464,8 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-table', href: '#lib-table', icon: 'lnr-table' },
                 { label: 'lib-timepicker', href: '#lib-timepicker', icon: 'lnr-clock' },
                 { label: 'lib-tip', href: '#lib-tip', icon: 'lnr-question-circle' },
-                { label: 'lib-toaster', href: '#lib-toaster', icon: 'lnr-bubble' }
+                { label: 'lib-toaster', href: '#lib-toaster', icon: 'lnr-bubble' },
+                { label: 'lib-arrowsteps', href: '#lib-arrowsteps', icon: 'lnr-chevron-right' }
             ]
         },
         {
