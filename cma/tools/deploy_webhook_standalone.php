@@ -152,13 +152,35 @@ if ($event !== 'push') {
     return;
 }
 
-$data    = json_decode($payload, true) ?: [];
+// GitHub's webhook config supports two content-types:
+//   - application/json                  → body IS the JSON
+//   - application/x-www-form-urlencoded → body is `payload=<URL-encoded JSON>`
+// The form variant is GitHub's legacy default; older webhooks (set up
+// before 2020 or via an older copy-paste guide) often still carry it.
+// HMAC verification above is content-type agnostic (signs the RAW
+// body), so a misconfigured content-type wouldn't fail auth — it would
+// silently land here with $data = []. Then ref-mismatch on every
+// delivery, 204 No Content (body stripped by the spec / IIS), no log
+// entries, no deploys, and a deeply confusing "GitHub says delivered
+// OK, server does nothing" symptom that ate ~6 hours to diagnose on
+// one site. Handle both shapes here so the misconfig is invisible.
+$ct = strtolower((string)($_SERVER['CONTENT_TYPE'] ?? ''));
+if (str_starts_with($ct, 'application/x-www-form-urlencoded')) {
+    parse_str($payload, $form);
+    $jsonStr = (string)($form['payload'] ?? '');
+} else {
+    $jsonStr = $payload;
+}
+$data    = json_decode($jsonStr, true) ?: [];
 $ref     = (string)($data['ref'] ?? '');
 $branch  = $envRead('DEPLOY_BRANCH', 'main');
 $wantRef = 'refs/heads/' . $branch;
 if ($ref !== $wantRef) {
     http_response_code(204);
-    $log("SKIP: ref=$ref (only $wantRef)");
+    // Include the content-type in the log so the next operator who hits
+    // a "GitHub OK / server silent" symptom finds the root cause in one
+    // grep instead of chasing IIS + signature + permissions first.
+    $log("SKIP: ref='$ref' (want '$wantRef'; content_type='$ct')");
     echo "Skipped: $ref\n";
     return;
 }
