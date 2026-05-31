@@ -676,8 +676,17 @@
                     copyBtn.innerHTML = '<span class="lnr lnr-checkmark-circle"></span> Gekopieerd';
                     setTimeout(function() { copyBtn.innerHTML = '<span class="lnr lnr-copy"></span> Copy'; }, 2000);
                 }
-            }).catch(function() {
-                // cmaLog.log('Errors:\n' + text);
+            }).catch(function(err) {
+                // Clipboard.writeText can fail on http://, when the page
+                // is not focused, or when policy blocks it. The user
+                // clicked Copy — they get no clue if we eat it silently.
+                if (copyBtn) {
+                    copyBtn.innerHTML = '<span class="lnr lnr-cross-circle"></span> Mislukt';
+                    setTimeout(function() { copyBtn.innerHTML = '<span class="lnr lnr-copy"></span> Copy'; }, 2000);
+                }
+                if (typeof cmaLog !== 'undefined' && cmaLog.warn) {
+                    cmaLog.warn('error-handler copy failed:', (err && err.message) || err);
+                }
             });
         },
 

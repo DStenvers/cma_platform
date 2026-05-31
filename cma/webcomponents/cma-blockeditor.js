@@ -122,7 +122,16 @@ class CmaBlockeditor extends HTMLElement {
             try {
                 this._blocks = JSON.parse(val);
             } catch (e) {
-                this._blocks = [];
+                // Pre-1.19.7: this.blocks = [] on parse failure. That made the
+                // editor render empty, and the next save would persist the
+                // empty state on top of corrupted-but-recoverable input,
+                // permanently losing content. Now: keep existing blocks
+                // (whatever they were before this setter was called) and warn,
+                // so the operator sees the bad input and can fix the source.
+                if (typeof cmaLog !== 'undefined' && cmaLog.warn) {
+                    cmaLog.warn('[cma-blockeditor] Invalid JSON in set value(), keeping existing blocks:', e.message);
+                }
+                return;
             }
         }
         this._renderBlocks();

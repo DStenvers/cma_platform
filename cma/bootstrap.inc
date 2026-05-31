@@ -1685,7 +1685,12 @@ if (!$_skipLoginCheck) {
     if (Cookie::get(SecurityHelper::COOKIE_USERID, '') == '') {
         // Check if this is an API endpoint that expects JSON response
         if ($_isApiEndpoint) {
-            // Return JSON error for API endpoints
+            // Return JSON error for API endpoints. Pre-1.19.7 this came back
+            // as HTTP 200 with success:false in the body, which made
+            // `fetch().ok`-based clients treat it as success and then choke
+            // on the unexpected payload. The 401 status lets the client
+            // distinguish auth failure from a legitimate empty result.
+            http_response_code(401);
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['success' => false, 'error' => 'Not authenticated', 'requireLogin' => true]);
             exit;

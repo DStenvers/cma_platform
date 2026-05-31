@@ -185,8 +185,13 @@ class Installer
      */
     private static function syncDirectory(string $src, string $dest, array $protectedPaths = [], $io = null): void
     {
-        if (!is_dir($dest)) {
-            @mkdir($dest, 0755, true);
+        if (!is_dir($dest) && !mkdir($dest, 0755, true) && !is_dir($dest)) {
+            // Failing silently here meant `composer update` could land
+            // half a sync — destination dir missing, no files copied,
+            // no exception, exit 0 — and the consumer site appeared
+            // to update successfully. Fail loud so the operator sees
+            // the permissions/disk problem in the composer output.
+            throw new \RuntimeException("Installer::syncDirectory could not create $dest");
         }
 
         $iterator = new \RecursiveIteratorIterator(
@@ -222,8 +227,8 @@ class Installer
             }
 
             if ($item->isDir()) {
-                if (!is_dir($destPath)) {
-                    @mkdir($destPath, 0755, true);
+                if (!is_dir($destPath) && !mkdir($destPath, 0755, true) && !is_dir($destPath)) {
+                    throw new \RuntimeException("Installer::syncDirectory could not create $destPath");
                 }
             } else {
                 // Skip protected files that already exist
@@ -257,10 +262,16 @@ class Installer
     private static function copyFile(string $src, string $dest): void
     {
         $dir = dirname($dest);
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0755, true);
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new \RuntimeException("Installer::copyFile could not create parent dir $dir");
         }
-        copy($src, $dest);
+        if (!copy($src, $dest)) {
+            // Disk full / permission denied / source vanished. Silent
+            // copy failure mid-sync left consumer sites with mixed
+            // platform versions — surface the error so the operator
+            // sees it in the composer-update output.
+            throw new \RuntimeException("Installer::copyFile failed: $src -> $dest");
+        }
     }
 
     /**

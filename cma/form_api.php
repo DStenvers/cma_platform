@@ -1240,7 +1240,16 @@ try {
                 addDebug('Error logged successfully');
                 outputJson(['success' => true]);
             } catch (\Exception $e) {
+                // addDebug is no-op in production. Without Logger::error
+                // the JS-error logger going dark (because tblCMAJavascriptErrors
+                // is missing, locked, or schema-changed) is itself
+                // invisible — every client error disappears with no trace.
                 addDebug('Failed to log error: ' . $e->getMessage());
+                Logger::error('logJsError DB write failed', [
+                    'message' => $message,
+                    'url'     => $url,
+                    'error'   => $e->getMessage(),
+                ]);
                 outputJson(['success' => false, 'error' => 'Database error']);
             }
             break;

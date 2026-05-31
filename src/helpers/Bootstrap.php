@@ -271,6 +271,18 @@ class Bootstrap
         $envFile = '.env'; // Default fallback
         if ($appEnv && isset($envFileMap[$appEnv])) {
             $envFile = $envFileMap[$appEnv];
+            // APP_ENVIRONMENT explicitly selected an env-file but it's
+            // missing. Pre-1.19.7 we'd silently fall through to .env (or
+            // to no file at all), which left a production site running
+            // without DB credentials — the next PDO call would throw with
+            // a wholly unrelated message. Fail loud with the actual
+            // cause so the operator can fix it.
+            if (!file_exists(self::$rootDir . '/' . $envFile)) {
+                self::bootstrapError(
+                    "APP_ENVIRONMENT=$appEnv but $envFile is missing on the site root. Create it (copy from .env.template) or unset APP_ENVIRONMENT.",
+                    'BOOTSTRAP_ENV_FILE_MISSING'
+                );
+            }
         } else {
             foreach (['L', 'O', 'T', 'A', 'P'] as $envCode) {
                 if (file_exists(self::$rootDir . '/' . $envFileMap[$envCode])) {
@@ -434,7 +446,15 @@ class Bootstrap
 
     private static function registerErrorHandler(): void
     {
+        // ErrorHandler is the whole reason errors get caught & logged. If the
+        // class is missing (typically stale vendor/ after a partial composer
+        // update), failing silently leaves the entire request running
+        // unprotected — invisible 500s, no logs, no email alerts. Die loud.
         if (!class_exists('\App\Library\ErrorHandler')) {
+            self::bootstrapError(
+                'App\\Library\\ErrorHandler class not found — vendor/ is out of sync. Run composer update stenversonline/platform.',
+                'BOOTSTRAP_NO_ERROR_HANDLER'
+            );
             return;
         }
 
@@ -629,9 +649,14 @@ class Bootstrap
                 }
             }
         } catch (\Exception $e) {
-            $_SESSION['_migration_needed'] = true;
-            $_SESSION['_migration_current'] = '0.0.0';
-            $_SESSION['_migration_target'] = $targetVersion;
+            // Treating any DB exception as "migrations needed" masks the
+            // actual problem (wrong DSN, missing _cma_version table,
+            // connection refused). The bootstrap exposes
+            // $GLOBALS['_migration_check_error'] for exactly this case;
+            // cma/bootstrap.inc renders it as a banner so the operator
+            // sees the real cause instead of a permanent — and
+            // unactionable — "migrations needed" warning.
+            $GLOBALS['_migration_check_error'] = $e->getMessage();
         }
 
         // Show migration warning on CMA pages

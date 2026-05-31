@@ -11,11 +11,23 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\Server;
 use App\Library\File;
+use Cma\SecurityHelper;
 
 require_once __DIR__ . '/../bootstrap.inc';
 
 Response::noCache();
 header('Content-Type: application/json');
+
+// Auth: file uploads/deletes mutate the webroot — must be admin. Without
+// this gate every logged-in user (incl. minimum-level accounts) could
+// upload or delete files anywhere inside a caller-supplied basepath, as
+// the path-traversal sanitization on currentPath does not constrain
+// basePath itself.
+if (!SecurityHelper::isAdmin()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Admin rights required.']);
+    exit;
+}
 
 // Parameters
 $action = Request::query('action', Request::post('action', 'list'));

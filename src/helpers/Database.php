@@ -548,10 +548,18 @@ class Database
                 Log::writeLine('SQL: ' . $sql);  // Log full SQL, not truncated
             }
         } catch (\Exception $e) {
-            // Fallback to direct file write
+            // Fallback to direct file write. If the fallback also can't
+            // write, fall back further to error_log() so the developer
+            // still sees the SQL trace they enabled — silent failure
+            // here would defeat the whole point of sql_debug mode.
             $logPath = __DIR__ . '/../../logs/sql_debug.log';
-            @mkdir(dirname($logPath), 0755, true);  // Create logs directory if needed
-            file_put_contents($logPath, date('Y-m-d H:i:s') . ' - ' . $message . "\n" . ($sql ? 'SQL: ' . $sql . "\n" : ''), FILE_APPEND);
+            $logDir  = dirname($logPath);
+            $line    = date('Y-m-d H:i:s') . ' - ' . $message . "\n" . ($sql ? 'SQL: ' . $sql . "\n" : '');
+            if ((is_dir($logDir) || @mkdir($logDir, 0755, true))
+                && @file_put_contents($logPath, $line, FILE_APPEND) !== false) {
+                return;
+            }
+            error_log('Database::debugSQL fallback unwritable (' . $logPath . '): ' . trim($line));
         }
     }
 
@@ -603,7 +611,17 @@ class Database
             $logSql
         ]) . "\n";
 
-        @file_put_contents(self::$sqlLogFile, $line, FILE_APPEND | LOCK_EX);
+        // The performance log is opt-in (SQL_LOG_ENABLED=true). If the
+        // operator turns it on but the configured path isn't writable,
+        // failing silently means hours of debugging "why are no queries
+        // being logged?" — surface it once per request to error_log.
+        if (@file_put_contents(self::$sqlLogFile, $line, FILE_APPEND | LOCK_EX) === false) {
+            static $warned = false;
+            if (!$warned) {
+                error_log('Database::logSQL could not write to ' . self::$sqlLogFile . ' (SQL_LOG_ENABLED=true but path unwritable)');
+                $warned = true;
+            }
+        }
     }
 
     /**

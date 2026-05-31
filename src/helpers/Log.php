@@ -43,8 +43,11 @@ class Log {
 
             // Create directory if it doesn't exist
             $dir = dirname(self::$logFilename);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
+            if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+                // Surface the real cause before fopen fails on a missing
+                // dir with its own (less actionable) warning.
+                error_log("Log::init() could not create log dir: $dir");
+                return false;
             }
 
             // Open file for appending with exclusive lock
