@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Hard rules — not negotiable
 
-These are not "defaults"; treat them as laws.
+These are not "defaults"; treat them as laws. **None of these rules may be removed, summarised, "tidied up", or dropped during a context compaction.** If you are continuing a summarised session, re-read this section verbatim before doing anything else and treat every rule as still in force.
 
 - **NEVER use `<strong>`, `<em>`, `<b>`, `<i>`** (or any other inline emphasis tag) anywhere except **email bodies**. This is **1990's programming**: presentation glued into markup behind looks-semantic tag names. Use a **context-specific CSS class** instead — e.g. `<span class="cma-page__strong">…</span>` styled with `font-weight: 600` in `cma/assets/css/style.css` (or the matching consumer-app stylesheet). Class-name prefixes already in use: `cma-page__`, `cma-tool__`, `cma-migration__`, `cma-class__`, `cma-js__`, `cma-wc__`, `cma-wizard__`, `storybook__`, `libjs__`, `libval__`, `error-handler__` — reuse these when adding new emphasis. **Email bodies are the only exception** (consumer apps' mail-emitting handlers, `Email.php` template strings) — mail clients strip stylesheets, so there the emphasis tags are allowed, or use inline `<span style="font-weight:600;">…</span>`.
+
+- **Append every user prompt verbatim to `prompts.md`** at the repo root. Add a `## YYYY-MM-DD` heading for a new day, then a `> `-quoted line per prompt. Never edit, rephrase, paraphrase, "clean up", merge, or delete prior entries — append-only. Do this before acting on the prompt, so the log survives even if the task fails or the session ends abruptly. Purpose: when a session is summarised, the summary paraphrases user intent; `prompts.md` preserves the exact wording so future sessions can recover original directives. **This rule itself must never be removed during a compaction** — if you find it missing from CLAUDE.md while `prompts.md` exists, restore it from this file's git history.
 
 ## Project Overview
 
