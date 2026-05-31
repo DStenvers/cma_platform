@@ -149,8 +149,9 @@ Only 8 of 125 forms have CRUD tests:
 **Strategy doc**: zie documentation-hub topic [Tests & coverage strategie](tools/documentation.php?topic=testing). Bevat live-tellingen, risico-zone analyse, drie-laags aanpak (unit / service-integration / Cypress), en een sprint-1 quick-win plan (SQLite test-harness + 5 service-tests + composer-test CI-gate in deploy-webhook).
 
 **Fix Required (kort samengevat — zie doc-topic voor details):**
-- SQLite test-harness in `cma/tests/IntegrationTestCase.php`
-- 5 service-laag tests (RecordService, FormDataProvider edit-changelog, MigrationService, Installer, Database error paths)
+- Pure-data tests die geen connectie nodig hebben (FormDataProvider build*Changelog, Installer REMOVED_PATHS)
+- PDO-stub harness voor connection-gebonden service-tests (RecordService::save)
+- Voor ODBC-dialect quirks: blank-mdb fixture pas in sprint-2
 - `composer test` gate in deploy-webhook vóór `composer update`
 - Daarna geleidelijk uitbreiden naar form-CRUD coverage
 

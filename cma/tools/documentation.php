@@ -1902,24 +1902,24 @@ function render_doc_testing(): void
     <p>Niet alle code-laag verdient dezelfde test-stijl. De juiste keuze per laag:</p>
     <ol>
         <li><span class="cma-tool__strong">Pure-logic units</span> — al goed gedekt (12 testklassen). Vuistregel: <em>elke nieuwe pure functie in <code>src/helpers/</code> krijgt een <code>*Test.php</code></em>. Geen DB, geen filesystem, runt in &lt; 1s totaal.</li>
-        <li><span class="cma-tool__strong">Service-laag integration-tests</span> — bestaande TestRunner uitbreiden met een <code>cma/tests/integration/</code> map die wél een SQLite test-DB opspant. Doel: één test per service-methode-contract (<code>RecordService::save</code> Add ↔ Edit ↔ Delete, <code>FormDataProvider::buildEditChangelog</code> diff, <code>MigrationService::run</code> idempotency).</li>
-        <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases).</li>
+        <li><span class="cma-tool__strong">Pure-data service-tests</span> — methodes die hun input als array binnen krijgen en hun output als array/string terug geven (zoals <code>FormDataProvider::buildEditChangelog</code>, <code>FormDataProvider::buildDeleteChangelog</code>, <code>QueryBuilder</code>, <code>SqlParser</code>) test je <span class="cma-tool__em">zonder</span> connectie. Geen mock-DB nodig — feed de arrays in, vergelijk de output. Dit zou je voor de v1.20.1 changelog-fix direct kunnen testen.</li>
+        <li><span class="cma-tool__strong">Connection-gebonden service-tests</span> — voor methodes die wél een PDO/RecordSet aanraken (<code>RecordService::save</code>, <code>MigrationService::run</code>) is een echte ODBC-Access verbinding nodig; SQLite zou een ander dialect testen dan productie en is voor form-data niet representatief (alleen <code>cmausers.sqlite</code> draait SQLite). Twee opties: (a) een <em>fixtures-mdb</em> aanpak — een kale <code>.mdb</code> met minimale schema-tabellen die de testrunner kopieert per test, of (b) een <em>PDO-stub</em> waarbij de connectie een in-memory key-value mock is die alleen de queries en parameters opvangt. (b) is sneller op te zetten maar dekt geen ODBC-specifiek gedrag.</li>
+        <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases) of waar het écht eind-tot-eind moet draaien tegen een echte CMA-DB.</li>
     </ol>
 
     <h2>Quick-win plan (sprint-1 deliverable)</h2>
-    <p>Eén PR die het meeste regressie-risico per uur afdekt:</p>
+    <p>Eén PR die het meeste regressie-risico per uur afdekt — start bij wat <span class="cma-tool__em">geen</span> DB-harness nodig heeft:</p>
     <ol>
-        <li><span class="cma-tool__strong">SQLite test-DB harness</span> in <code>cma/tests/IntegrationTestCase.php</code>: opent in-memory SQLite, voert minimale schema-migraties uit (tblUsers, tblGroups, tblCMAMonitoring), tear-down per test. ~80 regels, eenmalige investering.</li>
-        <li><span class="cma-tool__strong">5 happy-path service-tests</span>:
+        <li><span class="cma-tool__strong">Pure-data tests die nu direct kunnen</span> (geen connection vereist):
             <ul>
-                <li><code>RecordServiceSaveTest</code> — Add/Edit/Delete tegen tblUsers</li>
-                <li><code>FormDataProviderChangelogTest</code> — server-side <code>buildEditChangelog</code> diff voor v1.20.1</li>
-                <li><code>MigrationServiceRunTest</code> — idempotent op herstart, error op corrupte file</li>
-                <li><code>InstallerSyncTest</code> — protected files blijven, REMOVED_PATHS cleanen, mkdir-fail throwt</li>
-                <li><code>DatabaseErrorPathTest</code> — broken SQL = <code>null</code> retour én <code>error_log</code> entry</li>
+                <li><code>FormDataProviderChangelogTest</code> — voer arrays in voor <code>buildEditChangelog(formDef, oldFields, newData)</code> en assert op de drie-koloms HTML; dekt de v1.20.1 fix volledig.</li>
+                <li><code>FormDataProviderDeleteChangelogTest</code> — zelfde stijl voor de bestaande <code>buildDeleteChangelog</code>; valideert dat boolean / array / null-rendering klopt.</li>
+                <li><code>InstallerRemovedPathsTest</code> — voer een fake project-root in een tmp-dir, leg er files neer, run <code>Installer::cleanRemovedPaths</code>, assert dat de juiste verdwenen zijn (geen DB, alleen filesystem-stubs).</li>
             </ul>
         </li>
-        <li><span class="cma-tool__strong">CI-gate</span> in deploy-webhook: <code>composer test</code> runt vóór <code>composer update</code>. Failure = no deploy. Sinds v1.19.8 worden errors al ge-logged dus een nieuwe regressie wordt zichtbaar in de log-tail van <code>deploy_status.php</code>.</li>
+        <li><span class="cma-tool__strong">Daarna: PDO-stub harness</span> in <code>cma/tests/StubConnection.php</code>: implementeert <code>PDO</code>-interface met een queue van vooraf gedefinieerde results, registreert SQL + params zodat de test kan asserten "exact deze UPDATE met deze parameters is uitgevoerd". Niet representatief voor ODBC-dialect-issues, wel voor query-shape regressies. Dekt <code>RecordService::save</code> en <code>FormDataProvider::saveJsonFormRecord</code> contract-niveau.</li>
+        <li><span class="cma-tool__strong">Voor ODBC-specifiek</span> (dialect-quirks, identifier-quoting, fetch-encoding): een gedeelde <code>tests/fixtures/blank.mdb</code> die per test wordt gekopieerd naar tmp en daar weer wordt opgeruimd. Dat is een tweede sprint; eerste prioriteit zijn de pure-data tests.</li>
+        <li><span class="cma-tool__strong">CI-gate</span> in deploy-webhook: <code>composer test</code> runt vóór <code>composer update</code>. Failure = no deploy. Sinds v1.19.8 worden DB-errors al ge-logged dus een nieuwe regressie wordt sowieso zichtbaar in de log-tail van <code>deploy_status.php</code>, maar de gate maakt dat preventief.</li>
     </ol>
 
     <h2>Coverage-doel</h2>
