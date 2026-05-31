@@ -1500,19 +1500,29 @@ class Database
      */
     private static function logError(string $sql, array $params, PDOException $e): void
     {
-        // Only log in test/debug mode
-        $isDebug = \App\Library\Application::get('test', false) ||
-                   in_array(strtolower(\App\Library\Application::get('omgeving', '')), ['l', 'o', 't']);
-
-        if ($isDebug) {
-            error_log(sprintf(
-                "Database Error: %s\nSQL: %s\nParams: %s\nTrace: %s",
-                $e->getMessage(),
-                $sql,
-                json_encode($params),
-                $e->getTraceAsString()
-            ));
-        }
+        // Pre-1.19.8 this method only logged in dev/test (omgeving = L/O/T)
+        // or when Application::get('test') was truthy. In production every
+        // PDOException was silently swallowed by the callers, which return
+        // null/[]/0 — indistinguishable from "no record" downstream. That
+        // contradicts the project's "never fall back silently" rule.
+        //
+        // Now: always log. error_log() (not Logger) so we don't introduce
+        // a require_once cycle — Database is in src/helpers/ and runs
+        // before cma/bootstrap.inc on some paths (CLI, deploy webhook).
+        // The output lands in whatever ErrorHandler::register() set as
+        // the PHP error_log destination (php_errors.log in normal CMA).
+        //
+        // Callers still receive null/[]/0 — the user-visible behaviour
+        // (empty list / no record found) is unchanged. The "silent" half
+        // of the silent fallback is gone: every DB error is now in the
+        // log, with SQL + params + trace, regardless of environment.
+        error_log(sprintf(
+            "Database Error: %s\nSQL: %s\nParams: %s\nTrace: %s",
+            $e->getMessage(),
+            $sql,
+            json_encode($params),
+            $e->getTraceAsString()
+        ));
     }
 
     /**

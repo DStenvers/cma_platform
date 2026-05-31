@@ -771,18 +771,19 @@ try {
                 $result = FormDataProvider::getJsonFormRecordData($jsonFormName, $recordId);
                 addDebug('success=' . ($result['success'] ?? 'null'));
 
-                // Piggyback first subform data onto record response to save a round-trip
+                // Piggyback first subform data onto record response to save a round-trip.
+                // Pre-1.19.8 a try/catch around this swallowed any subform exception
+                // into addDebug only — disabled in production. A misconfigured subform
+                // silently shipped a record-response without its first subform tab,
+                // with no log trace anywhere. The outer catch at line ~791 already
+                // handles unexpected failures by returning success:false with the
+                // exception message; piggyback errors now propagate there.
                 if (!empty($result['success'])) {
-                    try {
-                        $subforms = JsonFormLoader::getSubforms($jsonFormName);
-                        if (!empty($subforms)) {
-                            addDebug('loading first subform (index 0) with record');
-                            $firstSubform = \Cma\Services\ListService::getSubformTableHtml($jsonFormName, $recordId, 0);
-                            $result['firstSubform'] = $firstSubform;
-                        }
-                    } catch (\Throwable $subEx) {
-                        addDebug('first subform piggyback failed: ' . $subEx->getMessage());
-                        // Non-fatal: client will fall back to separate request
+                    $subforms = JsonFormLoader::getSubforms($jsonFormName);
+                    if (!empty($subforms)) {
+                        addDebug('loading first subform (index 0) with record');
+                        $firstSubform = \Cma\Services\ListService::getSubformTableHtml($jsonFormName, $recordId, 0);
+                        $result['firstSubform'] = $firstSubform;
                     }
                 }
 
@@ -1035,20 +1036,39 @@ try {
             }
             addDebug('loading ' . count($indices) . ' subforms');
             $results = [];
+            $anyFailed = false;
             foreach ($indices as $index) {
                 try {
                     $result = \Cma\Services\ListService::getSubformTableHtml($jsonFormName, $parentID, $index);
                     // Ensure we always have a response for each index
-                    $results[$index] = $result ?: ['success' => false, 'error' => 'Geen resultaat', 'index' => $index];
-                } catch (\Exception $e) {
+                    if ($result) {
+                        $results[$index] = $result;
+                    } else {
+                        $results[$index] = ['success' => false, 'error' => 'Geen resultaat', 'index' => $index];
+                        $anyFailed = true;
+                    }
+                } catch (\Throwable $e) {
+                    // Pre-1.19.8: \Exception only (missed \TypeError / \Error from PHP 8
+                    // type mismatches), AND the envelope returned success:true even when
+                    // every index failed — a client that only reads `success` rendered
+                    // empty data with no error indicator. Now: catch \Throwable, set
+                    // envelope success:false if any index failed, and log per-failure
+                    // via Logger::warning so the operator sees patterns in production.
                     addDebug("subform $index error: " . $e->getMessage());
+                    Logger::warning('subforms batch — index failed', [
+                        'jsonForm' => $jsonFormName,
+                        'parentID' => $parentID,
+                        'index'    => $index,
+                        'error'    => $e->getMessage(),
+                    ]);
                     $results[$index] = ['success' => false, 'error' => $e->getMessage(), 'index' => $index];
+                    $anyFailed = true;
                 }
             }
             // Convert to object to preserve numeric keys in JSON output
             $results = (object) $results;
             sendDebugHeader();
-            outputJson(['success' => true, 'subforms' => $results]);
+            outputJson(['success' => !$anyFailed, 'subforms' => $results]);
             break;
 
         case 'combo':
@@ -1575,7 +1595,17 @@ function ensureMinimumUserLevels() {
             Logger::info('Auto-created cmadev user (no developers existed)');
         }
     } catch (\Exception $e) {
+        // Pre-1.19.8: log and return — the user-delete response upstream then
+        // reported success:true while the safety-net (re-create cmaadmin/cmadev
+        // if all admins were deleted) had silently failed. Worst case: the
+        // operator deleted the last admin, got success:true back, and was
+        // locked out of the CMA without warning. Now: re-throw so the outer
+        // catch at form_api.php top-level turns it into success:false. The
+        // delete itself is already committed at this point — we can't roll
+        // it back — but the operator at least sees that the safety-net
+        // didn't run and can manually re-create accounts via tools.
         Logger::error('Failed to ensure minimum user levels', ['error' => $e->getMessage()]);
+        throw $e;
     }
 }
 
