@@ -93,6 +93,29 @@
                 </rule>
 
             </rules>
+
+            <!-- Belt + suspenders: if PHP forgets to set Content-Type (e.g.
+                 a fatal error before the handler set a header, or an
+                 empty default_mimetype), the response goes out without a
+                 Content-Type. Combined with X-Content-Type-Options:nosniff
+                 below, mobile browsers — especially the installed PWA on
+                 iOS Safari — refuse to sniff and offer the page as a
+                 *download* (the classic "Download logreader.php?" prompt).
+                 This outbound rule fires only when Content-Type is empty
+                 and rewrites it to text/html. PHP-set Content-Types are
+                 left untouched. Added in v1.19.9 — see the Deployment /
+                 IIS-config doc topics for the original incident. -->
+            <outboundRules>
+                <rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing">
+                    <match serverVariable="RESPONSE_Content-Type" pattern=".*" />
+                    <action type="Rewrite" value="text/html; charset=UTF-8" />
+                </rule>
+                <preConditions>
+                    <preCondition name="ContentTypeMissing">
+                        <add input="{RESPONSE_Content-Type}" pattern="^$" />
+                    </preCondition>
+                </preConditions>
+            </outboundRules>
         </rewrite>
 
         <!-- Default document settings -->

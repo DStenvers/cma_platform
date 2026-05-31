@@ -805,6 +805,21 @@ function render_doc_iis_config(): void
         <li><code>removeServerHeader="true"</code> en outbound-rewrite van het Server-header — beperkt fingerprinting.</li>
     </ul>
 
+    <h2>Belt-and-suspenders: default Content-Type</h2>
+    <p>Sinds v1.19.9 staat in zowel <code>templates/web.config.template</code> als <code>cma/web.config</code> een outbound-rewrite die een lege <code>Content-Type</code> respons-header overschrijft naar <code>text/html; charset=UTF-8</code>:</p>
+    <pre><code>&lt;outboundRules&gt;
+    &lt;rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing"&gt;
+        &lt;match serverVariable="RESPONSE_Content-Type" pattern=".*" /&gt;
+        &lt;action type="Rewrite" value="text/html; charset=UTF-8" /&gt;
+    &lt;/rule&gt;
+    &lt;preConditions&gt;
+        &lt;preCondition name="ContentTypeMissing"&gt;
+            &lt;add input="{RESPONSE_Content-Type}" pattern="^$" /&gt;
+        &lt;/preCondition&gt;
+    &lt;/preConditions&gt;
+&lt;/outboundRules&gt;</code></pre>
+    <p>Waarom: als PHP doodgaat vóór een header gezet is (fatal error, lege <code>default_mimetype</code>, output-buffer breuk zoals het v1.10.1 logreader-incident), gaat de response zonder Content-Type de deur uit. Mobile Safari — vooral als geïnstalleerde PWA — combineert dit met onze <code>X-Content-Type-Options: nosniff</code> en weigert MIME-sniffing, met als gevolg dat de pagina als <span class="cma-tool__strong">download</span> wordt aangeboden ("Download logreader.php?"). De regel vuurt alleen als de header echt leeg is — door PHP gezette Content-Types blijven onaangeroerd.</p>
+
     <h2>App-pool recycle</h2>
     <p>Touch op <code>web.config</code> triggert een app-pool recycle in IIS — alle PHP-OpCache state, in-memory session-handlers en lopende processes worden geflushed. Het deploy-webhook script doet dit standaard na een succesvolle pipeline; je kan het handmatig forceren met:</p>
     <pre><code>copy /b web.config +,, </code></pre>
