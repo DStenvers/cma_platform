@@ -218,6 +218,31 @@ class DeployWebhook
             $out .= "=== git checkout -- . (discard local drift) ===\n"
                   . $run('git checkout -- .') . "\n\n";
         }
+
+        // Pre-pull app-pool recycle. IIS workers hold file handles to
+        // bootstrap files at the site root (_bootstrap_wrapper.php,
+        // index.php, …) — the same kind of lock the pre-composer
+        // touch below addresses for vendor/. Without releasing those
+        // BEFORE git pull, an ff-only pull that needs to overwrite a
+        // locked file dies with "unable to create file <name>:
+        // Permission denied", aborting the whole merge and leaving
+        // the working tree stuck at the previous commit. Every
+        // subsequent webhook delivery then fails identically until
+        // someone manually recycles the pool. Touching web.config
+        // here makes IIS cycle the worker, releasing handles, before
+        // git tries to update tracked files. 500ms sleep gives the
+        // worker shutdown time to actually let go.
+        //
+        // Skipped when 'recycle' is disabled (op opted out of all
+        // automatic recycles) or DEPLOY_NO_PRE_PULL_TOUCH=1 (escape
+        // hatch for sites where the recycle itself is the problem).
+        $skipPrePull = (string)($_ENV['DEPLOY_NO_PRE_PULL_TOUCH'] ?? getenv('DEPLOY_NO_PRE_PULL_TOUCH') ?: '') === '1';
+        if ($cfg['recycle'] && !$skipPrePull && is_file($cfg['site_root'] . '/web.config')) {
+            @touch($cfg['site_root'] . '/web.config');
+            $out .= "=== pre-pull recycle (release bootstrap file locks) ===\n";
+            usleep(500_000);
+        }
+
         $out .= "=== git pull ===\n" . $run('git pull --ff-only origin ' . escapeshellarg($cfg['branch'])) . "\n\n";
 
         if (!$failed && $cfg['composer']) {
