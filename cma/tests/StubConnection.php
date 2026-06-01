@@ -43,6 +43,9 @@ class StubConnection extends \PDO
     /** @var array<int,string> Queue of lastInsertId returns. */
     private array $insertIdQueue = [];
 
+    /** @var array<int,\Throwable> Queue of exceptions for the next prepare()->execute() / query() / exec(). */
+    private array $exceptionQueue = [];
+
     private string $driverName = 'sqlite';
 
     /**
@@ -89,6 +92,16 @@ class StubConnection extends \PDO
         $this->insertIdQueue[] = $id;
     }
 
+    /**
+     * Push a throwable that the next prepare()->execute() / query() / exec()
+     * will raise instead of returning a result. Used to verify production
+     * error-path behaviour (e.g. v1.19.8 always-log).
+     */
+    public function enqueueException(\Throwable $e): void
+    {
+        $this->exceptionQueue[] = $e;
+    }
+
     public function setDriverName(string $name): void
     {
         $this->driverName = $name;
@@ -113,6 +126,7 @@ class StubConnection extends \PDO
         $this->resultQueue = [];
         $this->execQueue = [];
         $this->insertIdQueue = [];
+        $this->exceptionQueue = [];
     }
 
     // ---- PDO override surface --------------------------------------
@@ -124,16 +138,31 @@ class StubConnection extends \PDO
 
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): \PDOStatement|false
     {
-        $stmt = new StubStatement($this, $query);
-        $stmt->loadFromQueue();
+        $this->throwIfQueued();
         $this->calls[] = ['type' => 'query', 'sql' => $query, 'params' => []];
+        $stmt = new StubStatement($this, $query);
+        $stmt->preload(array_shift($this->resultQueue) ?? []);
         return $stmt;
     }
 
     public function exec(string $statement): int|false
     {
+        $this->throwIfQueued();
         $this->calls[] = ['type' => 'exec', 'sql' => $statement, 'params' => []];
         return array_shift($this->execQueue) ?? 1;
+    }
+
+    /**
+     * Internal helper — pops the next queued exception (if any) and
+     * throws it before the call proceeds. Called from query(), exec(),
+     * and StubStatement::execute().
+     */
+    public function throwIfQueued(): void
+    {
+        $next = array_shift($this->exceptionQueue);
+        if ($next !== null) {
+            throw $next;
+        }
     }
 
     public function lastInsertId(?string $name = null): string|false
@@ -189,15 +218,20 @@ class StubStatement extends \PDOStatement
         $this->sql = $sql;
     }
 
-    /** Pre-load this statement's result without going through execute(). */
-    public function loadFromQueue(): void
+    /**
+     * Set the result rows directly, bypassing recordStatement/calls
+     * tracking. Used by StubConnection::query() so the call is only
+     * registered once (as 'query' type, not 'prepare').
+     */
+    public function preload(array $rows): void
     {
-        $this->rows = $this->conn->recordStatement($this->sql, []);
+        $this->rows = $rows;
         $this->cursor = 0;
     }
 
     public function execute(?array $params = null): bool
     {
+        $this->conn->throwIfQueued();
         $this->rows = $this->conn->recordStatement($this->sql, $params ?? []);
         $this->cursor = 0;
         return true;

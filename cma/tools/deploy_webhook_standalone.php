@@ -58,6 +58,13 @@
  *                         "stenversonline/platform". Set "-" to skip
  *                         (e.g. if your deploy already runs composer
  *                         outside the webhook).
+ *   DEPLOY_RUN_TESTS      Command to run as a deploy gate AFTER pull/
+ *                         composer update but BEFORE recycle. Non-zero
+ *                         exit marks the deploy FAILED and skips recycle
+ *                         + post-hook (production keeps running old
+ *                         code). Default "" = no gate. Example:
+ *                             DEPLOY_RUN_TESTS=php cma/tests/TestRunner.php
+ *                         Anything that exits non-zero on failure works.
  *   DEPLOY_RECYCLE_TOUCH  File to touch on success — defaults to
  *                         <site_root>/web.config. Set "-" to skip.
  *   DEPLOY_LOG_FILE       Log path (default: <site_root>/logs/deploy.log)
@@ -301,6 +308,44 @@ if (!$failed && $composerUpdate !== '-' && $composerUpdate !== '') {
         // best-effort step. The error is logged so the operator can fix
         // it (missing composer binary in PATH is the most common cause).
         $log("WARN: composer update failed — vendor may be out of sync with cma/ files");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 6c. Test gate (sinds v1.20.5) — run a test command against the freshly-
+//     pulled code, BEFORE recycle. If tests fail, the deploy is marked
+//     FAILED and recycle is skipped — production keeps running the old
+//     code (cached in IIS app-pool until web.config touches). The
+//     operator sees `status: FAILED` from deploy_status.php and can
+//     investigate without users hitting a half-deployed site.
+//
+//     Default: skip (DEPLOY_RUN_TESTS=""). Opt in by setting the env to
+//     the command, e.g.:
+//         DEPLOY_RUN_TESTS=php cma/tests/TestRunner.php
+//     Anything that exits non-zero on failure works (phpunit, pest, a
+//     custom script). Output goes into the deploy log so debugging is
+//     easy. "-" or "" = skip (no gate).
+// ---------------------------------------------------------------------------
+$runTests = $envRead('DEPLOY_RUN_TESTS', '');
+if (!$failed && $runTests !== '-' && $runTests !== '') {
+    $log("RUN: $runTests");
+    $output = [];
+    $exit   = 0;
+    if ($isWin) {
+        exec('cmd /c "cd /d "' . $siteRoot . '" && ' . $runTests . ' 2>&1"', $output, $exit);
+    } else {
+        exec('cd ' . escapeshellarg($siteRoot) . ' && ' . $runTests . ' 2>&1', $output, $exit);
+    }
+    $text = implode("\n", $output);
+    $log("EXIT: $exit\n--- output ---\n$text\n--- end ---");
+    if ($exit !== 0) {
+        // Test failure is a deploy-blocking event: do NOT recycle, do NOT
+        // run the post-hook. The pipeline succeeded mechanically (code is
+        // on disk) but the contract isn't met — flag as FAILED so the
+        // banner footer reflects reality and deploy_status.php tells the
+        // operator something's wrong.
+        $failed = true;
+        $log("FAIL: tests failed — skipping recycle + post-hook");
     }
 }
 

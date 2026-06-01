@@ -148,13 +148,14 @@ Only 8 of 125 forms have CRUD tests:
 
 **Strategy doc**: zie documentation-hub topic [Tests & coverage strategie](tools/documentation.php?topic=testing). Bevat live-tellingen, risico-zone analyse, drie-laags aanpak (unit / service-integration / Cypress), en een sprint-1 quick-win plan (SQLite test-harness + 5 service-tests + composer-test CI-gate in deploy-webhook).
 
-**Sprint-1 progress (zie doc-topic voor details):**
+**Sprint-1/2 progress (zie doc-topic voor details):**
 - ✅ Pure-data tests: FormDataProviderChangelogTest (17), FormDataProviderDeleteChangelogTest (14), InstallerRemovedPathsTest (7) — gepusht v1.20.3/4
 - ✅ PDO-stub harness `cma/tests/StubConnection.php` + `StubConnectionTest.php` (12) — gepusht v1.20.4
+- ✅ DatabaseErrorPathTest (7) — bewijst v1.19.8 always-log expliciet — gepusht v1.20.5
+- ✅ Deploy-webhook test-gate via `DEPLOY_RUN_TESTS` env-var — gepusht v1.20.5
 - ⏳ RecordService::save contract-tests via StubConnection — volgende sprint
 - ⏳ saveJsonFormRecord query-shape tests via StubConnection — volgende sprint
 - ⏳ ODBC-dialect quirks: blank-mdb fixture — sprint-3
-- ⏳ `composer test` gate in deploy-webhook vóór `composer update`
 
 **Side-effects:** Low - test-only changes
 
