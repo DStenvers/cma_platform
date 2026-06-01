@@ -85,3 +85,83 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > ja uiteraard
 
 > can you add the prevvious conversatioon to prompts.md and save in claude.md never to compact that rule again?
+
+## 2026-05-31 / 2026-06-01 — verification, error-handling sweep, self-checks, management story, IIS/routing root-cause hunt (backfill — was niet bijgehouden tijdens de sessie)
+
+> okay now I want you to determine if all innprompts.md is implemented and no regression has taken place
+
+> cma-blockeditor is not internal
+
+> i am worried about error handling, could you do a thorough check?
+
+> ja (Tier 0 + 1 fixes doorvoeren)
+
+> ja (Database loud-log + form_api inner catches)
+
+> make sure this is in the web.config template; <outboundRules>… kun je verder?
+
+> kan de documentatie zelf checks uitvoeren met name de configuraties? bijvoorbeeld op web.config?
+
+> alles graag!
+
+> see if todo.md has any work left
+
+> start with Server-side changelog voor Edit operations (line 62) — TODO sinds 2026-01-30. Add/Delete zijn al gefixed, Edit vereist "oude waarden ophalen vóór update". Test coverage 6% (line 140) — strategisch, niet één PR.
+
+> sqlite not in use
+
+> go!
+
+> nee ga door met alles
+
+> yes p[lease continue
+
+> ja graag (DEPLOY_RUN_TESTS gate + DatabaseErrorPathTest)
+
+> i have created a document for management (so low on details, user and business focussed) on the migration of classic asp to php and the implementation of cma_platform. This will in time be reviewed by a technical/architect. Can you create a text that 'sells' the migration and the new platform for MT and the tech person? We can split it into overview and technical details if that is more convenient for you or better for the targeted audience
+
+> Kun je iets minder negatief over classic asp doen en de reden mag je weglaten, dat is bekend. Daarnaast wil ik een vergelijking tussen de oude cma en de nieuwe en wat deze allemaal toevoegd. Maak duidelijk dat web componenten component dependency hell voorkomen en dat composer is gekozen als update methode voor de paar componenten die we wel gebruiken, benoem deze componenten
+
+> Toch nog teveel technische termen in het MT verhaal. Je mag wel meer technische termen plaatsen in het technische verhaal
+
+> Toch nog teveel technische termen in het MT verhaal. Je mag wel meer technische termen plaatsen in het technische verhaal maar niet teveel interne implementatie details (zoals url's en bestandsnamen)
+
+> Okay, ik mis nog een stuk in beide versies over onderhoudbaarheid en overdraagbaarheid.
+
+> In deze scope betreft het maar 1 applicatie, het verhaal van multiple applicaties is dus alleen relevant om aan te tonen dat het proven technology is dat al werkt op andere sites.
+
+> ik denk dat we het gebruik van AI bij het onderhoud ook kunnen duiden, een ervaren ontwikkelaar in combinatie met Claude code … [vul in] Bij beide varianten van de tekst
+
+> ja graag (consolidated migration doc)
+
+> a sample of a non-functional link: https://mijntoprecepten.nl/cma/tools/?tool=documentation while https://mijntoprecepten.nl/cma/tools.php?tool=documentation works, let's go with that, update links accordingly. Then : clickint an item in https://mijntoprecepten.nl/cma/tools/documentation.php?topic=deployment does noting. The Documentation tab has a deployment item, delete that please. The documentation has an unwanted padding in tools/documentation.php and the vertical fold is missing and links do not work from the tree
+
+> the tree in documentation has a vissible &amp; remove that please
+
+> https://mijntoprecepten.nl/cma/dashboard again does not work, tiresome..
+
+> root cause -> grondoorzaak
+
+> what is the latest version?
+
+> ja check het ajb (rec/web.config inspectie)
+
+> ja graag (appendQueryString fix)
+
+> https://mijntoprecepten.nl/cma/dashboard.php doet het, https://mijntoprecepten.nl/cma/dashboard geeft een 404
+
+> ja graag (URL Rewrite Module live-check + troubleshooting)
+
+> https://mijntoprecepten.nl/cma/preferences doe het ook niet
+
+> kan het zijn dat web.config in de .gitignore staat?
+
+> this is the web.config on rec\cma : [volledige web.config inhoud geplakt] (yes the crlf are weird, can you fix that as well?)
+
+> continue
+
+> cma is geen application
+
+> er staan regels in
+
+> ja tuurlijk, staat toch in prompt.md als hard rule dat je die altijd bij moet werken> zo nee, wil je dat noteren?

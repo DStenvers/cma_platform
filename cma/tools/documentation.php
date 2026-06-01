@@ -333,6 +333,39 @@ function cma_doc_check_parent_hidden_segments(): array {
     return ['label' => $label, 'status' => 'fail', 'detail' => 'Ontbreekt: <code>' . htmlspecialchars(implode('</code>, <code>', $missing)) . '</code> — publiek bereikbaar.', 'fix' => 'Voeg <code>&lt;add segment="…"/&gt;</code> toe in <code>&lt;hiddenSegments&gt;</code>.'];
 }
 
+function cma_doc_check_cma_is_iis_application(): array {
+    // Detect of cma/ als IIS Application is geconfigureerd, niet als gewone
+    // Virtual Directory. De child cma/web.config rewrite-rules gebruiken
+    // patronen als `^dashboard/?$` (zonder cma/-prefix) — die matchen
+    // alleen als IIS de URL aan child-rules aanbiedt RELATIEF aan de
+    // cma-locatie, en dat doet IIS uitsluitend wanneer cma als
+    // Application is ingericht. Op een gewone Virtual Directory ziet de
+    // child config de FULL URL (`cma/dashboard`) en matcht niets.
+    //
+    // IIS zet $_SERVER['APPL_MD_PATH'] op het virtuele applicatie-pad.
+    // Voor een Application op /cma is dat /LM/W3SVC/<id>/ROOT/cma. Voor
+    // een Virtual Directory is het /LM/W3SVC/<id>/ROOT (de site-root).
+    // We checken of het APPL_MD_PATH eindigt op '/cma' (case-insensitive).
+    $label = 'cma/ is als IIS Application ingericht (niet als Virtual Directory)';
+
+    if (PHP_SAPI === 'cli') {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'CLI-context: niet te testen.', 'fix' => ''];
+    }
+    $applMd = (string)($_SERVER['APPL_MD_PATH'] ?? '');
+    if ($applMd === '') {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Niet IIS, of <code>APPL_MD_PATH</code> niet beschikbaar — check niet uitvoerbaar.', 'fix' => ''];
+    }
+    if (strcasecmp(substr($applMd, -4), '/cma') === 0) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Ja — <code>APPL_MD_PATH</code> eindigt op <code>/cma</code>. Child-config rewrite-rules zien de URL relatief en matchen correct.', 'fix' => ''];
+    }
+    return [
+        'label'  => $label,
+        'status' => 'fail',
+        'detail' => 'Nee — <code>APPL_MD_PATH</code> = <code>' . htmlspecialchars($applMd) . '</code> (eindigt niet op <code>/cma</code>). cma/ is een Virtual Directory binnen de parent-Application. Gevolg: de child cma/web.config rewrite-rules zien de full URL (<code>cma/dashboard</code>) terwijl de patterns op de cma-relatieve URL (<code>dashboard</code>) zijn geschreven — niets matcht, IIS valt terug op static-file lookup, en extensionless URLs als <code>/cma/dashboard</code> krijgen 404.',
+        'fix'    => 'Open IIS Manager → Sites → deze site → rechtermuis op <code>cma</code> (gele map-icoon) → <em>Convert to Application</em>. Gebruik dezelfde Application Pool als de parent. Het icoon wordt blauw. Test direct: <code>/cma/dashboard</code> werkt nu.',
+    ];
+}
+
 function cma_doc_check_child_dashboard_rule(): array {
     $label = 'Child cma/web.config: Dashboard rewrite rule';
     $xml = cma_doc_child_webconfig();
@@ -1176,6 +1209,7 @@ function render_doc_iis_config(): void
 
     <?php
     cma_doc_render_check_table('web.config — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_cma_is_iis_application',
         'cma_doc_check_url_rewrite_module_active',
         'cma_doc_check_parent_skip_cma',
         'cma_doc_check_parent_default_content_type',
@@ -1210,6 +1244,10 @@ function render_doc_iis_config(): void
     &lt;action type="None" /&gt;
 &lt;/rule&gt;</code></pre>
         Voor BESTAANDE installs moet je 'm handmatig toevoegen bovenaan <code>&lt;rules&gt;</code> in de site-root web.config (of NA HTTPS/www redirects, zodat <code>/cma/*</code> nog steeds geforceerd naar HTTPS gaat). Symptoom als de regel ontbreekt: <code>/cma/dashboard</code> geeft 404, maar <code>/cma/dashboard.php</code> wel 200.
+    </div>
+
+    <div class="docs-callout docs-callout--danger">
+        <span class="cma-tool__strong">cma/ moet als IIS Application zijn ingericht</span> — niet als gewone Virtual Directory. De rewrite-rules in <code>cma/web.config</code> gebruiken patronen als <code>^dashboard/?$</code> (zonder <code>cma/</code>-prefix). Die patronen matchen alleen wanneer URL Rewrite Module de URL <strong class="cma-tool__strong">relatief aan de cma-Application</strong> aanbiedt. Op een Virtual Directory ziet de child config de FULL URL (<code>cma/dashboard</code>), patterns matchen niets, extensionless URLs falen met 404. Convert in IIS Manager → rechtermuis op <code>cma</code> → <em>Convert to Application</em>. De live-check bovenaan deze pagina detecteert dit automatisch en toont ✓ of ✗ + fix-instructie.
     </div>
 
     <h2>cma/web.config in detail</h2>
