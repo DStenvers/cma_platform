@@ -76,26 +76,39 @@
  *                         the standalone too.
  *
  * Single file. No external dependencies. Copy anywhere.
+ *
+ * PHP compatibility: bewust geschreven in PHP 5.6-compatible syntax
+ * (geen strict_types, geen ?? null-coalesce, geen type-hints op closures,
+ * geen str_starts_with, geen Throwable). De webhook is het recovery-pad
+ * — moet werken ook op legacy IIS-installaties met oude PHP-handlers
+ * voor het cma/tools/-pad, ongeacht de PHP-versie van de hoofd-app.
  */
-declare(strict_types=1);
 
 // ---------------------------------------------------------------------------
 // 1. Site root + .env resolver — works without any framework / autoloader.
 // ---------------------------------------------------------------------------
-$siteRoot = trim((string)(getenv('DEPLOY_SITE_ROOT') ?: ($_ENV['DEPLOY_SITE_ROOT'] ?? '')));
+$_envFromEnv = getenv('DEPLOY_SITE_ROOT');
+if ($_envFromEnv === false || $_envFromEnv === '') {
+    $_envFromEnv = isset($_ENV['DEPLOY_SITE_ROOT']) ? $_ENV['DEPLOY_SITE_ROOT'] : '';
+}
+$siteRoot = trim((string)$_envFromEnv);
 if ($siteRoot === '' || !is_dir($siteRoot)) {
     $siteRoot = __DIR__;
 }
-$siteRoot = rtrim((string)(realpath($siteRoot) ?: $siteRoot), '/\\');
+$_real = realpath($siteRoot);
+$siteRoot = rtrim((string)($_real !== false ? $_real : $siteRoot), '/\\');
 
-$envRead = static function (string $key, string $default = '') use ($siteRoot): string {
+$envRead = function ($key, $default = '') use ($siteRoot) {
     $v = getenv($key);
     if ($v !== false && $v !== '') return $v;
     if (!empty($_ENV[$key])) return (string)$_ENV[$key];
-    foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env'] as $f) {
+    $candidates = array('.env.production', '.env.acceptance', '.env.test', '.env.local', '.env');
+    foreach ($candidates as $f) {
         $path = $siteRoot . '/' . $f;
         if (!is_file($path)) continue;
-        foreach ((array)file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!is_array($lines)) continue;
+        foreach ($lines as $line) {
             if (preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*["\']?([^"\'\r\n#]+)/', $line, $m)) {
                 return trim($m[1]);
             }
@@ -112,10 +125,10 @@ $logFile = $envRead('DEPLOY_LOG_FILE', $siteRoot . '/logs/deploy.log');
 $logDir  = dirname($logFile);
 if (!is_dir($logDir)) { @mkdir($logDir, 0755, true); }
 
-$log = static function (string $msg) use ($logFile): void {
+$log = function ($msg) use ($logFile) {
     @file_put_contents($logFile, '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n", FILE_APPEND);
 };
-$logRaw = static function (string $text) use ($logFile): void {
+$logRaw = function ($text) use ($logFile) {
     @file_put_contents($logFile, $text, FILE_APPEND);
 };
 
@@ -130,18 +143,20 @@ if ($secret === '') {
     return;
 }
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+$_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+if ($_method !== 'POST') {
     http_response_code(405);
     echo "Method not allowed.\n";
     return;
 }
 
 $payload   = (string)file_get_contents('php://input');
-$signature = (string)($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+$signature = (string)(isset($_SERVER['HTTP_X_HUB_SIGNATURE_256']) ? $_SERVER['HTTP_X_HUB_SIGNATURE_256'] : '');
 $expected  = 'sha256=' . hash_hmac('sha256', $payload, $secret);
 if (!hash_equals($expected, $signature)) {
     http_response_code(403);
-    $log('REJECT: signature mismatch from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+    $_remote = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '?';
+    $log('REJECT: signature mismatch from ' . $_remote);
     echo "Bad signature.\n";
     return;
 }
@@ -151,7 +166,7 @@ if (!hash_equals($expected, $signature)) {
 //    branches, so a non-push event or non-target branch is a no-op
 //    (logged so it's still auditable).
 // ---------------------------------------------------------------------------
-$event = (string)($_SERVER['HTTP_X_GITHUB_EVENT'] ?? '');
+$event = (string)(isset($_SERVER['HTTP_X_GITHUB_EVENT']) ? $_SERVER['HTTP_X_GITHUB_EVENT'] : '');
 if ($event !== 'push') {
     http_response_code(204);
     $log("SKIP: event=$event (only 'push' deploys)");
@@ -171,17 +186,18 @@ if ($event !== 'push') {
 // entries, no deploys, and a deeply confusing "GitHub says delivered
 // OK, server does nothing" symptom that ate ~6 hours to diagnose on
 // one site. Handle both shapes here so the misconfig is invisible.
-$ct = strtolower((string)($_SERVER['CONTENT_TYPE'] ?? ''));
-if (str_starts_with($ct, 'application/x-www-form-urlencoded')) {
+$ct = strtolower((string)(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : ''));
+if (strpos($ct, 'application/x-www-form-urlencoded') === 0) {
     parse_str($payload, $form);
-    $jsonStr = (string)($form['payload'] ?? '');
+    $jsonStr = (string)(isset($form['payload']) ? $form['payload'] : '');
 } else {
     $jsonStr = $payload;
 }
-$data    = json_decode($jsonStr, true) ?: [];
-$ref     = (string)($data['ref'] ?? '');
-$branch  = $envRead('DEPLOY_BRANCH', 'main');
-$wantRef = 'refs/heads/' . $branch;
+$_decoded = json_decode($jsonStr, true);
+$data     = is_array($_decoded) ? $_decoded : array();
+$ref      = (string)(isset($data['ref']) ? $data['ref'] : '');
+$branch   = $envRead('DEPLOY_BRANCH', 'main');
+$wantRef  = 'refs/heads/' . $branch;
 if ($ref !== $wantRef) {
     http_response_code(204);
     // Include the content-type in the log so the next operator who hits
@@ -192,8 +208,8 @@ if ($ref !== $wantRef) {
     return;
 }
 
-$commit = substr((string)($data['after'] ?? ''), 0, 7);
-$pusher = (string)($data['pusher']['name'] ?? '?');
+$commit = substr((string)(isset($data['after']) ? $data['after'] : ''), 0, 7);
+$pusher = (string)(isset($data['pusher']['name']) ? $data['pusher']['name'] : '?');
 
 // ---------------------------------------------------------------------------
 // 4b. Writability check. After fastcgi_finish_request() the deploy runs
@@ -290,7 +306,8 @@ foreach ($commands as $cmd) {
 // ---------------------------------------------------------------------------
 $composerUpdate = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
 if (!$failed && $composerUpdate !== '-' && $composerUpdate !== '') {
-    $packages = preg_split('/\s*,\s*/', $composerUpdate, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $_pkgs = preg_split('/\s*,\s*/', $composerUpdate, -1, PREG_SPLIT_NO_EMPTY);
+    $packages = is_array($_pkgs) ? $_pkgs : array();
     $pkgArgs  = implode(' ', array_map('escapeshellarg', $packages));
     $cmd = 'composer update ' . $pkgArgs . ' --no-interaction';
     $log("RUN: $cmd");
@@ -379,7 +396,12 @@ if (!$failed && $postHook !== '-' && $postHook !== '' && is_file($postHook)) {
             $log("OUTPUT:\n" . $hookOut);
         }
         $log("OK: deploy_post.php");
-    } catch (\Throwable $e) {
+    } catch (Exception $e) {
+        // \Exception only (Throwable would be cleaner but requires PHP 7+,
+        // and the webhook moet ook op PHP 5.6 draaien). Fatal Errors in
+        // PHP 7+ extend Throwable, niet Exception — die slipt erdoorheen
+        // en wordt door PHP zelf afgehandeld. Hier is dat acceptabel: de
+        // pipeline + recycle is al gedraaid, hook is best-effort.
         $hookOut = (string)ob_get_clean();
         if ($hookOut !== '') { $log("OUTPUT:\n" . $hookOut); }
         $log("WARN: deploy_post.php threw " . get_class($e) . ': ' . $e->getMessage());
