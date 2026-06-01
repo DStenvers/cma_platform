@@ -333,6 +333,76 @@ function cma_doc_check_parent_hidden_segments(): array {
     return ['label' => $label, 'status' => 'fail', 'detail' => 'Ontbreekt: <code>' . htmlspecialchars(implode('</code>, <code>', $missing)) . '</code> — publiek bereikbaar.', 'fix' => 'Voeg <code>&lt;add segment="…"/&gt;</code> toe in <code>&lt;hiddenSegments&gt;</code>.'];
 }
 
+function cma_doc_check_child_dashboard_rule(): array {
+    $label = 'Child cma/web.config: Dashboard rewrite rule';
+    $xml = cma_doc_child_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Child <code>cma/web.config</code> niet gevonden.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+    }
+    $hit = $xml->xpath("//rewrite/rules/rule[@name='Dashboard']");
+    if (!empty($hit)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — <code>/cma/dashboard</code> kan extensionless worden bereikt.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Dashboard-rule ontbreekt in kind-config.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+}
+
+function cma_doc_check_url_rewrite_module_active(): array {
+    // Self-test: do a tiny HTTP HEAD request to /cma/dashboard. If IIS URL
+    // Rewrite Module is loaded AND the child cma/web.config rules are being
+    // applied, the rewrite fires and dashboard.php answers (200, or 302 to
+    // login if not logged in). If the module is missing or the child config
+    // is blocked, IIS looks for a literal `cma/dashboard` file, finds none,
+    // and returns 404. Discriminator: 404 = module/config inactive; anything
+    // else = working.
+    $label = 'IIS URL Rewrite Module — extensionless /cma/* paden werken';
+
+    if (PHP_SAPI === 'cli') {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'CLI-context: zelf-test niet uitvoerbaar.', 'fix' => ''];
+    }
+    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+    if ($host === '') {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Host onbekend, zelf-test niet uitvoerbaar.', 'fix' => ''];
+    }
+    if (!function_exists('curl_init')) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'cURL niet geladen, zelf-test overgeslagen.', 'fix' => ''];
+    }
+
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $url    = $scheme . '://' . $host . '/cma/dashboard';
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_NOBODY         => true,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_TIMEOUT        => 3,
+        CURLOPT_CONNECTTIMEOUT => 2,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
+    ]);
+    curl_exec($ch);
+    $code  = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $errno = curl_errno($ch);
+    $err   = curl_error($ch);
+    curl_close($ch);
+
+    if ($errno !== 0) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'cURL-fout bij zelf-test: ' . htmlspecialchars($err) . ' (errno ' . $errno . ').', 'fix' => ''];
+    }
+    if ($code === 200 || ($code >= 300 && $code < 400)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => '<code>/cma/dashboard</code> antwoordt met HTTP <code>' . $code . '</code> — module en child-config werken samen.', 'fix' => ''];
+    }
+    if ($code === 404) {
+        return [
+            'label'  => $label,
+            'status' => 'fail',
+            'detail' => '<code>/cma/dashboard</code> geeft HTTP <code>404</code> terwijl <code>/cma/dashboard.php</code> (vermoedelijk) wel werkt. URL Rewrite Module is niet actief voor het <code>/cma</code>-pad óf de child <code>cma/web.config</code> wordt niet geapplied.',
+            'fix'    => 'Stappen, in volgorde: (1) verifieer dat de IIS URL Rewrite Module geïnstalleerd is — Server Manager → Web Server (IIS) → Roles, of download van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net/downloads/microsoft/url-rewrite</a>. (2) Recycle de app-pool (touch <code>web.config</code>). (3) Check <code>%windir%\\system32\\inetsrv\\config\\applicationHost.config</code> op <code>&lt;section name="rewrite" overrideMode="Allow"/&gt;</code> en geen <code>inheritInChildApplications="false"</code> op een parent <code>&lt;location&gt;</code>.',
+        ];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => '<code>/cma/dashboard</code> antwoordt met onverwachte HTTP <code>' . $code . '</code>.', 'fix' => 'Check de child-config Dashboard-rule en eventuele parent-rewrites die <code>/cma</code> niet doorlaten.'];
+}
+
 function cma_doc_check_child_default_content_type(): array {
     $label = 'Child cma/web.config: outbound "Default Content-Type" rule';
     $xml = cma_doc_child_webconfig();
@@ -1106,11 +1176,13 @@ function render_doc_iis_config(): void
 
     <?php
     cma_doc_render_check_table('web.config — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_url_rewrite_module_active',
         'cma_doc_check_parent_skip_cma',
         'cma_doc_check_parent_default_content_type',
         'cma_doc_check_parent_nosniff',
         'cma_doc_check_parent_frame_options',
         'cma_doc_check_parent_hidden_segments',
+        'cma_doc_check_child_dashboard_rule',
         'cma_doc_check_child_default_content_type',
         'cma_doc_check_child_404_handler',
     ]));
@@ -1197,9 +1269,12 @@ function render_doc_iis_config(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak / Fix</th></tr></thead>
         <tbody>
-            <tr><td><code>/cma/dashboard</code> → 404</td><td>"Skip /cma" rule ontbreekt in parent web.config. Zie callout hierboven.</td></tr>
+            <tr><td><code>/cma/dashboard</code> → 404, <code>/cma/dashboard.php</code> werkt wél</td><td>Klassiek symptoom van "URL Rewrite Module rules in het child <code>cma/web.config</code> worden niet geapplied". Drie meest voorkomende oorzaken: (1) <strong class="cma-tool__strong">cma/ is in IIS Manager als aparte Application geconfigureerd</strong> — dan moet de rewrite-config OPNIEUW worden geregistreerd in die app-context, óf de app moet worden teruggezet naar een virtuele directory binnen de parent app. (2) <strong class="cma-tool__strong">URL Rewrite Module is niet meer geïnstalleerd</strong> (Windows-update kan het verwijderen) — herinstalleer van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net/downloads/microsoft/url-rewrite</a>. (3) <strong class="cma-tool__strong"><code>applicationHost.config</code> heeft <code>&lt;section name="rewrite" overrideMode="Deny"/&gt;</code></strong> waardoor child-configs geen rewrite-rules mogen toevoegen — zet om naar <code>Allow</code>. De live-check bovenaan deze pagina doet een HTTP HEAD op <code>/cma/dashboard</code> en toont direct of het werkt.</td></tr>
+            <tr><td><code>/cma/preferences</code> → 404 (en <code>/cma/dashboard</code> ook)</td><td>Zelfde diagnose als hierboven — alle extensionless URLs in de child-config falen samen.</td></tr>
+            <tr><td><code>/cma/dashboard</code> → 404 op nieuwe install</td><td>"Skip /cma" rule ontbreekt in parent web.config. Zie callout hierboven en <a href="documentation.php?topic=iis_config">live-check</a> bovenaan deze pagina.</td></tr>
             <tr><td><code>/cma/dashboard.php</code> → 500 Server Error</td><td>Allowed server variables niet ontgrendeld. Zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td><code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt wel</td><td>URL Rewrite Module ontbreekt of de "CMA Tools Friendly URL" regel staat niet in de site-root web.config.</td></tr>
+            <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Sinds v1.20.7 standaard aanwezig — run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Site geeft IIS default 404, niet cma/404.php</td><td><code>cma/404.php</code> bestaat niet op disk (Installer-sync incompleet). Run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Mobile Safari prompts "Download logreader.php?"</td><td>Sinds v1.10.1 gefixed (@-suppress op file_put_contents in delete-handler zodat warnings niet de Location-redirect breken).</td></tr>
         </tbody>
