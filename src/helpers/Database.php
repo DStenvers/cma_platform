@@ -1255,6 +1255,165 @@ class Database
     }
 
     /**
+     * Resolve the $connection argument for safe* helpers.
+     * Mirrors the same flexible shape Database::query / fetchOne /
+     * fetchAll accept: a PDO instance (used as-is — handy for test
+     * doubles), a string (looked up via getNamedConnection), or
+     * null (default 'data'). Returns null when the lookup fails;
+     * the caller is responsible for logging via the $context tag.
+     *
+     * @param mixed $connection PDO|string|null
+     */
+    private static function resolveSafeConnection($connection): ?\PDO
+    {
+        if ($connection instanceof \PDO) {
+            return $connection;
+        }
+        if (is_string($connection) && $connection !== '') {
+            return self::getNamedConnection($connection);
+        }
+        return self::getNamedConnection('data');
+    }
+
+    /**
+     * Safe SELECT — null-conn guard + try/catch + tagged error_log + typed default.
+     *
+     * Designed to collapse the model-method boilerplate consumers
+     * (mijntoprecepten alone) repeat ~100×:
+     *
+     *     $conn = Database::getConnection('data');
+     *     if ($conn === null) { return []; }
+     *     try {
+     *         $stmt = $conn->prepare($sql);
+     *         $stmt->execute($params);
+     *         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+     *     } catch (\Throwable $t) {
+     *         error_log('[Recipes::popular] ' . $t->getMessage());
+     *         return [];
+     *     }
+     *
+     * becomes
+     *
+     *     return Database::safeQuery($sql, $params, 'Recipes::popular');
+     *
+     * On failure (null connection or thrown exception) returns the
+     * empty array and writes one line to PHP's error_log tagged with
+     * `$context` so the consumer's existing `[ClassName::method]`
+     * grep patterns still match.
+     *
+     * Pass `$context = ''` to suppress logging — useful for tests
+     * that intentionally probe error paths.
+     *
+     * @param string $sql        Parameterised SQL.
+     * @param array  $params     Positional or named params.
+     * @param string $context    Caller tag for error_log, e.g. 'Recipes::popular'.
+     * @param string     $connection Named connection (defaults to 'data') OR a PDO instance for testing.
+     *
+     * @return array<int, array<string, mixed>>  Rows on success; empty array on any failure.
+     */
+    public static function safeQuery(
+        string $sql,
+        array $params = [],
+        string $context = '',
+        $connection = 'data'
+    ): array {
+        $conn = self::resolveSafeConnection($connection);
+        if ($conn === null) {
+            if ($context !== '') {
+                error_log('[' . $context . '] connection ' . (is_string($connection) ? $connection : 'default') . ' unavailable');
+            }
+            return [];
+        }
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($params);
+            return self::convertRowsEncoding($conn, $stmt->fetchAll(\PDO::FETCH_ASSOC));
+        } catch (\Throwable $t) {
+            if ($context !== '') {
+                error_log('[' . $context . '] ' . $t->getMessage());
+            }
+            return [];
+        }
+    }
+
+    /**
+     * Safe scalar SELECT — same contract as safeQuery but returns the
+     * first column of the first row (or $default).
+     *
+     * Use for COUNT(*), SUM(), EXISTS-probes, single-field lookups.
+     *
+     * @param string $sql        Parameterised SQL.
+     * @param array  $params     Positional or named params.
+     * @param mixed  $default    Returned on null connection, no row, or thrown exception.
+     * @param string     $context    Caller tag for error_log.
+     * @param string     $connection Named connection (defaults to 'data') OR a PDO instance for testing.
+     *
+     * @return mixed The first column of the first row on success; $default on failure / no rows.
+     */
+    public static function safeScalar(
+        string $sql,
+        array $params = [],
+        mixed $default = null,
+        string $context = '',
+        $connection = 'data'
+    ): mixed {
+        $conn = self::resolveSafeConnection($connection);
+        if ($conn === null) {
+            if ($context !== '') {
+                error_log('[' . $context . '] connection ' . (is_string($connection) ? $connection : 'default') . ' unavailable');
+            }
+            return $default;
+        }
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($params);
+            $v = $stmt->fetchColumn();
+            return $v === false ? $default : $v;
+        } catch (\Throwable $t) {
+            if ($context !== '') {
+                error_log('[' . $context . '] ' . $t->getMessage());
+            }
+            return $default;
+        }
+    }
+
+    /**
+     * Safe INSERT / UPDATE / DELETE — same contract as safeQuery but
+     * returns the bool result of execute(). On any failure path
+     * (null connection, thrown exception) returns false.
+     *
+     * @param string $sql        Parameterised SQL.
+     * @param array  $params     Positional or named params.
+     * @param string     $context    Caller tag for error_log.
+     * @param string     $connection Named connection (defaults to 'data') OR a PDO instance for testing.
+     *
+     * @return bool True if execute() returned true; false on any failure.
+     */
+    public static function safeExec(
+        string $sql,
+        array $params = [],
+        string $context = '',
+        $connection = 'data'
+    ): bool {
+        $conn = self::resolveSafeConnection($connection);
+        if ($conn === null) {
+            if ($context !== '') {
+                error_log('[' . $context . '] connection ' . (is_string($connection) ? $connection : 'default') . ' unavailable');
+            }
+            return false;
+        }
+        try {
+            $stmt = $conn->prepare($sql);
+            return (bool)$stmt->execute($params);
+        } catch (\Throwable $t) {
+            if ($context !== '') {
+                error_log('[' . $context . '] ' . $t->getMessage());
+            }
+            return false;
+        }
+    }
+
+    /**
      * Get last insert ID
      *
      * @param string|null $name Sequence name (for PostgreSQL)

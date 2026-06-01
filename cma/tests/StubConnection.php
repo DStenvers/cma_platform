@@ -252,6 +252,28 @@ class StubStatement extends \PDOStatement
         return $remaining;
     }
 
+    /**
+     * Override the parent's native fetchColumn — without real backing
+     * data the parent returns false on every call, which masks the
+     * happy path for any test that exercises a COUNT/EXISTS-style
+     * scalar lookup (Database::safeScalar, Database::getFieldValue).
+     * Returns the $column-th value of the next row, or false when no
+     * more rows. Associative rows resolve $column by ordinal position
+     * — same semantics as real PDOStatement::fetchColumn.
+     */
+    public function fetchColumn(int $column = 0): mixed
+    {
+        if ($this->cursor >= count($this->rows)) {
+            return false;
+        }
+        $row = $this->rows[$this->cursor++];
+        if (!is_array($row)) {
+            return $row;
+        }
+        $values = array_values($row);
+        return $values[$column] ?? false;
+    }
+
     public function rowCount(): int
     {
         return count($this->rows);
