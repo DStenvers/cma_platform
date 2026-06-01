@@ -11,3 +11,11 @@ cma/node_modules/             export-ignore
 # Build / repo housekeeping that consumers don't need
 .gitattributes                export-ignore
 .gitignore                    export-ignore
+
+# Windows-native CRLF voor IIS-bestanden. IIS leest beide endings prima,
+# maar Notepad-achtige Windows-editors tonen LF-only files met dubbele
+# blank lines wat onderhouders verwart. CRLF is de Windows-conventie en
+# matcht wat IIS Manager / web.config-editors zelf produceren.
+*.config                      text eol=crlf
+*.template                    text eol=crlf
+templates/web.config.template text eol=crlf
