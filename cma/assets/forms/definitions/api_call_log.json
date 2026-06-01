@@ -1,0 +1,189 @@
+{
+    "$schema": "../../../config/schema/form-definition.schema.json",
+    "version": "1.0.0",
+    "name": "api_call_log",
+    "title": "API-calls (uitgaand)",
+    "titleSingular": "API-call",
+    "table": "api_call_log",
+    "database": "data",
+    "idField": "id",
+    "listQuery": "SELECT id, called_at AS Descr FROM [api_call_log] ORDER BY id DESC",
+    "allowAdd": false,
+    "allowDelete": false,
+    "allowCopy": false,
+    "allowEdit": false,
+    "securityByUser": false,
+    "storeLastModified": false,
+    "quickSearchFields": "provider,model,called_from,error_message",
+    "detailField": "endpoint",
+    "orderField": "id",
+    "orderDirection": "DESC",
+    "listLimit": 200,
+    "listColumns": [
+        {
+            "field": "called_at",
+            "title": "Tijdstip",
+            "type": "datetime"
+        },
+        {
+            "field": "provider",
+            "title": "Provider",
+            "type": "text"
+        },
+        {
+            "field": "model",
+            "title": "Model",
+            "type": "text"
+        },
+        {
+            "field": "called_from",
+            "title": "Vanaf",
+            "type": "text"
+        },
+        {
+            "field": "http_status",
+            "title": "HTTP",
+            "type": "number"
+        },
+        {
+            "field": "latency_ms",
+            "title": "ms",
+            "type": "number"
+        },
+        {
+            "field": "request_chars",
+            "title": "Req chars",
+            "type": "number"
+        },
+        {
+            "field": "response_chars",
+            "title": "Resp chars",
+            "type": "number"
+        },
+        {
+            "field": "ok",
+            "title": "Ok",
+            "type": "boolean"
+        }
+    ],
+    "fields": [
+        {
+            "type": "groupseparator",
+            "caption": "Wanneer en wie"
+        },
+        {
+            "name": "id",
+            "type": "textbox",
+            "caption": "ID",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 80
+        },
+        {
+            "name": "called_at",
+            "type": "datetime",
+            "caption": "Tijdstip",
+            "readOnly": true
+        },
+        {
+            "name": "user_id",
+            "type": "textbox",
+            "caption": "Kok ID",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100,
+            "hint": "Leeg = systeem-aanroep"
+        },
+        {
+            "name": "recipe_id",
+            "type": "textbox",
+            "caption": "Recept ID",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100,
+            "hint": "Leeg als de call niet bij een specifiek recept hoorde"
+        },
+        {
+            "name": "called_from",
+            "type": "textbox",
+            "caption": "Vanaf",
+            "readOnly": true,
+            "maxLength": 60,
+            "hint": "Caller-hint, bv. recipe_ocr, llm_generate, stock_photo_search"
+        },
+        {
+            "type": "groupseparator",
+            "caption": "Endpoint en model"
+        },
+        {
+            "name": "provider",
+            "type": "textbox",
+            "caption": "Provider",
+            "readOnly": true,
+            "maxLength": 20,
+            "hint": "anthropic / openai / ollama / pexels / pixabay / \u2026"
+        },
+        {
+            "name": "model",
+            "type": "textbox",
+            "caption": "Model",
+            "readOnly": true,
+            "maxLength": 80
+        },
+        {
+            "name": "endpoint",
+            "type": "memo",
+            "caption": "Endpoint",
+            "readOnly": true
+        },
+        {
+            "type": "groupseparator",
+            "caption": "Resultaat"
+        },
+        {
+            "name": "ok",
+            "type": "checkbox",
+            "caption": "Geslaagd",
+            "readOnly": true
+        },
+        {
+            "name": "http_status",
+            "type": "textbox",
+            "caption": "HTTP status",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100
+        },
+        {
+            "name": "latency_ms",
+            "type": "textbox",
+            "caption": "Latency (ms)",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100
+        },
+        {
+            "name": "request_chars",
+            "type": "textbox",
+            "caption": "Verzoek (chars)",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 120
+        },
+        {
+            "name": "response_chars",
+            "type": "textbox",
+            "caption": "Antwoord (chars)",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 120
+        },
+        {
+            "name": "error_message",
+            "type": "memo",
+            "caption": "Foutmelding",
+            "readOnly": true
+        }
+    ],
+    "subforms": []
+}

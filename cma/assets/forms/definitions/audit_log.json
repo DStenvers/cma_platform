@@ -1,0 +1,114 @@
+{
+    "$schema": "../../../config/schema/form-definition.schema.json",
+    "version": "1.0.0",
+    "name": "audit_log",
+    "title": "Audit log",
+    "titleSingular": "Audit-regel",
+    "table": "audit_log",
+    "database": "data",
+    "idField": "id",
+    "listQuery": "SELECT TOP 500 al.id, al.occurred_at, al.action, al.target_type, al.target_id, al.ip, u.display_name AS actor FROM ([audit_log] al) LEFT JOIN [users] u ON u.id = al.actor_user_id ORDER BY al.id DESC",
+    "listColumns": [
+        {
+            "field": "occurred_at",
+            "title": "Wanneer",
+            "type": "datetime"
+        },
+        {
+            "field": "actor",
+            "title": "Door",
+            "type": "text"
+        },
+        {
+            "field": "action",
+            "title": "Actie",
+            "type": "text"
+        },
+        {
+            "field": "target_type",
+            "title": "Type",
+            "type": "text"
+        },
+        {
+            "field": "target_id",
+            "title": "Target-ID",
+            "type": "text"
+        },
+        {
+            "field": "ip",
+            "title": "IP",
+            "type": "text"
+        }
+    ],
+    "orderField": "id",
+    "orderDirection": "DESC",
+    "listLimit": 500,
+    "allowAdd": false,
+    "allowDelete": false,
+    "allowCopy": false,
+    "allowEdit": false,
+    "securityByUser": false,
+    "storeLastModified": false,
+    "quickSearchFields": "action,target_type,ip",
+    "detailField": "action",
+    "fields": [
+        {
+            "name": "id",
+            "type": "textbox",
+            "caption": "ID",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 80
+        },
+        {
+            "name": "occurred_at",
+            "type": "datetime",
+            "caption": "Wanneer",
+            "readOnly": true
+        },
+        {
+            "name": "actor_user_id",
+            "type": "textbox",
+            "caption": "Actor user-id",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100
+        },
+        {
+            "name": "action",
+            "type": "textbox",
+            "caption": "Actie",
+            "readOnly": true,
+            "maxLength": 50
+        },
+        {
+            "name": "target_type",
+            "type": "textbox",
+            "caption": "Target type",
+            "readOnly": true,
+            "maxLength": 30
+        },
+        {
+            "name": "target_id",
+            "type": "textbox",
+            "caption": "Target-ID",
+            "dataType": "number",
+            "readOnly": true,
+            "width": 100
+        },
+        {
+            "name": "ip",
+            "type": "textbox",
+            "caption": "IP",
+            "readOnly": true,
+            "maxLength": 45
+        },
+        {
+            "name": "metadata_json",
+            "type": "memo",
+            "caption": "Metadata",
+            "readOnly": true
+        }
+    ],
+    "subforms": []
+}
