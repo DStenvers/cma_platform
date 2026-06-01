@@ -72,13 +72,13 @@ $topics = [
             'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
             'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
             'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
-            'errors'        => ['label' => 'Logging &amp; errors (dev)',  'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
-            'testing'       => ['label' => 'Tests &amp; coverage strategie','icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
-            'releasing'     => ['label' => 'Releasen &amp; versies',      'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
+            'errors'        => ['label' => 'Logging & errors (dev)',      'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
+            'testing'       => ['label' => 'Tests & coverage strategie',  'icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
+            'releasing'     => ['label' => 'Releasen & versies',          'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
         ],
     ],
     'reference' => [
-        'label' => 'Troubleshooting &amp; referentie',
+        'label' => 'Troubleshooting & referentie',
         'icon'  => 'lnr-magnifier',
         'children' => [
             'troubleshooting' => ['label' => 'Troubleshooting',     'icon' => 'lnr-warning',  'render' => 'render_doc_troubleshooting'],
@@ -115,6 +115,10 @@ if (!isset($flat[$selected]) || !isset($flat[$selected]['render'])) {
 
 cma_html_header('CMA - Documentatie');
 echo '<body class="contentbody tools tool-docs">';
+// cma-tree is not in the auto-load list (cma-fold is); load it explicitly
+// for the sidebar. cma-fold is autoloaded by bootstrap but we re-state
+// it here to make the dependency obvious to a future maintainer.
+cma_script('webcomponents/cma-tree.js');
 ToolbarHelper::start(true);
 ToolbarHelper::title('Documentatie');
 ToolbarHelper::separator();
@@ -124,9 +128,15 @@ echo '<div id="c" class="tools">';
 ?>
 
 <style>
-.tool-docs .docs-layout { display: flex; gap: 20px; align-items: flex-start; }
-.tool-docs .docs-sidebar { flex: 0 0 240px; position: sticky; top: 10px; }
-.tool-docs .docs-content { flex: 1; min-width: 0; max-width: 900px; }
+/* Remove the default #c.tools 20px padding for this topic-router page —
+   the sidebar + content layout below has its own internal spacing and
+   the outer padding pushed everything off-center and added a visible
+   double border. Matches the pattern used by body.tool-serverinfo. */
+body.tool-docs #c.tools { padding: 0; }
+
+.tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 80px); }
+.tool-docs .docs-sidebar { flex: 0 0 260px; padding: 14px 8px 14px 14px; overflow: auto; background: var(--bg-surface-alt, #f6f8fa); border-right: 1px solid var(--border-color, #e0e0e0); }
+.tool-docs .docs-content { flex: 1; min-width: 0; max-width: 900px; padding: 16px 22px; overflow: auto; }
 .tool-docs .docs-content h1 { margin: 0 0 6px; }
 .tool-docs .docs-content h2 { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--border-color, #e0e0e0); }
 .tool-docs .docs-content h3 { margin-top: 18px; }
@@ -144,9 +154,10 @@ echo '<div id="c" class="tools">';
 </style>
 
 <div class="docs-layout">
-    <nav class="docs-sidebar">
+    <nav class="docs-sidebar" id="docsSidebar">
         <cma-tree id="docsNav" storage-key="docs_nav"></cma-tree>
     </nav>
+    <cma-fold orientation="vertical" target="#docsSidebar" min-size="180" max-size="500" storage-key="docs_fold"></cma-fold>
     <div class="docs-content">
         <?php call_user_func($flat[$selected]['render']); ?>
     </div>
@@ -160,6 +171,16 @@ echo '<div id="c" class="tools">';
     nav.setData(data);
     nav.expandAll();
     nav.selectByHref(<?= json_encode(slug_to_href($selected)) ?>);
+
+    // cma-tree calls e.preventDefault() on item clicks and only dispatches
+    // an item-click event — the default anchor navigation never runs. Wire
+    // the navigation explicitly. Same-page reload keeps the docs sidebar
+    // state via the cma-tree storage-key cookie.
+    nav.addEventListener('item-click', function (e) {
+        var href = e.detail && e.detail.href;
+        if (!href || href === '#') return;
+        window.location.href = href;
+    });
 })();
 </script>
 

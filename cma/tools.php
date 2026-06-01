@@ -262,7 +262,7 @@ if (!$isNomenuMode) {
             // routes correctly.
             var toolName = extractToolName(href);
             if (toolName) {
-                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             }
         }
@@ -389,12 +389,12 @@ if (!$isNomenuMode) {
             // above.
             var toolName = extractToolName(href);
             if (toolName && window.parent === window) {
-                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             } else if (toolName && window.parent !== window) {
                 // Loaded inside an outer SPA frame — also anchor on /cma/tools.
                 try {
-                    var parentUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
+                    var parentUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
                     window.parent.history.pushState({ tool: toolName }, '', parentUrl);
                 } catch (e) {
                     // Cross-origin, ignore
@@ -580,7 +580,6 @@ function buildToolsTreeData(bool $isDeveloper): array
         'icon' => 'lnr-book',
         'children' => [
             ['type' => 'item', 'label' => 'Overzicht',          'href' => 'tools/documentation.php', 'target' => 'R', 'icon' => 'lnr-book'],
-            ['type' => 'item', 'label' => 'Deployment',         'href' => 'tools/documentation.php?topic=deployment', 'target' => 'R', 'icon' => 'lnr-rocket'],
             ['type' => 'item', 'label' => 'Component Storybook','badge' => 'D', 'href' => 'tools/storybook.php', 'target' => 'R', 'icon' => 'lnr-bubble'],
         ]
     ];
