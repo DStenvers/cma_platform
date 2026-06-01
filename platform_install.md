@@ -421,3 +421,42 @@ Controleer dat je `composer.json` de scripts sectie bevat:
 
 Verwijder het `.app_started` bestand in je project root, of clear de APCu cache.
 Op O/L omgevingen wordt de cache automatisch overgeslagen.
+
+### 500 op élke pagina: "Named connection 'rep' failed" / Access ODBC "volatile Ace DSN"
+
+**Symptoom:** elke request geeft 500 met een `PDOException` zoals:
+
+```
+Named connection 'rep' failed.
+Driver: odbc
+Error: SQLSTATE[HY000] SQLDriverConnect: ... [Microsoft][ODBC Microsoft Access-stuurprogramma]
+Algemene fout Kan de registersleutel Temporary (volatile) Ace DSN ... niet openen.
+```
+
+**Oorzaak:** de Access ACE/Jet ODBC-driver schrijft per verbinding een tijdelijke
+("volatile") DSN onder de registry-hive van de uitvoerende gebruiker. Onder IIS is
+dat de **app-pool identity**; als die identity geen registry-hive kan laden of geen
+schrijfrechten heeft op de ACE ODBC-sleutels, faalt de verbinding al bij het openen.
+Bij `ATTR_PERSISTENT` (persistente ODBC-connecties) komt dit vaker voor.
+
+**Code-gedrag (sinds platform 1.20.x):** `Database::initConnections()` opent de
+verbindingen niet langer eager. De DSNs worden alleen *geregistreerd* en pas geopend
+bij eerste gebruik (`getConnection()` → `createPDOConnection()`). Een verbinding die
+een pagina niet nodig heeft (bv. `rep`/`repository.mdb` op een webshop-pagina) kan
+daardoor niet meer de hele request laten crashen. Dit lost het symptoom op voor
+pagina's die de kapotte verbinding niet gebruiken; de CMA-repository-tools die `rep`
+wél gebruiken hebben nog steeds een werkende ODBC-omgeving nodig.
+
+**Omgeving definitief fixen (IIS, in volgorde van waarschijnlijkheid):**
+
+1. **App-pool → Advanced Settings → `Load User Profile = True`**, daarna de pool
+   **recyclen**. Zonder geladen profiel kan ACE de volatile-DSN-sleutel niet schrijven.
+2. **Registry-rechten** voor de app-pool identity (`IIS APPPOOL\<poolnaam>`): Full
+   Control op `HKLM\SOFTWARE\Microsoft\Office\<versie>\Access Connectivity Engine\Engines`
+   (incl. de `ODBC`-subboom). Zorg ook dat de TEMP-map van die identity schrijfbaar is.
+3. **Bitness match:** een 64-bits app-pool heeft de 64-bits ACE-redistributable nodig
+   (en omgekeerd). Mismatch geeft exact dezelfde "Algemene fout".
+
+**Snel verifiëren welke named connection faalt:** `cma/tools/db_health.php`
+(self-contained, geen bootstrap) test elke ODBC-verbinding apart en rapporteert de
+oorzaak + bovenstaande remediatie.

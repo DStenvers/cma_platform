@@ -81,6 +81,16 @@ class Database
     private static array $namedConnections = [];
 
     /**
+     * Lazily-registered DSNs per connection name (set by initConnections).
+     * The actual PDO is opened on first use via getConnection(), so a
+     * never-used connection (e.g. 'rep' op een webshop-pagina) that fails to
+     * open kan nooit de hele request 500'en.
+     *
+     * @var array<string, string>
+     */
+    private static array $namedConnectionDsns = [];
+
+    /**
      * Last database error message
      * @var string
      */
@@ -156,71 +166,28 @@ class Database
      */
     public static function initConnections(array $config): void
     {
+        // LAZY registratie: alleen de DSN onthouden, NIET meteen verbinden.
+        // De PDO wordt pas in getConnection() geopend bij eerste gebruik
+        // (via createPDOConnection, met exact dezelfde attributen). Daardoor
+        // kan een connectie die nooit gebruikt wordt en niet te openen is
+        // (klassiek: 'rep'/repository.mdb met het Access "volatile Ace DSN"
+        // registry-probleem) niet langer de hele request laten crashen.
         foreach ($config as $name => $dsn) {
             if (empty($dsn)) {
                 continue; // Skip empty DSNs
             }
 
+            // ODBC drivers require backslashes on Windows (zelfde normalisatie
+            // als createPDOConnection, zodat de DSN-sleutel consistent is).
             $driver = \App\Library\Application::get('pdo_driver', 'auto');
-
-            // Extract driver from DSN if not explicitly set
-            if ($driver === 'auto') {
-                if (preg_match('/^(\w+):/', $dsn, $matches)) {
-                    $driver = $matches[1];
-                }
+            if ($driver === 'auto' && preg_match('/^(\w+):/', $dsn, $matches)) {
+                $driver = $matches[1];
             }
-
-            // ODBC drivers require backslashes on Windows
             if ($driver === 'odbc' && DIRECTORY_SEPARATOR === '\\') {
                 $dsn = str_replace('/', '\\', $dsn);
             }
 
-            try {
-                // Use persistent connections to avoid ODBC connection overhead on each request
-                $conn = new PDO($dsn, null, null, [
-                    PDO::ATTR_PERSISTENT => true
-                ]);
-                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                $conn->setAttribute(PDO::ATTR_TIMEOUT, self::CONN_TIMEOUT);
-
-                // Set statement timeout (MySQL/MSSQL specific)
-                $actualDriver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-
-                // For ODBC (Access), use emulated prepares to avoid parameter parsing issues
-                // For other drivers, use native prepares for better performance
-                if ($actualDriver === 'odbc') {
-                    // Try to set emulated prepares - ODBC may not support this
-                    try {
-                        $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
-                    } catch (\PDOException $e) {
-                        // ODBC driver doesn't support this attribute, continue anyway
-                    }
-                } else {
-                    $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-                }
-                if ($actualDriver === 'mysql') {
-                    $conn->exec('SET SESSION max_execution_time = ' . (self::CMD_TIMEOUT * 1000));
-                } elseif ($actualDriver === 'sqlsrv') {
-                    $conn->setAttribute(PDO::SQLSRV_ATTR_QUERY_TIMEOUT, self::CMD_TIMEOUT);
-                }
-
-                // Store in named pool
-                self::$namedConnections[$name] = $conn;
-            } catch (PDOException $e) {
-                self::$lastError = $e->getMessage();
-
-                // Enhance error message with DSN details
-                $detectedDriver = preg_match('/^(\w+):/', $dsn, $m) ? $m[1] : 'unknown';
-                throw new PDOException(
-                    "Named connection '$name' failed.\n" .
-                    "Driver: $detectedDriver\n" .
-                    "DSN: $dsn\n" .
-                    "Error: " . $e->getMessage(),
-                    (int)$e->getCode(),
-                    $e
-                );
-            }
+            self::$namedConnectionDsns[strtolower((string)$name)] = $dsn;
         }
     }
 
@@ -301,14 +268,21 @@ class Database
             return self::$connRep;
         }
 
-        // Get DSN from Application config
-        $configKey = self::$connectionConfigKeys[$name] ?? $name;
-        $dsn = \App\Library\Application::get($configKey, '');
+        // Lazily-registered DSN (via initConnections) heeft voorrang.
+        $dsn = self::$namedConnectionDsns[$name] ?? '';
 
-        // If DSN is empty, try to build from separate PATH/DRIVER env vars
-        // This handles the CONN_USERS_PATH + CONN_USERS_DRIVER pattern
+        // Anders: DSN uit Application config.
         if (empty($dsn)) {
-            $dsn = self::buildDsnFromEnv($configKey);
+            $configKey = self::$connectionConfigKeys[$name] ?? $name;
+            $dsn = \App\Library\Application::get($configKey, '');
+
+            // If DSN is empty, try to build from separate PATH/DRIVER env vars
+            // This handles the CONN_USERS_PATH + CONN_USERS_DRIVER pattern
+            if (empty($dsn)) {
+                $dsn = self::buildDsnFromEnv($configKey);
+            }
+        } else {
+            $configKey = self::$connectionConfigKeys[$name] ?? $name;
         }
 
         // Fallback: 'rep' falls back to 'data' if not configured
