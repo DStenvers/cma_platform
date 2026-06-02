@@ -1248,7 +1248,7 @@ function render_doc_iis_config(): void
     </div>
 
     <div class="docs-callout docs-callout--danger">
-        <span class="cma-tool__strong">cma/ moet als IIS Application zijn ingericht</span> — niet als gewone Virtual Directory. De rewrite-rules in <code>cma/web.config</code> gebruiken patronen als <code>^dashboard/?$</code> (zonder <code>cma/</code>-prefix). Die patronen matchen alleen wanneer URL Rewrite Module de URL <strong class="cma-tool__strong">relatief aan de cma-Application</strong> aanbiedt. Op een Virtual Directory ziet de child config de FULL URL (<code>cma/dashboard</code>), patterns matchen niets, extensionless URLs falen met 404. Convert in IIS Manager → rechtermuis op <code>cma</code> → <em>Convert to Application</em>. De live-check bovenaan deze pagina detecteert dit automatisch en toont ✓ of ✗ + fix-instructie.
+        <span class="cma-tool__strong">Sinds v1.20.12: CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. Run via <a href="documentation.php?topic=migrations">Migraties</a>-tool of <code>Tools → Migraties uitvoeren</code>.
     </div>
 
     <h2>cma/web.config in detail</h2>

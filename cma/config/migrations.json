@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.8.0",
+    "targetVersion": "9.9.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1107,6 +1107,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.8.0_create_email_log.php",
                     "note": "Maakt tblEmailLog aan in data database met indexen op datestamp en status"
+                }
+            ]
+        },
+        {
+            "version": "9.9.0",
+            "description": "CMA rewrite-rules naar parent web.config verplaatsen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.9.0_cma_routes_to_parent_webconfig.php",
+                    "note": "Voegt CMA Dashboard/Preferences/Tools/Forms rewrites toe aan het parent web.config zodat extensionless URLs als /cma/dashboard werken zonder distributed-rule of outbound-rule inheritance problemen. Idempotent via marker-comment. Backup wordt automatisch gemaakt vóór wijziging."
                 }
             ]
         }
