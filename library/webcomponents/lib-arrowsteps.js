@@ -150,7 +150,7 @@ if (!customElements.get('lib-arrowsteps')) {
                 .step.current span, .step.current a { background: var(--as-current); color: var(--as-text); font-weight: 700; }
                 .step.future span, .step.future a { background: var(--as-future); color: var(--as-future-text); cursor: default; }
                 @media (max-width: 600px) {
-                    .arrow-steps { font-size: 12px; }
+                    .arrow-steps { font-size: 12px; gap: 6px; }
                     .step { min-width: 64px; }
                     .step a, .step span { padding: 8px 6px; }
                 }

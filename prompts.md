@@ -169,3 +169,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 ## 2026-06-02
 
 > n ik wil alledrie de extra validaties
+
+> I want to have \n  The unrelated lib-arrowsteps.js/.min.js in the webcomponents
