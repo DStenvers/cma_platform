@@ -31,6 +31,16 @@ if (!SecurityHelper::isDeveloper()) {
     throw new \RuntimeException('Developer-rechten vereist voor 9.9.0_cma_routes_to_parent_webconfig');
 }
 
+// XML-validatie vereist simplexml. Default extensie op IIS PHP maar
+// niet altijd op WSL/Docker test-envs. Zonder is de migration te
+// risicovol om te draaien — corrupt web.config = site plat.
+if (!function_exists('simplexml_load_string')) {
+    echo "FOUT: ext-simplexml is niet geladen. Migration weigert te draaien omdat XML-validatie niet mogelijk is.\n";
+    echo "Voeg in php.ini toe: extension=simplexml\n";
+    echo "Of patch parent web.config handmatig (zie documentation.php?topic=iis_config).\n";
+    return;
+}
+
 $siteRoot  = dirname($basePath);
 $webConfig = $siteRoot . '/web.config';
 
@@ -71,6 +81,17 @@ if (strpos($content, 'name="CMA Dashboard"') !== false) {
     return;
 }
 
+// Vóór we ook maar IETS doen: parse de huidige parent web.config om
+// zeker te weten dat hij valid XML is. Als de huidige config al stuk
+// is heeft het geen zin om er bij in te schrijven — wijst eerder op
+// een ongerelateerd probleem dat de operator eerst moet fixen.
+$pre = @simplexml_load_string($content);
+if ($pre === false) {
+    echo "FOUT: parent web.config is GEEN valid XML. Migration weigert te draaien.\n";
+    echo "Fix het XML-probleem eerst (browser developer-tools → Network → response).\n";
+    return;
+}
+
 // Vind de <rules> opening-tag — flexibel voor whitespace-varianten.
 if (!preg_match('|<rules>\s*\R|', $content, $m, PREG_OFFSET_CAPTURE)) {
     echo "Kan <rules> opening-tag niet vinden in parent web.config — handmatige patch nodig.\n";
@@ -79,13 +100,6 @@ if (!preg_match('|<rules>\s*\R|', $content, $m, PREG_OFFSET_CAPTURE)) {
 }
 
 $insertPos = $m[0][1] + strlen($m[0][0]);
-
-// Backup vóór wijziging.
-$backup = $webConfig . '.cma-routes-backup-' . date('YmdHis');
-if (!copy($webConfig, $backup)) {
-    throw new \RuntimeException('9.9.0: kan geen backup maken naar ' . $backup);
-}
-echo "Backup: " . $backup . "\n";
 
 // Rules om in te voegen — gebruik nowdoc ('EOT') zodat $-tekens NIET
 // als PHP-variabelen worden geïnterpreteerd. $ in pattern is regex-end.
@@ -143,8 +157,73 @@ $cmaRules = <<<'EOT'
 EOT;
 
 $patched = substr_replace($content, $cmaRules, $insertPos, 0);
-if (file_put_contents($webConfig, $patched) === false) {
-    throw new \RuntimeException('9.9.0: kan parent web.config niet schrijven');
+
+// VALIDATIE-STAP 1: parse de gepatchte content IN MEMORY voordat we
+// ook maar iets naar disk schrijven. Een corrupt parent web.config
+// = de hele site plat (niet alleen /cma). Daarom: nooit een file
+// schrijven die we niet eerst hebben gevalideerd.
+$post = @simplexml_load_string($patched);
+if ($post === false) {
+    $errors = libxml_get_errors();
+    libxml_clear_errors();
+    echo "FOUT: gepatchte XML is niet valid. Original web.config NIET aangeraakt.\n";
+    foreach ($errors as $err) {
+        echo "  libxml: " . trim($err->message) . " (line " . $err->line . ")\n";
+    }
+    echo "Dit is een platform-bug — geef deze output aan de ontwikkelaar.\n";
+    return;
+}
+
+// VALIDATIE-STAP 2: backup maken NU we zeker weten dat de patch
+// syntactisch ok is. Backup gaat vóór de write zodat we kunnen
+// rollback bij een schrijf-fout halverwege.
+$backup = $webConfig . '.cma-routes-backup-' . date('YmdHis');
+if (!copy($webConfig, $backup)) {
+    throw new \RuntimeException('9.9.0: kan geen backup maken naar ' . $backup);
+}
+echo "Backup: " . $backup . "\n";
+
+// VALIDATIE-STAP 3: write naar tmp-bestand naast het origineel, dan
+// rename (atomic op de meeste filesystems). Voorkomt half-geschreven
+// file als de write halverwege faalt door disk-full / permissie-
+// wijziging / process-crash.
+$tmpFile = $webConfig . '.cma-routes-tmp-' . date('YmdHis');
+if (file_put_contents($tmpFile, $patched) === false) {
+    @unlink($tmpFile);
+    throw new \RuntimeException('9.9.0: kan tmp-bestand niet schrijven: ' . $tmpFile);
+}
+
+// VALIDATIE-STAP 4: lees het tmp-bestand terug en valideer. Dit vangt
+// het zeldzame geval waar disk-encoding / line-ending de XML breekt
+// na write maar vóór IIS de file inleest.
+$readBack = @file_get_contents($tmpFile);
+if ($readBack === false || @simplexml_load_string($readBack) === false) {
+    @unlink($tmpFile);
+    echo "FOUT: tmp-bestand passeert validatie niet na read-back. Original NIET vervangen.\n";
+    return;
+}
+
+// VALIDATIE-STAP 5: atomic rename. PHP rename() is atomic op POSIX
+// en op Windows-NTFS binnen hetzelfde volume.
+if (!rename($tmpFile, $webConfig)) {
+    @unlink($tmpFile);
+    throw new \RuntimeException('9.9.0: rename ' . $tmpFile . ' → ' . $webConfig . ' faalde');
+}
+
+// VALIDATIE-STAP 6: lees de FINALE file terug en valideer nog een
+// laatste keer. Als deze faalt rollen we terug uit de backup. Paranoïde
+// maar het is web.config — de prijs van een gemiste fout is "site plat".
+$final = @file_get_contents($webConfig);
+if ($final === false || @simplexml_load_string($final) === false) {
+    if (copy($backup, $webConfig)) {
+        echo "FOUT: finale validatie faalde, ROLLBACK uit backup voltooid.\n";
+    } else {
+        echo "FOUT: finale validatie faalde EN rollback faalde. HANDMATIG HERSTEL VEREIST: kopieer\n";
+        echo "      $backup\n";
+        echo "      naar\n";
+        echo "      $webConfig\n";
+    }
+    return;
 }
 
 // Mtime-change triggert IIS app-pool recycle automatisch.
@@ -153,7 +232,8 @@ Logger::info('9.9.0: CMA-routes toegevoegd aan parent web.config', [
     'backup' => $backup,
 ]);
 
-echo "Parent web.config gepatched met CMA-routes.\n";
+echo "Parent web.config gepatched met CMA-routes (XML 4× gevalideerd, atomic write).\n";
 echo "10 nieuwe rules toegevoegd bovenaan <rules>.\n";
 echo "App-pool wordt automatisch gerecycled (mtime-change).\n";
 echo "Test /cma/dashboard, /cma/preferences, /cma/tools — moet allemaal werken.\n";
+echo "Bij problemen: kopieer " . $backup . " terug naar " . $webConfig . ".\n";
