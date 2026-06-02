@@ -162,7 +162,9 @@ $patched = substr_replace($content, $cmaRules, $insertPos, 0);
 // ook maar iets naar disk schrijven. Een corrupt parent web.config
 // = de hele site plat (niet alleen /cma). Daarom: nooit een file
 // schrijven die we niet eerst hebben gevalideerd.
-$post = @simplexml_load_string($patched);
+libxml_use_internal_errors(true);
+libxml_clear_errors();
+$post = simplexml_load_string($patched);
 if ($post === false) {
     $errors = libxml_get_errors();
     libxml_clear_errors();
@@ -172,6 +174,53 @@ if ($post === false) {
     }
     echo "Dit is een platform-bug — geef deze output aan de ontwikkelaar.\n";
     return;
+}
+
+// VALIDATIE-STAP 1b: duplicate rule names binnen elke collection.
+// IIS schema definieert <rule name=""> als uniqueId="true" voor zowel
+// de inboundRules-collectie als de outboundRules-collectie. Duplicate
+// names → IIS 500.50 "URL Rewrite Module Error: cannot add duplicate
+// collection entry" — exact het symptoom dat ons hier bracht.
+$dupErrors = [];
+$collect = function (array $nodes, string $scope) use (&$dupErrors) {
+    $seen = [];
+    foreach ($nodes as $node) {
+        $name = (string)$node['name'];
+        if ($name === '') continue;
+        if (isset($seen[$name])) {
+            $dupErrors[] = "duplicate $scope rule name: '" . $name . "'";
+        }
+        $seen[$name] = true;
+    }
+};
+$collect($post->xpath('//rewrite/rules/rule'), 'inbound');
+$collect($post->xpath('//rewrite/outboundRules/rule'), 'outbound');
+$collect($post->xpath('//rewrite/outboundRules/preConditions/preCondition'), 'preCondition');
+if (!empty($dupErrors)) {
+    echo "FOUT: duplicate-name conflicten in gepatchte config. Original NIET aangeraakt.\n";
+    foreach ($dupErrors as $e) echo "  $e\n";
+    echo "Een conflict ontstaat meestal omdat de site al handmatig gepatched is OF\n";
+    echo "omdat parent en child web.config dezelfde rule-naam definiëren. Verwijder\n";
+    echo "de bestaande conflicterende rules of patch handmatig met unieke namen.\n";
+    return;
+}
+
+// VALIDATIE-STAP 1c: PCRE-syntax check op ONZE eigen patterns. We
+// beperken tot rules met "CMA " prefix zodat we de bestaande user-
+// rules niet false-positiven (IIS gebruikt .NET regex, niet PCRE,
+// dus user-rules kunnen syntactisch verschillen). Voor onze eigen
+// rules is PCRE-compatible — een fout hier wijst direct op een
+// platform-bug in het rule-blok hierboven.
+foreach ($post->xpath('//rewrite/rules/rule[starts-with(@name, "CMA ")]/match') as $match) {
+    $url = (string)$match['url'];
+    if ($url === '') continue;
+    $delim = '~'; // tilde-delim om niet te conflicteren met / in patterns
+    if (@preg_match($delim . $url . $delim, '') === false) {
+        $err = error_get_last();
+        echo "FOUT: invalid regex in CMA rule match url '" . $url . "': " . ($err['message'] ?? 'unknown') . "\n";
+        echo "Platform-bug. Original web.config NIET aangeraakt.\n";
+        return;
+    }
 }
 
 // VALIDATIE-STAP 2: backup maken NU we zeker weten dat de patch
@@ -224,6 +273,44 @@ if ($final === false || @simplexml_load_string($final) === false) {
         echo "      $webConfig\n";
     }
     return;
+}
+
+// VALIDATIE-STAP 7 (optioneel): IIS appcmd.exe op de file gooien.
+// appcmd parsed dezelfde schemas die IIS zelf intern gebruikt — als
+// appcmd "list config" voor onze site uitvoert en succesvol parsed
+// is dat het sterkste bewijs dat IIS de config niet zal weigeren.
+//
+// Skip op non-Windows of als appcmd niet bestaat. Skip ook als we
+// niet weten welke site-naam we moeten testen. Faal-vriendelijk:
+// op een appcmd-fout doen we ROLLBACK want het sterkste signaal is
+// "IIS gaat dit niet accepteren".
+$winDir  = getenv('WINDIR') ?: getenv('SystemRoot');
+$appcmd  = $winDir ? ($winDir . '\\system32\\inetsrv\\appcmd.exe') : '';
+$skipped = false;
+if ($appcmd === '' || !is_file($appcmd)) {
+    $skipped = true;
+    echo "Smoke-test overgeslagen: appcmd.exe niet gevonden (non-IIS host).\n";
+} else {
+    // appcmd list config /commit:WEBROOT laadt EN parsed de gehele
+    // effectieve config-chain voor de webroot. Exit-code 0 = parsed
+    // succesvol. Non-zero = config-error (precies wat we willen vangen).
+    // 2>&1 om stderr in $output te krijgen voor diagnose.
+    $cmd = '"' . $appcmd . '" list config /commit:WEBROOT 2>&1';
+    exec($cmd, $output, $exitCode);
+    if ($exitCode !== 0) {
+        // ROLLBACK
+        $rolledBack = copy($backup, $webConfig);
+        echo "FOUT: appcmd weigert de gepatchte config (exit $exitCode).\n";
+        echo "appcmd output (eerste 20 regels):\n";
+        foreach (array_slice($output, 0, 20) as $line) echo "  $line\n";
+        if ($rolledBack) {
+            echo "ROLLBACK uit backup voltooid.\n";
+        } else {
+            echo "ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
+        }
+        return;
+    }
+    echo "appcmd smoke-test: OK (config door IIS-parser geaccepteerd).\n";
 }
 
 // Mtime-change triggert IIS app-pool recycle automatisch.
