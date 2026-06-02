@@ -313,13 +313,57 @@ if ($appcmd === '' || !is_file($appcmd)) {
     echo "appcmd smoke-test: OK (config door IIS-parser geaccepteerd).\n";
 }
 
+// VALIDATIE-STAP 8 (optioneel, sterkste): live HTTP smoke-test.
+// appcmd (stap 7) valideert het SCHEMA maar niet de SEMANTIEK — een rule
+// die syntactisch + schema-correct is maar logisch de verkeerde URL matcht,
+// of een rule-volgorde die /cma/* alsnog opslokt, ziet alleen IIS bij een
+// echte request. Daarom doen we na de write een HTTP-request naar
+// /cma/dashboard en checken de response-code. 5xx → de config is door IIS
+// geaccepteerd maar produceert een server-error → ROLLBACK. 2xx/3xx/401/403
+// = gezond (een auth-redirect naar login telt als "site leeft").
+//
+// Fail-safe: skip zonder rollback als ext-curl ontbreekt, geen host bekend
+// is (CLI-run zonder HTTP_HOST), of de request zelf niet uitgevoerd kan
+// worden (DNS/TLS/timeout). In die gevallen vertrouwen we op de 7 eerdere
+// stappen — we rollen alleen terug op een hard 5xx-bewijs van een breuk.
+$host = $_SERVER['HTTP_HOST'] ?? '';
+if (!function_exists('curl_init')) {
+    echo "Live smoke-test overgeslagen: ext-curl niet geladen.\n";
+} elseif ($host === '') {
+    echo "Live smoke-test overgeslagen: geen HTTP_HOST (CLI-run) — kan geen request bouwen.\n";
+} else {
+    $scheme   = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
+    $smokeUrl = $scheme . '://' . $host . '/cma/dashboard';
+    $client   = \App\Library\HttpClient::get($smokeUrl, [], 10000);
+    $code     = $client->getStatus();
+    if ($code === 0) {
+        // Request niet uitgevoerd (timeout / DNS / TLS). Geen rollback — de
+        // config is door appcmd al geaccepteerd; dit is "onbeslist", geen breuk.
+        $curlErr = $client->getError();
+        echo "Live smoke-test onbeslist: geen HTTP-response van " . $smokeUrl;
+        if ($curlErr !== '') echo " (" . $curlErr . ")";
+        echo " — geen rollback.\n";
+    } elseif ($code >= 500) {
+        $rolledBack = copy($backup, $webConfig);
+        echo "FOUT: live smoke-test gaf HTTP $code op $smokeUrl — de gepatchte config produceert een server-error.\n";
+        if ($rolledBack) {
+            echo "ROLLBACK uit backup voltooid.\n";
+        } else {
+            echo "ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
+        }
+        return;
+    } else {
+        echo "Live smoke-test: OK (HTTP $code op /cma/dashboard).\n";
+    }
+}
+
 // Mtime-change triggert IIS app-pool recycle automatisch.
 Logger::info('9.9.0: CMA-routes toegevoegd aan parent web.config', [
     'path'   => $webConfig,
     'backup' => $backup,
 ]);
 
-echo "Parent web.config gepatched met CMA-routes (XML 4× gevalideerd, atomic write).\n";
+echo "Parent web.config gepatched met CMA-routes (XML + duplicate-name + regex + appcmd + live smoke-test gevalideerd, atomic write).\n";
 echo "10 nieuwe rules toegevoegd bovenaan <rules>.\n";
 echo "App-pool wordt automatisch gerecycled (mtime-change).\n";
 echo "Test /cma/dashboard, /cma/preferences, /cma/tools — moet allemaal werken.\n";

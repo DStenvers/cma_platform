@@ -165,3 +165,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > er staan regels in
 
 > ja tuurlijk, staat toch in prompt.md als hard rule dat je die altijd bij moet werken> zo nee, wil je dat noteren?
+
+## 2026-06-02
+
+> n ik wil alledrie de extra validaties
