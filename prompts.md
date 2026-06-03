@@ -173,3 +173,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > I want to have \n  The unrelated lib-arrowsteps.js/.min.js in the webcomponents
 
 > the arrow-step had whitespece in between them, i think the gap is the cause of it..
+
+> think mode: the cma-blockeditor needs to be tested for robustness. It now happens often that an edit field becomes totally empty and edits are lost. Take a really good look at the code, the underling ckeditor code and advice on how to anlyse and ultimately solve. First ultra-think
+
+> Okay, some more information. If I move a block , the content is cleared. Also when i create a new block the ckeditor does not appear.

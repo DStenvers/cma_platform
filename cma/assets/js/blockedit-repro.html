@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>BlockEdit content-loss reproduction</title>
+<!--
+  Standalone reproduction harness for the "content block field becomes totally
+  empty and edits are lost" bug. It runs the REAL blockedit.js (loaded from the
+  same folder) with small shims so no server is needed:
+
+    - jQuery       : loaded from the repo (../../../library/jquery.min.js)
+    - CKEDITOR     : a tiny stub backed by the block's <textarea> (the bug is in
+                     blockedit.js's collect/clear logic, not in CKEditor itself)
+    - cmaLog       : a stub that mirrors the "[BlockEdit][LOSS-RISK]" tripwire
+                     warnings into the on-page log panel
+    - contentblocks: the real platform templates, inlined and served to
+                     blockedit.js by short-circuiting its one AJAX call
+
+  Open it directly (double-click → file://) or serve it from the CMA host.
+  See the numbered steps in the page, or the comment at the bottom.
+-->
+<style>
+    body { font: 14px/1.5 -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; max-width: 1100px; }
+    h1 { font-size: 20px; } h2 { font-size: 15px; margin: 22px 0 6px; }
+    .cols { display: flex; gap: 24px; align-items: flex-start; }
+    .col { flex: 1; min-width: 0; }
+    button { font-size: 13px; padding: 7px 12px; margin: 3px 4px 3px 0; cursor: pointer;
+             border: 1px solid #bbb; border-radius: 5px; background: #f5f6f8; }
+    button.primary { background: #204496; color: #fff; border-color: #204496; }
+    button.danger  { background: #b3261e; color: #fff; border-color: #b3261e; }
+    .blockedit { border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: #fff; }
+    .panel { border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: #fafbfc;
+             font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap;
+             word-break: break-word; max-height: 320px; overflow: auto; }
+    .verdict { font-weight: 700; padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+    .verdict.lost { background: #fde8e6; color: #b3261e; }
+    .verdict.ok   { background: #e6f4ea; color: #1e7a34; }
+    .loss { color: #b3261e; }
+    .step { background: #eef2fb; border-left: 3px solid #204496; padding: 8px 12px; margin: 6px 0; border-radius: 0 5px 5px 0; }
+    ol { padding-left: 20px; } li { margin: 4px 0; }
+    /* file-local emphasis classes (project rule forbids <strong>/<em> outside email) */
+    .bx__strong { font-weight: 600; } .bx__em { font-style: italic; }
+    /* minimal blockedit cosmetics so the rendered fields are legible */
+    .blockedit_block { border: 1px solid #e3e3e3; border-radius: 5px; padding: 8px; margin-bottom: 8px; position: relative; }
+    .blockedit_elt { display: none; } .blockedit_elt.opened { display: block; }
+    .blockedit_elt .elt_titel { font-weight: 600; display: inline-block; margin-bottom: 4px; }
+    .blockedit table.frm { width: 100%; } .blockedit td.label { width: 160px; color: #555; vertical-align: top; }
+    .blockedit textarea, .blockedit input[type=text] { width: 100%; box-sizing: border-box; }
+    .blockedit_rb { display: inline-block; width: 18px; height: 18px; border: 1px solid #ccc; margin-right: 2px;
+                    border-radius: 3px; cursor: pointer; text-align: center; font-size: 11px; }
+    .hide { opacity: .4; }
+</style>
+</head>
+<body>
+<h1>BlockEdit content-loss reproduction</h1>
+<p>This page runs the <span class="bx__strong">real</span> <code>blockedit.js</code> from this folder. The field below is seeded with
+two content blocks (a <span class="bx__em">Body</span> block whose text <span class="loss">must not be lost</span>, and a Button block).
+Follow the numbered steps; the right-hand panels show the field's saved value and the diagnostic tripwire.</p>
+
+<div class="cols">
+  <div class="col">
+    <h2>The content-block field</h2>
+    <div id="editor-demo">
+      <div class="blockedit" data-field="demo-blockeditor">
+<textarea name="demo-blockeditor" style="display:none"><!--BLOCK{"type":"Body","variables":{"body_text":"<p>Belangrijke tekst die NIET verloren mag gaan.</p>"},"visible":true}--><div class="row"><p>Belangrijke tekst die NIET verloren mag gaan.</p></div><!--BLOCK{"type":"Button","variables":{"button_label":"Lees meer","button_alt":"Meer informatie","button_link":"https://example.org"},"visible":true}--><div class="row"></div></textarea>
+      </div>
+    </div>
+
+    <h2>Steps</h2>
+    <div class="step"><span class="bx__strong">1.</span> <button id="btn-init" class="primary">Init editor</button> — render the blocks (loads templates, builds the form).</div>
+    <div class="step"><span class="bx__strong">2.</span> <button id="btn-healthy">Healthy save</button> — a normal <code>collect_htmls()</code>; the field keeps its content.</div>
+    <div class="step"><span class="bx__strong">3.</span> <button id="btn-repro" class="danger">Reproduce the bug</button> — runs the record-switch&nbsp;→&nbsp;save sequence:
+        empties the field (models <code>clearForm</code>'s <code>setData('')</code>), removes the blocks
+        (<code>blockedit_clear()</code>), then saves (<code>collect_htmls()</code>) before the blocks are rebuilt.</div>
+    <div class="step"><button id="btn-reset">Reset</button> — restore the seeded value and reload the editor.</div>
+
+    <div id="verdict" class="verdict ok">Field value: (not collected yet — press “Init editor”)</div>
+  </div>
+
+  <div class="col">
+    <h2>Saved field value (what would be persisted)</h2>
+    <div id="field-value" class="panel">(press a button)</div>
+
+    <h2>Diagnostic log — <span class="loss">[BlockEdit][LOSS-RISK]</span> tripwire</h2>
+    <div id="log" class="panel">(warnings appear here)</div>
+  </div>
+</div>
+
+<!-- 1) real jQuery from the repo -->
+<script src="../../../library/jquery.min.js"></script>
+
+<!-- 2) shims that must exist before blockedit.js loads -->
+<script>
+(function () {
+    // Turn the cmaLog-gated tripwire on.
+    window.CMA_DEBUG = true;
+    window.CMA_CONSOLE_LOGGING = true;
+
+    var logEl = function () { return document.getElementById('log'); };
+    function appendLog(level, args) {
+        var msg = Array.prototype.map.call(args, function (a) {
+            return (typeof a === 'string') ? a : (a && a.stack) ? a.stack : JSON.stringify(a);
+        }).join(' ');
+        var el = logEl();
+        if (el) {
+            var isLoss = msg.indexOf('[BlockEdit][LOSS-RISK]') !== -1;
+            var line = document.createElement('div');
+            if (isLoss) line.className = 'loss';
+            line.textContent = '[' + level + '] ' + msg;
+            el.appendChild(line);
+            el.scrollTop = el.scrollHeight;
+        }
+        (console[level] || console.log)('[' + level + ']', msg);
+    }
+    // Minimal cmaLog used by blockedit.js (and its diagnostics tripwire).
+    window.cmaLog = {
+        log:   function () { appendLog('log', arguments); },
+        warn:  function () { appendLog('warn', arguments); },
+        error: function () { appendLog('error', arguments); },
+        debug: function () { appendLog('debug', arguments); },
+        isEnabled: function () { return true; }
+    };
+
+    // Minimal CKEDITOR stub, backed by the underlying <textarea> value.
+    // blockedit.js creates one of these per longtext block field.
+    window.CKEDITOR = {
+        instances: {},
+        replace: function (idOrEl, config) {
+            var el = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
+            if (!el) return null;
+            var id = el.id || el.name;
+            var inst = {
+                name: id, config: config || {}, _el: el,
+                getData: function () { return el.value; },
+                setData: function (v) { el.value = (v == null ? '' : v); },
+                updateElement: function () { /* value already lives in the textarea */ },
+                destroy: function () { delete window.CKEDITOR.instances[id]; },
+                on: function () {}
+            };
+            window.CKEDITOR.instances[id] = inst;
+            return inst;
+        }
+    };
+
+    // The real platform content-block templates (cma/assets/contentblocks/contentblocks.json).
+    var INLINE_CONTENTBLOCKS = {
+        version: "1.0.0",
+        templates: [
+            { id: "C10", title: "Body", description: "Body tekst", html: "",
+              variables: { body_text: { description: "Tekst", type: "longtext", required: true } } },
+            { id: "B99", title: "Button", description: "Call to action knop", html: "",
+              variables: {
+                  button_label: { description: "Tekst", type: "text", required: true },
+                  button_alt:   { description: "Omschrijving", type: "text", required: true },
+                  button_link:  { description: "Link", type: "url", required: true }
+              } }
+        ]
+    };
+
+    // Short-circuit blockedit.js's single AJAX call so no server/XHR is needed.
+    var realAjax = jQuery.ajax;
+    jQuery.ajax = function (opts) {
+        if (opts && String(opts.url).indexOf('contentblocks.json') !== -1) {
+            var api = { done: function (cb) { cb(INLINE_CONTENTBLOCKS); return api; }, fail: function () { return api; } };
+            return api;
+        }
+        return realAjax.apply(this, arguments);
+    };
+})();
+</script>
+
+<!-- 3) the real editor under test (same folder) -->
+<script src="blockedit.js"></script>
+
+<!-- 4) wire up the buttons -->
+<script>
+(function () {
+    var SEED = document.querySelector('textarea[name="demo-blockeditor"]').value;
+    var KEEP = 'Belangrijke tekst die NIET verloren mag gaan';
+
+    function fieldValue() { return jQuery('textarea[name="demo-blockeditor"]').val() || ''; }
+    function showField() {
+        document.getElementById('field-value').textContent = fieldValue() || '(empty)';
+    }
+    function verdict() {
+        var v = fieldValue();
+        var el = document.getElementById('verdict');
+        if (v.indexOf(KEEP) !== -1) {
+            el.className = 'verdict ok';
+            el.textContent = '✅ Content preserved — the Body text is still in the saved value.';
+        } else if (v.trim() === '') {
+            el.className = 'verdict lost';
+            el.textContent = '❌ CONTENT LOST — the field is completely empty. A save now persists nothing.';
+        } else {
+            el.className = 'verdict lost';
+            el.textContent = '⚠️ Body text is gone from the saved value (content lost).';
+        }
+    }
+    function refresh() { showField(); verdict(); }
+
+    function loadEditor() {
+        window.CKEDITOR.instances = {};
+        window.blockedit_clear();                          // clear any prior render (housekeeping)
+        jQuery('textarea[name="demo-blockeditor"]').val(SEED);
+        window.blockedit_init();                           // build blocks from the seeded value
+        // Wipe the log AFTER the housekeeping clear so the panel starts clean.
+        setTimeout(function () { document.getElementById('log').textContent = ''; refresh(); }, 300);
+    }
+
+    document.getElementById('btn-init').addEventListener('click', loadEditor);
+    document.getElementById('btn-reset').addEventListener('click', loadEditor);
+
+    document.getElementById('btn-healthy').addEventListener('click', function () {
+        window.blockedit_collect_htmls();                  // normal save
+        refresh();
+    });
+
+    document.getElementById('btn-repro').addEventListener('click', function () {
+        // Models the production sequence on a record switch / form re-init:
+        jQuery('textarea[name="demo-blockeditor"]').val('');   // (a) clearForm → CKEDITOR.setData('')
+        window.blockedit_clear();                              // (b) blockedit_clear() removes the blocks
+        window.blockedit_collect_htmls();                      // (c) save runs before blocks are rebuilt
+        refresh();
+    });
+})();
+</script>
+
+<!--
+  HOW TO REPRODUCE — step by step
+  ================================
+  1. Open this file:
+        - double-click it (file://), OR
+        - browse to it on the CMA host, e.g. http://<cma-host>/cma/assets/js/blockedit-repro.html
+  2. Press "1. Init editor".
+        → The two blocks render. "Saved field value" shows the serialized blocks
+          INCLUDING the Body text. Verdict: ✅ content present.
+  3. Press "2. Healthy save".
+        → A normal collect_htmls() re-serializes the blocks. Verdict stays ✅ and
+          the diagnostic log shows NO loss warning. This is the working path.
+  4. Press "1. Init editor" again to restore, then press "3. Reproduce the bug".
+        → This empties the field and removes the blocks (as clearForm does on a
+          record switch), then saves before the blocks are rebuilt.
+        → Verdict flips to ❌ CONTENT LOST: the field is now completely empty.
+        → The diagnostic log shows two [BlockEdit][LOSS-RISK] warnings:
+             • blockedit_clear() removed N content block(s) without harvesting them
+             • collect_htmls produced EMPTY output … field left untouched
+          each with a stack trace pointing at the caller.
+  5. Press "Reset" to start over.
+
+  WHAT THIS PROVES
+  ================
+  collect_htmls() only writes the field when serialization is non-empty
+  (if cTotalHTML != ""). Once the blocks are gone and the field was cleared,
+  the save silently keeps the empty value — the edits are lost. In production
+  the trigger is clearForm()/record-switch running setData('') + blockedit_clear()
+  while a save (or autosave) fires before blockedit re-renders the blocks.
+-->
+</body>
+</html>

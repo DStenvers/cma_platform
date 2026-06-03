@@ -2236,6 +2236,17 @@ function render_doc_troubleshooting(): void
         </tbody>
     </table>
 
+    <h2>Content blocks (blockedit)</h2>
+    <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>Blok verslepen (drag-drop) maakt het rich-text veld leeg</td><td><code>blockedit_init_dragdrop</code> zocht bij dragstart <code>CKEDITOR.instances["cke_&lt;naam&gt;"]</code> (de id van de <code>.cke</code> container i.p.v. de textarea-id), dus <code>updateElement()</code> gooide een (ingeslikte) fout en de editor-inhoud werd nooit naar de textarea geflusht. De DOM-move blankt vervolgens de iframe-editor en dragend's <code>destroy()</code> (zonder arg → roept updateElement) schreef die lege inhoud terug.</td><td>v1.20.18: dragstart stript de <code>cke_</code>-prefix zodat de flush wél draait, en dragend gebruikt <code>destroy(true)</code> (noUpdate) zodat de geblankte editor de zojuist geflushte textarea niet overschrijft. De up/down-knoppen (<code>blockedit_save_ckeditor_states</code>) waren al correct.</td></tr>
+            <tr><td>Nieuw blok toevoegen: de CKEditor verschijnt niet</td><td>De editor van een nieuw blok wordt uitgesteld in <code>pendingCKEditors</code> zolang het accordeon nog niet <code>.opened</code> is, en pas aangemaakt via <code>blockedit_process_pending_ckeditors</code> (150ms setTimeout). Die queue maakt zichzelf synchroon leeg en vult 150ms later weer aan, waardoor een net-geopende editor uit de handshake kon vallen.</td><td>v1.20.18: <code>blockedit_click</code> maakt de editor(s) van het zojuist geopende blok direct aan (idempotent via de <code>'exists'</code>-check in <code>blockedit_createCKEditor</code>), naast de bestaande queue.</td></tr>
+            <tr><td>Content-block veld wordt leeg opgeslagen / edits verdwijnen</td><td><code>blockedit_collect_htmls</code> schrijft het veld alleen als de serialisatie niet leeg is (<code>cTotalHTML != ""</code>) en doet niets als <code>contentblocks.json</code> nog niet geladen is. Na een record-switch / <code>clearForm</code> (<code>setData('')</code> + <code>blockedit_clear</code>) zonder dat de blokken herbouwd zijn, produceert collect <code>""</code>, slaat de schrijfactie over en wordt een lege waarde opgeslagen.</td><td>v1.20.18: gated <code>[BlockEdit][LOSS-RISK]</code> tripwire-logging in blockedit.js (aan op localhost/.dev/.test of via cookie <code>cma_debug_mode=J</code>) maakt het verlies-event mét stack trace zichtbaar in de console. Structurele fix (collect mag een gevuld veld niet met leeg overschrijven; clear moet eerst harvesten) volgt.</td></tr>
+        </tbody>
+    </table>
+
     <h2>File-browser wizard</h2>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>

@@ -20,6 +20,37 @@ var BLOCK_END_HTML = "</div>"
 var CKEDITOR_ForceRecreate = true;
 var CKEDITOR_DestroyNeeded = true;
 
+//
+// --- Content-loss tripwire (diagnostics) ---------------------------------
+//
+// Symptom we are hunting: a blockedit field "becomes totally empty and edits
+// are lost". The two proximate causes are (a) blockedit_clear() removing the
+// rendered blocks while the user still has unsaved content, and (b)
+// blockedit_collect_htmls() producing an empty serialization (no blocks in the
+// DOM, or all_components not yet loaded) and therefore NOT rewriting the field
+// on save. Both are silent today. These helpers turn either event into a loud,
+// attributable warning (with a stack trace identifying the caller) whenever
+// console logging is enabled (auto-on for localhost/.dev/.test, or via the
+// cma_debug_mode cookie). They are read-only and never change behaviour.
+//
+function blockedit_diag_on() {
+    try {
+        return (typeof cmaLog !== 'undefined' && typeof cmaLog.isEnabled === 'function' && cmaLog.isEnabled());
+    } catch (e) {
+        return false;
+    }
+}
+
+// Remembers the last non-empty serialized length we successfully wrote per
+// field, so collect can report "previously had N chars" when it goes empty.
+var blockedit_diag_lastNonEmpty = {};
+
+function blockedit_diag_remember(field, html) {
+    if (field && html && html.length) {
+        blockedit_diag_lastNonEmpty[field] = html.length;
+    }
+}
+
 function ucfirst(str) {
     return str.charAt(0).toUpperCase() + str.substr(1);
 }
@@ -29,7 +60,21 @@ function ucfirst(str) {
  * Call this when switching to a new record or clearing the form
  */
 function blockedit_clear() {
+    var diag = blockedit_diag_on();
     jQuery(".blockedit").each(function() {
+        // Tripwire: removing typed blocks. If this runs after the user edited
+        // but before blockedit_collect_htmls()/save has harvested them, those
+        // edits are gone. The stack trace shows who triggered the clear
+        // (record switch, new-record, form re-init, ...).
+        if (diag) {
+            var nBlocks = jQuery(this).find('.blockedit_block[data-type]').length;
+            if (nBlocks > 0) {
+                cmaLog.warn('[BlockEdit][LOSS-RISK] blockedit_clear() removing ' + nBlocks +
+                    ' content block(s) from field "' + jQuery(this).attr('data-field') +
+                    '" without harvesting them first. If this runs before save, edits are lost.',
+                    new Error().stack);
+            }
+        }
         // Remove all blockedit_block elements (the content blocks)
         jQuery(this).find('.blockedit_block').remove();
     });
@@ -643,12 +688,21 @@ function blockedit_init_dragdrop() {
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', ''); // Required for Firefox
 
-            // Save CKEditor content before drag
+            // Save CKEditor content before drag.
+            // The ".cke" container's id is prefixed with "cke_", but CKEDITOR
+            // instances are keyed by the underlying textarea id. Without
+            // stripping the prefix the lookup is undefined, updateElement()
+            // throws (and is swallowed), so the editor content is NEVER flushed
+            // to the textarea. The DOM move below then blanks the iframe-based
+            // editor and dragend writes that blank back — the edit is lost.
+            // (The up/down move path in blockedit_save_ckeditor_states already
+            // strips the prefix; the drag path must do the same.)
             var ckeElement = jQuery(block).find(".cke");
             if (ckeElement.length) {
                 var id_textarea = ckeElement.attr("id");
                 try {
                     if (id_textarea) {
+                        id_textarea = id_textarea.replace("cke_", "");
                         CKEDITOR.instances[id_textarea].updateElement();
                     }
                 } catch (ex) {
@@ -710,7 +764,13 @@ function blockedit_init_dragdrop() {
                             id_textarea = id_textarea.replace("cke_", "");
                             var save_config = CKEDITOR.instances[id_textarea] ? CKEDITOR.instances[id_textarea].config : null;
                             if (save_config) {
-                                if (CKEDITOR_DestroyNeeded) CKEDITOR.instances[id_textarea].destroy();
+                                // destroy(true) = noUpdate: do NOT sync the editor
+                                // back to the textarea here. The DOM move just
+                                // blanked the iframe editable, so a sync would
+                                // overwrite the content we flushed on dragstart.
+                                // The textarea already holds the good content;
+                                // replace() recreates the editor from it.
+                                if (CKEDITOR_DestroyNeeded) CKEDITOR.instances[id_textarea].destroy(true);
                                 if (CKEDITOR_DestroyNeeded) CKEDITOR.replace(id_textarea, my_saveconfig(save_config));
                                 lib_Form_Scale_htmleditors(1);
                             }
@@ -967,8 +1027,11 @@ function blockedit_createCKEditor(fieldId) {
 	if (blockeditElt.length && !blockeditElt.hasClass('opened')) {
 		if (pendingCKEditors.indexOf(fieldId) === -1) {
 			pendingCKEditors.push(fieldId);
-			// cmaLog.log('[blockedit_createCKEditor] DEFERRED:', fieldId);
 		}
+		// Diagnostic: a new block's editor stays deferred until its accordion is
+		// ".opened". If it never gets created after opening, the create does not
+		// appear — watch for this id NOT being followed by a "=> created" below.
+		cmaLog.log('[blockedit_createCKEditor] DEFERRED (collapsed accordion):', fieldId);
 		return 'deferred';
 	}
 
@@ -1018,9 +1081,14 @@ function blockedit_process_pending_ckeditors() {
 	var toProcess = pendingCKEditors.slice(); // copy
 	pendingCKEditors = []; // clear - createCKEditor will re-add if still collapsed
 
+	// Diagnostic: shows which deferred editors are (re)processed and the outcome
+	// (created / deferred / exists / error). If a just-opened block's editor is
+	// not in this list, the defer/process handshake dropped it.
+	cmaLog.log('[blockedit_process_pending_ckeditors] processing', toProcess.length, 'deferred editor(s):', toProcess.slice());
 	setTimeout(function() {
 		for (var i = 0; i < toProcess.length; i++) {
-			blockedit_createCKEditor(toProcess[i]);
+			var result = blockedit_createCKEditor(toProcess[i]);
+			cmaLog.log('[blockedit_process_pending_ckeditors]', toProcess[i], '=>', result);
 		}
 	}, 150);
 }
@@ -1044,6 +1112,22 @@ function blockedit_click( elt ) {
 
 		// Process any pending CKEditors that were deferred while hidden
 		blockedit_process_pending_ckeditors();
+
+		// Directly create the editor(s) for the block we just opened instead of
+		// relying solely on the deferred pendingCKEditors queue. That queue
+		// clears itself synchronously and refills 150ms later, so a just-opened
+		// editor could be dropped by the handshake — the symptom being "the
+		// CKEditor does not appear on a new block". createCKEditor is idempotent
+		// (returns 'exists' if already created) and now sees the accordion as
+		// ".opened", so this is safe and complements the queue. The short delay
+		// lets the show(100) animation finish so CKEditor lays out at full height.
+		setTimeout(function() {
+			jQuery(elt).find("textarea").each(function() {
+				if (this.id) {
+					blockedit_createCKEditor(this.id);
+				}
+			});
+		}, 160);
 	}
 }
 
@@ -1214,12 +1298,21 @@ function blockedit_move_down(elt) {
 //	Ophalen alle blokken
 //
 function blockedit_collect_htmls(  ) {
-	
-	if (all_components) { 
+
+	var diag = blockedit_diag_on();
+	if (!all_components) {
+		// Tripwire: collect ran before the async contentblocks.json arrived.
+		// Nothing is serialized, so a save here persists whatever the field
+		// currently holds (stale or empty) instead of the rendered blocks.
+		if (diag) {
+			cmaLog.warn('[BlockEdit][LOSS-RISK] blockedit_collect_htmls() called before all_components (contentblocks.json) loaded — no serialization performed. A save now may persist stale/empty content.', new Error().stack);
+		}
+	}
+	if (all_components) {
 		var cDataField;
 		var cTotalHTML = "";
 		var bVisible;
-		
+
 		jQuery(".blockedit").each( function() {
 			var cHTML = '';
 			cDataField = $(this).attr("data-field");
@@ -1380,8 +1473,20 @@ function blockedit_collect_htmls(  ) {
 					var ta = jQuery('textarea[name="' + cDataField + '"]');
 					if (ta.length) ta.val(cTotalHTML);
 				}
+				blockedit_diag_remember(cDataField, cTotalHTML);
+			} else if (diag) {
+				// Tripwire: serialization produced nothing, so the field is NOT
+				// rewritten — whatever the editor/textarea currently holds is what
+				// gets saved. If the field was just cleared (clearForm) and the
+				// blocks were never rebuilt, this silently saves an empty value.
+				var nTyped = jQuery(this).find('.blockedit_block[data-type]').length;
+				var prev = blockedit_diag_lastNonEmpty[cDataField];
+				cmaLog.warn('[BlockEdit][LOSS-RISK] collect_htmls produced EMPTY output for field "' + cDataField +
+					'" (' + nTyped + ' typed block(s) in DOM). Field left untouched; a save now persists its current value.' +
+					(prev ? ' This field previously serialized to ' + prev + ' chars.' : ''),
+					new Error().stack);
 			}
-		} );	
+		} );
 	}
 }
 
