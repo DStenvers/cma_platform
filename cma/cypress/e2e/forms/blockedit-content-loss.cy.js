@@ -1,22 +1,25 @@
 /**
- * BlockEdit content-loss reproduction.
+ * BlockEdit content-loss regression test.
  *
- * Symptom (production): a content-block ("blockedit") field becomes totally
- * empty and the user's edits are lost, intermittently.
+ * Symptom (production, pre-v1.20.19): a content-block ("blockedit") field became
+ * totally empty and the user's edits were lost, intermittently.
  *
- * Mechanism this spec pins down: the blockedit field is rendered by
- * blockedit.js on top of a textarea. On save, blockedit_collect_htmls()
- * serializes the rendered blocks back into the field — but only if blocks are
- * present in the DOM and contentblocks.json has loaded. If the field was just
+ * Mechanism: the blockedit field is rendered by blockedit.js on top of a
+ * textarea. On save, blockedit_collect_htmls() serializes the rendered blocks
+ * back into the field — but only if blocks are present. If the field was just
  * emptied (clearForm → CKEDITOR.setData('')) and its blocks were removed
- * (blockedit_clear) without being rebuilt, the next collect produces an empty
- * string, the write is skipped, and an empty value is persisted.
+ * (blockedit_clear) without being rebuilt, the next collect produced an empty
+ * string and an empty value was persisted.
+ *
+ * Fix (v1.20.19): collect_htmls restores the last known-good content for the
+ * field — guarded by record id, so a new record never inherits another record's
+ * content — instead of persisting empty.
  *
  * We drive the storybook blockedit demo (#blockeditor), which mounts a real
- * .blockedit field seeded with two blocks (Beeldblok + Anker) and exposes the
- * global blockedit_* functions. The diagnostics tripwire added to blockedit.js
- * emits "[BlockEdit][LOSS-RISK]" warnings on exactly the two loss events; we
- * assert both that content is lost and that the tripwire caught it.
+ * .blockedit field and exposes the global blockedit_* functions. This spec
+ * asserts the content SURVIVES the clear→save race and that the tripwire reports
+ * the prevention. (Requires a CMA host whose contentblocks templates cover the
+ * demo's seeded block types.)
  *
  * Run: npx cypress run --spec "cypress/e2e/forms/blockedit-content-loss.cy.js"
  */
@@ -59,50 +62,32 @@ describe('BlockEdit content-loss', () => {
         });
     });
 
-    it('REPRODUCES loss: clear-then-collect (the clearForm→save sequence) empties the field silently', () => {
+    it('PREVENTS loss: clear-then-collect (the clearForm→save race) keeps the content (fix v1.20.19)', () => {
         cy.window().then((win) => {
-            // Precondition: the field has content and blocks are rendered.
+            // Precondition: the field has content and blocks are rendered. Init
+            // has snapshotted this as the known-good state for the field.
             expect(fieldVal(win), 'seeded content present').to.contain('Cube Series');
             expect(win.jQuery('#blockeditor .blockedit_block[data-type]').length).to.be.greaterThan(1);
 
-            // Simulate clearForm(): it empties the field's editor (setData(''))
-            // and then removes the rendered blocks. Here the field has no
-            // CKEditor instance, so emptying the textarea models setData('').
+            // Simulate clearForm(): empty the field's editor (models setData(''))
+            // and remove the rendered blocks, then run the save harvest before
+            // the blocks are rebuilt.
             win.jQuery(`textarea[name="${FIELD}"]`).val('');
-            win.blockedit_clear(); // removes the .blockedit_block elements
+            win.blockedit_clear();          // removes the .blockedit_block elements
+            win.blockedit_collect_htmls();  // save harvest during the not-rendered window
 
-            // Simulate the save harvest running before blocks are rebuilt.
-            win.blockedit_collect_htmls();
-
-            // BUG: the field is now empty — the seeded content is gone, and a
-            // save at this point would persist the empty value.
-            expect(fieldVal(win), 'field was silently emptied (content lost)').to.eq('');
+            // FIX: collect detects "no blocks rendered" and restores the last
+            // known-good content (same record) instead of persisting empty.
+            expect(fieldVal(win), 'content preserved through the race').to.contain('Cube Series');
         });
 
-        // The tripwire must have flagged both loss events.
+        // The tripwire should report that it prevented the empty save.
         cy.get('@cmaWarn').then((spy) => {
             const warnings = lossWarnings(spy).map((c) => String(c.args[0]));
-            expect(warnings.length, 'tripwire fired on the loss path').to.be.greaterThan(0);
             expect(
-                warnings.some((m) => m.indexOf('blockedit_clear()') !== -1),
-                'clear() loss warning emitted'
+                warnings.some((m) => m.indexOf('prevented empty save') !== -1),
+                'restore/prevention warning emitted'
             ).to.be.true;
-            expect(
-                warnings.some((m) => m.indexOf('EMPTY output') !== -1),
-                'empty-serialization loss warning emitted'
-            ).to.be.true;
-        });
-    });
-
-    // Defines what "solved" looks like. Enable once the fix lands: collect must
-    // not be able to overwrite a non-empty field with an empty serialization
-    // (and/or clear must harvest first). Expected to pass after the fix.
-    it.skip('DESIRED post-fix: content survives a clear-then-collect race', () => {
-        cy.window().then((win) => {
-            win.jQuery(`textarea[name="${FIELD}"]`).val('');
-            win.blockedit_clear();
-            win.blockedit_collect_htmls();
-            expect(fieldVal(win), 'content preserved through the race').to.contain('Cube Series');
         });
     });
 });

@@ -28,10 +28,11 @@ var CKEDITOR_DestroyNeeded = true;
 // rendered blocks while the user still has unsaved content, and (b)
 // blockedit_collect_htmls() producing an empty serialization (no blocks in the
 // DOM, or all_components not yet loaded) and therefore NOT rewriting the field
-// on save. Both are silent today. These helpers turn either event into a loud,
-// attributable warning (with a stack trace identifying the caller) whenever
-// console logging is enabled (auto-on for localhost/.dev/.test, or via the
-// cma_debug_mode cookie). They are read-only and never change behaviour.
+// on save. These helpers emit a loud, attributable "[BlockEdit][LOSS-RISK]"
+// warning (with a stack trace) whenever console logging is enabled (auto-on for
+// localhost/.dev/.test, or via the cma_debug_mode cookie). The warnings are
+// read-only; the record-id-guarded restore below (see blockedit_lastGood) is
+// the one behaviour change — it prevents the empty-save loss.
 //
 function blockedit_diag_on() {
     try {
@@ -41,14 +42,52 @@ function blockedit_diag_on() {
     }
 }
 
-// Remembers the last non-empty serialized length we successfully wrote per
-// field, so collect can report "previously had N chars" when it goes empty.
-var blockedit_diag_lastNonEmpty = {};
+// --- Content preservation (loss prevention) ------------------------------
+//
+// Last content blockedit successfully serialized or loaded for each field,
+// tagged with the record id it belonged to. blockedit_collect_htmls() uses this
+// to refuse to persist an empty value when the blocks were only transiently
+// removed (the clearForm -> rebuild race), WITHOUT ever carrying one record's
+// content into another — the recordId guard makes that safe. A new record has
+// recordId === null while the snapshot still holds the previous record's id, so
+// the restore never fires there.
+var blockedit_lastGood = {};
 
-function blockedit_diag_remember(field, html) {
-    if (field && html && html.length) {
-        blockedit_diag_lastNonEmpty[field] = html.length;
+// Current record id, read from the form layout (provided by form-controller).
+// Null in standalone contexts (e.g. the test harness) — which still matches the
+// snapshot's null, so same-context restores work and cross-record ones don't.
+function blockedit_current_record_id() {
+    try {
+        return (typeof cmaGetRecordId === 'function') ? cmaGetRecordId() : null;
+    } catch (e) {
+        return null;
     }
+}
+
+function blockedit_remember_good(field, html) {
+    if (!field) return;
+    blockedit_lastGood[field] = {
+        value: (html == null ? '' : html),
+        recordId: blockedit_current_record_id()
+    };
+}
+
+// Read a blockedit field's current value, preferring its CKEditor instance.
+function blockedit_field_value(field) {
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && CKEDITOR.instances[field]) {
+        try { return CKEDITOR.instances[field].getData() || ''; } catch (e) { /* fall through */ }
+    }
+    var ta = jQuery('textarea[name="' + field + '"]');
+    return ta.length ? (ta.val() || '') : '';
+}
+
+// Write a value into a blockedit field, preferring its CKEditor instance.
+function blockedit_set_field_value(field, html) {
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && CKEDITOR.instances[field]) {
+        try { CKEDITOR.instances[field].setData(html); return; } catch (e) { /* fall through */ }
+    }
+    var ta = jQuery('textarea[name="' + field + '"]');
+    if (ta.length) ta.val(html);
 }
 
 function ucfirst(str) {
@@ -145,6 +184,13 @@ function blockedit_init_elements() {
 				var textarea = jQuery("textarea[name='" + sFld + "']");
 				var sAllHTML = textarea.val();
 				// cmaLog.log('[blockedit_init_elements] Textarea found:', textarea.length > 0, 'value length:', sAllHTML ? sAllHTML.length : 0);
+
+				// Snapshot the content blockedit is about to render for this field,
+				// tagged with the current record id. Used by blockedit_collect_htmls
+				// to prevent a save from persisting empty during a clear->rebuild
+				// race. An empty source records an empty snapshot, so a genuinely
+				// empty/new record is never "restored" to old content.
+				blockedit_remember_good(sFld, sAllHTML);
 
 				if (sAllHTML!="") {
 					var hasBlockStart = sAllHTML.indexOf(BLOCK_START) >= 0;
@@ -1473,18 +1519,37 @@ function blockedit_collect_htmls(  ) {
 					var ta = jQuery('textarea[name="' + cDataField + '"]');
 					if (ta.length) ta.val(cTotalHTML);
 				}
-				blockedit_diag_remember(cDataField, cTotalHTML);
-			} else if (diag) {
-				// Tripwire: serialization produced nothing, so the field is NOT
-				// rewritten — whatever the editor/textarea currently holds is what
-				// gets saved. If the field was just cleared (clearForm) and the
-				// blocks were never rebuilt, this silently saves an empty value.
-				var nTyped = jQuery(this).find('.blockedit_block[data-type]').length;
-				var prev = blockedit_diag_lastNonEmpty[cDataField];
-				cmaLog.warn('[BlockEdit][LOSS-RISK] collect_htmls produced EMPTY output for field "' + cDataField +
-					'" (' + nTyped + ' typed block(s) in DOM). Field left untouched; a save now persists its current value.' +
-					(prev ? ' This field previously serialized to ' + prev + ' chars.' : ''),
-					new Error().stack);
+				blockedit_remember_good(cDataField, cTotalHTML);
+			} else {
+				// Empty serialization: there are no content blocks to write.
+				// Distinguish two cases by whether blockedit is rendered at all.
+				var nAllBlocks = jQuery(this).find('.blockedit_block').length;
+				var good = blockedit_lastGood[cDataField];
+				var curRec = blockedit_current_record_id();
+
+				if (nAllBlocks === 0 && good && good.value && good.recordId === curRec
+						&& blockedit_field_value(cDataField) === '') {
+					// LOSS PREVENTION: blockedit is not in a rendered state (its
+					// blocks were cleared and not yet rebuilt — the clearForm ->
+					// rebuild race) AND the field is now empty. Restore the last
+					// known-good content for THIS record so the save does not wipe
+					// it. The recordId match guarantees we never carry one record's
+					// content into another (a new record has recordId === null).
+					blockedit_set_field_value(cDataField, good.value);
+					if (diag) {
+						cmaLog.warn('[BlockEdit][LOSS-RISK] prevented empty save for field "' + cDataField +
+							'": blocks not rendered (cleared/pre-init), restored ' + good.value.length +
+							' chars from the last good state (record ' + curRec + ').', new Error().stack);
+					}
+				} else if (diag) {
+					// Nothing to restore (rendered-but-empty record, a genuinely new
+					// record, or no snapshot): leave the field as-is. Still flag it
+					// so an unexpected empty save is visible.
+					var nTyped = jQuery(this).find('.blockedit_block[data-type]').length;
+					cmaLog.warn('[BlockEdit][LOSS-RISK] collect_htmls produced EMPTY output for field "' + cDataField +
+						'" (' + nTyped + ' typed block(s), ' + nAllBlocks + ' total block(s) in DOM). Field left untouched; a save now persists its current value.',
+						new Error().stack);
+				}
 			}
 		} );
 	}

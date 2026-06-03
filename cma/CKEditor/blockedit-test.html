@@ -2,22 +2,29 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>BlockEdit content-loss reproduction</title>
+<title>BlockEdit content-loss test</title>
 <!--
-  Standalone reproduction harness for the "content block field becomes totally
-  empty and edits are lost" bug. It runs the REAL blockedit.js (loaded from the
-  same folder) with small shims so no server is needed:
+  Standalone test harness for the "content block field becomes totally empty
+  and edits are lost" bug. It runs the REAL blockedit.js with small shims so no
+  server is needed:
 
-    - jQuery       : loaded from the repo (../../../library/jquery.min.js)
-    - CKEDITOR     : a tiny stub backed by the block's <textarea> (the bug is in
+    - jQuery       : loaded from the repo (../../library/jquery.min.js)
+    - blockedit.js : the real editor under test (../assets/js/blockedit.js)
+    - CKEDITOR     : a tiny stub backed by the block's <textarea> (the loss is in
                      blockedit.js's collect/clear logic, not in CKEditor itself)
-    - cmaLog       : a stub that mirrors the "[BlockEdit][LOSS-RISK]" tripwire
-                     warnings into the on-page log panel
+    - cmaLog       : a stub that mirrors "[BlockEdit][LOSS-RISK]" warnings into
+                     the on-page log panel
     - contentblocks: the real platform templates, inlined and served to
                      blockedit.js by short-circuiting its one AJAX call
 
-  Open it directly (double-click → file://) or serve it from the CMA host.
-  See the numbered steps in the page, or the comment at the bottom.
+  Open it directly (double-click → file://) or serve it from the CMA host
+  (http://<cma-host>/cma/CKEditor/blockedit-test.html). See the steps in-page.
+
+  Since v1.20.19 the clear→save race is fixed: blockedit_collect_htmls restores
+  the last known-good content (guarded by record id) instead of persisting empty.
+  Step 3 therefore now PRESERVES the content — it is a regression test, not a
+  live bug. Note: the stub editor survives DOM moves, so this harness cannot
+  reproduce the drag-move / new-block CKEditor bugs (those need real CKEditor).
 -->
 <style>
     body { font: 14px/1.5 -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; max-width: 1100px; }
@@ -27,7 +34,6 @@
     button { font-size: 13px; padding: 7px 12px; margin: 3px 4px 3px 0; cursor: pointer;
              border: 1px solid #bbb; border-radius: 5px; background: #f5f6f8; }
     button.primary { background: #204496; color: #fff; border-color: #204496; }
-    button.danger  { background: #b3261e; color: #fff; border-color: #b3261e; }
     .blockedit { border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: #fff; }
     .panel { border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: #fafbfc;
              font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap;
@@ -52,8 +58,8 @@
 </style>
 </head>
 <body>
-<h1>BlockEdit content-loss reproduction</h1>
-<p>This page runs the <span class="bx__strong">real</span> <code>blockedit.js</code> from this folder. The field below is seeded with
+<h1>BlockEdit content-loss test</h1>
+<p>This page runs the <span class="bx__strong">real</span> <code>blockedit.js</code>. The field below is seeded with
 two content blocks (a <span class="bx__em">Body</span> block whose text <span class="loss">must not be lost</span>, and a Button block).
 Follow the numbered steps; the right-hand panels show the field's saved value and the diagnostic tripwire.</p>
 
@@ -67,11 +73,10 @@ Follow the numbered steps; the right-hand panels show the field's saved value an
     </div>
 
     <h2>Steps</h2>
-    <div class="step"><span class="bx__strong">1.</span> <button id="btn-init" class="primary">Init editor</button> — render the blocks (loads templates, builds the form).</div>
+    <div class="step"><span class="bx__strong">1.</span> <button id="btn-init" class="primary">Init editor</button> — render the blocks (loads templates, builds the form, snapshots the content).</div>
     <div class="step"><span class="bx__strong">2.</span> <button id="btn-healthy">Healthy save</button> — a normal <code>collect_htmls()</code>; the field keeps its content.</div>
-    <div class="step"><span class="bx__strong">3.</span> <button id="btn-repro" class="danger">Reproduce the bug</button> — runs the record-switch&nbsp;→&nbsp;save sequence:
-        empties the field (models <code>clearForm</code>'s <code>setData('')</code>), removes the blocks
-        (<code>blockedit_clear()</code>), then saves (<code>collect_htmls()</code>) before the blocks are rebuilt.</div>
+    <div class="step"><span class="bx__strong">3.</span> <button id="btn-repro">Clear → save race</button> — empties the field (models <code>clearForm</code>'s <code>setData('')</code>), removes the blocks
+        (<code>blockedit_clear()</code>), then saves (<code>collect_htmls()</code>) before the blocks are rebuilt. <span class="bx__strong">With the fix this must PRESERVE the content.</span></div>
     <div class="step"><button id="btn-reset">Reset</button> — restore the seeded value and reload the editor.</div>
 
     <div id="verdict" class="verdict ok">Field value: (not collected yet — press “Init editor”)</div>
@@ -87,7 +92,7 @@ Follow the numbered steps; the right-hand panels show the field's saved value an
 </div>
 
 <!-- 1) real jQuery from the repo -->
-<script src="../../../library/jquery.min.js"></script>
+<script src="../../library/jquery.min.js"></script>
 
 <!-- 2) shims that must exist before blockedit.js loads -->
 <script>
@@ -169,8 +174,8 @@ Follow the numbered steps; the right-hand panels show the field's saved value an
 })();
 </script>
 
-<!-- 3) the real editor under test (same folder) -->
-<script src="blockedit.js"></script>
+<!-- 3) the real editor under test -->
+<script src="../assets/js/blockedit.js"></script>
 
 <!-- 4) wire up the buttons -->
 <script>
@@ -202,7 +207,7 @@ Follow the numbered steps; the right-hand panels show the field's saved value an
         window.CKEDITOR.instances = {};
         window.blockedit_clear();                          // clear any prior render (housekeeping)
         jQuery('textarea[name="demo-blockeditor"]').val(SEED);
-        window.blockedit_init();                           // build blocks from the seeded value
+        window.blockedit_init();                           // build blocks + snapshot known-good content
         // Wipe the log AFTER the housekeeping clear so the panel starts clean.
         setTimeout(function () { document.getElementById('log').textContent = ''; refresh(); }, 300);
     }
@@ -226,34 +231,40 @@ Follow the numbered steps; the right-hand panels show the field's saved value an
 </script>
 
 <!--
-  HOW TO REPRODUCE — step by step
-  ================================
+  HOW TO USE — step by step
+  =========================
   1. Open this file:
         - double-click it (file://), OR
-        - browse to it on the CMA host, e.g. http://<cma-host>/cma/assets/js/blockedit-repro.html
+        - browse to it on the CMA host, e.g. http://<cma-host>/cma/CKEditor/blockedit-test.html
   2. Press "1. Init editor".
         → The two blocks render. "Saved field value" shows the serialized blocks
-          INCLUDING the Body text. Verdict: ✅ content present.
+          INCLUDING the Body text. blockedit snapshots this as the known-good
+          state for the field. Verdict: ✅ content present.
   3. Press "2. Healthy save".
         → A normal collect_htmls() re-serializes the blocks. Verdict stays ✅ and
           the diagnostic log shows NO loss warning. This is the working path.
-  4. Press "1. Init editor" again to restore, then press "3. Reproduce the bug".
+  4. Press "1. Init editor" to restore, then press "3. Clear → save race".
         → This empties the field and removes the blocks (as clearForm does on a
           record switch), then saves before the blocks are rebuilt.
-        → Verdict flips to ❌ CONTENT LOST: the field is now completely empty.
-        → The diagnostic log shows two [BlockEdit][LOSS-RISK] warnings:
-             • blockedit_clear() removed N content block(s) without harvesting them
-             • collect_htmls produced EMPTY output … field left untouched
-          each with a stack trace pointing at the caller.
+        → With the v1.20.19 fix the verdict STAYS ✅: collect_htmls detects that
+          the blocks are not rendered and restores the last known-good content
+          for this record instead of persisting empty. The log shows:
+             • blockedit_clear() removing N content block(s) …
+             • prevented empty save … restored N chars from the last good state
+        → Before the fix this flipped to ❌ CONTENT LOST.
   5. Press "Reset" to start over.
 
   WHAT THIS PROVES
   ================
-  collect_htmls() only writes the field when serialization is non-empty
-  (if cTotalHTML != ""). Once the blocks are gone and the field was cleared,
-  the save silently keeps the empty value — the edits are lost. In production
-  the trigger is clearForm()/record-switch running setData('') + blockedit_clear()
-  while a save (or autosave) fires before blockedit re-renders the blocks.
+  Pre-fix, collect_htmls() only wrote the field when serialization was non-empty
+  (if cTotalHTML != ""), so once the blocks were gone and the field was cleared
+  the save silently persisted empty. The fix adds a record-id-guarded restore:
+  when blockedit is not rendered (no blocks) and the field went empty, the last
+  known-good content for the SAME record is written back. The record-id guard
+  ensures a new record (recordId === null) never inherits a previous record's
+  content. In production the loss trigger is clearForm()/record-switch running
+  setData('') + blockedit_clear() while a save (or autosave) fires before
+  blockedit re-renders the blocks.
 -->
 </body>
 </html>

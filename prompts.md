@@ -177,3 +177,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > think mode: the cma-blockeditor needs to be tested for robustness. It now happens often that an edit field becomes totally empty and edits are lost. Take a really good look at the code, the underling ckeditor code and advice on how to anlyse and ultimately solve. First ultra-think
 
 > Okay, some more information. If I move a block , the content is cleared. Also when i create a new block the ckeditor does not appear.
+
+> fix the third symptom and the file may be called blockedit-test.html and moved to the file where ckeditor resides
+
+> Note in todo.md that wire <cma-blockeditor> in as a real replacement to ckeditor should be performed, as well as modifying all callers
