@@ -171,3 +171,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > n ik wil alledrie de extra validaties
 
 > I want to have \n  The unrelated lib-arrowsteps.js/.min.js in the webcomponents
+
+> the arrow-step had whitespece in between them, i think the gap is the cause of it..

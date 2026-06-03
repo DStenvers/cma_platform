@@ -135,9 +135,10 @@ if (!customElements.get('lib-arrowsteps')) {
             return `<style>
                 :host { display: block; --as-done: #0872c9; --as-current: #236ab4;
                         --as-future: #e4e9f0; --as-future-text: #8a93a3; --as-text: #ffffff; }
-                .arrow-steps { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0;
+                .arrow-steps { display: flex; flex-wrap: wrap; margin: 0; padding: 0;
                                list-style: none; font-size: 14px; }
                 .step { position: relative; flex: 1 1 0; min-width: 90px; }
+                .step:not(:first-child) { margin-left: -12px; }
                 .step a, .step span { display: block; text-align: center; padding: 10px 14px;
                                text-decoration: none; line-height: 1.2;
                                clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%); }
@@ -150,7 +151,7 @@ if (!customElements.get('lib-arrowsteps')) {
                 .step.current span, .step.current a { background: var(--as-current); color: var(--as-text); font-weight: 700; }
                 .step.future span, .step.future a { background: var(--as-future); color: var(--as-future-text); cursor: default; }
                 @media (max-width: 600px) {
-                    .arrow-steps { font-size: 12px; gap: 6px; }
+                    .arrow-steps { font-size: 12px; }
                     .step { min-width: 64px; }
                     .step a, .step span { padding: 8px 6px; }
                 }
