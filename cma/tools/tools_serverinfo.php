@@ -23,8 +23,26 @@ $emailAvailable = class_exists(\App\Library\Email::class);
 // and redirects so the next request reads the new value. Developers only.
 // Runs before any output so the Location header can fire.
 // =========================================================================
-$activeEnvName = (string)($GLOBALS['_env_file'] ?? '.env');
-$activeEnvPath = dirname(__DIR__, 2) . '/' . $activeEnvName;
+$siteRoot      = dirname(__DIR__, 2);
+$activeEnvName = (string)($GLOBALS['_env_file'] ?? '');
+// If Bootstrap didn't expose the loaded file (or left the bare default),
+// re-derive it the SAME way Bootstrap::detectAndLoadEnv does — APP_ENVIRONMENT
+// pick first, else the first-existing .env.* in L→O→T→A→P order. Without this
+// the Omgeving-tab falsely showed ".env bestaat niet" on a site that actually
+// runs on .env.local.
+if ($activeEnvName === '' || $activeEnvName === '.env') {
+    $envMap    = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
+    $appEnvVar = (string)($_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? '');
+    if ($appEnvVar !== '' && isset($envMap[$appEnvVar]) && is_file($siteRoot . '/' . $envMap[$appEnvVar])) {
+        $activeEnvName = $envMap[$appEnvVar];
+    } else {
+        foreach (['L', 'O', 'T', 'A', 'P'] as $ec) {
+            if (is_file($siteRoot . '/' . $envMap[$ec])) { $activeEnvName = $envMap[$ec]; break; }
+        }
+    }
+    if ($activeEnvName === '') { $activeEnvName = '.env'; }
+}
+$activeEnvPath = $siteRoot . '/' . $activeEnvName;
 
 if (Request::post('action', '') === 'switch_env' && SecurityHelper::isDeveloper()) {
     $target = strtoupper(trim((string)Request::post('target', '')));
@@ -296,7 +314,9 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
     $envFileExists = is_file($activeEnvPath);
     $envFileCell = '<code>' . htmlspecialchars($activeEnvName) . '</code>';
     if (!$envFileExists) {
-        $envFileCell .= ' <lib-label type="warning">bestaat niet</lib-label>';
+        $envFileCell .= ' <lib-label type="warning">niet gevonden</lib-label>'
+            . '<br><span class="cma-tool__em">Gezocht op <code>' . htmlspecialchars($activeEnvPath) . '</code> — geen <code>.env.*</code> op de site-root gevonden. '
+            . 'Als de site z\'n config uit OS-omgevingsvariabelen of <code>app.php</code> haalt is dat geen fout.</span>';
     } elseif (!is_writable($activeEnvPath)) {
         $envFileCell .= ' <lib-label type="warning">alleen-lezen</lib-label>';
     }

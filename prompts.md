@@ -211,3 +211,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > in the documentation, code block; can you create a generic function that places a copy button on the right upper corner and if clicked: copy entire block in plain text, make that generic, so each <code> block get's that option
 
 > JSON-gedreven formulieren -> toon het schema en de opties
+
+> karaat: er staat .env bestaat niet.
