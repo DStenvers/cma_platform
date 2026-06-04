@@ -202,8 +202,8 @@ lib-switch {
 /* ============================================================
    lib-radio-group
    Segmented radio control — single bordered container with options
-   sitting side-by-side; the selected option appears pressed via an
-   inset shadow.
+   sitting side-by-side; the selected option is highlighted with a
+   filled background.
    ============================================================ */
 lib-radio-group {
     display: inline-flex;
@@ -227,9 +227,8 @@ lib-radio-group {
     gap: 0;
     user-select: none;
     box-sizing: border-box;
-    /* Subtle outer shadow so the inset on the selected option reads more clearly */
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
-    overflow: hidden; /* keeps the selected option's inset shadow inside the rounded corners */
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02); /* subtle outer shadow on the container */
+    overflow: hidden; /* keeps the selected option's background fill inside the rounded corners */
 }
 
 .lib-radio-group__option {
@@ -254,8 +253,13 @@ lib-radio-group {
     transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
-.lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
-    background: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+/* Gate hover behind a hover-capable pointer. On iOS Safari a tapped option
+   keeps :hover stuck, so without this the just-tapped option AND the actually
+   selected option both show a filled background ("op de iPhone beide groen"). */
+@media (hover: hover) {
+    .lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
+        background: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+    }
 }
 
 .lib-radio-group__option:focus-visible {
@@ -320,8 +324,10 @@ lib-radio-group {
     color: var(--color-text, #e6e9ef);
 }
 
-.dark-mode .lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
-    background: rgba(255, 255, 255, 0.06);
+@media (hover: hover) {
+    .dark-mode .lib-radio-group__option:hover:not(.lib-radio-group__option--selected):not([aria-disabled="true"]) {
+        background: rgba(255, 255, 255, 0.06);
+    }
 }
 
 .dark-mode .lib-radio-group__option--selected {
