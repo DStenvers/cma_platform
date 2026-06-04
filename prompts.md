@@ -191,3 +191,9 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > back to the ck editor: if I press tha + button in an array item of htmleditors, the htmleditor does not appear, only after saving the record and retrieving it does it work
 
 > so the function blockedit_array_add_array_element(this, template, 'Accordeon','Accordeon',null) has issues
+
+> what files are you working in?
+
+> please compare  cma/assets/js/blockedit.js to /mnt/c/repos/rino/portal1.0/cma/include/blockedit.js and see that needs to be changed in the latter
+
+> webcomponent lib-radiogroup : remove .lib-radio-group__option--selected the box-shadow css

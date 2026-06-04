@@ -270,10 +270,6 @@ lib-radio-group {
        text on every neighbour as widths re-balance. */
     border-left-color:  var(--color-border, #c4c8d0);
     border-right-color: var(--color-border, #c4c8d0);
-    /* Pressed-in look — inset shadow + slight darker top edge */
-    box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.18),
-        inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 /* No left divider on the first option (host border owns that edge);
@@ -325,9 +321,6 @@ lib-radio-group {
 .dark-mode .lib-radio-group__option--selected {
     background: rgba(255, 255, 255, 0.08);
     color: var(--color-primary, #6db1ff);
-    box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.45),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 /* ============================================================
