@@ -281,12 +281,18 @@ lib-radio-group {
     border-left-color: transparent;
     border-top-left-radius:    var(--radius, 6px);
     border-bottom-left-radius: var(--radius, 6px);
+    /* Inner edge (towards the next option) stays square. */
+    border-top-right-radius:    0;
+    border-bottom-right-radius: 0;
     margin-left: -1px;
 }
 .lib-radio-group__option--selected:last-child  {
     border-right-color: transparent;
     border-top-right-radius:    var(--radius, 6px);
     border-bottom-right-radius: var(--radius, 6px);
+    /* Inner edge (towards the previous option) stays square. */
+    border-top-left-radius:    0;
+    border-bottom-left-radius: 0;
     margin-right: 1px;
 }
 

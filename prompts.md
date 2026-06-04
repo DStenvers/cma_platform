@@ -213,3 +213,6 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > JSON-gedreven formulieren -> toon het schema en de opties
 
 > karaat: er staat .env bestaat niet.
+
+> .lib-radio-group__option--selected:first-child { border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;} and the last-child the left-radius: 0px
