@@ -148,6 +148,30 @@ class Installer
             }
         }
 
+        // 5b. Ensure the parent web.config carries the CMA friendly-URL
+        //     rewrite rules. Uses the same fail-safe patch/validate logic as
+        //     migration 9.9.0 (shared helper): simplexml-check, XML
+        //     well-formedness, duplicate-name + PCRE-regex validation, backup,
+        //     atomic temp-write + rename, read-back, rollback. Idempotent via
+        //     marker, so it's safe to run on every update. The appcmd +
+        //     live-HTTP smoke-test stay migration-only (no IIS/HTTP context at
+        //     composer time). Never throws — a routing-rule failure must not
+        //     break the composer run.
+        $parentWebConfig = $projectRoot . '/web.config';
+        if (is_file($parentWebConfig)) {
+            // Defensive load in case the package PSR-4 autoload isn't warm yet.
+            if (!class_exists(WebConfigCmaRoutes::class)) {
+                require __DIR__ . '/helpers/WebConfigCmaRoutes.php';
+            }
+            $res = WebConfigCmaRoutes::applyToParent($parentWebConfig);
+            foreach ($res['messages'] as $line) {
+                $io->write('  - web.config: ' . $line);
+            }
+            foreach ($res['errors'] as $line) {
+                $io->write('  - <warning>web.config: ' . $line . '</warning>');
+            }
+        }
+
         // 6. Copy _bootstrap_constants.inc (from platform)
         $constantsSrc = $platformDir . '/templates/_bootstrap_constants.inc';
         $constantsDest = $projectRoot . '/_bootstrap_constants.inc';

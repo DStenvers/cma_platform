@@ -670,7 +670,7 @@ async function submitMigration(e) {
 
     if (failedVersion) {
         resultDiv.setAttribute("type", "error");
-        resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " migraties toegepast.";
+        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " migraties toegepast.";
         button.textContent = "Opnieuw proberen";
         button.disabled = false;
         // Store remaining migrations for retry
@@ -680,7 +680,7 @@ async function submitMigration(e) {
         fetch("/cma/tools/tools_clearcache.php?silent=1").catch(function() {});
 
         resultDiv.setAttribute("type", "success");
-        resultDiv.innerHTML = "<span class="cma-tool__strong">Alle migraties succesvol toegepast!</span><br>" + successCount + " migraties uitgevoerd.<br><span class="cma-tool__em">Caches zijn geleegd.</span>";
+        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Alle migraties succesvol toegepast!</span><br>" + successCount + " migraties uitgevoerd.<br><span class=\"cma-tool__em\">Caches zijn geleegd.</span>";
         countSpan.textContent = "";
 
         // Update pending versions array
@@ -788,14 +788,14 @@ async function rerunMigration(version) {
                 statusCell.innerHTML = "<span class=\"badge badge-success\">Toegepast</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "success");
-            resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie " + version + " succesvol uitgevoerd!</span>";
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie " + version + " succesvol uitgevoerd!</span>";
         } else {
             if (statusCell) {
                 statusCell.innerHTML = "<span class=\"badge badge-error\">Mislukt</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "error");
             var errorMsg = result.error || "Onbekende fout, controleer de uitvoeringslog voor details";
-            resultDiv.innerHTML = "<span class="cma-tool__strong">Migratie " + version + " mislukt</span><br>" + errorMsg;
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie " + version + " mislukt</span><br>" + errorMsg;
         }
 
         // Show log
@@ -865,7 +865,7 @@ async function rerunMigration(version) {
 </style>';
 
 // Hidden form for rerun functionality
-echo '<form method="post" action="tools_migrations.php" id="rerunForm" style="display:none;">';
+echo '<form method="post" action="/cma/tools/tools_migrations.php" id="rerunForm" style="display:none;">';
 echo '<input type="hidden" name="action" value="rerun">';
 echo '<input type="hidden" name="target_version" id="rerunVersion" value="">';
 echo '</form>';
@@ -989,7 +989,7 @@ document.getElementById("migrationTabs").addEventListener("tab-select", function
 
 if ($hasPending) {
     echo '<div style="margin-top:20px;">';
-    echo '<form method="post" action="tools_migrations.php" id="migrationForm" onsubmit="return submitMigration(event);">';
+    echo '<form method="post" action="/cma/tools/tools_migrations.php" id="migrationForm" onsubmit="return submitMigration(event);">';
     echo '<input type="hidden" name="action" value="apply_all">';
     // Only show backup checkbox if no migration was just executed
     if ($result === null) {

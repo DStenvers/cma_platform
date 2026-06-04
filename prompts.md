@@ -181,3 +181,9 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > fix the third symptom and the file may be called blockedit-test.html and moved to the file where ckeditor resides
 
 > Note in todo.md that wire <cma-blockeditor> in as a real replacement to ckeditor should be performed, as well as modifying all callers
+
+## 2026-06-04
+
+> fixen van installatie zie ik niet terug, met name web.config bouw met zelfde safeguards als migratie 9.9.0
+
+> migratie 9.9.0 loopt niet, de knop alle migraties uitvoer. leidt tot de vraag om migraties.php te downloaden, maak de url zo dat hij wel werkt
