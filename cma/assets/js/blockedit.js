@@ -617,10 +617,31 @@ function blockedit_array_add_array_element( elt, template, cTemplateTitle, key, 
 		blockedit_init_array_dragdrop(cBaseElt[0]);
 	}
 
-	blockedit_create_htmls(); 
-	
+	blockedit_create_htmls();
+
+	// Mirror the blockedit_click fix (v1.20.18) for the array "+" path. The
+	// freshly-added array element's CKEditor is otherwise only created via
+	// blockedit_create_htmls()/the deferred pendingCKEditors queue, whose
+	// sync-clear + 150ms-refill handshake can drop a just-added editor — the
+	// symptom being "pressing + on an array of htmleditors adds the row but
+	// the CKEditor does not appear until the record is saved and reloaded".
+	// Directly (re)create the editors in this array container after a short
+	// delay; createCKEditor is idempotent (returns 'exists' if already made)
+	// and now sees the opened accordion, so this is safe and complements the
+	// queue. (v1.20.21)
+	blockedit_process_pending_ckeditors();
+	if (cBaseElt) {
+		setTimeout(function() {
+			jQuery(cBaseElt).find("textarea").each(function() {
+				if (this.id) {
+					blockedit_createCKEditor(this.id);
+				}
+			});
+		}, 160);
+	}
+
 	if (elt) {
-		jQuery(cBaseElt).parent().find(".blockedit_elt input[required='J']").attr("data-required", "Y");			
+		jQuery(cBaseElt).parent().find(".blockedit_elt input[required='J']").attr("data-required", "Y");
 		jQuery(elt).parent().find(".array_element").each( function() { 
 			var nTopPos = $(this).position().top;
 			var nScrollPos = $(document).scrollTop();

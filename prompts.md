@@ -187,3 +187,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > fixen van installatie zie ik niet terug, met name web.config bouw met zelfde safeguards als migratie 9.9.0
 
 > migratie 9.9.0 loopt niet, de knop alle migraties uitvoer. leidt tot de vraag om migraties.php te downloaden, maak de url zo dat hij wel werkt
+
+> back to the ck editor: if I press tha + button in an array item of htmleditors, the htmleditor does not appear, only after saving the record and retrieving it does it work
+
+> so the function blockedit_array_add_array_element(this, template, 'Accordeon','Accordeon',null) has issues
