@@ -134,7 +134,11 @@ echo '<div id="c" class="tools">';
    double border. Matches the pattern used by body.tool-serverinfo. */
 body.tool-docs #c.tools { padding: 0; }
 
-.tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 80px); }
+/* Definite height (not min-height) so the cma-fold divider — whose host is
+   height:100% — resolves to the full layout height instead of collapsing to
+   its grip. Same principle as tools.php (body height:100vh). Sidebar and
+   content scroll internally via their own overflow:auto. */
+.tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; height: calc(100vh - 80px); }
 .tool-docs .docs-sidebar { flex: 0 0 260px; padding: 14px 8px 14px 14px; overflow: auto; background: var(--bg-surface-alt, #f6f8fa); border-right: 1px solid var(--border-color, #e0e0e0); }
 .tool-docs .docs-content { flex: 1; min-width: 0; max-width: 900px; padding: 16px 22px; overflow: auto; }
 .tool-docs .docs-content h1 { margin: 0 0 6px; }
@@ -151,6 +155,22 @@ body.tool-docs #c.tools { padding: 0; }
 .tool-docs .docs-content .docs-callout--danger { border-left-color: var(--color-error, #c0392b); background: #fdedec; }
 .tool-docs .docs-meta { color: var(--text-muted, #6c757d); font-size: var(--font-size-sm); margin: 6px 0 18px; }
 .tool-docs .docs-content .seealso { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color, #e0e0e0); color: var(--text-muted, #6c757d); font-size: var(--font-size-sm); }
+
+/* Generic copy button — injected on every <pre> block by the script below.
+   Top-right, fades in on hover/focus, copies the block as plain text. */
+.tool-docs .docs-content pre { position: relative; }
+.tool-docs .docs-copy-btn {
+    position: absolute; top: 6px; right: 6px;
+    padding: 3px 9px; font-size: var(--font-size-xs, 12px); line-height: 1.4;
+    color: #d4d4d4; background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.20); border-radius: 4px;
+    cursor: pointer; opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease;
+}
+.tool-docs .docs-content pre:hover .docs-copy-btn,
+.tool-docs .docs-copy-btn:focus { opacity: 1; }
+.tool-docs .docs-copy-btn:hover { background: rgba(255, 255, 255, 0.20); }
+.tool-docs .docs-copy-btn.copied { color: #4ec9b0; border-color: #4ec9b0; }
 </style>
 
 <div class="docs-layout">
@@ -180,6 +200,49 @@ body.tool-docs #c.tools { padding: 0; }
         var href = e.detail && e.detail.href;
         if (!href || href === '#') return;
         window.location.href = href;
+    });
+})();
+
+// Generic copy button on every code block. The page fully reloads on topic
+// switch (item-click above navigates), so running once at load is enough.
+(function () {
+    document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.querySelector('.docs-copy-btn')) return;
+        // Capture the plain text from the <code> (or the <pre>) BEFORE the
+        // button is appended, so the button's own label never leaks in.
+        var src  = pre.querySelector('code') || pre;
+        var text = src.innerText;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'docs-copy-btn';
+        btn.textContent = 'Kopiëren';
+        btn.addEventListener('click', function () {
+            var done = function () {
+                btn.textContent = 'Gekopieerd';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.textContent = 'Kopiëren';
+                    btn.classList.remove('copied');
+                }, 1500);
+            };
+            var fallback = function () {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                ta.remove();
+                done();
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(fallback);
+            } else {
+                fallback();
+            }
+        });
+        pre.appendChild(btn);
     });
 })();
 </script>
@@ -333,50 +396,23 @@ function cma_doc_check_parent_hidden_segments(): array {
     return ['label' => $label, 'status' => 'fail', 'detail' => 'Ontbreekt: <code>' . htmlspecialchars(implode('</code>, <code>', $missing)) . '</code> — publiek bereikbaar.', 'fix' => 'Voeg <code>&lt;add segment="…"/&gt;</code> toe in <code>&lt;hiddenSegments&gt;</code>.'];
 }
 
-function cma_doc_check_cma_is_iis_application(): array {
-    // Detect of cma/ als IIS Application is geconfigureerd, niet als gewone
-    // Virtual Directory. De child cma/web.config rewrite-rules gebruiken
-    // patronen als `^dashboard/?$` (zonder cma/-prefix) — die matchen
-    // alleen als IIS de URL aan child-rules aanbiedt RELATIEF aan de
-    // cma-locatie, en dat doet IIS uitsluitend wanneer cma als
-    // Application is ingericht. Op een gewone Virtual Directory ziet de
-    // child config de FULL URL (`cma/dashboard`) en matcht niets.
-    //
-    // IIS zet $_SERVER['APPL_MD_PATH'] op het virtuele applicatie-pad.
-    // Voor een Application op /cma is dat /LM/W3SVC/<id>/ROOT/cma. Voor
-    // een Virtual Directory is het /LM/W3SVC/<id>/ROOT (de site-root).
-    // We checken of het APPL_MD_PATH eindigt op '/cma' (case-insensitive).
-    $label = 'cma/ is als IIS Application ingericht (niet als Virtual Directory)';
-
-    if (PHP_SAPI === 'cli') {
-        return ['label' => $label, 'status' => 'info', 'detail' => 'CLI-context: niet te testen.', 'fix' => ''];
-    }
-    $applMd = (string)($_SERVER['APPL_MD_PATH'] ?? '');
-    if ($applMd === '') {
-        return ['label' => $label, 'status' => 'info', 'detail' => 'Niet IIS, of <code>APPL_MD_PATH</code> niet beschikbaar — check niet uitvoerbaar.', 'fix' => ''];
-    }
-    if (strcasecmp(substr($applMd, -4), '/cma') === 0) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Ja — <code>APPL_MD_PATH</code> eindigt op <code>/cma</code>. Child-config rewrite-rules zien de URL relatief en matchen correct.', 'fix' => ''];
-    }
-    return [
-        'label'  => $label,
-        'status' => 'fail',
-        'detail' => 'Nee — <code>APPL_MD_PATH</code> = <code>' . htmlspecialchars($applMd) . '</code> (eindigt niet op <code>/cma</code>). cma/ is een Virtual Directory binnen de parent-Application. Gevolg: de child cma/web.config rewrite-rules zien de full URL (<code>cma/dashboard</code>) terwijl de patterns op de cma-relatieve URL (<code>dashboard</code>) zijn geschreven — niets matcht, IIS valt terug op static-file lookup, en extensionless URLs als <code>/cma/dashboard</code> krijgen 404.',
-        'fix'    => 'Open IIS Manager → Sites → deze site → rechtermuis op <code>cma</code> (gele map-icoon) → <em>Convert to Application</em>. Gebruik dezelfde Application Pool als de parent. Het icoon wordt blauw. Test direct: <code>/cma/dashboard</code> werkt nu.',
-    ];
-}
-
-function cma_doc_check_child_dashboard_rule(): array {
-    $label = 'Child cma/web.config: Dashboard rewrite rule';
-    $xml = cma_doc_child_webconfig();
+function cma_doc_check_parent_cma_routes(): array {
+    // Sinds v1.20.12 leven de CMA friendly-URL rewrite-rules in het PARENT
+    // web.config (migratie 9.9.0 / de Installer zetten ze daar neer). Daardoor
+    // hoeft cma/ GEEN aparte IIS Application meer te zijn — een gewone Virtual
+    // Directory volstaat, want de parent-rules matchen op de volledige URL
+    // (`^cma/dashboard/?$`). De oude "cma moet een Application zijn"- en
+    // "child cma/web.config Dashboard-rule"-checks zijn daarmee vervallen.
+    $label = 'Parent web.config: CMA friendly-URL routes';
+    $xml = cma_doc_parent_webconfig();
     if ($xml === null) {
-        return ['label' => $label, 'status' => 'fail', 'detail' => 'Child <code>cma/web.config</code> niet gevonden.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden in site-root — site draait niet onder IIS of staat ergens anders.', 'fix' => ''];
     }
-    $hit = $xml->xpath("//rewrite/rules/rule[@name='Dashboard']");
+    $hit = $xml->xpath("//rewrite/rules/rule[@name='CMA Dashboard']");
     if (!empty($hit)) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — <code>/cma/dashboard</code> kan extensionless worden bereikt.', 'fix' => ''];
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — de CMA-routes (<code>CMA Dashboard</code> e.a.) staan in de parent. <code>/cma/dashboard</code>, <code>/cma/preferences</code>, <code>/cma/tools</code> en de form-routes werken; <code>cma/</code> hoeft GEEN IIS Application te zijn.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Dashboard-rule ontbreekt in kind-config.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'De CMA-routes ontbreken in de parent <code>web.config</code> — extensionless URLs als <code>/cma/dashboard</code> eindigen in 404.', 'fix' => 'Doe <code>composer update stenversonline/platform</code> (v1.20.20+ past de routes automatisch + fail-safe toe), of draai migratie <code>9.9.0</code> via <a href="documentation.php?topic=migrations">Migraties</a>.'];
 }
 
 function cma_doc_check_url_rewrite_module_active(): array {
@@ -417,7 +453,8 @@ function cma_doc_check_url_rewrite_module_active(): array {
     $code  = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $errno = curl_errno($ch);
     $err   = curl_error($ch);
-    curl_close($ch);
+    // curl_close() is a no-op since PHP 8.0 and deprecated since 8.5 — the
+    // handle is freed when $ch goes out of scope. Don't call it.
 
     if ($errno !== 0) {
         return ['label' => $label, 'status' => 'info', 'detail' => 'cURL-fout bij zelf-test: ' . htmlspecialchars($err) . ' (errno ' . $errno . ').', 'fix' => ''];
@@ -464,15 +501,41 @@ function cma_doc_check_child_404_handler(): array {
 
 function cma_doc_check_env_file(): array {
     $label = 'Actief .env-bestand';
-    $envName = (string)($GLOBALS['_env_file'] ?? '.env');
-    $envPath = cma_doc_site_root() . '/' . $envName;
+    $root  = cma_doc_site_root();
+    $appEnv = (string)($_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? '');
+    $map = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
+
+    // Prefer the file the bootstrap actually loaded. If that global wasn't
+    // exposed (or is the bare default), re-derive the active file the SAME
+    // way Bootstrap::detectAndLoadEnv does — APP_ENVIRONMENT-pick first, else
+    // first-existing in L→O→T→A→P order. Without this the check falsely
+    // reported ".env ontbreekt ... unset APP_ENVIRONMENT" on sites that
+    // correctly run on .env.local with no plain .env present.
+    $envName = (string)($GLOBALS['_env_file'] ?? '');
+    if ($envName === '' || $envName === '.env') {
+        if ($appEnv !== '' && isset($map[$appEnv]) && is_file($root . '/' . $map[$appEnv])) {
+            $envName = $map[$appEnv];
+        } else {
+            foreach (['L', 'O', 'T', 'A', 'P'] as $code) {
+                if (is_file($root . '/' . $map[$code])) { $envName = $map[$code]; break; }
+            }
+        }
+        if ($envName === '') { $envName = '.env'; } // genuine fallback
+    }
+
+    $envPath = $root . '/' . $envName;
     if (is_file($envPath) && is_readable($envPath)) {
         return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> aanwezig + leesbaar.', 'fix' => ''];
     }
     if (is_file($envPath)) {
         return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> bestaat maar is niet leesbaar voor de IIS-user.', 'fix' => 'Geef leesrechten aan de application-pool identity.'];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> ontbreekt op <code>' . htmlspecialchars($envPath) . '</code>.', 'fix' => 'Kopieer uit <code>.env.template</code> of unset <code>APP_ENVIRONMENT</code>.'];
+    // Nothing found at all. Only mention APP_ENVIRONMENT when it's actually set
+    // (it forces a specific file); otherwise auto-detect just found no file.
+    $fix = $appEnv !== ''
+        ? 'Maak <code>' . htmlspecialchars($envName) . '</code> aan (kopieer uit <code>.env.template</code>) of unset <code>APP_ENVIRONMENT</code>.'
+        : 'Maak een env-bestand aan (bv. <code>.env.local</code>), kopieer uit <code>.env.template</code>.';
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Geen env-bestand gevonden op <code>' . htmlspecialchars($root) . '</code> (gezocht: <code>.env.local</code>, <code>.env.development</code>, <code>.env.test</code>, <code>.env.acceptance</code>, <code>.env.production</code>, <code>.env</code>).', 'fix' => $fix];
 }
 
 function cma_doc_check_app_environment_match(): array {
@@ -1210,14 +1273,13 @@ function render_doc_iis_config(): void
 
     <?php
     cma_doc_render_check_table('web.config — live check op deze site', cma_doc_run_checks([
-        'cma_doc_check_cma_is_iis_application',
+        'cma_doc_check_parent_cma_routes',
         'cma_doc_check_url_rewrite_module_active',
         'cma_doc_check_parent_skip_cma',
         'cma_doc_check_parent_default_content_type',
         'cma_doc_check_parent_nosniff',
         'cma_doc_check_parent_frame_options',
         'cma_doc_check_parent_hidden_segments',
-        'cma_doc_check_child_dashboard_rule',
         'cma_doc_check_child_default_content_type',
         'cma_doc_check_child_404_handler',
     ]));
@@ -1250,6 +1312,7 @@ function render_doc_iis_config(): void
     <div class="docs-callout docs-callout--danger">
         <p><span class="cma-tool__strong">Sinds v1.20.12: CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. De migratie valideert de gepatchte config vóór én na de write — XML well-formedness, duplicate rule-names (het 500.50-symptoom), PCRE-syntax van de eigen patterns, een <code>appcmd</code> schema-check, en tenslotte een live HTTP smoke-test op <code>/cma/dashboard</code>; bij een 5xx of een geweigerde <code>appcmd</code> rolt hij automatisch terug uit de backup. Run via <a href="documentation.php?topic=migrations">Migraties</a>-tool of <code>Tools → Migraties uitvoeren</code>.</p>
         <p style="margin:8px 0 0 0;">Sinds v1.20.20 past de Composer <code>Installer</code> diezelfde routes óók automatisch toe bij elke <code>composer update stenversonline/platform</code> — bestaande sites krijgen de fix dus zonder de migratie handmatig te draaien. De file-level safeguards (simplexml-check, XML well-formedness, duplicate-name, PCRE-regex, backup, atomic write, read-back, rollback) zitten in de gedeelde helper <code>App\Library\WebConfigCmaRoutes</code> die migratie én Installer delen; de <code>appcmd</code>- en live-smoke-test-stappen blijven migration-only (de composer-CLI heeft geen draaiende IIS + HTTP-context). Idempotent via dezelfde marker, dus veilig om elke update te draaien.</p>
+    </div>
 
     <h2>cma/web.config in detail</h2>
     <p>De platform-side web.config doet drie dingen:</p>
@@ -1707,42 +1770,100 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
 </code></pre>
     <p>Caching is automatisch on (in-memory per request + disk in <code>cache/forms/</code>). Editor-tools roepen <code>clearCache</code> aan na een save.</p>
 
-    <h2>Definitie-schema basics</h2>
-    <p>Een minimale form-definitie:</p>
+    <h2>Definitie-schema</h2>
+    <p>Het volledige schema staat in <code>cma/config/schema/form-definition.schema.json</code> (titel <em class="cma-tool__em">CMA Form Definition</em>). Zet die als <code>$schema</code> bovenaan je definitie zodat editors IntelliSense + validatie geven. Een minimale, schema-geldige definitie:</p>
     <pre><code>{
-    "$schema": "../../../config/schema/form.schema.json",
+    "$schema": "../../../config/schema/form-definition.schema.json",
     "name": "opleidingen",
     "title": "Opleidingen",
-    "titleSingular": "Opleiding",
-    "database": "data",
     "table": "tblOpleidingen",
-    "primaryKey": "ID",
+    "database": "data",
+    "idField": "ID",
+    "allowAdd": true,
+    "allowDelete": true,
+    "listColumns": ["naam", "startDatum", "actief"],
     "fields": [
-        {"name": "ID",        "type": "autonumber", "primaryKey": true},
-        {"name": "naam",      "type": "text",       "label": "Naam",      "required": true},
-        {"name": "startDatum","type": "date",       "label": "Startdatum"},
-        {"name": "actief",    "type": "switch",     "label": "Actief",    "default": true}
-    ],
-    "views": {
-        "list": {"columns": ["naam", "startDatum", "actief"]},
-        "detail": {"layout": "vertical"}
-    }
+        {"name": "naam",       "type": "textbox",  "caption": "Naam", "required": true, "maxLength": 100},
+        {"name": "startDatum", "type": "date",     "caption": "Startdatum", "format": "date"},
+        {"name": "actief",     "type": "checkbox", "caption": "Actief"}
+    ]
 }
 </code></pre>
-    <p>Field-types: <code>text</code>, <code>textarea</code>, <code>number</code>, <code>date</code>, <code>datetime</code>, <code>switch</code>, <code>combo</code> (dropdown), <code>radio-group</code>, <code>file</code>, <code>image</code>, <code>richtext</code>, <code>code</code>, <code>autonumber</code>, etc. De full lijst staat in <code>cma/config/control-types.json</code>.</p>
+
+    <h3>Top-level opties</h3>
+    <p>(<span class="cma-tool__strong">*</span> = verplicht)</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:190px">Key</th><th>Betekenis</th></tr></thead>
+        <tbody>
+            <tr><td><code>name</code> <span class="cma-tool__strong">*</span></td><td>Unieke form-identifier (lowercase, underscores toegestaan).</td></tr>
+            <tr><td><code>table</code> <span class="cma-tool__strong">*</span></td><td>Database-tabel waar records in staan.</td></tr>
+            <tr><td><code>fields</code> <span class="cma-tool__strong">*</span></td><td>Array van velddefinities (zie hieronder).</td></tr>
+            <tr><td><code>title</code> / <code>titleEnglish</code></td><td>Weergavetitel (NL / EN).</td></tr>
+            <tr><td><code>database</code></td><td>Connectienaam uit <code>databases.json</code> (default <code>data</code>).</td></tr>
+            <tr><td><code>idField</code></td><td>Naam van het primary-key veld.</td></tr>
+            <tr><td><code>listColumns</code></td><td>Kolommen in de list/tree-weergave.</td></tr>
+            <tr><td><code>listQuery</code></td><td>Eigen SQL voor de list/tree (overschrijft de standaard SELECT).</td></tr>
+            <tr><td><code>quickSearchFields</code></td><td>Comma-gescheiden veldnamen voor het snelzoek-veld.</td></tr>
+            <tr><td><code>activeField</code></td><td>Veld dat actief (1=groen) / inactief (0) markeert in de list.</td></tr>
+            <tr><td><code>allowAdd</code> / <code>allowDelete</code> / <code>allowCopy</code></td><td>Toolbar-acties aan/uit.</td></tr>
+            <tr><td><code>securityByUser</code></td><td>Records filteren op eigenaar (rij-niveau autorisatie).</td></tr>
+            <tr><td><code>storeLastModified</code></td><td>Houd last-modified timestamp bij.</td></tr>
+            <tr><td><code>protectedRecords</code></td><td>Record-IDs die niet verwijderd mogen worden.</td></tr>
+            <tr><td><code>filter</code></td><td>Configuratie van de filter-dropdown.</td></tr>
+            <tr><td><code>extraButtons</code></td><td>Custom toolbar-knoppen (<code>icon</code>, <code>title</code>, <code>url</code>, <code>target</code>, <code>openInNewWindow</code>, <code>condition</code>). Ondersteunt placeholders zoals <code>[slug]</code>.</td></tr>
+            <tr><td><code>tips</code></td><td>Helptips in de zijbalk.</td></tr>
+            <tr><td><code>postHandler</code> / <code>afterPostUrl</code> / <code>previewUrl</code> / <code>onLoadJs</code></td><td>Hooks: eigen POST-handler PHP-bestand, redirect-na-opslaan, preview-URL-template, on-load JavaScript.</td></tr>
+            <tr><td><code>parentForm</code></td><td>Naam van het parent-form (alleen voor subforms).</td></tr>
+            <tr><td><code>subforms</code></td><td>Geneste subform-definities (zie hieronder).</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Veld-opties (<code>fields[]</code>)</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:190px">Key</th><th>Betekenis</th></tr></thead>
+        <tbody>
+            <tr><td><code>name</code> <span class="cma-tool__strong">*</span></td><td>Kolomnaam in de tabel.</td></tr>
+            <tr><td><code>type</code> <span class="cma-tool__strong">*</span></td><td>Control-type — zie de lijst hieronder.</td></tr>
+            <tr><td><code>caption</code> / <code>captionEnglish</code></td><td>Label (NL / EN).</td></tr>
+            <tr><td><code>hint</code> / <code>hintEnglish</code></td><td>Tooltip-tekst.</td></tr>
+            <tr><td><code>required</code> / <code>readonly</code></td><td>Verplicht / alleen-lezen.</td></tr>
+            <tr><td><code>maxLength</code> / <code>height</code></td><td>Max. aantal tekens / hoogte (memo-velden).</td></tr>
+            <tr><td><code>useContentBlocks</code></td><td>Gebruik de blockedit content-block-editor i.p.v. een gewone richttext (zie <a href="documentation.php?topic=iis_config">…</a> / blockedit).</td></tr>
+            <tr><td><code>source</code> / <code>sql</code> / <code>database</code> / <code>filterByField</code></td><td>Opties-bron voor <code>combobox</code>/<code>dropdown</code>/<code>checklist</code>: een data-source, een SQL-query, en optioneel afhankelijk van een ander veld.</td></tr>
+            <tr><td><code>options</code></td><td>Inline keuze-opties (i.p.v. een query).</td></tr>
+            <tr><td><code>format</code></td><td>Weergave-formaat: <code>date</code>, <code>datetime</code>, <code>currency</code>, <code>percentage</code>.</td></tr>
+            <tr><td><code>validation</code></td><td>Array van extra validatieregels.</td></tr>
+            <tr><td><code>dependencies</code> / <code>hiddenWhen</code></td><td>Toon/verberg dit veld afhankelijk van de waarde van een ander veld.</td></tr>
+            <tr><td><code>image</code> / <code>file</code></td><td>Upload-configuratie (max afmetingen, pad) voor <code>image</code>/<code>file</code>-types.</td></tr>
+            <tr><td><code>renderer</code></td><td>Naam van een custom renderer (voor <code>type: custom</code>).</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Field-types</h3>
+    <p>De toegestane <code>type</code>-waarden (enum in <code>form-definition.schema.json</code>):</p>
+    <p>
+        <code>textbox</code>, <code>memo</code>, <code>checkbox</code>, <code>combobox</code>, <code>dropdown</code>,
+        <code>date</code>, <code>time</code>, <code>datetime</code>, <code>email</code>, <code>password</code>,
+        <code>url</code>, <code>file</code>, <code>image</code>, <code>checklist</code>, <code>checklisttree</code>,
+        <code>checklistinline</code>, <code>sortlist</code>, <code>radiogroup</code>, <code>userlist</code>,
+        <code>directory</code>, <code>xmlstore</code>, <code>label</code>, <code>groupseparator</code>,
+        <code>readonly</code>, <code>custom</code>.
+    </p>
+    <p class="docs-meta"><code>cma/config/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
 
     <h2>Subforms</h2>
-    <p>Een subform is een form-definitie waarvan records gekoppeld zijn aan een parent-record via een foreign key:</p>
+    <p>Een subform koppelt records aan een parent-record via een foreign key. Subforms staan in de <code>subforms</code>-array van de parent-definitie:</p>
     <pre><code>"subforms": [
     {
-        "name": "opleiding_modules",
         "title": "Modules",
+        "form": "modules",
         "parentField": "opleidingID",
-        "form": "modules"
+        "linkField": "ID",
+        "order": 1
     }
 ]
 </code></pre>
-    <p>De URL <code>form.php?form=opleidingen/ID/opleiding_modules</code> rendert dan de modules-list onder de opleiding-detail.</p>
+    <p>Keys: <code>form</code> (naam van de te embedden definitie) of <code>file</code>, <code>parentField</code> (FK in het kind dat naar de parent wijst), <code>linkField</code> (veld in de parent, default de <code>idField</code>), <code>title</code>/<code>titleEnglish</code> en <code>order</code>. De URL <code>form.php?form=opleidingen/&lt;ID&gt;/modules</code> rendert dan de modules-list onder het opleiding-detail.</p>
 
     <h2>form.php entry point</h2>
     <p>Alle form-views lopen door <code>cma/form.php</code>. Belangrijke URL-parameters:</p>

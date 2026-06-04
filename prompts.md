@@ -197,3 +197,17 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > please compare  cma/assets/js/blockedit.js to /mnt/c/repos/rino/portal1.0/cma/include/blockedit.js and see that needs to be changed in the latter
 
 > webcomponent lib-radiogroup : remove .lib-radio-group__option--selected the box-shadow css
+
+> in the documentation: the fold is not 100% heigh, look at tools.php for the correct implementation
+
+> documentation reports: Actief .env-bestand	FOUT	.env ontbreekt op C:\wwwroot\karaat_php/.env. Kopieer uit .env.template of unset APP_ENVIRONMENT. , but .env.local is being used, reconsider that message
+
+> Deprecated: Function curl_close() is deprecated since 8.5, as it has no effect since PHP 8.0 in C:\wwwroot\karaat_php\cma\tools\documentation.php on line 420
+
+> cma/ is als IIS Application ingericht (niet als Virtual Directory) -> dat hoefde toch niet meer?
+
+> IIS-configuratie is missing fix it options
+
+> in the documentation, code block; can you create a generic function that places a copy button on the right upper corner and if clicked: copy entire block in plain text, make that generic, so each <code> block get's that option
+
+> JSON-gedreven formulieren -> toon het schema en de opties
