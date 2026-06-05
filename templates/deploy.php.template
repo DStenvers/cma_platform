@@ -64,6 +64,7 @@ $isWin = (stripos(PHP_OS, 'WIN') === 0);
 // 1. Inline .env reader — first-existing env file, KEY=VALUE lines.
 // ---------------------------------------------------------------------------
 $env = [];
+$envLoadedFrom = '';
 foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env'] as $cand) {
     $p = $SCRIPT_DIR . '/' . $cand;
     if (!is_file($p)) {
@@ -77,6 +78,7 @@ foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env
         [$k, $v] = explode('=', $line, 2);
         $env[trim($k)] = trim($v, " \t\"'");
     }
+    $envLoadedFrom = $p;
     break;
 }
 $envRead = static function (string $key, string $default = '') use ($env): string {
@@ -114,13 +116,18 @@ $scream = static function (string $reason) use ($log, $FAIL_MARKER, $envRead): v
 $secret = $envRead('DEPLOY_SECRET', '');
 $branch = $envRead('DEPLOY_BRANCH', 'main');
 
+// Log which .env was actually read (first-existing of the candidates next to
+// this file) so a missing DEPLOY_SECRET is easy to diagnose.
+$log('config: env-file=' . ($envLoadedFrom !== '' ? $envLoadedFrom : 'NONE found in ' . $SCRIPT_DIR)
+    . ', DEPLOY_SECRET=' . ($secret !== '' ? 'present' : 'absent'));
+
 // ---------------------------------------------------------------------------
 // 2. Gatekeeping: secret configured, POST only, valid HMAC, right branch.
 // ---------------------------------------------------------------------------
 if ($secret === '') {
     http_response_code(503);
     header('Content-Type: text/plain; charset=utf-8');
-    $log('REJECT: DEPLOY_SECRET not configured');
+    $log('REJECT: DEPLOY_SECRET not configured (looked in ' . ($envLoadedFrom !== '' ? $envLoadedFrom : 'no .env file next to ' . $SCRIPT_DIR) . ')');
     echo "Deploy not configured (DEPLOY_SECRET missing in .env).\n";
     return;
 }

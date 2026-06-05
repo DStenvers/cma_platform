@@ -965,7 +965,7 @@ function render_doc_deployment(): void
 
     <h2>Remote deploy-status check (sinds v1.19.1)</h2>
     <p>Publiek read-only endpoint dat de laatste run uit <code>logs/deploy.log</code> als JSON teruggeeft. Geen auth — status / commit-SHA / branch / timestamp zijn niet gevoelig (commit-SHAs staan al in de public git history, branch-namen ook), en het log bevat per conventie geen secrets in zijn pipeline-output. Volledig standalone: geen Composer autoload, geen platform-bootstrap, geen <code>.env</code>-reader — werkt dus ook als <code>vendor/</code> of <code>.env</code> stuk is.</p>
-    <p>Gebruik de <span class="cma-tool__strong">site-root</span> variant <code>/deploy_status.php</code> (git-tracked, gesynct door de Installer net als <code>/deploy.php</code>) — die overleeft een kapotte <code>/cma/</code>, precies het scenario waarin je de status wilt checken. (<code>/cma/tools/deploy_status.php</code> bestaat ook nog, maar zit ónder <code>/cma/</code> en 404't dus juist als dat stuk is.)</p>
+    <p>Het endpoint is de <span class="cma-tool__strong">site-root</span> <code>/deploy_status.php</code> (git-tracked, gesynct door de Installer net als <code>/deploy.php</code>) — die overleeft een kapotte <code>/cma/</code>, precies het scenario waarin je de status wilt checken. (De oude <code>/cma/tools/deploy_status.php</code> zat ónder <code>/cma/</code> — 404 als dat stuk is — en is in v1.22.3 vervallen; de Installer ruimt 'm op.)</p>
     <pre><code>curl 'https://&lt;host&gt;/deploy_status.php'</code></pre>
     <p>Success-respons:</p>
     <pre><code>{

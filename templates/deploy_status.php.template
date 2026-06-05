@@ -22,10 +22,13 @@
  * composer) which by convention carries no secrets.
  *
  * Parses BOTH on-disk log formats, whichever wrote last:
- *   1. Root deploy.php ........ "[ts] [self] START: deploy <c> on branch <b>"
- *                               "[ts] [self] OK|FAIL: deploy <c>"
- *   2. DeployWebhook banners .. "deploy started: <ts> <b> (commit <c> ...)"
+ *   1. Banners (current /deploy.php and the retired DeployWebhook) ..
+ *                               "deploy started: <ts> <b> (commit <c> ...)"
  *                               "deploy ended:   <ts> <b> (commit <c>, OK|FAILED)"
+ *   2. Legacy "[self]" lines from the pre-v1.22 root deploy.php ..
+ *                               "[ts] [self] START: deploy <c> on branch <b>"
+ *                               "[ts] [self] OK|FAIL: deploy <c>"
+ *      (kept so older deploy.log tails still parse)
  *
  * Failure modes:
  *   404  — deploy.log not found
@@ -48,12 +51,19 @@ $size      = filesize($logFile) ?: 0;
 $chunkSize = (int)min($size, 16 * 1024);
 $tail      = '';
 if ($chunkSize > 0) {
+    // @ on fopen prevents a PHP warning from leaking into the JSON response,
+    // but we MUST distinguish "fopen failed" (permissions / lock) from "log
+    // has no banner". Masking the former as an empty-log status sends the
+    // operator the wrong way — the pre-v1.19.6 bug.
     $fh = @fopen($logFile, 'rb');
-    if ($fh) {
-        @fseek($fh, -$chunkSize, SEEK_END);
-        $tail = (string)stream_get_contents($fh);
-        @fclose($fh);
+    if (!$fh) {
+        http_response_code(500);
+        echo json_encode(['ok' => false, 'error' => 'log file unreadable', 'path' => $logFile]);
+        return;
     }
+    @fseek($fh, -$chunkSize, SEEK_END);
+    $tail = (string)stream_get_contents($fh);
+    @fclose($fh);
 }
 $lines = preg_split('/\r?\n/', $tail) ?: [];
 

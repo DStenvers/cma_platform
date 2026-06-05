@@ -64,6 +64,11 @@ class Installer
         // no REMOVED_PATHS entry.)
         'cma/tools/deploy_webhook_standalone.php',
         'cma/tools/deploy_webhook.php',
+        // Retired in v1.22.3: the /cma/tools/ deploy-status endpoint sat under
+        // the gitignored /cma/ tree — it 404s during exactly the botched
+        // deploy you'd want to inspect. The git-tracked site-root twin
+        // /deploy_status.php (ROOT_SYNCED_FILES) is the single status endpoint.
+        'cma/tools/deploy_status.php',
     ];
 
     /**

@@ -232,3 +232,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > are the cariables (HTTP_X_ORIGINAL_FILE, HTTP_X_TOOL_NAME still being used?
 
 > yes please fi it
+
+> please retire it
