@@ -237,20 +237,21 @@ copy .env.production.example .env.production
 
 ### 2. Automatische deploy via GitHub webhook
 
-Het platform levert kant-en-klare webhook receivers — geen eigen `deploy.php` nodig.
+Het platform levert één kant-en-klare webhook receiver: **`/deploy.php`** in de site-root.
 
-#### a. Kies een receiver
+#### a. Het endpoint
 
-| Script | URL op je site | Wanneer kiezen |
-|--------|---------------|----------------|
-| `cma/tools/deploy_webhook.php` | `https://<host>/cma/tools/deploy_webhook.php` | **Aanbevolen voor platform-sites.** Wordt mee-geleverd via composer, gebruikt `App\Library\DeployWebhook::handle()` voor signature-check, HMAC, branch-filter en async pipeline. |
-| `cma/tools/deploy_webhook_standalone.php` | dropt het bestand waar je wilt | Voor sites zónder composer/framework (statische sites, andere stacks). Single-file, geen autoloader. |
+Sinds v1.22.0 is `/deploy.php` het enige endpoint (de oude `cma/tools/deploy_webhook.php` en `cma/tools/deploy_webhook_standalone.php` zijn vervallen — de Installer ruimt ze op). `/deploy.php` wordt door de Installer in de site-root gezet (`ROOT_SYNCED_FILES`, overschreven bij elke `composer update`) en is git-tracked, zodat het overleeft als `/cma/` of `vendor/` stuk is — het is de recovery hatch én de reguliere deploy.
 
-Beide bevatten:
+URL op je site: `https://<host>/deploy.php`
+
+Bevat:
 - HMAC-SHA256 signature verificatie tegen `DEPLOY_SECRET`
 - Per-environment branch via `DEPLOY_BRANCH` (default `main`)
-- Configurable pipeline via `DEPLOY_PIPELINE`
-- Logging naar `logs/deploy.log` met start/eind banners
+- Configurable pipeline via `DEPLOY_PIPELINE` + `composer update <DEPLOY_COMPOSER_UPDATE> --no-dev`
+- Optionele test-gate `DEPLOY_RUN_TESTS` (faalt → geen recycle, productie blijft op oude code)
+- `deploy_post.php` post-hook + `/cma/`-sync health-check (best-effort)
+- Logging naar `logs/deploy.log` met start/eind banners; bij FAILED ook `error_log`, een `logs/deploy.failed` marker en best-effort `mail()` naar `DEPLOY_ALERT_EMAIL`
 - 202 response + `fastcgi_finish_request()` zodat GitHub niet timeout't tijdens lange composer-installs
 
 #### b. .env config op de server
@@ -260,8 +261,13 @@ Voeg toe aan `.env.production` (of `.env.acceptance`, etc.):
 ```env
 DEPLOY_SECRET=<willekeurige-32-char-string>
 DEPLOY_BRANCH=main
-# Optioneel — default is "git pull --ff-only origin {branch}":
-DEPLOY_PIPELINE=git pull --ff-only origin {branch}; composer install --no-dev --optimize-autoloader
+# Optioneel — default is "git pull --ff-only origin {branch}". /deploy.php draait
+# composer apart (DEPLOY_COMPOSER_UPDATE), dus zet hier GEEN composer-stap bij:
+DEPLOY_PIPELINE=git pull --ff-only origin {branch}
+# Optioneel — pakketten om te `composer update` na de pull (default: stenversonline/platform; "-" = skip):
+DEPLOY_COMPOSER_UPDATE=stenversonline/platform
+# Optioneel — test-gate vóór recycle; non-zero exit blokkeert de deploy:
+DEPLOY_RUN_TESTS=php cma/tests/TestRunner.php
 # Optioneel — op productie kun je 'web.config' touchen om de IIS app-pool te recyclen:
 DEPLOY_RECYCLE_TOUCH=web.config
 # Optioneel — zet op "1" om git reset --hard te skippen (bv. op een staging machine met lokale dev edits):
@@ -284,7 +290,7 @@ runas /user:"IIS APPPOOL\DefaultAppPool" "git pull"
 
 In de GitHub repo:
 1. **Settings → Webhooks → Add webhook**
-2. **Payload URL**: bv. `https://karaat.stenversonline.nl/cma/tools/deploy_webhook.php` (vervang door je eigen domain; voor standalone-versie: het pad waar je het bestand neerzette)
+2. **Payload URL**: bv. `https://karaat.stenversonline.nl/deploy.php` (vervang door je eigen domain)
 3. **Content type**: `application/json`
 4. **Secret**: zelfde waarde als `DEPLOY_SECRET` in je `.env`
 5. **Events**: alleen `push`
@@ -378,10 +384,11 @@ Zorg dat het project `.gitignore` deze server-only bestanden uitsluit:
 
 ```gitignore
 # Deploy-only files (server-side, niet committen)
-/deploy.php
 /auto-pull.ps1
 /auth.json
 ```
+
+> **Let op:** `/deploy.php` moet je juist wél committen. Het is de recovery hatch — git-tracked in de site-root, zodat een kale `git pull` 'm in leven houdt zelfs als `composer`/`/cma/` stuk is. De Installer overschrijft 'm bij elke `composer update` vanuit `templates/deploy.php.template`; jouw commit is het vangnet daaronder.
 
 ## Veelgestelde vragen
 

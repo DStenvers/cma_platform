@@ -220,3 +220,11 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > copy that to the mijn rino repo please
 
 > de radio-group wijzigingen; op de iPhone zijn ze beide groen qua achtergrond, de rest van de layout lijkt niet goed te werken
+
+> can you have a  look at https://github.com/chopratejas/headroom and see if that is useful for this project?
+
+> do we still need /cma/tools/deploy_webhook_standalone.php , it was replaced by /deploy.php
+
+> i have repointed karaat. mijn rino and mijntoprecepten
+
+> make sure /deploy.php is the one and only and most extended version, harden it and make it scream loud if an error occured. then we can safely remove the older version

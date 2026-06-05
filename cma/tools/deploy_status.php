@@ -71,8 +71,8 @@ if ($chunkSize > 0) {
 }
 $lines = preg_split('/\r?\n/', $tail) ?: [];
 
-// Walk backwards looking for the most recent banner lines (format defined
-// by deploy_webhook_standalone.php — kept in sync there).
+// Walk backwards looking for the most recent banner lines (format written
+// by the /deploy.php webhook — keep this parser in sync with it).
 $endedAt = null; $endedStatus = null; $endedBranch = null; $endedCommit = null;
 $startedAt = null; $startedBranch = null; $startedCommit = null;
 foreach (array_reverse($lines) as $line) {

@@ -54,6 +54,16 @@ class Installer
         'cma/docs/forms.md',
         'cma/docs/api-reference.md',
         'cma/docs/menuicons.md',
+        // Retired in v1.22.0: BOTH the standalone single-file webhook and the
+        // framework webhook (cma/tools/deploy_webhook.php → DeployWebhook) are
+        // superseded by the one-and-only site-root recovery hatch /deploy.php
+        // (ROOT_SYNCED_FILES), which folds in their full feature set. Re-point
+        // any GitHub webhook still on these URLs to /deploy.php before this
+        // lands, or auto-deploy 404s on that site. (The DeployWebhook class
+        // under src/helpers/ lives in vendor/ — composer drops it, so it needs
+        // no REMOVED_PATHS entry.)
+        'cma/tools/deploy_webhook_standalone.php',
+        'cma/tools/deploy_webhook.php',
     ];
 
     /**

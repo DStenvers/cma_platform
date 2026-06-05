@@ -20,8 +20,9 @@
  *
  * Generic across consumers; no DB, no app bootstrap required for the
  * check + log. The email is best-effort: it only lands when an app
- * context with SMTP config is loaded (i.e. the DeployWebhook path), which
- * is fine — the deploy.log line is the reliable alert.
+ * context with SMTP config is loaded (i.e. /deploy.php found a working
+ * vendor/ + app config), which is fine — the deploy.log line is the
+ * reliable alert.
  *
  * @package App\Library
  */

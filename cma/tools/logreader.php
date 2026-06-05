@@ -237,7 +237,7 @@ $logSources = [
     ],
     'deploy' => [
         'name' => 'Deploy Log',
-        // Site-level log written by App\Library\DeployWebhook;
+        // Site-level log written by the /deploy.php webhook;
         // lives outside cma/ because deploys are a site-level concern.
         'path' => dirname(dirname(__DIR__)) . '/logs/deploy.log',
         'pattern' => null,

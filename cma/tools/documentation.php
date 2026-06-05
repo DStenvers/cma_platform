@@ -937,15 +937,19 @@ function render_doc_deployment(): void
     ?>
 
     <h2>Overzicht</h2>
-    <p>Deploys verlopen via <code>cma/tools/deploy_webhook_standalone.php</code> — een standalone single-file webhook-endpoint dat GitHub push-events ontvangt en in de site-root een commando-pipeline draait. Belangrijkste stappen:</p>
+    <p>Deploys verlopen via één GitHub push-webhook: <code>/deploy.php</code> in de site-root. Sinds v1.22.0 is dit het <span class="cma-tool__strong">enige</span> endpoint — de oude framework-webhook (<code>cma/tools/deploy_webhook.php</code>) en de standalone (<code>cma/tools/deploy_webhook_standalone.php</code>) zijn vervallen; hun volledige feature-set zit nu hier.</p>
+    <p>Waarom een root-bestand: <code>/deploy.php</code> is git-tracked, staat in de site-root en hangt van NIETS in <code>vendor/</code>, <code>/cma/</code> of URL Rewrite af. Een kapotte <code>composer install</code> (die alles onder <code>/cma/</code> 404't) legt 'm dus niet plat — de volgende push landt en repareert. De Installer overschrijft 'm bij elke <code>composer update</code> (bron: <code>templates/deploy.php.template</code>); commit 'm in je consumer-repo zodat een kale <code>git pull</code> 'm in leven houdt.</p>
+    <p>De stappen:</p>
     <ol>
-        <li><span class="cma-tool__strong">Verificatie</span> — HMAC-SHA256 signature (<code>X-Hub-Signature-256</code>) getoetst tegen <code>DEPLOY_SECRET</code>.</li>
+        <li><span class="cma-tool__strong">Verificatie</span> — HMAC-SHA256 signature (<code>X-Hub-Signature-256</code>) getoetst tegen <code>DEPLOY_SECRET</code>; alleen POST; alleen de geconfigureerde <code>DEPLOY_BRANCH</code>.</li>
         <li><span class="cma-tool__strong">Vroege response</span> — 202 Accepted en de verbinding losgekoppeld (<code>fastcgi_finish_request</code>); de rest draait async.</li>
-        <li><span class="cma-tool__strong">Pipeline</span> — <code>;</code>-gescheiden commando's in <code>$siteRoot</code> (default: <code>git pull --ff-only origin {branch}</code>).</li>
-        <li><span class="cma-tool__strong">Composer update</span> — sinds v1.13.0 update de webhook automatisch het platform-package zodat <code>vendor/</code> mee-loopt met de net-gesyncde <code>cma/</code> files.</li>
-        <li><span class="cma-tool__strong">Recycle</span> — touch op <code>web.config</code> om de IIS app-pool te recyclen.</li>
-        <li><span class="cma-tool__strong">Post-hook</span> — optioneel project-side PHP script (<code>deploy_post.php</code>) voor cache-flushes en migrations.</li>
-        <li><span class="cma-tool__strong">Logging</span> — alle output landt in <code>logs/deploy.log</code>, banner per run.</li>
+        <li><span class="cma-tool__strong">Pre-pull recycle</span> — (Windows) touch op het recycle-bestand zodat de app-pool z'n file-locks op <code>vendor/</code> / bootstrap loslaat vóór git/composer draaien. Skip met <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code>.</li>
+        <li><span class="cma-tool__strong">Reset + pipeline</span> — <code>git checkout -- .</code> (tenzij <code>DEPLOY_NO_RESET=1</code>) gevolgd door de <code>;</code>-gescheiden <code>DEPLOY_PIPELINE</code> (default: <code>git pull --ff-only origin {branch}</code>; <code>{branch}</code> wordt ingevuld).</li>
+        <li><span class="cma-tool__strong">Composer update</span> — <code>composer update &lt;DEPLOY_COMPOSER_UPDATE&gt; --no-dev --optimize-autoloader</code> zodat het platform-package mee-loopt. Composer-binary wordt over meerdere bekende paden geprobeerd (app-pool-identity heeft het zelden op PATH).</li>
+        <li><span class="cma-tool__strong">Test-gate</span> — als <code>DEPLOY_RUN_TESTS</code> gezet is draait dat NA pull/composer en VÓÓR recycle. Non-zero exit → deploy <code>FAILED</code>, geen recycle, geen post-hook: productie blijft op de oude code.</li>
+        <li><span class="cma-tool__strong">Recycle</span> — touch op <code>DEPLOY_RECYCLE_TOUCH</code> (default <code>web.config</code>) om de IIS app-pool te recyclen.</li>
+        <li><span class="cma-tool__strong">Health-check + post-hook</span> — best-effort <code>/cma/</code>-sync-check (<code>DeployHealth</code>) en het project-side <code>deploy_post.php</code> (cache-flushes, migraties) — alleen bij succes en alleen als <code>vendor/autoload.php</code> bestaat, zodat de hatch zelfstandig blijft.</li>
+        <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
     </ol>
 
     <h2>Deploy-log bekijken</h2>
@@ -1013,11 +1017,16 @@ function render_doc_deployment(): void
         </tbody>
     </table>
     <p>Actief env-bestand op deze site: <code><?= htmlspecialchars((string)($GLOBALS['_env_file'] ?? '.env')) ?></code>.</p>
+    <p class="docs-meta">Alle bovenstaande variabelen worden door <code>/deploy.php</code> gelezen uit het eerst-bestaande <code>.env.production</code> / <code>.env.acceptance</code> / <code>.env.test</code> / <code>.env.local</code> / <code>.env</code> naast het bestand (inline-parser, geen phpdotenv). Extra schakelaars: <code>DEPLOY_NO_RESET=1</code> (sla de pre-pull <code>git checkout -- .</code> over), <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code> (sla de pre-pull recycle over), <code>DEPLOY_SITE_ROOT</code> (git working tree), <code>DEPLOY_ALERT_EMAIL</code> (best-effort <code>mail()</code> bij FAILED).</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Migratie (v1.22.0):</span> <code>/deploy.php</code> is nu het enige webhook-endpoint. De oude <code>cma/tools/deploy_webhook.php</code> (framework) én <code>cma/tools/deploy_webhook_standalone.php</code> zijn vervallen; de Installer verwijdert ze bij <code>composer update</code> (<code>REMOVED_PATHS</code>). <span class="cma-tool__strong">Her-richt elke GitHub-webhook die nog op één van die oude URLs staat naar <code>/deploy.php</code></span> — anders krijgt die 404 na de update.
+    </div>
 
     <h2>GitHub-webhook instellen</h2>
     <ol>
         <li>GitHub repo → Settings → Webhooks → Add webhook.</li>
-        <li>Payload URL: <code>https://&lt;host&gt;/cma/tools/deploy_webhook_standalone.php</code></li>
+        <li>Payload URL: <code>https://&lt;host&gt;/deploy.php</code></li>
         <li>Content type: <code>application/json</code></li>
         <li>Secret: zelfde waarde als <code>DEPLOY_SECRET</code> in <code>.env</code>.</li>
         <li>Events: alleen "Push" events.</li>
