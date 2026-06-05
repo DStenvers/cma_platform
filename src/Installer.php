@@ -57,6 +57,26 @@ class Installer
     ];
 
     /**
+     * Platform-owned files copied to the project root and ALWAYS overwritten
+     * (unlike TEMPLATE_FILES, which are copy-if-absent). Use this for shared
+     * ops/tooling that must stay in lock-step with the platform AND must live
+     * at the site root rather than inside the gitignored /cma/ tree.
+     *
+     * deploy.php + deploy_status.php are the deploy recovery hatch + its
+     * status endpoint: git-tracked root files that survive a broken /cma/
+     * sync (the failure that historically stranded deploys, because the old
+     * webhook lived under /cma/tools/). Consumers commit them; this keeps
+     * them current on every `composer update`. See DeployHealth + the
+     * templates/deploy*.php.template headers.
+     *
+     * Map of: <template under templates/> => <target relative to site root>.
+     */
+    private const ROOT_SYNCED_FILES = [
+        'deploy.php.template'        => 'deploy.php',
+        'deploy_status.php.template' => 'deploy_status.php',
+    ];
+
+    /**
      * Template files that are copied to the project root only if they don't exist.
      * These are one-time setup files.
      */
@@ -144,6 +164,17 @@ class Installer
                 if (file_exists($src) && !file_exists($dest)) {
                     self::copyFile($src, $dest);
                     $io->write("  - created $target (from template)");
+                }
+            }
+
+            // 5a. Root-synced ops files — ALWAYS overwritten so platform
+            //     fixes to the deploy recovery hatch reach every consumer.
+            foreach (self::ROOT_SYNCED_FILES as $template => $target) {
+                $src  = $templatesDir . '/' . $template;
+                $dest = $projectRoot . '/' . $target;
+                if (file_exists($src)) {
+                    self::copyFile($src, $dest);
+                    $io->write("  - synced $target (root ops file)");
                 }
             }
         }

@@ -305,6 +305,20 @@ class DeployWebhook
             $out .= "=== recycled app pool (touched web.config) ===\n";
         }
 
+        // /cma/ sync health-check. composer install (above) re-syncs
+        // /cma/ via Installer::postInstall; verify it actually landed and
+        // alert loudly if not. A broken /cma/ is serious (no admin) but
+        // doesn't break the public site, so we DON'T flip $failed — the
+        // app pool still recycles into otherwise-good code. The check
+        // logs to deploy.log + emails the admin (best-effort).
+        if (!$failed && class_exists(DeployHealth::class)) {
+            try {
+                DeployHealth::cmaSyncCheck($cfg['site_root'], ['log_file' => $cfg['log_file']]);
+            } catch (\Throwable $e) {
+                $log('WARN: DeployHealth::cmaSyncCheck threw ' . get_class($e) . ': ' . $e->getMessage());
+            }
+        }
+
         // Project-side post-deploy hook.  If <site_root>/deploy_post.php
         // exists we require it once the platform-side deploy has
         // succeeded — typical use cases: project-local cache flushes

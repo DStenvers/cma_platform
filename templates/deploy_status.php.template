@@ -1,0 +1,145 @@
+<?php
+/**
+ * deploy_status.php — read-only JSON summary of the last deploy run,
+ * read from <site-root>/logs/deploy.log.
+ *
+ * THIS FILE IS PROVISIONED BY stenversonline/platform (Installer.php) and
+ * overwritten on every `composer update stenversonline/platform` — edit
+ * templates/deploy_status.php.template in the platform repo. Commit it to
+ * your consumer repo so a plain `git pull` keeps it alive.
+ *
+ * It is the SITE-ROOT twin of cma/tools/deploy_status.php, which lives
+ * inside the gitignored, composer-synced /cma/ tree — exactly what goes
+ * 404 during a botched deploy, taking that status endpoint down right when
+ * you need it. This file is git-tracked at the root and depends on nothing
+ * but standard PHP, so `curl https://<host>/deploy_status.php | jq` answers
+ * even when /cma/, vendor/, and URL Rewrite are all broken. Pairs with the
+ * root recovery-hatch deploy.php.
+ *
+ * Auth: NONE. status + commit-SHA + branch + timestamp aren't sensitive
+ * (commit-SHAs + branch names are public git history; deploy-state is
+ * observable by hitting the site). log_tail is pipeline output (git pull /
+ * composer) which by convention carries no secrets.
+ *
+ * Parses BOTH on-disk log formats, whichever wrote last:
+ *   1. Root deploy.php ........ "[ts] [self] START: deploy <c> on branch <b>"
+ *                               "[ts] [self] OK|FAIL: deploy <c>"
+ *   2. DeployWebhook banners .. "deploy started: <ts> <b> (commit <c> ...)"
+ *                               "deploy ended:   <ts> <b> (commit <c>, OK|FAILED)"
+ *
+ * Failure modes:
+ *   404  — deploy.log not found
+ *   200  — {"ok": false, "error": "no completed deploy in log"}
+ */
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+
+$logFile = __DIR__ . '/logs/deploy.log';
+
+if (!is_file($logFile)) {
+    http_response_code(404);
+    echo json_encode(['ok' => false, 'error' => 'deploy.log not found', 'path' => $logFile]);
+    return;
+}
+
+// Read last ~16KB — plenty for one deploy run + a useful tail.
+$size      = filesize($logFile) ?: 0;
+$chunkSize = (int)min($size, 16 * 1024);
+$tail      = '';
+if ($chunkSize > 0) {
+    $fh = @fopen($logFile, 'rb');
+    if ($fh) {
+        @fseek($fh, -$chunkSize, SEEK_END);
+        $tail = (string)stream_get_contents($fh);
+        @fclose($fh);
+    }
+}
+$lines = preg_split('/\r?\n/', $tail) ?: [];
+
+// Walk backwards collecting the most recent end + start markers, accepting
+// either log dialect. Normalise FAIL → FAILED so the output status word is
+// the same regardless of which webhook produced the line.
+$endedAt = null; $endedStatus = null; $endedBranch = null; $endedCommit = null;
+$startedAt = null; $startedBranch = null; $startedCommit = null;
+
+foreach (array_reverse($lines) as $line) {
+    // --- end markers ---
+    if ($endedAt === null
+        && preg_match('/^\[([\d-]+ [\d:]+)\] \[self\] (OK|FAIL): deploy (\S+)/', $line, $m)) {
+        $endedAt     = $m[1];
+        $endedStatus = $m[2] === 'OK' ? 'OK' : 'FAILED';
+        $endedCommit = $m[3];
+        continue;
+    }
+    if ($endedAt === null
+        && preg_match('/^deploy ended:\s+(\S+ \S+)\s+(\S+)\s+\(commit\s+(\S+),\s+(OK|FAILED)\)/', $line, $m)) {
+        $endedAt     = $m[1];
+        $endedBranch = $m[2];
+        $endedCommit = $m[3];
+        $endedStatus = $m[4];
+        continue;
+    }
+
+    // --- start markers ---
+    if (preg_match('/^\[([\d-]+ [\d:]+)\] \[self\] START: deploy (\S+) on branch (\S+)/', $line, $m)) {
+        $startedAt     = $m[1];
+        $startedCommit = $m[2];
+        $startedBranch = $m[3];
+        if ($endedAt === null || $startedCommit !== $endedCommit) { break; }
+        continue;
+    }
+    if (preg_match('/^deploy started:\s+(\S+ \S+)\s+(\S+)\s+\(commit\s+(\S+)/', $line, $m)) {
+        $startedAt     = $m[1];
+        $startedBranch = $m[2];
+        $startedCommit = $m[3];
+        if ($endedAt === null || $startedCommit !== $endedCommit) { break; }
+        continue;
+    }
+}
+
+$result = ['ok' => true, 'log_tail' => implode("\n", array_slice($lines, -40))];
+$now = time();
+
+// In-progress: a start newer than the latest end (or no end at all).
+$isRunning = false;
+if ($startedAt !== null) {
+    $startedTs = strtotime($startedAt) ?: 0;
+    $endedTs   = $endedAt !== null ? (strtotime($endedAt) ?: 0) : 0;
+    if ($endedAt === null || $startedTs > $endedTs) {
+        $isRunning = true;
+    }
+}
+
+if ($isRunning) {
+    $result['status']      = 'RUNNING';
+    $result['branch']      = $startedBranch;
+    $result['commit']      = $startedCommit;
+    $result['started_at']  = $startedAt;
+    $result['age_seconds'] = max(0, $now - ((int)strtotime((string)$startedAt) ?: $now));
+    $result['running']     = true;
+    echo json_encode($result);
+    return;
+}
+
+if ($endedAt === null) {
+    $result['ok']    = false;
+    $result['error'] = 'no completed deploy in log';
+    echo json_encode($result);
+    return;
+}
+
+$endedTs   = (int)strtotime($endedAt) ?: $now;
+$startedTs = ($startedAt !== null && $startedCommit === $endedCommit)
+    ? ((int)strtotime($startedAt) ?: $endedTs)
+    : $endedTs;
+
+$result['status']           = $endedStatus;
+$result['branch']           = $endedBranch ?? $startedBranch;
+$result['commit']           = $endedCommit;
+$result['ended_at']         = $endedAt;
+$result['duration_seconds'] = max(0, $endedTs - $startedTs);
+$result['age_seconds']      = max(0, $now - $endedTs);
+$result['running']          = false;
+
+echo json_encode($result);

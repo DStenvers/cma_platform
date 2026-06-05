@@ -1,0 +1,219 @@
+<?php
+/**
+ * deploy.php — site-root GitHub deploy webhook (the recovery hatch).
+ *
+ * THIS FILE IS PROVISIONED BY stenversonline/platform (Installer.php).
+ * It is overwritten on every `composer update stenversonline/platform`,
+ * so edit the source at templates/deploy.php.template in the platform
+ * repo — local edits here are lost. Commit it to your consumer repo so a
+ * plain `git pull` keeps it alive even when composer hasn't run.
+ *
+ * WHY A ROOT FILE: the normal webhook (cma/tools/deploy_webhook.php →
+ * App\Library\DeployWebhook::handle()) lives inside /cma/, which is
+ * gitignored and composer-synced. A botched `composer install` leaves
+ * /cma/ broken — 404'ing the very endpoint that would deploy the fix.
+ * This file sits at the site ROOT, is git-tracked, and depends on
+ * NOTHING inside vendor/, /cma/, or IIS URL Rewrite — so the next push
+ * always lands and repairs whatever broke. Point the GitHub webhook here:
+ *
+ *   Payload URL : https://<host>/deploy.php
+ *   Content type: application/json
+ *   Secret      : same value as DEPLOY_SECRET in the site-root .env
+ *   Events      : just the push event
+ *
+ * Configuration (site-root .env, inline-parsed — no phpdotenv dependency):
+ *   DEPLOY_SECRET   required; HMAC secret matching the GitHub webhook.
+ *   DEPLOY_BRANCH   branch to deploy (default: main).
+ *   DEPLOY_NO_RESET set to 1 to skip the pre-pull `git checkout -- .`.
+ */
+
+declare(strict_types=1);
+
+// ---------------------------------------------------------------------------
+// 0. Constants + tiny logger.
+// ---------------------------------------------------------------------------
+$ROOT    = __DIR__;
+$LOG_DIR = $ROOT . '/logs';
+if (!is_dir($LOG_DIR)) { @mkdir($LOG_DIR, 0755, true); }
+$LOG_FILE = $LOG_DIR . '/deploy.log';
+
+$log = static function (string $msg) use ($LOG_FILE): void {
+    @file_put_contents(
+        $LOG_FILE,
+        '[' . date('Y-m-d H:i:s') . '] [self] ' . $msg . "\n",
+        FILE_APPEND
+    );
+};
+
+// ---------------------------------------------------------------------------
+// 1. Inline .env reader. Just KEY=VALUE lines, comments allowed.
+// ---------------------------------------------------------------------------
+$env = [];
+$envFile = $ROOT . '/.env';
+if (is_file($envFile)) {
+    foreach ((array)file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) continue;
+        [$k, $v] = explode('=', $line, 2);
+        $env[trim($k)] = trim($v, " \t\"'");
+    }
+}
+$secret = (string)($env['DEPLOY_SECRET'] ?? getenv('DEPLOY_SECRET') ?: '');
+$branch = (string)($env['DEPLOY_BRANCH'] ?? getenv('DEPLOY_BRANCH') ?: 'main');
+
+if ($secret === '') {
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=utf-8');
+    $log('REJECT: DEPLOY_SECRET not configured');
+    echo "Deploy not configured (DEPLOY_SECRET missing in .env).\n";
+    return;
+}
+
+// ---------------------------------------------------------------------------
+// 2. Only POST.
+// ---------------------------------------------------------------------------
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "POST only.\n";
+    return;
+}
+
+// ---------------------------------------------------------------------------
+// 3. Verify HMAC against the raw payload.
+// ---------------------------------------------------------------------------
+$payload   = (string)file_get_contents('php://input');
+$signature = (string)($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+$expected  = 'sha256=' . hash_hmac('sha256', $payload, $secret);
+
+if (!hash_equals($expected, $signature)) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    $log('REJECT: signature mismatch from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+    echo "Bad signature.\n";
+    return;
+}
+
+// ---------------------------------------------------------------------------
+// 4. Branch filter.
+// ---------------------------------------------------------------------------
+$body   = json_decode($payload, true);
+$ref    = is_array($body) ? (string)($body['ref'] ?? '') : '';
+$commit = is_array($body) ? substr((string)($body['after'] ?? 'unknown'), 0, 12) : 'unknown';
+
+if ($ref !== "refs/heads/$branch") {
+    http_response_code(202);
+    header('Content-Type: text/plain; charset=utf-8');
+    $log("SKIP: $ref != refs/heads/$branch");
+    echo "Skipped: $ref != refs/heads/$branch\n";
+    return;
+}
+
+// ---------------------------------------------------------------------------
+// 5. Reply 202 to GitHub immediately, then continue work async.
+//    GitHub's webhook delivery times out long before composer finishes.
+// ---------------------------------------------------------------------------
+http_response_code(202);
+header('Content-Type: text/plain; charset=utf-8');
+echo "Deploy started: $commit\n";
+if (function_exists('fastcgi_finish_request')) {
+    @fastcgi_finish_request();
+}
+ignore_user_abort(true);
+@set_time_limit(300);
+
+$log("START: deploy $commit on branch $branch");
+
+// ---------------------------------------------------------------------------
+// 6. Run steps. Each via exec() so neither git nor composer needs PHP to
+//    know anything about them. cmd /c "cd /d <root> && <cmd>" avoids
+//    chdir() side-effects.
+// ---------------------------------------------------------------------------
+$run = static function (string $cmd) use ($ROOT, $log): int {
+    $log("RUN: $cmd");
+    $output = [];
+    $exit   = 0;
+    @exec('cmd /c "cd /d "' . $ROOT . '" && ' . $cmd . ' 2>&1"', $output, $exit);
+    $text = implode("\n", $output);
+    $log("EXIT: $exit\n--- output ---\n$text\n--- end ---");
+    return $exit;
+};
+
+// 6a. Resolve composer — the app-pool identity doesn't share the
+//     interactive PATH on Windows IIS, so probe known locations.
+$composer = null;
+foreach ([
+    'composer',                                          // PATH
+    '"C:\ProgramData\ComposerSetup\bin\composer.bat"',   // standard installer
+    '"C:\composer\composer.bat"',                        // common manual
+    '"C:\composer\composer.phar"',
+    'php "' . $ROOT . '\composer.phar"',                 // last resort: phar in site root
+] as $candidate) {
+    $probe = [];
+    $exit  = 0;
+    @exec('cmd /c "' . $candidate . ' --version" 2>&1', $probe, $exit);
+    if ($exit === 0) { $composer = $candidate; break; }
+}
+if ($composer === null) {
+    $log('FAIL: no composer found (PATH / C:\ProgramData\ComposerSetup\ / C:\composer\ / composer.phar)');
+    $log("FAIL: deploy $commit");
+    return;
+}
+$log("composer = $composer");
+
+$failed = false;
+
+// Discard local edits to tracked files BEFORE pulling — `composer install`
+// can mutate composer.lock for dev-* deps, blocking the NEXT deploy's
+// ff-only pull. Opt out with DEPLOY_NO_RESET=1. Untracked files (logs,
+// uploads, cache) are NOT touched by `checkout -- .`.
+if (($env['DEPLOY_NO_RESET'] ?? getenv('DEPLOY_NO_RESET') ?: '') !== '1') {
+    $run('git checkout -- .');
+}
+
+if ($run('git pull --ff-only origin ' . escapeshellarg($branch)) !== 0) {
+    $failed = true;
+}
+
+if (!$failed && $run($composer . ' install --no-dev --optimize-autoloader --no-interaction') !== 0) {
+    $failed = true;
+}
+
+if (!$failed) {
+    @touch($ROOT . '/web.config');
+    $log('RECYCLE: web.config touched');
+}
+
+// 6b. Project-side post-deploy hook — same convention the platform
+//     DeployWebhook uses, so project cache flushes / migrations run
+//     whether GitHub hits the normal endpoint or this recovery one.
+if (!$failed) {
+    $autoload = $ROOT . '/vendor/autoload.php';
+    if (is_file($autoload)) { require_once $autoload; }
+
+    $hookFile = $ROOT . '/deploy_post.php';
+    if (is_file($hookFile)) {
+        $log('RUN: deploy_post.php');
+        try {
+            require $hookFile;
+            $log('OK: deploy_post.php');
+        } catch (\Throwable $e) {
+            $log('WARN: deploy_post.php threw ' . get_class($e) . ': ' . $e->getMessage());
+        }
+    }
+
+    // 6c. /cma/ sync health-check (best-effort — needs the autoload above).
+    //     composer install just re-synced /cma/; verify it landed and
+    //     alert loudly if not. On the recovery path there's usually no
+    //     SMTP/app context, so the deploy.log line is the alert of record
+    //     (visible via deploy_status.php even while /cma/ is down).
+    if (class_exists(\App\Library\DeployHealth::class)) {
+        try {
+            \App\Library\DeployHealth::cmaSyncCheck($ROOT, ['log_file' => $LOG_FILE]);
+        } catch (\Throwable $e) {
+            $log('WARN: DeployHealth threw ' . $e->getMessage());
+        }
+    }
+}
+
+$log($failed ? "FAIL: deploy $commit" : "OK: deploy $commit");
