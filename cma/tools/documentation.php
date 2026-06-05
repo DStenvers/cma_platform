@@ -714,7 +714,7 @@ function render_doc_overview(): void
         <tbody>
             <tr><td><a href="documentation.php?topic=installation"><span class="lnr lnr-download"></span> Installatie</a></td><td>Nieuwe site opzetten: composer, file-rechten, _bootstrap.php template chain.</td></tr>
             <tr><td><a href="documentation.php?topic=environment"><span class="lnr lnr-cog"></span> Omgeving &amp; .env</a></td><td>APP_ENVIRONMENT, file-pick volgorde, omgeving-codes en de env-wissel knop.</td></tr>
-            <tr><td><a href="documentation.php?topic=deployment"><span class="lnr lnr-rocket"></span> Deployment</a></td><td>Hoe de deploy_webhook werkt, alle DEPLOY_* env-vars, link naar deploy-log.</td></tr>
+            <tr><td><a href="documentation.php?topic=deployment"><span class="lnr lnr-rocket"></span> Deployment</a></td><td>Hoe <code>/deploy.php</code> werkt, alle DEPLOY_* env-vars, link naar deploy-log.</td></tr>
             <tr><td><a href="documentation.php?topic=backups"><span class="lnr lnr-database"></span> Backups &amp; herstel</a></td><td>BackupService, waar backups leven, SQLite emergency-recovery.</td></tr>
             <tr><td><a href="documentation.php?topic=logs"><span class="lnr lnr-list"></span> Logs &amp; monitoring</a></td><td>Welke log waar ligt, logreader, cmamonitoring, retentie.</td></tr>
             <tr><td><a href="documentation.php?topic=security"><span class="lnr lnr-lock"></span> Beveiliging</a></td><td>Secrets, sessie-cookies, geblokkeerde extensies, hiddenSegments.</td></tr>
