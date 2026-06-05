@@ -234,3 +234,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > yes please fi it
 
 > please retire it
+
+> /deploy_status.php - can we have it check the configuration and if needed ask for missing information and add it to the configuration file where it was missing from?

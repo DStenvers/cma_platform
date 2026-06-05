@@ -56,6 +56,8 @@ $toolNameMap = [
     'backup' => 'tools/tools_backup.php',
     'restore' => 'tools/tools_backup.php?tab=manage',
     'migrations' => 'tools/tools_migrations.php',
+    'deploy_setup' => 'tools/tools_deploy_setup.php',
+    'deploysetup' => 'tools/tools_deploy_setup.php',
     'query' => 'tools/tools_query.php',
     'sql' => 'tools/tools_query.php',
     'formwiz' => 'tools/tools_formwiz.php',
@@ -596,6 +598,7 @@ function buildToolsTreeData(bool $isDeveloper): array
                 ['type' => 'item', 'label' => 'CMA menu', 'href' => 'form.php?form=_menus', 'target' => 'R', 'icon' => 'lnr-menu'],
                 ['type' => 'item', 'label' => 'Formulierdefinities', 'href' => 'tools/tools_formedit.php', 'target' => 'R', 'icon' => 'lnr-file-empty'],
                 ['type' => 'item', 'label' => 'CMA definitie sync', 'href' => 'tools/tools_db_sync.php', 'target' => 'R', 'icon' => 'lnr-sync'],
+                ['type' => 'item', 'label' => 'Deploy setup', 'href' => 'tools/tools_deploy_setup.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                 ['type' => 'folder', 'label' => 'Testen', 'icon' => 'lnr-checkmark-circle', 'children' => [
                     ['type' => 'item', 'label' => 'Cypress browsertests', 'href' => 'tools/tools_testrunner.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                     ['type' => 'item', 'label' => 'PHP unit tests', 'href' => 'tools/tools_phpunit.php', 'target' => 'R', 'icon' => 'lnr-checkmark-circle'],

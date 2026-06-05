@@ -1951,3 +1951,10 @@ body.backup #c.tools {
 .cma-wc__em,
 .cma-wizard__em,
 .storybook__em { font-style: italic; }
+
+/* Deploy-setup tool: muted hint text under form fields / tables. */
+.cma-tool__hint {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm, 0.875em);
+    margin-top: 4px;
+}

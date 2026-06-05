@@ -987,6 +987,25 @@ function render_doc_deployment(): void
         <li>HTTP <code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log-bestand bestaat wel maar er staat nog geen banner-bracketed run in.</li>
     </ul>
 
+    <h3>Config self-check (sinds v1.23.0)</h3>
+    <p><code>?config=1</code> geeft een read-only diagnose van de deploy-configuratie terug — <span class="cma-tool__strong">wat</span> ontbreekt, nooit de waardes (<code>DEPLOY_SECRET</code> is enkel ja/nee) en zonder iets te schrijven. Handig vóór de eerste deploy, ook als <code>logs/deploy.log</code> nog niet bestaat.</p>
+    <pre><code>curl 'https://&lt;host&gt;/deploy_status.php?config=1'
+{
+    "ok": true,
+    "config": {
+        "env_file":      ".env.local",   // welk .env-bestand is gelezen (null = geen)
+        "deploy_secret": true,           // alleen aanwezig-ja/nee, nooit de waarde
+        "deploy_branch": "main",
+        "alert_email":   false,
+        "logs_writable": true,
+        "git":           true,
+        "composer":      true,
+        "missing":       [],             // ontbrekende verplichte items
+        "ok":            true
+    }
+}</code></pre>
+    <p>De waardes invullen doe je via de developer-only tool <span class="cma-tool__strong">Tools → Developer → Deploy setup</span> (<code>tools/tools_deploy_setup.php</code>): die toont dezelfde status, genereert een <code>DEPLOY_SECRET</code>-suggestie als er nog geen is, en schrijft de ingevulde <code>DEPLOY_*</code>-keys naar het actieve <code>.env</code>-bestand (eerst-bestaande van <code>.env.production</code>…<code>.env</code>). Bewust gescheiden: het publieke status-endpoint mag geen secrets innemen of config schrijven; dat hoort achter authenticatie.</p>
+
     <h3>Triage-flow</h3>
     <ol>
         <li>Curl het endpoint. Krijg je een netwerkfout of HTML in plaats van JSON, dan is de site down of <code>web.config</code> stuk — fix dat eerst.</li>
