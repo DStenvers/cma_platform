@@ -228,3 +228,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > i have repointed karaat. mijn rino and mijntoprecepten
 
 > make sure /deploy.php is the one and only and most extended version, harden it and make it scream loud if an error occured. then we can safely remove the older version
+
+> are the cariables (HTTP_X_ORIGINAL_FILE, HTTP_X_TOOL_NAME still being used?
+
+> yes please fi it

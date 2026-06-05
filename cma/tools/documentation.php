@@ -776,7 +776,8 @@ function render_doc_installation(): void
     </ul>
 
     <h2>Server-level: server variables ontgrendelen</h2>
-    <p>De <code>cma/web.config</code> gebruikt custom server variables (<code>HTTP_X_ORIGINAL_FILE</code>, <code>HTTP_X_TOOL_NAME</code>) voor URL rewriting. IIS lockt deze sectie standaard op server-niveau af. Eenmalig als Administrator uitvoeren:</p>
+    <p>De <span class="cma-tool__strong">site-root</span> <code>web.config</code> (uit <code>web.config.template</code>) zet custom server variables (<code>HTTP_X_ORIGINAL_FILE</code>, <code>HTTP_X_TOOL_NAME</code>) in z'n friendly-URL rewrites — die rewrites routen via <code>_bootstrap_wrapper.php</code> dat de variabele weer uitleest. IIS lockt de <code>allowedServerVariables</code>-sectie standaard op server-niveau af, dus eenmalig als Administrator uitvoeren:</p>
+    <p class="docs-meta"><code>cma/web.config</code> zelf gebruikt deze variabelen <span class="cma-tool__strong">niet</span> (meer) — die rewrites gaan rechtstreeks naar <code>cma/main.php?page=…</code> zonder server-variabelen, zodat <code>/cma</code>-routing werkt zonder deze unlock. De unlock is dus alleen nodig voor de routing van de consumer-app zelf in de parent <code>web.config</code>.</p>
     <pre><code>%windir%\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/rewrite/allowedServerVariables</code></pre>
     <p>Symptoom als dit niet gebeurd is:</p>
     <pre><code>Deze configuratiesectie kan niet worden gebruikt voor dit pad.
@@ -1326,7 +1327,7 @@ function render_doc_iis_config(): void
     <h2>cma/web.config in detail</h2>
     <p>De platform-side web.config doet drie dingen:</p>
     <ol>
-        <li><span class="cma-tool__strong">Friendly-URL rewrites</span>: <code>^dashboard/?$</code>, <code>^preferences/?$</code>, <code>^tools/?$</code>, <code>^form/&lt;...&gt;</code> → <code>_bootstrap_wrapper.php?page=&lt;target&gt;.php</code>. Bewaart <code>HTTP_X_ORIGINAL_FILE</code> als server-variable zodat <code>main.php</code> weet welke pagina geladen werd.</li>
+        <li><span class="cma-tool__strong">Friendly-URL rewrites</span>: <code>^dashboard/?$</code>, <code>^preferences/?$</code>, <code>^tools/?$</code>, <code>^form/&lt;...&gt;</code> → <code>cma/main.php?page=&lt;target&gt;.php</code> (met <code>appendQueryString="true"</code>). <code>main.php</code> bootstrapt zichzelf. Bewust <span class="cma-tool__strong">geen</span> <code>HTTP_X_ORIGINAL_FILE</code>/server-variabele meer: een rewrite die een niet-toegestane server-variabele zet faalt stil → 404, dus zonder die variabele werkt <code>/cma</code>-routing op elke server zonder <code>allowedServerVariables</code>-unlock.</li>
         <li><span class="cma-tool__strong">Default document</span>: <code>default.php</code> en <code>index.php</code>.</li>
         <li><span class="cma-tool__strong">404 handler</span>: <code>/cma/404.php</code> via <code>responseMode="ExecuteURL"</code>. <code>existingResponse="Auto"</code> — alleen het custom 404-pagina laden als de app niks gerendered heeft. NOOIT <code>existingResponse="Replace"</code> gebruiken — dat triggert een infinite-loop wanneer 404.php zelf een 404-status terugstuurt.</li>
     </ol>
