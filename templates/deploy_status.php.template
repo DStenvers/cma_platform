@@ -30,9 +30,17 @@
  *                               "[ts] [self] OK|FAIL: deploy <c>"
  *      (kept so older deploy.log tails still parse)
  *
+ * `ok` reflects deploy HEALTH: true only when the last deploy ended OK (or is
+ * still RUNNING). A FAILED deploy returns {"ok": false, "status": "FAILED", ...}
+ * with NO `error` field. Transport problems also return ok=false but DO carry an
+ * `error` field — so: error present = endpoint problem; status=FAILED = the
+ * deploy itself failed.
+ *
  * Failure modes:
- *   404  — deploy.log not found
+ *   404  — {"ok": false, "error": "deploy.log not found"}
+ *   500  — {"ok": false, "error": "log file unreadable"}
  *   200  — {"ok": false, "error": "no completed deploy in log"}
+ *   200  — {"ok": false, "status": "FAILED", ...}  (last deploy failed)
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -220,6 +228,11 @@ $startedTs = ($startedAt !== null && $startedCommit === $endedCommit)
     ? ((int)strtotime($startedAt) ?: $endedTs)
     : $endedTs;
 
+// `ok` reflects deploy HEALTH, not just "log parsed": a FAILED deploy returns
+// ok=false. Transport problems (404/500 above) also return ok=false but carry
+// an `error` field — so a consumer tells them apart by: error present =
+// endpoint problem; status=FAILED (no error) = the deploy itself failed.
+$result['ok']               = ($endedStatus === 'OK');
 $result['status']           = $endedStatus;
 $result['branch']           = $endedBranch ?? $startedBranch;
 $result['commit']           = $endedCommit;

@@ -250,3 +250,9 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > the deploy_status.php says: REJECT: DEPLOY_SECRET not configured , but i want to know which .env file is being used, can you include that?
 
 > who creates the deploy.php and deploy_status.php? On a consumer site i also see deploy_post.php
+
+> I want the cma_platform to manage these files. Now each site has their own and that is harder to maintain
+
+> look into the version of the mijntoprecepten repo and use that as the latest version, be critical: review the files
+
+> please analyse: [deploy_status.php JSON pasted] : it has an error but ok=true, that feels wrong

@@ -980,8 +980,10 @@ function render_doc_deployment(): void
     "log_tail":         "...laatste 40 regels van deploy.log..."
 }
 </code></pre>
+    <p><code>ok</code> weerspiegelt de deploy-<span class="cma-tool__strong">gezondheid</span>, niet alleen "log geparsed": een mislukte deploy geeft <code>{"ok": false, "status": "FAILED", …}</code> <span class="cma-tool__strong">zonder</span> <code>error</code>-veld. Transport-problemen geven óók <code>ok:false</code> maar mét een <code>error</code>-veld. Onderscheid dus: <code>error</code> aanwezig = endpoint-probleem; <code>status: "FAILED"</code> = de deploy zelf is mislukt. (Sinds v1.23.3; daarvoor gaf een FAILED-deploy verwarrend <code>ok:true</code>.)</p>
     <p>Foutgevallen:</p>
     <ul>
+        <li>HTTP <code>200</code> met <code>{"ok": false, "status": "FAILED", …}</code> — de laatste deploy is mislukt; <code>log_tail</code> toont de omgevallen stap (geen <code>error</code>-veld — dat is voor endpoint-problemen).</li>
         <li>HTTP <code>404</code> met <code>{"ok": false, "error": "deploy.log not found", "path": "..."}</code> — de webhook heeft nog nooit op deze site gedraaid, of de <code>logs/</code> directory bestaat niet.</li>
         <li>HTTP <code>500</code> met <code>{"ok": false, "error": "log file unreadable", "path": "..."}</code> — <span class="cma-tool__strong">sinds v1.19.6</span>: bestand bestaat maar is niet leesbaar (permissies of lock). Pre-v1.19.6 viel deze case stilletjes door en eindigde als "no completed deploy" — wat de operator de verkeerde kant op stuurde.</li>
         <li>HTTP <code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log-bestand bestaat wel maar er staat nog geen banner-bracketed run in.</li>
