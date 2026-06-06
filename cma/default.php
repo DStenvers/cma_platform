@@ -21,7 +21,10 @@ $menuStyle = Cookie::get('cma_menu_style', $appMenuStyle);
 // sidebar = vertical sidebar on left
 // classic = horizontal tabs at top
 if (SecurityHelper::isLoggedIn()) {
-    header('Location: /cma/dashboard');
+    // Land on the main.php shell directly (it defaults to the dashboard) rather
+    // than the /cma/dashboard friendly-URL, which only resolves when URL
+    // Rewrite is working. main.php always loads.
+    header('Location: /cma/main.php');
     exit;
 }
 

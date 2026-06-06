@@ -202,7 +202,7 @@ function loginAsUser($conn, $targetUserId, $targetUser, $currentUserId, $current
         'success' => true,
         'message' => 'Je bent nu ingelogd als ' . htmlspecialchars($targetUser['userFullName']),
         'note' => 'Gebruik "Terugkeren naar eigen account" in het menu om terug te keren.',
-        'redirect' => '/cma/dashboard',
+        'redirect' => '/cma/main.php',
     ]);
 }
 
@@ -240,7 +240,7 @@ function returnToSelf($conn) {
     Response::json([
         'success' => true,
         'message' => 'Je bent teruggekeerd naar je eigen account.',
-        'redirect' => '/cma/dashboard',
+        'redirect' => '/cma/main.php',
     ]);
 }
 

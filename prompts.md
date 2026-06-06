@@ -262,3 +262,9 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > the migration should be aware it has failed, and how do we solve this?
 
 > cma/tools.php?tool=deploy_setup -> de documentatie over git webhooks iets fraaier vormgeven en met uitleg waar nodig
+
+> if i delete a menu from a submenuitem the list is not refreshed
+
+> after a login don't load /dashboard or /dashboard..php but main.php
+
+> give the tools and report lists a search as you type searchfield in the toolbar
