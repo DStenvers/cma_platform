@@ -31,9 +31,12 @@ if (!SecurityHelper::isDeveloper()) {
 
 $siteRoot = dirname(__DIR__, 2);
 
-// Resolve the active env file (same precedence as Bootstrap / deploy.php).
+// Resolve the active env file (same .env-first precedence as Bootstrap /
+// deploy.php). Writing to the SAME file the app reads is the whole point —
+// .env first so the secret never lands in a stale legacy .env.production while
+// the app runs off .env.
 $activeEnv = null;
-foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env'] as $cand) {
+foreach (['.env', '.env.production', '.env.acceptance', '.env.test', '.env.local'] as $cand) {
     if (is_file($siteRoot . '/' . $cand)) { $activeEnv = $cand; break; }
 }
 $targetEnv  = $activeEnv ?? '.env'; // create .env if the site has none yet

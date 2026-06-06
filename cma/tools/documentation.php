@@ -502,25 +502,22 @@ function cma_doc_check_child_404_handler(): array {
 function cma_doc_check_env_file(): array {
     $label = 'Actief .env-bestand';
     $root  = cma_doc_site_root();
-    $appEnv = (string)($_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? '');
-    $map = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
+    $legacy = ['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env.development'];
 
     // Prefer the file the bootstrap actually loaded. If that global wasn't
-    // exposed (or is the bare default), re-derive the active file the SAME
-    // way Bootstrap::detectAndLoadEnv does — APP_ENVIRONMENT-pick first, else
-    // first-existing in L→O→T→A→P order. Without this the check falsely
-    // reported ".env ontbreekt ... unset APP_ENVIRONMENT" on sites that
-    // correctly run on .env.local with no plain .env present.
+    // exposed, re-derive it the SAME way Bootstrap::detectAndLoadEnv does in
+    // the single-.env model: a plain .env wins; otherwise the first-existing
+    // legacy per-environment file (kept only as fallback for un-migrated boxes).
     $envName = (string)($GLOBALS['_env_file'] ?? '');
-    if ($envName === '' || $envName === '.env') {
-        if ($appEnv !== '' && isset($map[$appEnv]) && is_file($root . '/' . $map[$appEnv])) {
-            $envName = $map[$appEnv];
+    if ($envName === '') {
+        if (is_file($root . '/.env')) {
+            $envName = '.env';
         } else {
-            foreach (['L', 'O', 'T', 'A', 'P'] as $code) {
-                if (is_file($root . '/' . $map[$code])) { $envName = $map[$code]; break; }
+            foreach ($legacy as $cand) {
+                if (is_file($root . '/' . $cand)) { $envName = $cand; break; }
             }
+            if ($envName === '') { $envName = '.env'; } // genuine fallback
         }
-        if ($envName === '') { $envName = '.env'; } // genuine fallback
     }
 
     $envPath = $root . '/' . $envName;
@@ -530,26 +527,21 @@ function cma_doc_check_env_file(): array {
     if (is_file($envPath)) {
         return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> bestaat maar is niet leesbaar voor de IIS-user.', 'fix' => 'Geef leesrechten aan de application-pool identity.'];
     }
-    // Nothing found at all. Only mention APP_ENVIRONMENT when it's actually set
-    // (it forces a specific file); otherwise auto-detect just found no file.
-    $fix = $appEnv !== ''
-        ? 'Maak <code>' . htmlspecialchars($envName) . '</code> aan (kopieer uit <code>.env.template</code>) of unset <code>APP_ENVIRONMENT</code>.'
-        : 'Maak een env-bestand aan (bv. <code>.env.local</code>), kopieer uit <code>.env.template</code>.';
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Geen env-bestand gevonden op <code>' . htmlspecialchars($root) . '</code> (gezocht: <code>.env.local</code>, <code>.env.development</code>, <code>.env.test</code>, <code>.env.acceptance</code>, <code>.env.production</code>, <code>.env</code>).', 'fix' => $fix];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Geen env-bestand gevonden op <code>' . htmlspecialchars($root) . '</code> (gezocht: <code>.env</code>, dan legacy <code>.env.production</code>/<code>.env.acceptance</code>/<code>.env.test</code>/<code>.env.local</code>).', 'fix' => 'Maak een <code>.env</code> aan op de site-root (kopieer uit <code>.env.example</code>).'];
 }
 
 function cma_doc_check_app_environment_match(): array {
-    $label = 'APP_ENVIRONMENT vs. actief .env-bestand';
+    // Single-.env model: APP_ENVIRONMENT is a variable INSIDE the loaded file,
+    // not a file selector — so there's no file to "match" anymore. Just report
+    // the resolved value and which file it came from.
+    $label = 'APP_ENVIRONMENT';
     $envName = (string)($GLOBALS['_env_file'] ?? '.env');
     $appEnv  = (string)($GLOBALS['_app_env'] ?? '');
-    $expected = ['L' => '.env.local', 'O' => '.env.development', 'T' => '.env.test', 'A' => '.env.acceptance', 'P' => '.env.production'];
-    if ($appEnv === '' || !isset($expected[$appEnv])) {
-        return ['label' => $label, 'status' => 'info', 'detail' => 'Auto-detect actief (<code>APP_ENVIRONMENT</code> niet gezet). Gebruikt: <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => ''];
+    if ($appEnv === '' || $appEnv === 'P') {
+        $shown = $appEnv === '' ? 'niet gezet → aangenomen P (productie)' : 'P (productie)';
+        return ['label' => $label, 'status' => 'info', 'detail' => '<code>' . htmlspecialchars($shown) . '</code>, gelezen uit <code>' . htmlspecialchars($envName) . '</code>. Errors staan UIT op de pagina (wel gelogd; forceer met <code>FORCE_DEBUG=1</code>).', 'fix' => ''];
     }
-    if ($envName === $expected[$appEnv]) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> ↔ <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => ''];
-    }
-    return ['label' => $label, 'status' => 'warn', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> verwacht <code>' . htmlspecialchars($expected[$appEnv]) . '</code> maar geladen is <code>' . htmlspecialchars($envName) . '</code>.', 'fix' => 'Sinds v1.19.7 zou de bootstrap loud falen — als je dit ziet draai je nog een oudere versie.'];
+    return ['label' => $label, 'status' => 'info', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> (uit <code>' . htmlspecialchars($envName) . '</code>) → non-prod, verbose errors AAN.', 'fix' => ''];
 }
 
 function cma_doc_check_deploy_secret(): array {
@@ -875,20 +867,29 @@ function render_doc_environment(): void
             <tr><td><code>P</code></td><td>Productie</td><td>Live.</td></tr>
         </tbody>
     </table>
-    <p>Debug-mode wordt automatisch geactiveerd voor alles wat niet <code>P</code> is — error_reporting=E_ALL en display_errors=on.</p>
+    <h2>Error-weergave</h2>
+    <p><code>Bootstrap::configureErrorDisplay()</code> draait twee keer:</p>
+    <ul>
+        <li><span class="cma-tool__strong">Tijdens bootstrap</span> (vóór <code>.env</code> geladen is): errors staan <span class="cma-tool__strong">AAN</span> + verbose (<code>error_reporting=E_ALL</code>, <code>display_errors</code>, <code>display_startup_errors</code>, <code>html_errors</code>). Zo is een crash vóór <code>.env</code> nooit een stille witte pagina.</li>
+        <li><span class="cma-tool__strong">Na het laden van <code>.env</code></span>: opnieuw toegepast met de échte <code>APP_ENVIRONMENT</code>. Alles wat niet <code>P</code> is, of <code>FORCE_DEBUG=1</code>, houdt verbose errors aan. <code>P</code> (productie) zet <code>display_errors</code> UIT — errors gaan nog wél naar de log; forceer per request met <code>FORCE_DEBUG=1</code>.</li>
+    </ul>
 
-    <h2>Bestandskeuze: welke .env wordt geladen?</h2>
-    <p><code>Bootstrap::detectAndLoadEnv()</code> bepaalt het in deze volgorde:</p>
+    <h2>Bestandskeuze: één <code>.env</code> per machine</h2>
+    <p>Sinds v1.23 gebruikt het platform het <span class="cma-tool__strong">single-<code>.env</code> model</span>: elke machine heeft één <code>.env</code> op de site-root met àlle config, inclusief <code>APP_ENVIRONMENT</code>. <code>APP_ENVIRONMENT</code> is nu enkel een <span class="cma-tool__strong">variabele ín dat bestand</span> — het bepaalt niet langer wélk bestand geladen wordt. Dat haalt de "in welke <code>.env.&lt;x&gt;</code> staat mijn secret?"-verwarring weg: app én <code>deploy.php</code> lezen hetzelfde <code>.env</code>.</p>
+    <p><code>Bootstrap::detectAndLoadEnv()</code> kiest in deze volgorde:</p>
     <ol>
-        <li>Als de aanroeper een explicit <code>env_file</code> meegaf in de Bootstrap::init() config — gebruik die.</li>
-        <li>Als <code>$_ENV['APP_ENVIRONMENT']</code> of <code>$_SERVER['APP_ENVIRONMENT']</code> gezet is op O/L/T/A/P — gebruik het bijbehorende <code>.env.development</code>/<code>.env.local</code>/<code>.env.test</code>/<code>.env.acceptance</code>/<code>.env.production</code>.</li>
-        <li>Anders: zoek de eerst-bestaande in volgorde <code>.env.local</code> → <code>.env.development</code> → <code>.env.test</code> → <code>.env.acceptance</code> → <code>.env.production</code>.</li>
-        <li>Fallback: <code>.env</code>.</li>
+        <li>Een expliciete <code>env_file</code> meegegeven aan <code>Bootstrap::init()</code> — gebruik die.</li>
+        <li>Bestaat er een <code>.env</code> op de site-root? — gebruik die. <span class="cma-tool__strong">(de normale weg)</span></li>
+        <li>Anders (legacy fallback, voor nog-niet-gemigreerde sites): de per-omgeving bestanden <code>.env.production</code> → <code>.env.acceptance</code> → <code>.env.test</code> → <code>.env.local</code> → <code>.env.development</code>, of het bestand dat bij een OS-level <code>APP_ENVIRONMENT</code> hoort.</li>
     </ol>
-    <p>Het uiteindelijke bestand wordt opgeslagen in <code>$GLOBALS['_env_file']</code> en is zichtbaar op de <a href="tools_serverinfo.php" target="_top">Omgeving-tab</a> als "Actief .env bestand".</p>
+    <p>Het gekozen bestand staat in <code>$GLOBALS['_env_file']</code> en is zichtbaar op de <a href="tools_serverinfo.php" target="_top">Omgeving-tab</a> als "Actief .env bestand".</p>
+
+    <div class="docs-callout">
+        <span class="cma-tool__strong">Migreren:</span> hernoem op elke box <code>.env.production</code> (of <code>.env.local</code>) naar <code>.env</code>. Backward-compatible — een box op de oude per-omgeving bestanden blijft werken tot je migreert.
+    </div>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">Belangrijk:</span> de OS-level <code>APP_ENVIRONMENT</code> wordt gelezen <em class="cma-tool__em">voordat</em> phpdotenv een file laadt. Het zetten van <code>APP_ENVIRONMENT</code> in een <code>.env</code> bestand zelf heeft dus geen invloed op welke file gekozen wordt — alleen op wat <code>Application::get('omgeving')</code> uiteindelijk teruggeeft.
+        <span class="cma-tool__strong">Let op:</span> <code>APP_ENVIRONMENT</code> in <code>.env</code> wordt pas gelezen <em class="cma-tool__em">nadat</em> phpdotenv het bestand laadt. Vóór dat moment gaat de bootstrap uit van <code>P</code> voor gedrag, maar errors staan tijdens de bootstrap juist AAN zodat een opstartfout zichtbaar is (zie "Error-weergave" hierboven).
     </div>
 
     <h2>Actief .env bestand op deze site</h2>
@@ -995,7 +996,7 @@ function render_doc_deployment(): void
 {
     "ok": true,
     "config": {
-        "env_file":      ".env.local",   // welk .env-bestand is gelezen (null = geen)
+        "env_file":      ".env",         // welk .env-bestand is gelezen (null = geen)
         "deploy_secret": true,           // alleen aanwezig-ja/nee, nooit de waarde
         "deploy_branch": "main",
         "alert_email":   false,
@@ -1006,7 +1007,7 @@ function render_doc_deployment(): void
         "ok":            true
     }
 }</code></pre>
-    <p>De waardes invullen doe je via de developer-only tool <span class="cma-tool__strong">Tools → Developer → Deploy setup</span> (<code>tools/tools_deploy_setup.php</code>): die toont dezelfde status, genereert een <code>DEPLOY_SECRET</code>-suggestie als er nog geen is, en schrijft de ingevulde <code>DEPLOY_*</code>-keys naar het actieve <code>.env</code>-bestand (eerst-bestaande van <code>.env.production</code>…<code>.env</code>). Bewust gescheiden: het publieke status-endpoint mag geen secrets innemen of config schrijven; dat hoort achter authenticatie.</p>
+    <p>De waardes invullen doe je via de developer-only tool <span class="cma-tool__strong">Tools → Developer → Deploy setup</span> (<code>tools/tools_deploy_setup.php</code>): die toont dezelfde status, genereert een <code>DEPLOY_SECRET</code>-suggestie als er nog geen is, en schrijft de ingevulde <code>DEPLOY_*</code>-keys naar het actieve <code>.env</code>-bestand (eerst-bestaande, <code>.env</code> eerst, dan de legacy <code>.env.production</code>…). Bewust gescheiden: het publieke status-endpoint mag geen secrets innemen of config schrijven; dat hoort achter authenticatie.</p>
 
     <h3>Triage-flow</h3>
     <ol>
