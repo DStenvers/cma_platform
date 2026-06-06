@@ -293,3 +293,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > we have all liniericons mentioned in storybook, take alook inthere
 
 > cma-tabs, if the mobile displat is activated, the number of items is shown as (.) if there are no items, please remove the (.) entirily
+
+> the layout of the email form is ugly, was that even comitted? And the titles in the serverinfo are chopped off vertically, use 16px top margin and line-height 1 rem
