@@ -256,3 +256,7 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > look into the version of the mijntoprecepten repo and use that as the latest version, be critical: review the files
 
 > please analyse: [deploy_status.php JSON pasted] : it has an error but ok=true, that feels wrong
+
+> migration 9.9.0 : [appcmd exit 5 "insufficient permissions" reading redirection.config → ROLLBACK, but runner reported "✓ succesvol"]
+
+> the migration should be aware it has failed, and how do we solve this?

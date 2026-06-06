@@ -55,53 +55,53 @@ foreach ($result['errors'] as $line) {
 }
 
 if ($result['status'] === 'error') {
+    // De helper heeft al teruggerold / niets aangeraakt. THROW zodat de
+    // migration-runner dit als MISLUKT rapporteert (niet "✓ succesvol").
     Logger::warning('9.9.0: web.config patch faalde', ['errors' => $result['errors']]);
-    return;
+    throw new \RuntimeException('9.9.0: web.config patch faalde — ' . implode('; ', $result['errors']));
+}
+if ($result['status'] === 'manual') {
+    // <rules> niet gevonden → kon niet automatisch patchen. THROW zodat de
+    // operator weet dat hij handmatig moet ingrijpen.
+    throw new \RuntimeException('9.9.0: kon <rules> niet vinden in parent web.config — handmatige patch nodig (zie documentation.php?topic=iis_config).');
 }
 if ($result['status'] !== 'patched') {
-    // skipped / noop / manual — er is niets naar disk geschreven, dus er valt
-    // ook niets te smoke-testen.
+    // skipped (geen simplexml / web.config afwezig) of noop (marker al
+    // aanwezig = al toegepast) — niets geschreven, niets te smoke-testen.
     return;
 }
 
 $backup = $result['backup'];
 
-// VALIDATIE-STAP 7 (optioneel): IIS appcmd.exe op de file gooien.
-// appcmd parsed dezelfde schemas die IIS zelf intern gebruikt — als
-// appcmd "list config" voor onze site uitvoert en succesvol parsed
-// is dat het sterkste bewijs dat IIS de config niet zal weigeren.
+// VALIDATIE-STAP 7 (advisory): IIS appcmd.exe op de file gooien.
+// appcmd parsed dezelfde schemas die IIS intern gebruikt — exit 0 is sterk
+// bewijs dat IIS de config accepteert.
 //
-// Skip op non-Windows of als appcmd niet bestaat. Skip ook als we
-// niet weten welke site-naam we moeten testen. Faal-vriendelijk:
-// op een appcmd-fout doen we ROLLBACK want het sterkste signaal is
-// "IIS gaat dit niet accepteren".
+// MAAR: appcmd moet eerst de CENTRALE IIS-config lezen (redirection.config /
+// applicationHost.config). Deze migration draait als de app-pool-identity
+// (PHP onder IIS), die daar meestal GEEN leesrechten op heeft → exit 5 /
+// "insufficient permissions" / "Cannot read configuration file". Dat is een
+// rechten-limitatie van appcmd, GEEN afkeuring van onze patch. Daarom is deze
+// stap advisory: we rollen NOOIT terug op een appcmd-fout. De patch is al
+// XML- + duplicate-name- + regex- + read-back-gevalideerd, en de live
+// smoke-test hieronder (STAP 8) is de doorslaggevende semantische check — die
+// rolt wél terug (op een hard 5xx).
 $winDir  = getenv('WINDIR') ?: getenv('SystemRoot');
 $appcmd  = $winDir ? ($winDir . '\\system32\\inetsrv\\appcmd.exe') : '';
-$skipped = false;
 if ($appcmd === '' || !is_file($appcmd)) {
-    $skipped = true;
-    echo "Smoke-test overgeslagen: appcmd.exe niet gevonden (non-IIS host).\n";
+    echo "appcmd-check overgeslagen: appcmd.exe niet gevonden (non-IIS host).\n";
 } else {
-    // appcmd list config /commit:WEBROOT laadt EN parsed de gehele
-    // effectieve config-chain voor de webroot. Exit-code 0 = parsed
-    // succesvol. Non-zero = config-error (precies wat we willen vangen).
-    // 2>&1 om stderr in $output te krijgen voor diagnose.
     $cmd = '"' . $appcmd . '" list config /commit:WEBROOT 2>&1';
     exec($cmd, $output, $exitCode);
-    if ($exitCode !== 0) {
-        // ROLLBACK
-        $rolledBack = copy($backup, $webConfig);
-        echo "FOUT: appcmd weigert de gepatchte config (exit $exitCode).\n";
+    if ($exitCode === 0) {
+        echo "appcmd-check: OK (config door IIS-parser geaccepteerd).\n";
+    } else {
+        echo "appcmd-check onbeslist (exit $exitCode) — appcmd kon de IIS-config niet (volledig) lezen, "
+           . "vaak een rechten-limitatie van de app-pool-identity. Geen afkeuring van de patch, dus "
+           . "GEEN rollback; de live smoke-test hieronder is doorslaggevend.\n";
         echo "appcmd output (eerste 20 regels):\n";
         foreach (array_slice($output, 0, 20) as $line) echo "  $line\n";
-        if ($rolledBack) {
-            echo "ROLLBACK uit backup voltooid.\n";
-        } else {
-            echo "ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
-        }
-        return;
     }
-    echo "appcmd smoke-test: OK (config door IIS-parser geaccepteerd).\n";
 }
 
 // VALIDATIE-STAP 8 (optioneel, sterkste): live HTTP smoke-test.
@@ -136,13 +136,16 @@ if (!function_exists('curl_init')) {
         echo " — geen rollback.\n";
     } elseif ($code >= 500) {
         $rolledBack = copy($backup, $webConfig);
-        echo "FOUT: live smoke-test gaf HTTP $code op $smokeUrl — de gepatchte config produceert een server-error.\n";
+        $msg = "live smoke-test gaf HTTP $code op $smokeUrl — de gepatchte config produceert een server-error.";
+        // ROLLBACK + THROW: een 5xx is een hard bewijs dat de patch de site
+        // breekt. Throw zodat de runner dit als MISLUKT rapporteert (niet
+        // "✓ succesvol") — de patch is teruggerold.
         if ($rolledBack) {
-            echo "ROLLBACK uit backup voltooid.\n";
-        } else {
-            echo "ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
+            echo "FOUT: $msg ROLLBACK uit backup voltooid.\n";
+            throw new \RuntimeException("9.9.0: $msg Teruggerold uit $backup.");
         }
-        return;
+        echo "FOUT: $msg ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
+        throw new \RuntimeException("9.9.0: $msg ROLLBACK FAALDE — herstel handmatig: $backup → $webConfig.");
     } else {
         echo "Live smoke-test: OK (HTTP $code op /cma/dashboard).\n";
     }
@@ -154,7 +157,7 @@ Logger::info('9.9.0: CMA-routes toegevoegd aan parent web.config', [
     'backup' => $backup,
 ]);
 
-echo "Parent web.config gepatched met CMA-routes (XML + duplicate-name + regex + appcmd + live smoke-test gevalideerd, atomic write).\n";
+echo "Parent web.config gepatched met CMA-routes (XML + duplicate-name + regex + read-back gevalideerd, atomic write; appcmd advisory, live smoke-test als die kon draaien).\n";
 echo "10 nieuwe rules toegevoegd bovenaan <rules>.\n";
 echo "App-pool wordt automatisch gerecycled (mtime-change).\n";
 echo "Test /cma/dashboard, /cma/preferences, /cma/tools — moet allemaal werken.\n";
