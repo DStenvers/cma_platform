@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.9.0",
+    "targetVersion": "9.12.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1118,6 +1118,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.9.0_cma_routes_to_parent_webconfig.php",
                     "note": "Voegt CMA Dashboard/Preferences/Tools/Forms rewrites toe aan het parent web.config zodat extensionless URLs als /cma/dashboard werken zonder distributed-rule of outbound-rule inheritance problemen. Idempotent via marker-comment. Backup wordt automatisch gemaakt vóór wijziging."
+                }
+            ]
+        },
+        {
+            "version": "9.12.0",
+            "description": "Legacy ASP-config (global.php / global.asa.php) buiten gebruik stellen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.12.0_retire_legacy_global_config.php",
+                    "note": "Hernoemt global.php en (indien Application_OnStart triviaal is) global.asa.php naar *.delete_when_migrated i.p.v. ze te verwijderen (omkeerbaar). Schermt eerst de global.asa.php-require in app.php en _bootstrap.php af met file_exists. Tilt bekende env-secrets (MOLLIE_APIKEY, GOOGLE_API_KEY) uit global.php naar het actieve .env als die nog leeg zijn. Idempotent; maakt backups (.bak_retire_global)."
                 }
             ]
         }
