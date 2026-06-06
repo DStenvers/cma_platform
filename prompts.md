@@ -244,3 +244,9 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > yes please
 
 > the DEPLOY_ variables, are they in the templates of .env files now?
+
+> no overwrite
+
+> the deploy_status.php says: REJECT: DEPLOY_SECRET not configured , but i want to know which .env file is being used, can you include that?
+
+> who creates the deploy.php and deploy_status.php? On a consumer site i also see deploy_post.php

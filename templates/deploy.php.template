@@ -127,8 +127,16 @@ $log('config: env-file=' . ($envLoadedFrom !== '' ? $envLoadedFrom : 'NONE found
 if ($secret === '') {
     http_response_code(503);
     header('Content-Type: text/plain; charset=utf-8');
-    $log('REJECT: DEPLOY_SECRET not configured (looked in ' . ($envLoadedFrom !== '' ? $envLoadedFrom : 'no .env file next to ' . $SCRIPT_DIR) . ')');
-    echo "Deploy not configured (DEPLOY_SECRET missing in .env).\n";
+    $where = $envLoadedFrom !== ''
+        ? $envLoadedFrom
+        : 'no .env file next to ' . $SCRIPT_DIR;
+    $log('REJECT: DEPLOY_SECRET not configured (looked in ' . $where . ')');
+    echo "Deploy not configured — DEPLOY_SECRET missing "
+       . ($envLoadedFrom !== ''
+            ? 'in ' . $envLoadedFrom
+            : '(no .env file found next to ' . $SCRIPT_DIR
+              . '; checked .env.production, .env.acceptance, .env.test, .env.local, .env)')
+       . ".\n";
     return;
 }
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
