@@ -58,6 +58,10 @@ $toolNameMap = [
     'migrations' => 'tools/tools_migrations.php',
     'deploy_setup' => 'tools/tools_deploy_setup.php',
     'deploysetup' => 'tools/tools_deploy_setup.php',
+    'users' => 'form.php?form=users',
+    'gebruikers' => 'form.php?form=users',
+    'groups' => 'form.php?form=groups',
+    'groepen' => 'form.php?form=groups',
     'query' => 'tools/tools_query.php',
     'sql' => 'tools/tools_query.php',
     'formwiz' => 'tools/tools_formwiz.php',
@@ -518,6 +522,19 @@ function buildToolsTreeData(bool $isDeveloper): array
         ]
     ];
     $folders[] = $standardFolder;
+
+    // === GEBRUIKERS EN GROEPEN ===
+    $usersFolder = [
+        'type' => 'folder',
+        'label' => 'Gebruikers en groepen',
+        'badge' => 'A',
+        'icon' => 'lnr-users',
+        'children' => [
+            ['type' => 'item', 'label' => 'Gebruikers', 'badge' => 'A', 'href' => 'form.php?form=users', 'target' => 'R', 'icon' => 'lnr-user'],
+            ['type' => 'item', 'label' => 'Groepen', 'badge' => 'A', 'href' => 'form.php?form=groups', 'target' => 'R', 'icon' => 'lnr-users'],
+        ]
+    ];
+    $folders[] = $usersFolder;
 
     // === SITE GEZONDHEID ===
     $healthFolder = [

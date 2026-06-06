@@ -491,20 +491,6 @@
             "order": 999,
             "items": [
                 {
-                    "id": 140,
-                    "name": "Gebruikers",
-                    "order": 10,
-                    "visible": true,
-                    "form": "users"
-                },
-                {
-                    "id": 142,
-                    "name": "Groepen",
-                    "order": 20,
-                    "visible": true,
-                    "form": "groups"
-                },
-                {
                     "id": 144,
                     "name": "Alle beheerstools",
                     "order": 30,
