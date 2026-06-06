@@ -81,17 +81,26 @@ if (Request::post('action', '') === 'send_test_mail' && SecurityHelper::isDevelo
     if (!$emailAvailable) {
         $testMailResult = ['ok' => false, 'msg' => 'App\\Library\\Email is niet beschikbaar op deze site. Voer <code>composer update stenversonline/platform</code> uit.'];
     } else {
-        $to      = trim(Request::post('to', ''));
-        $subject = trim(Request::post('subject', '')) ?: 'Test e-mail vanuit CMA';
-        $body    = trim(Request::post('body', '')) ?: 'Dit is een test-e-mail vanuit de CMA Omgeving-tab.';
+        $to        = trim(Request::post('to', ''));
+        $fromEmail = trim(Request::post('from_email', ''));
+        $fromName  = trim(Request::post('from_name', ''));
+        $subject   = trim(Request::post('subject', '')) ?: 'Test e-mail vanuit CMA';
+        $body      = trim(Request::post('body', '')) ?: 'Dit is een test-e-mail vanuit de CMA Omgeving-tab.';
         if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $testMailResult = ['ok' => false, 'msg' => 'Geen geldig e-mailadres opgegeven.'];
+            $testMailResult = ['ok' => false, 'msg' => 'Geen geldig ontvanger-e-mailadres opgegeven.'];
+        } elseif ($fromEmail !== '' && !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+            $testMailResult = ['ok' => false, 'msg' => 'Afzender-adres is geen geldig e-mailadres.'];
         } else {
             try {
                 $email = Email::create()
                     ->setSubject($subject)
                     ->setBody(nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')))
                     ->addRecipient($to);
+                // Optional custom sender (name + address); falls back to the
+                // configured default From when left blank.
+                if ($fromEmail !== '') {
+                    $email->setFrom($fromEmail, $fromName);
+                }
                 $sent = $email->send();
                 if ($sent) {
                     $sim = Application::get('local', false);
@@ -382,7 +391,7 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
 
     // ---- Test e-mail form ----
     if (SecurityHelper::isDeveloper()) {
-        echo '<h2 style="margin-top:30px;"><span class="lnr lnr-envelope"></span> Test e-mail versturen</h2>';
+        echo '<h2><span class="lnr lnr-envelope"></span> Test e-mail versturen</h2>';
         if ($testMailResult !== null) {
             $type = $testMailResult['ok'] ? 'success' : 'error';
             echo '<lib-message type="' . $type . '" closable style="margin-bottom:15px;">' . $testMailResult['msg'] . '</lib-message>';
@@ -393,16 +402,25 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
             echo 'Voer <code>composer update stenversonline/platform</code> uit zodat <code>vendor/</code> wordt bijgewerkt.';
             echo '</lib-message>';
         } else {
-            $prefillTo = htmlspecialchars($adminMail);
-            echo '<form method="post" action="" style="max-width:600px;display:grid;gap:12px;">';
+            $prefillTo    = htmlspecialchars($adminMail);
+            $prefillFromN = htmlspecialchars((string)Application::get('company', ''));
+            $prefillFromE = htmlspecialchars((string)Application::get('email_fromname', ''));
+            // Outlook-style "new mail" compose window (styling in .cma-mailcompose,
+            // style.css). From defaults to the configured sender; leave it as-is or
+            // override name + address per test.
+            echo '<form method="post" action="" class="cma-mailcompose">';
             echo '<input type="hidden" name="action" value="send_test_mail">';
-            echo '<label style="display:grid;gap:4px;"><span>Naar</span>';
-            echo '<input type="email" name="to" required value="' . $prefillTo . '" placeholder="ontvanger@voorbeeld.nl"></label>';
-            echo '<label style="display:grid;gap:4px;"><span>Onderwerp</span>';
-            echo '<input type="text" name="subject" value="Test e-mail vanuit CMA"></label>';
-            echo '<label style="display:grid;gap:4px;"><span>Bericht</span>';
-            echo '<textarea name="body" rows="4">Dit is een test-e-mail vanuit de CMA Omgeving-tab.</textarea></label>';
-            echo '<div><button type="submit" class="btn btn-primary"><span class="lnr lnr-paper-plane"></span> Verstuur test</button></div>';
+            echo '<div class="cma-mailcompose__bar"><span class="lnr lnr-envelope"></span> Nieuw bericht — test</div>';
+            echo '<div class="cma-mailcompose__row"><span class="cma-mailcompose__lbl">Van</span><span class="cma-mailcompose__from">';
+            echo '<input class="name" type="text" name="from_name" value="' . $prefillFromN . '" placeholder="Afzendernaam" aria-label="Afzendernaam">';
+            echo '<input class="addr" type="email" name="from_email" value="' . $prefillFromE . '" placeholder="afzender@voorbeeld.nl" aria-label="Afzenderadres">';
+            echo '</span></div>';
+            echo '<div class="cma-mailcompose__row"><span class="cma-mailcompose__lbl">Aan</span>';
+            echo '<input type="email" name="to" required value="' . $prefillTo . '" placeholder="ontvanger@voorbeeld.nl" aria-label="Aan"></div>';
+            echo '<div class="cma-mailcompose__row"><span class="cma-mailcompose__lbl">Onderwerp</span>';
+            echo '<input type="text" name="subject" value="Test e-mail vanuit CMA" aria-label="Onderwerp"></div>';
+            echo '<textarea class="cma-mailcompose__body" name="body" placeholder="Bericht" aria-label="Bericht">Dit is een test-e-mail vanuit de CMA Omgeving-tab.</textarea>';
+            echo '<div class="cma-mailcompose__actions"><button type="submit" class="btn btn-primary"><span class="lnr lnr-paper-plane"></span> Verzenden</button></div>';
             echo '</form>';
             if ($simulation) {
                 echo '<lib-message type="info" compact style="margin-top:10px;">';

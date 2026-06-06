@@ -268,3 +268,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > after a login don't load /dashboard or /dashboard..php but main.php
 
 > give the tools and report lists a search as you type searchfield in the toolbar
+
+> the section Test e-mail versturen , can you design that as a new mail window in Outlook? And can you place the From in the dialog as well

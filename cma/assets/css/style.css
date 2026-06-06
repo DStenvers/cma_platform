@@ -1970,3 +1970,74 @@ body.backup #c.tools {
 }
 .cma-tool__callout > :first-child { margin-top: 0; }
 .cma-tool__callout > :last-child  { margin-bottom: 0; }
+
+/* Outlook-style "new mail" compose window — used by the test-email form on the
+   server-info Omgeving tab. Borderless inputs inside a bordered card with a
+   coloured title bar, labelled From/To/Subject rows, a large body, and a
+   bottom action bar. Colours come from the theme vars so dark-mode adapts. */
+.cma-mailcompose {
+    max-width: 640px;
+    margin: 6px 0 0;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-surface, #ffffff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.cma-mailcompose__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--color-primary, #204496);
+    color: #ffffff;
+    font-weight: 600;
+}
+.cma-mailcompose__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-color, #eceff3);
+}
+.cma-mailcompose__lbl {
+    flex: 0 0 78px;
+    color: var(--text-muted, #6c757d);
+    font-size: var(--font-size-sm, 0.9em);
+}
+.cma-mailcompose__row input {
+    flex: 1 1 auto;
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    font: inherit;
+    color: var(--color-text, #1d2230);
+}
+.cma-mailcompose__from {
+    display: flex;
+    gap: 10px;
+    flex: 1 1 auto;
+}
+.cma-mailcompose__from .name { flex: 0 0 40%; }
+.cma-mailcompose__from .addr { flex: 1 1 auto; }
+.cma-mailcompose__body {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    padding: 12px 14px;
+    min-height: 160px;
+    resize: vertical;
+    font: inherit;
+    color: var(--color-text, #1d2230);
+    background: transparent;
+}
+.cma-mailcompose__row input:focus,
+.cma-mailcompose__body:focus { outline: none; }
+.cma-mailcompose__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-color, #eceff3);
+    background: var(--bg-surface-alt, #f6f8fa);
+}
