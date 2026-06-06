@@ -250,51 +250,77 @@ class Bootstrap
 
     private static function detectAndLoadEnv(): void
     {
-        $envFile = self::$config['env_file'];
-        if ($envFile) {
-            // Explicit env file specified
-            $GLOBALS['_env_file'] = $envFile;
-            return;
-        }
-
-        // Auto-detect environment
-        $appEnv = $_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? null;
-
+        // Legacy per-environment files — kept only as a fallback so boxes
+        // that haven't been migrated to a single .env keep working.
         $envFileMap = [
             'L' => '.env.local',
             'O' => '.env.development',
             'T' => '.env.test',
             'A' => '.env.acceptance',
-            'P' => '.env.production'
+            'P' => '.env.production',
         ];
 
-        $envFile = '.env'; // Default fallback
-        if ($appEnv && isset($envFileMap[$appEnv])) {
-            $envFile = $envFileMap[$appEnv];
-            // APP_ENVIRONMENT explicitly selected an env-file but it's
-            // missing. Pre-1.19.7 we'd silently fall through to .env (or
-            // to no file at all), which left a production site running
-            // without DB credentials — the next PDO call would throw with
-            // a wholly unrelated message. Fail loud with the actual
-            // cause so the operator can fix it.
-            if (!file_exists(self::$rootDir . '/' . $envFile)) {
-                self::bootstrapError(
-                    "APP_ENVIRONMENT=$appEnv but $envFile is missing on the site root. Create it (copy from .env.template) or unset APP_ENVIRONMENT.",
-                    'BOOTSTRAP_ENV_FILE_MISSING'
-                );
-            }
-        } else {
-            foreach (['L', 'O', 'T', 'A', 'P'] as $envCode) {
-                if (file_exists(self::$rootDir . '/' . $envFileMap[$envCode])) {
-                    $envFile = $envFileMap[$envCode];
-                    $appEnv = $envCode;
-                    break;
+        $envFile = self::$config['env_file'];
+        if (!$envFile) {
+            // SINGLE-FILE MODEL (preferred): one .env per machine holds
+            // everything, including APP_ENVIRONMENT. APP_ENVIRONMENT is just a
+            // variable INSIDE the file now — it no longer selects which file
+            // to load. This removes the "which .env.<x> holds my secret?"
+            // confusion (the app + deploy.php now read the same .env).
+            if (file_exists(self::$rootDir . '/.env')) {
+                $envFile = '.env';
+            } else {
+                // No single .env — fall back to the legacy environment files.
+                $appEnv = $_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? null;
+                if ($appEnv && isset($envFileMap[$appEnv])) {
+                    $envFile = $envFileMap[$appEnv];
+                    if (!file_exists(self::$rootDir . '/' . $envFile)) {
+                        self::bootstrapError(
+                            "Neither .env nor $envFile (APP_ENVIRONMENT=$appEnv) exists on the site root. Create a .env (copy from .env.example).",
+                            'BOOTSTRAP_ENV_FILE_MISSING'
+                        );
+                    }
+                } else {
+                    $envFile = '.env';
+                    foreach ($envFileMap as $candidate) {
+                        if (file_exists(self::$rootDir . '/' . $candidate)) {
+                            $envFile = $candidate;
+                            break;
+                        }
+                    }
                 }
             }
         }
 
+        // APP_ENVIRONMENT drives behaviour (error display, mail short-circuit,
+        // rate limits) and is needed BEFORE the full dotenv load (see
+        // configureErrorDisplay, which runs before loadDotenv). Resolve it from
+        // the server env first, else peek the chosen file. Default 'P' so an
+        // unknown environment fails SAFE — errors OFF, never accidentally on.
+        $appEnv = $_ENV['APP_ENVIRONMENT']
+            ?? $_SERVER['APP_ENVIRONMENT']
+            ?? self::peekEnvVar(self::$rootDir . '/' . $envFile, 'APP_ENVIRONMENT')
+            ?? 'P';
+
         $GLOBALS['_env_file'] = $envFile;
-        $GLOBALS['_app_env'] = $appEnv;
+        $GLOBALS['_app_env'] = strtoupper((string)$appEnv);
+    }
+
+    /**
+     * Read a single KEY=value out of an env file without a full parse — used
+     * to learn APP_ENVIRONMENT before the real dotenv load. Pure function of
+     * (absolute path, key); returns the raw value or null if absent.
+     */
+    public static function peekEnvVar(string $path, string $key): ?string
+    {
+        if (!is_file($path)) { return null; }
+        foreach ((array)@file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) { continue; }
+            [$k, $v] = explode('=', $line, 2);
+            if (trim($k) === $key) { return trim($v, " \t\"'"); }
+        }
+        return null;
     }
 
     private static function configureErrorDisplay(): void

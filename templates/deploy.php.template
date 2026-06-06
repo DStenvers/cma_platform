@@ -21,10 +21,11 @@
  *   Secret      : DEPLOY_SECRET (see below)
  *   Events      : just the push event
  *
- * .env configuration (inline-parsed — no phpdotenv dependency. The FIRST
- * existing of .env.production / .env.acceptance / .env.test / .env.local /
- * .env next to this file is read, matching the platform's env precedence so
- * DEPLOY_SECRET in .env.local is found):
+ * .env configuration (inline-parsed — no phpdotenv dependency. Prefers a
+ * single .env (the standard one-file-per-box model the platform Bootstrap
+ * now uses too), then falls back to the legacy .env.production / .env.local /
+ * … files. So DEPLOY_SECRET lives in the SAME .env the app reads — no more
+ * "which env file holds the secret?" guesswork):
  *   DEPLOY_SECRET            required; HMAC secret matching the GitHub webhook.
  *   DEPLOY_BRANCH            branch to deploy (default: main).
  *   DEPLOY_SITE_ROOT         git working tree (default: this file's directory).
@@ -65,7 +66,7 @@ $isWin = (stripos(PHP_OS, 'WIN') === 0);
 // ---------------------------------------------------------------------------
 $env = [];
 $envLoadedFrom = '';
-foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env'] as $cand) {
+foreach (['.env', '.env.production', '.env.acceptance', '.env.test', '.env.local'] as $cand) {
     $p = $SCRIPT_DIR . '/' . $cand;
     if (!is_file($p)) {
         continue;
@@ -135,7 +136,7 @@ if ($secret === '') {
        . ($envLoadedFrom !== ''
             ? 'in ' . $envLoadedFrom
             : '(no .env file found next to ' . $SCRIPT_DIR
-              . '; checked .env.production, .env.acceptance, .env.test, .env.local, .env)')
+              . '; checked .env, .env.production, .env.acceptance, .env.test, .env.local)')
        . ".\n";
     return;
 }
