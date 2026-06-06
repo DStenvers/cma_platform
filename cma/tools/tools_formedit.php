@@ -1925,18 +1925,18 @@ body.fe-layout #leftlist .table-area tbody tr:hover td {
 body.fe-layout #leftlist .table-area tbody tr.selected td {
     background: var(--selected-bg, #e3f2fd);
 }
-/* Active view toggle button — filled "pressed" state so the current
-   view (tree vs table) is unmistakable, not just a subtle icon tint. */
+/* Active view toggle button — soft "selected" state (light fill + primary
+   text + info border) so the current view is unmistakable. */
 #btn_viewTree.fe-view-active,
 #btn_viewTable.fe-view-active {
-    background: var(--color-accent, #077ab2);
-    border-color: var(--color-accent, #077ab2);
+    background-color: var(--tree-hover-bg, #e8f4fc);
+    border: 1px solid var(--color-info, #077ab2);
 }
 #btn_viewTree.fe-view-active a,
 #btn_viewTable.fe-view-active a,
 #btn_viewTree.fe-view-active a:hover,
 #btn_viewTable.fe-view-active a:hover {
-    color: #fff;
+    color: var(--color-primary, #204496);
 }
 /* Hide expand/collapse in table mode */
 body.fe-view-table #btn_expand,

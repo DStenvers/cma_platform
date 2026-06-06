@@ -215,10 +215,10 @@ body.contentbody #c.tools {padding:20px}
 body.contentbody #c.tools:has(lib-table) {padding:0; overflow:visible}
 /* Tool-specific overrides */
 body.tool-serverinfo.contentbody #c.tools {padding:0}
-/* Category titles: space above each heading + a tight line-box so the icon
-   and text aren't clipped vertically; the first heading sits flush at the top. */
-body.tool-serverinfo h2 {margin-top:16px; line-height:1rem}
-body.tool-serverinfo h2:first-child {margin-top:0}
+/* Tool-page section titles: space above each heading + a roomy line-box so
+   the icon and text aren't clipped vertically; the first heading sits flush. */
+div.tools h2 {line-height:1.5rem; margin-top:19px}
+div.tools h2:first-child {margin-top:0}
 /* Ensure dropdown filter content is visible above other elements */
 lib-table thead {position:relative; z-index:100}
 lib-table .dropdown-filter-content {z-index:1000}
@@ -1996,7 +1996,7 @@ body.backup #c.tools {
     border-radius: 8px;
     overflow: hidden;
     background: var(--bg-surface, #ffffff);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
 }
 .cma-mailcompose__bar {
     display: flex;

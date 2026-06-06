@@ -573,7 +573,10 @@ class Email
 
             // Send or simulate
             if ($this->simulation) {
-                $this->showPreview();
+                // Pass the captured originals: in test-mode wrapTestEnvironmentWarning()
+                // has already cleared the mailer's recipients, so reading them back here
+                // would show an empty To/CC/BCC.
+                $this->showPreview($originalTo, $originalCc, $originalBcc);
                 $this->mailSent = true;
                 $result = true;
             } else {
@@ -767,19 +770,19 @@ class Email
     /**
      * Show email preview (simulation mode)
      */
-    private function showPreview(): void
+    private function showPreview(array $toAddresses = [], array $ccAddresses = [], array $bccAddresses = []): void
     {
         echo '<table cellpadding="8" cellspacing="0" border="2" bordercolor="blue" style="margin:4px"><tr bgcolor="#CCCCCC"><td>';
         echo '<table cellpadding="4" cellspacing="0">';
         echo '<tr><td>From</td><td><b>' . htmlspecialchars($this->fromName . ' (' . $this->fromEmail . ')') . '</b></td></tr>';
 
-        foreach ($this->mailer->getToAddresses() as $addr) {
+        foreach ($toAddresses as $addr) {
             echo '<tr><td>To</td><td><b>' . htmlspecialchars($addr[0]) . '</b></td></tr>';
         }
-        foreach ($this->mailer->getCcAddresses() as $addr) {
+        foreach ($ccAddresses as $addr) {
             echo '<tr><td>CC</td><td><b>' . htmlspecialchars($addr[0]) . '</b></td></tr>';
         }
-        foreach ($this->mailer->getBccAddresses() as $addr) {
+        foreach ($bccAddresses as $addr) {
             echo '<tr><td>BCC</td><td><b>' . htmlspecialchars($addr[0]) . '</b></td></tr>';
         }
 

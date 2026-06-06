@@ -295,3 +295,18 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > cma-tabs, if the mobile displat is activated, the number of items is shown as (.) if there are no items, please remove the (.) entirily
 
 > the layout of the email form is ugly, was that even comitted? And the titles in the serverinfo are chopped off vertically, use 16px top margin and line-height 1 rem
+
+> how do i get a screendump to you
+> Test e-mail versturen -> can you give it some box-shadow?
+> From    Karaat Edelstenen (info@karaatedelstenen.nl)
+> Subject    Test e-mail vanuit CMA
+> Dit is een test-e-mail vanuit de CMA Omgeving-tab.
+> -> this is a test email from serverinfo, but it lacks the addressees  (on screen simulation)
+> the div for Test e-mail versturen -> can you give it some box-shadow?
+
+> div.tools h2 {
+    line-height: 1.5rem;
+    margin-top: 19px;
+}
+> but make sure the first has NO margin-top
+> karaat still says: CMA platform versie    vdev-main , is the app.php outdated?
