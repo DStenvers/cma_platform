@@ -56,11 +56,11 @@ header('Cache-Control: no-store');
 if (isset($_GET['config'])) {
     $isWin = (stripos(PHP_OS, 'WIN') === 0);
 
-    // First-existing env file next to this script — same precedence as
-    // deploy.php and the platform bootstrap.
+    // First-existing env file next to this script — .env-first, same
+    // precedence as deploy.php and the platform bootstrap (single-.env model).
     $env = [];
     $envFile = null;
-    foreach (['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env'] as $cand) {
+    foreach (['.env', '.env.production', '.env.acceptance', '.env.test', '.env.local'] as $cand) {
         $p = __DIR__ . '/' . $cand;
         if (!is_file($p)) {
             continue;

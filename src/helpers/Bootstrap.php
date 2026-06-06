@@ -65,12 +65,18 @@ class Bootstrap
         self::detectAndLoadEnv();
         self::recordTiming('env_detect');
 
-        self::configureErrorDisplay();
+        // Bootstrap phase: errors ON so any failure before .env is read is
+        // visible (never a silent white-screen during boot).
+        self::configureErrorDisplay(true);
 
         self::sqliteEmergencyRecovery();
 
         self::loadDotenv();
         self::recordTiming('autoload');
+
+        // .env is loaded now — re-apply with the REAL APP_ENVIRONMENT: stays
+        // verbose for non-prod / FORCE_DEBUG, switches off for production runtime.
+        self::configureErrorDisplay(false);
 
         self::initApplication();
         self::recordTiming('app_init');
@@ -292,44 +298,43 @@ class Bootstrap
             }
         }
 
-        // APP_ENVIRONMENT drives behaviour (error display, mail short-circuit,
-        // rate limits) and is needed BEFORE the full dotenv load (see
-        // configureErrorDisplay, which runs before loadDotenv). Resolve it from
-        // the server env first, else peek the chosen file. Default 'P' so an
-        // unknown environment fails SAFE — errors OFF, never accidentally on.
-        $appEnv = $_ENV['APP_ENVIRONMENT']
-            ?? $_SERVER['APP_ENVIRONMENT']
-            ?? self::peekEnvVar(self::$rootDir . '/' . $envFile, 'APP_ENVIRONMENT')
-            ?? 'P';
-
+        // ASSUME PROD until .env is actually read. We deliberately do NOT peek
+        // into the file for APP_ENVIRONMENT — error display stays OFF (fail-safe)
+        // through the dotenv load, and configureErrorDisplay() is called again
+        // AFTER loadDotenv() to switch on verbose errors once we positively know
+        // the environment is non-prod (it now lives inside the loaded .env).
         $GLOBALS['_env_file'] = $envFile;
-        $GLOBALS['_app_env'] = strtoupper((string)$appEnv);
+        $GLOBALS['_app_env'] = strtoupper((string)($_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? 'P'));
     }
 
     /**
-     * Read a single KEY=value out of an env file without a full parse — used
-     * to learn APP_ENVIRONMENT before the real dotenv load. Pure function of
-     * (absolute path, key); returns the raw value or null if absent.
+     * @param bool $bootstrapPhase True on the pre-dotenv call, when .env hasn't
+     *   been read yet so the real APP_ENVIRONMENT is unknown. We turn errors ON
+     *   then so a failure during early boot (constants / env detect / dotenv
+     *   load) is never a silent white-screen — that's the worst case to debug.
      */
-    public static function peekEnvVar(string $path, string $key): ?string
+    private static function configureErrorDisplay(bool $bootstrapPhase = false): void
     {
-        if (!is_file($path)) { return null; }
-        foreach ((array)@file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-            $line = trim($line);
-            if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) { continue; }
-            [$k, $v] = explode('=', $line, 2);
-            if (trim($k) === $key) { return trim($v, " \t\"'"); }
-        }
-        return null;
-    }
+        $appEnv = strtoupper((string)($_ENV['APP_ENVIRONMENT'] ?? $_SERVER['APP_ENVIRONMENT'] ?? 'P'));
+        $GLOBALS['_app_env'] = $appEnv;
 
-    private static function configureErrorDisplay(): void
-    {
-        $appEnv = $GLOBALS['_app_env'] ?? null;
-        if ($appEnv !== 'P') {
+        $forceDebug = (string)($_ENV['FORCE_DEBUG'] ?? getenv('FORCE_DEBUG') ?: '') === '1';
+
+        // Errors ON (verbose) whenever we need to SEE them: during the bootstrap
+        // phase (env not loaded yet), in any non-prod environment, or when
+        // FORCE_DEBUG=1 forces it on production too.
+        if ($bootstrapPhase || $appEnv !== 'P' || $forceDebug) {
             error_reporting(E_ALL);
             ini_set('display_errors', '1');
+            ini_set('display_startup_errors', '1');
+            ini_set('html_errors', '1');
+            return;
         }
+
+        // Production runtime (env now known, not forced): don't leak to the page.
+        // Errors still go to the log; flip on per-request with FORCE_DEBUG=1.
+        ini_set('display_errors', '0');
+        ini_set('display_startup_errors', '0');
     }
 
     private static function sqliteEmergencyRecovery(): void
