@@ -580,7 +580,7 @@ class CmaTabs extends HTMLElement {
                 <select class="tabs-select">
                     ${this._tabs.map((tab, i) => `
                         <option value="${i}" ${i === this._selectedIndex ? 'selected' : ''}>
-                            ${this._escapeHtml(tab.title)} (${tab.count ?? '.'})
+                            ${this._escapeHtml(tab.title)}${(tab.count === null || tab.count === undefined || tab.count === '.') ? '' : ` (${tab.count})`}
                         </option>
                     `).join('')}
                 </select>

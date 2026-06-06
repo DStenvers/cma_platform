@@ -119,6 +119,10 @@ table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) }
 .lnr-inbox::before {content:"\e69c"}
 .lnr-clipboard-pencil::before {content:"\e6ca"}
 /* Missing icons - added from Linearicons audit */
+.lnr-envelope::before {content:"\e696"}
+.lnr-paper-plane::before {content:"\e699"}
+.lnr-server::before {content:"\e666"}
+.lnr-brain::before {content:"\e7f2"}
 .lnr-code::before {content:"\e90b"}
 .lnr-warning::before {content:"\e955"}
 .lnr-arrow-right::before {content:"\e944"}

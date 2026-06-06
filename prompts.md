@@ -283,3 +283,13 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
     color: var(--heading-color);
     font-weight: bold !important;
 }
+
+## 2026-06-06
+
+> https://karaat.stenversonline.nl/cma/tools.php?tool=serverinfo : make a finer grained division of settings (mail/deployment/etc.)
+
+> https://karaat.stenversonline.nl/cma/tools.php?tool=serverinfo : make a finer grained division of settings (mail/deployment/etc.) and find suitable icons for all
+
+> we have all liniericons mentioned in storybook, take alook inthere
+
+> cma-tabs, if the mobile displat is activated, the number of items is shown as (.) if there are no items, please remove the (.) entirily

@@ -105,7 +105,12 @@ if ($action === 'buildTree') {
     foreach ($allForms as $name => $def) {
         $subs = $def['subforms'] ?? [];
         foreach ($subs as $sub) {
-            $subName = $sub['form'] ?? '';
+            // Subform-verwijzing: de form-definities gebruiken 'formName' (met
+            // 'name' als alias); 'form' bestond hier niet -> subform-relaties
+            // werden nooit herkend, dus de boom toonde geen genest niveau
+            // (subform-van-een-subform zoals orderregels ontbrak). isset-guard
+            // verderop vangt een 'name' af die geen echt formulier is.
+            $subName = $sub['formName'] ?? $sub['form'] ?? $sub['name'] ?? '';
             if ($subName !== '') {
                 $childForms[$subName] = true;
             }
@@ -126,7 +131,12 @@ if ($action === 'buildTree') {
         // Build child nodes
         $children = [];
         foreach ($subs as $sub) {
-            $subName = $sub['form'] ?? '';
+            // Subform-verwijzing: de form-definities gebruiken 'formName' (met
+            // 'name' als alias); 'form' bestond hier niet -> subform-relaties
+            // werden nooit herkend, dus de boom toonde geen genest niveau
+            // (subform-van-een-subform zoals orderregels ontbrak). isset-guard
+            // verderop vangt een 'name' af die geen echt formulier is.
+            $subName = $sub['formName'] ?? $sub['form'] ?? $sub['name'] ?? '';
             if ($subName !== '' && isset($allForms[$subName])) {
                 $children[] = $buildNode($subName);
             }
@@ -1915,10 +1925,18 @@ body.fe-layout #leftlist .table-area tbody tr:hover td {
 body.fe-layout #leftlist .table-area tbody tr.selected td {
     background: var(--selected-bg, #e3f2fd);
 }
-/* Active view toggle button */
+/* Active view toggle button — filled "pressed" state so the current
+   view (tree vs table) is unmistakable, not just a subtle icon tint. */
+#btn_viewTree.fe-view-active,
+#btn_viewTable.fe-view-active {
+    background: var(--color-accent, #077ab2);
+    border-color: var(--color-accent, #077ab2);
+}
 #btn_viewTree.fe-view-active a,
-#btn_viewTable.fe-view-active a {
-    color: var(--accent-color, #077ab2) !important;
+#btn_viewTable.fe-view-active a,
+#btn_viewTree.fe-view-active a:hover,
+#btn_viewTable.fe-view-active a:hover {
+    color: #fff;
 }
 /* Hide expand/collapse in table mode */
 body.fe-view-table #btn_expand,
@@ -2380,7 +2398,7 @@ echo '</lib-dialog>';
 echo '<lib-dialog id="jsonPreviewDialog" heading="JSON preview" size="large" maximizable>';
 echo '<textarea id="jsonPreviewArea" readonly></textarea>';
 echo '<div slot="footer">';
-echo '<button class="btn" id="jsonCopyBtn" onclick="navigator.clipboard.writeText(document.getElementById(\'jsonPreviewArea\').value);this.textContent=\'Gekopieerd!\';setTimeout(function(){document.getElementById(\'jsonCopyBtn\').textContent=\'Kopieer naar klembord\'},2000)">Kopieer naar klembord</button>';
+echo '<button class="btn" id="jsonCopyBtn" onclick="navigator.clipboard.writeText(document.getElementById(\'jsonPreviewArea\').value);document.getElementById(\'jsonCopyLabel\').textContent=\'Gekopieerd!\';setTimeout(function(){document.getElementById(\'jsonCopyLabel\').textContent=\'Kopieer naar klembord\'},2000)"><span class="lnr lnr-copy"></span> <span id="jsonCopyLabel">Kopieer naar klembord</span></button>';
 echo '<button class="btn btn-primary" id="jsonDownloadBtn" onclick="(function(){var json=document.getElementById(\'jsonPreviewArea\').value;var name=(FormEditor.currentForm||\'form\')+\'.json\';var blob=new Blob([json],{type:\'application/json\'});var a=document.createElement(\'a\');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)})()"><span class="lnr lnr-download"></span> Downloaden</button>';
 echo '</div>';
 echo '</lib-dialog>';

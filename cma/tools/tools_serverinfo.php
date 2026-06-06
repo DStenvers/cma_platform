@@ -330,33 +330,10 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
         $envFileCell .= ' <lib-label type="warning">alleen-lezen</lib-label>';
     }
 
-    $summaryRows = [
-        ['Omgeving',           '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>' . $envSwitchCell],
-        ['Actief .env bestand', $envFileCell],
-        ['CMA platform versie', '<code>v' . htmlspecialchars($cmaVersion) . '</code>'],
-        ['PHP versie',         '<code>' . htmlspecialchars(PHP_VERSION) . ' (' . PHP_SAPI . ')</code>'],
-        ['Host',               '<code>' . htmlspecialchars($_SERVER['HTTP_HOST'] ?? '?') . '</code>'],
-        ['HTTPS',              !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'Ja' : '<span class="cma-tool__em">Nee</span>'],
-        ['Server software',    htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '?')],
-        ['Document root',      '<code>' . htmlspecialchars($_SERVER['DOCUMENT_ROOT'] ?? '?') . '</code>'],
-        ['Applicatie naam',    htmlspecialchars((string)Application::get('app_name', '?'))],
-        ['Debug mode',         Application::get('debug', false) ? 'Aan' : 'Uit'],
-        ['Display errors',     ini_get('display_errors') ? 'Aan' : 'Uit'],
-        ['Memory limit',       htmlspecialchars((string)ini_get('memory_limit'))],
-        ['Upload max',         htmlspecialchars((string)ini_get('upload_max_filesize'))],
-        ['Post max',           htmlspecialchars((string)ini_get('post_max_size'))],
-        ['Max execution',      htmlspecialchars((string)ini_get('max_execution_time')) . ' s'],
-    ];
-
-    echo '<h2><span class="lnr lnr-laptop"></span> Omgeving</h2>';
-    echo '<table class="listtable">';
-    echo '<thead><tr class="listheader"><th style="width:220px">Instelling</th><th>Waarde</th></tr></thead><tbody>';
-    foreach ($summaryRows as [$label, $value]) {
-        echo '<tr><td>' . htmlspecialchars($label) . '</td><td>' . $value . '</td></tr>';
-    }
-    echo '</tbody></table>';
-
-    // ---- Test/Prod differences ----
+    // From-address resolution mirrors Email::initialize(): email_from is the
+    // address, email_fromname (falling back to company) is the display name.
+    $fromAddr   = trim((string)Application::get('email_from', ''));
+    $fromName   = trim((string)Application::get('email_fromname', '')) ?: trim((string)Application::get('company', ''));
     $simulation = (bool)Application::get('local', false);
     $testWrap   = (bool)Application::get('test', false);
     $mailServer = (string)Application::get('mail_server', 'localhost');
@@ -366,28 +343,66 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
 
     $boolLabel = static fn(bool $b, string $onLabel = 'Ja', string $offLabel = 'Nee'): string =>
         '<lib-label type="' . ($b ? 'warning' : 'success') . '">' . ($b ? $onLabel : $offLabel) . '</lib-label>';
+    $code  = static fn(string $v): string => '<code>' . htmlspecialchars($v) . '</code>';
+    $unset = '<span class="cma-tool__em">niet ingesteld</span>';
 
-    $diffRows = [
-        ['Mail-simulatie (geen echte verzending)',     $boolLabel($simulation, 'Aan (local)', 'Uit')],
-        ['Test-wrap op uitgaande mail',                $boolLabel($testWrap, 'Aan', 'Uit')],
-        ['SMTP-server',                                '<code>' . htmlspecialchars($mailServer) . '</code>'],
-        ['Beheerder e-mail (BCC op alle mail)',        $adminMail !== '' ? '<code>' . htmlspecialchars($adminMail) . '</code>' : '<span class="cma-tool__em">niet ingesteld</span>'],
-        ['LLM_URL',                                    $llmUrl !== '' ? '<code>' . htmlspecialchars($llmUrl) . '</code>' : '<span class="cma-tool__em">niet ingesteld</span>'],
-        ['DEPLOY_SECRET aanwezig',                     $boolLabel($deployKey !== '', 'Ja', 'Nee')],
-        ['Cookie secure flag (HTTPS-only)',            $boolLabel((bool)ini_get('session.cookie_secure'), 'Aan', 'Uit')],
-        ['Error log',                                  '<code>' . htmlspecialchars((string)(ini_get('error_log') ?: 'php default')) . '</code>'],
-    ];
+    // Render one settings category as an <h2> + listtable. Each category gets
+    // its own icon so operators can scan the page by topic (mail/deploy/etc.).
+    $renderTable = static function (string $icon, string $title, array $rows): void {
+        echo '<h2><span class="lnr ' . $icon . '"></span> ' . htmlspecialchars($title) . '</h2>';
+        echo '<table class="listtable">';
+        echo '<thead><tr class="listheader"><th style="width:260px">Instelling</th><th>Waarde</th></tr></thead><tbody>';
+        foreach ($rows as [$label, $value]) {
+            echo '<tr><td>' . htmlspecialchars($label) . '</td><td>' . $value . '</td></tr>';
+        }
+        echo '</tbody></table>';
+    };
 
-    echo '<h2 style="margin-top:30px;"><span class="lnr lnr-warning"></span> Test-versus-productie instellingen</h2>';
-    echo '<p class="cma-tool__em" style="color:var(--text-muted);">';
-    echo 'Verschillen die typisch tussen test en productie variëren. Controleer of de waarden passen bij de omgeving waarin je werkt.';
-    echo '</p>';
-    echo '<table class="listtable">';
-    echo '<thead><tr class="listheader"><th style="width:320px">Instelling</th><th>Waarde</th></tr></thead><tbody>';
-    foreach ($diffRows as [$label, $value]) {
-        echo '<tr><td>' . htmlspecialchars($label) . '</td><td>' . $value . '</td></tr>';
-    }
-    echo '</tbody></table>';
+    $renderTable('lnr-cog', 'Omgeving', [
+        ['Omgeving',            '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>' . $envSwitchCell],
+        ['Actief .env bestand', $envFileCell],
+        ['CMA platform versie', $code('v' . $cmaVersion)],
+        ['Applicatie naam',     htmlspecialchars((string)Application::get('app_name', '?'))],
+        ['Debug mode',          Application::get('debug', false) ? 'Aan' : 'Uit'],
+    ]);
+
+    $renderTable('lnr-server', 'Server', [
+        ['PHP versie',      $code(PHP_VERSION . ' (' . PHP_SAPI . ')')],
+        ['Server software', htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '?')],
+        ['Host',            $code($_SERVER['HTTP_HOST'] ?? '?')],
+        ['HTTPS',           !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'Ja' : '<span class="cma-tool__em">Nee</span>'],
+        ['Document root',   $code($_SERVER['DOCUMENT_ROOT'] ?? '?')],
+    ]);
+
+    $renderTable('lnr-equalizer', 'PHP-limieten', [
+        ['Memory limit',  $code((string)ini_get('memory_limit'))],
+        ['Upload max',    $code((string)ini_get('upload_max_filesize'))],
+        ['Post max',      $code((string)ini_get('post_max_size'))],
+        ['Max execution', htmlspecialchars((string)ini_get('max_execution_time')) . ' s'],
+    ]);
+
+    $renderTable('lnr-envelope', 'Mail', [
+        ['Mail-simulatie (geen echte verzending)', $boolLabel($simulation, 'Aan (local)', 'Uit')],
+        ['Test-wrap op uitgaande mail',            $boolLabel($testWrap, 'Aan', 'Uit')],
+        ['SMTP-server',                            $code($mailServer)],
+        ['Afzender-adres (email_from)',            $fromAddr !== '' ? $code($fromAddr) : $unset],
+        ['Afzender-naam (email_fromname)',         $fromName !== '' ? htmlspecialchars($fromName) : $unset],
+        ['Beheerder e-mail (BCC op alle mail)',    $adminMail !== '' ? $code($adminMail) : $unset],
+    ]);
+
+    $renderTable('lnr-rocket', 'Deployment', [
+        ['DEPLOY_SECRET aanwezig', $boolLabel($deployKey !== '', 'Ja', 'Nee')],
+    ]);
+
+    $renderTable('lnr-lock', 'Beveiliging', [
+        ['Display errors',                  $boolLabel((bool)ini_get('display_errors'), 'Aan', 'Uit')],
+        ['Cookie secure flag (HTTPS-only)', $boolLabel((bool)ini_get('session.cookie_secure'), 'Aan', 'Uit')],
+        ['Error log',                       $code((string)(ini_get('error_log') ?: 'php default'))],
+    ]);
+
+    $renderTable('lnr-brain', 'Integraties', [
+        ['LLM_URL', $llmUrl !== '' ? $code($llmUrl) : $unset],
+    ]);
 
     // ---- Test e-mail form ----
     if (SecurityHelper::isDeveloper()) {
