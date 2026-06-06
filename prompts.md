@@ -310,3 +310,26 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 }
 > but make sure the first has NO margin-top
 > karaat still says: CMA platform versie    vdev-main , is the app.php outdated?
+
+## 2026-06-06 (form-editor tree: genest subform-niveau)
+
+> The orderregels form cannot be edited because it is a subform of a subform, make sure you support that in the list of forms as well
+
+> i don't understand, the cma_platform does not seem to render the form in the forms-list where I can choose it. It seems to only list 1st level forms, not 2nd level
+
+> the cma-tree tree_formedit from tools_formedit.php
+
+> commit all please
+
+> i updated cma_platform with composer update
+
+Form-editor-boom (`cma/tools/tools_formedit.php`, action `buildTree`) las de
+subform-verwijzing als `$sub['form']`, maar de form-definities gebruiken
+`formName` (alias `name`); `form` bestond niet → geen enkele subform-relatie
+werd herkend, dus de boom toonde alleen topniveau-formulieren (geen genest
+niveau, dus ook geen subform-van-een-subform zoals orderregels). Fix:
+`$subName = $sub['formName'] ?? $sub['form'] ?? $sub['name'] ?? ''` op beide
+buildTree-plekken (regels 113 & 139); de recursie nest nu tot elke diepte.
+Belandde via een gelijktijdige release in commit `7fd4f02` (Release 1.23.12).
+De bijbehorende JSON-formdefinitie (`klanten_orders_orderregels.json`) is
+karaat-data en staat in de karaat-repo.
