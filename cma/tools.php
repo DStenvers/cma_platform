@@ -201,6 +201,17 @@ if (!$isNomenuMode) {
 <div id="leftlist">
     <?php ToolbarHelper::start(false); ?>
     <?php ToolbarHelper::treeButtons(); ?>
+    <td width="99%">
+        <lib-search-input id="searchfor" name="searchfor" placeholder="Zoek tool ..."></lib-search-input>
+        <script>
+            // Search-as-you-type: filter the tools tree client-side via the
+            // cma-tree component's own filter(). Empty term clears the filter.
+            document.getElementById('searchfor').addEventListener('input', function () {
+                var t = document.getElementById('tools-tree');
+                if (t && typeof t.filter === 'function') { t.filter(this.value); }
+            });
+        </script>
+    </td>
     <?php ToolbarHelper::end(false); ?>
     <div id="c" class="listcontent blockselect" onselectstart="return false">
         <cma-tree

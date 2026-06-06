@@ -80,7 +80,13 @@ document.addEventListener("DOMContentLoaded", function() {
             <lib-search-input id="searchfor" name="searchfor" autofocus value="<?= Server::htmlEncode($parSearchFor) ?>" placeholder="Zoek naar ..."></lib-search-input>
         </form>
         <script>
-            document.getElementById('searchfor').addEventListener('input', function() { searchasyoutype(); });
+            // Search-as-you-type: filter the reports tree client-side via the
+            // cma-tree component's own filter(). Empty term clears the filter.
+            document.getElementById('searchfor').addEventListener('input', function() {
+                var t = document.getElementById('reports-tree');
+                if (t && typeof t.filter === 'function') { t.filter(this.value); }
+            });
+            // Enter / native search still triggers the server-side report search.
             document.getElementById('searchfor').addEventListener('search', function() { document.getElementById('Snel').submit(); });
         </script>
     </td>
