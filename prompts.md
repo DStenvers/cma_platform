@@ -278,3 +278,8 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > 2 consumer site reporting that the mail send from is wrong. But i see the correct email_from setting in the Applicatie instellingen.
 
 > 2 consumer site reporting that the mail send from is wrong. ... So as you concluded: email_fromname is incorrectly used as the from email
+
+> h2 span.lnr::before {
+    color: var(--heading-color);
+    font-weight: bold !important;
+}

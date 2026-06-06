@@ -19,6 +19,12 @@ a.lnr {cursor:pointer}
 .lnr::before {font-family: 'Linearicons';  display:inline-block;  color:var(--text-primary);   font-size: 15px; 	line-height:24px;     width: 24px;     height: 24px;     text-align: center;     font-weight: normal !important} 	
 table.tb_but_down{  border-radius: 6px ; background-color:var(--bg-surface-alt); box-shadow: inset 2px 2px 2px 2px var(--border-color)}
 table.tb_but_d tr td .lnr::before {color: var(--text-disabled) !important}
+/* Icons in an <h2> heading take the heading colour (not the body --text-primary
+   from the base .lnr::before rule above) so the icon matches its heading. */
+h2 span.lnr::before {
+    color: var(--heading-color);
+    font-weight: bold !important;
+}
 table.tb_but:hover { background-color: var(--bg-hover); border-color: var(--border-hover); border-radius: 2px }
 table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) } 	
 .lnr-file-add::before {content : "\e6b4" }
