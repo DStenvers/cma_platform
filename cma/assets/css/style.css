@@ -1958,3 +1958,15 @@ body.backup #c.tools {
     font-size: var(--font-size-sm, 0.875em);
     margin-top: 4px;
 }
+
+/* Tool-page callout box (info). Used by the Deploy setup wizard; docs-callout
+   is scoped to .tool-docs, so tool pages need their own styled box. */
+.cma-tool__callout {
+    margin: 14px 0;
+    padding: 12px 14px;
+    background: var(--bg-surface-alt, #f6f8fa);
+    border-left: 3px solid var(--color-info, #077ab2);
+    border-radius: 4px;
+}
+.cma-tool__callout > :first-child { margin-top: 0; }
+.cma-tool__callout > :last-child  { margin-bottom: 0; }

@@ -260,3 +260,5 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > migration 9.9.0 : [appcmd exit 5 "insufficient permissions" reading redirection.config → ROLLBACK, but runner reported "✓ succesvol"]
 
 > the migration should be aware it has failed, and how do we solve this?
+
+> cma/tools.php?tool=deploy_setup -> de documentatie over git webhooks iets fraaier vormgeven en met uitleg waar nodig

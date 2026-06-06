@@ -167,8 +167,29 @@ echo '</tbody></table>';
 echo '<button type="submit" class="btn btn-primary">Opslaan in ' . htmlspecialchars($targetEnv) . '</button>';
 echo '</form>';
 
-echo '<div class="docs-callout">';
-echo '<span class="cma-tool__strong">GitHub-webhook:</span> Payload URL <code>' . htmlspecialchars('https://' . $host . '/deploy.php') . '</code>, content-type <code>application/json</code>, secret = bovenstaande <code>DEPLOY_SECRET</code>, alleen het <code>push</code>-event. Zie <a href="documentation.php?topic=deployment" target="_top">Deployment</a>.';
+echo '<h3>Stap 2 — GitHub-webhook instellen</h3>';
+
+echo '<div class="cma-tool__callout">';
+echo '<p>Een <span class="cma-tool__strong">webhook</span> laat GitHub bij elke <code>git push</code> automatisch een seintje naar deze site sturen; <code>/deploy.php</code> rolt vervolgens de nieuwe code uit. Je doet dit één keer per repository.</p>';
 echo '</div>';
+
+echo '<p>Ga in je GitHub-repo naar <span class="cma-tool__strong">Settings → Webhooks → Add webhook</span> en vul de velden in:</p>';
+
+echo '<table class="listtable"><thead><tr class="listheader"><th>Veld in GitHub</th><th>Waarde</th><th>Waarom</th></tr></thead><tbody>';
+echo '<tr><td>Payload URL</td><td><code>' . htmlspecialchars('https://' . $host . '/deploy.php') . '</code></td>'
+   . '<td>Het endpoint dat de deploy uitvoert. Staat bewust in de site-root (niet onder <code>/cma/</code>) zodat het blijft werken als <code>/cma/</code> stuk is.</td></tr>';
+echo '<tr><td>Content type</td><td><code>application/json</code></td>'
+   . '<td><code>deploy.php</code> leest de push-payload als JSON (branch + commit-sha).</td></tr>';
+echo '<tr><td>Secret</td><td>dezelfde waarde als <code>DEPLOY_SECRET</code> hierboven</td>'
+   . '<td>GitHub ondertekent elk bericht hiermee (HMAC-SHA256). <code>deploy.php</code> weigert alles met een verkeerde of ontbrekende handtekening, zodat niemand anders een deploy kan triggeren.</td></tr>';
+echo '<tr><td>SSL verification</td><td><span class="cma-tool__strong">Enable SSL verification</span></td>'
+   . '<td>Aan laten — de site draait op HTTPS.</td></tr>';
+echo '<tr><td>Which events…</td><td>Just the <code>push</code> event</td>'
+   . '<td>Alleen pushes rollen uit; andere events (issues, stars, …) worden genegeerd.</td></tr>';
+echo '</tbody></table>';
+
+echo '<p>Klik <span class="cma-tool__strong">Add webhook</span>. GitHub stuurt meteen een test-ping — een groen vinkje onder <span class="cma-tool__strong">Recent Deliveries</span> betekent dat het bericht de site bereikt. Response-codes: <code>202</code> = geaccepteerd (deploy draait async), <code>403</code> = secret-mismatch, <code>503</code> = <code>DEPLOY_SECRET</code> nog niet opgeslagen.</p>';
+
+echo '<p class="cma-tool__hint">Controleer de status read-only via <code>' . htmlspecialchars('https://' . $host . '/deploy_status.php') . '</code> (en de config-check <code>?config=1</code>). Volledige uitleg: <a href="documentation.php?topic=deployment" target="_top">Deployment</a>-documentatie.</p>';
 
 echo '</div></body></html>';
