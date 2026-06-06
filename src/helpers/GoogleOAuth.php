@@ -20,9 +20,10 @@
  *        https://<host>/auth/google/callback
  *        http://localhost:<port>/auth/google/callback
  *
- * 4. Paste credentials into the consuming project's `.env.local`:
- *        GOOGLE_CLIENT_ID=...
- *        GOOGLE_CLIENT_SECRET=GOCSPX-...
+ * 4. Paste credentials into the consuming project's `.env`:
+ *        GOOGLE_OAUTH_CLIENT_ID=...
+ *        GOOGLE_OAUTH_CLIENT_SECRET=GOCSPX-...
+ *    (The old GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET names still work as a fallback.)
  *    Both env vars must be non-empty; ::isConfigured() returns false
  *    when either is missing and the consuming project should hide
  *    the login button entirely.
@@ -76,12 +77,13 @@ final class GoogleOAuth
 
     public static function clientId(): string
     {
-        return trim((string)($_ENV['GOOGLE_CLIENT_ID'] ?? ''));
+        // Voorkeursnaam GOOGLE_OAUTH_CLIENT_ID; valt terug op de oude GOOGLE_CLIENT_ID.
+        return trim((string)($_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_ENV['GOOGLE_CLIENT_ID'] ?? ''));
     }
 
     public static function clientSecret(): string
     {
-        return trim((string)($_ENV['GOOGLE_CLIENT_SECRET'] ?? ''));
+        return trim((string)($_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''));
     }
 
     /** Build the redirect URI from the current request — must match
