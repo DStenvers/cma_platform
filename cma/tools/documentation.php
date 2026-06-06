@@ -2430,8 +2430,9 @@ function render_doc_mail(): void
             <tr><td><code>mail_server_port</code></td><td><code>25</code></td><td>SMTP-poort. Voor TLS: 587. Voor SSL: 465.</td></tr>
             <tr><td><code>mail_username</code></td><td><code>''</code></td><td>SMTP-username. Lege string → geen auth.</td></tr>
             <tr><td><code>mail_password</code></td><td><code>''</code></td><td>SMTP-password.</td></tr>
-            <tr><td><code>email_fromname</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-adres.</td></tr>
-            <tr><td><code>company</code></td><td><code>RINO amsterdam</code></td><td>Default From-name.</td></tr>
+            <tr><td><code>email_from</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-<span class="cma-tool__strong">adres</span>. <span class="cma-tool__strong">Sinds v1.23.10</span> leest de Email-klasse dit veld; daarvoor werd per abuis <code>email_fromname</code> als adres gebruikt (waardoor een correct <code>email_from</code> genegeerd werd).</td></tr>
+            <tr><td><code>email_fromname</code></td><td><code>(leeg)</code></td><td>Default From-<span class="cma-tool__strong">naam</span> (weergavenaam). Bevat het per ongeluk een e-mailadres (oude config), dan valt de naam terug op <code>company</code> en wordt dat adres als afzender gebruikt — back-compat.</td></tr>
+            <tr><td><code>company</code></td><td><code>RINO amsterdam</code></td><td>Bedrijfsnaam; fallback voor de From-naam.</td></tr>
             <tr><td><code>email_template</code></td><td><code>''</code></td><td>HTML-template voor de body. Leeg = geen template.</td></tr>
             <tr><td><code>app_beheerder_email</code></td><td><code>''</code></td><td>Auto-BCC op alle uitgaande mail. Gehandhaafd voor audit-trail.</td></tr>
             <tr><td><code>local</code></td><td><code>false</code></td><td>True → simulatie-modus: <code>showPreview()</code> i.p.v. echte SMTP.</td></tr>

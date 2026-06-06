@@ -270,3 +270,11 @@ Do NOT edit, rephrase, or "tidy" prior prompts. Add only.
 > give the tools and report lists a search as you type searchfield in the toolbar
 
 > the section Test e-mail versturen , can you design that as a new mail window in Outlook? And can you place the From in the dialog as well
+
+> is the cariable cma_language used anywhere?
+
+> check if any of these variables are still used: [Applicatie settings list: omgeving, base_path, path_images, pict_pixel, cma_htmledit_img_path, pdo_driver, email_from, email_fromname, appname, company, name, cma_language, mod_language, closed_site, migration_sources_extra, start, local, test, cma_htmledit_css]
+
+> 2 consumer site reporting that the mail send from is wrong. But i see the correct email_from setting in the Applicatie instellingen.
+
+> 2 consumer site reporting that the mail send from is wrong. ... So as you concluded: email_fromname is incorrectly used as the from email

@@ -157,12 +157,29 @@ class Email
             $this->mailer->Password = $mailPassword;
         }
 
-        // Default from address
-        $defaultFrom = Application::get('email_fromname', 'webmaster@stenversonline.nl');
-        $company = Application::get('company', 'RINO amsterdam');
+        // Default From address + display name.
+        //   email_from     = sender ADDRESS (the correctly-named key)
+        //   email_fromname = sender DISPLAY NAME
+        // Historically this code read email_fromname AS the address, so some
+        // sites (mis)set email_fromname to an address. Be robust to both:
+        //   - address: prefer a valid email_from; else a mail-looking
+        //     email_fromname (legacy); else the hard default.
+        //   - name: email_fromname only when it is NOT an address; else company.
+        $company   = Application::get('company', 'RINO amsterdam');
+        $cfgFrom   = trim((string)Application::get('email_from', ''));
+        $cfgFromNm = trim((string)Application::get('email_fromname', ''));
 
-        $this->fromEmail = $defaultFrom;
-        $this->fromName = $company;
+        if ($cfgFrom !== '' && filter_var($cfgFrom, FILTER_VALIDATE_EMAIL)) {
+            $this->fromEmail = $cfgFrom;
+        } elseif ($cfgFromNm !== '' && filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL)) {
+            $this->fromEmail = $cfgFromNm; // legacy: address stored in email_fromname
+        } else {
+            $this->fromEmail = 'webmaster@stenversonline.nl';
+        }
+
+        $this->fromName = ($cfgFromNm !== '' && !filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL))
+            ? $cfgFromNm
+            : $company;
 
         // Template settings
         $this->template = Application::get('email_template', '');

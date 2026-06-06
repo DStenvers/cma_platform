@@ -403,8 +403,20 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
             echo '</lib-message>';
         } else {
             $prefillTo    = htmlspecialchars($adminMail);
-            $prefillFromN = htmlspecialchars((string)Application::get('company', ''));
-            $prefillFromE = htmlspecialchars((string)Application::get('email_fromname', ''));
+            // Mirror Email.php's From resolution: address from email_from (the
+            // correctly-named key), name from email_fromname when it is not an
+            // address, else company.
+            $cfgFrom      = trim((string)Application::get('email_from', ''));
+            $cfgFromNm    = trim((string)Application::get('email_fromname', ''));
+            $prefillFromE = htmlspecialchars(
+                ($cfgFrom !== '' && filter_var($cfgFrom, FILTER_VALIDATE_EMAIL)) ? $cfgFrom
+                : (($cfgFromNm !== '' && filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL)) ? $cfgFromNm : '')
+            );
+            $prefillFromN = htmlspecialchars(
+                ($cfgFromNm !== '' && !filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL))
+                    ? $cfgFromNm
+                    : (string)Application::get('company', '')
+            );
             // Outlook-style "new mail" compose window (styling in .cma-mailcompose,
             // style.css). From defaults to the configured sender; leave it as-is or
             // override name + address per test.
