@@ -333,3 +333,5 @@ buildTree-plekken (regels 113 & 139); de recursie nest nu tot elke diepte.
 Belandde via een gelijktijdige release in commit `7fd4f02` (Release 1.23.12).
 De bijbehorende JSON-formdefinitie (`klanten_orders_orderregels.json`) is
 karaat-data en staat in de karaat-repo.
+
+> the webp conversion and .json are not explained in the documentation. Please take a good, good look into all functionality of the cma_platform in total, including web components and determine of there are new area's to cover. While you are at it, re-evaluatie if the documtation does not have stale or outdated information after the last edits (like .env information)

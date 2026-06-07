@@ -71,6 +71,8 @@ $topics = [
             'database'      => ['label' => 'Database & RecordSet',        'icon' => 'lnr-database',   'render' => 'render_doc_database'],
             'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
             'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
+            'json_config'   => ['label' => 'JSON-configuratie',           'icon' => 'lnr-papers',     'render' => 'render_doc_json_config'],
+            'images'        => ['label' => 'WebP & afbeeldingen',         'icon' => 'lnr-picture',    'render' => 'render_doc_images'],
             'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
             'errors'        => ['label' => 'Logging & errors (dev)',      'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
             'testing'       => ['label' => 'Tests & coverage strategie',  'icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
@@ -502,7 +504,8 @@ function cma_doc_check_child_404_handler(): array {
 function cma_doc_check_env_file(): array {
     $label = 'Actief .env-bestand';
     $root  = cma_doc_site_root();
-    $legacy = ['.env.production', '.env.acceptance', '.env.test', '.env.local', '.env.development'];
+    // Same order Bootstrap::detectAndLoadEnv() loops the legacy map (L→O→T→A→P).
+    $legacy = ['.env.local', '.env.development', '.env.test', '.env.acceptance', '.env.production'];
 
     // Prefer the file the bootstrap actually loaded. If that global wasn't
     // exposed, re-derive it the SAME way Bootstrap::detectAndLoadEnv does in
@@ -527,7 +530,7 @@ function cma_doc_check_env_file(): array {
     if (is_file($envPath)) {
         return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($envName) . '</code> bestaat maar is niet leesbaar voor de IIS-user.', 'fix' => 'Geef leesrechten aan de application-pool identity.'];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Geen env-bestand gevonden op <code>' . htmlspecialchars($root) . '</code> (gezocht: <code>.env</code>, dan legacy <code>.env.production</code>/<code>.env.acceptance</code>/<code>.env.test</code>/<code>.env.local</code>).', 'fix' => 'Maak een <code>.env</code> aan op de site-root (kopieer uit <code>.env.example</code>).'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Geen env-bestand gevonden op <code>' . htmlspecialchars($root) . '</code> (gezocht: <code>.env</code>, dan legacy <code>.env.local</code>/<code>.env.development</code>/<code>.env.test</code>/<code>.env.acceptance</code>/<code>.env.production</code>).', 'fix' => 'Maak een <code>.env</code> aan op de site-root (kopieer uit <code>.env.example</code>).'];
 }
 
 function cma_doc_check_app_environment_match(): array {
@@ -681,6 +684,27 @@ function cma_doc_render_check_table(string $title, array $results): void {
         </tbody>
     </table>
     <?php
+}
+
+function cma_doc_check_webp_gd(): array {
+    $label = 'GD WebP-ondersteuning';
+    if (!extension_loaded('gd')) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'PHP <code>gd</code>-extensie niet geladen — geen beeldbewerking mogelijk.', 'fix' => 'Activeer <code>extension=gd</code> in php.ini.'];
+    }
+    $ok = class_exists('\\App\\Library\\Image') ? \App\Library\Image::isWebPSupported() : function_exists('imagewebp');
+    if ($ok) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'GD kan WebP schrijven (<code>imagewebp()</code> beschikbaar).', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'GD mist WebP-ondersteuning — uploads vallen terug op JPEG.', 'fix' => 'Installeer een GD-build met WebP (libwebp).'];
+}
+
+function cma_doc_check_cwebp(): array {
+    $label = 'cwebp CLI (optioneel)';
+    $ok = class_exists('\\App\\Library\\Image') ? \App\Library\Image::isCwebpAvailable() : false;
+    if ($ok) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => '<code>cwebp</code> gevonden — conversies behouden ICC-kleurprofielen.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'info', 'detail' => '<code>cwebp</code> niet gevonden — GD doet de conversie (ICC-profielen worden gestript; klein kleurverschil mogelijk).', 'fix' => 'Optioneel: installeer libwebp/<code>cwebp</code> voor kleur-accurate conversie.'];
 }
 
 // =========================================================================
@@ -880,7 +904,7 @@ function render_doc_environment(): void
     <ol>
         <li>Een expliciete <code>env_file</code> meegegeven aan <code>Bootstrap::init()</code> — gebruik die.</li>
         <li>Bestaat er een <code>.env</code> op de site-root? — gebruik die. <span class="cma-tool__strong">(de normale weg)</span></li>
-        <li>Anders (legacy fallback, voor nog-niet-gemigreerde sites): de per-omgeving bestanden <code>.env.production</code> → <code>.env.acceptance</code> → <code>.env.test</code> → <code>.env.local</code> → <code>.env.development</code>, of het bestand dat bij een OS-level <code>APP_ENVIRONMENT</code> hoort.</li>
+        <li>Anders (legacy fallback, voor nog-niet-gemigreerde sites): is er een OS-level <code>APP_ENVIRONMENT</code> gezet, dan het bijbehorende bestand (<code>L→.env.local</code>, <code>O→.env.development</code>, <code>T→.env.test</code>, <code>A→.env.acceptance</code>, <code>P→.env.production</code>); anders het éérste bestaande bestand in de volgorde <code>.env.local</code> → <code>.env.development</code> → <code>.env.test</code> → <code>.env.acceptance</code> → <code>.env.production</code>.</li>
     </ol>
     <p>Het gekozen bestand staat in <code>$GLOBALS['_env_file']</code> en is zichtbaar op de <a href="tools_serverinfo.php" target="_top">Omgeving-tab</a> als "Actief .env bestand".</p>
 
@@ -909,15 +933,118 @@ function render_doc_environment(): void
     </ul>
 
     <h2>Project-specifieke configs</h2>
-    <p>Het platform splitst JSON-config in een platform-default-laag en een per-site override-laag:</p>
-    <ul>
-        <li><code>cma/config/&lt;naam&gt;.json</code> — platform-defaults, gebundeld met het pakket. <span class="cma-tool__strong">Worden door composer update overschreven.</span> Niet bewerken voor site-specifieke wijzigingen.</li>
-        <li><code>data/&lt;naam&gt;.json</code> op de site-root — per-site overrides. Voor <code>app.json</code> en <code>databases.json</code> lezen <code>cma_get_app_logo()</code> en consumer-bootstraps deze EERST en vallen ze terug op <code>cma/config/...</code>. Voor <code>menu.json</code> en <code>reports.json</code> wijzen <code>MenuService::CONFIG_PATH</code> en <code>ReportsService::$configPath</code> rechtstreeks naar <code>data/&lt;naam&gt;.json</code>.</li>
-    </ul>
-    <p>De Installer raakt <code>data/</code> nooit aan (het is geen sync-target). De <code>PROTECTED_PATHS</code> lijst in <code>src/Installer.php</code> bevat de <code>data/...</code> entries als belt-and-braces — die check is nooit triggerable omdat de Installer alleen <code>cma/</code>, <code>library/</code>, <code>module/</code> synct, maar het maakt duidelijk welke paden per ontwerp project-bezit zijn.</p>
+    <p>Naast <code>.env</code> heeft het platform een twee-lagen JSON-config (platform-defaults in <code>cma/config/</code>, per-site overrides in <code>data/</code>) voor o.a. <code>app.json</code>, <code>menu.json</code> en <code>reports.json</code>. Dat staat volledig beschreven in <a href="documentation.php?topic=json_config">JSON-configuratie</a>.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=installation">Installatie</a>, <a href="documentation.php?topic=deployment">Deployment</a>, <a href="documentation.php?topic=security">Beveiliging</a>.
+    </div>
+    <?php
+}
+
+function render_doc_images(): void
+{
+    ?>
+    <h1>WebP &amp; responsive afbeeldingen</h1>
+    <p class="docs-meta">Hoe het platform geüploade afbeeldingen naar WebP converteert en responsive varianten genereert — plus de batch-tool voor bestaande beelden.</p>
+
+    <?php cma_doc_render_check_table('Beeldconversie — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_webp_gd',
+        'cma_doc_check_cwebp',
+    ])); ?>
+
+    <h2>Twee helper-classes</h2>
+    <ul>
+        <li><code>App\Library\Image</code> — laag-niveau GD/cwebp bewerkingen: <code>convertToWebP()</code>, <code>resize()</code>, <code>crop()</code>, <code>cropAndResize()</code>, <code>rotate()</code> (corrigeert EXIF-oriëntatie), <code>thumbnail()</code>, <code>optimize()</code>, plus detectie <code>isWebPSupported()</code> / <code>isCwebpAvailable()</code>.</li>
+        <li><code>App\Library\ResponsiveImage</code> — variant-generatie en front-end output: <code>generate()</code>, <code>imgTag()</code> (bouwt een <code>&lt;img srcset&gt;</code>), <code>hasVariants()</code>, <code>deleteVariants()</code>, <code>batchGenerate()</code>, <code>scan()</code>, <code>cleanup()</code>.</li>
+    </ul>
+
+    <h2>Wat er bij een upload gebeurt</h2>
+    <p>De upload-handler (<code>form_api.php?action=uploadImage</code>) detecteert WebP-support, schaalt de afbeelding terug binnen <code>maxWidth</code>×<code>maxHeight</code> (standaard 800×600), schrijft het resultaat als <code>.webp</code> (kwaliteit 85) en roept dan <code>ResponsiveImage::generate()</code> aan. Zonder GD-WebP-support valt de upload terug op JPEG.</p>
+    <p>Het origineel blijft staan; de varianten komen in een <code>.responsive/</code>-submap naast het bestand:</p>
+    <pre><code>/images/foto.jpg                      &larr; origineel (blijft staan)
+/images/.responsive/foto-400w.webp    &larr; 400px variant
+/images/.responsive/foto-800w.webp    &larr; 800px variant
+/images/.responsive/foto-1200w.webp   &larr; 1200px variant
+/images/.responsive/foto.webp         &larr; volledige WebP</code></pre>
+    <p>Breedtes en kwaliteit zijn constanten op <code>ResponsiveImage</code>: <code>SIZES = [400, 800, 1200]</code>, <code>DEFAULT_QUALITY = 85</code>, <code>RESPONSIVE_DIR = '.responsive'</code>. Varianten groter dan het origineel worden overgeslagen.</p>
+
+    <h2>Crop / roteren / schalen</h2>
+    <p>In de file-browser (<code>cma/wizards/file-browser.php</code>) werken crop, rotate en resize <span class="cma-tool__em">in-place</span> op het bestand. Na elke bewerking worden de oude varianten verwijderd (<code>deleteVariants()</code>) en opnieuw gegenereerd (<code>generate()</code>), zodat de <code>.responsive/</code>-set altijd klopt met de huidige inhoud.</p>
+
+    <h2>Front-end gebruik</h2>
+    <p><code>ResponsiveImage::imgTag($url, $alt, $sizes, $class, $attrs)</code> bouwt een compleet <code>&lt;img&gt;</code> met <code>srcset</code> over de beschikbare breedtes. Ontbreken er varianten, dan valt de tag netjes terug op de originele URL.</p>
+
+    <h2>cwebp vs GD</h2>
+    <p><code>convertToWebP()</code> gebruikt bij voorkeur de <code>cwebp</code> CLI (behoudt ICC-kleurprofielen) en valt terug op GD als die ontbreekt (GD stript ICC → klein kleurverschil mogelijk). Zonder beide is conversie niet mogelijk. De live-check bovenaan toont wat deze site heeft.</p>
+
+    <h2>Batch-tool voor bestaande afbeeldingen</h2>
+    <p><span class="cma-tool__strong">Alle beheerstools → WebP beeld-conversie</span> (<code>tools/tools_webp_convert.php</code>) scant een map, toont per afbeelding of er varianten zijn, en genereert/hergenereert of ruimt op (<code>cleanup()</code> verwijdert alle <code>.responsive/</code>-mappen). De tool verwerkt tot 20 bestanden per request en toont GD/cwebp-diagnostiek.</p>
+
+    <h2>Configuratie</h2>
+    <p>Er zijn <span class="cma-tool__strong">geen env-vars</span> voor beeldconversie. Alles zit in de constanten op <code>ResponsiveImage</code> en de <code>maxWidth</code>/<code>maxHeight</code> POST-parameters van de upload-handler.</p>
+
+    <h2>Troubleshooting</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr></thead>
+        <tbody>
+            <tr><td>Uploads worden JPEG i.p.v. WebP</td><td>GD mist WebP-support</td><td>GD-build met libwebp installeren (zie live-check).</td></tr>
+            <tr><td>Klein kleurverschil na conversie</td><td>GD stript het ICC-profiel</td><td><code>cwebp</code> installeren — dan blijven kleurprofielen behouden.</td></tr>
+            <tr><td>Oude variant blijft zichtbaar na crop</td><td>Varianten niet vernieuwd</td><td>De file-browser doet <code>deleteVariants()</code>+<code>generate()</code>; bij handmatige edits idem aanroepen.</td></tr>
+            <tr><td>Geen <code>srcset</code> in de output</td><td>Geen varianten aanwezig</td><td>Draai de batch-tool of <code>ResponsiveImage::generate()</code> op de map.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=json_config">JSON-configuratie</a>, <a href="documentation.php?topic=architecture">Architectuur</a>.
+    </div>
+    <?php
+}
+
+function render_doc_json_config(): void
+{
+    ?>
+    <h1>JSON-configuratie</h1>
+    <p class="docs-meta">De twee-lagen JSON-config (platform-defaults + per-site overrides), welke bestanden er zijn, wie ze leest en welke laag wint. Niet te verwarren met <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.</p>
+
+    <h2>Twee lagen</h2>
+    <ul>
+        <li><code>cma/config/&lt;naam&gt;.json</code> — platform-defaults, gebundeld met het pakket. <span class="cma-tool__strong">Worden door <code>composer update</code> overschreven</span> — niet bewerken voor site-specifieke waarden.</li>
+        <li><code>data/&lt;naam&gt;.json</code> op de site-root — per-site overrides. De Installer raakt <code>data/</code> nooit aan, dus deze blijven over een update heen staan.</li>
+    </ul>
+    <div class="docs-callout">
+        <span class="cma-tool__strong">Regel:</span> wil je iets site-specifieks aanpassen, zet het in <code>data/</code>. Een wijziging in <code>cma/config/</code> verdwijnt bij de eerstvolgende <code>composer update</code>.
+    </div>
+
+    <h2>De configbestanden</h2>
+    <p>In <code>cma/config/</code> zitten: <code>app.json</code>, <code>menu.json</code>, <code>reports.json</code>, <code>databases.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th><th>Lezer</th><th>Welke laag wint</th></tr></thead>
+        <tbody>
+            <tr><td><code>app.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/app.json</code> → terugval op <code>cma/config/app.json</code></td></tr>
+            <tr><td><code>menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Alleen <code>data/menu.json</code> (géén terugval)</td></tr>
+            <tr><td><code>reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::$configPath</code></td><td>Alleen <code>data/reports.json</code> (géén terugval)</td></tr>
+            <tr><td><code>databases.json</code></td><td>DB-connecties &amp; metadata</td><td><code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> (leeg <code>[]</code> als afwezig)</td></tr>
+            <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
+            <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>ConfigLoader</code> + <code>Bootstrap</code></td><td><code>/cma/migrations/migrations.json</code> (systeem-eigen; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval. Ontbreekt <code>data/menu.json</code>, dan is het menu leeg — er wordt niet teruggevallen op <code>cma/config/menu.json</code>.</p>
+
+    <h2>ConfigLoader &amp; aliassen</h2>
+    <p><code>Cma\ConfigLoader</code> lost configbestanden standaard op naar de <code>/data/</code>-map. Drie namen zijn gealiast naar een vaste, systeem-eigen locatie (niet <code>data/</code>):</p>
+    <pre><code>'data-sources'  &rarr; /assets/datastores/data-sources.json
+'control-types' &rarr; /cma/control-types.json
+'migrations'    &rarr; /cma/migrations/migrations.json</code></pre>
+
+    <h2>Bescherming door de Installer</h2>
+    <p><code>src/Installer.php</code> synct alleen <code>cma/</code>, <code>library/</code> en <code>module/</code> — nooit <code>data/</code>. De lijst <code>PROTECTED_PATHS</code> bevat <code>data/app.json</code>, <code>data/databases.json</code>, <code>data/menu.json</code> en <code>data/reports.json</code> als belt-and-braces: de check is feitelijk nooit triggerbaar (de Installer raakt <code>data/</code> toch niet aan) maar maakt expliciet welke paden per ontwerp project-bezit zijn.</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Niet hetzelfde als JSON-formulieren:</span> formulier-<span class="cma-tool__em">definities</span> staan in <code>cma/assets/forms/definitions/</code> (intern) en <code>assets/forms/</code> (app-specifiek) en worden door <code>JsonFormLoader</code> geladen — dat is een aparte pijplijn. Zie <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.
+    </div>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>, <a href="documentation.php?topic=environment">Omgeving &amp; .env</a>, <a href="documentation.php?topic=installation">Installatie</a>.
     </div>
     <?php
 }
@@ -1455,7 +1582,7 @@ function render_doc_architecture(): void
         <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
         <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
         <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (sinds v1.12.1 met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
-        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait.</li>
+        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker sinds v1.23.6 op <code>/cma/main.php</code> (niet meer op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat sinds v1.23.7 onder <span class="cma-tool__strong">Alle beheerstools → Gebruikers en groepen</span>.</li>
     </ol>
 
     <h2>Legacy ASP-erfenis</h2>
@@ -1477,7 +1604,7 @@ function render_doc_architecture(): void
         <li><code>JsonFormService</code> + <code>JsonFormLoader</code> + <code>JsonFormRenderer</code> — JSON form pipeline, zie <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.</li>
         <li><code>ListService</code>, <code>TableService</code>, <code>TreeService</code> — list / detail rendering en navigatie.</li>
         <li><code>Logger</code> + <code>PerformanceLogger</code> — server-side logging, zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</li>
-        <li><code>MenuService</code> — leest <code>data/menu.json</code> (per-site) of <code>cma/config/menu.json</code> (platform-default fallback).</li>
+        <li><code>MenuService</code> — leest <code>data/menu.json</code> rechtstreeks via <code>CONFIG_PATH</code> (géén fallback naar <code>cma/config/menu.json</code>; bestaat <code>data/menu.json</code> niet, dan is het menu leeg). Zie <a href="documentation.php?topic=json_config">JSON-configuratie</a>.</li>
         <li><code>SystemSettings</code> — leest env-vars zoals <code>PERF_LOG_ENABLED</code> / <code>CACHE_LOG_ENABLED</code> + persisted UI-settings.</li>
     </ul>
 
