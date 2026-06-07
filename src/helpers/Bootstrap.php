@@ -650,11 +650,50 @@ class Bootstrap
             return;
         }
 
-        \App\Library\Database::initConnections([
-            'data' => \App\Library\Application::get('conn_data', ''),
-            'rep' => \App\Library\Application::get('conn_rep', ''),
-            'users' => \App\Library\Application::get('conn_users', '')
-        ]);
+        // Single source of truth: build the logical data/rep/users connections
+        // from databases.json (per-site data/ preferred, platform default as
+        // fallback). Tolerant of the legacy entry names so a site keeps working
+        // before the rename migration canonicalises them.
+        $logical = [
+            'users' => 'users', 'cmausers' => 'users',
+            'data' => 'data', 'database' => 'data',
+            'rep' => 'rep', 'repository' => 'rep',
+        ];
+        $dsns = ['data' => '', 'rep' => '', 'users' => ''];
+        foreach (self::loadDatabasesConfig() as $entry) {
+            $name = strtolower(trim((string)($entry['name'] ?? '')));
+            $key = $logical[$name] ?? null;
+            if ($key === null || $dsns[$key] !== '') {
+                continue; // unknown name, or already filled (first match wins)
+            }
+            $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::$rootDir);
+        }
+
+        \App\Library\Database::initConnections($dsns);
+    }
+
+    /**
+     * Load the databases.json "databases" array — per-site data/databases.json
+     * preferred, falling back to the platform default cma/config/databases.json.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private static function loadDatabasesConfig(): array
+    {
+        $candidates = [
+            self::$rootDir . '/data/databases.json',
+            self::$rootDir . '/cma/config/databases.json',
+        ];
+        foreach ($candidates as $file) {
+            if (!is_file($file)) {
+                continue;
+            }
+            $data = json_decode((string) @file_get_contents($file), true);
+            if (is_array($data) && !empty($data['databases']) && is_array($data['databases'])) {
+                return $data['databases'];
+            }
+        }
+        return [];
     }
 
     private static function initSessionData(): void
@@ -689,8 +728,8 @@ class Bootstrap
         $targetVersion = $migrationsData['targetVersion'] ?? '0.0.0';
 
         try {
-            $repConn = \App\Library\Application::get('conn_rep', '');
-            if ($repConn && class_exists('\App\Library\Database')) {
+            $repConn = class_exists('\App\Library\Database') ? \App\Library\Database::getDsn('rep') : '';
+            if ($repConn) {
                 $pdo = new \PDO($repConn);
                 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 

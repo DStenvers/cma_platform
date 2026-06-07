@@ -674,7 +674,7 @@ class CmaRepository
 
         // Check if this connection string matches pre-initialized connections
         // Compare the resolved paths to determine if we can use pooled connections
-        $dataConn = Application::get('data_conn', '');
+        $dataConn = Database::getDsn('data');
         $dataConnResolved = $dataConn ? self::resolveConnectionString($dataConn) : '';
         self::$lastConnectionDebug['dataConnResolved'] = $dataConnResolved;
 
@@ -685,7 +685,7 @@ class CmaRepository
             return;
         }
 
-        $repConn = Application::get('conn_rep', '');
+        $repConn = Database::getDsn('rep');
         $repConnResolved = $repConn ? self::resolveConnectionString($repConn) : '';
         self::$lastConnectionDebug['repConnResolved'] = $repConnResolved;
 

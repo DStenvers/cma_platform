@@ -58,10 +58,9 @@ class SchemaHelper
         if (!function_exists('odbc_connect')) return null;
 
         $connName = is_string($connection) ? $connection : null;
-        $configKey = 'conn_' . ($connName ?? 'data');
-        $dsn = \App\Library\Application::get($configKey, '');
+        $dsn = \App\Library\Database::getDsn($connName ?? 'data');
         if (empty($dsn)) {
-            $dsn = \App\Library\Application::get('conn_data', '');
+            $dsn = \App\Library\Database::getDsn('data');
         }
         if (empty($dsn)) return null;
 

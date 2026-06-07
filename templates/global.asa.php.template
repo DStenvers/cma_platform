@@ -11,29 +11,12 @@
 
 function Application_OnStart()
 {
-    $environment = $GLOBALS['Application']['omgeving'] ?? 'L';
-
-    // Database connection strings
-    // Adjust these paths for your project
-    $dbDir = __DIR__ . '/db';
-
-    switch ($environment) {
-        case 'L': // Local
-        case 'O': // Development
-            $GLOBALS['Application']['conn_data'] = "sqlite:$dbDir/data.sqlite";
-            $GLOBALS['Application']['conn_rep'] = "sqlite:$dbDir/repository.sqlite";
-            $GLOBALS['Application']['conn_users'] = "sqlite:$dbDir/cmausers.sqlite";
-            break;
-
-        case 'T': // Test
-        case 'A': // Acceptance
-        case 'P': // Production
-            // Override with environment-specific connection strings
-            $GLOBALS['Application']['conn_data'] = $_ENV['DB_CONN_DATA'] ?? '';
-            $GLOBALS['Application']['conn_rep'] = $_ENV['DB_CONN_REP'] ?? '';
-            $GLOBALS['Application']['conn_users'] = $_ENV['DB_CONN_USERS'] ?? '';
-            break;
-    }
+    // Database connections are NOT defined here anymore. They are the single
+    // source of truth in databases.json (per-site data/databases.json, falling
+    // back to cma/config/databases.json), built at bootstrap. Defining conn_*
+    // here used to fork on `omgeving` and silently selected an empty local
+    // SQLite users DB on a mis-detected production box — the runtime no longer
+    // reads conn_*.
 
     // SSO Configuration (if applicable)
     // $GLOBALS['Application']['sso_client_id'] = $_ENV['SSO_CLIENT_ID'] ?? '';

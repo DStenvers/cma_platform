@@ -218,8 +218,7 @@ if ($action === 'getTables') {
             // MS Access via native ODBC odbc_tables()
             $tablesFound = false;
             if (function_exists('odbc_tables')) {
-                $configKey = 'conn_' . $databaseId;
-                $dsn = \App\Library\Application::get($configKey, '') ?: \App\Library\Application::get('conn_data', '');
+                $dsn = \App\Library\Database::getDsn((string)$databaseId) ?: \App\Library\Database::getDsn('data');
                 if (!empty($dsn)) {
                     $nativeDsn = preg_replace('/^odbc:/i', '', $dsn);
                     $odbc = @odbc_connect($nativeDsn, '', '', SQL_CUR_USE_ODBC);

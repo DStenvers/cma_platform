@@ -268,30 +268,18 @@ class Database
             return self::$connRep;
         }
 
-        // Lazily-registered DSN (via initConnections) heeft voorrang.
+        // Single source of truth: DSNs are registered from databases.json by
+        // Bootstrap::initDatabaseConnections() (via initConnections). There are
+        // no app.php conn_* / CONN_*_PATH fallbacks anymore.
         $dsn = self::$namedConnectionDsns[$name] ?? '';
 
-        // Anders: DSN uit Application config.
-        if (empty($dsn)) {
-            $configKey = self::$connectionConfigKeys[$name] ?? $name;
-            $dsn = \App\Library\Application::get($configKey, '');
-
-            // If DSN is empty, try to build from separate PATH/DRIVER env vars
-            // This handles the CONN_USERS_PATH + CONN_USERS_DRIVER pattern
-            if (empty($dsn)) {
-                $dsn = self::buildDsnFromEnv($configKey);
-            }
-        } else {
-            $configKey = self::$connectionConfigKeys[$name] ?? $name;
-        }
-
-        // Fallback: 'rep' falls back to 'data' if not configured
+        // 'rep' falls back to 'data' when databases.json doesn't define it.
         if (empty($dsn) && $name === 'rep') {
             return self::getConnection('data');
         }
 
         if (empty($dsn)) {
-            throw new PDOException("Database connection '$name' not configured (missing '$configKey' or '{$configKey}_path' in Application settings)");
+            throw new PDOException("Database connection '$name' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named '$name').");
         }
 
         // Create and configure the connection
@@ -305,6 +293,93 @@ class Database
             self::$connData = $conn;
         } elseif ($name === 'rep') {
             self::$connRep = $conn;
+        }
+
+        return $conn;
+    }
+
+    /**
+     * Resolve the DSN string for a logical connection name (data/rep/users),
+     * as registered from databases.json by Bootstrap::initDatabaseConnections().
+     * Returns '' if unknown. 'rep' falls back to 'data'. Used by components that
+     * need the raw DSN (e.g. native odbc_* probes) instead of a PDO handle.
+     */
+    public static function getDsn(string $name): string
+    {
+        $name = strtolower(trim($name));
+        if (isset(self::$connectionAliases[$name])) {
+            $name = self::$connectionAliases[$name];
+        }
+        $dsn = self::$namedConnectionDsns[$name] ?? '';
+        if ($dsn === '' && $name === 'rep') {
+            $dsn = self::$namedConnectionDsns['data'] ?? '';
+        }
+        return $dsn;
+    }
+
+    /**
+     * Build a PDO DSN from a databases.json connection entry — the single
+     * source of truth for database connections. Handles:
+     *   - [env:VAR]          → value from the environment (keeps secrets in .env)
+     *   - [relative/path]    → absolute filesystem path under the site root
+     *                          (legacy CMA convention, e.g. [db/CMAUsers.mdb]);
+     *                          bare [path] means the site root itself.
+     *   - already-PDO DSNs   → used as-is (sqlite:/odbc:/mysql:/sqlsrv:/pgsql:)
+     *   - OLEDB Access        → converted to an ODBC Access DSN
+     *
+     * @param array  $entry    A single entry from databases.json's "databases".
+     * @param string $siteRoot Filesystem path of the site root.
+     * @return string DSN, or '' if the entry has no usable connection string.
+     */
+    public static function dsnFromConfigEntry(array $entry, string $siteRoot): string
+    {
+        $conn = trim((string)($entry['connectionString'] ?? ''));
+        if ($conn === '') {
+            return '';
+        }
+
+        // [env:VAR] → secret from the environment.
+        $conn = preg_replace_callback('/\[env:([A-Za-z0-9_]+)\]/', static function ($m) {
+            $v = $_ENV[$m[1]] ?? $_SERVER[$m[1]] ?? getenv($m[1]);
+            return $v === false ? '' : (string)$v;
+        }, $conn);
+
+        // [relative/path] → absolute filesystem path under the site root.
+        $root = rtrim(str_replace('\\', '/', $siteRoot), '/');
+        $conn = preg_replace_callback('/\[([^\]]+)\]/', static function ($m) use ($root) {
+            $inner = trim($m[1]);
+            if (strcasecmp($inner, 'path') === 0) {
+                return $root . '/';
+            }
+            return $root . '/' . ltrim($inner, '/');
+        }, $conn);
+
+        // Already a PDO DSN — use as-is.
+        if (preg_match('/^(sqlite|odbc|mysql|sqlsrv|pgsql):/i', $conn)) {
+            return $conn;
+        }
+
+        // OLEDB → convert. Access (Jet/ACE or .mdb/.accdb) becomes an ODBC DSN.
+        if (self::isOleDbConnectionString($conn)) {
+            $dataSource = '';
+            foreach (explode(';', $conn) as $part) {
+                $part = trim($part);
+                if (stripos($part, 'data source=') === 0) {
+                    $dataSource = trim(substr($part, strlen('data source=')));
+                    break;
+                }
+            }
+            $lower = strtolower($conn);
+            if ($dataSource !== '' && (
+                strpos($lower, 'jet.oledb') !== false ||
+                strpos($lower, 'ace.oledb') !== false ||
+                preg_match('/\.(mdb|accdb)$/i', $dataSource)
+            )) {
+                return 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $dataSource;
+            }
+            // Other OLEDB providers (e.g. SQL Server) — not a logical runtime
+            // connection here; hand back unchanged.
+            return $conn;
         }
 
         return $conn;

@@ -15,26 +15,12 @@ $GLOBALS['Application']['pict_pixel'] = $GLOBALS['Application']['base_path'] . '
 $GLOBALS['Application']['cma_htmledit_img_path'] = $GLOBALS['Application']['path_images'] . 'html/';
 
 // DATABASE
-$db_type = $_ENV['DB_TYPE'] ?? 'access';
-$db_basepath = __DIR__ . '/';
-
-if ($db_type === 'access') {
-    $db_driver = $_ENV['DB_DRIVER'] ?? 'Microsoft Access Driver (*.mdb, *.accdb)';
-    $GLOBALS['Application']['pdo_driver'] = 'odbc';
-    $GLOBALS['Application']['conn_data'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/main.mdb';
-    $GLOBALS['Application']['conn_users'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/CMAusers.mdb';
-    $GLOBALS['Application']['conn_rep'] = 'odbc:Driver={' . $db_driver . '};DBQ=' . $db_basepath . 'db/repository.mdb';
-} else {
-    $db_host = $_ENV['DB_HOST'] ?? 'localhost';
-    $db_charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
-    $GLOBALS['Application']['pdo_driver'] = $db_type;
-    $dsn = $db_type . ':host=' . $db_host;
-    if (!empty($_ENV['DB_NAME'])) $dsn .= ';dbname=' . $_ENV['DB_NAME'];
-    if (!empty($db_charset)) $dsn .= ';charset=' . $db_charset;
-    $GLOBALS['Application']['conn_data'] = $dsn;
-    $GLOBALS['Application']['conn_users'] = $dsn;
-    $GLOBALS['Application']['conn_rep'] = $dsn;
-}
+// Database connections are the single source of truth in databases.json:
+// per-site data/databases.json (preferred), falling back to the platform
+// default cma/config/databases.json. Name the entries 'data', 'rep' and
+// 'users'. Use [db/file.mdb] for a path under the site root and [env:VAR] to
+// pull a secret from .env. Do NOT define conn_data/conn_rep/conn_users here —
+// the runtime no longer reads them (it builds connections from databases.json).
 
 // EMAIL
 $GLOBALS['Application']['email_from'] = 'info@example.com';

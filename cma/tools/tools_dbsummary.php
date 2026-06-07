@@ -137,12 +137,10 @@ if ($isAjax && $intDatabase !== '') {
             // For Access databases, get native ODBC connection for enhanced column info
             $nativeOdbc = null;
             if ($isAccess && function_exists('odbc_columns')) {
-                // Get DSN using the connection name (not hardcoded conn_data)
-                $configKey = 'conn_' . ($connName ?? 'data');
-                $dsn = \App\Library\Application::get($configKey, '');
-                // Fallback to conn_data if specific key not found
+                // Get DSN from databases.json (single source of truth)
+                $dsn = \App\Library\Database::getDsn($connName ?? 'data');
                 if (empty($dsn)) {
-                    $dsn = \App\Library\Application::get('conn_data', '');
+                    $dsn = \App\Library\Database::getDsn('data');
                 }
                 if (!empty($dsn)) {
                     $nativeDsn = preg_replace('/^odbc:/i', '', $dsn);

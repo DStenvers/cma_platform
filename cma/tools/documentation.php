@@ -1023,12 +1023,24 @@ function render_doc_json_config(): void
             <tr><td><code>app.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/app.json</code> → terugval op <code>cma/config/app.json</code></td></tr>
             <tr><td><code>menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Alleen <code>data/menu.json</code> (géén terugval)</td></tr>
             <tr><td><code>reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::$configPath</code></td><td>Alleen <code>data/reports.json</code> (géén terugval)</td></tr>
-            <tr><td><code>databases.json</code></td><td>DB-connecties &amp; metadata</td><td><code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> (leeg <code>[]</code> als afwezig)</td></tr>
+            <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> → terugval op <code>cma/config/databases.json</code></td></tr>
             <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
             <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>ConfigLoader</code> + <code>Bootstrap</code></td><td><code>/cma/migrations/migrations.json</code> (systeem-eigen; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
         </tbody>
     </table>
     <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval. Ontbreekt <code>data/menu.json</code>, dan is het menu leeg — er wordt niet teruggevallen op <code>cma/config/menu.json</code>.</p>
+
+    <h2>Runtime DB-connecties (single source of truth)</h2>
+    <p>Sinds v1.25.0 bouwt <code>Bootstrap::initDatabaseConnections()</code> de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>
+    <p>In de <code>connectionString</code> kun je twee placeholders gebruiken:</p>
+    <ul>
+        <li><code>[db/bestand.mdb]</code> → absoluut pad onder de site-root (bv. een Access-bestand). Een kale <code>[path]</code> is de site-root zelf.</li>
+        <li><code>[env:NAAM]</code> → waarde uit de omgeving (<code>.env</code>) — zo blijven wachtwoorden buiten het bestand terwijl de <span class="cma-tool__em">definitie</span> in databases.json staat.</li>
+    </ul>
+    <p>OLEDB-strings voor Access worden automatisch naar een ODBC-DSN omgezet; een kant-en-klare PDO-DSN (<code>sqlite:</code>/<code>odbc:</code>/<code>mysql:</code>/<code>sqlsrv:</code>) wordt ongewijzigd gebruikt.</p>
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Waarom dit belangrijk is:</span> vroeger forkte <code>global.asa.php</code> de connecties op <code>omgeving</code> en koos bij een verkeerd gedetecteerde productie-box stilletjes een lege lokale SQLite users-DB → <code>no such table: tblUsers</code> en niemand kon meer inloggen. Eén bron (databases.json) maakt die drift onmogelijk.
+    </div>
 
     <h2>ConfigLoader &amp; aliassen</h2>
     <p><code>Cma\ConfigLoader</code> lost configbestanden standaard op naar de <code>/data/</code>-map. Drie namen zijn gealiast naar een vaste, systeem-eigen locatie (niet <code>data/</code>):</p>
