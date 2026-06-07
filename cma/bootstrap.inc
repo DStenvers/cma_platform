@@ -11,6 +11,17 @@ if (class_exists('\App\Library\Bootstrap')) {
     define('CMA_APP_VERSION', 'dev');
 }
 
+// Sort-param constant used by report/list pages (reportdetails.php) and
+// ToolbarHelper. It's normally defined by library/lib_table.inc, but that file
+// is loaded via an APCu-cached lib_*.inc glob — if that list was cached while
+// library/ was mid-sync (e.g. during composer update) the constant can be
+// missing for up to an hour, fatalling with "Undefined constant
+// CONST_STRSORTPARAM". Define it here too — guarded — so every CMA page (which
+// all require this file) has it deterministically. Value matches lib_table.inc.
+if (!defined('CONST_STRSORTPARAM')) {
+    define('CONST_STRSORTPARAM', 'Sort');
+}
+
 // Buffer output so Debug/Profiler script tags don't prevent setcookie()/header() calls
 ob_start();
 
