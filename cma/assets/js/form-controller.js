@@ -8861,14 +8861,19 @@ class CmaFormController {
                     field.checked = isChecked;
                 }
             } else if (fieldType === 'radiogroup') {
-                // Radio group: find the radio with the default value
-                const container = field.closest('.radio-group') || field;
-                const radios = container.querySelectorAll('input[type="radio"]');
-                radios.forEach(radio => {
-                    if (radio.value === defaultValue) {
-                        radio.checked = true;
-                    }
-                });
+                if (field.tagName === 'LIB-RADIO-GROUP') {
+                    // Web component exposes its value as a property.
+                    field.value = defaultValue;
+                } else {
+                    // Legacy radio group: find the radio with the default value.
+                    const container = field.closest('.radio-group') || field;
+                    const radios = container.querySelectorAll('input[type="radio"]');
+                    radios.forEach(radio => {
+                        if (radio.value === defaultValue) {
+                            radio.checked = true;
+                        }
+                    });
+                }
             } else if (field.tagName === 'LIB-COMBO') {
                 // lib-combo dropdowns
                 field.value = defaultValue;
@@ -9710,10 +9715,15 @@ class CmaFormController {
                 value = field.checked ? 'checked' : '';
             }
 
-            // Handle radio groups (container div with radio inputs inside)
+            // Handle radio groups: <lib-radio-group> exposes its value as a
+            // property; legacy markup wraps <input type="radio"> children.
             if (fieldType === 'radiogroup') {
-                const checkedRadio = field.querySelector('input[type="radio"]:checked');
-                value = checkedRadio ? checkedRadio.value : '';
+                if (field.tagName === 'LIB-RADIO-GROUP') {
+                    value = field.value;
+                } else {
+                    const checkedRadio = field.querySelector('input[type="radio"]:checked');
+                    value = checkedRadio ? checkedRadio.value : '';
+                }
             }
 
             // Handle lib-combo

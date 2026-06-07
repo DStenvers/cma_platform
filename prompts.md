@@ -335,3 +335,5 @@ De bijbehorende JSON-formdefinitie (`klanten_orders_orderregels.json`) is
 karaat-data en staat in de karaat-repo.
 
 > the webp conversion and .json are not explained in the documentation. Please take a good, good look into all functionality of the cma_platform in total, including web components and determine of there are new area's to cover. While you are at it, re-evaluatie if the documtation does not have stale or outdated information after the last edits (like .env information)
+
+> blocking issue: lib-radio-group "Soort korting" required validation keeps failing ("Vul alle verplichte velden in: Soort korting") even though an option (percentage) is selected. (full element markup provided)
