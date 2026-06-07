@@ -121,7 +121,13 @@ class LibSheet extends HTMLElement {
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
         }
-        this.removeAttribute('closing'); // belt-and-braces if a previous close was interrupted
+        // Neutralise an in-flight slide-out from a quick close→open: detach its
+        // handlers first so its cancel doesn't yank [open] back off.
+        if (this._closeAnim) {
+            const a = this._closeAnim; this._closeAnim = null;
+            a.onfinish = null; a.oncancel = null;
+            a.cancel();
+        }
         this.setAttribute('open', '');
     }
     close() {
@@ -130,28 +136,27 @@ class LibSheet extends HTMLElement {
             this._panel.style.transition = '';
             this._panel.style.transform  = '';
         }
-        // For the close animation we add [closing] (drives the slide-out
-        // keyframe) but keep [open] until the animation has actually
-        // ended — that way scroll-lock, aria-hidden, focus-restore all
-        // happen at the moment the panel disappears, not 240ms earlier.
-        if (this._prefersReducedMotion() || typeof this._panel.animate !== 'function') {
+        // Reduced-motion or no WAAPI → close instantly.
+        if (this._prefersReducedMotion() || !this._panel || typeof this._panel.animate !== 'function') {
             this.removeAttribute('open');
             return;
         }
-        this.setAttribute('closing', '');
-        const onEnd = (e) => {
-            // Only react to OUR slide-out keyframe (not the backdrop's
-            // opacity transition or anything inside the slot).
-            if (e && e.animationName && e.animationName.indexOf('lib-sheet-slide-out') === -1) {
-                return;
-            }
-            this._panel.removeEventListener('animationend',    onEnd);
-            this._panel.removeEventListener('animationcancel', onEnd);
-            this.removeAttribute('closing');
+        // Slide-out via the Web Animations API (inline keyframes). Keep [open]
+        // — the panel rests at translateY(0) — until the animation finishes,
+        // then drop it so scroll-lock / aria-hidden / focus-restore (all in
+        // _deactivate) fire exactly when the panel is visually gone.
+        const anim = this._panel.animate(
+            [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
+            { duration: 240, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
+        );
+        this._closeAnim = anim;
+        const done = () => {
+            if (this._closeAnim !== anim) { return; } // superseded by a re-open
+            this._closeAnim = null;
             this.removeAttribute('open');
         };
-        this._panel.addEventListener('animationend',    onEnd);
-        this._panel.addEventListener('animationcancel', onEnd);
+        anim.onfinish = done;
+        anim.oncancel = done;
     }
     toggle() { this.hasAttribute('open') ? this.close() : this.open(); }
 
@@ -171,9 +176,22 @@ class LibSheet extends HTMLElement {
         this._lockScroll(true);
         document.addEventListener('keydown', this._onKeydown);
 
-        // The slide-in is driven by the CSS @keyframes rule on
-        // :host([open]) .panel. Defer focus a frame so the slide-in has
-        // started and the panel is hit-testable.
+        // Slide-in via the Web Animations API — inline keyframes, so it runs
+        // even where CSS @keyframes in a shadow root don't resolve (iOS
+        // Safari) and regardless of whether the browser committed the closed
+        // state first (lazy-created sheets). The :host([open]) rest state is
+        // translateY(0), so no fill-mode is needed.
+        if (this._panel
+            && typeof this._panel.animate === 'function'
+            && !this._prefersReducedMotion()) {
+            this._panel.animate(
+                [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+                { duration: 280, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
+            );
+        }
+
+        // Defer focus a frame so the slide-in has started and the panel is
+        // hit-testable.
         requestAnimationFrame(() => {
             const focusable = this.querySelector(
                 'input, button, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'
@@ -190,12 +208,11 @@ class LibSheet extends HTMLElement {
         if (this._lastFocus && typeof this._lastFocus.focus === 'function') {
             this._lastFocus.focus();
         }
-        // The slide-out is driven by the CSS @keyframes rule on
-        // :host([closing]) .panel — set by close() before [open] is
-        // removed. If the consumer drops [open] without going through
-        // close(), the panel just disappears (no closing animation),
-        // which matches the "instant" semantics of a direct attribute
-        // change.
+        // The slide-out runs in close() via the Web Animations API, which
+        // removes [open] only when it finishes — so by the time we're here the
+        // panel is already off-screen. If a consumer drops [open] directly
+        // (without close()), the panel just disappears instantly, matching the
+        // "direct attribute change = no animation" semantics.
         this.dispatchEvent(new CustomEvent('sheet-close', { bubbles: true }));
     }
 
@@ -339,31 +356,18 @@ class LibSheet extends HTMLElement {
                     box-shadow: var(--lib-sheet-shadow, 0 -8px 28px rgba(0, 0, 0, 0.28));
                     padding-bottom: env(safe-area-inset-bottom, 0px);
                     pointer-events: auto;
-                    /* Closed state — sits below the viewport. The :host([open])
-                     * rule below moves it to translateY(0); the animation
-                     * properties paint the in-flight slide. CSS @keyframes is
-                     * more reliable than transition for this case: transitions
-                     * can be elided when the browser hasn't committed the
-                     * starting state yet, but a keyframe animation that runs
-                     * on [open]-add always paints the from-frame first. */
+                    /* Closed rest state — below the viewport. _activate() runs
+                     * the slide-in to translateY(0) via the Web Animations API
+                     * (see :host([open]) .panel below). */
                     transform: translateY(100%);
                 }
-                :host([open]) .panel {
-                    transform: translateY(0);
-                    animation: lib-sheet-slide-in 280ms cubic-bezier(0.32, 0.72, 0, 1);
-                }
-                :host([closing]) .panel {
-                    transform: translateY(100%);
-                    animation: lib-sheet-slide-out 240ms cubic-bezier(0.32, 0.72, 0, 1);
-                }
-                @keyframes lib-sheet-slide-in {
-                    from { transform: translateY(100%); }
-                    to   { transform: translateY(0); }
-                }
-                @keyframes lib-sheet-slide-out {
-                    from { transform: translateY(0); }
-                    to   { transform: translateY(100%); }
-                }
+                /* Rest states only. The slide itself runs via the Web
+                 * Animations API in _activate()/close() — inline JS keyframes,
+                 * not CSS @keyframes. CSS @keyframes defined inside a shadow
+                 * root don't resolve reliably (notably iOS/WebKit), which left
+                 * the sheet snapping straight to its rest position with no
+                 * visible slide. WAAPI sidesteps that entirely. */
+                :host([open]) .panel { transform: translateY(0); }
 
                 .header {
                     display: flex;
