@@ -71,21 +71,17 @@ function main()
             }
         }
         if ($rs === null) {
-            // --- TEMP connection diagnostics (remove once resolved) ---------
-            $diag = [];
-            $diag[] = 'version=' . (defined('CMA_APP_VERSION') ? CMA_APP_VERSION : '?');
-            $diag[] = 'dbConfigSource=' . ($GLOBALS['_db_config_source'] ?? '(no databases.json read)');
-            if (method_exists('\App\Library\Database', 'getDsn')) {
-                $diag[] = "usersDsn=" . \App\Library\Database::getDsn('users');
-                $diag[] = "dataDsn=" . \App\Library\Database::getDsn('data');
-            } else {
-                $diag[] = 'getDsn=MISSING — the OLD Database class is loaded (vendor not actually updated/autoloaded)';
-            }
             $drv = '?';
-            try { $drv = $dbconn instanceof \PDO ? $dbconn->getAttribute(\PDO::ATTR_DRIVER_NAME) : gettype($dbconn); } catch (\Throwable $e) { $drv = 'err:' . $e->getMessage(); }
-            $diag[] = 'usersConnDriver=' . $drv;
-            $diag[] = 'lastError=' . Database::getLastError();
-            throw new \Exception('Database query failed: ' . implode(' | ', $diag));
+            try { $drv = $dbconn instanceof \PDO ? $dbconn->getAttribute(\PDO::ATTR_DRIVER_NAME) : 'geen verbinding'; } catch (\Throwable $e) {}
+            // Clear, human message that points at the real cause: the 'users'
+            // connection in databases.json. A SQLite driver here almost always
+            // means the connection wasn't defined and fell through to a local
+            // file. Technical detail kept on one line for the operator.
+            throw new \Exception(
+                'De gebruikersdatabase kon niet worden gelezen — tabel tblUsers ontbreekt op de '
+                . htmlspecialchars($drv) . '-verbinding. '
+                . 'Controleer de "users"-connectie in data/databases.json.'
+            );
         }
         if ($rs->EOF) {
             $strError = $lang_LoginInvalid;

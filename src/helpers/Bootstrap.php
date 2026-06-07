@@ -669,6 +669,18 @@ class Bootstrap
             $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::$rootDir);
         }
 
+        // Access is the default DB format: any logical connection that
+        // databases.json didn't define falls back to the conventional Access
+        // file under /db. We NEVER silently fall back to a local SQLite file —
+        // that just creates an empty DB and a confusing "no such table" error.
+        $accessDefaults = ['data' => 'main.mdb', 'rep' => 'repository.mdb', 'users' => 'CMAUsers.mdb'];
+        foreach ($dsns as $key => $dsn) {
+            if ($dsn === '') {
+                $path = self::$rootDir . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $accessDefaults[$key];
+                $dsns[$key] = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $path;
+            }
+        }
+
         \App\Library\Database::initConnections($dsns);
     }
 

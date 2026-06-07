@@ -363,3 +363,9 @@ karaat-data en staat in de karaat-repo.
 > stop doing that, i said: database.json is the single point of truth, so base the globals upon that, not your own shitty code
 
 > i updated manually, still the error occurs (login.php no such table tblUsers). can we add debug information to get this up and running?
+
+> (diag output: version=dev-main, dbConfigSource=(no databases.json read), usersDsn=sqlite cmausers.sqlite, usersConnDriver=sqlite) really? Make access the default database format. And make a cleaner message than this. I really don't understand what the issue is.
+> the lib_sheet still has no animation
+> lib_sheet .close {margin-top: -56px, z-index: 99}
+> panel.header -> make sure it is center aligned
+> and the subform is still not in the form list
