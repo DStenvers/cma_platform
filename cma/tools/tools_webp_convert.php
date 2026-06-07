@@ -796,11 +796,16 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
         var v = findVariant(f, width, isFull);
         if (!v) return '<span style="color:var(--text-muted);">-</span>';
         var isLarger = v.size > f.size;
-        var html = '<div class="variant-thumb" data-row="' + rowIndex + '" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.85em;">';
+        var pct = f.size > 0 ? Math.round(v.size / f.size * 100) : 0;
+        var html = '<div class="variant-thumb" data-row="' + rowIndex + '" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:calc(0.85em - 3px);">';
         html += '<img src="' + v.url + '" alt="" style="max-height:24px;max-width:40px;object-fit:contain;border-radius:2px;border:1px solid var(--border-color);">';
-        html += '<lib-gauge value="' + v.size + '" max="' + f.size + '" format="size" min-width="70"></lib-gauge>';
+        // WebP smaller than original (pct < 100): show just the bar, percentage
+        // on hover. WebP larger (pct > 100, bad): show the percentage outright.
+        html += '<lib-gauge value="' + v.size + '" max="' + f.size + '" format="size" min-width="70"' +
+                (isLarger ? '' : ' show-pct="false"') +
+                ' title="' + pct + '% van origineel"></lib-gauge>';
         if (isLarger) {
-            html += '<span title="WebP is groter dan origineel" style="color:var(--color-danger,#c00);">&#9888;</span>';
+            html += '<span title="WebP is groter dan origineel" style="color:var(--color-danger,#c00);">&#9888; ' + pct + '%</span>';
         }
         html += '</div>';
         return html;

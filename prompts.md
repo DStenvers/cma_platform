@@ -348,3 +348,10 @@ karaat-data en staat in de karaat-repo.
 > i seem to be logged off?? Geen toegang / Je hebt geen toegang tot dit formulier. Debug: formName cmamonitoring, CMAU=1, isLoggedIn=false, isAdmin=false, getUserLevel=0, REQUEST_URI /cma/form.php?form=cmamonitoring
 > WTF: Error in /cma/login.php — Exception: Database query failed: SQLSTATE[HY000]: General error: 1 no such table: tblUsers in C:\wwwroot\karaat_php\cma\login.php:74
 > who decided to switch to sqlite??
+
+> no something in your codebase has changed, databases,json is dated 22-05, and just this morning i had access. Take a really good look at your own code
+> (karaat databases.json pasted: id5 name "CMAUsers" Access CMAUsers.mdb, etc.)
+> i want a single point of truth and to me that should be databases.json. Perhaps we should rename cmausers to users in it, but i do NOT want any other places where databases are defined
+
+> yes hard remove them, i really want only 1 source of truth
+> webp_convert -> just show the gauge if percentage<100 and on hover the percentage, if percentage>100 show it. the size of the images needs a 3px smaller font, it is not that important
