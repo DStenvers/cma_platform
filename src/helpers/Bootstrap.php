@@ -690,6 +690,7 @@ class Bootstrap
             }
             $data = json_decode((string) @file_get_contents($file), true);
             if (is_array($data) && !empty($data['databases']) && is_array($data['databases'])) {
+                $GLOBALS['_db_config_source'] = $file;
                 return $data['databases'];
             }
         }

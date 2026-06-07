@@ -361,3 +361,5 @@ karaat-data en staat in de karaat-repo.
 > 1.25.0 is installed
 > (pasted data/databases.json: entries named rep/users/main, all Access .mdb)
 > stop doing that, i said: database.json is the single point of truth, so base the globals upon that, not your own shitty code
+
+> i updated manually, still the error occurs (login.php no such table tblUsers). can we add debug information to get this up and running?

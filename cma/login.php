@@ -71,7 +71,21 @@ function main()
             }
         }
         if ($rs === null) {
-            throw new \Exception('Database query failed: ' . Database::getLastError());
+            // --- TEMP connection diagnostics (remove once resolved) ---------
+            $diag = [];
+            $diag[] = 'version=' . (defined('CMA_APP_VERSION') ? CMA_APP_VERSION : '?');
+            $diag[] = 'dbConfigSource=' . ($GLOBALS['_db_config_source'] ?? '(no databases.json read)');
+            if (method_exists('\App\Library\Database', 'getDsn')) {
+                $diag[] = "usersDsn=" . \App\Library\Database::getDsn('users');
+                $diag[] = "dataDsn=" . \App\Library\Database::getDsn('data');
+            } else {
+                $diag[] = 'getDsn=MISSING — the OLD Database class is loaded (vendor not actually updated/autoloaded)';
+            }
+            $drv = '?';
+            try { $drv = $dbconn instanceof \PDO ? $dbconn->getAttribute(\PDO::ATTR_DRIVER_NAME) : gettype($dbconn); } catch (\Throwable $e) { $drv = 'err:' . $e->getMessage(); }
+            $diag[] = 'usersConnDriver=' . $drv;
+            $diag[] = 'lastError=' . Database::getLastError();
+            throw new \Exception('Database query failed: ' . implode(' | ', $diag));
         }
         if ($rs->EOF) {
             $strError = $lang_LoginInvalid;
