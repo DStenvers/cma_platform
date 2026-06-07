@@ -656,7 +656,7 @@ class Bootstrap
         // before the rename migration canonicalises them.
         $logical = [
             'users' => 'users', 'cmausers' => 'users',
-            'data' => 'data', 'database' => 'data',
+            'data' => 'data', 'database' => 'data', 'main' => 'data',
             'rep' => 'rep', 'repository' => 'rep',
         ];
         $dsns = ['data' => '', 'rep' => '', 'users' => ''];

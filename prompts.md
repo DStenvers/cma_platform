@@ -355,3 +355,9 @@ karaat-data en staat in de karaat-repo.
 
 > yes hard remove them, i really want only 1 source of truth
 > webp_convert -> just show the gauge if percentage<100 and on hover the percentage, if percentage>100 show it. the size of the images needs a 3px smaller font, it is not that important
+
+> Error in /cma/login.php — no such table: tblUsers (still, after v1.25.0) — so NO, cma does nothing
+
+> 1.25.0 is installed
+> (pasted data/databases.json: entries named rep/users/main, all Access .mdb)
+> stop doing that, i said: database.json is the single point of truth, so base the globals upon that, not your own shitty code
