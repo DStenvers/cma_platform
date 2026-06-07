@@ -1388,17 +1388,71 @@ class Database
     }
 
     /**
-     * Get last insert ID
+     * Existence probe — true when the query returns at least one row.
      *
-     * @param string|null $name Sequence name (for PostgreSQL)
-     * @return int Last insert ID
+     * Collapses the `SELECT TOP 1 … fetchColumn() !== false` exists-check
+     * boilerplate. Only row presence matters, not the column value, so a
+     * `SELECT TOP 1 1 FROM … WHERE …` is the idiomatic input.
+     *
+     * @param string     $sql        Parameterised SELECT.
+     * @param array      $params     Bound params.
+     * @param string     $context    Caller tag for error_log ('' = silent).
+     * @param PDO|string $connection PDO instance or named connection (default 'data').
+     * @return bool True if a row exists; false on no row OR any failure.
      */
-    public static function getLastInsertId(?string $name = null): int
-    {
+    public static function recordExists(
+        string $sql,
+        array $params = [],
+        string $context = '',
+        $connection = 'data'
+    ): bool {
+        $conn = self::resolveSafeConnection($connection);
+        if ($conn === null) {
+            if ($context !== '') {
+                error_log('[' . $context . '] connection ' . (is_string($connection) ? $connection : 'default') . ' unavailable');
+            }
+            return false;
+        }
         try {
-            $conn = self::getConnection();
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable $t) {
+            if ($context !== '') {
+                error_log('[' . $context . '] ' . $t->getMessage());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Last insert ID — ODBC/Access-aware.
+     *
+     * PDO::lastInsertId() is unreliable under pdo_odbc with MS Access (often
+     * returns 0/''), so for the odbc driver we round-trip SELECT @@IDENTITY
+     * (JET and SQL Server both support it). @@IDENTITY is connection-scoped,
+     * so you MUST pass the EXACT connection the INSERT ran on — a fresh/default
+     * connection would report the wrong id or none. Other drivers use
+     * PDO::lastInsertId().
+     *
+     * @param PDO|string  $connection PDO instance (pass the INSERT's connection) or named connection.
+     * @param string|null $name       Sequence name, for drivers that use one (pgsql).
+     * @return int Last insert id, or 0 on failure.
+     */
+    public static function getLastInsertId($connection = 'data', ?string $name = null): int
+    {
+        $conn = self::resolveSafeConnection($connection);
+        if ($conn === null) {
+            self::$lastError = 'getLastInsertId: connection unavailable';
+            return 0;
+        }
+        try {
+            if ($conn->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'odbc') {
+                $stmt = $conn->query('SELECT @@IDENTITY');
+                return $stmt === false ? 0 : (int)$stmt->fetchColumn();
+            }
             return (int)$conn->lastInsertId($name);
-        } catch (PDOException $e) {
+        } catch (\Throwable $e) {
             self::$lastError = $e->getMessage();
             return 0;
         }

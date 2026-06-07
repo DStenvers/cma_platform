@@ -205,24 +205,15 @@ class SQL
      */
     public static function postDateTime($dateValue, ?string $connectionString = null): string
     {
-        $isSQLServer = self::isSQLServer($connectionString);
-
-        if (!is_null($dateValue) && strtotime($dateValue) !== false) {
-            if ($isSQLServer) {
-                $strTmp = date('Y', strtotime($dateValue)) . '/' .
-                          date('n', strtotime($dateValue)) . '/' .
-                          date('j', strtotime($dateValue));
-                $strTmp .= ' ' . date('G', strtotime($dateValue)) . ':' .
-                           intval(date('i', strtotime($dateValue)));
-                return "CAST('" . str_ireplace('/', '-', $strTmp) . "' AS DATETIME)";
-            } else {
-                $strTmp = date('n', strtotime($dateValue)) . '/' .
-                          date('j', strtotime($dateValue)) . '/' .
-                          date('Y', strtotime($dateValue));
-                $strTmp .= ' ' . date('G', strtotime($dateValue)) . ':' .
-                           intval(date('i', strtotime($dateValue)));
-                return '#' . $strTmp . '#';
-            }
+        $ts = is_null($dateValue) ? false : strtotime($dateValue);
+        if ($ts !== false) {
+            // ISO 8601 with seconds — unambiguous (no US m/d guesswork) and
+            // never truncates to the minute. JET accepts #YYYY-MM-DD HH:MM:SS#
+            // and SQL Server casts the same literal cleanly.
+            $iso = date('Y-m-d H:i:s', $ts);
+            return self::isSQLServer($connectionString)
+                ? "CAST('" . $iso . "' AS DATETIME)"
+                : '#' . $iso . '#';
         }
 
         return 'NULL';
