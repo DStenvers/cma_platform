@@ -411,6 +411,31 @@ class Bootstrap
 
         $GLOBALS['Application'] = [];
 
+        // Backward-compat for legacy per-environment .env files. The single-.env
+        // model (v1.23+) reads APP_ENVIRONMENT only from INSIDE the loaded file,
+        // but legacy sites select their environment by FILENAME (.env.production,
+        // .env.acceptance, …) and may not carry an explicit APP_ENVIRONMENT line.
+        // Without this, app.php's `$_ENV['APP_ENVIRONMENT'] ?? 'O'` defaults a
+        // production box to 'O' (development) → global.asa.php then wires up the
+        // LOCAL SQLite databases (cmausers.sqlite) instead of the real ones →
+        // "no such table: tblUsers" and a dead login. Derive APP_ENVIRONMENT from
+        // the loaded filename when it wasn't set by the file itself or the OS env.
+        if (!isset($_ENV['APP_ENVIRONMENT']) && !isset($_SERVER['APP_ENVIRONMENT'])) {
+            $envByFile = [
+                '.env.local'       => 'L',
+                '.env.development' => 'O',
+                '.env.test'        => 'T',
+                '.env.acceptance'  => 'A',
+                '.env.production'  => 'P',
+            ];
+            $loadedEnvFile = $GLOBALS['_env_file'] ?? '';
+            if (isset($envByFile[$loadedEnvFile])) {
+                $_ENV['APP_ENVIRONMENT']     = $envByFile[$loadedEnvFile];
+                $_SERVER['APP_ENVIRONMENT']  = $envByFile[$loadedEnvFile];
+                $GLOBALS['_app_env']         = $envByFile[$loadedEnvFile];
+            }
+        }
+
         // Load project-specific config
         $appConfig = self::$config['app_config'];
         if ($appConfig && file_exists($appConfig)) {

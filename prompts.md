@@ -343,3 +343,8 @@ karaat-data en staat in de karaat-repo.
 > the active flag on a menu-item is totally ignored by the menu. make it work please
 
 > wtf does Geen toegang tot dit formulier mean? I am logged in as admin??
+
+> .lib-radio-group__option { padding: 3px 8px;; border-radius:4px } within cma forms, overwrite the default value, don't change it
+> i seem to be logged off?? Geen toegang / Je hebt geen toegang tot dit formulier. Debug: formName cmamonitoring, CMAU=1, isLoggedIn=false, isAdmin=false, getUserLevel=0, REQUEST_URI /cma/form.php?form=cmamonitoring
+> WTF: Error in /cma/login.php — Exception: Database query failed: SQLSTATE[HY000]: General error: 1 no such table: tblUsers in C:\wwwroot\karaat_php\cma\login.php:74
+> who decided to switch to sqlite??
