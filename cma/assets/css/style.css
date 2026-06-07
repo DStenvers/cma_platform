@@ -219,6 +219,9 @@ body.tool-serverinfo.contentbody #c.tools {padding:0}
    the icon and text aren't clipped vertically; the first heading sits flush. */
 div.tools h2 {line-height:1.5rem; margin-top:19px}
 div.tools h2:first-child {margin-top:0}
+/* Tighter radio-group options inside CMA forms — overrides the library
+   default (lib-components.css) without changing the component itself. */
+body.cma-form .lib-radio-group__option {padding:3px 8px; border-radius:4px}
 /* Ensure dropdown filter content is visible above other elements */
 lib-table thead {position:relative; z-index:100}
 lib-table .dropdown-filter-content {z-index:1000}

@@ -339,3 +339,7 @@ karaat-data en staat in de karaat-repo.
 > blocking issue: lib-radio-group "Soort korting" required validation keeps failing ("Vul alle verplichte velden in: Soort korting") even though an option (percentage) is selected. (full element markup provided)
 
 > Undefined constant "CONST_STRSORTPARAM"
+
+> the active flag on a menu-item is totally ignored by the menu. make it work please
+
+> wtf does Geen toegang tot dit formulier mean? I am logged in as admin??

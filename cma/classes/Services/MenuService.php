@@ -100,11 +100,49 @@ class MenuService
         self::loadMenuData();
         $menus = self::$menuData['menus'] ?? [];
 
+        // Visibility (enabled/visible) is NOT user-specific, so honour it for
+        // EVERY caller — not only when access-filtering. Previously these flags
+        // were checked only inside filterMenusByAccessLevel(), so render paths
+        // that call getMenus() without $filterByAccess (e.g. JsonFormRenderer's
+        // forms tree) ignored a menu item's "active"/visible flag completely.
+        $menus = self::filterVisibleItems($menus);
+
         if ($filterByAccess) {
             $menus = self::filterMenusByAccessLevel($menus);
         }
 
         return $menus;
+    }
+
+    /**
+     * Drop disabled menus and disabled/invisible items. Applied to every
+     * getMenus() result regardless of access filtering. Robust against the
+     * legacy "N"/"0"/"false" string flag values (see isFlagDisabled()).
+     *
+     * @param array $menus
+     * @return array
+     */
+    private static function filterVisibleItems(array $menus): array
+    {
+        $result = [];
+        foreach ($menus as $menu) {
+            if (self::isFlagDisabled($menu['enabled'] ?? null)) {
+                continue;
+            }
+            $items = [];
+            foreach ($menu['items'] ?? [] as $item) {
+                if (self::isFlagDisabled($item['enabled'] ?? null)) {
+                    continue;
+                }
+                if (self::isFlagDisabled($item['visible'] ?? null)) {
+                    continue;
+                }
+                $items[] = $item;
+            }
+            $menu['items'] = $items;
+            $result[] = $menu;
+        }
+        return $result;
     }
 
     /**
