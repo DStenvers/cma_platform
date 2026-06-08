@@ -743,31 +743,17 @@ class Bootstrap
         $migrationsData = json_decode(file_get_contents($migrationsFile), true);
         $targetVersion = $migrationsData['targetVersion'] ?? '0.0.0';
 
-        try {
-            $repConn = class_exists('\App\Library\Database') ? \App\Library\Database::getDsn('rep') : '';
-            if ($repConn) {
-                $pdo = new \PDO($repConn);
-                $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        // Applied version is tracked in migrations.json (schemaVersion) since
+        // migrations moved to JSON. We no longer open the deprecated 'rep'
+        // (repository.mdb) database at runtime to read a _cma_version table —
+        // rep is migration-only, and opening it on every CMA page caused the
+        // Access "volatile Ace DSN" crash (SQLSTATE HY000 / 63).
+        $currentVersion = $migrationsData['schemaVersion'] ?? '0.0.0';
 
-                $stmt = $pdo->query("SELECT version FROM _cma_version ORDER BY applied_at DESC");
-                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-                $currentVersion = $row ? $row['version'] : '0.0.0';
-
-                if (version_compare($currentVersion, $targetVersion, '<')) {
-                    $_SESSION['_migration_needed'] = true;
-                    $_SESSION['_migration_current'] = $currentVersion;
-                    $_SESSION['_migration_target'] = $targetVersion;
-                }
-            }
-        } catch (\Exception $e) {
-            // Treating any DB exception as "migrations needed" masks the
-            // actual problem (wrong DSN, missing _cma_version table,
-            // connection refused). The bootstrap exposes
-            // $GLOBALS['_migration_check_error'] for exactly this case;
-            // cma/bootstrap.inc renders it as a banner so the operator
-            // sees the real cause instead of a permanent — and
-            // unactionable — "migrations needed" warning.
-            $GLOBALS['_migration_check_error'] = $e->getMessage();
+        if (version_compare($currentVersion, $targetVersion, '<')) {
+            $_SESSION['_migration_needed'] = true;
+            $_SESSION['_migration_current'] = $currentVersion;
+            $_SESSION['_migration_target'] = $targetVersion;
         }
 
         // Show migration warning on CMA pages

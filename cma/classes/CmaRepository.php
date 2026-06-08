@@ -690,9 +690,13 @@ class CmaRepository
         self::$lastConnectionDebug['repConnResolved'] = $repConnResolved;
 
         if ($repConnResolved !== '' && strcasecmp((string)$connectionString, (string)$repConnResolved) === 0) {
-            self::$dbIdToConnName[$databaseId] = 'rep';
-            self::$lastConnectionDebug['result'] = 'matched rep';
-            $conn = Database::getConnection('rep');
+            // 'rep' (repository.mdb) is the deprecated, migration-only database.
+            // Never open it at runtime — route to the data connection. Opening
+            // repository.mdb under an IIS app-pool identity triggers the Access
+            // "volatile Ace DSN" crash.
+            self::$dbIdToConnName[$databaseId] = 'data';
+            self::$lastConnectionDebug['result'] = 'matched rep -> data';
+            $conn = Database::getConnection('data');
             return;
         }
 
