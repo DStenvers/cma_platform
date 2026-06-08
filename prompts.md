@@ -378,3 +378,5 @@ karaat-data en staat in de karaat-repo.
 > 1b , 2 : the row never disappears (stays after the delete)
 
 > (rep PDOException again, mijntoprecepten) why is the rep database referenced? We have only created that for the migrations to json. So don't read from it here
+
+> the  App\Library\Installer::postUpdate : can that also clear any cache?

@@ -234,10 +234,72 @@ class Installer
             }
         }
 
+        // 7a. Clear regenerable disk caches (minified JS/CSS, cached form
+        //     definitions) so freshly-synced code/assets take effect on the next
+        //     request instead of waiting for TTLs. These are file-based and
+        //     shared with the web process, so clearing them here (composer CLI)
+        //     IS effective. NOTE: this can NOT clear the web server's OPcache or
+        //     APCu — those live in the FastCGI worker, not this CLI run — so an
+        //     app-pool recycle / iisreset is still required for PHP code changes.
+        foreach (self::clearRegenerableCaches($projectRoot) as $line) {
+            $io->write('  - ' . $line);
+        }
+
         // 8. Write manifest for tracking
         self::writeManifest($projectRoot, $platformDir);
 
         $io->write('<info>stenversonline/platform: sync complete</info>');
+    }
+
+    /**
+     * Clear the platform's regenerable disk caches (minified JS/CSS in
+     * cache/cma/minify, cached form definitions in cache/cma/forms). They are
+     * file-based and shared with the web process, so clearing them from the
+     * composer CLI is effective — the web process simply regenerates them.
+     * Does NOT (cannot) clear the FastCGI worker's OPcache/APCu.
+     *
+     * @return string[] Log lines describing what was cleared.
+     */
+    private static function clearRegenerableCaches(string $projectRoot): array
+    {
+        $log = [];
+        foreach (['cache/cma/minify', 'cache/cma/forms'] as $rel) {
+            $dir = $projectRoot . '/' . $rel;
+            if (!is_dir($dir)) {
+                continue;
+            }
+            $count = self::deleteDirContents($dir);
+            if ($count > 0) {
+                $log[] = "cleared $rel ($count files)";
+            }
+        }
+        return $log;
+    }
+
+    /**
+     * Recursively delete everything inside $dir, keeping $dir itself (so its
+     * permissions are preserved). Returns the number of files removed.
+     */
+    private static function deleteDirContents(string $dir): int
+    {
+        $removed = 0;
+        $items = @scandir($dir);
+        if ($items === false) {
+            return 0;
+        }
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $item;
+            if (is_dir($path)) {
+                $removed += self::deleteDirContents($path);
+                @rmdir($path);
+            } elseif (@unlink($path)) {
+                $removed++;
+            }
+        }
+        return $removed;
     }
 
     /**
