@@ -371,3 +371,8 @@ karaat-data en staat in de karaat-repo.
 > and the subform is still not in the form list
 
 > the form is missing from the forms list tools_form_edit.php, that has a tree with forms and there it is missing from
+
+> .recipe-action__icon { margin-top:0px }
+
+> PDOException Database.php:481 (code 63) connection 'rep' failed ... Unable to open registry key Temporary (volatile) Ace DSN ... (mijntoprecepten)
+> 1b , 2 : the row never disappears (stays after the delete)

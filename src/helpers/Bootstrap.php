@@ -669,14 +669,17 @@ class Bootstrap
             $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::$rootDir);
         }
 
-        // Access is the default DB format: any logical connection that
-        // databases.json didn't define falls back to the conventional Access
-        // file under /db. We NEVER silently fall back to a local SQLite file —
-        // that just creates an empty DB and a confusing "no such table" error.
-        $accessDefaults = ['data' => 'main.mdb', 'rep' => 'repository.mdb', 'users' => 'CMAUsers.mdb'];
-        foreach ($dsns as $key => $dsn) {
-            if ($dsn === '') {
-                $path = self::$rootDir . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $accessDefaults[$key];
+        // Access is the default DB format: data/users that databases.json
+        // didn't define fall back to the conventional Access file under /db. We
+        // NEVER silently fall back to a local SQLite file (that just creates an
+        // empty DB and a confusing "no such table" error). 'rep' is deliberately
+        // omitted — it's the deprecated repository DB; leaving it empty lets
+        // getConnection() fall back to 'data' instead of forcing an Access
+        // repository.mdb that often can't be opened (volatile Ace DSN error).
+        $accessDefaults = ['data' => 'main.mdb', 'users' => 'CMAUsers.mdb'];
+        foreach ($accessDefaults as $key => $file) {
+            if ($dsns[$key] === '') {
+                $path = self::$rootDir . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $file;
                 $dsns[$key] = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $path;
             }
         }

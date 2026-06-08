@@ -282,8 +282,20 @@ class Database
             throw new PDOException("Database connection '$name' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named '$name').");
         }
 
-        // Create and configure the connection
-        $conn = self::createPDOConnection($dsn, $name);
+        // Create and configure the connection. 'rep' is the deprecated
+        // repository database and frequently can't be opened under an IIS
+        // app-pool identity (the Access "volatile Ace DSN" registry error,
+        // SQLSTATE HY000 / 63). Since it's barely used, fall back to the data
+        // connection rather than crashing the whole request.
+        if ($name === 'rep') {
+            try {
+                $conn = self::createPDOConnection($dsn, $name);
+            } catch (PDOException $e) {
+                return self::getConnection('data');
+            }
+        } else {
+            $conn = self::createPDOConnection($dsn, $name);
+        }
 
         // Store in pool
         self::$namedConnections[$name] = $conn;
