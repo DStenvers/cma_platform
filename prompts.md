@@ -382,3 +382,5 @@ karaat-data en staat in de karaat-repo.
 > the  App\Library\Installer::postUpdate : can that also clear any cache?
 
 > but resetting web.config does clear all caches right?
+
+> it closes itself after deleting.

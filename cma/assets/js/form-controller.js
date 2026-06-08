@@ -11157,18 +11157,24 @@ class CmaFormController {
         // cmaLog.log('openSubformRecord: subformId=', subformId, 'recordId=', recordId, 'parentField=', parentField);
 
         const self = this;
+        // Capture the PARENT record id now. We must NOT rely on cmaGetRecordId()
+        // inside onClose: after the popup interaction (esp. a delete, which sets
+        // the record id to null/the deleted id) the global no longer points at
+        // the parent menu, so the subform list was reloaded for the wrong record
+        // — or not at all — and the deleted row appeared to "never disappear".
+        const parentRecordId = cmaGetRecordId();
         this.openPopup({
             formId: subformId,
             recordId: recordId,
-            parentId: cmaGetRecordId(),
+            parentId: parentRecordId,
             parentField: parentField,
             title: title,
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
             onClose: function() {
-                // Reload current record to refresh subforms
-                if (cmaGetRecordId()) {
-                    self.loadRecord(cmaGetRecordId());
+                // Reload the parent record (captured above) to refresh subforms.
+                if (parentRecordId) {
+                    self.loadRecord(parentRecordId);
                 }
             }
         });
