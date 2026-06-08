@@ -380,3 +380,5 @@ karaat-data en staat in de karaat-repo.
 > (rep PDOException again, mijntoprecepten) why is the rep database referenced? We have only created that for the migrations to json. So don't read from it here
 
 > the  App\Library\Installer::postUpdate : can that also clear any cache?
+
+> but resetting web.config does clear all caches right?

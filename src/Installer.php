@@ -245,6 +245,18 @@ class Installer
             $io->write('  - ' . $line);
         }
 
+        // 7b. Touch the root web.config to trigger an IIS application-pool
+        //     recycle. IIS watches web.config; bumping its mtime restarts the
+        //     worker (and its PHP FastCGI children) — the only way to flush the
+        //     in-process OPcache/APCu that a file sync alone can't reach. This
+        //     makes `composer update` self-applying, so a manual iisreset is no
+        //     longer required for changed PHP to take effect. Guarded on
+        //     existence so we never create an (empty, site-breaking) web.config.
+        $rootWebConfig = $projectRoot . '/web.config';
+        if (is_file($rootWebConfig) && @touch($rootWebConfig)) {
+            $io->write('  - touched web.config (app-pool recycle → flushes OPcache/APCu)');
+        }
+
         // 8. Write manifest for tracking
         self::writeManifest($projectRoot, $platformDir);
 
