@@ -11077,6 +11077,9 @@ class CmaFormController {
         }
 
         const self = this;
+        // Capture the parent record id at init — never re-read cmaGetRecordId()
+        // after a delete (it gets nulled), which would refresh the wrong record.
+        const parentRecordId = cmaGetRecordId();
         const config = {
             tableSelector: '#' + table.id,
             formId: 0,
@@ -11092,7 +11095,7 @@ class CmaFormController {
             comboOptions: data.comboOptions || {},
             apiUrl: '/cma/form_api.php',
             isSubform: true,
-            parentRecordId: cmaGetRecordId(),
+            parentRecordId: parentRecordId,
             parentField: data.parentField,
             // Callbacks - same pattern as main table
             onRowClick: (rowId) => {
@@ -11103,6 +11106,12 @@ class CmaFormController {
             },
             onDeleteSuccess: (rowId) => {
                 self.showNotification('Verwijderd', 'success');
+                // Guard (mirrors the popup path): make sure the deleted row is
+                // actually gone. CmaInlineEdit removes it in place, but if that
+                // selector ever misses, remove it here too — never relying on a
+                // global record id that a delete may have changed.
+                const delRow = listEl.querySelector('tr[data-id="' + rowId + '"]');
+                if (delRow) { delRow.remove(); }
                 // Update subform count badge
                 const pane = listEl.closest('[id^="subform"]');
                 if (pane) {
