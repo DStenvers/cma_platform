@@ -118,7 +118,9 @@ if ($action === 'buildTree') {
     }
 
     // Recursive function to build tree nodes
-    $buildNode = function ($name) use (&$allForms, &$buildNode) {
+    $visited = [];
+    $buildNode = function ($name) use (&$allForms, &$buildNode, &$visited) {
+        $visited[$name] = true;
         $def = $allForms[$name] ?? null;
         $title = $def ? ($def['title'] ?? $name) : $name;
         $subs = $def ? ($def['subforms'] ?? []) : [];
@@ -177,6 +179,17 @@ if ($action === 'buildTree') {
     }
 
     $tree = $treeChildren;
+
+    // Safety net: a form referenced as a subform whose parent isn't in the
+    // scanned set (parent lives in cma/assets/forms/definitions/, or its file is
+    // missing) is excluded from the roots AND never nested — so it would vanish
+    // from the tree entirely. Append any loaded-but-unplaced form as a top-level
+    // node so nothing disappears.
+    foreach (array_keys($allForms) as $name) {
+        if (!isset($visited[$name])) {
+            $tree[] = $buildNode($name);
+        }
+    }
 
     error_log("[FORMEDIT buildTree] rootNames: " . count($rootNames) . ", treeChildren: " . count($treeChildren));
     error_log("[FORMEDIT buildTree] JSON output length: " . strlen(json_encode($tree)));

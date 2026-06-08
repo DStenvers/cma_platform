@@ -369,3 +369,5 @@ karaat-data en staat in de karaat-repo.
 > lib_sheet .close {margin-top: -56px, z-index: 99}
 > panel.header -> make sure it is center aligned
 > and the subform is still not in the form list
+
+> the form is missing from the forms list tools_form_edit.php, that has a tree with forms and there it is missing from

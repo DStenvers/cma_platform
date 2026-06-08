@@ -372,7 +372,7 @@ class LibSheet extends HTMLElement {
                 .header {
                     display: flex;
                     align-items: center;
-                    justify-content: space-between;
+                    justify-content: center;
                     gap: 0.5rem;
                     padding: 0.85rem 1rem 0.5rem;
                     cursor: grab;
@@ -397,6 +397,9 @@ class LibSheet extends HTMLElement {
                     cursor: pointer;
                     padding: 0 0.25rem;
                     border-radius: 6px;
+                    position: relative;
+                    margin-top: -56px;
+                    z-index: 99;
                 }
                 .close:hover  { opacity: 1; }
                 .close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
