@@ -1,7 +1,7 @@
 {
     "name": "stenversonline/platform",
     "description": "Shared platform: PHP helpers, library assets, and CMA admin",
-    "version": "1.25.11",
+    "version": "1.26.0",
     "type": "library",
     "license": "proprietary",
     "autoload": {
@@ -14,7 +14,6 @@
     },
     "require": {
         "php": ">=8.0",
-        "vlucas/phpdotenv": "^5.6",
         "phpmailer/phpmailer": "^6.9",
         "matthiasmullie/minify": "^1.3"
     }

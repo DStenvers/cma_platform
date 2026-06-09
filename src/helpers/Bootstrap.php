@@ -368,39 +368,10 @@ class Bootstrap
 
     private static function loadDotenv(): void
     {
+        // .env is a flat KEY=VALUE file — parsed by our own EnvFile reader
+        // (no vlucas/phpdotenv dependency). Immutable: existing OS/env vars win.
         $envFile = $GLOBALS['_env_file'] ?? '.env';
-
-        // Composer autoloader is already loaded by the project's _bootstrap.php
-        if (class_exists('Dotenv\Dotenv')) {
-            $dotenv = \Dotenv\Dotenv::createImmutable(self::$rootDir, $envFile);
-            $dotenv->safeLoad();
-            return;
-        }
-
-        // Fallback: manual .env parsing
-        $envPath = self::$rootDir . '/' . $envFile;
-        if (!file_exists($envPath)) {
-            return;
-        }
-
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos(trim($line), '#') === 0) continue;
-            if (strpos($line, '=') === false) continue;
-
-            list($key, $value) = explode('=', $line, 2);
-            $key = trim($key);
-            $value = trim($value);
-
-            if (preg_match('/^([\'"])(.*?)\\1$/', $value, $matches)) {
-                $value = $matches[2];
-            }
-
-            if (!isset($_ENV[$key])) {
-                $_ENV[$key] = $value;
-                putenv("$key=$value");
-            }
-        }
+        EnvFile::loadInto(self::$rootDir . '/' . $envFile);
     }
 
     private static function initApplication(): void

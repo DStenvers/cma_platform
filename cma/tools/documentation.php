@@ -552,7 +552,7 @@ function cma_doc_check_deploy_secret(): array {
     $label = 'DEPLOY_SECRET';
     $secret = (string)(getenv('DEPLOY_SECRET') ?: ($_ENV['DEPLOY_SECRET'] ?? ''));
     if ($secret === '') {
-        // Try .env scan since Dotenv::safeLoad doesn't necessarily expose to getenv depending on config
+        // Belt-and-braces: scan the .env directly in case the value wasn't exposed to getenv()
         $envFile = cma_doc_site_root() . '/' . ($GLOBALS['_env_file'] ?? '.env');
         if (is_file($envFile)) {
             foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
@@ -913,7 +913,7 @@ function render_doc_environment(): void
     </div>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">Let op:</span> <code>APP_ENVIRONMENT</code> in <code>.env</code> wordt pas gelezen <em class="cma-tool__em">nadat</em> phpdotenv het bestand laadt. Vóór dat moment gaat de bootstrap uit van <code>P</code> voor gedrag, maar errors staan tijdens de bootstrap juist AAN zodat een opstartfout zichtbaar is (zie "Error-weergave" hierboven).
+        <span class="cma-tool__strong">Let op:</span> <code>APP_ENVIRONMENT</code> in <code>.env</code> wordt pas gelezen <em class="cma-tool__em">nadat</em> de ingebouwde <code>EnvFile</code>-parser het bestand laadt. Vóór dat moment gaat de bootstrap uit van <code>P</code> voor gedrag, maar errors staan tijdens de bootstrap juist AAN zodat een opstartfout zichtbaar is (zie "Error-weergave" hierboven).
     </div>
 
     <h2>Actief .env bestand op deze site</h2>
@@ -1592,7 +1592,7 @@ function render_doc_architecture(): void
     <ol>
         <li><span class="cma-tool__strong">IIS request komt binnen</span> — web.config rewrites routen naar <code>_bootstrap_wrapper.php</code> of een specifiek PHP-bestand.</li>
         <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
-        <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
+        <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (ingebouwde <code>EnvFile</code>-parser, geen phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
         <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (sinds v1.12.1 met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
         <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker sinds v1.23.6 op <code>/cma/main.php</code> (niet meer op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat sinds v1.23.7 onder <span class="cma-tool__strong">Alle beheerstools → Gebruikers en groepen</span>.</li>
     </ol>

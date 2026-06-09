@@ -388,3 +388,5 @@ karaat-data en staat in de karaat-repo.
 > add the guard anyway
 
 > Deterministic enforcement — a UserPromptSubmit hook in .claude/settings.json (committed, so it's team-wide). It runs python3 to append every submitted prompt to prompts.md with a timestamp. Verified: Pipe-tested against sample input (quotes/newlines/HTML/ampersands) → exit 0, no stdout, correct output.
+
+> i thought we dropped phpdotenv and createrd out own env.php?
