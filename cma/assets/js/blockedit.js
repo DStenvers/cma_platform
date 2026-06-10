@@ -6,10 +6,6 @@
 //		  image select
 //
 
-// Bump together with composer.json on every release that touches this file.
-// Logged on load (and in the save diagnostics) so a deployment can be
-// verified from the console — URL cache-busters on older CMAs lie.
-var BLOCKEDIT_VERSION = "1.26.8";
 var all_components = null;
 var htmls = [];
 var element_cnt = 0;
@@ -1342,7 +1338,6 @@ function blockedit_hook_form_submit() {
 		form._blockeditSubmitHooked = true;
 
 		form.addEventListener("submit", function() {
-			console.log('[BlockEdit] form submit event - harvesting blocks');
 			blockedit_collect_htmls();
 		});
 
@@ -1350,7 +1345,6 @@ function blockedit_hook_form_submit() {
 		if (typeof form.submit === "function") {
 			var origSubmit = form.submit;
 			form.submit = function() {
-				console.log('[BlockEdit] form.submit() call - harvesting blocks');
 				blockedit_collect_htmls();
 				return origSubmit.apply(form, arguments);
 			};
@@ -1571,12 +1565,6 @@ function blockedit_move_down(elt) {
 //
 function blockedit_collect_htmls(  ) {
 
-	// Save diagnostics: deliberately console.log (not cmaLog, which is silent
-	// on older CMAs) — if pressing save does NOT produce these lines, the host
-	// page's save path never calls blockedit_collect_htmls() at all.
-	console.log('[BlockEdit] v' + BLOCKEDIT_VERSION + ' collect_htmls() called, definitions ' +
-		(all_components ? 'loaded' : 'NOT loaded (nothing will be serialized!)'));
-
 	var diag = blockedit_diag_on();
 	if (!all_components) {
 		// Tripwire: collect ran before the async contentblocks.json arrived.
@@ -1597,10 +1585,7 @@ function blockedit_collect_htmls(  ) {
 		// present since the initial commit; fixed in v1.26.8).
 		var cSpecifier;
 
-		var containers = jQuery(".blockedit");
-		console.log('[BlockEdit] save: ' + containers.length + ' .blockedit container(s) in DOM');
-
-		containers.each( function() {
+		jQuery(".blockedit").each( function() {
 			var cHTML = '';
 			cDataField = $(this).attr("data-field");
 			// reset per field: accumulating across containers would write
@@ -1618,7 +1603,7 @@ function blockedit_collect_htmls(  ) {
 
 					var type_obj = template_find_type(cDataType);
 					if (!type_obj) {
-						console.error('[BlockEdit] save: block type "' + cDataType + '" in field "' +
+						cmaLog.error('[BlockEdit] save: block type "' + cDataType + '" in field "' +
 							cDataField + '" not found in the loaded definitions - block skipped!');
 						return; // continue with the next block
 					}
@@ -1759,15 +1744,14 @@ function blockedit_collect_htmls(  ) {
 				}
 			  } catch (e) {
 				// A serialization error in one block must not kill the whole
-				// harvest (and with it the save) — report loudly and continue.
-				console.error('[BlockEdit] save: failed to serialize block (type "' +
+				// harvest (and with it the save) — report and continue.
+				cmaLog.error('[BlockEdit] save: failed to serialize block (type "' +
 					($(this).attr("data-type") || '?') + '") in field "' + cDataField + '":', e.message);
 			  }
 			});
 			// safeguard
 			// console.log( "Totale html "+ cDataEltName + " : " + cTotalHTML );
 			if (cTotalHTML!="") {
-				var nTypedBlocks = jQuery(this).find('.blockedit_block[data-type]').length;
 				if (CKEDITOR.instances[cDataField]) {
 					CKEDITOR.instances[cDataField].setData(cTotalHTML);
 					// Also write the textarea directly: a native form post reads
@@ -1776,21 +1760,13 @@ function blockedit_collect_htmls(  ) {
 					// run with stale data before this harvest.
 					var taMain = jQuery('textarea[name="' + cDataField + '"]');
 					if (taMain.length) taMain.val(cTotalHTML);
-					console.log('[BlockEdit] save: field "' + cDataField + '": ' + nTypedBlocks +
-						' block(s), ' + cTotalHTML.length + ' chars -> CKEditor instance "' + cDataField + '" + textarea');
 				} else {
 					// Fallback: write directly to textarea (e.g. in storybook context)
 					var ta = jQuery('textarea[name="' + cDataField + '"]');
 					if (ta.length) ta.val(cTotalHTML);
-					console.log('[BlockEdit] save: field "' + cDataField + '": ' + nTypedBlocks +
-						' block(s), ' + cTotalHTML.length + ' chars -> ' +
-						(ta.length ? 'textarea (no main CKEditor instance)' : 'NOWHERE - no CKEditor instance and no textarea found!'));
 				}
 				blockedit_remember_good(cDataField, cTotalHTML);
 			} else {
-				console.log('[BlockEdit] save: field "' + cDataField + '": EMPTY serialization (' +
-					jQuery(this).find('.blockedit_block[data-type]').length + ' typed block(s), ' +
-					jQuery(this).find('.blockedit_block').length + ' block(s) in DOM) - field left untouched, current value persists');
 				// Empty serialization: there are no content blocks to write.
 				// Distinguish two cases by whether blockedit is rendered at all.
 				var nAllBlocks = jQuery(this).find('.blockedit_block').length;
@@ -2083,9 +2059,5 @@ window.blockedit_image_select = blockedit_image_select;
 window.blockedit_image_clear = blockedit_image_clear;
 window.blockedit_image_set = blockedit_image_set;
 window.blockedit_file_select = blockedit_file_select;
-
-// Version banner: placed at the end of the file so it also proves the whole
-// file parsed. console.log on purpose — must be visible on CMAs without cmaLog.
-console.log('[BlockEdit] blockedit.js v' + BLOCKEDIT_VERSION + ' loaded');
 
 })();

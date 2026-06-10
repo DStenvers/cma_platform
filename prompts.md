@@ -583,3 +583,5 @@ karaat-data en staat in de karaat-repo.
 > subform.asp?ID=195&FormID=132:20 Lib_Cache_retrieve_fromfile 'CMA_subform_detail_132' from MEMORY 
 
 > i only see± blockedit.js?version=1.1:1577 [BlockEdit] v1.26.7 collect_htmls() called, definitions loaded then nothing..
+
+> remove the debug please
