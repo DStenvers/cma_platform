@@ -207,6 +207,26 @@ function blockedit_load_definitions(urlIndex) {
 			blockedit_load_definitions(urlIndex + 1);
 		} else {
 			cmaLog.error('[BlockEdit] Failed to load block definitions:', textStatus, errorThrown, 'status:', jqXHR.status);
+			blockedit_definitions_unavailable();
+		}
+	});
+}
+
+//
+// All definition locations failed. Without templates blockedit cannot render
+// blocks, the field stays invisible (CSS collapses the main field's editor
+// to 0px) and a save silently persists the old value — the operator has no
+// way to see or edit the content. Degrade to plain editing: un-collapse the
+// main field's CKEditor, or unhide the raw textarea when there is no editor.
+//
+function blockedit_definitions_unavailable() {
+	jQuery(".blockedit").each(function() {
+		var sFld = jQuery(this).attr("data-field");
+		// inline height/overflow beat the div.blockedit > .cke {height:0px} rule
+		jQuery(this).children(".cke").css({ "height": "", "overflow": "" });
+		var hasEditor = (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && CKEDITOR.instances[sFld]);
+		if (!hasEditor) {
+			jQuery(this).children("textarea").css({ "display": "", "visibility": "visible" });
 		}
 	});
 }

@@ -412,3 +412,16 @@ karaat-data en staat in de karaat-repo.
 >
 > 2 resuests: 
 > - can we stub cmaLog if not available?
+
+> 2 issues: 
+>
+> errors;
+>
+> Failed to load resource: the server responded with a status of 500 (Server Error)
+> ckeditor/skins/moono/skin.js?t=G14E:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+> assets/contentblocks/contentblocks.json?v=1781090740715:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+> ckeditor/skins/moono/skin.js?t=G14E:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+> assets/contentblocks/contentblocks.json?v=1781090747045:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+> ckeditor/skins/moono/skin.js?t=G14E:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+>
+> and the save does not seem to work, i always get the older version, might have to do with these errors, so let's deal with them first
