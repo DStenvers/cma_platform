@@ -13,6 +13,28 @@ var pendingCKEditors = [];
 // (blockedit_watch_editor_ready). Cleared on instanceReady.
 var editorWatchAttempts = {};
 
+// Late-binding cmaLog shim. The real cmaLog (liblog.js) may load after this
+// file, and older CMA versions (where blockedit.js gets dropped in
+// standalone) don't ship it at all — resolve window.cmaLog at call time and
+// fall back to the console so warnings/errors stay visible and plain log
+// calls become no-ops.
+var cmaLog = {
+	log: function() {
+		if (window.cmaLog) { window.cmaLog.log.apply(window.cmaLog, arguments); }
+	},
+	warn: function() {
+		if (window.cmaLog) { window.cmaLog.warn.apply(window.cmaLog, arguments); }
+		else { console.warn.apply(console, arguments); }
+	},
+	error: function() {
+		if (window.cmaLog) { window.cmaLog.error.apply(window.cmaLog, arguments); }
+		else { console.error.apply(console, arguments); }
+	},
+	isEnabled: function() {
+		return !!(window.cmaLog && typeof window.cmaLog.isEnabled === 'function' && window.cmaLog.isEnabled());
+	}
+};
+
 var BLOCK_START = "<!--BLOCK"
 var BLOCK_END = "-->"
 // Content blocks JSON location - in site/assets (shared with front-end)

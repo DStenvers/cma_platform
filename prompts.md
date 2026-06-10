@@ -398,3 +398,17 @@ karaat-data en staat in de karaat-repo.
 > Investigate the possible causes. Consider at least the option that it is a timing thing, perhaps retrying to create the ckeditor after 200ms or even 500ms if it has failed is a solution? If not , take a deep dive into what can cause it.
 
 > please implement and you mention too many timers, what are they?
+
+> okay, I implemented this blockedit.js in an older version of the CMA and get the following errors : Failed to load resource: the server responded with a status of 500 (Server Error)
+> blockedit.js?version=1.1:159 Uncaught ReferenceError: cmaLog is not defined
+> assets/contentblocks/contentblocks.json?v=1781090270167:1  Failed to load resource: the server responded with a status of 500 (Server Error)
+> blockedit.js?version=1.1:159 Uncaught ReferenceError: cmaLog is not defined
+>     at Object.<anonymous> (blockedit.js?version=1.1:159:4)
+>     at c (jquery-1.10.2.min.js:4:26036)
+>     at Object.fireWith [as rejectWith] (jquery-1.10.2.min.js:4:26840)
+>     at k (jquery-1.10.2.min.js:6:14283)
+>     at XMLHttpRequest.r (jquery-1.10.2.min.js:6:18646) 
+>
+>
+> 2 resuests: 
+> - can we stub cmaLog if not available?
