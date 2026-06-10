@@ -566,3 +566,5 @@ karaat-data en staat in de karaat-repo.
 > details.asp?ID=195&FormID=132:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
 
 > Okay, save still does not work. Let's : add a console.log with the version number. And let's add logging for the save button.
+
+> okay, no logging..

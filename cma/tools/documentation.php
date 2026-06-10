@@ -2530,7 +2530,7 @@ function render_doc_troubleshooting(): void
     </table>
 
     <h2>Content blocks (blockedit)</h2>
-    <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen.</p>
+    <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen. Sinds v1.26.7 hookt blockedit zelf het submit-event (én programmatic <code>form.submit()</code>) van het formulier rond een <code>.blockedit</code> container en oogst de blokken vlak vóór verzending — host-pagina's hoeven <code>blockedit_collect_htmls()</code> niet meer zelf aan te roepen, maar mogen dat blijven doen (de aanroep is idempotent).</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>

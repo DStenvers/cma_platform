@@ -9,7 +9,7 @@
 // Bump together with composer.json on every release that touches this file.
 // Logged on load (and in the save diagnostics) so a deployment can be
 // verified from the console — URL cache-busters on older CMAs lie.
-var BLOCKEDIT_VERSION = "1.26.6";
+var BLOCKEDIT_VERSION = "1.26.7";
 var all_components = null;
 var htmls = [];
 var element_cnt = 0;
@@ -317,6 +317,10 @@ function blockedit_init_elements() {
 			// cmaLog.log('[blockedit_init_elements] Adding empty element selector');
 			blockedit_add_new_element( jQuery(this), null );
 		});
+
+		// Harvest blocks on the surrounding form's submit, so saves work even
+		// on host pages that never call blockedit_collect_htmls() themselves
+		blockedit_hook_form_submit();
 
 		// Process any pending CKEditors after page fully renders
 		setTimeout(function() {
@@ -1323,6 +1327,38 @@ function blockedit_process_pending_ckeditors() {
 }
 
 //
+// Hook the submit of every form containing a .blockedit container, so the
+// blocks are harvested into the field right before the form posts — even on
+// host pages (older CMAs) whose save path predates the "call
+// blockedit_collect_htmls() before saving" contract. collect_htmls is
+// idempotent, so pages that DO call it themselves keep working unchanged.
+// Covers both the submit event and programmatic form.submit() calls (which
+// do not fire the submit event).
+//
+function blockedit_hook_form_submit() {
+	jQuery(".blockedit").each(function() {
+		var form = jQuery(this).closest("form")[0];
+		if (!form || form._blockeditSubmitHooked) return;
+		form._blockeditSubmitHooked = true;
+
+		form.addEventListener("submit", function() {
+			console.log('[BlockEdit] form submit event - harvesting blocks');
+			blockedit_collect_htmls();
+		});
+
+		// Guard: on old pages an <input name="submit"> shadows the method.
+		if (typeof form.submit === "function") {
+			var origSubmit = form.submit;
+			form.submit = function() {
+				console.log('[BlockEdit] form.submit() call - harvesting blocks');
+				blockedit_collect_htmls();
+				return origSubmit.apply(form, arguments);
+			};
+		}
+	});
+}
+
+//
 //	Select the type of control
 //
 function blockedit_click( elt ) {
@@ -1711,8 +1747,14 @@ function blockedit_collect_htmls(  ) {
 				var nTypedBlocks = jQuery(this).find('.blockedit_block[data-type]').length;
 				if (CKEDITOR.instances[cDataField]) {
 					CKEDITOR.instances[cDataField].setData(cTotalHTML);
+					// Also write the textarea directly: a native form post reads
+					// the textarea, setData is not guaranteed synchronous, and the
+					// editor's own submit-flush (updateElement) may already have
+					// run with stale data before this harvest.
+					var taMain = jQuery('textarea[name="' + cDataField + '"]');
+					if (taMain.length) taMain.val(cTotalHTML);
 					console.log('[BlockEdit] save: field "' + cDataField + '": ' + nTypedBlocks +
-						' block(s), ' + cTotalHTML.length + ' chars -> CKEditor instance "' + cDataField + '"');
+						' block(s), ' + cTotalHTML.length + ' chars -> CKEditor instance "' + cDataField + '" + textarea');
 				} else {
 					// Fallback: write directly to textarea (e.g. in storybook context)
 					var ta = jQuery('textarea[name="' + cDataField + '"]');
