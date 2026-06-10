@@ -568,3 +568,18 @@ karaat-data en staat in de karaat-repo.
 > Okay, save still does not work. Let's : add a console.log with the version number. And let's add logging for the save button.
 
 > okay, no logging..
+
+> [BlockEdit] blockedit.js v1.26.6 loaded
+> details.asp?ID=195&FormID=132:28 Lib_Cache_retrieve_fromfile 'CMA_formdefinitie_132' from FILE - F:\wwwroot\test.rinoportal.nl\cache\CMA_formdefinitie_132
+> details.asp?ID=195&FormID=132:30 Profiler 15ms -> Lib_Cache_retrieve_fromfile - Ophalen CMA_formdefinitie_132 -> total :15 ms : 
+> details.asp?ID=195&FormID=132:32 Lib_Cache_retrieve_fromfile 'CMA_subform_detail_132' from FILE - F:\wwwroot\test.rinoportal.nl\cache\CMA_subform_detail_132
+> details.asp?ID=195&FormID=132:34 Profiler 15ms -> Lib_Cache_retrieve_fromfile - Ophalen CMA_subform_detail_132 -> total :31 ms : 
+> details.asp?ID=195&FormID=132:131 Lib_Cache_retrieve_fromfile 'CMA_access_notify_email_132' from FILE - F:\wwwroot\test.rinoportal.nl\cache\CMA_access_notify_email_132
+> details.asp?ID=195&FormID=132:133 Profiler 187ms -> Lib_Cache_retrieve_fromfile - Ophalen CMA_access_notify_email_132 -> total :218 ms : 
+> details.asp?ID=195&FormID=132:153 Profiler 31ms -> WriteRepCombo : Na ophalen data (naam: fkRinoNieuwsAfdeling, dynamisch: False, nRecords:3) -> total :250 ms : 
+> details.asp?ID=195&FormID=132:162 Profiler 15ms -> WriteRepCombo : Na ophalen data (naam: fkOplSoort, dynamisch: False, nRecords:14) -> total :265 ms : 
+> details.asp?ID=195&FormID=132:167 Profiler 15ms -> WriteRepCombo : Na ophalen data (naam: fkDifferentiatie, dynamisch: False, nRecords:7) -> total :281 ms : 
+> details.asp?ID=195&FormID=132:172 Profiler 15ms -> WriteRepCombo : Na ophalen data (naam: fkBIGDifferentiatie, dynamisch: False, nRecords:7) -> total :296 ms : 
+> subform.asp?ID=195&FormID=132:20 Lib_Cache_retrieve_fromfile 'CMA_subform_detail_132' from MEMORY 
+
+> i only see± blockedit.js?version=1.1:1577 [BlockEdit] v1.26.7 collect_htmls() called, definitions loaded then nothing..

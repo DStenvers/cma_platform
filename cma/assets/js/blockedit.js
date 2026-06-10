@@ -9,7 +9,7 @@
 // Bump together with composer.json on every release that touches this file.
 // Logged on load (and in the save diagnostics) so a deployment can be
 // verified from the console — URL cache-busters on older CMAs lie.
-var BLOCKEDIT_VERSION = "1.26.7";
+var BLOCKEDIT_VERSION = "1.26.8";
 var all_components = null;
 var htmls = [];
 var element_cnt = 0;
@@ -1590,12 +1590,24 @@ function blockedit_collect_htmls(  ) {
 		var cDataField;
 		var cTotalHTML = "";
 		var bVisible;
+		// MUST stay declared: this file is strict mode, and the formerly
+		// undeclared `cSpecifier = ...` assignment below threw a
+		// ReferenceError that killed the entire harvest at the first typed
+		// block — saves then silently persisted the old field value (bug
+		// present since the initial commit; fixed in v1.26.8).
+		var cSpecifier;
 
-		jQuery(".blockedit").each( function() {
+		var containers = jQuery(".blockedit");
+		console.log('[BlockEdit] save: ' + containers.length + ' .blockedit container(s) in DOM');
+
+		containers.each( function() {
 			var cHTML = '';
 			cDataField = $(this).attr("data-field");
+			// reset per field: accumulating across containers would write
+			// field A's blocks into field B on multi-field pages
+			cTotalHTML = "";
 			$( this ).find(".blockedit_block").each( function() {
-				
+			  try {
 				var cDataType = $(this).attr("data-type");
 				var aVariables = {};
 				bVisible = !($(this).hasClass("hide"));
@@ -1605,7 +1617,12 @@ function blockedit_collect_htmls(  ) {
 // console.log( "Data field: " + cDataField + ", data type: " + cDataType );
 
 					var type_obj = template_find_type(cDataType);
-					cHTML = type_obj.html;
+					if (!type_obj) {
+						console.error('[BlockEdit] save: block type "' + cDataType + '" in field "' +
+							cDataField + '" not found in the loaded definitions - block skipped!');
+						return; // continue with the next block
+					}
+					cHTML = type_obj.html || "";
 
 					$( this ).find(".blockedit_elt.opened tr td.field").each( function() {
 						var cDataEltName = $( this ).attr("data-elt");
@@ -1740,6 +1757,12 @@ function blockedit_collect_htmls(  ) {
 					// console.log ( cDataType )
 					cTotalHTML = cTotalHTML + cSpecifier + BLOCK_START_HTML + cHTML + BLOCK_END_HTML;
 				}
+			  } catch (e) {
+				// A serialization error in one block must not kill the whole
+				// harvest (and with it the save) — report loudly and continue.
+				console.error('[BlockEdit] save: failed to serialize block (type "' +
+					($(this).attr("data-type") || '?') + '") in field "' + cDataField + '":', e.message);
+			  }
 			});
 			// safeguard
 			// console.log( "Totale html "+ cDataEltName + " : " + cTotalHTML );
