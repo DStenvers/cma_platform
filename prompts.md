@@ -425,3 +425,5 @@ karaat-data en staat in de karaat-repo.
 > ckeditor/skins/moono/skin.js?t=G14E:1  Failed to load resource: the server responded with a status of 500 (Server Error)
 >
 > and the save does not seem to work, i always get the older version, might have to do with these errors, so let's deal with them first
+
+> can you treat 500 errors as  400 errors and move on?

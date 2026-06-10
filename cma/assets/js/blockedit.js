@@ -187,29 +187,45 @@ function blockedit_load_definitions(urlIndex) {
 		url: BLOCK_DEFINITION_URLS[urlIndex],
 		cache: true
 	} ).done( function( result ) {
-		if (typeof result==="object") {
-			all_components = result;
-		} else {
-			if (result) {
-				try {
-					all_components = jQuery.parseJSON( result );
-				} catch (e) {
-					cmaLog.error('[BlockEdit] Failed to parse block definitions:', e.message);
-					return;
-				}
+		var parsed = null;
+		if (typeof result==="object" && result) {
+			parsed = result;
+		} else if (result) {
+			try {
+				parsed = jQuery.parseJSON( result );
+			} catch (e) {
+				cmaLog.warn('[BlockEdit] Block definitions from', BLOCK_DEFINITION_URLS[urlIndex], 'are not valid JSON:', e.message);
 			}
 		}
+		// An unusable 200-response (empty body, HTML error page served as
+		// 200, JSON without templates) is treated exactly like a failed
+		// request: move on to the next location.
+		if (!parsed || !parsed.templates) {
+			blockedit_definitions_next(urlIndex, 'invalid definitions response');
+			return;
+		}
+		all_components = parsed;
 		blockedit_init_elements();
 	}).fail(function(jqXHR, textStatus, errorThrown) {
-		if (urlIndex + 1 < BLOCK_DEFINITION_URLS.length) {
-			cmaLog.warn('[BlockEdit] Failed to load block definitions from', BLOCK_DEFINITION_URLS[urlIndex],
-				'(status ' + jqXHR.status + '), trying fallback:', BLOCK_DEFINITION_URLS[urlIndex + 1]);
-			blockedit_load_definitions(urlIndex + 1);
-		} else {
-			cmaLog.error('[BlockEdit] Failed to load block definitions:', textStatus, errorThrown, 'status:', jqXHR.status);
-			blockedit_definitions_unavailable();
-		}
+		// Every failed status (404, 500, network error, ...) takes the same
+		// path: try the next location, then degrade to plain editing.
+		blockedit_definitions_next(urlIndex, 'status ' + jqXHR.status + ' (' + textStatus + ')');
 	});
+}
+
+//
+// A definitions location was unusable: try the next one, or — at the end of
+// the list — degrade the fields to plain editing.
+//
+function blockedit_definitions_next(urlIndex, reason) {
+	if (urlIndex + 1 < BLOCK_DEFINITION_URLS.length) {
+		cmaLog.warn('[BlockEdit] Block definitions unusable from', BLOCK_DEFINITION_URLS[urlIndex],
+			'(' + reason + '), trying:', BLOCK_DEFINITION_URLS[urlIndex + 1]);
+		blockedit_load_definitions(urlIndex + 1);
+	} else {
+		cmaLog.error('[BlockEdit] No usable block definitions (last location: ' + reason + ') - degrading to plain editing');
+		blockedit_definitions_unavailable();
+	}
 }
 
 //
