@@ -427,3 +427,142 @@ karaat-data en staat in de karaat-repo.
 > and the save does not seem to work, i always get the older version, might have to do with these errors, so let's deal with them first
 
 > can you treat 500 errors as  400 errors and move on?
+
+> installHook.js:1 [BlockEdit] Block definitions unusable from /cma/assets/contentblocks/contentblocks.json?v=1781091880958 (status 500 (error)), trying: /cma_contentblocks.json?v=1781091880958
+> overrideMethod @ installHook.js:1
+> warn @ blockedit.js?version=1.1:27
+> blockedit_definitions_next @ blockedit.js?version=1.1:222
+> (anonymous) @ blockedit.js?version=1.1:212
+> c @ jquery-1.10.2.min.js:4
+> fireWith @ jquery-1.10.2.min.js:4
+> k @ jquery-1.10.2.min.js:6
+> r @ jquery-1.10.2.min.js:6
+> XMLHttpRequest.send
+> send @ jquery-1.10.2.min.js:6
+> ajax @ jquery-1.10.2.min.js:6
+> blockedit_load_definitions @ blockedit.js?version=1.1:186
+> blockedit_init @ blockedit.js?version=1.1:175
+> (anonymous) @ details.asp?ID=195&FormID=132:57
+> c @ jquery-1.10.2.min.js:4
+> fireWith @ jquery-1.10.2.min.js:4
+> ready @ jquery-1.10.2.min.js:4
+> q @ jquery-1.10.2.min.js:4
+> ckeditor.js:88 Allow attribute will take precedence over 'allowfullscreen'.
+> CKEDITOR.tools.extend.setHtml @ ckeditor.js:88
+> (anonymous) @ ckeditor.js:298
+> n @ ckeditor.js:10
+> (anonymous) @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fire @ ckeditor.js:13
+> toHtml @ ckeditor.js:301
+> setData @ ckeditor.js:839
+> (anonymous) @ ckeditor.js:352
+> n @ ckeditor.js:10
+> (anonymous) @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fire @ ckeditor.js:13
+> setData @ ckeditor.js:255
+> b @ ckeditor.js:835
+> (anonymous) @ ckeditor.js:837
+> CKEDITOR.editor.setMode @ ckeditor.js:331
+> (anonymous) @ ckeditor.js:326
+> n @ ckeditor.js:10
+> (anonymous) @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fire @ ckeditor.js:13
+> fireOnce @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fireOnce @ ckeditor.js:13
+> (anonymous) @ ckeditor.js:249
+> f @ ckeditor.js:229
+> load @ ckeditor.js:229
+> (anonymous) @ ckeditor.js:248
+> (anonymous) @ ckeditor.js:236
+> (anonymous) @ ckeditor.js:234
+> f @ ckeditor.js:229
+> load @ ckeditor.js:229
+> load @ ckeditor.js:234
+> l @ ckeditor.js:235
+> (anonymous) @ ckeditor.js:236
+> x @ ckeditor.js:247
+> (anonymous) @ ckeditor.js:246
+> (anonymous) @ ckeditor.js:470
+> (anonymous) @ ckeditor.js:234
+> f @ ckeditor.js:229
+> x @ ckeditor.js:229
+> A @ ckeditor.js:229
+> (anonymous) @ ckeditor.js:230
+> setTimeout
+> CKEDITOR.env.ie.CKEDITOR.env.version.g.$.onload @ ckeditor.js:230
+> script
+> CKEDITOR.dom.element @ ckeditor.js:79
+> u @ ckeditor.js:230
+> load @ ckeditor.js:230
+> load @ ckeditor.js:234
+> getStylesSet @ ckeditor.js:470
+> f @ ckeditor.js:246
+> (anonymous) @ ckeditor.js:246
+> d @ ckeditor.js:228
+> f @ ckeditor.js:229
+> x @ ckeditor.js:229
+> A @ ckeditor.js:229
+> (anonymous) @ ckeditor.js:230
+> setTimeout
+> CKEDITOR.env.ie.CKEDITOR.env.version.g.$.onload @ ckeditor.js:230
+> script
+> CKEDITOR.dom.element @ ckeditor.js:79
+> u @ ckeditor.js:230
+> load @ ckeditor.js:230
+> load @ ckeditor.js:228
+> w @ ckeditor.js:245
+> (anonymous) @ ckeditor.js:245
+> b @ ckeditor.js:483
+> loadPart @ ckeditor.js:485
+> n @ ckeditor.js:245
+> (anonymous) @ ckeditor.js:245
+> n @ ckeditor.js:10
+> (anonymous) @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fire @ ckeditor.js:13
+> fireOnce @ ckeditor.js:12
+> CKEDITOR.editor.CKEDITOR.editor.fireOnce @ ckeditor.js:13
+> l @ ckeditor.js:243
+> k @ ckeditor.js:245
+> (anonymous) @ ckeditor.js:241
+> (anonymous) @ ckeditor.js:28
+> setTimeout
+> setTimeout @ ckeditor.js:28
+> a @ ckeditor.js:241
+> a @ ckeditor.js:325
+> CKEDITOR.replace @ ckeditor.js:329
+> blockedit_createCKEditor @ blockedit.js?version=1.1:1203
+> blockedit_create_htmls_internal @ blockedit.js?version=1.1:1097
+> blockedit_create_htmls @ blockedit.js?version=1.1:1090
+> blockedit_add_new_element @ blockedit.js?version=1.1:784
+> (anonymous) @ blockedit.js?version=1.1:298
+> each @ jquery-1.10.2.min.js:4
+> each @ jquery-1.10.2.min.js:4
+> blockedit_init_elements @ blockedit.js?version=1.1:259
+> (anonymous) @ blockedit.js?version=1.1:208
+> c @ jquery-1.10.2.min.js:4
+> fireWith @ jquery-1.10.2.min.js:4
+> k @ jquery-1.10.2.min.js:6
+> r @ jquery-1.10.2.min.js:6
+> XMLHttpRequest.send
+> send @ jquery-1.10.2.min.js:6
+> ajax @ jquery-1.10.2.min.js:6
+> blockedit_load_definitions @ blockedit.js?version=1.1:186
+> blockedit_definitions_next @ blockedit.js?version=1.1:224
+> (anonymous) @ blockedit.js?version=1.1:212
+> c @ jquery-1.10.2.min.js:4
+> fireWith @ jquery-1.10.2.min.js:4
+> k @ jquery-1.10.2.min.js:6
+> r @ jquery-1.10.2.min.js:6
+> XMLHttpRequest.send
+> send @ jquery-1.10.2.min.js:6
+> ajax @ jquery-1.10.2.min.js:6
+> blockedit_load_definitions @ blockedit.js?version=1.1:186
+> blockedit_init @ blockedit.js?version=1.1:175
+> (anonymous) @ details.asp?ID=195&FormID=132:57
+> c @ jquery-1.10.2.min.js:4
+> fireWith @ jquery-1.10.2.min.js:4
+> ready @ jquery-1.10.2.min.js:4
+> q @ jquery-1.10.2.min.js:4
+> details.asp?ID=195&FormID=132:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+
+> Okay, save still does not work. Let's : add a console.log with the version number. And let's add logging for the save button.
