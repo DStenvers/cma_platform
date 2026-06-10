@@ -9,6 +9,9 @@ var all_components = null;
 var htmls = [];
 var element_cnt = 0;
 var pendingCKEditors = [];
+// Per-field count of destroy+recreate attempts by the ready-watchdog
+// (blockedit_watch_editor_ready). Cleared on instanceReady.
+var editorWatchAttempts = {};
 
 var BLOCK_START = "<!--BLOCK"
 var BLOCK_END = "-->"
@@ -114,7 +117,10 @@ function blockedit_clear() {
                     new Error().stack);
             }
         }
-        // Remove all blockedit_block elements (the content blocks)
+        // Remove all blockedit_block elements (the content blocks), destroying
+        // their CKEditor instances first (the main field's editor is on the
+        // textarea OUTSIDE .blockedit_block and is untouched)
+        blockedit_destroy_editors_in(jQuery(this).find('.blockedit_block'));
         jQuery(this).find('.blockedit_block').remove();
     });
     // Reset element counter
@@ -178,9 +184,6 @@ function blockedit_init_elements() {
 			// cmaLog.log('[blockedit_init_elements] Container[' + index + '] data-field:', sFld);
 
 			if (sFld!="") {
-				window.setTimeout( function() {
-//					jQuery("#cke_" + sFld).css("height","0px");
-				}, 700);
 				var textarea = jQuery("textarea[name='" + sFld + "']");
 				var sAllHTML = textarea.val();
 				// cmaLog.log('[blockedit_init_elements] Textarea found:', textarea.length > 0, 'value length:', sAllHTML ? sAllHTML.length : 0);
@@ -619,26 +622,12 @@ function blockedit_array_add_array_element( elt, template, cTemplateTitle, key, 
 
 	blockedit_create_htmls();
 
-	// Mirror the blockedit_click fix (v1.20.18) for the array "+" path. The
-	// freshly-added array element's CKEditor is otherwise only created via
-	// blockedit_create_htmls()/the deferred pendingCKEditors queue, whose
-	// sync-clear + 150ms-refill handshake can drop a just-added editor — the
-	// symptom being "pressing + on an array of htmleditors adds the row but
-	// the CKEditor does not appear until the record is saved and reloaded".
-	// Directly (re)create the editors in this array container after a short
-	// delay; createCKEditor is idempotent (returns 'exists' if already made)
-	// and now sees the opened accordion, so this is safe and complements the
-	// queue. (v1.20.21)
+	// blockedit_create_htmls() above created the new element's editor
+	// synchronously — the block is open and visible on the "+" path, and
+	// createCKEditor now defers on real visibility and self-heals via its
+	// ready-watchdog, so the v1.20.21 delayed direct-create is no longer
+	// needed. Still drain the deferred queue for editors hidden elsewhere.
 	blockedit_process_pending_ckeditors();
-	if (cBaseElt) {
-		setTimeout(function() {
-			jQuery(cBaseElt).find("textarea").each(function() {
-				if (this.id) {
-					blockedit_createCKEditor(this.id);
-				}
-			});
-		}, 160);
-	}
 
 	if (elt) {
 		jQuery(cBaseElt).parent().find(".blockedit_elt input[required='J']").attr("data-required", "Y");
@@ -662,6 +651,7 @@ function blockedit_array_add_array_element( elt, template, cTemplateTitle, key, 
 function blockedit_array_delete_array_element( elt ) {
 	var elt_verw = jQuery(elt);
 	if (elt_verw.hasClass("array_element")) {
+		blockedit_destroy_editors_in(elt_verw);
 		elt_verw.remove();
 	}
 }
@@ -1084,21 +1074,42 @@ function blockedit_createCKEditor(fieldId) {
 		return 'error';
 	}
 
-	// Already has CKEditor?
+	// Already has CKEditor? Only trust it when the instance is healthy.
+	// CKEDITOR.replace() registers the instance synchronously, BEFORE the
+	// async skin/iframe build. If that build ran while the target was hidden,
+	// or the chrome was destroyed afterwards (innerHTML move, removed DOM),
+	// the instance stays registered while the field shows a blank div.
+	// Returning 'exists' for such an instance made every later create attempt
+	// a no-op — the reason the v1.20.18/21 direct-create passes (and any
+	// retry) could never repair a blank editor.
 	if (CKEDITOR.instances && CKEDITOR.instances[fieldId]) {
-		return 'exists';
+		var existing = CKEDITOR.instances[fieldId];
+		var container = existing.container && existing.container.$;
+		if (!container) {
+			// Chrome not built yet: the async build is in flight. The
+			// ready-watchdog set at creation owns this editor — don't touch.
+			return 'exists';
+		}
+		if (document.documentElement.contains(container)) {
+			return 'exists';
+		}
+		cmaLog.warn('[blockedit_createCKEditor] Instance exists but its chrome is detached - destroying and recreating:', fieldId);
+		blockedit_destroy_editor(fieldId, existing);
+		// fall through to recreate
 	}
 
-	// Check if in collapsed accordion - defer if so
-	var blockeditElt = jQuery(textarea).closest('.blockedit_elt');
-	if (blockeditElt.length && !blockeditElt.hasClass('opened')) {
+	// Defer when the textarea is not actually visible. offsetParent is null
+	// for ANY display:none ancestor (collapsed accordion, hidden tab, dialog
+	// mid-open) — the old .opened-class check only covered the accordion, and
+	// CKEditor 4.5.7 builds a blank editor inside a hidden container.
+	if (textarea.offsetParent === null) {
 		if (pendingCKEditors.indexOf(fieldId) === -1) {
 			pendingCKEditors.push(fieldId);
 		}
-		// Diagnostic: a new block's editor stays deferred until its accordion is
-		// ".opened". If it never gets created after opening, the create does not
-		// appear — watch for this id NOT being followed by a "=> created" below.
-		cmaLog.log('[blockedit_createCKEditor] DEFERRED (collapsed accordion):', fieldId);
+		// Diagnostic: if a deferred editor never gets created after its
+		// container becomes visible, watch for this id NOT being followed by
+		// a "=> created" below.
+		cmaLog.log('[blockedit_createCKEditor] DEFERRED (not visible):', fieldId);
 		return 'deferred';
 	}
 
@@ -1127,6 +1138,7 @@ function blockedit_createCKEditor(fieldId) {
 					CMA.form.setDirty();
 				}
 			});
+			blockedit_watch_editor_ready(fieldId, editor);
 			cmaLog.log('[blockedit_createCKEditor] SUCCESS:', fieldId);
 			return 'created';
 		} else {
@@ -1137,6 +1149,73 @@ function blockedit_createCKEditor(fieldId) {
 		cmaLog.error('[blockedit_createCKEditor] ERROR:', fieldId, e.message);
 		return 'error';
 	}
+}
+
+//
+// Destroy a CKEditor instance defensively. destroy(true) (noUpdate — the
+// textarea already holds the content) can throw on a half-built instance;
+// then deregister it by hand, remove stray chrome and unhide the textarea
+// (CKEDITOR.replace hides it and only a successful destroy shows it again).
+//
+function blockedit_destroy_editor(fieldId, editor) {
+	try {
+		editor.destroy(true);
+	} catch (e) {
+		delete CKEDITOR.instances[fieldId];
+		var stray = document.getElementById('cke_' + fieldId);
+		if (stray && stray.parentNode) {
+			stray.parentNode.removeChild(stray);
+		}
+		var textarea = document.getElementById(fieldId);
+		if (textarea) {
+			textarea.style.display = '';
+		}
+	}
+}
+
+//
+// Destroy all CKEditor instances whose textareas live inside the given
+// container. Call before removing block/array-element DOM — otherwise
+// CKEDITOR.instances keeps orphaned entries for removed textareas forever.
+//
+function blockedit_destroy_editors_in(container) {
+	if (typeof CKEDITOR === 'undefined' || !CKEDITOR.instances) return;
+	jQuery(container).find("textarea").each(function() {
+		if (this.id && CKEDITOR.instances[this.id]) {
+			blockedit_destroy_editor(this.id, CKEDITOR.instances[this.id]);
+		}
+	});
+}
+
+//
+// Watchdog for the async part of CKEDITOR.replace(). The instance registers
+// synchronously, but the skin/iframe build is async; when that build runs
+// into a hidden or still-animating container it can stall and leave a blank
+// editor that never fires instanceReady. If the editor is not 'ready' after
+// 1s, destroy the half-built instance and create it again (max 2 retries,
+// then give up and leave the raw textarea usable).
+//
+function blockedit_watch_editor_ready(fieldId, editor) {
+	editor.on('instanceReady', function() {
+		delete editorWatchAttempts[fieldId];
+	});
+	setTimeout(function() {
+		// Only act when this exact instance is still current and not ready
+		if (CKEDITOR.instances[fieldId] !== editor || editor.status === 'ready') {
+			return;
+		}
+		editorWatchAttempts[fieldId] = (editorWatchAttempts[fieldId] || 0) + 1;
+		if (editorWatchAttempts[fieldId] > 2) {
+			cmaLog.error('[blockedit_watch_editor_ready] Editor still not ready after ' +
+				editorWatchAttempts[fieldId] + ' attempts, giving up (textarea stays usable):', fieldId);
+			blockedit_destroy_editor(fieldId, editor);
+			return;
+		}
+		cmaLog.warn('[blockedit_watch_editor_ready] Editor not ready after 1s - destroying and recreating:',
+			fieldId, '(attempt ' + editorWatchAttempts[fieldId] + ')');
+		blockedit_destroy_editor(fieldId, editor);
+		blockedit_createCKEditor(fieldId);
+	}, 1000);
 }
 
 //
@@ -1169,7 +1248,20 @@ function blockedit_click( elt ) {
 	} else {
 		jQuery(elt).parent().find(".blockedit_elt").hide();
 		jQuery(elt).parent().find(".blockedit_elt input").attr("data-required", "");
-		jQuery(elt).show( 100 );
+		// Create the editor(s) from the show() completion callback instead of a
+		// parallel timer: the block is guaranteed at full size then, so CKEditor
+		// 4.5.7 cannot be built mid-animation (which yields a blank editor).
+		// jQuery 1.9 also restores the pre-hide inline display ("inline-block")
+		// when the animation ends, which would override .opened's
+		// display:block;width:100% — clear it so the class wins.
+		jQuery(elt).show( 100, function() {
+			jQuery(elt).css("display", "");
+			jQuery(elt).find("textarea").each(function() {
+				if (this.id) {
+					blockedit_createCKEditor(this.id);
+				}
+			});
+		});
 		jQuery(elt).addClass("opened");
 		var button_elt = jQuery(elt).find("a")[0];
 		if (button_elt) {
@@ -1177,24 +1269,8 @@ function blockedit_click( elt ) {
 		}
 		blockedit_add_new_element( jQuery(elt).parent().parent(), null);
 
-		// Process any pending CKEditors that were deferred while hidden
+		// Drain any editors that were deferred while their containers were hidden
 		blockedit_process_pending_ckeditors();
-
-		// Directly create the editor(s) for the block we just opened instead of
-		// relying solely on the deferred pendingCKEditors queue. That queue
-		// clears itself synchronously and refills 150ms later, so a just-opened
-		// editor could be dropped by the handshake — the symptom being "the
-		// CKEditor does not appear on a new block". createCKEditor is idempotent
-		// (returns 'exists' if already created) and now sees the accordion as
-		// ".opened", so this is safe and complements the queue. The short delay
-		// lets the show(100) animation finish so CKEditor lays out at full height.
-		setTimeout(function() {
-			jQuery(elt).find("textarea").each(function() {
-				if (this.id) {
-					blockedit_createCKEditor(this.id);
-				}
-			});
-		}, 160);
 	}
 }
 
@@ -1204,6 +1280,7 @@ function blockedit_click( elt ) {
 function blockedit_verwijder( elt ) {
 	var elt_verw = jQuery(elt);
 	if (elt_verw.hasClass("blockedit_block")) {
+		blockedit_destroy_editors_in(elt_verw);
 		elt_verw.remove();
 		// 2do: alleen als er geen meer is: 
 		blockedit_add_new_element( jQuery(elt).parent(), null );
@@ -1219,32 +1296,40 @@ function blockedit_visible( elt ) {
 }
 
 //
+// Move an array element up or down. Used to swap innerHTML between the two
+// elements, but serializing CKEditor chrome through innerHTML destroys the
+// editor's iframe document — the editor stayed registered in
+// CKEDITOR.instances while showing a blank div. Mirror blockedit_move_block:
+// flush + destroy the editors, move the node, recreate them.
 //
-//
-function blockedit_array_move_down ( elt ) {
-	var next_elt = elt.nextSibling;
-	if (next_elt) {
-		if (jQuery(next_elt).hasClass("array_element")) {				
-			var tmp = elt.innerHTML;
-			elt.innerHTML = next_elt.innerHTML;
-			next_elt.innerHTML = tmp;
-		}
+function blockedit_array_move( elt, direction ) {
+	var adjacent_elt = (direction === 'up') ? elt.previousSibling : elt.nextSibling;
+	if (!adjacent_elt || !jQuery(adjacent_elt).hasClass("array_element")) {
+		return;
+	}
+
+	var ckeStates = {};
+	if (CKEDITOR_ForceRecreate) {
+		ckeStates = blockedit_save_ckeditor_states([elt, adjacent_elt]);
+	}
+
+	if (direction === 'up') {
+		elt.parentNode.insertBefore(elt, adjacent_elt);
+	} else {
+		elt.parentNode.insertBefore(adjacent_elt, elt);
+	}
+
+	if (CKEDITOR_ForceRecreate) {
+		blockedit_restore_ckeditor_states(ckeStates);
 	}
 }
 
-//
-//
-//
+function blockedit_array_move_down ( elt ) {
+	blockedit_array_move(elt, 'down');
+}
+
 function blockedit_array_move_up( elt ) {
-		
-	var prev_elt = elt.previousSibling;
-	if (prev_elt) {
-		if (jQuery(prev_elt).hasClass("array_element")) { 
-			var tmp = elt.innerHTML;
-			elt.innerHTML = prev_elt.innerHTML;
-			prev_elt.innerHTML = tmp;
-		}
-	}
+	blockedit_array_move(elt, 'up');
 }
 
 //
@@ -1314,23 +1399,24 @@ function blockedit_move_block(elt, direction) {
 function blockedit_save_ckeditor_states(elements) {
     var states = {};
     elements.forEach(function(elt) {
-        var ckeContainer = $(elt).find(".cke");
-        if (!ckeContainer.length) return;
+        // All editors inside the element, not only the first one — a block
+        // (or array element) can contain several longtext fields.
+        $(elt).find(".cke").each(function() {
+            var editorId = this.id;
+            if (!editorId) return;
 
-        var editorId = ckeContainer.attr("id");
-        if (!editorId) return;
-
-        editorId = editorId.replace("cke_", "");
-        try {
-            CKEDITOR.instances[editorId].updateElement();
-            states[editorId] = CKEDITOR.instances[editorId].config;
-            if (CKEDITOR_DestroyNeeded) {
-                CKEDITOR.instances[editorId].destroy();
+            editorId = editorId.replace("cke_", "");
+            try {
+                CKEDITOR.instances[editorId].updateElement();
+                states[editorId] = CKEDITOR.instances[editorId].config;
+                if (CKEDITOR_DestroyNeeded) {
+                    CKEDITOR.instances[editorId].destroy();
+                }
+                $(editorId).show();
+            } catch (e) {
+                cmaLog.warn('[Blockedit] Failed to save/destroy CKEditor state:', editorId, e.message);
             }
-            $(editorId).show();
-        } catch (e) {
-            cmaLog.warn('[Blockedit] Failed to save/destroy CKEditor state:', editorId, e.message);
-        }
+        });
     });
     return states;
 }

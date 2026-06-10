@@ -390,3 +390,11 @@ karaat-data en staat in de karaat-repo.
 > Deterministic enforcement — a UserPromptSubmit hook in .claude/settings.json (committed, so it's team-wide). It runs python3 to append every submitted prompt to prompts.md with a timestamp. Verified: Pipe-tested against sample input (quotes/newlines/HTML/ampersands) → exit 0, no stdout, correct output.
 
 > i thought we dropped phpdotenv and createrd out own env.php?
+
+## 2026-06-10
+
+> we have been working on bliockeditor.js that works with ckeditor.js. The bug that is still there is that if we create a new block dynamically with a ckeditor inside, the editor does not appear, it is a blank div. 
+>
+> Investigate the possible causes. Consider at least the option that it is a timing thing, perhaps retrying to create the ckeditor after 200ms or even 500ms if it has failed is a solution? If not , take a deep dive into what can cause it.
+
+> please implement and you mention too many timers, what are they?
