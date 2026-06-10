@@ -2806,7 +2806,7 @@ window.LIBLOG_CONFIG = {
                     <dt>Blokken</dt>
                     <dd>HTML met <code>&lt;!--BLOCK{json}--&gt;</code> comment markers tussen blokken</dd>
                     <dt>contentblocks.json</dt>
-                    <dd>Bloktemplates worden geladen uit <code>assets/contentblocks/contentblocks.json</code>. Deze templates zijn te beheren via het formulier <a href="/cma/form.php?form=contentblocks" target="_blank" style="color: var(--color-primary);">Contentblocks</a> in CMA.</dd>
+                    <dd>Bloktemplates worden geladen uit <code>assets/contentblocks/contentblocks.json</code> (sinds v1.26.3 met fallback naar <code>/cma_contentblocks.json</code>, de site-root-locatie van oudere CMA-versies). Deze templates zijn te beheren via het formulier <a href="/cma/form.php?form=contentblocks" target="_blank" style="color: var(--color-primary);">Contentblocks</a> in CMA.</dd>
                 </dl>
                 <h4>Bloktemplate velden</h4>
                 <dl>

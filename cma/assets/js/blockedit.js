@@ -37,8 +37,14 @@ var cmaLog = {
 
 var BLOCK_START = "<!--BLOCK"
 var BLOCK_END = "-->"
-// Content blocks JSON location - in site/assets (shared with front-end)
-var BLOCK_DEFINITION_URL = "/cma/assets/contentblocks/contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now());
+// Content blocks JSON locations, tried in order. First the current location
+// in site/assets (shared with the front-end); when that fails (404/500),
+// fall back to the site-root file that older CMA versions use, so this
+// blockedit.js also works dropped into an older CMA.
+var BLOCK_DEFINITION_URLS = [
+	"/cma/assets/contentblocks/contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now()),
+	"/cma_contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now())
+];
 var BLOCK_START_HTML = "<div class=\"row\">"
 var BLOCK_END_HTML = "</div>"
 
@@ -166,29 +172,43 @@ function blockedit_init() {
 	}
 
 	if (!all_components) {
-		jQuery.ajax( {
-			url: BLOCK_DEFINITION_URL,
-			cache: true
-		} ).done( function( result ) {
-			if (typeof result==="object") {
-				all_components = result;
-			} else {
-				if (result) {
-					try {
-						all_components = jQuery.parseJSON( result );
-					} catch (e) {
-						cmaLog.error('[BlockEdit] Failed to parse block definitions:', e.message);
-						return;
-					}
-				}
-			}
-			blockedit_init_elements();
-		}).fail(function(jqXHR, textStatus, errorThrown) {
-			cmaLog.error('[BlockEdit] Failed to load block definitions:', textStatus, errorThrown, 'status:', jqXHR.status);
-		});
+		blockedit_load_definitions(0);
 	} else {
 		blockedit_init_elements();
 	}
+}
+
+//
+// Load the block definitions, falling through the BLOCK_DEFINITION_URLS
+// list on failure (backwards compatibility with older CMA locations).
+//
+function blockedit_load_definitions(urlIndex) {
+	jQuery.ajax( {
+		url: BLOCK_DEFINITION_URLS[urlIndex],
+		cache: true
+	} ).done( function( result ) {
+		if (typeof result==="object") {
+			all_components = result;
+		} else {
+			if (result) {
+				try {
+					all_components = jQuery.parseJSON( result );
+				} catch (e) {
+					cmaLog.error('[BlockEdit] Failed to parse block definitions:', e.message);
+					return;
+				}
+			}
+		}
+		blockedit_init_elements();
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+		if (urlIndex + 1 < BLOCK_DEFINITION_URLS.length) {
+			cmaLog.warn('[BlockEdit] Failed to load block definitions from', BLOCK_DEFINITION_URLS[urlIndex],
+				'(status ' + jqXHR.status + '), trying fallback:', BLOCK_DEFINITION_URLS[urlIndex + 1]);
+			blockedit_load_definitions(urlIndex + 1);
+		} else {
+			cmaLog.error('[BlockEdit] Failed to load block definitions:', textStatus, errorThrown, 'status:', jqXHR.status);
+		}
+	});
 }
 
 //
