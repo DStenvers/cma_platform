@@ -7,7 +7,7 @@
     "table": "audit_log",
     "database": "data",
     "idField": "id",
-    "listQuery": "SELECT TOP 500 al.id, al.occurred_at, al.action, al.target_type, al.target_id, al.ip, u.display_name AS actor FROM ([audit_log] al) LEFT JOIN [users] u ON u.id = al.actor_user_id ORDER BY al.id DESC",
+    "listQuery": "SELECT TOP 500 al.id, al.occurred_at, al.actor_user_id, al.action, al.target_type, al.target_id, al.ip FROM [audit_log] al ORDER BY al.id DESC",
     "listColumns": [
         {
             "field": "occurred_at",
@@ -15,9 +15,9 @@
             "type": "datetime"
         },
         {
-            "field": "actor",
-            "title": "Door",
-            "type": "text"
+            "field": "actor_user_id",
+            "title": "Door (user-id)",
+            "type": "number"
         },
         {
             "field": "action",

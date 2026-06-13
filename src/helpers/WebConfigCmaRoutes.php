@@ -176,10 +176,17 @@ EOT;
         $patched   = substr_replace($content, self::RULES, $insertPos, 0);
 
         // Validate the patched content (well-formed + duplicate-name + regex)
-        // entirely in memory — never write a file we have not validated.
-        $validationErrors = self::validatePatched($patched);
-        if (!empty($validationErrors)) {
-            foreach ($validationErrors as $e) {
+        // entirely in memory — never write a file we have not validated. The
+        // original ($content) is passed so the duplicate-name check can tell
+        // a duplicate the patch INTRODUCED (a real abort) from one that was
+        // already in the consumer's web.config (a pre-existing problem we
+        // surface as a warning but don't let block the route injection).
+        $validation = self::validatePatched($patched, $content);
+        foreach ($validation['warnings'] as $w) {
+            $msg($w);
+        }
+        if (!empty($validation['errors'])) {
+            foreach ($validation['errors'] as $e) {
                 $errors[] = $e;
             }
             return self::result('error', $messages, null, $errors);
@@ -194,14 +201,24 @@ EOT;
     }
 
     /**
-     * Validate patched content: well-formed XML, no duplicate rule-names per
-     * collection, valid PCRE on our own CMA match-patterns.
+     * Validate patched content: well-formed XML, no NEWLY-introduced duplicate
+     * rule-names, valid PCRE on our own CMA match-patterns.
      *
-     * @return string[] Error messages (empty = valid).
+     * Duplicate handling is delta-based against the original: a name that was
+     * ALREADY duplicated in the consumer's web.config (e.g. an earlier botched
+     * patch that doubled a rule block, or rule names that legitimately repeat
+     * across separate <location> collections that the flat xpath can't tell
+     * apart) is a pre-existing condition the CMA injection didn't cause —
+     * blocking on it would strand the operator on a problem unrelated to this
+     * patch. Those become warnings; only a duplicate the patch itself
+     * introduces is a hard error (the IIS 500.50 trap we actually guard).
+     *
+     * @return array{errors:string[],warnings:string[]} empty errors = safe to write.
      */
-    private static function validatePatched(string $patched): array
+    private static function validatePatched(string $patched, string $original): array
     {
-        $errors = [];
+        $errors   = [];
+        $warnings = [];
 
         libxml_use_internal_errors(true);
         libxml_clear_errors();
@@ -212,13 +229,18 @@ EOT;
             }
             libxml_clear_errors();
             $errors[] = 'gepatchte XML is niet valid — original NIET aangeraakt (platform-bug).';
-            return $errors;
+            return ['errors' => $errors, 'warnings' => $warnings];
         }
+
+        // Baseline: which (scope, name) pairs were ALREADY duplicated in the
+        // original. A blank/unparseable original yields an empty baseline, so
+        // every patched duplicate is treated as new — the safe default.
+        $baselineDupes = self::duplicateRuleNames($original);
 
         // Duplicate rule-names: IIS marks <rule name=""> as uniqueId per
         // collection — duplicates give 500.50 "cannot add duplicate
-        // collection entry".
-        $collect = static function (array $nodes, string $scope) use (&$errors): void {
+        // collection entry". Only NEW duplicates abort; pre-existing ones warn.
+        $collect = static function (array $nodes, string $scope) use (&$errors, &$warnings, $baselineDupes): void {
             $seen = [];
             foreach ($nodes as $node) {
                 $name = (string)$node['name'];
@@ -226,7 +248,13 @@ EOT;
                     continue;
                 }
                 if (isset($seen[$name])) {
-                    $errors[] = "duplicate $scope rule name: '" . $name . "'";
+                    if (isset($baselineDupes[$scope][$name])) {
+                        $warnings[] = "pre-existing duplicate $scope rule name '" . $name
+                            . "' in de consumer web.config (niet door deze patch veroorzaakt) — "
+                            . "CMA-routes toch toegepast; ruim deze dubbele rule met de hand op.";
+                    } else {
+                        $errors[] = "duplicate $scope rule name: '" . $name . "'";
+                    }
                 }
                 $seen[$name] = true;
             }
@@ -234,6 +262,9 @@ EOT;
         $collect($post->xpath('//rewrite/rules/rule'), 'inbound');
         $collect($post->xpath('//rewrite/outboundRules/rule'), 'outbound');
         $collect($post->xpath('//rewrite/outboundRules/preConditions/preCondition'), 'preCondition');
+
+        // De-dupe repeated warnings (a name doubled 3× warns once).
+        $warnings = array_values(array_unique($warnings));
 
         // PCRE check on ONLY our own patterns ("CMA " prefix). User rules may
         // be .NET-regex that isn't PCRE-compatible, so we skip those to avoid
@@ -249,7 +280,48 @@ EOT;
             }
         }
 
-        return $errors;
+        return ['errors' => $errors, 'warnings' => $warnings];
+    }
+
+    /**
+     * Map of (scope => name => true) for rule names that appear more than once
+     * within a given rewrite collection of $xml. Used as the baseline so the
+     * patched-content check can subtract pre-existing duplicates.
+     *
+     * @return array<string,array<string,bool>>
+     */
+    private static function duplicateRuleNames(string $xml): array
+    {
+        $dupes = [];
+        if ($xml === '') {
+            return $dupes;
+        }
+        $prev = libxml_use_internal_errors(true);
+        $doc  = simplexml_load_string($xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if ($doc === false) {
+            return $dupes;
+        }
+
+        $scan = static function (array $nodes, string $scope) use (&$dupes): void {
+            $seen = [];
+            foreach ($nodes as $node) {
+                $name = (string)$node['name'];
+                if ($name === '') {
+                    continue;
+                }
+                if (isset($seen[$name])) {
+                    $dupes[$scope][$name] = true;
+                }
+                $seen[$name] = true;
+            }
+        };
+        $scan($doc->xpath('//rewrite/rules/rule'), 'inbound');
+        $scan($doc->xpath('//rewrite/outboundRules/rule'), 'outbound');
+        $scan($doc->xpath('//rewrite/outboundRules/preConditions/preCondition'), 'preCondition');
+
+        return $dupes;
     }
 
     /**
