@@ -35,12 +35,23 @@ if (strpos($basePath, 'migrations') !== false) {
 }
 require_once $basePath . '/bootstrap.inc';
 
+$siteRoot  = dirname($basePath);
+$webConfig = $siteRoot . '/web.config';
+
+// If the CMA routes are already in the parent web.config (hand-applied, or by
+// the Composer Installer / a previous run), there is nothing to patch — succeed
+// without requiring developer rights. The elevated-rights guard below only
+// matters when we would actually modify web.config; an already-applied site
+// should not be blocked from completing the migration.
+if (is_file($webConfig)
+    && strpos((string)@file_get_contents($webConfig), WebConfigCmaRoutes::MARKER) !== false) {
+    echo "CMA-routes al aanwezig in parent web.config (marker gevonden) — niets te doen.\n";
+    return true;
+}
+
 if (!SecurityHelper::isDeveloper()) {
     throw new \RuntimeException('Developer-rechten vereist voor 9.9.0_cma_routes_to_parent_webconfig');
 }
-
-$siteRoot  = dirname($basePath);
-$webConfig = $siteRoot . '/web.config';
 
 // File-level patch + validatie wordt gedeeld met de Composer Installer via
 // WebConfigCmaRoutes (simplexml-check, XML well-formedness, duplicate-name,
