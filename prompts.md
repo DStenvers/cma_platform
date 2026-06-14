@@ -585,3 +585,9 @@ karaat-data en staat in de karaat-repo.
 > i only see± blockedit.js?version=1.1:1577 [BlockEdit] v1.26.7 collect_htmls() called, definitions loaded then nothing..
 
 > remove the debug please
+
+## 2026-06-14
+
+> change repo to cma_platform
+
+> okay, I get many errors like Lijst laden: HTTP 500 Internal Server Error. These vague errors are useless. If the current user is an admin or a supervisor, give all the details you have so someone can actually solve it.

@@ -2232,6 +2232,30 @@ function render_doc_errors(): void
         <li><span class="cma-tool__strong">window.CmaErrorHandler.report()</span> — interface die LibLog en custom code kunnen gebruiken om handmatig een error in het paneel te krijgen. Signature: <code>report(source, message, context)</code>.</li>
     </ul>
 
+    <h2>Server-side fout-responses voor AJAX (admin/supervisor ziet de oorzaak)</h2>
+    <p><code>App\Library\ErrorHandler</code> detecteert of een request JSON wil — een
+    API-URL (<code>_api.php</code> of <code>/api/</code>), een
+    <code>X-Requested-With: XMLHttpRequest</code>, een <code>Accept: application/json</code>,
+    of een endpoint dat zélf al een JSON <code>Content-Type</code> zette vóór het faalde.
+    Voor die requests stuurt het een gestructureerde JSON-fout in plaats van een
+    HTML-pagina, zodat <code>fetch()</code>-clients hem kunnen parsen:</p>
+    <pre><code>{ "success": false, "error": "&lt;melding&gt;", "errorType": "&lt;class&gt;",
+  "debug": { "file": "…", "line": 42, "trace": "…", "diagnostics": { … } } }</code></pre>
+    <p>Het <code>debug</code>-blok gaat <span class="cma-tool__strong">alleen</span> mee in
+    een debug-omgeving (L/O/T) <span class="cma-tool__em">of</span> als de ingelogde
+    gebruiker admin/supervisor of developer is (<code>SecurityHelper::isAdmin() ||
+    isDeveloper()</code>). Een gewone gebruiker op productie krijgt enkel
+    <code>"Er is een interne serverfout opgetreden."</code> — er lekt nooit een pad,
+    stacktrace of klassennaam. Dit hing voorheen aan <code>CMA_DEBUG</code>
+    (omgeving-gestuurd, UIT op productie), waardoor een beheerder op productie een
+    nietszeggende "HTTP 500" zag.</p>
+    <p>De JS-kant toont datzelfde <code>debug</code>-blok wanneer
+    <code>window.CMA.formConfig.showDetails</code> waar is (óók admin/developer):
+    <code>cma-api-error.js</code> <code>formatError()</code> en de lijst-foutweergave in
+    <code>form-controller.js</code>. Zo zijn beide kanten het eens over wie wat ziet;
+    volledige file/line/trace staan sowieso in de console en in het uitklap-paneel van
+    <code>lib-message</code>.</p>
+
     <h2>Logger PHP API</h2>
     <pre><code>use Cma\Services\Logger;
 

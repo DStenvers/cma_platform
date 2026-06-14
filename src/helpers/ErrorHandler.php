@@ -63,6 +63,64 @@ class ErrorHandler
     }
 
     /**
+     * Whether the current viewer is an admin/supervisor (or developer). They
+     * get the full error detail even on production, so they can actually
+     * diagnose a failure instead of seeing a generic "500".
+     *
+     * Defensive on purpose: SecurityHelper is a Cma\ class loaded after this
+     * one and may be absent (early-boot errors, non-CMA consumers), and its own
+     * DB lookup can throw while the request is already failing. Any of that is
+     * treated as NOT elevated — we fail closed so details never leak.
+     *
+     * @return bool
+     */
+    protected static function viewerIsElevated(): bool
+    {
+        try {
+            if (class_exists('\\Cma\\SecurityHelper')) {
+                return \Cma\SecurityHelper::isAdmin() || \Cma\SecurityHelper::isDeveloper();
+            }
+        } catch (\Throwable $e) {
+            // never let the elevation check itself break error handling
+        }
+        return false;
+    }
+
+    /**
+     * Whether the current request wants a JSON error rather than an HTML page:
+     * an API endpoint by URL (mirrors bootstrap.inc's $_isApiEndpoint), an
+     * explicit XHR/fetch marker, an Accept: application/json, or an endpoint
+     * that already declared a JSON Content-Type before it threw (the common
+     * case behind a broken "Lijst laden" list fetch — form_api.php sets the
+     * header up top, then a later exception would otherwise emit HTML into a
+     * response the client tries to JSON.parse).
+     *
+     * @return bool
+     */
+    protected static function wantsJson(): bool
+    {
+        if (PHP_SAPI === 'cli') {
+            return false;
+        }
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        if (stripos($uri, '_api.php') !== false || stripos($uri, '/api/') !== false) {
+            return true;
+        }
+        if (strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') === 0) {
+            return true;
+        }
+        if (stripos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false) {
+            return true;
+        }
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'content-type:') === 0 && stripos($header, 'application/json') !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Set verbose/debug mode for error display
      *
      * @param bool $enabled True to enable verbose output, false to disable
@@ -247,12 +305,24 @@ class ErrorHandler
                 self::logException($exception);
             }
     
-            // Do not display errors if in production mode and display_errors is disabled
-            if (self::$config['environment'] === 'production' && !self::$config['display_errors']) {
+            // AJAX / fetch callers expect JSON, not an HTML error page. Emit a
+            // structured JSON error so the client can parse it (and, for an
+            // admin/supervisor, surface the real cause). This is what turns the
+            // vague "Lijst laden: HTTP 500" on list/data endpoints into an
+            // actionable message.
+            if (self::wantsJson()) {
+                self::renderJsonError($exception);
+                return;
+            }
+
+            // Do not display errors in production with display_errors off —
+            // EXCEPT for an admin/supervisor, who gets the full detailed page so
+            // they can actually diagnose it.
+            if (self::$config['environment'] === 'production' && !self::$config['display_errors'] && !self::viewerIsElevated()) {
                 self::renderProductionError($exception);
                 return;
             }
-    
+
             // Otherwise, display a detailed error page
             self::renderDetailedError($exception);
             
@@ -439,6 +509,70 @@ class ErrorHandler
         }
 
         return $message;
+    }
+
+    /**
+     * Emit a structured JSON error for AJAX/fetch callers. The shape matches
+     * what cma-api-error.js (cmaApiError.handleResponse) consumes:
+     *   { success:false, error, errorType, debug:{ file, line, trace, diagnostics } }
+     *
+     * The debug block is included for an elevated viewer (admin/supervisor/
+     * developer) or in a debug environment; otherwise only a generic message is
+     * returned so details never leak to ordinary users. cma-api-error.js shows
+     * the debug block in an expandable panel when formConfig.showDetails is set
+     * (also admin/developer), so the two ends agree on who sees what.
+     *
+     * @param \Throwable $exception The exception that was thrown
+     * @return void
+     */
+    protected static function renderJsonError(\Throwable $exception): void
+    {
+        $statusCode = ($exception instanceof \HttpException) ? $exception->getStatusCode() : 500;
+        self::setHttpResponseCode($statusCode);
+
+        // Discard any partial / HTML output the failing endpoint already wrote
+        // so the body is valid JSON (a list endpoint typically set its JSON
+        // Content-Type up top and emitted nothing yet, but be safe).
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
+        // debug/display_errors are the reliable non-prod signals (they are true
+        // only on L/O/T). We deliberately do NOT key off environment === 'production'
+        // here: register() stores the single-letter code ('P'), not the word.
+        $detailed = self::$config['debug']
+            || self::$config['display_errors']
+            || self::viewerIsElevated();
+
+        $payload = [
+            'success'   => false,
+            'error'     => $detailed ? $exception->getMessage() : 'Er is een interne serverfout opgetreden.',
+            'errorType' => $detailed ? get_class($exception) : 'ServerError',
+        ];
+
+        if ($detailed) {
+            $debug = [
+                'file'  => $exception->getFile(),
+                'line'  => $exception->getLine(),
+                'trace' => $exception->getTraceAsString(),
+            ];
+            $diagnostics = self::getDatabaseDiagnostics($exception);
+            if ($diagnostics) {
+                // cma-api-error.js reads diagnostics.likelyCauses; the PHP array
+                // uses snake_case likely_causes — expose both so the client's
+                // "Mogelijke oorzaak" line works without changing every reader.
+                if (isset($diagnostics['likely_causes']) && !isset($diagnostics['likelyCauses'])) {
+                    $diagnostics['likelyCauses'] = $diagnostics['likely_causes'];
+                }
+                $debug['diagnostics'] = $diagnostics;
+            }
+            $payload['debug'] = $debug;
+        }
+
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**

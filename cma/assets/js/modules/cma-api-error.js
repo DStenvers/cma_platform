@@ -128,8 +128,11 @@ const cmaApiError = {
     formatError(error) {
         let message = error.message || 'Onbekende fout';
 
-        // In debug mode, add detailed info
-        const isDebug = typeof CMA_DEBUG !== 'undefined' && CMA_DEBUG;
+        // Add detailed info in a debug environment OR for an admin/supervisor
+        // (formConfig.showDetails = isAdmin || isDeveloper) — they should see the
+        // real cause even on production, not just a generic message.
+        const showDetails = typeof window !== 'undefined' && window.CMA?.formConfig?.showDetails === true;
+        const isDebug = (typeof CMA_DEBUG !== 'undefined' && CMA_DEBUG) || showDetails;
         if (isDebug && error.debug) {
             const debug = error.debug;
             const details = [];

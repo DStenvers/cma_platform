@@ -6899,8 +6899,10 @@ class CmaFormController {
                 let errorHtml = errorMsg;
                 // Convert newlines to <br>
                 errorHtml = errorHtml.replace(/\n/g, '<br>');
-                // In debug mode, show additional info
-                if (CMA_DEBUG && error.debug) {
+                // Show file/line in a debug environment OR for an admin/supervisor
+                // (formConfig.showDetails) — the whole point is that an elevated
+                // user can act on it instead of seeing a bare "HTTP 500".
+                if ((CMA_DEBUG || window.CMA?.formConfig?.showDetails) && error.debug) {
                     const debug = error.debug;
                     if (debug.file) {
                         const shortFile = debug.file.split(/[\/\\]/).slice(-3).join('/');
