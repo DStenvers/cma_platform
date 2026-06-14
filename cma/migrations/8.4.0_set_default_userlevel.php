@@ -15,12 +15,11 @@ if (!$conn) {
     return false;
 }
 
-// Ensure userLevel column exists
-try {
-    $conn->exec("ALTER TABLE [tblUsers] ADD COLUMN [userLevel] INTEGER");
+// Ensure userLevel column exists (addColumnPDO is driver-aware — raw
+// "ADD COLUMN" is invalid on SQL Server — and idempotent).
+$add = Database::addColumnPDO($conn, 'tblUsers', 'userLevel', 'INTEGER');
+if (!empty($add['sql'])) {
     echo "Added userLevel column\n";
-} catch (\Throwable $e) {
-    // Column already exists — OK
 }
 
 // Find users without userLevel

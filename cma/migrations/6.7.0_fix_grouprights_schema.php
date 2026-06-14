@@ -25,6 +25,12 @@ echo "This optional script migrates existing data values.\n";
 try {
     $conn = \App\Library\Database::getConnection('users');
 
+    // Ensure the new columns exist (self-contained — they used to depend on a
+    // separate migrations.json addColumn step). addColumnPDO is driver-aware
+    // and idempotent, so this is a no-op when they already exist.
+    \App\Library\Database::addColumnPDO($conn, 'tblGroupRights', 'secObjectType', 'INTEGER');
+    \App\Library\Database::addColumnPDO($conn, 'tblGroupRights', 'secAccessType', 'INTEGER');
+
     // Migrate existing data: convert old boolean columns to new access type
     echo "\nMigrating existing data to new column format...\n";
 

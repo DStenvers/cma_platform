@@ -32,11 +32,12 @@ if ($conn === null) {
     exit(1);
 }
 
-// Check if LogLevel column exists (should be created by migrations.json addColumn)
-try {
-    $stmt = $conn->query("SELECT TOP 1 LogLevel FROM tblCMAMonitoring");
-} catch (\Exception $e) {
-    echo '✗ LogLevel kolom bestaat niet - voer eerst de addColumn migratie uit';
+// Ensure the LogLevel column exists. It used to depend on a separate
+// migrations.json addColumn step; add it here so this migration is
+// self-contained (addColumnPDO is driver-aware and idempotent).
+$add = Database::addColumnPDO($conn, 'tblCMAMonitoring', 'LogLevel', 'VARCHAR(20)');
+if (empty($add['success'])) {
+    echo '✗ Kon de LogLevel kolom niet toevoegen aan tblCMAMonitoring: ' . ($add['error'] ?? 'onbekende fout');
     exit(1);
 }
 
