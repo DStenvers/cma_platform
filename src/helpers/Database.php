@@ -192,6 +192,43 @@ class Database
     }
 
     /**
+     * Whether a logical connection is configured — i.e. has a DSN registered
+     * from databases.json by Bootstrap::initDatabaseConnections(). Unlike
+     * getConnection() this does NOT open the connection and does NOT apply the
+     * rep->data fallback, so callers can cheaply test "does this install use
+     * database X?" without risking a connection error.
+     *
+     * This is the databases.json-era replacement for the old
+     * `Application::get('conn_<name>')` truthiness check (those globals are no
+     * longer set). A legacy conn_* fallback is included for old installs.
+     */
+    public static function isConfigured(string $name): bool
+    {
+        $name = strtolower($name);
+        if (!empty(self::$namedConnectionDsns[$name] ?? '')) {
+            return true;
+        }
+        // Legacy: installs that still set the conn_* Application globals.
+        $legacy = \App\Library\Application::get('conn_' . $name, '');
+        return is_string($legacy) && trim($legacy) !== '';
+    }
+
+    /**
+     * Return the DSN for a logical connection as registered from databases.json
+     * (the single source of truth), falling back to the legacy conn_* global
+     * for old installs. Empty string if neither is set. Does not open anything.
+     */
+    public static function getConfiguredDsn(string $name): string
+    {
+        $name = strtolower($name);
+        $dsn = self::$namedConnectionDsns[$name] ?? '';
+        if ($dsn === '') {
+            $dsn = (string)\App\Library\Application::get('conn_' . $name, '');
+        }
+        return $dsn;
+    }
+
+    /**
      * Connection name aliases (for backwards compatibility)
      * Currently no aliases - 'data', 'rep', and 'users' are all separate databases
      */
@@ -1912,7 +1949,7 @@ class Database
     public static function isSQLServer(?string $connectionString = null): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         // Check for SQL Server patterns in connection string
@@ -1937,7 +1974,7 @@ class Database
     public static function isODBC(?string $connectionString = null): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         // Check if connection string starts with DSN=
@@ -2054,7 +2091,7 @@ class Database
     public static function fieldExists(?string $connectionString, string $table, string $fieldName = ''): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         try {
@@ -2310,7 +2347,7 @@ class Database
     public static function addField(?string $connectionString, string $table, string $field, string $type, int $length): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         try {
@@ -2356,7 +2393,7 @@ class Database
     public static function renameField(?string $connectionString, string $table, string $oldName, string $newName): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         try {
@@ -2394,7 +2431,7 @@ class Database
     public static function setDefaultValue(?string $connectionString, string $table, string $field, $defaultValue): bool
     {
         if ($connectionString === null) {
-            $connectionString = \App\Library\Application::get('conn_data', '');
+            $connectionString = self::getConfiguredDsn('data');
         }
 
         try {

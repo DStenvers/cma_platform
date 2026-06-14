@@ -603,8 +603,15 @@ class MigrationService
      */
     private function databaseIsConfigured(string $name): bool
     {
-        $value = \App\Library\Application::get('conn_' . $name, '');
-        return is_string($value) && trim($value) !== '';
+        // databases.json is the source of truth: Bootstrap::initDatabaseConnections
+        // registers a DSN per configured connection, and getConnection() reads
+        // ONLY that. The old `Application::get('conn_<name>')` globals are no
+        // longer set, so checking them here made this method always return false
+        // on modern installs — which silently skipped EVERY declarative schema
+        // change (addColumn/addIndex/createVersionTable) while still recording
+        // the migration as applied. Database::isConfigured() is the correct,
+        // databases.json-aware check (and still honours legacy conn_* globals).
+        return \App\Library\Database::isConfigured($name);
     }
 
     /**

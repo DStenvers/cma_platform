@@ -561,9 +561,12 @@ class ErrorHandler
             $loadedExtensions = get_loaded_extensions();
             $pdoDrivers = class_exists('PDO') ? \PDO::getAvailableDrivers() : [];
 
-            // Detect which driver is needed
+            // Detect which driver is needed. databases.json is the source of
+            // truth now (conn_data global is no longer set); fall back to it.
             $neededDriver = 'unknown';
-            $dsn = isset($GLOBALS['Application']['conn_data']) ? $GLOBALS['Application']['conn_data'] : '';
+            $dsn = class_exists('\App\Library\Database')
+                ? \App\Library\Database::getConfiguredDsn('data')
+                : ($GLOBALS['Application']['conn_data'] ?? '');
             if (preg_match('/^(\w+):/', $dsn, $matches)) {
                 $neededDriver = $matches[1];
             } elseif (isset($GLOBALS['Application']['pdo_driver'])) {
