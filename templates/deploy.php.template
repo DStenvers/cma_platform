@@ -270,8 +270,19 @@ if (!$failed && $composerPkgs !== '-' && $composerPkgs !== '') {
             preg_split('/\s*,\s*/', $composerPkgs, -1, PREG_SPLIT_NO_EMPTY) ?: []
         ));
         if ($run($composer . ' update ' . $pkgArgs . ' --no-dev --optimize-autoloader --no-interaction') !== 0) {
-            $failed     = true;
-            $failReason = 'composer update failed';
+            // `composer update` failed — most often the private platform repo
+            // is briefly unreachable / unauthenticated (missing token, SSH
+            // fallback, unwritable composer home), NOT a broken tree. Fall back
+            // to `composer install`, which restores a consistent vendor/ from
+            // the existing lock (keeps the locked platform version, no network
+            // fetch of the new one) so the rest of the deploy still runs —
+            // migrations, asset build and cache flush in deploy_post. Only a
+            // failing install (genuinely broken vendor) aborts the deploy.
+            $log('WARN: composer update failed — falling back to composer install (keeps the locked platform version, lets deploy_post run)');
+            if ($run($composer . ' install --no-dev --optimize-autoloader --no-interaction') !== 0) {
+                $failed     = true;
+                $failReason = 'composer update AND install both failed';
+            }
         }
     }
 }
