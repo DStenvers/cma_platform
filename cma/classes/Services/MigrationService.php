@@ -452,21 +452,16 @@ class MigrationService
             return ['success' => true, 'backups' => [], 'errors' => []];
         }
 
-        // Load database configurations.  Path is relative to
-        // cma/classes/Services/ — two `..` jumps land at `cma/`,
-        // then `config/databases.json` (matches the location used
-        // by cma/tools/tools_backup.php).  The previous path
-        // `../../../data/databases.json` resolved to `cma/data/`
-        // which doesn't exist, so every migration logged
-        // "Database '…' niet gevonden in configuratie, backup
-        // overgeslagen" even when the config was perfectly fine.
-        $databasesFile = __DIR__ . '/../../config/databases.json';
+        // Load database configurations with the SAME precedence the runtime
+        // connections use (per-site data/databases.json first, then the platform
+        // default cma/config/databases.json). Hardcoding cma/config/ here let the
+        // backup config diverge from the live connections — e.g. a host whose
+        // real DSNs live in data/databases.json would back up the stale/empty
+        // cma/config/ entries instead.
         $databaseConfigs = [];
-        if (file_exists($databasesFile)) {
-            $content = file_get_contents($databasesFile);
-            $config = json_decode($content, true);
-            foreach ($config['databases'] ?? [] as $dbConfig) {
-                $name = strtolower($dbConfig['name'] ?? '');
+        foreach (\App\Library\Bootstrap::loadDatabasesConfig() as $dbConfig) {
+            $name = strtolower($dbConfig['name'] ?? '');
+            if ($name !== '') {
                 $databaseConfigs[$name] = $dbConfig;
             }
         }

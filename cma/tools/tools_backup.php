@@ -10,7 +10,8 @@
  * Backup metadata (descriptions) are stored in /backup/backups.json
  */
 
-use App\Library\Application;
+use App\Library\Bootstrap;
+use App\Library\Database;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\Server;
@@ -41,14 +42,10 @@ if (!is_dir($backupDir)) {
     }
 }
 
-// Load databases configuration
-$databasesFile = __DIR__ . '/../config/databases.json';
-$databases = [];
-if (file_exists($databasesFile)) {
-    $content = file_get_contents($databasesFile);
-    $config = json_decode($content, true);
-    $databases = $config['databases'] ?? [];
-}
+// Load databases configuration with the same precedence as the live runtime
+// (per-site data/databases.json first, then cma/config/databases.json) so the
+// backup tool sees the exact databases the app connects to.
+$databases = Bootstrap::loadDatabasesConfig();
 
 // Build database list for backup
 $foundDatabases = [];
@@ -57,13 +54,10 @@ foreach ($databases as $db) {
     $connString = $db['connectionString'] ?? '';
     $name = $db['name'] ?? $db['title'] ?? 'unknown';
 
-    // If connectionString is empty, try to get it from Application config
+    // If connectionString is empty, fall back to the DSN registered from
+    // databases.json by Bootstrap (with a legacy conn_* fallback inside).
     if (empty($connString)) {
-        $appConnKey = 'conn_' . $name;
-        $appConnString = Application::get($appConnKey, '');
-        if (!empty($appConnString)) {
-            $connString = $appConnString;
-        }
+        $connString = Database::getConfiguredDsn($name);
     }
 
     $filePath = '';
@@ -105,13 +99,10 @@ foreach ($databases as $db) {
     $connString = $db['connectionString'] ?? '';
     $name = strtolower($db['name'] ?? '');
 
-    // If connectionString is empty, try to get it from Application config
+    // If connectionString is empty, fall back to the DSN registered from
+    // databases.json by Bootstrap (with a legacy conn_* fallback inside).
     if (empty($connString)) {
-        $appConnKey = 'conn_' . $name;
-        $appConnString = Application::get($appConnKey, '');
-        if (!empty($appConnString)) {
-            $connString = $appConnString;
-        }
+        $connString = Database::getConfiguredDsn($name);
     }
 
     if (!empty($db['path'])) {

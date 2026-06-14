@@ -662,9 +662,13 @@ class Bootstrap
      * Load the databases.json "databases" array — per-site data/databases.json
      * preferred, falling back to the platform default cma/config/databases.json.
      *
+     * Public so backup/restore and other tooling resolve the EXACT same config
+     * the live connections do, instead of hardcoding cma/config/ (which can hold
+     * stale/empty entries that diverge from the per-site data/databases.json).
+     *
      * @return array<int,array<string,mixed>>
      */
-    private static function loadDatabasesConfig(): array
+    public static function loadDatabasesConfig(): array
     {
         $candidates = [
             self::$rootDir . '/data/databases.json',
