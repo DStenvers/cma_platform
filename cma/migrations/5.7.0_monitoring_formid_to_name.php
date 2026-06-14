@@ -57,11 +57,22 @@ try {
 }
 
 if (!$hasFormColumn) {
-    echo '✗ De Form kolom bestaat nog niet in tblCMAMonitoring. Voer eerst de addColumn migratie uit.';
-    if (defined('MIGRATION_RUNNING')) {
-        return false;
+    // The Form column was never added by an earlier migration: the create
+    // migration (1.0.1_create_cmamonitoring) only makes Formname/Formid and
+    // there is no separate addColumn step for Form. Add it here so this
+    // migration is self-contained instead of failing on a fresh database.
+    // addColumnPDO is driver-aware (Access ODBC / SQL Server / SQLite) and
+    // idempotent (re-checks existence first).
+    $add = Database::addColumnPDO($conn, 'tblCMAMonitoring', 'Form', 'VARCHAR(255)');
+    if (empty($add['success'])) {
+        echo '✗ Kon de Form kolom niet toevoegen aan tblCMAMonitoring: ' . ($add['error'] ?? 'onbekende fout');
+        if (defined('MIGRATION_RUNNING')) {
+            return false;
+        }
+        exit(1);
     }
-    exit(1);
+    echo "✓ Form kolom toegevoegd aan tblCMAMonitoring.\n";
+    $hasFormColumn = true;
 }
 
 // Check if Formid column exists
