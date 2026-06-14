@@ -640,6 +640,22 @@ class Bootstrap
             $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::$rootDir);
         }
 
+        // Back-compat: honour the legacy conn_* Application globals (still set in
+        // app.php by many consumers, e.g. rec/karaat) for any logical connection
+        // databases.json didn't define — BEFORE the Access file default below.
+        // databases.json always wins where present; this just stops a conn_*-only
+        // site (e.g. one configured for SQL Server in app.php with no
+        // data/databases.json) from silently falling through to a non-existent
+        // Access main.mdb.
+        foreach (['data', 'rep', 'users'] as $key) {
+            if ($dsns[$key] === '') {
+                $legacy = (string)\App\Library\Application::get('conn_' . $key, '');
+                if ($legacy !== '') {
+                    $dsns[$key] = $legacy;
+                }
+            }
+        }
+
         // Access is the default DB format: data/users that databases.json
         // didn't define fall back to the conventional Access file under /db. We
         // NEVER silently fall back to a local SQLite file (that just creates an
