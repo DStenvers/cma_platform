@@ -660,3 +660,5 @@ karaat-data en staat in de karaat-repo.
 >     "pageSize": 200,
 >     "totalCount": null
 > }
+
+> karaat composer install, but date is still not saved. We need to harden this. I values become empty that s a real concern

@@ -9393,6 +9393,21 @@ class CmaFormController {
             }
         });
 
+        // Handle lib-datepicker / lib-timepicker web components.
+        // Their value lives on the component (date as YYYY-MM-DD, time as HH:MM)
+        // and is mirrored only into a SHADOW-DOM hidden input, which
+        // new FormData(form) cannot reach — so without this the picked date was
+        // never sent and the column was saved NULL ("date wordt niet opgeslagen",
+        // values silently emptied). Read .value straight off the element so the
+        // value always reaches the server (which formats it per driver — see
+        // FormDataProvider::formatDateValueForSql).
+        this.mainForm.querySelectorAll('lib-datepicker[name], lib-timepicker[name]').forEach(dp => {
+            const dpName = dp.getAttribute('name');
+            if (dpName && !dpName.startsWith('_')) {
+                data[dpName] = (dp.value === null || dp.value === undefined) ? '' : dp.value;
+            }
+        });
+
         // Handle CKEditor content
         if (typeof CKEDITOR !== 'undefined') {
             // cmaLog.log('collectFormData: CKEDITOR available, instances:', Object.keys(CKEDITOR.instances));
