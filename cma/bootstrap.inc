@@ -4,13 +4,6 @@
  * Consolidated from multiple include files for simpler maintenance
  */
 
-// CMA application version — read from Composer package version (git tag)
-if (class_exists('\App\Library\Bootstrap')) {
-    define('CMA_APP_VERSION', \App\Library\Bootstrap::getPlatformVersion());
-} else {
-    define('CMA_APP_VERSION', 'dev');
-}
-
 // Sort-param constant used by report/list pages (reportdetails.php) and
 // ToolbarHelper. It's normally defined by library/lib_table.inc, but that file
 // is loaded via an APCu-cached lib_*.inc glob — if that list was cached while
@@ -38,6 +31,17 @@ if (!class_exists('App\Library\Application', false)) {
         die('Fatal: Parent bootstrap not found. App\Library classes unavailable.');
     }
 }
+
+// CMA application version. Defined HERE — after the parent bootstrap has
+// registered the Composer autoloader — and NOT at the top of this file. When
+// this include runs without IIS auto_prepend (the require above is the manual
+// fallback for exactly that case), the autoloader isn't registered yet at the
+// top, so class_exists('\App\Library\Bootstrap') was false and the version
+// silently fell back to 'dev' ("vdev" in the profile menu). By this point
+// App\Library is guaranteed loaded (the require dies otherwise), so we read the
+// hardcoded Bootstrap::VERSION constant. No silent fallback: a missing class
+// here means a broken install and should surface, not masquerade as a version.
+define('CMA_APP_VERSION', \App\Library\Bootstrap::getPlatformVersion());
 
 // CMA uses cookie-based auth, not PHP sessions.
 // Close the session immediately to release the session lock and prevent interference.

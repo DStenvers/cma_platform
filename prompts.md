@@ -640,3 +640,5 @@ karaat-data en staat in de karaat-repo.
 > yes bump, commit and push
 
 > the version of the cma_platform, I want that to be hardcoded as well, on sevaral sites it now reports a wrong version number, the current method is flawed. OR think of a better way to retrieve the version number
+
+> on karaat - after update the version is still called vdev ??

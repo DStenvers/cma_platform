@@ -2621,6 +2621,9 @@ function render_doc_releasing(): void
     <div class="docs-callout docs-callout--warn">
         <span class="cma-tool__strong">vdev-main symptoom (vóór v1.26.20):</span> de oude methode las <code>vendor/composer/installed.json</code>, en die zegt <code>dev-main</code> op sites die de branch volgen (<code>"stenversonline/platform": "dev-main"</code>). Een class-constante kan niet naar <code>dev-main</code> degraderen en heeft geen pad-resolutie nodig. Een site toont pas de nieuwe versie ná <code>composer update stenversonline/platform</code> (de constante reist mee met de geïnstalleerde code).
     </div>
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">vdev symptoom (opgelost in v1.26.21):</span> de <code>CMA_APP_VERSION</code> definitie stond bovenaan <code>cma/bootstrap.inc</code>, vóór de Composer-autoloader geregistreerd was. Op een site zonder werkende IIS <code>auto_prepend</code> van <code>_bootstrap.php</code> was <code>class_exists('\App\Library\Bootstrap')</code> daar nog <code>false</code> → stille fallback naar <code>'dev'</code> ("vdev"). De definitie staat nu ná het laden van de parent-bootstrap, zodat de class gegarandeerd beschikbaar is.
+    </div>
 
     <h2>REMOVED_PATHS voor retired bestanden</h2>
     <p>Wanneer je een bestand verwijdert uit <code>library/</code>, <code>cma/</code> of <code>module/</code>: voeg het ook toe aan <code>REMOVED_PATHS</code> in <code>src/Installer.php</code>. De Installer's syncDirectory kopieert alleen forward — zonder REMOVED_PATHS blijft het oude bestand voor altijd op consumer-sites bestaan na een upgrade.</p>
