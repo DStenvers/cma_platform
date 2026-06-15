@@ -4501,6 +4501,36 @@ class CmaFormController {
             // Use centered popup
             lib_OpenWindowCentered(url, windowName, width, height, toFirstCaps(title));
 
+            // URL parity with the sidepanel path: reflect the open popup in the
+            // URL (refresh/deep-link persistence) so closing it reverts the URL
+            // the same way closing a sidepanel does. Best-effort — never block.
+            try {
+                const topWin = window.top || window;
+                if (topWin.CMA && topWin.CMA.url) {
+                    const currentState = topWin.CMA.url.parse();
+                    const effectiveRecordId = (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : null;
+                    if (parentId) {
+                        // Subform popup
+                        topWin.CMA.url.update({
+                            form: currentState.form,
+                            recordId: parentId,
+                            subform: formId,
+                            subformId: effectiveRecordId,
+                            isSubformNew: !effectiveRecordId
+                        }, true);
+                    } else {
+                        // Main record popup
+                        topWin.CMA.url.update({
+                            form: formId,
+                            recordId: effectiveRecordId,
+                            isNew: !effectiveRecordId
+                        }, true);
+                    }
+                }
+            } catch (e) {
+                cmaLog.warn('[openPopup] Could not update URL for popup:', e.message);
+            }
+
             // Set up callback to execute onClose when popup closes
             if (onClose) {
                 // Clear any existing interval before setting a new one
@@ -11995,6 +12025,24 @@ class CmaFormController {
                 } else {
                     // Try to refresh the parent's list before closing
                     this.refreshParentList(recordId, deleted);
+                }
+                // URL parity with the sidepanel: clear the popup's URL state so
+                // closing a popup updates the URL just like closing a sidepanel
+                // does. Best-effort — never block the close.
+                try {
+                    const topWin = window.top || window;
+                    if (topWin.CMA && topWin.CMA.url) {
+                        const urlState = topWin.CMA.url.parse();
+                        topWin.CMA.url.update({
+                            form: urlState.form,
+                            recordId: urlState.recordId || null,
+                            isNew: false,
+                            subform: null, subformId: null, isSubformNew: false,
+                            subsubform: null, subsubformId: null, isSubsubformNew: false
+                        }, true);
+                    }
+                } catch (e) {
+                    cmaLog.warn('[closeForm] Could not clear popup URL:', e.message);
                 }
                 // Close the popup
                 parent.lib_OpenWindowCenteredClose();
