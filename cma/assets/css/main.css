@@ -1033,6 +1033,18 @@ a.cma-menu-item.active .cma-menu-icon::before {
     .cma-content-inner .cma-form {
         overflow: visible;
     }
+
+    /* Tool/report pages render inside an <iframe>, which has no intrinsic
+       content height. On desktop the iframe inherits a definite height from
+       the flex chain (.cma-content-inner → .tools-ajax-container, both
+       height:100%); the overflow:visible relaxation above collapses that on
+       mobile, so the iframe — and the placeholder/welcome page it shows —
+       falls back to the browser's 150px default iframe height. Pin the AJAX
+       container to the viewport below the header so the iframe fills the
+       screen again. */
+    .cma-content-inner .tools-ajax-container {
+        height: calc(100vh - var(--header-height));
+    }
 }
 
 /* Tools pages - hide duplicate toolbar and add padding */

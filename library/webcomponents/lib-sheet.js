@@ -146,7 +146,7 @@ class LibSheet extends HTMLElement {
         // then drop it so scroll-lock / aria-hidden / focus-restore (all in
         // _deactivate) fire exactly when the panel is visually gone.
         const anim = this._panel.animate(
-            [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
+            [{ transform: 'translateY(0)' }, { transform: 'translateY(' + this._slideDistance() + ')' }],
             { duration: 240, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
         );
         this._closeAnim = anim;
@@ -170,6 +170,24 @@ class LibSheet extends HTMLElement {
         }
     }
 
+    /* Slide distance in PIXELS — the panel's own rendered height (border-box,
+     * so it already includes padding + the safe-area inset), which equals the
+     * CSS rest state translateY(100%). We deliberately feed pixels, NOT "100%",
+     * to the Web Animations API: iOS/WebKit evaluates percentage translate
+     * values inside WAAPI keyframes unreliably, so the panel snapped straight
+     * to its rest position with no visible slide (the long-standing "lib-sheet
+     * animeert niet" report). The identical "100%" in static CSS resolves fine,
+     * which is why the closed/open positions were always correct — only the JS
+     * slide was lost. Measured pixels animate everywhere. Falls back to "100%"
+     * only if the panel somehow can't be measured (it always can once laid
+     * out, which it is from the constructor on). */
+    _slideDistance() {
+        const h = this._panel
+            ? (this._panel.getBoundingClientRect().height || this._panel.offsetHeight || 0)
+            : 0;
+        return h > 0 ? (h + 'px') : '100%';
+    }
+
     _activate() {
         this.removeAttribute('aria-hidden');
         this._lastFocus = this.ownerDocument.activeElement;
@@ -179,13 +197,15 @@ class LibSheet extends HTMLElement {
         // Slide-in via the Web Animations API — inline keyframes, so it runs
         // even where CSS @keyframes in a shadow root don't resolve (iOS
         // Safari) and regardless of whether the browser committed the closed
-        // state first (lazy-created sheets). The :host([open]) rest state is
-        // translateY(0), so no fill-mode is needed.
+        // state first (lazy-created sheets). The from-keyframe is a measured
+        // PIXEL distance (see _slideDistance) rather than translateY(100%),
+        // because WebKit drops percentage translates in WAAPI keyframes. The
+        // :host([open]) rest state is translateY(0), so no fill-mode is needed.
         if (this._panel
             && typeof this._panel.animate === 'function'
             && !this._prefersReducedMotion()) {
             this._panel.animate(
-                [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+                [{ transform: 'translateY(' + this._slideDistance() + ')' }, { transform: 'translateY(0)' }],
                 { duration: 280, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }
             );
         }

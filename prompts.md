@@ -591,3 +591,50 @@ karaat-data en staat in de karaat-repo.
 > change repo to cma_platform
 
 > okay, I get many errors like Lijst laden: HTTP 500 Internal Server Error. These vague errors are useless. If the current user is an admin or a supervisor, give all the details you have so someone can actually solve it.
+
+## 2026-06-15
+
+> review all items from prompts.md if they are handled  
+>
+> the lib_sheet still has no animation , i think a shadow dom issue..
+>
+> tools pagina op mobiel; placeholder en rechterkader niet 100% hoog, please check
+>  Oeps, die kan ik niet vinden: tools/llm_models.php from the rec repo
+
+> <task-notification>
+> <task-id>bv3a73vfs</task-id>
+> <tool-use-id>toolu_01PQj66kBynzKyVqxFYHJmhz</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/387bc587-e360-4c3a-9559-1ccee2ca52c1/tasks/bv3a73vfs.output</output-file>
+> <status>failed</status>
+> <summary>Background command "Validate JSON with fallback check" failed with exit code 2</summary>
+> </task-notification>
+
+> <task-notification>
+> <task-id>btgn1ega9</task-id>
+> <tool-use-id>toolu_01TmDu7H4Kj66rPxDzrVGpGE</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/387bc587-e360-4c3a-9559-1ccee2ca52c1/tasks/btgn1ega9.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Validate JSON foreground" completed (exit code 0)</summary>
+> </task-notification>
+
+> <task-notification>
+> <task-id>bww3ws31n</task-id>
+> <tool-use-id>toolu_01Pv1XnEKZmwzjXzd9xwE6wx</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/387bc587-e360-4c3a-9559-1ccee2ca52c1/tasks/bww3ws31n.output</output-file>
+> <status>failed</status>
+> <summary>Background command "Validate JSON and scan other repos" failed with exit code 1</summary>
+> </task-notification>
+
+> <task-notification>
+> <task-id>bahg01j39</task-id>
+> <tool-use-id>toolu_01WWoRw6ZsoHgzKHFRC2U6QA</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/387bc587-e360-4c3a-9559-1ccee2ca52c1/tasks/bahg01j39.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Validate JSON and scan other repos foreground" completed (exit code 0)</summary>
+> </task-notification>
+
+> lib_sheet : i see it on the rec consumer site, which is updated and all.
+
+> switch to cma_platform repo on /mnt/c/repos/cma_platformn
+
+> yes bump, commit and push
