@@ -646,3 +646,5 @@ karaat-data en staat in de karaat-repo.
 > great, works!
 
 > okay, now to the karaat cma: everywhere there is a 500 form load error, earlier we worked on a more descriptive errormessage, but i don't see it, when a developer/admin has an error in the cma we need a better description and more detailed errors
+
+> forms are visible again! continious loading behavious strangely; it loads the first 100, then 100 at a time but stops prematurely ; records 1-1600 van 1759 (laden...)

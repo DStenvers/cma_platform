@@ -970,7 +970,12 @@ class FormDataProvider
                     $errorMsg = "Kan niet opslaan: veld(en) '" . implode("', '", $missingColumns) . "' bestaan niet in de database. ";
                     $errorMsg .= "Verwijder deze velden uit het formulier of voeg ze toe aan de tabel '$tableName'.";
                 } else {
-                    $errorMsg = "Kan niet opslaan: " . Database::getUserFriendlyError($tableName);
+                    // Surface the real DB error, cleaned of driver/SQLSTATE noise.
+                    // (Database::getUserFriendlyError() never existed — calling it
+                    // turned every non-missing-column save failure into a fatal
+                    // "Call to undefined method" instead of an actionable message.)
+                    $dbError = Database::cleanErrorMessage(Database::getLastError());
+                    $errorMsg = "Kan niet opslaan: " . ($dbError !== '' ? $dbError : "onbekende databasefout (zie logs voor tabel '$tableName').");
                 }
 
                 Logger::error("SAVE: Database error", [
