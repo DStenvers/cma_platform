@@ -1760,6 +1760,13 @@ if ($isAdmin) {
         window.openCmaMonitoring = openCmaMonitoring;
 
         function renderCacheStats(cache) {
+            // No APCu installed -> cache.apcu is null (see dashboard_stats.php) and
+            // the cache-performance card is empty/meaningless, so hide it entirely.
+            if (!cache || !cache.apcu) {
+                var cacheCard = cacheStats.closest('.stats-card');
+                if (cacheCard) cacheCard.style.display = 'none';
+                return;
+            }
             var ratio = Math.round(cache.hit_ratio || 0);
             var ratioClass = ratio >= 80 ? 'success' : (ratio >= 50 ? 'warning' : 'error');
 
@@ -1812,7 +1819,9 @@ if ($isAdmin) {
 
         function renderActivityStats(activity) {
             if (activity.error || !activity.daily || activity.daily.length === 0) {
-                activityStats.innerHTML = '<div class="stats-loading">Geen gegevens</div>';
+                // No data -> hide the card instead of showing an empty "Geen gegevens".
+                var activityCard = activityStats.closest('.stats-card');
+                if (activityCard) activityCard.style.display = 'none';
                 return;
             }
 
@@ -1864,7 +1873,9 @@ if ($isAdmin) {
 
         function renderSecurityStats(logins) {
             if (logins.error) {
-                securityStats.innerHTML = '<div class="stats-loading">Geen gegevens</div>';
+                // No data -> hide the card instead of showing an empty "Geen gegevens".
+                var securityCardErr = document.getElementById('securityCard');
+                if (securityCardErr) securityCardErr.style.display = 'none';
                 return;
             }
 
