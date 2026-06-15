@@ -12,6 +12,21 @@ namespace App\Library;
 
 class Bootstrap
 {
+    /**
+     * Platform version — the SINGLE runtime source of truth, hardcoded here
+     * and bumped together with composer.json's "version" on every release.
+     *
+     * Why hardcoded instead of reading Composer metadata: sites that track the
+     * branch (`"stenversonline/platform": "dev-main"`) make Composer report
+     * "dev-main" in installed.json / InstalledVersions, and the per-site path
+     * to the vendored composer.json wasn't always resolvable — so the profile
+     * menu showed "vdev-main" instead of a real number. A class constant is
+     * read straight from the running code: it can't degrade to "dev-main", it
+     * needs no file I/O or path resolution, and it always reflects the version
+     * of the code that is actually installed on the site.
+     */
+    public const VERSION = '1.26.20';
+
     /** @var string Project root directory */
     private static string $rootDir = '';
 
@@ -134,37 +149,10 @@ class Bootstrap
      */
     public static function getPlatformVersion(): string
     {
-        // 1. Package's own composer.json — the canonical source.
-        $pkgComposer = self::$rootDir . '/vendor/stenversonline/platform/composer.json';
-        if (file_exists($pkgComposer)) {
-            $data = json_decode(file_get_contents($pkgComposer), true);
-            if (is_array($data) && !empty($data['version'])) {
-                return (string)$data['version'];
-            }
-        }
-
-        // 2. Composer's installed.json.
-        $installedFile = self::$rootDir . '/vendor/composer/installed.json';
-        if (file_exists($installedFile)) {
-            $data = json_decode(file_get_contents($installedFile), true);
-            $packages = $data['packages'] ?? $data; // Composer 2 vs 1
-            foreach ($packages as $package) {
-                if (($package['name'] ?? '') === 'stenversonline/platform') {
-                    return $package['version'] ?? 'dev';
-                }
-            }
-        }
-
-        // 3. Runtime API.
-        if (class_exists('Composer\InstalledVersions')) {
-            try {
-                return \Composer\InstalledVersions::getPrettyVersion('stenversonline/platform') ?? 'dev';
-            } catch (\Exception $e) {
-                // Package not installed via Composer
-            }
-        }
-
-        return 'dev';
+        // Hardcoded constant — see self::VERSION for why we no longer read
+        // Composer's installed.json / composer.json (the old method degraded to
+        // "dev-main" on branch-tracking sites).
+        return self::VERSION;
     }
 
     /**

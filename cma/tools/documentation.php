@@ -780,17 +780,25 @@ function cma_doc_check_php_error_log(): array {
 }
 
 function cma_doc_check_vendor_in_sync(): array {
-    $label = 'vendor/stenversonline/platform versie ↔ Bootstrap::getPlatformVersion()';
+    $label = 'Bootstrap::VERSION ↔ composer.json version';
     if (!class_exists('\\App\\Library\\Bootstrap')) {
         return ['label' => $label, 'status' => 'warn', 'detail' => 'Bootstrap-class niet geladen.', 'fix' => ''];
     }
+    // Since v1.26.20 the version is the hardcoded Bootstrap::VERSION constant.
+    // The one drift risk is forgetting to bump composer.json alongside it on a
+    // release, so that's exactly what we verify: constant vs the vendored
+    // package's own composer.json version field.
     $detected = \App\Library\Bootstrap::getPlatformVersion();
-    // CMA_APP_VERSION wordt in cma/bootstrap.inc op zelfde manier gezet.
-    $constant = defined('CMA_APP_VERSION') ? (string)constant('CMA_APP_VERSION') : '';
-    if ($constant === '' || $constant === $detected) {
+    $pkgComposer = \App\Library\Bootstrap::getRootDir() . '/vendor/stenversonline/platform/composer.json';
+    $composerVer = '';
+    if (is_file($pkgComposer)) {
+        $data = json_decode((string)file_get_contents($pkgComposer), true);
+        $composerVer = is_array($data) ? (string)($data['version'] ?? '') : '';
+    }
+    if ($composerVer === '' || $composerVer === $detected) {
         return ['label' => $label, 'status' => 'pass', 'detail' => 'Versie: <code>' . htmlspecialchars($detected) . '</code>.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'warn', 'detail' => 'Detected <code>' . htmlspecialchars($detected) . '</code> vs constant <code>' . htmlspecialchars($constant) . '</code>.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'Constant <code>' . htmlspecialchars($detected) . '</code> vs composer.json <code>' . htmlspecialchars($composerVer) . '</code>.', 'fix' => 'Bump beide gelijk en release opnieuw (<code>composer update stenversonline/platform</code> op de site).'];
 }
 
 function cma_doc_check_deploy_log(): array {
@@ -2604,18 +2612,14 @@ function render_doc_releasing(): void
         </tbody>
     </table>
 
-    <h2>Waar de versie geleest wordt</h2>
-    <p><code>App\Library\Bootstrap::getPlatformVersion()</code> lost de versie op in deze volgorde:</p>
-    <ol>
-        <li><code>vendor/stenversonline/platform/composer.json</code>'s <code>version</code> field — bron-van-waarheid; werkt ook als de consumer's composer.json een branch-constraint (<code>dev-main</code>) gebruikt.</li>
-        <li><code>vendor/composer/installed.json</code> — wat Composer registreerde tijdens install.</li>
-        <li><code>Composer\InstalledVersions::getPrettyVersion()</code> — runtime API.</li>
-        <li>Fallback: <code>'dev'</code>.</li>
-    </ol>
-    <p><code>CMA_APP_VERSION</code> constant wordt in <code>cma/bootstrap.inc</code> gezet vanuit deze functie. Zichtbaar in het profielmenu.</p>
+    <h2>Waar de versie vandaan komt</h2>
+    <p>Sinds v1.26.20 is de versie <span class="cma-tool__strong">hardcoded</span> in één constante: <code>App\Library\Bootstrap::VERSION</code>. <code>getPlatformVersion()</code> retourneert die constante rechtstreeks — geen Composer-metadata meer. <code>cma/bootstrap.inc</code> zet daaruit de <code>CMA_APP_VERSION</code> constante, zichtbaar in het profielmenu.</p>
+    <div class="docs-callout">
+        <span class="cma-tool__strong">Bij elke release bump je twee plekken samen:</span> het <code>version</code> field in <code>composer.json</code> én <code>Bootstrap::VERSION</code> in <code>src/helpers/Bootstrap.php</code>. Ze moeten gelijk zijn; de live-check hierboven waarschuwt als ze afwijken.
+    </div>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">vdev-main symptoom:</span> stap 1 ontbreekt of mislukt → installed.json valt door, dat zegt <code>dev-main</code> bij branch-installs. Fix: lees <span class="cma-tool__em">eerst</span> de package's eigen composer.json — die heeft altijd de tagged versie.
+        <span class="cma-tool__strong">vdev-main symptoom (vóór v1.26.20):</span> de oude methode las <code>vendor/composer/installed.json</code>, en die zegt <code>dev-main</code> op sites die de branch volgen (<code>"stenversonline/platform": "dev-main"</code>). Een class-constante kan niet naar <code>dev-main</code> degraderen en heeft geen pad-resolutie nodig. Een site toont pas de nieuwe versie ná <code>composer update stenversonline/platform</code> (de constante reist mee met de geïnstalleerde code).
     </div>
 
     <h2>REMOVED_PATHS voor retired bestanden</h2>
