@@ -4319,7 +4319,11 @@ class CmaFormController {
             windowName: 'form_popup',
             cascadeOffset: false,
             onClose: function() {
-                self.loadList();
+                // Force-refresh (adds _t) so the reload bypasses the 60s list
+                // cache — a popup edit/add just changed the data, and a plain
+                // loadList() would otherwise serve the stale cached rows (e.g. an
+                // edited date not showing up in the list after the popup closes).
+                self.loadList(true);
             }
         });
     }

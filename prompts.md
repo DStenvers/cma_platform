@@ -662,3 +662,7 @@ karaat-data en staat in de karaat-repo.
 > }
 
 > karaat composer install, but date is still not saved. We need to harden this. I values become empty that s a real concern
+
+> i ran composer update stenversonline/platform
+
+> date is now updated, only when i edit a form in popup mode, after closing the popup the value is not updated in the list mode of the kortingscodes
