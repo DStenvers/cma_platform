@@ -849,12 +849,14 @@ class FormDataProvider
             // Build list of valid database fields from form definition
             // Keys are lowercase for case-insensitive lookup, values are original field names
             $validFields = [];
+            $fieldTypeMap = [];
             foreach ($jsonData['fields'] ?? [] as $fieldDef) {
                 $fieldName = $fieldDef['name'] ?? '';
                 $fieldType = $fieldDef['type'] ?? '';
                 // Skip custom renderers and non-database fields
                 if ($fieldName && $fieldType !== 'custom' && $fieldType !== 'label' && $fieldType !== 'separator') {
                     $validFields[strtolower($fieldName)] = $fieldName;
+                    $fieldTypeMap[strtolower($fieldName)] = strtolower($fieldType);
                 }
             }
 
@@ -907,7 +909,9 @@ class FormDataProvider
                         continue;
                     }
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
-                    $values[] = self::formatValueForSql($value);
+                    $values[] = (($fieldTypeMap[strtolower($field)] ?? '') === 'date')
+                        ? self::formatDateValueForSql((string)$value, $isSqlite)
+                        : self::formatValueForSql($value);
                 }
                 $sql = "INSERT INTO " . self::quoteIdentifier($tableName, $isSqlite) . " (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $values) . ")";
             } else {
@@ -922,7 +926,10 @@ class FormDataProvider
                     if (!isset($validFields[strtolower($field)])) {
                         continue;
                     }
-                    $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatValueForSql($value);
+                    $formattedVal = (($fieldTypeMap[strtolower($field)] ?? '') === 'date')
+                        ? self::formatDateValueForSql((string)$value, $isSqlite)
+                        : self::formatValueForSql($value);
+                    $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . $formattedVal;
                 }
                 // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
                 $idValue = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId);
@@ -1768,6 +1775,66 @@ class FormDataProvider
             return (string)(int)$value;
         }
         return SQL::postString($value);
+    }
+
+    /**
+     * Format a `type: date` field value for SQL.
+     *
+     * Without this, date fields went through formatValueForSql() and were quoted
+     * as plain strings ('2026-06-15'); an Access Date/Time column rejects that,
+     * so the value silently never saved. JSON-form date controls post and render
+     * dd-mm-yyyy (see the 'date' case in form-controller.js), with an optional
+     * HH:MM[:SS] for datetime and a bare HH:MM for the time-only variant (stored
+     * against the 1899 sentinel date). We route each shape through the existing
+     * driver-aware SQL helpers, which emit Access #...# literals, SQL Server
+     * CAST(...) literals, or — for SQLite, whose dates are ISO text — a quoted
+     * yyyy-mm-dd[ HH:MM:SS] string.
+     *
+     * @param string $value Raw posted value (dd-mm-yyyy / dd-mm-yyyy HH:MM / HH:MM)
+     * @param bool   $isSqlite Whether the target connection is SQLite
+     * @return string SQL-ready literal, or "NULL"
+     */
+    private static function formatDateValueForSql(string $value, bool $isSqlite): string
+    {
+        $v = trim($value);
+        if ($v === '') {
+            return 'NULL';
+        }
+        // Time-only field (rendered HH:MM; persisted against the 1899 date sentinel).
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $v)) {
+            return $isSqlite ? SQL::postString($v) : SQL::postTimeStr($v);
+        }
+        // ISO yyyy-mm-dd[ HH:MM[:SS]] — e.g. a native <input type="date">, which
+        // posts ISO regardless of the dd-mm-yyyy display convention.
+        if (preg_match('#^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$#', $v, $m)) {
+            $hasTime = isset($m[4]) && $m[4] !== '';
+            $iso = sprintf('%04d-%02d-%02d', (int)$m[1], (int)$m[2], (int)$m[3]);
+            if ($hasTime) {
+                $iso .= sprintf(' %02d:%02d:%02d', (int)$m[4], (int)$m[5], (int)($m[6] ?? 0));
+            }
+            if ($isSqlite) {
+                return SQL::postString($iso);
+            }
+            return $hasTime ? SQL::postDateTime($iso) : SQL::postDateOnly($iso);
+        }
+        // Date or datetime posted as dd-mm-yyyy with an optional HH:MM[:SS].
+        if (preg_match('#^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$#', $v, $m)) {
+            $hasTime = isset($m[4]) && $m[4] !== '';
+            if ($isSqlite) {
+                $iso = sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
+                if ($hasTime) {
+                    $iso .= sprintf(' %02d:%02d:%02d', (int)$m[4], (int)$m[5], (int)($m[6] ?? 0));
+                }
+                return SQL::postString($iso);
+            }
+            if ($hasTime) {
+                $iso = sprintf('%04d-%02d-%02d %02d:%02d:%02d', (int)$m[3], (int)$m[2], (int)$m[1], (int)$m[4], (int)$m[5], (int)($m[6] ?? 0));
+                return SQL::postDateTime($iso);
+            }
+            return SQL::postDateStr($v);
+        }
+        // Unrecognised format — fall back to generic handling rather than guess.
+        return self::formatValueForSql($v);
     }
 
     /**

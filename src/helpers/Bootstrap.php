@@ -25,7 +25,7 @@ class Bootstrap
      * needs no file I/O or path resolution, and it always reflects the version
      * of the code that is actually installed on the site.
      */
-    public const VERSION = '1.26.23';
+    public const VERSION = '1.26.24';
 
     /** @var string Project root directory */
     private static string $rootDir = '';
@@ -133,19 +133,11 @@ class Bootstrap
     }
 
     /**
-     * Get the platform package version from Composer.
+     * Get the platform package version.
      *
-     * Resolution order:
-     *   1. The version field in the installed package's own composer.json
-     *      (vendor/stenversonline/platform/composer.json). We always set
-     *      this on release, so it survives `composer update` regardless
-     *      of whether the consumer site requires the package as
-     *      `dev-main` (a branch — which Composer would otherwise report
-     *      as "dev-main") or as a tagged constraint like `^1.0`.
-     *   2. Composer's installed.json — reflects the source ref Composer
-     *      picked; useful when the package was installed via a tag.
-     *   3. Composer's InstalledVersions runtime API.
-     *   4. "dev" as a last-resort sentinel.
+     * Returns the hardcoded self::VERSION constant — see that constant for why
+     * we no longer read Composer metadata (it degraded to "dev-main" on
+     * branch-tracking sites). Kept as a method so existing callers don't change.
      */
     public static function getPlatformVersion(): string
     {
