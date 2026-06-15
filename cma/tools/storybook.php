@@ -4423,16 +4423,16 @@ $origSize = filesize($demoPath);
                 <div class="component-example">
                     <?= ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - eenvoudig', '100vw', '', ['style' => 'max-width:100%; height:auto;']) ?>
                 </div>
-                <div class="code-block">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving'); ?&gt;</div>
-                <div class="code-block" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - eenvoudig', '100vw', '', ['style' => 'max-width:100%; height:auto;'])) ?></div>
+                <div class="code-block" data-code-label="PHP">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving'); ?&gt;</div>
+                <div class="code-block" data-code-label="HTML" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - eenvoudig', '100vw', '', ['style' => 'max-width:100%; height:auto;'])) ?></div>
 
                 <h3 style="margin: 15px 0 8px; font-size: var(--font-size-md);">2. Met sizes hint</h3>
                 <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin: 0 0 8px;">Helpt de browser de juiste variant te kiezen op basis van viewport en layout.</p>
                 <div class="component-example">
                     <?= ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - met sizes', '(max-width: 600px) 100vw, 50vw', '', ['style' => 'max-width:50%; height:auto;']) ?>
                 </div>
-                <div class="code-block">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving', '(max-width: 600px) 100vw, 50vw'); ?&gt;</div>
-                <div class="code-block" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - met sizes', '(max-width: 600px) 100vw, 50vw', '', ['style' => 'max-width:50%; height:auto;'])) ?></div>
+                <div class="code-block" data-code-label="PHP">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving', '(max-width: 600px) 100vw, 50vw'); ?&gt;</div>
+                <div class="code-block" data-code-label="HTML" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - met sizes', '(max-width: 600px) 100vw, 50vw', '', ['style' => 'max-width:50%; height:auto;'])) ?></div>
 
                 <h3 style="margin: 15px 0 8px; font-size: var(--font-size-md);">3. Met CSS class en extra attributen</h3>
                 <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin: 0 0 8px;">Voeg CSS class, width/height, fetchpriority en andere attributen toe.</p>
@@ -4445,13 +4445,13 @@ $origSize = filesize($demoPath);
                         'style' => 'max-width:400px; height:auto;',
                     ]) ?>
                 </div>
-                <div class="code-block">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving', '100vw', 'hero-image', [
+                <div class="code-block" data-code-label="PHP">&lt;?php echo ResponsiveImage::imgTag('/images/photo.jpg', 'Beschrijving', '100vw', 'hero-image', [
     'width' =&gt; 1200,
     'height' =&gt; 800,
     'fetchpriority' =&gt; 'high',
     'loading' =&gt; 'eager',
 ]); ?&gt;</div>
-                <div class="code-block" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - hero', '100vw', 'hero-image', ['width' => 400, 'height' => 562, 'fetchpriority' => 'high', 'loading' => 'eager', 'style' => 'max-width:400px; height:auto;'])) ?></div>
+                <div class="code-block" data-code-label="HTML" style="white-space: pre-wrap; word-break: break-all; margin-top: 4px;"><?= htmlspecialchars(ResponsiveImage::imgTag($demoImage, 'Demo afbeelding - hero', '100vw', 'hero-image', ['width' => 400, 'height' => 562, 'fetchpriority' => 'high', 'loading' => 'eager', 'style' => 'max-width:400px; height:auto;'])) ?></div>
 
             </div>
             <div class="component-options">
@@ -5458,7 +5458,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var details = document.createElement('details');
         details.className = 'code-toggle';
         var summary = document.createElement('summary');
-        summary.textContent = 'Toon code';
+        // A block can declare its own label (e.g. data-code-label="PHP" / "HTML")
+        // so paired PHP-usage + rendered-HTML examples don't both read "Toon code".
+        summary.textContent = 'Toon ' + (block.dataset.codeLabel || 'code');
         details.appendChild(summary);
         block.parentNode.insertBefore(details, block);
         details.appendChild(block);
