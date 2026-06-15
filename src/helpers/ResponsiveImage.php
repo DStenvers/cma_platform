@@ -94,7 +94,7 @@ namespace App\Library;
  */
 class ResponsiveImage
 {
-    public const SIZES = [400, 800, 1200];
+    public const SIZES = [300, 400, 800, 1200];
     public const RESPONSIVE_DIR = '.responsive';
     public const DEFAULT_QUALITY = 85;
 

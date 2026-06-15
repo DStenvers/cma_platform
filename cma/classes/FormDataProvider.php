@@ -1077,6 +1077,10 @@ class FormDataProvider
             $action = $isNew ? 'add' : 'edit';
             self::logMonitoring($formName, $formTitle, $recordId, $action, $changelog);
 
+            // Declarative post-save cache invalidation (modern successor of the
+            // legacy cma_afterpost.asp trigger). See clearFormCachesOnSave().
+            self::clearFormCachesOnSave($jsonData, $recordId);
+
             return [
                 'success' => true,
                 'id' => $recordId,
@@ -1086,6 +1090,73 @@ class FormDataProvider
 
         } catch (\Exception $e) {
             return self::error($e->getMessage());
+        }
+    }
+
+    /**
+     * Declarative post-save cache invalidation — the modern successor of the
+     * legacy cma_afterpost.asp trigger. A form definition may carry a
+     * "clearCache" array of glob patterns (relative to the site cache/ directory)
+     * that get deleted after every successful save of that form. The tokens
+     * {ID} / {id} in a pattern are replaced with the saved record id, so a form
+     * can target a single record's cache file as well as wildcard lists. Example
+     * on a product form:
+     *
+     *     "clearCache": ["prod_detail_v8_{ID}.html", "stenen_*.html"]
+     *
+     * When a form sets "clearCache", the data-cache layer (App\Library\Cache) is
+     * flushed too, so derived caches (lists, carousels, counts) can't go stale.
+     *
+     * Fully best-effort and sandboxed: it never throws (a hook failure must never
+     * block a save that already succeeded) and never escapes the cache/ directory
+     * (".." patterns are rejected and each match is realpath-confirmed inside it).
+     *
+     * @param array $jsonData Decoded form definition
+     * @param mixed $recordId Saved record id (used for {ID}/{id} substitution)
+     */
+    private static function clearFormCachesOnSave(array $jsonData, $recordId): void
+    {
+        $patterns = $jsonData['clearCache'] ?? null;
+        if (empty($patterns)) {
+            return;
+        }
+        if (is_string($patterns)) {
+            $patterns = [$patterns];
+        }
+        if (!is_array($patterns)) {
+            return;
+        }
+
+        try {
+            $cacheDir = @realpath(\App\Library\Server::mapPath('/cache'));
+            if ($cacheDir !== false && $cacheDir !== null && is_dir($cacheDir)) {
+                $id = (string)$recordId;
+                foreach ($patterns as $pattern) {
+                    if (!is_string($pattern) || $pattern === '' || strpos($pattern, '..') !== false) {
+                        continue; // reject traversal / junk
+                    }
+                    $pattern = str_replace(['{ID}', '{id}'], $id, ltrim($pattern, '/\\'));
+                    foreach (glob($cacheDir . DIRECTORY_SEPARATOR . $pattern) ?: [] as $file) {
+                        // Defence in depth: only unlink real files inside cache/.
+                        $real = @realpath($file);
+                        if ($real !== false && strncmp($real, $cacheDir, strlen($cacheDir)) === 0 && is_file($real)) {
+                            @unlink($real);
+                        }
+                    }
+                }
+                Logger::debug('SAVE: clearCache swept', ['patterns' => $patterns, 'id' => $id]);
+            }
+        } catch (\Throwable $e) {
+            Logger::debug('SAVE: clearCache file sweep failed', ['error' => $e->getMessage()]);
+        }
+
+        // Flush the data-cache layer (lists/carousels/counts derived from this table).
+        try {
+            if (class_exists('\\App\\Library\\Cache') && method_exists('\\App\\Library\\Cache', 'clear')) {
+                \App\Library\Cache::clear();
+            }
+        } catch (\Throwable $e) {
+            Logger::debug('SAVE: clearCache data-cache flush failed', ['error' => $e->getMessage()]);
         }
     }
 

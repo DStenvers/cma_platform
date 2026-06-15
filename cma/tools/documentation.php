@@ -110,6 +110,28 @@ function flatten_topics(array $tree, array &$out = []): array
 }
 $flat = flatten_topics($topics);
 
+// =========================================================================
+// Full-text search index — render every topic ONCE into plain text so the
+// sidebar search box can match across ALL documents, not just the open one.
+// The live self-checks self-skip while $_docs_indexing is set, so this stays
+// cheap (no per-topic cURL probe, no status tables). Emitted as JSON below.
+// =========================================================================
+$GLOBALS['_docs_indexing'] = true;
+$docs_search_index = [];
+foreach ($flat as $slug => $node) {
+    if (!isset($node['render']) || !function_exists($node['render'])) { continue; }
+    ob_start();
+    try { call_user_func($node['render']); } catch (\Throwable $e) { /* skip a broken topic, keep the rest searchable */ }
+    $html = ob_get_clean();
+    $text = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    $docs_search_index[] = [
+        'label' => $node['label'],
+        'href'  => slug_to_href($slug),
+        'text'  => $text,
+    ];
+}
+$GLOBALS['_docs_indexing'] = false;
+
 $selected = strtolower(trim((string)Request::query('topic', 'overview')));
 if (!isset($flat[$selected]) || !isset($flat[$selected]['render'])) {
     $selected = 'overview';
@@ -136,13 +158,26 @@ echo '<div id="c" class="tools">';
    double border. Matches the pattern used by body.tool-serverinfo. */
 body.tool-docs #c.tools { padding: 0; }
 
-/* Definite height (not min-height) so the cma-fold divider — whose host is
-   height:100% — resolves to the full layout height instead of collapsing to
-   its grip. Same principle as tools.php (body height:100vh). Sidebar and
-   content scroll internally via their own overflow:auto. */
-.tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; height: calc(100vh - 80px); }
+/* No fixed height — the layout grows with its content so the page never looks
+   misformed (cut off / double scrollbar). Sidebar and content can still scroll
+   internally via their own overflow:auto when they individually overflow. */
+.tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; }
 .tool-docs .docs-sidebar { flex: 0 0 260px; padding: 14px 8px 14px 14px; overflow: auto; background: var(--bg-surface-alt, #f6f8fa); border-right: 1px solid var(--border-color, #e0e0e0); }
 .tool-docs .docs-content { flex: 1; min-width: 0; max-width: 900px; padding: 16px 22px; overflow: auto; }
+/* Sidebar search box + cross-document results list. When results are shown the
+   cma-tree is hidden (see .docs-sidebar.is-searching) so the two never stack. */
+.tool-docs .docs-search { margin-bottom: 10px; }
+.tool-docs .docs-search__input { width: 100%; box-sizing: border-box; padding: 6px 10px; font-size: var(--font-size-sm); border: 1px solid var(--border-color, #d0d4d9); border-radius: 4px; background: #fff; }
+.tool-docs .docs-search__input:focus { outline: none; border-color: var(--color-info, #077ab2); box-shadow: 0 0 0 2px rgba(7, 122, 178, 0.15); }
+.tool-docs .docs-sidebar.is-searching #docsNav { display: none; }
+.tool-docs .docs-search__results { list-style: none; margin: 0; padding: 0; }
+.tool-docs .docs-search__results li { margin: 0 0 2px; }
+.tool-docs .docs-search__results a { display: block; padding: 7px 9px; border-radius: 4px; text-decoration: none; color: inherit; }
+.tool-docs .docs-search__results a:hover, .tool-docs .docs-search__results a:focus { background: var(--bg-surface-alt, #eef1f4); outline: none; }
+.tool-docs .docs-search__results .docs-search__topic { display: block; font-weight: 600; font-size: var(--font-size-sm); color: var(--color-info, #077ab2); }
+.tool-docs .docs-search__results .docs-search__snippet { display: block; font-size: var(--font-size-xs, 12px); color: var(--text-muted, #6c757d); line-height: 1.4; margin-top: 1px; }
+.tool-docs .docs-search__results mark, .tool-docs .docs-content mark { background: #fff2a8; color: inherit; padding: 0 1px; border-radius: 2px; }
+.tool-docs .docs-search__empty { padding: 7px 9px; color: var(--text-muted, #6c757d); font-size: var(--font-size-sm); }
 .tool-docs .docs-content h1 { margin: 0 0 6px; }
 .tool-docs .docs-content h2 { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--border-color, #e0e0e0); }
 .tool-docs .docs-content h3 { margin-top: 18px; }
@@ -177,6 +212,10 @@ body.tool-docs #c.tools { padding: 0; }
 
 <div class="docs-layout">
     <nav class="docs-sidebar" id="docsSidebar">
+        <div class="docs-search">
+            <input type="search" id="docsSearch" class="docs-search__input" placeholder="Zoek in alle documentatie…" autocomplete="off" aria-label="Zoek in alle documentatie">
+        </div>
+        <ul class="docs-search__results" id="docsSearchResults" hidden></ul>
         <cma-tree id="docsNav" storage-key="docs_nav"></cma-tree>
     </nav>
     <cma-fold orientation="vertical" target="#docsSidebar" min-size="180" max-size="500" storage-key="docs_fold"></cma-fold>
@@ -203,6 +242,128 @@ body.tool-docs #c.tools { padding: 0; }
         if (!href || href === '#') return;
         window.location.href = href;
     });
+})();
+
+// -----------------------------------------------------------------------
+// Cross-document search. The index (every topic rendered to plain text) is
+// emitted server-side. Typing filters topics by all query tokens (AND),
+// shows a result list with a highlighted snippet, and hides the tree. An
+// empty box restores the tree. Selecting a result jumps to that topic with
+// #q=… so the destination highlights + scrolls to the first match.
+// -----------------------------------------------------------------------
+(function () {
+    var input   = document.getElementById('docsSearch');
+    var results = document.getElementById('docsSearchResults');
+    var sidebar = document.getElementById('docsSidebar');
+    if (!input || !results || !sidebar) return;
+    var index = <?= json_encode($docs_search_index, JSON_UNESCAPED_UNICODE) ?> || [];
+
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]); }); }
+    function reEsc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    function snippet(text, tokens) {
+        var lower = text.toLowerCase(), at = -1;
+        tokens.forEach(function (t) { var p = lower.indexOf(t); if (p !== -1 && (at === -1 || p < at)) at = p; });
+        if (at === -1) at = 0;
+        var start = Math.max(0, at - 40);
+        var slice = text.slice(start, start + 170);
+        if (start > 0) slice = '… ' + slice;
+        if (start + 170 < text.length) slice = slice + ' …';
+        var html = esc(slice);
+        tokens.forEach(function (t) {
+            if (!t) return;
+            html = html.replace(new RegExp('(' + reEsc(t) + ')', 'ig'), '<mark>$1</mark>');
+        });
+        return html;
+    }
+
+    function render(query) {
+        var tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+        if (tokens.length === 0) {
+            sidebar.classList.remove('is-searching');
+            results.hidden = true;
+            results.innerHTML = '';
+            return;
+        }
+        sidebar.classList.add('is-searching');
+        results.hidden = false;
+        var matches = [];
+        index.forEach(function (doc) {
+            var hayLabel = doc.label.toLowerCase(), hayText = doc.text.toLowerCase();
+            var ok = tokens.every(function (t) { return hayLabel.indexOf(t) !== -1 || hayText.indexOf(t) !== -1; });
+            if (!ok) return;
+            var score = 0;
+            tokens.forEach(function (t) {
+                if (hayLabel.indexOf(t) !== -1) score += 10;
+                var idx = hayText.indexOf(t); if (idx !== -1) score += Math.max(1, 5 - Math.floor(idx / 400));
+            });
+            matches.push({ doc: doc, score: score });
+        });
+        matches.sort(function (a, b) { return b.score - a.score; });
+        if (matches.length === 0) {
+            results.innerHTML = '<li class="docs-search__empty">Geen resultaten voor "' + esc(query) + '".</li>';
+            return;
+        }
+        var html = '';
+        matches.slice(0, 15).forEach(function (m) {
+            var href = m.doc.href + '#q=' + encodeURIComponent(query);
+            html += '<li><a href="' + esc(href) + '">' +
+                    '<span class="docs-search__topic">' + esc(m.doc.label) + '</span>' +
+                    '<span class="docs-search__snippet">' + snippet(m.doc.text, tokens) + '</span>' +
+                    '</a></li>';
+        });
+        results.innerHTML = html;
+    }
+
+    var t;
+    input.addEventListener('input', function () {
+        clearTimeout(t);
+        var q = input.value.trim();
+        t = setTimeout(function () { render(q); }, 120);
+    });
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { input.value = ''; render(''); }
+        if (e.key === 'Enter') { var a = results.querySelector('a'); if (a) window.location.href = a.getAttribute('href'); }
+    });
+})();
+
+// Highlight + scroll to the search term on the destination page (#q=…).
+(function () {
+    var m = /[#&]q=([^&]+)/.exec(window.location.hash);
+    if (!m) return;
+    var query = decodeURIComponent(m[1].replace(/\+/g, ' ')).trim();
+    var tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+    var root = document.querySelector('.docs-content');
+    if (!tokens.length || !root) return;
+    var reEsc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+    var re = new RegExp('(' + tokens.map(reEsc).join('|') + ')', 'ig');
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (n) {
+            if (!n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            var p = n.parentNode;
+            if (p && (p.nodeName === 'SCRIPT' || p.nodeName === 'STYLE' || p.nodeName === 'MARK')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+        }
+    });
+    var nodes = [], n; while ((n = walker.nextNode())) nodes.push(n);
+    var first = null;
+    nodes.forEach(function (node) {
+        re.lastIndex = 0;
+        if (!re.test(node.nodeValue)) return;
+        re.lastIndex = 0;
+        var frag = document.createDocumentFragment(), last = 0, mm;
+        while ((mm = re.exec(node.nodeValue))) {
+            if (mm.index > last) frag.appendChild(document.createTextNode(node.nodeValue.slice(last, mm.index)));
+            var mark = document.createElement('mark');
+            mark.textContent = mm[0];
+            frag.appendChild(mark);
+            if (!first) first = mark;
+            last = mm.index + mm[0].length;
+        }
+        if (last < node.nodeValue.length) frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+    });
+    if (first) first.scrollIntoView({ block: 'center' });
 })();
 
 // Generic copy button on every code block. The page fully reloads on topic
@@ -351,7 +512,7 @@ function cma_doc_check_parent_default_content_type(): array {
     if (!empty($hit)) {
         return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — mobile Safari download-prompt bij Content-Type-loze responses is afgevangen.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt — een PHP-response zonder Content-Type wordt door iOS Safari als download aangeboden.', 'fix' => 'Sinds v1.19.9 standaard in <code>templates/web.config.template</code>. Doe <code>composer update stenversonline/platform</code> en kopieer de outbound rule.'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt — een PHP-response zonder Content-Type wordt door iOS Safari als download aangeboden.', 'fix' => 'Standaard in <code>templates/web.config.template</code>. Doe <code>composer update stenversonline/platform</code> en kopieer de outbound rule.'];
 }
 
 function cma_doc_check_parent_nosniff(): array {
@@ -399,7 +560,7 @@ function cma_doc_check_parent_hidden_segments(): array {
 }
 
 function cma_doc_check_parent_cma_routes(): array {
-    // Sinds v1.20.12 leven de CMA friendly-URL rewrite-rules in het PARENT
+    // De CMA friendly-URL rewrite-rules leven in het PARENT
     // web.config (migratie 9.9.0 / de Installer zetten ze daar neer). Daardoor
     // hoeft cma/ GEEN aparte IIS Application meer te zijn — een gewone Virtual
     // Directory volstaat, want de parent-rules matchen op de volledige URL
@@ -414,7 +575,7 @@ function cma_doc_check_parent_cma_routes(): array {
     if (!empty($hit)) {
         return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — de CMA-routes (<code>CMA Dashboard</code> e.a.) staan in de parent. <code>/cma/dashboard</code>, <code>/cma/preferences</code>, <code>/cma/tools</code> en de form-routes werken; <code>cma/</code> hoeft GEEN IIS Application te zijn.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'De CMA-routes ontbreken in de parent <code>web.config</code> — extensionless URLs als <code>/cma/dashboard</code> eindigen in 404.', 'fix' => 'Doe <code>composer update stenversonline/platform</code> (v1.20.20+ past de routes automatisch + fail-safe toe), of draai migratie <code>9.9.0</code> via <a href="documentation.php?topic=migrations">Migraties</a>.'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'De CMA-routes ontbreken in de parent <code>web.config</code> — extensionless URLs als <code>/cma/dashboard</code> eindigen in 404.', 'fix' => 'Doe <code>composer update stenversonline/platform</code> (past de routes automatisch + fail-safe toe), of draai migratie <code>9.9.0</code> via <a href="documentation.php?topic=migrations">Migraties</a>.'];
 }
 
 function cma_doc_check_url_rewrite_module_active(): array {
@@ -427,6 +588,12 @@ function cma_doc_check_url_rewrite_module_active(): array {
     // else = working.
     $label = 'IIS URL Rewrite Module — extensionless /cma/* paden werken';
 
+    // Skip the live HTTP probe while the search index is being built — it would
+    // fire one cURL HEAD per topic on every page load. The visible page render
+    // (indexing flag off) still runs the real check.
+    if (!empty($GLOBALS['_docs_indexing'])) {
+        return ['label' => $label, 'status' => 'info', 'detail' => '', 'fix' => ''];
+    }
     if (PHP_SAPI === 'cli') {
         return ['label' => $label, 'status' => 'info', 'detail' => 'CLI-context: zelf-test niet uitvoerbaar.', 'fix' => ''];
     }
@@ -485,7 +652,7 @@ function cma_doc_check_child_default_content_type(): array {
     if (!empty($hit)) {
         return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt in kind-config (outbound rules erven niet over).', 'fix' => 'Sinds v1.19.9 standaard. <code>composer update stenversonline/platform</code>.'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt in kind-config (outbound rules erven niet over).', 'fix' => 'Standaard aanwezig. <code>composer update stenversonline/platform</code>.'];
 }
 
 function cma_doc_check_child_404_handler(): array {
@@ -657,6 +824,13 @@ function cma_doc_run_checks(array $checks): array {
 }
 
 function cma_doc_render_check_table(string $title, array $results): void {
+    // During search indexing we don't want the live-status table in the index —
+    // only the section title (so the heading stays findable). The cheap checks
+    // already ran as args; the expensive cURL probe self-skips (see above).
+    if (!empty($GLOBALS['_docs_indexing'])) {
+        echo ' ' . htmlspecialchars($title) . ' ';
+        return;
+    }
     $labelType = ['pass' => 'success', 'fail' => 'error', 'warn' => 'warning', 'info' => 'information'];
     $statusText = ['pass' => 'OK', 'fail' => 'FOUT', 'warn' => 'LET OP', 'info' => 'INFO'];
     $counts = ['pass' => 0, 'fail' => 0, 'warn' => 0, 'info' => 0];
@@ -899,7 +1073,7 @@ function render_doc_environment(): void
     </ul>
 
     <h2>Bestandskeuze: één <code>.env</code> per machine</h2>
-    <p>Sinds v1.23 gebruikt het platform het <span class="cma-tool__strong">single-<code>.env</code> model</span>: elke machine heeft één <code>.env</code> op de site-root met àlle config, inclusief <code>APP_ENVIRONMENT</code>. <code>APP_ENVIRONMENT</code> is nu enkel een <span class="cma-tool__strong">variabele ín dat bestand</span> — het bepaalt niet langer wélk bestand geladen wordt. Dat haalt de "in welke <code>.env.&lt;x&gt;</code> staat mijn secret?"-verwarring weg: app én <code>deploy.php</code> lezen hetzelfde <code>.env</code>.</p>
+    <p>Het platform gebruikt het <span class="cma-tool__strong">single-<code>.env</code> model</span>: elke machine heeft één <code>.env</code> op de site-root met àlle config, inclusief <code>APP_ENVIRONMENT</code>. <code>APP_ENVIRONMENT</code> is nu enkel een <span class="cma-tool__strong">variabele ín dat bestand</span> — het bepaalt niet langer wélk bestand geladen wordt. Dat haalt de "in welke <code>.env.&lt;x&gt;</code> staat mijn secret?"-verwarring weg: app én <code>deploy.php</code> lezen hetzelfde <code>.env</code>.</p>
     <p><code>Bootstrap::detectAndLoadEnv()</code> kiest in deze volgorde:</p>
     <ol>
         <li>Een expliciete <code>env_file</code> meegegeven aan <code>Bootstrap::init()</code> — gebruik die.</li>
@@ -913,14 +1087,14 @@ function render_doc_environment(): void
     </div>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">Let op:</span> <code>APP_ENVIRONMENT</code> in <code>.env</code> wordt pas gelezen <em class="cma-tool__em">nadat</em> de ingebouwde <code>EnvFile</code>-parser het bestand laadt. Vóór dat moment gaat de bootstrap uit van <code>P</code> voor gedrag, maar errors staan tijdens de bootstrap juist AAN zodat een opstartfout zichtbaar is (zie "Error-weergave" hierboven).
+        <span class="cma-tool__strong">Let op:</span> <code>APP_ENVIRONMENT</code> in <code>.env</code> wordt pas gelezen <span class="cma-tool__em">nadat</span> de ingebouwde <code>EnvFile</code>-parser het bestand laadt. Vóór dat moment gaat de bootstrap uit van <code>P</code> voor gedrag, maar errors staan tijdens de bootstrap juist AAN zodat een opstartfout zichtbaar is (zie "Error-weergave" hierboven).
     </div>
 
     <h2>Actief .env bestand op deze site</h2>
     <p>Op de huidige site is dat: <code><?= htmlspecialchars($activeEnv) ?></code></p>
 
     <h2>De env-wissel knop</h2>
-    <p>Op de Omgeving-tab van <a href="tools_serverinfo.php" target="_top">Server informatie</a> staat een "Wissel naar T/P" knop naast het omgeving-label. Die schrijft <code>APP_ENVIRONMENT=&lt;target&gt;</code> naar het <span class="cma-tool__strong">actieve</span> env-bestand (niet hardcoded <code>.env</code>; sinds v1.14.3 wordt het juiste bestand gepakt). Na refresh leest bootstrap de nieuwe waarde.</p>
+    <p>Op de Omgeving-tab van <a href="tools_serverinfo.php" target="_top">Server informatie</a> staat een "Wissel naar T/P" knop naast het omgeving-label. Die schrijft <code>APP_ENVIRONMENT=&lt;target&gt;</code> naar het <span class="cma-tool__strong">actieve</span> env-bestand (niet hardcoded <code>.env</code>; het juiste bestand wordt gepakt). Na refresh leest bootstrap de nieuwe waarde.</p>
     <p>Toggle-doel: <code>P</code> → <code>T</code>; alles anders → <code>P</code>. Een bevestigingsdialoog meldt dat de wijziging in <code>.env</code> wordt weggeschreven en geldt voor alle gebruikers van de site.</p>
 
     <h2>Welke env-vars zijn er?</h2>
@@ -962,11 +1136,12 @@ function render_doc_images(): void
     <p>De upload-handler (<code>form_api.php?action=uploadImage</code>) detecteert WebP-support, schaalt de afbeelding terug binnen <code>maxWidth</code>×<code>maxHeight</code> (standaard 800×600), schrijft het resultaat als <code>.webp</code> (kwaliteit 85) en roept dan <code>ResponsiveImage::generate()</code> aan. Zonder GD-WebP-support valt de upload terug op JPEG.</p>
     <p>Het origineel blijft staan; de varianten komen in een <code>.responsive/</code>-submap naast het bestand:</p>
     <pre><code>/images/foto.jpg                      &larr; origineel (blijft staan)
+/images/.responsive/foto-300w.webp    &larr; 300px variant
 /images/.responsive/foto-400w.webp    &larr; 400px variant
 /images/.responsive/foto-800w.webp    &larr; 800px variant
 /images/.responsive/foto-1200w.webp   &larr; 1200px variant
 /images/.responsive/foto.webp         &larr; volledige WebP</code></pre>
-    <p>Breedtes en kwaliteit zijn constanten op <code>ResponsiveImage</code>: <code>SIZES = [400, 800, 1200]</code>, <code>DEFAULT_QUALITY = 85</code>, <code>RESPONSIVE_DIR = '.responsive'</code>. Varianten groter dan het origineel worden overgeslagen.</p>
+    <p>Breedtes en kwaliteit zijn constanten op <code>ResponsiveImage</code>: <code>SIZES = [300, 400, 800, 1200]</code>, <code>DEFAULT_QUALITY = 85</code>, <code>RESPONSIVE_DIR = '.responsive'</code>. Varianten groter dan het origineel worden overgeslagen.</p>
 
     <h2>Crop / roteren / schalen</h2>
     <p>In de file-browser (<code>cma/wizards/file-browser.php</code>) werken crop, rotate en resize <span class="cma-tool__em">in-place</span> op het bestand. Na elke bewerking worden de oude varianten verwijderd (<code>deleteVariants()</code>) en opnieuw gegenereerd (<code>generate()</code>), zodat de <code>.responsive/</code>-set altijd klopt met de huidige inhoud.</p>
@@ -1031,7 +1206,7 @@ function render_doc_json_config(): void
     <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval. Ontbreekt <code>data/menu.json</code>, dan is het menu leeg — er wordt niet teruggevallen op <code>cma/config/menu.json</code>.</p>
 
     <h2>Runtime DB-connecties (single source of truth)</h2>
-    <p>Sinds v1.25.0 bouwt <code>Bootstrap::initDatabaseConnections()</code> de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>
+    <p><code>Bootstrap::initDatabaseConnections()</code> bouwt de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>
     <p>In de <code>connectionString</code> kun je twee placeholders gebruiken:</p>
     <ul>
         <li><code>[db/bestand.mdb]</code> → absoluut pad onder de site-root (bv. een Access-bestand). Een kale <code>[path]</code> is de site-root zelf.</li>
@@ -1078,7 +1253,7 @@ function render_doc_deployment(): void
     ?>
 
     <h2>Overzicht</h2>
-    <p>Deploys verlopen via één GitHub push-webhook: <code>/deploy.php</code> in de site-root. Sinds v1.22.0 is dit het <span class="cma-tool__strong">enige</span> endpoint — de oude framework-webhook (<code>cma/tools/deploy_webhook.php</code>) en de standalone (<code>cma/tools/deploy_webhook_standalone.php</code>) zijn vervallen; hun volledige feature-set zit nu hier.</p>
+    <p>Deploys verlopen via één GitHub push-webhook: <code>/deploy.php</code> in de site-root. Dit is het <span class="cma-tool__strong">enige</span> endpoint — de oude framework-webhook (<code>cma/tools/deploy_webhook.php</code>) en de standalone (<code>cma/tools/deploy_webhook_standalone.php</code>) zijn vervallen; hun volledige feature-set zit nu hier.</p>
     <p>Waarom een root-bestand: <code>/deploy.php</code> is git-tracked, staat in de site-root en hangt van NIETS in <code>vendor/</code>, <code>/cma/</code> of URL Rewrite af. Een kapotte <code>composer install</code> (die alles onder <code>/cma/</code> 404't) legt 'm dus niet plat — de volgende push landt en repareert. De Installer overschrijft 'm bij elke <code>composer update</code> (bron: <code>templates/deploy.php.template</code>); commit 'm in je consumer-repo zodat een kale <code>git pull</code> 'm in leven houdt.</p>
     <p>De stappen:</p>
     <ol>
@@ -1103,7 +1278,7 @@ function render_doc_deployment(): void
         Pad op de schijf: <code><?= htmlspecialchars($logFile) ?></code> (override via <code>DEPLOY_LOG_FILE</code>). Elke run heeft een banner met branch + commit; <code>OK: deploy &lt;sha&gt;</code> betekent succes, <code>FAILED: deploy &lt;sha&gt;</code> betekent een breek in de pipeline.
     </p>
 
-    <h2>Remote deploy-status check (sinds v1.19.1)</h2>
+    <h2>Remote deploy-status check</h2>
     <p>Publiek read-only endpoint dat de laatste run uit <code>logs/deploy.log</code> als JSON teruggeeft. Geen auth — status / commit-SHA / branch / timestamp zijn niet gevoelig (commit-SHAs staan al in de public git history, branch-namen ook), en het log bevat per conventie geen secrets in zijn pipeline-output. Volledig standalone: geen Composer autoload, geen platform-bootstrap, geen <code>.env</code>-reader — werkt dus ook als <code>vendor/</code> of <code>.env</code> stuk is.</p>
     <p>Het endpoint is de <span class="cma-tool__strong">site-root</span> <code>/deploy_status.php</code> (git-tracked, gesynct door de Installer net als <code>/deploy.php</code>) — die overleeft een kapotte <code>/cma/</code>, precies het scenario waarin je de status wilt checken. (De oude <code>/cma/tools/deploy_status.php</code> zat ónder <code>/cma/</code> — 404 als dat stuk is — en is in v1.22.3 vervallen; de Installer ruimt 'm op.)</p>
     <pre><code>curl 'https://&lt;host&gt;/deploy_status.php'</code></pre>
@@ -1120,16 +1295,16 @@ function render_doc_deployment(): void
     "log_tail":         "...laatste 40 regels van deploy.log..."
 }
 </code></pre>
-    <p><code>ok</code> weerspiegelt de deploy-<span class="cma-tool__strong">gezondheid</span>, niet alleen "log geparsed": een mislukte deploy geeft <code>{"ok": false, "status": "FAILED", …}</code> <span class="cma-tool__strong">zonder</span> <code>error</code>-veld. Transport-problemen geven óók <code>ok:false</code> maar mét een <code>error</code>-veld. Onderscheid dus: <code>error</code> aanwezig = endpoint-probleem; <code>status: "FAILED"</code> = de deploy zelf is mislukt. (Sinds v1.23.3; daarvoor gaf een FAILED-deploy verwarrend <code>ok:true</code>.)</p>
+    <p><code>ok</code> weerspiegelt de deploy-<span class="cma-tool__strong">gezondheid</span>, niet alleen "log geparsed": een mislukte deploy geeft <code>{"ok": false, "status": "FAILED", …}</code> <span class="cma-tool__strong">zonder</span> <code>error</code>-veld. Transport-problemen geven óók <code>ok:false</code> maar mét een <code>error</code>-veld. Onderscheid dus: <code>error</code> aanwezig = endpoint-probleem; <code>status: "FAILED"</code> = de deploy zelf is mislukt.</p>
     <p>Foutgevallen:</p>
     <ul>
         <li>HTTP <code>200</code> met <code>{"ok": false, "status": "FAILED", …}</code> — de laatste deploy is mislukt; <code>log_tail</code> toont de omgevallen stap (geen <code>error</code>-veld — dat is voor endpoint-problemen).</li>
         <li>HTTP <code>404</code> met <code>{"ok": false, "error": "deploy.log not found", "path": "..."}</code> — de webhook heeft nog nooit op deze site gedraaid, of de <code>logs/</code> directory bestaat niet.</li>
-        <li>HTTP <code>500</code> met <code>{"ok": false, "error": "log file unreadable", "path": "..."}</code> — <span class="cma-tool__strong">sinds v1.19.6</span>: bestand bestaat maar is niet leesbaar (permissies of lock). Pre-v1.19.6 viel deze case stilletjes door en eindigde als "no completed deploy" — wat de operator de verkeerde kant op stuurde.</li>
+        <li>HTTP <code>500</code> met <code>{"ok": false, "error": "log file unreadable", "path": "..."}</code> — bestand bestaat maar is niet leesbaar (permissies of lock).</li>
         <li>HTTP <code>200</code> met <code>{"ok": false, "error": "no completed deploy in log"}</code> — log-bestand bestaat wel maar er staat nog geen banner-bracketed run in.</li>
     </ul>
 
-    <h3>Config self-check (sinds v1.23.0)</h3>
+    <h3>Config self-check</h3>
     <p><code>?config=1</code> geeft een read-only diagnose van de deploy-configuratie terug — <span class="cma-tool__strong">wat</span> ontbreekt, nooit de waardes (<code>DEPLOY_SECRET</code> is enkel ja/nee) en zonder iets te schrijven. Handig vóór de eerste deploy, ook als <code>logs/deploy.log</code> nog niet bestaat.</p>
     <pre><code>curl 'https://&lt;host&gt;/deploy_status.php?config=1'
 {
@@ -1173,9 +1348,9 @@ function render_doc_deployment(): void
             <tr><td><code>DEPLOY_SITE_ROOT</code></td><td><lib-label type="information">nee</lib-label></td><td>auto</td><td>Pad naar de git working tree. Auto via <code>__DIR__</code>; override nodig als het webhook-script elders draait.</td></tr>
             <tr><td><code>DEPLOY_PIPELINE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>git pull --ff-only origin {branch}</code></td><td><code>;</code>-gescheiden commando's. <code>{branch}</code> wordt vervangen.</td></tr>
             <tr><td><code>DEPLOY_COMPOSER_UPDATE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>stenversonline/platform</code></td><td>Pakketten om na de pipeline te updaten. Comma-separated. Set <code>-</code> om over te slaan.</td></tr>
-            <tr><td><code>DEPLOY_RUN_TESTS</code></td><td><lib-label type="information">nee</lib-label></td><td><code>(leeg)</code></td><td><span class="cma-tool__strong">Sinds v1.20.5</span>. Commando dat NA <code>composer update</code> en VÓÓR recycle draait. Non-zero exit → deploy FAILED, geen recycle, geen post-hook (productie blijft op oude code). Voorbeeld: <code>php cma/tests/TestRunner.php</code>. Leeg / <code>-</code> = geen gate.</td></tr>
+            <tr><td><code>DEPLOY_RUN_TESTS</code></td><td><lib-label type="information">nee</lib-label></td><td><code>(leeg)</code></td><td>Commando dat NA <code>composer update</code> en VÓÓR recycle draait. Non-zero exit → deploy FAILED, geen recycle, geen post-hook (productie blijft op oude code). Voorbeeld: <code>php cma/tests/TestRunner.php</code>. Leeg / <code>-</code> = geen gate.</td></tr>
             <tr><td><code>DEPLOY_RECYCLE_TOUCH</code></td><td><lib-label type="information">nee</lib-label></td><td><code>web.config</code></td><td>Bestand om te touch'en na succes (IIS app-pool recycle). Set <code>-</code> om over te slaan.</td></tr>
-            <tr><td><code>DEPLOY_LOG_FILE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>logs/deploy.log</code></td><td>Locatie van de deploy-log voor de webhook-writer. <span class="cma-tool__strong">Let op</span>: <code>deploy_status.php</code> leest sinds v1.19.1 alleen het default pad <code>logs/deploy.log</code> — een override hier wordt door de reader genegeerd.</td></tr>
+            <tr><td><code>DEPLOY_LOG_FILE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>logs/deploy.log</code></td><td>Locatie van de deploy-log voor de webhook-writer. <span class="cma-tool__strong">Let op</span>: <code>deploy_status.php</code> leest alleen het default pad <code>logs/deploy.log</code> — een override hier wordt door de reader genegeerd.</td></tr>
             <tr><td><code>DEPLOY_POST_HOOK</code></td><td><lib-label type="information">nee</lib-label></td><td><code>deploy_post.php</code></td><td>Project-side PHP-script NA recycle. Cache-flushes, schema-migraties, image-profile backfills. Set <code>-</code> om over te slaan.</td></tr>
         </tbody>
     </table>
@@ -1183,7 +1358,7 @@ function render_doc_deployment(): void
     <p class="docs-meta">Alle bovenstaande variabelen worden door <code>/deploy.php</code> gelezen uit het eerst-bestaande <code>.env.production</code> / <code>.env.acceptance</code> / <code>.env.test</code> / <code>.env.local</code> / <code>.env</code> naast het bestand (inline-parser, geen phpdotenv). Extra schakelaars: <code>DEPLOY_NO_RESET=1</code> (sla de pre-pull <code>git checkout -- .</code> over), <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code> (sla de pre-pull recycle over), <code>DEPLOY_SITE_ROOT</code> (git working tree), <code>DEPLOY_ALERT_EMAIL</code> (best-effort <code>mail()</code> bij FAILED).</p>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">Migratie (v1.22.0):</span> <code>/deploy.php</code> is nu het enige webhook-endpoint. De oude <code>cma/tools/deploy_webhook.php</code> (framework) én <code>cma/tools/deploy_webhook_standalone.php</code> zijn vervallen; de Installer verwijdert ze bij <code>composer update</code> (<code>REMOVED_PATHS</code>). <span class="cma-tool__strong">Her-richt elke GitHub-webhook die nog op één van die oude URLs staat naar <code>/deploy.php</code></span> — anders krijgt die 404 na de update.
+        <span class="cma-tool__strong">Migratie:</span> <code>/deploy.php</code> is nu het enige webhook-endpoint. De oude <code>cma/tools/deploy_webhook.php</code> (framework) én <code>cma/tools/deploy_webhook_standalone.php</code> zijn vervallen; de Installer verwijdert ze bij <code>composer update</code> (<code>REMOVED_PATHS</code>). <span class="cma-tool__strong">Her-richt elke GitHub-webhook die nog op één van die oude URLs staat naar <code>/deploy.php</code></span> — anders krijgt die 404 na de update.
     </div>
 
     <h2>GitHub-webhook instellen</h2>
@@ -1214,7 +1389,7 @@ function render_doc_deployment(): void
             <tr><td>Webhook geeft "Parse error" / "Unsupported declare 'strict_types'"</td><td><code>/deploy.php</code> vereist PHP 7.1+ (gebruikt <code>declare(strict_types=1)</code> en list-assignment). Het draait op de site-root, dus onder de hoofd-PHP-handler van de site — zorg dat die een moderne PHP-versie is. (De oude PHP-5.6-compatibele <code>cma/tools/deploy_webhook_standalone.php</code> is in v1.22.0 vervallen.)</td></tr>
             <tr><td><code>vdev-main</code> in profielmenu i.p.v. versienummer</td><td><code>vendor/</code> niet ververst. Fix: <code>composer update stenversonline/platform</code>; v1.13.0+ webhook doet dit automatisch.</td></tr>
             <tr><td>Class "App\Library\Email" not found</td><td>Zelfde oorzaak — stale vendor. v1.12.1+ bootstrap heeft class_exists-guard zodat CMA niet crash't.</td></tr>
-            <tr><td><code>/cma/dashboard</code> geeft 404, <code>/cma/dashboard.php</code> wel 200</td><td>CMA-routes ontbreken in de parent web.config (sinds v1.20.12 de bron van waarheid). Run <code>composer update stenversonline/platform</code> (v1.20.20+ past ze automatisch toe) of migratie <code>9.9.0</code> — zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
+            <tr><td><code>/cma/dashboard</code> geeft 404, <code>/cma/dashboard.php</code> wel 200</td><td>CMA-routes ontbreken in de parent web.config (de bron van waarheid). Run <code>composer update stenversonline/platform</code> (past ze automatisch toe) of migratie <code>9.9.0</code> — zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
         </tbody>
     </table>
 
@@ -1345,7 +1520,7 @@ PerformanceLogger::logApi('form_list', $durationMs, ['formName' =&gt; 'users']);
 PerformanceLogger::logMemory('after_query');</code></pre>
 
     <h2>Migratie-controle banner</h2>
-    <p><code>cma/bootstrap.inc</code> doet bij elke admin-request een check op pending migrations. Resultaat surfacet boven de toolbar als rode banner als de check fataalde (sinds v1.10.4 — voor die versie werd de exceptie stilzwijgend ingeslikt). PHP-error-log levert dan de details onder <code>[MigrationService]</code>.</p>
+    <p><code>cma/bootstrap.inc</code> doet bij elke admin-request een check op pending migrations. Resultaat surfacet boven de toolbar als rode banner als de check fataalde. PHP-error-log levert dan de details onder <code>[MigrationService]</code>.</p>
 
     <h2>Retentie</h2>
     <ul>
@@ -1473,7 +1648,7 @@ function render_doc_iis_config(): void
     <p>IIS evalueert parent-rules eerst. Als een parent-rule met <code>stopProcessing="true"</code> matcht op een URL, krijgt de child <code>web.config</code> niks meer te doen. Dat is precies waar je tegenaan loopt bij sites met catch-all "alle .php door <code>_bootstrap_wrapper.php</code>" rules.</p>
 
     <div class="docs-callout docs-callout--danger">
-        <span class="cma-tool__strong">Skip /cma to child config</span> — sinds v1.14.2 staat deze regel standaard in de <code>templates/web.config.template</code> die nieuwe installs krijgen:
+        <span class="cma-tool__strong">Skip /cma to child config</span> — deze regel staat standaard in de <code>templates/web.config.template</code> die nieuwe installs krijgen:
         <pre><code>&lt;rule name="Skip /cma to child config" stopProcessing="true"&gt;
     &lt;match url="^cma($|/)" /&gt;
     &lt;action type="None" /&gt;
@@ -1482,8 +1657,8 @@ function render_doc_iis_config(): void
     </div>
 
     <div class="docs-callout docs-callout--danger">
-        <p><span class="cma-tool__strong">Sinds v1.20.12: CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. De migratie valideert de gepatchte config vóór én na de write — XML well-formedness, duplicate rule-names (het 500.50-symptoom), PCRE-syntax van de eigen patterns, read-back, en tenslotte een live HTTP smoke-test op <code>/cma/dashboard</code>; bij een 5xx rolt hij automatisch terug uit de backup. (De <code>appcmd</code> schema-check is sinds v1.23.4 advisory: draait de migratie als de app-pool-identity dan mag appcmd de centrale IIS-config vaak niet lezen — exit 5 "insufficient permissions" — wat géén afkeuring van de patch is en dus NIET terugrolt.) Run via <a href="documentation.php?topic=migrations">Migraties</a>-tool of <code>Tools → Migraties uitvoeren</code>.</p>
-        <p style="margin:8px 0 0 0;">Sinds v1.20.20 past de Composer <code>Installer</code> diezelfde routes óók automatisch toe bij elke <code>composer update stenversonline/platform</code> — bestaande sites krijgen de fix dus zonder de migratie handmatig te draaien. De file-level safeguards (simplexml-check, XML well-formedness, duplicate-name, PCRE-regex, backup, atomic write, read-back, rollback) zitten in de gedeelde helper <code>App\Library\WebConfigCmaRoutes</code> die migratie én Installer delen; de <code>appcmd</code>- en live-smoke-test-stappen blijven migration-only (de composer-CLI heeft geen draaiende IIS + HTTP-context). Idempotent via dezelfde marker, dus veilig om elke update te draaien.</p>
+        <p><span class="cma-tool__strong">CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. De migratie valideert de gepatchte config vóór én na de write — XML well-formedness, duplicate rule-names (het 500.50-symptoom), PCRE-syntax van de eigen patterns, read-back, en tenslotte een live HTTP smoke-test op <code>/cma/dashboard</code>; bij een 5xx rolt hij automatisch terug uit de backup. (De <code>appcmd</code> schema-check is advisory: draait de migratie als de app-pool-identity dan mag appcmd de centrale IIS-config vaak niet lezen — exit 5 "insufficient permissions" — wat géén afkeuring van de patch is en dus NIET terugrolt.) Run via <a href="documentation.php?topic=migrations">Migraties</a>-tool of <code>Tools → Migraties uitvoeren</code>.</p>
+        <p style="margin:8px 0 0 0;">De Composer <code>Installer</code> past diezelfde routes óók automatisch toe bij elke <code>composer update stenversonline/platform</code> — bestaande sites krijgen de fix dus zonder de migratie handmatig te draaien. De file-level safeguards (simplexml-check, XML well-formedness, duplicate-name, PCRE-regex, backup, atomic write, read-back, rollback) zitten in de gedeelde helper <code>App\Library\WebConfigCmaRoutes</code> die migratie én Installer delen; de <code>appcmd</code>- en live-smoke-test-stappen blijven migration-only (de composer-CLI heeft geen draaiende IIS + HTTP-context). Idempotent via dezelfde marker, dus veilig om elke update te draaien.</p>
     </div>
 
     <h2>cma/web.config in detail</h2>
@@ -1520,7 +1695,7 @@ function render_doc_iis_config(): void
     </ul>
 
     <h2>Belt-and-suspenders: default Content-Type</h2>
-    <p>Sinds v1.19.9 staat in zowel <code>templates/web.config.template</code> als <code>cma/web.config</code> een outbound-rewrite die een lege <code>Content-Type</code> respons-header overschrijft naar <code>text/html; charset=UTF-8</code>:</p>
+    <p>In zowel <code>templates/web.config.template</code> als <code>cma/web.config</code> staat een outbound-rewrite die een lege <code>Content-Type</code> respons-header overschrijft naar <code>text/html; charset=UTF-8</code>:</p>
     <pre><code>&lt;outboundRules&gt;
     &lt;rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing"&gt;
         &lt;match serverVariable="RESPONSE_Content-Type" pattern=".*" /&gt;
@@ -1543,14 +1718,14 @@ function render_doc_iis_config(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak / Fix</th></tr></thead>
         <tbody>
-            <tr><td><code>/cma/dashboard</code> → 404, <code>/cma/dashboard.php</code> werkt wél</td><td>Sinds v1.20.12 leven de CMA-routes in het <span class="cma-tool__strong">parent</span> web.config (zie callout boven). Meest voorkomende oorzaken: (1) <span class="cma-tool__strong">CMA-routes ontbreken in de parent web.config</span> — run <code>composer update stenversonline/platform</code> (v1.20.20+ past ze automatisch + fail-safe toe) of migratie <code>9.9.0</code>; de live-check "Parent web.config: CMA friendly-URL routes" bovenaan toont dit direct. (2) <span class="cma-tool__strong">URL Rewrite Module is niet meer geïnstalleerd</span> (Windows-update kan het verwijderen) — herinstalleer van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net/downloads/microsoft/url-rewrite</a>. (3) <span class="cma-tool__strong"><code>applicationHost.config</code> heeft <code>&lt;section name="rewrite" overrideMode="Deny"/&gt;</code></span> waardoor web.config-rewrites genegeerd worden — zet om naar <code>Allow</code>. <span class="cma-tool__strong">Niet meer nodig:</span> cma/ als IIS Application inrichten — de parent-routes werken ongeacht of cma/ een Application of Virtual Directory is.</td></tr>
+            <tr><td><code>/cma/dashboard</code> → 404, <code>/cma/dashboard.php</code> werkt wél</td><td>De CMA-routes leven in het <span class="cma-tool__strong">parent</span> web.config (zie callout boven). Meest voorkomende oorzaken: (1) <span class="cma-tool__strong">CMA-routes ontbreken in de parent web.config</span> — run <code>composer update stenversonline/platform</code> (past ze automatisch + fail-safe toe) of migratie <code>9.9.0</code>; de live-check "Parent web.config: CMA friendly-URL routes" bovenaan toont dit direct. (2) <span class="cma-tool__strong">URL Rewrite Module is niet meer geïnstalleerd</span> (Windows-update kan het verwijderen) — herinstalleer van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net/downloads/microsoft/url-rewrite</a>. (3) <span class="cma-tool__strong"><code>applicationHost.config</code> heeft <code>&lt;section name="rewrite" overrideMode="Deny"/&gt;</code></span> waardoor web.config-rewrites genegeerd worden — zet om naar <code>Allow</code>. <span class="cma-tool__strong">Niet meer nodig:</span> cma/ als IIS Application inrichten — de parent-routes werken ongeacht of cma/ een Application of Virtual Directory is.</td></tr>
             <tr><td><code>/cma/preferences</code> → 404 (en <code>/cma/dashboard</code> ook)</td><td>Zelfde diagnose als hierboven — alle extensionless URLs in de child-config falen samen.</td></tr>
             <tr><td><code>/cma/dashboard</code> → 404 op nieuwe install</td><td>"Skip /cma" rule ontbreekt in parent web.config. Zie callout hierboven en <a href="documentation.php?topic=iis_config">live-check</a> bovenaan deze pagina.</td></tr>
             <tr><td><code>/cma/dashboard.php</code> → 500 Server Error</td><td>Allowed server variables niet ontgrendeld. Zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td><code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt wel</td><td>URL Rewrite Module ontbreekt of de "CMA Tools Friendly URL" regel staat niet in de site-root web.config.</td></tr>
-            <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Sinds v1.20.7 standaard aanwezig — run <code>composer update stenversonline/platform</code>.</td></tr>
+            <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Dit staat standaard aan — run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Site geeft IIS default 404, niet cma/404.php</td><td><code>cma/404.php</code> bestaat niet op disk (Installer-sync incompleet). Run <code>composer update stenversonline/platform</code>.</td></tr>
-            <tr><td>Mobile Safari prompts "Download logreader.php?"</td><td>Sinds v1.10.1 gefixed (@-suppress op file_put_contents in delete-handler zodat warnings niet de Location-redirect breken).</td></tr>
+            <tr><td>Mobile Safari prompts "Download logreader.php?"</td><td>Gefixed via @-suppress op file_put_contents in delete-handler zodat warnings niet de Location-redirect breken.</td></tr>
         </tbody>
     </table>
 
@@ -1593,8 +1768,8 @@ function render_doc_architecture(): void
         <li><span class="cma-tool__strong">IIS request komt binnen</span> — web.config rewrites routen naar <code>_bootstrap_wrapper.php</code> of een specifiek PHP-bestand.</li>
         <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
         <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (ingebouwde <code>EnvFile</code>-parser, geen phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
-        <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (sinds v1.12.1 met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
-        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker sinds v1.23.6 op <code>/cma/main.php</code> (niet meer op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat sinds v1.23.7 onder <span class="cma-tool__strong">Alle beheerstools → Gebruikers en groepen</span>.</li>
+        <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
+        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker op <code>/cma/main.php</code> (niet op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat onder <span class="cma-tool__strong">Alle beheerstools → Gebruikers en groepen</span>.</li>
     </ol>
 
     <h2>Legacy ASP-erfenis</h2>
@@ -1943,7 +2118,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
     <p>Caching is automatisch on (in-memory per request + disk in <code>cache/forms/</code>). Editor-tools roepen <code>clearCache</code> aan na een save.</p>
 
     <h2>Definitie-schema</h2>
-    <p>Het volledige schema staat in <code>cma/config/schema/form-definition.schema.json</code> (titel <em class="cma-tool__em">CMA Form Definition</em>). Zet die als <code>$schema</code> bovenaan je definitie zodat editors IntelliSense + validatie geven. Een minimale, schema-geldige definitie:</p>
+    <p>Het volledige schema staat in <code>cma/config/schema/form-definition.schema.json</code> (titel <span class="cma-tool__em">CMA Form Definition</span>). Zet die als <code>$schema</code> bovenaan je definitie zodat editors IntelliSense + validatie geven. Een minimale, schema-geldige definitie:</p>
     <pre><code>{
     "$schema": "../../../config/schema/form-definition.schema.json",
     "name": "opleidingen",
@@ -1985,6 +2160,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>extraButtons</code></td><td>Custom toolbar-knoppen (<code>icon</code>, <code>title</code>, <code>url</code>, <code>target</code>, <code>openInNewWindow</code>, <code>condition</code>). Ondersteunt placeholders zoals <code>[slug]</code>.</td></tr>
             <tr><td><code>tips</code></td><td>Helptips in de zijbalk.</td></tr>
             <tr><td><code>postHandler</code> / <code>afterPostUrl</code> / <code>previewUrl</code> / <code>onLoadJs</code></td><td>Hooks: eigen POST-handler PHP-bestand, redirect-na-opslaan, preview-URL-template, on-load JavaScript.</td></tr>
+            <tr><td><code>clearCache</code></td><td>Lijst glob-patronen (relatief aan de site-<code>cache/</code>-map) die na elke geslaagde save gewist worden &mdash; de moderne opvolger van <code>cma_afterpost.asp</code>. <code>{ID}</code>/<code>{id}</code> wordt vervangen door het record-id, bijv. <code>["prod_detail_v8_{ID}.html", "stenen_*.html"]</code>. Wist ook de data-cachelaag (<code>App\Library\Cache</code>) zodat afgeleide lijsten/carousels niet verouderen. Best-effort en gesandboxed tot <code>cache/</code>.</td></tr>
             <tr><td><code>parentForm</code></td><td>Naam van het parent-form (alleen voor subforms).</td></tr>
             <tr><td><code>subforms</code></td><td>Geneste subform-definities (zie hieronder).</td></tr>
         </tbody>
@@ -2060,7 +2236,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
     }
 ]
 </code></pre>
-    <p>Placeholders worden vervangen door waardes uit het huidige record. Het platform substitueert hardgecodeerd: <code>[id]</code>, <code>[guid]</code>, <code>[guid2]</code>, <code>[domein]</code>. Sinds v1.10.0 worden <span class="cma-tool__em">alle</span> overige <code>[fieldname]</code> placeholders ook geresolveerd door naar het form-veld met die naam te kijken — zo werkt <code>[slug]</code> automatisch als er een veld <code>slug</code> bestaat.</p>
+    <p>Placeholders worden vervangen door waardes uit het huidige record. Het platform substitueert hardgecodeerd: <code>[id]</code>, <code>[guid]</code>, <code>[guid2]</code>, <code>[domein]</code>. <span class="cma-tool__em">Alle</span> overige <code>[fieldname]</code> placeholders worden ook geresolveerd door naar het form-veld met die naam te kijken — zo werkt <code>[slug]</code> automatisch als er een veld <code>slug</code> bestaat.</p>
 
     <h2>JsonFormRenderer</h2>
     <p>Server-side rendering gebeurt door <code>Cma\Services\JsonFormRenderer</code>. Die produceert de HTML; het form-controller.js framework in de browser handelt validatie, AJAX-save, subform navigation, etc. af. Custom render-overrides plaats je in <code>cma/classes/Services/</code> met eigen subclassen — zelden nodig, meestal volstaat een nieuwe field-type via <code>control-types.json</code>.</p>
@@ -2336,27 +2512,27 @@ function render_doc_testing(): void
             <tr><td>Cypress E2E-specs (<code>cma/cypress/e2e/**/*.cy.js</code>)</td><td><?= $cypressCount ?></td><td>UI-flows: forms, components, auth, navigation, tools, wizards, search, reports, integration, performance, accessibility, responsive, visual, email-log, readonly-forms</td></tr>
         </tbody>
     </table>
-    <p class="docs-meta">Productie-PHP-classes ter referentie: <code>src/helpers/</code> = <?= $platformClasses ?>, <code>cma/classes/</code> = <?= $cmaClasses ?>, <code>cma/classes/Services/</code> = <?= $cmaServices ?>. De unit-tests dekken <strong class="cma-tool__strong">geen</strong> van de service-classes (RecordService, FormDataProvider, ListService, MigrationService) of de data-laag (<code>Database</code>, <code>RecordSet</code>). Daar zit de risico-zone.</p>
+    <p class="docs-meta">Productie-PHP-classes ter referentie: <code>src/helpers/</code> = <?= $platformClasses ?>, <code>cma/classes/</code> = <?= $cmaClasses ?>, <code>cma/classes/Services/</code> = <?= $cmaServices ?>. De unit-tests dekken <span class="cma-tool__strong">geen</span> van de service-classes (RecordService, FormDataProvider, ListService, MigrationService) of de data-laag (<code>Database</code>, <code>RecordSet</code>). Daar zit de risico-zone.</p>
 
     <h2>Risico-zones (waar regressies wegglippen)</h2>
     <table class="listtable">
         <thead><tr class="listheader"><th>Zone</th><th>Wat misgaat zonder dekking</th><th>Huidige observatie</th></tr></thead>
         <tbody>
-            <tr><td><code>Database</code> + <code>RecordSet</code></td><td>PDOException paths retourneren <code>null</code>/<code>[]</code>; veranderde SQL-quoting; ODBC ↔ SQLite ↔ MySQL edge cases.</td><td>Sinds v1.19.8 worden errors ge-logged, maar geen test bewijst dat de catches gaat-niet-stuk-paden hetzelfde gedragen na refactor.</td></tr>
-            <tr><td><code>FormDataProvider::saveJsonFormRecord</code></td><td>Add/Edit/Delete branches; custom-renderer save; veld-validatie; monitoring/changelog.</td><td>Sinds v1.20.1 ook server-side changelog fallback — geen test die de oud↔nieuw diff bewijst.</td></tr>
+            <tr><td><code>Database</code> + <code>RecordSet</code></td><td>PDOException paths retourneren <code>null</code>/<code>[]</code>; veranderde SQL-quoting; ODBC ↔ SQLite ↔ MySQL edge cases.</td><td>Errors worden ge-logged, maar geen test bewijst dat de catches gaat-niet-stuk-paden hetzelfde gedragen na refactor.</td></tr>
+            <tr><td><code>FormDataProvider::saveJsonFormRecord</code></td><td>Add/Edit/Delete branches; custom-renderer save; veld-validatie; monitoring/changelog.</td><td>Ook server-side changelog fallback — geen test die de oud↔nieuw diff bewijst.</td></tr>
             <tr><td><code>Services\RecordService</code> + <code>ListService</code></td><td>Subform piggyback, group-rights save, custom renderer waarde-collectie.</td><td>Cypress dekt de happy-path UI; de service-laag heeft geen geïsoleerde test.</td></tr>
             <tr><td><code>MigrationService</code></td><td>Migratie-volgorde, rerunbaarheid, rollback-gedrag bij partial failure.</td><td>Geen test. Wel changelog in <code>migrations.json</code> maar dat is geen contract.</td></tr>
-            <tr><td>Web components met state (cma-blockeditor, cma-tree, lib-fileuploader)</td><td>Attribute-change handlers, JSON.parse fallbacks, drag-and-drop volgorde, fetch-failure UX.</td><td>Storybook-aanwezigheid garandeert syntax, geen gedrag. Eén Cypress-spec voor lib-sheet sinds v1.19, rest niet.</td></tr>
-            <tr><td><code>Installer</code></td><td>File-sync van platform naar consumer-site; <code>REMOVED_PATHS</code> opschoning; protected-paths bewaring.</td><td>Sinds v1.19.7 throwen op copy/mkdir failure, maar geen test bewijst dat de juiste files bewaard blijven.</td></tr>
+            <tr><td>Web components met state (cma-blockeditor, cma-tree, lib-fileuploader)</td><td>Attribute-change handlers, JSON.parse fallbacks, drag-and-drop volgorde, fetch-failure UX.</td><td>Storybook-aanwezigheid garandeert syntax, geen gedrag. Eén Cypress-spec voor lib-sheet, rest niet.</td></tr>
+            <tr><td><code>Installer</code></td><td>File-sync van platform naar consumer-site; <code>REMOVED_PATHS</code> opschoning; protected-paths bewaring.</td><td>Throwt op copy/mkdir failure, maar geen test bewijst dat de juiste files bewaard blijven.</td></tr>
         </tbody>
     </table>
 
     <h2>Drie-laags aanpak</h2>
     <p>Niet alle code-laag verdient dezelfde test-stijl. De juiste keuze per laag:</p>
     <ol>
-        <li><span class="cma-tool__strong">Pure-logic units</span> — al goed gedekt (12 testklassen). Vuistregel: <em>elke nieuwe pure functie in <code>src/helpers/</code> krijgt een <code>*Test.php</code></em>. Geen DB, geen filesystem, runt in &lt; 1s totaal.</li>
+        <li><span class="cma-tool__strong">Pure-logic units</span> — al goed gedekt (12 testklassen). Vuistregel: <span class="cma-tool__em">elke nieuwe pure functie in <code>src/helpers/</code> krijgt een <code>*Test.php</code></span>. Geen DB, geen filesystem, runt in &lt; 1s totaal.</li>
         <li><span class="cma-tool__strong">Pure-data service-tests</span> — methodes die hun input als array binnen krijgen en hun output als array/string terug geven (zoals <code>FormDataProvider::buildEditChangelog</code>, <code>FormDataProvider::buildDeleteChangelog</code>, <code>QueryBuilder</code>, <code>SqlParser</code>) test je <span class="cma-tool__em">zonder</span> connectie. Geen mock-DB nodig — feed de arrays in, vergelijk de output. Dit zou je voor de v1.20.1 changelog-fix direct kunnen testen.</li>
-        <li><span class="cma-tool__strong">Connection-gebonden service-tests</span> — voor methodes die wél een PDO/RecordSet aanraken (<code>RecordService::save</code>, <code>MigrationService::run</code>) is een echte ODBC-Access verbinding nodig; SQLite zou een ander dialect testen dan productie en is voor form-data niet representatief (alleen <code>cmausers.sqlite</code> draait SQLite). Twee opties: (a) een <em>fixtures-mdb</em> aanpak — een kale <code>.mdb</code> met minimale schema-tabellen die de testrunner kopieert per test, of (b) een <em>PDO-stub</em> waarbij de connectie een in-memory key-value mock is die alleen de queries en parameters opvangt. (b) is sneller op te zetten maar dekt geen ODBC-specifiek gedrag.</li>
+        <li><span class="cma-tool__strong">Connection-gebonden service-tests</span> — voor methodes die wél een PDO/RecordSet aanraken (<code>RecordService::save</code>, <code>MigrationService::run</code>) is een echte ODBC-Access verbinding nodig; SQLite zou een ander dialect testen dan productie en is voor form-data niet representatief (alleen <code>cmausers.sqlite</code> draait SQLite). Twee opties: (a) een <span class="cma-tool__em">fixtures-mdb</span> aanpak — een kale <code>.mdb</code> met minimale schema-tabellen die de testrunner kopieert per test, of (b) een <span class="cma-tool__em">PDO-stub</span> waarbij de connectie een in-memory key-value mock is die alleen de queries en parameters opvangt. (b) is sneller op te zetten maar dekt geen ODBC-specifiek gedrag.</li>
         <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases) of waar het écht eind-tot-eind moet draaien tegen een echte CMA-DB.</li>
     </ol>
 
@@ -2374,14 +2550,14 @@ function render_doc_testing(): void
         <li><span class="cma-tool__strong">Voor ODBC-specifiek</span> (dialect-quirks, identifier-quoting, fetch-encoding): een gedeelde <code>tests/fixtures/blank.mdb</code> die per test wordt gekopieerd naar tmp en daar weer wordt opgeruimd. Dat is een tweede sprint; eerste prioriteit zijn de pure-data tests.</li>
         <li><lib-label type="success">v1.20.5</lib-label> <span class="cma-tool__strong">CI-gate in deploy-webhook</span>: <code>DEPLOY_RUN_TESTS</code> env-var draait een commando NA <code>composer update</code> en VÓÓR recycle. Non-zero exit → deploy FAILED, recycle + post-hook overgeslagen, productie blijft op oude code via cached opcache. Operator ziet <code>status: FAILED</code> in <code>deploy_status.php</code>. Default leeg (= geen gate); opt-in per site door <code>DEPLOY_RUN_TESTS=php cma/tests/TestRunner.php</code> in <code>.env</code>.</li>
     </ol>
-    <p class="docs-meta">Status na v1.20.5: <strong class="cma-tool__strong">392/392 tests groen</strong> (18 testklassen, +7 cases sinds 1.20.4 in <code>DatabaseErrorPathTest</code> die v1.19.8 always-log expliciet bewijst). PDO-stub harness compleet met throw-mode. Volgende sprint: RecordService::save en saveJsonFormRecord contract-tests die de query-shape valideren.</p>
+    <p class="docs-meta"><span class="cma-tool__strong">392/392 tests groen</span> (18 testklassen, +7 cases sinds 1.20.4 in <code>DatabaseErrorPathTest</code> die v1.19.8 always-log expliciet bewijst). PDO-stub harness compleet met throw-mode. Volgende sprint: RecordService::save en saveJsonFormRecord contract-tests die de query-shape valideren.</p>
 
     <h2>Coverage-doel</h2>
     <p>Geen absoluut percentage nastreven — een 80%-target dat in 80% van de niet-belangrijke loops zit is misleidend. Wel <span class="cma-tool__em">gedrags-doelen</span>:</p>
     <ul>
         <li>Iedere methode in <code>src/helpers/</code> heeft minstens 1 test op happy-path + 1 op edge case (null, leeg, max-grootte).</li>
         <li>Iedere methode in <code>cma/classes/Services/</code> heeft minstens 1 integration-test per public contract.</li>
-        <li>Iedere web component in <code>library/webcomponents/</code> heeft een Cypress-spec die <em>connectedCallback → attribute change → user event → expected state</em> doorloopt (lib-sheet is de blueprint).</li>
+        <li>Iedere web component in <code>library/webcomponents/</code> heeft een Cypress-spec die <span class="cma-tool__em">connectedCallback → attribute change → user event → expected state</span> doorloopt (lib-sheet is de blueprint).</li>
         <li>Geen merge naar main zonder dat <code>composer test</code> groen is — gedwongen via deploy webhook.</li>
     </ul>
 
@@ -2415,7 +2591,7 @@ function render_doc_releasing(): void
         <li>Commit met een release-message: <code>Release X.Y.Z: &lt;wat veranderde&gt;</code>.</li>
         <li>Tag de commit: <code>git tag vX.Y.Z</code>.</li>
         <li>Push commits én tags: <code>git push &amp;&amp; git push --tags</code>.</li>
-        <li>Consumer-sites pullen de nieuwe versie via <code>composer update stenversonline/platform</code>. Hun deploy-webhook (sinds v1.13.0) doet dit automatisch.</li>
+        <li>Consumer-sites pullen de nieuwe versie via <code>composer update stenversonline/platform</code>. Hun deploy-webhook doet dit automatisch.</li>
     </ol>
 
     <h2>Semver-richtlijn</h2>
@@ -2429,17 +2605,17 @@ function render_doc_releasing(): void
     </table>
 
     <h2>Waar de versie geleest wordt</h2>
-    <p><code>App\Library\Bootstrap::getPlatformVersion()</code> lost de versie op in deze volgorde (sinds v1.9.1):</p>
+    <p><code>App\Library\Bootstrap::getPlatformVersion()</code> lost de versie op in deze volgorde:</p>
     <ol>
         <li><code>vendor/stenversonline/platform/composer.json</code>'s <code>version</code> field — bron-van-waarheid; werkt ook als de consumer's composer.json een branch-constraint (<code>dev-main</code>) gebruikt.</li>
         <li><code>vendor/composer/installed.json</code> — wat Composer registreerde tijdens install.</li>
         <li><code>Composer\InstalledVersions::getPrettyVersion()</code> — runtime API.</li>
         <li>Fallback: <code>'dev'</code>.</li>
     </ol>
-    <p><code>CMA_APP_VERSION</code> constant wordt in <code>cma/bootstrap.inc</code> gezet vanuit deze functie. Zichtbaar in het profielmenu (sinds v1.9.0).</p>
+    <p><code>CMA_APP_VERSION</code> constant wordt in <code>cma/bootstrap.inc</code> gezet vanuit deze functie. Zichtbaar in het profielmenu.</p>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">vdev-main symptoom:</span> stap 1 ontbreekt of mislukt → installed.json valt door, dat zegt <code>dev-main</code> bij branch-installs. Fix sinds v1.9.1: lees <span class="cma-tool__em">eerst</span> de package's eigen composer.json — die heeft altijd de tagged versie.
+        <span class="cma-tool__strong">vdev-main symptoom:</span> stap 1 ontbreekt of mislukt → installed.json valt door, dat zegt <code>dev-main</code> bij branch-installs. Fix: lees <span class="cma-tool__em">eerst</span> de package's eigen composer.json — die heeft altijd de tagged versie.
     </div>
 
     <h2>REMOVED_PATHS voor retired bestanden</h2>
@@ -2495,7 +2671,7 @@ function render_doc_troubleshooting(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
-            <tr><td><code>/cma/dashboard</code> → 404, maar <code>/cma/dashboard.php</code> wel 200</td><td>Parent web.config vangt <code>/cma/*</code> op vóór het kind <code>cma/web.config</code>.</td><td>Voeg "Skip /cma to child config" regel bovenaan parent <code>&lt;rules&gt;</code> toe — sinds v1.14.2 standaard in <code>templates/web.config.template</code>. Zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
+            <tr><td><code>/cma/dashboard</code> → 404, maar <code>/cma/dashboard.php</code> wel 200</td><td>Parent web.config vangt <code>/cma/*</code> op vóór het kind <code>cma/web.config</code>.</td><td>Voeg "Skip /cma to child config" regel bovenaan parent <code>&lt;rules&gt;</code> toe — standaard in <code>templates/web.config.template</code>. Zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
             <tr><td>500 op alle <code>/cma/*</code> requests, parent IIS-error over locked config-sectie</td><td>Allowed server variables nog niet ontgrendeld op server-niveau.</td><td><code>appcmd unlock</code> — zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td>Friendly URL <code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt</td><td>"CMA Tools Friendly URL" regel ontbreekt in site-root web.config, of URL Rewrite Module niet geïnstalleerd.</td><td>Module installeren via iis.net; regel kopiëren uit een werkende consumer-site.</td></tr>
             <tr><td>iOS Safari prompt "Download logreader.php?" bij Log leegmaken</td><td><code>file_put_contents()</code> in delete-handler emitterde PHP-warning, polluatie van response-buffer brak de Location-redirect. Browser kreeg 200 OK met warning-tekst, geen Content-Type → download.</td><td>Gefixed in v1.10.1 met <code>@</code>-suppress op de truncate-call.</td></tr>
@@ -2547,21 +2723,21 @@ function render_doc_troubleshooting(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
-            <tr><td>lib-sheet animeert niet bij open</td><td>CSS-transitions kunnen door browsers worden overgeslagen als de closed-state niet eerst gecommit is (first-open na attach, of na een onderbroken drag).</td><td>v1.11.4+ gebruikt CSS <code>@keyframes</code> i.p.v. transition — keyframes hebben dit probleem niet.</td></tr>
+            <tr><td>lib-sheet animeert niet bij open (paneel "klapt" direct op zijn plek, geen slide)</td><td><code>@keyframes</code> die binnen een shadow root zijn gedefinieerd worden niet betrouwbaar geëvalueerd (met name iOS/WebKit). Het paneel springt dan meteen naar zijn rest-state zonder zichtbare beweging. Een oudere consumer-site die nog niet ge-<code>composer update</code>'d is, draait nog op die kapotte @keyframes-versie (v1.11.4–v1.25.3).</td><td>v1.25.4+ slidet via de Web Animations API (<code>panel.animate([...])</code> met inline keyframes in <code>lib-sheet.js</code>) i.p.v. CSS @keyframes — die loopt wél in een shadow root. Zie je het symptoom nog? Controleer of de site daadwerkelijk v1.25.4+ heeft (<code>composer update stenversonline/platform</code>) en hard-refresh zodat de gecachte <code>lib-sheet.min.js</code> wordt vervangen.</td></tr>
             <tr><td>lib-sheet grab-bar niet draggable op mobiel</td><td>Hit-area van ~12px is te klein voor touch.</td><td>v1.11.3+ bindt drag óók op het hele <code>.header</code>-element (~50px); v1.11.4+ heeft de bar zelf ook gepromoot naar ~28px hit-area.</td></tr>
             <tr><td>Knop-klik geeft geen visuele feedback</td><td>CSS <code>:active</code> styles bestaan wel, maar een korte klik laat ze nooit lang genoeg zien.</td><td>v1.11.0+ heeft <code>.btn--clicked</code> animatie die door een document-level click handler 220ms wordt aangezet.</td></tr>
         </tbody>
     </table>
 
     <h2>Content blocks (blockedit)</h2>
-    <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen. Sinds v1.26.7 hookt blockedit zelf het submit-event (én programmatic <code>form.submit()</code>) van het formulier rond een <code>.blockedit</code> container en oogst de blokken vlak vóór verzending — host-pagina's hoeven <code>blockedit_collect_htmls()</code> niet meer zelf aan te roepen, maar mogen dat blijven doen (de aanroep is idempotent).</p>
+    <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen. Blockedit hookt zelf het submit-event (én programmatic <code>form.submit()</code>) van het formulier rond een <code>.blockedit</code> container en oogst de blokken vlak vóór verzending — host-pagina's hoeven <code>blockedit_collect_htmls()</code> niet meer zelf aan te roepen, maar mogen dat blijven doen (de aanroep is idempotent).</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
             <tr><td>Blok verslepen (drag-drop) maakt het rich-text veld leeg</td><td><code>blockedit_init_dragdrop</code> zocht bij dragstart <code>CKEDITOR.instances["cke_&lt;naam&gt;"]</code> (de id van de <code>.cke</code> container i.p.v. de textarea-id), dus <code>updateElement()</code> gooide een (ingeslikte) fout en de editor-inhoud werd nooit naar de textarea geflusht. De DOM-move blankt vervolgens de iframe-editor en dragend's <code>destroy()</code> (zonder arg → roept updateElement) schreef die lege inhoud terug.</td><td>v1.20.18: dragstart stript de <code>cke_</code>-prefix zodat de flush wél draait, en dragend gebruikt <code>destroy(true)</code> (noUpdate) zodat de geblankte editor de zojuist geflushte textarea niet overschrijft. De up/down-knoppen (<code>blockedit_save_ckeditor_states</code>) waren al correct.</td></tr>
             <tr><td>Nieuw blok toevoegen: de CKEditor verschijnt niet</td><td>De editor van een nieuw blok wordt uitgesteld in <code>pendingCKEditors</code> zolang het accordeon nog niet <code>.opened</code> is, en pas aangemaakt via <code>blockedit_process_pending_ckeditors</code> (150ms setTimeout). Die queue maakt zichzelf synchroon leeg en vult 150ms later weer aan, waardoor een net-geopende editor uit de handshake kon vallen.</td><td>v1.20.18: <code>blockedit_click</code> maakt de editor(s) van het zojuist geopende blok direct aan (idempotent via de <code>'exists'</code>-check in <code>blockedit_createCKEditor</code>), naast de bestaande queue.</td></tr>
             <tr><td>Array "+"-knop: de CKEditor van het nieuwe array-element verschijnt niet (pas na opslaan + opnieuw ophalen)</td><td>Zelfde defer/handshake-oorzaak als de "nieuw blok"-rij hierboven, maar via een ander pad: <code>blockedit_array_add_array_element</code> voegde het array-element toe en riep enkel <code>blockedit_create_htmls()</code>. Een uitgestelde/uit-de-queue-gevallen editor werd daardoor nooit aangemaakt tot een save+reload het veld vers rendert. De fix van v1.20.18 zat alleen in <code>blockedit_click</code> (het top-level-blok-pad), niet in de array-"+".</td><td>v1.20.21: <code>blockedit_array_add_array_element</code> doet nu dezelfde directe (re)create — <code>blockedit_process_pending_ckeditors()</code> + een korte-delay loop over de textareas in de array-container, idempotent via de <code>'exists'</code>-check.</td></tr>
-            <tr><td>Content-block veld wordt leeg opgeslagen / edits verdwijnen</td><td><code>blockedit_collect_htmls</code> schrijft het veld alleen als de serialisatie niet leeg is (<code>cTotalHTML != ""</code>) en doet niets als <code>contentblocks.json</code> nog niet geladen is. Na een record-switch / <code>clearForm</code> (<code>setData('')</code> + <code>blockedit_clear</code>) zonder dat de blokken herbouwd zijn, produceert collect <code>""</code>, slaat de schrijfactie over en wordt een lege waarde opgeslagen.</td><td>v1.20.19: <code>blockedit_collect_htmls</code> houdt per veld een laatst-bekende-goede snapshot bij (<code>blockedit_lastGood</code>, getagd met het record-id). Produceert collect leeg terwijl er géén blokken gerenderd zijn (<code>.blockedit_block</code> count 0 — gewist/nog niet herbouwd) én het veld leeg is, dan herstelt het de snapshot i.p.v. leeg op te slaan. De record-id-guard zorgt dat een nieuw record (id <code>null</code>) nooit de inhoud van een vorig record erft. (Bewust niet "harvesten in <code>blockedit_clear</code>": <code>newRecord()</code> roept <code>clearForm()</code> zonder <code>populateForm</code>, dus harvesten zou oude inhoud naar het nieuwe record lekken.) De gated <code>[BlockEdit][LOSS-RISK]</code> tripwire-logging (sinds v1.20.18) blijft en meldt nu "prevented empty save".</td></tr>
+            <tr><td>Content-block veld wordt leeg opgeslagen / edits verdwijnen</td><td><code>blockedit_collect_htmls</code> schrijft het veld alleen als de serialisatie niet leeg is (<code>cTotalHTML != ""</code>) en doet niets als <code>contentblocks.json</code> nog niet geladen is. Na een record-switch / <code>clearForm</code> (<code>setData('')</code> + <code>blockedit_clear</code>) zonder dat de blokken herbouwd zijn, produceert collect <code>""</code>, slaat de schrijfactie over en wordt een lege waarde opgeslagen.</td><td><code>blockedit_collect_htmls</code> houdt per veld een laatst-bekende-goede snapshot bij (<code>blockedit_lastGood</code>, getagd met het record-id). Produceert collect leeg terwijl er géén blokken gerenderd zijn (<code>.blockedit_block</code> count 0 — gewist/nog niet herbouwd) én het veld leeg is, dan herstelt het de snapshot i.p.v. leeg op te slaan. De record-id-guard zorgt dat een nieuw record (id <code>null</code>) nooit de inhoud van een vorig record erft. (Bewust niet "harvesten in <code>blockedit_clear</code>": <code>newRecord()</code> roept <code>clearForm()</code> zonder <code>populateForm</code>, dus harvesten zou oude inhoud naar het nieuwe record lekken.) De gated <code>[BlockEdit][LOSS-RISK]</code> tripwire-logging blijft en meldt nu "prevented empty save".</td></tr>
             <tr><td>Nieuw blok toevoegen: editor blijft een lege div, ook na de v1.20.18/21-fixes</td><td>Twee gaten in <code>blockedit_createCKEditor</code>. (1) <code>CKEDITOR.replace()</code> registreert de instance synchroon, vóór de asynchrone skin/iframe-build; draait die build in een verborgen of nog-animerende container (CKEditor 4.5.7 kent geen hidden-element handling), dan blijft er een geregistreerde maar lege editor achter. De <code>'exists'</code>-check zag zo'n instance als gezond, waardoor elke latere create-poging (queue, directe passes, retries) een no-op werd — de blank div was permanent. (2) De defer-check keek alleen naar de <code>.opened</code>-class van het accordeon, niet naar echte zichtbaarheid: een verborgen ancestor (tab, dialog, form-load) passeerde de check. Daarnaast maakten de array-pijltjes (innerHTML-swap) de iframe-editor kapot terwijl de instance geregistreerd bleef — zelfde blanco resultaat.</td><td>v1.26.1: <code>blockedit_createCKEditor</code> is self-healing — de <code>'exists'</code>-check valideert nu dat de editor-chrome bestaat én aan het document hangt (anders destroy + recreate), defer gebeurt op echte zichtbaarheid (<code>offsetParent === null</code>), en een ready-watchdog vernietigt en herbouwt een instance die 1s na aanmaak nog niet <code>'ready'</code> is (max 2 retries, daarna blijft de ruwe textarea bruikbaar). <code>blockedit_click</code> maakt editors aan vanuit de <code>show(100)</code>-completion callback i.p.v. een parallelle timer en wist de inline display die jQuery 1.9 achterlaat. De array-pijltjes verplaatsen nu DOM-nodes met flush/destroy/recreate i.p.v. innerHTML-swap, en verwijder-paden (<code>blockedit_clear</code>, blok- en array-delete) ruimen hun CKEditor-instances op.</td></tr>
             <tr><td>Veld is onzichtbaar én onbewerkbaar; opslaan bewaart steeds de oude waarde (console: 500/404 op <code>contentblocks.json</code>, of een 200 met ongeldige JSON)</td><td>De bloktemplates (<code>contentblocks.json</code>) konden niet geladen worden, dus blockedit rendert geen blokken en <code>blockedit_collect_htmls</code> serialiseert bewust niets (de v1.20.19 loss-prevention bewaart dan de oude veldwaarde i.p.v. leeg op te slaan). De hoofdveld-editor is door CSS tot 0px ingeklapt, dus de operator ziet niets en kan niets bewerken.</td><td>v1.26.3: loader probeert meerdere locaties (<code>/cma/assets/contentblocks/contentblocks.json</code>, dan <code>/cma_contentblocks.json</code> voor oudere CMA's). v1.26.4 (en v1.26.5 ook bij een 200-respons met onbruikbare JSON): falen álle locaties, dan degradeert het veld naar gewone bewerking — de hoofdveld-editor wordt uitgeklapt (of de ruwe textarea getoond) zodat inhoud zichtbaar en bewerkbaar blijft. De échte fix is altijd server-side: controleer waarom de JSON-URL faalt (rewrite-rule, rechten, ontbrekend bestand).</td></tr>
             <tr><td>Opslaan bewaart altijd de oude veldwaarde, zonder zichtbare fout</td><td>Sinds de allereerste versie van <code>blockedit.js</code> stond er een niet-gedeclareerde toewijzing (<code>cSpecifier = …</code>) in <code>blockedit_collect_htmls</code>. Het bestand draait in strict mode, dus dit gooide een <code>ReferenceError</code> bij het éérste getypte blok — de hele harvest stierf en het veld behield zijn oude waarde. In de huidige CMA werd de exception door form-controller's try/catch opgevangen en alleen als warning gelogd, waardoor het stil bleef; op oudere CMA's (directe aanroep) verdween hij in de submit-flow.</td><td>v1.26.8: <code>var cSpecifier</code> gedeclareerd. Daarnaast: serialisatie per blok in try/catch met <code>cmaLog.error</code> (één kapot blok doodt niet langer de hele save), onbekende bloktypes worden gemeld en overgeslagen i.p.v. te crashen, en <code>cTotalHTML</code> wordt per veld gereset (voorheen lekte veld A's inhoud naar veld B op pagina's met meerdere blockedit-velden).</td></tr>
@@ -2597,7 +2773,7 @@ function render_doc_mail(): void
             <tr><td><code>mail_server_port</code></td><td><code>25</code></td><td>SMTP-poort. Voor TLS: 587. Voor SSL: 465.</td></tr>
             <tr><td><code>mail_username</code></td><td><code>''</code></td><td>SMTP-username. Lege string → geen auth.</td></tr>
             <tr><td><code>mail_password</code></td><td><code>''</code></td><td>SMTP-password.</td></tr>
-            <tr><td><code>email_from</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-<span class="cma-tool__strong">adres</span>. <span class="cma-tool__strong">Sinds v1.23.10</span> leest de Email-klasse dit veld; daarvoor werd per abuis <code>email_fromname</code> als adres gebruikt (waardoor een correct <code>email_from</code> genegeerd werd).</td></tr>
+            <tr><td><code>email_from</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-<span class="cma-tool__strong">adres</span>. De Email-klasse leest dit veld.</td></tr>
             <tr><td><code>email_fromname</code></td><td><code>(leeg)</code></td><td>Default From-<span class="cma-tool__strong">naam</span> (weergavenaam). Bevat het per ongeluk een e-mailadres (oude config), dan valt de naam terug op <code>company</code> en wordt dat adres als afzender gebruikt — back-compat.</td></tr>
             <tr><td><code>company</code></td><td><code>RINO amsterdam</code></td><td>Bedrijfsnaam; fallback voor de From-naam.</td></tr>
             <tr><td><code>email_template</code></td><td><code>''</code></td><td>HTML-template voor de body. Leeg = geen template.</td></tr>
@@ -2643,13 +2819,13 @@ $ok = Email::create()
     </ul>
 
     <h2>EmailLogService afterSend hook</h2>
-    <p><code>cma/bootstrap.inc</code> registreert sinds altijd een afterSend-callback op de static <code>Email::$afterSend</code> property:</p>
+    <p><code>cma/bootstrap.inc</code> registreert altijd een afterSend-callback op de static <code>Email::$afterSend</code> property:</p>
     <pre><code>\App\Library\Email::$afterSend = function(array $data) {
     \Cma\Services\EmailLogService::log($data);
 };
 </code></pre>
     <p>Elke <code>Email::send()</code> roept deze hook aan met <code>$data</code> dat bevat: <code>success</code>, <code>from</code>, <code>to</code> (originele recipients, vóór test-clearing), <code>cc</code>, <code>bcc</code>, <code>subject</code>, <code>body</code>, <code>error</code>. <code>EmailLogService</code> persist deze naar <code>tblEmailLog</code> voor admin-review.</p>
-    <p>Controleerbaar via env-var <code>EMAIL_LOG_ENABLED</code> (default <code>true</code>). Sinds v1.12.1 staat er een <code>class_exists</code> guard om de afterSend-assignment heen zodat half-updated installs (waar <code>Email.php</code> nog niet autoloadable is) niet crash'en op deze regel.</p>
+    <p>Controleerbaar via env-var <code>EMAIL_LOG_ENABLED</code> (default <code>true</code>). Er staat een <code>class_exists</code> guard om de afterSend-assignment heen zodat half-updated installs (waar <code>Email.php</code> nog niet autoloadable is) niet crash'en op deze regel.</p>
 
     <h2>Test-mail formulier</h2>
     <p>Op de Omgeving-tab van <a href="tools_serverinfo.php" target="_top">Server informatie</a> staat een test-mail form dat <code>Email::create()-&gt;send()</code> aanroept tegen de huidige config — handig om SMTP-bereikbaarheid te testen zonder een echte form-action te triggeren. Developers-only.</p>
@@ -2677,7 +2853,7 @@ function render_doc_llm(): void
             <tr><td><code>anthropic_fallback</code></td><td><code>https://api.anthropic.com</code></td><td><code>/v1/models</code> met <code>x-api-key</code> header</td></tr>
         </tbody>
     </table>
-    <p>De Ollama-kaart toont sinds v1.13.0 de curated modellenlijst inline. Wanneer <code>llamacpp</code>'s probe succesvol is, wordt de Ollama-kaart overgeslagen — de cook heeft dan al een werkende engine.</p>
+    <p>De Ollama-kaart toont de curated modellenlijst inline. Wanneer <code>llamacpp</code>'s probe succesvol is, wordt de Ollama-kaart overgeslagen — de cook heeft dan al een werkende engine.</p>
 
     <h2>Env-vars</h2>
     <table class="listtable">
@@ -2719,7 +2895,7 @@ function render_doc_llm(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:200px">Page</th><th>Doel</th></tr></thead>
         <tbody>
-            <tr><td><a href="tools/llm_analyse.php" target="_top"><code>llm_analyse.php</code></a></td><td>Status-dashboard: config-tabel, endpoint-probe, lokale modellen-lijst, recente <code>[Llm]</code> fouten uit php_errors.log. Sinds v1.14.0 standaard CMA-login (was DEPLOY_SECRET).</td></tr>
+            <tr><td><a href="tools/llm_analyse.php" target="_top"><code>llm_analyse.php</code></a></td><td>Status-dashboard: config-tabel, endpoint-probe, lokale modellen-lijst, recente <code>[Llm]</code> fouten uit php_errors.log. Standaard CMA-login.</td></tr>
             <tr><td><a href="tools/tools_llm.php" target="_top"><code>tools_llm.php</code></a></td><td>Management-page: probe per engine, inline modellen-lijst per engine, install-steps per OS in collapsible details. De Ollama-kaart heeft de curated <code>ollama pull</code>-lijst inline.</td></tr>
         </tbody>
     </table>
