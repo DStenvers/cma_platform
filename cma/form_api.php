@@ -29,9 +29,14 @@
 
 // Start timing BEFORE any includes
 $_apiStartTime = microtime(true);
-// REQUEST_TIME_FLOAT is set by PHP when the request is first received
-// Use FQCN because this runs before `use` aliases are resolved when loaded via IIS URL Rewrite
-$_requestTimeFloat = \App\Library\Request::server('REQUEST_TIME_FLOAT', $_apiStartTime);
+// REQUEST_TIME_FLOAT is set by PHP when the request is first received.
+// Read it straight from $_SERVER — do NOT use \App\Library\Request here: this
+// runs before the require_once bootstrap.inc below, so the Composer autoloader
+// may not be registered yet. On a site where IIS auto_prepend of _bootstrap.php
+// isn't active, referencing an App\Library class at this point fatals with
+// "Class not found" before ErrorHandler is even registered — a raw 500 on every
+// form_api call (i.e. every list/form load) with no JSON and no detail.
+$_requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? $_apiStartTime;
 $_apiTimings = [
     '_php_startup' => round(($_apiStartTime - $_requestTimeFloat) * 1000, 1),  // Time from request receipt to first PHP line
     '_bootstrap' => $GLOBALS['_bootstrap_timing'] ?? null,  // Detailed bootstrap timing

@@ -2440,6 +2440,22 @@ function render_doc_errors(): void
     volledige file/line/trace staan sowieso in de console en in het uitklap-paneel van
     <code>lib-message</code>.</p>
 
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">"Overal HTTP 500 bij elke lijst/formulier-load" — en géén detail (opgelost in v1.26.22):</span>
+        deze JSON-foutafhandeling werkt alleen als de fout vált nadat <code>ErrorHandler</code>
+        geregistreerd is. <code>form_api.php</code> las bovenaan — vóór zijn eigen
+        <code>require_once bootstrap.inc</code> — de request-tijd via
+        <code>\App\Library\Request::server()</code>. Op een site waar IIS <code>auto_prepend</code>
+        van <code>_bootstrap.php</code> níet actief is, is de Composer-autoloader op dat punt nog
+        niet geladen → <span class="cma-tool__strong">fatale</span> "Class App\Library\Request not found"
+        vóórdat <code>ErrorHandler</code> bestaat → kale 500 zonder JSON, op élke form_api-call (dus
+        elke lijst/formulier-load). De shell (<code>main.php</code>) overleeft omdat die eerst zijn
+        bootstrap require't. Fix: <code>form_api.php</code> leest de request-tijd nu rechtstreeks uit
+        <code>$_SERVER</code>. Onderliggende oorzaak blijft de kapotte <code>auto_prepend</code> —
+        zelfde oorzaak als het <a href="documentation.php?topic=releasing">vdev-symptoom</a>; herstel
+        die in <code>web.config</code> / <code>php.ini</code> voor volledige correctheid.
+    </div>
+
     <h2>Logger PHP API</h2>
     <pre><code>use Cma\Services\Logger;
 

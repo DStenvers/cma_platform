@@ -642,3 +642,7 @@ karaat-data en staat in de karaat-repo.
 > the version of the cma_platform, I want that to be hardcoded as well, on sevaral sites it now reports a wrong version number, the current method is flawed. OR think of a better way to retrieve the version number
 
 > on karaat - after update the version is still called vdev ??
+
+> great, works!
+
+> okay, now to the karaat cma: everywhere there is a 500 form load error, earlier we worked on a more descriptive errormessage, but i don't see it, when a developer/admin has an error in the cma we need a better description and more detailed errors
