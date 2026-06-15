@@ -667,6 +667,7 @@ class CmaInfiniteScroll {
 
         this.showLoading();
 
+        const requestedLastId = this.lastId;
         try {
             const result = await this.loadMore(this.lastId, this.pageSize);
 
@@ -679,6 +680,21 @@ class CmaInfiniteScroll {
                 this.lastId = result.lastId;
                 // Use truthy check - PHP may return 1/0 or true/false
                 this.hasMore = !!result.hasMore;
+
+                // Cursor safety net: if the server still says hasMore but the
+                // keyset cursor did NOT move forward (same lastId we just asked
+                // for, or a null/empty lastId), advancing is impossible. Without
+                // this, the auto-prefetch loop re-enters load(), hits the
+                // pendingLastId === lastId guard, and spins forever — the
+                // "records 1-N van M (laden...)" counter freezes below the total.
+                // Stop instead so the list settles at what actually loaded.
+                if (this.hasMore &&
+                    (result.lastId === null || result.lastId === undefined || result.lastId === '' ||
+                     String(result.lastId) === String(requestedLastId))) {
+                    cmaLog.warn('[Infinite Scroll] Cursor did not advance past id ' +
+                        requestedLastId + ' (got ' + result.lastId + '); stopping to avoid a load loop.');
+                    this.hasMore = false;
+                }
 
                 // Append new rows to table
                 if (result.html && this.table) {
