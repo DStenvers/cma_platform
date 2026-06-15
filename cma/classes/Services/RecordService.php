@@ -278,6 +278,7 @@ class RecordService extends BaseFormService
             $fields = [];
             $values = [];
             $updates = [];
+            $params = []; // bound parameters (numeric fields) — see numericParam()
 
             // Debug: Log incoming data keys for memo field troubleshooting
             Logger::debug("RecordService::save: Data keys received", ['keys' => array_keys($data)]);
@@ -314,11 +315,26 @@ class RecordService extends BaseFormService
                 }
 
                 $value = $data[$fieldName];
-                $sqlValue = self::formatForSql($value, $arrRep, $i);
 
-                $fields[] = "[$fieldName]";
-                $values[] = $sqlValue;
-                $updates[] = "[$fieldName] = $sqlValue";
+                // Numeric fields: BIND the value as a query parameter instead of
+                // inlining it as a SQL literal. Inlining couples the decimal
+                // separator to the Jet/ACE connection locale (Locale Identifier=1043
+                // reads '.' as a thousands separator), which silently multiplied
+                // decimals by 10 on every save (10.0 -> 100 -> 1000). A bound
+                // numeric parameter is sent as a number and never re-parsed from
+                // SQL text, so the locale can't touch it.
+                $numericParam = self::numericParam($value, $arrRep, $i);
+                if ($numericParam !== null) {
+                    $fields[]  = "[$fieldName]";
+                    $values[]  = '?';
+                    $updates[] = "[$fieldName] = ?";
+                    $params[]  = $numericParam;
+                } else {
+                    $sqlValue = self::formatForSql($value, $arrRep, $i);
+                    $fields[]  = "[$fieldName]";
+                    $values[]  = $sqlValue;
+                    $updates[] = "[$fieldName] = $sqlValue";
+                }
             }
 
             // Add last modified fields
@@ -338,7 +354,7 @@ class RecordService extends BaseFormService
             if ($isNew) {
                 // INSERT
                 $sql = "INSERT INTO $tableName (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $values) . ")";
-                Database::query($sql, [], $conn);
+                Database::query($sql, $params, $conn);
 
                 // Get new ID
                 $newId = Database::getFieldValue($conn, "SELECT @@IDENTITY AS NewID", 'NewID');
@@ -348,7 +364,7 @@ class RecordService extends BaseFormService
                 // UPDATE
                 $sql = "UPDATE $tableName SET " . implode(', ', $updates) .
                     " WHERE $idField = " . self::formatIdForSql($recordId);
-                Database::query($sql, [], $conn);
+                Database::query($sql, $params, $conn);
                 $message = 'Record bijgewerkt';
             }
 
@@ -782,6 +798,34 @@ class RecordService extends BaseFormService
         }
 
         return $value;
+    }
+
+    /**
+     * If $value belongs to a numeric field (the schema reports a numeric
+     * precision) and is a non-empty number, return it as an int/float to be
+     * BOUND as a query parameter; otherwise return null so the caller inlines it
+     * via formatForSql().
+     *
+     * Binding numbers — instead of inlining them as SQL literals — avoids the
+     * Jet/ACE locale mis-coercion of decimal values (Locale Identifier=1043
+     * treats '.' as a thousands separator), which silently multiplied decimals
+     * by 10 on every save (10.0 -> 100 -> 1000). A bound numeric parameter is
+     * sent to the driver as a number, never re-parsed from SQL text.
+     */
+    protected static function numericParam($value, array|\ArrayAccess $arrRep, int $fieldIndex)
+    {
+        if ($value === null || $value === '') {
+            return null; // NULL/empty -> let formatForSql() emit NULL
+        }
+        if (($arrRep[\Q_SCHEMA_NUM_PREC][$fieldIndex] ?? '') === '') {
+            return null; // not a numeric field
+        }
+        $normalized = str_replace(',', '.', (string)$value);
+        if (!is_numeric($normalized)) {
+            return null; // not a number -> leave to formatForSql()/validation
+        }
+        // Send as a real numeric param (not text) so no locale re-parsing happens.
+        return strpos($normalized, '.') === false ? (int)$normalized : (float)$normalized;
     }
 
     /**
