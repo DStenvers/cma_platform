@@ -24,6 +24,10 @@
 if (!customElements.get('lib-timepicker')) {
 
 class LibTimepicker extends HTMLElement {
+    // Form-associated: the component IS the form field, so its value is included
+    // in FormData(form) automatically — consumers never read it out by hand.
+    static formAssociated = true;
+
     static get observedAttributes() {
         return ['value', 'min', 'max', 'disabled', 'readonly', 'step', 'required'];
     }
@@ -31,12 +35,16 @@ class LibTimepicker extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        if (typeof this.attachInternals === 'function') {
+            try { this._internals = this.attachInternals(); } catch (_) { this._internals = null; }
+        }
         this._value = '';
     }
 
     connectedCallback() {
         this.render();
         this.setupEventListeners();
+        this._updateHiddenInput();
     }
 
     disconnectedCallback() {
@@ -139,6 +147,13 @@ class LibTimepicker extends HTMLElement {
         const hidden = this.shadowRoot?.querySelector('input[type="hidden"]');
         if (hidden) {
             hidden.value = this._value || '';
+        }
+        // Mirror to the form (form-associated): every value change funnels
+        // through here, so the form submission always has the current time.
+        if (this._internals && typeof this._internals.setFormValue === 'function') {
+            // Empty string (not null) so clearing the time submits an empty value
+            // → server writes NULL, rather than omitting the field.
+            this._internals.setFormValue(this._value || '');
         }
     }
 

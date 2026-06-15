@@ -26,6 +26,11 @@
 if (!customElements.get('lib-datepicker')) {
 
 class LibDatepicker extends HTMLElement {
+    // Form-associated: the component IS the form field. Its value lands in
+    // FormData(form) automatically (canonical YYYY-MM-DD), so no consumer has to
+    // know how to read it out — picking a date is enough for it to be saved.
+    static formAssociated = true;
+
     static get observedAttributes() {
         return ['value', 'min', 'max', 'disabled', 'readonly', 'format', 'locale', 'required'];
     }
@@ -33,6 +38,10 @@ class LibDatepicker extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        // attachInternals may be absent on very old engines; degrade gracefully.
+        if (typeof this.attachInternals === 'function') {
+            try { this._internals = this.attachInternals(); } catch (_) { this._internals = null; }
+        }
         this._value = '';
         this._isOpen = false;
         this._currentMonth = new Date();
@@ -46,6 +55,20 @@ class LibDatepicker extends HTMLElement {
 
         // Apply shared styles (adoptedStyleSheets or inline fallback)
         this._applySharedStyles();
+
+        // Publish the initial value to the form (e.g. value set via attribute).
+        this._syncFormValue();
+    }
+
+    // Mirror the current value into the form. Called from every place _value
+    // changes so the form submission always reflects what the user sees.
+    _syncFormValue() {
+        if (this._internals && typeof this._internals.setFormValue === 'function') {
+            // Always a string (never null) so clearing a date submits an empty
+            // value → the server writes NULL, instead of the field being omitted
+            // and the old date silently kept.
+            this._internals.setFormValue(this._value || '');
+        }
     }
 
     _applySharedStyles() {
@@ -73,6 +96,7 @@ class LibDatepicker extends HTMLElement {
             case 'value':
                 this._value = newValue || '';
                 this.updateDisplay();
+                this._syncFormValue();
                 break;
             case 'format':
                 this._format = newValue || 'dd-mm-yyyy';
@@ -97,6 +121,7 @@ class LibDatepicker extends HTMLElement {
         this._value = val || '';
         this.setAttribute('value', this._value);
         this.updateDisplay();
+        this._syncFormValue();
     }
 
     // Expose name property for form field lookup (web components don't have this by default)
@@ -772,6 +797,7 @@ class LibDatepicker extends HTMLElement {
         this.setAttribute('value', dateStr);
         this.updateDisplay();
         this.close();
+        this._syncFormValue();
 
         // Update hidden input
         const hidden = this.shadowRoot.querySelector('input[type="hidden"]');
