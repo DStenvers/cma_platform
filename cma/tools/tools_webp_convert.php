@@ -22,22 +22,48 @@ use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/../bootstrap.inc';
 
+// Detect AJAX/API mode FIRST, so every exit path below (the developer check, a
+// PHP warning, a fatal) returns JSON — never HTML. An HTML body is exactly what
+// shows up on the client as the useless "Unexpected token '<' ... is not valid
+// JSON".
+$action = Request::query('action', '') ?: Request::post('action', '');
+$isAjax = $action !== '';
+if ($isAjax) {
+    // Drop any bootstrap/profiler/debug output (e.g. <script> tags) so the body
+    // is clean JSON, and keep PHP warnings/notices OUT of the body (still logged).
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    ini_set('display_errors', '0');
+    ini_set('html_errors', '0');
+    header('Content-Type: application/json');
+    // Last resort: a fatal mid-conversion still returns actionable JSON instead
+    // of a half-written body / blank 500 the client can't parse.
+    register_shutdown_function(static function () {
+        $e = error_get_last();
+        if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            echo json_encode([
+                'success' => false,
+                'error'   => 'Serverfout: ' . $e['message'] . ' (' . basename($e['file']) . ':' . $e['line'] . ')',
+            ]);
+        }
+    });
+}
+
 if (!SecurityHelper::isDeveloper()) {
-    echo '<lib-message type="error">Alleen voor developers</lib-message>';
+    if ($isAjax) {
+        echo json_encode(['success' => false, 'error' => 'Geen ontwikkelaarsrechten in deze sessie']);
+    } else {
+        echo '<lib-message type="error">Alleen voor developers</lib-message>';
+    }
     exit;
 }
 
 Response::noCache();
 
-// Handle API requests
-$action = Request::query('action', '') ?: Request::post('action', '');
-if ($action !== '') {
-    // Discard any buffered output from bootstrap/profiler/debug (e.g. <script> tags)
-    // to ensure clean JSON response
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-    header('Content-Type: application/json');
+// Handle API requests (JSON mode set up above)
+if ($isAjax) {
     $directory = Request::post('directory', Request::query('directory', '/images/'));
     $directory = '/' . trim($directory, '/') . '/';
     $fullPath = Server::mapPath($directory);
