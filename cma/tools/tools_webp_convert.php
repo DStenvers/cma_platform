@@ -22,48 +22,22 @@ use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/../bootstrap.inc';
 
-// Detect AJAX/API mode FIRST, so every exit path below (the developer check, a
-// PHP warning, a fatal) returns JSON — never HTML. An HTML body is exactly what
-// shows up on the client as the useless "Unexpected token '<' ... is not valid
-// JSON".
-$action = Request::query('action', '') ?: Request::post('action', '');
-$isAjax = $action !== '';
-if ($isAjax) {
-    // Drop any bootstrap/profiler/debug output (e.g. <script> tags) so the body
-    // is clean JSON, and keep PHP warnings/notices OUT of the body (still logged).
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-    ini_set('display_errors', '0');
-    ini_set('html_errors', '0');
-    header('Content-Type: application/json');
-    // Last resort: a fatal mid-conversion still returns actionable JSON instead
-    // of a half-written body / blank 500 the client can't parse.
-    register_shutdown_function(static function () {
-        $e = error_get_last();
-        if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
-            while (ob_get_level() > 0) { ob_end_clean(); }
-            echo json_encode([
-                'success' => false,
-                'error'   => 'Serverfout: ' . $e['message'] . ' (' . basename($e['file']) . ':' . $e['line'] . ')',
-            ]);
-        }
-    });
-}
-
 if (!SecurityHelper::isDeveloper()) {
-    if ($isAjax) {
-        echo json_encode(['success' => false, 'error' => 'Geen ontwikkelaarsrechten in deze sessie']);
-    } else {
-        echo '<lib-message type="error">Alleen voor developers</lib-message>';
-    }
+    echo '<lib-message type="error">Alleen voor developers</lib-message>';
     exit;
 }
 
 Response::noCache();
 
-// Handle API requests (JSON mode set up above)
-if ($isAjax) {
+// Handle API requests
+$action = Request::query('action', '') ?: Request::post('action', '');
+if ($action !== '') {
+    // Discard any buffered output from bootstrap/profiler/debug (e.g. <script> tags)
+    // to ensure clean JSON response
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json');
     $directory = Request::post('directory', Request::query('directory', '/images/'));
     $directory = '/' . trim($directory, '/') . '/';
     $fullPath = Server::mapPath($directory);
@@ -331,6 +305,17 @@ sort($imageDirs);
 ?>
 <div id="c" class="tools" style="padding: 24px;">
 
+<div style="margin-bottom: 20px; padding: 12px 16px; background: var(--bg-surface, #f5f5f5); border: 1px solid var(--border-color, #ddd); border-left: 3px solid var(--color-primary, #4a90d9); border-radius: 4px; font-size: 0.9em; line-height: 1.5;">
+    <div style="font-weight: bold; margin-bottom: 6px;">Responsieve beeldformaten</div>
+    <p style="margin: 0 0 8px;">Per afbeelding worden de volgende WebP-varianten in de <code>.responsive/</code>-submap gegenereerd (bron: <code>ResponsiveImage::SIZES</code>, kwaliteit <span class="cma-tool__strong"><?= ResponsiveImage::DEFAULT_QUALITY ?></span>):</p>
+    <ul style="margin: 0; padding-left: 18px;">
+        <?php foreach (ResponsiveImage::SIZES as $w): ?>
+            <li><span class="cma-tool__strong"><?= (int) $w ?> px</span> breed — <code>photo-<?= (int) $w ?>w.webp</code></li>
+        <?php endforeach; ?>
+        <li><span class="cma-tool__strong">volledige grootte</span> — <code>photo.webp</code></li>
+    </ul>
+</div>
+
 <div style="margin-bottom: 20px;">
     <label for="directory" style="font-weight: bold; display: block; margin-bottom: 4px;">Map om te scannen:</label>
     <div style="display: flex; gap: 0; align-items: stretch;">
@@ -408,11 +393,14 @@ sort($imageDirs);
         </table>
 
         <h3>Bestandsstructuur</h3>
-        <pre style="background: var(--bg-surface, #f5f5f5); padding: 12px; border-radius: 4px; font-size: 0.85em; overflow-x: auto;">/images/photo.jpg                        &larr; origineel (blijft behouden)
-/images/.responsive/photo-400w.webp      &larr; 400px breed
-/images/.responsive/photo-800w.webp      &larr; 800px breed
-/images/.responsive/photo-1200w.webp     &larr; 1200px breed
-/images/.responsive/photo.webp           &larr; volledige grootte WebP</pre>
+        <?php
+        $structLines = str_pad('/images/photo.jpg', 41) . '&larr; origineel (blijft behouden)' . "\n";
+        foreach (ResponsiveImage::SIZES as $w) {
+            $structLines .= str_pad('/images/.responsive/photo-' . (int) $w . 'w.webp', 41) . '&larr; ' . (int) $w . 'px breed' . "\n";
+        }
+        $structLines .= str_pad('/images/.responsive/photo.webp', 41) . '&larr; volledige grootte WebP';
+        ?>
+        <pre style="background: var(--bg-surface, #f5f5f5); padding: 12px; border-radius: 4px; font-size: 0.85em; overflow-x: auto;"><?= $structLines ?></pre>
 
         <h3>Vergelijken</h3>
         <p>Klik op een bestandsnaam of variant-thumbnail om het beeld te openen in een preview.
@@ -807,7 +795,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
         });
     }
 
-    var VARIANT_SIZES = [400, 800, 1200];
+    var VARIANT_SIZES = [<?= implode(', ', array_map('intval', ResponsiveImage::SIZES)) ?>];   // bron: ResponsiveImage::SIZES
 
     function findVariant(f, width, isFull) {
         if (!f.variants) return null;
