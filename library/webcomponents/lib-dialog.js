@@ -824,10 +824,22 @@ class LibDialog extends HTMLElement {
                 @media (prefers-color-scheme: dark) {
                     .dialog-content {
                         background: var(--bg-surface, #2a2a2a);
+                        /* Tekstkleur óók licht maken: anders zwarte/donkere tekst op de
+                           donkere achtergrond -> onleesbaar (bv. een "uitloggen?"-bevestiging). */
+                        color: var(--text-primary, #e8e8e8);
                     }
 
                     .dialog-header {
                         background: var(--popup-caption-bg, #333);
+                    }
+
+                    .dialog-title-text {
+                        color: var(--popup-caption-text, #e8eefc);
+                    }
+
+                    .dialog-body,
+                    .dialog-message {
+                        color: var(--text-primary, #e8e8e8);
                     }
 
                     .dialog-footer {
@@ -837,7 +849,7 @@ class LibDialog extends HTMLElement {
                     .dialog-btn-cancel {
                         background: var(--bg-surface-alt, #333);
                         border-color: var(--border-color, #555);
-                        color: var(--text-secondary, #aaa);
+                        color: var(--text-secondary, #cccccc);
                     }
                 }
             </style>
