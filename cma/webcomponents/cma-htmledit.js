@@ -135,7 +135,7 @@ class CmaHtmlEdit extends HTMLElement {
         const isMinimal = mode === 'minimal';
 
         // Get global config if available
-        const globalConfig = CMA.formConfig?.editorConfig || {};
+        const globalConfig = window.CMA?.formConfig?.editorConfig || {};
 
         // Build CKEditor config
         const config = this._buildConfig({
@@ -268,10 +268,10 @@ class CmaHtmlEdit extends HTMLElement {
             if (editor.commands.image) {
                 const imgCmd = new CKEDITOR.command(editor, {
                     exec: () => {
-                        if (CMA.editor.isCursorInImage(editor)) {
-                            CMA.editor.imageProperties(editor);
+                        if (window.CMA?.editor?.isCursorInImage(editor)) {
+                            window.CMA?.editor?.imageProperties(editor);
                         } else {
-                            CMA.editor.insertImage(editor);
+                            window.CMA?.editor?.insertImage(editor);
                         }
                     }
                 });
@@ -284,10 +284,10 @@ class CmaHtmlEdit extends HTMLElement {
             if (editor.commands.table) {
                 const tableCmd = new CKEDITOR.command(editor, {
                     exec: () => {
-                        if (CMA.editor.isCursorInTable(editor)) {
-                            CMA.editor.tableProperties(editor);
+                        if (window.CMA?.editor?.isCursorInTable(editor)) {
+                            window.CMA?.editor?.tableProperties(editor);
                         } else {
-                            CMA.editor.insertTable(editor);
+                            window.CMA?.editor?.insertTable(editor);
                         }
                     }
                 });
@@ -303,10 +303,10 @@ class CmaHtmlEdit extends HTMLElement {
             if (editor.commands.link) {
                 const linkCmd = new CKEDITOR.command(editor, {
                     exec: () => {
-                        if (CMA.editor.isCursorInAnchor(editor)) {
-                            CMA.editor.anchorProperties(editor);
+                        if (window.CMA?.editor?.isCursorInAnchor(editor)) {
+                            window.CMA?.editor?.anchorProperties(editor);
                         } else {
-                            CMA.editor.insertLink(editor);
+                            window.CMA?.editor?.insertLink(editor);
                         }
                     }
                 });
@@ -361,7 +361,7 @@ customElements.define('cma-htmledit', CmaHtmlEdit);
 
 // Backward compatibility shims
 window.SetFKEditorConfig = function(config) {
-    CMA.editor.setConfig(config);
+    window.CMA?.editor?.setConfig(config);
 };
 
 window.CreateFKEditor = function(fieldname, nSize, bSpamJS, nHeight, bSimple, bNoToolbar) {
@@ -371,8 +371,8 @@ window.CreateFKEditor = function(fieldname, nSize, bSpamJS, nHeight, bSimple, bN
         // Component handles its own initialization
         return;
     }
-    // Fall back to CMA.editor.create
-    CMA.editor.create(fieldname, nSize, bSpamJS, nHeight, bSimple, bNoToolbar);
+    // Fall back to window.CMA?.editor?.create
+    window.CMA?.editor?.create(fieldname, nSize, bSpamJS, nHeight, bSimple, bNoToolbar);
 };
 
 window.CreateSimpleFKEditor = function(fieldname, nSize, nHeight) {
@@ -380,5 +380,5 @@ window.CreateSimpleFKEditor = function(fieldname, nSize, nHeight) {
     if (component) {
         return;
     }
-    CMA.editor.createSimple(fieldname, nSize, nHeight);
+    window.CMA?.editor?.createSimple(fieldname, nSize, nHeight);
 };
