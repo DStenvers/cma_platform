@@ -36,6 +36,21 @@ var cmaLog = {
 	}
 };
 
+// --- Happy-path tracing --------------------------------------------------
+// Always-visible trace of the successful init/render path. The normal
+// cmaLog.log calls only surface when full debug mode is on, which makes the
+// "editor renders blank but nothing throws" case impossible to diagnose: you
+// see neither an error nor where the flow stopped. blockedit_trace() writes
+// straight to console.log (independent of the debug gate) so the milestones
+// below are always visible. Flip BLOCKEDIT_TRACE to false to silence them.
+var BLOCKEDIT_TRACE = true;
+function blockedit_trace() {
+	if (!BLOCKEDIT_TRACE) return;
+	var args = Array.prototype.slice.call(arguments);
+	args.unshift('[BlockEdit][trace]');
+	console.log.apply(console, args);
+}
+
 var BLOCK_START = "<!--BLOCK"
 var BLOCK_END = "-->"
 // Content blocks JSON locations, tried in order. First the current location
@@ -168,13 +183,17 @@ function blockedit_init() {
 	// Check if there are any .blockedit containers BEFORE loading contentblocks.json
 	// This avoids unnecessary network requests for ~97% of forms that don't use blockedit
 	var blockeditContainers = jQuery(".blockedit");
+	blockedit_trace('blockedit_init: .blockedit containers found =', blockeditContainers.length);
 	if (blockeditContainers.length === 0) {
+		blockedit_trace('blockedit_init: no .blockedit containers — nothing to do (form has no blockedit field?)');
 		return;
 	}
 
 	if (!all_components) {
+		blockedit_trace('blockedit_init: definitions not cached, loading from', BLOCK_DEFINITION_URLS[0]);
 		blockedit_load_definitions(0);
 	} else {
+		blockedit_trace('blockedit_init: definitions already cached, rendering directly');
 		blockedit_init_elements();
 	}
 }
@@ -202,12 +221,15 @@ function blockedit_load_definitions(urlIndex) {
 		// 200, JSON without templates) is treated exactly like a failed
 		// request: move on to the next location.
 		if (!parsed || !parsed.templates) {
+			blockedit_trace('load_definitions: response from', BLOCK_DEFINITION_URLS[urlIndex], 'has no templates — trying next location');
 			blockedit_definitions_next(urlIndex, 'invalid definitions response');
 			return;
 		}
 		all_components = parsed;
+		blockedit_trace('load_definitions: loaded', parsed.templates.length, 'templates from', BLOCK_DEFINITION_URLS[urlIndex]);
 		blockedit_init_elements();
 	}).fail(function(jqXHR, textStatus, errorThrown) {
+		blockedit_trace('load_definitions: request FAILED for', BLOCK_DEFINITION_URLS[urlIndex], '- status', jqXHR.status, '(' + textStatus + ')');
 		// Every failed status (404, 500, network error, ...) takes the same
 		// path: try the next location, then degrade to plain editing.
 		blockedit_definitions_next(urlIndex, 'status ' + jqXHR.status + ' (' + textStatus + ')');
@@ -237,6 +259,7 @@ function blockedit_definitions_next(urlIndex, reason) {
 // main field's CKEditor, or unhide the raw textarea when there is no editor.
 //
 function blockedit_definitions_unavailable() {
+	blockedit_trace('definitions_unavailable: NO usable block definitions — degrading to plain editing (no blocks, no conbar will render)');
 	jQuery(".blockedit").each(function() {
 		var sFld = jQuery(this).attr("data-field");
 		// inline height/overflow beat the div.blockedit > .cke {height:0px} rule
@@ -256,10 +279,12 @@ function blockedit_init_elements() {
 	if (all_components) {
 		var blockeditContainers = jQuery(".blockedit");
 		cmaLog.log('[blockedit_init_elements] Found .blockedit containers:', blockeditContainers.length);
+		blockedit_trace('init_elements: rendering', blockeditContainers.length, 'container(s)');
 
 		blockeditContainers.each( function(index) {
 			// get the current HTML
 			var sFld = jQuery(this).attr("data-field");
+			blockedit_trace('init_elements: container[' + index + '] data-field =', sFld || '(none)');
 			// cmaLog.log('[blockedit_init_elements] Container[' + index + '] data-field:', sFld);
 
 			if (sFld!="") {
@@ -287,6 +312,7 @@ function blockedit_init_elements() {
 					}
 					// cmaLog.log('[blockedit_init_elements] Block count:', arrBlocks.length);
 
+					blockedit_trace('init_elements: container[' + index + '] has', arrBlocks.length, 'block segment(s) to render');
 					if (arrBlocks.length>0) {
 						for (var block=0; block<arrBlocks.length; block++) {
 							if (arrBlocks[block]!="") {
@@ -295,7 +321,7 @@ function blockedit_init_elements() {
 								if (cJSONRaw) {
 									// cmaLog.log('[blockedit_init_elements] Parsing block[' + block + '], JSON length:', cJSONRaw.length);
 									var parsed = my_parse( cJSONRaw );
-									// cmaLog.log('[blockedit_init_elements] Block[' + block + '] parsed result:', parsed ? parsed.type : 'null');
+									blockedit_trace('init_elements: container[' + index + '] block[' + block + '] parsed type =', parsed ? parsed.type : 'null');
 									blockedit_add_new_element( jQuery(this), parsed );
 								}
 							}
@@ -311,6 +337,7 @@ function blockedit_init_elements() {
 
 			// create an block for creating new elements
 			// cmaLog.log('[blockedit_init_elements] Adding empty element selector');
+			blockedit_trace('init_elements: container[' + index + '] adding "new block" selector (the conbar source)');
 			blockedit_add_new_element( jQuery(this), null );
 		});
 
@@ -324,8 +351,9 @@ function blockedit_init_elements() {
 			blockedit_process_pending_ckeditors();
 		}, 300);
 
-		// cmaLog.log('[blockedit_init_elements] EXIT - processed', blockeditContainers.length, 'containers');
+		blockedit_trace('init_elements: DONE - processed', blockeditContainers.length, 'container(s)');
 	} else {
+		blockedit_trace('init_elements: SKIPPED - all_components is null (definitions never loaded), nothing rendered');
 		cmaLog.error('[blockedit_init_elements] EXIT - all_components is null/undefined');
 	}
 }
@@ -785,6 +813,7 @@ function blockedit_add_new_element( to_elt, data_block ) {
 	}
 	sNewContent += "<div style=clear:both></div></div>";
 	to_elt.append( sNewContent );
+	blockedit_trace('add_new_element: appended block (type =', (data_block && data_block.type) ? data_block.type : '(new-block selector)', ') — total .blockedit_block now =', to_elt.find('.blockedit_block').length);
 
 	blockedit_create_htmls();
 
@@ -1153,8 +1182,10 @@ catch (e) {
 function blockedit_createCKEditor(fieldId) {
 	var textarea = document.getElementById(fieldId);
 	if (!textarea) {
-		cmaLog.warn('[blockedit_createCKEditor] Textarea not found:', fieldId);
+		cmaLog.warn('[blockedit][createCKEditor] Textarea not found:', fieldId);
 		return 'error';
+	} else { 
+		cmaLog.log('[blockedit][createCKEditor] Textarea found, starting initialisation:', fieldId);
 	}
 
 	// Already has CKEditor? Only trust it when the instance is healthy.
@@ -1192,44 +1223,71 @@ function blockedit_createCKEditor(fieldId) {
 		// Diagnostic: if a deferred editor never gets created after its
 		// container becomes visible, watch for this id NOT being followed by
 		// a "=> created" below.
-		cmaLog.log('[blockedit_createCKEditor] DEFERRED (not visible):', fieldId);
+		cmaLog.warn('[blockedit][createCKEditor] DEFERRED (not visible):', fieldId);
 		return 'deferred';
 	}
 
 	try {
 		// Get contentsCss from global config if available
-		var contentsCss = '';
+		var contentsCss = '/cma.css';
 		if (typeof CMA !== 'undefined' && CMA.formConfig && CMA.formConfig.editorConfig && CMA.formConfig.editorConfig.customCSS) {
 			contentsCss = CMA.formConfig.editorConfig.customCSS;
 		}
 
-		cmaLog.log('[blockedit_createCKEditor] Creating CKEditor for:', fieldId, { contentsCss: contentsCss || '(none)' });
+		cmaLog.log('[blockedit][createCKEditor] Creating CKEditor for:', fieldId, { contentsCss: contentsCss || '(none)' });
 
-		var editor = CKEDITOR.replace(fieldId, {
-			language: 'nl',
-			height: 100,
-			contentsCss: contentsCss,
-			allowedContent: true,
-			toolbar: [{ name: 'basic', items: ['Bold', 'Italic', '-', 'BulletedList', 'NumberedList', '-', 'Link', 'Unlink'] }],
-			resize_enabled: false
-		});
+		// Build through CMA.initCKEditor so block fields get the SAME custom
+		// toolbar and office2013_modified skin as the main editors, instead of
+		// the bare default-skin/basic-toolbar editor this used to create. Fall
+		// back to a minimal CKEDITOR.replace only when CMA.initCKEditor is
+		// unavailable (blockedit.js dropped standalone into an older CMA).
+		var setDirty = function() {
+			if (typeof CMA !== 'undefined' && CMA.form && CMA.form.setDirty) {
+				CMA.form.setDirty();
+			}
+		};
+		var editor;
+		var toolbar_Full = [ { name: 'basic', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', '-','Find', 'Replace', '-', 'Undo', 'Redo', '-', 'Bold', 'Italic', '-', 'Styles', '-','BulletedList',  'NumberedList', '-', 'myRemoveFormat', '-', 'Image', '-', 'Link', 'Unlink', 'Source', 'myMaximize' ] } ];
+// config.extraPlugins = 'myMaximize,myRemoveFormat,stylescombo'+HTMLEdit.extraPlugins;					
+
+		// if (typeof CMA !== 'undefined' && typeof CMA.initCKEditor === 'function') {
+		// 	cmaLog.log( '[blockedit][createCKEditor] Using CMA.initCKEditor for:', fieldId);
+		// 	editor = CMA.initCKEditor(fieldId, {
+		// 		mode: 'full',
+		// 		height: 100,
+		// 		contentsCss: contentsCss,
+		// 		toolbar: toolbar_Full,
+		// 		allowedContent: true,
+		// 		onChange: setDirty
+		// 	});
+		// } else {
+			cmaLog.log( '[blockedit][createCKEditor] Using CKEDITOR.replace for:', fieldId);
+			editor = CKEDITOR.replace(fieldId, {
+				language: 'nl',
+				height: 100,
+				contentsCss: contentsCss,
+				allowedContent: true,
+				toolbar: toolbar_Full,
+				resize_enabled: false,
+				skin : 'office2013_modified',
+				pasteFromWordPromptCleanup : true
+		
+			});
+			if (editor) {
+				editor.on('change', setDirty);
+			}
+		// }
 
 		if (editor) {
-			// Set dirty flag when CKEditor content changes
-			editor.on('change', function() {
-				if (typeof CMA !== 'undefined' && CMA.form && CMA.form.setDirty) {
-					CMA.form.setDirty();
-				}
-			});
 			blockedit_watch_editor_ready(fieldId, editor);
-			cmaLog.log('[blockedit_createCKEditor] SUCCESS:', fieldId);
+			cmaLog.log('[blockedit][createCKEditor] SUCCESS:', fieldId);
 			return 'created';
 		} else {
-			cmaLog.error('[blockedit_createCKEditor] FAILED - replace returned null:', fieldId);
+			cmaLog.error('[blockedit][createCKEditor] FAILED - replace returned null:', fieldId);
 			return 'error';
 		}
 	} catch (e) {
-		cmaLog.error('[blockedit_createCKEditor] ERROR:', fieldId, e.message);
+		cmaLog.error('[blockedit][createCKEditor] ERROR:', fieldId, e.message);
 		return 'error';
 	}
 }
@@ -1456,8 +1514,13 @@ function blockedit_move_block(elt, direction) {
         ? currentElt.previousSibling
         : currentElt.nextSibling;
 
-    if (!adjacentElt || !jQuery(adjacentElt).hasClass("blockedit_block")) {
-        return; // No valid adjacent block to swap with
+    // The adjacent node must be a real content block. The trailing "add new"
+    // selector block also carries class "blockedit_block" but has no data-type
+    // (see the .blockedit_block[data-type] convention elsewhere). Requiring
+    // data-type makes a single content block's arrows a clean no-op instead of
+    // swapping against the selector.
+    if (!adjacentElt || !jQuery(adjacentElt).hasClass("blockedit_block") || !adjacentElt.getAttribute("data-type")) {
+        return; // No valid adjacent content block to swap with
     }
 
     // Save CKEditor state if needed
@@ -1466,33 +1529,15 @@ function blockedit_move_block(elt, direction) {
         ckeStates = blockedit_save_ckeditor_states([currentElt, adjacentElt]);
     }
 
-    // Determine insertion reference point
-    var isFirst = !currentElt.previousSibling;
-    var refElement = isFirst ? currentElt.parentElement : currentElt.previousSibling;
-
-    // Detach both elements
-    $(currentElt).detach();
-    $(adjacentElt).detach();
-
-    // Reinsert in swapped order based on direction
+    // Swap the two adjacent blocks with a single native move (same approach as
+    // blockedit_array_move). The previous detach + insertAfter(refElement) logic
+    // used the block being moved as its own insertion reference, so on move-up it
+    // inserted relative to a detached node and dropped BOTH blocks out of the DOM
+    // — which blockedit_collect_htmls then saved as empty (content "cleared").
     if (direction === 'up') {
-        // Moving up: current goes before adjacent
-        if (isFirst) {
-            $(refElement).prepend(adjacentElt);
-            $(refElement).prepend(currentElt);
-        } else {
-            $(adjacentElt).insertAfter(refElement);
-            $(currentElt).insertAfter(refElement);
-        }
+        currentElt.parentNode.insertBefore(currentElt, adjacentElt);
     } else {
-        // Moving down: adjacent goes before current
-        if (isFirst) {
-            $(refElement).prepend(currentElt);
-            $(refElement).prepend(adjacentElt);
-        } else {
-            $(currentElt).insertAfter(refElement);
-            $(adjacentElt).insertAfter(refElement);
-        }
+        currentElt.parentNode.insertBefore(adjacentElt, currentElt);
     }
 
     // Restore CKEditor instances

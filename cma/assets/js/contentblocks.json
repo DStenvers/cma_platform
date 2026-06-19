@@ -1,0 +1,153 @@
+{
+  "templates": [
+    {
+      "id": "C47",
+      "title": "Accordeon",
+      "description": "Accordeon wordt gebruikt om extra informatie te verbergen",
+      "html": "",
+      "variables": {
+        "Accordeon": {
+          "description": "Accordeon item",
+          "type": "array",
+          "variables": {
+            "accordeon_title": {
+              "description": "Titel",
+              "type": "text",
+              "required": true
+            },
+            "accordeon_content": {
+              "description": "Inhoud<br><font class=small>Sub-accordeons:<br>++ Titel<br>{{Inhoud}}</font>",
+              "type": "longtext"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "C48",
+      "title": "Actielink",
+      "description": "Dit component bevat de titel en een 'call to action' knop",
+      "html": "",
+      "variables": {
+        "actielink_text": {
+          "description": "Tekst",
+          "type": "text",
+          "required": true
+        },
+        "actielink_link": {
+          "description": "Link van de knop",
+          "type": "url",
+          "required": true
+        },
+        "actielink_label": {
+          "description": "Knoptekst",
+          "type": "text",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "C10",
+      "title": "Body",
+      "description": "Dit component bevat de body tekst van de content pagina.",
+      "html": "",
+      "variables": {
+        "body_text": {
+          "description": "Tekst",
+          "type": "longtext",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "B99",
+      "title": "Button",
+      "description": "Dit component bevat een 'call to action' knop",
+      "html": "",
+      "variables": {
+        "button_label": {
+          "description": "Tekst",
+          "type": "text",
+          "required": true
+        },
+        "button_alt": {
+          "description": "Omschrijving",
+          "type": "text",
+          "required": true
+        },
+        "button_link": {
+          "description": "Link",
+          "type": "url",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "F01",
+      "title": "Formulier",
+      "description": "Dit component bevat een formulier (uit Portal 1.0)",
+      "html": "{ \"formulier\": \"[form_type]\",  \"opleiding\": \"[form_opleiding]\" }",
+      "variables": {
+        "form_type": {
+          "description": "Formulier",
+          "type": "switch",
+          "options": [
+            "vrijstelling"
+          ],
+          "required": true
+        },
+        "form_opleiding": {
+          "description": "Opleiding",
+          "type": "switch",
+          "options": [
+            "GZ",
+            "KP",
+            "PT",
+            "KNP",
+            "OG"
+          ],
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "L01",
+      "title": "Lijst",
+      "description": "Dit component bevat een lijst",
+      "html": "{ \"lijst\": \"[list_type]\" }",
+      "variables": {
+        "list_type": {
+          "description": "Lijst",
+          "type": "switch",
+          "options": [
+              "Groepsinfo",
+              "Deelnemerslijst",
+              "Organisatie"
+          ],
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "T01",
+      "title": "Tab",
+      "description": "Tab item",
+      "html": "",
+      "variables": {
+        "tab_titel": {
+          "description": "Titel tab",
+          "type": "text",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "C74",
+      "title": "Zoekmogelijkheid",
+      "description": "Zoekmogelijkheid voor accordeon-items",
+      "html": "",
+      "variables": {
+      }
+    }
+  ]
+  }
