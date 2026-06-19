@@ -69,6 +69,15 @@ class Installer
         // deploy you'd want to inspect. The git-tracked site-root twin
         // /deploy_status.php (ROOT_SYNCED_FILES) is the single status endpoint.
         'cma/tools/deploy_status.php',
+        // Removed: migration 2.2.0 (JavaScript error logging table) targeted the
+        // DEPRECATED_rep database, which is not part of the platform config. The
+        // migration and its SQL script were dropped; this removes the synced copy.
+        'cma/migrations/sql/2.2.0_javascript_errors.sql',
+        // Removed: duplicate migrations.json. The single source of truth is
+        // cma/config/migrations.json (read by MigrationService, Bootstrap and
+        // ConfigLoader). 9.9.0 used to move it here, splitting it from the file
+        // the runner reads; that move was dropped and this stale copy deleted.
+        'cma/migrations/migrations.json',
     ];
 
     /**

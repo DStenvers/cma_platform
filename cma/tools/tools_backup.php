@@ -47,6 +47,24 @@ if (!is_dir($backupDir)) {
 // backup tool sees the exact databases the app connects to.
 $databases = Bootstrap::loadDatabasesConfig();
 
+// databases.json is only the first of three layers the runtime resolves in
+// Bootstrap::initDatabaseConnections(): it also honours the legacy conn_*
+// Application globals and the default Access files (db/main.mdb, db/CMAUsers.mdb).
+// A site that connects through those without a matching databases.json entry
+// would otherwise show "Geen databases gevonden" even though the app clearly
+// has a working 'data' connection. Append any configured logical connection
+// (data/users/rep) that the JSON didn't already list, using the same resolved
+// DSN the live connections use, so the backup list matches what the app uses.
+$seenDbNames = [];
+foreach ($databases as $db) {
+    $seenDbNames[strtolower(trim((string)($db['name'] ?? '')))] = true;
+}
+foreach (['data', 'users', 'rep'] as $logical) {
+    if (!isset($seenDbNames[$logical]) && Database::isConfigured($logical)) {
+        $databases[] = ['name' => $logical, 'type' => 'access'];
+    }
+}
+
 // Build database list for backup
 $foundDatabases = [];
 foreach ($databases as $db) {

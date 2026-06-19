@@ -3845,6 +3845,18 @@ class CmaFormController {
     // =========================================================================
 
     /**
+     * True when a value is already an absolute http(s) URL. Such values are
+     * external references, not local upload filenames: the upload path/domain
+     * must not be prepended to them, and the file browser can't pre-select
+     * them from the upload directory.
+     * @param {string} value
+     * @returns {boolean}
+     */
+    isAbsoluteUrl(value) {
+        return /^https?:\/\//i.test(value || '');
+    }
+
+    /**
      * Open the image/file selector popup
      * @param {string} fieldName - Name of the image/file field
      * @param {string} path - Upload path for the file
@@ -3857,7 +3869,9 @@ class CmaFormController {
         }
 
         const isImage = field.dataset.type === 'image';
-        const currentValue = field.value || '';
+        // An absolute http(s) URL is an external reference, not a local upload:
+        // don't seed the browser with it (it can't be found in the upload dir).
+        const currentValue = this.isAbsoluteUrl(field.value) ? '' : (field.value || '');
         // layout=0 hides alignment/border/margin options (those are only for HTML editor)
         const popupUrl = isImage
             ? `wizards/file-browser.php?image=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`
@@ -3939,7 +3953,7 @@ class CmaFormController {
             }
         }
 
-        const imageUrl = path + field.value;
+        const imageUrl = this.isAbsoluteUrl(field.value) ? field.value : path + field.value;
 
         // Create lightbox overlay for better preview experience
         const overlay = document.createElement('div');
@@ -4002,7 +4016,7 @@ class CmaFormController {
             };
             const old404 = preview.parentElement.querySelector('.image-404');
             if (old404) old404.remove();
-            preview.src = filename ? (path + filename) : '';
+            preview.src = filename ? (this.isAbsoluteUrl(filename) ? filename : path + filename) : '';
             preview.style.display = filename ? '' : 'none';
         }
 
@@ -4028,7 +4042,7 @@ class CmaFormController {
         const fileNameEl = this.mainForm.querySelector(`[data-file-name="${fieldName}"]`);
         const fileClearBtn = this.mainForm.querySelector(`[data-clear-field="${fieldName}"]`);
         if (fileViewBtn) {
-            fileViewBtn.href = path + filename;
+            fileViewBtn.href = this.isAbsoluteUrl(filename) ? filename : path + filename;
             fileViewBtn.classList.toggle('disabled', !filename);
         }
         if (fileClearBtn) {
@@ -8145,7 +8159,7 @@ class CmaFormController {
                         // Remove previous 404 icon if re-loading
                         const old404 = preview.parentElement.querySelector('.image-404');
                         if (old404) old404.remove();
-                        preview.src = value.startsWith('http') ? value : path + value;
+                        preview.src = this.isAbsoluteUrl(value) ? value : path + value;
                         preview.style.display = '';
                     } else if (preview) {
                         preview.src = '';
@@ -8172,7 +8186,7 @@ class CmaFormController {
                     const fileNameEl = this.mainForm.querySelector(`[data-file-name="${name}"]`);
                     const fileClearBtn = this.mainForm.querySelector(`[data-clear-field="${name}"]`);
                     if (fileViewBtn) {
-                        fileViewBtn.href = value ? (filePath + value) : '';
+                        fileViewBtn.href = value ? (this.isAbsoluteUrl(value) ? value : filePath + value) : '';
                         fileViewBtn.classList.toggle('disabled', !value);
                     }
                     if (fileClearBtn) {

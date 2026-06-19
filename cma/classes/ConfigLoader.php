@@ -40,7 +40,7 @@ class ConfigLoader
     private static array $aliases = [
         'data-sources' => '/assets/datastores/data-sources',
         'control-types' => '/cma/control-types',
-        'migrations' => '/cma/migrations/migrations',
+        'migrations' => '/cma/config/migrations',
     ];
 
     private static function resolveFilePath(string $name): string

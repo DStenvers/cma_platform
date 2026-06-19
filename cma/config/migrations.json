@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.12.0",
+    "targetVersion": "9.13.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -404,18 +404,6 @@
                     "sql": "UPDATE tblUsers SET userLevel = 2 WHERE userAdministrator = True",
                     "optional": true,
                     "note": "Bestaande administrators worden developer (userLevel=2) - slaat over als userAdministrator niet meer bestaat"
-                }
-            ]
-        },
-        {
-            "version": "2.2.0",
-            "description": "JavaScript error logging tabel aanmaken",
-            "changes": [
-                {
-                    "type": "runSqlScript",
-                    "script": "migrations/sql/2.2.0_javascript_errors.sql",
-                    "database": "rep",
-                    "note": "Tabel voor JavaScript foutmeldingen"
                 }
             ]
         },
@@ -1129,6 +1117,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.12.0_retire_legacy_global_config.php",
                     "note": "Hernoemt global.php en (indien Application_OnStart triviaal is) global.asa.php naar *.delete_when_migrated i.p.v. ze te verwijderen (omkeerbaar). Schermt eerst de global.asa.php-require in app.php en _bootstrap.php af met file_exists. Tilt bekende env-secrets (MOLLIE_APIKEY, GOOGLE_API_KEY) uit global.php naar het actieve .env als die nog leeg zijn. Idempotent; maakt backups (.bak_retire_global)."
+                }
+            ]
+        },
+        {
+            "version": "9.13.0",
+            "description": "tblCMAJavascriptErrors aanmaken in de data database (JS-error logging)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.13.0_create_javascript_errors.php",
+                    "note": "Maakt tblCMAJavascriptErrors aan in de data database waar form_api.php (logJsError) en error-handler.js naartoe schrijven. Access-compatibele DDL (geen DEFAULT, MEMO > 255). Vervangt het verwijderde 2.2.0 (dat de deprecated rep-database met ongeldige SQL targette). Idempotent."
                 }
             ]
         }

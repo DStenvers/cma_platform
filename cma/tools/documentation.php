@@ -1208,7 +1208,7 @@ function render_doc_json_config(): void
             <tr><td><code>reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::$configPath</code></td><td>Alleen <code>data/reports.json</code> (géén terugval)</td></tr>
             <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> → terugval op <code>cma/config/databases.json</code></td></tr>
             <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
-            <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>ConfigLoader</code> + <code>Bootstrap</code></td><td><code>/cma/migrations/migrations.json</code> (systeem-eigen; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
+            <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>MigrationService</code> + <code>Bootstrap</code> + <code>ConfigLoader</code></td><td><code>/cma/config/migrations.json</code> (systeem-eigen, enige bron; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
         </tbody>
     </table>
     <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval. Ontbreekt <code>data/menu.json</code>, dan is het menu leeg — er wordt niet teruggevallen op <code>cma/config/menu.json</code>.</p>
@@ -1229,7 +1229,7 @@ function render_doc_json_config(): void
     <p><code>Cma\ConfigLoader</code> lost configbestanden standaard op naar de <code>/data/</code>-map. Drie namen zijn gealiast naar een vaste, systeem-eigen locatie (niet <code>data/</code>):</p>
     <pre><code>'data-sources'  &rarr; /assets/datastores/data-sources.json
 'control-types' &rarr; /cma/control-types.json
-'migrations'    &rarr; /cma/migrations/migrations.json</code></pre>
+'migrations'    &rarr; /cma/config/migrations.json</code></pre>
 
     <h2>Bescherming door de Installer</h2>
     <p><code>src/Installer.php</code> synct alleen <code>cma/</code>, <code>library/</code> en <code>module/</code> — nooit <code>data/</code>. De lijst <code>PROTECTED_PATHS</code> bevat <code>data/app.json</code>, <code>data/databases.json</code>, <code>data/menu.json</code> en <code>data/reports.json</code> als belt-and-braces: de check is feitelijk nooit triggerbaar (de Installer raakt <code>data/</code> toch niet aan) maar maakt expliciet welke paden per ontwerp project-bezit zijn.</p>
@@ -1414,7 +1414,7 @@ function render_doc_backups(): void
     <p class="docs-meta">Wat het backup-systeem doet, waar bestanden landen, en hoe je SQLite-corruptie herstelt.</p>
 
     <h2>Backup-systeem in een notendop</h2>
-    <p><a href="tools/tools_backup.php" target="_top">Tools → Database backup</a> draait op <code>Cma\Services\BackupService</code>. Per geconfigureerde database (uit <code>cma/config/databases.json</code>) maakt het een backup op de juiste manier:</p>
+    <p><a href="tools/tools_backup.php" target="_top">Tools → Database backup</a> draait op <code>Cma\Services\BackupService</code>. Per geconfigureerde database maakt het een backup op de juiste manier:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:160px">DB-type</th><th>Backup-strategie</th><th>Bestand</th></tr></thead>
         <tbody>
@@ -1426,6 +1426,15 @@ function render_doc_backups(): void
         </tbody>
     </table>
     <p>Beschrijvingen per backup leven in <code>backup/backups.json</code>; <code>BackupService::syncIndex()</code> reconciliert dat bestand met wat er op schijf staat.</p>
+
+    <h2>Welke databases verschijnen in de lijst</h2>
+    <p>De lijst komt uit <code>Bootstrap::loadDatabasesConfig()</code>: eerst <code>data/databases.json</code>, dan terugval op <code>cma/config/databases.json</code>. Daarnaast vult de tool de logische connecties <code>data</code>/<code>users</code>/<code>rep</code> aan die <span class="cma-tool__em">niet</span> in databases.json staan maar wél door de runtime geconfigureerd zijn — via de legacy <code>conn_*</code>-globals of de standaard Access-bestanden (<code>db/main.mdb</code>, <code>db/CMAUsers.mdb</code>). Zo matcht de backuplijst exact de connecties die <code>Bootstrap::initDatabaseConnections()</code> opbouwt.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:280px">Symptoom</th><th>Oorzaak &amp; oplossing</th></tr></thead>
+        <tbody>
+            <tr><td><code>Geen databases gevonden</code> terwijl de app wél een <code>data</code>-connectie heeft</td><td>De backup-tool las vroeger alléén databases.json en miste de <code>conn_*</code>/Access-default-laag die de runtime óók gebruikt. Sinds de fix worden geconfigureerde <code>data</code>/<code>users</code>/<code>rep</code>-connecties altijd aangevuld via <code>Database::isConfigured()</code>. Blijft de lijst leeg, dan is er écht geen connectie geregistreerd — controleer <code>data/databases.json</code> of de <code>conn_*</code>-globals in <code>app.php</code>.</td></tr>
+        </tbody>
+    </table>
 
     <h2>Pre-migration backups</h2>
     <p>Voordat <code>MigrationService</code> een database-wijzigende migration uitvoert, roept hij <code>BackupService::createMigrationBackup()</code> aan met de migration-versie als label. Die backups krijgen een vaste prefix zodat je in <a href="tools/tools_backup.php?tab=manage" target="_top">Backups beheren</a> snel de pre-migration snapshots terugvindt.</p>

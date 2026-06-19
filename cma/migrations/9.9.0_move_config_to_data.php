@@ -6,7 +6,8 @@
  * - config/constants.php -> library/constants.php
  * - config/global_functions.php -> deleted (empty placeholder)
  * - cma/config/ site-specific configs (app, databases, menu, reports) -> data/
- * - cma/config/ generic configs (control-types, schema/, migrations) -> cma/
+ * - cma/config/ generic configs (control-types, schema/) -> cma/
+ *   (migrations.json stays in cma/config/ — it's the source of truth the runner reads)
  * - cma/data/reports/ -> data/reports/
  * - Cleans up app/, config/, cma/config/, cma/data/
  */
@@ -98,17 +99,16 @@ foreach ($siteFiles as $filename) {
 }
 
 // Generic JSON files -> cma/
-$genericFiles = ['control-types.json', 'migrations.json'];
+// NB: migrations.json stays in cma/config/ — it remains the single source of
+// truth read by MigrationService, Bootstrap and ConfigLoader. (Earlier this
+// migration moved it to cma/migrations/, which split-brained against the file
+// the runner actually reads; that move was dropped.)
+$genericFiles = ['control-types.json'];
 foreach ($genericFiles as $filename) {
     $src = $configDir . '/' . $filename;
     if (!file_exists($src)) continue;
 
-    // migrations.json goes to cma/migrations/
-    if ($filename === 'migrations.json') {
-        $dest = $cmaDir . '/migrations/' . $filename;
-    } else {
-        $dest = $cmaDir . '/' . $filename;
-    }
+    $dest = $cmaDir . '/' . $filename;
 
     if (file_exists($dest)) {
         echo "  Overgeslagen: {$filename} (bestaat al)\n";

@@ -666,3 +666,22 @@ karaat-data en staat in de karaat-repo.
 > i ran composer update stenversonline/platform
 
 > date is now updated, only when i edit a form in popup mode, after closing the popup the value is not updated in the list mode of the kortingscodes
+
+## 2026-06-19
+
+> Versie 2.2.0: JavaScript error logging tabel aanmaken
+>   1 wijziging(en) uit te voeren...
+> ✗ Versie 2.2.0 MISLUKT: Script uitvoering mislukt (migrations/sql/2.2.0_javascript_errors.sql): SQLSTATE[42000]: Syntax error or access violation: -3551 [Microsoft][ODBC Microsoft Access Driver] Syntax error in CREATE TABLE statement. (SQLExecDirect[-3551] at ext\pdo_odbc\odbc_driver.c:246)
+> ✗ Fout bij migratie versie 2.2.0: Script uitvoering mislukt (migrations/sql/2.2.0_javascript_errors.sql): SQLSTATE[42000]: Syntax error or access violation: -3551 [Microsoft][ODBC Microsoft Access Driver] Syntax error in CREATE TABLE statement. (SQLExecDirect[-3551] at ext\pdo_odbc\odbc_driver.c:246)
+
+> yews please do
+
+> yes please
+
+> the image preview adds the domain name to it, but if an image already has http(s):// in it's name that should be skipped. Also the file selector should ignore the current filename if http(s):// is part of the name
+
+> when using composer update i get another version number as mentioned in the profile-menu (v1.26.28), can we use the one in the profile-menu everywhere?
+
+> okay, lat's leave it as it is
+
+> push please

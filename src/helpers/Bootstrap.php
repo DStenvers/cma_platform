@@ -706,7 +706,7 @@ class Bootstrap
 
         $_SESSION['_migration_check_done'] = true;
 
-        $migrationsFile = self::$rootDir . '/cma/migrations/migrations.json';
+        $migrationsFile = self::$rootDir . '/cma/config/migrations.json';
         if (!file_exists($migrationsFile)) {
             return;
         }
@@ -714,14 +714,27 @@ class Bootstrap
         $migrationsData = json_decode(file_get_contents($migrationsFile), true);
         $targetVersion = $migrationsData['targetVersion'] ?? '0.0.0';
 
-        // Applied version is tracked in migrations.json (schemaVersion) since
-        // migrations moved to JSON. We no longer open the deprecated 'rep'
-        // (repository.mdb) database at runtime to read a _cma_version table —
-        // rep is migration-only, and opening it on every CMA page caused the
-        // Access "volatile Ace DSN" crash (SQLSTATE HY000 / 63).
-        $currentVersion = $migrationsData['schemaVersion'] ?? '0.0.0';
+        // Applied version = the latest row in the _cma_version tracking table
+        // in the 'data' database (the same source MigrationService writes to).
+        // 'data' is already connected at this point; we never open the
+        // deprecated 'rep' database at runtime — doing so on every CMA page
+        // caused the Access "volatile Ace DSN" crash (SQLSTATE HY000 / 63).
+        // NB: schemaVersion in the JSON is the file *format* version (always
+        // "1.0"), NOT the applied DB version — comparing against it made the
+        // dashboard show a permanent "migration needed" banner.
+        $currentVersion = self::appliedMigrationVersion();
 
-        if (version_compare($currentVersion, $targetVersion, '<')) {
+        // Collect migrations newer than what's applied. Counting the real set
+        // keeps the dashboard banner's number accurate instead of always 1.
+        $pending = [];
+        foreach ($migrationsData['migrations'] ?? [] as $migration) {
+            if (isset($migration['version'])
+                && version_compare($currentVersion, $migration['version'], '<')) {
+                $pending[] = $migration['version'];
+            }
+        }
+
+        if (!empty($pending)) {
             $_SESSION['_migration_needed'] = true;
             $_SESSION['_migration_current'] = $currentVersion;
             $_SESSION['_migration_target'] = $targetVersion;
@@ -733,13 +746,27 @@ class Bootstrap
             strpos($requestUri, '/cma/login.php') === false &&
             strpos($requestUri, 'tools_migrations.php') === false) {
 
-            $GLOBALS['_pending_migrations'] = [
-                [
-                    'current' => $_SESSION['_migration_current'] ?? '0.0.0',
-                    'target' => $_SESSION['_migration_target'] ?? '?'
-                ]
-            ];
+            $GLOBALS['_pending_migrations'] = array_map(
+                static fn($version) => ['current' => $currentVersion, 'target' => $version],
+                $pending
+            );
         }
+    }
+
+    /**
+     * Latest applied migration version from the platform's _cma_version
+     * tracking table in the 'data' database, or '0.0.0' when the table is
+     * absent (fresh install) or unreadable. Mirrors the read in
+     * Cma\Services\MigrationService::getLatestVersion() so the boot-time check
+     * needs no CMA-layer class; ORDER BY + first-row fetch is driver-portable
+     * (no TOP/LIMIT). Reads 'data' only — never the deprecated 'rep'.
+     */
+    private static function appliedMigrationVersion(): string
+    {
+        $row = \App\Library\Database::executeSingleRecord(
+            'SELECT version FROM _cma_version ORDER BY applied_at DESC, id DESC'
+        );
+        return (is_array($row) && !empty($row['version'])) ? (string)$row['version'] : '0.0.0';
     }
 
     private static function bootstrapError(string $message, string $code): void
