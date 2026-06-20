@@ -687,3 +687,9 @@ karaat-data en staat in de karaat-repo.
 > push please
 
 > yes push please
+
+> please set BLOCKEDIT_TRACE = false
+
+## 2026-06-20
+
+> commit and push

@@ -43,7 +43,7 @@ var cmaLog = {
 // see neither an error nor where the flow stopped. blockedit_trace() writes
 // straight to console.log (independent of the debug gate) so the milestones
 // below are always visible. Flip BLOCKEDIT_TRACE to false to silence them.
-var BLOCKEDIT_TRACE = true;
+var BLOCKEDIT_TRACE = false;
 function blockedit_trace() {
 	if (!BLOCKEDIT_TRACE) return;
 	var args = Array.prototype.slice.call(arguments);
