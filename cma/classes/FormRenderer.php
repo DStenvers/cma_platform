@@ -617,6 +617,15 @@ class FormRenderer
             'use-blockedit' => $useContentBlocks ? 'true' : 'false',
         ], $newChangableOnly, $caption);
 
+        // An allow-HTML memo becomes a rich editor (CKEditor / blockedit). A tiny
+        // configured height (e.g. height:1 -> 18px) collapses that editor to an
+        // invisible sliver, so the field looks like it disappears the moment you
+        // start editing. Give rich editors a usable minimum height. Plain memos
+        // keep their configured height (a 1-row textarea is still usable).
+        if ($allowHtml && $height < 5) {
+            $height = 5;
+        }
+
         $rowHeight = $height * 18;
 
         // Add class for JSON fields (monospace font)
