@@ -727,3 +727,5 @@ karaat-data en staat in de karaat-repo.
 > copy: yes use either
 > that is the karaat form definition of a stone, the correct url is like : https://www.karaatedelstenen.nl/edelsteen/1957/preview.html 
 > Combo: i need to see it, can you commit and push when ready?
+
+> Vormen lijken niet meer te wijzigen, zorg dat dit bij de quick-edit aan de voorkant van Karaat te wijzigen is, maar voeg het veld ook toe aan de CMA definitie

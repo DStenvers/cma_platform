@@ -198,14 +198,24 @@ class FormRenderer
             );
         }
 
-        $dataAttrs = self::buildDataAttributes($name, 'textbox', $required, $readonly, [
-            'maxlength' => $maxLength,
+        // A maxLength of 0 (or unset/negative) means "no limit". Emitting a hard
+        // maxlength="0" / data-maxlength="0" makes the field impossible to type
+        // in — it blocks the whole control. Only set the attribute for a real
+        // positive limit.
+        $hasMaxLength = $maxLength >= 1;
+
+        $dataAttrsConfig = [
             'validation' => $validationType,
             'is-date' => 'false',
             'default' => $defaultValue,
-        ], $newChangableOnly, $caption);
+        ];
+        if ($hasMaxLength) {
+            $dataAttrsConfig = ['maxlength' => $maxLength] + $dataAttrsConfig;
+        }
+        $dataAttrs = self::buildDataAttributes($name, 'textbox', $required, $readonly, $dataAttrsConfig, $newChangableOnly, $caption);
 
-        // Large text fields become textareas
+        // Large text fields become textareas (only reached when maxLength > 128,
+        // so a positive maxlength is always correct here).
         if ($maxLength > 128) {
             $rows = max(round($maxLength / 80, 0), 1);
             $height = $rows * 22;
@@ -222,21 +232,22 @@ class FormRenderer
 
         // Regular text input
         $autocomplete = FormControlHelper::getAutocompleteAttribute($name);
-        $size = min($maxLength, 70);
+        $size = $hasMaxLength ? min($maxLength, 70) : 70;
+        $maxLengthAttr = $hasMaxLength ? sprintf(' maxlength="%d"', $maxLength) : '';
 
         // Number fields: limit to 8 chars and 80px width
         $style = '';
         if ($validationType === 'number') {
-            $maxLength = 8;
             $size = 8;
+            $maxLengthAttr = ' maxlength="8"';
             $style = ' style="width:80px"';
         }
 
         return sprintf(
-            '<input type="text" name="%s" %s maxlength="%d" size="%d" data-validation-type="%s"%s%s>',
+            '<input type="text" name="%s" %s%s size="%d" data-validation-type="%s"%s%s>',
             self::escape($name),
             $dataAttrs,
-            $maxLength,
+            $maxLengthAttr,
             $size,
             self::escape($validationType),
             $autocomplete !== '' ? ' ' . $autocomplete : '',
@@ -255,18 +266,21 @@ class FormRenderer
         $caption = $config['caption'] ?? '';
         $newChangableOnly = $config['newChangableOnly'] ?? false;
 
-        $dataAttrs = self::buildDataAttributes($name, 'password', $required, $readonly, [
-            'maxlength' => $maxLength,
-        ], $newChangableOnly, $caption);
+        // maxLength < 1 means "no limit" — never emit maxlength="0" (it blocks input).
+        $hasMaxLength = $maxLength >= 1;
+        $dataAttrs = self::buildDataAttributes($name, 'password', $required, $readonly,
+            $hasMaxLength ? ['maxlength' => $maxLength] : [],
+            $newChangableOnly, $caption);
 
         $autocomplete = FormControlHelper::getAutocompleteAttribute($name, true);
-        $size = min($maxLength, 40);
+        $size = $hasMaxLength ? min($maxLength, 40) : 40;
+        $maxLengthAttr = $hasMaxLength ? sprintf(' maxlength="%d"', $maxLength) : '';
 
         $html = sprintf(
-            '<input type="password" name="%s" %s maxlength="%d" size="%d"%s>',
+            '<input type="password" name="%s" %s%s size="%d"%s>',
             self::escape($name),
             $dataAttrs,
-            $maxLength,
+            $maxLengthAttr,
             $size,
             $autocomplete !== '' ? ' ' . $autocomplete : ''
         );
@@ -834,18 +848,20 @@ class FormRenderer
         $maxLength = $config['maxLength'] ?? 255;
         $caption = $config['caption'] ?? '';
 
-        $dataAttrs = self::buildDataAttributes($name, 'url', $required, $readonly, [
-            'maxlength' => $maxLength,
-        ], $newChangableOnly, $caption);
+        // maxLength < 1 means "no limit" — never emit maxlength="0" (it blocks input).
+        $hasMaxLength = $maxLength >= 1;
+        $dataAttrs = self::buildDataAttributes($name, 'url', $required, $readonly,
+            $hasMaxLength ? ['maxlength' => $maxLength] : [],
+            $newChangableOnly, $caption);
 
         $html = '<div class="url-input-group">';
 
         // URL input field
         $html .= sprintf(
-            '<input type="url" name="%s" class="url-display-input" %s maxlength="%d" placeholder="https://...">',
+            '<input type="url" name="%s" class="url-display-input" %s%s placeholder="https://...">',
             self::escape($name),
             $dataAttrs,
-            $maxLength
+            $hasMaxLength ? sprintf(' maxlength="%d"', $maxLength) : ''
         );
 
         // Preview button (disabled initially, enabled via JS when URL has value)
