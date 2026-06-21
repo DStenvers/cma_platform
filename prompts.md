@@ -946,3 +946,16 @@ karaat-data en staat in de karaat-repo.
 > e] [--prefer-lowest] [-i|--interactive] [--root-reqs] [--] [<packages>]...
 
 > i think the query editor also missed the databases.json migrtation, i now get the error : SQL foutCall to a member function setAttribute() on null on each call and the table list is empty
+
+> that seems to have worked
+
+> the table combo is still empty and therefor the fields
+
+> and database structuur says: Database structuur | main
+> Tabellen, kolommen en recordaantallen
+> JSON
+> XML
+> TXT
+> Fout: Database connection 'main' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named 'main').
+
+> main should be data

@@ -229,10 +229,22 @@ class Database
     }
 
     /**
-     * Connection name aliases (for backwards compatibility)
-     * Currently no aliases - 'data', 'rep', and 'users' are all separate databases
+     * Connection name aliases (for backwards compatibility).
+     *
+     * The legacy databases.json names resolve to the logical connections,
+     * mirroring Bootstrap::initDatabaseConnections() (which registers DSNs under
+     * data/rep/users but accepts the legacy names). Code or tools that use the
+     * RAW name from a consumer's databases.json — e.g. a 'main' entry instead of
+     * 'data' — would otherwise hit getConnection('main') and throw
+     * "connection 'main' not configured". Keys must be lowercase (getConnection
+     * lowercases before lookup).
      */
-    private static array $connectionAliases = [];
+    private static array $connectionAliases = [
+        'main' => 'data',
+        'database' => 'data',
+        'repository' => 'rep',
+        'cmausers' => 'users',
+    ];
 
     /**
      * Connection name to Application variable name mapping

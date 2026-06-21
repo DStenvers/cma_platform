@@ -8381,7 +8381,14 @@ class CmaFormController {
                             field.textContent = displayValue;
                         }
                     } else if (field.value !== undefined) {
-                        field.value = value || '';
+                        let v = value || '';
+                        // Number fields: collapse an all-zero fraction on init so
+                        // 5.0 / 5.00 / 5.000 / 5.0000 show as "5" (nothing useful
+                        // after the decimal). Real decimals (5.50, 5.10) are kept.
+                        if (field.dataset.validationType === 'number' && /^-?\d+\.0+$/.test(String(v))) {
+                            v = String(v).replace(/\.0+$/, '');
+                        }
+                        field.value = v;
                     }
             }
 
