@@ -729,6 +729,32 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             $success = imagefilter($source, IMG_FILTER_CONTRAST, ($arg === '-') ? 20 : -20);
             break;
 
+        case 'saturation':
+            // GD has no saturation filter; blend each pixel away from (more) or
+            // toward (less) its luminance. Kept very subtle (±10%) and stackable.
+            $factor = ($arg === '-') ? 0.9 : 1.1;
+            if (function_exists('imagepalettetotruecolor')) {
+                imagepalettetotruecolor($source);
+            }
+            $sw = imagesx($source);
+            $sh = imagesy($source);
+            for ($yy = 0; $yy < $sh; $yy++) {
+                for ($xx = 0; $xx < $sw; $xx++) {
+                    $rgb = imagecolorat($source, $xx, $yy);
+                    $al = ($rgb >> 24) & 0x7F;
+                    $r = ($rgb >> 16) & 0xFF;
+                    $g = ($rgb >> 8) & 0xFF;
+                    $b = $rgb & 0xFF;
+                    $lum = 0.299 * $r + 0.587 * $g + 0.114 * $b;
+                    $r = (int) max(0, min(255, round($lum + ($r - $lum) * $factor)));
+                    $g = (int) max(0, min(255, round($lum + ($g - $lum) * $factor)));
+                    $b = (int) max(0, min(255, round($lum + ($b - $lum) * $factor)));
+                    imagesetpixel($source, $xx, $yy, imagecolorallocatealpha($source, $r, $g, $b, $al));
+                }
+            }
+            $success = true;
+            break;
+
         default:
             return ['success' => false, 'error' => 'Onbekend filter'];
     }
@@ -2059,6 +2085,8 @@ $appBasePath = Application::get('base_path', '/');
                         + '<button type="button" class="img-edit-btn" title="Donkerder" onclick="editImageFilter(\'brightness\',\'-\')"><span class="lnr lnr-moon"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Meer contrast" onclick="editImageContrast(\'+\')"><span class="lnr lnr-contrast"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Minder contrast" onclick="editImageContrast(\'-\')"><span class="lnr lnr-contrast" style="opacity:0.5"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Meer verzadiging" onclick="editImageFilter(\'saturation\',\'+\')"><span class="lnr lnr-drop"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Minder verzadiging" onclick="editImageFilter(\'saturation\',\'-\')"><span class="lnr lnr-drop" style="opacity:0.5"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Verscherpen" onclick="editImageFilter(\'sharpen\',\'\')"><span class="lnr lnr-magic-wand"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Bijsnijden" onclick="startCrop()"><span class="lnr lnr-crop"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Witruimte automatisch bijsnijden (laat marge staan)" onclick="doAutocrop()"><span class="lnr lnr-frame-contract"></span></button>'
