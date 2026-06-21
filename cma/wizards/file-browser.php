@@ -208,6 +208,12 @@ if ($action !== '') {
             echo json_encode(restoreImageOriginal($fullPath, $file));
             break;
 
+        case 'autocrop':
+            $file = Request::post('file', '');
+            $margin = Request::postInt('margin', 10);
+            echo json_encode(autocropImage($fullPath, $file, $margin));
+            break;
+
         default:
             echo json_encode(['success' => false, 'error' => 'Onbekende actie']);
     }
@@ -806,6 +812,84 @@ function restoreImageOriginal(string $fullPath, string $file): array {
     return ['success' => true, 'message' => 'Origineel teruggezet'];
 }
 
+/**
+ * Auto-trim the uniform background (e.g. white) around the subject, then leave a
+ * margin of $marginPct% of the detected content size on each side (default 10%).
+ * Background colour is sampled from the top-left corner; a tolerance covers JPEG
+ * noise.
+ */
+function autocropImage(string $fullPath, string $file, int $marginPct): array {
+    $file = stripVersionQuery(basename($file));
+    $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
+    if (!file_exists($targetPath)) {
+        return ['success' => false, 'error' => 'Bestand niet gevonden'];
+    }
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
+        return ['success' => false, 'error' => 'Bestandstype ondersteunt geen autocrop'];
+    }
+    switch ($ext) {
+        case 'png':  $src = @imagecreatefrompng($targetPath); break;
+        case 'gif':  $src = @imagecreatefromgif($targetPath); break;
+        case 'webp': $src = @imagecreatefromwebp($targetPath); break;
+        case 'bmp':  $src = function_exists('imagecreatefrombmp') ? @imagecreatefrombmp($targetPath) : null; break;
+        default:     $src = @imagecreatefromjpeg($targetPath);
+    }
+    if (!$src) {
+        return ['success' => false, 'error' => 'Kan afbeelding niet laden'];
+    }
+    $w = imagesx($src);
+    $h = imagesy($src);
+
+    $bg  = imagecolorat($src, 0, 0);
+    $bgR = ($bg >> 16) & 0xFF; $bgG = ($bg >> 8) & 0xFF; $bgB = $bg & 0xFF;
+    $tol = 24;
+    $differs = function (int $x, int $y) use ($src, $bgR, $bgG, $bgB, $tol): bool {
+        $c = imagecolorat($src, $x, $y);
+        return abs((($c >> 16) & 0xFF) - $bgR) > $tol
+            || abs((($c >> 8) & 0xFF) - $bgG) > $tol
+            || abs(($c & 0xFF) - $bgB) > $tol;
+    };
+
+    // Content bounding box: scan inward from each edge, stop at the first hit.
+    $minY = 0;
+    for (; $minY < $h; $minY++) { $hit = false; for ($x = 0; $x < $w; $x++) { if ($differs($x, $minY)) { $hit = true; break; } } if ($hit) break; }
+    if ($minY >= $h) { imagedestroy($src); return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
+    $maxY = $h - 1;
+    for (; $maxY > $minY; $maxY--) { $hit = false; for ($x = 0; $x < $w; $x++) { if ($differs($x, $maxY)) { $hit = true; break; } } if ($hit) break; }
+    $minX = 0;
+    for (; $minX < $w; $minX++) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($minX, $y)) { $hit = true; break; } } if ($hit) break; }
+    $maxX = $w - 1;
+    for (; $maxX > $minX; $maxX--) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($maxX, $y)) { $hit = true; break; } } if ($hit) break; }
+    imagedestroy($src);
+
+    if ($marginPct < 0) { $marginPct = 0; }
+    if ($marginPct > 100) { $marginPct = 100; }
+    $contentW = $maxX - $minX + 1;
+    $contentH = $maxY - $minY + 1;
+    $marX = (int) round($contentW * $marginPct / 100);
+    $marY = (int) round($contentH * $marginPct / 100);
+    $x  = max(0, $minX - $marX);
+    $y  = max(0, $minY - $marY);
+    $x2 = min($w - 1, $maxX + $marX);
+    $y2 = min($h - 1, $maxY + $marY);
+    $cropW = $x2 - $x + 1;
+    $cropH = $y2 - $y + 1;
+
+    if ($x === 0 && $y === 0 && $cropW >= $w && $cropH >= $h) {
+        return ['success' => true, 'message' => 'Geen witruimte om bij te snijden', 'width' => $w, 'height' => $h];
+    }
+
+    ensureImageOriginalBackup($targetPath);
+    if (!Image::crop($targetPath, $targetPath, $x, $y, $cropW, $cropH)) {
+        return ['success' => false, 'error' => 'Kan afbeelding niet bijsnijden'];
+    }
+    ResponsiveImage::deleteVariants($targetPath);
+    ResponsiveImage::generate($targetPath);
+    $dim = @getimagesize($targetPath);
+    return ['success' => true, 'message' => 'Witruimte bijgesneden', 'width' => $dim ? $dim[0] : null, 'height' => $dim ? $dim[1] : null];
+}
+
 // Get application base path for URLs
 $appBasePath = Application::get('base_path', '/');
 ?>
@@ -1035,6 +1119,21 @@ $appBasePath = Application::get('base_path', '/');
             border-color: var(--border-dark, #999);
         }
         .img-edit-btn--undo { margin-left: auto; }
+        .img-edit-margin {
+            font-size: 12px;
+            color: var(--text-muted, #666);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .img-edit-margin input {
+            width: 44px;
+            height: 30px;
+            padding: 2px 4px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color, #ccc);
+            border-radius: 4px;
+        }
 
         .details-table {
             width: 100%;
@@ -1948,6 +2047,8 @@ $appBasePath = Application::get('base_path', '/');
                 // Each button posts to the existing rotate/filter/crop actions,
                 // which save in place and regenerate the .responsive variants.
                 if (file.ext !== 'svg') {
+                    var acMargin = 10;
+                    try { var _sm = localStorage.getItem('cma_autocrop_margin'); if (_sm !== null && _sm !== '') acMargin = parseInt(_sm, 10) || 10; } catch (e) {}
                     html += '<div class="img-edit-bar" id="imgEditBar">'
                         + '<span class="img-edit-bar__label"><span class="lnr lnr-pencil"></span> Bewerken</span>'
                         + '<button type="button" class="img-edit-btn" title="Linksom draaien" onclick="editImageRotate(-90)"><span class="lnr lnr-undo"></span></button>'
@@ -1960,6 +2061,8 @@ $appBasePath = Application::get('base_path', '/');
                         + '<button type="button" class="img-edit-btn" title="Minder contrast" onclick="editImageContrast(\'-\')"><span class="lnr lnr-contrast" style="opacity:0.5"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Verscherpen" onclick="editImageFilter(\'sharpen\',\'\')"><span class="lnr lnr-magic-wand"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Bijsnijden" onclick="startCrop()"><span class="lnr lnr-crop"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Witruimte automatisch bijsnijden (laat marge staan)" onclick="doAutocrop()"><span class="lnr lnr-frame-contract"></span></button>'
+                        + '<label class="img-edit-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="' + acMargin + '">%</label>'
                         + (file.hasOriginal ? '<button type="button" class="img-edit-btn img-edit-btn--undo" title="Origineel terugzetten (alle bewerkingen ongedaan maken)" onclick="restoreImageOriginal()"><span class="lnr lnr-history"></span></button>' : '')
                         + '</div>';
                 }
@@ -2058,6 +2161,13 @@ $appBasePath = Application::get('base_path', '/');
         function editImageFilter(filter, arg) { editImageOp({ action: 'filter', filter: filter, arg: arg }); }
         function editImageFlip(dir) { editImageOp({ action: 'filter', filter: 'flip', arg: dir }); }
         function editImageContrast(arg) { editImageOp({ action: 'filter', filter: 'contrast', arg: arg }); }
+        function doAutocrop() {
+            let m = 10;
+            const inp = document.getElementById('autocropMargin');
+            if (inp) { m = parseInt(inp.value, 10); if (isNaN(m) || m < 0) m = 0; if (m > 50) m = 50; }
+            try { localStorage.setItem('cma_autocrop_margin', m); } catch (e) {}
+            editImageOp({ action: 'autocrop', margin: m });
+        }
         function restoreImageOriginal() {
             if (!selectedFile) return;
             if (typeof libConfirm === 'function') {

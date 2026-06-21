@@ -999,3 +999,7 @@ karaat-data en staat in de karaat-repo.
 
 > fix the crop
 > please
+
+> no we will skip that one, any more idea’s , often used image transformations?
+
+> autocrop sound great, can we have a setting for the remaining  percentage, bacause i do want some margin, default 10%
