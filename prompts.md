@@ -992,3 +992,5 @@ karaat-data en staat in de karaat-repo.
 > Hits
 > 0
 > Misses, skip that of hits if all is 0
+
+> yes make the regular bittons as well

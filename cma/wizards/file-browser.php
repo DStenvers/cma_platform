@@ -203,6 +203,11 @@ if ($action !== '') {
             echo json_encode(applyImageFilter($fullPath, $file, $filter, $arg));
             break;
 
+        case 'restore':
+            $file = Request::post('file', '');
+            echo json_encode(restoreImageOriginal($fullPath, $file));
+            break;
+
         default:
             echo json_encode(['success' => false, 'error' => 'Onbekende actie']);
     }
@@ -385,6 +390,9 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite, stri
     }
 
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        // A fresh upload is a new "original" — drop any stale edit-backup so
+        // "Origineel terugzetten" can't revert to the previous file.
+        @unlink(imageOriginalBackupPath($targetPath));
         return ['success' => true, 'filename' => $filename, 'message' => 'Bestand geüpload', 'modifiedTs' => filemtime($targetPath)];
     } else {
         return ['success' => false, 'error' => 'Kan bestand niet opslaan'];
@@ -495,6 +503,8 @@ function getFileDetails(string $fullPath, string $file, string $webPath): array 
             $details['width'] = $dimensions[0];
             $details['height'] = $dimensions[1];
         }
+        // Whether an original backup exists (enables "Origineel terugzetten").
+        $details['hasOriginal'] = file_exists(imageOriginalBackupPath($targetPath));
     }
 
     return $details;
@@ -537,6 +547,7 @@ function rotateImage(string $fullPath, string $file, int $degrees): array {
         return ['success' => false, 'error' => 'Bestandstype ondersteunt geen rotatie'];
     }
 
+    ensureImageOriginalBackup($targetPath);
     if (Image::rotate($targetPath, $targetPath, $degrees)) {
         // Regenerate responsive variants
         ResponsiveImage::deleteVariants($targetPath);
@@ -575,6 +586,7 @@ function resizeImage(string $fullPath, string $file, int $maxWidth, int $maxHeig
         return ['success' => false, 'error' => 'Bestandstype ondersteunt geen formaat wijzigen'];
     }
 
+    ensureImageOriginalBackup($targetPath);
     if (Image::resize($targetPath, $targetPath, $maxWidth, $maxHeight)) {
         // Regenerate responsive variants
         ResponsiveImage::deleteVariants($targetPath);
@@ -613,6 +625,7 @@ function cropImage(string $fullPath, string $file, int $x, int $y, int $width, i
         return ['success' => false, 'error' => 'Bestandstype ondersteunt geen bijsnijden'];
     }
 
+    ensureImageOriginalBackup($targetPath);
     // If destination dimensions are provided, crop and resize
     if ($destWidth > 0 && $destHeight > 0) {
         $success = Image::cropAndResize($targetPath, $targetPath, $x, $y, $width, $height, $destWidth, $destHeight);
@@ -653,6 +666,8 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
     if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'])) {
         return ['success' => false, 'error' => 'Bestandstype ondersteunt geen filters'];
     }
+
+    ensureImageOriginalBackup($targetPath);
 
     // Load image
     $imageInfo = @getimagesize($targetPath);
@@ -698,6 +713,16 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             $success = imageconvolution($source, $sharpenMatrix, $divisor, 0);
             break;
 
+        case 'flip':
+            // arg 'v' = vertical, otherwise horizontal
+            $success = imageflip($source, $arg === 'v' ? IMG_FLIP_VERTICAL : IMG_FLIP_HORIZONTAL);
+            break;
+
+        case 'contrast':
+            // GD: a NEGATIVE level increases contrast. arg '+' = more, '-' = less.
+            $success = imagefilter($source, IMG_FILTER_CONTRAST, ($arg === '-') ? 20 : -20);
+            break;
+
         default:
             return ['success' => false, 'error' => 'Onbekend filter'];
     }
@@ -736,6 +761,49 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
     }
 
     return ['success' => false, 'error' => 'Kan afbeelding niet opslaan'];
+}
+
+/**
+ * Path to the kept-original backup for an edited image (sibling .orig/ dir,
+ * skipped from listings since it starts with a dot).
+ */
+function imageOriginalBackupPath(string $targetPath): string {
+    return dirname($targetPath) . DIRECTORY_SEPARATOR . '.orig' . DIRECTORY_SEPARATOR . basename($targetPath);
+}
+
+/**
+ * Before the FIRST edit of an image, copy it to .orig/ so "Origineel terugzetten"
+ * can revert every edit. No-op if a backup already exists.
+ */
+function ensureImageOriginalBackup(string $targetPath): void {
+    $backup = imageOriginalBackupPath($targetPath);
+    if (file_exists($backup)) {
+        return;
+    }
+    $dir = dirname($backup);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    @copy($targetPath, $backup);
+}
+
+/**
+ * Restore an edited image from its .orig/ backup (undo all edits) and regenerate
+ * responsive variants. The backup is kept so further edits stay undoable.
+ */
+function restoreImageOriginal(string $fullPath, string $file): array {
+    $file = stripVersionQuery(basename($file));
+    $targetPath = $fullPath . DIRECTORY_SEPARATOR . $file;
+    $backup = imageOriginalBackupPath($targetPath);
+    if (!file_exists($backup)) {
+        return ['success' => false, 'error' => 'Geen origineel beschikbaar'];
+    }
+    if (!@copy($backup, $targetPath)) {
+        return ['success' => false, 'error' => 'Kan origineel niet terugzetten'];
+    }
+    ResponsiveImage::deleteVariants($targetPath);
+    ResponsiveImage::generate($targetPath);
+    return ['success' => true, 'message' => 'Origineel teruggezet'];
 }
 
 // Get application base path for URLs
@@ -965,6 +1033,7 @@ $appBasePath = Application::get('base_path', '/');
             background: var(--bg-hover, #f0f0f0);
             border-color: var(--border-dark, #999);
         }
+        .img-edit-btn--undo { margin-left: auto; }
 
         .details-table {
             width: 100%;
@@ -1882,10 +1951,15 @@ $appBasePath = Application::get('base_path', '/');
                         + '<span class="img-edit-bar__label"><span class="lnr lnr-pencil"></span> Bewerken</span>'
                         + '<button type="button" class="img-edit-btn" title="Linksom draaien" onclick="editImageRotate(-90)"><span class="lnr lnr-undo"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Rechtsom draaien" onclick="editImageRotate(90)"><span class="lnr lnr-redo"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Horizontaal spiegelen" onclick="editImageFlip(\'h\')"><span class="lnr lnr-flip"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Verticaal spiegelen" onclick="editImageFlip(\'v\')"><span class="lnr lnr-flip" style="transform:rotate(90deg)"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Lichter" onclick="editImageFilter(\'brightness\',\'+\')"><span class="lnr lnr-sun"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Donkerder" onclick="editImageFilter(\'brightness\',\'-\')"><span class="lnr lnr-moon"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Meer contrast" onclick="editImageContrast(\'+\')"><span class="lnr lnr-contrast"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Minder contrast" onclick="editImageContrast(\'-\')"><span class="lnr lnr-contrast" style="opacity:0.5"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Verscherpen" onclick="editImageFilter(\'sharpen\',\'\')"><span class="lnr lnr-magic-wand"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Bijsnijden" onclick="startCrop()"><span class="lnr lnr-crop"></span></button>'
+                        + (file.hasOriginal ? '<button type="button" class="img-edit-btn img-edit-btn--undo" title="Origineel terugzetten (alle bewerkingen ongedaan maken)" onclick="restoreImageOriginal()"><span class="lnr lnr-history"></span></button>' : '')
                         + '</div>';
                 }
             }
@@ -1981,6 +2055,18 @@ $appBasePath = Application::get('base_path', '/');
         }
         function editImageRotate(deg) { editImageOp({ action: 'rotate', degrees: deg }); }
         function editImageFilter(filter, arg) { editImageOp({ action: 'filter', filter: filter, arg: arg }); }
+        function editImageFlip(dir) { editImageOp({ action: 'filter', filter: 'flip', arg: dir }); }
+        function editImageContrast(arg) { editImageOp({ action: 'filter', filter: 'contrast', arg: arg }); }
+        function restoreImageOriginal() {
+            if (!selectedFile) return;
+            if (typeof libConfirm === 'function') {
+                libConfirm('Alle bewerkingen ongedaan maken en het origineel terugzetten?',
+                    { title: 'Origineel terugzetten', type: 'warning', confirmText: 'Terugzetten', cancelText: 'Annuleren' })
+                    .then(function(ok) { if (ok) editImageOp({ action: 'restore' }); });
+            } else {
+                editImageOp({ action: 'restore' });
+            }
+        }
 
         // Interactive crop: drag a rectangle over the preview, then apply.
         let _cropState = null;
