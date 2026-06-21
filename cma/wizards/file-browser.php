@@ -399,6 +399,13 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite, stri
         // A fresh upload is a new "original" — drop any stale edit-backup so
         // "Origineel terugzetten" can't revert to the previous file.
         @unlink(imageOriginalBackupPath($targetPath));
+        // Generate responsive variants right away so the front-end has them even
+        // if the image is never opened in the editor (kept in sync like edits do).
+        $upExt = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if (in_array($upExt, ['jpg', 'jpeg', 'png', 'webp'])) {
+            ResponsiveImage::deleteVariants($targetPath);
+            ResponsiveImage::generate($targetPath);
+        }
         return ['success' => true, 'filename' => $filename, 'message' => 'Bestand geüpload', 'modifiedTs' => filemtime($targetPath)];
     } else {
         return ['success' => false, 'error' => 'Kan bestand niet opslaan'];
@@ -867,8 +874,23 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     $w = imagesx($src);
     $h = imagesy($src);
 
-    $bg  = imagecolorat($src, 0, 0);
-    $bgR = ($bg >> 16) & 0xFF; $bgG = ($bg >> 8) & 0xFF; $bgB = $bg & 0xFF;
+    // Baseline background = the AVERAGE of a 20x20 sample in the top-left corner
+    // (robust against single-pixel noise; works for beige/off-white, not just white).
+    $sampleW = min(20, $w);
+    $sampleH = min(20, $h);
+    $sumR = 0; $sumG = 0; $sumB = 0; $samples = 0;
+    for ($sy = 0; $sy < $sampleH; $sy++) {
+        for ($sx = 0; $sx < $sampleW; $sx++) {
+            $c = imagecolorat($src, $sx, $sy);
+            $sumR += ($c >> 16) & 0xFF;
+            $sumG += ($c >> 8) & 0xFF;
+            $sumB += $c & 0xFF;
+            $samples++;
+        }
+    }
+    $bgR = (int) round($sumR / $samples);
+    $bgG = (int) round($sumG / $samples);
+    $bgB = (int) round($sumB / $samples);
     $tol = 24;
     $differs = function (int $x, int $y) use ($src, $bgR, $bgG, $bgB, $tol): bool {
         $c = imagecolorat($src, $x, $y);

@@ -1005,3 +1005,5 @@ karaat-data en staat in de karaat-repo.
 > autocrop sound great, can we have a setting for the remaining  percentage, bacause i do want some margin, default 10%
 
 > and 5 sounds good but very subtle
+
+> and the .responsive formats, are they regenerated after changes or uploads?
