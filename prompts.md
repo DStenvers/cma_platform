@@ -731,3 +731,5 @@ karaat-data en staat in de karaat-repo.
 > Vormen lijken niet meer te wijzigen, zorg dat dit bij de quick-edit aan de voorkant van Karaat te wijzigen is, maar voeg het veld ook toe aan de CMA definitie
 
 > in the cma the beschrijving field of a stone hides when editing, is blnNewonly probably
+
+> the btnViewList buttons on the file wizard should be right aligned in the path-bar

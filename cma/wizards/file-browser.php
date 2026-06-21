@@ -1403,18 +1403,7 @@ $appBasePath = Application::get('base_path', '/');
                 </a>
             </span>
         </left>
-        <right>
-            <span class="tb-btn" id="btnViewList">
-                <a href="javascript:setViewMode('list')" title="Lijstweergave">
-                    <span class="lnr lnr-list"></span>
-                </a>
-            </span>
-            <span class="tb-btn" id="btnViewThumb">
-                <a href="javascript:setViewMode('thumb')" title="Miniaturen">
-                    <span class="lnr lnr-layers"></span>
-                </a>
-            </span>
-        </right>
+        <right></right>
     </cma-toolbar>
 
     <div class="browser-container">
@@ -1422,6 +1411,16 @@ $appBasePath = Application::get('base_path', '/');
             <div class="path-bar">
                 <span class="lnr lnr-folder"></span>
                 <span class="path" id="currentPath"><?= htmlspecialchars($basePath) ?></span>
+                <span class="tb-btn" id="btnViewList">
+                    <a href="javascript:setViewMode('list')" title="Lijstweergave">
+                        <span class="lnr lnr-list"></span>
+                    </a>
+                </span>
+                <span class="tb-btn" id="btnViewThumb">
+                    <a href="javascript:setViewMode('thumb')" title="Miniaturen">
+                        <span class="lnr lnr-layers"></span>
+                    </a>
+                </span>
             </div>
 
             <div class="dropzone" id="dropzone">
