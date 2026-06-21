@@ -650,23 +650,29 @@ class CmaRepository
      *
      * @param int $databaseId Database ID
      */
-    public static function openConnectionById($databaseId): void
+    public static function openConnectionById($databaseId)
     {
+        // Sets the legacy global $conn (the ADO-style connection that callers use
+        // as `global $conn` immediately after calling this) AND returns it, so
+        // both caller patterns work. This was previously `: void` assigning a
+        // LOCAL $conn, which left every caller's global $conn null — surfacing as
+        // "Call to a member function setAttribute()/prepare() on null" (e.g. the
+        // query editor) once the databases.json migration stopped pre-setting the
+        // legacy globals. Returns the PDO/connection (or null on failure).
+        global $conn;
         $databaseId = (int)$databaseId;
         self::$lastConnectionDebug = ['databaseId' => $databaseId];
 
         // For databaseId 0 or empty, use the pre-initialized 'data' connection
         if ($databaseId <= 0) {
             self::$lastConnectionDebug['result'] = 'data (id<=0)';
-            $conn = Database::getConnection('data');
-            return;
+            return $conn = Database::getConnection('data');
         }
 
         // Check if we've already determined the connection name for this databaseId
         if (isset(self::$dbIdToConnName[$databaseId])) {
             self::$lastConnectionDebug['result'] = 'cached: ' . self::$dbIdToConnName[$databaseId];
-            $conn = Database::getConnection(self::$dbIdToConnName[$databaseId]);
-            return;
+            return $conn = Database::getConnection(self::$dbIdToConnName[$databaseId]);
         }
 
         $connectionString = self::getResolvedConnectionString($databaseId);
@@ -681,8 +687,7 @@ class CmaRepository
         if ($dataConnResolved !== '' && strcasecmp((string)$connectionString, (string)$dataConnResolved) === 0) {
             self::$dbIdToConnName[$databaseId] = 'data';
             self::$lastConnectionDebug['result'] = 'matched data';
-            $conn = Database::getConnection('data');
-            return;
+            return $conn = Database::getConnection('data');
         }
 
         $repConn = Database::getDsn('rep');
@@ -696,15 +701,14 @@ class CmaRepository
             // "volatile Ace DSN" crash.
             self::$dbIdToConnName[$databaseId] = 'data';
             self::$lastConnectionDebug['result'] = 'matched rep -> data';
-            $conn = Database::getConnection('data');
-            return;
+            return $conn = Database::getConnection('data');
         }
 
         // For other connections, use the connection string directly
         // (this will still create new connections per request for non-standard DBs)
         self::$dbIdToConnName[$databaseId] = $connectionString;
         self::$lastConnectionDebug['result'] = 'new connection';
-        $conn = Database::getConnection($connectionString);
+        return $conn = Database::getConnection($connectionString);
     }
 
     /**

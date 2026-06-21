@@ -737,3 +737,212 @@ karaat-data en staat in de karaat-repo.
 > first the Nieuw and theen the soort table search
 
 > on a lib-combi the calculation of the position of combo-search is 2px too low, please re-evaluate that calculation
+
+> {
+>     "success": false,
+>     "error": "controlId parameter is verplicht"
+> }
+
+> {
+>     "success": false,
+>     "error": "controlId parameter is verplicht"
+> }
+
+> C:\wwwroot\www.karaatedelstenen.nl>composer update
+> Loading composer repositories with package information
+> Updating dependencies
+> Nothing to modify in lock file
+> Installing dependencies from lock file (including require-dev)
+> Nothing to install, update or remove
+> Generating optimized autoload files
+> 2 packages you are using are looking for funding.
+> Use the `composer fund` command to find out more!
+> > App\Library\Installer::postUpdate
+> stenversonline/platform: syncing shared files...
+>   - library/ synced
+>   - cma/ synced
+>   - synced deploy.php (root ops file)
+>   - synced deploy_status.php (root ops file)
+>   - web.config: Marker al aanwezig ÔÇö CMA-routes reeds toegepast.
+>   - cleared cache/cma/minify (2 files)
+>   - cleared cache/cma/forms (2 files)
+>   - touched web.config (app-pool recycle ÔåÆ flushes OPcache/APCu)
+> stenversonline/platform: sync complete
+
+> the new caroussel shows only 2 stones, this is partly due to the missing default value of datum, and the link to the filter: it still shows the first sorting as default, not the correct one
+
+> yes
+
+> C:\wwwroot\www.karaatedelstenen.nl>  composer update stenversonline/platform --n
+> o-cache -vvv
+> Disabling cache usage
+> Running 2.2.26 (2025-12-30 13:39:48) with PHP 8.5.6 on Windows NT / 6.3
+> Reading ./composer.json (C:\wwwroot\www.karaatedelstenen.nl\composer.json)
+> Loading config file ./composer.json (C:\wwwroot\www.karaatedelstenen.nl\composer
+> .json)
+> Checked CA file /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem does not exist
+>  or it is not a file.
+> Checked directory /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem does not exi
+> st or it is not a directory.
+> Checked CA file /etc/pki/tls/certs/ca-bundle.crt does not exist or it is not a f
+> ile.
+> Checked directory /etc/pki/tls/certs/ca-bundle.crt does not exist or it is not a
+>  directory.
+> Checked CA file /etc/ssl/certs/ca-certificates.crt does not exist or it is not a
+>  file.
+> Checked directory /etc/ssl/certs/ca-certificates.crt does not exist or it is not
+>  a directory.
+> Checked CA file /etc/ssl/ca-bundle.pem does not exist or it is not a file.
+> Checked directory /etc/ssl/ca-bundle.pem does not exist or it is not a directory
+> .
+> Checked CA file /usr/local/share/certs/ca-root-nss.crt does not exist or it is n
+> ot a file.
+> Checked directory /usr/local/share/certs/ca-root-nss.crt does not exist or it is
+>  not a directory.
+> Checked CA file /usr/ssl/certs/ca-bundle.crt does not exist or it is not a file.
+>
+> Checked directory /usr/ssl/certs/ca-bundle.crt does not exist or it is not a dir
+> ectory.
+> Checked CA file /opt/local/share/curl/curl-ca-bundle.crt does not exist or it is
+>  not a file.
+> Checked directory /opt/local/share/curl/curl-ca-bundle.crt does not exist or it
+> is not a directory.
+> Checked CA file /usr/local/share/curl/curl-ca-bundle.crt does not exist or it is
+>  not a file.
+> Checked directory /usr/local/share/curl/curl-ca-bundle.crt does not exist or it
+> is not a directory.
+> Checked CA file /usr/share/ssl/certs/ca-bundle.crt does not exist or it is not a
+>  file.
+> Checked directory /usr/share/ssl/certs/ca-bundle.crt does not exist or it is not
+>  a directory.
+> Checked CA file /etc/ssl/cert.pem does not exist or it is not a file.
+> Checked directory /etc/ssl/cert.pem does not exist or it is not a directory.
+> Checked CA file /usr/local/etc/ssl/cert.pem does not exist or it is not a file.
+> Checked directory /usr/local/etc/ssl/cert.pem does not exist or it is not a dire
+> ctory.
+> Checked CA file /usr/local/etc/openssl/cert.pem does not exist or it is not a fi
+> le.
+> Checked directory /usr/local/etc/openssl/cert.pem does not exist or it is not a
+> directory.
+> Checked CA file /usr/local/etc/openssl@1.1/cert.pem does not exist or it is not
+> a file.
+> Checked directory /usr/local/etc/openssl@1.1/cert.pem does not exist or it is no
+> t a directory.
+> Checked CA file /opt/homebrew/etc/openssl@3/cert.pem does not exist or it is not
+>  a file.
+> Checked directory /opt/homebrew/etc/openssl@3/cert.pem does not exist or it is n
+> ot a directory.
+> Checked CA file /opt/homebrew/etc/openssl@1.1/cert.pem does not exist or it is n
+> ot a file.
+> Checked directory /opt/homebrew/etc/openssl@1.1/cert.pem does not exist or it is
+>  not a directory.
+> Checked CA file /etc/pki/ca-trust/extracted/pem does not exist or it is not a fi
+> le.
+> Checked directory /etc/pki/ca-trust/extracted/pem does not exist or it is not a
+> directory.
+> Checked CA file /etc/pki/tls/certs does not exist or it is not a file.
+> Checked directory /etc/pki/tls/certs does not exist or it is not a directory.
+> Checked CA file /etc/ssl/certs does not exist or it is not a file.
+> Checked directory /etc/ssl/certs does not exist or it is not a directory.
+> Checked CA file /etc/ssl does not exist or it is not a file.
+> Checked directory /etc/ssl does not exist or it is not a directory.
+> Checked CA file /usr/local/share/certs does not exist or it is not a file.
+> Checked directory /usr/local/share/certs does not exist or it is not a directory
+> .
+> Checked CA file /usr/ssl/certs does not exist or it is not a file.
+> Checked directory /usr/ssl/certs does not exist or it is not a directory.
+> Checked CA file /opt/local/share/curl does not exist or it is not a file.
+> Checked directory /opt/local/share/curl does not exist or it is not a directory.
+>
+> Checked CA file /usr/local/share/curl does not exist or it is not a file.
+> Checked directory /usr/local/share/curl does not exist or it is not a directory.
+>
+> Checked CA file /usr/share/ssl/certs does not exist or it is not a file.
+> Checked directory /usr/share/ssl/certs does not exist or it is not a directory.
+> Checked CA file /etc/ssl does not exist or it is not a file.
+> Checked directory /etc/ssl does not exist or it is not a directory.
+> Checked CA file /usr/local/etc/ssl does not exist or it is not a file.
+> Checked directory /usr/local/etc/ssl does not exist or it is not a directory.
+> Checked CA file /usr/local/etc/openssl does not exist or it is not a file.
+> Checked directory /usr/local/etc/openssl does not exist or it is not a directory
+> .
+> Checked CA file /usr/local/etc/openssl@1.1 does not exist or it is not a file.
+> Checked directory /usr/local/etc/openssl@1.1 does not exist or it is not a direc
+> tory.
+> Checked CA file /opt/homebrew/etc/openssl@3 does not exist or it is not a file.
+> Checked directory /opt/homebrew/etc/openssl@3 does not exist or it is not a dire
+> ctory.
+> Checked CA file /opt/homebrew/etc/openssl@1.1 does not exist or it is not a file
+> .
+> Checked directory /opt/homebrew/etc/openssl@1.1 does not exist or it is not a di
+> rectory.
+> Checked CA file C:\Users\Administrator\AppData\Local\Temp\2\ope8BB4.tmp: valid
+> Executing command (C:\wwwroot\www.karaatedelstenen.nl): git branch -a --no-color
+>  --no-abbrev -v
+> Failed to initialize global composer: Composer could not find the config file: C
+> :\composer-home/composer.json
+>
+> Reading ./composer.lock (C:\wwwroot\www.karaatedelstenen.nl\composer.lock)
+> Reading C:\wwwroot\www.karaatedelstenen.nl/vendor/composer/installed.json (C:\ww
+> wroot\www.karaatedelstenen.nl\vendor\composer\installed.json)
+> Loading composer repositories with package information
+>
+>
+>   [RuntimeException]
+>   GitDriver requires a usable cache directory, and it looks like you set it t
+>   o be disabled
+>
+>
+> Exception trace:
+>  () at phar://C:/composer/composer.phar/src/Composer/Repository/Vcs/GitDriver.ph
+> p:52
+>  Composer\Repository\Vcs\GitDriver->initialize() at phar://C:/composer/composer.
+> phar/src/Composer/Repository/Vcs/GitHubDriver.php:609
+>  Composer\Repository\Vcs\GitHubDriver->setupGitDriver() at phar://C:/composer/co
+> mposer.phar/src/Composer/Repository/Vcs/GitHubDriver.php:76
+>  Composer\Repository\Vcs\GitHubDriver->initialize() at phar://C:/composer/compos
+> er.phar/src/Composer/Repository/VcsRepository.php:149
+>  Composer\Repository\VcsRepository->getDriver() at phar://C:/composer/composer.p
+> har/src/Composer/Repository/VcsRepository.php:198
+>  Composer\Repository\VcsRepository->initialize() at phar://C:/composer/composer.
+> phar/src/Composer/Repository/ArrayRepository.php:311
+>  Composer\Repository\ArrayRepository->getPackages() at phar://C:/composer/compos
+> er.phar/src/Composer/Repository/ArrayRepository.php:62
+>  Composer\Repository\ArrayRepository->loadPackages() at phar://C:/composer/compo
+> ser.phar/src/Composer/DependencyResolver/PoolBuilder.php:379
+>  Composer\DependencyResolver\PoolBuilder->loadPackagesMarkedForLoading() at phar
+> ://C:/composer/composer.phar/src/Composer/DependencyResolver/PoolBuilder.php:234
+>
+>  Composer\DependencyResolver\PoolBuilder->buildPool() at phar://C:/composer/comp
+> oser.phar/src/Composer/Repository/RepositorySet.php:261
+>  Composer\Repository\RepositorySet->createPool() at phar://C:/composer/composer.
+> phar/src/Composer/Installer.php:436
+>  Composer\Installer->doUpdate() at phar://C:/composer/composer.phar/src/Composer
+> /Installer.php:279
+>  Composer\Installer->run() at phar://C:/composer/composer.phar/src/Composer/Comm
+> and/UpdateCommand.php:248
+>  Composer\Command\UpdateCommand->execute() at phar://C:/composer/composer.phar/v
+> endor/symfony/console/Command/Command.php:245
+>  Symfony\Component\Console\Command\Command->run() at phar://C:/composer/composer
+> .phar/vendor/symfony/console/Application.php:835
+>  Symfony\Component\Console\Application->doRunCommand() at phar://C:/composer/com
+> poser.phar/vendor/symfony/console/Application.php:185
+>  Symfony\Component\Console\Application->doRun() at phar://C:/composer/composer.p
+> har/src/Composer/Console/Application.php:336
+>  Composer\Console\Application->doRun() at phar://C:/composer/composer.phar/vendo
+> r/symfony/console/Application.php:117
+>  Symfony\Component\Console\Application->run() at phar://C:/composer/composer.pha
+> r/src/Composer/Console/Application.php:131
+>  Composer\Console\Application->run() at phar://C:/composer/composer.phar/bin/com
+> poser:95
+>  require() at C:\composer\composer.phar:29
+>
+> update [--with WITH] [--prefer-source] [--prefer-dist] [--prefer-install PREFER-
+> INSTALL] [--dry-run] [--dev] [--no-dev] [--lock] [--no-install] [--no-autoloader
+> ] [--no-suggest] [--no-progress] [-w|--with-dependencies] [-W|--with-all-depende
+> ncies] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authorita
+> tive] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--i
+> gnore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--prefer-stabl
+> e] [--prefer-lowest] [-i|--interactive] [--root-reqs] [--] [<packages>]...
+
+> i think the query editor also missed the databases.json migrtation, i now get the error : SQL foutCall to a member function setAttribute() on null on each call and the table list is empty

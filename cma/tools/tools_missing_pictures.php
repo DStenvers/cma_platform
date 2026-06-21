@@ -93,7 +93,7 @@ function main()
         $database = $field['database'];
         if ($database !== $currentDatabase) {
             if (is_numeric($database)) {
-                CmaRepository::openConnectionById((int)$database);
+                $conn = CmaRepository::openConnectionById((int)$database);
             } else {
                 $conn = Database::getConnection($database ?: 'data');
             }

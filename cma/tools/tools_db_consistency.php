@@ -122,7 +122,7 @@ function openDbConnection($database): void
     global $conn;
 
     if (is_numeric($database)) {
-        CmaRepository::openConnectionById((int)$database);
+        $conn = CmaRepository::openConnectionById((int)$database);
     } else {
         $conn = Database::getConnection($database ?: 'data');
     }

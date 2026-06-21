@@ -427,7 +427,7 @@ try {
             // Get user's group memberships
             $groups = [];
             if ($userId > 0) {
-                $usersConn = \Cma\CmaRepository::openConnectionById('users');
+                $usersConn = \App\Library\Database::getConnection('users');
                 if ($usersConn) {
                     $groupSql = "SELECT g.ID, g.grpName FROM tblGroups g
                                  INNER JOIN tblGroupMembers gm ON g.ID = gm.fkGroup
@@ -443,7 +443,7 @@ try {
             // Get group rights for this form
             $groupRights = [];
             if ($formId && $userId > 0) {
-                $usersConn = \Cma\CmaRepository::openConnectionById('users');
+                $usersConn = \App\Library\Database::getConnection('users');
                 if ($usersConn) {
                     $rightsSql = "SELECT gr.fkGroup, g.grpName, gr.secAccessType
                                   FROM tblGroupRights gr

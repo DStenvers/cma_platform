@@ -533,12 +533,16 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
     });
 
     try {
-        global $conn;
         $nTussenStand = microtime(true);
         if ($iDatabase != 999) {
-            CmaRepository::openConnectionById($iDatabase);
+            // openConnectionById now returns the PDO (and sets the global $conn).
+            $conn = CmaRepository::openConnectionById($iDatabase);
         } else {
-            $conn = $connrep;
+            // 999 = legacy "repository" sentinel; rep is deprecated and routes to data.
+            $conn = Database::getConnection('rep');
+        }
+        if ($conn === null) {
+            throw new \RuntimeException('Geen databaseverbinding beschikbaar voor database ' . htmlspecialchars((string)$iDatabase));
         }
         $arrQueries = Arr::splitAlways($CustomSQL, ';');
         for ($tel = 0; $tel <= (count($arrQueries) - 1); $tel++) {
