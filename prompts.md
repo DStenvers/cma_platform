@@ -959,3 +959,22 @@ karaat-data en staat in de karaat-repo.
 > Fout: Database connection 'main' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named 'main').
 
 > main should be data
+
+> C:\wwwroot\www.karaatedelstenen.nl>git pull
+> Already up to date.
+>
+> C:\wwwroot\www.karaatedelstenen.nl>git status
+> On branch main
+> Your branch is up to date with 'origin/main'.
+>
+> Changes not staged for commit:
+>   (use "git add <file>..." to update what will be committed)
+>   (use "git restore <file>..." to discard changes in working directory)
+>         modified:   .platform-manifest.json
+>         modified:   _bootstrap_constants.inc
+>
+> Untracked files:
+
+> fixed, thanx!
+
+> okay the corm and kleur now show, but are not saved correctly. The price has gone up from 9 to 90000 after a few saved, same with the sizes, they lost their delimiter. Vorm and kleur not saved at all.

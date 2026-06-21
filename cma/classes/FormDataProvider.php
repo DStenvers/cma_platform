@@ -850,6 +850,9 @@ class FormDataProvider
             // Keys are lowercase for case-insensitive lookup, values are original field names
             $validFields = [];
             $fieldTypeMap = [];
+            $numericFields = [];
+            // ADO numeric type codes (smallint/int/single/double/currency/decimal/numeric/bigint…)
+            $numericAdoTypes = ['2','3','4','5','6','14','16','17','18','19','20','21','131','139'];
             foreach ($jsonData['fields'] ?? [] as $fieldDef) {
                 $fieldName = $fieldDef['name'] ?? '';
                 $fieldType = $fieldDef['type'] ?? '';
@@ -857,6 +860,15 @@ class FormDataProvider
                 if ($fieldName && $fieldType !== 'custom' && $fieldType !== 'label' && $fieldType !== 'separator') {
                     $validFields[strtolower($fieldName)] = $fieldName;
                     $fieldTypeMap[strtolower($fieldName)] = strtolower($fieldType);
+                    // Numeric fields (by reported precision or numeric ADO data-type)
+                    // must be BOUND, not inlined: an inlined decimal is coerced by
+                    // the Jet/ACE connection locale (1043 reads '.' as a thousands
+                    // separator) and silently mangled (9.5 -> 95). Binding sends a
+                    // real number, locale- and driver-independent.
+                    if (($fieldDef['numericPrecision'] ?? '') !== ''
+                        || in_array((string)($fieldDef['dataType'] ?? ''), $numericAdoTypes, true)) {
+                        $numericFields[strtolower($fieldName)] = true;
+                    }
                 }
             }
 
@@ -895,6 +907,7 @@ class FormDataProvider
                 }
             }
 
+            $params = []; // bound values for numeric fields (see numericBindValue)
             if ($isNew) {
                 // INSERT
                 $fields = [];
@@ -908,10 +921,16 @@ class FormDataProvider
                     if (!isset($validFields[strtolower($field)])) {
                         continue;
                     }
+                    $lc = strtolower($field);
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
-                    $values[] = (($fieldTypeMap[strtolower($field)] ?? '') === 'date')
-                        ? self::formatDateValueForSql((string)$value, $isSqlite)
-                        : self::formatValueForSql($value);
+                    if (($fieldTypeMap[$lc] ?? '') === 'date') {
+                        $values[] = self::formatDateValueForSql((string)$value, $isSqlite);
+                    } elseif (isset($numericFields[$lc]) && ($num = self::numericBindValue($value)) !== null) {
+                        $values[] = '?';
+                        $params[] = $num;
+                    } else {
+                        $values[] = self::formatValueForSql($value);
+                    }
                 }
                 $sql = "INSERT INTO " . self::quoteIdentifier($tableName, $isSqlite) . " (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $values) . ")";
             } else {
@@ -926,10 +945,15 @@ class FormDataProvider
                     if (!isset($validFields[strtolower($field)])) {
                         continue;
                     }
-                    $formattedVal = (($fieldTypeMap[strtolower($field)] ?? '') === 'date')
-                        ? self::formatDateValueForSql((string)$value, $isSqlite)
-                        : self::formatValueForSql($value);
-                    $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . $formattedVal;
+                    $lc = strtolower($field);
+                    if (($fieldTypeMap[$lc] ?? '') === 'date') {
+                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatDateValueForSql((string)$value, $isSqlite);
+                    } elseif (isset($numericFields[$lc]) && ($num = self::numericBindValue($value)) !== null) {
+                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = ?";
+                        $params[] = $num;
+                    } else {
+                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatValueForSql($value);
+                    }
                 }
                 // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
                 $idValue = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId);
@@ -952,7 +976,9 @@ class FormDataProvider
             }
 
             // Execute the query and CHECK FOR ERRORS
-            $stmt = Database::query($sql, [], $conn);
+            // $params carries bound numeric values (numeric fields use '?'); all
+            // other values are inlined into $sql by formatValueForSql().
+            $stmt = Database::query($sql, $params, $conn);
 
             if ($stmt === null) {
                 // Query failed - check which columns are missing
@@ -1739,6 +1765,28 @@ class FormDataProvider
     /**
      * Format a value for SQL insertion
      */
+    /**
+     * Normalise a numeric field value for BINDING (int/float), or null if it is
+     * not a usable number (empty/non-numeric → caller falls back to inline/NULL).
+     * Binding avoids the Jet/ACE locale coercion that mangles inlined decimals
+     * (e.g. '9.5' -> 95 under Locale Identifier=1043). Mirrors
+     * RecordService::numericParam().
+     *
+     * @param mixed $value
+     * @return int|float|null
+     */
+    private static function numericBindValue($value)
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $n = SQL::normalizeDecimal($value);
+        if (!is_numeric($n)) {
+            return null;
+        }
+        return strpos($n, '.') === false ? (int)$n : (float)$n;
+    }
+
     private static function formatValueForSql($value): string
     {
         if ($value === null || $value === '') {
