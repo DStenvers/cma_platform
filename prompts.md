@@ -994,3 +994,8 @@ karaat-data en staat in de karaat-repo.
 > Misses, skip that of hits if all is 0
 
 > yes make the regular bittons as well
+
+> any suggestions? the crop, does that respect ethe existing aspect ratio?
+
+> fix the crop
+> please

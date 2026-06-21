@@ -1003,6 +1003,7 @@ $appBasePath = Application::get('base_path', '/');
             box-sizing: border-box;
         }
         .crop-actions { margin: 8px 0; }
+        .crop-target { font-size: 12px; color: var(--text-muted, #666); margin-left: 6px; }
         .img-edit-bar {
             display: flex;
             align-items: center;
@@ -2083,12 +2084,29 @@ $appBasePath = Application::get('base_path', '/');
             sel.style.display = 'none';
             overlay.appendChild(sel);
             wrap.appendChild(overlay);
+
+            // When the field requires a FIXED size (resizeType 2), lock the crop to
+            // that aspect ratio and output exactly that size, so the result always
+            // conforms. Otherwise crop freely.
+            let ratio = 0, targetW = 0, targetH = 0;
+            if (Number(CONFIG.resizeType) === 2 && Number(CONFIG.resizeWidth) > 0 && Number(CONFIG.resizeHeight) > 0) {
+                targetW = Number(CONFIG.resizeWidth);
+                targetH = Number(CONFIG.resizeHeight);
+                ratio = targetW / targetH;
+            }
+
             const actions = document.createElement('div');
             actions.className = 'crop-actions';
-            actions.innerHTML = '<button type="button" class="btn btn-primary" onclick="applyCrop()">Bijsnijden</button> '
-                              + '<button type="button" class="btn" onclick="cancelCrop()">Annuleren</button>';
+            let actionsHtml = '<button type="button" class="btn btn-primary" onclick="applyCrop()">Bijsnijden</button> '
+                            + '<button type="button" class="btn" onclick="cancelCrop()">Annuleren</button>';
+            if (ratio > 0) {
+                // The required size is mandatory — no free-crop override.
+                actionsHtml += ' <span class="crop-target">Vaste maat: ' + targetW + '×' + targetH + ' px</span>';
+            }
+            actions.innerHTML = actionsHtml;
             wrap.parentNode.insertBefore(actions, wrap.nextSibling);
-            _cropState = { overlay, sel, actions, img, dragging: false, sx: 0, sy: 0 };
+
+            _cropState = { overlay, sel, actions, img, dragging: false, sx: 0, sy: 0, ratio: ratio, targetW: targetW, targetH: targetH };
             overlay.addEventListener('mousedown', cropDown);
             overlay.addEventListener('mousemove', cropMove);
             window.addEventListener('mouseup', cropUp);
@@ -2110,11 +2128,31 @@ $appBasePath = Application::get('base_path', '/');
             const r = _cropState.overlay.getBoundingClientRect();
             const cx = Math.max(0, Math.min(e.clientX - r.left, r.width));
             const cy = Math.max(0, Math.min(e.clientY - r.top, r.height));
+            const sx = _cropState.sx, sy = _cropState.sy;
+            let left, top, w, h;
+            if (_cropState.ratio > 0) {
+                // Locked to the required aspect ratio; clamp within bounds.
+                const signX = (cx >= sx) ? 1 : -1;
+                const signY = (cy >= sy) ? 1 : -1;
+                w = Math.abs(cx - sx);
+                h = w / _cropState.ratio;
+                const maxW = signX > 0 ? (r.width - sx) : sx;
+                const maxH = signY > 0 ? (r.height - sy) : sy;
+                if (w > maxW) { w = maxW; h = w / _cropState.ratio; }
+                if (h > maxH) { h = maxH; w = h * _cropState.ratio; }
+                left = signX > 0 ? sx : sx - w;
+                top  = signY > 0 ? sy : sy - h;
+            } else {
+                left = Math.min(cx, sx);
+                top  = Math.min(cy, sy);
+                w = Math.abs(cx - sx);
+                h = Math.abs(cy - sy);
+            }
             const s = _cropState.sel;
-            s.style.left = Math.min(cx, _cropState.sx) + 'px';
-            s.style.top = Math.min(cy, _cropState.sy) + 'px';
-            s.style.width = Math.abs(cx - _cropState.sx) + 'px';
-            s.style.height = Math.abs(cy - _cropState.sy) + 'px';
+            s.style.left = left + 'px';
+            s.style.top = top + 'px';
+            s.style.width = w + 'px';
+            s.style.height = h + 'px';
         }
         function cropUp() { if (_cropState) _cropState.dragging = false; }
         function cancelCrop() {
@@ -2140,8 +2178,11 @@ $appBasePath = Application::get('base_path', '/');
             const y = Math.max(0, Math.round((selR.top - imgR.top) * scaleY));
             const cw = Math.round(selR.width * scaleX);
             const ch = Math.round(selR.height * scaleY);
+            // Locked crop -> output exactly the required size (crop + resize).
+            const destW = _cropState.ratio > 0 ? _cropState.targetW : 0;
+            const destH = _cropState.ratio > 0 ? _cropState.targetH : 0;
             cancelCrop();
-            editImageOp({ action: 'crop', x: x, y: y, width: cw, height: ch, destWidth: 0, destHeight: 0 });
+            editImageOp({ action: 'crop', x: x, y: y, width: cw, height: ch, destWidth: destW, destHeight: destH });
         }
 
         function updatePreviewLayout() {
