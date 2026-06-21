@@ -24,6 +24,51 @@ class SQL
     }
 
     /**
+     * Normalise a (possibly locale-formatted) number string to canonical
+     * dot-decimal form for SQL binding / floatval.
+     *
+     * Rules:
+     *  - Both '.' and ',' present: the RIGHTMOST separator is the decimal sign,
+     *    the other is a thousands grouping that gets stripped
+     *    ("1.234,56" -> "1234.56", "1,234.56" -> "1234.56").
+     *  - Only ',' present: it is the decimal sign ("12,5" -> "12.5").
+     *  - Only '.' present (or no separator): the '.' is already the decimal sign
+     *    and is kept as-is ("12.5" -> "12.5"). Per the CMA convention a lone '.'
+     *    is ALWAYS the decimal separator, never a thousands grouping — so a
+     *    value typed with a dot (no comma) is interpreted as a decimal number.
+     *
+     * Non-numeric input is returned trimmed but otherwise unchanged so callers
+     * can still validate with is_numeric().
+     *
+     * @param mixed $value
+     * @return string
+     */
+    public static function normalizeDecimal($value): string
+    {
+        $s = trim((string)$value);
+        if ($s === '') {
+            return $s;
+        }
+        $hasComma = strpos($s, ',') !== false;
+        $hasDot   = strpos($s, '.') !== false;
+
+        if ($hasComma && $hasDot) {
+            if (strrpos($s, ',') > strrpos($s, '.')) {
+                // comma is the decimal sign; dots are thousands groupings
+                $s = str_replace(['.', ','], ['', '.'], $s);
+            } else {
+                // dot is the decimal sign; commas are thousands groupings
+                $s = str_replace(',', '', $s);
+            }
+        } elseif ($hasComma) {
+            // lone comma -> decimal sign
+            $s = str_replace(',', '.', $s);
+        }
+        // lone dot / no separator: already canonical
+        return $s;
+    }
+
+    /**
      * Format a number for SQL insertion
      * Converts empty values to NULL, handles decimal separators
      *
@@ -36,7 +81,7 @@ class SQL
         if ($strRetval == '' || is_null($strRetval)) {
             return 'null';
         } else {
-            return str_replace(',', '.', $strRetval);
+            return self::normalizeDecimal($strRetval);
         }
     }
 

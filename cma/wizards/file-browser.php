@@ -1650,7 +1650,7 @@ $appBasePath = Application::get('base_path', '/');
         }
 
         // Load directory listing
-        window.loadDirectory = function(path) {
+        window.loadDirectory = function(path, selectName) {
             // Prevent navigation outside base path
             path = path || '';
             // Remove any leading slashes and normalize
@@ -1673,7 +1673,7 @@ $appBasePath = Application::get('base_path', '/');
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        renderFileList(data.items);
+                        renderFileList(data.items, selectName);
                     } else {
                         fileList.innerHTML = '<div class="empty-state">' + (data.error || 'Fout bij laden') + '</div>';
                     }
@@ -1688,7 +1688,7 @@ $appBasePath = Application::get('base_path', '/');
         };
 
         // Render file list
-        function renderFileList(items) {
+        function renderFileList(items, selectName) {
             if (items.length === 0) {
                 fileList.innerHTML = '<div class="empty-state">Map is leeg</div>';
                 return;
@@ -1737,11 +1737,15 @@ $appBasePath = Application::get('base_path', '/');
                 });
             });
 
-            // Pre-select current file if set
-            if (CONFIG.currentFile) {
-                const item = fileList.querySelector('[data-name="' + CSS.escape(CONFIG.currentFile) + '"]');
+            // Select a file by name: a just-uploaded file (selectName) takes
+            // priority — crucial UX so the upload is immediately the active
+            // choice — otherwise pre-select the field's current value.
+            const nameToSelect = selectName || CONFIG.currentFile;
+            if (nameToSelect) {
+                const item = fileList.querySelector('[data-name="' + CSS.escape(nameToSelect) + '"]');
                 if (item) {
                     handleItemClick(item);
+                    item.scrollIntoView({ block: 'nearest' });
                 }
             }
         }
@@ -2344,7 +2348,9 @@ $appBasePath = Application::get('base_path', '/');
 
                 if (data.success) {
                     showToast('Bestand geüpload: ' + data.filename, 'success');
-                    loadDirectory(currentPath);
+                    // Reload the listing and auto-select the just-uploaded file
+                    // (data.filename is the final, sanitized on-disk name).
+                    loadDirectory(currentPath, data.filename);
                 } else if (data.exists) {
                     // File exists, ask to overwrite using libConfirm
                     const confirmed = await libConfirm(

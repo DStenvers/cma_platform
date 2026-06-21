@@ -693,3 +693,37 @@ karaat-data en staat in de karaat-repo.
 ## 2026-06-20
 
 > commit and push
+
+## 2026-06-21
+
+> if an image is uploaded in the file wizard, it is not automatically selected, this is crucial for UX
+
+> in the search dialog of a form, comco boxes are not shown. Karaat: Soort steen is empty.
+
+> scroll: lots of errors: installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 400, Actual DOM rows: 600. Difference: 200
+>
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 600, Actual DOM rows: 800. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 800, Actual DOM rows: 1000. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 1000, Actual DOM rows: 1200. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 1200, Actual DOM rows: 1400. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 1400, Actual DOM rows: 1600. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 1600, Actual DOM rows: 1800. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 1800, Actual DOM rows: 2000. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2000, Actual DOM rows: 2200. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2200, Actual DOM rows: 2400. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2400, Actual DOM rows: 2600. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2600, Actual DOM rows: 2800. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2800, Actual DOM rows: 3000. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 2961, Actual DOM rows: 3161. Difference: 200
+> installHook.js:1 [Infinite Scroll] DOM count mismatch! Tracked: 3161, Actual DOM rows: 3322. Difference: 161
+> ﻿
+
+> Is the search for the tree the same as the search for the table view? In tree view I do get a filled combo box, in the table view i did not, make sure these are the same. 
+>
+> continious loading: the ID is unique, that is a good assumption.
+>
+> in the old CMA I could search for a numeric field and in the simple search field, now it only seems to search visible fields. Can you check?
+
+> copy: yes use either
+> that is the karaat form definition of a stone, the correct url is like : https://www.karaatedelstenen.nl/edelsteen/1957/preview.html 
+> Combo: i need to see it, can you commit and push when ready?

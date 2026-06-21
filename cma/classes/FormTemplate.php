@@ -255,7 +255,7 @@ class FormTemplate
             'accessLevel' => $this->accessLevel,
             'canAdd' => ($jsonData['allowAdd'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'canDelete' => ($jsonData['allowDelete'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => ($jsonData['allowCopy'] ?? false) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canCopy' => ($this->formDef->hasMenuCopy() || ($jsonData['allowCopy'] ?? false)) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'filterIdName' => $this->formDef->getFilterIdName(),
@@ -401,7 +401,7 @@ class FormTemplate
             'accessLevel' => $this->accessLevel,
             'canAdd' => $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'canDelete' => $this->formDef->hasMenuDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => $this->formDef->hasMenuCopy() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'filterIdName' => $this->formDef->getFilterIdName(),
@@ -1244,7 +1244,7 @@ class FormTemplate
     {
         $canAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
         $canDelete = $this->formDef->hasMenuDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
-        $canCopy = $this->formDef->hasMenuCopy() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
+        $canCopy = ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
         $formName = $this->formDef->getTitle() ?: 'Form';
         $formNameSingular = $this->formDef->getTitleSingular() ?: $formName;
 

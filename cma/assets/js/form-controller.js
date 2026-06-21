@@ -5862,6 +5862,9 @@ class CmaFormController {
                     // Search cleared - restore original count from server
                     const totalCount = this._tableData?.totalCount;
                     this.updateRecordCount(tableRows.length, totalCount);
+                } else if (visibleCount === 0) {
+                    // No matches - hide the counter instead of showing "0 van N"
+                    countEl.style.display = 'none';
                 } else {
                     // Show filtered count
                     countEl.textContent = `${visibleCount} van ${tableRows.length} records`;
@@ -6245,10 +6248,14 @@ class CmaFormController {
                     if (currentValue) {
                         combo.value = currentValue;
                     }
-                }
 
-                // Mark as loaded
-                combo.classList.add('loaded');
+                    // Only mark loaded once options are actually applied. A
+                    // transient empty/failed first attempt (e.g. at init) then
+                    // gets retried the next time the search panel opens
+                    // (toggleSearchPanel re-runs loadSearchCombos) — this is what
+                    // makes the table-view search combo fill the same as the tree.
+                    combo.classList.add('loaded');
+                }
             } catch (e) {
                 cmaLog.error('Failed to load search combo options:', fieldName, e);
             }
@@ -7033,7 +7040,10 @@ class CmaFormController {
                     const countEl = document.getElementById('recordCount');
                     if (countEl && allRows.length > 0) {
                         const hasFilters = e.detail?.filters && Object.keys(e.detail.filters).length > 0;
-                        if (hasFilters) {
+                        if (hasFilters && visibleRows.length === 0) {
+                            // No matches - hide the counter instead of showing "0 van N"
+                            countEl.style.display = 'none';
+                        } else if (hasFilters) {
                             countEl.textContent = `${visibleRows.length} van ${allRows.length} records`;
                             countEl.style.display = '';
                         } else {
@@ -7052,7 +7062,10 @@ class CmaFormController {
                     const countEl = document.getElementById('recordCount');
                     if (countEl) {
                         const { visibleCount, totalCount } = e.detail;
-                        if (visibleCount < totalCount) {
+                        if (visibleCount === 0) {
+                            // No matches - hide the counter instead of showing "0 van N"
+                            countEl.style.display = 'none';
+                        } else if (visibleCount < totalCount) {
                             countEl.textContent = `${visibleCount} van ${totalCount} records`;
                             countEl.style.display = '';
                         } else {

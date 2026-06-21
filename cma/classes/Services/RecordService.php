@@ -820,7 +820,7 @@ class RecordService extends BaseFormService
         if (($arrRep[\Q_SCHEMA_NUM_PREC][$fieldIndex] ?? '') === '') {
             return null; // not a numeric field
         }
-        $normalized = str_replace(',', '.', (string)$value);
+        $normalized = SQL::normalizeDecimal($value);
         if (!is_numeric($normalized)) {
             return null; // not a number -> leave to formatForSql()/validation
         }
@@ -863,10 +863,12 @@ class RecordService extends BaseFormService
             }
         }
 
-        // Numbers
+        // Numbers — normalise locale decimals first so "12,5" and "12.5" both
+        // resolve to a canonical "12.5" (and "1.234,56" -> "1234.56").
         if (($arrRep[\Q_SCHEMA_NUM_PREC][$fieldIndex] ?? '') !== '') {
-            if (is_numeric($value)) {
-                return str_replace(',', '.', (string)$value);
+            $normalized = SQL::normalizeDecimal($value);
+            if (is_numeric($normalized)) {
+                return $normalized;
             }
         }
 

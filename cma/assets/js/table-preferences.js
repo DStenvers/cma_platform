@@ -747,6 +747,18 @@ class CmaInfiniteScroll {
                         // VALIDATION: Verify tracked count matches actual DOM rows
                         this.verifyDomRowCount();
 
+                        // Safety net: never keep loading past the reported total.
+                        // Keyset pagination assumes a UNIQUE id; a list query with a
+                        // one-to-many JOIN makes the id cursor non-unique, so the
+                        // server can keep reporting hasMore while re-emitting
+                        // overlapping rows — growing the table unbounded
+                        // ("records 1-N van M (laden...)" that never settles, with
+                        // DOM-count-mismatch warnings). Once we've loaded the
+                        // reported total there is nothing more to fetch.
+                        if (this.totalCount !== null && this.currentCount >= this.totalCount) {
+                            this.hasMore = false;
+                        }
+
                         // Refresh table filtering to include new rows
                         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.excelTableFilterRefresh === 'function') {
                             jQuery(this.table).excelTableFilterRefresh();

@@ -41,6 +41,42 @@ class SQLTest extends TestCase
         $this->assertEquals('null', SQL::postNumber(null));
     }
 
+    // ========================================================================
+    // normalizeDecimal
+    // ========================================================================
+
+    public function testNormalizeDecimalLoneDotIsDecimal(): void
+    {
+        // A lone dot is always the decimal sign (CMA convention).
+        $this->assertEquals('12.5', SQL::normalizeDecimal('12.5'));
+        $this->assertEquals('1.760', SQL::normalizeDecimal('1.760'));
+    }
+
+    public function testNormalizeDecimalLoneCommaIsDecimal(): void
+    {
+        $this->assertEquals('12.5', SQL::normalizeDecimal('12,5'));
+        $this->assertEquals('0.5', SQL::normalizeDecimal('0,5'));
+    }
+
+    public function testNormalizeDecimalBothSeparatorsRightmostWins(): void
+    {
+        // Dutch grouping: dot thousands, comma decimal.
+        $this->assertEquals('1234.56', SQL::normalizeDecimal('1.234,56'));
+        // English grouping: comma thousands, dot decimal.
+        $this->assertEquals('1234.56', SQL::normalizeDecimal('1,234.56'));
+    }
+
+    public function testNormalizeDecimalNoSeparator(): void
+    {
+        $this->assertEquals('1000', SQL::normalizeDecimal('1000'));
+    }
+
+    public function testNormalizeDecimalNonNumericUnchanged(): void
+    {
+        $this->assertEquals('abc', SQL::normalizeDecimal('abc'));
+        $this->assertEquals('', SQL::normalizeDecimal(''));
+    }
+
     public function testPostNumberWithSpaces(): void
     {
         $this->assertEquals('42', SQL::postNumber(' 42 '));

@@ -278,17 +278,30 @@ class JsonFormService extends BaseFormService
                         $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
                     }
                 } elseif (!empty($listColumns)) {
-                    // Fallback: search list columns, but skip non-text types to avoid type mismatch
-                    $nonTextTypes = ['checkbox', 'radiogroup', 'number', 'integer', 'combobox', 'select', 'userlist'];
+                    // Fallback: search visible list columns. Text columns use LIKE;
+                    // numeric columns are matched exactly when the search term is a
+                    // number — the old CMA allowed numeric simple-search and it
+                    // regressed here. CAST-to-text LIKE isn't portable across
+                    // Access/SQL Server/SQLite, so we use an exact numeric match.
+                    // FK/bool/option controls stay excluded (they hold codes, not
+                    // searchable text).
+                    $skipTypes = ['checkbox', 'radiogroup', 'combobox', 'select', 'userlist'];
+                    $numericTypes = ['number', 'integer', 'decimal', 'currency', 'money'];
+                    $searchNumber = SQL::normalizeDecimal($search);
                     foreach ($listColumns as $col) {
                         $fieldName = $col['field'] ?? '';
                         if (!$fieldName) continue;
 
                         // Check the actual field type from form definition
                         $fieldDef = $fieldsByName[strtolower($fieldName)] ?? null;
-                        if ($fieldDef) {
-                            $fieldType = $fieldDef['type'] ?? 'textbox';
-                            if (in_array($fieldType, $nonTextTypes)) continue;
+                        $fieldType = $fieldDef['type'] ?? 'textbox';
+                        if (in_array($fieldType, $skipTypes)) continue;
+
+                        if (in_array($fieldType, $numericTypes)) {
+                            if (is_numeric($searchNumber)) {
+                                $searchConditions[] = "[$fieldName] = " . floatval($searchNumber);
+                            }
+                            continue;
                         }
 
                         $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
@@ -656,7 +669,8 @@ class JsonFormService extends BaseFormService
             if (!$isLoadMore) {
                 $html .= '</tbody></table></lib-table>';
                 if ($count === 0) {
-                    $html .= '<div class="no-data">Geen gegevens gevonden</div>';
+                    $suffix = $search !== '' ? ', gezocht naar: ' . htmlspecialchars((string)$search) : '';
+                    $html .= '<div class="no-data">Geen gegevens gevonden' . $suffix . '</div>';
                 }
             }
 

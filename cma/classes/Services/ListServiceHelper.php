@@ -135,18 +135,20 @@ class ListServiceHelper
                 // Handle date range filters first (try to parse as date)
                 if ($from !== '') {
                     $fromDate = self::parseSearchDate($from);
+                    $fromNum = SQL::normalizeDecimal($from);
                     if ($fromDate) {
                         $sql = SQL::addWhere($sql, "[$columnName] >= " . SQL::postDateTime($fromDate));
-                    } elseif (is_numeric($from)) {
-                        $sql = SQL::addWhere($sql, "[$columnName] >= " . floatval($from));
+                    } elseif (is_numeric($fromNum)) {
+                        $sql = SQL::addWhere($sql, "[$columnName] >= " . floatval($fromNum));
                     }
                 }
                 if ($to !== '') {
                     $toDate = self::parseSearchDate($to);
+                    $toNum = SQL::normalizeDecimal($to);
                     if ($toDate) {
                         $sql = SQL::addWhere($sql, "[$columnName] <= " . SQL::postDateTime($toDate));
-                    } elseif (is_numeric($to)) {
-                        $sql = SQL::addWhere($sql, "[$columnName] <= " . floatval($to));
+                    } elseif (is_numeric($toNum)) {
+                        $sql = SQL::addWhere($sql, "[$columnName] <= " . floatval($toNum));
                     }
                 }
             }
@@ -237,11 +239,13 @@ class ListServiceHelper
                         }
                     }
                 } else {
-                    if ($from !== '' && is_numeric($from)) {
-                        $sql = SQL::addWhere($sql, "[$columnName] >= " . floatval($from));
+                    $fromNum = SQL::normalizeDecimal($from);
+                    $toNum = SQL::normalizeDecimal($to);
+                    if ($from !== '' && is_numeric($fromNum)) {
+                        $sql = SQL::addWhere($sql, "[$columnName] >= " . floatval($fromNum));
                     }
-                    if ($to !== '' && is_numeric($to)) {
-                        $sql = SQL::addWhere($sql, "[$columnName] <= " . floatval($to));
+                    if ($to !== '' && is_numeric($toNum)) {
+                        $sql = SQL::addWhere($sql, "[$columnName] <= " . floatval($toNum));
                     }
                 }
             }
