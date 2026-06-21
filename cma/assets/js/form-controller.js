@@ -8382,11 +8382,18 @@ class CmaFormController {
                         }
                     } else if (field.value !== undefined) {
                         let v = value || '';
-                        // Number fields: collapse an all-zero fraction on init so
-                        // 5.0 / 5.00 / 5.000 / 5.0000 show as "5" (nothing useful
-                        // after the decimal). Real decimals (5.50, 5.10) are kept.
-                        if (field.dataset.validationType === 'number' && /^-?\d+\.0+$/.test(String(v))) {
-                            v = String(v).replace(/\.0+$/, '');
+                        if (field.dataset.validationType === 'number') {
+                            v = String(v);
+                            if (/^-?\d+\.0+$/.test(v)) {
+                                // All-zero fraction -> integer (5.0 / 5.00 -> 5):
+                                // nothing useful after the decimal.
+                                v = v.replace(/\.0+$/, '');
+                            } else if (v.indexOf('.') !== -1) {
+                                // Show the Dutch decimal comma (5.5 -> 5,5). Saving
+                                // normalises it back (numericBindValue / normalizeDecimal),
+                                // and number validation already accepts a comma.
+                                v = v.replace('.', ',');
+                            }
                         }
                         field.value = v;
                     }

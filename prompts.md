@@ -978,3 +978,5 @@ karaat-data en staat in de karaat-repo.
 > fixed, thanx!
 
 > okay the corm and kleur now show, but are not saved correctly. The price has gone up from 9 to 90000 after a few saved, same with the sizes, they lost their delimiter. Vorm and kleur not saved at all.
+
+> we HAVE to use a comma because saving does not work correctly so yes please
