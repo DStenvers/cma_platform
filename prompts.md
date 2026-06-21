@@ -984,3 +984,11 @@ karaat-data en staat in de karaat-repo.
 > and what abouw thee image editing? the old cma had a crude editing system, is that gone?
 
 > the old cma had an image wizard next to the file wizard, we can integrate it but now it is gone. in the right pane of the file wizard place an edit icon , a crop icon and 2 rotate buttons and other easy editing buttons
+
+> dashboard: Cache prestaties
+> 0%
+> Backend: apcu
+> 0
+> Hits
+> 0
+> Misses, skip that of hits if all is 0

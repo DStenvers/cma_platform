@@ -1767,6 +1767,13 @@ if ($isAdmin) {
                 if (cacheCard) cacheCard.style.display = 'none';
                 return;
             }
+            // No activity yet (0 hits AND 0 misses) -> the card would just show a
+            // meaningless "0% / 0 / 0", so hide it (same as the no-APCu case).
+            if ((Number(cache.hits) || 0) === 0 && (Number(cache.misses) || 0) === 0) {
+                var idleCard = cacheStats.closest('.stats-card');
+                if (idleCard) idleCard.style.display = 'none';
+                return;
+            }
             var ratio = Math.round(cache.hit_ratio || 0);
             var ratioClass = ratio >= 80 ? 'success' : (ratio >= 50 ? 'warning' : 'error');
 
