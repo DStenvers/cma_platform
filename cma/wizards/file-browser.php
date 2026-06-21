@@ -914,7 +914,56 @@ $appBasePath = Application::get('base_path', '/');
             object-fit: contain;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            margin-bottom: 15px;
+            display: block;
+        }
+        .preview-wrap {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            line-height: 0;
+        }
+        .preview-wrap.cropping { cursor: crosshair; }
+        .crop-overlay {
+            position: absolute;
+            inset: 0;
+            cursor: crosshair;
+        }
+        .crop-selection {
+            position: absolute;
+            border: 1px dashed #fff;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+            box-sizing: border-box;
+        }
+        .crop-actions { margin: 8px 0; }
+        .img-edit-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 8px 0 15px;
+        }
+        .img-edit-bar__label {
+            font-size: 12px;
+            color: var(--text-muted, #666);
+            margin-right: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .img-edit-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color, #ccc);
+            border-radius: 4px;
+            background: var(--input-bg, #fff);
+            cursor: pointer;
+        }
+        .img-edit-btn:hover {
+            background: var(--bg-hover, #f0f0f0);
+            border-color: var(--border-dark, #999);
         }
 
         .details-table {
@@ -1822,7 +1871,23 @@ $appBasePath = Application::get('base_path', '/');
             let html = '';
 
             if (file.isImage) {
+                html += '<div class="preview-wrap" id="previewWrap">';
                 html += '<img src="' + escapeHtml(file.url) + '" class="preview-image" id="previewImage" alt="Voorbeeld">';
+                html += '</div>';
+                // Inline image editor (raster only — SVG can't be pixel-edited).
+                // Each button posts to the existing rotate/filter/crop actions,
+                // which save in place and regenerate the .responsive variants.
+                if (file.ext !== 'svg') {
+                    html += '<div class="img-edit-bar" id="imgEditBar">'
+                        + '<span class="img-edit-bar__label"><span class="lnr lnr-pencil"></span> Bewerken</span>'
+                        + '<button type="button" class="img-edit-btn" title="Linksom draaien" onclick="editImageRotate(-90)"><span class="lnr lnr-undo"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Rechtsom draaien" onclick="editImageRotate(90)"><span class="lnr lnr-redo"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Lichter" onclick="editImageFilter(\'brightness\',\'+\')"><span class="lnr lnr-sun"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Donkerder" onclick="editImageFilter(\'brightness\',\'-\')"><span class="lnr lnr-moon"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Verscherpen" onclick="editImageFilter(\'sharpen\',\'\')"><span class="lnr lnr-magic-wand"></span></button>'
+                        + '<button type="button" class="img-edit-btn" title="Bijsnijden" onclick="startCrop()"><span class="lnr lnr-crop"></span></button>'
+                        + '</div>';
+                }
             }
 
             html += '<table class="details-table">';
@@ -1878,14 +1943,8 @@ $appBasePath = Application::get('base_path', '/');
             html += '<tr><td>Gewijzigd:</td><td>' + file.modified + '</td></tr>';
             html += '</table>';
 
-            // Add edit button for raster images (not SVG) - only when layout options are shown (HTML editor)
-            if (file.isImage && file.ext !== 'svg' && CONFIG.includeLayout) {
-                html += '<div class="edit-actions">';
-                html += '<button class="btn btn-primary" onclick="openImageEditor()" title="Bijsnijden en draaien">';
-                html += '<span class="lnr lnr-crop"></span> Bewerken';
-                html += '</button>';
-                html += '</div>';
-            }
+            // (Inline edit toolbar is rendered next to the preview above; the old
+            // separate-editor button is superseded by it.)
 
             detailsContent.innerHTML = html;
 
@@ -1895,6 +1954,108 @@ $appBasePath = Application::get('base_path', '/');
                 layoutOptions.style.display = file.isImage ? 'block' : 'none';
                 if (file.isImage) updatePreviewLayout();
             }
+        }
+
+        // ── Inline image editing ────────────────────────────────────────────
+        // Posts to the server image actions (rotate/filter/crop), which save the
+        // file in place and regenerate its .responsive variants, then reloads the
+        // preview (loadFileDetails re-fetches -> new ?versie= busts the cache).
+        function editImageOp(extra) {
+            if (!selectedFile) return;
+            const fd = new FormData();
+            fd.append('action', extra.action);
+            fd.append('file', selectedFile.name);
+            for (const k in extra) { if (k !== 'action') fd.append(k, String(extra[k])); }
+            const url = '?basepath=' + encodeURIComponent(CONFIG.basePath) + '&path=' + encodeURIComponent(currentPath);
+            return fetch(url, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.success) {
+                        showToast('Bewerking opgeslagen', 'success');
+                        loadFileDetails(selectedFile.name);
+                    } else {
+                        showToast((data && data.error) || 'Bewerking mislukt', 'error');
+                    }
+                })
+                .catch(err => showToast('Bewerking mislukt: ' + err.message, 'error'));
+        }
+        function editImageRotate(deg) { editImageOp({ action: 'rotate', degrees: deg }); }
+        function editImageFilter(filter, arg) { editImageOp({ action: 'filter', filter: filter, arg: arg }); }
+
+        // Interactive crop: drag a rectangle over the preview, then apply.
+        let _cropState = null;
+        function startCrop() {
+            const wrap = document.getElementById('previewWrap');
+            const img = document.getElementById('previewImage');
+            if (!wrap || !img) return;
+            cancelCrop();
+            wrap.classList.add('cropping');
+            const overlay = document.createElement('div');
+            overlay.className = 'crop-overlay';
+            const sel = document.createElement('div');
+            sel.className = 'crop-selection';
+            sel.style.display = 'none';
+            overlay.appendChild(sel);
+            wrap.appendChild(overlay);
+            const actions = document.createElement('div');
+            actions.className = 'crop-actions';
+            actions.innerHTML = '<button type="button" class="btn btn-primary" onclick="applyCrop()">Bijsnijden</button> '
+                              + '<button type="button" class="btn" onclick="cancelCrop()">Annuleren</button>';
+            wrap.parentNode.insertBefore(actions, wrap.nextSibling);
+            _cropState = { overlay, sel, actions, img, dragging: false, sx: 0, sy: 0 };
+            overlay.addEventListener('mousedown', cropDown);
+            overlay.addEventListener('mousemove', cropMove);
+            window.addEventListener('mouseup', cropUp);
+        }
+        function cropDown(e) {
+            if (!_cropState) return;
+            const r = _cropState.overlay.getBoundingClientRect();
+            _cropState.dragging = true;
+            _cropState.sx = e.clientX - r.left;
+            _cropState.sy = e.clientY - r.top;
+            const s = _cropState.sel;
+            s.style.display = 'block';
+            s.style.left = _cropState.sx + 'px'; s.style.top = _cropState.sy + 'px';
+            s.style.width = '0px'; s.style.height = '0px';
+            e.preventDefault();
+        }
+        function cropMove(e) {
+            if (!_cropState || !_cropState.dragging) return;
+            const r = _cropState.overlay.getBoundingClientRect();
+            const cx = Math.max(0, Math.min(e.clientX - r.left, r.width));
+            const cy = Math.max(0, Math.min(e.clientY - r.top, r.height));
+            const s = _cropState.sel;
+            s.style.left = Math.min(cx, _cropState.sx) + 'px';
+            s.style.top = Math.min(cy, _cropState.sy) + 'px';
+            s.style.width = Math.abs(cx - _cropState.sx) + 'px';
+            s.style.height = Math.abs(cy - _cropState.sy) + 'px';
+        }
+        function cropUp() { if (_cropState) _cropState.dragging = false; }
+        function cancelCrop() {
+            const wrap = document.getElementById('previewWrap');
+            if (wrap) wrap.classList.remove('cropping');
+            if (_cropState) {
+                window.removeEventListener('mouseup', cropUp);
+                if (_cropState.overlay) _cropState.overlay.remove();
+                if (_cropState.actions) _cropState.actions.remove();
+                _cropState = null;
+            }
+        }
+        function applyCrop() {
+            if (!_cropState || !selectedFile) return;
+            const img = _cropState.img;
+            const selR = _cropState.sel.getBoundingClientRect();
+            const imgR = img.getBoundingClientRect();
+            if (selR.width < 5 || selR.height < 5) { showToast('Selecteer eerst een gebied', 'error'); return; }
+            // Scale displayed pixels back to the image's natural pixels.
+            const scaleX = img.naturalWidth / imgR.width;
+            const scaleY = img.naturalHeight / imgR.height;
+            const x = Math.max(0, Math.round((selR.left - imgR.left) * scaleX));
+            const y = Math.max(0, Math.round((selR.top - imgR.top) * scaleY));
+            const cw = Math.round(selR.width * scaleX);
+            const ch = Math.round(selR.height * scaleY);
+            cancelCrop();
+            editImageOp({ action: 'crop', x: x, y: y, width: cw, height: ch, destWidth: 0, destHeight: 0 });
         }
 
         function updatePreviewLayout() {

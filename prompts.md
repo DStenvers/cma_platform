@@ -980,3 +980,7 @@ karaat-data en staat in de karaat-repo.
 > okay the corm and kleur now show, but are not saved correctly. The price has gone up from 9 to 90000 after a few saved, same with the sizes, they lost their delimiter. Vorm and kleur not saved at all.
 
 > we HAVE to use a comma because saving does not work correctly so yes please
+
+> and what abouw thee image editing? the old cma had a crude editing system, is that gone?
+
+> the old cma had an image wizard next to the file wizard, we can integrate it but now it is gone. in the right pane of the file wizard place an edit icon , a crop icon and 2 rotate buttons and other easy editing buttons
