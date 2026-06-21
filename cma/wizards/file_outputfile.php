@@ -3,6 +3,7 @@ use App\Library\Image;
 use App\Library\LibUpload;
 use App\Library\Request;
 use App\Library\Response;
+use App\Library\ResponsiveImage;
 use App\Library\Server;
 use Cma\FormControlHelper;
 
@@ -109,6 +110,15 @@ function main()
         }
     }
     $objUpload = null;
+
+    // Keep responsive variants in sync for uploaded/resized images (same as the
+    // file-browser wizard and the editor do).
+    $finalAbs = Server::mapPath($sRootURL . $sSubPath . $filename);
+    $finalExt = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
+    if (in_array($finalExt, ['jpg', 'jpeg', 'png', 'webp']) && is_file($finalAbs)) {
+        ResponsiveImage::deleteVariants($finalAbs);
+        ResponsiveImage::generate($finalAbs);
+    }
 
     // Cache busting: append ?versie= timestamp so browsers reload overwritten files
     $sFileParam = $bOverwrite ? $filename . '?versie=' . time() : $filename;

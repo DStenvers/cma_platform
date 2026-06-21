@@ -42,6 +42,12 @@ class Installer
      */
     private const REMOVED_PATHS = [
         'cma/tools/llm_models.php',
+        // Retired: the legacy IE/ActiveX image-upload wizard (an <OBJECT> COM
+        // control + IE-only event scripting) and its POST target. Dead in any
+        // modern browser and reached by nothing; superseded by the file-browser
+        // wizard (cma/wizards/file-browser.php) and imageupload_crop.php.
+        'cma/imageupload.php',
+        'cma/imageupload_action.php',
         // Markdown docs retired in v1.16.0 (Phase 1 of the in-CMA
         // documentation hub at cma/tools/documentation.php). Their
         // content was inlined into the topics there. See CLAUDE.md

@@ -201,7 +201,6 @@ $skipRootFiles = [
     'html_edit_link',  // CKEditor plugin (requires parameters)
     'html_edit_row',   // CKEditor plugin (requires parameters)
     'html_edit_table', // CKEditor plugin (requires parameters)
-    'imageupload_action', // POST-only handler
 ];
 
 $rootFiles = glob(dirname(__DIR__) . '/*.php');
@@ -237,7 +236,6 @@ foreach ($rootFiles as $file) {
         case 'menurep':
             // Frameset page - tested as-is
             break;
-        case 'imageupload':
         case 'imageupload_crop':
             // Needs parameters but should still return HTML without error
             break;

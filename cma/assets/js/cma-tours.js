@@ -84,9 +84,6 @@
             case 'preferences.php':
                 initPreferencesTour();
                 break;
-            case 'imageupload.php':
-                initImageUploadTour();
-                break;
         }
 
         // Also check for tool pages loaded directly
@@ -1211,58 +1208,6 @@
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // 17. IMAGE UPLOAD TOUR
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    function initImageUploadTour() {
-        const steps = [];
-
-        // Dropzone
-        if (document.querySelector('.dropzone, .upload-area, #dropzone')) {
-            steps.push({
-                target: '.dropzone, .upload-area, #dropzone',
-                title: 'Afbeelding uploaden',
-                content: `
-                    <p><span class="cma-js__strong">Sleep</span> een afbeelding hierheen, of <span class="cma-js__strong">klik</span> om te bladeren.</p>
-                `,
-                position: 'bottom'
-            });
-        }
-
-        // File info
-        steps.push({
-            target: '.dropzone, .upload-area, #dropzone',
-            title: 'Ondersteunde formaten',
-            content: `
-                <p>Toegestane bestandstypen:</p>
-                <ul style="margin: 8px 0; padding-left: 20px;">
-                    <li>JPG / JPEG</li>
-                    <li>PNG</li>
-                    <li>GIF</li>
-                </ul>
-                <p>Maximale grootte: 5MB</p>
-            `,
-            position: 'bottom'
-        });
-
-        // Crop tool (if visible)
-        if (document.querySelector('.crop-tool, #cropArea, .jcrop-holder')) {
-            steps.push({
-                target: '.crop-tool, #cropArea, .jcrop-holder',
-                title: 'Bijsnijden',
-                content: `
-                    <p>Sleep de hoeken om het bijsnijgebied aan te passen.</p>
-                    <p>De afbeelding wordt geschaald naar het vereiste formaat.</p>
-                `,
-                position: 'right'
-            });
-        }
-
-        if (steps.length > 0) {
-            LibTip.tour('imageupload', steps);
-        }
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 18. PREFERENCES TOUR
@@ -1376,7 +1321,6 @@
         reportsList: initReportsListTour,
         tools: initToolsPageTour,
         preferences: initPreferencesTour,
-        imageUpload: initImageUploadTour,
 
         // Form-specific tours
         usersForm: initUsersFormTour,

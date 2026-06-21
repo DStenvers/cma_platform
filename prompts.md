@@ -1007,3 +1007,5 @@ karaat-data en staat in de karaat-repo.
 > and 5 sounds good but very subtle
 
 > and the .responsive formats, are they regenerated after changes or uploads?
+
+> yes do that too, if they are in use othereise archive them

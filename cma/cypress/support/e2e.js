@@ -49,7 +49,7 @@ beforeEach(() => {
                 'form-rooster', 'form-urentemplate', 'form-cmamonitoring',
                 'report-designer', 'report-designer-loaded', 'report-designer-field-search',
                 'reports.php', 'tools.php', 'tools-query', 'tools-dbsummary', 'tools-migrations',
-                'tools-formwiz', 'tools-storybook', 'imageupload', 'preferences',
+                'tools-formwiz', 'tools-storybook', 'preferences',
                 'field-search-tip', 'column-selector-tip'
             ]
         }
