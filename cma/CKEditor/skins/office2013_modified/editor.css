@@ -49,7 +49,7 @@ a.cke_path_item:hover,a.cke_path_item:focus,a.cke_path_item:active{background-co
 .cke_button__imgtitle_icon::before{content : "\e710"}
 .cke_button__table_icon::before{content: "\e9df";font-size: 20px;line-height: 13px;margin-left: -2px;color: #404040;margin-top: 1px}
 .cke_button__horizontalrule_icon::before{content : "\e937"}
-.cke_button__specialchar_icon::before{content : "\00a9";font-size:24px;line-height:17px}
+.cke_button__specialchar_icon::before{content : "\00a9";font-size:24px;line-height:10px}
 .cke_button__mymaximize_icon::before{content : "\e94a";font-size: 13px;line-height: 19px}
 .cke_button__bold_icon::before,
 .cke_button__italic_icon::before,

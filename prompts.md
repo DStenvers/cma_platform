@@ -733,3 +733,7 @@ karaat-data en staat in de karaat-repo.
 > in the cma the beschrijving field of a stone hides when editing, is blnNewonly probably
 
 > the btnViewList buttons on the file wizard should be right aligned in the path-bar
+
+> first the Nieuw and theen the soort table search
+
+> on a lib-combi the calculation of the position of combo-search is 2px too low, please re-evaluate that calculation

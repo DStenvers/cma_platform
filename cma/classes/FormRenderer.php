@@ -669,7 +669,12 @@ class FormRenderer
         $required = $config['required'] ?? false;
         $readonly = $config['readonly'] ?? false;
         $newChangableOnly = $config['newChangableOnly'] ?? false;
-        $controlId = $config['controlId'] ?? $name;
+        // JSON forms identify fields by `name`, not a numeric `id`, so Q_CONTROLID
+        // arrives as '' (JsonFormLoader: $field['id'] ?? ''). A '' controlId yields
+        // name="chklst_" + empty data-control-id, so the client posts an empty
+        // controlId ("controlId parameter is verplicht") and no options load. Fall
+        // back to the field name when controlId is empty (not just null).
+        $controlId = !empty($config['controlId']) ? $config['controlId'] : $name;
         $width = $config['width'] ?? 200;
         $caption = $config['caption'] ?? '';
 

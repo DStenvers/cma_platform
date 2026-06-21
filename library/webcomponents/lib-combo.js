@@ -788,8 +788,12 @@ class LibCombo extends HTMLElement {
         // instead of the viewport. We must compensate for this offset.
         const containerOffset = this._getContainingBlockOffset(dropdown);
 
-        // Position below by default
-        let top = rect.bottom + 4 - containerOffset.top;
+        // Position below by default. rect.bottom is the combo's outer (border-box)
+        // bottom — it already includes the combo's 1px bottom border, and the
+        // dropdown adds its own 1px top border at the connecting edge. Those two
+        // 1px borders overlap, so the gap constant is 2 (was 4, which placed the
+        // dropdown — and the combo-search inside it — 2px too low).
+        let top = rect.bottom + 2 - containerOffset.top;
         let left = rect.left - containerOffset.left;
         let openAbove = false;
 

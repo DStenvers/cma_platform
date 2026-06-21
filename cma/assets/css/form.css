@@ -2790,8 +2790,6 @@ body.mode-table #btn_columns {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
     padding: 2px;
     cursor: pointer;
     text-decoration: none;
