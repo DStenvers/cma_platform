@@ -1016,3 +1016,15 @@ karaat-data en staat in de karaat-repo.
 
 > .combo-display {    min-height: 32px;
 >    remove the entire height property
+
+> .combo-display { min-height32px; } .combo-tag { border-color: 1px solid var(--color-accent-hover) }
+
+> in another discussion (about klei) you uncovered an issue we need to solve; file/directory case sensitivity. Do a thorough check on all file references whether they are in fact lower case or not
+
+> no let's wait for a bit, this is just cosmetics and for future migrations
+
+> lib_HTMLEditorInit : search for it again, if not found delete it and see if  lib_htmleditor.inc is needed. CMA/include/CKeditor.js : fix that too.
+
+> the pctchecklist control is still not saving the selected values (seen in Karaat), this is a major issue, Look into this please
+
+> path emptyness is an error, leave it as such. Push and commit everything if there is nothing more to do.
