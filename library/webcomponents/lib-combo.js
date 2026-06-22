@@ -231,6 +231,7 @@ class LibCombo extends HTMLElement {
                     align-items: center;
                     flex-wrap: wrap;
                     gap: var(--spacing-xs, 4px);
+                    min-height: 32px;
                     padding: var(--spacing-xs, 2px) 32px var(--spacing-xs, 2px) var(--spacing-sm, 10px);
                     border: 1px solid var(--border-color, #ccc);
                     border-radius: var(--radius-md, 4px);
@@ -291,6 +292,7 @@ class LibCombo extends HTMLElement {
                     gap: var(--spacing-xs, 4px);
                     padding: 2px var(--spacing-sm, 8px);
                     background-color: var(--bg-hover, #d0e8f8);
+                    border: 1px solid var(--color-accent-hover);
                     border-radius: var(--radius-sm, 3px);
                     font-size: var(--font-size-sm, 13px);
                     color: var(--color-primary-dark, #1a365d);
