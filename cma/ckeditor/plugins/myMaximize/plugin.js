@@ -183,58 +183,29 @@ if (false) {
 						// Special treatment for FF Quirks (#7284)
 						container.setStyle( 'position', CKEDITOR.env.gecko && CKEDITOR.env.quirks ? 'fixed' : 'absolute' );
 						container.$.offsetLeft; // SAFARI BUG: See #2066.
-						
+
 						container.setStyles( {
 							// Show under floatpanels (-1) and context menu (-2).
 							'z-index': editor.config.baseFloatZIndex - 5,
 							left: '0px',
-							'position' : 'fixed',
-							top: editor.top_pos
+							top: '0px'
 						} );
-						
-						// toolbar present?
-						iToolbarHeight = 0;
-						editor.top_pos = 0;  // document.scrollTop;
-						if (document.getElementById("toolbar")) {
-							iToolbarHeight = document.getElementById("toolbar").clientHeight;
-//							editor.top_pos = iToolbarHeight * 2;
-//							container.$.style.top = iToolbarHeight;
-//							container.$.style.height = container.$.style.height - iToolbarHeight;
-							container.$.style.paddingTop = iToolbarHeight+"px";
-						}
+
 						// Add cke_maximized class before resize handle since that will change things sizes (#5580)
 						container.addClass( 'cke_maximized' );
 
 						resizeHandler();
-												
+
 						// Still not top left? Fix it. (Bug #174)
 						var offset = container.getDocumentPosition();
 						container.setStyles( {
 							left: ( -1 * offset.x ) + 'px',
-							top: ( ( -1 * offset.y ) + editor.top_pos ) + 'px'
+							top: ( -1 * offset.y ) + 'px'
 						} );
-						
-						if (iToolbarHeight>0) {
-							var iTb = document.getElementById("toolbar");
-							iTb.style.top = '0px';							
-							iTb.style.left = '0px';
-							iTb.style.position = 'fixed';
-							iTb.style.zIndex = editor.config.baseFloatZIndex;
-							container.setStyles( {
-								top: iToolbarHeight + 'px'
-							} );
-							var viewPaneSize = mainWindow.getViewPaneSize();
-							container.setStyles( {
-								height: (viewPaneSize.height - iToolbarHeight) + 'px'
-							} );
-							
-						}
-						container.$.style.top = "0px";
-						console.log ( "Toolbarheight : "  + iToolbarHeight.toString() + "px" ); 
-						
+
 						// Fixing positioning editor chrome in Firefox break design mode. (#5149)
-						CKEDITOR.env.gecko && refreshCursor( editor );					
-						
+						CKEDITOR.env.gecko && refreshCursor( editor );
+
 					}
 					// Restore from fullscreen if the state is on.
 					else if ( this.state == CKEDITOR.TRISTATE_ON ) {
