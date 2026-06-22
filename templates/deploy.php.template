@@ -37,6 +37,10 @@
  *   DEPLOY_COMPOSER_UPDATE   comma-separated packages to `composer update`
  *                            after the pipeline. Default: stenversonline/platform.
  *                            "-" skips the composer step entirely.
+ *   DEPLOY_COMPOSER_CLEAR_CACHE 1 = run `composer clear-cache` BEFORE the update,
+ *                            so a freshly-pushed platform tag isn't missed because
+ *                            Composer's VCS clone cache pinned an old ref ("Nothing
+ *                            to modify"). Off by default (re-clone is slower).
  *   DEPLOY_RUN_TESTS         command run AFTER pull/composer, BEFORE recycle.
  *                            Non-zero exit => deploy FAILED, recycle + post-hook
  *                            skipped (production stays on the old code).
@@ -265,6 +269,16 @@ if (!$failed && $composerPkgs !== '-' && $composerPkgs !== '') {
         $log('FAIL: ' . $failReason);
     } else {
         $log("composer = $composer");
+        // Optional: clear Composer's caches (incl. the VCS clone cache) BEFORE the
+        // update. Composer keeps a per-repo clone cache; a freshly-pushed tag can be
+        // missed ("Nothing to modify" / an old ref resolved) until that cache is
+        // dropped. Set DEPLOY_COMPOSER_CLEAR_CACHE=1 to force a clean re-resolve.
+        // Off by default — clearing forces a re-clone and slows the next resolve, so
+        // enable it only when a deploy must pull a brand-new platform release.
+        // Best-effort: a failing clear-cache does NOT abort the deploy.
+        if ($envRead('DEPLOY_COMPOSER_CLEAR_CACHE', '') === '1') {
+            $run($composer . ' clear-cache --no-interaction');
+        }
         $pkgArgs = implode(' ', array_map(
             'escapeshellarg',
             preg_split('/\s*,\s*/', $composerPkgs, -1, PREG_SPLIT_NO_EMPTY) ?: []

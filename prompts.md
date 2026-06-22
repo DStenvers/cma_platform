@@ -1064,3 +1064,11 @@ karaat-data en staat in de karaat-repo.
 >
 >
 > pleas execute them in this codebase , bump the version and make sure it needs an update
+
+> klei is updated, can you check?
+
+> count(): Argument #1 ($value) must be of type Countable|array, null given
+> in C:\wwwroot\klei.stenversonline.nl\views\homepage.inc on line 82
+
+> can you change deploy.php so it runs composer clear-cache
+> ! composer update stenversonline/platform using a special parameter? document that too
