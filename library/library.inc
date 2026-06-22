@@ -14,7 +14,6 @@ require_once __DIR__ . '/lib_formtext.inc';
 require_once __DIR__ . '/lib_general.inc';
 require_once __DIR__ . '/lib_geocode.inc';
 require_once __DIR__ . '/lib_html.inc';
-require_once __DIR__ . '/lib_htmleditor.inc';
 require_once __DIR__ . '/lib_password.inc';
 require_once __DIR__ . '/lib_search.inc';
 require_once __DIR__ . '/lib_sendmail.inc';

@@ -84,6 +84,12 @@ class Installer
         // ConfigLoader). 9.9.0 used to move it here, splitting it from the file
         // the runner reads; that move was dropped and this stale copy deleted.
         'cma/migrations/migrations.json',
+        // Removed: lib_htmleditor.inc defined a single dead function
+        // (lib_HTMLEditorInit) with no call site anywhere, plus a legacy
+        // CreateFKEditor JS duplicate long superseded by cma/assets/js/cma.js
+        // and cma/webcomponents/cma-htmledit.js. Its require in library.inc was
+        // dropped; this removes the synced copy from consumer sites.
+        'library/lib_htmleditor.inc',
     ];
 
     /**

@@ -2763,9 +2763,9 @@ window.LIBLOG_CONFIG = {
                         function doInit() {
                             // Set editor config if available
                             if (typeof SetFKEditorConfig === 'function') {
-                                SetFKEditorConfig({ customCSS: '/cma/CKEditor/contents.css', allowBR: false });
+                                SetFKEditorConfig({ customCSS: '/cma/ckeditor/contents.css', allowBR: false });
                             } else if (typeof CMA !== 'undefined' && CMA.editor && CMA.editor.setConfig) {
-                                CMA.editor.setConfig({ customCSS: '/cma/CKEditor/contents.css', allowBR: false });
+                                CMA.editor.setConfig({ customCSS: '/cma/ckeditor/contents.css', allowBR: false });
                             }
                             blockedit_init();
                         }
@@ -3122,7 +3122,7 @@ window.LIBLOG_CONFIG = {
                 <script>
                 // Set editor config for cma-htmledit demos (CKEditor loaded in blockeditor section)
                 if (typeof CMA !== 'undefined' && CMA.editor && CMA.editor.setConfig) {
-                    CMA.editor.setConfig({ customCSS: '/cma/CKEditor/contents.css', allowBR: false });
+                    CMA.editor.setConfig({ customCSS: '/cma/ckeditor/contents.css', allowBR: false });
                 }
                 </script>
                 <div class="playground">

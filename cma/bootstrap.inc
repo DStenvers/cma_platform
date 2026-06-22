@@ -51,7 +51,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
 // Ensure CKEditor CSS is always set for CMA (uses CKEditor's contents.css)
 if (empty($GLOBALS['Application']['cma_htmledit_css'])) {
-    $GLOBALS['Application']['cma_htmledit_css'] = '/cma/CKEditor/contents.css';
+    $GLOBALS['Application']['cma_htmledit_css'] = '/cma/ckeditor/contents.css';
 }
 
 // =========================================================================
