@@ -1009,3 +1009,10 @@ karaat-data en staat in de karaat-repo.
 > and the .responsive formats, are they regenerated after changes or uploads?
 
 > yes do that too, if they are in use othereise archive them
+
+## 2026-06-22
+
+> is it pushed?
+
+> .combo-display {    min-height: 32px;
+>    remove the entire height property

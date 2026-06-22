@@ -239,8 +239,6 @@ class LibCombo extends HTMLElement {
                     background-color: var(--input-bg, #fff);
                     cursor: pointer;
                     transition: border-color var(--transition-base, 0.15s ease), box-shadow var(--transition-base, 0.15s ease);
-                    min-height: 26px;
-                    height: 26px;
                 }
 
                 .combo-display:hover {
