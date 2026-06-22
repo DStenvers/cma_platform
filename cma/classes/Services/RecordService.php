@@ -1272,7 +1272,15 @@ class RecordService extends BaseFormService
                 continue;
             }
 
+            // JSON forms identify fields by name, so Q_CONTROLID is '' (JsonFormLoader
+            // sets it from $field['id'] ?? ''). The renderer falls back to the field
+            // name when building the chklst_ POST field (FormRenderer::renderChecklist),
+            // so resolve the SAME fallback here — otherwise $data['chklst_'] never
+            // matches what the client posted and the selection is silently dropped.
             $controlId = $arrRep[\Q_CONTROLID][$i] ?? '';
+            if ($controlId === '') {
+                $controlId = $arrRep[\Q_FIELDNAME][$i] ?? '';
+            }
             $sourceTable = $arrRep[\Q_SOURCETABLE][$i] ?? '';
             $idField = $arrRep[\Q_CTRLIDFIELD][$i] ?? ''; // Field linking to main record
             $foreignIdField = $arrRep[\Q_FOREIGNIDFIELD][$i] ?? ''; // Field linking to related record

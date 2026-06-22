@@ -9464,7 +9464,14 @@ class CmaFormController {
         this.mainForm.querySelectorAll('lib-combo[name]').forEach(combo => {
             const comboName = combo.getAttribute('name');
             if (comboName && !comboName.startsWith('_')) {
-                data[comboName] = combo.value;
+                // Multi-select combos (checklists) return an array. The save POST is
+                // multipart/form-data and the field name has no `[]` suffix, so the
+                // array-append path below would post the key repeatedly and PHP $_POST
+                // keeps only the LAST value — losing every selection but one. Join to a
+                // comma string, matching the chklstall_ format and the server contract
+                // (RecordService::saveChecklistValues explode(',', ...)).
+                const comboValue = combo.value;
+                data[comboName] = Array.isArray(comboValue) ? comboValue.join(',') : comboValue;
             }
         });
 
