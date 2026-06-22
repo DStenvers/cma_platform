@@ -1028,3 +1028,39 @@ karaat-data en staat in de karaat-repo.
 > the pctchecklist control is still not saving the selected values (seen in Karaat), this is a major issue, Look into this please
 
 > path emptyness is an error, leave it as such. Push and commit everything if there is nothing more to do.
+
+> see this checges: 
+>
+>
+> ● Update(/mnt/c/repos/klei/app/library/Cache.php)
+>   ⎿  Added 4 lines, removed 3 lines
+>       845       * @param string $sql SQL query to execute if cache miss
+>       846       * @return ColumnMajorArray|null Column-major array or null if no results
+>       847       */
+>       848 -    public static function retrieve(string $identifier, $connection, string $sql): ?ColumnMajorArray
+>       848 +    public static function retrieve(string $identifier, $connection, string $sql): ColumnMajorArray
+>       849      {
+>       850          self::init();
+>       851
+>       852          // Check if caching is enabled
+>       853          if (!self::$enabled) {
+>       854              $results = self::executeQuery($connection, $sql);
+>       855 -            return $results ? new ColumnMajorArray($results) : null;
+>       855 +            return new ColumnMajorArray($results ?: []);
+>       856          }
+>       857
+>       858          // Try to get from cache first
+>      ...
+>       873              return new ColumnMajorArray($results);
+>       874          }
+>       875
+>       876 -        return null;
+>       876 +        // No rows: empty countable ColumnMajorArray, never null (PHP8 count(null) fatal).
+>       877 +        return new ColumnMajorArray([]);
+>       878      }
+>       879
+>       880      /**
+>
+>
+>
+> pleas execute them in this codebase , bump the version and make sure it needs an update
