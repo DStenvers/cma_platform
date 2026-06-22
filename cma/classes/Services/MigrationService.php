@@ -199,7 +199,7 @@ class MigrationService
                 }
                 $version = $this->getLatestVersion($conn, $source['trackingTable']);
                 $this->currentVersions[$name] = $version ?: '0.0.0';
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->currentVersions[$name] = 'fout';
                 $this->errors[] = "Fout bij verbinden met {$source['trackingDb']}: " . $e->getMessage();
             }
@@ -219,7 +219,7 @@ class MigrationService
             try {
                 $conn = Database::getConnection($db);
                 $this->currentVersions[$db] = $conn === null ? 'geen verbinding' : 'verbonden';
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->currentVersions[$db] = 'fout';
             }
         }
@@ -248,7 +248,7 @@ class MigrationService
                 try {
                     $conn->query("SELECT TOP 1 version FROM " . $tableName);
                     return true;
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     return false;
                 }
             } else {
@@ -257,7 +257,7 @@ class MigrationService
                 $stmt = $conn->query($sql);
                 return (int)$stmt->fetchColumn() > 0;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return false;
         }
     }
@@ -286,7 +286,7 @@ class MigrationService
             $stmt = $conn->query($sql);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row ? $row['version'] : null;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->log[] = "Waarschuwing: Kan versie niet ophalen uit $tableName: " . $e->getMessage();
             return null;
         }
@@ -570,7 +570,7 @@ class MigrationService
                         ];
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 if (!empty($change['optional'])) {
                     $this->log[] = "  [$changeIndex/$changeCount] ⊘ $changeDesc (optioneel, overgeslagen)";
                     $this->log[] = "              " . $e->getMessage();
@@ -807,7 +807,7 @@ class MigrationService
             $conn->exec($sql);
 
             return ['success' => true, 'error' => null, 'message' => 'Tabel aangemaakt'];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [
                 'success' => false,
                 'error' => "Kan versietabel '$tableName' niet aanmaken in '$database': " . $e->getMessage()
@@ -857,7 +857,7 @@ class MigrationService
         try {
             $conn->exec("DROP TABLE [$table]");
             return ['success' => true, 'error' => null, 'message' => 'Tabel verwijderd'];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $errorMsg = "Kan tabel '$table' niet verwijderen: " . $e->getMessage();
 
             // Voeg relatie-informatie toe als die beschikbaar is
@@ -904,7 +904,7 @@ class MigrationService
                     'description' => "Relatie '$relName': kolom '$column' verwijst naar '$refTable.$refColumn'"
                 ];
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // MSysRelationships niet toegankelijk, probeer alternatieve methode
         }
 
@@ -945,11 +945,11 @@ class MigrationService
                             }
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // Negeer fouten bij individuele tabellen
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Als MSysObjects ook niet werkt, voeg een algemene hint toe
             $relations[] = [
                 'type' => 'Info',
@@ -969,7 +969,7 @@ class MigrationService
                     'description' => "Tabel '{$row['Name']}' bevat '$table' in de naam"
                 ];
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Negeer
         }
 
@@ -1080,7 +1080,7 @@ class MigrationService
             $affected = $conn->exec($sql);
 
             return ['success' => true, 'error' => null, 'message' => "$affected rij(en) aangepast"];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [
                 'success' => false,
                 'error' => "SQL uitvoering mislukt: " . $e->getMessage() . " (SQL: $sql)"
@@ -1152,7 +1152,7 @@ class MigrationService
             }
 
             return ['success' => true, 'error' => null, 'message' => "$executed statement(s) uitgevoerd"];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [
                 'success' => false,
                 'error' => "Script uitvoering mislukt ($scriptPath): " . $e->getMessage()
@@ -1267,7 +1267,7 @@ class MigrationService
                 'error' => null,
                 'message' => "Script uitgevoerd"
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             if (ob_get_level() > 0) {
                 ob_end_clean();
             }
@@ -1338,7 +1338,7 @@ class MigrationService
                     $migration['description'] ?? ''
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->log[] = "  ⚠ Kan versie niet registreren in '{$source['trackingTable']}': " . $e->getMessage();
         }
 
@@ -1374,7 +1374,7 @@ class MigrationService
                     $row['_source'] = $name;
                     $history[] = $row;
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->errors[] = "Kan migratiegeschiedenis voor '$name' niet laden: " . $e->getMessage();
             }
         }
@@ -1591,7 +1591,7 @@ class MigrationService
             $result = $stmt->fetch();
 
             self::$migrationStatusCache[$cacheKey] = ($result !== false);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Table doesn't exist or query failed - migration not applied
             self::$migrationStatusCache[$cacheKey] = false;
         }
@@ -1627,7 +1627,7 @@ class MigrationService
             $conn->query($sql);
 
             self::$columnExistsCache[$cacheKey] = true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             self::$columnExistsCache[$cacheKey] = false;
         }
 
