@@ -843,16 +843,16 @@ class Cache
      * @param string $identifier Cache key identifier
      * @param \PDO|string $connection PDO connection or connection name
      * @param string $sql SQL query to execute if cache miss
-     * @return ColumnMajorArray|null Column-major array or null if no results
+     * @return ColumnMajorArray Column-major array (empty if no results)
      */
-    public static function retrieve(string $identifier, $connection, string $sql): ?ColumnMajorArray
+    public static function retrieve(string $identifier, $connection, string $sql): ColumnMajorArray
     {
         self::init();
 
         // Check if caching is enabled
         if (!self::$enabled) {
             $results = self::executeQuery($connection, $sql);
-            return $results ? new ColumnMajorArray($results) : null;
+            return new ColumnMajorArray($results ?: []);
         }
 
         // Try to get from cache first
@@ -873,7 +873,11 @@ class Cache
             return new ColumnMajorArray($results);
         }
 
-        return null;
+        // No rows: return an EMPTY (countable) ColumnMajorArray, never null.
+        // Callers do `for ($i=0; $i <= count($arr)-1; ...)` (from VBScript ubound);
+        // PHP 8 `count(null)` is a fatal TypeError, so an empty result must still
+        // be a countable array (count()=0 -> loop skipped), matching ubound(empty)=-1.
+        return new ColumnMajorArray([]);
     }
 
     /**
@@ -1071,15 +1075,15 @@ class Cache
      * @param string $identifier Cache identifier
      * @param \PDO|string $connection Database connection
      * @param string $sql SQL query
-     * @return ColumnMajorArray|null Column-major array or null if no results
+     * @return ColumnMajorArray Column-major array (empty if no results)
      */
-    public static function retrieveFromFile(string $identifier, $connection, string $sql): ?ColumnMajorArray
+    public static function retrieveFromFile(string $identifier, $connection, string $sql): ColumnMajorArray
     {
         self::init();
 
         if (!self::$enabled) {
             $results = self::executeQuery($connection, $sql);
-            return $results ? new ColumnMajorArray($results) : null;
+            return new ColumnMajorArray($results ?: []);
         }
 
         $cacheKey = 'cache_' . $identifier;
@@ -1114,7 +1118,8 @@ class Cache
             @file_put_contents($filename, serialize($results), LOCK_EX);
         }
 
-        return $results ? new ColumnMajorArray($results) : null;
+        // Empty result -> empty countable ColumnMajorArray, never null (see retrieve()).
+        return new ColumnMajorArray($results ?: []);
     }
 
     /**
