@@ -2266,6 +2266,20 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
     </ul>
     <p>Response is altijd JSON: <code>{"success": true|false, "error": "...", ...action-specific fields}</code>. In dev mode (omgeving ≠ P) bevat de response ook <code>_debugPath</code>, <code>_exception</code>, <code>_badFields</code> velden voor debugging.</p>
 
+    <h2>Definitie-validatie (guardrails)</h2>
+    <p>Voordat <code>form.php</code> een formulier rendert (na de toegangscontrole) roept het <code>Cma\JsonFormLoader::validateDefinition($formName)</code> aan. Die geeft een lijst van problemen terug; is die niet leeg, dan wordt het formulier <span class="cma-page__strong">geblokkeerd</span> met de volledige lijst op het scherm (via <code>showFormError</code>, HTTP 500) in plaats van stilletjes half te werken. Doel: een definitie die cruciale informatie mist faalt zichtbaar, niet stil — een checklist zonder koppeltabel slaat anders niets op zonder enige melding.</p>
+    <p>Gecontroleerd wordt (bewust krap, zodat een correct geconfigureerd form nooit afgaat):</p>
+    <table class="doc-table">
+        <thead><tr><th>Check</th><th>Probleem</th></tr></thead>
+        <tbody>
+            <tr><td>Structuur</td><td>Definitie leeg/onleesbaar, of géén <code>fields</code> én géén <code>table</code>.</td></tr>
+            <tr><td>Veldnaam</td><td>Een veld zonder <code>name</code> (behalve presentatie-velden: label, groupseparator, tip).</td></tr>
+            <tr><td>Checklist</td><td>Type <code>checklist</code> mist <code>sourceTable</code>, <code>idField</code> of <code>displayField</code> — de relatiekolommen die de save nodig heeft.</td></tr>
+            <tr><td>Image / File</td><td>Type <code>image</code>/<code>file</code> zonder pad (<code>imagePath</code>/<code>filePath</code>), of een pad dat onder de webroot niet naar een bestaande map verwijst (absolute URLs en een onbekende webroot worden overgeslagen).</td></tr>
+        </tbody>
+    </table>
+    <p>De pure kern <code>validateDefinitionData(?array $data, string $formName)</code> draait zonder cache/filesystem en is gedekt door <code>cma/tests/JsonFormValidationTest.php</code>. Voeg bij een nieuw field-type met verplichte configuratie hier een check toe, zodat een ontbrekende sleutel zichtbaar faalt in plaats van stil te degraderen.</p>
+
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a> (waar Services in <code>Cma\</code> namespace leven), <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.
     </div>

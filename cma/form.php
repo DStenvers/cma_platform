@@ -219,6 +219,26 @@ if ($accessLevel == SecurityHelper::ACCESS_NONE) {
     showFormError('Geen toegang', 'Je hebt geen toegang tot dit formulier.' . $debugInfo, 403);
 }
 
+// Validate the form definition before rendering. A form whose JSON is missing
+// crucial information must fail loudly on screen, not silently half-work (e.g. a
+// checklist whose relation columns are absent saves nothing). Any problem blocks
+// the form with the full list. Runs after the access check so definition details
+// are never shown to unauthorised users. See JsonFormLoader::validateDefinition().
+$defProblems = JsonFormLoader::validateDefinition($formName);
+if (!empty($defProblems)) {
+    $list = '<ul style="text-align:left; margin:12px 0 0; padding-left:20px;">'
+        . implode('', array_map(
+            fn($p) => '<li>' . htmlspecialchars($p) . '</li>',
+            $defProblems
+        ))
+        . '</ul>';
+    showFormError(
+        "Formulierdefinitie '$formName' is ongeldig",
+        'De volgende verplichte gegevens ontbreken of zijn onjuist:' . $list,
+        500
+    );
+}
+
 // HTTP Cache optimization with ETag
 // Generate ETag from form definition modification time + access level
 $formDefPath = __DIR__ . '/assets/forms/definitions/' . $formName . '.json';

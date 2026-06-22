@@ -522,6 +522,118 @@ class JsonFormLoader
     }
 
     /**
+     * Validate a form definition's structural integrity and referenced paths.
+     *
+     * Returns a list of human-readable problem descriptions; an empty array means
+     * the definition is sound. form.php calls this before rendering and BLOCKS the
+     * form with the problem list on screen when anything is wrong — a form whose
+     * JSON is missing crucial information must fail loudly, not silently half-work
+     * (e.g. a checklist whose relation columns are absent saves nothing — see
+     * RecordService::saveChecklistValues).
+     *
+     * Checks are intentionally narrow so a correctly-configured form never trips
+     * them: only genuinely-crucial, save-or-render-breaking omissions are flagged.
+     *
+     * @return string[] Problem descriptions (empty = valid)
+     */
+    public static function validateDefinition(string $formName): array
+    {
+        return self::validateDefinitionData(self::loadRaw($formName), $formName);
+    }
+
+    /**
+     * Pure validation of an already-loaded raw definition array. Split out from
+     * validateDefinition() so it can be unit-tested without touching the cache or
+     * filesystem (path existence aside). See validateDefinition() for semantics.
+     *
+     * @param array|null $data     Raw form definition (as returned by loadRaw)
+     * @param string     $formName Form name, for the error messages
+     * @return string[] Problem descriptions (empty = valid)
+     */
+    public static function validateDefinitionData(?array $data, string $formName): array
+    {
+        if (!is_array($data) || $data === []) {
+            return ["Formulierdefinitie '$formName' is leeg of kon niet worden gelezen."];
+        }
+
+        $fields = $data['fields'] ?? [];
+        if (empty($fields) && empty($data['table'])) {
+            return ["Geen velden en geen 'table' gedefinieerd — het formulier kan niets tonen of opslaan."];
+        }
+
+        // Field types that are purely presentational and legitimately have no name.
+        $presentational = [12 /*label*/, 15 /*groupseparator*/, 103 /*tip*/];
+
+        $problems = [];
+        foreach ($fields as $index => $field) {
+            if (!is_array($field)) {
+                $problems[] = "Veld #$index is geen object.";
+                continue;
+            }
+
+            $name = trim((string)($field['name'] ?? ''));
+            $rawType = $field['type'] ?? 'textbox';
+            $typeId = is_numeric($rawType)
+                ? (int)$rawType
+                : (self::CONTROL_TYPES[strtolower((string)$rawType)] ?? 3);
+            $label = $name !== '' ? "'$name'" : "#$index";
+
+            if ($name === '' && !in_array($typeId, $presentational, true)) {
+                $problems[] = "Veld $label heeft geen 'name'.";
+                continue; // without a name the type-specific checks are meaningless
+            }
+
+            switch ($typeId) {
+                case 8: // checklist — the relation columns are mandatory or nothing saves
+                    foreach (['sourceTable' => 'koppeltabel', 'idField' => 'id-veld naar hoofdrecord', 'displayField' => 'foreign-key-veld'] as $key => $desc) {
+                        if (empty($field[$key])) {
+                            $problems[] = "Checklist-veld $label mist '$key' ($desc) — selecties worden niet opgeslagen.";
+                        }
+                    }
+                    break;
+                case 9: // image
+                    $problems = array_merge($problems, self::validateFieldPath($label, 'Afbeelding', 'imagePath', $field['imagePath'] ?? ''));
+                    break;
+                case 11: // file
+                    $problems = array_merge($problems, self::validateFieldPath($label, 'Bestand', 'filePath', $field['filePath'] ?? ''));
+                    break;
+            }
+        }
+
+        return $problems;
+    }
+
+    /**
+     * Validate a configured upload path for an image/file field. Empty path is a
+     * problem (the control has nowhere to store to); a configured path that cannot
+     * be resolved to an existing directory under the web root is a problem. When
+     * the path is an absolute URL, or the web root can't be determined, the
+     * directory check is skipped to avoid false positives.
+     *
+     * @return string[] Problems for this one field (empty = ok)
+     */
+    private static function validateFieldPath(string $label, string $kindLabel, string $key, $path): array
+    {
+        $path = trim((string)$path);
+        if ($path === '') {
+            return ["{$kindLabel}-veld $label heeft geen pad ('$key')."];
+        }
+        // Absolute URLs are served elsewhere — not a local directory to verify.
+        if (preg_match('#^https?://#i', $path)) {
+            return [];
+        }
+        $docRoot = rtrim((string)\App\Library\Request::server('DOCUMENT_ROOT', ''), "/\\");
+        if ($docRoot === '') {
+            return []; // can't resolve the web root — don't false-block
+        }
+        $fsPath = $docRoot . '/' . ltrim($path, '/');
+        if (!is_dir($fsPath)) {
+            return ["{$kindLabel}-veld $label verwijst naar map '$path' die niet bestaat op de server."];
+        }
+        return [];
+    }
+
+    /**
      * Get form definition by source form ID (legacy database ID)
      *
      * Searches through all JSON form definitions to find one with matching sourceFormId.
