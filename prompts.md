@@ -1072,3 +1072,7 @@ karaat-data en staat in de karaat-repo.
 
 > can you change deploy.php so it runs composer clear-cache
 > ! composer update stenversonline/platform using a special parameter? document that too
+
+## 2026-06-23
+
+> i don't want to have to edit server files, can we just - like i requested - add a parameter to the deploy.php , like ?Forcerefresh=Y

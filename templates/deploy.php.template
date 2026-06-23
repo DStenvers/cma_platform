@@ -40,7 +40,9 @@
  *   DEPLOY_COMPOSER_CLEAR_CACHE 1 = run `composer clear-cache` BEFORE the update,
  *                            so a freshly-pushed platform tag isn't missed because
  *                            Composer's VCS clone cache pinned an old ref ("Nothing
- *                            to modify"). Off by default (re-clone is slower).
+ *                            to modify"). Off by default (re-clone is slower). For a
+ *                            one-off without touching .env, append ?forcerefresh=Y to
+ *                            the deploy URL (e.g. the GitHub webhook Payload URL).
  *   DEPLOY_RUN_TESTS         command run AFTER pull/composer, BEFORE recycle.
  *                            Non-zero exit => deploy FAILED, recycle + post-hook
  *                            skipped (production stays on the old code).
@@ -120,6 +122,19 @@ $scream = static function (string $reason) use ($log, $FAIL_MARKER, $envRead): v
 
 $secret = $envRead('DEPLOY_SECRET', '');
 $branch = $envRead('DEPLOY_BRANCH', 'main');
+
+// On-demand cache-bust via query string (?forcerefresh=Y) — clears Composer's
+// VCS clone cache for THIS deploy without editing any server file: add it to the
+// GitHub webhook Payload URL, or to a manual trigger. Read case-insensitively.
+// Only takes effect at the composer step (4d), which runs AFTER the HMAC + branch
+// gate below — so it grants no access, it just toggles the cache clear.
+$forceRefresh = false;
+foreach ($_GET as $gk => $gv) {
+    if (strcasecmp((string)$gk, 'forcerefresh') === 0 && !is_array($gv)) {
+        $forceRefresh = in_array(strtolower((string)$gv), ['y', '1', 'true', 'yes'], true);
+        break;
+    }
+}
 
 // Log which .env was actually read (first-existing of the candidates next to
 // this file) so a missing DEPLOY_SECRET is easy to diagnose.
@@ -272,11 +287,13 @@ if (!$failed && $composerPkgs !== '-' && $composerPkgs !== '') {
         // Optional: clear Composer's caches (incl. the VCS clone cache) BEFORE the
         // update. Composer keeps a per-repo clone cache; a freshly-pushed tag can be
         // missed ("Nothing to modify" / an old ref resolved) until that cache is
-        // dropped. Set DEPLOY_COMPOSER_CLEAR_CACHE=1 to force a clean re-resolve.
-        // Off by default — clearing forces a re-clone and slows the next resolve, so
-        // enable it only when a deploy must pull a brand-new platform release.
+        // dropped. Triggered per-deploy by ?forcerefresh=Y on the URL (no server-file
+        // edit needed), or permanently by DEPLOY_COMPOSER_CLEAR_CACHE=1. Off by
+        // default — clearing forces a re-clone and slows the next resolve, so enable
+        // it only when a deploy must pull a brand-new platform release.
         // Best-effort: a failing clear-cache does NOT abort the deploy.
-        if ($envRead('DEPLOY_COMPOSER_CLEAR_CACHE', '') === '1') {
+        if ($forceRefresh || $envRead('DEPLOY_COMPOSER_CLEAR_CACHE', '') === '1') {
+            $log('composer clear-cache (' . ($forceRefresh ? '?forcerefresh=Y' : 'DEPLOY_COMPOSER_CLEAR_CACHE=1') . ')');
             $run($composer . ' clear-cache --no-interaction');
         }
         $pkgArgs = implode(' ', array_map(
