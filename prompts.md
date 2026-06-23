@@ -1076,3 +1076,21 @@ karaat-data en staat in de karaat-repo.
 ## 2026-06-23
 
 > i don't want to have to edit server files, can we just - like i requested - add a parameter to the deploy.php , like ?Forcerefresh=Y
+
+> i updated klei, so it should be there now
+
+> i updated only the production server, i just updated /mnt/c/repos/klei as well , at least i tried and it threw this error: > App\Library\Installer::postUpdate
+> stenversonline/platform: syncing shared files...
+>   - removed (retired): cma/imageupload.php
+>   - removed (retired): cma/imageupload_action.php
+>   - removed (retired): cma/migrations/sql/2.2.0_javascript_errors.sql
+>   - removed (retired): cma/migrations/migrations.json
+>   - removed (retired): library/lib_htmleditor.inc
+> Script App\Library\Installer::postUpdate handling the post-update-cmd event terminated with an exception
+>
+> In Installer.php line 454:
+>
+>   copy(C:\repos\klei/library/fonts\Linearicons\SVG\desktop.ini): Failed to open stream: Permission denied
+>
+>
+> update [--with WITH] [--prefer-source] [--prefer-dist] [--prefer-install PREFER-INSTALL] [--dry-run] [--dev] [--no-dev] [--lock] [--no-install] [--no-audit] [--audit-format AUDIT-FORMAT] [--no-autoloader] [--no-suggest] [--no-progress] [-w|--with-dependencies] [-W|--with-all-dependencies] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authoritative] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--prefer-stable] [--prefer-lowest] [-m|--minimal-changes] [--patch-only] [-i|--interactive] [--root-reqs] [--bump-after-update [BUMP-AFTER-UPDATE]] [--] [<packages>...]

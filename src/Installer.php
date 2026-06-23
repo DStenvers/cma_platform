@@ -90,6 +90,13 @@ class Installer
         // and cma/webcomponents/cma-htmledit.js. Its require in library.inc was
         // dropped; this removes the synced copy from consumer sites.
         'library/lib_htmleditor.inc',
+        // Windows junk file accidentally committed under the Linearicons font dir.
+        // It was synced to consumers and its system/hidden/readonly attributes made
+        // copy() fail ("Permission denied"), aborting the whole post-update sync.
+        // Untracked now + skipped by syncDirectory; this cleans the synced copy.
+        // (@unlink is best-effort, so a system-attribute file that won't delete is
+        // a harmless no-op rather than a new failure.)
+        'library/fonts/Linearicons/SVG/desktop.ini',
     ];
 
     /**
@@ -427,6 +434,15 @@ class Installer
 
                 // Skip .template files (they are handled separately)
                 if (substr($item->getFilename(), -9) === '.template') {
+                    continue;
+                }
+
+                // Skip OS-generated junk (Windows desktop.ini / Thumbs.db, macOS
+                // .DS_Store). These are never platform content, and the Windows
+                // ones carry system/hidden/readonly attributes, so copy() over an
+                // existing target fails with "Permission denied" — which, because
+                // copyFile() throws, aborted the ENTIRE post-update sync mid-way.
+                if (preg_match('/^(desktop\.ini|Thumbs\.db|\.DS_Store)$/i', $item->getFilename())) {
                     continue;
                 }
 
