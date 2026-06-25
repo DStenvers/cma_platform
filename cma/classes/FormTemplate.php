@@ -1476,7 +1476,7 @@ class FormTemplate
         // Subform tabs (if any) - MUST be outside detail-content for flexbox layout
         if (Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess) {
             // Horizontal fold bar between detail form and subforms (visibility controlled by CSS via body.has-subform)
-            $html .= '<cma-fold class="fold-horizontal" orientation="horizontal" target=".detail-content" min-size="100" max-size="800" storage-key="form_foldH" reverse></cma-fold>' . PHP_EOL;
+            $html .= '<cma-fold class="fold-horizontal" orientation="horizontal" target=".detail-content" min-size="100" max-size="800" storage-key="form_foldH"></cma-fold>' . PHP_EOL;
             $html .= $this->generateSubformTabs();
         }
 

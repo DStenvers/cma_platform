@@ -134,6 +134,8 @@ class CmaFold extends HTMLElement {
                     justify-content: center;
                     flex-shrink: 0;
                     box-sizing: border-box;
+                    position: relative;
+                    z-index: 100;
                     background: linear-gradient(
                         ${isVert ? 'to right' : 'to bottom'},
                         var(--bg-surface-alt, #e8e8e8),
@@ -218,6 +220,8 @@ class CmaFold extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    position: relative;
+                    z-index: 101;
                     width: 20px;
                     height: 20px;
                     font-family: 'Linearicons';
