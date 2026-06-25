@@ -1094,3 +1094,11 @@ karaat-data en staat in de karaat-repo.
 >
 >
 > update [--with WITH] [--prefer-source] [--prefer-dist] [--prefer-install PREFER-INSTALL] [--dry-run] [--dev] [--no-dev] [--lock] [--no-install] [--no-audit] [--audit-format AUDIT-FORMAT] [--no-autoloader] [--no-suggest] [--no-progress] [-w|--with-dependencies] [-W|--with-all-dependencies] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authoritative] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--prefer-stable] [--prefer-lowest] [-m|--minimal-changes] [--patch-only] [-i|--interactive] [--root-reqs] [--bump-after-update [BUMP-AFTER-UPDATE]] [--] [<packages>...]
+
+## 2026-06-24
+
+> the html editor of the forms in cma had 2 custom elements, the insert Link and insert image, the insert link is changed into a non-styled popup that does noting and the button insert image is totally non-functional, I want the old code to be converted and made functional
+
+## 2026-06-25
+
+> can you push with a version bump?

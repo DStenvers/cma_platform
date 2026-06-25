@@ -157,19 +157,9 @@ function main()
         var sControl = \'' . Request::query('control', '') . '\';
 
         if (window.parent && window.parent !== window) {
-            // Inside iframe (lib-dialog): use postMessage
-            var editor = window.parent.top ? window.parent.top.activeEditor : null;
-            if (!sControl && editor) {
-                // CKEditor context: insert <picture> with WebP + JPG fallback
-                var html;
-                if (sFilename.match(/\\.webp$/i)) {
-                    var jpgFallback = sFilename.replace(/\\.webp$/i, ".jpg");
-                    html = "<picture><source srcset=\\"" + sPath + sFilename + "\\" type=\\"image/webp\\"><img src=\\"" + sPath + jpgFallback + "\\" alt=\\"\\" width=\\"' . $THUMB_WIDTH . '\\" height=\\"' . $THUMB_HEIGHT . '\\"></picture>";
-                } else {
-                    html = "<img src=\\"" + sPath + sFilename + "\\" alt=\\"\\" width=\\"' . $THUMB_WIDTH . '\\" height=\\"' . $THUMB_HEIGHT . '\\">";
-                }
-                editor.insertHtml(html);
-            }
+            // Inside iframe (lib-dialog): hand the result back via postMessage. The
+            // parent (CMA.image dialog handler) inserts into the active editor or fills
+            // the named image field, restoring the editor selection as needed.
             window.parent.postMessage({
                 type: "image-crop-complete",
                 control: sControl,

@@ -770,16 +770,116 @@
             return false;
         }
 
+        // Attribute / text escaping for HTML built from dialog input
+        function escapeAttr(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Remember where the cursor is before a modal dialog steals focus, so the
+        // inserted link/image lands back at the original selection.
+        function captureSelection(editor) {
+            try {
+                const sel = editor.getSelection();
+                window.top.activeEditorBookmark = sel ? sel.createBookmarks2(true) : null;
+            } catch (e) {
+                window.top.activeEditorBookmark = null;
+            }
+        }
+
         function insertLink(editor) {
             const winWidth = 500;
             const winHeight = 350;
-            top.activeEditor = editor;
+            window.top.activeEditor = editor;
+            window.top.selectedAnchor = null;
+            captureSelection(editor);
             lib_OpenWindowCentered('html_edit_link.php?mode=insert', 'link', winWidth, winHeight, 'Link invoegen');
         }
 
         function insertImage(editor) {
-            top.activeEditor = editor;
-            _openImageDialog('imageupload_crop.php?path=/uploads/images/', 'Afbeelding invoegen');
+            window.top.activeEditor = editor;
+            window.top.selectedImage = null;
+            captureSelection(editor);
+            CMA.image.openDialog('imageupload_crop.php?path=/uploads/images/', 'Afbeelding invoegen');
+        }
+
+        // Create a new link from dialog input, or update the anchor under the cursor.
+        function applyLink(data) {
+            const editor = window.top.activeEditor;
+            if (!editor) { cmaLog.error('[CMA.editor] applyLink: no active editor'); return; }
+            const href = (data.href || '').trim();
+            if (!href) return;
+            const anchor = window.top.selectedAnchor;
+            if (anchor) {
+                const node = anchor.$ || anchor;
+                node.setAttribute('href', href);
+                node.setAttribute('data-cke-saved-href', href);
+                if (data.title) { node.setAttribute('title', data.title); } else { node.removeAttribute('title'); }
+                if (data.target) { node.setAttribute('target', data.target); } else { node.removeAttribute('target'); }
+            } else {
+                editor.focus();
+                try {
+                    if (window.top.activeEditorBookmark) editor.getSelection().selectBookmarks(window.top.activeEditorBookmark);
+                } catch (e) { /* fall back to current selection */ }
+                const sel = editor.getSelection();
+                const text = (sel && sel.getSelectedText()) || data.title || href;
+                let attrs = ' href="' + escapeAttr(href) + '"';
+                if (data.title) attrs += ' title="' + escapeAttr(data.title) + '"';
+                if (data.target) attrs += ' target="' + escapeAttr(data.target) + '"';
+                editor.insertHtml('<a' + attrs + '>' + escapeHtml(text) + '</a>');
+            }
+            editor.fire('change');
+            window.top.selectedAnchor = null;
+            window.top.activeEditorBookmark = null;
+        }
+
+        // Apply properties from the image-properties dialog to the selected image.
+        function applyImageProps(data) {
+            const img = window.top.selectedImage;
+            const editor = window.top.activeEditor;
+            if (!img) { cmaLog.error('[CMA.editor] applyImageProps: no selected image'); return; }
+            const node = img.$ || img;
+            if (data.title) { node.setAttribute('title', data.title); } else { node.removeAttribute('title'); }
+            node.style.borderWidth = data.border ? (data.border + 'px') : '';
+            node.style.borderStyle = data.border ? 'solid' : '';
+            node.style.borderColor = data.borderColor || '';
+            if (data.align) { node.setAttribute('align', data.align); } else { node.removeAttribute('align'); }
+            node.style.marginTop = data.marginTop ? (data.marginTop + 'px') : '';
+            node.style.marginLeft = data.marginLeft ? (data.marginLeft + 'px') : '';
+            node.style.marginBottom = data.marginBottom ? (data.marginBottom + 'px') : '';
+            node.style.marginRight = data.marginRight ? (data.marginRight + 'px') : '';
+            if (editor) editor.fire('change');
+            window.top.selectedImage = null;
+        }
+
+        // Insert an uploaded/cropped image (from imageupload_crop.php) into the editor.
+        function applyEditorImage(data) {
+            const editor = window.top.activeEditor;
+            if (!editor) { cmaLog.error('[CMA.editor] applyEditorImage: no active editor'); return; }
+            editor.focus();
+            try {
+                if (window.top.activeEditorBookmark) editor.getSelection().selectBookmarks(window.top.activeEditorBookmark);
+            } catch (e) { /* fall back to current selection */ }
+            const path = data.path || '';
+            const file = data.filename || '';
+            const w = data.width || '';
+            const h = data.height || '';
+            let html;
+            if (/\.webp$/i.test(file)) {
+                const jpg = file.replace(/\.webp$/i, '.jpg');
+                html = '<picture><source srcset="' + escapeAttr(path + file) + '" type="image/webp">' +
+                    '<img src="' + escapeAttr(path + jpg) + '" alt="" width="' + escapeAttr(w) + '" height="' + escapeAttr(h) + '"></picture>';
+            } else {
+                html = '<img src="' + escapeAttr(path + file) + '" alt="" width="' + escapeAttr(w) + '" height="' + escapeAttr(h) + '">';
+            }
+            editor.insertHtml(html);
+            editor.fire('change');
+            window.top.activeEditorBookmark = null;
         }
 
         function insertTable(editor) {
@@ -844,6 +944,9 @@
             tableProperties: tableProperties,
             imageProperties: imageProperties,
             anchorProperties: anchorProperties,
+            applyLink: applyLink,
+            applyImageProps: applyImageProps,
+            applyEditorImage: applyEditorImage,
             showLiteratuurDialog: showLiteratuurDialog
         };
     })();
@@ -1635,9 +1738,12 @@
                 if (!e.data || e.data.type !== 'image-crop-complete') return;
                 window.removeEventListener('message', messageHandler);
                 dialog.close();
-                // Handle the result
+                // Handle the result: a named control fills an image field; no control
+                // means the image is being inserted into the active HTML editor.
                 if (e.data.control && e.data.filename) {
                     set(e.data.control, e.data.path, e.data.filename, e.data.width, e.data.height);
+                } else if (e.data.filename && CMA.editor && typeof CMA.editor.applyEditorImage === 'function') {
+                    CMA.editor.applyEditorImage(e.data);
                 }
             };
             window.addEventListener('message', messageHandler);
@@ -1653,7 +1759,8 @@
             set: set,
             preview: preview,
             changeFile: changeFile,
-            clearFile: clearFile
+            clearFile: clearFile,
+            openDialog: _openImageDialog
         };
     })();
 

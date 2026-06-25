@@ -1,19 +1,18 @@
 <?php
 require_once __DIR__ . '/bootstrap.inc';
 
-use App\Library\Application;
+use App\Library\Request;
 
-$appBasePath = Application::get('base_path', '/');
+$mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
 ?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link bewerken</title>
+    <title><?php echo $mode === 'edit' ? 'Link bewerken' : 'Link invoegen'; ?></title>
     <?php cma_error_handler(); ?>
     <link rel="stylesheet" href="minify.php?f=assets/css/style.css,assets/css/form.css">
-    <script src="minify.php?f=wizards/wizard.js"></script>
     <style>
         body {
             margin: 0;
@@ -74,68 +73,73 @@ $appBasePath = Application::get('base_path', '/');
             border: 1px solid var(--border-color);
             border-radius: 4px;
         }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
     </style>
     <script>
-    var selectedA = window.parent.window.dialogArguments ? window.parent.window.dialogArguments["anchor"] : null;
+    var MODE = <?php echo json_encode($mode); ?>;
+    // The editor and the selected anchor live on the top window (set by CMA.editor
+    // before this dialog was opened). Same-origin iframe, so we can read them directly.
+    var EDITWIN = window.top;
+
+    function closeDialog() {
+        if (window.parent && typeof window.parent.lib_OpenWindowCenteredClose === 'function') {
+            window.parent.lib_OpenWindowCenteredClose(true);
+        }
+    }
 
     function init() {
-        if (selectedA) {
-            document.getElementById("href").value = selectedA.href || '';
-            document.getElementById("title").value = selectedA.title || '';
+        var anchor = (MODE === 'edit' && EDITWIN.selectedAnchor) ? (EDITWIN.selectedAnchor.$ || EDITWIN.selectedAnchor) : null;
+        if (anchor) {
+            var href = anchor.getAttribute('data-cke-saved-href') || anchor.getAttribute('href') || '';
+            var target = anchor.getAttribute('target') || '';
+            document.getElementById("href").value = href;
+            document.getElementById("title").value = anchor.getAttribute('title') || '';
 
-            if (selectedA.target == "" || selectedA.target.toLowerCase() == "_top" || selectedA.target.toLowerCase() == "_self") {
+            var t = target.toLowerCase();
+            if (t === '' || t === '_top' || t === '_self') {
                 document.getElementById("target0").checked = true;
-            } else if (selectedA.target.toLowerCase() == "_blank" || selectedA.target.toLowerCase() == "blank") {
+            } else if (t === '_blank' || t === 'blank') {
                 document.getElementById("target1").checked = true;
             } else {
                 document.getElementById("target2").checked = true;
-                document.getElementById("target_other").value = selectedA.target;
+                document.getElementById("target_other").value = target;
             }
         } else {
-            if (typeof modal_alert === 'function') {
-                modal_alert('Kan de te wijzigen link niet vinden!');
-            } else {
-                libAlert('Kan de te wijzigen link niet vinden!');
-            }
+            document.getElementById("target0").checked = true;
         }
+        document.getElementById("href").focus();
     }
 
-    function call_WizardGetNextPage(current_page) {
-        return 1;
-    }
-
-    function call_WizardFinishPressed() {
-        if (selectedA) {
-            selectedA.setAttribute("href", document.getElementById("href").value);
-            selectedA.href = document.getElementById("href").value;
-            selectedA.setAttribute("data-cke-saved-href", document.getElementById("href").value);
-            selectedA.title = document.getElementById("title").value;
-
-            if (selectedA.title == '') {
-                selectedA.removeAttribute("title");
-            }
-
-            if (document.getElementById("target0").checked) {
-                selectedA.target = "";
-                selectedA.removeAttribute("target");
-            } else if (document.getElementById("target1").checked) {
-                selectedA.target = "_blank";
-            } else {
-                selectedA.target = document.getElementById("target_other").value;
-            }
-            return true;
+    function save() {
+        var href = document.getElementById("href").value.trim();
+        if (href === '') {
+            if (typeof libAlert === 'function') { libAlert('Vul een URL in.'); } else { alert('Vul een URL in.'); }
+            document.getElementById("href").focus();
+            return;
         }
-        return false;
-    }
-
-    function call_WizardGetShowFinish(current_page) {
-        return (current_page == 1);
+        var target = '';
+        if (document.getElementById("target1").checked) {
+            target = '_blank';
+        } else if (document.getElementById("target2").checked) {
+            target = document.getElementById("target_other").value.trim();
+        }
+        EDITWIN.CMA.editor.applyLink({
+            href: href,
+            title: document.getElementById("title").value.trim(),
+            target: target
+        });
+        closeDialog();
     }
     </script>
 </head>
-<body class="wizardcontent" onload="init(); if(window.parent && typeof window.parent.WizardActivatePage === 'function') window.parent.WizardActivatePage(1)" onkeypress="if(window.parent && typeof window.parent.WizardButtonPressed === 'function') window.parent.WizardButtonPressed(event.keyCode); return true;">
+<body onload="init()" onkeydown="if(event.keyCode===13){event.preventDefault();save();}">
     <div id="page1">
-        <form name="linkForm" class="link-form">
+        <form name="linkForm" class="link-form" onsubmit="return false;">
             <div class="form-row">
                 <label for="href">URL:</label>
                 <div class="input-group">
@@ -172,6 +176,11 @@ $appBasePath = Application::get('base_path', '/');
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="button" onclick="closeDialog()">Annuleren</button>
+                <button type="button" class="button" onclick="save()"><?php echo $mode === 'edit' ? 'Opslaan' : 'Invoegen'; ?></button>
             </div>
         </form>
     </div>
