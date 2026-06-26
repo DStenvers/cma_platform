@@ -120,6 +120,10 @@ class CmaFold extends HTMLElement {
             this._findTarget();
         } else if (name === 'orientation') {
             this._render();
+            // _render() replaces the shadow DOM, so the old .grip-container (and
+            // its drag listeners) is gone — rebind, otherwise a fold switched to
+            // horizontal after construction is no longer draggable.
+            this._setupEventListeners();
         }
     }
 
