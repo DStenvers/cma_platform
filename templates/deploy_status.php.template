@@ -19,7 +19,9 @@
  * Auth: NONE. status + commit-SHA + branch + timestamp aren't sensitive
  * (commit-SHAs + branch names are public git history; deploy-state is
  * observable by hitting the site). log_tail is pipeline output (git pull /
- * composer) which by convention carries no secrets.
+ * composer); credentials a pipeline might echo (e.g. a PAT in a
+ * `git remote set-url https://user:TOKEN@host` step) are stripped by $redact
+ * below before it is served — deploy.php also redacts at write time.
  *
  * Parses BOTH on-disk log formats, whichever wrote last:
  *   1. Banners (current /deploy.php and the retired DeployWebhook) ..
@@ -45,6 +47,23 @@
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+
+// Redact credentials from anything we echo. The log SHOULD already be clean
+// (deploy.php redacts at write time), but logs written before that fix — or a
+// pipeline that prints a token some other way — must never leak through here.
+// Twin of the $redact closure in deploy.php.
+$redact = static function (string $s): string {
+    $out = preg_replace(
+        [
+            '#(://[^/@:\s]+:)[^/@\s]+@#',      // user:password@host  (PAT in a git URL)
+            '#github_pat_[A-Za-z0-9_]+#',      // fine-grained PAT
+            '#gh[posru]_[A-Za-z0-9]{20,}#',    // classic PAT / OAuth / server / refresh / user-to-server
+        ],
+        ['$1***@', 'github_pat_***', 'gh*_***'],
+        $s
+    );
+    return $out ?? $s;
+};
 
 // ---------------------------------------------------------------------------
 // Config self-check mode: GET ?config=1
@@ -192,7 +211,7 @@ foreach (array_reverse($lines) as $line) {
     }
 }
 
-$result = ['ok' => true, 'log_tail' => implode("\n", array_slice($lines, -40))];
+$result = ['ok' => true, 'log_tail' => $redact(implode("\n", array_slice($lines, -40)))];
 $now = time();
 
 // In-progress: a start newer than the latest end (or no end at all).

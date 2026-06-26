@@ -100,11 +100,28 @@ if (!is_dir($LOG_DIR)) {
     @mkdir($LOG_DIR, 0755, true);
 }
 
-$log = static function (string $msg) use ($LOG_FILE): void {
-    @file_put_contents($LOG_FILE, '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n", FILE_APPEND);
+// Redact credentials a DEPLOY_PIPELINE (or git/composer output) might echo —
+// e.g. a PAT baked into a `git remote set-url https://user:TOKEN@host` step — so
+// neither the on-disk log NOR the public deploy_status.php tail can leak it. The
+// twin of this lives in deploy_status.php for already-written logs.
+$redact = static function (string $s): string {
+    $out = preg_replace(
+        [
+            '#(://[^/@:\s]+:)[^/@\s]+@#',      // user:password@host  (PAT in a git URL)
+            '#github_pat_[A-Za-z0-9_]+#',      // fine-grained PAT
+            '#gh[posru]_[A-Za-z0-9]{20,}#',    // classic PAT / OAuth / server / refresh / user-to-server
+        ],
+        ['$1***@', 'github_pat_***', 'gh*_***'],
+        $s
+    );
+    return $out ?? $s;
 };
-$logRaw = static function (string $text) use ($LOG_FILE): void {
-    @file_put_contents($LOG_FILE, $text, FILE_APPEND);
+
+$log = static function (string $msg) use ($LOG_FILE, $redact): void {
+    @file_put_contents($LOG_FILE, '[' . date('Y-m-d H:i:s') . '] ' . $redact($msg) . "\n", FILE_APPEND);
+};
+$logRaw = static function (string $text) use ($LOG_FILE, $redact): void {
+    @file_put_contents($LOG_FILE, $redact($text), FILE_APPEND);
 };
 
 // Loud-failure reporter — reliable, dependency-free channels + best-effort mail.

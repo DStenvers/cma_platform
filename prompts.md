@@ -1102,3 +1102,19 @@ karaat-data en staat in de karaat-repo.
 ## 2026-06-25
 
 > can you push with a version bump?
+
+> i updated Karaat , the cma behavious exactly the same?!
+
+> version 1.27.6 was already deployed so i am afraiid you are wrong
+
+> i now updated the local version
+
+## 2026-06-26
+
+> please go live, that is the real test, using forcerefresh
+
+> try again please, i think i fixed the rights issue
+
+> the DEPLOY_POST_HOOK i  weird, it does not show in the .env??
+
+> yes
