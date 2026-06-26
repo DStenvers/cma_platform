@@ -309,13 +309,20 @@ try {
         // Hide form until data is loaded - prevents skeleton flash (red borders, empty fields)
         // JS removes this class once record data has been applied
         $bodyClasses[] = 'data-loading';
-        // Only use mode-detail if no explicit view parameter is set
-        // When view=tree or view=table is set, show tree/table with the record
-        if (!$hasExplicitView) {
-            $bodyClasses[] = 'mode-detail';
-        } else {
-            // Explicit view: set the corresponding mode class
+        if ($hasExplicitView) {
+            // Explicit ?view= wins: set the corresponding mode class
             $bodyClasses[] = $viewParam === 'table' ? 'mode-table' : 'mode-tree';
+        } else {
+            // No explicit view: honour the persisted list mode. form-controller.js stores
+            // it in a cookie (cma_listMode_<form>, falling back to cma_lastViewMode) so the
+            // server renders the master list + form in the right mode on first paint - no
+            // detail->tree flash, and a deep link to a record keeps the list visible.
+            $storedMode = Cookie::get('cma_listMode_' . $formName, '');
+            if ($storedMode === '') {
+                $storedMode = Cookie::get('cma_lastViewMode', '');
+            }
+            // Display mode 2 = table, 1/empty = tree (see LIST_MODE in form-controller.js)
+            $bodyClasses[] = ((string)$storedMode === '2') ? 'mode-table' : 'mode-tree';
         }
     }
     if (!empty($bodyClasses)) {

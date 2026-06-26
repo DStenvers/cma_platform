@@ -512,14 +512,17 @@ class FormTemplate
         $html .= 'onbeforeunload="if (typeof cmaIsDirty === \'function\' && cmaIsDirty()) return \'Je laatste wijzigingen zijn nog niet opgeslagen\'">';
         $html .= PHP_EOL;
 
-        // Inline script to immediately set correct mode class from localStorage (prevents layout shift)
-        // This runs synchronously before any rendering occurs
+        // Inline script to immediately set correct mode class from the persisted cookie
+        // (prevents layout shift). Reads the same cookie the server reads (cma_listMode_<form>,
+        // falling back to cma_lastViewMode) keyed by form NAME to match form-controller.js.
+        // Runs synchronously before any rendering occurs.
         if (!$isPopup && !$hasDirectRecordId) {
             $html .= '<script>' . PHP_EOL;
             $html .= '(function(){' . PHP_EOL;
             $html .= '  try {' . PHP_EOL;
-            $html .= '    var formId = ' . $this->sourceFormId . ';' . PHP_EOL;
-            $html .= '    var stored = localStorage.getItem("cma_listMode_" + formId);' . PHP_EOL;
+            $html .= '    function gc(n){var p=n+"=";var c=document.cookie.split(";");for(var i=0;i<c.length;i++){var s=c[i];while(s.charAt(0)===" ")s=s.substring(1);if(s.indexOf(p)===0)return s.substring(p.length);}return "";}' . PHP_EOL;
+            $html .= '    var formName = ' . json_encode((string)$this->jsonFormName) . ';' . PHP_EOL;
+            $html .= '    var stored = gc("cma_listMode_" + formName) || gc("cma_lastViewMode");' . PHP_EOL;
             $html .= '    if (stored === "2") {' . PHP_EOL;
             $html .= '      document.body.classList.remove("mode-tree", "mode-detail");' . PHP_EOL;
             $html .= '      document.body.classList.add("mode-table");' . PHP_EOL;

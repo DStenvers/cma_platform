@@ -448,10 +448,9 @@ describe('Table Preferences', () => {
                         cy.wrap($btn).first().click();
                     }
 
-                    cy.window().then(win => {
-                        const stored = win.localStorage.getItem('cma_listMode_contentblocks');
-                        if (stored) {
-                            expect(stored).to.eq('2');
+                    cy.getCookie('cma_listMode_contentblocks').then(cookie => {
+                        if (cookie) {
+                            expect(cookie.value).to.eq('2');
                         }
                     });
                 } else {
@@ -461,10 +460,8 @@ describe('Table Preferences', () => {
         });
 
         it('should restore display mode on page load', () => {
-            // Set table mode
-            cy.window().then(win => {
-                win.localStorage.setItem('cma_listMode_contentblocks', '2');
-            });
+            // Set table mode (persisted as a cookie so the server can read it too)
+            cy.setCookie('cma_listMode_contentblocks', '2');
 
             cy.openFormTable('contentblocks');
 
@@ -488,10 +485,9 @@ describe('Table Preferences', () => {
                 if ($btn.length > 0) {
                     cy.wrap($btn).first().click();
 
-                    cy.window().then(win => {
-                        const stored = win.localStorage.getItem('cma_listMode_contentblocks');
-                        if (stored) {
-                            expect(stored).to.eq('1');
+                    cy.getCookie('cma_listMode_contentblocks').then(cookie => {
+                        if (cookie) {
+                            expect(cookie.value).to.eq('1');
                         }
                     });
                 } else {

@@ -1446,25 +1446,27 @@ class CmaFormController {
             this.directRecordId = this._dataRecordId === '' ? null :
                 (isNaN(this._dataRecordId) ? this._dataRecordId : parseInt(this._dataRecordId, 10));
 
-            // Use direct record mode (no tree/table) for:
-            // - copy mode
-            // - popup/sidepanel context (detail screens)
-            // - ID with no explicit view parameter
-            // BUT: If view=tree or view=table is explicitly set, show tree/table AND load record
-            const useDirectMode = this._dataCopyMode ||
-                this.isInPopup() ||
-                (this.directRecordId !== null && !hasExplicitView);
+            // Direct record mode (form only, no list) is reserved for genuinely focused
+            // contexts: copy mode and popup/sidepanel detail screens.
+            // A plain record URL (/form/entity/id) keeps the master list visible and shows
+            // the form alongside it, in the persisted view mode (tree/table). That mode is
+            // read from a cookie that PHP also reads, so the body class is already correct
+            // on first paint (no detail->tree flash).
+            const useDirectMode = this._dataCopyMode || this.isInPopup();
 
             // cmaLog.log('init: directRecordId=', this.directRecordId, 'useDirectMode=', useDirectMode, 'hasExplicitView=', hasExplicitView);
 
             if (useDirectMode) {
                 this.directRecordMode = true;
                 this.initDirectRecordMode();
-            } else if (hasExplicitView && this.directRecordId !== null) {
-                // View parameter with ID: show tree/table and load the specific record
-                // cmaLog.log('[FormController] view+ID mode: view=' + explicitView + ', recordId=' + this.directRecordId);
+            } else if (this.directRecordId !== null) {
+                // Record URL with the list visible: show tree/table (from ?view= or the
+                // persisted cookie mode) and load the specific record.
                 this.directRecordMode = false;
-                this.setDisplayModeClass(explicitView === 'table' ? 'table' : 'tree');
+                const recordViewMode = hasExplicitView
+                    ? (explicitView === 'table' ? 'table' : 'tree')
+                    : (this.isTableMode() ? 'table' : 'tree');
+                this.setDisplayModeClass(recordViewMode);
                 this.loadToolbarFilter();
                 // Capture record ID before async operation (in case it gets modified)
                 const recordIdToLoad = this.directRecordId;
@@ -2555,7 +2557,33 @@ class CmaFormController {
     }
 
     /**
-     * Load display mode from localStorage
+     * Read a persisted view-mode cookie. Stored as a cookie (not localStorage) so PHP
+     * can read the same value at render time and emit the correct body mode class.
+     * @param {string} name Cookie name
+     * @returns {?string} Cookie value, or null if unset/unavailable
+     */
+    _getViewCookie(name) {
+        if (typeof CMA !== 'undefined' && CMA.utils && CMA.utils.getCookie) {
+            const val = CMA.utils.getCookie(name);
+            return (val === '' || val === undefined) ? null : val;
+        }
+        return null;
+    }
+
+    /**
+     * Persist a view-mode value as a cookie (path=/, 1-year expiry via CMA.utils.setCookie),
+     * replacing the former localStorage so the server can honour it on first paint.
+     * @param {string} name Cookie name
+     * @param {string} value Cookie value
+     */
+    _setViewCookie(name, value) {
+        if (typeof CMA !== 'undefined' && CMA.utils && CMA.utils.setCookie) {
+            CMA.utils.setCookie(name, value);
+        }
+    }
+
+    /**
+     * Load display mode from cookie (so the server can read the same preference)
      * On mobile, defaults to table view as tree is not suited for small screens
      * @returns {number} Display mode (DISPLAY_TREE=1 or DISPLAY_TABLE=2)
      */
@@ -2565,28 +2593,24 @@ class CmaFormController {
             return this.LIST_MODE.DISPLAY_TABLE;
         }
 
-        const storageKey = 'cma_listMode_' + this.jsonForm;
+        const cookieKey = 'cma_listMode_' + this.jsonForm;
 
-        try {
-            // First, check for form-specific stored mode
-            const stored = localStorage.getItem(storageKey);
-            if (stored !== null) {
-                const mode = parseInt(stored, 10);
-                if (mode === this.LIST_MODE.DISPLAY_TABLE || mode === this.LIST_MODE.DISPLAY_TREE) {
-                    return mode;
-                }
+        // First, check for form-specific stored mode
+        const stored = this._getViewCookie(cookieKey);
+        if (stored !== null) {
+            const mode = parseInt(stored, 10);
+            if (mode === this.LIST_MODE.DISPLAY_TABLE || mode === this.LIST_MODE.DISPLAY_TREE) {
+                return mode;
             }
+        }
 
-            // If no form-specific mode, fall back to global last-used view mode
-            const globalMode = localStorage.getItem('cma_lastViewMode');
-            if (globalMode !== null) {
-                const mode = parseInt(globalMode, 10);
-                if (mode === this.LIST_MODE.DISPLAY_TABLE || mode === this.LIST_MODE.DISPLAY_TREE) {
-                    return mode;
-                }
+        // If no form-specific mode, fall back to global last-used view mode
+        const globalMode = this._getViewCookie('cma_lastViewMode');
+        if (globalMode !== null) {
+            const mode = parseInt(globalMode, 10);
+            if (mode === this.LIST_MODE.DISPLAY_TABLE || mode === this.LIST_MODE.DISPLAY_TREE) {
+                return mode;
             }
-        } catch (e) {
-            // cmaLog.log('[localStorage] Display mode retrieval unavailable:', e.message);
         }
 
         // Default: table view (all forms are now JSON-based)
@@ -2594,21 +2618,17 @@ class CmaFormController {
     }
 
     /**
-     * Save display mode to localStorage
+     * Save display mode to cookie (read by both JS and PHP)
      * @param {number} mode Display mode (DISPLAY_TREE=1 or DISPLAY_TABLE=2)
      */
     saveDisplayMode(mode) {
-        const storageKey = 'cma_listMode_' + this.jsonForm;
+        const cookieKey = 'cma_listMode_' + this.jsonForm;
 
-        try {
-            // Save form-specific mode
-            localStorage.setItem(storageKey, mode.toString());
-            // Also save as global last-used view mode (used as default for forms without saved preference)
-            localStorage.setItem('cma_lastViewMode', mode.toString());
-            this.displayMode = mode;
-        } catch (e) {
-            // cmaLog.log('[localStorage] Display mode save unavailable:', e.message);
-        }
+        // Save form-specific mode
+        this._setViewCookie(cookieKey, mode.toString());
+        // Also save as global last-used view mode (used as default for forms without saved preference)
+        this._setViewCookie('cma_lastViewMode', mode.toString());
+        this.displayMode = mode;
     }
 
     /**
