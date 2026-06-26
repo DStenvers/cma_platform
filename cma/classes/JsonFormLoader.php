@@ -592,10 +592,13 @@ class JsonFormLoader
                     }
                     break;
                 case 9: // image
-                    $problems = array_merge($problems, self::validateFieldPath($label, 'Afbeelding', 'imagePath', $field['imagePath'] ?? ''));
+                    // Canonical key is 'path' (see Q_IMGPATH mapping below); accept the
+                    // legacy 'imagePath' alias as a fallback.
+                    $problems = array_merge($problems, self::validateFieldPath($label, 'Afbeelding', 'path', $field['path'] ?? $field['imagePath'] ?? ''));
                     break;
                 case 11: // file
-                    $problems = array_merge($problems, self::validateFieldPath($label, 'Bestand', 'filePath', $field['filePath'] ?? ''));
+                    // Canonical key is 'path'; accept the legacy 'filePath' alias.
+                    $problems = array_merge($problems, self::validateFieldPath($label, 'Bestand', 'path', $field['path'] ?? $field['filePath'] ?? ''));
                     break;
             }
         }
