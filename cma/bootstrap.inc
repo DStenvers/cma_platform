@@ -715,6 +715,7 @@ function cma_js_bundle(): array {
         'assets/js/perf-logger.js',
         '../library/webcomponents/lib-tip.js',
         'assets/js/cma-tours.js',
+        'assets/js/cma-list-thumb.js',
         'assets/js/main.js'
     ];
 }

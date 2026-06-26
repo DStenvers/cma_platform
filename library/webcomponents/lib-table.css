@@ -23,6 +23,51 @@ lib-table {
     margin-top: -4px;
 }
 
+/* --------------------------------------------------------------------------
+   Image thumbnails in list/table cells. Server renders image columns as
+   <img class="cma-list-thumb" data-full="...">; hover shows an enlarged
+   floating preview (cma-list-thumb.js). Shared across every .listtable /
+   <lib-table> consumer.
+   -------------------------------------------------------------------------- */
+.cma-list-thumb-cell { white-space: nowrap; }
+
+.listtable .cma-list-thumb,
+lib-table .cma-list-thumb {
+    display: inline-block;
+    height: 32px;
+    width: auto;
+    max-width: 72px;
+    object-fit: cover;
+    vertical-align: middle;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 3px;
+    cursor: zoom-in;
+}
+
+/* Floating hover preview (appended to <body>, position:fixed so the list's
+   overflow never clips it). pointer-events:none keeps it from blocking hover. */
+.cma-list-thumb-preview {
+    position: fixed;
+    z-index: 100000;
+    max-width: 360px;
+    max-height: 360px;
+    width: auto;
+    height: auto;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    background: #fff;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease;
+}
+
+.cma-list-thumb-preview.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
 .listtable lib-switch {
     height: 20px;
     vertical-align: middle;

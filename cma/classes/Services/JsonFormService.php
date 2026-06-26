@@ -153,7 +153,8 @@ class JsonFormService extends BaseFormService
                         $fieldType = $field['type'] ?? 'textbox';
                         $fieldName = $field['name'] ?? '';
                         if (empty($fieldName) || strpos($fieldName, '_group') === 0) continue;
-                        if (in_array($fieldType, $skipTypes)) continue;
+                        // Normally-skipped types (image, etc.) can opt back in with showInTableView
+                        if (in_array($fieldType, $skipTypes) && empty($field['showInTableView'])) continue;
                         if (strtolower($fieldName) === strtolower($idField)) continue;
                         // Respect skipInTableView property from form definition
                         if (!empty($field['skipInTableView'])) continue;
@@ -166,6 +167,7 @@ class JsonFormService extends BaseFormService
                             'field' => $fieldName,
                             'title' => $field['caption'] ?? $fieldName,
                             'type' => $colType,
+                            'path' => $field['path'] ?? '',
                         ];
                         $colCount++;
                     }
@@ -624,6 +626,8 @@ class JsonFormService extends BaseFormService
                             $value = $boolVal ? 'Ja' : 'Nee';
                             $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="boolean">' . $prefix . htmlspecialchars((string)$value) . '</td>';
                         }
+                    } elseif ($colType === 'image') {
+                        $html .= self::renderImageCell($fieldName, $value, $col, $prefix);
                     } elseif (isset($comboColumns[$fieldName])) {
                         // Combobox/FK field: use pre-loaded lookup
                         $fkValue = trim((string)$value);
@@ -836,13 +840,20 @@ class JsonFormService extends BaseFormService
             // Also populate from JSON fields (for fields not in legacy format)
             foreach ($jsonData['fields'] ?? [] as $field) {
                 $fieldName = $field['name'] ?? '';
-                if ($fieldName && !isset($fieldsByName[strtolower($fieldName)])) {
-                    $fieldsByName[strtolower($fieldName)] = [
+                if (!$fieldName) continue;
+                $lcFieldName = strtolower($fieldName);
+                if (!isset($fieldsByName[$lcFieldName])) {
+                    $fieldsByName[$lcFieldName] = [
                         'name' => $fieldName,
                         'type' => $field['type'] ?? 'textbox',
                         'caption' => $field['caption'] ?? $fieldName,
                         'dataType' => $field['dataType'] ?? '',
                     ];
+                }
+                // Backfill the image base path from the JSON definition (the legacy
+                // lookup above doesn't carry it) so image cells can build their src.
+                if (!empty($field['path']) && empty($fieldsByName[$lcFieldName]['path'])) {
+                    $fieldsByName[$lcFieldName]['path'] = $field['path'];
                 }
             }
 
@@ -861,6 +872,7 @@ class JsonFormService extends BaseFormService
                         'field' => $colName,
                         'title' => $field['caption'] ?? ucfirst($colName),
                         'type' => $colType,
+                        'path' => $field['path'] ?? '',
                     ];
                 }
             }
@@ -884,6 +896,7 @@ class JsonFormService extends BaseFormService
                             'field' => $colName,
                             'title' => $field['caption'] ?? ucfirst($colName),
                             'type' => $colType,
+                            'path' => $field['path'] ?? '',
                         ];
                     }
                 }
@@ -902,7 +915,8 @@ class JsonFormService extends BaseFormService
                         $fieldType = $field['type'] ?? 'textbox';
                         $fieldName = $field['name'] ?? '';
                         if (empty($fieldName) || strpos($fieldName, '_group') === 0) continue;
-                        if (in_array($fieldType, $skipTypes)) continue;
+                        // Normally-skipped types (image, etc.) can opt back in with showInTableView
+                        if (in_array($fieldType, $skipTypes) && empty($field['showInTableView'])) continue;
                         if (strtolower($fieldName) === strtolower($idField)) continue;
                         // Respect skipInTableView property from form definition
                         if (!empty($field['skipInTableView'])) continue;
@@ -914,6 +928,7 @@ class JsonFormService extends BaseFormService
                             'field' => $fieldName,
                             'title' => $field['caption'] ?? ucfirst($fieldName),
                             'type' => $colType,
+                            'path' => $field['path'] ?? '',
                         ];
                         $colCount++;
                     }
@@ -1073,6 +1088,8 @@ class JsonFormService extends BaseFormService
                     } else {
                         $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="boolean">' . $prefix . ($boolVal ? 'Ja' : 'Nee') . '</td>';
                     }
+                } elseif ($colType === 'image') {
+                    $html .= self::renderImageCell($fieldName, $value, $col, $prefix);
                 } elseif (isset($comboColumns[$fieldName])) {
                     $fkValue = trim((string)$value);
                     $displayValue = $fkLookup[$fieldName][$fkValue] ?? $fkValue;
@@ -1940,6 +1957,30 @@ class JsonFormService extends BaseFormService
      * and 8.5.0, fields have proper type values (date, time, checkbox, etc.).
      * Falls back to dataType detection for unmigrated forms.
      */
+    /**
+     * Render a table cell for an image column: a lazy-loaded thumbnail that
+     * enlarges on hover (handled by cma-list-thumb.js). The stored value is just
+     * the filename; the base directory comes from the column's 'path'.
+     *
+     * @param string $fieldName Column field name (for data-field)
+     * @param mixed  $value     Stored cell value (image filename)
+     * @param array  $col       Column definition (expects 'path')
+     * @param string $prefix    HTML to prepend inside the cell (e.g. the row menu trigger)
+     * @return string <td> HTML
+     */
+    private static function renderImageCell(string $fieldName, $value, array $col, string $prefix = ''): string
+    {
+        $filename = trim((string)$value);
+        $inner = '';
+        if ($filename !== '') {
+            $base = trim((string)($col['path'] ?? ''), '/');
+            $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+            $srcEnc = htmlspecialchars($src);
+            $inner = '<img class="cma-list-thumb" src="' . $srcEnc . '" data-full="' . $srcEnc . '" alt="" loading="lazy">';
+        }
+        return '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="image" class="cma-list-thumb-cell">' . $prefix . $inner . '</td>';
+    }
+
     private static function detectColumnType(array $field): string
     {
         $fieldType = $field['type'] ?? 'textbox';
@@ -1949,6 +1990,7 @@ class JsonFormService extends BaseFormService
         if ($fieldType === 'time') return 'time';
         if ($fieldType === 'checkbox') return 'boolean';
         if ($fieldType === 'combobox' || $fieldType === 'userlist') return 'combobox';
+        if ($fieldType === 'image' || $fieldType === 'thumbnail') return 'image';
 
         // Fallback: detect from dataType for unmigrated forms
         $dataType = strtolower($field['dataType'] ?? '');
