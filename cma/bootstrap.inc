@@ -139,6 +139,8 @@ require_once __DIR__ . '/classes/FormTemplate.php';
 require_once __DIR__ . '/classes/FormDataProvider.php';
 require_once __DIR__ . '/classes/FormExpressionEvaluator.php';
 require_once __DIR__ . '/classes/JsonFormLoader.php';
+require_once __DIR__ . '/classes/ReportStorage.php';
+require_once __DIR__ . '/classes/ReportExporter.php';
 
 // Load service classes
 require_once __DIR__ . '/classes/Services/BaseFormService.php';
