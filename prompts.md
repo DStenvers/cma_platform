@@ -1118,3 +1118,11 @@ karaat-data en staat in de karaat-repo.
 > the DEPLOY_POST_HOOK i  weird, it does not show in the .env??
 
 > yes
+
+> pat rotated and path in karaat updated
+
+> done
+
+> karaat still has this error: ng(en) uit te voeren...
+> ✗ Versie 9.5.0 MISLUKT: SQLSTATE[HYS11]: <<Unknown error>>: -1403 [Microsoft][ODBC Microsoft Access Driver] Table 'tblCMAMonitoring' already has an index named 'idx_CMAMonitoring_datestamp'. (SQLExecDirect[-1403] at ext\pdo_odbc\odbc_driver.c:246)
+> ✗ Fout bij migratie versie 9.5.0: SQLSTATE[HYS11]: <<Unknown error>>: -1403 [Microsoft][ODBC Microsoft Access Driver] Table 'tblCMAMonitoring' already has an index named 'idx_CMAMonitoring_datestamp'. (SQLExecDirect[-1403] at ext\pdo_odbc\odbc_driver.c:246)
