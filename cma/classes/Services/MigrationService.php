@@ -1034,7 +1034,24 @@ class MigrationService
             ];
         }
 
-        return Database::addIndexPDO($conn, $table, $columns, $indexName);
+        // Idempotent: re-running a migration must not fail when the index is
+        // already present. addIndexPDO may either throw or return a failure
+        // array, so tolerate both and treat "already exists" as success.
+        try {
+            $res = Database::addIndexPDO($conn, $table, $columns, $indexName);
+        } catch (\Throwable $e) {
+            $res = ['success' => false, 'error' => $e->getMessage()];
+        }
+        if (!($res['success'] ?? false)) {
+            $msg = strtolower((string)($res['error'] ?? ''));
+            if (strpos($msg, 'already has an index') !== false
+                || strpos($msg, 'already exists') !== false
+                || strpos($msg, 'duplicate') !== false
+                || strpos($msg, 'bestaat al') !== false) {
+                return ['success' => true, 'error' => null, 'message' => "Overgeslagen: index '$indexName' bestaat al"];
+            }
+        }
+        return $res;
     }
 
     /**
