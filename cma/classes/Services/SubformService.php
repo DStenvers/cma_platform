@@ -572,6 +572,7 @@ class SubformService extends BaseFormService
             $fieldCaptions = [];
             $fieldTypes = [];
             $fieldInlineEdit = [];
+            $fieldPaths = [];
             $maxColumns = 999;
 
             // Build lookup from form definition
@@ -586,6 +587,7 @@ class SubformService extends BaseFormService
                             'controlType' => $formDef->getControlTypeId($i),
                             'isDate' => $formDef->isDateField($i),
                             'inlineEdit' => $formDef->isInlineEdit($i),
+                            'path' => $formDef->getImgPath($i) ?? '',
                         ];
                     }
                 }
@@ -633,6 +635,7 @@ class SubformService extends BaseFormService
                         $fieldTypes[$key] = $info['controlType'] ?? 0;
                         $fieldIsDate[$key] = $info['isDate'] ?? false;
                         $fieldInlineEdit[$key] = $info['inlineEdit'] ?? false;
+                        $fieldPaths[$key] = $info['path'] ?? '';
                     }
                 }
             }
@@ -655,6 +658,8 @@ class SubformService extends BaseFormService
                     $dataType = 'boolean';
                 } elseif ($controlType == FormControlHelper::TYPE_COMBOBOX || $controlType == FormControlHelper::TYPE_USERLIST) {
                     $dataType = 'combobox';
+                } elseif ($controlType == FormControlHelper::TYPE_IMAGE) {
+                    $dataType = 'image';
                 }
                 $html .= '<th data-field="' . Server::htmlEncode($col) . '" data-type="' . $dataType . '">' . Server::htmlEncode($caption) . '</th>';
             }
@@ -681,7 +686,18 @@ class SubformService extends BaseFormService
                     $prefix = $isFirstCol ? $menuTrigger : '';
                     $isFirstCol = false;
 
-                    if ($controlType == FormControlHelper::TYPE_CHECKBOX) {
+                    if ($controlType == FormControlHelper::TYPE_IMAGE) {
+                        // Image column: render a thumbnail that enlarges on hover (cma-list-thumb.js)
+                        $filename = trim((string)$value);
+                        $inner = '';
+                        if ($filename !== '') {
+                            $base = trim((string)($fieldPaths[$col] ?? ''), '/');
+                            $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+                            $srcEnc = Server::htmlEncode($src);
+                            $inner = '<img class="cma-list-thumb" src="' . $srcEnc . '" data-full="' . $srcEnc . '" alt="" loading="lazy">';
+                        }
+                        $html .= '<td data-field="' . Server::htmlEncode($col) . '" data-type="image" class="cma-list-thumb-cell">' . $prefix . $inner . '</td>';
+                    } elseif ($controlType == FormControlHelper::TYPE_CHECKBOX) {
                         $boolVal = is_bool($value) ? $value : (
                             $value === 1 || $value === '1' || $value === -1 || $value === '-1' ||
                             strtolower((string)$value) === 'true'
