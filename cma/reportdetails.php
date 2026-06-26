@@ -603,6 +603,20 @@ function DisplayRS($sTitel, $rs, $rsSubs, $intEditFormID, $strEditURL, $strIDFie
     // Wrap table with lib-table component for filtering when no grouping is used
 $useLibTable = ($strGroupField1 == "");
 $tableDataName = substr(str_replace('?', '', str_replace('/', '', $sTitel)), 0, max(0, min(30, strlen(str_replace('?', '', str_replace('/', '', $sTitel))))));
+// One-time delegated handler: open a report row's edit link in the CMA
+// sidepanel (lib_OpenSidePanel) instead of navigating away. Falls back to the
+// plain href when the sidepanel helper isn't available (e.g. standalone view).
+static $editSidepanelHandlerEmitted = false;
+if (!$editSidepanelHandlerEmitted) {
+    $editSidepanelHandlerEmitted = true;
+    echo '<script>(function(){if(window.__cmaReportEditSidepanel)return;window.__cmaReportEditSidepanel=1;'
+        . 'document.addEventListener("click",function(e){'
+        . 'var a=e.target.closest?e.target.closest("a.editicon[data-edit-sidepanel]"):null;'
+        . 'if(!a||typeof lib_OpenSidePanel!=="function")return;'
+        . 'e.preventDefault();'
+        . 'lib_OpenSidePanel(a.getAttribute("data-edit-sidepanel"),"report_edit",600,a.getAttribute("title")||"Bewerken");'
+        . '});})();</script>';
+}
 if ($useLibTable) {
     echo '<div id="c"><lib-table><TABLE class="listtable filtering" cellspacing="0" cellpadding="0" WIDTH=100% data-name="' . $tableDataName . '" id=resultaat><thead><TR class="listheader">';
 } else {
@@ -705,7 +719,7 @@ if ($useLibTable) {
 
         if ($strEditURL != '') {
             $sFullEditUrl = str_replace('[ID]', $currentIdVal . '', $strEditURL);
-            echo '<TD><A class="icon editicon" href="' . Server::htmlEncode($sFullEditUrl) . '" title="' . Server::htmlEncode($lang_tb_edit) . '"></A></TD>';
+            echo '<TD><A class="icon editicon" href="' . Server::htmlEncode($sFullEditUrl) . '" data-edit-sidepanel="' . Server::htmlEncode($sFullEditUrl) . '" title="' . Server::htmlEncode($lang_tb_edit) . '"></A></TD>';
         }
         $sSingleRecord = '';
         for ($a = 0; $a < $fieldCount; $a++) {
