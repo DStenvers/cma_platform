@@ -466,20 +466,19 @@ function executeQuery() {
     var check = checkDangerousQuery(query);
 
     if (check.dangerous) {
-        // Use libConfirm if available, otherwise native confirm
+        // libConfirm returns a Promise resolving to the confirmed boolean
+        // (it has no onConfirm option); fall back to native confirm().
         if (typeof libConfirm === "function") {
             libConfirm(check.message, {
                 title: "Gevaarlijke query",
                 confirmText: "Ja, uitvoeren",
                 cancelText: "Annuleren",
-                onConfirm: function() {
-                    doSubmitQuery();
-                }
-            });
-        } else {
-            libConfirm(check.message).then(function(ok) {
+                type: "warning"
+            }).then(function(ok) {
                 if (ok) doSubmitQuery();
             });
+        } else {
+            if (confirm(check.message)) doSubmitQuery();
         }
     } else {
         doSubmitQuery();
