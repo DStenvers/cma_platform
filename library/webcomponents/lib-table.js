@@ -97,6 +97,11 @@ class LibDataTable extends HTMLElement {
     // Event handlers (for cleanup)
     #handlers = {};
 
+    // Observes container size changes so the table always fills the available
+    // space (virtual viewport recomputes its visible range when the container
+    // grows/shrinks - e.g. switching the form list from tree to full-width table).
+    #resizeObserver = null;
+
     // Resize state
     #resizeState = null;
 
@@ -785,6 +790,29 @@ class LibDataTable extends HTMLElement {
         }, 16);
         this.#elements.scrollContainer.addEventListener('scroll', this.#handlers.scroll);
 
+        // Re-flow when the table is resized so it always uses all available space.
+        // The virtual viewport recomputes its visible range for the new height (a
+        // grown container would otherwise leave blank space below the last row),
+        // and infinite scroll re-checks whether more rows are needed. Column width
+        // is flex-driven so it re-flows via CSS. Benefits every consumer: the form
+        // list tree<->table switch, tools panels and any resizable layout.
+        if (typeof ResizeObserver !== 'undefined') {
+            let rafPending = false;
+            this.#resizeObserver = new ResizeObserver(() => {
+                // Coalesce bursts into one frame and avoid ResizeObserver feedback loops.
+                if (rafPending) return;
+                rafPending = true;
+                requestAnimationFrame(() => {
+                    rafPending = false;
+                    if (this.#config.virtualScroll) {
+                        this.#renderBody();
+                    }
+                    this.#checkInfiniteScroll();
+                });
+            });
+            this.#resizeObserver.observe(this.#elements.scrollContainer);
+        }
+
         // Header click (sort)
         this.#handlers.headerClick = (e) => this.#handleHeaderClick(e);
         this.#elements.header.addEventListener('click', this.#handlers.headerClick);
@@ -824,6 +852,12 @@ class LibDataTable extends HTMLElement {
     }
 
     #cleanup() {
+        // Stop observing container resizes
+        if (this.#resizeObserver) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = null;
+        }
+
         // Remove all event listeners
         if (this.#elements.scrollContainer) {
             this.#elements.scrollContainer.removeEventListener('scroll', this.#handlers.scroll);
