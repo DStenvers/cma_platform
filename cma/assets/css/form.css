@@ -203,7 +203,7 @@ body.mode-tree #leftlist { display: flex; }
 body.mode-tree .detail-panel { display: flex; }
 
 /* Table mode: full-width list, no fold, no detail */
-body.mode-table #leftlist { width: 100%; max-width: none; flex: 1; }
+body.mode-table #leftlist { width: 100%; max-width: none; flex: 0 0 100%; }
 body.mode-table .fold-vertical { display: none; } /* Hides both legacy div and cma-fold */
 body.mode-table main.detail-panel { display: none; }
 body.mode-table #btn_treeview { opacity: 1; pointer-events: auto; }
