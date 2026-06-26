@@ -14,6 +14,19 @@
 
     let preview = null;
 
+    // Find a hovered thumbnail, even when it lives inside a shadow root (e.g. the
+    // cma-tree leaf nodes). composedPath() reveals the real target across boundaries;
+    // e.target is retargeted to the host at the document level.
+    function findThumb(e) {
+        const path = (e.composedPath && e.composedPath()) || [];
+        for (const el of path) {
+            if (el && el.nodeType === 1 && el.matches && el.matches('img.cma-list-thumb')) {
+                return el;
+            }
+        }
+        return (e.target && e.target.closest) ? e.target.closest('img.cma-list-thumb') : null;
+    }
+
     function getPreview() {
         if (!preview) {
             preview = document.createElement('img');
@@ -41,7 +54,7 @@
     }
 
     document.addEventListener('mouseover', function (e) {
-        const thumb = e.target.closest && e.target.closest('img.cma-list-thumb');
+        const thumb = findThumb(e);
         if (!thumb) return;
         const src = thumb.getAttribute('data-full') || thumb.getAttribute('src');
         if (!src) return;
@@ -56,7 +69,7 @@
     });
 
     document.addEventListener('mouseout', function (e) {
-        const thumb = e.target.closest && e.target.closest('img.cma-list-thumb');
+        const thumb = findThumb(e);
         if (!thumb) return;
         if (e.relatedTarget && thumb.contains(e.relatedTarget)) return;
         if (preview) preview.classList.remove('visible');

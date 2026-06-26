@@ -410,6 +410,25 @@ class TreeService extends BaseFormService
                 }
             }
 
+            // Identify an image column (e.g. a product photo) to show as a small
+            // thumbnail before the leaf label in the tree. Only renders when the
+            // query actually selected the column (a value is present per row).
+            $imageField = '';
+            $imagePath = '';
+            foreach ($jsonData['fields'] ?? [] as $imgF) {
+                if (($imgF['type'] ?? '') === 'image' && !empty($imgF['name'])) {
+                    $imageField = $imgF['name'];
+                    $imagePath = $imgF['path'] ?? '';
+                    break;
+                }
+            }
+            $buildTreeImgSrc = function ($file) use ($imagePath) {
+                $file = trim((string)$file);
+                if ($file === '') return '';
+                $base = trim((string)$imagePath, '/');
+                return '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($file);
+            };
+
             // Build tree
             $formClass = strtolower(str_replace(' ', '_', $formName ?? ''));
             $htmlParts = [];
@@ -478,10 +497,14 @@ class TreeService extends BaseFormService
                 $group3 = $group3Field ? $getField($group3Field) : '';
 
                 $display = (string)$display;
+                $imageSrc = $imageField ? $buildTreeImgSrc($getField($imageField)) : '';
 
                 if ($bSimpleTree) {
                     $activeClass = ($activeId !== null && $recordId == $activeId) ? ' active' : '';
-                    $htmlParts[] = '<a href="javascript:void(0)" class="' . $formClass . $activeClass . '" target="R" data-id="' . htmlspecialchars($recordId) . '">' . htmlspecialchars($display) . '</a>';
+                    $thumb = $imageSrc !== ''
+                        ? '<img class="cma-list-thumb cma-tree-thumb" src="' . htmlspecialchars($imageSrc) . '" data-full="' . htmlspecialchars($imageSrc) . '" alt="" loading="lazy">'
+                        : '';
+                    $htmlParts[] = '<a href="javascript:void(0)" class="' . $formClass . $activeClass . '" target="R" data-id="' . htmlspecialchars($recordId) . '">' . $thumb . htmlspecialchars($display) . '</a>';
                 } else {
                     // Collect flat item with group keys for later tree assembly
                     $flatItems[] = [
@@ -490,6 +513,7 @@ class TreeService extends BaseFormService
                         'g1' => $group1,
                         'g2' => $group2,
                         'g3' => $group3,
+                        'image' => $imageSrc,
                     ];
                 }
 
@@ -566,6 +590,9 @@ class TreeService extends BaseFormService
             ];
             if (isset($fi['active'])) {
                 $node['active'] = $fi['active'];
+            }
+            if (!empty($fi['image'])) {
+                $node['image'] = $fi['image'];
             }
 
             // Cast to string — group values can be 0, false, null from database

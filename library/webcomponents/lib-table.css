@@ -68,6 +68,22 @@ lib-table .cma-list-thumb {
     visibility: visible;
 }
 
+/* Tree leaf thumbnails. Simple (non-grouped) trees render in light DOM, so they
+   need a rule here; grouped trees render inside cma-tree's shadow root, which
+   carries its own copy. Sits before the label, vertically centred. */
+.cma-tree-thumb {
+    display: inline-block;
+    height: 22px;
+    width: auto;
+    max-width: 40px;
+    object-fit: cover;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 3px;
+    cursor: zoom-in;
+}
+
 .listtable lib-switch {
     height: 20px;
     vertical-align: middle;

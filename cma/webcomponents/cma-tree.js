@@ -373,6 +373,15 @@ class CmaTree extends HTMLElement {
             const href = node.href || '#';
             const target = node.target || '';
 
+            // Optional thumbnail before the label (e.g. a product photo). When present
+            // we drop the glyph icon so it reads as [thumbnail][name]. Hover-enlarge is
+            // handled by cma-list-thumb.js (shadow-DOM aware via composedPath).
+            const hasThumb = !!node.image;
+            const aClass = hasThumb ? 't has-thumb' : `t icon ${iconClass}`;
+            const thumbHtml = hasThumb
+                ? `<img class="cma-list-thumb cma-tree-thumb" src="${this._escapeHtml(node.image)}" data-full="${this._escapeHtml(node.image)}" alt="" loading="lazy">`
+                : '';
+
             // Determine color class based on active/online_indic properties
             let colorClass = node.color || '';
             if (!colorClass) {
@@ -386,11 +395,11 @@ class CmaTree extends HTMLElement {
 
             return `
                 <li id="_i${node._id}" class="${colorClass}">
-                    <a id="_h${node._id}" class="t icon ${iconClass}" href="${this._escapeHtml(href)}"
+                    <a id="_h${node._id}" class="${aClass}" href="${this._escapeHtml(href)}"
                        ${target ? `target="${target}"` : ''}
                        data-item-id="${node._id}"
                        data-node-id="${node.id || ''}"
-                       data-label="${this._escapeHtml(node.label).replace(/_/g, ' ')}">${this._escapeHtml(node.label)}${badgeHtml}</a>
+                       data-label="${this._escapeHtml(node.label).replace(/_/g, ' ')}">${thumbHtml}${this._escapeHtml(node.label)}${badgeHtml}</a>
                 </li>`;
         }
     }
@@ -541,6 +550,23 @@ class CmaTree extends HTMLElement {
 
                 li.red a.icon::before { color: var(--color-error, #dc3545); }
                 li.green a.icon::before { color: var(--color-success, #28a745); }
+
+                /* Tree leaf thumbnail (rendered before the label, vertically centred) */
+                a.has-thumb {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                a.has-thumb .cma-tree-thumb {
+                    height: 22px;
+                    width: auto;
+                    max-width: 40px;
+                    object-fit: cover;
+                    border: 1px solid var(--border-color, #ddd);
+                    border-radius: 3px;
+                    flex-shrink: 0;
+                    cursor: zoom-in;
+                }
 
                 /* Access level badges */
                 .access-badge {
