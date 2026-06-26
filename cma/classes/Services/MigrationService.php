@@ -458,22 +458,30 @@ class MigrationService
         // backup config diverge from the live connections — e.g. a host whose
         // real DSNs live in data/databases.json would back up the stale/empty
         // cma/config/ entries instead.
+        // Key each databases.json entry by its LOGICAL connection name
+        // (data/rep/users) using the same canonicalisation the runtime uses
+        // (Database::$connectionAliases / Bootstrap). Without this a site that
+        // renamed its data DB to 'main' (or legacy 'database'/'repository')
+        // wouldn't match the migration alias 'data' and the backup was skipped.
+        $logicalNames = [
+            'users' => 'users', 'cmausers' => 'users',
+            'data' => 'data', 'database' => 'data', 'main' => 'data',
+            'rep' => 'rep', 'repository' => 'rep',
+        ];
         $databaseConfigs = [];
         foreach (\App\Library\Bootstrap::loadDatabasesConfig() as $dbConfig) {
-            $name = strtolower($dbConfig['name'] ?? '');
-            if ($name !== '') {
-                $databaseConfigs[$name] = $dbConfig;
+            $name = strtolower(trim((string)($dbConfig['name'] ?? '')));
+            $logical = $logicalNames[$name] ?? $name;
+            if ($logical !== '' && !isset($databaseConfigs[$logical])) {
+                $databaseConfigs[$logical] = $dbConfig; // first match wins
             }
         }
-
-        // Map migration aliases to database config names
-        $aliasMap = ['rep' => 'repository', 'data' => 'database', 'users' => 'cmausers'];
 
         $backupService = $this->getBackupService();
 
         foreach ($affectedDatabases as $dbName) {
-            $key = strtolower($dbName);
-            $dbConfig = $databaseConfigs[$key] ?? $databaseConfigs[$aliasMap[$key] ?? ''] ?? null;
+            $key = $logicalNames[strtolower($dbName)] ?? strtolower($dbName);
+            $dbConfig = $databaseConfigs[$key] ?? null;
 
             if (!$dbConfig) {
                 $this->log[] = "  ⚠ Database '$dbName' niet gevonden in configuratie, backup overgeslagen";
