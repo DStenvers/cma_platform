@@ -1032,7 +1032,7 @@ class JsonFormLoader
         $legacy[Q_SQLTABLENAME] = [$data['table'] ?? ''];
         $legacy[Q_MENUNEW] = [$data['allowAdd'] ?? true];
         $legacy[Q_MENUDELETE] = [$data['allowDelete'] ?? true];
-        $legacy[Q_MENUCOPY] = [$data['allowCopy'] ?? false];
+        $legacy[Q_MENUCOPY] = [$data['allowCopy'] ?? ($data['allowAdd'] ?? true)];
         $legacy[Q_PREVIEWURL] = [$data['previewUrl'] ?? ''];
         $legacy[Q_FORMNAME] = [$data['name'] ?? $data['title'] ?? ''];
         $legacy[Q_SECBYUSER] = [$data['securityByUser'] ?? false];
@@ -1344,7 +1344,7 @@ class JsonFormLoader
             'idField' => $arrRep[Q_FRMIDFLD][0] ?? 'ID',
             'allowAdd' => (bool)($arrRep[Q_MENUNEW][0] ?? true),
             'allowDelete' => (bool)($arrRep[Q_MENUDELETE][0] ?? true),
-            'allowCopy' => (bool)($arrRep[Q_MENUCOPY][0] ?? false),
+            'allowCopy' => (bool)($arrRep[Q_MENUCOPY][0] ?? ($arrRep[Q_MENUNEW][0] ?? true)),
             'securityByUser' => (bool)($arrRep[Q_SECBYUSER][0] ?? false),
             'storeLastModified' => (bool)($arrRep[Q_STORELASTMOD][0] ?? false),
             'previewUrl' => $arrRep[Q_PREVIEWURL][0] ?? '',

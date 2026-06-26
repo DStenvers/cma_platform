@@ -1016,9 +1016,10 @@ class FormDefinition
      */
     public function allowCopy(): bool
     {
-        // JSON forms
+        // JSON forms - default to allowAdd: a copy creates a new record, so wherever
+        // adding is allowed, copying makes sense unless explicitly disabled.
         if ($this->jsonData !== null) {
-            return $this->jsonData['allowCopy'] ?? false;
+            return $this->jsonData['allowCopy'] ?? $this->allowAdd();
         }
 
         // Database forms

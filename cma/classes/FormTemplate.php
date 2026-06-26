@@ -255,7 +255,7 @@ class FormTemplate
             'accessLevel' => $this->accessLevel,
             'canAdd' => ($jsonData['allowAdd'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'canDelete' => ($jsonData['allowDelete'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => ($this->formDef->hasMenuCopy() || ($jsonData['allowCopy'] ?? false)) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canCopy' => ($this->formDef->hasMenuCopy() || ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true))) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'filterIdName' => $this->formDef->getFilterIdName(),

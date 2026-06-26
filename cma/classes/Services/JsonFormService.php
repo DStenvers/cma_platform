@@ -755,7 +755,7 @@ class JsonFormService extends BaseFormService
             $response['permissions'] = [
                 'canAdd' => ($jsonData['allowAdd'] ?? true) && $hasFullAccess,
                 'canEdit' => ($jsonData['allowEdit'] ?? true) && $hasFullAccess,
-                'canCopy' => ($jsonData['allowCopy'] ?? false) && $hasFullAccess,
+                'canCopy' => ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true)) && $hasFullAccess,
                 'canDelete' => ($jsonData['allowDelete'] ?? true) && $hasFullAccess,
             ];
             $response['comboOptions'] = $comboOptions; // For inline editing with Select2
@@ -1810,7 +1810,7 @@ class JsonFormService extends BaseFormService
             'permissions' => [
                 'canAdd' => ($jsonData['allowAdd'] ?? true) && $hasFullAccess,
                 'canEdit' => ($jsonData['allowEdit'] ?? true) && $hasFullAccess,
-                'canCopy' => ($jsonData['allowCopy'] ?? false) && $hasFullAccess,
+                'canCopy' => ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true)) && $hasFullAccess,
                 'canDelete' => ($jsonData['allowDelete'] ?? true) && $hasFullAccess,
             ],
         ];

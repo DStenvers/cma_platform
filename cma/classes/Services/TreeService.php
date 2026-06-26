@@ -516,7 +516,7 @@ class TreeService extends BaseFormService
                 'permissions' => [
                     'canAdd' => ($jsonData['allowAdd'] ?? true) && $hasFullAccess,
                     'canEdit' => ($jsonData['allowEdit'] ?? true) && $hasFullAccess,
-                    'canCopy' => ($jsonData['allowCopy'] ?? false) && $hasFullAccess,
+                    'canCopy' => ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true)) && $hasFullAccess,
                     'canDelete' => ($jsonData['allowDelete'] ?? true) && $hasFullAccess,
                 ],
             ];
@@ -790,7 +790,7 @@ class TreeService extends BaseFormService
             'permissions' => [
                 'canAdd' => ($jsonData['allowAdd'] ?? true) && $hasFullAccess,
                 'canEdit' => ($jsonData['allowEdit'] ?? true) && $hasFullAccess,
-                'canCopy' => ($jsonData['allowCopy'] ?? false) && $hasFullAccess,
+                'canCopy' => ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true)) && $hasFullAccess,
                 'canDelete' => ($jsonData['allowDelete'] ?? true) && $hasFullAccess,
             ],
         ];
