@@ -1876,6 +1876,24 @@ lib-table .subform-section table thead {
     }
 }
 
+/* Readable field values: form text inputs render on a light/white field, but in
+   dark mode they inherited the light --text-primary (#dedede), leaving typed
+   values faint (light-on-light). Pin value text dark on a light field — including
+   on focus, where the base style would otherwise swap the background to the dark
+   --bg-body. Checkboxes/radios/buttons are excluded. */
+.c2 input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=hidden]),
+.c2 textarea,
+.c2 select {
+    color: #1a1a1a;
+    background-color: #ffffff;
+}
+.c2 input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=hidden]):focus,
+.c2 textarea:focus,
+.c2 select:focus {
+    color: #1a1a1a;
+    background-color: #ffffff !important;
+}
+
 /* Rights matrix table */
 .rights-matrix {
     width: 100%;
