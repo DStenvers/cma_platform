@@ -256,6 +256,39 @@ function buildResponse($data) {
  * @param int $maxAge Max age in seconds (default 5 minutes)
  * @param bool $private Whether to use private cache (default true)
  */
+/**
+ * (Re)generate responsive WebP variants for every image-type field of a just-saved
+ * record. Each image field carries its own `path` (e.g. images/producten/); combined
+ * with the stored filename that gives the source image, from which ResponsiveImage
+ * builds the .responsive/*.webp set the public site serves. Best-effort and
+ * side-effect-only — callers wrap it in try/catch so it can never fail a save.
+ */
+function cma_generate_image_variants(string $formName, array $data): void
+{
+    if (!class_exists('\\App\\Library\\ResponsiveImage')) {
+        return;
+    }
+    $def = \Cma\JsonFormLoader::loadRaw($formName);
+    if (!is_array($def) || empty($def['fields'])) {
+        return;
+    }
+    foreach ($def['fields'] as $f) {
+        if (!is_array($f) || ($f['type'] ?? '') !== 'image') {
+            continue;
+        }
+        $name = (string)($f['name'] ?? '');
+        $val  = $data[$name] ?? '';
+        if ($name === '' || !is_string($val) || $val === '' || stripos($val, 'http') === 0) {
+            continue;
+        }
+        $folder = '/' . trim((string)($f['path'] ?? ''), '/') . '/';
+        $disk = \App\Library\Server::mapPath($folder . basename($val));
+        if (is_file($disk)) {
+            \App\Library\ResponsiveImage::generate($disk);
+        }
+    }
+}
+
 function setCacheHeaders(int $maxAge = 300, bool $private = true) {
     $cacheControl = $private ? 'private' : 'public';
     header("Cache-Control: {$cacheControl}, max-age={$maxAge}");
@@ -964,6 +997,18 @@ try {
             // After saving users, ensure minimum admin/developer exists
             if ($jsonFormName === 'users' && $result['success']) {
                 ensureMinimumUserLevels();
+            }
+
+            // On a successful save, (re)generate responsive WebP variants for any
+            // image fields, so a newly uploaded image immediately has its
+            // .responsive/*.webp set (homepage carousel + product cards serve those).
+            // Best-effort: never let variant generation fail the save.
+            if (!empty($result['success'])) {
+                try {
+                    cma_generate_image_variants($jsonFormName, $data);
+                } catch (\Throwable $e) {
+                    error_log('[form_api] image-variant generation failed: ' . $e->getMessage());
+                }
             }
 
             sendDebugHeader();
