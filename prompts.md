@@ -1136,3 +1136,5 @@ karaat-data en staat in de karaat-repo.
 > is the tableservice still used anywhere?
 
 > opening the image no not while typing, when saving
+
+> yes please, but you are sure the numberic format is solved?

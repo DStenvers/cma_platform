@@ -817,15 +817,22 @@ class RecordService extends BaseFormService
         if ($value === null || $value === '') {
             return null; // NULL/empty -> let formatForSql() emit NULL
         }
-        if (($arrRep[\Q_SCHEMA_NUM_PREC][$fieldIndex] ?? '') === '') {
-            return null; // not a numeric field
-        }
         $normalized = SQL::normalizeDecimal($value);
         if (!is_numeric($normalized)) {
             return null; // not a number -> leave to formatForSql()/validation
         }
+        $isDecimal = strpos($normalized, '.') !== false;
+        $isDeclaredNumeric = (($arrRep[\Q_SCHEMA_NUM_PREC][$fieldIndex] ?? '') !== '');
+        // Bind declared-numeric fields, and ALWAYS bind a decimal value even when
+        // numericPrecision is missing at runtime (e.g. a stale parsed-form cache):
+        // an inlined decimal is locale-coerced (2.41 -> 241 under LCID 1043).
+        // A bare integer without numericPrecision stays inlined so text codes /
+        // leading zeros ("007") are untouched.
+        if (!$isDeclaredNumeric && !$isDecimal) {
+            return null;
+        }
         // Send as a real numeric param (not text) so no locale re-parsing happens.
-        return strpos($normalized, '.') === false ? (int)$normalized : (float)$normalized;
+        return $isDecimal ? (float)$normalized : (int)$normalized;
     }
 
     /**
