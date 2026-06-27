@@ -152,6 +152,12 @@ $isClassicMode = ($menuStyle === 'classic');
 
 // Get theme preference
 $currentTheme = Cookie::get('cma_theme', 'light');
+// Per-site override: pin the CMA to light mode. Some sites' branding and form
+// contrast (notably the input fields) aren't tuned for dark, so this ignores the
+// cookie and the system preference entirely. Set Application key 'cma_force_light'.
+if (Application::get('cma_force_light', false)) {
+    $currentTheme = 'light';
+}
 // For PHP rendering, 'system' defaults to light - JS handles dynamic system preference
 $themeClass = ($currentTheme === 'dark') ? 'dark-mode' : '';
 $useSystemTheme = ($currentTheme === 'system');
