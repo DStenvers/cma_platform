@@ -332,6 +332,16 @@ if (!$failed && $composerPkgs !== '-' && $composerPkgs !== '') {
                 $failReason = 'composer update AND install both failed';
             }
         }
+
+        // Report the version that actually landed in vendor/, so the deploy log
+        // shows exactly which platform release is installed. A missing git tag
+        // silently keeps the previous release (composer installs by tag), and
+        // this line makes that visible instead of leaving you guessing.
+        $platJson = $ROOT . '/vendor/stenversonline/platform/composer.json';
+        if (is_file($platJson)) {
+            $pj = json_decode((string) @file_get_contents($platJson), true);
+            $log('platform installed version: ' . ($pj['version'] ?? '(unknown)'));
+        }
     }
 }
 
