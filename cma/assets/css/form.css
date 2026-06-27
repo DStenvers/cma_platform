@@ -1845,6 +1845,37 @@ lib-table .subform-section table thead {
     padding-left: 20px;
 }
 
+/* --- Mobile: keep the detail edit form inside the phone viewport ---
+   The label/value layout and the inline checklist groups (e.g. Kleur, Vorm)
+   otherwise render at desktop widths and overflow a narrow screen, clipping
+   options on the right edge. Constrain the containers, narrow the label column,
+   let value cells wrap their checklists, and add a horizontal-scroll safety net
+   so nothing is ever clipped. Desktop layout (>600px) is untouched. */
+@media (max-width: 600px) {
+    main.detail-panel,
+    .detail-panel .detail-content,
+    .detail-content,
+    .checklist,
+    .checklist-tree,
+    .checklist-inline {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    main.detail-panel {
+        overflow-x: auto;
+    }
+    .detail-panel .c1,
+    .detail-content .c1 {
+        min-width: 0;
+        max-width: 42%;
+    }
+    .detail-panel td.c2,
+    .detail-content td.c2 {
+        white-space: normal;
+        word-break: break-word;
+    }
+}
+
 /* Rights matrix table */
 .rights-matrix {
     width: 100%;
