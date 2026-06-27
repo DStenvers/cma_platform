@@ -16,10 +16,12 @@
  *   { "success": false, "error": "Error message" }
  */
 
-// Note: _bootstrap.php is auto-prepended by web.config (provides App\Library classes)
-// Do NOT include bootstrap.inc - it contains login redirect logic that breaks JSON responses
-
-use App\Library\Request;
+// This handler is POSTed to directly (lib-fileuploader / fetch) with no page
+// context, and IIS auto_prepend of _bootstrap.php is not reliable for such
+// direct uploads — so it must NOT depend on any App\Library class (that caused
+// a "Class App\Library\Request not found" fatal on live). It reads only
+// superglobals. Do NOT include bootstrap.inc either: its login-redirect logic
+// breaks the JSON response.
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -28,8 +30,8 @@ if (ob_get_level()) {
     ob_end_clean();
 }
 
-// Get path parameter
-$path = Request::query('path', '');
+// Get path parameter (superglobal — no platform autoloader dependency)
+$path = isset($_GET['path']) ? (string) $_GET['path'] : '';
 
 if ($path === '') {
     echo json_encode(['success' => false, 'error' => 'Geen upload pad opgegeven']);
