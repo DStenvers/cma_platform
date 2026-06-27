@@ -9141,6 +9141,16 @@ class CmaFormController {
 
             // cmaLog.log('saveRecord POST data:', 'formId=', this.formId, 'isJsonForm=', this.isJsonForm, 'currentRecordId=', cmaGetRecordId());
 
+            // TEMP diagnostic: trace numeric field values from input -> collected -> sent
+            try {
+                this.mainForm.querySelectorAll('[data-validation-type="number"]').forEach(el => {
+                    console.log('[NUM-TRACE client] field', el.name,
+                        '| input.value=', JSON.stringify(el.value),
+                        '| collected=', JSON.stringify(formData[el.name]),
+                        '| inPostData=', JSON.stringify(postData.get(el.name)));
+                });
+            } catch (e) { console.warn('[NUM-TRACE] client trace failed', e); }
+
             cmaPerf.mark('saveRecord_fetchStart');
             const response = await fetch(`/cma/form_api.php`, {
                 method: 'POST',
@@ -9159,6 +9169,10 @@ class CmaFormController {
 
             try {
                 result = JSON.parse(responseText);
+                // TEMP diagnostic: server-side numeric trace (received -> param/inlined -> stored)
+                if (result && result._numdebug && Object.keys(result._numdebug).length) {
+                    console.log('[NUM-TRACE server]', JSON.parse(JSON.stringify(result._numdebug)));
+                }
             } catch (e) {
                 // Non-JSON response - show in popup
                 // cmaLog.log('saveRecord: non-JSON response, showing in popup');

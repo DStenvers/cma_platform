@@ -1138,3 +1138,70 @@ karaat-data en staat in de karaat-repo.
 > opening the image no not while typing, when saving
 
 > yes please, but you are sure the numberic format is solved?
+
+> no not solved, let's debug
+
+> incoming:         "inkoopNr": "",
+>         "Karaat": "2.0",
+>         "afm1": "105.0",
+>         "afm2": "7.0",
+>         "afm3": "48.0", 
+> https://www.karaatedelstenen.nl/cma/form_api.php?action=getRow&ID=4761&displayMode=1&jsonForm=steensoorten_producten shows : {
+>     "success": true,
+>     "html": "<tr class=\"listrow\" data-id=\"4761\"><td data-field=\"bLeverbaar\" data-type=\"boolean\" data-value=\"1\"><span class=\"row-menu-trigger\" data-id=\"4761\">&#8942;</span><lib-switch data-field=\"bLeverbaar\" checked></lib-switch></td><td data-field=\"bGecontroleerd\" data-type=\"boolean\" data-value=\"1\"><lib-switch data-field=\"bGecontroleerd\" checked></lib-switch></td><td data-field=\"bCheckedSecat\" data-type=\"boolean\" data-value=\"0\"><lib-switch data-field=\"bCheckedSecat\"></lib-switch></td><td data-field=\"aantal\" data-type=\"text\">1</td><td data-field=\"voorraad\" data-type=\"text\">1</td><td data-field=\"Prijs\" data-type=\"text\">29.0000</td><td data-field=\"BerekendPrijs\" data-type=\"text\"></td><td data-field=\"fkCategorie\" data-type=\"combobox\" data-fk-value=\"1\">Edelstenen geslepen</td><td data-field=\"fkSteensoort\" data-type=\"combobox\" data-fk-value=\"156\">Pargasiet</td><td data-field=\"Beeld\" data-type=\"image\" class=\"cma-list-thumb-cell\"><img class=\"cma-list-thumb\" src=\"/images/producten/IMG_5757.JPG%3Fversie%3D1782036495\" data-full=\"/images/producten/IMG_5757.JPG%3Fversie%3D1782036495\" alt=\"\" loading=\"lazy\"></td><td data-field=\"video\" data-type=\"text\"></td><td data-field=\"BlockVideo\" data-type=\"boolean\" data-value=\"0\"><lib-switch data-field=\"BlockVideo\"></lib-switch></td><td data-field=\"datestamp\" data-type=\"date\">07-02-2020</td><td data-field=\"fkCertificaat\" data-type=\"combobox\" data-fk-value=\"\"></td><td data-field=\"bZeldzaam\" data-type=\"boolean\" data-value=\"1\"><lib-switch data-field=\"bZeldzaam\" checked></lib-switch></td><td data-field=\"Karaat\" data-type=\"text\">2.0</td><td data-field=\"afm1\" data-type=\"text\">105.0</td><td data-field=\"afm2\" data-type=\"text\">7.0</td><td data-field=\"afm3\" data-type=\"text\">48.0</td><td data-field=\"inkoopNr\" data-type=\"text\"></td><td data-field=\"InkoopTitel\" data-type=\"text\"></td><td data-field=\"inkoopPrijs\" data-type=\"text\">91000.0000</td><td data-field=\"inkoopUrl\" data-type=\"text\">https://www.ebay.nl/itm/2-CT-World-Rare-Unusual-Transparent-Green-Pargasite-Rare-Top-Cut-Gemstone-AFG/233428660860?ssPageName=STRK%3AMEBIDX%3AIT&amp;_trksid=p2057872.m2749.l2649</td><td data-field=\"inkoopVindplaats\" data-type=\"text\">Badakhshan</td></tr>",
+>     "displayText": "2kt Pargasiet (Ovaal)",
+>     "rowHtml": "<tr class=\"listrow\" data-id=\"4761\"><td data-field=\"bLeverbaar\" data-type=\"boolean\" data-value=\"1\"><span class=\"row-menu-trigger\" data-id=\"4761\">&#8942;</span><lib-switch data-field=\"bLeverbaar\" checked></lib-switch></td><td data-field=\"bGecontroleerd\" data-type=\"boolean\" data-value=\"1\"><lib-switch data-field=\"bGecontroleerd\" checked></lib-switch></td><td data-field=\"bCheckedSecat\" data-type=\"boolean\" data-value=\"0\"><lib-switch data-field=\"bCheckedSecat\"></lib-switch></td><td data-field=\"aantal\" data-type=\"text\">1</td><td data-field=\"voorraad\" data-type=\"text\">1</td><td data-field=\"Prijs\" data-type=\"text\">29.0000</td><td data-field=\"BerekendPrijs\" data-type=\"text\"></td><td data-field=\"fkCategorie\" data-type=\"combobox\" data-fk-value=\"1\">Edelstenen geslepen</td><td data-field=\"fkSteensoort\" data-type=\"combobox\" data-fk-value=\"156\">Pargasiet</td><td data-field=\"Beeld\" data-type=\"image\" class=\"cma-list-thumb-cell\"><img class=\"cma-list-thumb\" src=\"/images/producten/IMG_5757.JPG%3Fversie%3D1782036495\" data-full=\"/images/producten/IMG_5757.JPG%3Fversie%3D1782036495\" alt=\"\" loading=\"lazy\"></td><td data-field=\"video\" data-type=\"text\"></td><td data-field=\"BlockVideo\" data-type=\"boolean\" data-value=\"0\"><lib-switch data-field=\"BlockVideo\"></lib-switch></td><td data-field=\"datestamp\" data-type=\"date\">07-02-2020</td><td data-field=\"fkCertificaat\" data-type=\"combobox\" data-fk-value=\"\"></td><td data-field=\"bZeldzaam\" data-type=\"boolean\" data-value=\"1\"><lib-switch data-field=\"bZeldzaam\" checked></lib-switch></td><td data-field=\"Karaat\" data-type=\"text\">2.0</td><td data-field=\"afm1\" data-type=\"text\">105.0</td><td data-field=\"afm2\" data-type=\"text\">7.0</td><td data-field=\"afm3\" data-type=\"text\">48.0</td><td data-field=\"inkoopNr\" data-type=\"text\"></td><td data-field=\"InkoopTitel\" data-type=\"text\"></td><td data-field=\"inkoopPrijs\" data-type=\"text\">91000.0000</td><td data-field=\"inkoopUrl\" data-type=\"text\">https://www.ebay.nl/itm/2-CT-World-Rare-Unusual-Transparent-Green-Pargasite-Rare-Top-Cut-Gemstone-AFG/233428660860?ssPageName=STRK%3AMEBIDX%3AIT&amp;_trksid=p2057872.m2749.l2649</td><td data-field=\"inkoopVindplaats\" data-type=\"text\">Badakhshan</td></tr>",
+>     "_debug": {
+>         "form": "steensoorten_producten",
+>         "recordId": "4761",
+>         "requestedColumns": [],
+>         "matchedListColumns": 24,
+>         "dbFieldNames": [
+>             "Id",
+>             "bLeverbaar",
+>             "fkBTW",
+>             "fkCategorie",
+>             "fkSteensoort",
+>             "fkSteenSubsoort",
+>             "Naam",
+>             "Beschrijving",
+>             "BerekendPrijs",
+>             "Prijs",
+>             "Beeld",
+>             "datestamp",
+>             "inkoopPrijs",
+>             "inkoopNr",
+>             "Karaat",
+>             "Afm1",
+>             "Afm2",
+>             "Afm3",
+>             "bZeldzaam",
+>             "inkoopBeeld",
+>             "inkoopUrl",
+>             "inkoopTitel",
+>             "inkoopPagina",
+>             "inkoopVindplaats",
+>             "fkCertificaat",
+>             "bGecontroleerd",
+>             "video",
+>             "videoStill",
+>             "blockVideo",
+>             "aantal",
+>             "voorraad",
+>             "bCheckedSecat"
+>         ],
+>         "totalTds": 24,
+>         "emptyTds": 6
+>     }
+> }
+>
+> i don't actually see the post?!
+> and for later: https://www.karaatedelstenen.nl/cma/form_api.php?action=checklist&form=steensoorten_producten&controlId=kleuren&id=4761 has a lot of debug info, can be optimised.
+
+> not editing inline!
+>
+> <textarea id="Beschrijving" name="Beschrijving" data-field="Beschrijving" data-type="130" data-required="false" data-readonly="false" data-label="Beschrijving" data-allow-html="true" data-limited-html="false" data-max-chars="0" data-no-spam-js="false" data-use-blockedit="false" style="width: 100%; height: 90px; visibility: hidden;" rows="5" data-original-value=""></textarea> 
+>
+> that should become a htmledit field, but it does not?!
+
+> continuea

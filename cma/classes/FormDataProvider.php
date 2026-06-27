@@ -908,6 +908,7 @@ class FormDataProvider
             }
 
             $params = []; // bound values for numeric fields (see numericBindValue)
+            $numDebug = []; // TEMP diagnostic: trace numeric values received -> sent -> stored
             if ($isNew) {
                 // INSERT
                 $fields = [];
@@ -936,8 +937,15 @@ class FormDataProvider
                         // zeros ("007") are untouched.
                         $values[] = '?';
                         $params[] = $num;
+                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'bound', 'param' => $num, 'phpType' => gettype($num)];
+                        }
                     } else {
-                        $values[] = self::formatValueForSql($value);
+                        $inl = self::formatValueForSql($value);
+                        $values[] = $inl;
+                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined', 'sql' => $inl];
+                        }
                     }
                 }
                 $sql = "INSERT INTO " . self::quoteIdentifier($tableName, $isSqlite) . " (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $values) . ")";
@@ -963,8 +971,15 @@ class FormDataProvider
                         // Jet/ACE (2.41 -> 241 under LCID 1043). Integers stay inlined.
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = ?";
                         $params[] = $num;
+                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'bound', 'param' => $num, 'phpType' => gettype($num)];
+                        }
                     } else {
-                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatValueForSql($value);
+                        $inl = self::formatValueForSql($value);
+                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . $inl;
+                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined', 'sql' => $inl];
+                        }
                     }
                 }
                 // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
@@ -1131,11 +1146,33 @@ class FormDataProvider
             // legacy cma_afterpost.asp trigger). See clearFormCachesOnSave().
             self::clearFormCachesOnSave($jsonData, $recordId);
 
+            // TEMP diagnostic: re-read the just-saved numeric fields so we can see
+            // exactly where a decimal flips (received -> param/inlined -> stored).
+            if (!empty($numDebug)) {
+                try {
+                    $idQ = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId);
+                    $rbSql = "SELECT * FROM " . self::quoteIdentifier($tableName, $isSqlite)
+                           . " WHERE " . self::quoteIdentifier($idField, $isSqlite) . " = " . $idQ;
+                    $rbRs = Database::openRS($rbSql, $conn);
+                    if ($rbRs && !$rbRs->EOF) {
+                        $rbRow = array_change_key_case((array)$rbRs->fields, CASE_LOWER);
+                        foreach ($numDebug as $f => &$dbg) {
+                            $dbg['stored'] = $rbRow[strtolower($f)] ?? '(column not found)';
+                        }
+                        unset($dbg);
+                    }
+                } catch (\Throwable $e) {
+                    $numDebug['_readbackError'] = $e->getMessage();
+                }
+                Logger::info('SAVE: numeric trace', ['form' => $formName, 'id' => $recordId, 'trace' => $numDebug]);
+            }
+
             return [
                 'success' => true,
                 'id' => $recordId,
                 'isNew' => $isNew,
                 'message' => $isNew ? 'Record aangemaakt' : 'Record opgeslagen',
+                '_numdebug' => $numDebug, // TEMP: remove after the decimal bug is fixed
             ];
 
         } catch (\Exception $e) {
