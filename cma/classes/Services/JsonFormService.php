@@ -1202,10 +1202,18 @@ class JsonFormService extends BaseFormService
 
                 // Skip fields without names or special control types
                 if (empty($fieldName)) continue;
-                if (in_array($fieldType, $skipTypes)) continue;
-                if (strtolower($fieldName) === $idField) continue;
-                if (str_starts_with($fieldName, '_')) continue; // Skip internal fields
-                if (!empty($renderer)) continue; // Skip fields with custom renderers (complex fields)
+
+                // The ID field is offered in the chooser (handy for spotting the
+                // last-added record) but stays hidden by default — see the
+                // $selected exclusion below. It bypasses the normal skip filters
+                // so it still shows when typed as autonumber/hidden or marked
+                // visible:false in the definition.
+                $isIdField = (strtolower($fieldName) === $idField);
+                if (!$isIdField) {
+                    if (in_array($fieldType, $skipTypes)) continue;
+                    if (str_starts_with($fieldName, '_')) continue; // Skip internal fields
+                    if (!empty($renderer)) continue; // Skip fields with custom renderers (complex fields)
+                }
 
                 // Map JSON type to display type name
                 $typeName = match($fieldType) {
@@ -1246,6 +1254,12 @@ class JsonFormService extends BaseFormService
             // (excluding filter field and memo fields which can't be displayed)
             if (empty($selected)) {
                 $availableNames = array_column($columns, 'name');
+                // Exclude the ID field from the default selection — it's available
+                // in the chooser but hidden by default (matches the list render,
+                // which also leaves ID out of its default columns).
+                $availableNames = array_values(array_filter($availableNames, function($name) use ($idField) {
+                    return strtolower($name) !== $idField;
+                }));
                 // Exclude filter field from default selection - when filtering is applied,
                 // all rows have the same filter value, making the column redundant
                 if ($filterFieldName !== '') {

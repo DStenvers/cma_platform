@@ -1126,3 +1126,11 @@ karaat-data en staat in de karaat-repo.
 > karaat still has this error: ng(en) uit te voeren...
 > ✗ Versie 9.5.0 MISLUKT: SQLSTATE[HYS11]: <<Unknown error>>: -1403 [Microsoft][ODBC Microsoft Access Driver] Table 'tblCMAMonitoring' already has an index named 'idx_CMAMonitoring_datestamp'. (SQLExecDirect[-1403] at ext\pdo_odbc\odbc_driver.c:246)
 > ✗ Fout bij migratie versie 9.5.0: SQLSTATE[HYS11]: <<Unknown error>>: -1403 [Microsoft][ODBC Microsoft Access Driver] Table 'tblCMAMonitoring' already has an index named 'idx_CMAMonitoring_datestamp'. (SQLExecDirect[-1403] at ext\pdo_odbc\odbc_driver.c:246)
+
+## 2026-06-27
+
+> everything is up to date. A new request: the field chooser strips the ID field I suspect. Sometimes it is handy for seing that the last added record is. So can we add it to the field choose, default visible False?
+
+> Please push
+>
+> is the tableservice still used anywhere?
