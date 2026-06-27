@@ -1205,3 +1205,8 @@ karaat-data en staat in de karaat-repo.
 > that should become a htmledit field, but it does not?!
 
 > continuea
+
+> Posting : afm1
+> 10,5
+> afm1__label
+> Afmetingen , can you include the actual sql in the console.log?

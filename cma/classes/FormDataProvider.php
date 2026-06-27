@@ -1164,6 +1164,11 @@ class FormDataProvider
                 } catch (\Throwable $e) {
                     $numDebug['_readbackError'] = $e->getMessage();
                 }
+                $numDebug['_sql'] = $sql;
+                $numDebug['_params'] = $params;
+                $numDebug['_driver'] = (function() use ($conn) {
+                    try { return $conn->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) { return 'unknown'; }
+                })();
                 Logger::info('SAVE: numeric trace', ['form' => $formName, 'id' => $recordId, 'trace' => $numDebug]);
             }
 
