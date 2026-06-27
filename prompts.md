@@ -1134,3 +1134,5 @@ karaat-data en staat in de karaat-repo.
 > Please push
 >
 > is the tableservice still used anywhere?
+
+> opening the image no not while typing, when saving

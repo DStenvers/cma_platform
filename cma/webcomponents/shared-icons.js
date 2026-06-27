@@ -158,7 +158,7 @@
         'car': 'e84a',
         'rocket': 'e837',
         'magic-wand': 'e62b',
-        'sun': 'e657',
+        'sun': 'e647',        // was e657 (that's cloud-gear) — broke the image-editor "lighter" button
         'palette': 'e626',
         'heart-pulse': 'e7e8',
         'earth': 'e884',
@@ -211,7 +211,36 @@
         'expand4': 'e952',
         'contract3': 'e953',
         '3d-glasses': 'e6f4',
-        '3d-rotate': 'e875'
+        '3d-rotate': 'e875',
+
+        // Used in code but previously missing from the optimized subset
+        // (rendered as tofu). Codes verified against cma/docs/linearicons.css.
+        'apartment': 'e60c',
+        'archive': 'e6a0',
+        'arrow-up': 'e941',
+        'brain': 'e7f2',
+        'bug': 'e90a',
+        'bullhorn': 'e8ae',
+        'cloud-sync': 'e655',
+        'contrast': 'e645',
+        'drop': 'e633',
+        'enter': 'e6d2',
+        'envelope': 'e696',
+        'hand': 'e9bf',
+        'license': 'e6db',
+        'license2': 'e6dc',
+        'moon': 'e649',
+        'paper-plane': 'e699',
+        'paperclip': 'e698',
+        'pencil2': 'e60e',
+        'phone-wave': 'e76c',
+        'plus': 'e936',
+        'pulse': 'e7e9',
+        'question': 'e933',
+        'screen': 'e798',
+        'server': 'e666',
+        'shield-check': 'e668',
+        'sort-amount-asc': 'e9b9'
     };
 
     /**

@@ -923,9 +923,17 @@ class FormDataProvider
                     }
                     $lc = strtolower($field);
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
+                    $num = self::numericBindValue($value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
                         $values[] = self::formatDateValueForSql((string)$value, $isSqlite);
-                    } elseif (isset($numericFields[$lc]) && ($num = self::numericBindValue($value)) !== null) {
+                    } elseif ($num !== null && (isset($numericFields[$lc]) || is_float($num))) {
+                        // Bind declared-numeric fields AND any decimal value: an
+                        // inlined decimal is locale-coerced by Jet/ACE (2.41 -> 241
+                        // under LCID 1043). Decimals (is_float) are bound even when
+                        // the field's dataType/numericPrecision is missing at runtime
+                        // (e.g. a stale parsed-form cache — the usual regression
+                        // trigger); integers stay inlined so text codes / leading
+                        // zeros ("007") are untouched.
                         $values[] = '?';
                         $params[] = $num;
                     } else {
@@ -946,9 +954,13 @@ class FormDataProvider
                         continue;
                     }
                     $lc = strtolower($field);
+                    $num = self::numericBindValue($value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatDateValueForSql((string)$value, $isSqlite);
-                    } elseif (isset($numericFields[$lc]) && ($num = self::numericBindValue($value)) !== null) {
+                    } elseif ($num !== null && (isset($numericFields[$lc]) || is_float($num))) {
+                        // Bind declared-numeric fields AND any decimal value (see the
+                        // INSERT branch): an inlined decimal is locale-coerced by
+                        // Jet/ACE (2.41 -> 241 under LCID 1043). Integers stay inlined.
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = ?";
                         $params[] = $num;
                     } else {

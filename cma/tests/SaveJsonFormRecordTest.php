@@ -172,6 +172,68 @@ class SaveJsonFormRecordTest extends TestCase
     }
 
     // ------------------------------------------------------------------
+    // Decimal binding — locale-safe save (regression guard)
+    // ------------------------------------------------------------------
+
+    public function testDecimalValueIsBoundNotInlined(): void
+    {
+        // A decimal must be BOUND as a float param, never inlined: an inlined
+        // decimal is coerced by the Jet/ACE connection locale (2.41 -> 241
+        // under LCID 1043, growing 10x). This must hold even when the field
+        // carries NO numeric dataType/numericPrecision — e.g. a stale
+        // parsed-form cache, the usual regression trigger.
+        $formDef = ['_json' => [
+            'name' => 'dec_form', 'title' => 'Dec', 'table' => 'tblDec',
+            'idField' => 'ID', 'database' => 'data',
+            'fields' => [
+                ['name' => 'gewicht', 'label' => 'Gewicht', 'type' => 'textbox'],
+            ],
+        ]];
+        TestHarness::injectFormDef('dec_form', $formDef);
+
+        $this->conn->enqueueResult([]);                 // INSERT
+        $this->conn->enqueueInsertId('7');              // PDO lastInsertId
+        $this->conn->enqueueResult([['NewID' => '7']]); // @@IDENTITY fallback
+        $this->conn->enqueueResult([['cnt' => 1]]);     // verification COUNT
+
+        // The stub's post-insert verification SELECT is unrelated to binding
+        // (and currently can't be satisfied by the stub), so assert directly on
+        // the captured INSERT call rather than on $result['success'].
+        FormDataProvider::saveJsonFormRecord('dec_form', null, ['gewicht' => '2.41']);
+
+        $inserts = array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'INSERT'));
+        $this->assertNotEquals(0, count($inserts), 'An INSERT must be issued');
+        $insert = reset($inserts);
+
+        $this->assertStringContainsString('?', $insert['sql'], 'Decimal must be bound (placeholder), not inlined');
+        $this->assertContains(2.41, $insert['params'], 'Bound param must be the float 2.41');
+        $this->assertStringNotContainsString('2.41', $insert['sql'], 'Decimal must not appear inlined in the SQL text (Jet would mangle it to 241)');
+    }
+
+    public function testCommaDecimalAlsoBinds(): void
+    {
+        // The Dutch comma form ("2,41") must normalise + bind to 2.41 too.
+        $formDef = ['_json' => [
+            'name' => 'dec_form2', 'title' => 'Dec', 'table' => 'tblDec',
+            'idField' => 'ID', 'database' => 'data',
+            'fields' => [['name' => 'gewicht', 'label' => 'Gewicht', 'type' => 'textbox']],
+        ]];
+        TestHarness::injectFormDef('dec_form2', $formDef);
+
+        $this->conn->enqueueResult([]);
+        $this->conn->enqueueInsertId('8');
+        $this->conn->enqueueResult([['NewID' => '8']]);
+        $this->conn->enqueueResult([['cnt' => 1]]);
+
+        FormDataProvider::saveJsonFormRecord('dec_form2', null, ['gewicht' => '2,41']);
+
+        $inserts = array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'INSERT'));
+        $this->assertNotEquals(0, count($inserts), 'An INSERT must be issued');
+        $insert = reset($inserts);
+        $this->assertContains(2.41, $insert['params'], 'Comma decimal must bind as float 2.41');
+    }
+
+    // ------------------------------------------------------------------
     // Auth guard
     // ------------------------------------------------------------------
 
