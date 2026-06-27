@@ -924,27 +924,24 @@ class FormDataProvider
                     }
                     $lc = strtolower($field);
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
-                    $num = self::numericBindValue($value);
+                    $norm = ($value === null || $value === '') ? null : SQL::normalizeDecimal((string)$value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
                         $values[] = self::formatDateValueForSql((string)$value, $isSqlite);
-                    } elseif ($num !== null && (isset($numericFields[$lc]) || is_float($num))) {
-                        // Bind declared-numeric fields AND any decimal value: an
-                        // inlined decimal is locale-coerced by Jet/ACE (2.41 -> 241
-                        // under LCID 1043). Decimals (is_float) are bound even when
-                        // the field's dataType/numericPrecision is missing at runtime
-                        // (e.g. a stale parsed-form cache — the usual regression
-                        // trigger); integers stay inlined so text codes / leading
-                        // zeros ("007") are untouched.
-                        $values[] = '?';
-                        $params[] = $num;
-                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
-                            $numDebug[$field] = ['received' => $value, 'mode' => 'bound', 'param' => $num, 'phpType' => gettype($num)];
-                        }
+                    } elseif ($norm !== null && is_numeric($norm) && (isset($numericFields[$lc]) || strpos($norm, '.') !== false)) {
+                        // Write the number as an UNQUOTED period-decimal SQL literal.
+                        // Binding or quoting sends the value to Access ODBC as TEXT,
+                        // and the connection locale (LCID 1043) re-parses '.' as a
+                        // thousands separator (10.5 -> 105). A bare numeric literal is
+                        // parsed by the Jet/ACE query engine with '.' as the decimal
+                        // point regardless of locale — the Classic-ASP-era behaviour.
+                        // $norm is validated is_numeric, so inlining is injection-safe.
+                        $values[] = $norm;
+                        $numDebug[$field] = ['received' => $value, 'mode' => 'inlined-literal', 'sql' => $norm];
                     } else {
                         $inl = self::formatValueForSql($value);
                         $values[] = $inl;
-                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
-                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined', 'sql' => $inl];
+                        if ($norm !== null && is_numeric($norm)) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined-other', 'sql' => $inl];
                         }
                     }
                 }
@@ -962,23 +959,21 @@ class FormDataProvider
                         continue;
                     }
                     $lc = strtolower($field);
-                    $num = self::numericBindValue($value);
+                    $norm = ($value === null || $value === '') ? null : SQL::normalizeDecimal((string)$value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatDateValueForSql((string)$value, $isSqlite);
-                    } elseif ($num !== null && (isset($numericFields[$lc]) || is_float($num))) {
-                        // Bind declared-numeric fields AND any decimal value (see the
-                        // INSERT branch): an inlined decimal is locale-coerced by
-                        // Jet/ACE (2.41 -> 241 under LCID 1043). Integers stay inlined.
-                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = ?";
-                        $params[] = $num;
-                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
-                            $numDebug[$field] = ['received' => $value, 'mode' => 'bound', 'param' => $num, 'phpType' => gettype($num)];
-                        }
+                    } elseif ($norm !== null && is_numeric($norm) && (isset($numericFields[$lc]) || strpos($norm, '.') !== false)) {
+                        // Unquoted period-decimal literal (see the INSERT branch): a
+                        // bound/quoted decimal is sent to Access ODBC as text and the
+                        // locale (LCID 1043) mangles '.' to thousands (10.5 -> 105).
+                        // $norm is validated is_numeric → injection-safe.
+                        $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . $norm;
+                        $numDebug[$field] = ['received' => $value, 'mode' => 'inlined-literal', 'sql' => $norm];
                     } else {
                         $inl = self::formatValueForSql($value);
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . $inl;
-                        if (is_numeric(SQL::normalizeDecimal((string)$value))) {
-                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined', 'sql' => $inl];
+                        if ($norm !== null && is_numeric($norm)) {
+                            $numDebug[$field] = ['received' => $value, 'mode' => 'inlined-other', 'sql' => $inl];
                         }
                     }
                 }
