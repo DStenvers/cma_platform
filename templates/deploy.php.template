@@ -43,6 +43,11 @@
  *                            to modify"). Off by default (re-clone is slower). For a
  *                            one-off without touching .env, append ?forcerefresh=Y to
  *                            the deploy URL (e.g. the GitHub webhook Payload URL).
+ *   ?nocomposer=Y            query flag (no .env edit) that SKIPS the composer step
+ *                            for this deploy — git pull + test gate + asset build +
+ *                            recycle still run. Use it for consumer/front-end-only
+ *                            deploys (no platform package change) to keep them to a
+ *                            few seconds instead of waiting on `composer update`.
  *   DEPLOY_RUN_TESTS         command run AFTER pull/composer, BEFORE recycle.
  *                            Non-zero exit => deploy FAILED, recycle + post-hook
  *                            skipped (production stays on the old code).
@@ -149,6 +154,21 @@ $forceRefresh = false;
 foreach ($_GET as $gk => $gv) {
     if (strcasecmp((string)$gk, 'forcerefresh') === 0 && !is_array($gv)) {
         $forceRefresh = in_array(strtolower((string)$gv), ['y', '1', 'true', 'yes'], true);
+        break;
+    }
+}
+
+// On-demand skip of the composer step (?nocomposer=Y) — for deploys that only
+// touch consumer (git-pulled) files and need no platform package update. Skips the
+// slow `composer update` + autoload regenerate entirely; git pull, the test gate,
+// asset build and the app-pool recycle still run. Same case-insensitive, no-server-
+// edit mechanism as ?forcerefresh=Y (and like it, runs AFTER the HMAC + branch gate,
+// so it grants no access). Use it for front-end/template-only deploys to keep them
+// to a few seconds.
+$noComposer = false;
+foreach ($_GET as $gk => $gv) {
+    if (strcasecmp((string)$gk, 'nocomposer') === 0 && !is_array($gv)) {
+        $noComposer = in_array(strtolower((string)$gv), ['y', '1', 'true', 'yes'], true);
         break;
     }
 }
@@ -275,7 +295,10 @@ foreach (array_filter(array_map('trim', explode(';', $pipeline))) as $step) {
 // 4d. Composer update (pull the latest platform + deps). Resolve a usable
 //     composer binary first — the app-pool identity rarely has it on PATH.
 $composerPkgs = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
-if (!$failed && $composerPkgs !== '-' && $composerPkgs !== '') {
+if ($noComposer) {
+    $log('composer step skipped (?nocomposer=Y) — git pull + recycle only, no platform package update');
+}
+if (!$failed && !$noComposer && $composerPkgs !== '-' && $composerPkgs !== '') {
     $composer = null;
     foreach ([
         'composer',
