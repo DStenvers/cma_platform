@@ -12,12 +12,12 @@ use Cma\FormRoute;
 
 class FormRouteTest extends TestCase
 {
-    protected function setUp(): void
+    public function setUp(): void
     {
         $_GET = [];
     }
 
-    protected function tearDown(): void
+    public function tearDown(): void
     {
         $_GET = [];
     }

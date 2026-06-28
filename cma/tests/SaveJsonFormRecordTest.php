@@ -26,6 +26,12 @@ require_once dirname(__DIR__) . '/classes/JsonFormLoader.php';
 require_once dirname(__DIR__) . '/classes/FormDefinition.php';
 require_once dirname(__DIR__) . '/classes/SecurityHelper.php';
 require_once dirname(__DIR__) . '/classes/Services/Logger.php';
+// The edit path runs FormDefinition::fromArray() then RecordService::saveCustomRendererValues()
+// (FormDataProvider.php). bootstrap.inc bulk-loads the Service layer in dependency order for
+// real requests; the harness bypasses bootstrap, so hand-wire the two we reach here —
+// RecordService extends BaseFormService, so BaseFormService must load first.
+require_once dirname(__DIR__) . '/classes/Services/BaseFormService.php';
+require_once dirname(__DIR__) . '/classes/Services/RecordService.php';
 
 use App\Library\Application;
 use Cma\FormDataProvider;
@@ -151,9 +157,14 @@ class SaveJsonFormRecordTest extends TestCase
         // For new records there's no old state to fetch. Pre-1.20.1
         // behaviour was the same — verify v1.20.1 didn't accidentally
         // start running a SELECT for new-record inserts.
+        // PDO lastInsertId() returns '42' below, so the production code takes the
+        // happy path and SKIPS the @@IDENTITY/last_insert_rowid fallback SELECT
+        // (that only fires when lastInsertId comes back empty — see saveJsonFormRecord).
+        // Queue only the two reads it actually performs: the INSERT, then the
+        // verification COUNT. Queuing a phantom NewID result here would be consumed
+        // by the COUNT instead, making verification (wrongly) fail.
         $this->conn->enqueueResult([]);                            // INSERT
         $this->conn->enqueueInsertId('42');                        // PDO lastInsertId
-        $this->conn->enqueueResult([['NewID' => '42']]);           // @@IDENTITY/last_insert_rowid fallback
         $this->conn->enqueueResult([['cnt' => 1]]);                // verification SELECT COUNT
 
         $result = FormDataProvider::saveJsonFormRecord('test_form', null, ['naam' => 'Alice']);

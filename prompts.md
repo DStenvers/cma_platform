@@ -1341,3 +1341,11 @@ karaat-data en staat in de karaat-repo.
 > the image editor to use is  cma/image-editor.php, can you implement that one?
 
 > commit and push all
+
+> after editing an image, can we save the original into an .originals folder?
+
+> @"/home/diede/.claude/uploads/5c0b7bef-8b7e-4e29-8860-f2af497303ac/0192cb2c-IMG_5835.png" for the cma_platform, toolbar buttons on forma on mobile should be icon only
+
+> remote-control
+
+> yes please dive into that
