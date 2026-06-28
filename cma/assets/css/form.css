@@ -1876,52 +1876,6 @@ lib-table .subform-section table thead {
     }
 }
 
-/* Readable field values: form text inputs render on a light/white field, but in
-   dark mode they inherited the light --text-primary (#dedede), leaving typed
-   values faint (light-on-light). Pin value text dark on a light field — including
-   on focus, where the base style would otherwise swap the background to the dark
-   --bg-body. Checkboxes/radios/buttons are excluded. */
-.c2 input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=hidden]),
-.c2 textarea,
-.c2 select {
-    color: #1a1a1a;
-    background-color: #ffffff;
-}
-.c2 input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=hidden]):focus,
-.c2 textarea:focus,
-.c2 select:focus {
-    color: #1a1a1a;
-    background-color: #ffffff !important;
-}
-
-/* Compact numeric fields (carats / price / dimensions) — sized for ~5 characters
-   instead of stretching the full column width. */
-.c2 input[data-validation-type="number"] {
-    max-width: 6em;
-    width: auto;
-}
-
-/* Checklist values (Kleur/Vorm) in an aligned grid ("table" layout) instead of
-   ragged wrapping chips, so the options line up in tidy columns. */
-.checklist-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 1px 10px;
-    align-items: center;
-}
-.checklist-group-header {
-    grid-column: 1 / -1;
-}
-.checklist-item-inline {
-    display: flex;
-    align-items: center;
-    border: 0;
-    background: none;
-    margin: 0;
-    padding: 1px 2px;
-    line-height: normal;
-}
-
 /* Rights matrix table */
 .rights-matrix {
     width: 100%;
