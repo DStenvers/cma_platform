@@ -3318,6 +3318,14 @@ a.migration-link:hover {
         display: none;
     }
 
+    /* Form action-toolbar (#detailToolbar) icon-only on mobile too — including in
+       popups, where body.popup otherwise forces the labels visible (display:inline
+       !important), so Toevoegen/Opslaan/Annuleren/Verwijderen/Info overflow the row. */
+    #detailToolbar .btn-text,
+    body.popup #detailToolbar .responsive-btn .btn-text {
+        display: none !important;
+    }
+
     /* Three-dot menu: more prominent */
     .three-dot-menu {
         font-size: var(--font-size-xl);

@@ -812,15 +812,15 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
 }
 
 /**
- * Path to the kept-original backup for an edited image (sibling .orig/ dir,
+ * Path to the kept-original backup for an edited image (sibling .originals/ dir,
  * skipped from listings since it starts with a dot).
  */
 function imageOriginalBackupPath(string $targetPath): string {
-    return dirname($targetPath) . DIRECTORY_SEPARATOR . '.orig' . DIRECTORY_SEPARATOR . basename($targetPath);
+    return dirname($targetPath) . DIRECTORY_SEPARATOR . '.originals' . DIRECTORY_SEPARATOR . basename($targetPath);
 }
 
 /**
- * Before the FIRST edit of an image, copy it to .orig/ so "Origineel terugzetten"
+ * Before the FIRST edit of an image, copy it to .originals/ so "Origineel terugzetten"
  * can revert every edit. No-op if a backup already exists.
  */
 function ensureImageOriginalBackup(string $targetPath): void {
@@ -836,7 +836,7 @@ function ensureImageOriginalBackup(string $targetPath): void {
 }
 
 /**
- * Restore an edited image from its .orig/ backup (undo all edits) and regenerate
+ * Restore an edited image from its .originals/ backup (undo all edits) and regenerate
  * responsive variants. The backup is kept so further edits stay undoable.
  */
 function restoreImageOriginal(string $fullPath, string $file): array {
