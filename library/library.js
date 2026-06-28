@@ -2392,47 +2392,6 @@ async function lib_CloseSidePanel(skipConfirm) {
 				}
 			}
 			// For deeper stacks (4+), don't update URL - not supported
-		} else {
-			// Fallback to legacy popupStack format
-			var params = new URLSearchParams(topWindow.location.search);
-
-			if (currentStack.length === 0) {
-				params.delete('popupStack');
-				params.delete('popup');
-				params.delete('popupID');
-				params.delete('popupParentID');
-				params.delete('popupParentField');
-			} else {
-				var stackStr = currentStack.map(function(entry) {
-					var iframe = entry.panel ? entry.panel.querySelector('iframe') : null;
-					if (iframe && iframe.src) {
-						var iframeUrl = new URL(iframe.src, topWindow.location.origin);
-						var form = iframeUrl.searchParams.get('form') || '';
-						var id = iframeUrl.searchParams.get('id') || iframeUrl.searchParams.get('ID') || '0';
-						var parentId = iframeUrl.searchParams.get('parentID') || '';
-						var parentField = iframeUrl.searchParams.get('parentField') || '';
-						return form + ':' + id + ':' + parentId + ':' + parentField;
-					}
-					return '';
-				}).filter(function(s) { return s !== ''; }).join('|');
-
-				if (stackStr) {
-					params.set('popupStack', stackStr);
-				} else {
-					params.delete('popupStack');
-				}
-				params.delete('popup');
-				params.delete('popupID');
-				params.delete('popupParentID');
-				params.delete('popupParentField');
-			}
-
-			var newUrl = topWindow.location.pathname + '?' + params.toString();
-			if (newUrl.endsWith('?')) {
-				newUrl = newUrl.slice(0, -1);
-			}
-			topWindow.history.replaceState(null, '', newUrl);
-			// libLog.log('[lib_CloseSidePanel] Updated URL after close (legacy), stack depth:', currentStack.length);
 		}
 	} catch (e) {
 		libLog.warn('[lib_CloseSidePanel] Could not update URL:', e.message);

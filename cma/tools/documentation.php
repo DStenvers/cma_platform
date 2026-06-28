@@ -67,6 +67,7 @@ $topics = [
         'icon'  => 'lnr-code',
         'children' => [
             'architecture'  => ['label' => 'Architectuur',                'icon' => 'lnr-layers',     'render' => 'render_doc_architecture'],
+            'routing'       => ['label' => 'URL-routing & deep links',    'icon' => 'lnr-link',       'render' => 'render_doc_routing'],
             'new_tool'      => ['label' => 'Een CMA-tool toevoegen',      'icon' => 'lnr-construction','render' => 'render_doc_new_tool'],
             'database'      => ['label' => 'Database & RecordSet',        'icon' => 'lnr-database',   'render' => 'render_doc_database'],
             'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
@@ -1832,6 +1833,53 @@ function render_doc_architecture(): void
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=new_tool">Een CMA-tool toevoegen</a>, <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.
+    </div>
+    <?php
+}
+
+function render_doc_routing(): void
+{
+    ?>
+    <h1>URL-routing &amp; deep links</h1>
+    <p class="docs-meta">Hoe een schone URL als <code>/cma/form/&lt;form&gt;/&lt;id&gt;</code> de lijst (de actieve view) én het record opent — en waar dat vroeger misging.</p>
+
+    <p>Sinds v1.27.28 is er <span class="cma-page__strong">één canoniek URL-contract</span> met twee helften die elkaar spiegelen:</p>
+    <ul>
+        <li><span class="cma-page__strong">Server</span> — <code>Cma\FormRoute</code> (<code>cma/classes/FormRoute.php</code>) normaliseert <span class="cma-page__strong">elke</span> parameter-spelling die de rewrite-rules of legacy-links kunnen sturen naar één route-state. <code>form.php</code> leest routing <span class="cma-page__strong">alleen</span> hieruit.</li>
+        <li><span class="cma-page__strong">Client</span> — <code>cma/assets/js/url-manager.js</code> (<code>window.CMA.url</code>) is de enige plek die schone URL's parseert (<code>parse</code>) en bouwt (<code>build</code> voor de browser-URL, <code>toPageUrl</code> voor de interne <code>form.php</code>-fetch).</li>
+    </ul>
+
+    <h2>De keten</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:230px">Stap</th><th>Wat er gebeurt</th></tr></thead>
+        <tbody>
+            <tr><td><code>cma/web.config</code> (IIS rewrite)</td><td><code>/cma/form/opleidingen/4984</code> → <code>main.php?page=form.php?form=opleidingen&amp;formID=4984</code>. De record-id komt binnen als <code>formID</code>; subforms als <code>popup</code>/<code>popupID</code>.</td></tr>
+            <tr><td><code>main.php</code> (nomenu)</td><td>Splitst de <code>page</code>-querystring, zet de params in <code>$_GET</code>, en <code>include</code>t <code>form.php</code>.</td></tr>
+            <tr><td><code>Cma\FormRoute::fromRequest()</code></td><td>Leest <code>form</code>, en de record-id uit (in volgorde) <code>ID</code> → <code>id</code> → <code>formID</code>; <code>new</code> → nieuw record; <code>popup</code>/<code>popupID</code> → subform met parent-id uit <code>formID</code>; <code>New=Y</code>, <code>copy=Y</code>, <code>parentID</code>, <code>parentField</code>, <code>view</code>.</td></tr>
+            <tr><td><code>form.php</code></td><td>Zet <code>data-record-id</code> + body-classes (<code>has-record</code>, <code>mode-tree/table</code>) op basis van de route. De controller laadt het record náást de lijst.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>De root-cause die dit oploste</h2>
+    <p>De rewrite-rules stuurden de record-id als <code>formID</code>, maar <code>form.php</code> las een record-id alleen uit <code>id</code>/<code>ID</code> — en <code>formID</code> alléén binnen de popup-tak (als parent-id). Een top-level deep link <code>/cma/form/&lt;form&gt;/&lt;id&gt;</code> liet daardoor wél de lijst zien maar opende het record nooit; het werkte alleen toevallig als de client de URL eerst herschreef. Door <code>FormRoute</code> <code>formID</code> als eersteklas record-id te laten lezen, opent de deep link nu server-side — ongeacht welke JS-bundle een consumer-site draait.</p>
+
+    <h2>Actieve view, geen geforceerde tree</h2>
+    <p><code>toPageUrl()</code> forceert bewust <span class="cma-page__strong">geen</span> <code>view=tree</code> meer. Zonder expliciete <code>?view=</code> kiest <code>form.php</code> de persisted lijst-modus (cookie <code>cma_listMode_&lt;form&gt;</code>, fallback <code>cma_lastViewMode</code>) — dus de deep link opent de lijst in de view die de gebruiker laatst gebruikte.</p>
+
+    <h2>Geen dubbele routes voor formulieren</h2>
+    <p>Een paar beheer-entiteiten (<code>users</code>, <code>groups</code>, <code>contentblocks</code>, <code>_menus</code>, <code>cmamonitoring</code>, <code>marketingurl</code>) waren zowel als gewone form-route (<code>/cma/form/&lt;form&gt;</code>) áls als tool-alias (<code>/cma/tools/&lt;naam&gt;</code>, gerenderd in de tools-iframe) bereikbaar — twee routes, twee layouts, één formulier. De alias-namen staan nu in één bron, <code>$formBackedTools</code> in <code>tools.php</code>:</p>
+    <ul>
+        <li>Een deep link <code>/cma/tools/users</code> (of <code>?tool=users</code>) <span class="cma-page__strong">redirect</span> naar de canonieke <code>/cma/form/users</code>.</li>
+        <li>De tools-tree items voor deze entiteiten navigeren het hoofdvenster naar <code>/cma/form/&lt;form&gt;</code> (via <code>loadPage</code>) in plaats van het formulier in de tools-iframe te laden.</li>
+    </ul>
+    <p>Zo is er één route en één layout per formulier. Voeg je een nieuwe form-backed tool toe, zet 'm dan alleen in <code>$formBackedTools</code> (niet in <code>$toolNameMap</code>).</p>
+
+    <lib-message type="info">
+        <span class="cma-page__strong">Wijzig je het contract?</span> Houd <code>Cma\FormRoute</code> en <code>url-manager.js</code> (<code>parseUrl</code>/<code>toPageUrl</code>) in lock-step — het zijn de twee helften van één contract. Voeg een nieuwe parameter aan <span class="cma-page__strong">beide</span> kanten toe, en dek 'm af in <code>cma/tests/FormRouteTest.php</code>.
+    </lib-message>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a>, <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>, <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.
     </div>
     <?php
 }

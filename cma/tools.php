@@ -42,7 +42,10 @@ CmaRepository::setCaching(true);
 $isDeveloper = SecurityHelper::isDeveloper();
 $isNomenuMode = defined('CMA_NOMENU_MODE') && CMA_NOMENU_MODE;
 
-// Friendly name to tool file mapping
+// Friendly name -> tool file mapping (real tools rendered in the tools iframe).
+// Form-backed admin entities (users, groups, …) are NOT here — they are
+// canonical FORM routes (/cma/form/<form>) and live in $formBackedTools below,
+// so the same form can't be reached under two different routes/layouts.
 $toolNameMap = [
     'serverinfo' => 'tools/tools_serverinfo.php',
     'clearcache' => 'tools/tools_clearcache.php',
@@ -58,10 +61,6 @@ $toolNameMap = [
     'migrations' => 'tools/tools_migrations.php',
     'deploy_setup' => 'tools/tools_deploy_setup.php',
     'deploysetup' => 'tools/tools_deploy_setup.php',
-    'users' => 'form.php?form=users',
-    'gebruikers' => 'form.php?form=users',
-    'groups' => 'form.php?form=groups',
-    'groepen' => 'form.php?form=groups',
     'query' => 'tools/tools_query.php',
     'sql' => 'tools/tools_query.php',
     'formwiz' => 'tools/tools_formwiz.php',
@@ -69,17 +68,12 @@ $toolNameMap = [
     'form_editor' => 'tools/tools_formedit.php',
     'db_sync' => 'tools/tools_db_sync.php',
     'sync' => 'tools/tools_db_sync.php',
-    'contentblocks' => 'form.php?form=contentblocks',
     'copymod' => 'tools/tools_dev_copymod.php',
-    'menus' => 'form.php?form=_menus',
-    'monitoring' => 'form.php?form=cmamonitoring',
     'tests' => 'tools/tools_testrunner.php',
     'testrunner' => 'tools/tools_testrunner.php',
     'cypress' => 'tools/tools_testrunner.php',
     'phpunit' => 'tools/tools_phpunit.php',
     'unittests' => 'tools/tools_phpunit.php',
-    'marketingurl' => 'form.php?form=marketingurl',
-    'redirects' => 'form.php?form=marketingurl',
     'endpoints' => 'tools/tools_endpoint_tester.php',
     'endpoint_tester' => 'tools/tools_endpoint_tester.php',
     'report-designer' => 'report-designer.php',
@@ -98,13 +92,45 @@ $toolNameMap = [
     'llm_analyzer' => 'tools/tools_llm.php', // legacy alias (was the original name)
 ];
 
+// Form-backed admin entities: friendly alias -> JSON form name. These render as
+// normal FORM routes (/cma/form/<form>) in the main shell, NOT inside the tools
+// iframe. This is the single source for that mapping — the deep-link redirect
+// below and the tools-tree items (which link to form.php?form=<form>) both
+// derive the form from here, so the alias and the clean form URL can't drift
+// into two separate routes for the same form.
+$formBackedTools = [
+    'users'         => 'users',
+    'gebruikers'    => 'users',
+    'groups'        => 'groups',
+    'groepen'       => 'groups',
+    'contentblocks' => 'contentblocks',
+    'menus'         => '_menus',
+    'monitoring'    => 'cmamonitoring',
+    'marketingurl'  => 'marketingurl',
+    'redirects'     => 'marketingurl',
+];
+
 // Get initial tool to load (may be friendly name or full path)
 $toolParam = Request::query('tool', '');
 $initialTool = '';
 
 if (!empty($toolParam)) {
-    // Check if it's a friendly name
     $toolKey = strtolower($toolParam);
+
+    // Form-backed alias: collapse to the single canonical form route. Navigating
+    // the top window (rather than rendering form.php in the tools iframe) keeps
+    // /cma/form/<form> as the one route/layout for the form. The script runs in
+    // whichever document tools.php is rendered into — standalone top page or
+    // fetched into the SPA shell — and points the top window at the clean URL.
+    if (isset($formBackedTools[$toolKey])) {
+        $canonical = '/cma/form/' . $formBackedTools[$toolKey];
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<script>(function(){var u=' . json_encode($canonical)
+            . ';(window.top||window).location.replace(u);})();</script>';
+        exit;
+    }
+
+    // Check if it's a friendly name
     if (isset($toolNameMap[$toolKey])) {
         $initialTool = $toolNameMap[$toolKey];
     } elseif (strpos($toolParam, '.php') !== false) {
@@ -263,6 +289,19 @@ if (!$isNomenuMode) {
     // Handle tree item clicks
     tree.addEventListener('item-click', function(e) {
         var href = e.detail.href;
+        // Form-backed tree items (form.php?form=X) are canonical
+        // /cma/form/<form> routes — navigate the top window instead of rendering
+        // the form inside the tools iframe, so the form keeps a single route.
+        if (href && href.indexOf('form.php?form=') === 0) {
+            var topWinF = window.top || window;
+            if (typeof topWinF.loadPage === 'function') {
+                topWinF.loadPage(href);
+            } else {
+                var fmF = href.match(/form=([^&]+)/);
+                topWinF.location.href = fmF ? '/cma/form/' + fmF[1] : '/cma/' + href;
+            }
+            return;
+        }
         if (href && href !== '#' && href !== 'about:blank') {
             var iframe = document.getElementById('details_iframe');
             if (iframe) {
@@ -393,6 +432,20 @@ if (!$isNomenuMode) {
         tree.addEventListener('item-click', function(e) {
             var href = e.detail.href;
             if (!href || href === '#' || href === 'about:blank') return;
+
+            // Form-backed tree items (form.php?form=X) are canonical
+            // /cma/form/<form> routes — navigate the top window instead of
+            // loading the form into the tools iframe (prevents a 2nd route).
+            if (href.indexOf('form.php?form=') === 0) {
+                var topWinF = window.top || window;
+                if (typeof topWinF.loadPage === 'function') {
+                    topWinF.loadPage(href);
+                } else {
+                    var fmF = href.match(/form=([^&]+)/);
+                    topWinF.location.href = fmF ? '/cma/form/' + fmF[1] : '/cma/' + href;
+                }
+                return;
+            }
 
             // Load tool page in iframe
             iframe.src = href;

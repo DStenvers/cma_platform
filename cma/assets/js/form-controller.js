@@ -4486,29 +4486,6 @@ class CmaFormController {
                         }, true);
                     }
                     // cmaLog.log('[openPopup] Updated URL with clean format for:', formId, effectiveRecordId);
-                } else {
-                    // Fallback to legacy popupStack format
-                    const popupParams = new URLSearchParams(topWin.location.search);
-                    let stackStr = popupParams.get('popupStack') || '';
-                    const stackItems = stackStr ? stackStr.split('|') : [];
-
-                    const newItem = [
-                        formId || '',
-                        (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : '0',
-                        parentId || '',
-                        parentField || ''
-                    ].join(':');
-                    stackItems.push(newItem);
-
-                    popupParams.set('popupStack', stackItems.join('|'));
-                    popupParams.delete('popup');
-                    popupParams.delete('popupID');
-                    popupParams.delete('popupParentID');
-                    popupParams.delete('popupParentField');
-
-                    const newUrl = topWin.location.pathname + '?' + popupParams.toString();
-                    topWin.history.replaceState(null, '', newUrl);
-                    // cmaLog.log('[openPopup] Updated URL with popup stack, depth:', stackItems.length);
                 }
             } catch (e) {
                 cmaLog.warn('[openPopup] Could not update URL for sidepanel:', e.message);
@@ -11741,7 +11718,8 @@ class CmaFormController {
             cmaLog.warn('[updateUrl] Cross-origin check failed:', e.message);
         }
 
-        // Skip URL update if we're in a sidepanel (those use popupStack)
+        // Skip URL update if we're in a sidepanel: the sidepanel's own open/close
+        // handlers (CMA.url) already reflect the nested record in the URL.
         if (inSidepanel) {
             // cmaLog.log('[updateUrl] Skipping - in sidepanel');
             return;
@@ -12143,7 +12121,32 @@ class CmaFormController {
             cmaLog.warn('Error closing iframe popup:', e);
         }
 
-        // Not in a popup - go back
+        // Not in a popup. Return to the list deterministically. history.back()
+        // is unreliable for a deep-linked record: there may be no in-app history
+        // entry to return to, so the URL would not revert to the list (this is
+        // the recurring "close doesn't change the URL" bug). The unsaved-changes
+        // prompt was already handled at the top of closeForm; clear the dirty
+        // flag so the navigation below doesn't prompt a second time.
+        this.setDirty(false);
+        try {
+            const topWin = window.top || window;
+            if (topWin.CMA && topWin.CMA.url) {
+                const st = topWin.CMA.url.parse();
+                if (st.form) {
+                    const listPage = 'form.php?form=' + encodeURIComponent(st.form);
+                    if (typeof topWin.loadPage === 'function') {
+                        topWin.loadPage(listPage); // loads the list + sets /cma/form/<form>
+                    } else {
+                        topWin.location.href = topWin.CMA.url.build({ form: st.form });
+                    }
+                    return;
+                }
+            }
+        } catch (e) {
+            cmaLog.warn('[closeForm] Could not navigate to list on close:', e.message);
+        }
+
+        // Fallback: no form context available — go back.
         history.back();
     }
 

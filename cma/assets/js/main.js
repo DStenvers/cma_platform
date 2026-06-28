@@ -1582,46 +1582,6 @@
         // Fall back to legacy query parameter format
         const params = new URLSearchParams(window.location.search);
 
-        // Check for stack format
-        const popupStack = params.get('popupStack');
-        if (popupStack) {
-            // cmaLog.log('[main.js] Found popupStack, restoring sidepanels:', popupStack);
-
-            const stackItems = popupStack.split('|');
-            let delay = 0;
-
-            stackItems.forEach((item, index) => {
-                const parts = item.split(':');
-                const formId = parts[0] || '';
-                const recordId = parts[1] || '0';
-                const parentId = parts[2] || '';
-                const parentField = parts[3] || '';
-
-                if (!formId) return;
-
-                setTimeout(() => {
-                    let url = 'form.php?form=' + encodeURIComponent(formId);
-                    if (recordId && recordId !== '0') {
-                        url += '&id=' + recordId;
-                    } else {
-                        url += '&New=Y';
-                    }
-                    if (parentId) url += '&parentID=' + parentId;
-                    if (parentField) url += '&parentField=' + encodeURIComponent(parentField);
-
-                    if (typeof lib_OpenSidePanel === 'function') {
-                        const width = Math.round(window.innerWidth * 0.85);
-                        lib_OpenSidePanel(url, 'form_popup_' + index, width, 'Bewerken');
-                        // cmaLog.log('[main.js] Opened sidepanel', index + 1, 'of', stackItems.length, ':', formId);
-                    }
-                }, delay);
-
-                delay += 300;
-            });
-
-            return;
-        }
-
         // Legacy single popup format
         const popupForm = params.get('popup');
         const popupId = params.get('popupID');
