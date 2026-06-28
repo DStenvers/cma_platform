@@ -1349,3 +1349,35 @@ karaat-data en staat in de karaat-repo.
 > remote-control
 
 > yes please dive into that
+
+> check for needed updates and petform them, you are alone now
+
+> the detail screen shows;
+>
+> Home > Edelstenen geslepen
+> Opaal (Ovaal) 4.65kt
+> « Terug naar aanbod stenen – zoek je steen uit
+>
+> the last link should be the link for delstenen geslepen and be removex
+
+> aanbod edelstenen should go to aanbodhref
+
+> yes
+
+> the stack seems required after closing a form? if not delete it
+
+> the stone info now says 93 x 3 x 2 mm mm, the dirst mm may be removed (the black one)
+
+> what are all routes in use? include tools and user/group management
+
+> test all routes in the test frame and see if the desired layout was there, also test the close button to see if the url changes vorrectly, this is a recurring bug i want regressiontesting for
+
+> the last bekeken section is missing the images: 1 use a placeholder, 2 fix the loading: most likely lazy loading is notvtriggered after the DOM changes
+
+> on the filter screen : enlarge the size and dimensions information by 2px on mobile
+
+> works! 
+>
+> bekijk al het nieuwe -> Alle nieuwe stenen
+
+> @"/home/diede/.claude/uploads/1a002755-725b-42d5-ba0d-65e7201c641e/0e00b455-IMG_5836.png" on. mobile : content area moch too high and inconvtoolbar invisible , use available heiight - 150px and make dialog responsive

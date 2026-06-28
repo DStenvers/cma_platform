@@ -98,7 +98,7 @@ $config = [
     'endpoint'     => 'wizards/file-browser.php',
 ];
 
-$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
+$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,assets/js/image-editor.js');
 ?><!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -119,8 +119,8 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
 </head>
 <body class="image-editor-body">
     <div class="image-editor">
-        <cma-toolbar>
-            <left>
+        <div class="ie-toolbar">
+            <div class="ie-toolbar__group">
                 <span class="tb-btn" title="Linksom draaien"><a href="javascript:imgEditor.rotate(-90)"><span class="lnr lnr-undo"></span><span class="tb-btn-text">90&deg;</span></a></span>
                 <span class="tb-btn" title="Rechtsom draaien"><a href="javascript:imgEditor.rotate(90)"><span class="lnr lnr-redo"></span><span class="tb-btn-text">90&deg;</span></a></span>
                 <span class="tb-btn" title="180&deg; draaien"><a href="javascript:imgEditor.rotate(180)"><span class="tb-btn-text">180&deg;</span></a></span>
@@ -135,15 +135,15 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
                 <span class="tb-btn" title="Meer verzadiging"><a href="javascript:imgEditor.filter('saturation','+')"><span class="lnr lnr-drop"></span></a></span>
                 <span class="tb-btn" title="Minder verzadiging"><a href="javascript:imgEditor.filter('saturation','-')"><span class="lnr lnr-drop ie-icon-dim"></span></a></span>
                 <span class="tb-btn" title="Verscherpen"><a href="javascript:imgEditor.filter('sharpen','')"><span class="lnr lnr-magic-wand"></span></a></span>
-            </left>
-            <right>
+            </div>
+            <div class="ie-toolbar__group ie-toolbar__group--right">
                 <span class="tb-btn" title="Bijsnijden"><a href="javascript:imgEditor.startCrop()"><span class="lnr lnr-crop"></span><span class="tb-btn-text">Bijsnijden</span></a></span>
                 <span class="tb-btn" title="Witruimte automatisch bijsnijden"><a href="javascript:imgEditor.autocrop()"><span class="lnr lnr-frame-contract"></span></a></span>
                 <label class="ie-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="10">%</label>
                 <span class="tb-sep"></span>
                 <span class="tb-btn ie-restore" id="ieRestore" title="Origineel terugzetten"><a href="javascript:imgEditor.restore()"><span class="lnr lnr-history"></span><span class="tb-btn-text">Herstel</span></a></span>
-            </right>
-        </cma-toolbar>
+            </div>
+        </div>
 
         <div class="image-editor-canvas">
             <div class="preview-wrap" id="previewWrap">
