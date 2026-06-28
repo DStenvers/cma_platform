@@ -28,65 +28,22 @@ use Cma\Services\MenuService;
 
 require_once __DIR__ . '/bootstrap.inc';
 
-// Get form identifier - JSON form name or legacy FormID
-$formName = Request::query('form', '');
+// Routing: a single canonical contract (Cma\FormRoute) normalises every
+// parameter spelling the IIS rewrite rules and legacy links can emit
+// (formID, id/ID, popup/popupID, New, numeric FormID) into one route state.
+// This is the server-side mirror of cma/assets/js/url-manager.js, and the
+// reason a deep link /cma/form/<form>/<id> opens the record server-side
+// without relying on any client-side URL rewriting. See FormRoute for the
+// full contract.
+require_once __DIR__ . '/classes/FormRoute.php';
+$route = \Cma\FormRoute::fromRequest();
 
-// Clean URL support: /form/Parent/parentId/subform/new rewrites to popup=subform&popupID=new
-// Translate popup parameters to proper form parameters
-$popup = Request::query('popup', '');
-$popupID = Request::query('popupID', '');
-if ($popup !== '') {
-    // The popup is the actual form we want to load
-    $parentFormName = $formName; // Original form becomes parent reference
-    $formName = $popup;
-
-    // formID becomes parentID
-    $formID = Request::query('formID', '');
-    if ($formID !== '' && !Request::hasQuery('parentID')) {
-        // Internal routing shim: set parentID from formID for popup subform navigation
-        $_GET['parentID'] = $formID;
-    }
-
-    // popupID of "new" means New=Y
-    if (strtolower($popupID) === 'new') {
-        // Internal routing shim: translate popup "new" to New=Y parameter
-        $_GET['New'] = 'Y';
-    } elseif ($popupID !== '') {
-        // Internal routing shim: translate popupID to record id parameter
-        $_GET['id'] = $popupID;
-    }
-}
-
-// Legacy support: FormID parameter maps to JSON form via sourceFormId
-if (empty($formName)) {
-    $formID = Request::queryInt('FormID');
-    if ($formID > 0) {
-        // Look up JSON form name by sourceFormId
-        $formName = JsonFormLoader::getFormNameBySourceId($formID);
-    }
-}
-
-// Check for direct record mode (ID or id parameter), new record mode (New=Y), or copy mode (copy=Y)
-$directRecordId = null;
-$isNewMode = Request::query('New', '') === 'Y';
-$isCopyMode = Request::query('copy', '') === 'Y';
-// Use queryId() - handles numeric, GUID, and alphanumeric IDs like "C47"
-$idParam = Request::queryId('ID');
-if ($idParam !== '') {
-    $directRecordId = $idParam;
-} else {
-    $idParam = Request::queryId('id');
-    if ($idParam !== '') {
-        $directRecordId = $idParam;
-    } elseif ($isNewMode) {
-        $directRecordId = null; // null = new record mode
-    }
-}
-// Copy mode: load the record but treat as new (ID provided + copy=Y)
-
-// Parent context for subforms (filters list and sets default value)
-$parentID = Request::query('parentID', '');
-$parentField = Request::query('parentField', '');
+$formName       = $route->form;
+$directRecordId = $route->recordId;   // null in new/list mode; may be '0'
+$isNewMode      = $route->isNew;
+$isCopyMode     = $route->isCopy;
+$parentID       = $route->parentIdString();
+$parentField    = $route->parentField;
 
 // If parentID is provided but parentField is not, try to look it up from the parent form's subform definition
 if ($parentID !== '' && $parentField === '' && !empty($formName)) {

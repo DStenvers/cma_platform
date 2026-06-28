@@ -773,7 +773,7 @@ function minify_asset($files): string {
     }
     // Use absolute path from site root to work from any subdirectory (like tools/)
     // Add version parameter for cache busting (increment when making JS changes)
-    $version = '20260607b';
+    $version = '20260628a';
     return '/cma/minify.php?f=' . $files . '&v=' . $version;
 }
 

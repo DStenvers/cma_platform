@@ -1210,3 +1210,134 @@ karaat-data en staat in de karaat-repo.
 > 10,5
 > afm1__label
 > Afmetingen , can you include the actual sql in the console.log?
+
+> can you add that screen to the menu.json , but it is site-related so it should reside in /tools/quick_add_stone.php
+
+> did you push, i dont see the menu
+
+> kleur en vorm kloppen nog niet, Type mag default Edelstenen geslepen zijn en als er 2 zijn Edelstenen paren, bij nog meer Edelstenen partijen. Te zetten na draaien AI. Voeg ook een omschrijving veld toe
+
+> you switched upload methods? PHP Fatal error:  Uncaught Error: Class "App\Library\Request" not found in C:\wwwroot\www.karaatedelstenen.nl\cma\imageupload_crop_upload_handler.php:32
+> Stack trace:
+> #0 {main}
+>   thrown in C:\wwwroot\www.karaatedelstenen.nl\cma\imageupload_crop_upload_handler.php on line 32
+
+> Auto-detectie overgeslagen: Verbinding met Claude mislukt: SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)
+
+> for the quick stone add, fll the date with the current date, don't create a description, they are too generic. And can you create an edicated guess as to the stone-type? And default the stone is Active = True
+
+> site is down: rror in //index.php
+>
+> TypeError: Unsupported operand types: string * int
+>
+> in C:\wwwroot\www.karaatedelstenen.nl\utils.inc:65
+>
+> #0 C:\wwwroot\www.karaatedelstenen.nl\views\homepage.inc(19): WriteCaroussel()
+> #1 C:\wwwroot\www.karaatedelstenen.nl\index.php(36): require_once('...')
+> #2 C:\wwwroot\www.karaatedelstenen.nl\_bootstrap_wrapper.php(61): include('...')
+> #3 {main}
+
+> so the webp images are not automatically made (the .responsive folder), please make sure that they are after saving in the newly created form AND in the steen form of the CMA
+
+> site down again?? Error in /index.php
+>
+> Error: Class "App\Library\Application" not found
+>
+> in C:\wwwroot\www.karaatedelstenen.nl\filter.inc:14
+>
+> #0 C:\wwwroot\www.karaatedelstenen.nl\header.inc(14): require_once()
+> #1 C:\wwwroot\www.karaatedelstenen.nl\index.php(11): require_once('...')
+> #2 C:\wwwroot\www.karaatedelstenen.nl\_bootstrap_wrapper.php(61): include('...')
+> #3 {main}
+
+> @"/home/diede/.claude/uploads/5c0b7bef-8b7e-4e29-8860-f2af497303ac/7195a778-IMG_5827.png" the edit dialog onnthe site looks like this: please fix
+
+> live dom on www.karaatedelstenen.nl please call the script to execute
+
+> please show a clickable link for me
+>
+> the popip edit screen ; values please darker
+
+> can you see why https://www.karaatedelstenen.nl/aanbod?sort=datum%20desc is missing an aquamarijn image?
+
+> mow this one is missing: https://www.karaatedelstenen.nl/edelsteen/4967/alexandriet.html
+> i am sure it was tehe before?!
+
+> hompage laatste bekeken, the first 2 are okay, the 3rd an 4th are missing
+
+## 2026-06-28
+
+> edit dialog still not okay
+>
+> fields for carats, price and dimensions toonlrge, max 5 characters is fine
+>
+> checkbox s in a table format please 
+>
+> lazy loading the detaiol page leads to a content shift, please use a placeholder when loading
+>
+> verwijder het label ‘geen behandeling’
+>
+> from the front-end can we call the edit image from the cma_platform in a dialog?
+
+> laatst bekeken still uses clustom code, delete that and use the standard web component
+
+> deploy takes a long time
+
+> yes good idea. can you do the extra parameter and include it in the documentation and all other repo’s and template?
+
+> site is still down: Error in //index.php
+>
+> Error: Class "Database" not found
+>
+> in C:\wwwroot\www.karaatedelstenen.nl\utils.inc:40
+>
+> #0 C:\wwwroot\www.karaatedelstenen.nl\views\homepage.inc(19): WriteCaroussel()
+> #1 C:\wwwroot\www.karaatedelstenen.nl\index.php(36): require_once('...')
+> #2 C:\wwwroot\www.karaatedelstenen.nl\_bootstrap_wrapper.php(61): include('...')
+> #3 {main}
+
+> still broken inages in laatst bekeken?! cache?
+
+> the caroussel haa smaller images noe , can we enlarge and STILL laatst bekeken has broken images but they are available
+
+> @"/home/diede/.claude/uploads/5c0b7bef-8b7e-4e29-8860-f2af497303ac/e9b922bf-IMG_5832.png" the edit form is inconsistently designed:
+
+> carroussel
+> inages are now portrait? must be a max-width or something
+
+> the edit dialog shoes beschikbaar but no contrl to change availability
+
+> the aspect ratio is wrong on mobile, stones are cut through
+
+> didnt you iinclude the cma imaggeeditor?
+
+> create a button next to the edit button to change the image, remove it from the edit screen
+>
+> and the image editor url is wrong, this is an old uploader, perhaps the cma platgorm image editor is not ready?
+
+> can we look at the url management? the url https://www.karaatedelstenen.nl/cma/form/steensoorten_producten/4984 for instance should open the list (the active view) and the stond with id 4984, but the detail form is never opnend. For many other links the same applies, also when opening or closing forms/screens the url is not maintained correctly.. Think of a solid system to fix this, not just some patchwork. Solve the root cause of the bug please.
+
+> i will task another window to do just that
+
+> on the file upload wizard in the right pane we have an effort to edit images. I want a stand-alone image editor with all the options that ar now on the right pane. Create a button on the right pane of the files wizard to open this. The stand-alone editor should be callable from fromt-end as well. with a cma login guard in place.
+
+> the quick add form, does it scan for existing stones (using karaat and dimentions) before adding one?
+
+> perhaps a tweak would be to indeed add tolerances. For instance 0.70 carat and 0.7 carat or dimentions that have been rounded like 4.84 rounded to 4.8.
+
+> when saving the stone with 2 selected colors I get this error: <br/><b>Warning</b>:  Array to string conversion in <b>C:\wwwroot\www.karaatedelstenen.nl\cma\classes\FormDataProvider.php</b>on line<b>927</b><br /><br/><b>Warning</b>:  Array to string conversion in <b>C:\wwwroot\www.karaatedelstenen.nl\cma\classes\FormDataProvider.php</b>on line<b>927</b><br />{
+>     "success": false,
+>     "error": "Kan niet opslaan: veld(en) 'vormen', 'kleuren' bestaan niet in de database. Verwijder deze velden uit het formulier of voeg ze toe aan de tabel 'tblProducten'."
+> }
+
+> trigger deploy please
+
+> it works. Please make a note of an issue in cma_platform: ..combo-display has the wrong min-height: it should be 26px, or can you fix that
+
+> the new button should be annivon button as well
+
+> laatst bekeken is still showing no images!
+
+> the image editor to use is  cma/image-editor.php, can you implement that one?
+
+> commit and push all

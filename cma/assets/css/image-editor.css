@@ -1,0 +1,121 @@
+/* Stand-alone image editor (image-editor.php).
+   Crop overlay styles mirror the files-wizard right-pane editor so the two look
+   and behave identically. Uses the shared CSS variables from lib-variables.css. */
+
+* { box-sizing: border-box; }
+
+.image-editor-body {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    margin: 0;
+    padding: 0;
+    background: var(--bg-body);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.image-editor {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Canvas: grows to fill, centres the image, scrolls if larger. */
+.image-editor-canvas {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 16px;
+    background: var(--bg-surface, #f5f5f5);
+}
+
+.preview-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 0;
+}
+.preview-wrap.cropping { cursor: crosshair; }
+
+#editorImage {
+    max-width: 100%;
+    max-height: calc(100vh - 140px);
+    object-fit: contain;
+    display: block;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.crop-overlay {
+    position: absolute;
+    inset: 0;
+    cursor: crosshair;
+}
+.crop-selection {
+    position: absolute;
+    border: 1px dashed #fff;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+    box-sizing: border-box;
+}
+.crop-actions {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface, #fff);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    z-index: 5;
+}
+.crop-target { font-size: 12px; color: var(--text-muted, #666); margin-left: 6px; }
+
+.image-editor-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 16px;
+    font-size: var(--font-size-sm, 13px);
+    color: var(--text-muted, #666);
+    border-top: 1px solid var(--border-color);
+}
+.ie-rule { font-weight: 600; }
+
+.image-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-surface);
+}
+
+/* Autocrop margin input inside the toolbar. */
+.ie-margin {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-muted, #666);
+}
+.ie-margin input {
+    width: 48px;
+}
+
+/* Icon variants reused from the right-pane bar (no inline styles). */
+.ie-icon-rot90 { transform: rotate(90deg); }
+.ie-icon-dim { opacity: 0.5; }
+
+/* Login-guard message centring. */
+.image-editor-guard {
+    font-family: var(--font-family);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background: var(--bg-body);
+}

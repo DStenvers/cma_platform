@@ -145,6 +145,15 @@ if ($action !== '') {
         exit;
     }
 
+    // Login guard: every mutating action (incl. the image-edit ops the inline bar
+    // and the stand-alone image-editor.php call) requires an authenticated CMA user.
+    // Read-only actions (list/details) are left ungated so previews keep working.
+    $mutatingActions = ['upload', 'delete', 'mkdir', 'rotate', 'resize', 'crop', 'filter', 'restore', 'autocrop'];
+    if (in_array($action, $mutatingActions, true) && !SecurityHelper::isLoggedIn()) {
+        echo json_encode(['success' => false, 'error' => 'Niet ingelogd']);
+        exit;
+    }
+
     switch ($action) {
         case 'list':
             $fileSpecAjax = Request::query('filespec', '*.*');
@@ -1483,6 +1492,13 @@ $appBasePath = Application::get('base_path', '/');
             height: 100%;
         }
 
+        .standalone-editor-frame {
+            border: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         #imageEditorDialog cma-toolbar .btn {
             padding: 6px 10px;
             font-size: var(--font-size-sm);
@@ -1834,6 +1850,11 @@ $appBasePath = Application::get('base_path', '/');
         </div>
     </lib-dialog>
 
+    <!-- Stand-alone image editor (loaded in an iframe, also usable from the front-end) -->
+    <lib-dialog id="standaloneEditorDialog" heading="Afbeelding bewerken" size="fullscreen" modal>
+        <iframe id="standaloneEditorFrame" class="standalone-editor-frame" title="Afbeelding bewerken"></iframe>
+    </lib-dialog>
+
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -2113,6 +2134,7 @@ $appBasePath = Application::get('base_path', '/');
                         + '<button type="button" class="img-edit-btn" title="Bijsnijden" onclick="startCrop()"><span class="lnr lnr-crop"></span></button>'
                         + '<button type="button" class="img-edit-btn" title="Witruimte automatisch bijsnijden (laat marge staan)" onclick="doAutocrop()"><span class="lnr lnr-frame-contract"></span></button>'
                         + '<label class="img-edit-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="' + acMargin + '">%</label>'
+                        + '<button type="button" class="img-edit-btn" title="Open volledige editor" onclick="openStandaloneEditor()"><span class="lnr lnr-picture"></span></button>'
                         + (file.hasOriginal ? '<button type="button" class="img-edit-btn img-edit-btn--undo" title="Origineel terugzetten (alle bewerkingen ongedaan maken)" onclick="restoreImageOriginal()"><span class="lnr lnr-history"></span></button>' : '')
                         + '</div>';
                 }
@@ -2211,6 +2233,44 @@ $appBasePath = Application::get('base_path', '/');
         function editImageFilter(filter, arg) { editImageOp({ action: 'filter', filter: filter, arg: arg }); }
         function editImageFlip(dir) { editImageOp({ action: 'filter', filter: 'flip', arg: dir }); }
         function editImageContrast(arg) { editImageOp({ action: 'filter', filter: 'contrast', arg: arg }); }
+
+        // Open the stand-alone image editor (image-editor.php) for the selected file
+        // in a fullscreen dialog. The same editor is reachable from the consumer-site
+        // front-end (behind its own CMA login guard). It edits in place and posts
+        // {type:'image-editor-complete'} back, which the listener below picks up.
+        function openStandaloneEditor() {
+            if (!selectedFile) return;
+            const params = new URLSearchParams({
+                basepath: CONFIG.basePath,
+                path: currentPath,
+                file: selectedFile.name,
+                resizetype: CONFIG.resizeType,
+                resizewidth: CONFIG.resizeWidth,
+                resizeheight: CONFIG.resizeHeight
+            });
+            const frame = document.getElementById('standaloneEditorFrame');
+            if (frame) frame.src = '../image-editor.php?' + params.toString();
+            const dlg = document.getElementById('standaloneEditorDialog');
+            if (dlg) dlg.open();
+        }
+        window.openStandaloneEditor = openStandaloneEditor;
+
+        // Result from the stand-alone editor iframe: close the dialog and refresh the
+        // details so the edited image + new dimensions show.
+        window.addEventListener('message', function(e) {
+            const d = e.data;
+            if (!d || typeof d !== 'object') return;
+            if (d.type === 'image-editor-complete' || d.type === 'image-editor-cancel') {
+                const dlg = document.getElementById('standaloneEditorDialog');
+                if (dlg) dlg.close();
+                const frame = document.getElementById('standaloneEditorFrame');
+                if (frame) frame.src = 'about:blank';
+                if (d.type === 'image-editor-complete' && selectedFile) {
+                    loadFileDetails(selectedFile.name);
+                }
+            }
+        });
+
         function doAutocrop() {
             let m = 10;
             const inp = document.getElementById('autocropMargin');

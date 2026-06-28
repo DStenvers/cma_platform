@@ -3892,9 +3892,18 @@ class CmaFormController {
         // An absolute http(s) URL is an external reference, not a local upload:
         // don't seed the browser with it (it can't be found in the upload dir).
         const currentValue = this.isAbsoluteUrl(field.value) ? '' : (field.value || '');
+        // Forward the field's resize rule (free/maximum/fixed + dimensions) so the
+        // file browser and the stand-alone image editor enforce the field definition.
+        const resizeVal = (suffix) => {
+            const el = this.mainForm.querySelector(`[name="${fieldName}${suffix}"]`);
+            return el ? (el.value || '0') : '0';
+        };
+        const resizeParams = isImage
+            ? `&resizetype=${encodeURIComponent(resizeVal('_resizetype'))}&resizewidth=${encodeURIComponent(resizeVal('_resizewidth'))}&resizeheight=${encodeURIComponent(resizeVal('_resizeheight'))}`
+            : '';
         // layout=0 hides alignment/border/margin options (those are only for HTML editor)
         const popupUrl = isImage
-            ? `wizards/file-browser.php?image=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`
+            ? `wizards/file-browser.php?image=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}${resizeParams}`
             : `wizards/file-browser.php?basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`;
 
         // Store callback on form-layout element (NOT global)

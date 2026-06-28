@@ -1508,40 +1508,23 @@
             }
             // cmaLog.log('[loadInitialPage] Simple clean URL detected:', page);
         }
-        // Handle form clean URLs: /cma/form/...
+        // Handle form clean URLs (and legacy ?page=form.php&formID=… URLs):
+        // parse into one state, then build the internal page URL via the single
+        // url-manager contract. No view is forced — form.php opens the list in
+        // the persisted active view, with the record alongside it when present.
+        // The record id is carried as `id`; form.php (Cma\FormRoute) also reads
+        // the raw `formID` slug, so the deep link opens server-side even if this
+        // rewrite is skipped.
         else if (window.CMA && window.CMA.url) {
             const urlState = window.CMA.url.parse();
-            if (urlState.form) {
-                // We have a clean URL - build the page URL from parsed state
-                page = 'form.php?form=' + encodeURIComponent(urlState.form);
-                // If a record ID is present, load it in the detail panel (tree + record)
-                // instead of opening a sidepanel
-                if (urlState.recordId) {
-                    page += '&id=' + encodeURIComponent(urlState.recordId) + '&view=tree';
-                } else if (urlState.isNew) {
-                    page += '&New=Y&view=tree';
-                }
-                // cmaLog.log('[loadInitialPage] Parsed clean URL, page:', page, 'state:', urlState);
+            const pageUrl = window.CMA.url.toPageUrl(urlState);
+            if (pageUrl) {
+                page = pageUrl;
+                // cmaLog.log('[loadInitialPage] Parsed URL, page:', page, 'state:', urlState);
             }
         }
 
         if (page && page !== 'about:blank') {
-            // Check for formID/formView params in URL (for legacy query param format)
-            const mainParams = new URLSearchParams(window.location.search);
-            const formID = mainParams.get('formID');
-            const formView = mainParams.get('formView');
-
-            if (formID && page.includes('form.php')) {
-                // Append record ID and view mode to the page URL
-                const pageUrl = new URL(page, window.location.origin);
-                pageUrl.searchParams.set('ID', formID);
-                if (formView) {
-                    pageUrl.searchParams.set('view', formView);
-                }
-                page = pageUrl.pathname.replace(/^.*\/cma\//, '') + pageUrl.search;
-                // cmaLog.log('[loadInitialPage] Restored record from legacy URL, page:', page);
-            }
-
             loadPage(page, false);
         }
 

@@ -161,6 +161,33 @@
     }
 
     /**
+     * Build the INTERNAL form.php page URL (query-param form) for a state.
+     *
+     * This is the inverse of the IIS rewrite rules and the client mirror of the
+     * PHP Cma\FormRoute contract: it emits the canonical parameters form.php
+     * reads (form, id, New). Used to turn a parsed (clean or legacy) URL into
+     * the page the nomenu content fetch loads.
+     *
+     * View mode is intentionally NOT forced here — form.php honours the
+     * persisted list mode (the active view) when no explicit view is given, so
+     * a deep link opens the list in whatever view the user last used, with the
+     * record alongside it.
+     *
+     * @param {Object} state - State object (form, recordId, isNew)
+     * @returns {string|null} e.g. "form.php?form=opleidingen&id=4984", or null
+     */
+    function toPageUrl(state) {
+        if (!state || !state.form) return null;
+        let url = 'form.php?form=' + encodeURIComponent(state.form);
+        if (state.isNew) {
+            url += '&New=Y';
+        } else if (state.recordId) {
+            url += '&id=' + encodeURIComponent(state.recordId);
+        }
+        return url;
+    }
+
+    /**
      * Update browser URL without page reload
      * @param {Object} state - State object
      * @param {boolean} replace - If true, use replaceState instead of pushState
@@ -320,6 +347,7 @@
     window.CMA.url = {
         parse: parseUrl,
         build: buildUrl,
+        toPageUrl: toPageUrl,
         update: updateUrl,
         navigateToForm: navigateToForm,
         navigateToRecord: navigateToRecord,

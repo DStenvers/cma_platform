@@ -1152,7 +1152,22 @@ function render_doc_images(): void
     <p>Breedtes en kwaliteit zijn constanten op <code>ResponsiveImage</code>: <code>SIZES = [300, 400, 800, 1200]</code>, <code>DEFAULT_QUALITY = 85</code>, <code>RESPONSIVE_DIR = '.responsive'</code>. Varianten groter dan het origineel worden overgeslagen.</p>
 
     <h2>Crop / roteren / schalen</h2>
-    <p>In de file-browser (<code>cma/wizards/file-browser.php</code>) werken crop, rotate en resize <span class="cma-tool__em">in-place</span> op het bestand. Na elke bewerking worden de oude varianten verwijderd (<code>deleteVariants()</code>) en opnieuw gegenereerd (<code>generate()</code>), zodat de <code>.responsive/</code>-set altijd klopt met de huidige inhoud.</p>
+    <p>In de file-browser (<code>cma/wizards/file-browser.php</code>) werken crop, rotate en resize <span class="cma-tool__em">in-place</span> op het bestand. Na elke bewerking worden de oude varianten verwijderd (<code>deleteVariants()</code>) en opnieuw gegenereerd (<code>generate()</code>), zodat de <code>.responsive/</code>-set altijd klopt met de huidige inhoud. Deze bewerk-acties (<code>rotate</code>/<code>filter</code>/<code>crop</code>/<code>autocrop</code>/<code>restore</code>/<code>resize</code>) vereisen een ingelogde CMA-gebruiker.</p>
+
+    <h2>Losse afbeeldingseditor (<code>image-editor.php</code>)</h2>
+    <p>Dezelfde bewerkingen zijn los bruikbaar via <code>/cma/image-editor.php</code> &mdash; een schermvullende editor die een <span class="cma-tool__em">bestaande</span> afbeelding op het pad bewerkt. Hij wordt geopend door de knop <span class="cma-tool__strong">Open volledige editor</span> (icoon <code>lnr-picture</code>) in het rechterpaneel van de file-browser, en is óók vanaf de front-end van een consumer-site aan te roepen. Hij draait geen eigen beeldbewerking maar delegeert elke actie naar het bestaande endpoint in <code>file-browser.php</code>, zodat er niets wordt gedupliceerd.</p>
+    <p><span class="cma-tool__strong">Login-guard:</span> bovenaan controleert de pagina <code>SecurityHelper::isLoggedIn()</code>. Een niet-ingelogde bezoeker krijgt een inline <code>&lt;lib-message type="error"&gt;</code> (&ldquo;Geen toegang&rdquo;) i.p.v. een redirect, zodat het in een ingebedde dialog leesbaar blijft.</p>
+    <p><span class="cma-tool__strong">Query-parameters:</span> <code>basepath</code> (verplicht), <code>file</code> (verplicht), <code>path</code> (submap), en de veldregel <code>resizetype</code>/<code>resizewidth</code>/<code>resizeheight</code>.</p>
+    <p><span class="cma-tool__strong">Veld-definitieregels</span> (<code>FormControlHelper::IMG_*</code>) worden afgedwongen:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th><code>resizetype</code></th><th>Gedrag</th></tr></thead>
+        <tbody>
+            <tr><td>0 — vrij</td><td>Crop zonder verhoudingsslot, geen vaste uitvoermaat.</td></tr>
+            <tr><td>1 — maximum</td><td>Crop vrij; bij <span class="cma-tool__strong">Klaar</span> wordt de afbeelding zo nodig teruggeschaald binnen <code>W×H</code> (verhouding behouden).</td></tr>
+            <tr><td>2 — vast</td><td>Crop-selectie zit vast op de verhouding <code>W/H</code> en de uitvoer is exact <code>W×H</code> (<code>Image::cropAndResize</code>).</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-tool__strong">Retour-contract:</span> bij Klaar post de editor <code>{type:'image-editor-complete', file, width, height}</code> naar <code>window.parent</code> én <code>window.opener</code>; bij annuleren <code>{type:'image-editor-cancel'}</code>. De file-browser luistert hierop en ververst de details; een front-end opslaglistener gebruikt <code>file</code> als de opgeslagen bestandsnaam.</p>
 
     <h2>Front-end gebruik</h2>
     <p><code>ResponsiveImage::imgTag($url, $alt, $sizes, $class, $attrs)</code> bouwt een compleet <code>&lt;img&gt;</code> met <code>srcset</code> over de beschikbare breedtes. Ontbreken er varianten, dan valt de tag netjes terug op de originele URL.</p>
@@ -1174,6 +1189,8 @@ function render_doc_images(): void
             <tr><td>Klein kleurverschil na conversie</td><td>GD stript het ICC-profiel</td><td><code>cwebp</code> installeren — dan blijven kleurprofielen behouden.</td></tr>
             <tr><td>Oude variant blijft zichtbaar na crop</td><td>Varianten niet vernieuwd</td><td>De file-browser doet <code>deleteVariants()</code>+<code>generate()</code>; bij handmatige edits idem aanroepen.</td></tr>
             <tr><td>Geen <code>srcset</code> in de output</td><td>Geen varianten aanwezig</td><td>Draai de batch-tool of <code>ResponsiveImage::generate()</code> op de map.</td></tr>
+            <tr><td><code>image-editor.php</code> toont &ldquo;Geen toegang&rdquo;</td><td>Geen geldige CMA-sessie (<code>CMAU</code>-cookie)</td><td>Log in op de CMA; de editor en zijn bewerk-acties vereisen een ingelogde gebruiker.</td></tr>
+            <tr><td>Editor slaat op maar de maat klopt niet met het veld</td><td><code>resizetype/-width/-height</code> niet meegegeven aan de URL</td><td>Open via een image-veld (form-controller geeft de veldregel mee) of zet de params expliciet in de URL.</td></tr>
         </tbody>
     </table>
 
