@@ -853,9 +853,19 @@ class FormDataProvider
             $numericFields = [];
             // ADO numeric type codes (smallint/int/single/double/currency/decimal/numeric/bigint…)
             $numericAdoTypes = ['2','3','4','5','6','14','16','17','18','19','20','21','131','139'];
+            $checklistFields = []; // many-to-many (checklist/sortlist) fields -> own junction table
             foreach ($jsonData['fields'] ?? [] as $fieldDef) {
                 $fieldName = $fieldDef['name'] ?? '';
                 $fieldType = $fieldDef['type'] ?? '';
+                // Checklist/sortlist fields are many-to-many relations stored in their OWN
+                // junction table (sourceTable/idField/displayField), not columns on the main
+                // table. Collect them for separate persistence and keep them OUT of
+                // validFields, so the column INSERT/UPDATE + missing-column check skip them
+                // (2+ selected values arrive as an array and would trip "Array to string").
+                if ($fieldName && ($fieldType === 'checklist' || $fieldType === 'sortlist')) {
+                    $checklistFields[$fieldName] = $fieldDef;
+                    continue;
+                }
                 // Skip custom renderers and non-database fields
                 if ($fieldName && $fieldType !== 'custom' && $fieldType !== 'label' && $fieldType !== 'separator') {
                     $validFields[strtolower($fieldName)] = $fieldName;
@@ -1087,6 +1097,33 @@ class FormDataProvider
                     $errorMsg = "Record ingevoegd maar kon geen ID ophalen";
                     Logger::error("SAVE: Could not get ID after insert");
                     return self::error($errorMsg);
+                }
+            }
+
+            // Persist checklist (many-to-many) fields to their junction tables: clear the
+            // record's existing rows, then insert the selected option IDs. sourceTable /
+            // idField (record FK) / displayField (value FK) come from the form definition.
+            // Values are cast to int (injection-safe); identifiers come from trusted JSON.
+            foreach ($checklistFields as $clName => $clDef) {
+                if (!array_key_exists($clName, $data)) { continue; }
+                $junction = (string)($clDef['sourceTable'] ?? '');
+                $recFk    = (string)($clDef['idField'] ?? '');
+                $valFk    = (string)($clDef['displayField'] ?? '');
+                if ($junction === '' || $recFk === '' || $valFk === '') { continue; }
+                $raw = $data[$clName];
+                $ids = is_array($raw) ? $raw : ($raw === '' || $raw === null ? [] : explode(',', (string)$raw));
+                try {
+                    $conn->exec("DELETE FROM " . self::quoteIdentifier($junction, $isSqlite)
+                        . " WHERE " . self::quoteIdentifier($recFk, $isSqlite) . " = " . (int)$recordId);
+                    foreach ($ids as $vid) {
+                        $vid = trim((string)$vid);
+                        if ($vid === '' || !is_numeric($vid)) { continue; }
+                        $conn->exec("INSERT INTO " . self::quoteIdentifier($junction, $isSqlite)
+                            . " (" . self::quoteIdentifier($recFk, $isSqlite) . ", " . self::quoteIdentifier($valFk, $isSqlite) . ")"
+                            . " VALUES (" . (int)$recordId . ", " . (int)$vid . ")");
+                    }
+                } catch (\Throwable $e) {
+                    Logger::error("SAVE: checklist persist failed for '$clName'", ['error' => $e->getMessage()]);
                 }
             }
 
