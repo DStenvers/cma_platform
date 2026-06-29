@@ -29,6 +29,7 @@
         _cropState: null,
 
         init: function () {
+            var self = this;
             this.cfg = window.IMAGE_EDITOR_CONFIG || {};
             if (!this.cfg.basePath || !this.cfg.file) {
                 this.showInfo('Geen afbeelding opgegeven.');
