@@ -331,7 +331,10 @@ function main()
             if ($bShowForgotten) {
                 echo 'document.getElementById("email_id").focus();' . PHP_EOL;
             } else {
-                echo 'document.getElementById("' . (Cookie::get(SecurityHelper::COOKIE_LAST_LOGIN, '') != '' ? 'txtPW' : 'txtLogin') . '").focus();' . PHP_EOL;
+                // Always move focus to the login-name field when the login screen is
+                // shown (even when a previous name is remembered), and select any
+                // pre-filled value so it can be typed over straight away.
+                echo 'var _lf = document.getElementById("txtLogin"); if (_lf) { _lf.focus(); if (_lf.select) _lf.select(); }' . PHP_EOL;
             }
             echo '});</script>' . PHP_EOL;
         } else {

@@ -1439,3 +1439,9 @@ karaat-data en staat in de karaat-repo.
 > it IS loaded through https://www.karaatedelstenen.nl/cma/minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,../library/css/lib-components.css,assets/css/style.css,../library/select2/select2.css,../library/classes/class_table.css,../library/webcomponents/lib-table.css,assets/css/form.css,assets/css/inline-edit.css,assets/css/main.css&v=20260629d but many icons are missing like minimize/maximize,
 
 > the annuleer button does nothing?
+
+> karaat site is down, please check
+
+> 1 please
+
+> if the login screen is shown, move focus to the login name field
