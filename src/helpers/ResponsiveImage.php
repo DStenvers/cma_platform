@@ -236,7 +236,10 @@ class ResponsiveImage
                     if ($originalSize > 0 && filesize($variantFile) > $originalSize) {
                         continue;
                     }
-                    $srcsetParts[] = self::normalizePath($urlDir . '/' . self::RESPONSIVE_DIR . '/' . $baseName . '-' . $width . 'w.webp') . ' ' . $width . 'w';
+                    // Cache-bust by the variant's mtime. Variants are served with a
+                    // 1-year max-age, so without a version query a regenerated image
+                    // (e.g. after a crop) keeps serving the stale cached .webp.
+                    $srcsetParts[] = self::normalizePath($urlDir . '/' . self::RESPONSIVE_DIR . '/' . $baseName . '-' . $width . 'w.webp') . '?v=' . filemtime($variantFile) . ' ' . $width . 'w';
                 }
             }
 
@@ -245,7 +248,7 @@ class ResponsiveImage
             if (file_exists($fullWebP)) {
                 $webpSize = filesize($fullWebP);
                 if ($originalSize <= 0 || $webpSize <= $originalSize) {
-                    $src = self::normalizePath($urlDir . '/' . self::RESPONSIVE_DIR . '/' . $baseName . '.webp');
+                    $src = self::normalizePath($urlDir . '/' . self::RESPONSIVE_DIR . '/' . $baseName . '.webp') . '?v=' . filemtime($fullWebP);
                     // Add full-size to srcset with its actual width
                     $fullInfo = @getimagesize($fullWebP);
                     if ($fullInfo) {
@@ -253,6 +256,12 @@ class ResponsiveImage
                     }
                 }
             }
+        }
+
+        // If we fell back to the original (no usable WebP variant), still cache-bust
+        // it by mtime so an edited source isn't masked by the long-lived cache.
+        if ($src === $imageUrl && $originalSize > 0) {
+            $src .= (strpos($src, '?') === false ? '?v=' : '&v=') . filemtime($sourcePath);
         }
 
         // Build attributes

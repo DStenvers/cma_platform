@@ -65,14 +65,32 @@
     object-fit: contain;
 }
 
-/* Interactive crop overlay (same behaviour as the right-pane editor). */
-.crop-overlay { position: absolute; inset: 0; cursor: crosshair; }
+/* Interactive crop overlay. touch-action:none keeps a drag from scrolling/zooming
+   the page on touch devices. */
+.crop-overlay { position: absolute; inset: 0; cursor: crosshair; touch-action: none; }
 .crop-selection {
     position: absolute;
     border: 1px dashed #fff;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
     box-sizing: border-box;
+    cursor: move;
+    touch-action: none;
 }
+/* Corner resize handles. */
+.crop-handle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border: 1px solid var(--color-primary, #1976d2);
+    border-radius: 2px;
+    box-sizing: border-box;
+    touch-action: none;
+}
+.crop-handle--nw { left: -8px;  top: -8px;    cursor: nwse-resize; }
+.crop-handle--ne { right: -8px; top: -8px;    cursor: nesw-resize; }
+.crop-handle--sw { left: -8px;  bottom: -8px; cursor: nesw-resize; }
+.crop-handle--se { right: -8px; bottom: -8px; cursor: nwse-resize; }
 .crop-actions {
     position: absolute;
     bottom: 12px;

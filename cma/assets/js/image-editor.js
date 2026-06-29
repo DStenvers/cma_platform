@@ -139,7 +139,9 @@
             this.editOp({ action: 'autocrop', margin: m });
         },
 
-        // ── Interactive crop (drag a rectangle, then apply) ─────────────────
+        // ── Interactive crop: a default selection is placed, then it can be
+        // moved (drag inside), resized (drag a corner handle) or redrawn (drag on
+        // empty space). Uses pointer events so it works with mouse AND touch. ────
         startCrop: function () {
             var self = this;
             var wrap = document.getElementById('previewWrap');
@@ -152,14 +154,16 @@
             overlay.className = 'crop-overlay';
             var sel = document.createElement('div');
             sel.className = 'crop-selection';
-            sel.style.display = 'none';
+            ['nw', 'ne', 'sw', 'se'].forEach(function (c) {
+                var hd = document.createElement('div');
+                hd.className = 'crop-handle crop-handle--' + c;
+                hd.setAttribute('data-corner', c);
+                sel.appendChild(hd);
+            });
             overlay.appendChild(sel);
             wrap.appendChild(overlay);
 
-            // Determine the locked crop ratio:
-            //  - aspect (e.g. 16:9): lock ratio only, keep native resolution (targetW/H = 0)
-            //  - resizetype=fixed: lock ratio AND output exactly W x H
-            //  - otherwise: free crop
+            // Locked ratio: aspect (ratio only) > resizetype=fixed (ratio + size) > free.
             var ratio = 0, targetW = 0, targetH = 0, label = '';
             var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
             if (aw > 0 && ah > 0) {
@@ -175,89 +179,176 @@
             var actions = document.createElement('div');
             actions.className = 'crop-actions';
             var html = '<button type="button" class="btn btn-primary" onclick="imgEditor.applyCrop()">Bijsnijden</button> '
-                     + '<button type="button" class="btn" onclick="imgEditor.cancelCrop()">Annuleren</button>';
+                     + '<button type="button" class="btn btn-secondary" onclick="imgEditor.cancelCrop()">Annuleren</button>';
             if (label) html += ' <span class="crop-target">' + label + '</span>';
             actions.innerHTML = html;
             wrap.parentNode.insertBefore(actions, wrap.nextSibling);
 
-            this._cropState = { overlay: overlay, sel: sel, actions: actions, img: img, dragging: false, sx: 0, sy: 0, ratio: ratio, targetW: targetW, targetH: targetH };
-            overlay.addEventListener('mousedown', function (e) { self._cropDown(e); });
-            overlay.addEventListener('mousemove', function (e) { self._cropMove(e); });
-            this._cropUpBound = function () { self._cropUp(); };
-            window.addEventListener('mouseup', this._cropUpBound);
+            var st = {
+                overlay: overlay, sel: sel, actions: actions, img: img,
+                ratio: ratio, targetW: targetW, targetH: targetH,
+                box: null, mode: null, corner: null, start: null, orig: null
+            };
+            this._cropState = st;
+
+            // Default selection: ~80% centered (at the locked ratio if any), so there
+            // is immediately something to move/resize.
+            var ow = overlay.clientWidth, oh = overlay.clientHeight;
+            var bw, bh;
+            if (ratio > 0) {
+                bw = ow * 0.8; bh = bw / ratio;
+                if (bh > oh * 0.9) { bh = oh * 0.9; bw = bh * ratio; }
+            } else {
+                bw = ow * 0.7; bh = oh * 0.7;
+            }
+            st.box = this._clampBox({ l: (ow - bw) / 2, t: (oh - bh) / 2, w: bw, h: bh }, ow, oh, ratio);
+            this._renderCrop();
+
+            this._cropDownB = function (e) { self._cropPointerDown(e); };
+            this._cropMoveB = function (e) { self._cropPointerMove(e); };
+            this._cropUpB = function (e) { self._cropPointerUp(e); };
+            overlay.addEventListener('pointerdown', this._cropDownB);
+            window.addEventListener('pointermove', this._cropMoveB);
+            window.addEventListener('pointerup', this._cropUpB);
         },
 
-        _cropDown: function (e) {
+        _overlayPoint: function (e) {
+            var r = this._cropState.overlay.getBoundingClientRect();
+            return {
+                x: Math.max(0, Math.min(e.clientX - r.left, r.width)),
+                y: Math.max(0, Math.min(e.clientY - r.top, r.height)),
+                ow: r.width, oh: r.height
+            };
+        },
+
+        _clampBox: function (b, ow, oh, ratio) {
+            var w = Math.max(10, b.w), h = Math.max(10, b.h);
+            if (ratio > 0) h = w / ratio;
+            if (w > ow) { w = ow; if (ratio > 0) h = w / ratio; }
+            if (h > oh) { h = oh; if (ratio > 0) w = h * ratio; }
+            var l = b.l, t = b.t;
+            if (l + w > ow) l = ow - w;
+            if (t + h > oh) t = oh - h;
+            if (l < 0) l = 0;
+            if (t < 0) t = 0;
+            return { l: l, t: t, w: w, h: h };
+        },
+
+        _renderCrop: function () {
+            var st = this._cropState;
+            if (!st || !st.box) return;
+            var s = st.sel, b = st.box;
+            s.style.display = 'block';
+            s.style.left = b.l + 'px';
+            s.style.top = b.t + 'px';
+            s.style.width = b.w + 'px';
+            s.style.height = b.h + 'px';
+        },
+
+        _cropPointerDown: function (e) {
             var st = this._cropState;
             if (!st) return;
-            var r = st.overlay.getBoundingClientRect();
-            st.dragging = true;
-            st.sx = e.clientX - r.left;
-            st.sy = e.clientY - r.top;
-            var s = st.sel;
-            s.style.display = 'block';
-            s.style.left = st.sx + 'px'; s.style.top = st.sy + 'px';
-            s.style.width = '0px'; s.style.height = '0px';
             e.preventDefault();
-        },
-
-        _cropMove: function (e) {
-            var st = this._cropState;
-            if (!st || !st.dragging) return;
-            var r = st.overlay.getBoundingClientRect();
-            var cx = Math.max(0, Math.min(e.clientX - r.left, r.width));
-            var cy = Math.max(0, Math.min(e.clientY - r.top, r.height));
-            var sx = st.sx, sy = st.sy, left, top, w, h;
-            if (st.ratio > 0) {
-                var signX = (cx >= sx) ? 1 : -1;
-                var signY = (cy >= sy) ? 1 : -1;
-                w = Math.abs(cx - sx);
-                h = w / st.ratio;
-                var maxW = signX > 0 ? (r.width - sx) : sx;
-                var maxH = signY > 0 ? (r.height - sy) : sy;
-                if (w > maxW) { w = maxW; h = w / st.ratio; }
-                if (h > maxH) { h = maxH; w = h * st.ratio; }
-                left = signX > 0 ? sx : sx - w;
-                top = signY > 0 ? sy : sy - h;
+            var p = this._overlayPoint(e), b = st.box;
+            var corner = (e.target && e.target.getAttribute) ? e.target.getAttribute('data-corner') : null;
+            if (corner) {
+                st.mode = 'resize'; st.corner = corner; st.orig = { l: b.l, t: b.t, w: b.w, h: b.h }; st.start = p;
+            } else if (b && p.x >= b.l && p.x <= b.l + b.w && p.y >= b.t && p.y <= b.t + b.h) {
+                st.mode = 'move'; st.orig = { l: b.l, t: b.t, w: b.w, h: b.h }; st.start = p;
             } else {
-                left = Math.min(cx, sx);
-                top = Math.min(cy, sy);
-                w = Math.abs(cx - sx);
-                h = Math.abs(cy - sy);
+                st.mode = 'draw'; st.start = p; st.box = { l: p.x, t: p.y, w: 0, h: 0 };
             }
-            var s = st.sel;
-            s.style.left = left + 'px';
-            s.style.top = top + 'px';
-            s.style.width = w + 'px';
-            s.style.height = h + 'px';
         },
 
-        _cropUp: function () { if (this._cropState) this._cropState.dragging = false; },
+        _cropPointerMove: function (e) {
+            var st = this._cropState;
+            if (!st || !st.mode) return;
+            var p = this._overlayPoint(e), ow = p.ow, oh = p.oh;
+            if (st.mode === 'move') {
+                var l = st.orig.l + (p.x - st.start.x), t = st.orig.t + (p.y - st.start.y);
+                if (l < 0) l = 0;
+                if (t < 0) t = 0;
+                if (l + st.orig.w > ow) l = ow - st.orig.w;
+                if (t + st.orig.h > oh) t = oh - st.orig.h;
+                st.box = { l: l, t: t, w: st.orig.w, h: st.orig.h };
+            } else if (st.mode === 'draw') {
+                st.box = this._rectFromDrag(st.start, p, ow, oh, st.ratio);
+            } else if (st.mode === 'resize') {
+                st.box = this._rectFromResize(st.orig, st.corner, p, ow, oh, st.ratio);
+            }
+            this._renderCrop();
+        },
+
+        _cropPointerUp: function () {
+            if (this._cropState) { this._cropState.mode = null; this._cropState.corner = null; }
+        },
+
+        _rectFromDrag: function (s, p, ow, oh, ratio) {
+            var left, top, w, h;
+            if (ratio > 0) {
+                var sX = (p.x >= s.x) ? 1 : -1, sY = (p.y >= s.y) ? 1 : -1;
+                w = Math.abs(p.x - s.x); h = w / ratio;
+                var mW = sX > 0 ? (ow - s.x) : s.x, mH = sY > 0 ? (oh - s.y) : s.y;
+                if (w > mW) { w = mW; h = w / ratio; }
+                if (h > mH) { h = mH; w = h * ratio; }
+                left = sX > 0 ? s.x : s.x - w;
+                top = sY > 0 ? s.y : s.y - h;
+            } else {
+                left = Math.min(p.x, s.x); top = Math.min(p.y, s.y);
+                w = Math.abs(p.x - s.x); h = Math.abs(p.y - s.y);
+            }
+            return { l: left, t: top, w: w, h: h };
+        },
+
+        _rectFromResize: function (orig, corner, p, ow, oh, ratio) {
+            // The corner opposite the dragged one stays fixed (the anchor).
+            var anchorX = (corner === 'nw' || corner === 'sw') ? (orig.l + orig.w) : orig.l;
+            var anchorY = (corner === 'nw' || corner === 'ne') ? (orig.t + orig.h) : orig.t;
+            var dirX = (p.x >= anchorX) ? 1 : -1, dirY = (p.y >= anchorY) ? 1 : -1;
+            var w = Math.abs(p.x - anchorX), h = Math.abs(p.y - anchorY);
+            if (ratio > 0) {
+                h = w / ratio;
+                var mW = dirX > 0 ? (ow - anchorX) : anchorX;
+                var mH = dirY > 0 ? (oh - anchorY) : anchorY;
+                if (w > mW) { w = mW; h = w / ratio; }
+                if (h > mH) { h = mH; w = h * ratio; }
+            } else {
+                var mW2 = dirX > 0 ? (ow - anchorX) : anchorX;
+                var mH2 = dirY > 0 ? (oh - anchorY) : anchorY;
+                if (w > mW2) w = mW2;
+                if (h > mH2) h = mH2;
+            }
+            return { l: dirX > 0 ? anchorX : anchorX - w, t: dirY > 0 ? anchorY : anchorY - h, w: w, h: h };
+        },
 
         cancelCrop: function () {
             var wrap = document.getElementById('previewWrap');
             if (wrap) wrap.classList.remove('cropping');
-            if (this._cropState) {
-                if (this._cropUpBound) window.removeEventListener('mouseup', this._cropUpBound);
-                if (this._cropState.overlay) this._cropState.overlay.remove();
-                if (this._cropState.actions) this._cropState.actions.remove();
+            var st = this._cropState;
+            if (st) {
+                if (st.overlay && this._cropDownB) st.overlay.removeEventListener('pointerdown', this._cropDownB);
+                if (this._cropMoveB) window.removeEventListener('pointermove', this._cropMoveB);
+                if (this._cropUpB) window.removeEventListener('pointerup', this._cropUpB);
+                if (st.overlay) st.overlay.remove();
+                if (st.actions) st.actions.remove();
                 this._cropState = null;
             }
         },
 
         applyCrop: function () {
             var st = this._cropState;
-            if (!st) return;
-            var img = st.img;
-            var selR = st.sel.getBoundingClientRect();
-            var imgR = img.getBoundingClientRect();
-            if (selR.width < 5 || selR.height < 5) { this.toast('Selecteer eerst een gebied', true); return; }
-            var scaleX = img.naturalWidth / imgR.width;
-            var scaleY = img.naturalHeight / imgR.height;
-            var x = Math.max(0, Math.round((selR.left - imgR.left) * scaleX));
-            var y = Math.max(0, Math.round((selR.top - imgR.top) * scaleY));
-            var cw = Math.round(selR.width * scaleX);
-            var ch = Math.round(selR.height * scaleY);
+            if (!st || !st.box) return;
+            var b = st.box;
+            if (b.w < 5 || b.h < 5) { this.toast('Selecteer eerst een gebied', true); return; }
+            // The overlay matches the displayed image exactly (inset:0 of the wrap),
+            // so the box is already in displayed-image pixels.
+            var ovR = st.overlay.getBoundingClientRect();
+            var scaleX = st.img.naturalWidth / ovR.width;
+            var scaleY = st.img.naturalHeight / ovR.height;
+            var x = Math.max(0, Math.round(b.l * scaleX));
+            var y = Math.max(0, Math.round(b.t * scaleY));
+            var cw = Math.round(b.w * scaleX);
+            var ch = Math.round(b.h * scaleY);
             var destW = st.ratio > 0 ? st.targetW : 0;
             var destH = st.ratio > 0 ? st.targetH : 0;
             this.cancelCrop();

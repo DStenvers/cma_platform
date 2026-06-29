@@ -167,7 +167,7 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         </div>
 
         <div class="image-editor-footer">
-            <button type="button" class="btn" onclick="imgEditor.cancel()">Annuleren</button>
+            <button type="button" class="btn btn-secondary" onclick="imgEditor.cancel()">Annuleren</button>
             <button type="button" class="btn btn-primary" onclick="imgEditor.finish()">Klaar</button>
         </div>
     </div>
