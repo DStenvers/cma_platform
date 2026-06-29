@@ -369,7 +369,12 @@ class LibDialog extends HTMLElement {
                     position: fixed;
                     inset: 0;
                     background: rgba(0, 0, 0, 0.5);
-                    z-index: 2000;
+                    /* Top-of-stack by default for when lib_zindex_manager isn't loaded
+                       (consumer front-ends). Some sites use very high z-indexes (karaat
+                       goes up to 10000000) which otherwise cover the dialog + its close
+                       button when maximized. When the manager IS present it sets an inline
+                       z-index that overrides this default, so no CMA regression. */
+                    z-index: 2147483647;
                     display: flex;
                     align-items: center;
                     justify-content: center;
