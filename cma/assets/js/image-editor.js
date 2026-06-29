@@ -263,29 +263,20 @@
             this.editOp({ action: 'crop', x: x, y: y, width: cw, height: ch, destWidth: destW, destHeight: destH });
         },
 
-        // Largest centered crop of (W,H) that matches the given ratio (W/H).
-        centeredCrop: function (W, H, ratio) {
-            var cw = W, ch = H;
-            if (W / H > ratio) { cw = Math.round(H * ratio); ch = H; }
-            else { cw = W; ch = Math.round(W / ratio); }
-            return { x: Math.round((W - cw) / 2), y: Math.round((H - ch) / 2), w: cw, h: ch };
-        },
-
         // ── Finish / cancel ─────────────────────────────────────────────────
         finish: function () {
             var self = this;
             this.cancelCrop();
             var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
 
-            // Aspect lock (e.g. 16:9): the saved image MUST match the ratio. If the
-            // user didn't crop to it, auto-apply the largest centered crop so the
-            // result always conforms — keeping native resolution (no forced resize).
+            // Aspect lock (e.g. 16:9): the saved image MUST match the ratio. Require
+            // the user to crop it manually — don't auto-crop. If it isn't the ratio
+            // yet, refuse to save and open the (ratio-locked) crop tool for them.
             if (aw > 0 && ah > 0 && this.width > 0 && this.height > 0) {
                 var ratio = aw / ah;
                 if (Math.abs(this.width / this.height - ratio) > 0.01) {
-                    var c = this.centeredCrop(this.width, this.height, ratio);
-                    this.editOp({ action: 'crop', x: c.x, y: c.y, width: c.w, height: c.h, destWidth: 0, destHeight: 0 })
-                        .then(function (ok) { if (ok) self.postComplete(); });
+                    this.toast('Snijd de afbeelding eerst bij tot ' + aw + ':' + ah + ' voordat je opslaat.', true);
+                    this.startCrop();
                     return;
                 }
                 this.postComplete();
