@@ -1602,3 +1602,15 @@ karaat-data en staat in de karaat-repo.
 > the list of toegevoegde stenen does not show anything anymore, I see Steen toegevoegd (ID 4998)., but it is not below the title and does not contain a link
 
 > in the form field selector the ID is still hidden, i really want to be able to sort on that
+
+> the dialog for existing stones: still had no image, can you double check?
+
+> the trustpilot address is www.karaatedelstenen.nl+3323486573@invite.trustpilot.com
+
+> Nu een heel andere vraag; ik wil achterhalen welke steensoort het meest populair is, kun je op basis van tblorderregels een top 10 samenstellen?
+
+> Kun je daar een rapport in de cma voor maken met de positie, de steensoort, het aantal verkocht en het aantal beschikbaar in de webshop.
+
+> Syntax error or access violation: -3100 Syntax error in query expression '(SELECT Count(*) FROM tblOrderRegels WHERE InStr(tblOrderRegels.sProduct, tblSteensoorten.SoortNaamNL) > 0'. 
+>
+> tblOrderregels heeft een steensoort die verwijst naar de tabel steensoorten, nu gebruik je erg veen inner selects, dat moet sumpeler kunnen en wist je dat je order by per nummer kunt doen, dus order by 2 -> sorteer op het tweede uitvoerveld

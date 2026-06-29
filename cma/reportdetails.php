@@ -623,9 +623,18 @@ if ($useLibTable) {
     echo '<div id="c"><TABLE class="listtable filtering" cellspacing="0" cellpadding="0" WIDTH=100% data-name="' . $tableDataName . '" id=resultaat><thead><TR class="listheader">';
 }
     $intColumns = 0;
-    // provide an edit URL if a form is specified (editForm is now a form name string)
+    // provide an edit URL if a form is specified. editForm is normally a JSON
+    // form name, but legacy reports stored a numeric form id (the old sourceFormId)
+    // — resolve that to the form name so the edit link still routes correctly.
     if (!empty($intEditFormID)) {
-        $strEditURL = 'form.php?ID=[ID]&form=' . urlencode($intEditFormID);
+        $editFormName = (string)$intEditFormID;
+        if (ctype_digit($editFormName)) {
+            $resolved = \Cma\JsonFormLoader::getFormNameBySourceId((int)$editFormName);
+            if (!empty($resolved)) {
+                $editFormName = $resolved;
+            }
+        }
+        $strEditURL = 'form.php?ID=[ID]&form=' . urlencode($editFormName);
     }
     // provide spacer header column if first grouping is specified
     if (!$strGroupField1 == "") {
