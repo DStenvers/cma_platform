@@ -1399,3 +1399,13 @@ karaat-data en staat in de karaat-repo.
 > what version are you on?
 
 > yea please ship but first set version to 1.28.0
+
+> the buttons in the detail screen: in winkelmand, edit, edit picture and save to wishlist have different sizes, make sure they all have the same size
+
+> the image editor: that was a really bad edit. Not only did you AGAIN invent your own classes , it looks like crap. Icons are almost all missing, a strange grey background, buttons Annuleren en klaar don't align to the bottom, a rendomly placed size indicator and extra margins.. Use the available webcomponents as per claude.MD and make sure all icons are there. Then : most icons lead to the error Bewerking mislukt, so it does not even work also.
+
+> one route: https://www.karaatedelstenen.nl/cma/tools.php?tool=webp_convert , this one is missing the menu on the left.
+
+> no just the height
+
+> okay, now if the screen is mobile, the edit overlaps the winkelmand, shy not just place them next to each other and only right align the save ?

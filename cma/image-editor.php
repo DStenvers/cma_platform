@@ -98,7 +98,7 @@ $config = [
     'endpoint'     => 'wizards/file-browser.php',
 ];
 
-$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,assets/js/image-editor.js');
+$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
 ?><!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -118,32 +118,29 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
     <script src="<?= htmlspecialchars($ieJs) ?>"></script>
 </head>
 <body class="image-editor-body">
-    <div class="image-editor">
-        <div class="ie-toolbar">
-            <div class="ie-toolbar__group">
-                <span class="tb-btn" title="Linksom draaien"><a href="javascript:imgEditor.rotate(-90)"><span class="lnr lnr-undo"></span><span class="tb-btn-text">90&deg;</span></a></span>
-                <span class="tb-btn" title="Rechtsom draaien"><a href="javascript:imgEditor.rotate(90)"><span class="lnr lnr-redo"></span><span class="tb-btn-text">90&deg;</span></a></span>
-                <span class="tb-btn" title="180&deg; draaien"><a href="javascript:imgEditor.rotate(180)"><span class="tb-btn-text">180&deg;</span></a></span>
-                <span class="tb-sep"></span>
-                <span class="tb-btn" title="Horizontaal spiegelen"><a href="javascript:imgEditor.flip('h')"><span class="lnr lnr-flip"></span></a></span>
-                <span class="tb-btn" title="Verticaal spiegelen"><a href="javascript:imgEditor.flip('v')"><span class="lnr lnr-flip ie-icon-rot90"></span></a></span>
-                <span class="tb-sep"></span>
-                <span class="tb-btn" title="Lichter"><a href="javascript:imgEditor.filter('brightness','+')"><span class="lnr lnr-sun"></span></a></span>
-                <span class="tb-btn" title="Donkerder"><a href="javascript:imgEditor.filter('brightness','-')"><span class="lnr lnr-moon"></span></a></span>
-                <span class="tb-btn" title="Meer contrast"><a href="javascript:imgEditor.filter('contrast','+')"><span class="lnr lnr-contrast"></span></a></span>
-                <span class="tb-btn" title="Minder contrast"><a href="javascript:imgEditor.filter('contrast','-')"><span class="lnr lnr-contrast ie-icon-dim"></span></a></span>
-                <span class="tb-btn" title="Meer verzadiging"><a href="javascript:imgEditor.filter('saturation','+')"><span class="lnr lnr-drop"></span></a></span>
-                <span class="tb-btn" title="Minder verzadiging"><a href="javascript:imgEditor.filter('saturation','-')"><span class="lnr lnr-drop ie-icon-dim"></span></a></span>
-                <span class="tb-btn" title="Verscherpen"><a href="javascript:imgEditor.filter('sharpen','')"><span class="lnr lnr-magic-wand"></span></a></span>
-            </div>
-            <div class="ie-toolbar__group ie-toolbar__group--right">
-                <span class="tb-btn" title="Bijsnijden"><a href="javascript:imgEditor.startCrop()"><span class="lnr lnr-crop"></span><span class="tb-btn-text">Bijsnijden</span></a></span>
-                <span class="tb-btn" title="Witruimte automatisch bijsnijden"><a href="javascript:imgEditor.autocrop()"><span class="lnr lnr-frame-contract"></span></a></span>
+    <div class="image-editor-container">
+        <cma-toolbar wrap variant="detail">
+            <left>
+                <button type="button" class="btn" onclick="imgEditor.rotate(-90)" title="Linksom draaien">&#8634; 90&deg;</button>
+                <button type="button" class="btn" onclick="imgEditor.rotate(90)" title="Rechtsom draaien">&#8635; 90&deg;</button>
+                <button type="button" class="btn" onclick="imgEditor.rotate(180)" title="180&deg; draaien">180&deg;</button>
+                <button type="button" class="btn" onclick="imgEditor.flip('h')" title="Horizontaal spiegelen">Spiegel &#8596;</button>
+                <button type="button" class="btn" onclick="imgEditor.flip('v')" title="Verticaal spiegelen">Spiegel &#8597;</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('brightness','+')" title="Lichter">Lichter</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('brightness','-')" title="Donkerder">Donkerder</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('contrast','+')" title="Meer contrast">Contrast +</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('contrast','-')" title="Minder contrast">Contrast &#8722;</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('saturation','+')" title="Meer verzadiging">Kleur +</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('saturation','-')" title="Minder verzadiging">Kleur &#8722;</button>
+                <button type="button" class="btn" onclick="imgEditor.filter('sharpen','')" title="Verscherpen"><span class="lnr lnr-magic-wand"></span> Scherp</button>
+            </left>
+            <right>
+                <button type="button" class="btn" onclick="imgEditor.startCrop()" title="Bijsnijden"><span class="lnr lnr-crop"></span> Bijsnijden</button>
+                <button type="button" class="btn" onclick="imgEditor.autocrop()" title="Witruimte automatisch bijsnijden"><span class="lnr lnr-frame-contract"></span> Autocrop</button>
                 <label class="ie-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="10">%</label>
-                <span class="tb-sep"></span>
-                <span class="tb-btn ie-restore" id="ieRestore" title="Origineel terugzetten"><a href="javascript:imgEditor.restore()"><span class="lnr lnr-history"></span><span class="tb-btn-text">Herstel</span></a></span>
-            </div>
-        </div>
+                <button type="button" class="btn" id="ieRestore" onclick="imgEditor.restore()" title="Origineel terugzetten"><span class="lnr lnr-history"></span> Herstel</button>
+            </right>
+        </cma-toolbar>
 
         <div class="image-editor-canvas">
             <div class="preview-wrap" id="previewWrap">
@@ -152,12 +149,12 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         </div>
 
         <div class="image-editor-info">
-            <span id="ieDimensions">&ndash;</span>
-            <span id="ieRule" class="ie-rule"></span>
+            <span class="dimensions" id="ieDimensions">&ndash;</span>
+            <span class="crop-info" id="ieRule"></span>
         </div>
 
         <div class="image-editor-footer">
-            <button type="button" class="btn btn-cancel" onclick="imgEditor.cancel()">Annuleren</button>
+            <button type="button" class="btn" onclick="imgEditor.cancel()">Annuleren</button>
             <button type="button" class="btn btn-primary" onclick="imgEditor.finish()">Klaar</button>
         </div>
     </div>

@@ -250,6 +250,14 @@ class CmaToolbar extends HTMLElement {
                     border-color: var(--border-dark, #444);
                 }
 
+                /* Opt-in wrapping (<cma-toolbar wrap>): let the rows reflow instead of
+                   clipping when there are more buttons than fit the width (e.g. the
+                   image editor on mobile). Off by default so existing toolbars are
+                   unchanged. */
+                :host([wrap]) .toolbar { flex-wrap: wrap; row-gap: 2px; }
+                :host([wrap]) .toolbar-left { flex-wrap: wrap; }
+                :host([wrap]) .toolbar-right { flex-wrap: wrap; }
+
                 /* Responsive: hide center on small screens */
                 @media (max-width: 600px) {
                     .toolbar-center {

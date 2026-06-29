@@ -55,17 +55,26 @@
                 if (extra.hasOwnProperty(k) && k !== 'action') fd.append(k, String(extra[k]));
             }
             return fetch(this.opUrl(), { method: 'POST', body: fd })
-                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    // A server fatal (e.g. GD out-of-memory on a huge image) returns a
+                    // non-JSON 500; surface the status rather than a generic message.
+                    if (!r.ok) {
+                        return r.text().then(function (t) {
+                            throw new Error('Server (' + r.status + '): ' + (t || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160));
+                        });
+                    }
+                    return r.json();
+                })
                 .then(function (data) {
                     if (data && data.success) {
                         return self.reload();
                     }
-                    self.toast((data && data.error) || 'Bewerking mislukt', true);
+                    self.toast('Bewerking mislukt: ' + ((data && data.error) || 'onbekende fout'), true);
                     return null;
                 })
                 .catch(function (err) {
                     log.error('[ImageEditor] op failed:', err && err.message);
-                    self.toast('Bewerking mislukt', true);
+                    self.toast('Bewerking mislukt — ' + (err && err.message ? err.message : 'netwerkfout'), true);
                     return null;
                 });
         },

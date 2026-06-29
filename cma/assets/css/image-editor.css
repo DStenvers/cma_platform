@@ -1,6 +1,8 @@
 /* Stand-alone image editor (image-editor.php).
-   Crop overlay styles mirror the files-wizard right-pane editor so the two look
-   and behave identically. Uses the shared CSS variables from lib-variables.css. */
+   Mirrors the files-wizard #imageEditorDialog: a <cma-toolbar> plus the shared
+   .image-editor-container / .image-editor-canvas / .image-editor-info classes, so
+   it looks and behaves like the in-CMA editor. Image operations are delegated to
+   wizards/file-browser.php. Uses the shared CSS variables from lib-variables.css. */
 
 * { box-sizing: border-box; }
 
@@ -8,101 +10,63 @@
     font-family: var(--font-family);
     font-size: var(--font-size);
     margin: 0;
-    padding: 0;
     background: var(--bg-body);
     height: 100vh;
     height: 100dvh; /* dynamic viewport unit: excludes mobile browser chrome */
     overflow: hidden;
 }
 
-.image-editor {
+.image-editor-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
 }
 
-/* Page-owned toolbar — wraps to multiple rows on narrow screens so every tool
-   stays reachable (the shared cma-toolbar uses flex-wrap:nowrap and would clip
-   these ~18 buttons off-screen on mobile). */
-.ie-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px 8px;
-    padding: 4px 8px;
-    flex-shrink: 0;
-    background: var(--bg-surface, #f5f5f5);
-    border-bottom: 1px solid var(--border-color);
+/* Toolbar buttons match the in-CMA editor. */
+.image-editor-container cma-toolbar .btn {
+    padding: 6px 10px;
+    font-size: var(--font-size-sm);
 }
-.ie-toolbar__group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 2px;
-}
-.ie-toolbar .tb-btn {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.ie-toolbar .tb-btn > a {
+
+/* Autocrop margin input, sitting in the toolbar's right group. */
+.ie-margin {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 8px;
-    color: var(--text-primary, #333);
-    text-decoration: none;
-    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted, #666);
 }
-.ie-toolbar .tb-btn > a:hover {
-    background: var(--hover-bg, rgba(0, 0, 0, 0.08));
-}
-.ie-toolbar .tb-sep {
-    width: 1px;
-    align-self: stretch;
-    min-height: 20px;
-    margin: 0 4px;
-    background: var(--border-color);
-}
+.ie-margin input { width: 46px; }
 
-/* Canvas: grows to fill, centres the image, scrolls if larger. */
+/* Canvas — dark backdrop like a photo editor, image centered. */
 .image-editor-canvas {
     flex: 1;
     min-height: 0;
+    overflow: auto;
+    background: #1a1a1a;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: auto;
-    padding: 16px;
-    background: var(--bg-surface, #f5f5f5);
+    padding: 12px;
 }
-
 .preview-wrap {
     position: relative;
     display: inline-block;
-    max-width: 100%;
     line-height: 0;
+    max-width: 100%;
 }
 .preview-wrap.cropping { cursor: crosshair; }
-
 #editorImage {
-    max-width: 100%;
-    max-height: calc(100vh - 150px);
-    max-height: calc(100dvh - 150px); /* reserve ~150px for toolbar + info + footer */
-    object-fit: contain;
     display: block;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
+    max-width: 100%;
+    max-height: calc(100vh - 170px);
+    max-height: calc(100dvh - 170px); /* reserve toolbar + info + footer */
+    object-fit: contain;
 }
 
-.crop-overlay {
-    position: absolute;
-    inset: 0;
-    cursor: crosshair;
-}
+/* Interactive crop overlay (same behaviour as the right-pane editor). */
+.crop-overlay { position: absolute; inset: 0; cursor: crosshair; }
 .crop-selection {
     position: absolute;
     border: 1px dashed #fff;
@@ -120,43 +84,35 @@
     padding: 8px 12px;
     z-index: 5;
 }
-.crop-target { font-size: 12px; color: var(--text-muted, #666); margin-left: 6px; }
+.crop-target { font-size: var(--font-size-sm); color: var(--text-muted, #666); margin-left: 6px; }
 
+/* Info bar — dimensions left, active size rule right. */
 .image-editor-info {
+    padding: 8px 12px;
+    background: var(--bg-surface-alt, #f5f5f5);
+    border-top: 1px solid var(--border-color, #ddd);
+    font-size: var(--font-size-sm);
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    padding: 6px 16px;
-    font-size: var(--font-size-sm, 13px);
-    color: var(--text-muted, #666);
-    border-top: 1px solid var(--border-color);
 }
-.ie-rule { font-weight: 600; }
+.image-editor-info .dimensions { color: var(--text-muted, #666); }
+.image-editor-info .crop-info { color: var(--color-primary, #1976d2); font-weight: 500; }
 
+/* Footer — Annuleren / Klaar pinned to the bottom (like the lib-dialog footer slot). */
 .image-editor-footer {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    padding: 10px 16px;
-    border-top: 1px solid var(--border-color);
+    padding: 10px 12px;
     background: var(--bg-surface);
+    border-top: 1px solid var(--border-color, #ddd);
 }
 
-/* Autocrop margin input inside the toolbar. */
-.ie-margin {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--text-muted, #666);
+@media (max-width: 600px) {
+    .image-editor-container cma-toolbar .btn { padding: 6px 8px; font-size: 12px; }
+    .image-editor-canvas { padding: 6px; }
 }
-.ie-margin input {
-    width: 48px;
-}
-
-/* Icon variants reused from the right-pane bar (no inline styles). */
-.ie-icon-rot90 { transform: rotate(90deg); }
-.ie-icon-dim { opacity: 0.5; }
 
 /* Login-guard message centring. */
 .image-editor-guard {
@@ -168,28 +124,4 @@
     height: 100dvh;
     margin: 0;
     background: var(--bg-body);
-}
-
-/* Mobile: icon-only toolbar (labels drop out so the buttons fit), larger touch
-   targets, and tighter canvas padding. Mirrors the form-toolbar mobile treatment. */
-@media (max-width: 600px) {
-    .ie-toolbar {
-        justify-content: flex-start;
-        gap: 2px 4px;
-    }
-    .ie-toolbar .tb-btn-text {
-        display: none;
-    }
-    .ie-toolbar .tb-btn > a {
-        padding: 8px 9px;
-    }
-    .ie-margin {
-        font-size: 11px;
-    }
-    .image-editor-canvas {
-        padding: 8px;
-    }
-    .image-editor-footer {
-        padding: 8px 12px;
-    }
 }

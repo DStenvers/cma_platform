@@ -154,6 +154,16 @@ if ($action !== '') {
         exit;
     }
 
+    // GD image edits load the whole bitmap into memory. Full-resolution originals
+    // (e.g. a 6000x3368 product photo ~= 20 MP) need ~80 MB+ per truecolor buffer
+    // and blow the default memory_limit -> fatal 500 -> "Bewerking mislukt" in the
+    // editor. Give the image ops enough head-room and wall-clock to finish.
+    $imageEditActions = ['rotate', 'resize', 'crop', 'filter', 'autocrop'];
+    if (in_array($action, $imageEditActions, true)) {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+    }
+
     switch ($action) {
         case 'list':
             $fileSpecAjax = Request::query('filespec', '*.*');
