@@ -23,11 +23,27 @@
     height: 100dvh;
 }
 
-/* Toolbar buttons match the in-CMA editor. */
+/* Compact icon buttons (one icon each; tooltips via title=). */
 .image-editor-container cma-toolbar .btn {
-    padding: 6px 10px;
+    padding: 6px 8px;
     font-size: var(--font-size-sm);
+    line-height: 1;
 }
+.image-editor-container cma-toolbar .btn .lnr { font-size: 16px; }
+.ie-svg {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+.ie-svg-fill { fill: currentColor; stroke: none; }
+.ie-dim { opacity: 0.45; display: inline-flex; }
+
+/* Buttons shown only once an edit exists (compare, restore). */
+.ie-optional { display: none; }
+.ie-optional.is-shown { display: inline-flex; }
 
 /* Autocrop margin input, sitting in the toolbar's right group. */
 .ie-margin {
@@ -49,7 +65,39 @@
     align-items: center;
     justify-content: center;
     padding: 12px;
+    position: relative; /* anchor for the compare overlay */
 }
+
+/* Before/after compare slider (mirrors the WebP tool). Hidden until opened. */
+.ie-compare { display: none; position: absolute; inset: 0; overflow: hidden; cursor: col-resize; user-select: none; background: #1a1a1a; }
+.ie-compare.is-open { display: block; }
+.ie-compare-bg, .ie-compare-fg {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    padding: 2.5%;
+}
+.ie-compare-fg { clip-path: inset(0 50% 0 0); }
+.ie-compare-split {
+    position: absolute; top: 0; left: 50%; width: 3px; height: 100%;
+    background: #fff; box-shadow: 0 0 4px rgba(0, 0, 0, 0.6); transform: translateX(-50%); z-index: 2;
+}
+.ie-compare-split span {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #666;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    font-size: var(--font-size-xl, 20px);
+}
+.ie-compare-tag {
+    position: absolute; top: 12px; z-index: 3;
+    background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: var(--font-size-sm, 13px);
+}
+.ie-compare-tag--l { left: 12px; }
+.ie-compare-tag--r { right: 12px; }
+.ie-compare-close { position: absolute; bottom: 12px; right: 12px; z-index: 3; }
 .preview-wrap {
     position: relative;
     display: inline-block;

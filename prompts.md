@@ -1431,3 +1431,11 @@ karaat-data en staat in de karaat-repo.
 > io don't want a stand alone renderer for the tools menu. so yes please remove it
 
 > i had cropped an image, but the responsive formats did not regenerate, please check
+
+> much better: great!
+
+> i think that linearicons is not always available, on the product detail page it seems to be missing (i checked the network tab)
+
+> it IS loaded through https://www.karaatedelstenen.nl/cma/minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,../library/css/lib-components.css,assets/css/style.css,../library/select2/select2.css,../library/classes/class_table.css,../library/webcomponents/lib-table.css,assets/css/form.css,assets/css/inline-edit.css,assets/css/main.css&v=20260629d but many icons are missing like minimize/maximize,
+
+> the annuleer button does nothing?

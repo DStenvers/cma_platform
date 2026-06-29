@@ -51,6 +51,59 @@
             if (l) { if (typeof l.hide === 'function') l.hide(); else l.removeAttribute('active'); }
         },
 
+        // ── Before/after compare slider ─────────────────────────────────────
+        toggleCompare: function () {
+            var pane = document.getElementById('ieComparePane');
+            if (!pane) return;
+            if (pane.classList.contains('is-open')) { this.closeCompare(); return; }
+            if (!this.originalUrl) { this.toast('Geen origineel om mee te vergelijken.', true); return; }
+            var bg = document.getElementById('ieCompareBg');   // edited, full (right)
+            var fg = document.getElementById('ieCompareFg');   // original, clipped (left)
+            if (bg) bg.style.backgroundImage = 'url("' + this.currentUrl + '")';
+            if (fg) fg.style.backgroundImage = 'url("' + this.originalUrl + '")';
+            pane.classList.add('is-open');
+            this._setComparePos(50);
+            this._initCompareDrag();
+        },
+
+        closeCompare: function () {
+            var pane = document.getElementById('ieComparePane');
+            if (!pane || !pane.classList.contains('is-open')) return;
+            pane.classList.remove('is-open');
+            if (this._cmpDownB) pane.removeEventListener('pointerdown', this._cmpDownB);
+            if (this._cmpMoveB) window.removeEventListener('pointermove', this._cmpMoveB);
+            if (this._cmpUpB) window.removeEventListener('pointerup', this._cmpUpB);
+        },
+
+        _setComparePos: function (pct) {
+            pct = Math.max(0, Math.min(100, pct));
+            var fg = document.getElementById('ieCompareFg');
+            var split = document.getElementById('ieCompareSplit');
+            if (fg) fg.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+            if (split) split.style.left = pct + '%';
+        },
+
+        _initCompareDrag: function () {
+            var self = this;
+            var pane = document.getElementById('ieComparePane');
+            if (!pane) return;
+            var dragging = false;
+            var toPct = function (e) {
+                var r = pane.getBoundingClientRect();
+                return ((e.clientX - r.left) / r.width) * 100;
+            };
+            this._cmpDownB = function (e) {
+                // Ignore clicks on the close button.
+                if (e.target && e.target.closest && e.target.closest('.ie-compare-close')) return;
+                dragging = true; self._setComparePos(toPct(e)); e.preventDefault();
+            };
+            this._cmpMoveB = function (e) { if (dragging) self._setComparePos(toPct(e)); };
+            this._cmpUpB = function () { dragging = false; };
+            pane.addEventListener('pointerdown', this._cmpDownB);
+            window.addEventListener('pointermove', this._cmpMoveB);
+            window.addEventListener('pointerup', this._cmpUpB);
+        },
+
         // ── Server I/O ──────────────────────────────────────────────────────
         opUrl: function () {
             return this.cfg.endpoint
@@ -69,6 +122,7 @@
             for (var k in extra) {
                 if (extra.hasOwnProperty(k) && k !== 'action') fd.append(k, String(extra[k]));
             }
+            self.closeCompare(); // the comparison would be stale once the image changes
             self.showLoader();
             return fetch(this.opUrl(), { method: 'POST', body: fd })
                 .then(function (r) {
@@ -114,11 +168,17 @@
                     self.width = parseInt(data.width, 10) || 0;
                     self.height = parseInt(data.height, 10) || 0;
                     self.hasOriginal = !!data.hasOriginal;
+                    self.currentUrl = data.url || '';
+                    self.originalUrl = data.originalUrl || '';
                     var img = document.getElementById('editorImage');
                     if (img) img.src = data.url; // url already carries ?versie= cache-buster
                     self.paintInfo();
+                    // "Origineel terugzetten" and "Vergelijk" are only relevant once an
+                    // edit (and therefore an original backup) exists.
                     var restore = document.getElementById('ieRestore');
-                    if (restore) restore.style.display = self.hasOriginal ? '' : 'none';
+                    if (restore) restore.classList.toggle('is-shown', self.hasOriginal);
+                    var cmp = document.getElementById('ieCompareBtn');
+                    if (cmp) cmp.classList.toggle('is-shown', self.hasOriginal && !!self.originalUrl);
                 })
                 .catch(function (err) {
                     log.error('[ImageEditor] reload failed:', err && err.message);

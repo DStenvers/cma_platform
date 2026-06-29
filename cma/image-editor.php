@@ -132,32 +132,51 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
 </head>
 <body class="image-editor-body">
     <div class="image-editor-container">
+        <?php
+        // Inline SVG icons for operations whose lnr glyph doesn't exist. The title=
+        // tooltip explains each button; a dimmed icon = the "less" of an adjustment.
+        $svgFlipH = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="3" x2="12" y2="21"/><polygon class="ie-svg-fill" points="9,7 4,12 9,17"/><polygon class="ie-svg-fill" points="15,7 20,12 15,17"/></svg>';
+        $svgFlipV = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><polygon class="ie-svg-fill" points="7,9 12,4 17,9"/><polygon class="ie-svg-fill" points="7,15 12,20 17,15"/></svg>';
+        $svgContrast = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ie-svg-fill" d="M12 3a9 9 0 0 1 0 18z"/></svg>';
+        $svgDrop = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><path class="ie-svg-fill" d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>';
+        $svgCompare = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/></svg>';
+        ?>
         <cma-toolbar wrap variant="detail">
             <left>
-                <button type="button" class="btn" onclick="imgEditor.rotate(-90)" title="Linksom draaien">&#8634; 90&deg;</button>
-                <button type="button" class="btn" onclick="imgEditor.rotate(90)" title="Rechtsom draaien">&#8635; 90&deg;</button>
-                <button type="button" class="btn" onclick="imgEditor.rotate(180)" title="180&deg; draaien">180&deg;</button>
-                <button type="button" class="btn" onclick="imgEditor.flip('h')" title="Horizontaal spiegelen">Spiegel &#8596;</button>
-                <button type="button" class="btn" onclick="imgEditor.flip('v')" title="Verticaal spiegelen">Spiegel &#8597;</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('brightness','+')" title="Lichter">Lichter</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('brightness','-')" title="Donkerder">Donkerder</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('contrast','+')" title="Meer contrast">Contrast +</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('contrast','-')" title="Minder contrast">Contrast &#8722;</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('saturation','+')" title="Meer verzadiging">Kleur +</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('saturation','-')" title="Minder verzadiging">Kleur &#8722;</button>
-                <button type="button" class="btn" onclick="imgEditor.filter('sharpen','')" title="Verscherpen"><span class="lnr lnr-magic-wand"></span> Scherp</button>
+                <button type="button" class="btn" onclick="imgEditor.rotate(-90)" title="Linksom draaien"><span class="lnr lnr-undo"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.rotate(90)" title="Rechtsom draaien"><span class="lnr lnr-redo"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.rotate(180)" title="180&deg; draaien"><span class="lnr lnr-sync"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.flip('h')" title="Horizontaal spiegelen"><?= $svgFlipH ?></button>
+                <button type="button" class="btn" onclick="imgEditor.flip('v')" title="Verticaal spiegelen"><?= $svgFlipV ?></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('brightness','+')" title="Lichter"><span class="lnr lnr-sun"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('brightness','-')" title="Donkerder"><span class="lnr lnr-sun ie-dim"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('contrast','+')" title="Meer contrast"><?= $svgContrast ?></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('contrast','-')" title="Minder contrast"><span class="ie-dim"><?= $svgContrast ?></span></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('saturation','+')" title="Meer verzadiging"><?= $svgDrop ?></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('saturation','-')" title="Minder verzadiging"><span class="ie-dim"><?= $svgDrop ?></span></button>
+                <button type="button" class="btn" onclick="imgEditor.filter('sharpen','')" title="Verscherpen"><span class="lnr lnr-magic-wand"></span></button>
             </left>
             <right>
-                <button type="button" class="btn" onclick="imgEditor.startCrop()" title="Bijsnijden"><span class="lnr lnr-crop"></span> Bijsnijden</button>
-                <button type="button" class="btn" onclick="imgEditor.autocrop()" title="Witruimte automatisch bijsnijden"><span class="lnr lnr-frame-contract"></span> Autocrop</button>
+                <button type="button" class="btn" onclick="imgEditor.startCrop()" title="Bijsnijden"><span class="lnr lnr-crop"></span></button>
+                <button type="button" class="btn" onclick="imgEditor.autocrop()" title="Witruimte automatisch bijsnijden"><span class="lnr lnr-frame-contract"></span></button>
                 <label class="ie-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="10">%</label>
-                <button type="button" class="btn" id="ieRestore" onclick="imgEditor.restore()" title="Origineel terugzetten"><span class="lnr lnr-history"></span> Herstel</button>
+                <button type="button" class="btn ie-optional" id="ieCompareBtn" onclick="imgEditor.toggleCompare()" title="Vergelijk met origineel"><?= $svgCompare ?></button>
+                <button type="button" class="btn ie-optional" id="ieRestore" onclick="imgEditor.restore()" title="Origineel terugzetten"><span class="lnr lnr-history"></span></button>
             </right>
         </cma-toolbar>
 
         <div class="image-editor-canvas">
             <div class="preview-wrap" id="previewWrap">
                 <img id="editorImage" alt="Afbeelding bewerken">
+            </div>
+            <!-- Before/after compare slider (shown only when an edit has been made). -->
+            <div class="ie-compare" id="ieComparePane">
+                <div class="ie-compare-bg" id="ieCompareBg"></div>
+                <div class="ie-compare-fg" id="ieCompareFg"></div>
+                <div class="ie-compare-split" id="ieCompareSplit"><span>&#8596;</span></div>
+                <div class="ie-compare-tag ie-compare-tag--l">Origineel</div>
+                <div class="ie-compare-tag ie-compare-tag--r">Bewerkt</div>
+                <button type="button" class="btn btn-secondary ie-compare-close" onclick="imgEditor.toggleCompare()">Sluiten</button>
             </div>
         </div>
 

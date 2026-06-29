@@ -535,8 +535,13 @@ function getFileDetails(string $fullPath, string $file, string $webPath): array 
             $details['width'] = $dimensions[0];
             $details['height'] = $dimensions[1];
         }
-        // Whether an original backup exists (enables "Origineel terugzetten").
-        $details['hasOriginal'] = file_exists(imageOriginalBackupPath($targetPath));
+        // Whether an original backup exists (enables "Origineel terugzetten" and the
+        // before/after compare). Expose the backup URL so the editor can show it.
+        $backupPath = imageOriginalBackupPath($targetPath);
+        $details['hasOriginal'] = file_exists($backupPath);
+        if ($details['hasOriginal']) {
+            $details['originalUrl'] = $webPath . basename(dirname($backupPath)) . '/' . $file . '?versie=' . filemtime($backupPath);
+        }
     }
 
     return $details;
@@ -893,14 +898,29 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     $w = imagesx($src);
     $h = imagesy($src);
 
+    // A per-pixel PHP scan over a full-resolution (e.g. ~20 MP) original is slow
+    // enough to hit the request timeout — which surfaced as a non-JSON 500 in the
+    // editor ("JSON error"). Detect the content box on a downscaled copy, then map
+    // it back to full resolution before cropping.
+    $ANALYZE_MAX = 1000;
+    $an = $src;
+    $scale = 1.0;
+    if (max($w, $h) > $ANALYZE_MAX) {
+        $scale = $ANALYZE_MAX / max($w, $h);
+        $tmp = imagescale($src, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale)));
+        if ($tmp !== false) { $an = $tmp; } else { $scale = 1.0; }
+    }
+    $aw = imagesx($an);
+    $ah = imagesy($an);
+
     // Baseline background = the AVERAGE of a 20x20 sample in the top-left corner
     // (robust against single-pixel noise; works for beige/off-white, not just white).
-    $sampleW = min(20, $w);
-    $sampleH = min(20, $h);
+    $sampleW = min(20, $aw);
+    $sampleH = min(20, $ah);
     $sumR = 0; $sumG = 0; $sumB = 0; $samples = 0;
     for ($sy = 0; $sy < $sampleH; $sy++) {
         for ($sx = 0; $sx < $sampleW; $sx++) {
-            $c = imagecolorat($src, $sx, $sy);
+            $c = imagecolorat($an, $sx, $sy);
             $sumR += ($c >> 16) & 0xFF;
             $sumG += ($c >> 8) & 0xFF;
             $sumB += $c & 0xFF;
@@ -911,24 +931,31 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     $bgG = (int) round($sumG / $samples);
     $bgB = (int) round($sumB / $samples);
     $tol = 24;
-    $differs = function (int $x, int $y) use ($src, $bgR, $bgG, $bgB, $tol): bool {
-        $c = imagecolorat($src, $x, $y);
+    $differs = function (int $x, int $y) use ($an, $bgR, $bgG, $bgB, $tol): bool {
+        $c = imagecolorat($an, $x, $y);
         return abs((($c >> 16) & 0xFF) - $bgR) > $tol
             || abs((($c >> 8) & 0xFF) - $bgG) > $tol
             || abs(($c & 0xFF) - $bgB) > $tol;
     };
 
-    // Content bounding box: scan inward from each edge, stop at the first hit.
-    $minY = 0;
-    for (; $minY < $h; $minY++) { $hit = false; for ($x = 0; $x < $w; $x++) { if ($differs($x, $minY)) { $hit = true; break; } } if ($hit) break; }
-    if ($minY >= $h) { imagedestroy($src); return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
-    $maxY = $h - 1;
-    for (; $maxY > $minY; $maxY--) { $hit = false; for ($x = 0; $x < $w; $x++) { if ($differs($x, $maxY)) { $hit = true; break; } } if ($hit) break; }
-    $minX = 0;
-    for (; $minX < $w; $minX++) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($minX, $y)) { $hit = true; break; } } if ($hit) break; }
-    $maxX = $w - 1;
-    for (; $maxX > $minX; $maxX--) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($maxX, $y)) { $hit = true; break; } } if ($hit) break; }
+    // Content bounding box on the analysis image: scan inward from each edge.
+    $aMinY = 0;
+    for (; $aMinY < $ah; $aMinY++) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMinY)) { $hit = true; break; } } if ($hit) break; }
+    if ($aMinY >= $ah) { if ($an !== $src) imagedestroy($an); imagedestroy($src); return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
+    $aMaxY = $ah - 1;
+    for (; $aMaxY > $aMinY; $aMaxY--) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMaxY)) { $hit = true; break; } } if ($hit) break; }
+    $aMinX = 0;
+    for (; $aMinX < $aw; $aMinX++) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMinX, $y)) { $hit = true; break; } } if ($hit) break; }
+    $aMaxX = $aw - 1;
+    for (; $aMaxX > $aMinX; $aMaxX--) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMaxX, $y)) { $hit = true; break; } } if ($hit) break; }
+    if ($an !== $src) imagedestroy($an);
     imagedestroy($src);
+
+    // Map the analysis-space box back to full resolution.
+    $minX = (int) floor($aMinX / $scale);
+    $minY = (int) floor($aMinY / $scale);
+    $maxX = min($w - 1, (int) ceil($aMaxX / $scale));
+    $maxY = min($h - 1, (int) ceil($aMaxY / $scale));
 
     if ($marginPct < 0) { $marginPct = 0; }
     if ($marginPct > 100) { $marginPct = 100; }
