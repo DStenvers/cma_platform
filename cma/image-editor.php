@@ -141,29 +141,31 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         $svgDrop = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><path class="ie-svg-fill" d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>';
         $svgCompare = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/></svg>';
         $svgRgb = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="9" r="6"/><circle cx="12" cy="15" r="6"/></svg>';
+        // lnr-sun's glyph is missing from the built icon font; use an inline SVG sun.
+        $svgSun = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle class="ie-svg-fill" cx="12" cy="12" r="4"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></svg>';
         ?>
         <cma-toolbar wrap variant="detail">
             <left>
-                <button type="button" class="btn" onclick="imgEditor.rotate(-90)" title="Linksom draaien"><span class="lnr lnr-undo"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.rotate(90)" title="Rechtsom draaien"><span class="lnr lnr-redo"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.rotate(180)" title="180&deg; draaien"><span class="lnr lnr-sync"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.flip('h')" title="Horizontaal spiegelen"><?= $svgFlipH ?></button>
-                <button type="button" class="btn" onclick="imgEditor.flip('v')" title="Verticaal spiegelen"><?= $svgFlipV ?></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('brightness','+')" title="Lichter"><span class="lnr lnr-sun"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('brightness','-')" title="Donkerder"><span class="lnr lnr-sun ie-dim"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('contrast','+')" title="Meer contrast"><?= $svgContrast ?></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('contrast','-')" title="Minder contrast"><span class="ie-dim"><?= $svgContrast ?></span></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('saturation','+')" title="Meer verzadiging"><?= $svgDrop ?></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('saturation','-')" title="Minder verzadiging"><span class="ie-dim"><?= $svgDrop ?></span></button>
-                <button type="button" class="btn" onclick="imgEditor.toggleRgb()" title="Kleurbalans (R/G/B) met live voorbeeld"><?= $svgRgb ?></button>
-                <button type="button" class="btn" onclick="imgEditor.filter('sharpen','')" title="Verscherpen"><span class="lnr lnr-magic-wand"></span></button>
+                <span class="tb-btn responsive-btn" data-tooltip="Linksom draaien"><a href="javascript:imgEditor.rotate(-90)"><span class="lnr lnr-undo"></span><span class="btn-text">90&deg; L</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Rechtsom draaien"><a href="javascript:imgEditor.rotate(90)"><span class="lnr lnr-redo"></span><span class="btn-text">90&deg; R</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="180&deg; draaien"><a href="javascript:imgEditor.rotate(180)"><span class="lnr lnr-sync"></span><span class="btn-text">180&deg;</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Horizontaal spiegelen"><a href="javascript:imgEditor.flip('h')"><?= $svgFlipH ?><span class="btn-text">Spiegel H</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Verticaal spiegelen"><a href="javascript:imgEditor.flip('v')"><?= $svgFlipV ?><span class="btn-text">Spiegel V</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Lichter"><a href="javascript:imgEditor.filter('brightness','+')"><?= $svgSun ?><span class="btn-text">Lichter</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Donkerder"><a href="javascript:imgEditor.filter('brightness','-')"><span class="ie-dim"><?= $svgSun ?></span><span class="btn-text">Donkerder</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Meer contrast"><a href="javascript:imgEditor.filter('contrast','+')"><?= $svgContrast ?><span class="btn-text">Contrast +</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Minder contrast"><a href="javascript:imgEditor.filter('contrast','-')"><span class="ie-dim"><?= $svgContrast ?></span><span class="btn-text">Contrast &minus;</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Meer verzadiging"><a href="javascript:imgEditor.filter('saturation','+')"><?= $svgDrop ?><span class="btn-text">Kleur +</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Minder verzadiging"><a href="javascript:imgEditor.filter('saturation','-')"><span class="ie-dim"><?= $svgDrop ?></span><span class="btn-text">Kleur &minus;</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Kleurbalans (R/G/B) met live voorbeeld"><a href="javascript:imgEditor.toggleRgb()"><?= $svgRgb ?><span class="btn-text">RGB</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Verscherpen"><a href="javascript:imgEditor.filter('sharpen','')"><span class="lnr lnr-magic-wand"></span><span class="btn-text">Scherp</span></a></span>
             </left>
             <right>
-                <button type="button" class="btn" onclick="imgEditor.startCrop()" title="Bijsnijden"><span class="lnr lnr-crop"></span></button>
-                <button type="button" class="btn" onclick="imgEditor.autocrop()" title="Witruimte automatisch bijsnijden"><span class="lnr lnr-frame-contract"></span></button>
-                <label class="ie-margin" title="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="10">%</label>
-                <button type="button" class="btn ie-optional" id="ieCompareBtn" onclick="imgEditor.toggleCompare()" title="Vergelijk met origineel"><?= $svgCompare ?></button>
-                <button type="button" class="btn ie-optional" id="ieRestore" onclick="imgEditor.restore()" title="Origineel terugzetten"><span class="lnr lnr-history"></span></button>
+                <span class="tb-btn responsive-btn" data-tooltip="Bijsnijden"><a href="javascript:imgEditor.startCrop()"><span class="lnr lnr-crop"></span><span class="btn-text">Bijsnijden</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Witruimte automatisch bijsnijden"><a href="javascript:imgEditor.autocrop()"><span class="lnr lnr-frame-contract"></span><span class="btn-text">Autocrop</span></a></span>
+                <label class="ie-margin" data-tooltip="Marge rondom de inhoud bij autocrop">marge <input type="number" id="autocropMargin" min="0" max="50" step="1" value="10">%</label>
+                <span class="tb-btn responsive-btn ie-optional" id="ieCompareBtn" data-tooltip="Vergelijk met origineel"><a href="javascript:imgEditor.toggleCompare()"><?= $svgCompare ?><span class="btn-text">Vergelijk</span></a></span>
+                <span class="tb-btn responsive-btn ie-optional" id="ieRestore" data-tooltip="Origineel terugzetten"><a href="javascript:imgEditor.restore()"><span class="lnr lnr-history"></span><span class="btn-text">Herstel</span></a></span>
             </right>
         </cma-toolbar>
 

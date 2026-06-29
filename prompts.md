@@ -1461,3 +1461,7 @@ karaat-data en staat in de karaat-repo.
 > perfect, works like a charm!
 
 > A generic white balance would be nice , can you include it in the current mini-dialog?
+
+> .image-editor-info and .image-editor-footer: remove background and border-top 
+>
+> then the toolbar is not the same as a cma toolbar, the buttons need to be span with class'tb-btn responsive-btn'
