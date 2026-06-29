@@ -787,17 +787,39 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             break;
 
         case 'colorbalance':
-            // arg = "r,g,b" — a per-channel offset added to every pixel (-255..255),
-            // identical to the editor's client-side live preview. For a stone with too
-            // much red, pass a negative r. Uses GD's COLORIZE (additive per channel).
-            $parts = array_map('intval', explode(',', (string) $arg));
-            $rOff = isset($parts[0]) ? max(-255, min(255, $parts[0])) : 0;
-            $gOff = isset($parts[1]) ? max(-255, min(255, $parts[1])) : 0;
-            $bOff = isset($parts[2]) ? max(-255, min(255, $parts[2])) : 0;
+            // arg = "rOff,gOff,bOff[,rFac,gFac,bFac]". Each pixel becomes
+            //   clamp(round(channel * factor) + offset)
+            // — the exact transform the editor previews live. Offsets carry the R/G/B
+            // sliders (-255..255); the factors carry the auto white-balance (gray-world)
+            // gains. With all factors 1 it's a plain additive shift (fast GD COLORIZE).
+            $parts = explode(',', (string) $arg);
+            $rOff = isset($parts[0]) ? max(-255, min(255, (int) $parts[0])) : 0;
+            $gOff = isset($parts[1]) ? max(-255, min(255, (int) $parts[1])) : 0;
+            $bOff = isset($parts[2]) ? max(-255, min(255, (int) $parts[2])) : 0;
+            $rFac = isset($parts[3]) ? max(0.2, min(5.0, (float) $parts[3])) : 1.0;
+            $gFac = isset($parts[4]) ? max(0.2, min(5.0, (float) $parts[4])) : 1.0;
+            $bFac = isset($parts[5]) ? max(0.2, min(5.0, (float) $parts[5])) : 1.0;
             if (function_exists('imagepalettetotruecolor')) {
                 imagepalettetotruecolor($source);
             }
-            $success = imagefilter($source, IMG_FILTER_COLORIZE, $rOff, $gOff, $bOff);
+            if ($rFac === 1.0 && $gFac === 1.0 && $bFac === 1.0) {
+                $success = imagefilter($source, IMG_FILTER_COLORIZE, $rOff, $gOff, $bOff);
+            } else {
+                // No GD multiply filter — per-pixel multiply + offset.
+                $sw = imagesx($source);
+                $sh = imagesy($source);
+                for ($yy = 0; $yy < $sh; $yy++) {
+                    for ($xx = 0; $xx < $sw; $xx++) {
+                        $rgb = imagecolorat($source, $xx, $yy);
+                        $al = ($rgb >> 24) & 0x7F;
+                        $r = (int) max(0, min(255, round((($rgb >> 16) & 0xFF) * $rFac) + $rOff));
+                        $g = (int) max(0, min(255, round((($rgb >> 8) & 0xFF) * $gFac) + $gOff));
+                        $b = (int) max(0, min(255, round(($rgb & 0xFF) * $bFac) + $bOff));
+                        imagesetpixel($source, $xx, $yy, imagecolorallocatealpha($source, $r, $g, $b, $al));
+                    }
+                }
+                $success = true;
+            }
             break;
 
         default:

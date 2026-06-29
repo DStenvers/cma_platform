@@ -139,6 +139,9 @@
                 var s = document.getElementById('ieRgb' + c); if (s) s.value = 0;
                 var v = document.getElementById('ieRgb' + c + 'v'); if (v) v.textContent = '0';
             });
+            this._wb = null;
+            var wbBtn = document.getElementById('ieRgbWb');
+            if (wbBtn) wbBtn.classList.remove('is-active');
             img.style.display = 'none';
             canvas.classList.add('is-open');
             panel.classList.add('is-open');
@@ -150,14 +153,42 @@
             return { r: g('ieRgbR'), g: g('ieRgbG'), b: g('ieRgbB') };
         },
 
+        // Auto white balance (gray-world): scale each channel so its average becomes
+        // the overall gray, neutralising a colour cast. Stored as factors and applied
+        // (multiply) before the additive R/G/B sliders, both here and on the server.
+        whiteBalance: function () {
+            if (!this._rgbOrig) return;
+            var btn = document.getElementById('ieRgbWb');
+            if (this._wb) {
+                this._wb = null;
+                if (btn) btn.classList.remove('is-active');
+            } else {
+                var data = this._rgbOrig.data, sr = 0, sg = 0, sb = 0, n = 0;
+                for (var i = 0; i < data.length; i += 4) { sr += data[i]; sg += data[i + 1]; sb += data[i + 2]; n++; }
+                if (!n) return;
+                var ar = sr / n, ag = sg / n, ab = sb / n, gray = (ar + ag + ab) / 3;
+                var cl = function (f) { return Math.max(0.2, Math.min(5, f)); };
+                this._wb = {
+                    rf: cl(ar > 0 ? gray / ar : 1),
+                    gf: cl(ag > 0 ? gray / ag : 1),
+                    bf: cl(ab > 0 ? gray / ab : 1)
+                };
+                if (btn) btn.classList.add('is-active');
+            }
+            this.previewRgb();
+        },
+
         previewRgb: function () {
             if (!this._rgbOrig || !this._rgbCtx) return;
             var v = this._rgbVals();
+            var wb = this._wb || { rf: 1, gf: 1, bf: 1 };
             var src = this._rgbOrig.data;
             var out = this._rgbCtx.createImageData(this._rgbOrig.width, this._rgbOrig.height);
             var d = out.data;
             for (var i = 0; i < src.length; i += 4) {
-                var r = src[i] + v.r, g = src[i + 1] + v.g, b = src[i + 2] + v.b;
+                var r = Math.round(src[i] * wb.rf) + v.r;
+                var g = Math.round(src[i + 1] * wb.gf) + v.g;
+                var b = Math.round(src[i + 2] * wb.bf) + v.b;
                 d[i]     = r < 0 ? 0 : (r > 255 ? 255 : r);
                 d[i + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
                 d[i + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
@@ -169,11 +200,13 @@
         },
 
         applyRgb: function () {
-            var self = this;
             var v = this._rgbVals();
-            if (v.r === 0 && v.g === 0 && v.b === 0) { this.cancelRgb(); return; }
+            var wb = this._wb || { rf: 1, gf: 1, bf: 1 };
+            var noop = v.r === 0 && v.g === 0 && v.b === 0 && wb.rf === 1 && wb.gf === 1 && wb.bf === 1;
+            if (noop) { this.cancelRgb(); return; }
             // editOp() closes the RGB UI at its start; values are already captured here.
-            this.editOp({ action: 'filter', filter: 'colorbalance', arg: v.r + ',' + v.g + ',' + v.b });
+            var arg = v.r + ',' + v.g + ',' + v.b + ',' + wb.rf.toFixed(4) + ',' + wb.gf.toFixed(4) + ',' + wb.bf.toFixed(4);
+            this.editOp({ action: 'filter', filter: 'colorbalance', arg: arg });
         },
 
         cancelRgb: function () { this._closeRgbUi(); },
@@ -185,6 +218,9 @@
             if (panel) panel.classList.remove('is-open');
             if (canvas) canvas.classList.remove('is-open');
             if (img) img.style.display = '';
+            this._wb = null;
+            var wbBtn = document.getElementById('ieRgbWb');
+            if (wbBtn) wbBtn.classList.remove('is-active');
             this._rgbOrig = null;
             this._rgbCtx = null;
         },

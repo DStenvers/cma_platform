@@ -1457,3 +1457,7 @@ karaat-data en staat in de karaat-repo.
 > i now have a stone with way too much red, can we create a small popup where we can change the R G B hue values ? Preferably with a read-life update if possible?
 
 > On the homepage, add 'Enkele edelstenen'and rename Alle steensoorten to Edelstenen van A-Z, over die pagina: alle stenen ontbreken, kun je die ook webp-aware maken?
+
+> perfect, works like a charm!
+
+> A generic white balance would be nice , can you include it in the current mini-dialog?

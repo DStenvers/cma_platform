@@ -175,6 +175,7 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
             <!-- Colour-balance panel with live preview (shown via the R/G/B button). -->
             <div class="ie-rgb-panel" id="ieRgbPanel">
                 <div class="ie-rgb-title">Kleurbalans &mdash; live voorbeeld</div>
+                <div class="ie-rgb-wb"><button type="button" class="btn btn-secondary" id="ieRgbWb" onclick="imgEditor.whiteBalance()" title="Automatische witbalans (neutraliseert een kleurzweem)">Auto witbalans</button></div>
                 <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--r">R</span><input type="range" id="ieRgbR" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbRv">0</span></label>
                 <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--g">G</span><input type="range" id="ieRgbG" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbGv">0</span></label>
                 <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--b">B</span><input type="range" id="ieRgbB" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbBv">0</span></label>

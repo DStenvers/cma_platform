@@ -94,6 +94,9 @@
 }
 .ie-rgb-panel.is-open { display: block; }
 .ie-rgb-title { font-size: var(--font-size-sm, 13px); opacity: 0.85; margin-bottom: 8px; }
+.ie-rgb-wb { margin-bottom: 8px; }
+.ie-rgb-wb .btn { width: 100%; }
+.ie-rgb-wb .btn.is-active { background: var(--color-primary, #1976d2); color: #fff; }
 .ie-rgb-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 .ie-rgb-lbl { width: 16px; text-align: center; font-weight: 600; }
 .ie-rgb-lbl--r { color: #ff6b6b; }
