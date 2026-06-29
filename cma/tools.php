@@ -42,6 +42,23 @@ CmaRepository::setCaching(true);
 $isDeveloper = SecurityHelper::isDeveloper();
 $isNomenuMode = defined('CMA_NOMENU_MODE') && CMA_NOMENU_MODE;
 
+// The main app sidebar lives in the shell (main.php). tools.php must therefore
+// ALWAYS render inside that shell — a standalone/top-level hit (a direct
+// /cma/tools.php?tool=… or the /cma/tools/<name> friendly URL) has no sidebar.
+// Redirect any non-shell request to the clean /cma/tools route, which loads
+// tools.php into the shell content area (sidebar present). The requested tool
+// is preserved; the shell then fetches tools.php in nomenu mode (no redirect).
+if (!$isNomenuMode) {
+    // Target the shell explicitly via main.php (not the clean /cma/tools URL):
+    // main.php never re-enters tools.php server-side, so this can't loop even if
+    // the /cma/tools rewrite rule is missing on a site. main.php then loads
+    // tools.php in nomenu mode (where this guard is skipped).
+    $toolReq = Request::query('tool', '');
+    $target = '/cma/main.php?page=tools.php' . ($toolReq !== '' ? '&tool=' . urlencode($toolReq) : '');
+    header('Location: ' . $target, true, 302);
+    exit;
+}
+
 // Friendly name -> tool file mapping (real tools rendered in the tools iframe).
 // Form-backed admin entities (users, groups, …) are NOT here — they are
 // canonical FORM routes (/cma/form/<form>) and live in $formBackedTools below,
@@ -318,7 +335,7 @@ if (!$isNomenuMode) {
             // routes correctly.
             var toolName = extractToolName(href);
             if (toolName) {
-                var newUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             }
         }
@@ -459,12 +476,12 @@ if (!$isNomenuMode) {
             // above.
             var toolName = extractToolName(href);
             if (toolName && window.parent === window) {
-                var newUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
+                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                 history.pushState({ tool: toolName }, '', newUrl);
             } else if (toolName && window.parent !== window) {
                 // Loaded inside an outer SPA frame — also anchor on /cma/tools.
                 try {
-                    var parentUrl = '/cma/tools.php?tool=' + encodeURIComponent(toolName);
+                    var parentUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
                     window.parent.history.pushState({ tool: toolName }, '', parentUrl);
                 } catch (e) {
                     // Cross-origin, ignore

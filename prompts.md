@@ -1423,3 +1423,5 @@ karaat-data en staat in de karaat-repo.
 > yes i mean the main app sidebar, it should always be there, in all routes
 
 > yes please require a manual crop
+
+> Okay, starting the dialog I see everything and then a spinner appears... never to dissapear again?!

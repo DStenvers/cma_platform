@@ -322,6 +322,18 @@ if (isset($_GET['silent']) && $_GET['silent'] === '1') {
     exit;
 }
 
+// Fallback for a failed OPcache reset: touch the site-root web.config so IIS
+// recycles the application pool, which flushes OPcache + APCu wholesale (the
+// same mechanism the deploy uses). Manual page only — the silent/migration path
+// returned above, so a recycle can never interrupt a migration. Best-effort.
+$_opcacheRecycleFallback = false;
+if ($_preOpcacheResult === false) {
+    $_rootWebConfig = dirname(__DIR__, 2) . '/web.config';
+    if (is_file($_rootWebConfig) && is_writable($_rootWebConfig)) {
+        $_opcacheRecycleFallback = @touch($_rootWebConfig);
+    }
+}
+
 // ============================================================================
 // PHASE 2: Load bootstrap (this may create new cache entries)
 // ============================================================================
@@ -353,7 +365,9 @@ $caches = [];
 if (function_exists('opcache_reset')) {
     $caches['OPcache'] = [
         'available' => true,
-        'result' => $_preOpcacheResult,
+        // A successful web.config-touch recycle also clears OPcache, so count it
+        // as handled rather than a hard failure.
+        'result' => $_preOpcacheResult || $_opcacheRecycleFallback,
         'detail' => 'PHP bytecode',
         'count' => $_preOpcacheScripts,
         'extra' => $_preOpcacheStats ? [
@@ -1047,6 +1061,14 @@ function toggleDetails() {
     }
 }
 </script>';
+}
+
+// ==================== OPCACHE RECYCLE FALLBACK NOTICE ====================
+if (!empty($_opcacheRecycleFallback)) {
+    echo '<lib-message type="information" closable>';
+    echo '<span class="cma-tool__strong">OPcache geleegd via app-pool recycle</span><br>';
+    echo 'opcache_reset() faalde, dus <code>web.config</code> is aangeraakt. IIS herstart nu de applicatiepool — dat leegt OPcache én APCu volledig. De eerstvolgende paginalading kan iets trager zijn (koude start).';
+    echo '</lib-message>';
 }
 
 // ==================== FAILURE HINTS ====================
