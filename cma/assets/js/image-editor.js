@@ -56,6 +56,7 @@
             var pane = document.getElementById('ieComparePane');
             if (!pane) return;
             if (pane.classList.contains('is-open')) { this.closeCompare(); return; }
+            this.cancelRgb();
             if (!this.originalUrl) { this.toast('Geen origineel om mee te vergelijken.', true); return; }
             var bg = document.getElementById('ieCompareBg');   // edited, full (right)
             var fg = document.getElementById('ieCompareFg');   // original, clipped (left)
@@ -104,6 +105,90 @@
             window.addEventListener('pointerup', this._cmpUpB);
         },
 
+        // ── Colour balance (R/G/B) with live canvas preview ─────────────────
+        toggleRgb: function () {
+            var panel = document.getElementById('ieRgbPanel');
+            if (!panel) return;
+            if (panel.classList.contains('is-open')) { this.cancelRgb(); return; }
+            this.cancelCrop();
+            this.closeCompare();
+            var img = document.getElementById('editorImage');
+            var canvas = document.getElementById('ieRgbCanvas');
+            if (!img || !canvas || !img.complete || !img.naturalWidth) {
+                this.toast('Afbeelding is nog niet geladen.', true);
+                return;
+            }
+            // Preview at the displayed size, capped so the per-pixel update stays real-time.
+            var w = img.clientWidth || img.naturalWidth;
+            var h = img.clientHeight || img.naturalHeight;
+            var cap = 1000, sc = Math.min(1, cap / Math.max(w, h));
+            w = Math.max(1, Math.round(w * sc));
+            h = Math.max(1, Math.round(h * sc));
+            canvas.width = w; canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            try {
+                ctx.drawImage(img, 0, 0, w, h);
+                this._rgbOrig = ctx.getImageData(0, 0, w, h);
+            } catch (e) {
+                log.error('[ImageEditor] rgb preview blocked:', e && e.message);
+                this.toast('Live voorbeeld niet beschikbaar voor deze afbeelding.', true);
+                return;
+            }
+            this._rgbCtx = ctx;
+            ['R', 'G', 'B'].forEach(function (c) {
+                var s = document.getElementById('ieRgb' + c); if (s) s.value = 0;
+                var v = document.getElementById('ieRgb' + c + 'v'); if (v) v.textContent = '0';
+            });
+            img.style.display = 'none';
+            canvas.classList.add('is-open');
+            panel.classList.add('is-open');
+            this.previewRgb();
+        },
+
+        _rgbVals: function () {
+            var g = function (id) { var el = document.getElementById(id); return el ? (parseInt(el.value, 10) || 0) : 0; };
+            return { r: g('ieRgbR'), g: g('ieRgbG'), b: g('ieRgbB') };
+        },
+
+        previewRgb: function () {
+            if (!this._rgbOrig || !this._rgbCtx) return;
+            var v = this._rgbVals();
+            var src = this._rgbOrig.data;
+            var out = this._rgbCtx.createImageData(this._rgbOrig.width, this._rgbOrig.height);
+            var d = out.data;
+            for (var i = 0; i < src.length; i += 4) {
+                var r = src[i] + v.r, g = src[i + 1] + v.g, b = src[i + 2] + v.b;
+                d[i]     = r < 0 ? 0 : (r > 255 ? 255 : r);
+                d[i + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
+                d[i + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
+                d[i + 3] = src[i + 3];
+            }
+            this._rgbCtx.putImageData(out, 0, 0);
+            var setv = function (id, val) { var el = document.getElementById(id); if (el) el.textContent = String(val); };
+            setv('ieRgbRv', v.r); setv('ieRgbGv', v.g); setv('ieRgbBv', v.b);
+        },
+
+        applyRgb: function () {
+            var self = this;
+            var v = this._rgbVals();
+            if (v.r === 0 && v.g === 0 && v.b === 0) { this.cancelRgb(); return; }
+            // editOp() closes the RGB UI at its start; values are already captured here.
+            this.editOp({ action: 'filter', filter: 'colorbalance', arg: v.r + ',' + v.g + ',' + v.b });
+        },
+
+        cancelRgb: function () { this._closeRgbUi(); },
+
+        _closeRgbUi: function () {
+            var panel = document.getElementById('ieRgbPanel');
+            var canvas = document.getElementById('ieRgbCanvas');
+            var img = document.getElementById('editorImage');
+            if (panel) panel.classList.remove('is-open');
+            if (canvas) canvas.classList.remove('is-open');
+            if (img) img.style.display = '';
+            this._rgbOrig = null;
+            this._rgbCtx = null;
+        },
+
         // ── Server I/O ──────────────────────────────────────────────────────
         opUrl: function () {
             return this.cfg.endpoint
@@ -123,6 +208,7 @@
                 if (extra.hasOwnProperty(k) && k !== 'action') fd.append(k, String(extra[k]));
             }
             self.closeCompare(); // the comparison would be stale once the image changes
+            self.cancelRgb();    // close the colour-balance preview before any op
             self.showLoader();
             return fetch(this.opUrl(), { method: 'POST', body: fd })
                 .then(function (r) {
@@ -208,6 +294,7 @@
             var img = document.getElementById('editorImage');
             if (!wrap || !img) return;
             this.cancelCrop();
+            this.cancelRgb();
             wrap.classList.add('cropping');
 
             var overlay = document.createElement('div');

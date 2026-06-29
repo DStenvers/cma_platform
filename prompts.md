@@ -1445,3 +1445,15 @@ karaat-data en staat in de karaat-repo.
 > 1 please
 
 > if the login screen is shown, move focus to the login name field
+
+> karaat detail page : Heel gaaf steentje, klein maar zeer mooi. Er zit een oneffenheid in de steen maar die zie je alleen onder extreme vergroting.<br /> Alexandriet is echt heel zeldzaam, zeldzamer dan diamand. Het is dan ook de enige steen die ik aan kan bieden.&nbsp;<br /> Alexandriet verandert van kleur onder verschillende typen licht, deze steen is groen en rood.&nbsp;
+>
+> if it contains html do not encode
+
+> after an edit the page is updated, but that does not have this change, can we simply refresh the page?
+
+> in the quick edit form, can you add Zeldzaam to the form, next to Leverbaar ? and change the captions -> Kleur(en) and Vorm(en)
+
+> i now have a stone with way too much red, can we create a small popup where we can change the R G B hue values ? Preferably with a read-life update if possible?
+
+> On the homepage, add 'Enkele edelstenen'and rename Alle steensoorten to Edelstenen van A-Z, over die pagina: alle stenen ontbreken, kun je die ook webp-aware maken?

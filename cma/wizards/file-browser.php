@@ -786,6 +786,20 @@ function applyImageFilter(string $fullPath, string $file, string $filter, string
             $success = true;
             break;
 
+        case 'colorbalance':
+            // arg = "r,g,b" — a per-channel offset added to every pixel (-255..255),
+            // identical to the editor's client-side live preview. For a stone with too
+            // much red, pass a negative r. Uses GD's COLORIZE (additive per channel).
+            $parts = array_map('intval', explode(',', (string) $arg));
+            $rOff = isset($parts[0]) ? max(-255, min(255, $parts[0])) : 0;
+            $gOff = isset($parts[1]) ? max(-255, min(255, $parts[1])) : 0;
+            $bOff = isset($parts[2]) ? max(-255, min(255, $parts[2])) : 0;
+            if (function_exists('imagepalettetotruecolor')) {
+                imagepalettetotruecolor($source);
+            }
+            $success = imagefilter($source, IMG_FILTER_COLORIZE, $rOff, $gOff, $bOff);
+            break;
+
         default:
             return ['success' => false, 'error' => 'Onbekend filter'];
     }

@@ -140,6 +140,7 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         $svgContrast = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ie-svg-fill" d="M12 3a9 9 0 0 1 0 18z"/></svg>';
         $svgDrop = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><path class="ie-svg-fill" d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>';
         $svgCompare = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/></svg>';
+        $svgRgb = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="9" r="6"/><circle cx="12" cy="15" r="6"/></svg>';
         ?>
         <cma-toolbar wrap variant="detail">
             <left>
@@ -154,6 +155,7 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
                 <button type="button" class="btn" onclick="imgEditor.filter('contrast','-')" title="Minder contrast"><span class="ie-dim"><?= $svgContrast ?></span></button>
                 <button type="button" class="btn" onclick="imgEditor.filter('saturation','+')" title="Meer verzadiging"><?= $svgDrop ?></button>
                 <button type="button" class="btn" onclick="imgEditor.filter('saturation','-')" title="Minder verzadiging"><span class="ie-dim"><?= $svgDrop ?></span></button>
+                <button type="button" class="btn" onclick="imgEditor.toggleRgb()" title="Kleurbalans (R/G/B) met live voorbeeld"><?= $svgRgb ?></button>
                 <button type="button" class="btn" onclick="imgEditor.filter('sharpen','')" title="Verscherpen"><span class="lnr lnr-magic-wand"></span></button>
             </left>
             <right>
@@ -168,6 +170,18 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         <div class="image-editor-canvas">
             <div class="preview-wrap" id="previewWrap">
                 <img id="editorImage" alt="Afbeelding bewerken">
+                <canvas id="ieRgbCanvas" class="ie-rgb-canvas"></canvas>
+            </div>
+            <!-- Colour-balance panel with live preview (shown via the R/G/B button). -->
+            <div class="ie-rgb-panel" id="ieRgbPanel">
+                <div class="ie-rgb-title">Kleurbalans &mdash; live voorbeeld</div>
+                <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--r">R</span><input type="range" id="ieRgbR" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbRv">0</span></label>
+                <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--g">G</span><input type="range" id="ieRgbG" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbGv">0</span></label>
+                <label class="ie-rgb-row"><span class="ie-rgb-lbl ie-rgb-lbl--b">B</span><input type="range" id="ieRgbB" min="-100" max="100" value="0" oninput="imgEditor.previewRgb()"><span class="ie-rgb-val" id="ieRgbBv">0</span></label>
+                <div class="ie-rgb-actions">
+                    <button type="button" class="btn btn-secondary" onclick="imgEditor.cancelRgb()">Annuleren</button>
+                    <button type="button" class="btn btn-primary" onclick="imgEditor.applyRgb()">Toepassen</button>
+                </div>
             </div>
             <!-- Before/after compare slider (shown only when an edit has been made). -->
             <div class="ie-compare" id="ieComparePane">
