@@ -65,6 +65,17 @@ $resizeType  = Request::queryInt('resizetype');
 $resizeWidth = Request::queryInt('resizewidth');
 $resizeHeight = Request::queryInt('resizeheight');
 
+// Optional aspect-ratio lock (e.g. aspect=16:9). Unlike resizetype=fixed this only
+// constrains the crop to a ratio — it does NOT force a specific output pixel size.
+// Consumer sites pass this to restrict what shape can be produced (karaat: 16:9).
+$aspectW = 0;
+$aspectH = 0;
+$aspectRaw = trim((string)Request::query('aspect', ''));
+if ($aspectRaw !== '' && preg_match('/^\s*(\d+)\s*[:x\/]\s*(\d+)\s*$/i', $aspectRaw, $m)) {
+    $aspectW = (int)$m[1];
+    $aspectH = (int)$m[2];
+}
+
 // If the file value carries a path, split it into directory + filename.
 if ($currentFile !== '' && strpos($currentFile, '/') !== false) {
     if ($basePath !== '' && strpos($currentFile, $basePath) === 0) {
@@ -94,11 +105,13 @@ $config = [
     'resizeType'   => $resizeType,
     'resizeWidth'  => $resizeWidth,
     'resizeHeight' => $resizeHeight,
+    'aspectW'      => $aspectW,
+    'aspectH'      => $aspectH,
     // Op endpoint, relative to this page (/cma/image-editor.php -> /cma/wizards/...).
     'endpoint'     => 'wizards/file-browser.php',
 ];
 
-$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
+$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,../library/webcomponents/lib-loader.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
 ?><!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -158,5 +171,6 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
             <button type="button" class="btn btn-primary" onclick="imgEditor.finish()">Klaar</button>
         </div>
     </div>
+    <lib-loader id="ieLoader" overlay text="Even bezig&hellip;"></lib-loader>
 </body>
 </html>

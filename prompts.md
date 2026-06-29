@@ -1409,3 +1409,11 @@ karaat-data en staat in de karaat-repo.
 > no just the height
 
 > okay, now if the screen is mobile, the edit overlaps the winkelmand, shy not just place them next to each other and only right align the save ?
+
+> .dialog-maximize .lnr-frame-expand::before {
+>     content: "\e952";
+> }
+>
+> this one seems to be missing from linearicons
+
+> the image editor allows for any format to be cropped, in the case of karaat: only allow for 16:9 aspect ratio, make sure it is parameterised by karaat.

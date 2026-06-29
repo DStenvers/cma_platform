@@ -35,7 +35,19 @@
                 return;
             }
             this.renderRuleHint();
-            this.reload();
+            this.showLoader();
+            this.reload().then(function () { self.hideLoader(); });
+        },
+
+        // ── Loading spinner (lib-loader has a built-in delay so quick ops don't
+        // flicker; only genuinely slow ops — GD on a big image — show it). ──────
+        showLoader: function () {
+            var l = document.getElementById('ieLoader');
+            if (l) { if (typeof l.show === 'function') l.show(); else l.setAttribute('active', ''); }
+        },
+        hideLoader: function () {
+            var l = document.getElementById('ieLoader');
+            if (l) { if (typeof l.hide === 'function') l.hide(); else l.removeAttribute('active'); }
         },
 
         // ── Server I/O ──────────────────────────────────────────────────────
@@ -46,6 +58,8 @@
         },
 
         // POST a mutating image operation, then refresh the preview/details.
+        // Resolves to true on success, false on failure. Shows the spinner for the
+        // whole op (the op fetch itself is the slow part on a large image).
         editOp: function (extra) {
             var self = this;
             var fd = new FormData();
@@ -54,6 +68,7 @@
             for (var k in extra) {
                 if (extra.hasOwnProperty(k) && k !== 'action') fd.append(k, String(extra[k]));
             }
+            self.showLoader();
             return fetch(this.opUrl(), { method: 'POST', body: fd })
                 .then(function (r) {
                     // A server fatal (e.g. GD out-of-memory on a huge image) returns a
@@ -67,16 +82,17 @@
                 })
                 .then(function (data) {
                     if (data && data.success) {
-                        return self.reload();
+                        return self.reload().then(function () { return true; });
                     }
                     self.toast('Bewerking mislukt: ' + ((data && data.error) || 'onbekende fout'), true);
-                    return null;
+                    return false;
                 })
                 .catch(function (err) {
                     log.error('[ImageEditor] op failed:', err && err.message);
                     self.toast('Bewerking mislukt — ' + (err && err.message ? err.message : 'netwerkfout'), true);
-                    return null;
-                });
+                    return false;
+                })
+                .then(function (ok) { self.hideLoader(); return ok; });
         },
 
         // Re-fetch file details (url, dimensions, hasOriginal) and repaint.
@@ -139,19 +155,27 @@
             overlay.appendChild(sel);
             wrap.appendChild(overlay);
 
-            // Fixed-size fields lock the crop to the required ratio and output W x H.
-            var ratio = 0, targetW = 0, targetH = 0;
-            if (Number(this.cfg.resizeType) === 2 && Number(this.cfg.resizeWidth) > 0 && Number(this.cfg.resizeHeight) > 0) {
+            // Determine the locked crop ratio:
+            //  - aspect (e.g. 16:9): lock ratio only, keep native resolution (targetW/H = 0)
+            //  - resizetype=fixed: lock ratio AND output exactly W x H
+            //  - otherwise: free crop
+            var ratio = 0, targetW = 0, targetH = 0, label = '';
+            var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
+            if (aw > 0 && ah > 0) {
+                ratio = aw / ah;
+                label = 'Verhouding: ' + aw + ':' + ah;
+            } else if (Number(this.cfg.resizeType) === 2 && Number(this.cfg.resizeWidth) > 0 && Number(this.cfg.resizeHeight) > 0) {
                 targetW = Number(this.cfg.resizeWidth);
                 targetH = Number(this.cfg.resizeHeight);
                 ratio = targetW / targetH;
+                label = 'Vaste maat: ' + targetW + '×' + targetH + ' px';
             }
 
             var actions = document.createElement('div');
             actions.className = 'crop-actions';
             var html = '<button type="button" class="btn btn-primary" onclick="imgEditor.applyCrop()">Bijsnijden</button> '
                      + '<button type="button" class="btn" onclick="imgEditor.cancelCrop()">Annuleren</button>';
-            if (ratio > 0) html += ' <span class="crop-target">Vaste maat: ' + targetW + '×' + targetH + ' px</span>';
+            if (label) html += ' <span class="crop-target">' + label + '</span>';
             actions.innerHTML = html;
             wrap.parentNode.insertBefore(actions, wrap.nextSibling);
 
@@ -239,10 +263,35 @@
             this.editOp({ action: 'crop', x: x, y: y, width: cw, height: ch, destWidth: destW, destHeight: destH });
         },
 
+        // Largest centered crop of (W,H) that matches the given ratio (W/H).
+        centeredCrop: function (W, H, ratio) {
+            var cw = W, ch = H;
+            if (W / H > ratio) { cw = Math.round(H * ratio); ch = H; }
+            else { cw = W; ch = Math.round(W / ratio); }
+            return { x: Math.round((W - cw) / 2), y: Math.round((H - ch) / 2), w: cw, h: ch };
+        },
+
         // ── Finish / cancel ─────────────────────────────────────────────────
         finish: function () {
             var self = this;
             this.cancelCrop();
+            var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
+
+            // Aspect lock (e.g. 16:9): the saved image MUST match the ratio. If the
+            // user didn't crop to it, auto-apply the largest centered crop so the
+            // result always conforms — keeping native resolution (no forced resize).
+            if (aw > 0 && ah > 0 && this.width > 0 && this.height > 0) {
+                var ratio = aw / ah;
+                if (Math.abs(this.width / this.height - ratio) > 0.01) {
+                    var c = this.centeredCrop(this.width, this.height, ratio);
+                    this.editOp({ action: 'crop', x: c.x, y: c.y, width: c.w, height: c.h, destWidth: 0, destHeight: 0 })
+                        .then(function (ok) { if (ok) self.postComplete(); });
+                    return;
+                }
+                this.postComplete();
+                return;
+            }
+
             var rt = Number(this.cfg.resizeType);
             var mw = Number(this.cfg.resizeWidth) || 0;
             var mh = Number(this.cfg.resizeHeight) || 0;
@@ -251,7 +300,7 @@
             if (rt === 1 && (mw > 0 || mh > 0) &&
                 ((mw > 0 && this.width > mw) || (mh > 0 && this.height > mh))) {
                 this.editOp({ action: 'resize', width: mw || this.width, height: mh || this.height })
-                    .then(function () { self.postComplete(); });
+                    .then(function (ok) { if (ok) self.postComplete(); });
                 return;
             }
             this.postComplete();
@@ -279,9 +328,11 @@
         renderRuleHint: function () {
             var el = document.getElementById('ieRule');
             if (!el) return;
+            var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
             var rt = Number(this.cfg.resizeType);
             var w = Number(this.cfg.resizeWidth) || 0, h = Number(this.cfg.resizeHeight) || 0;
-            if (rt === 2 && w > 0 && h > 0) el.textContent = 'Vaste maat: ' + w + ' × ' + h + ' px';
+            if (aw > 0 && ah > 0) el.textContent = 'Vaste verhouding: ' + aw + ':' + ah;
+            else if (rt === 2 && w > 0 && h > 0) el.textContent = 'Vaste maat: ' + w + ' × ' + h + ' px';
             else if (rt === 1 && (w > 0 || h > 0)) el.textContent = 'Maximaal: ' + w + ' × ' + h + ' px';
             else el.textContent = '';
         },
