@@ -1425,3 +1425,9 @@ karaat-data en staat in de karaat-repo.
 > yes please require a manual crop
 
 > Okay, starting the dialog I see everything and then a spinner appears... never to dissapear again?!
+
+> the edit form should also use the same <lib-combo multiple to save space
+
+> io don't want a stand alone renderer for the tools menu. so yes please remove it
+
+> i had cropped an image, but the responsive formats did not regenerate, please check
