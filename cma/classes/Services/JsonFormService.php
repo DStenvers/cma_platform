@@ -116,6 +116,16 @@ class JsonFormService extends BaseFormService
                         // Skip columns that no longer exist in form definition
                         // This handles removed fields (like isBeheer after migration)
                         if ($field === null) {
+                            // The ID field is often an implicit autonumber not declared
+                            // in "fields"; still allow it as a column (it is always
+                            // SELECTed) so users can show/sort on it.
+                            if ($lcName === strtolower($idField)) {
+                                $listColumns[] = [
+                                    'field' => $colName,
+                                    'title' => $colName,
+                                    'type' => 'number',
+                                ];
+                            }
                             continue;
                         }
 
@@ -307,6 +317,17 @@ class JsonFormService extends BaseFormService
                         }
 
                         $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
+                    }
+                }
+
+                // Always allow searching by record ID (numeric exact match), even when
+                // ID isn't a visible column or listed in quickSearchFields.
+                $searchId = SQL::normalizeDecimal($search);
+                if (is_numeric($searchId)) {
+                    $idCol = $tableName !== '' ? "[$tableName].[$idField]" : "[$idField]";
+                    $idCond = "$idCol = " . (int)$searchId;
+                    if (!in_array($idCond, $searchConditions, true)) {
+                        $searchConditions[] = $idCond;
                     }
                 }
 
@@ -1229,6 +1250,22 @@ class JsonFormService extends BaseFormService
                     'type' => $fieldType,      // Raw field type for logic (memo detection, etc.)
                     'typeLabel' => $typeName,   // Dutch display label
                 ];
+            }
+
+            // Always offer the ID field in the chooser, even when it isn't declared
+            // in "fields" (e.g. an implicit autonumber). Lets users show/sort/search on it.
+            $hasIdColumn = false;
+            foreach ($columns as $col) {
+                if (strtolower($col['name']) === $idField) { $hasIdColumn = true; break; }
+            }
+            if (!$hasIdColumn) {
+                $idFieldOriginal = $formDef['idField'] ?? 'ID';
+                array_unshift($columns, [
+                    'name' => $idFieldOriginal,
+                    'caption' => $idFieldOriginal,
+                    'type' => 'number',
+                    'typeLabel' => 'getal',
+                ]);
             }
 
             // Get filter field name if defined (should be excluded from default columns)

@@ -1465,3 +1465,140 @@ karaat-data en staat in de karaat-repo.
 > .image-editor-info and .image-editor-footer: remove background and border-top 
 >
 > then the toolbar is not the same as a cma toolbar, the buttons need to be span with class'tb-btn responsive-btn'
+
+> Kunnen we in de bevestigingsmail een link naar trustpilot uitnodiging plaatsen?
+> vereist volgens mij api toegang
+
+> the quick add form: remove the .qa-wrap {
+>    max-width: 560px
+
+> okay, now I want you to add a column to the right with simular stones already in the shop, select based upon steensoort and karats, pick max 6 so i can create a good pricing
+
+> De feature 'Mogelijk bestaat deze steen al', deze toont geen plaatje (_resized issue) en ik wil eigenlijk de keuze: vul deze bestaande steen aan met deze gegevens, dus foto en prijs in ieder geval. En de annuleren knop is niet grijs
+
+> well, the most important data; the price is invisible and make the max 10pieces , the network tab does have prices: 
+>
+> <karaat-stone>
+>     <div class="card card--searchResult" data-afm1="6.92" data-afm2="5.1" data-afm3="3.65" data-soort="1" data-soortoms="Topaas" data-karaat="1.1" data-prijs="26.0000" data-datum="0" data-kleur_1 data-vorm_2>
+>         <a href="/edelsteen/4560/topaas.html">
+>             <div class=card_inner>
+>                 <span class="card-imgwrap">
+>                     <img width="600" height="400" data-img="/images/producten/.responsive/IMG_4444-400w.webp">
+>                     <span class="card-wishlist" data-product="4560" role="button" tabindex="0" aria-label="Bewaar in wensenlijst" title="Bewaar in wensenlijst">
+>                         <svg viewBox="0 0 24 24">
+>                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+>                         </svg>
+>                     </span>
+>                 </span>
+>                 <div class=details>
+>                     <div class=prijs>
+>                         &euro;&nbsp;<span>26,-</span>
+>                     </div>
+>                     <span class=s>Topaas</span>
+>                     <span class=c>1.1</span>
+>                     <span class=a>7 x 5 x 4</span>
+>                 </div>
+>             </div>
+>         </a>
+>     </div>
+> </karaat-stone>
+> <karaat-stone>
+>     <div class="card card--searchResult" data-afm1="4.3" data-afm2="4.3" data-afm3="2.35" data-soort="1" data-soortoms="Topaas" data-karaat="1.0" data-prijs="25.0000" data-datum="0" data-kleur_1 data-kleur_10 data-vorm_1>
+>         <a href="/edelsteen/4865/topaas.html">
+>             <div class=card_inner>
+>                 <span class="card-imgwrap">
+>                     <img width="600" height="400" data-img="/images/producten/.responsive/IMG_4859-400w.webp">
+>                     <span class="card-wishlist" data-product="4865" role="button" tabindex="0" aria-label="Bewaar in wensenlijst" title="Bewaar in wensenlijst">
+>                         <svg viewBox="0 0 24 24">
+>                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+>                         </svg>
+>                     </span>
+>                 </span>
+>                 <div class=details>
+>                     <div class=prijs>
+>                         &euro;&nbsp;<span>25,-</span>
+>                     </div>
+>                     <span class=s>Topaas</span>
+>                     <span class=c>1.0</span>
+>                     <span class=a>4 x 4 x 2</span>
+>                 </div>
+>             </div>
+>         </a>
+>     </div>
+> </karaat-stone>
+> <karaat-stone>
+>     <div class="card card--searchResult" data-afm1="7.0" data-afm2="4.25" data-afm3="3.45" data-soort="1" data-soortoms="Topaas" data-karaat="1.0" data-prijs="25.0000" data-datum="0" data-kleur_1 data-kleur_10 data-vorm_2>
+>         <a href="/edelsteen/4552/topaas.html">
+>             <div class=card_inner>
+>                 <span class="card-imgwrap">
+>                     <img width="600" height="400" data-img="/images/producten/.responsive/IMG_4432-400w.webp">
+>                     <span class="card-wishlist" data-product="4552" role="button" tabindex="0" aria-label="Bewaar in wensenlijst" title="Bewaar in wensenlijst">
+>                         <svg viewBox="0 0 24 24">
+>                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+>                         </svg>
+>                     </span>
+>                 </span>
+>                 <div class=details>
+>                     <div class=prijs>
+>                         &euro;&nbsp;<span>25,-</span>
+>                     </div>
+>                     <span class=s>Topaas</span>
+>                     <span class=c>1.0</span>
+>                     <span class=a>7 x 4 x 3</span>
+>                 </div>
+>             </div>
+>         </a>
+>     </div>
+> </karaat-stone>
+> <karaat-stone>
+>     <div class="card card--searchResult" data-afm1="5.7" data-afm2="5.0" data-afm3="4.0" data-soort="1" data-soortoms="Topaas" data-karaat="0.94" data-prijs="24.0000" data-datum="0" data-kleur_12 data-vorm_2>
+>         <a href="/edelsteen/2372/topaas.html">
+>             <div class=card_inner>
+>                 <span class="card-imgwrap">
+>                     <img width="600" height="400" data-img="/images/producten/.responsive/IMG_4273-400w.webp">
+>                     <span class="card-wishlist" data-product="2372" role="button" tabindex="0" aria-label="Bewaar in wensenlijst" title="Bewaar in wensenlijst">
+>                         <svg viewBox="0 0 24 24">
+>                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+>                         </svg>
+>                     </span>
+>                 </span>
+>                 <div class=details>
+>                     <div class=prijs>
+>                         &euro;&nbsp;<span>24,-</span>
+>                     </div>
+>                     <span class=s>Topaas</span>
+>                     <span class=c>0.94</span>
+>                     <span class=a>6 x 5 x 4</span>
+>                 </div>
+>             </div>
+>         </a>
+>     </div>
+> </karaat-stone>
+> <karaat-stone>
+>     <div class="card card--searchResult" data-afm1="5.85" data-afm2="5.85" data-afm3="3.77" data-soort="1" data-soortoms="Topaas" data-karaat="0.9" data-prijs="24.0000" data-datum="0" data-kleur_10 data-kleur_1 data-vorm_1>
+>         <a href="/edelsteen/4531/topaas.html">
+>             <div class=card_inner>
+>                 <span class="card-imgwrap">
+>                     <img width="600" height="400" data-img="/images/producten/.responsive/IMG_4372-400w.webp">
+>                     <span class="card-wishlist" data-product="4531" role="button" tabindex="0" aria-label="Bewaar in wensenlijst" title="Bewaar in wensenlijst">
+>                         <svg viewBox="0 0 24 24">
+>                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+>                         </svg>
+>                     </span>
+>                 </span>
+>                 <div class=details>
+>                     <div class=prijs>
+>                         &euro;&nbsp;<span>24,-</span>
+>                     </div>
+>                     <span class=s>Topaas</span>
+>                     <span class=c>0.9</span>
+>                     <span class=a>6 x 6 x 4</span>
+>                 </div>
+>             </div>
+>         </a>
+>     </div>
+> </karaat-stone>
+
+> the list of toegevoegde stenen does not show anything anymore, I see Steen toegevoegd (ID 4998)., but it is not below the title and does not contain a link
+
+> in the form field selector the ID is still hidden, i really want to be able to sort on that
