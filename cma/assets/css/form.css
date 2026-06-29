@@ -2841,11 +2841,12 @@ body.mode-table #btn_columns {
     box-shadow: 0 0 0 1px var(--border-hover);
 }
 
-/* Disabled state - show placeholder icon */
+/* Disabled state: same box/padding as a normal preview button — only the
+   placeholder icon is greyed out. The icon is an in-flow element sized like a
+   real preview thumbnail so the button keeps its normal dimensions (the <img>
+   is hidden via display:none when there's no image). */
 .image-preview-btn.disabled {
     cursor: not-allowed;
-    opacity: 0.6;
-    position: relative;
 }
 
 .image-preview-btn.disabled::before {
@@ -2853,10 +2854,11 @@ body.mode-table #btn_columns {
     font-family: 'Linearicons';
     font-size: 20px;
     color: var(--text-muted, #999);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
 }
 
 .image-preview-btn img {

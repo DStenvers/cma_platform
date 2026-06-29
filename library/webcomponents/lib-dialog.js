@@ -879,6 +879,25 @@ class LibDialog extends HTMLElement {
         if (titleEl) {
             titleEl.textContent = title;
         }
+
+        // Hide the footer entirely when nothing is slotted into it. A
+        // `.dialog-footer:empty` CSS rule can't do this — the <slot> is always a
+        // child element, so the footer would otherwise render as an empty padded
+        // bar. Re-checked on slotchange so footers added after creation (e.g.
+        // programmatic dialogs that set innerHTML afterwards) are handled too.
+        const footerEl = this.shadowRoot.querySelector('.dialog-footer');
+        const footerSlot = this.shadowRoot.querySelector('slot[name="footer"]');
+        if (footerEl && footerSlot) {
+            const syncFooter = () => {
+                const hasContent = footerSlot.assignedNodes({ flatten: true }).some(n =>
+                    n.nodeType === Node.ELEMENT_NODE ||
+                    (n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== '')
+                );
+                footerEl.style.display = hasContent ? '' : 'none';
+            };
+            footerSlot.addEventListener('slotchange', syncFooter);
+            syncFooter();
+        }
     }
 
     _escapeHtml(str) {

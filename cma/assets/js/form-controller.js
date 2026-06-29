@@ -3984,6 +3984,11 @@ class CmaFormController {
 
         const imageUrl = this.isAbsoluteUrl(field.value) ? field.value : path + field.value;
 
+        // Never stack preview overlays: if a duplicate click handler (or a
+        // second controller bound to the same form) fires this twice, only one
+        // dialog should ever be open. Clear any existing overlay first.
+        document.querySelectorAll('.image-preview-overlay').forEach(el => el.remove());
+
         // Create lightbox overlay for better preview experience
         const overlay = document.createElement('div');
         overlay.className = 'image-preview-overlay';

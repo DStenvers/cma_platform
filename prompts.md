@@ -1417,3 +1417,5 @@ karaat-data en staat in de karaat-repo.
 > this one seems to be missing from linearicons
 
 > the image editor allows for any format to be cropped, in the case of karaat: only allow for 16:9 aspect ratio, make sure it is parameterised by karaat.
+
+> the quick_add_stone should use a lib_combo with multiple indication and be 100% wide
