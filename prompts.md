@@ -1652,3 +1652,13 @@ karaat-data en staat in de karaat-repo.
 > Also the images are not always shown, the resize variants are now shown. Can we strip the resized part of the name ? So https://www.karaatedelstenen.nl/images/producten/IMG_4339_resized600x400.jpg should become https://www.karaatedelstenen.nl/images/producten/IMG_4339.jpg
 
 > the export menu styling should be app specific, overriding the standard layout
+
+> what is the url for the documentation?
+
+> i want the lib-switch to filter on that ip address
+
+> nee hij draait een oude
+
+> je kunt toch een deploy forceren?
+
+> yes please do

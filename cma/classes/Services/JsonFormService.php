@@ -1206,10 +1206,12 @@ class JsonFormService extends BaseFormService
             $idField = strtolower($formDef['idField'] ?? 'ID');
 
             // Control types to skip (same as database forms)
-            // Note: radiogroup is a simple single-value field, so it's allowed
+            // Note: radiogroup is a simple single-value field, so it's allowed.
+            // image/thumbnail ARE offered — the list renders them as thumbnails, so
+            // users want to be able to add an image column via the chooser.
             $skipTypes = [
                 'groupseparator', 'label', 'checklist', 'sortlist',
-                'image', 'file', 'thumbnail', 'directory', 'hidden',
+                'file', 'directory', 'hidden',
                 'tip', 'custom', 'checklisttree', 'checklistinline',
                 'password', 'blockedit', 'xmlstore', 'ignorefield'
             ];
