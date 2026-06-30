@@ -1631,3 +1631,5 @@ karaat-data en staat in de karaat-repo.
 > can we switch to the  mijnrino repo?
 
 > the link https://www.karaatedelstenen.nl/cma/form/steensoorten/5 should open a detail form but it does not.
+
+> the filtermenu is now desinged nicely, but the export menu (first menu in tables) not, can you copy the layour of filtermenu's to export menu's ?

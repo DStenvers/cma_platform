@@ -942,40 +942,37 @@ div.kader_icon.autos::after { content:"\e84a" }
 
 /* table.filtering div.menutrigger - consolidated in form.css */
 
-/* Export menu - hidden by default, shown on click */
+/* Export menu - hidden by default, shown on click.
+   Shares the dropdown-filter panel's look (see .dropdown-filter-content in
+   lib-table.css): floating --bg-dropdown panel, soft shadow and a themed
+   (dark-mode aware) rounded hover-highlight on each item. */
 .menutrigger .cma-context-menu.export-menu {
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     z-index: 10000;
-    background: var(--bg-body, #ffffff);
-    border: 1px solid var(--border-dark, #ccc);
-    border-radius: 4px;
-    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+    background-color: var(--bg-dropdown, #EFF2F4);
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     min-width: 150px;
+    padding: 5px;
 }
 
 /* Show export menu when menutrigger has 'open' class (click-based) */
 .menutrigger.open .cma-context-menu.export-menu {
     display: block;
     margin-top: 6px;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
-    border-top: 1px solid var(--toolbar-bg);
-    background-color: var(--toolbar-bg);
-    margin-left: -3px;
-    border-left: 0px;
 }
 
 .menutrigger .cma-context-menu.export-menu ul {
     list-style: none;
     margin: 0;
-    padding: 5px 0;
+    padding: 0;
 }
 
 .menutrigger .cma-context-menu.export-menu li {
-    padding: 8px 15px;
+    padding: 4px 8px;
+    margin: 1px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -984,10 +981,15 @@ div.kader_icon.autos::after { content:"\e84a" }
     white-space: nowrap;
     font-weight: normal;
     font-size: var(--font-size);
+    color: var(--text-primary, #000);
+    border: 1px solid transparent;
+    border-radius: 4px;
 }
 
 .menutrigger .cma-context-menu.export-menu li:hover {
-    background: var(--bg-hover);
+    background: var(--bg-hover, #d0e8f8);
+    border: 1px solid var(--color-header, #204496);
+    color: var(--color-primary, #077ab2);
 }
 
 .menutrigger .cma-context-menu.export-menu li .lnr {
