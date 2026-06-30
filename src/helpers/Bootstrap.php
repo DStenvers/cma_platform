@@ -25,7 +25,7 @@ class Bootstrap
      * needs no file I/O or path resolution, and it always reflects the version
      * of the code that is actually installed on the site.
      */
-    public const VERSION = '1.28.21';
+    public const VERSION = '1.28.22';
 
     /** @var string Project root directory */
     private static string $rootDir = '';

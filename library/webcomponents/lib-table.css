@@ -344,14 +344,14 @@ lib-table div.menutrigger nav li { display: block; margin-left: 0 }
 lib-table div.menutrigger nav li a { display: block; font-weight: normal; text-decoration: none; padding: 6px 12px; white-space: nowrap }
 lib-table div.menutrigger nav li a:hover { background-color: #204496; color: #fff }
 
-/* Click-based export menu (JS-generated .cma-context-menu).
-   Shares the dropdown-filter panel's chrome: same --bg-dropdown background,
-   soft drop-shadow and themed (dark-mode aware) rounded hover-highlight. */
-lib-table .menutrigger .cma-context-menu { display: none; position: absolute; z-index: 10000; background-color: var(--bg-dropdown, #EFF2F4); box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); min-width: 160px; margin-top: 4px; left: 0; padding: 5px }
+/* Click-based export menu (JS-generated .cma-context-menu). Standard (light)
+   layout — apps that want a different look override it in their own stylesheet
+   (e.g. the CMA app's style.css, the webhooks admin.css), not here. */
+lib-table .menutrigger .cma-context-menu { display: none; position: absolute; z-index: 10000; background: #fff; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 160px; margin-top: 4px; left: 0 }
 lib-table .menutrigger.open .cma-context-menu { display: block }
-lib-table .cma-context-menu ul { list-style: none; margin: 0; padding: 0 }
-lib-table .cma-context-menu li { padding: 4px 8px; margin: 1px; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: inherit; font-family: inherit; font-weight: normal; color: var(--text-primary, #000); border: 1px solid transparent; border-radius: 4px }
-lib-table .cma-context-menu li:hover { background: var(--bg-hover, #d0e8f8); border: 1px solid var(--color-header, #204496); color: var(--color-primary, #077ab2) }
+lib-table .cma-context-menu ul { list-style: none; margin: 0; padding: 5px 0 }
+lib-table .cma-context-menu li { padding: 4px 15px; margin: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: inherit; font-family: inherit; font-weight: inherit; color: #333 }
+lib-table .cma-context-menu li:hover { background: var(--table-header-bg, #e8ecf0) }
 lib-table .cma-context-menu li .lnr { width: 16px; height: 16px; font-size: var(--font-size-md) }
 lib-table .cma-context-menu li .lnr::before { width: 16px; height: 16px; line-height: 16px; font-size: var(--font-size-md) }
 

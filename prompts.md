@@ -1650,3 +1650,5 @@ karaat-data en staat in de karaat-repo.
 > https://www.karaatedelstenen.nl/cma/form/steensoorten_producten/1958 -> still does not work. 
 > ?
 > Also the images are not always shown, the resize variants are now shown. Can we strip the resized part of the name ? So https://www.karaatedelstenen.nl/images/producten/IMG_4339_resized600x400.jpg should become https://www.karaatedelstenen.nl/images/producten/IMG_4339.jpg
+
+> the export menu styling should be app specific, overriding the standard layout
