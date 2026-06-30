@@ -1614,3 +1614,12 @@ karaat-data en staat in de karaat-repo.
 > Syntax error or access violation: -3100 Syntax error in query expression '(SELECT Count(*) FROM tblOrderRegels WHERE InStr(tblOrderRegels.sProduct, tblSteensoorten.SoortNaamNL) > 0'. 
 >
 > tblOrderregels heeft een steensoort die verwijst naar de tabel steensoorten, nu gebruik je erg veen inner selects, dat moet sumpeler kunnen en wist je dat je order by per nummer kunt doen, dus order by 2 -> sorteer op het tweede uitvoerveld
+
+## 2026-06-30
+
+> De query klopt echt niet , er zitten 4 stenen in met 0 verkopen.
+
+> the icons for lighter and darker: lighter use white color: darker use black, the contrast buttons also need to switch
+
+> SELECT Count(*) FROM tblOrderRegels WHERE tblOrderRegels.sProduct LIKE '%' & tblSteens
+> oorten.SoortNaamNL & '%' -> tblOrderregels heeft een fkProduct ID, die naar producten verwijst waar de soortnaam in staat

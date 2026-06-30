@@ -597,7 +597,15 @@
             var aw = Number(this.cfg.aspectW) || 0, ah = Number(this.cfg.aspectH) || 0;
             var rt = Number(this.cfg.resizeType);
             var w = Number(this.cfg.resizeWidth) || 0, h = Number(this.cfg.resizeHeight) || 0;
-            if (aw > 0 && ah > 0) el.textContent = 'Vaste verhouding: ' + aw + ':' + ah;
+            if (aw > 0 && ah > 0) {
+                // Visualise the ratio with a small box shaped to aw:ah next to the label.
+                var boxH = 14, boxW = Math.max(8, Math.round(boxH * aw / ah));
+                el.innerHTML = 'Vaste verhouding: '
+                    + '<span class="ie-ratio">'
+                    + '<span class="ie-ratio-box" style="width:' + boxW + 'px;height:' + boxH + 'px"></span>'
+                    + '<span class="ie-ratio-num">' + aw + ':' + ah + '</span>'
+                    + '</span>';
+            }
             else if (rt === 2 && w > 0 && h > 0) el.textContent = 'Vaste maat: ' + w + ' × ' + h + ' px';
             else if (rt === 1 && (w > 0 || h > 0)) el.textContent = 'Maximaal: ' + w + ' × ' + h + ' px';
             else el.textContent = '';

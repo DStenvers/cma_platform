@@ -977,15 +977,15 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     // Content bounding box on the analysis image: scan inward from each edge.
     $aMinY = 0;
     for (; $aMinY < $ah; $aMinY++) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMinY)) { $hit = true; break; } } if ($hit) break; }
-    if ($aMinY >= $ah) { if ($an !== $src) imagedestroy($an); imagedestroy($src); return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
+    if ($aMinY >= $ah) { return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
     $aMaxY = $ah - 1;
     for (; $aMaxY > $aMinY; $aMaxY--) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMaxY)) { $hit = true; break; } } if ($hit) break; }
     $aMinX = 0;
     for (; $aMinX < $aw; $aMinX++) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMinX, $y)) { $hit = true; break; } } if ($hit) break; }
     $aMaxX = $aw - 1;
     for (; $aMaxX > $aMinX; $aMaxX--) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMaxX, $y)) { $hit = true; break; } } if ($hit) break; }
-    if ($an !== $src) imagedestroy($an);
-    imagedestroy($src);
+    // (No imagedestroy(): it's a no-op since PHP 8.0 and emits a deprecation in 8.5,
+    // which would corrupt the JSON response. GD images are freed when they go out of scope.)
 
     // Map the analysis-space box back to full resolution.
     $minX = (int) floor($aMinX / $scale);

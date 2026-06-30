@@ -137,12 +137,19 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
         // tooltip explains each button; a dimmed icon = the "less" of an adjustment.
         $svgFlipH = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="3" x2="12" y2="21"/><polygon class="ie-svg-fill" points="9,7 4,12 9,17"/><polygon class="ie-svg-fill" points="15,7 20,12 15,17"/></svg>';
         $svgFlipV = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><polygon class="ie-svg-fill" points="7,9 12,4 17,9"/><polygon class="ie-svg-fill" points="7,15 12,20 17,15"/></svg>';
-        $svgContrast = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ie-svg-fill" d="M12 3a9 9 0 0 1 0 18z"/></svg>';
+        // Contrast: a split circle. + = stark white|black (high contrast); - = muted
+        // grey|grey (low contrast). currentColor outline keeps it visible in both themes.
+        $svgContrastHi = '<svg class="ie-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffffff" stroke="currentColor" stroke-width="1.5"/><path d="M12 3 a9 9 0 0 1 0 18 z" fill="#111111"/></svg>';
+        $svgContrastLo = '<svg class="ie-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#cccccc" stroke="currentColor" stroke-width="1.5"/><path d="M12 3 a9 9 0 0 1 0 18 z" fill="#666666"/></svg>';
         $svgDrop = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><path class="ie-svg-fill" d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>';
         $svgCompare = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/></svg>';
         $svgRgb = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="9" r="6"/><circle cx="12" cy="15" r="6"/></svg>';
-        // lnr-sun's glyph is missing from the built icon font; use an inline SVG sun.
-        $svgSun = '<svg class="ie-svg" viewBox="0 0 24 24" aria-hidden="true"><circle class="ie-svg-fill" cx="12" cy="12" r="4"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/></svg>';
+        // Brightness: a sun. Lighter = white centre, darker = black centre. Rays and
+        // outline use currentColor so each stays visible in both light and dark themes.
+        // (lnr-sun's glyph is missing from the built icon font, hence inline SVGs.)
+        $svgSunRays = '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.6" y1="4.6" x2="6.4" y2="6.4"/><line x1="17.6" y1="17.6" x2="19.4" y2="19.4"/><line x1="4.6" y1="19.4" x2="6.4" y2="17.6"/><line x1="17.6" y1="6.4" x2="19.4" y2="4.6"/></g>';
+        $svgSunLight = '<svg class="ie-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#ffffff" stroke="currentColor" stroke-width="1.5"/>' . $svgSunRays . '</svg>';
+        $svgSunDark = '<svg class="ie-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#111111" stroke="currentColor" stroke-width="1.5"/>' . $svgSunRays . '</svg>';
         ?>
         <cma-toolbar wrap variant="detail">
             <left>
@@ -151,10 +158,10 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
                 <span class="tb-btn responsive-btn" data-tooltip="180&deg; draaien"><a href="javascript:imgEditor.rotate(180)"><span class="lnr lnr-sync"></span><span class="btn-text">180&deg;</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Horizontaal spiegelen"><a href="javascript:imgEditor.flip('h')"><?= $svgFlipH ?><span class="btn-text">Spiegel H</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Verticaal spiegelen"><a href="javascript:imgEditor.flip('v')"><?= $svgFlipV ?><span class="btn-text">Spiegel V</span></a></span>
-                <span class="tb-btn responsive-btn" data-tooltip="Lichter"><a href="javascript:imgEditor.filter('brightness','+')"><?= $svgSun ?><span class="btn-text">Lichter</span></a></span>
-                <span class="tb-btn responsive-btn" data-tooltip="Donkerder"><a href="javascript:imgEditor.filter('brightness','-')"><span class="ie-dim"><?= $svgSun ?></span><span class="btn-text">Donkerder</span></a></span>
-                <span class="tb-btn responsive-btn" data-tooltip="Meer contrast"><a href="javascript:imgEditor.filter('contrast','+')"><?= $svgContrast ?><span class="btn-text">Contrast +</span></a></span>
-                <span class="tb-btn responsive-btn" data-tooltip="Minder contrast"><a href="javascript:imgEditor.filter('contrast','-')"><span class="ie-dim"><?= $svgContrast ?></span><span class="btn-text">Contrast &minus;</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Lichter"><a href="javascript:imgEditor.filter('brightness','+')"><?= $svgSunLight ?><span class="btn-text">Lichter</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Donkerder"><a href="javascript:imgEditor.filter('brightness','-')"><?= $svgSunDark ?><span class="btn-text">Donkerder</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Meer contrast"><a href="javascript:imgEditor.filter('contrast','+')"><?= $svgContrastHi ?><span class="btn-text">Contrast +</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Minder contrast"><a href="javascript:imgEditor.filter('contrast','-')"><?= $svgContrastLo ?><span class="btn-text">Contrast &minus;</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Meer verzadiging"><a href="javascript:imgEditor.filter('saturation','+')"><?= $svgDrop ?><span class="btn-text">Kleur +</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Minder verzadiging"><a href="javascript:imgEditor.filter('saturation','-')"><span class="ie-dim"><?= $svgDrop ?></span><span class="btn-text">Kleur &minus;</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Kleurbalans (R/G/B) met live voorbeeld"><a href="javascript:imgEditor.toggleRgb()"><?= $svgRgb ?><span class="btn-text">RGB</span></a></span>

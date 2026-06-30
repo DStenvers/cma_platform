@@ -37,6 +37,9 @@
 }
 .ie-svg-fill { fill: currentColor; stroke: none; }
 .ie-dim { opacity: 0.45; display: inline-flex; }
+/* Sizing only — these icons carry their own inline fill colours (CSS fill would
+   override SVG presentation attributes, so don't set it here). */
+.ie-ic { width: 16px; height: 16px; vertical-align: middle; }
 
 /* Buttons shown only once an edit exists (compare, restore). */
 .ie-optional { display: none; }
@@ -197,6 +200,15 @@
 }
 .image-editor-info .dimensions { color: var(--text-muted, #666); }
 .image-editor-info .crop-info { color: var(--color-primary, #1976d2); font-weight: 500; }
+/* Aspect-ratio visualiser: a little box shaped to the locked ratio + the "16:9". */
+.ie-ratio { display: inline-flex; align-items: center; gap: 6px; }
+.ie-ratio-box {
+    display: inline-block;
+    border: 1.5px solid var(--color-primary, #1976d2);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--color-primary, #1976d2) 14%, transparent);
+}
+.ie-ratio-num { font-weight: 600; }
 
 /* Footer — Annuleren / Klaar pinned to the bottom (like the lib-dialog footer slot). */
 .image-editor-footer {
