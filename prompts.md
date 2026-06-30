@@ -1633,3 +1633,20 @@ karaat-data en staat in de karaat-repo.
 > the link https://www.karaatedelstenen.nl/cma/form/steensoorten/5 should open a detail form but it does not.
 
 > the filtermenu is now desinged nicely, but the export menu (first menu in tables) not, can you copy the layour of filtermenu's to export menu's ?
+
+> could you compile a list of tables in the SQL's of the export section, these are postgress SQL's ?
+
+> Can you expand the list with an extra column that indicates if we have implemented a webhook for that table? 
+>
+>
+> After that: we need to determine what to do if the enrichment does not work. Expecially 404's. My gut feeling says: ignore them. Or treat them as a Delete hook.
+
+> okay, for later: make a 404 counter with a graph to catch systematic issues. Please note it in todo.md
+
+> https://staging-webhook.rino.nl/admin/workload.php -> the graph shows the dates within the columns, moving them up, make sure the labels are outside the graph
+
+> there is a mijnrino API, can we make a swagger documentation for it? create a batch file d.bat that updates the documentation based upon the settings and remember to update it after making changes to the API
+
+> https://www.karaatedelstenen.nl/cma/form/steensoorten_producten/1958 -> still does not work. 
+> ?
+> Also the images are not always shown, the resize variants are now shown. Can we strip the resized part of the name ? So https://www.karaatedelstenen.nl/images/producten/IMG_4339_resized600x400.jpg should become https://www.karaatedelstenen.nl/images/producten/IMG_4339.jpg

@@ -931,6 +931,19 @@ function cmaGetRecordId(element) {
 }
 
 /**
+ * Strip a "_resized<W>x<H>" variant suffix from an image name/URL so we show the
+ * original image. The resize variants aren't always present on disk; the
+ * original always is. Matches the front-end behaviour (filter.inc). Works on a
+ * bare filename or a full URL, and keeps any ?query/#hash.
+ * e.g. "IMG_4339_resized600x400.jpg" -> "IMG_4339.jpg"
+ */
+function cmaStripResize(url) {
+    return typeof url === 'string'
+        ? url.replace(/_resized\d+x\d+(\.[^.\/?#]+)(\?|#|$)/i, '$1$2')
+        : url;
+}
+
+/**
  * Set current record ID in DOM data attribute
  * @param {string|number|null} value - Record ID to set
  * @param {Element} [element] - Optional element to scope to nearest .form-layout
@@ -3990,7 +4003,7 @@ class CmaFormController {
             }
         }
 
-        const imageUrl = this.isAbsoluteUrl(field.value) ? field.value : path + field.value;
+        const imageUrl = cmaStripResize(this.isAbsoluteUrl(field.value) ? field.value : path + field.value);
 
         // Never stack preview overlays: if a duplicate click handler (or a
         // second controller bound to the same form) fires this twice, only one
@@ -4058,7 +4071,7 @@ class CmaFormController {
             };
             const old404 = preview.parentElement.querySelector('.image-404');
             if (old404) old404.remove();
-            preview.src = filename ? (this.isAbsoluteUrl(filename) ? filename : path + filename) : '';
+            preview.src = filename ? cmaStripResize(this.isAbsoluteUrl(filename) ? filename : path + filename) : '';
             preview.style.display = filename ? '' : 'none';
         }
 
@@ -8191,7 +8204,7 @@ class CmaFormController {
                         // Remove previous 404 icon if re-loading
                         const old404 = preview.parentElement.querySelector('.image-404');
                         if (old404) old404.remove();
-                        preview.src = this.isAbsoluteUrl(value) ? value : path + value;
+                        preview.src = cmaStripResize(this.isAbsoluteUrl(value) ? value : path + value);
                         preview.style.display = '';
                     } else if (preview) {
                         preview.src = '';
