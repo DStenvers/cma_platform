@@ -1623,3 +1623,7 @@ karaat-data en staat in de karaat-repo.
 
 > SELECT Count(*) FROM tblOrderRegels WHERE tblOrderRegels.sProduct LIKE '%' & tblSteens
 > oorten.SoortNaamNL & '%' -> tblOrderregels heeft een fkProduct ID, die naar producten verwijst waar de soortnaam in staat
+
+> ik haal nooit producten weg, kun je de query op de homepage ook aanpassen? En graag zie ik dat je dat soort - foute - keuzes voorlegd
+
+> visualisatie 16:9 is aardig, maar kunnen we de 16 en 9 in het plaatje zetten?

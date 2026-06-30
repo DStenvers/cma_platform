@@ -598,12 +598,13 @@
             var rt = Number(this.cfg.resizeType);
             var w = Number(this.cfg.resizeWidth) || 0, h = Number(this.cfg.resizeHeight) || 0;
             if (aw > 0 && ah > 0) {
-                // Visualise the ratio with a small box shaped to aw:ah next to the label.
-                var boxH = 14, boxW = Math.max(8, Math.round(boxH * aw / ah));
+                // Visualise the ratio: a box shaped to aw:ah with the width number on
+                // top and the height number on the side (e.g. 16 over 9).
+                var boxH = 22, boxW = Math.max(18, Math.round(boxH * aw / ah));
                 el.innerHTML = 'Vaste verhouding: '
-                    + '<span class="ie-ratio">'
-                    + '<span class="ie-ratio-box" style="width:' + boxW + 'px;height:' + boxH + 'px"></span>'
-                    + '<span class="ie-ratio-num">' + aw + ':' + ah + '</span>'
+                    + '<span class="ie-ratio-box" style="width:' + boxW + 'px;height:' + boxH + 'px">'
+                    + '<span class="ie-ratio-w">' + aw + '</span>'
+                    + '<span class="ie-ratio-h">' + ah + '</span>'
                     + '</span>';
             }
             else if (rt === 2 && w > 0 && h > 0) el.textContent = 'Vaste maat: ' + w + ' × ' + h + ' px';

@@ -200,15 +200,25 @@
 }
 .image-editor-info .dimensions { color: var(--text-muted, #666); }
 .image-editor-info .crop-info { color: var(--color-primary, #1976d2); font-weight: 500; }
-/* Aspect-ratio visualiser: a little box shaped to the locked ratio + the "16:9". */
-.ie-ratio { display: inline-flex; align-items: center; gap: 6px; }
+/* Aspect-ratio visualiser: a box shaped to the locked ratio with the width number on
+   top and the height number on the side (e.g. 16 over 9). */
 .ie-ratio-box {
+    position: relative;
     display: inline-block;
+    vertical-align: middle;
     border: 1.5px solid var(--color-primary, #1976d2);
     border-radius: 2px;
-    background: color-mix(in srgb, var(--color-primary, #1976d2) 14%, transparent);
+    background: color-mix(in srgb, var(--color-primary, #1976d2) 12%, transparent);
 }
-.ie-ratio-num { font-weight: 600; }
+.ie-ratio-w, .ie-ratio-h {
+    position: absolute;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 700;
+    color: var(--color-primary, #1976d2);
+}
+.ie-ratio-w { top: 1px; left: 0; right: 0; text-align: center; }
+.ie-ratio-h { left: 2px; top: 0; bottom: 0; display: flex; align-items: center; }
 
 /* Footer — Annuleren / Klaar pinned to the bottom (like the lib-dialog footer slot). */
 .image-editor-footer {
