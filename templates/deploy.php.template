@@ -379,10 +379,29 @@ if (!$failed && $runTests !== '' && $runTests !== '-') {
     }
 }
 
-// 4f. Recycle on success.
+// 4f. Recycle on success. Touching web.config recycles the IIS app pool, which on
+//     IIS kills THIS request (the FastCGI response is buffered until the script
+//     ends) and surfaces as a 500. So on Windows, fire a short-delayed *detached*
+//     touch and let this request return cleanly first; the pool recycles a few
+//     seconds later. Falls back to a synchronous touch if the detached launch
+//     fails, so the recycle always happens.
 if (!$failed && $recycleFile !== '-' && $recycleFile !== '' && is_file($recycleFile)) {
-    @touch($recycleFile);
-    $log('RECYCLE: touched ' . $recycleFile);
+    $recycled = false;
+    if ($isWin) {
+        $psPath = str_replace("'", "''", str_replace('/', '\\', $recycleFile));
+        $cmd = 'start "" /B powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass'
+             . ' -Command "Start-Sleep -Seconds 3; (Get-Item -LiteralPath \'' . $psPath . '\').LastWriteTime = Get-Date"';
+        $h = @popen($cmd, 'r');
+        if ($h !== false) {
+            @pclose($h);
+            $recycled = true;
+            $log('RECYCLE: scheduled detached touch of ' . $recycleFile . ' (~3s; response returns cleanly first)');
+        }
+    }
+    if (!$recycled) {
+        @touch($recycleFile);
+        $log('RECYCLE: touched ' . $recycleFile . ($isWin ? ' (detached launch failed, synchronous)' : ''));
+    }
 }
 
 // 4g. /cma/ sync health-check + project post-hook — best-effort, success-only,
