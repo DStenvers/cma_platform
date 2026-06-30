@@ -1627,3 +1627,7 @@ karaat-data en staat in de karaat-repo.
 > ik haal nooit producten weg, kun je de query op de homepage ook aanpassen? En graag zie ik dat je dat soort - foute - keuzes voorlegd
 
 > visualisatie 16:9 is aardig, maar kunnen we de 16 en 9 in het plaatje zetten?
+
+> can we switch to the  mijnrino repo?
+
+> the link https://www.karaatedelstenen.nl/cma/form/steensoorten/5 should open a detail form but it does not.

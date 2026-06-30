@@ -1479,10 +1479,18 @@ class CmaFormController {
                         // Initialize form (loads list)
                         await this.formInit();
                         // cmaLog.log('[FormController] formInit completed, loading record:', recordIdToLoad);
-                        // Load the specific record
+                        // Show the specific record. In tree mode it loads into the
+                        // detail panel beside the list. In table mode that panel is
+                        // hidden (CSS: body.mode-table .detail-panel{display:none}),
+                        // so open the record as a sidepanel — the same way clicking a
+                        // table row does — otherwise the deep link stays invisible.
                         if (recordIdToLoad) {
-                            const loadResult = await this.loadRecord(recordIdToLoad);
-                            // cmaLog.log('[FormController] loadRecord result:', loadResult);
+                            if (recordViewMode === 'table') {
+                                this.openFormPopup(recordIdToLoad);
+                            } else {
+                                const loadResult = await this.loadRecord(recordIdToLoad);
+                                // cmaLog.log('[FormController] loadRecord result:', loadResult);
+                            }
                         }
                         // cmaLog.log('[FormController] view+ID mode complete');
                     } catch (err) {
