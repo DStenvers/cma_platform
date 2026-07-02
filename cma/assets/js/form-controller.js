@@ -4421,6 +4421,19 @@ class CmaFormController {
         const onClose = options.onClose || null;
         const cascadeOffset = options.cascadeOffset !== false;
 
+        // Guard against opening the SAME record sidepanel twice in quick succession
+        // (e.g. a deep link whose controller initialises more than once opened two
+        // identical panels). Dedupe on form+record+parent within a short window;
+        // opening a different record, or the same one later, is unaffected.
+        const _dedupeKey = String(formId) + ':' + String(recordId ?? '') + ':' + String(parentId ?? '');
+        const _topWin = window.top || window;
+        _topWin._cmaOpenPopupAt = _topWin._cmaOpenPopupAt || {};
+        const _now = Date.now();
+        if (_topWin._cmaOpenPopupAt[_dedupeKey] && (_now - _topWin._cmaOpenPopupAt[_dedupeKey]) < 1500) {
+            return;
+        }
+        _topWin._cmaOpenPopupAt[_dedupeKey] = _now;
+
         // DEBUG: Log all incoming options
         // cmaLog.log('[FormController] openPopup:', {
         //     formId: formId,

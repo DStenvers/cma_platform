@@ -1322,7 +1322,23 @@ class RecordService extends BaseFormService
 
             // PERFORMANCE FIX: Batch operations instead of N+1 queries
             // Step 1: Delete items that are no longer selected (batch delete)
-            if (!empty($allIds)) {
+            if (empty($selectedIds)) {
+                // The checklist was emptied (all deselected). Clear ALL of this
+                // record's rows for the relation, independent of $allIds — the
+                // client may not send the full option list, so the delta-delete
+                // below would leave the old rows in place ("remove all shapes/
+                // colors was not saved, empty value ignored").
+                try {
+                    $stmt = $targetConn->prepare(sprintf(
+                        "DELETE FROM %s WHERE %s = ?",
+                        SQL::identifier($sourceTable),
+                        SQL::identifier($idField)
+                    ));
+                    $stmt->execute([$recordId]);
+                } catch (\Exception $e) {
+                    Logger::error("CheckList clear-all error", ['error' => $e->getMessage()]);
+                }
+            } elseif (!empty($allIds)) {
                 $idsToDelete = array_diff($allIds, $selectedIds);
                 if (!empty($idsToDelete)) {
                     $placeholders = implode(',', array_fill(0, count($idsToDelete), '?'));

@@ -1664,3 +1664,19 @@ karaat-data en staat in de karaat-repo.
 > yes please do
 
 > ja wil je die 500 wegnemen?
+
+> okay, what if i set the transport to live - change something real fast to test - and back to file, could that do any harm on the long run?
+
+> the hook detail sidebar has a grafiek: show the numbers when i hover over a bar. The laatste 10 does not seem to work, it is empty, but the mislukt tab has many items so the last 10 should have content (possibly failed but nonetheless)
+
+> verwerk wachtrij -> verwerken mislukt: AMQPSSLConnection is deprecated and will be removed in version 4 of php-amqplib
+
+> PhpAmqpLib\Exception\AMQPIOException: stream_socket_client(): Unable to connect to tcp://rmqt.rino.nl:5671 (A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond) 
+>
+> if enrichment does not work/gets empty data/gets a timeout, fail and allow retry
+
+> i get this error: tcp://rmqt.rino.nl:5671 verwerken mislukt: stream_socket_client(): Unable to connect to tcp://rmqt.rino.nl:5671 (A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond) , how do i check the firewall?
+
+## 2026-07-02
+
+> in karaat L if i remove all shapes / colors from a stone (multiple select), they are not saved. Like an empty value is ignored. can you check?
