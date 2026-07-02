@@ -9,6 +9,33 @@ use App\Library\Response;
 
 require_once __DIR__ . '/../bootstrap.inc';
 
+/**
+ * Is this Application-setting a secret (API key, password, token, …)? Matched by
+ * name so its value can be masked on the diagnostics screen. The goal is to make
+ * "set but hidden for security" visibly different from "not set at all".
+ */
+function cma_serverinfo_is_secret(string $key): bool
+{
+    return (bool) preg_match(
+        '/(password|passwd|\bpwd\b|secret|token|credential|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|\bsalt\b|[_-]key$|^key$)/i',
+        $key
+    );
+}
+
+/**
+ * Mask a secret value: keep the first 3 chars (so the key stays identifiable),
+ * then asterisks (capped so a long key doesn't blow out the table). Values of 3
+ * chars or fewer are fully masked.
+ */
+function cma_serverinfo_mask(string $value): string
+{
+    $len = strlen($value);
+    if ($len <= 3) {
+        return str_repeat('*', max($len, 1));
+    }
+    return substr($value, 0, 3) . str_repeat('*', min($len - 3, 12));
+}
+
 // =========================================================================
 // Test-email handler — POST-and-Redirect-to-Get (so a refresh doesn't
 // resend) lives here so it runs before any HTML output.
@@ -155,17 +182,26 @@ function main(): void
     $strKey = "";
     echo '<table>';
     echo '<TR><TD colspan=2><h2><i>Applicatie settings</TD></TR>';
+    echo '<TR><TD colspan=2><span class="cma-tool__em">Waarden met een slot (<span class="lnr lnr-lock"></span>) zijn gevoelig (API-keys, wachtwoorden, tokens) en worden gedeeltelijk verborgen — alleen de eerste 3 tekens zijn zichtbaar. &laquo;(niet ingesteld)&raquo; betekent dat de waarde daadwerkelijk leeg is.</span></TD></TR>';
     foreach (Application::getAll() as $AppVal => $__value) {
         if (substr($AppVal, 0, max(0, min(5, strlen($AppVal)))) != 'conn_') {
-            echo '<TR><TD>' . $AppVal . '</TD><TD><B>';
-            if (Arr::isArray(Application::get($AppVal, ''))) {
-                echo '{ Array }';
-            } else {
-                if (is_object(Application::get($AppVal, ''))) {
-                    echo '{ Object }';
+            echo '<TR><TD>' . htmlspecialchars((string)$AppVal) . '</TD><TD>';
+            $raw = Application::get($AppVal, '');
+            if (Arr::isArray($raw)) {
+                echo '<span class="cma-tool__strong">{ Array }</span>';
+            } elseif (is_object($raw)) {
+                echo '<span class="cma-tool__strong">{ Object }</span>';
+            } elseif (cma_serverinfo_is_secret((string)$AppVal)) {
+                $str = (string)$raw;
+                if ($str === '') {
+                    echo '<span class="cma-tool__em">(niet ingesteld)</span>';
                 } else {
-                    echo Application::get($AppVal, '');
+                    echo '<span class="cma-tool__strong">' . htmlspecialchars(cma_serverinfo_mask($str)) . '</span> ';
+                    echo '<span class="lnr lnr-lock" title="Verborgen om veiligheidsredenen — alleen de eerste 3 tekens worden getoond"></span> ';
+                    echo '<span class="cma-tool__em">verborgen</span>';
                 }
+            } else {
+                echo '<span class="cma-tool__strong">' . htmlspecialchars((string)$raw) . '</span>';
             }
             echo '</TD></TR>';
         }
