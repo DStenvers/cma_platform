@@ -1680,3 +1680,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-07-02
 
 > in karaat L if i remove all shapes / colors from a stone (multiple select), they are not saved. Like an empty value is ignored. can you check?
+
+> https://www.karaatedelstenen.nl/edelsteen/4444/saffier.html toont 2 kleuren in de filterweergave, maar als ik de quickedit open staat er geen enkele kleur

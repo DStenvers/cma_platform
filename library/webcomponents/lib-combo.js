@@ -177,7 +177,17 @@ class LibCombo extends HTMLElement {
 
     set value(val) {
         if (this.hasAttribute('multiple')) {
-            this._selectedValues = Array.isArray(val) ? val : [val].filter(v => v);
+            if (Array.isArray(val)) {
+                this._selectedValues = val.map(v => String(v)).filter(v => v !== '');
+            } else if (val === null || val === undefined || val === '') {
+                this._selectedValues = [];
+            } else {
+                // A string value for a multiple combo may be a comma-separated list
+                // (e.g. the server-rendered value="5,8" attribute). Split it so every
+                // id is selected — otherwise "5,8" was kept as one value and matched
+                // nothing (a single value worked, multiple didn't).
+                this._selectedValues = String(val).split(',').map(v => v.trim()).filter(v => v !== '');
+            }
         } else {
             this._selectedValues = val ? [String(val)] : []; // Convert to string for consistent matching
         }
