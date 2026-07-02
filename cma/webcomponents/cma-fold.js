@@ -344,7 +344,12 @@ class CmaFold extends HTMLElement {
                 if (!this._target) return;
                 const action = btn.dataset.action;
                 const isCollapse = action === 'collapse';
-                const size = isCollapse ? this.minSize : this.maxSize;
+                // The chevrons point in the direction the DIVIDER should move. When the
+                // target sits AFTER the fold (reverse), growing/shrinking it moves the
+                // divider the opposite way, so the min/max mapping must flip — otherwise
+                // the buttons feel inverted (the left arrow moves the divider right).
+                const goMin = this.reverse ? !isCollapse : isCollapse;
+                const size = goMin ? this.minSize : this.maxSize;
                 this._target.style.transition = (this.isVertical ? 'width' : 'height') + ' 0.2s ease, flex 0.2s ease';
                 if (this.isVertical) {
                     this._target.style.width = size + 'px';
@@ -353,7 +358,7 @@ class CmaFold extends HTMLElement {
                     this._target.style.height = size + 'px';
                     this._target.style.flex = '0 0 ' + size + 'px';
                 }
-                this._collapsed = isCollapse;
+                this._collapsed = goMin;
                 this._savedSize = null;
                 this._saveState();
                 setTimeout(() => { if (this._target) this._target.style.transition = ''; }, 250);
