@@ -1690,3 +1690,9 @@ karaat-data en staat in de karaat-repo.
 > Dus Libmailer is volledig separaat van app\library\email? Kunnen we libMailer terugschroeven naar alleen een wrapper voor app\libray\email ?
 
 > Meteen de wrapper graag, 2 codepaden vind ik niet tof.
+
+> kun je libMailer even tonen=
+
+> Kun je een 1:1 vergelijking maken tussen de oude en de nieuwe class
+
+> Bouw addReplyTo wel in als optie. en showpreview op het scherm moet nog wel in dezelfde opzet blijven.
