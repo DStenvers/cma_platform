@@ -58,7 +58,8 @@ $wizardTabs = [
     ['title' => 'Velden', 'completed' => false, 'tooltip' => 'Kies welke velden in het rapport worden getoond en pas kolomnamen en functies aan.'],
     ['title' => 'Sortering', 'completed' => false, 'tooltip' => 'Bepaal de sorteervolgorde en groepering van de rapportgegevens.'],
     ['title' => 'Uitvoer', 'completed' => false, 'tooltip' => 'Bekijk een voorbeeld van het rapport en exporteer naar Excel of andere formaten.'],
-    ['title' => 'Bewaar', 'completed' => false, 'tooltip' => 'Sla het rapport op met een naam en omschrijving zodat je het later kunt uitvoeren of bewerken.']
+    ['title' => 'Bewaar', 'completed' => false, 'tooltip' => 'Sla het rapport op met een naam en omschrijving zodat je het later kunt uitvoeren of bewerken.'],
+    ['title' => 'Start', 'completed' => false, 'tooltip' => 'Start het rapport met het bij stap 5 (Uitvoer) gekozen formaat.']
 ];
 
 // Quick mode skips step 2 (parameters)
@@ -433,6 +434,20 @@ ToolbarHelper::end(true);
                         </div>
                     </div>
                 </div>
+
+                <!-- Step 7: Start -->
+                <div slot="tab-6" class="report-designer-step">
+                    <div class="step-layout-single">
+                        <div class="save-step-content">
+                            <p class="save-step-intro">Start het rapport met het uitvoerformaat dat je bij stap 5 (Uitvoer) hebt gekozen. Bij <span class="cma-page__strong">Tabel</span> opent het resultaat in het tabblad Resultaat; bij Excel, CSV of JSON wordt het bestand gedownload.</p>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary" id="btnStartReport">
+                                    <span class="lnr lnr-play"></span> Rapport starten
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </cma-tabs>
 
             <!-- Step Navigation -->
@@ -619,6 +634,7 @@ ToolbarHelper::end(true);
         btnPrevStep: document.getElementById('btnPrevStep'),
         btnNextStep: document.getElementById('btnNextStep'),
         btnNextStepInline: document.getElementById('btnNextStepInline'),
+        btnStartReport: document.getElementById('btnStartReport'),
         wizardContainer: document.querySelector('.report-designer-wizard'),
         // Main tabs
         mainTabs: document.getElementById('mainTabs'),
@@ -1251,6 +1267,13 @@ ToolbarHelper::end(true);
             });
         }
 
+        // Step 7 "Start": actually run the report using the step-5 output choice.
+        // runReport() switches to the Resultaat ("Gegevens") tab for on-screen
+        // table output, or triggers the download for excel/csv/json.
+        if (elements.btnStartReport) {
+            elements.btnStartReport.addEventListener('click', runReport);
+        }
+
         // Inline next button for step 1 (same behavior as btnNextStep)
         if (elements.btnNextStepInline) {
             elements.btnNextStepInline.addEventListener('click', () => {
@@ -1274,7 +1297,7 @@ ToolbarHelper::end(true);
      * Update step navigation button visibility based on current step
      */
     function updateStepNavigation(currentIndex) {
-        const maxIndex = 5; // 6 tabs (0-5)
+        const maxIndex = 6; // 7 tabs (0-6): …, Bewaar(5), Start(6)
 
         // Default to 0 if undefined
         if (currentIndex === undefined || currentIndex === null) {
