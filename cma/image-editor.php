@@ -156,6 +156,9 @@ $ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-m
                 <span class="tb-btn responsive-btn" data-tooltip="Linksom draaien"><a href="javascript:imgEditor.rotate(-90)"><span class="lnr lnr-undo"></span><span class="btn-text">90&deg; L</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Rechtsom draaien"><a href="javascript:imgEditor.rotate(90)"><span class="lnr lnr-redo"></span><span class="btn-text">90&deg; R</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="180&deg; draaien"><a href="javascript:imgEditor.rotate(180)"><span class="lnr lnr-sync"></span><span class="btn-text">180&deg;</span></a></span>
+                <span class="tb-btn responsive-btn" data-tooltip="Draai eigen aantal graden linksom"><a href="javascript:imgEditor.rotateCustom('-')"><span class="lnr lnr-undo"></span><span class="btn-text">&deg; L</span></a></span>
+                <label class="ie-rotate" data-tooltip="Aantal graden om te draaien (bijv. 5)"><input type="number" id="ieRotateDeg" min="0" max="359" step="1" value="5">&deg;</label>
+                <span class="tb-btn responsive-btn" data-tooltip="Draai eigen aantal graden rechtsom"><a href="javascript:imgEditor.rotateCustom('+')"><span class="lnr lnr-redo"></span><span class="btn-text">&deg; R</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Horizontaal spiegelen"><a href="javascript:imgEditor.flip('h')"><?= $svgFlipH ?><span class="btn-text">Spiegel H</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Verticaal spiegelen"><a href="javascript:imgEditor.flip('v')"><?= $svgFlipV ?><span class="btn-text">Spiegel V</span></a></span>
                 <span class="tb-btn responsive-btn" data-tooltip="Lichter"><a href="javascript:imgEditor.filter('brightness','+')"><?= $svgSunLight ?><span class="btn-text">Lichter</span></a></span>

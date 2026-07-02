@@ -310,6 +310,16 @@
 
         // ── Operations ──────────────────────────────────────────────────────
         rotate: function (deg) { this.cancelCrop(); this.editOp({ action: 'rotate', degrees: deg }); },
+        // Rotate by a free angle from the #ieRotateDeg input (e.g. 5° to straighten
+        // a slightly tilted photo). Non-right angles leave triangular corners — fill
+        // is handled server-side (white) so they can be cropped away afterwards.
+        rotateCustom: function (sign) {
+            var inp = document.getElementById('ieRotateDeg');
+            var deg = inp ? parseFloat(String(inp.value).replace(',', '.')) : NaN;
+            if (isNaN(deg) || deg === 0) { return; }
+            deg = Math.max(-359, Math.min(359, Math.round(deg)));
+            this.rotate(sign === '-' ? -Math.abs(deg) : Math.abs(deg));
+        },
         flip: function (dir) { this.cancelCrop(); this.editOp({ action: 'filter', filter: 'flip', arg: dir }); },
         filter: function (filter, arg) { this.cancelCrop(); this.editOp({ action: 'filter', filter: filter, arg: arg }); },
         restore: function () { this.cancelCrop(); this.editOp({ action: 'restore' }); },

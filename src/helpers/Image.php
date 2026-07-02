@@ -579,7 +579,10 @@ class Image
             imagesavealpha($sourceImage, true);
             $bgColor = imagecolorallocatealpha($sourceImage, 255, 255, 255, 127);
         } else {
-            $bgColor = 0;
+            // Opaque formats (JPG): fill the triangular corners left by a non-right-angle
+            // rotation with white rather than black. Product photos sit on white, so a
+            // small straighten (e.g. 5°) blends in and reads cleanly before cropping.
+            $bgColor = imagecolorallocate($sourceImage, 255, 255, 255);
         }
 
         // GD's imagerotate() rotates counter-clockwise, negate for clockwise

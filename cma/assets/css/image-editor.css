@@ -54,6 +54,14 @@
     color: var(--text-muted, #666);
 }
 .ie-margin input { width: 46px; }
+.ie-rotate {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted, #666);
+}
+.ie-rotate input { width: 46px; }
 
 /* Canvas — dark backdrop like a photo editor, image centered. */
 .image-editor-canvas {
