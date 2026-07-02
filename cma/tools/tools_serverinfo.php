@@ -17,7 +17,7 @@ require_once __DIR__ . '/../bootstrap.inc';
 function cma_serverinfo_is_secret(string $key): bool
 {
     return (bool) preg_match(
-        '/(password|passwd|\bpwd\b|secret|token|credential|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|\bsalt\b|[_-]key$|^key$)/i',
+        '/(password|passwd|\bpwd\b|secret|token|credential|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|authorization|php_auth|cookie|\bsalt\b|[_-]key$|^key$)/i',
         $key
     );
 }
@@ -34,6 +34,31 @@ function cma_serverinfo_mask(string $value): string
         return str_repeat('*', max($len, 1));
     }
     return substr($value, 0, 3) . str_repeat('*', min($len - 3, 12));
+}
+
+/**
+ * Render one settings value cell: masks secrets, shows arrays/objects/empty
+ * distinctly, HTML-escapes everything. Shared by the Application-settings and
+ * $_SERVER diagnostics tables so every value goes through the same masking.
+ */
+function cma_serverinfo_render_value(string $key, $raw): string
+{
+    if (Arr::isArray($raw)) {
+        return '<span class="cma-tool__strong">{ Array }</span>';
+    }
+    if (is_object($raw)) {
+        return '<span class="cma-tool__strong">{ Object }</span>';
+    }
+    $str = (string)$raw;
+    if (cma_serverinfo_is_secret($key)) {
+        if ($str === '') {
+            return '<span class="cma-tool__em">(niet ingesteld)</span>';
+        }
+        return '<span class="cma-tool__strong">' . htmlspecialchars(cma_serverinfo_mask($str)) . '</span> '
+             . '<span class="lnr lnr-lock" title="Verborgen om veiligheidsredenen — alleen de eerste 3 tekens worden getoond"></span> '
+             . '<span class="cma-tool__em">verborgen</span>';
+    }
+    return '<span class="cma-tool__strong">' . htmlspecialchars($str) . '</span>';
 }
 
 // =========================================================================
@@ -185,32 +210,15 @@ function main(): void
     echo '<TR><TD colspan=2><span class="cma-tool__em">Waarden met een slot (<span class="lnr lnr-lock"></span>) zijn gevoelig (API-keys, wachtwoorden, tokens) en worden gedeeltelijk verborgen — alleen de eerste 3 tekens zijn zichtbaar. &laquo;(niet ingesteld)&raquo; betekent dat de waarde daadwerkelijk leeg is.</span></TD></TR>';
     foreach (Application::getAll() as $AppVal => $__value) {
         if (substr($AppVal, 0, max(0, min(5, strlen($AppVal)))) != 'conn_') {
-            echo '<TR><TD>' . htmlspecialchars((string)$AppVal) . '</TD><TD>';
-            $raw = Application::get($AppVal, '');
-            if (Arr::isArray($raw)) {
-                echo '<span class="cma-tool__strong">{ Array }</span>';
-            } elseif (is_object($raw)) {
-                echo '<span class="cma-tool__strong">{ Object }</span>';
-            } elseif (cma_serverinfo_is_secret((string)$AppVal)) {
-                $str = (string)$raw;
-                if ($str === '') {
-                    echo '<span class="cma-tool__em">(niet ingesteld)</span>';
-                } else {
-                    echo '<span class="cma-tool__strong">' . htmlspecialchars(cma_serverinfo_mask($str)) . '</span> ';
-                    echo '<span class="lnr lnr-lock" title="Verborgen om veiligheidsredenen — alleen de eerste 3 tekens worden getoond"></span> ';
-                    echo '<span class="cma-tool__em">verborgen</span>';
-                }
-            } else {
-                echo '<span class="cma-tool__strong">' . htmlspecialchars((string)$raw) . '</span>';
-            }
-            echo '</TD></TR>';
+            echo '<TR><TD>' . htmlspecialchars((string)$AppVal) . '</TD><TD>'
+               . cma_serverinfo_render_value((string)$AppVal, Application::get($AppVal, '')) . '</TD></TR>';
         }
     }
     echo '<TR><TD colspan=2>&nbsp;</TD></TR>';
     echo '<TR><TD colspan=2><h2><i>Server instellingen</TD></TR>';
     // Intentionally iterates $_SERVER to display all server variables for diagnostics
     foreach ($_SERVER as $strKey => $value) {
-        echo '<TR><TD>' . htmlspecialchars($strKey) . '</TD><TD><B>' . htmlspecialchars($value) . '</B></TD></TR>';
+        echo '<TR><TD>' . htmlspecialchars($strKey) . '</TD><TD>' . cma_serverinfo_render_value((string)$strKey, $value) . '</TD></TR>';
     }
     echo '</table>';
     echo '</div>';
