@@ -1696,3 +1696,5 @@ karaat-data en staat in de karaat-repo.
 > Kun je een 1:1 vergelijking maken tussen de oude en de nieuwe class
 
 > Bouw addReplyTo wel in als optie. en showpreview op het scherm moet nog wel in dezelfde opzet blijven.
+
+> okay, push and commit please
