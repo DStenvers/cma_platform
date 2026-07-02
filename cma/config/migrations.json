@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.13.0",
+    "targetVersion": "9.15.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1128,6 +1128,28 @@
                     "type": "runPhp",
                     "script": "migrations/9.13.0_create_javascript_errors.php",
                     "note": "Maakt tblCMAJavascriptErrors aan in de data database waar form_api.php (logJsError) en error-handler.js naartoe schrijven. Access-compatibele DDL (geen DEFAULT, MEMO > 255). Vervangt het verwijderde 2.2.0 (dat de deprecated rep-database met ongeldige SQL targette). Idempotent."
+                }
+            ]
+        },
+        {
+            "version": "9.14.0",
+            "description": "tblCMAMarketingUrl aanmaken in de data database (marketingurl-redirects)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.14.0_create_tblcmamarketingurl.php",
+                    "note": "Maakt tblCMAMarketingUrl aan zodat het marketingurl-formulier niet meer faalt met 'cannot find the input table tblCMAMarketingUrl'. Hernummerd van 9.10.0 — die was nooit in dit manifest geregistreerd, dus op sites voorbij de high-water-mark (9.13.0) werd hij nooit als pending gezien. Idempotent (bestaanscontrole vóór CREATE)."
+                }
+            ]
+        },
+        {
+            "version": "9.15.0",
+            "description": "api_call_log aanmaken in de data database (LLM/vision/API-call logging)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.15.0_create_api_call_log.php",
+                    "note": "Maakt api_call_log (snake_case, geen tbl-prefix) aan zodat het CMA-monitoring-formulier niet faalt met 'cannot find the input table api_call_log'. Hernummerd van 9.11.0 — zelfde manifest-omissie als 9.14.0. Idempotent (bestaanscontrole vóór CREATE)."
                 }
             ]
         }

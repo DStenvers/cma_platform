@@ -1,6 +1,11 @@
 <?php
 /**
- * Migration 9.10.0: Create tblCMAMarketingUrl
+ * Migration 9.14.0: Create tblCMAMarketingUrl
+ *
+ * (Renumbered from 9.10.0 — that version was never registered in the
+ * migrations.json manifest, so on sites already past 9.13.0 the high-water-mark
+ * runner never saw it as pending and the table stayed missing. This version
+ * sits above the target so it becomes pending everywhere.)
  *
  * Ensures the marketing-URL redirect table exists in the data database.
  * On legacy installs the table existed under the name tblMarketingUrl

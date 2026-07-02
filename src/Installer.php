@@ -42,6 +42,13 @@ class Installer
      */
     private const REMOVED_PATHS = [
         'cma/tools/llm_models.php',
+        // Renumbered in v1.28.35: these two migrations were never registered in
+        // config/migrations.json, so the high-water-mark runner never applied
+        // them (leaving tblCMAMarketingUrl / api_call_log missing on sites past
+        // 9.13.0). Re-issued as 9.14.0 / 9.15.0 (above target) so they become
+        // pending everywhere. Drop the old-named orphan files from sites.
+        'cma/migrations/9.10.0_create_tblcmamarketingurl.php',
+        'cma/migrations/9.11.0_create_api_call_log.php',
         // Retired: the legacy IE/ActiveX image-upload wizard (an <OBJECT> COM
         // control + IE-only event scripting) and its POST target. Dead in any
         // modern browser and reached by nothing; superseded by the file-browser

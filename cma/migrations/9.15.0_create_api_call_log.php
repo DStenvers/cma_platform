@@ -1,6 +1,12 @@
 <?php
 /**
- * Migration 9.11.0: Create api_call_log
+ * Migration 9.15.0: Create api_call_log
+ *
+ * (Renumbered from 9.11.0 — that version was never registered in the
+ * migrations.json manifest, so on sites already past 9.13.0 the high-water-mark
+ * runner never saw it as pending. This version sits above the target so it
+ * becomes pending everywhere. Idempotent, so re-running where the table already
+ * exists is a no-op.)
  *
  * Every outbound LLM / vision / paid-API call gets a row so the CMA
  * can inspect cost, patterns and errors. Originally lived as a
