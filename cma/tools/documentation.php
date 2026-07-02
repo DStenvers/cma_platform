@@ -2939,6 +2939,7 @@ $ok = Email::create()
 };
 </code></pre>
     <p>Elke <code>Email::send()</code> roept deze hook aan met <code>$data</code> dat bevat: <code>success</code>, <code>from</code>, <code>to</code> (originele recipients, vóór test-clearing), <code>cc</code>, <code>bcc</code>, <code>subject</code>, <code>body</code>, <code>error</code>. <code>EmailLogService</code> persist deze naar <code>tblEmailLog</code> voor admin-review.</p>
+    <p><span class="cma-tool__strong">Beheer-UI (sinds v1.28.32):</span> het archief is bereikbaar via <span class="cma-tool__strong">Alle beheerstools → Site gezondheid → E-mail log</span> (het standaard-CMA-formulier <code>emaillog</code>, route <code>/cma/form/emaillog</code>). De lijst toont datum/aan/onderwerp/status; het detail-scherm is read-only met een <span class="cma-tool__strong">Opnieuw verzenden</span>-knop (extra-button die <code>CMA.emailLog.resend()</code> aanroept → <code>api/email-actions.php</code> → <code>EmailLogService::resend()</code>). Verwijderen kan via de standaard verwijder-knop (<code>EmailLogService::delete()</code>). Records ouder dan 30 dagen worden opgeruimd door <code>EmailLogService::cleanup()</code>.</p>
     <p>Controleerbaar via env-var <code>EMAIL_LOG_ENABLED</code> (default <code>true</code>). Er staat een <code>class_exists</code> guard om de afterSend-assignment heen zodat half-updated installs (waar <code>Email.php</code> nog niet autoloadable is) niet crash'en op deze regel.</p>
 
     <h2>Legacy LibMailer / SendMail() (sinds v1.28.30)</h2>
