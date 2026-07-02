@@ -1682,3 +1682,11 @@ karaat-data en staat in de karaat-repo.
 > in karaat L if i remove all shapes / colors from a stone (multiple select), they are not saved. Like an empty value is ignored. can you check?
 
 > https://www.karaatedelstenen.nl/edelsteen/4444/saffier.html toont 2 kleuren in de filterweergave, maar als ik de quickedit open staat er geen enkele kleur
+
+> the email loggin into a table of the database, has that been implemented yet? The goal is to have an archive of all mail send with retry options etc.
+
+> Is there an interface in the CMA to enable forwarding, re-sending etc? I could not find it
+
+> Dus Libmailer is volledig separaat van app\library\email? Kunnen we libMailer terugschroeven naar alleen een wrapper voor app\libray\email ?
+
+> Meteen de wrapper graag, 2 codepaden vind ik niet tof.
