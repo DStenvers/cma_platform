@@ -38,12 +38,18 @@ try {
         exit(1);
     }
 
+    // Force a fetch: the PDO ODBC Access driver often surfaces "table does not
+    // exist" only at fetch time, so a bare query()+assume-exists false-positives
+    // on a missing table. Treat a non-throwing false return as missing too.
     $tableExists = false;
     try {
-        $conn->query("SELECT TOP 1 [id] FROM [api_call_log]");
-        $tableExists = true;
+        $stmt = $conn->query("SELECT TOP 1 [id] FROM [api_call_log]");
+        if ($stmt !== false) {
+            $stmt->fetchColumn();   // forces the driver to actually touch the table
+            $tableExists = true;
+        }
     } catch (\Exception $e) {
-        // Table doesn't exist
+        // Table doesn't exist — the fetch (or query) surfaced it here.
     }
 
     if ($tableExists) {

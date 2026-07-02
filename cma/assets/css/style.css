@@ -210,6 +210,7 @@ body.contentbody #c {padding-left:4px;left:0;top:26px}
 body.contentbody #c.tools {padding:20px}
 #c.tools {overflow:auto;padding:20px}
 .cma-content-inner:has(#c.tools .toolbar) #c.tools {padding:0}
+#contentArea {height:100%}
 /* Tools pages with lib-table need no padding - table fills the space */
 #c.tools:has(lib-table) {padding:0; overflow:visible}
 body.contentbody #c.tools:has(lib-table) {padding:0; overflow:visible}

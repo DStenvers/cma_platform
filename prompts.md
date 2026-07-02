@@ -1708,3 +1708,7 @@ karaat-data en staat in de karaat-repo.
 > Yes i want all values to go through the maskering.
 >
 > i see the email form now, but an UX concern : the forms all load in such a way that the tools menu is gone. Can we do it differently? Can we have a select a on top ot the screen in cma-header and load the form in #contentarea ? and then for all the tools the same approach
+
+> css request : #contentArea { height: 100% }
+>
+> https://www.karaatedelstenen.nl/cma/form.php?form=marketingurl zegt dat tblCMAMarketingurl niet bestaat, de migratie zegt dat hij al wel bestaat?

@@ -17,8 +17,21 @@ require_once __DIR__ . '/../bootstrap.inc';
 function cma_serverinfo_is_secret(string $key): bool
 {
     return (bool) preg_match(
-        '/(password|passwd|\bpwd\b|secret|token|credential|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|authorization|php_auth|cookie|\bsalt\b|[_-]key$|^key$)/i',
+        '/(password|passwd|\bpwd\b|secret|token|credential|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|client[_-]?id|oauth|pipeline|authorization|php_auth|cookie|\bsalt\b|[_-]key$|^key$)/i',
         $key
+    );
+}
+
+/**
+ * Does the VALUE look like a secret regardless of its key name? Catches a PAT or
+ * embedded credential in an innocuously-named setting (e.g. DEPLOY_PIPELINE
+ * holding a GitHub token, or a "user:pass@host" URL).
+ */
+function cma_serverinfo_value_looks_secret(string $value): bool
+{
+    return (bool) preg_match(
+        '~(gh[opusr]_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{12,}|AIza[0-9A-Za-z_-]{20,}|://[^/:@\s]+:[^/@\s]{6,}@)~',
+        $value
     );
 }
 
@@ -50,7 +63,7 @@ function cma_serverinfo_render_value(string $key, $raw): string
         return '<span class="cma-tool__strong">{ Object }</span>';
     }
     $str = (string)$raw;
-    if (cma_serverinfo_is_secret($key)) {
+    if (cma_serverinfo_is_secret($key) || cma_serverinfo_value_looks_secret($str)) {
         if ($str === '') {
             return '<span class="cma-tool__em">(niet ingesteld)</span>';
         }
