@@ -1945,3 +1945,7 @@ karaat-data en staat in de karaat-repo.
 > the groups/users/marketing url/email lig and other forms should be callable both ways
 
 > also test forbtge general left  menu pane, because in the mentioned case that is gone too
+
+> If ingive ypu a login for the cma, can you storenit and try for yourself?
+
+> username claude - pwd claude!

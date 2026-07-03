@@ -5313,8 +5313,9 @@ class CmaFormController {
                 return;
             }
             if (scroller.hasMore && !scroller.destroyed) {
-                // Continue loading next batch
-                setTimeout(prefetchBatch, 0);
+                // Continue immediately on success; back off before a retry so a
+                // transient failure has time to recover (_loadRetries > 0).
+                setTimeout(prefetchBatch, scroller._loadRetries ? 500 : 0);
             } else {
                 // All data loaded — re-enable scroll handler and hide counter
                 scroller.paused = false;
@@ -5672,8 +5673,13 @@ class CmaFormController {
             }
             return { success: false, hasMore: false };
         } catch (error) {
+            // Network/HTTP failure is RETRIABLE. Never report hasMore:false here —
+            // the server proven to hold all rows, so a single transient blip
+            // mid-scroll would otherwise silently end pagination below the total
+            // (the "records 1-1500 van 1796 (laden…)" stall). The scroller retries
+            // a few times before giving up.
             cmaLog.error('[loadMoreRows] Error:', error.message || error);
-            return { success: false, hasMore: false };
+            return { success: false, retriable: true };
         }
     }
 

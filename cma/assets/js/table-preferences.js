@@ -677,6 +677,7 @@ class CmaInfiniteScroll {
             }
 
             if (result.success) {
+                this._loadRetries = 0; // a good load clears the retry counter
                 this.lastId = result.lastId;
                 // Use truthy check - PHP may return 1/0 or true/false
                 this.hasMore = !!result.hasMore;
@@ -769,6 +770,17 @@ class CmaInfiniteScroll {
                     }
                 } else {
                     // No HTML means no more data
+                    this.hasMore = false;
+                }
+            } else if (result && result.retriable) {
+                // Transient load failure — do NOT end pagination. Keep hasMore so
+                // the auto-prefetch loop retries THIS same page, and clear
+                // pendingLastId so the duplicate-guard doesn't block the retry.
+                // Give up (and stop) only after several consecutive failures.
+                this._loadRetries = (this._loadRetries || 0) + 1;
+                this.pendingLastId = null;
+                if (this._loadRetries >= 4) {
+                    cmaLog.warn('Infinite scroll: giving up after ' + this._loadRetries + ' failed loads past id ' + this.lastId);
                     this.hasMore = false;
                 }
             } else {
