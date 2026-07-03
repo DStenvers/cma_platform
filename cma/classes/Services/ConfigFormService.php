@@ -350,7 +350,11 @@ class ConfigFormService
         }
 
         try {
-            $config = ConfigLoader::load($configFile);
+            // Create-on-first-save: the list handler shows an empty grid when the
+            // config file doesn't exist yet and relies on THIS handler to create it
+            // on the first row. Loading a missing file throws, so start from an empty
+            // config instead — ConfigLoader::save() creates the directory + file.
+            $config = ConfigLoader::exists($configFile) ? ConfigLoader::load($configFile) : [];
 
             if (empty($configArrayKey) || ($formDef['singleRecord'] ?? false)) {
                 // Single record form - merge data into config

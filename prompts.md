@@ -1939,3 +1939,5 @@ karaat-data en staat in de karaat-repo.
 >   , can you check?
 
 > .toolbar-select .select, .toolbar-select .select2 { min-width:50px}
+
+> content blocks form should contain a tips section (standard form element)  about how to define and use variables

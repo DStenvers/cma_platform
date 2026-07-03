@@ -147,6 +147,13 @@ class ConfigLoader
         // Add newline at end of file
         $json .= "\n";
 
+        // Ensure the target directory exists so a config can be created on first
+        // save (e.g. the contentblocks form's first row on a fresh site).
+        $dir = dirname($file);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+
         $result = file_put_contents($file, $json, LOCK_EX);
 
         if ($result !== false) {

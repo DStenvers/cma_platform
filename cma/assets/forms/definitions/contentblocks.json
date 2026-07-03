@@ -49,7 +49,7 @@
                         "height": 4,
                         "caption": "HTML template",
                         "rows": 20,
-                        "helpText": "HTML template met variabelen zoals {{variable_name}}"
+                        "hint": "Gebruik een variabele in de template met dubbele accolades: {{variable_name}}. De namen komen uit het veld Variabelen hieronder."
                 },
                 {
                         "name": "variables",
@@ -58,7 +58,7 @@
                         "caption": "Variabelen (JSON)",
                         "rows": 25,
                         "height": 12,
-                        "helpText": "JSON object met variabele definities"
+                        "hint": "JSON-object dat de variabelen definieert, gekeyed op naam — bijv. {\"titel\": \"Standaardtekst\"}. Elke sleutel is een variabelenaam die je in de HTML template gebruikt als {{titel}}."
                 }
         ]
 }
