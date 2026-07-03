@@ -819,10 +819,10 @@
 
         const steps = [];
 
-        // Tools menu (inline big menu)
-        if (document.querySelector('.tools-menu')) {
+        // Tools menu button (opens the shared launcher overlay)
+        if (document.querySelector('#toolsMenuBtn')) {
             steps.push({
-                target: '.tools-menu',
+                target: '#toolsMenuBtn',
                 title: 'Tools menu',
                 content: `
                     <p>Alle systeemtools, georganiseerd per categorie:</p>
@@ -839,7 +839,7 @@
 
         // Badge explanation
         steps.push({
-            target: '.tools-menu',
+            target: '#toolsMenuBtn',
             title: 'Toegangsniveaus',
             content: `
                 <p>Tools zijn gemarkeerd met badges:</p>

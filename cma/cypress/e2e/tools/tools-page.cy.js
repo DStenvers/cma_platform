@@ -2,9 +2,10 @@
  * Tools Page Tests
  *
  * Comprehensive tests for the CMA tools page and its subtools.
- * The landing page renders the inline BIG menu (.tools-menu); selecting a
- * tool shows it full-width in iframe#tools-content. (The former two-pane
- * cma-tree view is archived in tools_DEPRECATED.php.)
+ * The landing page is a toolbar with a single "Menu" button (#toolsMenuBtn)
+ * that opens the shared launcher overlay (cma-launcher). Selecting a tool
+ * shows it full-width in iframe#tools-content. (The former two-pane cma-tree
+ * view is archived in tools_DEPRECATED.php.)
  *
  * Run: npx cypress run --spec "cypress/e2e/tools/tools-page.cy.js"
  */
@@ -16,65 +17,45 @@ describe('Tools Page', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // PAGE STRUCTURE — inline big menu
+  // PAGE STRUCTURE — toolbar + Menu button
   // ═══════════════════════════════════════════════════════════════
 
   describe('Page Structure', () => {
-    it('should display the inline tools menu', () => {
-      cy.get('.tools-menu').should('be.visible');
+    it('should display the tools toolbar', () => {
+      cy.get('.tools-page .tools-toolbar').should('exist');
     });
 
-    it('should have a search box', () => {
-      cy.get('.tools-menu__search').should('exist');
+    it('should have a single Menu button', () => {
+      cy.get('#toolsMenuBtn').should('be.visible').and('contain.text', 'Menu');
     });
 
-    it('should render grouped tool items', () => {
-      cy.get('.tools-menu__group').should('have.length.at.least', 1);
-      cy.get('.tools-menu__item').should('have.length.at.least', 1);
+    it('should show an empty-state prompt when no tool is selected', () => {
+      cy.get('.tools-empty').should('be.visible');
     });
 
-    it('should NOT render the archived two-pane tree', () => {
+    it('should NOT render the archived two-pane tree or an inline grid', () => {
       cy.get('#tools-tree').should('not.exist');
       cy.get('cma-fold').should('not.exist');
+      cy.get('.tools-menu').should('not.exist');
     });
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // MENU SEARCH — client-side filter
+  // MENU BUTTON — opens the shared launcher overlay
   // ═══════════════════════════════════════════════════════════════
 
-  describe('Menu Search', () => {
-    it('should hide non-matching items as you type', () => {
-      // "cache" matches the Cache-leegmaken item; unrelated items get [hidden].
-      cy.get('.tools-menu__search').type('cache');
-      cy.get('.tools-menu__item:not([hidden])').should('have.length.at.least', 1);
-      cy.get('.tools-menu__item[hidden]').should('exist');
+  describe('Menu Button', () => {
+    it('should open the shared launcher overlay on click', () => {
+      cy.get('#toolsMenuBtn').click();
+      cy.get('cma-launcher.is-open').should('exist');
+      cy.get('.cma-launcher__panel').should('be.visible');
     });
 
-    it('should restore all items when the term is cleared', () => {
-      cy.get('.tools-menu__item').its('length').then((total) => {
-        cy.get('.tools-menu__search').type('cache');
-        cy.get('.tools-menu__search').clear();
-        cy.get('.tools-menu__item:not([hidden])').should('have.length', total);
-      });
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════
-  // MENU NAVIGATION — items carry the shell load target
-  // ═══════════════════════════════════════════════════════════════
-
-  describe('Menu Navigation', () => {
-    it('should give tool items a tools.php?tool= load target', () => {
-      cy.get('.tools-menu__item[data-form="0"]').first()
-        .should('have.attr', 'data-page')
-        .and('include', 'tools.php?tool=');
-    });
-
-    it('should point form-backed items at a /cma/form/ route', () => {
-      cy.get('.tools-menu__item[data-form="1"]').first()
-        .should('have.attr', 'data-url')
-        .and('include', '/cma/form/');
+    it('should let the launcher close again', () => {
+      cy.get('#toolsMenuBtn').click();
+      cy.get('cma-launcher.is-open').should('exist');
+      cy.get('.cma-launcher__close').click();
+      cy.get('cma-launcher.is-open').should('not.exist');
     });
   });
 });

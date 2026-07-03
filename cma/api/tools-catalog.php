@@ -2,9 +2,9 @@
 /**
  * Tools Catalog API
  *
- * Returns the admin tools/forms catalog as JSON for the header launcher
- * (cma-launcher). Same data as the tools.php inline big menu — single source of
- * truth is buildToolsTreeData() in tools_catalog.inc. Admin-only.
+ * Returns the admin tools/forms catalog as JSON for the launcher overlay
+ * (cma-launcher) — the single tools menu. Single source of truth is
+ * buildToolsTreeData() in tools_catalog.inc. Admin-only.
  */
 
 use App\Library\Response;

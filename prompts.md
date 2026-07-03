@@ -1843,3 +1843,7 @@ karaat-data en staat in de karaat-repo.
 > no you were working on a big menu in the tools.php to skip the tree view currently in use (archive that by reming to _DEPRECATED, don't delete it)
 
 > Not true becauase if i refresh the same numbers appear, it is geniounly not cleared
+
+> yes commit and push please and can you bump karaat to force an update?
+
+> once the tools menu has been installed it now stays visible , that is s state issue. I think it is better to move the tools menu to the #contentArea in a separate toolbar with just = menu in it. that prevents state management issues

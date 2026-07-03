@@ -22,8 +22,8 @@
 
     // Work out how a catalog href navigates in the shell. Form-backed items are
     // canonical /cma/form/<form> routes; everything else is a tool page that
-    // loads through tools.php (keyed by tool name), mirroring the tools.php
-    // inline-menu click handler exactly.
+    // loads through tools.php (keyed by tool name), which then shows the tool
+    // full-width.
     function resolveNav(href) {
         if (!href) return null;
         if (href.indexOf('form.php?form=') === 0) {
@@ -63,7 +63,11 @@
             }
             document.addEventListener('keydown', this._onKeydown, true);
             var search = this.querySelector('.cma-launcher__search');
-            if (search) { search.value = ''; this._applyFilter(''); search.focus(); }
+            if (search) {
+                if (typeof search.clear === 'function') search.clear();
+                this._applyFilter('');
+                if (typeof search.focus === 'function') search.focus();
+            }
         }
 
         close() {
@@ -104,9 +108,8 @@
                 '<div class="cma-launcher__backdrop" data-close></div>' +
                 '<div class="cma-launcher__panel" role="dialog" aria-modal="true" aria-label="Alle beheerstools">' +
                     '<div class="cma-launcher__head">' +
-                        '<h2 class="cma-launcher__title">Alle beheerstools</h2>' +
-                        '<input type="search" class="cma-launcher__search" placeholder="Zoek een tool…" aria-label="Zoek een tool">' +
-                        '<button type="button" class="cma-launcher__close" data-close aria-label="Sluiten"><span class="lnr lnr-cross"></span></button>' +
+                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="Zoek een tool…" aria-label="Zoek een tool"></lib-search-input>' +
+                        '<a href="javascript:void(0)" class="cma-launcher__close" data-close aria-label="Sluiten" title="Sluiten"><span class="cma-launcher__close-x"></span></a>' +
                     '</div>' +
                     '<div class="cma-launcher__body">' + bodyHtml + '</div>' +
                 '</div>';
@@ -159,12 +162,14 @@
             });
             var search = this.querySelector('.cma-launcher__search');
             if (search) {
-                search.addEventListener('input', function () { self._applyFilter(search.value); });
-                search.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        var first = self.querySelector('.cma-launcher__item:not([hidden])');
-                        if (first) { e.preventDefault(); first.click(); }
-                    }
+                // <lib-search-input> emits 'input' (detail.value) per keystroke and
+                // 'search' on Enter.
+                search.addEventListener('input', function (e) {
+                    self._applyFilter(e.detail && typeof e.detail.value === 'string' ? e.detail.value : '');
+                });
+                search.addEventListener('search', function () {
+                    var first = self.querySelector('.cma-launcher__item:not([hidden])');
+                    if (first) first.click();
                 });
             }
             this.querySelectorAll('.cma-launcher__item').forEach(function (a) {

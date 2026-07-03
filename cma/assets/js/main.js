@@ -917,7 +917,13 @@
 
                 // Extract title and update breadcrumb
                 let pageTitle = '';
-                const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
+                // Prefer the form definition title (data-form-title) so forms show
+                // their human title (e.g. "E-mail log") rather than the form name.
+                const formTitleMatch = html.match(/data-form-title=["']([^"']+)["']/i);
+                if (formTitleMatch && formTitleMatch[1]) {
+                    pageTitle = formTitleMatch[1].trim();
+                }
+                const titleMatch = !pageTitle && html.match(/<title>([^<]*)<\/title>/i);
                 if (titleMatch && titleMatch[1]) {
                     pageTitle = titleMatch[1].trim();
                     // Remove " | Content Management Applicatie" suffix if present
@@ -1123,7 +1129,13 @@
 
                 // Extract title and update breadcrumb
                 let pageTitle = '';
-                const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
+                // Prefer the form definition title (data-form-title) so forms show
+                // their human title (e.g. "E-mail log") rather than the form name.
+                const formTitleMatch = html.match(/data-form-title=["']([^"']+)["']/i);
+                if (formTitleMatch && formTitleMatch[1]) {
+                    pageTitle = formTitleMatch[1].trim();
+                }
+                const titleMatch = !pageTitle && html.match(/<title>([^<]*)<\/title>/i);
                 if (titleMatch && titleMatch[1]) {
                     pageTitle = titleMatch[1].trim();
                     pageTitle = pageTitle.replace(/\s*\|\s*Content Management Applicatie$/i, '');
@@ -1318,9 +1330,16 @@
                 // Try to get form name from URL
                 const formMatch = page.match(/[?&]form=([^&]+)/i);
                 if (formMatch) {
-                    // Use form name as breadcrumb, title-cased
-                    const formName = decodeURIComponent(formMatch[1]);
-                    breadcrumb.textContent = formName.charAt(0).toUpperCase() + formName.slice(1).replace(/_/g, ' ');
+                    // Prefer the definition title from the rendered form; only fall
+                    // back to a title-cased form name when it isn't available.
+                    const rendered = document.querySelector('#contentArea [data-form-title]');
+                    const renderedTitle = rendered && rendered.getAttribute('data-form-title');
+                    if (renderedTitle) {
+                        breadcrumb.textContent = renderedTitle;
+                    } else {
+                        const formName = decodeURIComponent(formMatch[1]);
+                        breadcrumb.textContent = formName.charAt(0).toUpperCase() + formName.slice(1).replace(/_/g, ' ');
+                    }
                 } else {
                     // Use page filename without extension
                     const pageFile = page.split('?')[0].split('/').pop().replace('.php', '');

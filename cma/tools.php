@@ -1,29 +1,25 @@
 <?php
 /**
- * Unified Tools Page — BIG inline menu.
+ * Unified Tools Page — toolbar + shared launcher.
  *
- * Landing (no ?tool): renders the admin tools/forms catalog as a searchable,
- * grouped grid directly in the shell content area — the "big menu". Selecting
- * a tool re-loads this page with ?tool=<...> and shows that tool full-width.
- * The tree-based two-pane predecessor is archived in tools_DEPRECATED.php.
- *
- * The catalog comes from buildToolsTreeData() in tools_catalog.inc — the single
- * source shared with the header launcher (cma-launcher / api/tools-catalog.php).
+ * The tools page content is a slim toolbar with a single "Menu" button that
+ * opens the shared header launcher (cma-launcher) — the one and only tools
+ * menu, so there is no second inline menu with its own visibility state to
+ * manage. Selecting a tool (from the launcher) loads it full-width here.
+ * The former two-pane cma-tree view is archived in tools_DEPRECATED.php.
  *
  * URL Parameters:
- * - tool: Tool page to load full-width (friendly name or path). Absent = menu.
+ * - tool: Tool page to load full-width (friendly name or path). Absent = empty
+ *   state prompting the user to open the Menu.
  */
 
-use App\Library\Application;
 use App\Library\Request;
 use App\Library\Response;
-use Cma\Services\Logger;
 use App\Library\Server;
 use Cma\CmaRepository;
 use Cma\SecurityHelper;
 
 require_once __DIR__ . '/bootstrap.inc';
-require_once __DIR__ . '/tools_catalog.inc'; // buildToolsTreeData() — shared with the header launcher (api/tools-catalog.php)
 
 // Check access - minimum admin level required for tools
 if (!SecurityHelper::isAdmin()) {
@@ -38,7 +34,6 @@ if (!SecurityHelper::isAdmin()) {
 Response::noCache();
 CmaRepository::setCaching(true);
 
-$isDeveloper = SecurityHelper::isDeveloper();
 $isNomenuMode = defined('CMA_NOMENU_MODE') && CMA_NOMENU_MODE;
 
 // The main app sidebar lives in the shell (main.php). tools.php must therefore
@@ -111,8 +106,8 @@ $toolNameMap = [
 // Form-backed admin entities: friendly alias -> JSON form name. These render as
 // normal FORM routes (/cma/form/<form>) in the main shell, NOT inside the tools
 // iframe. This is the single source for that mapping — the deep-link redirect
-// below and the menu items (which link to form.php?form=<form>) both derive the
-// form from here, so the alias and the clean form URL can't drift into two
+// below and the launcher items (which link to form.php?form=<form>) both derive
+// the form from here, so the alias and the clean form URL can't drift into two
 // separate routes for the same form.
 $formBackedTools = [
     'users'         => 'users',
@@ -172,166 +167,35 @@ if (!empty($toolParam)) {
 
 echo '<base href="/cma/">';
 echo '<div class="tools-page">';
-
-if (!empty($initialTool)) {
-    // A tool is selected: show it full-width. Getting back to the menu is the
-    // header "Menu" launcher (or navigating to /cma/tools with no ?tool).
-    echo '<iframe name="R" id="tools-content" class="tools-content-area" src="'
-        . Server::htmlEncode($initialTool) . '" frameborder="0"></iframe>';
-    echo '</div>';
-    return;
-}
-
-// No tool selected: render the BIG inline menu from the shared catalog.
-try {
-    $treeData = buildToolsTreeData($isDeveloper);
-} catch (Exception $e) {
-    $treeData = [];
-    Logger::error('tools.php: Error building tools catalog', ['error' => $e->getMessage()]);
-}
-
-/**
- * Flatten one level of sub-folders into their own sections (e.g. Developer ->
- * Testen), mirroring cma-launcher._collectGroups() so the inline menu and the
- * header launcher stay visually identical.
- */
-function tools_menu_collect_groups(array $nodes, string $prefix, array &$out): void
-{
-    foreach ($nodes as $node) {
-        if (($node['type'] ?? '') !== 'folder') {
-            continue;
-        }
-        $title = $prefix !== '' ? $prefix . ' · ' . ($node['label'] ?? '') : ($node['label'] ?? '');
-        $items = array_values(array_filter($node['children'] ?? [], fn($c) => ($c['type'] ?? '') === 'item'));
-        if ($items) {
-            $out[] = ['title' => $title, 'icon' => $node['icon'] ?? '', 'items' => $items];
-        }
-        $subs = array_values(array_filter($node['children'] ?? [], fn($c) => ($c['type'] ?? '') === 'folder'));
-        if ($subs) {
-            tools_menu_collect_groups($subs, $title, $out);
-        }
-    }
-}
-
-/**
- * Resolve a catalog href into how it navigates in the shell — mirrors
- * cma-launcher.resolveNav(). Form-backed items are canonical /cma/form/<form>
- * routes loaded in the top window; every other tool page is passed to
- * tools.php?tool=<path> (the full .php path, which tools.php resolves) and gets
- * a pretty /cma/tools?tool=<name> address for the URL bar.
- *
- * Returns ['page' => loadPage target, 'url' => clean URL, 'form' => bool].
- */
-function tools_menu_nav(string $href): array
-{
-    if (strpos($href, 'form.php?form=') === 0) {
-        preg_match('/form=([^&]+)/', $href, $m);
-        return ['page' => $href, 'url' => $m ? '/cma/form/' . $m[1] : $href, 'form' => true];
-    }
-    $base = explode('?', $href)[0];
-    $query = strpos($href, '?') !== false ? '&' . substr($href, strpos($href, '?') + 1) : '';
-    // Pass the full .php path as the tool param — tools.php's path branch resolves
-    // it even for nested paths that no friendly short-name covers.
-    $page = 'tools.php?tool=' . $base . $query;
-    // Pretty short name for the URL bar when the file follows the tools_X / X
-    // convention with no extra path segment; otherwise fall back to the path.
-    if (preg_match('#^tools/tools_([^./]+)\.php$#', $base, $m) || preg_match('#^tools/([^./]+)\.php$#', $base, $m)) {
-        $short = $m[1];
-    } else {
-        $short = $base;
-    }
-    // $query already begins with '&' (e.g. "&tab=manage"), so append as-is.
-    $url = '/cma/tools?tool=' . rawurlencode($short) . $query;
-    return ['page' => $page, 'url' => $url, 'form' => false];
-}
-
-$groups = [];
-tools_menu_collect_groups($treeData, '', $groups);
+cma_script('webcomponents/cma-toolbar.js');
 ?>
 
-<div class="tools-menu" id="toolsMenu">
-    <div class="tools-menu__head">
-        <h2 class="tools-menu__title">Alle beheerstools</h2>
-        <input type="search" class="tools-menu__search" id="toolsMenuSearch"
-               placeholder="Zoek een tool…" aria-label="Zoek een tool" autocomplete="off">
-    </div>
-    <div class="tools-menu__grid">
-        <?php foreach ($groups as $g): ?>
-            <section class="tools-menu__group">
-                <h3 class="tools-menu__group-title">
-                    <?php if (!empty($g['icon'])): ?><span class="lnr <?= Server::htmlEncode($g['icon']) ?>"></span><?php endif; ?>
-                    <?= Server::htmlEncode($g['title']) ?>
-                </h3>
-                <div class="tools-menu__items">
-                    <?php foreach ($g['items'] as $it):
-                        $nav = tools_menu_nav($it['href'] ?? '#'); ?>
-                        <a class="tools-menu__item"
-                           href="<?= Server::htmlEncode($nav['url']) ?>"
-                           data-page="<?= Server::htmlEncode($nav['page']) ?>"
-                           data-url="<?= Server::htmlEncode($nav['url']) ?>"
-                           data-form="<?= $nav['form'] ? '1' : '0' ?>"
-                           data-search="<?= Server::htmlEncode(strtolower($it['label'] ?? '')) ?>">
-                            <?php if (!empty($it['icon'])): ?><span class="tools-menu__item-icon lnr <?= Server::htmlEncode($it['icon']) ?>"></span><?php endif; ?>
-                            <span class="tools-menu__item-label"><?= Server::htmlEncode($it['label'] ?? '') ?></span>
-                            <?php if (!empty($it['badge'])): ?><span class="tools-menu__badge" title="Toegangsniveau"><?= Server::htmlEncode($it['badge']) ?></span><?php endif; ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            </section>
-        <?php endforeach; ?>
-        <?php if (empty($groups)): ?>
-            <div class="tools-menu__error">Geen tools beschikbaar.</div>
-        <?php endif; ?>
-    </div>
-</div>
+<cma-toolbar variant="list" class="tools-toolbar">
+    <left>
+        <button type="button" class="cma-launcher-btn" id="toolsMenuBtn" aria-haspopup="dialog" title="Alle beheerstools">
+            <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Menu</span>
+        </button>
+    </left>
+</cma-toolbar>
+
+<?php if (!empty($initialTool)): ?>
+    <iframe name="R" id="tools-content" class="tools-content-area"
+            src="<?= Server::htmlEncode($initialTool) ?>" frameborder="0"></iframe>
+<?php else: ?>
+    <div class="tools-empty">Klik op <span class="cma-page__strong">Menu</span> om een beheerstool te kiezen.</div>
+<?php endif; ?>
 
 <script>
 (function () {
     'use strict';
-
-    var menu = document.getElementById('toolsMenu');
-    if (!menu) return;
-
-    // Search-as-you-type: hide non-matching items; hide a group with no matches.
-    var search = document.getElementById('toolsMenuSearch');
-    if (search) {
-        search.addEventListener('input', function () {
-            var term = this.value.trim().toLowerCase();
-            menu.querySelectorAll('.tools-menu__group').forEach(function (group) {
-                var any = false;
-                group.querySelectorAll('.tools-menu__item').forEach(function (item) {
-                    var match = !term || (item.getAttribute('data-search') || '').indexOf(term) !== -1;
-                    item.hidden = !match;
-                    if (match) any = true;
-                });
-                group.hidden = !any;
-            });
-        });
-        search.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                var first = menu.querySelector('.tools-menu__item:not([hidden])');
-                if (first) { e.preventDefault(); first.click(); }
-            }
-        });
-    }
-
-    // Selecting an item loads it through the shell (window.loadPage), keeping the
-    // header + sidebar in place. Form-backed items navigate the top window to the
-    // canonical /cma/form/<form> route; tool pages re-load tools.php?tool=<...>
-    // (which then shows the tool full-width).
-    menu.querySelectorAll('.tools-menu__item').forEach(function (a) {
-        a.addEventListener('click', function (e) {
-            e.preventDefault();
-            var page = a.getAttribute('data-page');
-            var url = a.getAttribute('data-url');
-            var win = window.top || window;
-            if (page && typeof win.loadPage === 'function') {
-                win.loadPage(page);
-                if (url) { try { win.history.pushState(null, '', url); } catch (err) {} }
-            } else if (url) {
-                win.location.href = url;
-            }
-        });
+    // The "Menu" button opens the single shared launcher (cma-launcher) that
+    // lives in the shell — same overlay as the header Menu button. It owns its
+    // own open/close state, so there is nothing to manage here.
+    var btn = document.getElementById('toolsMenuBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var win = window.top || window;
+        if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); }
     });
 })();
 </script>

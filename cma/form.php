@@ -221,6 +221,12 @@ try {
     $dataAttrs = [];
     // Always include form name for easy DOM access
     $dataAttrs[] = 'data-json-form="' . htmlspecialchars($formName, ENT_QUOTES) . '"';
+    // The definition title (e.g. "E-mail log") so the SPA breadcrumb shows the
+    // human title instead of a title-cased form name ("Emaillog") for forms that
+    // aren't in the sidebar menu (opened via the launcher). Falls back to name.
+    $rawFormDef = JsonFormLoader::loadRaw($formName);
+    $formTitle = (is_array($rawFormDef) && !empty($rawFormDef['title'])) ? $rawFormDef['title'] : $formName;
+    $dataAttrs[] = 'data-form-title="' . htmlspecialchars($formTitle, ENT_QUOTES) . '"';
     if ($directRecordId !== null) {
         $dataAttrs[] = 'data-record-id="' . htmlspecialchars((string)$directRecordId, ENT_QUOTES) . '"';
     }

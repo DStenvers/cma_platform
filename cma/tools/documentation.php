@@ -1949,8 +1949,8 @@ ToolbarHelper::end();
 </code></pre>
     <p>Voor "report-style" pagina's met een title-block kun je <code>ToolbarHelper::report('Title', false, false, false, false, 'subtitle', $extraButtonHtml)</code> in één call doen.</p>
 
-    <h2>Registreren in de tile-grid</h2>
-    <p>Voeg een entry toe aan <code>buildToolsTreeData()</code> in <code>cma/tools.php</code>:</p>
+    <h2>Registreren in de catalogus</h2>
+    <p>Voeg een entry toe aan <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> (de gedeelde bron voor de launcher):</p>
     <pre><code>['type' =&gt; 'item', 'label' =&gt; 'Mijn Tool', 'href' =&gt; 'tools/my_tool.php',
  'target' =&gt; 'R', 'icon' =&gt; 'lnr-cog', 'badge' =&gt; 'A']
 </code></pre>
@@ -2372,7 +2372,7 @@ function render_doc_web_components(): void
 
     <h2>cma-launcher — de "Menu"-knop (sinds v1.28.39)</h2>
     <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als het tools-menu) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code> (mobiel full-screen).</p>
-    <p><code>/cma/tools</code> zelf (zonder <code>?tool=</code>) rendert sinds v1.28.42 dezelfde catalogus <span class="cma-page__strong">inline</span> als hoofdpagina — het "grote menu" in het content-gebied, met dezelfde <code>.tools-menu__*</code>-stijlen in <code>assets/css/main.css</code>. Een keuze laadt de tool full-width; terug naar het menu gaat via de <span class="cma-tool__strong">Menu</span>-knop of door naar <code>/cma/tools</code> te navigeren. De voormalige twee-paneel boomstructuur is gearchiveerd als <code>cma/tools_DEPRECATED.php</code>.</p>
+    <p><code>/cma/tools</code> zelf toont sinds v1.28.43 een smalle <code>cma-toolbar</code> met één <span class="cma-tool__strong">Menu</span>-knop (<code>#toolsMenuBtn</code>) in het content-gebied; die knop opent dezelfde gedeelde launcher-overlay (<code>window.openToolsLauncher()</code>) als de header-knop. Er is dus precies één tools-menu met één zichtbaarheids-state — geen tweede inline menu dat apart open/dicht moet. Een keuze in de launcher laadt de tool full-width in <code>#tools-content</code>; zonder <code>?tool=</code> staat er een korte prompt om het menu te openen. De voormalige twee-paneel boomstructuur is gearchiveerd als <code>cma/tools_DEPRECATED.php</code> (kort inline-menu-experiment uit v1.28.42 verving die boom; v1.28.43 verving het inline menu weer door deze knop).</p>
 
     <h2>Bestandsstructuur</h2>
     <p>Elk component is één JavaScript-bestand met de extensie <code>.js</code>, plus een meegegenereerd <code>.min.js</code> dat door de build-stap geproduceerd wordt. Het component-bestand bevat:</p>

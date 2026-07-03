@@ -2,10 +2,10 @@
 /**
  * Tools catalog — the single source of truth for the admin tools/forms menu.
  *
- * Side-effect-free: only defines buildToolsTreeData(). Required by tools.php
- * (the inline big menu), api/tools-catalog.php (JSON for the header launcher),
- * and main.php (the launcher shell). Keep it free of output/redirects so it
- * can be included anywhere. Uses fully-qualified class names (no use-imports).
+ * Side-effect-free: only defines buildToolsTreeData(). Consumed by
+ * api/tools-catalog.php, which serves it as JSON to the launcher overlay
+ * (cma-launcher) — the single tools menu. Keep it free of output/redirects so
+ * it can be included anywhere. Uses fully-qualified class names (no use-imports).
  */
 
 function buildToolsTreeData(bool $isDeveloper): array
