@@ -12614,7 +12614,18 @@ CMA.FormController = CmaFormController;
 // Looks up the active controller via DOM at check time.
 window.cmaCheckUnsavedChanges = () => {
     return new Promise(resolve => {
-        if (!document.body.classList.contains('is-dirty')) {
+        // Use the robust per-controller check (a record must be loaded AND a field
+        // must have actually changed) rather than the raw body.is-dirty class. The
+        // class gets set spuriously — web components (lib-combo/lib-switch) dispatch
+        // 'change' on initial population — so it falsely nagged in list/table view
+        // where no record is even loaded. Fall back to the class only when there's
+        // no active controller.
+        const controller = (window.CMA && CMA.FormController && CMA.FormController.getController)
+            ? CMA.FormController.getController() : null;
+        const dirty = (controller && typeof controller.hasUnsavedChanges === 'function')
+            ? controller.hasUnsavedChanges()
+            : document.body.classList.contains('is-dirty');
+        if (!dirty) {
             resolve(true);
             return;
         }

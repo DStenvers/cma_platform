@@ -1712,3 +1712,7 @@ karaat-data en staat in de karaat-repo.
 > css request : #contentArea { height: 100% }
 >
 > https://www.karaatedelstenen.nl/cma/form.php?form=marketingurl zegt dat tblCMAMarketingurl niet bestaat, de migratie zegt dat hij al wel bestaat?
+
+## 2026-07-03
+
+> ja is goed
