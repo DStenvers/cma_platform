@@ -171,7 +171,7 @@ class TreeService extends BaseFormService
 
                 while (!$rs->EOF) {
                     $row = $rs->fields;
-                    $rowLower = array_change_key_case($row, CASE_LOWER);
+                    $rowLower = array_change_key_case((array)$row, CASE_LOWER);
                     $rowLower = \App\Library\Str::toUtf8($rowLower);
 
                     $recordId = $rowLower[$idFieldLower] ?? '';

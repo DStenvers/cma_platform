@@ -472,7 +472,7 @@ class OptionsService extends BaseFormService
         $displayField = $arrRep[\Q_FOREIGNIDFIELD][$fieldIndex] ?? '';
 
         while (!$rs->EOF) {
-            $row = $rs->fields;
+            $row = (array)$rs->fields; // CaseArray -> plain array for Str::toUtf8()/array_values()
 
             // Sanitize all values for UTF-8 (handles Windows-1252 legacy data)
             $row = Str::toUtf8($row);

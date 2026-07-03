@@ -332,7 +332,7 @@ class TableService extends BaseFormService
 
             while (!$rs->EOF) {
                 $row = $rs->fields;
-                $rowLower = array_change_key_case($row, CASE_LOWER);
+                $rowLower = array_change_key_case((array)$row, CASE_LOWER);
                 $rowLower = Str::toUtf8($rowLower);
                 $rows[] = $rowLower;
 
@@ -730,7 +730,7 @@ class TableService extends BaseFormService
                 }
 
                 $row = $rs->fields;
-                $rowLower = array_change_key_case($row, CASE_LOWER);
+                $rowLower = array_change_key_case((array)$row, CASE_LOWER);
                 $rowLower = Str::toUtf8($rowLower);
 
                 $newLastId = $rowLower[strtolower($idField)] ?? null;
@@ -1059,7 +1059,7 @@ class TableService extends BaseFormService
                     $missingRs = Database::openRS($missingSQL, $conn);
                     if ($missingRs !== null) {
                         while (!$missingRs->EOF) {
-                            $row = $missingRs->fields;
+                            $row = (array)$missingRs->fields; // CaseArray -> plain array
                             $row = Str::toUtf8($row);
                             $rowValues = array_values($row);
                             $mId = $rowValues[0] ?? '';

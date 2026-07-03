@@ -2181,7 +2181,7 @@ class Database
 
         // Handle RecordSet object - check the current row's fields
         if ($recordset instanceof RecordSet) {
-            $row = $recordset->fields;
+            $row = (array)$recordset->fields; // CaseArray -> plain array for is_array()/array_key_exists()
             if (!is_array($row) || empty($row)) {
                 return false;
             }

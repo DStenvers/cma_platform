@@ -670,7 +670,7 @@ class SubformService extends BaseFormService
             $count = 0;
             while (!$rs->EOF) {
                 $row = $rs->fetchAssoc();
-                $rowLower = array_change_key_case($row, CASE_LOWER);
+                $rowLower = array_change_key_case((array)$row, CASE_LOWER);
                 $recordId = $rowLower[strtolower($idField)] ?? $row[$idField] ?? '';
 
                 $html .= '<tr class="listrow" data-id="' . Server::htmlEncode($recordId) . '">';

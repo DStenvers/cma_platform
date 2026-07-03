@@ -251,7 +251,7 @@ function main()
     $sql = $rsRep->fields['Query'] ?? '';
     if (empty($sql)) {
         // Debug: show available fields
-        $fieldNames = Arr::isArray($rsRep->fields) ? implode(', ', array_keys($rsRep->fields)) : 'fields not available';
+        $fieldNames = Arr::isArray($rsRep->fields) ? implode(', ', array_keys((array)$rsRep->fields)) : 'fields not available';
         throw new \Exception('Report has no query defined (ID: ' . $sRepID . '). Available fields: ' . $fieldNames);
     }
     if ($srecID != '') {

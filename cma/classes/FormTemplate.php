@@ -803,7 +803,7 @@ class FormTemplate
 
             $options = [];
             while (!$rs->EOF) {
-                $row = $rs->fields;
+                $row = (array)$rs->fields; // CaseArray -> plain array for array_keys()
                 $keys = array_keys($row);
                 $filteredKeys = array_values(array_filter($keys, fn($k) => !is_int($k)));
 

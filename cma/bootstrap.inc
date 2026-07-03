@@ -2050,7 +2050,7 @@ function WriteSubForms($sFormID, $sParentID, $blnPrint)
                         $Lijst->Filtered = true;
                         $Lijst->DefaultSortCol = -1;
                         $Lijst->OnClick = "javascript:w('" . $arrFormDetails[SUBFORM_ID][$tel] . "','[ID]','" . $arrFormDetails[SUBFORM_PARENT][$tel] . "','" . $sParentID . "','" . Server::htmlEncode($arrFormDetails[SUBFORM_NAME][$tel]) . " | '+$(this).closest('tr').find('td:first-child')[0].innerText," . ($arrFormDetails[SUBFORM_FULLWIDTH][$tel] ? 'true' : 'false') . ')';
-                        $Lijst->ShowCaptions = (Arr::isArray($FormDataRs->fields) ? count(array_filter(array_keys($FormDataRs->fields), 'is_string')) : 0) > 2;
+                        $Lijst->ShowCaptions = (Arr::isArray($FormDataRs->fields) ? count(array_filter(array_keys((array)$FormDataRs->fields), 'is_string')) : 0) > 2;
                         $Lijst->Render();
                         $Lijst = null;
                     }
