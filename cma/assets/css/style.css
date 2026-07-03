@@ -320,6 +320,7 @@ table#toolbar input[type=text]#searchfor:focus {     border-color:var(--color-ac
 table#toolbar td.status {text-align:right;font-weight:normal;font-size:var(--font-size-xs);width:99%;padding-right:8px}
 /* Keep toolbar select / select2 widgets from collapsing to an unreadable width. */
 #toolbar .select, #toolbar .select2 { min-width: 60px }
+.toolbar-select .select, .toolbar-select .select2 { min-width: 50px }
 
 div.startkader { width:100%;margin-left: 14px;margin-right: 24px;padding-left:12px}
 

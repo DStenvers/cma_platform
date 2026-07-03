@@ -1937,3 +1937,5 @@ karaat-data en staat in de karaat-repo.
 >
 > 0 records
 >   , can you check?
+
+> .toolbar-select .select, .toolbar-select .select2 { min-width:50px}
