@@ -1855,3 +1855,85 @@ karaat-data en staat in de karaat-repo.
 > can we make sure through a .user.ini that the opcache settings are correct instead of relying on global server settings?
 
 > and you can catch a false return value on the reset as well. or is that the trigger to touch web.config?
+
+> is there an iis setting that speficies monitoring files for changes? I say one in the fastcgi settings, but that was overall not site-epceific
+
+> tools-empty lacks a space between the Menu word. And if that is shown, force opening the menu and hide it
+>
+> .cma-launcher__panel { position:absolute; width:100% ;     z-index: 999;} 
+>
+> .cma-launcher-btn is still also inside the cma-header, probably added through js
+
+> Query uitvoering mislukt: Native ODBC error: [Microsoft][ODBC Microsoft Access Driver] Circular reference caused by alias 'Notificatie' in query definition's SELECT list.SELECT ID, datestamp, Username, Form, Formname, Actie, Left(Notificatie, 100) AS [Notificatie]FROM tblCMAMonitoringORDER BY ID DESC
+>
+> https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Dformedit /: show the active tools page using { background-color: var(--tree-hover-bg, #e8f4fc);
+>     border: 1px solid var(--color-info, #077ab2); }
+>
+> .tools-page .tools-toolbar .cma-launcher-btn {    padding-left: 0px !important; }
+
+> can we not use left(notificatie,100) as Melding, if not add display-side truncation
+
+> https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Ddb_sync allows updatingform definitions, but after updating the forms they need to be downloaded to be implemented into github, can we make a download button for each form that was updated and a note where they should be placed (cma / site specific)
+
+> #toolbar .select, #toolbar .select2 { min-width: 60px } and the endpoint tester has toolbar icons without tooltip. I want tooltips on all toolbar buttons to explain their functionality, please add them everywhere expecially within the tools menu.
+
+> the endpoint tester has quite some errors: 
+> Naam    URL    Status    Tijd    Details
+> Blank page    /cma/blank.php    Fout    39 ms    HTTP 500 Internal Server Error
+> Task page    /cma/task.php    Fout    27 ms    HTTP 500 Internal Server Error
+> Naam    URL    Status    Tijd    Details
+> Imageupload crop upload handler page    /cma/imageupload_crop_upload_handler.php    Fout    53 ms    Geen upload pad opgegeven
+> Naam    URL    Status    Tijd    Details
+> Email actions api    /cma/api/email-actions.php    Fout    29 ms    Ongeldig ID
+> Form definition api    /cma/api/form_definition.php    Fout    28 ms    HTTP 400 Bad Request
+> Form list api    /cma/api/form_list.php    Fout    36 ms    formId or formName is required
+> Form record api    /cma/api/form_record.php    Fout    34 ms    formId or formName is required
+> Form subform api    /cma/api/form_subform.php    Fout    25 ms    FormID or form name is required
+> Report definition api    /cma/api/report-definition.php    Fout    47 ms    HTTP 400 Bad Request
+> User actions api    /cma/api/user_actions.php    Fout    33 ms    HTTP 400 Bad Request
+> User tips api    /cma/api/user_tips.php    Fout    45 ms    HTTP 400 Bad Request
+> Naam    URL    Status    Tijd    Details
+> Report export api    /cma/api/report-export.php    Fout    35 ms    HTTP 400 Bad Request
+> Report query api    /cma/api/report-query.php    Fout    29 ms    HTTP 400 Bad Request
+> Report schema api    /cma/api/report-schema.php    Fout    42 ms    HTTP 400 Bad Request
+> Naam    URL    Status    Tijd    Details
+> Record: users #1 api    /cma/api/form_record.php?formName=users&id=1    Fout    39 ms    Record met ID '1' niet gevonden
+> Record: groups #10 api    /cma/api/form_record.php?formName=groups&id=10    Fout    32 ms    Record met ID '10' niet gevonden
+> Naam    URL    Status    Tijd    Details
+> Tools - Diag page    /cma/tools/diag.php    Fout    28 ms    HTTP 403 Forbidden
+> Tools - Documentation page    /cma/tools/documentation.php    Fout    244 ms    Parse error\" \/ \"Unsupported declare 'strict_types'\"\/deploy.php vereist PHP
+> Tools - Consistency picture delete page    /cma/tools/tools_consistency_picture_delete.php    Fout    177 ms    Fatal error
+> Tools - Missing files page    /cma/tools/tools_missing_files.php    Fout    42 ms    Fatal error
+> Tools - Picture analyse page    /cma/tools/tools_picture_analyse.php    Fout    30 ms    Fatal error
+> Tools - Picture analyse delete page    /cma/tools/tools_picture_analyse_delete.php    Fout    44 ms    Fatal error
+> Tools - Set picture sizes page    /cma/tools/tools_set_picture_sizes.php    Fout    53 ms    Fatal error
+> Naam    URL    Status    Tijd    Details
+> File frameset page    /cma/wizards/file_frameset.php    Fout    24 ms    HTTP 500 Internal Server Error
+>
+> determine if the files that are tested are still needed and actively used within the cma platform and if so, it the errors can be solved. I suspect this list of tested files is incomplete, can we analyse other files to test as well
+
+> please review prompts.md from 2 weeks ago until 1 hour ago and determine if all items have been dealt with
+
+> https://www.karaatedelstenen.nl/cma/tools/tools_dbsummary.php shows empty icons in the toolbar, can you fix that? 
+>
+> https://www.karaatedelstenen.nl/cma/form/steensoorten_producten/4563 still shows 2 forms, already reported earlier, did you work on that? 
+>
+>
+> records 1-1500 van 1796 (laden...) -> also already reported, what is the status?
+
+> 2: no the steensoorten_producten/4563 is shown twice, not the parent and the child. 
+>
+> 3: that sounds fixable right? Loop nutil hasMore is false? 
+>
+> If we need to refactor form-controller.js, please note it in todo.md, I agree that 5000 lines is too much for a single js file and is unmaintainable. 
+>
+> Start with 3 and then again look at 2 with the new knowlegde.
+
+> #3 okay, that suprises me. because i always have a unique id, there are just 1700+ records. so the safeguard is actually wrong an unnecessary.  You can check out the sql in the json file and see what it does. 
+>
+> 2 no there are 2 sidepanels stacked upon each other with exactly the same content, not a detail and a sidepanel. Perhaps a simple safeguard could be implemented that a sidebar is not opened if the one on top has the same url? bit of a patch/workaround, but i think it will work
+
+> i wanted to run the sql's but that leads to another bug find: whatever i do: i get no result : Resultaat:
+>
+> 0 records
+>   , can you check?

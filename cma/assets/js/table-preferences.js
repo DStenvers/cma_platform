@@ -785,6 +785,12 @@ class CmaInfiniteScroll {
                 // Don't clear pendingLastId here - it's cleared when lastId changes
                 // This prevents duplicate requests for the same lastId while allowing retries after errors
                 this.hideLoading();
+                // Re-render the count AFTER every hasMore-mutating safety net above
+                // (reached-total at ~758, no-html/success-false/error, and the
+                // cursor-stall net). The mid-load updateRecordCountDisplay() at ~745
+                // runs before those flip hasMore=false, so without this the
+                // "(laden...)" suffix sticks forever even though loading has stopped.
+                this.updateRecordCountDisplay();
             }
         }
     }

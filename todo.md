@@ -52,3 +52,25 @@ by `FormRenderer::renderMemo()`).
 
 **Risk:** this touches stored content and every form using a rich/HTML memo field —
 plan a data migration and a staged rollout, not a drop-in swap.
+
+## Refactor `cma/assets/js/form-controller.js` — it is unmaintainable
+
+**Problem:** `form-controller.js` is ~12,900 lines in a single file (the whole form
+runtime: record load/save, list + infinite scroll, subforms, checklists, combos,
+custom renderers, popups, column selector, dirty tracking, block-editor wiring, …).
+One file this size is hard to navigate, review, and test, and it is the recurring
+source of hard-to-localise bugs (e.g. the duplicate-form render and the premature
+"records X van Y (laden…)" stall both live here).
+
+**Goal:** split it into cohesive modules with clear responsibilities, e.g.
+- `form-record.js` — load/populate/collect/save a single record
+- `form-list.js` — list rendering + infinite-scroll pager (`hasMore`/`loadMore`)
+- `form-subforms.js` — subform panels + stacking/layout
+- `form-fields/` — checklists, combos, custom renderers, block-editor wiring
+- `form-popups.js` — popup/cascade window management
+- a thin `form-controller.js` orchestrator that wires them together
+
+**Constraints:** it is bundled + minified (`.min.js`) and served via `minify.php`;
+keep the public entry points (`window.loadRecord`, `formInit`, `collectFormData`,
+etc.) stable, migrate incrementally behind those, and bump the asset version. Add
+unit/Cypress coverage per module as it is extracted, since there is almost none today.

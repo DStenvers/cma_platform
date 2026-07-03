@@ -7,7 +7,7 @@
         "table": "tblCMAMonitoring",
         "database": "data",
         "idField": "ID",
-        "listQuery": "SELECT ID, datestamp, Username, Form, Formname, Actie, Left(Notificatie, 100) AS [Notificatie]\nFROM tblCMAMonitoring\nORDER BY ID DESC",
+        "listQuery": "SELECT ID, datestamp, Username, Form, Formname, Actie, Notificatie\nFROM tblCMAMonitoring\nORDER BY ID DESC",
         "listColumns": [
                 {
                         "field": "datestamp",

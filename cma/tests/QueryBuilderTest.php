@@ -6,7 +6,17 @@
  * Run with: php tests/QueryBuilderTest.php
  */
 
-// Setup autoloading
+// Setup autoloading — resolve the Composer autoloader in both layouts
+// (consumer site: cma/vendor; platform repo: root/vendor) so the App\Library
+// classes QueryBuilder depends on (SQL, Arr, Database) are loadable. Without
+// this, QueryBuilder->toSql() fatals with "Class App\Library\SQL not found".
+$__qbAutoload = null;
+foreach ([__DIR__ . '/../vendor/autoload.php', dirname(__DIR__, 2) . '/vendor/autoload.php'] as $__qbCand) {
+    if (is_file($__qbCand)) { $__qbAutoload = $__qbCand; break; }
+}
+if ($__qbAutoload !== null) {
+    require_once $__qbAutoload;
+}
 
 // Include the QueryBuilder class
 require_once __DIR__ . '/../classes/QueryBuilder.php';

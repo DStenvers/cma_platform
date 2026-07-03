@@ -1337,10 +1337,10 @@ cma-launcher.is-open { display: block; }
    below the header, so the header + sidebar stay visible and interactive. */
 .cma-launcher__backdrop {
     position: absolute; inset: var(--header-height, 50px) 0 0 0;
-    background: rgba(0,0,0,.35); z-index: 100000;
+    background: rgba(0,0,0,.35); z-index: 998;
 }
 .cma-launcher__panel {
-    position: absolute; z-index: 100001;
+    position: absolute; z-index: 999;
     inset: var(--header-height, 50px) 0 0 0;
     display: flex; flex-direction: column;
     background: var(--bg-surface); color: var(--text-primary);
@@ -1392,6 +1392,11 @@ cma-launcher.is-open { display: block; }
     color: var(--text-primary); font-size: var(--font-size-sm);
 }
 .cma-launcher__item:hover { background: var(--bg-hover); border-color: var(--border-hover); }
+/* The tool/form currently open in the shell. */
+.cma-launcher__item.is-active {
+    background-color: var(--tree-hover-bg, #e8f4fc);
+    border-color: var(--color-info, #077ab2);
+}
 .cma-launcher__item[hidden] { display: none; }
 .cma-launcher__item-icon { font-size: 16px; color: var(--text-muted); flex: 0 0 auto; }
 .cma-launcher__item-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1417,8 +1422,8 @@ body.cma-launcher-open { overflow: hidden; }
     background: var(--bg-body);
 }
 .tools-page .tools-toolbar { flex: 0 0 auto; }
-/* The toolbar Menu button carries no left margin here (the header one does). */
-.tools-page .tools-toolbar .cma-launcher-btn { margin-left: 0; }
+/* The toolbar Menu button sits flush-left in the tools toolbar. */
+.tools-page .tools-toolbar .cma-launcher-btn { margin-left: 0; padding-left: 0; }
 iframe.tools-content-area {
     flex: 1; height: 100%; width: 100%; border: none; background: var(--bg-body);
 }

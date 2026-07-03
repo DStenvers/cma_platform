@@ -47,6 +47,7 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'E-mail log', 'badge' => 'A', 'href' => 'form.php?form=emaillog', 'target' => 'R', 'icon' => 'lnr-envelope'],
             ['type' => 'item', 'label' => 'Controleer bestanden', 'badge' => 'A', 'href' => 'tools/tools_db_consistency.php', 'target' => 'R', 'icon' => 'lnr-sync'],
             ['type' => 'item', 'label' => 'LLM management', 'badge' => 'A', 'href' => 'tools/tools_llm.php', 'target' => 'R', 'icon' => 'lnr-brain'],
+            ['type' => 'item', 'label' => 'Database health check', 'badge' => 'A', 'href' => 'tools/db_health.php', 'target' => 'R', 'icon' => 'lnr-heart-pulse'],
         ]
     ];
     $folders[] = $healthFolder;
@@ -62,6 +63,9 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'Backups beheren', 'badge' => 'A', 'href' => 'tools/tools_backup.php?tab=manage', 'target' => 'R', 'icon' => 'lnr-undo'],
             ['type' => 'item', 'label' => 'Migraties', 'badge' => 'A', 'href' => 'tools/tools_migrations.php', 'target' => 'R', 'icon' => 'lnr-arrow-right'],
             ['type' => 'item', 'label' => 'SQL uitvoeren', 'badge' => 'D', 'href' => 'tools/tools_query.php', 'target' => 'R', 'icon' => 'lnr-code'],
+            ['type' => 'item', 'label' => 'Database compacteren', 'badge' => 'A', 'href' => 'tools/tools_dbcompact.php', 'target' => 'R', 'icon' => 'lnr-database'],
+            ['type' => 'item', 'label' => 'Indexen aanmaken', 'badge' => 'D', 'href' => 'tools/tools_create_indexes.php', 'target' => 'R', 'icon' => 'lnr-list'],
+            ['type' => 'item', 'label' => 'SQLite reparatie', 'badge' => 'A', 'href' => 'tools/tools_sqlite_repair.php', 'target' => 'R', 'icon' => 'lnr-sync'],
         ]
     ];
 
@@ -118,6 +122,10 @@ function buildToolsTreeData(bool $isDeveloper): array
                 ['type' => 'item', 'label' => 'Formulierdefinities', 'href' => 'tools/tools_formedit.php', 'target' => 'R', 'icon' => 'lnr-file-empty'],
                 ['type' => 'item', 'label' => 'CMA definitie sync', 'href' => 'tools/tools_db_sync.php', 'target' => 'R', 'icon' => 'lnr-sync'],
                 ['type' => 'item', 'label' => 'Deploy setup', 'href' => 'tools/tools_deploy_setup.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
+                ['type' => 'item', 'label' => 'Formulier wizard', 'href' => 'tools/tools_formwiz.php', 'target' => 'R', 'icon' => 'lnr-file-empty'],
+                ['type' => 'item', 'label' => 'Formulieren genereren', 'href' => 'tools/tools_generate_forms.php', 'target' => 'R', 'icon' => 'lnr-file-add'],
+                ['type' => 'item', 'label' => 'Migratie voorbereiden', 'href' => 'tools/tools_migrate_prepare.php', 'target' => 'R', 'icon' => 'lnr-arrow-right'],
+                ['type' => 'item', 'label' => 'Repository exporteren', 'href' => 'tools/tools_export_repository.php', 'target' => 'R', 'icon' => 'lnr-download'],
                 ['type' => 'folder', 'label' => 'Testen', 'icon' => 'lnr-checkmark-circle', 'children' => [
                     ['type' => 'item', 'label' => 'Cypress browsertests', 'href' => 'tools/tools_testrunner.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                     ['type' => 'item', 'label' => 'PHP unit tests', 'href' => 'tools/tools_phpunit.php', 'target' => 'R', 'icon' => 'lnr-checkmark-circle'],

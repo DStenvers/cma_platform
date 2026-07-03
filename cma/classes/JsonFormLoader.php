@@ -58,6 +58,7 @@ class JsonFormLoader
         'contentblocks',
         'marketingurl',
         'formdefinitions',
+        'emaillog',
     ];
 
     /**

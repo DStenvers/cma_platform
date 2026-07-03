@@ -9,6 +9,12 @@ use App\Library\Email;
 use App\Library\Error;
 use App\Library\Response;
 
+// Without this, a request where IIS auto_prepend didn't fire fatals on the
+// first Response::* call → HTTP 500. This also re-instates bootstrap's login
+// gate. NOTE: this is a daily batch job with side effects (sends e-mail, flushes
+// the whole cache); it should be moved to CLI-only — see status report.
+require_once __DIR__ . '/bootstrap.inc';
+
 /**
  * Main
  */

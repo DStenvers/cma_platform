@@ -476,7 +476,7 @@ function FindPictureReference($path, $filename, $imageFields)
             openDbConnection($field['database']);
 
             // Search for reference in this field
-            $searchSQL = 'SELECT count(*) as cnt FROM [' . $field['table'] . '] WHERE (lcase([' . $field['fieldName'] . '])=' . Database::quote(strtolower($filename)) . ')';
+            $searchSQL = 'SELECT count(*) as cnt FROM [' . $field['table'] . '] WHERE (lcase([' . $field['fieldName'] . '])=' . \App\Library\SQL::postString(strtolower($filename)) . ')';
             $searchRS = Database::openRS($searchSQL, $conn, adOpenForwardOnly);
 
             if ($searchRS !== null && !$searchRS->EOF) {

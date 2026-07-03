@@ -303,6 +303,27 @@ class CmaTabs extends HTMLElement {
     }
 
     /**
+     * Show/hide a tab by index in default mode. Hidden tabs render no tab
+     * button (desktop) or option (mobile); their slotted panel stays hidden.
+     * If the currently-selected tab becomes hidden, selection moves to the
+     * first visible tab. In wizard mode this delegates to setStepHidden.
+     * @param {number} index - Tab index
+     * @param {boolean} hidden - Whether the tab should be hidden
+     */
+    setTabHidden(index, hidden = true) {
+        if (index < 0 || index >= this._tabs.length) return;
+        if (this._mode === 'wizard') { this.setStepHidden(index, hidden); return; }
+        if (this._tabs[index].hidden === hidden) return;
+        this._tabs[index].hidden = hidden;
+        if (hidden && this._selectedIndex === index) {
+            const firstVisible = this._tabs.findIndex(t => !t.hidden);
+            this._selectedIndex = firstVisible >= 0 ? firstVisible : 0;
+        }
+        this._render();
+        this._updateContentPanels();
+    }
+
+    /**
      * Navigate to next step (wizard mode)
      * Skips hidden steps automatically
      * @param {boolean} markCurrentComplete - Mark current step as completed before advancing
@@ -567,7 +588,7 @@ class CmaTabs extends HTMLElement {
                 <div class="scroll-arrow left" title="Scroll links"></div>
                 <div class="scroll-arrow right" title="Scroll rechts"></div>
                 <ul class="tabs-list">
-                    ${this._tabs.map((tab, i) => `
+                    ${this._tabs.map((tab, i) => tab.hidden ? '' : `
                         <li class="${i === this._selectedIndex ? 'selected' : ''}" data-index="${i}">
                             <a href="javascript:void(0)">
                                 <span class="tab-title">${this._escapeHtml(tab.title)}</span>
@@ -578,7 +599,7 @@ class CmaTabs extends HTMLElement {
                     `).join('')}
                 </ul>
                 <select class="tabs-select">
-                    ${this._tabs.map((tab, i) => `
+                    ${this._tabs.map((tab, i) => tab.hidden ? '' : `
                         <option value="${i}" ${i === this._selectedIndex ? 'selected' : ''}>
                             ${this._escapeHtml(tab.title)}${(tab.count === null || tab.count === undefined || tab.count === '.') ? '' : ` (${tab.count})`}
                         </option>

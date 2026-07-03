@@ -193,17 +193,36 @@ class ToolbarHelper
             $target = ' target="_blank"';
         }
 
-        if ($title !== '' && $text !== '' && strcasecmp($title, $text) === 0) {
-            // Tooltip duplicates visible text: use data-tooltip (CSS-only, hidden when text visible)
-            $titleAttr = ' data-tooltip="' . htmlspecialchars($title) . '"';
+        // Decide the tooltip by asking: does it add anything beyond the visible
+        // label? Normalise (trim + lowercase) both before comparing so "Save "
+        // and "save" count as the same as a visible "Save".
+        $normTitle = mb_strtolower(trim($title), 'UTF-8');
+        $normText  = mb_strtolower(trim($text), 'UTF-8');
+        if ($title !== '' && $normTitle !== $normText) {
+            // Tooltip adds information beyond the label — always show it (native
+            // title works on every screen size and is read by screen readers).
+            $titleAttr = ' title="' . htmlspecialchars($title) . '"';
+        } elseif ($text !== '') {
+            // Tooltip only repeats the label (or there is no distinct title):
+            // expose it as a data-tooltip that the CSS reveals ONLY when the
+            // label itself is hidden (collapsed toolbar / small screens), so it
+            // never shows redundantly next to visible text on desktop.
+            $tip = $title !== '' ? $title : $text;
+            $titleAttr = ' data-tooltip="' . htmlspecialchars($tip) . '"';
         } else {
-            $titleAttr = $title !== '' ? ' title="' . htmlspecialchars($title) . '"' : '';
+            // Icon-only, no title: nothing meaningful to show.
+            $titleAttr = '';
         }
         echo '<span class="' . $btnClass . '"' . $idAttr . $titleAttr . '>';
         if ($enabled) {
             echo '<a href="' . htmlspecialchars($href) . '"' . $target . $dataAttr . '>';
         }
-        echo '<span class="lnr ' . htmlspecialchars($icon) . '"></span>';
+        // Only emit the icon span when there is an icon — an empty "lnr" glyph
+        // otherwise renders as a blank icon box (e.g. the JSON/XML/TXT export
+        // buttons in tools_dbsummary.php pass no icon).
+        if ($icon !== '') {
+            echo '<span class="lnr ' . htmlspecialchars($icon) . '"></span>';
+        }
         if ($text !== '') {
             echo '<span class="tb-btn-text">' . htmlspecialchars($text) . '</span>';
         }

@@ -12,6 +12,10 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\Str;
 
+// Every sibling frame page requires this; without it a request where IIS
+// auto_prepend didn't fire fatals on the first Response::* call → HTTP 500.
+require_once __DIR__ . '/../bootstrap.inc';
+
 /**
  * Main
  */

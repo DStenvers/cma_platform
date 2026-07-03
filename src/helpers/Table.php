@@ -60,6 +60,15 @@ class Table
         while (!$rs->EOF) {
             $loopCount++;
             $row = $rs->fields;  // Use fields property for current row data
+            // RecordSet::$fields returns a CaseArray (extends ArrayObject) for
+            // case-insensitive column access, which is NOT is_array(), so the
+            // checks below would silently drop every row ("0 records"). Normalise
+            // to a plain array so array_keys()/is_array() work.
+            if ($row instanceof \ArrayObject) {
+                $row = $row->getArrayCopy();
+            } elseif (!is_array($row) && $row instanceof \Traversable) {
+                $row = iterator_to_array($row);
+            }
 
             // Debug first row
             if ($isDebug && $loopCount === 1) {

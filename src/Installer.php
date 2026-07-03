@@ -104,6 +104,19 @@ class Installer
         // (@unlink is best-effort, so a system-attribute file that won't delete is
         // a harmless no-op rather than a new failure.)
         'library/fonts/Linearicons/SVG/desktop.ini',
+        // Retired in v1.28.45: legacy "image/file maintenance" tool family that
+        // walked the pre-JSON tblForms/tblControls schema plus on-disk image
+        // folders. All superseded by tools_db_consistency.php (the only surfaced
+        // one) + its POST target tools_consistency_picture_delete.php. These were
+        // unsurfaced in the tools menu, self-declared deprecated, and reachable by
+        // nothing. tools_contentblocks.php is superseded by form.php?form=contentblocks.
+        'cma/tools/tools_missing_files.php',
+        'cma/tools/tools_missing_pictures.php',
+        'cma/tools/tools_show_pictures.php',
+        'cma/tools/tools_set_picture_sizes.php',
+        'cma/tools/tools_picture_analyse.php',
+        'cma/tools/tools_picture_analyse_delete.php',
+        'cma/tools/tools_contentblocks.php',
     ];
 
     /**

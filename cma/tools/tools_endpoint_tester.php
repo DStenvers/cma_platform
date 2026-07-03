@@ -161,7 +161,8 @@ function getToolsFiles(): array {
         'tools_process_test',     // Requires bash/Unix (development only)
         'tools_testrunner',       // Test runner itself (avoid recursion)
         'reload_env',             // Utility script, not a page
-        'set_migration_version'   // Admin script, not a page
+        'set_migration_version',  // Admin script, not a page
+        'tools_consistency_picture_delete', // POST delete-target of tools_db_consistency; bare GET is meaningless
     ];
     foreach ($files as $file) {
         $name = basename($file, '.php');
@@ -196,6 +197,8 @@ $skipRootFiles = [
     'template_post', // POST-only handler
     'details_getdata', // Requires formId + recordId
     'form_api',      // Tested separately via Combo/Legacy API sections
+    'task',          // Daily batch job (sends e-mail, flushes cache) — must not be GET-probed
+    'imageupload_crop_upload_handler', // POST/multipart upload handler; rejects bare GET by design
     'html_edit_cell',  // CKEditor plugin (requires parameters)
     'html_edit_image', // CKEditor plugin (requires parameters)
     'html_edit_link',  // CKEditor plugin (requires parameters)
@@ -690,12 +693,23 @@ echo '<div id="c" class="tools">';
                 if (contentType.includes('application/json')) {
                     try {
                         var json = await response.json();
-                        if (json.success === false) {
+                        if (json.success === false || json.error) {
+                            var errMsg = json.error || json.message || 'API returned success:false';
+                            // Endpoint reachable but correctly rejecting a param-less
+                            // probe is expected, not a bug — classify separately so
+                            // real failures stand out.
+                            if (/\b(required|vereist|verplicht|opgegeven|ongeldig|niet gevonden|ontvangen|form ?id|form ?name)\b/i.test(errMsg)) {
+                                details = 'Verwacht — parameters vereist: ' + errMsg;
+                                detailsCell.textContent = details;
+                                detailsCell.title = details;
+                                statusCell.innerHTML = '<span class="status-badge status-redirect">Verwacht</span>';
+                                row.dataset.status = 'redirect';
+                                stats.pending--;
+                                updateStats();
+                                return;
+                            }
                             isError = true;
-                            details = json.error || json.message || 'API returned success:false';
-                        } else if (json.error) {
-                            isError = true;
-                            details = json.error;
+                            details = errMsg;
                         } else {
                             details = 'JSON OK';
                             if (json.total !== undefined) details += ' (' + json.total + ' items)';
@@ -708,12 +722,17 @@ echo '<div id="c" class="tools">';
                     }
                 } else if (contentType.includes('text/html')) {
                     var text = await response.text();
-                    // Check for PHP errors
-                    if (text.includes('Fatal error') || text.includes('Parse error')) {
+                    // Some pages legitimately RENDER PHP-error keywords as content:
+                    // the log reader shows the actual PHP error log, and the docs /
+                    // storybook quote "Fatal error"/"Parse error" in troubleshooting
+                    // text. Scanning their body would always false-positive, so skip
+                    // the PHP-error body scan for them (HTTP status still applies).
+                    var isContentPage = /\/(documentation|storybook|logreader)\.php/.test(url);
+                    if (!isContentPage && (text.includes('Fatal error') || text.includes('Parse error'))) {
                         isError = true;
                         var match = text.match(/(Fatal error|Parse error)[^<]*/);
                         details = match ? match[0].substring(0, 80) : 'PHP Error';
-                    } else if (text.includes('Warning:') && text.includes('.php')) {
+                    } else if (!isContentPage && text.includes('Warning:') && text.includes('.php')) {
                         isError = true;
                         var warnMatch = text.match(/Warning:[^<]*/);
                         details = warnMatch ? warnMatch[0].substring(0, 80) : 'PHP Warning';
@@ -733,6 +752,17 @@ echo '<div id="c" class="tools">';
             } else if (response.status === 302 || response.status === 301) {
                 details = 'Redirect';
                 statusCell.innerHTML = '<span class="status-badge status-redirect">Redirect</span>';
+                row.dataset.status = 'redirect';
+                stats.pending--;
+                updateStats();
+                return;
+            } else if (response.status === 400 || response.status === 401 || response.status === 403) {
+                // Reachable endpoint that correctly rejected our param-less /
+                // unauthenticated probe (400 = missing params, 401/403 = auth).
+                // That's expected behaviour, not a server failure — only 5xx and
+                // real crashes below count as errors.
+                details = 'HTTP ' + response.status + ' ' + response.statusText + ' — verwacht bij lege probe';
+                statusCell.innerHTML = '<span class="status-badge status-redirect">Verwacht</span>';
                 row.dataset.status = 'redirect';
                 stats.pending--;
                 updateStats();

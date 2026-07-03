@@ -207,6 +207,13 @@ class TreeService extends BaseFormService
                             }
                         }
 
+                        // Cap the node label so long memo/detail values (e.g. the
+                        // monitoring Notificatie field, which is no longer truncated
+                        // in SQL) don't blow out the tree. No-op for short labels.
+                        if ($display !== '') {
+                            $display = \App\Library\Str::truncate($display, 100, '…');
+                        }
+
                         if ($bSimpleTree) {
                             $activeClass = ($activeId !== null && $activeId == $recordId) ? ' active' : '';
                             $statusAttr = ($statusClass !== '') ? ' ' . $statusClass : '';

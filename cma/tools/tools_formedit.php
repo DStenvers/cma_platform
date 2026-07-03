@@ -1176,9 +1176,22 @@ $extraScript = '
 
         updateFieldEditorTabs: function() {
             var type = document.getElementById("fe-type").value;
+            var isSource = SOURCE_TYPES.indexOf(type) >= 0;
+            // The "Bron" tab only applies to source-backed field types. Hide the
+            // whole tab (button + panel) for other types via cma-tabs, so it
+            // doesn\'t show up as an empty tab. Fall back to hiding just the
+            // panel if the component API isn\'t available.
+            var tabsEl = document.getElementById("fieldEditorTabs");
             var srcTab = document.querySelector("#fieldEditorTabs [data-tab-id=source]");
+            var srcIndex = -1;
             if (srcTab) {
-                srcTab.style.display = SOURCE_TYPES.indexOf(type) >= 0 ? "" : "none";
+                var m = (srcTab.getAttribute("slot") || "").match(/tab-(\d+)/);
+                if (m) srcIndex = parseInt(m[1], 10);
+            }
+            if (tabsEl && typeof tabsEl.setTabHidden === "function" && srcIndex >= 0) {
+                tabsEl.setTabHidden(srcIndex, !isSource);
+            } else if (srcTab) {
+                srcTab.style.display = isSource ? "" : "none";
             }
             // Show height field only for memo
             var heightRow = document.getElementById("fe-height-row");
@@ -1673,23 +1686,34 @@ $extraScript = '
             container.innerHTML = "";
 
             var self = this;
-            deps.forEach(function(dep, idx) {
-                var tr = document.createElement("tr");
-                tr.innerHTML =
-                    \'<td><input type="text" class="dep-field" value="\' + self.escapeHtml(dep.field || "") + \'" style="width:100px"></td>\' +
-                    \'<td><select class="dep-condition" style="width:80px"><option value="=">=</option><option value="!=">!=</option><option value=">">></option><option value="<"><</option><option value="contains">contains</option><option value="empty">empty</option><option value="notEmpty">notEmpty</option></select></td>\' +
-                    \'<td><input type="text" class="dep-value" value="\' + self.escapeHtml(dep.value !== undefined ? String(dep.value) : "") + \'" style="width:100px"></td>\' +
-                    \'<td><button class="btn btn-small btn-danger" data-action="deleteDep"><span class="lnr lnr-trash"></span></button></td>\';
-
-                var condSelect = tr.querySelector(".dep-condition");
-                if (condSelect) condSelect.value = dep.condition || "=";
-
-                tr.querySelector("[data-action=deleteDep]").addEventListener("click", function() {
-                    tr.remove();
-                });
-
-                container.appendChild(tr);
+            deps.forEach(function(dep) {
+                container.appendChild(self.buildDependencyRow(dep));
             });
+        },
+
+        buildDependencyRow: function(dep) {
+            dep = dep || {};
+            var self = this;
+            var tr = document.createElement("tr");
+            tr.innerHTML =
+                \'<td><input type="text" class="dep-field" value="\' + self.escapeHtml(dep.field || "") + \'" style="width:100px"></td>\' +
+                \'<td><select class="dep-condition" style="width:80px"><option value="=">=</option><option value="!=">!=</option><option value=">">></option><option value="<"><</option><option value="contains">contains</option><option value="empty">empty</option><option value="notEmpty">notEmpty</option></select></td>\' +
+                \'<td><input type="text" class="dep-value" value="\' + self.escapeHtml(dep.value !== undefined ? String(dep.value) : "") + \'" style="width:100px"></td>\' +
+                \'<td><button type="button" class="btn btn-small btn-danger" data-action="deleteDep"><span class="lnr lnr-trash"></span></button></td>\';
+
+            var condSelect = tr.querySelector(".dep-condition");
+            if (condSelect) condSelect.value = dep.condition || "=";
+
+            tr.querySelector("[data-action=deleteDep]").addEventListener("click", function() {
+                tr.remove();
+            });
+
+            return tr;
+        },
+
+        addDependency: function() {
+            var container = document.getElementById("depsBody");
+            if (container) container.appendChild(this.buildDependencyRow({}));
         },
 
         collectDependencies: function() {
@@ -1718,16 +1742,25 @@ $extraScript = '
 
             var self = this;
             vals.forEach(function(v) {
-                var val = typeof v === "string" ? v : (v.rule || "");
-                var tr = document.createElement("tr");
-                tr.innerHTML =
-                    \'<td><input type="text" class="val-rule" value="\' + self.escapeHtml(val) + \'" style="width:200px"></td>\' +
-                    \'<td><button class="btn btn-small btn-danger" data-action="deleteVal"><span class="lnr lnr-trash"></span></button></td>\';
-                tr.querySelector("[data-action=deleteVal]").addEventListener("click", function() {
-                    tr.remove();
-                });
-                container.appendChild(tr);
+                container.appendChild(self.buildValidationRow(typeof v === "string" ? v : (v.rule || "")));
             });
+        },
+
+        buildValidationRow: function(val) {
+            var self = this;
+            var tr = document.createElement("tr");
+            tr.innerHTML =
+                \'<td><input type="text" class="val-rule" value="\' + self.escapeHtml(val || "") + \'" style="width:200px"></td>\' +
+                \'<td><button type="button" class="btn btn-small btn-danger" data-action="deleteVal"><span class="lnr lnr-trash"></span></button></td>\';
+            tr.querySelector("[data-action=deleteVal]").addEventListener("click", function() {
+                tr.remove();
+            });
+            return tr;
+        },
+
+        addValidation: function() {
+            var container = document.getElementById("validationBody");
+            if (container) container.appendChild(this.buildValidationRow(""));
         },
 
         collectValidation: function() {
@@ -2370,12 +2403,12 @@ echo '</div>';
 // Dependencies
 echo '<h4 style="margin:12px 0 8px">Afhankelijkheden</h4>';
 echo '<lib-table export="n"><table class="filtering"><thead><tr><th>Veld</th><th>Conditie</th><th>Waarde</th><th></th></tr></thead><tbody id="depsBody"></tbody></table></lib-table>';
-echo '<button class="btn btn-small" style="margin-top:5px" onclick="var b=document.getElementById(\'depsBody\');var r=document.createElement(\'tr\');r.innerHTML=\'<td><input type=text class=dep-field style=width:100px></td><td><select class=dep-condition style=width:80px><option value==>=</option><option value=!=">!=</option><option value=>>>&gt;</option><option value=<>&lt;</option><option value=contains>contains</option><option value=empty>empty</option><option value=notEmpty>notEmpty</option></select></td><td><input type=text class=dep-value style=width:100px></td><td><button class=\\\'btn btn-small btn-danger\\\' onclick=\\\'this.closest(\\\\\\\'tr\\\\\\\').remove()\\\'><span class=\\\'lnr lnr-trash\\\'></span></button></td>\';b.appendChild(r)"><span class="lnr lnr-file-add"></span> Afhankelijkheid toevoegen</button>';
+echo '<button type="button" class="btn btn-small" style="margin-top:5px" onclick="FormEditor.addDependency()"><span class="lnr lnr-file-add"></span> Afhankelijkheid toevoegen</button>';
 
 // Validation
 echo '<h4 style="margin:12px 0 8px">Validatie</h4>';
 echo '<lib-table export="n"><table class="filtering"><thead><tr><th>Regel</th><th></th></tr></thead><tbody id="validationBody"></tbody></table></lib-table>';
-echo '<button class="btn btn-small" style="margin-top:5px" onclick="var b=document.getElementById(\'validationBody\');var r=document.createElement(\'tr\');r.innerHTML=\'<td><input type=text class=val-rule style=width:200px></td><td><button class=\\\'btn btn-small btn-danger\\\' onclick=\\\'this.closest(\\\\\\\'tr\\\\\\\').remove()\\\'><span class=\\\'lnr lnr-trash\\\'></span></button></td>\';b.appendChild(r)"><span class="lnr lnr-file-add"></span> Regel toevoegen</button>';
+echo '<button type="button" class="btn btn-small" style="margin-top:5px" onclick="FormEditor.addValidation()"><span class="lnr lnr-file-add"></span> Regel toevoegen</button>';
 
 echo '</div>';
 echo '</div>';

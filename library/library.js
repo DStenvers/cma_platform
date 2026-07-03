@@ -2057,6 +2057,19 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 		if (top_elt.body) {
 			// Use top window's counter to avoid ID conflicts when opening from iframe
 			var topWindow = top_elt.defaultView || top_elt.parentWindow || window;
+
+			// Guard: don't stack a sidepanel identical to the one already on top
+			// (same resolved URL). A deep link or a double controller-init can
+			// otherwise open the exact same form+record twice, one directly behind
+			// the other. Opening a DIFFERENT url, or re-opening after closing, is
+			// unaffected.
+			var _topStack = topWindow.lib_sidepanel_stack;
+			if (_topStack && _topStack.length > 0 &&
+				_topStack[_topStack.length - 1] && _topStack[_topStack.length - 1].url === url) {
+				// libLog.log('[lib_OpenSidePanel] Skipping duplicate sidepanel for', url);
+				return null;
+			}
+
 			if (typeof topWindow.lib_sidepanel_counter === 'undefined') {
 				topWindow.lib_sidepanel_counter = 0;
 			}
@@ -2173,7 +2186,8 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 				id: panelId,
 				panel: mObj,
 				backdrop: backdrop,
-				previousTitle: previousTitle
+				previousTitle: previousTitle,
+				url: url
 			});
 
 			// Sync browser title with sidepanel title

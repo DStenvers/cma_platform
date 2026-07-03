@@ -101,6 +101,20 @@ $toolNameMap = [
     'llm' => 'tools/tools_llm.php',
     'llm_management' => 'tools/tools_llm.php',
     'llm_analyzer' => 'tools/tools_llm.php', // legacy alias (was the original name)
+    // Surfaced in the tools menu in v1.28.45 (previously reachable only by URL).
+    // These keys match what resolveNav() derives from the tools/<name>.php href.
+    'dbcompact' => 'tools/tools_dbcompact.php',
+    'create_indexes' => 'tools/tools_create_indexes.php',
+    'sqlite_repair' => 'tools/tools_sqlite_repair.php',
+    'db_health' => 'tools/db_health.php',
+    'generate_forms' => 'tools/tools_generate_forms.php',
+    'migrate_prepare' => 'tools/tools_migrate_prepare.php',
+    'export_repository' => 'tools/tools_export_repository.php',
+    // Nested tool: the launcher's resolveNav() derives the key from the path
+    // after "tools/", which for tools/tests/*.php keeps the "tests/" segment.
+    // Map that exact key so the "Endpoint foutcontrole" tile resolves instead
+    // of rendering blank.
+    'tests/test_all_endpoints' => 'tools/tests/test_all_endpoints.php',
 ];
 
 // Form-backed admin entities: friendly alias -> JSON form name. These render as
@@ -182,21 +196,38 @@ cma_script('webcomponents/cma-toolbar.js');
     <iframe name="R" id="tools-content" class="tools-content-area"
             src="<?= Server::htmlEncode($initialTool) ?>" frameborder="0"></iframe>
 <?php else: ?>
-    <div class="tools-empty">Klik op <span class="cma-page__strong">Menu</span> om een beheerstool te kiezen.</div>
+    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong">Menu</span> om een beheerstool te kiezen.</div>
 <?php endif; ?>
 
 <script>
 (function () {
     'use strict';
-    // The "Menu" button opens the single shared launcher (cma-launcher) that
+    // The "Menu" button toggles the single shared launcher (cma-launcher) that
     // lives in the shell — same overlay as the header Menu button. It owns its
     // own open/close state, so there is nothing to manage here.
+    var win = window.top || window;
+    function toggleLauncher() {
+        if (typeof win.toggleToolsLauncher === 'function') { win.toggleToolsLauncher(); return true; }
+        return false;
+    }
+    function openLauncher() {
+        if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); return true; }
+        return false;
+    }
     var btn = document.getElementById('toolsMenuBtn');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-        var win = window.top || window;
-        if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); }
-    });
+    if (btn) btn.addEventListener('click', toggleLauncher);
+<?php if (empty($initialTool)): ?>
+    // No tool selected: open the mega-menu straight away instead of showing the
+    // placeholder. Retry briefly in case the shell hasn't defined the opener yet;
+    // if it never appears, reveal the hint text as a fallback.
+    var tries = 0;
+    (function tryOpen() {
+        if (openLauncher()) return;
+        if (++tries < 20) { setTimeout(tryOpen, 25); return; }
+        var empty = document.getElementById('toolsEmpty');
+        if (empty) empty.hidden = false;
+    })();
+<?php endif; ?>
 })();
 </script>
 

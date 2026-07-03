@@ -363,12 +363,22 @@ $caches = [];
 
 // 1. OPcache - use pre-captured stats from Phase 1b
 if (function_exists('opcache_reset')) {
+    // Distinguish a real in-process reset from the web.config-recycle fallback.
+    // A false opcache_reset() means the flush did NOT happen in this process
+    // (commonly blocked by opcache.restrict_api). Touching web.config only
+    // *initiates* an app-pool recycle asynchronously — we cannot verify from
+    // here that it emptied OPcache — so surface it as a warning, not a green ✓.
+    $_opcacheReset = ($_preOpcacheResult === true);
+    $_opcacheRecycled = (!$_opcacheReset && $_opcacheRecycleFallback);
     $caches['OPcache'] = [
         'available' => true,
-        // A successful web.config-touch recycle also clears OPcache, so count it
-        // as handled rather than a hard failure.
-        'result' => $_preOpcacheResult || $_opcacheRecycleFallback,
-        'detail' => 'PHP bytecode',
+        'result' => $_opcacheReset || $_opcacheRecycled,
+        'warn' => $_opcacheRecycled,
+        'detail' => $_opcacheReset
+            ? 'PHP bytecode gewist'
+            : ($_opcacheRecycled
+                ? 'reset gaf false — app-pool recycle gestart via web.config (niet verifieerbaar; controleer bij herladen of "Gecachte scripts" daalt)'
+                : 'reset mislukt en geen recycle mogelijk (web.config niet schrijfbaar)'),
         'count' => $_preOpcacheScripts,
         'extra' => $_preOpcacheStats ? [
             'Geheugen gebruikt' => number_format(($_preOpcacheStats['memory_usage']['used_memory'] ?? 0) / 1024 / 1024, 2) . ' MB',
@@ -721,13 +731,18 @@ if (!$_terserAvailable) {
     $caches['JS Minify']['hint'] = 'terser niet beschikbaar';
 }
 
-// Check if any available cache failed
+// Check if any available cache failed or was only handled-but-unverified
 $anyFailed = false;
 $failedCaches = [];
+$anyWarn = false;
+$warnCaches = [];
 foreach ($caches as $name => $info) {
     if ($info['available'] && !$info['result']) {
         $anyFailed = true;
         $failedCaches[] = $name;
+    } elseif ($info['available'] && !empty($info['warn'])) {
+        $anyWarn = true;
+        $warnCaches[] = $name;
     }
 }
 
@@ -761,6 +776,8 @@ echo '<div id="c" class="tools">';
 // ==================== RESULT FIRST ====================
 if ($anyFailed) {
     echo '<lib-message type="warning" style="margin-bottom:15px;">Sommige caches konden niet worden geleegd</lib-message>';
+} elseif ($anyWarn) {
+    echo '<lib-message type="warning" style="margin-bottom:15px;">Caches geleegd, maar ' . htmlspecialchars(implode(', ', $warnCaches)) . ' kon niet in dit proces worden gewist — er is een app-pool recycle gestart die niet vanaf hier te verifiëren is. Herlaad deze pagina en controleer of "Gecachte scripts" onder OPcache daalt.</lib-message>';
 } else {
     echo '<lib-message type="success" style="margin-bottom:15px;">Alle beschikbare caches zijn geleegd</lib-message>';
 }
@@ -798,6 +815,100 @@ if (!$caches['APCu']['available']) {
     echo '</code>';
     echo 'Herstart daarna IIS of PHP-FPM.';
     echo '</lib-message>';
+}
+
+// ==================== OPCACHE CONFIG DIAGNOSIS ====================
+// Surface the OPcache ini settings that decide whether a reset actually works
+// and whether changed files get picked up. This is where a silent
+// opcache.restrict_api (the usual reason opcache_reset() returns false), a
+// disk-backed file_cache, or a disabled validate_timestamps becomes visible
+// instead of guessed. Read-only.
+if ($caches['OPcache']['available'] && function_exists('opcache_get_configuration')) {
+    $cfg = @opcache_get_configuration();
+    $dir = ($cfg && isset($cfg['directives'])) ? $cfg['directives'] : [];
+    $getDirective = function ($key) use ($dir) {
+        return array_key_exists($key, $dir) ? $dir[$key] : ini_get($key);
+    };
+    // Prefix comparison mirroring PHP's restrict_api check (case-insensitive on
+    // Windows); normalise separators so a backslashed setting still matches.
+    $normPath = function ($p) { return strtolower(str_replace('\\', '/', (string) $p)); };
+
+    $opcacheChecks = [];
+
+    // restrict_api — the classic reason opcache_reset() returns false from a tool.
+    $restrict = (string) $getDirective('opcache.restrict_api');
+    if ($restrict !== '') {
+        $blocked = strpos($normPath(__FILE__), $normPath($restrict)) !== 0;
+        $opcacheChecks[] = [
+            'label' => 'opcache.restrict_api',
+            'value' => $restrict,
+            'status' => $blocked ? 'fail' : 'warn',
+            'detail' => $blocked
+                ? 'Blokkeert opcache_reset() vanuit deze tool: het pad valt buiten de toegestane prefix. Dít is waarom de reset false teruggeeft. Verwijder de instelling in php.ini, of neem het CMA-pad op in de prefix.'
+                : 'Ingesteld, maar deze tool valt binnen de toegestane prefix — de reset mag draaien.',
+        ];
+    } else {
+        $opcacheChecks[] = [
+            'label' => 'opcache.restrict_api',
+            'value' => '(leeg)',
+            'status' => 'pass',
+            'detail' => 'Niet beperkt — opcache_reset() mag vanuit deze tool draaien.',
+        ];
+    }
+
+    // file_cache — disk-backed bytecode repopulates SHM after a recycle.
+    $fileCache = (string) $getDirective('opcache.file_cache');
+    $opcacheChecks[] = [
+        'label' => 'opcache.file_cache',
+        'value' => $fileCache !== '' ? $fileCache : '(uit)',
+        'status' => $fileCache !== '' ? 'warn' : 'pass',
+        'detail' => $fileCache !== ''
+            ? 'Bytecode wordt óók op schijf bewaard. Na een app-pool recycle vult OPcache zich meteen weer vanaf schijf, en opcache_reset() wist deze map niet — daardoor lijkt de cache nooit leeg.'
+            : 'Geen schijf-cache; een geslaagde reset/recycle leegt OPcache volledig.',
+    ];
+
+    // validate_timestamps — off means changed files need a manual reset.
+    $validate = (int) $getDirective('opcache.validate_timestamps');
+    $freq = (int) $getDirective('opcache.revalidate_freq');
+    $opcacheChecks[] = [
+        'label' => 'opcache.validate_timestamps',
+        'value' => $validate ? ('1 (revalidate_freq=' . $freq . 's)') : '0',
+        'status' => $validate ? ($freq > 5 ? 'warn' : 'pass') : 'fail',
+        'detail' => $validate
+            ? ($freq > 5
+                ? 'Gewijzigde bestanden worden pas na max. ' . $freq . ' s opgepikt. Zet revalidate_freq op 0–2 zodat deploys sneller doorwerken.'
+                : 'Gewijzigde bestanden worden vanzelf herkend — een handmatige reset is meestal niet nodig.')
+            : 'Uitgeschakeld: gewijzigde .php-bestanden worden NIET automatisch opgepikt; elke deploy vereist een reset of recycle.',
+    ];
+
+    // enable_cli — informational: CLI reset/warm scripts only work when on.
+    $enableCli = (int) $getDirective('opcache.enable_cli');
+    $opcacheChecks[] = [
+        'label' => 'opcache.enable_cli',
+        'value' => $enableCli ? '1' : '0',
+        'status' => 'info',
+        'detail' => $enableCli
+            ? 'OPcache actief voor CLI — een reset via de commandline werkt op dezelfde cache.'
+            : 'OPcache uit voor CLI — een `php` commando raakt de web-cache niet (meestal prima).',
+    ];
+
+    echo '<h3>OPcache configuratie</h3>';
+    if ($caches['OPcache']['warn'] ?? false) {
+        echo '<lib-message type="warning" style="margin-bottom:10px;" closable="false">opcache_reset() gaf <span class="cma-tool__strong">false</span> terug. Onderstaande instellingen bepalen waarom; let vooral op restrict_api en file_cache.</lib-message>';
+    }
+    echo '<table class="tools-table opcache-config">';
+    echo '<tbody>';
+    foreach ($opcacheChecks as $c) {
+        $map = ['fail' => ['fail', '✗'], 'warn' => ['pending', '⚠'], 'pass' => ['ok', '✓'], 'info' => ['always', 'i']];
+        [$cls, $glyph] = $map[$c['status']] ?? ['na', '–'];
+        echo '<tr>';
+        echo '<td class="status ' . $cls . '">' . $glyph . '</td>';
+        echo '<td><code>' . htmlspecialchars($c['label']) . '</code> = ' . htmlspecialchars($c['value']) . '</td>';
+        echo '<td>' . htmlspecialchars($c['detail']) . '</td>';
+        echo '</tr>';
+    }
+    echo '</tbody>';
+    echo '</table>';
 }
 
 // ==================== DETAILS TABLE ====================
@@ -838,6 +949,10 @@ echo '<tr>';
 foreach ($caches as $name => $info) {
     if (!$info['available']) {
         echo '<td class="status na">n/a</td>';
+    } elseif (!empty($info['warn'])) {
+        // Handled-but-unverified (e.g. OPcache flushed via web.config recycle
+        // instead of a working opcache_reset()). Reuse the amber "pending" style.
+        echo '<td class="status pending">⚠</td>';
     } elseif ($info['result']) {
         // Check if this is an "always runs" type (like Realpath, Groups)
         $alwaysRuns = $info['alwaysRuns'] ?? false;
@@ -878,7 +993,10 @@ foreach ($caches as $name => $info) {
         $count = $info['count'] ?? 0;
         $noAction = $hasCount && $count === 0;
 
-        if ($hasCount && $count > 0) {
+        if (!empty($info['warn'])) {
+            // Show the explanation, not an emphasized count that reads as "cleared".
+            echo '<td class="noaction-detail">' . htmlspecialchars($info['detail'] ?? '') . '</td>';
+        } elseif ($hasCount && $count > 0) {
             // Emphasize count when items were cleared
             echo '<td><span class="cma-tool__strong">' . $count . '</span> ' . ($count === 1 ? 'item' : 'items') . '</td>';
         } elseif ($alwaysRuns) {
@@ -1152,7 +1270,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 var msg = document.getElementById("browser-cache-note");
                 if (msg) {
                     msg.setAttribute("type", "success");
-                    msg.innerHTML = "<span class="cma-tool__strong">Browser cache:</span> Formulier cache automatisch geleegd";
+                    msg.innerHTML = "<span class=\'cma-tool__strong\'>Browser cache:</span> Formulier cache automatisch geleegd";
                 }
             }
         });

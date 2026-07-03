@@ -19,6 +19,9 @@ Response::noCache();
 // Handle form submission
 $action = Request::post('action', '');
 $messages = [];
+// Forms whose definition was changed this request — offered as downloads below so
+// the operator can commit the server-side change back into GitHub.
+$updatedForms = [];
 
 if ($action === 'sync') {
     $updates = Request::post('updates', []);
@@ -156,6 +159,23 @@ if ($action === 'sync') {
                         $parts[] = count($deletedFields) . ' veld(en) verwijderd uit formulier';
                     }
                     $messages[] = ['type' => 'success', 'text' => $msg . implode(', ', $parts)];
+
+                    // Capture the saved file so it can be downloaded for GitHub.
+                    // Internal (CMA) forms live in cma/assets/forms/definitions/;
+                    // app forms in the site-root assets/forms/. getFilePath()
+                    // resolves the canonical location it was just written to.
+                    $savedPath = JsonFormLoader::getFilePath($formName);
+                    $savedJson = @file_get_contents($savedPath);
+                    if ($savedJson !== false) {
+                        $isInternal = strpos(str_replace('\\', '/', $savedPath), '/assets/forms/definitions/') !== false;
+                        $updatedForms[$formName] = [
+                            'internal' => $isInternal,
+                            'json' => $savedJson,
+                            'path' => $isInternal
+                                ? 'cma/assets/forms/definitions/' . $formName . '.json'
+                                : 'assets/forms/' . $formName . '.json',
+                        ];
+                    }
                 } else {
                     $messages[] = ['type' => 'error', 'text' => "Fout bij opslaan van '$formName'"];
                 }
@@ -176,6 +196,42 @@ foreach ($messages as $msg) {
     echo '<lib-message type="' . $type . '">' . htmlspecialchars($msg['text']) . '</lib-message>';
 }
 
+// Downloads for updated form definitions. The change is saved on the server, but
+// the site pulls forms from GitHub via composer — so each changed file must be
+// committed back at the shown location.
+if (!empty($updatedForms)) {
+    $payload = [];
+    foreach ($updatedForms as $fname => $info) {
+        $payload[$fname] = $info['json'];
+    }
+    echo '<div class="sync-downloads">';
+    echo '<h3>Bijgewerkte formulieren — download voor GitHub</h3>';
+    echo '<p>De wijzigingen staan al op deze server, maar de site haalt formulieren uit GitHub (via composer). Download elk gewijzigd formulier en commit het op de aangegeven locatie, anders draait de volgende deploy de wijziging terug.</p>';
+    echo '<table class="listtable">';
+    echo '<thead><tr class="listheader"><th>Formulier</th><th>Type</th><th>Locatie in de repo</th><th></th></tr></thead>';
+    echo '<tbody>';
+    foreach ($updatedForms as $fname => $info) {
+        $badge = $info['internal']
+            ? '<lib-label type="information">CMA (platform)</lib-label>'
+            : '<lib-label type="success">Site-specifiek</lib-label>';
+        echo '<tr>';
+        echo '<td><code>' . htmlspecialchars($fname) . '</code></td>';
+        echo '<td>' . $badge . '</td>';
+        echo '<td><code>' . htmlspecialchars($info['path']) . '</code></td>';
+        echo '<td><button type="button" class="btn btn-small" onclick="cmaSyncDownload(' . htmlspecialchars(json_encode($fname), ENT_QUOTES) . ')"><span class="lnr lnr-download"></span> Download</button></td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table>';
+    echo '<p class="sync-download-hint">CMA-formulieren horen in de <code>stenversonline/platform</code> repo; site-specifieke in de repo van de site zelf.</p>';
+    echo '<script>';
+    // Keep default slash-escaping so a literal </script> in any form value
+    // can't break out of this inline script tag.
+    echo 'window.cmaSyncForms = ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . ';';
+    echo 'function cmaSyncDownload(name){var json=window.cmaSyncForms[name];if(json==null)return;var blob=new Blob([json],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},0);}';
+    echo '</script>';
+    echo '</div>';
+}
+
 // Add styles
 echo '<style>
     .sync-mismatch { background-color: #fff3cd !important; }
@@ -187,6 +243,9 @@ echo '<style>
     .sync-ok { background-color: #d4edda; }
     .sync-missing { background-color: #f8d7da; }
     .sync-orphan { background-color: #f5c6cb; }
+    .sync-downloads { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--border-color, #ddd); border-radius: 6px; background: var(--bg-surface, #fafafa); }
+    .sync-downloads h3 { margin: 0 0 6px; font-size: var(--font-size-md); }
+    .sync-download-hint { color: var(--text-muted, #666); font-size: var(--font-size-sm); margin: 8px 0 0; }
     .form-section { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; }
     .form-section-header {
         display: flex;

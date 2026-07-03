@@ -68,6 +68,32 @@
                 this._applyFilter('');
                 if (typeof search.focus === 'function') search.focus();
             }
+            // Highlight the item for the tool/form currently open in the shell.
+            this._markActive();
+        }
+
+        // Does a catalog item's target URL point at what's open right now?
+        // Matches tool pages by their ?tool= key and form pages by /cma/form/<x>,
+        // so it works whether the shell URL is clean or the main.php?page=… form.
+        _activeMatches(url) {
+            if (!url) return false;
+            var loc;
+            try { loc = decodeURIComponent(window.location.href); } catch (e) { loc = window.location.href; }
+            var tool = url.match(/[?&]tool=([^&]+)/);
+            if (tool) {
+                var lt = loc.match(/[?&]tool=([^&]+)/);
+                return !!lt && decodeURIComponent(lt[1]) === decodeURIComponent(tool[1]);
+            }
+            var form = url.match(/\/cma\/form\/([^/?]+)/);
+            if (form) return loc.indexOf('/cma/form/' + form[1]) !== -1;
+            return false;
+        }
+
+        _markActive() {
+            var self = this;
+            this.querySelectorAll('.cma-launcher__item').forEach(function (a) {
+                a.classList.toggle('is-active', self._activeMatches(a.getAttribute('data-url') || ''));
+            });
         }
 
         close() {

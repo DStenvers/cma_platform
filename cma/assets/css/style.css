@@ -318,6 +318,8 @@ table#toolbar { box-shadow: 3px 3px 1px rgba(128,128,128,.1) ; width:100%; max-w
 table#toolbar input[type=text]#searchfor {     padding: 3px;     padding-left: 7px;     width:100%; 	border:.5px solid transparent; 	border-radius:2px }
 table#toolbar input[type=text]#searchfor:focus {     border-color:var(--color-accent); box-shadow:none }
 table#toolbar td.status {text-align:right;font-weight:normal;font-size:var(--font-size-xs);width:99%;padding-right:8px}
+/* Keep toolbar select / select2 widgets from collapsing to an unreadable width. */
+#toolbar .select, #toolbar .select2 { min-width: 60px }
 
 div.startkader { width:100%;margin-left: 14px;margin-right: 24px;padding-left:12px}
 

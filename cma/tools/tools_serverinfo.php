@@ -220,12 +220,19 @@ function main(): void
     $strKey = "";
     echo '<table>';
     echo '<TR><TD colspan=2><h2><i>Applicatie settings</TD></TR>';
-    echo '<TR><TD colspan=2><span class="cma-tool__em">Waarden met een slot (<span class="lnr lnr-lock"></span>) zijn gevoelig (API-keys, wachtwoorden, tokens) en worden gedeeltelijk verborgen — alleen de eerste 3 tekens zijn zichtbaar. &laquo;(niet ingesteld)&raquo; betekent dat de waarde daadwerkelijk leeg is.</span></TD></TR>';
+    echo '<TR><TD colspan=2><span class="cma-tool__em">Waarden met een slot (<span class="lnr lnr-lock"></span>) zijn gevoelig (API-keys, wachtwoorden, tokens) en worden gedeeltelijk verborgen — alleen de eerste 3 tekens zijn zichtbaar. Instellingen zonder waarde worden weggelaten om ruis te vermijden.</span></TD></TR>';
     foreach (Application::getAll() as $AppVal => $__value) {
-        if (substr($AppVal, 0, max(0, min(5, strlen($AppVal)))) != 'conn_') {
-            echo '<TR><TD>' . htmlspecialchars((string)$AppVal) . '</TD><TD>'
-               . cma_serverinfo_render_value((string)$AppVal, Application::get($AppVal, '')) . '</TD></TR>';
+        if (substr($AppVal, 0, max(0, min(5, strlen($AppVal)))) === 'conn_') {
+            continue;
         }
+        $raw = Application::get($AppVal, '');
+        // Skip settings with no value — an unset/empty key is just noise here.
+        // Arrays/objects (e.g. the "start" config object) count as configured.
+        if (!Arr::isArray($raw) && !is_object($raw) && trim((string)$raw) === '') {
+            continue;
+        }
+        echo '<TR><TD>' . htmlspecialchars((string)$AppVal) . '</TD><TD>'
+           . cma_serverinfo_render_value((string)$AppVal, $raw) . '</TD></TR>';
     }
     echo '<TR><TD colspan=2>&nbsp;</TD></TR>';
     echo '<TR><TD colspan=2><h2><i>Server instellingen</TD></TR>';
