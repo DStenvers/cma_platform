@@ -1,0 +1,399 @@
+<?php
+/**
+ * Unified Tools Page
+ *
+ * Combines listtools.php and tools_dev_reports.php into a single page.
+ * Uses cma-tree component with A/D access level badges.
+ *
+ * Features:
+ * - Tree navigation with folders and items
+ * - A (Admin) and D (Developer) access level badges
+ * - Iframe loading for tool content
+ * - Stateful tree (remembers expanded/collapsed state)
+ *
+ * URL Parameters:
+ * - tool: Tool page to load in the iframe (optional)
+ */
+
+use App\Library\Application;
+use App\Library\Request;
+use App\Library\Response;
+use Cma\Services\Logger;
+use App\Library\Server;
+use Cma\CmaRepository;
+use Cma\SecurityHelper;
+use Cma\ToolbarHelper;
+
+require_once __DIR__ . '/bootstrap.inc';
+require_once __DIR__ . '/tools_catalog.inc'; // buildToolsTreeData() — shared with the header launcher (api/tools-catalog.php)
+
+// Check access - minimum admin level required for tools
+if (!SecurityHelper::isAdmin()) {
+    if (defined('CMA_NOMENU_MODE') && CMA_NOMENU_MODE) {
+        echo '<lib-message type="error">Geen toegang - alleen beheerders</lib-message>';
+        exit;
+    }
+    header('Location: login.php');
+    exit;
+}
+
+Response::noCache();
+CmaRepository::setCaching(true);
+
+$isDeveloper = SecurityHelper::isDeveloper();
+$isNomenuMode = defined('CMA_NOMENU_MODE') && CMA_NOMENU_MODE;
+
+// The main app sidebar lives in the shell (main.php). tools.php must therefore
+// ALWAYS render inside that shell — a standalone/top-level hit (a direct
+// /cma/tools.php?tool=… or the /cma/tools/<name> friendly URL) has no sidebar.
+// Redirect any non-shell request to the clean /cma/tools route, which loads
+// tools.php into the shell content area (sidebar present). The requested tool
+// is preserved; the shell then fetches tools.php in nomenu mode (no redirect).
+if (!$isNomenuMode) {
+    // Target the shell explicitly via main.php (not the clean /cma/tools URL):
+    // main.php never re-enters tools.php server-side, so this can't loop even if
+    // the /cma/tools rewrite rule is missing on a site. main.php then loads
+    // tools.php in nomenu mode (where this guard is skipped).
+    $toolReq = Request::query('tool', '');
+    $target = '/cma/main.php?page=tools.php' . ($toolReq !== '' ? '&tool=' . urlencode($toolReq) : '');
+    header('Location: ' . $target, true, 302);
+    exit;
+}
+
+// Friendly name -> tool file mapping (real tools rendered in the tools iframe).
+// Form-backed admin entities (users, groups, …) are NOT here — they are
+// canonical FORM routes (/cma/form/<form>) and live in $formBackedTools below,
+// so the same form can't be reached under two different routes/layouts.
+$toolNameMap = [
+    'serverinfo' => 'tools/tools_serverinfo.php',
+    'clearcache' => 'tools/tools_clearcache.php',
+    'clear_cache' => 'tools/tools_clearcache.php',
+    'logreader' => 'tools/logreader.php',
+    'logs' => 'tools/logreader.php',
+    'dbsummary' => 'tools/tools_dbsummary.php',
+    'db_summary' => 'tools/tools_dbsummary.php',
+    'consistency' => 'tools/tools_db_consistency.php',
+    'db_consistency' => 'tools/tools_db_consistency.php',
+    'backup' => 'tools/tools_backup.php',
+    'restore' => 'tools/tools_backup.php?tab=manage',
+    'migrations' => 'tools/tools_migrations.php',
+    'deploy_setup' => 'tools/tools_deploy_setup.php',
+    'deploysetup' => 'tools/tools_deploy_setup.php',
+    'query' => 'tools/tools_query.php',
+    'sql' => 'tools/tools_query.php',
+    'formwiz' => 'tools/tools_formwiz.php',
+    'formedit' => 'tools/tools_formedit.php',
+    'form_editor' => 'tools/tools_formedit.php',
+    'db_sync' => 'tools/tools_db_sync.php',
+    'sync' => 'tools/tools_db_sync.php',
+    'copymod' => 'tools/tools_dev_copymod.php',
+    'tests' => 'tools/tools_testrunner.php',
+    'testrunner' => 'tools/tools_testrunner.php',
+    'cypress' => 'tools/tools_testrunner.php',
+    'phpunit' => 'tools/tools_phpunit.php',
+    'unittests' => 'tools/tools_phpunit.php',
+    'endpoints' => 'tools/tools_endpoint_tester.php',
+    'endpoint_tester' => 'tools/tools_endpoint_tester.php',
+    'report-designer' => 'report-designer.php',
+    'report_designer' => 'report-designer.php',
+    'rapport' => 'report-designer.php',
+    'storybook' => 'tools/storybook.php',
+    'components' => 'tools/storybook.php',
+    'docs' => 'tools/documentation.php',
+    'documentation' => 'tools/documentation.php',
+    'deployment' => 'tools/documentation.php?topic=deployment',
+    'formdefinitions' => 'tools/tools_formedit.php',
+    'webp' => 'tools/tools_webp_convert.php',
+    'webp_convert' => 'tools/tools_webp_convert.php',
+    'llm' => 'tools/tools_llm.php',
+    'llm_management' => 'tools/tools_llm.php',
+    'llm_analyzer' => 'tools/tools_llm.php', // legacy alias (was the original name)
+];
+
+// Form-backed admin entities: friendly alias -> JSON form name. These render as
+// normal FORM routes (/cma/form/<form>) in the main shell, NOT inside the tools
+// iframe. This is the single source for that mapping — the deep-link redirect
+// below and the tools-tree items (which link to form.php?form=<form>) both
+// derive the form from here, so the alias and the clean form URL can't drift
+// into two separate routes for the same form.
+$formBackedTools = [
+    'users'         => 'users',
+    'gebruikers'    => 'users',
+    'groups'        => 'groups',
+    'groepen'       => 'groups',
+    'contentblocks' => 'contentblocks',
+    'menus'         => '_menus',
+    'monitoring'    => 'cmamonitoring',
+    'marketingurl'  => 'marketingurl',
+    'redirects'     => 'marketingurl',
+    'emaillog'      => 'emaillog',
+    'maillog'       => 'emaillog',
+];
+
+// Get initial tool to load (may be friendly name or full path)
+$toolParam = Request::query('tool', '');
+$initialTool = '';
+
+if (!empty($toolParam)) {
+    $toolKey = strtolower($toolParam);
+
+    // Form-backed alias: collapse to the single canonical form route. Navigating
+    // the top window (rather than rendering form.php in the tools iframe) keeps
+    // /cma/form/<form> as the one route/layout for the form. The script runs in
+    // whichever document tools.php is rendered into — standalone top page or
+    // fetched into the SPA shell — and points the top window at the clean URL.
+    if (isset($formBackedTools[$toolKey])) {
+        $canonical = '/cma/form/' . $formBackedTools[$toolKey];
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<script>(function(){var u=' . json_encode($canonical)
+            . ';(window.top||window).location.replace(u);})();</script>';
+        exit;
+    }
+
+    // Check if it's a friendly name
+    if (isset($toolNameMap[$toolKey])) {
+        $initialTool = $toolNameMap[$toolKey];
+    } elseif (strpos($toolParam, '.php') !== false) {
+        // It's already a file path
+        $initialTool = $toolParam;
+    }
+
+    // Pass through any additional query parameters to the tool
+    // (e.g., sql parameter for query tool)
+    $extraParams = [];
+    foreach (Request::queryAll() as $key => $value) {
+        if ($key !== 'tool' && !empty($value)) {
+            $extraParams[$key] = $value;
+        }
+    }
+    if (!empty($extraParams) && !empty($initialTool)) {
+        $separator = strpos($initialTool, '?') !== false ? '&' : '?';
+        $initialTool .= $separator . http_build_query($extraParams);
+    }
+}
+
+// Build tree data structure with access level badges
+// Wrapped in try-catch to prevent page hang on errors
+try {
+    $treeData = buildToolsTreeData($isDeveloper);
+    $treeJson = json_encode($treeData, JSON_HEX_APOS | JSON_HEX_QUOT);
+} catch (Exception $e) {
+    $treeData = [];
+    $treeJson = '[]';
+    Logger::error('tools.php: Error building tree data', ['error' => $e->getMessage()]);
+}
+
+// Tools always render inside the app shell (nomenu mode); a standalone hit
+// is redirected to the shell above. Emit the tools container into the
+// shell content area.
+echo '<base href="/cma/">';
+echo '<div class="tools-ajax-container">';
+cma_script('webcomponents/cma-tree.js');
+cma_script('webcomponents/cma-fold.js');
+?>
+
+<div id="leftlist">
+    <?php ToolbarHelper::start(false); ?>
+    <?php ToolbarHelper::treeButtons(); ?>
+    <td width="99%">
+        <lib-search-input id="searchfor" name="searchfor" placeholder="Zoek tool ..."></lib-search-input>
+        <script>
+            // Search-as-you-type: filter the tools tree client-side via the
+            // cma-tree component's own filter(). Empty term clears the filter.
+            document.getElementById('searchfor').addEventListener('input', function () {
+                var t = document.getElementById('tools-tree');
+                if (t && typeof t.filter === 'function') { t.filter(this.value); }
+            });
+        </script>
+    </td>
+    <?php ToolbarHelper::end(false); ?>
+    <div id="c" class="listcontent blockselect" onselectstart="return false">
+        <cma-tree
+            id="tools-tree"
+            storage-key="tree_tools_unified"
+            item-icon="tools"
+            data='<?= htmlspecialchars($treeJson, ENT_QUOTES, 'UTF-8') ?>'>
+        </cma-tree>
+    </div>
+</div>
+
+<!-- AJAX mode - fold and iframe for tool pages -->
+<cma-fold
+    orientation="vertical"
+    target="#leftlist"
+    min-size="150"
+    max-size="500"
+    storage-key="tools_fold">
+</cma-fold>
+<iframe name="R" id="tools-content" class="tools-content-area" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'tools/tools_welcome.php' ?>" frameborder="0"></iframe>
+
+<script>
+(function() {
+    'use strict';
+
+    function setupToolsNavigation() {
+        var iframe = document.getElementById('tools-content');
+        var tree = document.getElementById('tools-tree');
+        if (!iframe || !tree) {
+            cmaLog.warn('[tools.php] Required elements not found');
+            return;
+        }
+
+        // Expand all and setup global functions with timeout protection
+        var initTimeout = setTimeout(function() {
+            cmaLog.warn('[tools.php] AJAX mode tree initialization timed out');
+        }, 5000);
+
+        setTimeout(function() {
+            clearTimeout(initTimeout);
+            try {
+                tree.expandAll();
+                window.fExpandAll = function() { tree.expandAll(); };
+                window.fCollapseAll = function() { tree.collapseAll(); };
+            } catch (e) {
+                cmaLog.error('[tools.php] Error in AJAX mode setup:', e);
+            }
+        }, 50);
+
+        // Listen to item-click events from the tree
+        tree.addEventListener('item-click', function(e) {
+            var href = e.detail.href;
+            if (!href || href === '#' || href === 'about:blank') return;
+
+            // Form-backed tree items (form.php?form=X) are canonical
+            // /cma/form/<form> routes — navigate the top window instead of
+            // loading the form into the tools iframe (prevents a 2nd route).
+            if (href.indexOf('form.php?form=') === 0) {
+                var topWinF = window.top || window;
+                if (typeof topWinF.loadPage === 'function') {
+                    topWinF.loadPage(href);
+                } else {
+                    var fmF = href.match(/form=([^&]+)/);
+                    topWinF.location.href = fmF ? '/cma/form/' + fmF[1] : '/cma/' + href;
+                }
+                return;
+            }
+
+            // Load tool page in iframe
+            iframe.src = href;
+
+            // Update URL to reflect selected tool. Always anchor on
+            // /cma/tools (canonical clean URL) so refresh routes through
+            // the Tools Directory rewrite rule cleanly. Concatenating
+            // window.location.pathname caused broken URLs when the
+            // current pathname was /cma/main.php?page=tools.php — see
+            // explanatory comment in the standalone-mode click handler
+            // above.
+            var toolName = extractToolName(href);
+            if (toolName && window.parent === window) {
+                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
+                history.pushState({ tool: toolName }, '', newUrl);
+            } else if (toolName && window.parent !== window) {
+                // Loaded inside an outer SPA frame — also anchor on /cma/tools.
+                try {
+                    var parentUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
+                    window.parent.history.pushState({ tool: toolName }, '', parentUrl);
+                } catch (e) {
+                    // Cross-origin, ignore
+                }
+            }
+        });
+
+        // Extract tool name from href for URL
+        function extractToolName(href) {
+            var basePath = href.split('?')[0];
+            var match = basePath.match(/tools\/tools_([^.]+)\.php$/);
+            if (match) return match[1];
+            match = basePath.match(/tools\/([^.]+)\.php$/);
+            if (match) return match[1];
+            if (href.indexOf('form.php?form=') !== -1) {
+                var formMatch = href.match(/form=([^&]+)/);
+                if (formMatch) return formMatch[1];
+            }
+            return null;
+        }
+
+        // Select initial tool in tree if specified
+        <?php if (!empty($initialTool)): ?>
+        (function selectInitialTool() {
+            var toolHref = <?= json_encode($initialTool) ?>;
+            var attempts = 0;
+            var maxAttempts = 10;
+
+            function trySelect() {
+                attempts++;
+                if (tree && typeof tree.selectByHref === 'function') {
+                    var basePath = toolHref.split('?')[0];
+                    var selected = tree.selectByHref(basePath) || tree.selectByHref(toolHref);
+                    if (selected) return;
+                }
+                if (attempts < maxAttempts) {
+                    setTimeout(trySelect, 100);
+                }
+            }
+
+            setTimeout(trySelect, 200);
+        })();
+        <?php else: ?>
+        // No specific tool requested — open the BIG "Menu" launcher automatically
+        // (the two-pane tree stays behind it as a fallback / for regular tools).
+        (function openLauncher() {
+            var win = window.top || window;
+            if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); }
+        })();
+        <?php endif; ?>
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupToolsNavigation);
+    } else {
+        setupToolsNavigation();
+    }
+})();
+</script>
+
+<style>
+.tools-ajax-container {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    height: 100%; /* Required for cma-fold height: 100% to work */
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tools-ajax-container #leftlist {
+    flex: 0 0 280px;
+    min-width: 150px;
+    max-width: 500px;
+    height: 100%; /* Explicit height for children using percentage heights */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+}
+
+.tools-ajax-container #leftlist #c {
+    flex: 1;
+    overflow: auto;
+    padding: 8px !important;
+}
+
+.tools-ajax-container cma-fold {
+    flex: 0 0 8px;
+    height: 100%;
+}
+
+iframe.tools-content-area {
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: var(--bg-body);
+}
+</style>
+
+<?php
+echo '</div>'; // close tools-ajax-container
+
+?>

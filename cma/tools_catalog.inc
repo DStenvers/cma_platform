@@ -1,9 +1,9 @@
 <?php
 /**
- * Tools catalog — the single source of truth for the admin tools/forms tree.
+ * Tools catalog — the single source of truth for the admin tools/forms menu.
  *
  * Side-effect-free: only defines buildToolsTreeData(). Required by tools.php
- * (the two-pane tree), api/tools-catalog.php (JSON for the header launcher),
+ * (the inline big menu), api/tools-catalog.php (JSON for the header launcher),
  * and main.php (the launcher shell). Keep it free of output/redirects so it
  * can be included anywhere. Uses fully-qualified class names (no use-imports).
  */

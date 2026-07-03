@@ -164,7 +164,7 @@ body.tool-docs #c.tools { padding: 0; }
    internally via their own overflow:auto when they individually overflow. */
 .tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; }
 .tool-docs .docs-sidebar { flex: 0 0 260px; padding: 14px 8px 14px 14px; overflow: auto; background: var(--bg-surface-alt, #f6f8fa); border-right: 1px solid var(--border-color, #e0e0e0); }
-.tool-docs .docs-content { flex: 1; min-width: 0; max-width: 900px; padding: 16px 22px; overflow: auto; }
+.tool-docs .docs-content { flex: 1; min-width: 0; padding: 16px 22px; overflow: auto; }
 /* Sidebar search box + cross-document results list. When results are shown the
    cma-tree is hidden (see .docs-sidebar.is-searching) so the two never stack. */
 .tool-docs .docs-search { margin-bottom: 10px; }
@@ -1873,7 +1873,7 @@ function render_doc_routing(): void
     <p>Een paar beheer-entiteiten (<code>users</code>, <code>groups</code>, <code>contentblocks</code>, <code>_menus</code>, <code>cmamonitoring</code>, <code>marketingurl</code>) waren zowel als gewone form-route (<code>/cma/form/&lt;form&gt;</code>) áls als tool-alias (<code>/cma/tools/&lt;naam&gt;</code>, gerenderd in de tools-iframe) bereikbaar — twee routes, twee layouts, één formulier. De alias-namen staan nu in één bron, <code>$formBackedTools</code> in <code>tools.php</code>:</p>
     <ul>
         <li>Een deep link <code>/cma/tools/users</code> (of <code>?tool=users</code>) <span class="cma-page__strong">redirect</span> naar de canonieke <code>/cma/form/users</code>.</li>
-        <li>De tools-tree items voor deze entiteiten navigeren het hoofdvenster naar <code>/cma/form/&lt;form&gt;</code> (via <code>loadPage</code>) in plaats van het formulier in de tools-iframe te laden.</li>
+        <li>De items in het tools-menu voor deze entiteiten navigeren het hoofdvenster naar <code>/cma/form/&lt;form&gt;</code> (via <code>loadPage</code>) in plaats van het formulier full-width te laden.</li>
     </ul>
     <p>Zo is er één route en één layout per formulier. Voeg je een nieuwe form-backed tool toe, zet 'm dan alleen in <code>$formBackedTools</code> (niet in <code>$toolNameMap</code>).</p>
 
@@ -2371,7 +2371,8 @@ function render_doc_web_components(): void
     </table>
 
     <h2>cma-launcher — de "Menu"-knop (sinds v1.28.39)</h2>
-    <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als de tools-tree) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. <code>/cma/tools</code> zonder <code>?tool=</code> opent de launcher automatisch. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code> (mobiel full-screen).</p>
+    <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als het tools-menu) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code> (mobiel full-screen).</p>
+    <p><code>/cma/tools</code> zelf (zonder <code>?tool=</code>) rendert sinds v1.28.42 dezelfde catalogus <span class="cma-page__strong">inline</span> als hoofdpagina — het "grote menu" in het content-gebied, met dezelfde <code>.tools-menu__*</code>-stijlen in <code>assets/css/main.css</code>. Een keuze laadt de tool full-width; terug naar het menu gaat via de <span class="cma-tool__strong">Menu</span>-knop of door naar <code>/cma/tools</code> te navigeren. De voormalige twee-paneel boomstructuur is gearchiveerd als <code>cma/tools_DEPRECATED.php</code>.</p>
 
     <h2>Bestandsstructuur</h2>
     <p>Elk component is één JavaScript-bestand met de extensie <code>.js</code>, plus een meegegenereerd <code>.min.js</code> dat door de build-stap geproduceerd wordt. Het component-bestand bevat:</p>

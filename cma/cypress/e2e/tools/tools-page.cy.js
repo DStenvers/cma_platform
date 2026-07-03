@@ -2,7 +2,9 @@
  * Tools Page Tests
  *
  * Comprehensive tests for the CMA tools page and its subtools.
- * Uses element IDs: #tools-tree, #details_iframe
+ * The landing page renders the inline BIG menu (.tools-menu); selecting a
+ * tool shows it full-width in iframe#tools-content. (The former two-pane
+ * cma-tree view is archived in tools_DEPRECATED.php.)
  *
  * Run: npx cypress run --spec "cypress/e2e/tools/tools-page.cy.js"
  */
@@ -14,162 +16,67 @@ describe('Tools Page', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // PAGE STRUCTURE
+  // PAGE STRUCTURE — inline big menu
   // ═══════════════════════════════════════════════════════════════
 
   describe('Page Structure', () => {
-    it('should display tools tree navigation', () => {
-      cy.get('#tools-tree').should('be.visible');
+    it('should display the inline tools menu', () => {
+      cy.get('.tools-menu').should('be.visible');
     });
 
-    it('should display details iframe', () => {
-      cy.get('#details_iframe, iframe').should('exist');
+    it('should have a search box', () => {
+      cy.get('.tools-menu__search').should('exist');
     });
 
-    // COMMENTED OUT: cma-tree uses Shadow DOM, Cypress cannot access internal elements
-    // without special configuration (includeShadowDom: true in cypress.config.js)
-    // it('should have expandable/collapsible tree sections', () => {
-    //   cy.get('#tools-tree .tree-node, #tools-tree li').should('have.length.at.least', 1);
-    // });
+    it('should render grouped tool items', () => {
+      cy.get('.tools-menu__group').should('have.length.at.least', 1);
+      cy.get('.tools-menu__item').should('have.length.at.least', 1);
+    });
+
+    it('should NOT render the archived two-pane tree', () => {
+      cy.get('#tools-tree').should('not.exist');
+      cy.get('cma-fold').should('not.exist');
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // TOOLBAR BUTTONS
+  // MENU SEARCH — client-side filter
   // ═══════════════════════════════════════════════════════════════
 
-  describe('Toolbar Buttons', () => {
-    it('should always show expand/collapse buttons in tools toolbar', () => {
-      // Test that expand/collapse buttons are visible even on narrow screens
-      // This is a regression test for the fix that prevents these buttons from hiding
-      // in .tools-ajax-container context
-      cy.get('.tools-ajax-container #btn_expand, .tools-ajax-container [id*="expand"]').should('be.visible');
-      cy.get('.tools-ajax-container #btn_collapse, .tools-ajax-container [id*="collapse"]').should('be.visible');
+  describe('Menu Search', () => {
+    it('should hide non-matching items as you type', () => {
+      // "cache" matches the Cache-leegmaken item; unrelated items get [hidden].
+      cy.get('.tools-menu__search').type('cache');
+      cy.get('.tools-menu__item:not([hidden])').should('have.length.at.least', 1);
+      cy.get('.tools-menu__item[hidden]').should('exist');
     });
 
-    it('should show expand/collapse buttons at narrow viewport width', () => {
-      // Set a narrow viewport that would normally hide these buttons
-      cy.viewport(400, 800);
-
-      // Visit tools page at narrow width
-      cy.visit('/main.php?page=tools.php');
-      cy.waitForContent();
-
-      // Buttons should still be visible in tools-ajax-container
-      cy.get('.tools-ajax-container').within(() => {
-        cy.get('#btn_expand, [id*="Expand"]').should('exist');
-        cy.get('#btn_collapse, [id*="Collapse"]').should('exist');
+    it('should restore all items when the term is cleared', () => {
+      cy.get('.tools-menu__item').its('length').then((total) => {
+        cy.get('.tools-menu__search').type('cache');
+        cy.get('.tools-menu__search').clear();
+        cy.get('.tools-menu__item:not([hidden])').should('have.length', total);
       });
     });
   });
 
   // ═══════════════════════════════════════════════════════════════
-  // FOLD RESIZING
+  // MENU NAVIGATION — items carry the shell load target
   // ═══════════════════════════════════════════════════════════════
 
-  describe('Fold Resizing', () => {
-    it('should have a cma-fold element', () => {
-      cy.get('cma-fold').should('exist');
+  describe('Menu Navigation', () => {
+    it('should give tool items a tools.php?tool= load target', () => {
+      cy.get('.tools-menu__item[data-form="0"]').first()
+        .should('have.attr', 'data-page')
+        .and('include', 'tools.php?tool=');
     });
 
-    it('should have vertical orientation', () => {
-      cy.get('cma-fold').should('have.attr', 'orientation', 'vertical');
-    });
-
-    it('should target the leftlist panel', () => {
-      cy.get('cma-fold').should('have.attr', 'target', '#leftlist');
-    });
-
-    it('should be draggable (col-resize cursor)', () => {
-      cy.get('cma-fold').should('have.css', 'cursor', 'col-resize');
-    });
-
-    it('should resize left panel on drag', () => {
-      cy.get('#leftlist').then($leftlist => {
-        const initialWidth = $leftlist.width();
-
-        // Drag the fold to resize
-        cy.get('cma-fold')
-          .trigger('mousedown', { which: 1, clientX: 280 })
-          .trigger('mousemove', { clientX: 350 })
-          .trigger('mouseup');
-
-        // Width should have changed (allow for async)
-        cy.get('#leftlist').should($el => {
-          const newWidth = $el.width();
-          expect(newWidth).to.be.greaterThan(initialWidth - 10);
-        });
-      });
-    });
-
-    it('should persist size to localStorage', () => {
-      cy.get('cma-fold').then($fold => {
-        const storageKey = $fold.attr('storage-key');
-        expect(storageKey).to.eq('tools_fold');
-      });
+    it('should point form-backed items at a /cma/form/ route', () => {
+      cy.get('.tools-menu__item[data-form="1"]').first()
+        .should('have.attr', 'data-url')
+        .and('include', '/cma/form/');
     });
   });
-
-  // ═══════════════════════════════════════════════════════════════
-  // TREE NAVIGATION
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: cma-tree uses Shadow DOM, Cypress cannot access internal elements
-  // without special configuration (includeShadowDom: true in cypress.config.js)
-  // describe('Tree Navigation', () => {
-  //   it('should expand tree node on click', () => { ... });
-  //   it('should load tool content when clicking a leaf node', () => { ... });
-  //   it('should highlight active tool', () => { ... });
-  // });
-
-  // ═══════════════════════════════════════════════════════════════
-  // TOOL CATEGORIES
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: cma-tree uses Shadow DOM, contain.text doesn't work with Shadow DOM content
-  // describe('Tool Categories', () => {
-  //   it('should display Database tools category', () => { ... });
-  //   it('should display Import/Export tools category', () => { ... });
-  //   it('should display System tools category', () => { ... });
-  //   it('should display Development tools category', () => { ... });
-  // });
-
-  // ═══════════════════════════════════════════════════════════════
-  // DATABASE TOOLS
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: cma-tree uses Shadow DOM, cy.contains cannot find elements inside Shadow DOM
-  // describe('Database Tools', () => {
-  //   it('should load Database Summary tool', () => { ... });
-  //   it('should load SQL Query tool', () => { ... });
-  // });
-
-  // ═══════════════════════════════════════════════════════════════
-  // CACHE TOOLS
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: cma-tree uses Shadow DOM
-  // describe('Cache Tools', () => {
-  //   it('should load Clear Cache tool', () => { ... });
-  // });
-
-  // ═══════════════════════════════════════════════════════════════
-  // MIGRATION TOOLS
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: cma-tree uses Shadow DOM, contain.text doesn't work with Shadow DOM content
-  // describe('Migration Tools', () => {
-  //   it('should display migrations option', () => { ... });
-  // });
-
-  // ═══════════════════════════════════════════════════════════════
-  // IFRAME LOADING
-  // ═══════════════════════════════════════════════════════════════
-
-  // COMMENTED OUT: These tests depend on clicking cma-tree elements inside Shadow DOM
-  // describe('Iframe Loading', () => {
-  //   it('should display loading indicator while tool loads', () => { ... });
-  //   it('should resize iframe properly', () => { ... });
-  // });
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -355,10 +262,10 @@ describe('Tools Clean URL Support', () => {
       if (url.includes('/form/tools') || url.includes('tools.php')) {
         // Page loaded - check for content area or tools
         cy.get('body').then($body => {
-          const hasContent = $body.find('#contentArea, #tools-tree, cma-tree').length > 0;
+          const hasContent = $body.find('#contentArea, .tools-menu').length > 0;
           if (hasContent) {
             // Page loaded successfully
-            cy.get('#contentArea, #tools-tree, cma-tree').should('exist');
+            cy.get('#contentArea, .tools-menu').should('exist');
           } else {
             // Clean URL may not be supported - just verify page loaded
             cy.log('Clean URL format may not be supported for tools');

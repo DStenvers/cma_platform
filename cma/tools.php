@@ -1,18 +1,17 @@
 <?php
 /**
- * Unified Tools Page
+ * Unified Tools Page — BIG inline menu.
  *
- * Combines listtools.php and tools_dev_reports.php into a single page.
- * Uses cma-tree component with A/D access level badges.
+ * Landing (no ?tool): renders the admin tools/forms catalog as a searchable,
+ * grouped grid directly in the shell content area — the "big menu". Selecting
+ * a tool re-loads this page with ?tool=<...> and shows that tool full-width.
+ * The tree-based two-pane predecessor is archived in tools_DEPRECATED.php.
  *
- * Features:
- * - Tree navigation with folders and items
- * - A (Admin) and D (Developer) access level badges
- * - Iframe loading for tool content
- * - Stateful tree (remembers expanded/collapsed state)
+ * The catalog comes from buildToolsTreeData() in tools_catalog.inc — the single
+ * source shared with the header launcher (cma-launcher / api/tools-catalog.php).
  *
  * URL Parameters:
- * - tool: Tool page to load in the iframe (optional)
+ * - tool: Tool page to load full-width (friendly name or path). Absent = menu.
  */
 
 use App\Library\Application;
@@ -22,7 +21,6 @@ use Cma\Services\Logger;
 use App\Library\Server;
 use Cma\CmaRepository;
 use Cma\SecurityHelper;
-use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/bootstrap.inc';
 require_once __DIR__ . '/tools_catalog.inc'; // buildToolsTreeData() — shared with the header launcher (api/tools-catalog.php)
@@ -113,9 +111,9 @@ $toolNameMap = [
 // Form-backed admin entities: friendly alias -> JSON form name. These render as
 // normal FORM routes (/cma/form/<form>) in the main shell, NOT inside the tools
 // iframe. This is the single source for that mapping — the deep-link redirect
-// below and the tools-tree items (which link to form.php?form=<form>) both
-// derive the form from here, so the alias and the clean form URL can't drift
-// into two separate routes for the same form.
+// below and the menu items (which link to form.php?form=<form>) both derive the
+// form from here, so the alias and the clean form URL can't drift into two
+// separate routes for the same form.
 $formBackedTools = [
     'users'         => 'users',
     'gebruikers'    => 'users',
@@ -172,228 +170,171 @@ if (!empty($toolParam)) {
     }
 }
 
-// Build tree data structure with access level badges
-// Wrapped in try-catch to prevent page hang on errors
-try {
-    $treeData = buildToolsTreeData($isDeveloper);
-    $treeJson = json_encode($treeData, JSON_HEX_APOS | JSON_HEX_QUOT);
-} catch (Exception $e) {
-    $treeData = [];
-    $treeJson = '[]';
-    Logger::error('tools.php: Error building tree data', ['error' => $e->getMessage()]);
+echo '<base href="/cma/">';
+echo '<div class="tools-page">';
+
+if (!empty($initialTool)) {
+    // A tool is selected: show it full-width. Getting back to the menu is the
+    // header "Menu" launcher (or navigating to /cma/tools with no ?tool).
+    echo '<iframe name="R" id="tools-content" class="tools-content-area" src="'
+        . Server::htmlEncode($initialTool) . '" frameborder="0"></iframe>';
+    echo '</div>';
+    return;
 }
 
-// Tools always render inside the app shell (nomenu mode); a standalone hit
-// is redirected to the shell above. Emit the tools container into the
-// shell content area.
-echo '<base href="/cma/">';
-echo '<div class="tools-ajax-container">';
-cma_script('webcomponents/cma-tree.js');
-cma_script('webcomponents/cma-fold.js');
+// No tool selected: render the BIG inline menu from the shared catalog.
+try {
+    $treeData = buildToolsTreeData($isDeveloper);
+} catch (Exception $e) {
+    $treeData = [];
+    Logger::error('tools.php: Error building tools catalog', ['error' => $e->getMessage()]);
+}
+
+/**
+ * Flatten one level of sub-folders into their own sections (e.g. Developer ->
+ * Testen), mirroring cma-launcher._collectGroups() so the inline menu and the
+ * header launcher stay visually identical.
+ */
+function tools_menu_collect_groups(array $nodes, string $prefix, array &$out): void
+{
+    foreach ($nodes as $node) {
+        if (($node['type'] ?? '') !== 'folder') {
+            continue;
+        }
+        $title = $prefix !== '' ? $prefix . ' · ' . ($node['label'] ?? '') : ($node['label'] ?? '');
+        $items = array_values(array_filter($node['children'] ?? [], fn($c) => ($c['type'] ?? '') === 'item'));
+        if ($items) {
+            $out[] = ['title' => $title, 'icon' => $node['icon'] ?? '', 'items' => $items];
+        }
+        $subs = array_values(array_filter($node['children'] ?? [], fn($c) => ($c['type'] ?? '') === 'folder'));
+        if ($subs) {
+            tools_menu_collect_groups($subs, $title, $out);
+        }
+    }
+}
+
+/**
+ * Resolve a catalog href into how it navigates in the shell — mirrors
+ * cma-launcher.resolveNav(). Form-backed items are canonical /cma/form/<form>
+ * routes loaded in the top window; every other tool page is passed to
+ * tools.php?tool=<path> (the full .php path, which tools.php resolves) and gets
+ * a pretty /cma/tools?tool=<name> address for the URL bar.
+ *
+ * Returns ['page' => loadPage target, 'url' => clean URL, 'form' => bool].
+ */
+function tools_menu_nav(string $href): array
+{
+    if (strpos($href, 'form.php?form=') === 0) {
+        preg_match('/form=([^&]+)/', $href, $m);
+        return ['page' => $href, 'url' => $m ? '/cma/form/' . $m[1] : $href, 'form' => true];
+    }
+    $base = explode('?', $href)[0];
+    $query = strpos($href, '?') !== false ? '&' . substr($href, strpos($href, '?') + 1) : '';
+    // Pass the full .php path as the tool param — tools.php's path branch resolves
+    // it even for nested paths that no friendly short-name covers.
+    $page = 'tools.php?tool=' . $base . $query;
+    // Pretty short name for the URL bar when the file follows the tools_X / X
+    // convention with no extra path segment; otherwise fall back to the path.
+    if (preg_match('#^tools/tools_([^./]+)\.php$#', $base, $m) || preg_match('#^tools/([^./]+)\.php$#', $base, $m)) {
+        $short = $m[1];
+    } else {
+        $short = $base;
+    }
+    // $query already begins with '&' (e.g. "&tab=manage"), so append as-is.
+    $url = '/cma/tools?tool=' . rawurlencode($short) . $query;
+    return ['page' => $page, 'url' => $url, 'form' => false];
+}
+
+$groups = [];
+tools_menu_collect_groups($treeData, '', $groups);
 ?>
 
-<div id="leftlist">
-    <?php ToolbarHelper::start(false); ?>
-    <?php ToolbarHelper::treeButtons(); ?>
-    <td width="99%">
-        <lib-search-input id="searchfor" name="searchfor" placeholder="Zoek tool ..."></lib-search-input>
-        <script>
-            // Search-as-you-type: filter the tools tree client-side via the
-            // cma-tree component's own filter(). Empty term clears the filter.
-            document.getElementById('searchfor').addEventListener('input', function () {
-                var t = document.getElementById('tools-tree');
-                if (t && typeof t.filter === 'function') { t.filter(this.value); }
-            });
-        </script>
-    </td>
-    <?php ToolbarHelper::end(false); ?>
-    <div id="c" class="listcontent blockselect" onselectstart="return false">
-        <cma-tree
-            id="tools-tree"
-            storage-key="tree_tools_unified"
-            item-icon="tools"
-            data='<?= htmlspecialchars($treeJson, ENT_QUOTES, 'UTF-8') ?>'>
-        </cma-tree>
+<div class="tools-menu" id="toolsMenu">
+    <div class="tools-menu__head">
+        <h2 class="tools-menu__title">Alle beheerstools</h2>
+        <input type="search" class="tools-menu__search" id="toolsMenuSearch"
+               placeholder="Zoek een tool…" aria-label="Zoek een tool" autocomplete="off">
+    </div>
+    <div class="tools-menu__grid">
+        <?php foreach ($groups as $g): ?>
+            <section class="tools-menu__group">
+                <h3 class="tools-menu__group-title">
+                    <?php if (!empty($g['icon'])): ?><span class="lnr <?= Server::htmlEncode($g['icon']) ?>"></span><?php endif; ?>
+                    <?= Server::htmlEncode($g['title']) ?>
+                </h3>
+                <div class="tools-menu__items">
+                    <?php foreach ($g['items'] as $it):
+                        $nav = tools_menu_nav($it['href'] ?? '#'); ?>
+                        <a class="tools-menu__item"
+                           href="<?= Server::htmlEncode($nav['url']) ?>"
+                           data-page="<?= Server::htmlEncode($nav['page']) ?>"
+                           data-url="<?= Server::htmlEncode($nav['url']) ?>"
+                           data-form="<?= $nav['form'] ? '1' : '0' ?>"
+                           data-search="<?= Server::htmlEncode(strtolower($it['label'] ?? '')) ?>">
+                            <?php if (!empty($it['icon'])): ?><span class="tools-menu__item-icon lnr <?= Server::htmlEncode($it['icon']) ?>"></span><?php endif; ?>
+                            <span class="tools-menu__item-label"><?= Server::htmlEncode($it['label'] ?? '') ?></span>
+                            <?php if (!empty($it['badge'])): ?><span class="tools-menu__badge" title="Toegangsniveau"><?= Server::htmlEncode($it['badge']) ?></span><?php endif; ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endforeach; ?>
+        <?php if (empty($groups)): ?>
+            <div class="tools-menu__error">Geen tools beschikbaar.</div>
+        <?php endif; ?>
     </div>
 </div>
 
-<!-- AJAX mode - fold and iframe for tool pages -->
-<cma-fold
-    orientation="vertical"
-    target="#leftlist"
-    min-size="150"
-    max-size="500"
-    storage-key="tools_fold">
-</cma-fold>
-<iframe name="R" id="tools-content" class="tools-content-area" src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'tools/tools_welcome.php' ?>" frameborder="0"></iframe>
-
 <script>
-(function() {
+(function () {
     'use strict';
 
-    function setupToolsNavigation() {
-        var iframe = document.getElementById('tools-content');
-        var tree = document.getElementById('tools-tree');
-        if (!iframe || !tree) {
-            cmaLog.warn('[tools.php] Required elements not found');
-            return;
-        }
+    var menu = document.getElementById('toolsMenu');
+    if (!menu) return;
 
-        // Expand all and setup global functions with timeout protection
-        var initTimeout = setTimeout(function() {
-            cmaLog.warn('[tools.php] AJAX mode tree initialization timed out');
-        }, 5000);
-
-        setTimeout(function() {
-            clearTimeout(initTimeout);
-            try {
-                tree.expandAll();
-                window.fExpandAll = function() { tree.expandAll(); };
-                window.fCollapseAll = function() { tree.collapseAll(); };
-            } catch (e) {
-                cmaLog.error('[tools.php] Error in AJAX mode setup:', e);
-            }
-        }, 50);
-
-        // Listen to item-click events from the tree
-        tree.addEventListener('item-click', function(e) {
-            var href = e.detail.href;
-            if (!href || href === '#' || href === 'about:blank') return;
-
-            // Form-backed tree items (form.php?form=X) are canonical
-            // /cma/form/<form> routes — navigate the top window instead of
-            // loading the form into the tools iframe (prevents a 2nd route).
-            if (href.indexOf('form.php?form=') === 0) {
-                var topWinF = window.top || window;
-                if (typeof topWinF.loadPage === 'function') {
-                    topWinF.loadPage(href);
-                } else {
-                    var fmF = href.match(/form=([^&]+)/);
-                    topWinF.location.href = fmF ? '/cma/form/' + fmF[1] : '/cma/' + href;
-                }
-                return;
-            }
-
-            // Load tool page in iframe
-            iframe.src = href;
-
-            // Update URL to reflect selected tool. Always anchor on
-            // /cma/tools (canonical clean URL) so refresh routes through
-            // the Tools Directory rewrite rule cleanly. Concatenating
-            // window.location.pathname caused broken URLs when the
-            // current pathname was /cma/main.php?page=tools.php — see
-            // explanatory comment in the standalone-mode click handler
-            // above.
-            var toolName = extractToolName(href);
-            if (toolName && window.parent === window) {
-                var newUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
-                history.pushState({ tool: toolName }, '', newUrl);
-            } else if (toolName && window.parent !== window) {
-                // Loaded inside an outer SPA frame — also anchor on /cma/tools.
-                try {
-                    var parentUrl = '/cma/tools?tool=' + encodeURIComponent(toolName);
-                    window.parent.history.pushState({ tool: toolName }, '', parentUrl);
-                } catch (e) {
-                    // Cross-origin, ignore
-                }
+    // Search-as-you-type: hide non-matching items; hide a group with no matches.
+    var search = document.getElementById('toolsMenuSearch');
+    if (search) {
+        search.addEventListener('input', function () {
+            var term = this.value.trim().toLowerCase();
+            menu.querySelectorAll('.tools-menu__group').forEach(function (group) {
+                var any = false;
+                group.querySelectorAll('.tools-menu__item').forEach(function (item) {
+                    var match = !term || (item.getAttribute('data-search') || '').indexOf(term) !== -1;
+                    item.hidden = !match;
+                    if (match) any = true;
+                });
+                group.hidden = !any;
+            });
+        });
+        search.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                var first = menu.querySelector('.tools-menu__item:not([hidden])');
+                if (first) { e.preventDefault(); first.click(); }
             }
         });
+    }
 
-        // Extract tool name from href for URL
-        function extractToolName(href) {
-            var basePath = href.split('?')[0];
-            var match = basePath.match(/tools\/tools_([^.]+)\.php$/);
-            if (match) return match[1];
-            match = basePath.match(/tools\/([^.]+)\.php$/);
-            if (match) return match[1];
-            if (href.indexOf('form.php?form=') !== -1) {
-                var formMatch = href.match(/form=([^&]+)/);
-                if (formMatch) return formMatch[1];
-            }
-            return null;
-        }
-
-        // Select initial tool in tree if specified
-        <?php if (!empty($initialTool)): ?>
-        (function selectInitialTool() {
-            var toolHref = <?= json_encode($initialTool) ?>;
-            var attempts = 0;
-            var maxAttempts = 10;
-
-            function trySelect() {
-                attempts++;
-                if (tree && typeof tree.selectByHref === 'function') {
-                    var basePath = toolHref.split('?')[0];
-                    var selected = tree.selectByHref(basePath) || tree.selectByHref(toolHref);
-                    if (selected) return;
-                }
-                if (attempts < maxAttempts) {
-                    setTimeout(trySelect, 100);
-                }
-            }
-
-            setTimeout(trySelect, 200);
-        })();
-        <?php else: ?>
-        // No specific tool requested — open the BIG "Menu" launcher automatically
-        // (the two-pane tree stays behind it as a fallback / for regular tools).
-        (function openLauncher() {
+    // Selecting an item loads it through the shell (window.loadPage), keeping the
+    // header + sidebar in place. Form-backed items navigate the top window to the
+    // canonical /cma/form/<form> route; tool pages re-load tools.php?tool=<...>
+    // (which then shows the tool full-width).
+    menu.querySelectorAll('.tools-menu__item').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            var page = a.getAttribute('data-page');
+            var url = a.getAttribute('data-url');
             var win = window.top || window;
-            if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); }
-        })();
-        <?php endif; ?>
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupToolsNavigation);
-    } else {
-        setupToolsNavigation();
-    }
+            if (page && typeof win.loadPage === 'function') {
+                win.loadPage(page);
+                if (url) { try { win.history.pushState(null, '', url); } catch (err) {} }
+            } else if (url) {
+                win.location.href = url;
+            }
+        });
+    });
 })();
 </script>
 
-<style>
-.tools-ajax-container {
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-    height: 100%; /* Required for cma-fold height: 100% to work */
-    min-height: 0;
-    overflow: hidden;
-}
-
-.tools-ajax-container #leftlist {
-    flex: 0 0 280px;
-    min-width: 150px;
-    max-width: 500px;
-    height: 100%; /* Explicit height for children using percentage heights */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-surface);
-    border-right: 1px solid var(--border-color);
-}
-
-.tools-ajax-container #leftlist #c {
-    flex: 1;
-    overflow: auto;
-    padding: 8px !important;
-}
-
-.tools-ajax-container cma-fold {
-    flex: 0 0 8px;
-    height: 100%;
-}
-
-iframe.tools-content-area {
-    flex: 1;
-    height: 100%;
-    border: none;
-    background: var(--bg-body);
-}
-</style>
-
 <?php
-echo '</div>'; // close tools-ajax-container
-
-?>
+echo '</div>'; // close .tools-page

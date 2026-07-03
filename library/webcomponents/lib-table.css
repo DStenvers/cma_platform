@@ -938,7 +938,6 @@ lib-table td[data-type="integer"] { text-align: right; min-width: 40px }
    ========================================================================== */
 .listtable th.col-check { width: 30px; }
 .listtable td.col-path { font-size: var(--font-size-xs); }
-.listtable .lnr-database { margin-right: 5px; }
 .listtable td.col-actions { white-space: nowrap; }
 
 /* ==========================================================================

@@ -3,7 +3,7 @@
  * Tools Catalog API
  *
  * Returns the admin tools/forms catalog as JSON for the header launcher
- * (cma-launcher). Same data as the tools.php two-pane tree — single source of
+ * (cma-launcher). Same data as the tools.php inline big menu — single source of
  * truth is buildToolsTreeData() in tools_catalog.inc. Admin-only.
  */
 

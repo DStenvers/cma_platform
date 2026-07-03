@@ -120,6 +120,7 @@ table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) }
 .lnr-clipboard-pencil::before {content:"\e6ca"}
 /* Missing icons - added from Linearicons audit */
 .lnr-envelope::before {content:"\e696"}
+.lnr-bug::before {content:"\e90a"}
 .lnr-paper-plane::before {content:"\e699"}
 .lnr-server::before {content:"\e666"}
 .lnr-brain::before {content:"\e7f2"}

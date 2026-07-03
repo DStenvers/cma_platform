@@ -819,10 +819,10 @@
 
         const steps = [];
 
-        // Tools tree
-        if (document.querySelector('#tools-tree, #leftlist, cma-tree')) {
+        // Tools menu (inline big menu)
+        if (document.querySelector('.tools-menu')) {
             steps.push({
-                target: '#tools-tree, #leftlist, cma-tree',
+                target: '.tools-menu',
                 title: 'Tools menu',
                 content: `
                     <p>Alle systeemtools, georganiseerd per categorie:</p>
@@ -839,7 +839,7 @@
 
         // Badge explanation
         steps.push({
-            target: '#tools-tree, #leftlist',
+            target: '.tools-menu',
             title: 'Toegangsniveaus',
             content: `
                 <p>Tools zijn gemarkeerd met badges:</p>

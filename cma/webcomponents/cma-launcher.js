@@ -22,8 +22,8 @@
 
     // Work out how a catalog href navigates in the shell. Form-backed items are
     // canonical /cma/form/<form> routes; everything else is a tool page that
-    // loads through the tools.php two-pane (keyed by tool name), mirroring the
-    // tools-tree click handler exactly.
+    // loads through tools.php (keyed by tool name), mirroring the tools.php
+    // inline-menu click handler exactly.
     function resolveNav(href) {
         if (!href) return null;
         if (href.indexOf('form.php?form=') === 0) {

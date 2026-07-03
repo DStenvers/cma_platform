@@ -1820,3 +1820,26 @@ karaat-data en staat in de karaat-repo.
 > routing issue: https://www.karaatedelstenen.nl/cma/form/steensoorten/6/steensoorten_producten/2039 should open 2 sidebars 1 with steensoort 6 and above that steensoorten_producten 2039, but it only opens https://www.karaatedelstenen.nl/cma/form/steensoorten/6
 
 > the menu does not unfold AND the productie label is in the way, can we move that label to the top right corner?
+
+> the documentation uses lnr-bug, but that definition is missing in css 
+>
+> .tool-docs .docs-content { remove max-width } 
+> remove css rule : .listtable .lnr-database {
+>     margin-right: 5px; 
+> }
+
+> you crashed, what is it you were working on?
+
+>
+> OPcache geleegd via app-pool recycle
+> opcache_reset() faalde, dus web.config is aangeraakt. IIS herstart nu de applicatiepool — dat leegt OPcache én APCu volledig. De eerstvolgende paginalading kan iets trager zijn (koude start).
+>
+> in that case I would expect all caches to me empty? But is still see :
+>
+> OPcachei    APCui    App Cachei    File Cachei    Minifyi    Form HTMLi    Invalidationi    Realpathi    Groupsi    Sessionsi    Tempi    JS Minifyi
+> ✓    ✓    ✓    ✓    –    –    –    ✓    ✓    –    –    –
+> 141 items    9 items    9 items    6 items    0 bestanden    0 bestanden    Geen signalen    Intern (PHP)    2 groepen    0 bestanden    0 bestanden    0 bestanden
+
+> no you were working on a big menu in the tools.php to skip the tree view currently in use (archive that by reming to _DEPRECATED, don't delete it)
+
+> Not true becauase if i refresh the same numbers appear, it is geniounly not cleared
