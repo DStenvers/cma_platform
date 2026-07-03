@@ -1426,6 +1426,25 @@ class FormTemplate
         // Detail form container - visibility controlled via CSS based on body.has-record or body.is-creating classes
         $html .= '<div class="detail-content" id="detailContent">' . PHP_EOL;
 
+        // Form-level tips (entered in the form editor's Tips section). Rendered as
+        // info callouts at the top of the form. data-tip-id is the dismiss key for
+        // the user_tips API (persistent per-user dismissal is a follow-up).
+        $formTips = $this->arrRep['_json']['tips'] ?? [];
+        if (is_array($formTips) && !empty($formTips)) {
+            $html .= '<div class="form-tips" id="formTips">' . PHP_EOL;
+            foreach ($formTips as $tip) {
+                $tipContent = trim((string)($tip['content'] ?? ''));
+                if ($tipContent === '') {
+                    continue;
+                }
+                $tipId = (string)($tip['id'] ?? '');
+                $idAttr = $tipId !== '' ? ' data-tip-id="' . Server::htmlEncode($tipId) . '"' : '';
+                $html .= '<lib-message type="info" closable="true"' . $idAttr . '>'
+                       . Server::htmlEncode($tipContent) . '</lib-message>' . PHP_EOL;
+            }
+            $html .= '</div>' . PHP_EOL;
+        }
+
         // Last modified info (if enabled)
         if ($this->formDef->hasStoreLastModified()) {
             $html .= '<div class="last-modified" id="lastModified" style="display:none">' . PHP_EOL;
