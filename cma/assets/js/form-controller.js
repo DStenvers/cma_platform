@@ -5313,9 +5313,11 @@ class CmaFormController {
                 return;
             }
             if (scroller.hasMore && !scroller.destroyed) {
-                // Continue immediately on success; back off before a retry so a
-                // transient failure has time to recover (_loadRetries > 0).
-                setTimeout(prefetchBatch, scroller._loadRetries ? 500 : 0);
+                // Background prefetch is gentle: a 200ms gap between batches so it
+                // doesn't hammer the server / block the UI (scroll-induced loads
+                // stay immediate — they go through onScroll -> load(), not here).
+                // Back off longer before a retry so a transient failure recovers.
+                setTimeout(prefetchBatch, scroller._loadRetries ? 500 : 200);
             } else {
                 // All data loaded — re-enable scroll handler and hide counter
                 scroller.paused = false;
