@@ -1409,6 +1409,12 @@ body.cma-launcher-open { overflow: hidden; }
 
 @media (max-width: 768px) {
     .cma-launcher__body { grid-template-columns: 1fr; }
+    /* On mobile .cma-main uses overflow:visible and can be shorter than the
+       viewport, which clipped the absolutely-positioned panel (it stopped a few
+       rows down with white space below). Pin the panel + backdrop to the
+       viewport so they fill the screen below the header. */
+    .cma-launcher__backdrop,
+    .cma-launcher__panel { position: fixed; }
 }
 
 /* ============================================================
