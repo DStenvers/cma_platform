@@ -191,7 +191,15 @@
                 // <lib-search-input> emits 'input' (detail.value) per keystroke and
                 // 'search' on Enter.
                 search.addEventListener('input', function (e) {
-                    self._applyFilter(e.detail && typeof e.detail.value === 'string' ? e.detail.value : '');
+                    // Read the term robustly: <lib-search-input> may deliver it via
+                    // a custom event (detail.value), or the inner native <input>'s
+                    // 'input' may bubble up here with no detail — in which case use
+                    // target.value / the component's own .value. (Without this
+                    // fallback the filter silently receives '' and quick-find dies.)
+                    var v = (e.detail && typeof e.detail.value === 'string') ? e.detail.value
+                        : (e.target && typeof e.target.value === 'string') ? e.target.value
+                        : (typeof search.value === 'string' ? search.value : '');
+                    self._applyFilter(v);
                 });
                 search.addEventListener('search', function () {
                     var first = self.querySelector('.cma-launcher__item:not([hidden])');

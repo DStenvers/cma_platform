@@ -123,14 +123,12 @@ function buildToolsTreeData(bool $isDeveloper): array
                 ['type' => 'item', 'label' => 'CMA definitie sync', 'href' => 'tools/tools_db_sync.php', 'target' => 'R', 'icon' => 'lnr-sync'],
                 ['type' => 'item', 'label' => 'Deploy setup', 'href' => 'tools/tools_deploy_setup.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                 ['type' => 'item', 'label' => 'Formulier wizard', 'href' => 'tools/tools_formwiz.php', 'target' => 'R', 'icon' => 'lnr-file-empty'],
-                ['type' => 'item', 'label' => 'Formulieren genereren', 'href' => 'tools/tools_generate_forms.php', 'target' => 'R', 'icon' => 'lnr-file-add'],
                 ['type' => 'item', 'label' => 'Migratie voorbereiden', 'href' => 'tools/tools_migrate_prepare.php', 'target' => 'R', 'icon' => 'lnr-arrow-right'],
                 ['type' => 'item', 'label' => 'Repository exporteren', 'href' => 'tools/tools_export_repository.php', 'target' => 'R', 'icon' => 'lnr-download'],
                 ['type' => 'folder', 'label' => 'Testen', 'icon' => 'lnr-checkmark-circle', 'children' => [
                     ['type' => 'item', 'label' => 'Cypress browsertests', 'href' => 'tools/tools_testrunner.php', 'target' => 'R', 'icon' => 'lnr-rocket'],
                     ['type' => 'item', 'label' => 'PHP unit tests', 'href' => 'tools/tools_phpunit.php', 'target' => 'R', 'icon' => 'lnr-checkmark-circle'],
                     ['type' => 'item', 'label' => 'Endpoint interactief testen', 'href' => 'tools/tools_endpoint_tester.php', 'target' => 'R', 'icon' => 'lnr-pulse'],
-                    ['type' => 'item', 'label' => 'Endpoint foutcontrole', 'href' => 'tools/tests/test_all_endpoints.php', 'target' => 'R', 'icon' => 'lnr-warning'],
                 ]],
             ]
         ];

@@ -257,6 +257,27 @@ $skipApiFiles = [
     'test_ip_match', // Dev utility
 ];
 
+// True-test parameters: real query strings that promote an API from a
+// "Verwacht" param-validation reject to an actual result test. Resolved from
+// live data where needed. Add rows here to genuinely exercise more endpoints.
+// (POST-only / session / report-definition APIs are intentionally absent —
+// they can't be meaningfully driven by a bare GET.)
+$firstSubformForm = null;
+$firstSubformParent = null;
+foreach ($formDefs as $__fn => $__fd) {
+    if (!empty($__fd['subforms'])) {
+        $__pid = getRealRecordId($__fn);
+        if ($__pid !== null) { $firstSubformForm = $__fn; $firstSubformParent = $__pid; break; }
+    }
+}
+$usersRecId = getRealRecordId('users');
+$apiTestParams = [
+    'form_list'    => 'formName=users',
+    'form_record'  => $usersRecId !== null ? 'formName=users&id=' . $usersRecId : null,
+    'form_subform' => $firstSubformForm !== null ? 'form=' . $firstSubformForm . '&subform=0&parentId=' . $firstSubformParent : null,
+    'user_tips'    => 'action=get_skip_list',
+];
+
 $apiFiles = glob(dirname(__DIR__) . '/api/*.php');
 foreach ($apiFiles as $file) {
     $name = basename($file, '.php');
@@ -264,6 +285,10 @@ foreach ($apiFiles as $file) {
 
     $displayName = ucfirst(str_replace(['_', '-'], ' ', $name));
     $url = '/cma/api/' . basename($file);
+    // Promote to a real test when we have parameters for it.
+    if (!empty($apiTestParams[$name])) {
+        $url .= '?' . $apiTestParams[$name];
+    }
 
     // Add meaningful query parameters for APIs that need them
     if ($name === 'config_api') {
