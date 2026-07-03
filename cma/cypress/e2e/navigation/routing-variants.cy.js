@@ -63,6 +63,10 @@ describe('Navigation / routing variants', () => {
                     .should('have.attr', 'src')
                     .and('include', `form=${form}`);
                 cy.location('search').should('include', `form=${form}`);
+                // The GENERAL LEFT MENU PANE (main app shell) must remain — the
+                // reported bug is that it disappears when a form opens this way.
+                cy.get('#sidebar.cma-sidebar', { timeout: 30000 }).should('exist');
+                cy.get('#sidebar .cma-menu-item').should('have.length.greaterThan', 0);
             });
         });
     });
@@ -167,6 +171,63 @@ describe('Navigation / routing variants', () => {
                 .click();
             cy.get('.detail-content, .lib_sidepanel_container', { timeout: 15000 }).should('be.visible');
             cy.location('pathname').should('match', /\/cma\/form\/groups\/\d+/);
+        });
+    });
+
+    // ------------------------------------------------------------------
+    // 7. The GENERAL LEFT MENU PANE must be present AND visible no matter
+    //    how a form/tool is opened. Reported gone for a direct form URL
+    //    (e.g. /cma/form/steensoorten_producten, a child form).
+    //
+    //    We assert both existence (shell rendered) AND visibility (not
+    //    hidden/covered by a popup/sidepanel overlay) so the failure mode
+    //    is distinguishable:
+    //      - not found  -> the main.php shell didn't render (routing)
+    //      - not visible-> shell rendered but something covers/hides it (CSS
+    //                      / child-form popup) — the likely steensoorten cause
+    // ------------------------------------------------------------------
+    describe('General left menu pane stays present and visible', () => {
+        function assertLeftMenu() {
+            cy.get('#sidebar.cma-sidebar', { timeout: 30000 }).should('exist').and('be.visible');
+            cy.get('#sidebar .cma-menu-item', { timeout: 30000 }).should('have.length.greaterThan', 0);
+        }
+
+        it('canonical form route keeps the left menu', () => {
+            cy.visit('/form/groups');
+            cy.get(FORM_CONTENT, { timeout: 30000 }).should('exist');
+            assertLeftMenu();
+        });
+
+        it('form via tools page keeps the left menu', () => {
+            cy.visit('/tools?form=groups');
+            cy.get('#toolsMenuBtn', { timeout: 30000 }).should('exist');
+            assertLeftMenu();
+        });
+
+        it('tool via tools page keeps the left menu', () => {
+            cy.visit('/tools?tool=serverinfo');
+            cy.get('#toolsMenuBtn', { timeout: 30000 }).should('exist');
+            assertLeftMenu();
+        });
+
+        it('form opened from the launcher keeps the left menu', () => {
+            cy.visit('/tools');
+            cy.get('.cma-launcher__item[data-url*="form=groups"]', { timeout: 30000 }).first().click();
+            cy.get('#toolsMenuBtn', { timeout: 30000 }).should('exist');
+            assertLeftMenu();
+        });
+
+        // A child/subform reached directly is the reported failing case. Set
+        // Cypress.env('childForm') to a child form name on the target site
+        // (e.g. 'steensoorten_producten' on karaat) to exercise it.
+        it('a child form reached directly still keeps the left menu', function () {
+            const childForm = Cypress.env('childForm');
+            if (!childForm) {
+                this.skip();
+            }
+            cy.visit(`/form/${childForm}`);
+            cy.get(`${FORM_CONTENT}, .lib_sidepanel_container`, { timeout: 30000 }).should('exist');
+            assertLeftMenu();
         });
     });
 });

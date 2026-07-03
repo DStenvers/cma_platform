@@ -1943,3 +1943,5 @@ karaat-data en staat in de karaat-repo.
 > content blocks form should contain a tips section (standard form element)  about how to define and use variables
 
 > the groups/users/marketing url/email lig and other forms should be callable both ways
+
+> also test forbtge general left  menu pane, because in the mentioned case that is gone too
