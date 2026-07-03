@@ -28,7 +28,13 @@
         if (!href) return null;
         if (href.indexOf('form.php?form=') === 0) {
             var f = href.match(/form=([^&]+)/);
-            return { page: href, url: f ? '/cma/form/' + f[1] : null };
+            var fn = f ? f[1] : null;
+            // Route form tiles THROUGH tools.php so the form loads inside the
+            // tools chrome (the "Menu" button stays available). The canonical
+            // /cma/form/<form> route still works directly — forms are callable
+            // both ways.
+            return fn ? { page: 'tools.php?form=' + fn, url: '/cma/tools?form=' + encodeURIComponent(fn) }
+                      : { page: href, url: null };
         }
         var base = href.split('?')[0];
         var m = base.match(/tools\/tools_([^.]+)\.php$/) || base.match(/tools\/([^.]+)\.php$/);

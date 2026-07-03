@@ -137,39 +137,44 @@ $formBackedTools = [
     'maillog'       => 'emaillog',
 ];
 
-// Get initial tool to load (may be friendly name or full path)
+// Get initial tool/form to load (may be a friendly name or a full path).
 $toolParam = Request::query('tool', '');
+$formParam = Request::query('form', '');
 $initialTool = '';
 
-if (!empty($toolParam)) {
+// Form-backed entities (users, groups, marketingurl, emaillog, …) load form.php
+// INSIDE the tools iframe, so they carry the tools chrome (the "Menu" button).
+// This is deliberately a SECOND way to reach a form: the canonical
+// /cma/form/<form> route still works directly and independently — forms are
+// callable both ways. A ?form=<form> OR a ?tool=<form-backed alias> lands here.
+$formToLoad = '';
+if ($formParam !== '') {
+    $formToLoad = $formParam;
+} elseif ($toolParam !== '' && isset($formBackedTools[strtolower($toolParam)])) {
+    $formToLoad = $formBackedTools[strtolower($toolParam)];
+}
+
+if ($formToLoad !== '') {
+    $initialTool = 'form.php?form=' . rawurlencode($formToLoad);
+    $recId = Request::query('id', '');
+    if ($recId !== '') {
+        $initialTool .= '&id=' . rawurlencode($recId);
+    }
+} elseif (!empty($toolParam)) {
     $toolKey = strtolower($toolParam);
 
-    // Form-backed alias: collapse to the single canonical form route. Navigating
-    // the top window (rather than rendering form.php in the tools iframe) keeps
-    // /cma/form/<form> as the one route/layout for the form. The script runs in
-    // whichever document tools.php is rendered into — standalone top page or
-    // fetched into the SPA shell — and points the top window at the clean URL.
-    if (isset($formBackedTools[$toolKey])) {
-        $canonical = '/cma/form/' . $formBackedTools[$toolKey];
-        header('Content-Type: text/html; charset=utf-8');
-        echo '<script>(function(){var u=' . json_encode($canonical)
-            . ';(window.top||window).location.replace(u);})();</script>';
-        exit;
-    }
-
-    // Check if it's a friendly name
+    // Friendly name -> tool file, or an explicit .php path.
     if (isset($toolNameMap[$toolKey])) {
         $initialTool = $toolNameMap[$toolKey];
     } elseif (strpos($toolParam, '.php') !== false) {
-        // It's already a file path
         $initialTool = $toolParam;
     }
 
     // Pass through any additional query parameters to the tool
-    // (e.g., sql parameter for query tool)
+    // (e.g., sql parameter for query tool).
     $extraParams = [];
     foreach (Request::queryAll() as $key => $value) {
-        if ($key !== 'tool' && !empty($value)) {
+        if ($key !== 'tool' && $key !== 'form' && $key !== 'id' && !empty($value)) {
             $extraParams[$key] = $value;
         }
     }
