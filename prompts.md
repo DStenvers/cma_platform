@@ -1818,3 +1818,5 @@ karaat-data en staat in de karaat-repo.
 > The readonlyIndicator, can we move that to the lib_sidepanel_header, centered 
 >
 > routing issue: https://www.karaatedelstenen.nl/cma/form/steensoorten/6/steensoorten_producten/2039 should open 2 sidebars 1 with steensoort 6 and above that steensoorten_producten 2039, but it only opens https://www.karaatedelstenen.nl/cma/form/steensoorten/6
+
+> the menu does not unfold AND the productie label is in the way, can we move that label to the top right corner?

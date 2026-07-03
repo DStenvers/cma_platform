@@ -703,6 +703,7 @@ function cma_js_bundle(): array {
         'webcomponents/cma-groupbox.js',
         'webcomponents/cma-toolbar.js',
         'webcomponents/cma-tabs.js',
+        'webcomponents/cma-launcher.js',  // BIG "Menu" launcher (header)
         // Core Libraries
         '../library/library.js',
         '../library/formval_nl.js',  // Form validation (lib_form_digitsonly, form_init_container)
@@ -774,7 +775,7 @@ function minify_asset($files): string {
     }
     // Use absolute path from site root to work from any subdirectory (like tools/)
     // Add version parameter for cache busting (increment when making JS changes)
-    $version = '20260703c';
+    $version = '20260703d';
     return '/cma/minify.php?f=' . $files . '&v=' . $version;
 }
 

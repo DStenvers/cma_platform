@@ -602,11 +602,11 @@ a.cma-menu-item.active .cma-menu-icon::before {
 .cma-header lib-label {
     color: #fff;
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    text-transform: uppercase;
+    right: 0;
     top: 0;
-    border-radius: 0 0 8px 8px;
+    transform: none;
+    text-transform: uppercase;
+    border-radius: 0 0 0 8px;
     background-color: darkcyan !important;
     padding: 4px 18px;
     font-size: var(--font-size-sm);
