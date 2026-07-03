@@ -781,14 +781,14 @@ function cma_doc_check_php_error_log(): array {
 }
 
 function cma_doc_check_vendor_in_sync(): array {
-    $label = 'Bootstrap::VERSION ↔ composer.json version';
+    $label = 'Platform versie (uit composer.json)';
     if (!class_exists('\\App\\Library\\Bootstrap')) {
         return ['label' => $label, 'status' => 'warn', 'detail' => 'Bootstrap-class niet geladen.', 'fix' => ''];
     }
-    // Since v1.26.20 the version is the hardcoded Bootstrap::VERSION constant.
-    // The one drift risk is forgetting to bump composer.json alongside it on a
-    // release, so that's exactly what we verify: constant vs the vendored
-    // package's own composer.json version field.
+    // Sinds v1.28.44 leest getPlatformVersion() het "version"-veld uit de eigen
+    // composer.json van het pakket (gecached), dus er is niets meer om te laten
+    // afwijken. We tonen de gedetecteerde versie en waarschuwen alleen als de
+    // fallback-constante gebruikt wordt (composer.json onleesbaar).
     $detected = \App\Library\Bootstrap::getPlatformVersion();
     $pkgComposer = \App\Library\Bootstrap::getRootDir() . '/vendor/stenversonline/platform/composer.json';
     $composerVer = '';
@@ -796,10 +796,10 @@ function cma_doc_check_vendor_in_sync(): array {
         $data = json_decode((string)file_get_contents($pkgComposer), true);
         $composerVer = is_array($data) ? (string)($data['version'] ?? '') : '';
     }
-    if ($composerVer === '' || $composerVer === $detected) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Versie: <code>' . htmlspecialchars($detected) . '</code>.', 'fix' => ''];
+    if ($composerVer === '' && $detected === \App\Library\Bootstrap::VERSION) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'composer.json onleesbaar; fallback-constante <code>' . htmlspecialchars($detected) . '</code> in gebruik.', 'fix' => 'Controleer <code>vendor/stenversonline/platform/composer.json</code>.'];
     }
-    return ['label' => $label, 'status' => 'warn', 'detail' => 'Constant <code>' . htmlspecialchars($detected) . '</code> vs composer.json <code>' . htmlspecialchars($composerVer) . '</code>.', 'fix' => 'Bump beide gelijk en release opnieuw (<code>composer update stenversonline/platform</code> op de site).'];
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Versie: <code>' . htmlspecialchars($detected) . '</code> (uit composer.json).', 'fix' => ''];
 }
 
 function cma_doc_check_deploy_log(): array {
@@ -2371,7 +2371,7 @@ function render_doc_web_components(): void
     </table>
 
     <h2>cma-launcher — de "Menu"-knop (sinds v1.28.39)</h2>
-    <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als het tools-menu) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code> (mobiel full-screen).</p>
+    <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als het tools-menu) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. Sinds v1.28.44 vult het paneel <code>#contentArea</code> op 100% (absoluut gepositioneerd binnen <code>.cma-main</code>, onder de header) i.p.v. een viewport-brede dropdown — header en sidebar blijven zichtbaar en bruikbaar. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code>.</p>
     <p><code>/cma/tools</code> zelf toont sinds v1.28.43 een smalle <code>cma-toolbar</code> met één <span class="cma-tool__strong">Menu</span>-knop (<code>#toolsMenuBtn</code>) in het content-gebied; die knop opent dezelfde gedeelde launcher-overlay (<code>window.openToolsLauncher()</code>) als de header-knop. Er is dus precies één tools-menu met één zichtbaarheids-state — geen tweede inline menu dat apart open/dicht moet. Een keuze in de launcher laadt de tool full-width in <code>#tools-content</code>; zonder <code>?tool=</code> staat er een korte prompt om het menu te openen. De voormalige twee-paneel boomstructuur is gearchiveerd als <code>cma/tools_DEPRECATED.php</code> (kort inline-menu-experiment uit v1.28.42 verving die boom; v1.28.43 verving het inline menu weer door deze knop).</p>
 
     <h2>Bestandsstructuur</h2>
@@ -2725,13 +2725,13 @@ function render_doc_releasing(): void
     </table>
 
     <h2>Waar de versie vandaan komt</h2>
-    <p>Sinds v1.26.20 is de versie <span class="cma-tool__strong">hardcoded</span> in één constante: <code>App\Library\Bootstrap::VERSION</code>. <code>getPlatformVersion()</code> retourneert die constante rechtstreeks — geen Composer-metadata meer. <code>cma/bootstrap.inc</code> zet daaruit de <code>CMA_APP_VERSION</code> constante, zichtbaar in het profielmenu.</p>
+    <p>Sinds v1.28.44 is er <span class="cma-tool__strong">één</span> bron: het <code>version</code>-veld in de eigen <code>composer.json</code> van het pakket. <code>Bootstrap::getPlatformVersion()</code> leest dat veld — gememoïseerd per request en cross-request gecached in APCu (of de sessie als APCu ontbreekt), dus het bestand wordt hooguit één keer per app-pool-leven geparsed, niet bij elke call. <code>cma/bootstrap.inc</code> zet daaruit de <code>CMA_APP_VERSION</code>-constante, zichtbaar in het profielmenu.</p>
     <div class="docs-callout">
-        <span class="cma-tool__strong">Bij elke release bump je twee plekken samen:</span> het <code>version</code> field in <code>composer.json</code> én <code>Bootstrap::VERSION</code> in <code>src/helpers/Bootstrap.php</code>. Ze moeten gelijk zijn; de live-check hierboven waarschuwt als ze afwijken.
+        <span class="cma-tool__strong">Bij elke release bump je nog maar één plek:</span> het <code>version</code>-veld in <code>composer.json</code> (plus de git-tag). <code>Bootstrap::VERSION</code> is alleen nog een fallback voor als de composer.json onleesbaar is — die hoef je niet meer telkens mee te bumpen. Een deploy recyclet de app-pool en flusht APCu, dus de nieuwe versie verschijnt automatisch bij het volgende request.
     </div>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">vdev-main symptoom (vóór v1.26.20):</span> de oude methode las <code>vendor/composer/installed.json</code>, en die zegt <code>dev-main</code> op sites die de branch volgen (<code>"stenversonline/platform": "dev-main"</code>). Een class-constante kan niet naar <code>dev-main</code> degraderen en heeft geen pad-resolutie nodig. Een site toont pas de nieuwe versie ná <code>composer update stenversonline/platform</code> (de constante reist mee met de geïnstalleerde code).
+        <span class="cma-tool__strong">vdev-main symptoom (vóór v1.26.20):</span> de allereerste methode las <code>vendor/composer/installed.json</code>, en die zegt <code>dev-main</code> op sites die de branch volgen (<code>"stenversonline/platform": "dev-main"</code>). Het <span class="cma-tool__strong">bestand</span> <code>composer.json</code> rechtstreeks lezen (zoals nu) heeft dat probleem niet: het <code>version</code>-veld bevat het echte nummer, ongeacht of de site een tag of de branch volgt.
     </div>
     <div class="docs-callout docs-callout--warn">
         <span class="cma-tool__strong">vdev symptoom (opgelost in v1.26.21):</span> de <code>CMA_APP_VERSION</code> definitie stond bovenaan <code>cma/bootstrap.inc</code>, vóór de Composer-autoloader geregistreerd was. Op een site zonder werkende IIS <code>auto_prepend</code> van <code>_bootstrap.php</code> was <code>class_exists('\App\Library\Bootstrap')</code> daar nog <code>false</code> → stille fallback naar <code>'dev'</code> ("vdev"). De definitie staat nu ná het laden van de parent-bootstrap, zodat de class gegarandeerd beschikbaar is.

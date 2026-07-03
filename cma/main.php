@@ -168,9 +168,10 @@ $appBgColor = $appLogoConfig['backgroundColor'] ?? '#3F096E';
 // Environment label
 $omgeving = Application::get('omgeving', '');
 $envLabel = '';
-if ($omgeving === 'P') {
-    $envLabel = 'Productie';
-} elseif ($omgeving === 'A') {
+// Production shows NO environment label (the header stays clean in prod); the
+// label only appears on non-production environments so operators can tell them
+// apart at a glance.
+if ($omgeving === 'A') {
     $envLabel = 'Acceptatie';
 } elseif ($omgeving === 'T' || $omgeving === 'L' || $omgeving === 'O') {
     $envLabel = 'Test';
@@ -579,11 +580,15 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
             <div class="cma-content" id="contentArea">
                 <div class="cma-content-loading">Laden...</div>
             </div>
+            <?php if (SecurityHelper::isAdmin()): ?>
+            <!-- Lives inside .cma-main (a sibling of #contentArea, so loadPage's
+                 content swap can't wipe it) and its panel fills #contentArea. -->
+            <cma-launcher id="toolsLauncher"></cma-launcher>
+            <?php endif; ?>
         </main>
     </div>
 
     <?php if (SecurityHelper::isAdmin()): ?>
-    <cma-launcher id="toolsLauncher"></cma-launcher>
     <script>
     (function () {
         var btn = document.getElementById('menuLauncherBtn');

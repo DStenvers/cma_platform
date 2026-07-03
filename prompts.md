@@ -1847,3 +1847,11 @@ karaat-data en staat in de karaat-repo.
 > yes commit and push please and can you bump karaat to force an update?
 
 > once the tools menu has been installed it now stays visible , that is s state issue. I think it is better to move the tools menu to the #contentArea in a separate toolbar with just = menu in it. that prevents state management issues
+
+> what is the cma_platform version i should see?
+
+> i don't see the cma-toolbar, I do see the title that was removed and a real lib-search field
+
+> can we make sure through a .user.ini that the opcache settings are correct instead of relying on global server settings?
+
+> and you can catch a false return value on the reset as well. or is that the trigger to touch web.config?

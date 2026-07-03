@@ -580,6 +580,7 @@ a.cma-menu-item.active .cma-menu-icon::before {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative; /* anchor for the cma-launcher panel (fills #contentArea) */
 }
 
 .cma-header {
@@ -1332,22 +1333,19 @@ html.dark-mode.classic-mode {
 
 cma-launcher { display: none; }
 cma-launcher.is-open { display: block; }
-/* Backdrop covers everything below the header (header stays interactive). */
+/* The launcher fills #contentArea: absolute within .cma-main, starting just
+   below the header, so the header + sidebar stay visible and interactive. */
 .cma-launcher__backdrop {
-    position: fixed; top: var(--header-height, 50px); left: 0; right: 0; bottom: 0;
+    position: absolute; inset: var(--header-height, 50px) 0 0 0;
     background: rgba(0,0,0,.35); z-index: 100000;
 }
-/* Full-width menu that slides down from just below the header. */
 .cma-launcher__panel {
-    position: fixed; z-index: 100001;
-    top: var(--header-height, 50px); left: 0; right: 0; width: 100%;
-    max-height: calc(100vh - var(--header-height, 50px));
+    position: absolute; z-index: 100001;
+    inset: var(--header-height, 50px) 0 0 0;
     display: flex; flex-direction: column;
     background: var(--bg-surface); color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 12px 28px rgba(0,0,0,.25); overflow: hidden;
-    animation: cma-launcher-slidedown .22s ease;
+    overflow: hidden;
+    animation: cma-launcher-slidedown .18s ease;
 }
 @keyframes cma-launcher-slidedown {
     from { transform: translateY(-100%); opacity: .4; }
@@ -1405,7 +1403,6 @@ cma-launcher.is-open { display: block; }
 body.cma-launcher-open { overflow: hidden; }
 
 @media (max-width: 768px) {
-    .cma-launcher__panel { max-height: calc(100dvh - var(--header-height, 50px)); border-radius: 0; }
     .cma-launcher__body { grid-template-columns: 1fr; }
 }
 

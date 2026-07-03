@@ -13,19 +13,18 @@ namespace App\Library;
 class Bootstrap
 {
     /**
-     * Platform version — the SINGLE runtime source of truth, hardcoded here
-     * and bumped together with composer.json's "version" on every release.
+     * Fallback platform version — only used if the package composer.json can't
+     * be read. The SINGLE source of truth is the "version" field in the
+     * platform's own composer.json; getPlatformVersion() reads it (once, then
+     * cached). Keep this roughly current as a safety net, but you no longer
+     * have to bump it on every release — composer.json is the one place.
      *
-     * Why hardcoded instead of reading Composer metadata: sites that track the
-     * branch (`"stenversonline/platform": "dev-main"`) make Composer report
-     * "dev-main" in installed.json / InstalledVersions, and the per-site path
-     * to the vendored composer.json wasn't always resolvable — so the profile
-     * menu showed "vdev-main" instead of a real number. A class constant is
-     * read straight from the running code: it can't degrade to "dev-main", it
-     * needs no file I/O or path resolution, and it always reflects the version
-     * of the code that is actually installed on the site.
+     * Reading the committed composer.json file directly (not Composer's
+     * InstalledVersions) is robust for branch-tracking sites
+     * (`"stenversonline/platform": "dev-main"`): InstalledVersions reports
+     * "dev-main", but the file's "version" field is the real number.
      */
-    public const VERSION = '1.28.22';
+    public const VERSION = '1.28.44';
 
     /** @var string Project root directory */
     private static string $rootDir = '';
@@ -133,17 +132,56 @@ class Bootstrap
     }
 
     /**
-     * Get the platform package version.
+     * Get the platform package version — the "version" field from the platform's
+     * own composer.json (the single centralised source, bumped each release).
      *
-     * Returns the hardcoded self::VERSION constant — see that constant for why
-     * we no longer read Composer metadata (it degraded to "dev-main" on
-     * branch-tracking sites). Kept as a method so existing callers don't change.
+     * The file is parsed at most once per app-pool lifetime: memoized for the
+     * request, then cached cross-request in APCu (or the session when APCu is
+     * absent). A deploy recycles the app pool, which flushes APCu, so the new
+     * version is picked up automatically on the next request — no per-call read.
      */
     public static function getPlatformVersion(): string
     {
-        // Hardcoded constant — see self::VERSION for why we no longer read
-        // Composer's installed.json / composer.json (the old method degraded to
-        // "dev-main" on branch-tracking sites).
+        static $memo = null;
+        if ($memo !== null) {
+            return $memo;
+        }
+
+        $cacheKey = 'cma_platform_version';
+        if (function_exists('apcu_fetch')) {
+            $hit = apcu_fetch($cacheKey);
+            if (is_string($hit) && $hit !== '') {
+                return $memo = $hit;
+            }
+        } elseif (!empty($_SESSION[$cacheKey]) && is_string($_SESSION[$cacheKey])) {
+            return $memo = $_SESSION[$cacheKey];
+        }
+
+        $memo = self::readVersionFromComposer();
+
+        if (function_exists('apcu_store')) {
+            apcu_store($cacheKey, $memo, 86400);
+        } elseif (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[$cacheKey] = $memo;
+        }
+
+        return $memo;
+    }
+
+    /**
+     * Read the "version" field from the platform's own composer.json (package
+     * root, resolved relative to this file so it works from vendor/). Falls back
+     * to self::VERSION when the file is missing/unreadable/lacks a version.
+     */
+    private static function readVersionFromComposer(): string
+    {
+        $composerPath = __DIR__ . '/../../composer.json';
+        if (is_readable($composerPath)) {
+            $data = json_decode((string) file_get_contents($composerPath), true);
+            if (is_array($data) && !empty($data['version']) && is_string($data['version'])) {
+                return $data['version'];
+            }
+        }
         return self::VERSION;
     }
 
