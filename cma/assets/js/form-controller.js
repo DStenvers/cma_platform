@@ -2157,25 +2157,12 @@ class CmaFormController {
         if (saveBtn) saveBtn.style.display = readonly ? 'none' : '';
         if (cancelBtn) cancelBtn.style.display = readonly ? 'none' : '';
 
-        // Show/hide "Alleen lezen" indicator in toolbar
-        let readonlyIndicator = document.getElementById('readonlyIndicator');
+        // Show/hide the "Alleen lezen" indicator. In a sidepanel it goes centered
+        // in the panel header (.lib_sidepanel_header); otherwise in the detail toolbar.
         if (readonly) {
-            if (!readonlyIndicator) {
-                // Create readonly indicator
-                readonlyIndicator = document.createElement('span');
-                readonlyIndicator.id = 'readonlyIndicator';
-                readonlyIndicator.className = 'toolbar-readonly-indicator';
-                readonlyIndicator.innerHTML = '<span class="lnr lnr-lock"></span> Alleen lezen';
-                readonlyIndicator.dataset.tooltip = 'Alleen lezen';
-                // Insert in detail toolbar-left for visibility
-                const toolbarLeft = document.querySelector('#detailToolbar .toolbar-left');
-                if (toolbarLeft) {
-                    toolbarLeft.appendChild(readonlyIndicator);
-                }
-            }
-            readonlyIndicator.style.display = '';
-        } else if (readonlyIndicator) {
-            readonlyIndicator.style.display = 'none';
+            this._showReadonlyIndicator();
+        } else {
+            this._hideReadonlyIndicator();
         }
 
         // Make all form fields readonly
@@ -8827,6 +8814,70 @@ class CmaFormController {
      * Update sidepanel title suffix (toevoegen/wijzigen)
      * @param {string} suffix - 'toevoegen' or 'wijzigen'
      */
+    /**
+     * Find the sidepanel container in the top document whose iframe hosts THIS
+     * form (returns null when not running inside a sidepanel).
+     */
+    _findSidepanelForThisFrame() {
+        try {
+            if (self === top) return null;
+            const panels = top.document.querySelectorAll('.lib_sidepanel_container');
+            for (let i = panels.length - 1; i >= 0; i--) {
+                const iframe = panels[i].querySelector('iframe');
+                if (iframe && iframe.contentWindow === window) return panels[i];
+            }
+        } catch (e) { /* cross-origin — ignore */ }
+        return null;
+    }
+
+    /**
+     * Show the "Alleen lezen" indicator. Prefer the sidepanel header (centered);
+     * fall back to the in-form detail toolbar when not in a sidepanel.
+     */
+    _showReadonlyIndicator() {
+        const panel = this._findSidepanelForThisFrame();
+        if (panel) {
+            const header = panel.querySelector('.lib_sidepanel_header');
+            if (header) {
+                let badge = header.querySelector('.lib_sidepanel_readonly');
+                if (!badge) {
+                    badge = top.document.createElement('span');
+                    badge.className = 'toolbar-readonly-indicator lib_sidepanel_readonly';
+                    badge.innerHTML = '<span class="lnr lnr-lock"></span> Alleen lezen';
+                    badge.title = 'Alleen lezen';
+                    header.appendChild(badge);
+                }
+                badge.style.display = '';
+                const inForm = document.getElementById('readonlyIndicator');
+                if (inForm) inForm.style.display = 'none';
+                return;
+            }
+        }
+        // Fallback: in-form detail toolbar.
+        let ri = document.getElementById('readonlyIndicator');
+        if (!ri) {
+            ri = document.createElement('span');
+            ri.id = 'readonlyIndicator';
+            ri.className = 'toolbar-readonly-indicator';
+            ri.innerHTML = '<span class="lnr lnr-lock"></span> Alleen lezen';
+            ri.dataset.tooltip = 'Alleen lezen';
+            const toolbarLeft = document.querySelector('#detailToolbar .toolbar-left');
+            if (toolbarLeft) toolbarLeft.appendChild(ri);
+        }
+        ri.style.display = '';
+    }
+
+    /** Hide the readonly indicator in both the toolbar and the sidepanel header. */
+    _hideReadonlyIndicator() {
+        const inForm = document.getElementById('readonlyIndicator');
+        if (inForm) inForm.style.display = 'none';
+        const panel = this._findSidepanelForThisFrame();
+        if (panel) {
+            const badge = panel.querySelector('.lib_sidepanel_header .lib_sidepanel_readonly');
+            if (badge) badge.style.display = 'none';
+        }
+    }
+
     updateSidepanelTitle(suffix) {
         try {
             // Check if we're inside a sidepanel iframe

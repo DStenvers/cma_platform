@@ -796,7 +796,26 @@ table tr.odd { background-color: #fdfdfd }
     background: var(--popup-caption-bg, #eef6ff);
     border-bottom: 1px solid var(--border-color, #ddd);
     flex-shrink: 0;
+    position: relative;
 }
+
+/* Read-only badge, centered in the sidepanel header (moved here from the
+   in-form toolbar). Absolutely centered so title/buttons keep their layout. */
+.lib_sidepanel_header .lib_sidepanel_readonly {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    font-size: 12px;
+    color: var(--text-muted, #999);
+}
+.lib_sidepanel_header .lib_sidepanel_readonly .lnr { font-size: 13px; }
 
 .lib_sidepanel_title {
     flex: 1;

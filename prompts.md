@@ -1812,3 +1812,9 @@ karaat-data en staat in de karaat-repo.
 > - `/mnt/c/repos/cma_platform/cma/assets/css/main.css` — all `.cma-header` / `.cma-sidebar` styling and mobile breakpoints.</result>
 > <usage><subagent_tokens>57739</subagent_tokens><tool_uses>19</tool_uses><duration_ms>136567</duration_ms></usage>
 > </task-notification>
+
+> Na de bouw van het BIG menu: records 1-1600 van 1796 (laden...) -> dit blijft maar staan, kun je kijken of het continious laden wel goed gaat? 
+>
+> The readonlyIndicator, can we move that to the lib_sidepanel_header, centered 
+>
+> routing issue: https://www.karaatedelstenen.nl/cma/form/steensoorten/6/steensoorten_producten/2039 should open 2 sidebars 1 with steensoort 6 and above that steensoorten_producten 2039, but it only opens https://www.karaatedelstenen.nl/cma/form/steensoorten/6
