@@ -118,7 +118,19 @@ if (isset($_GET['config'])) {
     $logDir       = __DIR__ . '/logs';
     $logsWritable = is_dir($logDir) ? is_writable($logDir) : is_writable(__DIR__);
 
+    // Installed stenversonline/platform version — read straight from the vendored
+    // composer.json so it works even when the app bootstrap is broken.
+    $readPlatformVersion = function () {
+        $f = __DIR__ . '/vendor/stenversonline/platform/composer.json';
+        if (is_file($f)) {
+            $j = json_decode((string) @file_get_contents($f), true);
+            return is_array($j) ? ($j['version'] ?? null) : null;
+        }
+        return null;
+    };
+
     $cfg = [
+        'platform_version' => $readPlatformVersion(),
         'env_file'      => $envFile,                       // which .env was read (null = none)
         'deploy_secret' => $envGet('DEPLOY_SECRET') !== '', // presence only, never the value
         'deploy_branch' => $envGet('DEPLOY_BRANCH') !== '' ? $envGet('DEPLOY_BRANCH') : 'main',
@@ -211,7 +223,13 @@ foreach (array_reverse($lines) as $line) {
     }
 }
 
-$result = ['ok' => true, 'log_tail' => $redact(implode("\n", array_slice($lines, -40)))];
+$platformVersion = null;
+$__pf = __DIR__ . '/vendor/stenversonline/platform/composer.json';
+if (is_file($__pf)) {
+    $__pj = json_decode((string) @file_get_contents($__pf), true);
+    $platformVersion = is_array($__pj) ? ($__pj['version'] ?? null) : null;
+}
+$result = ['ok' => true, 'platform_version' => $platformVersion, 'log_tail' => $redact(implode("\n", array_slice($lines, -40)))];
 $now = time();
 
 // In-progress: a start newer than the latest end (or no end at all).
