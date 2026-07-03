@@ -2366,9 +2366,12 @@ function render_doc_web_components(): void
         <thead><tr class="listheader"><th style="width:140px">Prefix</th><th>Locatie</th><th>Bedoeld voor</th></tr></thead>
         <tbody>
             <tr><td><code>lib-*</code></td><td><code>library/webcomponents/</code></td><td>Reusable building blocks zonder CMA-specifieke afhankelijkheden. Voorbeelden: lib-dialog, lib-combo, lib-datepicker, lib-sheet. Ook bruikbaar in front-end pages van consumer-sites.</td></tr>
-            <tr><td><code>cma-*</code></td><td><code>cma/webcomponents/</code></td><td>CMA-specifieke componenten die afhankelijk zijn van CMA-context (tools, forms, layout). Voorbeelden: cma-tree, cma-toolbar, cma-tabs, cma-fold, cma-groupbox.</td></tr>
+            <tr><td><code>cma-*</code></td><td><code>cma/webcomponents/</code></td><td>CMA-specifieke componenten die afhankelijk zijn van CMA-context (tools, forms, layout). Voorbeelden: cma-tree, cma-toolbar, cma-tabs, cma-fold, cma-groupbox, cma-launcher.</td></tr>
         </tbody>
     </table>
+
+    <h2>cma-launcher — de "Menu"-knop (sinds v1.28.39)</h2>
+    <p><code>cma-launcher</code> is de BIG-menu overlay achter de <span class="cma-tool__strong">Menu</span>-knop in de shell-header (<code>main.php</code>, alleen voor admins). Het haalt de tools-catalogus op via <code>api/tools-catalog.php</code> (JSON uit <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> — dezelfde bron als de tools-tree) en toont die als doorzoekbaar, gegroepeerd raster. Een keuze laadt via <code>window.loadPage()</code> in <code>#contentArea</code> (form-backed items &rarr; <code>/cma/form/&lt;form&gt;</code>, tool-pagina's &rarr; <code>tools.php?tool=&lt;naam&gt;</code>), zodat header + sidebar blijven staan. <code>/cma/tools</code> zonder <code>?tool=</code> opent de launcher automatisch. Light DOM; stijlen staan als <code>.cma-launcher__*</code> in <code>assets/css/main.css</code> (mobiel full-screen).</p>
 
     <h2>Bestandsstructuur</h2>
     <p>Elk component is één JavaScript-bestand met de extensie <code>.js</code>, plus een meegegenereerd <code>.min.js</code> dat door de build-stap geproduceerd wordt. Het component-bestand bevat:</p>

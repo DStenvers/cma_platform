@@ -537,6 +537,11 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
                     <span class="menuToggleHamburger">menu</span>
                 </div>
                 <div class="cma-breadcrumb" id="breadcrumb" role="navigation" aria-label="Breadcrumb">Dashboard</div>
+                <?php if (SecurityHelper::isAdmin()): ?>
+                <button type="button" class="cma-launcher-btn" id="menuLauncherBtn" aria-haspopup="dialog" title="Alle beheerstools">
+                    <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Menu</span>
+                </button>
+                <?php endif; ?>
                 <?php if (!empty($envLabel)): ?>
                 <lib-label type="information" size="large"><?= Server::htmlEncode($envLabel) ?></lib-label>
                 <?php endif; ?>
@@ -576,6 +581,24 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
             </div>
         </main>
     </div>
+
+    <?php if (SecurityHelper::isAdmin()): ?>
+    <cma-launcher id="toolsLauncher"></cma-launcher>
+    <script>
+    (function () {
+        var btn = document.getElementById('menuLauncherBtn');
+        if (btn) btn.addEventListener('click', function () {
+            var l = document.getElementById('toolsLauncher');
+            if (l && l.toggle) l.toggle();
+        });
+        // Exposed so /cma/tools (no ?tool=) can auto-open the launcher.
+        window.openToolsLauncher = function () {
+            var l = document.getElementById('toolsLauncher');
+            if (l && l.open) l.open();
+        };
+    })();
+    </script>
+    <?php endif; ?>
 
     <script>
     // Wait for main.js to define loadInitialPage

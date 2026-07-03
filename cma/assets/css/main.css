@@ -1314,3 +1314,70 @@ html.dark-mode.classic-mode {
         padding: 0 12px;
     }
 }
+
+/* ============================================================
+   Tools launcher — "Menu" header button + BIG menu overlay
+   (cma-launcher web component; light DOM, namespaced classes)
+   ============================================================ */
+.cma-launcher-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-left: 12px; padding: 6px 12px;
+    background: var(--bg-surface-alt); color: var(--text-primary);
+    border: 1px solid var(--border-color); border-radius: 6px;
+    cursor: pointer; font-size: var(--font-size-sm); line-height: 1;
+}
+.cma-launcher-btn:hover { background: var(--bg-surface); }
+.cma-launcher-btn .lnr { font-size: 16px; }
+
+cma-launcher { display: none; }
+cma-launcher.is-open { display: block; }
+.cma-launcher__backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100000; }
+.cma-launcher__panel {
+    position: fixed; z-index: 100001;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: min(960px, 94vw); max-height: 86vh; display: flex; flex-direction: column;
+    background: var(--bg-surface); color: var(--text-primary);
+    border: 1px solid var(--border-color); border-radius: 10px;
+    box-shadow: 0 12px 48px rgba(0,0,0,.35); overflow: hidden;
+}
+.cma-launcher__head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border-color);
+}
+.cma-launcher__title { margin: 0; font-size: 18px; white-space: nowrap; }
+.cma-launcher__search {
+    flex: 1; min-width: 0; padding: 8px 12px; border: 1px solid var(--border-color);
+    border-radius: 6px; font-size: var(--font-size); background: var(--bg-body); color: var(--text-primary);
+}
+.cma-launcher__close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text-muted); padding: 4px 8px; }
+.cma-launcher__body {
+    padding: 18px; overflow: auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px 24px;
+}
+.cma-launcher__group { min-width: 0; }
+.cma-launcher__group[hidden] { display: none; }
+.cma-launcher__group-title {
+    margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--text-muted); display: flex; align-items: center; gap: 6px;
+}
+.cma-launcher__items { display: flex; flex-direction: column; gap: 2px; }
+.cma-launcher__item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 6px; text-decoration: none;
+    color: var(--text-primary); font-size: var(--font-size-sm);
+}
+.cma-launcher__item:hover { background: var(--bg-surface-alt); }
+.cma-launcher__item[hidden] { display: none; }
+.cma-launcher__item-icon { font-size: 16px; color: var(--text-muted); flex: 0 0 auto; }
+.cma-launcher__item-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cma-launcher__badge {
+    flex: 0 0 auto; font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 4px;
+    background: var(--bg-surface-alt); color: var(--text-muted);
+}
+.cma-launcher__loading, .cma-launcher__error { grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--text-muted); }
+body.cma-launcher-open { overflow: hidden; }
+
+@media (max-width: 768px) {
+    .cma-launcher__panel { top: 0; left: 0; transform: none; width: 100vw; max-height: 100vh; height: 100dvh; border-radius: 0; }
+    .cma-launcher__body { grid-template-columns: 1fr; }
+}

@@ -291,6 +291,7 @@ define("CMA_JS_FILES", implode(',', [
     // cma-tree.js is loaded explicitly by pages that need it (webcomponents/cma-tree.js)
     'webcomponents/cma-toolbar.js',
     'webcomponents/cma-tabs.js',
+    'webcomponents/cma-launcher.js',
     '../library/library.js',
     '../library/datepicker.js',
     '../library/select2/select2.js',
@@ -773,7 +774,7 @@ function minify_asset($files): string {
     }
     // Use absolute path from site root to work from any subdirectory (like tools/)
     // Add version parameter for cache busting (increment when making JS changes)
-    $version = '20260703a';
+    $version = '20260703b';
     return '/cma/minify.php?f=' . $files . '&v=' . $version;
 }
 

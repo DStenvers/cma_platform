@@ -1716,3 +1716,99 @@ karaat-data en staat in de karaat-repo.
 ## 2026-07-03
 
 > ja is goed
+
+> <task-notification>
+> <task-id>aefa826ffbbac5b21</task-id>
+> <tool-use-id>toolu_01GJyou47rhzz3uhdHs4YFa2</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/16b74ece-f721-4e43-aebd-cf2be54b05c2/tasks/aefa826ffbbac5b21.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map CMA navigation architecture" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have a complete picture of the navigation architecture. Here is the structured report.
+>
+> ---
+>
+> # CMA Admin Navigation Architecture — Current State
+>
+> ## Crux answer up front (content-loading mechanism)
+>
+> The shell loads content into `#contentArea` via **AJAX fetch**, NOT iframe (for internal pages) and NOT full navigation. `main.php` renders a persistent sidebar + header once; the content area is swapped by `window.loadPage()` which does `fetch('/cma/main.php?nomenu&amp;page=&lt;page&gt;')` and injects the returned HTML fragment into `#contentArea`. The header and sidebar are never reloaded on internal navigation. Iframes are used only for (a) external/absolute URLs and (b) the tools sub-navigation. This means a form CAN be loaded into `#contentArea` while keeping the menu — that is exactly what already happens today.
+>
+> ---
+>
+> ## 1. The main shell — `cma/main.php`
+>
+> - Layout is a flexbox app shell: `&lt;div class="cma-app"&gt;` containing a left `&lt;aside class="cma-sidebar" id="sidebar"&gt;` and a `&lt;main class="cma-main"&gt;` (main.php:463–578).
+> - `#contentArea`: `cma/main.php:574` — `&lt;div class="cma-content" id="contentArea"&gt;&lt;div class="cma-content-loading"&gt;Laden...&lt;/div&gt;&lt;/div&gt;`. Initial spinner replaced once JS loads a page.
+> - Content loading: bottom-of-page script (main.php:580–589) polls for `loadInitialPage` then calls it with `$contentPage`. All subsequent nav goes through `window.loadPage` (defined in `cma/assets/js/main.js:693`, minified in `main.min.js`).
+> - Header: inline `&lt;header class="cma-header"&gt;` (main.php:534–572). **There is NO `cma-header` web component** — it is plain markup. Contains: a hamburger `#menuToggle` checkbox (534–538), a `#breadcrumb` div (539), an optional environment `lib-label` (540–542), and the user menu `.cma-user-menu` with dropdown (543–571: user level, version, Voorkeuren, wachtwoord, impersonation return, logout).
+> - Left sidebar / main menu: always present across all internal routes because it lives in the shell and is never re-fetched. The sidebar has a header/logo (465–483) and `&lt;nav class="cma-sidebar-nav" id="sidebarNav"&gt;` (485–527).
+> - `nomenu` mode: `main.php:56–138` — when `?nomenu&amp;page=X` is requested, main.php acts as a server-side proxy that `include`s the target PHP and returns only its output (defines `CMA_NOMENU_MODE`). This is the endpoint `loadPage` fetches.
+>
+> ## 2. Header / top bar
+>
+> - Inline in main.php (see §1), class `.cma-header`. Styling and mobile behavior live in `cma/assets/css/main.css` (only file defining `.cma-header`).
+> - Contents: hamburger toggle, breadcrumb, env label, user dropdown menu. No logo (logo is in the sidebar header), no global search in the header (search exists per-page, e.g. tools).
+> - Mobile: `@media (max-width: 768px)` in `main.css:977–1036` shows `#menuToggle` and `.cma-mobile-menu-btn`, turns `.cma-sidebar` into a fixed off-canvas drawer (`transform: translateX(-100%)`, `.open` → `translateX(0)`). Toggle logic in `main.js` `toggleSidebar()` adds/removes `.open` below 768px and `.collapsed` above.
+>
+> ## 3. Main menu — definition &amp; rendering
+>
+> - Data source: `cma/config/menu.json` (schema-referenced; structure is `menus[]` each with `id/name/order/items[]`, items carry `formId` + `form` or an href). Sample at menu.json:1–60.
+> - Service: `cma/classes/Services/MenuService.php` (class at :21) loads menu config, preferring external `/site/data/menu.json` (CONFIG_PATH at :37), with access levels user/admin/developer. Consumed via `cma/menurep.inc` `loadMenuData()`, which main.php calls at `main.php:245`.
+> - Rendering: PHP loop in `main.php:247–348` builds `$menuItems` grouped by menu name, applying access checks (`SecurityHelper::checkRights`, :256) and group icons (`$menuGroupIcons`, :182–228). Dashboard is force-injected first (:231–243); a Systeem→Tools group is force-injected for admins if absent (:324–347).
+> - Item → page mapping (main.php:286–298): form-backed items get `dataPage = 'form.php?form=&lt;form&gt;'` (used for AJAX) and `href = '/cma/form/&lt;form&gt;'` (clean URL for bookmarks). Non-form items use their href (with `.asp`→`.php`).
+> - Markup: `main.php:487–526`. Single-item groups render as a direct link; multi-item groups render an expandable header + `.cma-menu-group-items` + a collapsed-state `.cma-menu-popup`. Each link carries `data-page` (AJAX target) and `href` (clean URL). Click handling / active-state / breadcrumb sync is wired in `main.js` (function `q()` in the minified bundle attaches click → `loadPage(dataPage)`).
+> - There is NO `cma-menu`/`lib-menu` component used for the primary nav — it is hand-rolled PHP + CSS. (`library/webcomponents/lib-menu.js` exists but is not the app's primary nav.)
+>
+> ## 4. Tools navigation — `cma/tools.php`
+>
+> - Access-guarded to admins (:30). Key routing guard at `tools.php:51–60`: if NOT in nomenu mode (i.e. a standalone/top-level hit), it **redirects to `/cma/main.php?page=tools.php`** so tools always render inside the shell (sidebar present). So tools does NOT open standalone — it is fetched into `#contentArea` like any other page.
+> - Inside the content area, tools.php emits its own two-pane layout: `&lt;div class="tools-ajax-container"&gt;` with a left `#leftlist` containing a search input + `&lt;cma-tree id="tools-tree" ...&gt;` (tools.php:194–217), a `&lt;cma-fold&gt;` resizer (:220–226), and a right `&lt;iframe id="tools-content"&gt;` (:227). So the tools TREE lives inside `#contentArea`; individual tool pages load into a nested **iframe**.
+> - Tree data built by `buildToolsTreeData()` (called :177), JSON-encoded into the `data` attribute.
+> - Click behavior (tools.php:258–299): on the tree's `item-click`:
+>   - If `href` starts with `form.php?form=` → it does NOT load into the tools iframe; instead it calls `window.top.loadPage(href)` (:265–274), promoting the form to the canonical `/cma/form/&lt;form&gt;` route in the shell content area (replacing the whole tools view).
+>   - Otherwise (a real tool) → `iframe.src = href` (:277) and pushes `/cma/tools?tool=&lt;name&gt;` to history.
+> - Form-backed aliases (users, groups, emaillog, …) are also collapsed to `/cma/form/&lt;form&gt;` server-side at tools.php:118–150 (`$formBackedTools` + a `location.replace` redirect script), preventing dual routes.
+>
+> ## 5. How forms load — `/cma/form/&lt;form&gt;`
+>
+> - Routing: `cma/web.config:105–139` rewrites `/cma/form/&lt;form&gt;[/id/...]` → `/cma/main.php?page=form.php%3Fform%3D&lt;form&gt;...`. So the entry point is always **`main.php` (the full shell)**, with `form.php` as the `page` parameter.
+> - On a hard load/refresh of `/cma/form/klanten`: web.config → `main.php` renders the FULL shell (header + sidebar), then the bottom script calls `loadInitialPage`, which parses the URL and `loadPage('form.php?form=klanten')` → `fetch('/cma/main.php?nomenu&amp;page=form.php?form=klanten')`. In nomenu mode main.php includes `form.php`, and `form.php:294–330` strips everything to just the `&lt;body&gt;` inner content + the form's init scripts. That fragment is injected into `#contentArea`.
+> - Result: the sidebar/menu and header ARE present on `/cma/form/&lt;form&gt;` routes. There is NO separate standalone form page in normal use — `form.php` only emits a full HTML document when NOT in nomenu mode (the `showFormError` path at :73–95, or a direct non-shell hit), but real navigation always routes through the shell.
+> - SPA navigation (clicking a menu item or in-content link) never reloads the shell; only `#contentArea` changes, and history is updated via `history.pushState` to the clean `/cma/form/&lt;form&gt;` URL (logic inside `loadPage` in `main.js`). There is also a page cache (up to 5 form pages) keyed by page URL with suspend/resume of form controllers (top of `main.min.js`).
+>
+> ## 6. Reusable web components (for a treeview-select / mega/BIG menu)
+>
+> All in `cma/webcomponents/` unless noted:
+> - `cma-tree.js` — tree view with folders/items, expand/collapse, state persistence (`storage-key`), `filter()`, `selectByHref()`, `expandAll/collapseAll`, emits `item-click`. Already used by tools. Strong candidate for a treeview-select.
+> - `cma-fold.js` — draggable divider to resize adjacent panels (vertical/horizontal), state-persistent. Used for the tools two-pane split.
+> - `cma-toolbar.js` — flexible toolbar with left/center/right sections (see also `ToolbarHelper` PHP used in tools.php:195–208).
+> - `cma-tabs.js` — tab strip that auto-collapses to a `&lt;select&gt;` dropdown on mobile; also supports wizard/step mode. Useful for responsive nav.
+> - `cma-base-component.js` — shared base class for the CMA components.
+> - `shared-icons.js` — shared icon set for the components.
+> - `library/webcomponents/lib-menu.js` — generic menu component (NOT currently used for primary nav).
+> - `library/webcomponents/lib-combo.js` — combobox/select component.
+> - `library/webcomponents/lib-table.js`, `lib-message.js`, `lib-search-input`, `lib-label`, `lib-dialog` — supporting UI primitives (search input used in tools.php:198; dialog used for password modal in main.js).
+> - Note: there is NO `cma-header` component — the header is inline markup, so a nav rework can introduce one cleanly.
+>
+> ## 7. Mobile / responsive
+>
+> - Primary breakpoint: `@media (max-width: 768px)` in `cma/assets/css/main.css:977` (sidebar app-shell). Sidebar becomes a fixed off-canvas drawer (`transform: translateX(-100%)`; `.cma-sidebar.open` slides in). `#menuToggle` hamburger and `.cma-mobile-menu-btn` become visible; the desktop collapse button `.cma-toggle-btn` is hidden; `.cma-sidebar-backdrop` is force-hidden on mobile.
+> - JS: `toggleSidebar()` (in `main.js`) — below 768px toggles `.open` on `#sidebar` and syncs `#menuToggleCheckbox`; above 768px toggles `.collapsed` (persisted to `localStorage` key `cma_v2_menu_collapsed`). Collapsed desktop sidebar shows hover popups (`.cma-menu-popup`, wired via function `x()` in the bundle).
+> - Classic-mode responsive: `main.css:1283` (`max-width:1200px`) and `main.css:1289` (`max-width:768px`) restyle `html.classic-mode .cma-sidebar` into a horizontal top bar that wraps.
+> - `cma/assets/css/style.css` breakpoints (form/content chrome, not the shell nav): `min-width:960px` (:1003), `max-width:1024px` (:1164), `max-width:960px` (:1212, :1324), `max-width:768px` (:1851).
+> - `main.css` also has height-based tweaks: `@media (max-height:800px)` (:959) and `max-height:700px` (:966) for the sidebar nav.
+>
+> ---
+>
+> ### Key files
+> - `/mnt/c/repos/cma_platform/cma/main.php` — shell, sidebar, header, menu rendering.
+> - `/mnt/c/repos/cma_platform/cma/assets/js/main.js` (`window.loadPage` at :693, `loadInitialPage` at :1489) and shipped `main.min.js` — the AJAX content-swap engine + page cache.
+> - `/mnt/c/repos/cma_platform/cma/tools.php` — tools tree + iframe two-pane, shell-only guard (:51), tree click handler (:258).
+> - `/mnt/c/repos/cma_platform/cma/form.php` — form renderer; nomenu body-stripping at :294.
+> - `/mnt/c/repos/cma_platform/cma/web.config` — clean-URL rewrites (tools :65, form :105–139) all pointing at `main.php`.
+> - `/mnt/c/repos/cma_platform/cma/config/menu.json` + `/mnt/c/repos/cma_platform/cma/classes/Services/MenuService.php` + `/mnt/c/repos/cma_platform/cma/menurep.inc` — menu data.
+> - `/mnt/c/repos/cma_platform/cma/bootstrap.inc:637` (`cma_css_bundle`) — CSS bundle incl. `main.css` (shell/nav) and `style.css`.
+> - `/mnt/c/repos/cma_platform/cma/assets/css/main.css` — all `.cma-header` / `.cma-sidebar` styling and mobile breakpoints.</result>
+> <usage><subagent_tokens>57739</subagent_tokens><tool_uses>19</tool_uses><duration_ms>136567</duration_ms></usage>
+> </task-notification>
