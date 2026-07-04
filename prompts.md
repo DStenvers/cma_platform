@@ -2015,3 +2015,5 @@ karaat-data en staat in de karaat-repo.
 > kun jij sen deploy forceren? geen toegang tot de server nu
 
 > je hebt de deploy secret in de locale .env staan
+
+> atart maat met de webp en form height

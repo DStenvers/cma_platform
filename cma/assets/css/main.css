@@ -1045,6 +1045,7 @@ a.cma-menu-item.active .cma-menu-icon::before {
        screen again. */
     .cma-content-inner .tools-ajax-container {
         height: calc(100vh - var(--header-height));
+        height: calc(100dvh - var(--header-height)); /* dvh tracks the real mobile viewport (100vh overshoots behind the URL bar, leaving the tool iframe short of full height) */
     }
 }
 

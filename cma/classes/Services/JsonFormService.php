@@ -2052,15 +2052,45 @@ class JsonFormService extends BaseFormService
             // prepending the base path + rawurlencode() would mangle it into
             // "/https%3A%2F%2F…" and break the image.
             if (preg_match('#^(https?:)?//#i', $filename)) {
-                $src = $filename;
+                $full = $filename;
+                $thumb = $filename;
             } else {
                 $base = trim((string)($col['path'] ?? ''), '/');
-                $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+                $full = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+                // Serve the smallest responsive WebP for the ~50px list thumbnail
+                // (the original is often multi-MB). data-full keeps the original
+                // for the hover-enlarge preview. Falls back to the original when
+                // no WebP variant has been generated yet.
+                $thumb = self::smallestWebpThumb($base, $filename) ?? $full;
             }
-            $srcEnc = htmlspecialchars($src);
-            $inner = '<img class="cma-list-thumb" src="' . $srcEnc . '" data-full="' . $srcEnc . '" alt="" loading="lazy">';
+            $inner = '<img class="cma-list-thumb" src="' . htmlspecialchars($thumb)
+                . '" data-full="' . htmlspecialchars($full) . '" alt="" loading="lazy">';
         }
         return '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="image" class="cma-list-thumb-cell">' . $prefix . $inner . '</td>';
+    }
+
+    /**
+     * URL of the smallest responsive WebP thumbnail for a LOCAL image, or null
+     * when it hasn't been generated. Variants live in
+     * <path>/.responsive/<name>-300w.webp (see App\Library\ResponsiveImage);
+     * the list only shows a small thumb, so serving the 300w WebP instead of
+     * the (often huge) original is a big saving. Existence is checked on disk
+     * (site root is three levels up from cma/classes/Services/).
+     */
+    private static function smallestWebpThumb(string $base, string $filename): ?string
+    {
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+        if ($name === '') {
+            return null;
+        }
+        $sizes = \App\Library\ResponsiveImage::SIZES;
+        $smallest = $sizes[0] ?? 300;
+        $relDir = ($base !== '' ? $base . '/' : '') . \App\Library\ResponsiveImage::RESPONSIVE_DIR;
+        $file = $name . '-' . $smallest . 'w.webp';
+        if (!is_file(dirname(__DIR__, 3) . '/' . $relDir . '/' . $file)) {
+            return null;
+        }
+        return '/' . $relDir . '/' . rawurlencode($file);
     }
 
     private static function detectColumnType(array $field): string
