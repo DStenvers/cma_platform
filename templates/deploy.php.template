@@ -266,6 +266,23 @@ $run = static function (string $cmd) use ($ROOT, $isWin, $log): int {
 $failed     = false;
 $failReason = '';
 
+// 4·. Maintenance screen ON — visitors get a clean 503 (served by _bootstrap.php)
+//     for the whole mutating window (git pull + composer swap vendor/ and the
+//     platform tree). Cleared at the very end via a shutdown hook so it lifts
+//     even if the deploy aborts, fatals or is interrupted; _bootstrap.php also
+//     ignores a flag older than 20 min as a final stuck-deploy safety net.
+//     Opt out with DEPLOY_NO_MAINTENANCE=1.
+$MAINT_FLAG = $ROOT . '/maintenance.flag';
+if ($envRead('DEPLOY_NO_MAINTENANCE', '') !== '1') {
+    @file_put_contents($MAINT_FLAG, (string) time());
+    $log('MAINTENANCE screen ON (' . $MAINT_FLAG . ')');
+    register_shutdown_function(static function () use ($MAINT_FLAG, $log): void {
+        if (is_file($MAINT_FLAG) && @unlink($MAINT_FLAG)) {
+            $log('MAINTENANCE screen OFF');
+        }
+    });
+}
+
 // 4a. Pre-pull recycle — release Windows file locks on bootstrap/vendor before
 //     git/composer touch them. Windows-only, opt-out, best-effort.
 $recycleFile = $envRead('DEPLOY_RECYCLE_TOUCH', $ROOT . '/web.config');
