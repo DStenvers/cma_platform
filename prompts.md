@@ -1970,3 +1970,5 @@ karaat-data en staat in de karaat-repo.
 > there is a version coonflict on site specific migrations, they are not executed because 1.0.0 has 2 occurences
 
 > worked! bit i motices the tools big menu is not at https://www.karaatedelstenen.nl/cma/main.php?page=tools%2Ftools_migrations.php
+
+> having to rerun the movie grations created a new menu.json, it a menu.json exists don’t overwrite it, i now lost the quick add a stone and have many dead links, it creates links to forms that don’t exist, highly unwanted

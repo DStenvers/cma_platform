@@ -94,6 +94,21 @@ function exportMenuToJson(): array
     $details = [];
 
     try {
+        // Never overwrite an existing, curated site menu. This export is a
+        // one-time bootstrap from the legacy tblMenu for sites migrating TO the
+        // JSON menu; once data/menu.json exists it is the source of truth
+        // (hand-edited: custom tools like "quick add stone", dead links pruned).
+        // Re-running the whole chain on an established site must NOT clobber it.
+        // Same skip-if-exists guard the other export migrations already use
+        // (databases/reports/app/datastores).
+        $jsonPath = dirname(__DIR__, 2) . '/data/menu.json';
+        if (file_exists($jsonPath)) {
+            return [
+                'success' => true,
+                'message' => 'data/menu.json bestaat al — behouden (export overgeslagen)',
+            ];
+        }
+
         // Get all menus
         $menuSql = "SELECT ID, Name, ExecutionOrder FROM tblMenu ORDER BY ExecutionOrder, Name";
         $menuRs = Database::openRS($menuSql, 'rep');
@@ -167,8 +182,8 @@ function exportMenuToJson(): array
             'menus' => $menus
         ];
 
-        // Write to site-level config (not CMA internal)
-        $jsonPath = dirname(__DIR__, 2) . '/data/menu.json';
+        // Write to site-level config (not CMA internal). $jsonPath was resolved
+        // at the top of the try (used there for the skip-if-exists guard).
         $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         if ($json === false) {
