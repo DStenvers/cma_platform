@@ -788,6 +788,16 @@ form#login input[type="checkbox"]:checked + label:before { content: "\e959";font
 form#login span.note {display:block;margin-left:6px;color:var(--text-secondary)}
 form#login span.login_vergeten {float:right;padding-top:8px; color:var(--text-secondary)}
 form#login span.login_vergeten a {text-decoration:none}
+/* Mobile: the login box is content-sized (inputs are 363px !important), which
+   overflows a phone viewport. Constrain the box and let inputs fill it. */
+@media (max-width: 600px) {
+    form#login div.kader { width: calc(100vw - 24px); max-width: 380px; box-sizing: border-box; }
+    form#login table#loginForm, form#login table#login_vergeten_form { width: 100%; box-sizing: border-box; }
+    form#login table#loginForm td, form#login table#login_vergeten_form td { box-sizing: border-box; }
+    form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { width: 100% !important; box-sizing: border-box; }
+    form#login input[type="checkbox"] + label { width: auto !important; }
+    form#login a.sso-button { width: 90%; box-sizing: border-box; }
+}
 form#login span.login_vergeten a:hover {background-color:transparent; text-decoration:underline}
 form#login table#login_vergeten_form {display:none;padding:12px}
 form#login table#login_vergeten_form input#email_id,
