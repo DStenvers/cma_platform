@@ -1955,3 +1955,14 @@ karaat-data en staat in de karaat-repo.
 > i ran composer update on the server .56 now installed, can you re-test?
 
 > cma: https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Dformedit does not fill the entire screen
+
+> ?
+
+> automatische backup loopt niet: Versie 1.0.0: Initiële versie - versiebeheertabellen aanmaken
+>   Automatisch backup staat aan.
+>   ⚠ Database 'rep' niet gevonden in configuratie, backup overgeslagen
+>   ⚠ Database 'users' niet gevonden in configuratie, backup overgeslagen
+>   ⚠ Database 'data' niet gevonden in configuratie, backup overgeslagen
+>
+>   3 wijziging(en) uit te voeren...
+>   [1/3] ✓ Versietabel aanmaken

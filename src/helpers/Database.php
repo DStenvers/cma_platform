@@ -2865,11 +2865,21 @@ class Database
             return ['success' => true, 'error' => null, 'sql' => $sql];
         } catch (\Exception $e) {
             $msg = $e->getMessage();
-            // If index doesn't exist, treat as success
-            if (stripos($msg, 'not found') !== false || stripos($msg, 'does not exist') !== false ||
-                stripos($msg, 'niet gevonden') !== false || stripos($msg, 'kan niet vinden') !== false ||
-                stripos($msg, 'bestaat niet') !== false) {
-                return ['success' => true, 'error' => null, 'message' => 'Index bestaat niet (al verwijderd)'];
+            // If index doesn't exist, treat as success (idempotent re-run).
+            // Access ODBC reports a missing index as "-1404 No such index 'X' on
+            // table 'Y'." — note the phrase is "No such index", which contains
+            // neither "not found" nor "does not exist"; without matching it a
+            // benign already-dropped index (legacy DB already at the target
+            // schema) fails the whole migration. Include the Access wording plus
+            // the "could/cannot find the object" phrasing other drivers use.
+            $needles = [
+                'not found', 'does not exist', 'no such', 'could not find', 'cannot find',
+                'niet gevonden', 'kan niet vinden', 'bestaat niet',
+            ];
+            foreach ($needles as $needle) {
+                if (stripos($msg, $needle) !== false) {
+                    return ['success' => true, 'error' => null, 'message' => 'Index bestaat niet (al verwijderd)'];
+                }
             }
             return ['success' => false, 'error' => $msg, 'sql' => $sql ?? ''];
         }
