@@ -674,6 +674,9 @@ class JsonFormService extends BaseFormService
                         // Format dates as dd-mm-yyyy
                         $value = \App\Library\Date::fixValue($value);
                         $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="' . htmlspecialchars($detectedType) . '">' . $prefix . htmlspecialchars((string)$value) . '</td>';
+                    } elseif ($colType === 'number') {
+                        // Strip trailing-zero decimals (12.5000 -> 12.5, 12.0000 -> 12)
+                        $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="number">' . $prefix . htmlspecialchars(self::formatNumber($value)) . '</td>';
                     } else {
                         // Try to detect and format dates in other fields
                         $origValue = $value;
@@ -1123,6 +1126,9 @@ class JsonFormService extends BaseFormService
                 } elseif ($colType === 'date' || $colType === 'datetime') {
                     $value = \App\Library\Date::fixValue($value);
                     $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="' . htmlspecialchars($colType) . '">' . $prefix . htmlspecialchars((string)$value) . '</td>';
+                } elseif ($colType === 'number') {
+                    // Strip trailing-zero decimals (12.5000 -> 12.5, 12.0000 -> 12)
+                    $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="number">' . $prefix . htmlspecialchars(self::formatNumber($value)) . '</td>';
                 } else {
                     $origValue = $value;
                     $value = \App\Library\Date::fixValue($value);
@@ -2021,6 +2027,22 @@ class JsonFormService extends BaseFormService
      * @param string $prefix    HTML to prepend inside the cell (e.g. the row menu trigger)
      * @return string <td> HTML
      */
+    /**
+     * Format a numeric cell value for display: strip trailing zeros in the
+     * fractional part (and the decimal point if nothing remains), so a value
+     * stored with fixed decimals shows "12.5000" as "12.5" and "12.0000" as
+     * "12". Non-numeric values (e.g. already-formatted strings) are returned
+     * unchanged.
+     */
+    private static function formatNumber($value): string
+    {
+        $s = trim((string)$value);
+        if ($s === '' || !is_numeric($s) || strpos($s, '.') === false) {
+            return $s;
+        }
+        return rtrim(rtrim($s, '0'), '.');
+    }
+
     private static function renderImageCell(string $fieldName, $value, array $col, string $prefix = ''): string
     {
         $filename = trim((string)$value);
