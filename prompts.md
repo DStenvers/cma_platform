@@ -1968,3 +1968,5 @@ karaat-data en staat in de karaat-repo.
 >   [1/3] ✓ Versietabel aanmaken
 
 > there is a version coonflict on site specific migrations, they are not executed because 1.0.0 has 2 occurences
+
+> worked! bit i motices the tools big menu is not at https://www.karaatedelstenen.nl/cma/main.php?page=tools%2Ftools_migrations.php

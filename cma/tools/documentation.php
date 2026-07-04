@@ -1435,7 +1435,7 @@ function render_doc_backups(): void
     <p class="docs-meta">Wat het backup-systeem doet, waar bestanden landen, en hoe je SQLite-corruptie herstelt.</p>
 
     <h2>Backup-systeem in een notendop</h2>
-    <p><a href="tools/tools_backup.php" target="_top">Tools → Database backup</a> draait op <code>Cma\Services\BackupService</code>. Per geconfigureerde database maakt het een backup op de juiste manier:</p>
+    <p><a href="tools.php?tool=backup" target="_top">Tools → Database backup</a> draait op <code>Cma\Services\BackupService</code>. Per geconfigureerde database maakt het een backup op de juiste manier:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:160px">DB-type</th><th>Backup-strategie</th><th>Bestand</th></tr></thead>
         <tbody>
@@ -1458,7 +1458,7 @@ function render_doc_backups(): void
     </table>
 
     <h2>Pre-migration backups</h2>
-    <p>Voordat <code>MigrationService</code> een database-wijzigende migration uitvoert, roept hij <code>BackupService::createMigrationBackup()</code> aan met de migration-versie als label. Die backups krijgen een vaste prefix zodat je in <a href="tools/tools_backup.php?tab=manage" target="_top">Backups beheren</a> snel de pre-migration snapshots terugvindt.</p>
+    <p>Voordat <code>MigrationService</code> een database-wijzigende migration uitvoert, roept hij <code>BackupService::createMigrationBackup()</code> aan met de migration-versie als label. Die backups krijgen een vaste prefix zodat je in <a href="tools.php?tool=backup&tab=manage" target="_top">Backups beheren</a> snel de pre-migration snapshots terugvindt.</p>
     <p>Auto-backup is toggle-able op de Migraties-pagina; uit-zetten voor migration-runs die geen schema-impact hebben (b.v. data-only export-runs) bespaart schijfruimte op grote DB's.</p>
 
     <h2>Restore</h2>
@@ -1477,7 +1477,7 @@ function render_doc_backups(): void
     <p>Voor diepere corruptie: <code>tools/tools_sqlite_repair.php</code> draait <code>sqlite3 .dump</code> + her-import. Use sparingly — eerst backup, dan repair.</p>
 
     <h2>MS Access compaction</h2>
-    <p>Access (<code>.mdb</code>) DB's groeien onbegrensd na veel writes. <a href="tools/tools_dbcompact.php" target="_top">Tools → DB-compact</a> draait een compact + repair (gelijkwaardig aan Access's "Compact &amp; Repair Database"). Doe dit periodiek — eens per maand bij actieve sites.</p>
+    <p>Access (<code>.mdb</code>) DB's groeien onbegrensd na veel writes. <a href="tools.php?tool=dbcompact" target="_top">Tools → DB-compact</a> draait een compact + repair (gelijkwaardig aan Access's "Compact &amp; Repair Database"). Doe dit periodiek — eens per maand bij actieve sites.</p>
 
     <h2>Backup-retentie</h2>
     <p>Het platform verwijdert niks automatisch. Stel een Windows Task Scheduler taak in voor <code>logs/</code>-style cleanup (b.v. delete files older than 60 days in <code>backup/</code>) als je schijfruimte een bottleneck is.</p>
@@ -1754,7 +1754,7 @@ function render_doc_iis_config(): void
     <p>Touch op <code>web.config</code> triggert een app-pool recycle in IIS. Het deploy-webhook script doet dit standaard na een succesvolle pipeline; je kan het handmatig forceren met:</p>
     <pre><code>copy /b web.config +,, </code></pre>
     <p>Of via de tool <a href="tools/opcache_reset.php" target="_top">Tools → OPcache reset</a>.</p>
-    <p><span class="cma-tool__strong">Let op — een recycle flusht OPcache niet altijd.</span> Onder PHP-FastCGI worden de <code>php-cgi.exe</code>-processen (en dus de OPcache-SHM) alleen herstart als IIS ze echt recyclet. Twee veelvoorkomende oorzaken dat dat níét gebeurt: (1) de FastCGI-instelling <code>monitorChangesTo</code> in <code>applicationHost.config</code> wijst naar <code>php.ini</code> i.p.v. het getouchte <code>web.config</code>, dus een touch op web.config herstart PHP niet; (2) <code>opcache.file_cache</code> staat aan, waardoor OPcache zich na een herstart meteen weer vanaf schijf vult. Los daarvan geeft <code>opcache_reset()</code> vaak <code>false</code> terug wanneer <code>opcache.restrict_api</code> is gezet op een pad buiten de CMA. Het scherm <a href="tools/tools_clearcache.php" target="_top">Cache leegmaken</a> toont sinds v1.28.45 een tabel <span class="cma-tool__strong">OPcache configuratie</span> die precies deze drie instellingen leest en markeert; een reset die alleen via de web.config-fallback verliep krijgt daar (en in de statusrij) een ⚠ i.p.v. een groen vinkje. <code>.user.ini</code> kan deze <code>PHP_INI_SYSTEM</code>-instellingen niet overschrijven — alleen <code>opcache.validate_timestamps</code>/<code>revalidate_freq</code> zijn daar te zetten (zet <code>validate_timestamps=1</code> zodat gewijzigde bestanden vanzelf worden opgepikt).</p>
+    <p><span class="cma-tool__strong">Let op — een recycle flusht OPcache niet altijd.</span> Onder PHP-FastCGI worden de <code>php-cgi.exe</code>-processen (en dus de OPcache-SHM) alleen herstart als IIS ze echt recyclet. Twee veelvoorkomende oorzaken dat dat níét gebeurt: (1) de FastCGI-instelling <code>monitorChangesTo</code> in <code>applicationHost.config</code> wijst naar <code>php.ini</code> i.p.v. het getouchte <code>web.config</code>, dus een touch op web.config herstart PHP niet; (2) <code>opcache.file_cache</code> staat aan, waardoor OPcache zich na een herstart meteen weer vanaf schijf vult. Los daarvan geeft <code>opcache_reset()</code> vaak <code>false</code> terug wanneer <code>opcache.restrict_api</code> is gezet op een pad buiten de CMA. Het scherm <a href="tools.php?tool=clearcache" target="_top">Cache leegmaken</a> toont sinds v1.28.45 een tabel <span class="cma-tool__strong">OPcache configuratie</span> die precies deze drie instellingen leest en markeert; een reset die alleen via de web.config-fallback verliep krijgt daar (en in de statusrij) een ⚠ i.p.v. een groen vinkje. <code>.user.ini</code> kan deze <code>PHP_INI_SYSTEM</code>-instellingen niet overschrijven — alleen <code>opcache.validate_timestamps</code>/<code>revalidate_freq</code> zijn daar te zetten (zet <code>validate_timestamps=1</code> zodat gewijzigde bestanden vanzelf worden opgepikt).</p>
 
     <h2>Troubleshooting</h2>
     <table class="listtable">
@@ -1768,7 +1768,7 @@ function render_doc_iis_config(): void
             <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Dit staat standaard aan — run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Site geeft IIS default 404, niet cma/404.php</td><td><code>cma/404.php</code> bestaat niet op disk (Installer-sync incompleet). Run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Mobile Safari prompts "Download logreader.php?"</td><td>Gefixed via @-suppress op file_put_contents in delete-handler zodat warnings niet de Location-redirect breken.</td></tr>
-            <tr><td>OPcache lijkt nooit leeg — "Gecachte scripts" blijft na Cache leegmaken op hetzelfde aantal staan</td><td><code>opcache_reset()</code> geeft <code>false</code> terug (meestal <code>opcache.restrict_api</code> gezet op een pad buiten de CMA), en/of de web.config-touch recyclet de FastCGI-processen niet (<code>monitorChangesTo</code> wijst naar <code>php.ini</code>), en/of <code>opcache.file_cache</code> herlaadt de bytecode meteen weer vanaf schijf. Open <a href="tools/tools_clearcache.php" target="_top">Cache leegmaken</a> en lees de tabel <span class="cma-tool__strong">OPcache configuratie</span>: die markeert welke van de drie het is. Fix in <code>php.ini</code>/<code>applicationHost.config</code> (restrict_api leegmaken of CMA-pad opnemen; monitorChangesTo naar het getouchte bestand wijzen). Zie de sectie <span class="cma-tool__strong">App-pool recycle</span> hierboven.</td></tr>
+            <tr><td>OPcache lijkt nooit leeg — "Gecachte scripts" blijft na Cache leegmaken op hetzelfde aantal staan</td><td><code>opcache_reset()</code> geeft <code>false</code> terug (meestal <code>opcache.restrict_api</code> gezet op een pad buiten de CMA), en/of de web.config-touch recyclet de FastCGI-processen niet (<code>monitorChangesTo</code> wijst naar <code>php.ini</code>), en/of <code>opcache.file_cache</code> herlaadt de bytecode meteen weer vanaf schijf. Open <a href="tools.php?tool=clearcache" target="_top">Cache leegmaken</a> en lees de tabel <span class="cma-tool__strong">OPcache configuratie</span>: die markeert welke van de drie het is. Fix in <code>php.ini</code>/<code>applicationHost.config</code> (restrict_api leegmaken of CMA-pad opnemen; monitorChangesTo naar het getouchte bestand wijzen). Zie de sectie <span class="cma-tool__strong">App-pool recycle</span> hierboven.</td></tr>
         </tbody>
     </table>
 
@@ -2172,12 +2172,12 @@ if (!MigrationService::columnExists('tblOrders', 'discountCode', $connString)) {
     <div class="docs-callout"><span class="cma-page__strong">Script-paden in een extra source (sinds v1.28.57).</span> Voor <code>runPhp</code> / <code>runSqlScript</code> wordt <code>script</code> zó opgelost: (1) een absoluut pad wordt letterlijk gebruikt; (2) anders wint een pad dat bestaat <span class="cma-page__strong">relatief aan de map van het manifest</span> — dáár zet je het script van een site-eigen migratie, naast zijn manifest, buiten <code>cma/</code>; (3) anders valt het terug op <code>cma/</code>-relatief (waar de platform-scripts staan). Dus <code>"script": "1.0.0_fix.php"</code> in <code>migrations/site_migrations.json</code> laadt <code>migrations/1.0.0_fix.php</code>.</div>
     <p>Volgorde: platform-migrations eerst, dan de extra sources in registratie-volgorde. Versie-volgorde is gegarandeerd binnen een source; een site-migratie die van een platform-tabel afhangt draait sowieso ná de platform-source.</p>
 
-    <div class="docs-callout"><span class="cma-page__strong">Versie-nummering voor site-migraties (sinds v1.28.59).</span> Geef site-eigen migraties een versie in het <span class="cma-page__strong">0.x.x-bereik</span> (begin bij <code>0.1.0</code>). Het platform gebruikt <code>1.0.0</code> en hoger (en groeit daar over releases naartoe), dus een site-migratie op bijv. <code>1.0.0</code> botst met de platform-versie <code>1.0.0</code>. Elke source heeft weliswaar een eigen tracking-tabel — apply-all voert beide uit — maar bij een gedeeld versienummer is "opnieuw uitvoeren" op alleen dat nummer dubbelzinnig. De <a href="tools/tools_migrations.php" target="_top">Migraties-tool</a> meldt het nu expliciet ("Let op…") wanneer een site-source een versie ≥ 1.0.0 gebruikt of wanneer twee sources hetzelfde versienummer definiëren. (Het platform heeft zelf één historische <code>0.0.1</code>-bootstrap; daarom start je site-migraties bij <code>0.1.0</code>.)</div>
+    <div class="docs-callout"><span class="cma-page__strong">Versie-nummering voor site-migraties (sinds v1.28.59).</span> Geef site-eigen migraties een versie in het <span class="cma-page__strong">0.x.x-bereik</span> (begin bij <code>0.1.0</code>). Het platform gebruikt <code>1.0.0</code> en hoger (en groeit daar over releases naartoe), dus een site-migratie op bijv. <code>1.0.0</code> botst met de platform-versie <code>1.0.0</code>. Elke source heeft weliswaar een eigen tracking-tabel — apply-all voert beide uit — maar bij een gedeeld versienummer is "opnieuw uitvoeren" op alleen dat nummer dubbelzinnig. De <a href="tools.php?tool=migrations" target="_top">Migraties-tool</a> meldt het nu expliciet ("Let op…") wanneer een site-source een versie ≥ 1.0.0 gebruikt of wanneer twee sources hetzelfde versienummer definiëren. (Het platform heeft zelf één historische <code>0.0.1</code>-bootstrap; daarom start je site-migraties bij <code>0.1.0</code>.)</div>
 
     <h2>Test &amp; deploy workflow</h2>
     <ol>
         <li>Schrijf de migratie + registreer in <code>migrations.json</code>.</li>
-        <li>Run op je dev-omgeving via <a href="tools/tools_migrations.php" target="_top">Tools → Migraties</a>. Auto-backup aan voor dev-safety.</li>
+        <li>Run op je dev-omgeving via <a href="tools.php?tool=migrations" target="_top">Tools → Migraties</a>. Auto-backup aan voor dev-safety.</li>
         <li>Voer Rerun uit om idempotentie te valideren — moet "geen wijzigingen" rapporteren.</li>
         <li>Commit + push. Productie-deploy draait de migratie automatisch als <code>deploy_post.php</code> dat triggert; anders handmatig na de deploy via de Migraties-tool.</li>
     </ol>
@@ -3041,7 +3041,7 @@ function render_doc_llm(): void
         <thead><tr class="listheader"><th style="width:200px">Page</th><th>Doel</th></tr></thead>
         <tbody>
             <tr><td><a href="tools/llm_analyse.php" target="_top"><code>llm_analyse.php</code></a></td><td>Status-dashboard: config-tabel, endpoint-probe, lokale modellen-lijst, recente <code>[Llm]</code> fouten uit php_errors.log. Standaard CMA-login.</td></tr>
-            <tr><td><a href="tools/tools_llm.php" target="_top"><code>tools_llm.php</code></a></td><td>Management-page: probe per engine, inline modellen-lijst per engine, install-steps per OS in collapsible details. De Ollama-kaart heeft de curated <code>ollama pull</code>-lijst inline.</td></tr>
+            <tr><td><a href="tools.php?tool=llm" target="_top"><code>tools_llm.php</code></a></td><td>Management-page: probe per engine, inline modellen-lijst per engine, install-steps per OS in collapsible details. De Ollama-kaart heeft de curated <code>ollama pull</code>-lijst inline.</td></tr>
         </tbody>
     </table>
 

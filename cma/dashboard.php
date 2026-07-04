@@ -958,7 +958,7 @@ if ($isAdmin) {
         <div class="dashboard-card-body">
             Er <?= $pendingCount === 1 ? 'is' : 'zijn' ?> <?= $pendingCount ?> database <?= $pendingCount === 1 ? 'migratie' : 'migraties' ?> beschikbaar.
             <br>
-            <a href="tools/tools_migrations.php" class="migration-link">Bekijk migraties</a>
+            <a href="tools.php?tool=migrations" class="migration-link">Bekijk migraties</a>
         </div>
     </div>
     <?php endif; ?>
@@ -1007,7 +1007,7 @@ if ($isAdmin) {
                 <div style="margin-bottom: 6px;"><?= $w ?></div>
             <?php endforeach; ?>
             <br>
-            <a href="tools/tools_serverinfo.php" class="migration-link">Server informatie</a>
+            <a href="tools.php?tool=serverinfo" class="migration-link">Server informatie</a>
         </div>
     </div>
     <?php endif; ?>
