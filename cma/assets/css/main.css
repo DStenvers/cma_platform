@@ -1438,3 +1438,16 @@ iframe.tools-content-area {
     flex: 1; display: flex; align-items: center; justify-content: center;
     color: var(--text-muted); font-size: var(--font-size); padding: 24px; text-align: center;
 }
+
+/* Reports "big menu" — module groups tiled across the full width, reusing the
+   launcher tile styling (.cma-launcher__group/__items/__item). CSS columns let
+   groups flow into as many columns as fit; break-inside keeps a group whole. */
+.cma-reports-menu {
+    flex: 1; min-height: 0; overflow: auto;
+    padding: 20px 24px;
+    column-width: 320px; column-gap: 28px;
+}
+.cma-reports-menu .cma-launcher__group {
+    break-inside: avoid; -webkit-column-break-inside: avoid;
+    display: inline-block; width: 100%; margin-bottom: 22px;
+}
