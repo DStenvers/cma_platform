@@ -146,6 +146,7 @@ class Installer
     private const TEMPLATE_FILES = [
         '_bootstrap.php.template'         => '_bootstrap.php',
         '_bootstrap_wrapper.php.template' => '_bootstrap_wrapper.php',
+        'maintenance.php.template'        => 'maintenance.php',
         'web.config.template'             => 'web.config',
         'app.php.template'                => 'app.php',
         'global.asa.php.template'         => 'global.asa.php',

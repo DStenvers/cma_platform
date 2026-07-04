@@ -1974,3 +1974,7 @@ karaat-data en staat in de karaat-repo.
 > having to rerun the movie grations created a new menu.json, it a menu.json exists don’t overwrite it, i now lost the quick add a stone and have many dead links, it creates links to forms that don’t exist, highly unwanted
 
 > can we introduce a maintenace screen, running composer update takes a while and a visitor is treated with many errors in between
+
+> Yes please, keep it simple and say something like We zijn even bezig met de website, duurt niet lang.. Blijft u deze melding langer dan 10 minuten zien? App me even op 0654752275.
+
+> whatsapp is prima. Moeten we dit niet ook voor andere consumer sites doen? Kunnen we een maintenance.php maken die dynamisch logo, emailadres enzo ophaalt?

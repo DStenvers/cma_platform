@@ -41,9 +41,9 @@ if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
     header('Retry-After: 120');
     header('Content-Type: text/html; charset=UTF-8');
     header('Cache-Control: no-store, must-revalidate');
-    $override = __DIR__ . '/maintenance.html';
-    if (is_file($override)) {
-        readfile($override);
+    $page = __DIR__ . '/maintenance.php';
+    if (is_file($page)) {
+        include $page; // dependency-free; reads data/app.json for branding
     } else {
         echo "<!doctype html><html lang=\"nl\"><head><meta charset=\"utf-8\">"
            . "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"

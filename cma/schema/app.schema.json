@@ -43,6 +43,38 @@
                 }
             },
             "required": ["logo"]
+        },
+        "maintenance": {
+            "type": "object",
+            "description": "Branding for the deploy maintenance page (maintenance.php). All optional; each falls back to 'company' or a built-in default.",
+            "properties": {
+                "logo": {
+                    "type": "string",
+                    "description": "Path to the logo shown on the maintenance page (relative to site root, or an absolute URL). Usually the public/webshop logo, not the CMA admin logo."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Site/company name (used in the page title and logo alt text)"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Headline shown to visitors while a deploy runs"
+                },
+                "whatsapp": {
+                    "type": "string",
+                    "description": "WhatsApp number in international digits (e.g. 316...); rendered as a wa.me link for visitors stuck >10 min"
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Contact e-mail rendered as a mailto link",
+                    "format": "email"
+                },
+                "accent": {
+                    "type": "string",
+                    "description": "Accent colour for links/dot (CSS color value); falls back to company.backgroundColor",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                }
+            }
         }
     },
     "required": ["company"]
