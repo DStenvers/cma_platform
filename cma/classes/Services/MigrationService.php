@@ -155,6 +155,10 @@ class MigrationService
 
             foreach ($data['migrations'] ?? [] as $migration) {
                 $migration['_source'] = $name;
+                // Directory of THIS source's manifest, so runPhp/runSqlScript
+                // changes can carry their script next to the manifest (a
+                // site-owned migration lives outside the platform-synced cma/).
+                $migration['_sourceDir'] = dirname($source['file']);
                 $this->migrations[] = $migration;
             }
         }
@@ -543,13 +547,14 @@ class MigrationService
 
         $this->log[] = "  $changeCount wijziging(en) uit te voeren...";
 
+        $sourceDir = $migration['_sourceDir'] ?? null;
         $changeIndex = 0;
         foreach ($migration['changes'] as $change) {
             $changeIndex++;
             $changeDesc = $this->describeChange($change);
 
             try {
-                $result = $this->applyChange($change);
+                $result = $this->applyChange($change, $sourceDir);
 
                 if ($result['success']) {
                     $this->log[] = "  [$changeIndex/$changeCount] ✓ $changeDesc";
@@ -656,7 +661,7 @@ class MigrationService
     /**
      * Apply a single change
      */
-    private function applyChange(array $change): array
+    private function applyChange(array $change, ?string $sourceDir = null): array
     {
         $type = $change['type'] ?? '';
 
@@ -730,10 +735,10 @@ class MigrationService
                 return $this->runSql($change['database'], $change['sql']);
 
             case 'runSqlScript':
-                return $this->runSqlScript($change['script'], $change['database'] ?? 'data');
+                return $this->runSqlScript($change['script'], $change['database'] ?? 'data', $sourceDir);
 
             case 'runPhp':
-                return $this->runPhpScript($change['script']);
+                return $this->runPhpScript($change['script'], $sourceDir);
 
             case 'updateData':
                 return $this->runSql($change['database'], $change['sql']);
@@ -1136,11 +1141,9 @@ class MigrationService
      * (so a script can have a header comment block + a statement in the
      * same chunk), and is then executed via $conn->exec.
      */
-    private function runSqlScript(string $scriptPath, string $database = 'data'): array
+    private function runSqlScript(string $scriptPath, string $database = 'data', ?string $sourceDir = null): array
     {
-        $fullPath = (strlen($scriptPath) > 1 && ($scriptPath[0] === '/' || $scriptPath[1] === ':'))
-            ? $scriptPath
-            : __DIR__ . '/../../' . $scriptPath;
+        $fullPath = $this->resolveScriptPath($scriptPath, $sourceDir);
 
         if (!file_exists($fullPath)) {
             return [
@@ -1211,9 +1214,9 @@ class MigrationService
      * Runs the script directly with output buffering to avoid issues with
      * HTTP requests going through URL rewrite rules.
      */
-    private function runPhpScript(string $scriptPath): array
+    private function runPhpScript(string $scriptPath, ?string $sourceDir = null): array
     {
-        $fullPath = __DIR__ . '/../../' . $scriptPath;
+        $fullPath = $this->resolveScriptPath($scriptPath, $sourceDir);
 
         if (!file_exists($fullPath)) {
             return [
@@ -1224,6 +1227,36 @@ class MigrationService
 
         // Run script directly with output buffering
         return $this->runPhpScriptDirect($fullPath, $scriptPath);
+    }
+
+    /**
+     * Resolve a migration script path (runPhp / runSqlScript).
+     *
+     * Order of resolution:
+     *   1. An absolute path (POSIX `/…` or Windows `X:\…`) is used verbatim.
+     *   2. A path that exists relative to the source manifest's own directory
+     *      wins next. This is how a SITE-OWNED migration carries its script
+     *      next to its manifest, outside the platform-synced `cma/` tree —
+     *      a bundled platform script under cma/ would be overwritten (or
+     *      simply absent) on a consumer site.
+     *   3. Otherwise fall back to the platform default: relative to `cma/`
+     *      (i.e. `cma/migrations/…`), where the bundled migrations live.
+     *
+     * The platform source's own manifest sits in `cma/config/`, so its
+     * `migrations/x.php` entries miss step 2 and correctly resolve via step 3.
+     */
+    private function resolveScriptPath(string $scriptPath, ?string $sourceDir): string
+    {
+        if (strlen($scriptPath) > 1 && ($scriptPath[0] === '/' || $scriptPath[1] === ':')) {
+            return $scriptPath;
+        }
+        if ($sourceDir !== null && $sourceDir !== '') {
+            $candidate = rtrim($sourceDir, '/\\') . '/' . $scriptPath;
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
+        }
+        return __DIR__ . '/../../' . $scriptPath;
     }
 
     /**

@@ -2097,7 +2097,7 @@ function render_doc_migrations(): void
     <h2>File-naming en plaatsing</h2>
     <ul>
         <li>Platform-migrations leven in <code>cma/migrations/</code>.</li>
-        <li>Project-migrations leven in <code>migrations/</code> op de site-root.</li>
+        <li>Site-eigen migrations leven in een eigen map op de site-root (b.v. <code>migrations/</code>) mét een eigen manifest, en worden geregistreerd via <code>migration_sources_extra</code> — zie <a href="#multisource">Multi-source migrations</a>. Zet ze buiten <code>cma/</code>, want die map wordt door <code>composer update</code> overschreven.</li>
         <li>Bestandsnaam-conventie: <code>&lt;X.Y.Z&gt;_&lt;slug&gt;.php</code> — bijvoorbeeld <code>2.6.0_export_menu.php</code>.</li>
         <li>De versie in de bestandsnaam wordt vergeleken met de huidige tracking-versie in de DB. Alleen migrations met versie &gt; current draaien.</li>
     </ul>
@@ -2157,8 +2157,20 @@ if (!MigrationService::columnExists('tblOrders', 'discountCode', $connString)) {
     <h2>Pre-migration backup</h2>
     <p>De Migraties-tool heeft een toggle "Auto-backup voor migratie". Aan: <code>BackupService::createMigrationBackup()</code> draait per affected database voordat de migratie start, met de migratie-versie als label. Uit: skip — zinvol voor data-only migrations die geen schema raken.</p>
 
-    <h2>Multi-source migrations</h2>
-    <p><code>MigrationService::getPendingMigrations()</code> walks BOTH sources: platform-migrations eerst (<code>cma/migrations/</code>), dan project-migrations (<code>migrations/</code>), dan eventuele module-migrations. Versie-volgorde is gegarandeerd per source maar source-volgorde wordt strikt aangehouden — dus een project-migration die hangt van een platform-tabel moet versie-genoeg hebben dat de platform-tabel zeker eerder gemaakt is.</p>
+    <h2 id="multisource">Multi-source migrations</h2>
+    <p><code>MigrationService</code> draait altijd de platform-source (<code>cma/config/migrations.json</code>, tracking-table <code>_cma_version</code>) en daarnaast elke <span class="cma-page__strong">extra source</span> die de site registreert. Elke source heeft een eigen manifest én een eigen tracking-table, zodat de high-water-mark per source apart bijgehouden wordt.</p>
+    <p>Registreren doe je in <code>app.php</code> (vóór de CMA draait):</p>
+    <pre><code>$GLOBALS['Application']['migration_sources_extra'] = [
+    [
+        'name'          =&gt; 'karaat',                           // uniek; niet 'platform'
+        'file'          =&gt; __DIR__ . '/migrations/site_migrations.json',
+        'trackingDb'    =&gt; 'data',                             // databases.json-entry
+        'trackingTable' =&gt; '_cma_karaat_version',              // optioneel, default _cma_&lt;name&gt;_version
+    ],
+];</code></pre>
+    <p>Het manifest heeft dezelfde vorm als <code>migrations.json</code> (een <code>migrations[]</code> array met <code>version</code> / <code>description</code> / <code>changes[]</code>). De tracking-table wordt automatisch aangemaakt bij de eerste run.</p>
+    <div class="docs-callout"><span class="cma-page__strong">Script-paden in een extra source (sinds v1.28.57).</span> Voor <code>runPhp</code> / <code>runSqlScript</code> wordt <code>script</code> zó opgelost: (1) een absoluut pad wordt letterlijk gebruikt; (2) anders wint een pad dat bestaat <span class="cma-page__strong">relatief aan de map van het manifest</span> — dáár zet je het script van een site-eigen migratie, naast zijn manifest, buiten <code>cma/</code>; (3) anders valt het terug op <code>cma/</code>-relatief (waar de platform-scripts staan). Dus <code>"script": "1.0.0_fix.php"</code> in <code>migrations/site_migrations.json</code> laadt <code>migrations/1.0.0_fix.php</code>.</div>
+    <p>Volgorde: platform-migrations eerst, dan de extra sources in registratie-volgorde. Versie-volgorde is gegarandeerd binnen een source; een site-migratie die van een platform-tabel afhangt draait sowieso ná de platform-source.</p>
 
     <h2>Test &amp; deploy workflow</h2>
     <ol>

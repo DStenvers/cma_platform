@@ -1949,3 +1949,9 @@ karaat-data en staat in de karaat-repo.
 > If ingive ypu a login for the cma, can you storenit and try for yourself?
 
 > username claude - pwd claude!
+
+## 2026-07-04
+
+> i ran composer update on the server .56 now installed, can you re-test?
+
+> cma: https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Dformedit does not fill the entire screen
