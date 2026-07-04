@@ -759,6 +759,15 @@ class CmaInfiniteScroll {
                                 ' duplicate row(s) (non-unique keyset cursor); appended ' + uniqueRows + '.');
                         }
 
+                        // A batch that was ENTIRELY duplicates means the keyset cursor
+                        // is re-emitting rows we already have — nothing new will arrive.
+                        // Stop; otherwise the count freezes a few rows short of the
+                        // total and "(laden...)" spins forever (server keeps saying
+                        // hasMore while every returned row dedupes away).
+                        if (newRows.length > 0 && uniqueRows === 0) {
+                            this.hasMore = false;
+                        }
+
                         // VALIDATION: Check if all UNIQUE rows were actually added
                         if (actualRowsAdded !== uniqueRows) {
                             cmaLog.error('[Infinite Scroll] Row append mismatch!', {
