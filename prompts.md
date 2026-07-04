@@ -2013,3 +2013,5 @@ karaat-data en staat in de karaat-repo.
 > nu 1-200 van 1806 ??
 
 > kun jij sen deploy forceren? geen toegang tot de server nu
+
+> je hebt de deploy secret in de locale .env staan

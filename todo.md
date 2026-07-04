@@ -74,3 +74,39 @@ source of hard-to-localise bugs (e.g. the duplicate-form render and the prematur
 keep the public entry points (`window.loadRecord`, `formInit`, `collectFormData`,
 etc.) stable, migrate incrementally behind those, and bump the asset version. Add
 unit/Cypress coverage per module as it is extracted, since there is almost none today.
+
+## Test-plan: dekking uitbreiden voor features sinds de laatste test-update
+
+**Context (2026-07-04):** 32 PHPUnit-achtige tests + 116 Cypress-specs. Deze
+sessie voegde veel platform-features toe met weinig/geen tests. Doel: de
+belangrijkste nieuwe logica afdekken, unit-first (deterministisch), dan Cypress.
+
+### A. Unit-tests (pure logica — snel, hoge waarde)
+- [ ] `JsonFormService::renderImageCell` — absolute/CDN-URL wordt as-is gebruikt
+      (geen `/https%3A%2F%2F…`-mangling); relatieve bestandsnaam krijgt pad +
+      rawurlencode. Regressie van de CloudFront-bug (v1.28.68).
+- [ ] `JsonFormService::formatNumber` — trailing-zero decimalen strippen
+      (12.5000→12.5, 12.0000→12, 0.0000→0); niet-numeriek/komma/leeg ongemoeid (v1.28.69).
+- [ ] MigratieService: `backupAffectedDatabases`-diagnostiek (welke databases.json,
+      welke logische namen) + `runPhp`/`runSqlScript`-padresolutie voor extra sources.
+      (Aanvulling op MigrationScriptPathTest / DropIndexIdempotentTest / MigrationVersionWarningsTest.)
+- [ ] Maintenance: extraheer de gate-beslissing (vlag aanwezig / >20min stale /
+      `"manual"` / `/cma`-exempt / deploy-scripts) en `maintenance.php` branding-pick
+      (`data/maintenance.json` → app.json `maintenance` → `company` → default) naar
+      testbare functies en dek ze af.
+
+### B. Cypress-specs (UI/integratie)
+- [ ] Grote lijst / pager: teller eindigt op het totaal, géén duplicaten, géén
+      eeuwig "(laden…)". Maak `cypress/e2e/diag/pager-stall.cy.js` productie-assertie
+      (nu diagnostisch). Test óók een mobiele viewport (was de "1-200"-bug).
+- [ ] Onderhoudsscherm-tool (Alle beheertools → Onderhoudsscherm): aan/uit +
+      bericht-op-maat (verplicht, niet leeg), `/cma` blijft bereikbaar.
+- [ ] Contentblocks-form: html + omschrijving verplicht, variabelen optioneel.
+- [ ] Tools-routing/launcher: `tools?tool=<alias>` en `tools?form=<form>` tonen het
+      Menu (launcher) — uitbreiding van `routing-variants.cy.js`.
+- [ ] Login-scherm responsive: geen horizontale overflow op mobiele viewport
+      (box ≤ viewport). Zie `cypress/e2e/diag/login-width.cy.js` (diagnostisch).
+- [ ] Externe-afbeelding-thumbnails in de lijst (na de webp-feature).
+
+### Aanpak
+Eerst A (in de custom runner `cma/tests/TestRunner.php`), dan B gefaseerd.
