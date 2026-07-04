@@ -273,11 +273,22 @@ $failReason = '';
 //     ignores a flag older than 20 min as a final stuck-deploy safety net.
 //     Opt out with DEPLOY_NO_MAINTENANCE=1.
 $MAINT_FLAG = $ROOT . '/maintenance.flag';
-if ($envRead('DEPLOY_NO_MAINTENANCE', '') !== '1') {
-    @file_put_contents($MAINT_FLAG, (string) time());
+// If an admin already put the site in maintenance MANUALLY (flag carries a
+// "manual" marker, set from the CMA), leave it completely alone — a deploy must
+// never lift a maintenance state the admin turned on on purpose.
+$MAINT_MANUAL = is_file($MAINT_FLAG)
+    && strpos((string) @file_get_contents($MAINT_FLAG), '"manual"') !== false;
+if ($MAINT_MANUAL) {
+    $log('MAINTENANCE screen already ON (handmatig) — deploy laat de vlag staan.');
+} elseif ($envRead('DEPLOY_NO_MAINTENANCE', '') !== '1') {
+    @file_put_contents($MAINT_FLAG, '');
     $log('MAINTENANCE screen ON (' . $MAINT_FLAG . ')');
     register_shutdown_function(static function () use ($MAINT_FLAG, $log): void {
-        if (is_file($MAINT_FLAG) && @unlink($MAINT_FLAG)) {
+        // Clear only OUR deploy flag — never a manual flag an admin may have
+        // set while the deploy was running.
+        if (is_file($MAINT_FLAG)
+            && strpos((string) @file_get_contents($MAINT_FLAG), '"manual"') === false
+            && @unlink($MAINT_FLAG)) {
             $log('MAINTENANCE screen OFF');
         }
     });
