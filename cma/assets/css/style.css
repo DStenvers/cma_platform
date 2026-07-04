@@ -764,17 +764,19 @@ ul#glow_tabs li a:hover {background-color: var(--bg-surface-alt);color:var(--tex
 ul#glow_tabs li.selected a:link, ul#glow_tabs li.selected a {color: var(--color-primary);margin-top: -1px;border-top: solid 1px var(--bg-body);background-color: var(--bg-surface-alt);padding-left:10px;padding-right:10px} 
 #scayt_banner_tpl {display:none !important}
 
-form#login td.loginerror {color:var(--color-error);font-size:var(--font-size);text-align:center }
+form#login .loginerror {color:var(--color-error);font-size:var(--font-size);text-align:center }
 @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
 form#login .shake {animation:shake 0.4s ease-in-out}
 form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surface)}
 form#login .login-header {border-radius:0.5em 0.5em 0 0}
-form#login table#loginForm {padding:12px}
+form#login #loginForm {padding:12px}
+form#login .login-row {position:relative;margin-bottom:12px}
+form#login .login-row.login-actions {margin-bottom:0}
 form#login a.sso-button { width:65%; padding:8px} 
 form#login label { display:block; background-color: var(--bg-surface);height: 28px;position: absolute;width: 28px;overflow: hidden;line-height: 28px}
 form#login label > input.invalid { border:1px solid var(--color-error) }
 form#login label span {overflow:hidden;display:inline-block;margin-left: 30px;text-align:center}
-form#login td:has(input:focus) label span::before { border-style:dashed}
+form#login .login-row:has(input:focus) label span::before { border-style:dashed}
 form#login label span::before { font-family:'Linearicons';margin-left: -30px;border: 1px solid #dedede;background-color: var(--input-bg);position:absolute;font-size:15px;width:28px;height:26px;text-align:center;color:var(--color-primary)}
 form#login label.password span::before { content: "\e66b" }
 form#login label.naam span::before { content: "\e71e" }
@@ -788,10 +790,8 @@ form#login input[type="checkbox"]:checked + label:before { content: "\e959";font
 form#login span.note {display:block;margin-left:6px;color:var(--text-secondary)}
 form#login span.login_vergeten {float:right;padding-top:8px; color:var(--text-secondary)}
 form#login span.login_vergeten a {text-decoration:none}
-/* Mobile: the login box is content-sized (inputs are 363px !important) inside a
-   <table> that expands to content, overflowing a phone viewport. Force the whole
-   thing to fit: no horizontal overflow, fixed table layout, everything capped to
-   the viewport width. */
+/* Mobile: the login form is now div-based (no table that expands to content),
+   so it just needs no horizontal overflow + everything capped to the viewport. */
 @media (max-width: 600px) {
     html, body.login-page { overflow-x: hidden !important; max-width: 100vw !important; }
     body.login-page > div { max-width: 100vw !important; width: 100% !important; box-sizing: border-box !important; }
@@ -799,16 +799,15 @@ form#login span.login_vergeten a {text-decoration:none}
     form#login div.kader { width: auto !important; max-width: calc(100vw - 20px) !important; box-sizing: border-box !important; }
     form#login .login-header { max-width: 100% !important; box-sizing: border-box !important; overflow: hidden; }
     form#login .login-header img { max-width: 100% !important; height: auto !important; }
-    form#login table#loginForm, form#login table#login_vergeten_form { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; box-sizing: border-box !important; }
-    form#login table#loginForm td, form#login table#login_vergeten_form td { max-width: 100% !important; box-sizing: border-box !important; }
+    form#login #loginForm, form#login #login_vergeten_form { max-width: 100% !important; box-sizing: border-box !important; }
     form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
     form#login input[type="checkbox"] + label { width: auto !important; max-width: 100% !important; }
     form#login a.sso-button { max-width: 100% !important; box-sizing: border-box; }
 }
 form#login span.login_vergeten a:hover {background-color:transparent; text-decoration:underline}
-form#login table#login_vergeten_form {display:none;padding:12px}
-form#login table#login_vergeten_form input#email_id,
-form#login table#login_vergeten_form input#email_id.invalid {
+form#login #login_vergeten_form {display:none;padding:12px}
+form#login #login_vergeten_form input#email_id,
+form#login #login_vergeten_form input#email_id.invalid {
     margin-left: 0px;
     padding-right: 0px;
     padding-left: 32px !important

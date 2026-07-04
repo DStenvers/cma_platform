@@ -34,14 +34,14 @@ if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
         @unlink($flag);
         return;
     }
-    // The deploy hatch + its status poller must stay reachable during a deploy.
-    $self = basename((string) ($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
-    if (in_array($self, ['deploy.php', 'deploy_status.php'], true)) {
-        return;
-    }
-    // Keep the admin app reachable: an admin must be able to open the CMA to
-    // lift a manual flag, and a deploy's own /cma/ health-check must not 503.
-    if (strpos((string) ($_SERVER['REQUEST_URI'] ?? ''), '/cma/') === 0) {
+    // deploy.php / deploy_status.php + the admin app (/cma/) must stay reachable
+    // during maintenance. Match on REQUEST_URI, NOT SCRIPT_NAME: with the
+    // _bootstrap_wrapper.php auto-prepend SCRIPT_NAME is the wrapper, so a
+    // SCRIPT_NAME check gated deploy.php itself and wedged the site behind its
+    // own maintenance flag (it could never clear it).
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    if (strpos($uri, '/cma/') === 0
+        || preg_match('#(^|/)(deploy|deploy_status)\\.php(\\?|$)#', $uri)) {
         return;
     }
     http_response_code(503);

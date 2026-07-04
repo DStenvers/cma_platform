@@ -305,22 +305,22 @@ function main()
                 }
             }
             echo '<input type=hidden value="' . Request::server('QUERY_STRING', '') . '" name=nextpage />';
-            echo '<table cellpadding=8 cellspacing=0 id="loginForm" ' . ($bShowForgotten ? 'style=display:none' : '') . '>';
+            echo '<div id="loginForm"' . ($bShowForgotten ? ' style="display:none"' : '') . '>';
             if ($strError) {
-                echo '<tr><td colspan=9 class=loginerror>' . $strError . '</td></tr>';
+                echo '<div class="login-row loginerror">' . $strError . '</div>';
             }
-            echo '<tr><td><label class=naam for=txtLogin><span>naam</span></label><input type=text class=naam id="txtLogin" data-required=Y name=naam placeholder=Naam data-disable-checkmark=Y autocomplete="username" value="' . Cookie::get(SecurityHelper::COOKIE_LAST_LOGIN, '') . '"></td></tr>';
-            echo '<tr><td><label class=password for=txtPW><span>wachtwoord</span></label><input class=wachtwoord type=password id="txtPW" data-required=Y placeholder=Wachtwoord data-disable-checkmark=Y maxlength=32 name=wachtwoord autocomplete="current-password"></td></tr>';
-            echo '<tr><td colspan=9 nowrap style="padding-bottom:12px">';
-            echo '<button type="submit" class="btn btn-primary" style="width:128px" id="btnLogin">Inloggen</button>';
-            echo "<span class=login_vergeten><a href=# onclick=\"jQuery('#loginForm').hide();jQuery('#login_vergeten_form').show();jQuery('#email_id').focus()\">Inloggegevens vergeten?</a></span></td></tr></table></form>" . PHP_EOL;
+            echo '<div class="login-row"><label class=naam for=txtLogin><span>naam</span></label><input type=text class=naam id="txtLogin" data-required=Y name=naam placeholder=Naam data-disable-checkmark=Y autocomplete="username" value="' . Cookie::get(SecurityHelper::COOKIE_LAST_LOGIN, '') . '"></div>';
+            echo '<div class="login-row"><label class=password for=txtPW><span>wachtwoord</span></label><input class=wachtwoord type=password id="txtPW" data-required=Y placeholder=Wachtwoord data-disable-checkmark=Y maxlength=32 name=wachtwoord autocomplete="current-password"></div>';
+            echo '<div class="login-row login-actions">';
+            echo '<button type="submit" class="btn btn-primary" id="btnLogin">Inloggen</button>';
+            echo "<span class=login_vergeten><a href=# onclick=\"jQuery('#loginForm').hide();jQuery('#login_vergeten_form').show();jQuery('#email_id').focus()\">Inloggegevens vergeten?</a></span></div></div></form>" . PHP_EOL;
             echo '<form onkeydown="if((13 == event.keyCode) || (13 == event.which)) {this.submit()}" action="login.php" data-button-name="Verstuur login" id="login_vergeten_frm" name="login_vergeten_frm" method="post">' . PHP_EOL;
                 echo '<input type=hidden name=actie value=login_vergeten>' . PHP_EOL;
-                echo '<table cellpadding=3 cellspacing=0 id=login_vergeten_form ' . ($bShowForgotten ? 'style=display:block' : '') . ' >';
-                echo '<tr colspan=2><td>Geef je email adres, we sturen je login-gegevens daarnaar op.<br>&nbsp;</td></tr>';
-                echo '<tr><td><label class=email for=email_id><span>email adres</span></label><input type=text class=email id=email_id data-validation-type=email data-required=Y maxlength=56 name=email placeholder="email adres" autocomplete="email"></td></tr>';
-                echo '<tr><td><a class="btn-primary" style="width:128px" href="javascript:if (form_valid(document.forms.login_vergeten_frm)){document.forms.login_vergeten_frm.submit()}" id="go">Verstuur login</a><span class=login_vergeten><a href=# onclick="jQuery(\'#loginForm\').show();jQuery(\'#login_vergeten_form\').hide();jQuery(\'#email_id\').focus()">Terug naar inloggen</a></span></td></tr>';
-                echo '</table>' . PHP_EOL;
+                echo '<div id=login_vergeten_form' . ($bShowForgotten ? ' style="display:block"' : '') . '>';
+                echo '<div class="login-row">Geef je email adres, we sturen je login-gegevens daarnaar op.<br>&nbsp;</div>';
+                echo '<div class="login-row"><label class=email for=email_id><span>email adres</span></label><input type=text class=email id=email_id data-validation-type=email data-required=Y maxlength=56 name=email placeholder="email adres" autocomplete="email"></div>';
+                echo '<div class="login-row login-actions"><a class="btn-primary" href="javascript:if (form_valid(document.forms.login_vergeten_frm)){document.forms.login_vergeten_frm.submit()}" id="go">Verstuur login</a><span class=login_vergeten><a href=# onclick="jQuery(\'#loginForm\').show();jQuery(\'#login_vergeten_form\').hide();jQuery(\'#email_id\').focus()">Terug naar inloggen</a></span></div>';
+                echo '</div>' . PHP_EOL;
             echo '</form>' . PHP_EOL;
             echo '</div>' . PHP_EOL;
             echo '<script>';
