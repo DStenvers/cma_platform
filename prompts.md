@@ -1988,3 +1988,7 @@ karaat-data en staat in de karaat-repo.
 > wil je de echte tekst als default in het tekstvat zetten? leeg niet toeataand, hulptekst weg
 
 > platform : content blocks, the html and omschrijving needs to be required, variables are optional
+
+> karaat: the link to the cma stone page is incorrect: https://www.karaatedelstenen.nl/cma/main.php?page=form.php%3Fform%3Dsteensoorten_producten&ID=5008
+
+> the new stones in karaat on the homepage, start with single stones and then the pairs,

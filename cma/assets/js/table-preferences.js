@@ -724,18 +724,41 @@ class CmaInfiniteScroll {
                         // Convert NodeList to array to prevent issues during iteration
                         const newRows = Array.from(tempTbody.querySelectorAll('tr'));
 
-                        // Check if rows are being appended
+                        // Dedupe by row id before appending. Keyset (Id) pagination
+                        // re-emits rows already shown when the list ORDER BY isn't by
+                        // Id (a one-to-many JOIN / non-Id sort), which would otherwise
+                        // DUPLICATE rows — ballooning the DOM and keeping the counter
+                        // below the real total forever ("records 1-N van M (laden...)").
+                        // Track ids already placed, seeded from the initial rows.
+                        if (!this._seenIds) {
+                            this._seenIds = new Set();
+                            tbody.querySelectorAll('tr[data-id]').forEach(r => this._seenIds.add(r.getAttribute('data-id')));
+                        }
                         const beforeCount = tbody.querySelectorAll('tr').length;
-                        newRows.forEach(row => tbody.appendChild(row));
+                        let uniqueRows = 0;
+                        let duplicateRows = 0;
+                        newRows.forEach(row => {
+                            const rid = row.getAttribute('data-id');
+                            if (rid !== null && rid !== '') {
+                                if (this._seenIds.has(rid)) { duplicateRows++; return; }
+                                this._seenIds.add(rid);
+                            }
+                            tbody.appendChild(row);
+                            uniqueRows++;
+                        });
                         const afterCount = tbody.querySelectorAll('tr').length;
                         const actualRowsAdded = afterCount - beforeCount;
+                        if (duplicateRows > 0) {
+                            cmaLog.warn('[Infinite Scroll] Skipped ' + duplicateRows +
+                                ' duplicate row(s) (non-unique keyset cursor); appended ' + uniqueRows + '.');
+                        }
 
-                        // VALIDATION: Check if all rows were actually added
-                        if (actualRowsAdded !== newRows.length) {
+                        // VALIDATION: Check if all UNIQUE rows were actually added
+                        if (actualRowsAdded !== uniqueRows) {
                             cmaLog.error('[Infinite Scroll] Row append mismatch!', {
-                                expected: newRows.length,
+                                expected: uniqueRows,
                                 actual: actualRowsAdded,
-                                difference: newRows.length - actualRowsAdded,
+                                difference: uniqueRows - actualRowsAdded,
                                 beforeCount: beforeCount,
                                 afterCount: afterCount
                             });
