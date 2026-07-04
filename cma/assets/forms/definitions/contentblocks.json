@@ -39,6 +39,7 @@
                         "name": "description",
                         "type": "memo",
                         "caption": "Omschrijving",
+                        "required": true,
                         "maxLength": 500,
                         "rows": 2
                 },
@@ -48,6 +49,7 @@
                         "dataType": "text",
                         "height": 4,
                         "caption": "HTML template",
+                        "required": true,
                         "rows": 20,
                         "hint": "Gebruik een variabele in de template met dubbele accolades: {{variable_name}}. De namen komen uit het veld Variabelen hieronder."
                 },

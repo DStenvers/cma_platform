@@ -1986,3 +1986,5 @@ karaat-data en staat in de karaat-repo.
 > Leeg laten? Dan gebruikt de pagina het standaardbericht uit data/maintenance.json / data/app.json.
 >  
 > wil je de echte tekst als default in het tekstvat zetten? leeg niet toeataand, hulptekst weg
+
+> platform : content blocks, the html and omschrijving needs to be required, variables are optional
