@@ -1980,3 +1980,9 @@ karaat-data en staat in de karaat-repo.
 > whatsapp is prima. Moeten we dit niet ook voor andere consumer sites doen? Kunnen we een maintenance.php maken die dynamisch logo, emailadres enzo ophaalt?
 
 > ja doe maar voor alle andere sites, en kunnen we de maintenance stand in het systeem menu opnemen? eventueel met een berichtop maat (post[= ander bericht)?
+
+> de ander is /mnt/c/repos/mijnrino_php uit mijn hoofd
+
+> Leeg laten? Dan gebruikt de pagina het standaardbericht uit data/maintenance.json / data/app.json.
+>  
+> wil je de echte tekst als default in het tekstvat zetten? leeg niet toeataand, hulptekst weg

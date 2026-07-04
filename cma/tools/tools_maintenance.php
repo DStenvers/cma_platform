@@ -31,18 +31,19 @@ $notice   = null;
 // ---- actions ------------------------------------------------------------
 $action = Request::post('action', '');
 if ($action === 'on') {
-    $payload = [
-        'manual'  => true,
-        'since'   => time(),
-        'message' => trim((string) Request::post('message', '')),
-    ];
-    $ok = @file_put_contents(
-        $flagPath,
-        json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-    );
-    $notice = $ok !== false
-        ? ['success', 'Onderhoudsscherm staat AAN voor bezoekers.']
-        : ['error', 'Kon het vlagbestand niet schrijven: ' . htmlspecialchars($flagPath) . ' (schrijfrechten?).'];
+    $message = trim((string) Request::post('message', ''));
+    if ($message === '') {
+        $notice = ['error', 'Vul een bericht in — een leeg bericht is niet toegestaan.'];
+    } else {
+        $payload = ['manual' => true, 'since' => time(), 'message' => $message];
+        $ok = @file_put_contents(
+            $flagPath,
+            json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        );
+        $notice = $ok !== false
+            ? ['success', 'Onderhoudsscherm staat AAN voor bezoekers.']
+            : ['error', 'Kon het vlagbestand niet schrijven: ' . htmlspecialchars($flagPath) . ' (schrijfrechten?).'];
+    }
 } elseif ($action === 'off') {
     if (!is_file($flagPath) || @unlink($flagPath)) {
         $notice = ['success', 'Onderhoudsscherm staat UIT. De site is weer normaal bereikbaar.'];
@@ -64,6 +65,32 @@ if ($isOn) {
     $since    = isset($flagData['since']) ? (int) $flagData['since'] : (int) @filemtime($flagPath);
     $curMsg   = is_string($flagData['message'] ?? null) ? $flagData['message'] : '';
 }
+
+// The effective default message the maintenance page shows from config, in the
+// same source order as maintenance.php: data/maintenance.json -> data/app.json
+// "maintenance" -> built-in default. Used to prefill the textarea so it always
+// holds the real text (never empty).
+$siteRoot = dirname(__DIR__, 2);
+$readCfgMsg = static function (string $path, bool $nested): string {
+    if (is_file($path)) {
+        $d = json_decode((string) @file_get_contents($path), true);
+        if (is_array($d)) {
+            $v = $nested ? ($d['maintenance']['message'] ?? null) : ($d['message'] ?? null);
+            if (is_string($v) && trim($v) !== '') {
+                return trim($v);
+            }
+        }
+    }
+    return '';
+};
+$defaultMsg = $readCfgMsg($siteRoot . '/data/maintenance.json', false);
+if ($defaultMsg === '') {
+    $defaultMsg = $readCfgMsg($siteRoot . '/data/app.json', true);
+}
+if ($defaultMsg === '') {
+    $defaultMsg = 'We zijn even bezig met de website, duurt niet lang.';
+}
+$msgValue = $curMsg !== '' ? $curMsg : $defaultMsg;
 
 // ---- render -------------------------------------------------------------
 cma_html_header('Onderhoudsscherm');
@@ -94,11 +121,9 @@ echo '<p>Bezoekers van de <span class="cma-tool__strong">publieke site</span> kr
 // Turn ON (with message)
 echo '<form method="post" style="margin:1rem 0;max-width:40rem;">';
 echo '<input type="hidden" name="action" value="on">';
-echo '<label for="maintmsg" style="display:block;font-weight:600;margin-bottom:.35rem;">Bericht op maat (optioneel)</label>';
-echo '<textarea id="maintmsg" name="message" rows="3" style="width:100%;padding:.6rem;border:1px solid #ccc;border-radius:4px;font:inherit;" '
-   . 'placeholder="Bijv. We voeren onderhoud uit, we zijn zo weer terug.">' . htmlspecialchars($curMsg) . '</textarea>';
-echo '<p style="color:#666;font-size:.9rem;margin:.35rem 0 .75rem;">Leeg laten? Dan gebruikt de pagina het standaardbericht uit '
-   . '<code>data/maintenance.json</code> / <code>data/app.json</code>.</p>';
+echo '<label for="maintmsg" style="display:block;font-weight:600;margin-bottom:.35rem;">Bericht voor bezoekers</label>';
+echo '<textarea id="maintmsg" name="message" rows="3" required style="width:100%;padding:.6rem;border:1px solid #ccc;border-radius:4px;font:inherit;margin-bottom:.75rem;">'
+   . htmlspecialchars($msgValue) . '</textarea>';
 echo '<button type="submit" class="btn btn-primary"><span class="lnr lnr-warning"></span> '
    . ($isOn && $isManual ? 'Bericht bijwerken' : 'Onderhoud AANzetten') . '</button>';
 echo '</form>';
