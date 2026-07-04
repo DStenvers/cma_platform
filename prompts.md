@@ -1966,3 +1966,5 @@ karaat-data en staat in de karaat-repo.
 >
 >   3 wijziging(en) uit te voeren...
 >   [1/3] ✓ Versietabel aanmaken
+
+> there is a version coonflict on site specific migrations, they are not executed because 1.0.0 has 2 occurences

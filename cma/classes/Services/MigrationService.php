@@ -44,6 +44,7 @@ class MigrationService
     private array $migrations = [];
     private array $currentVersions = [];
     private array $errors = [];
+    private array $warnings = [];
     private array $log = [];
     private bool $autoBackup = false;
     private ?BackupService $backupService = null;
@@ -160,6 +161,47 @@ class MigrationService
                 // site-owned migration lives outside the platform-synced cma/).
                 $migration['_sourceDir'] = dirname($source['file']);
                 $this->migrations[] = $migration;
+            }
+        }
+
+        $this->detectVersionIssues();
+    }
+
+    /**
+     * Flag version-numbering problems across sources so the tool can report
+     * them instead of letting them silently misbehave:
+     *
+     *  - Two sources sharing the same version string. Each source has its own
+     *    tracking table so apply-all still runs both, but rerun/target-by-
+     *    version can only see one of them — ambiguous by design.
+     *  - A site (non-platform) source using a version >= 1.0.0. The platform
+     *    owns 1.0.0+ (it climbs there over releases); site migrations must
+     *    stay in the reserved 0.x.x range to guarantee they never collide
+     *    with a future platform version.
+     */
+    private function detectVersionIssues(): void
+    {
+        $sourcesByVersion = [];
+        foreach ($this->migrations as $migration) {
+            $version = (string)($migration['version'] ?? '');
+            $source  = (string)($migration['_source'] ?? 'platform');
+            if ($version === '') {
+                continue;
+            }
+            $sourcesByVersion[$version][$source] = true;
+
+            if ($source !== 'platform' && version_compare($version, '1.0.0', '>=')) {
+                $this->warnings[] = "Site-migratie '$source' gebruikt versie $version. "
+                    . "Versies vanaf 1.0.0 zijn gereserveerd voor het platform — geef site-eigen "
+                    . "migraties een versie in het 0.x.x-bereik (bijv. 0.1.0) om botsingen te voorkomen.";
+            }
+        }
+
+        foreach ($sourcesByVersion as $version => $sources) {
+            if (count($sources) > 1) {
+                $this->warnings[] = "Versie $version is gedefinieerd door meerdere bronnen ("
+                    . implode(', ', array_keys($sources)) . "). Apply-all voert beide uit, maar "
+                    . "'opnieuw uitvoeren' op alleen het versienummer is dubbelzinnig.";
             }
         }
     }
@@ -481,6 +523,18 @@ class MigrationService
             }
         }
 
+        // Diagnose an empty/mismatched backup config instead of silently
+        // skipping every database. Report WHICH file was consulted and which
+        // logical names it yielded, so an operator can see at a glance why a
+        // backup was skipped (e.g. databases.json missing/unreadable, or a
+        // 'name' that maps to no known logical connection).
+        $configSource = (string)($GLOBALS['_db_config_source'] ?? '');
+        if (empty($databaseConfigs)) {
+            $this->log[] = "  ⚠ Backup-config leeg: geen bruikbare database-entries gevonden"
+                . ($configSource !== '' ? " in $configSource" : " (data/databases.json noch cma/config/databases.json gelezen)")
+                . ". Controleer dat het bestand bestaat, geldige JSON is en per entry een 'name' bevat.";
+        }
+
         $backupService = $this->getBackupService();
 
         foreach ($affectedDatabases as $dbName) {
@@ -488,7 +542,10 @@ class MigrationService
             $dbConfig = $databaseConfigs[$key] ?? null;
 
             if (!$dbConfig) {
-                $this->log[] = "  ⚠ Database '$dbName' niet gevonden in configuratie, backup overgeslagen";
+                $available = !empty($databaseConfigs) ? implode(', ', array_keys($databaseConfigs)) : 'geen';
+                $this->log[] = "  ⚠ Database '$dbName' (logisch '$key') niet gevonden in configuratie"
+                    . ($configSource !== '' ? " ($configSource)" : '')
+                    . "; beschikbaar: $available. Backup overgeslagen.";
                 continue;
             }
 
@@ -1592,6 +1649,20 @@ class MigrationService
     public function getErrors(): array
     {
         return $this->errors;
+    }
+
+    /**
+     * Non-fatal advisories about the migration set — e.g. two sources that
+     * define the same version string (which makes rerun/target-by-version
+     * ambiguous), or a site source that strays into the platform's 1.0.0+
+     * version space. Surfaced by the migrations tool so these stay visible
+     * instead of silently biting later.
+     *
+     * @return string[]
+     */
+    public function getWarnings(): array
+    {
+        return $this->warnings;
     }
 
     /**

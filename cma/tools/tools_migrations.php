@@ -200,6 +200,16 @@ if (!empty($errors)) {
     echo '</ul></lib-message>';
 }
 
+// Show non-fatal advisories (version collisions, site-migration numbering).
+$warnings = $migrationService->getWarnings();
+if (!empty($warnings)) {
+    echo '<lib-message type="warning" closable><span class="cma-tool__strong">Let op:</span><ul style="margin:5px 0 0 0;">';
+    foreach ($warnings as $warning) {
+        echo '<li style="white-space:pre-wrap;margin-bottom:10px;">' . nl2br(htmlspecialchars($warning)) . '</li>';
+    }
+    echo '</ul></lib-message>';
+}
+
 // HIDDEN: Current Versions Section - commented out per user request
 /*
 // Current Versions Section
