@@ -1380,6 +1380,11 @@
                 const sidebar = document.getElementById('sidebar');
                 if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
+                    // Keep the hamburger/X toggle in sync — without this the
+                    // checkbox stays checked and the icon is stuck on the X
+                    // ("kruisje") after navigating instead of reverting to the menu.
+                    const menuCheckbox = document.getElementById('menuToggleCheckbox');
+                    if (menuCheckbox) menuCheckbox.checked = false;
                     const menuBtn = document.querySelector('.cma-mobile-menu-btn');
                     if (menuBtn) menuBtn.classList.remove('is-open');
                 }
