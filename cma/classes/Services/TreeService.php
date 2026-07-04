@@ -432,6 +432,9 @@ class TreeService extends BaseFormService
             $buildTreeImgSrc = function ($file) use ($imagePath) {
                 $file = trim((string)$file);
                 if ($file === '') return '';
+                // Already-absolute URL (external CDN image) is used as-is;
+                // base-path + rawurlencode() would mangle it to "/https%3A%2F%2F…".
+                if (preg_match('#^(https?:)?//#i', $file)) return $file;
                 $base = trim((string)$imagePath, '/');
                 return '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($file);
             };

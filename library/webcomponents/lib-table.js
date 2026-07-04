@@ -2544,6 +2544,15 @@ class LibTable extends HTMLElement {
             this._export('doc', tableName);
         });
 
+        // The menu column is usually an action/id column whose header is just a
+        // non-breaking space; strip that whitespace/nbsp-only label so it doesn't
+        // render as a stray gap right after the menu trigger.
+        const menuLabel = firstTh.querySelector('.th-header-wrapper .clicker') || firstTh;
+        if (menuLabel && !menuLabel.querySelector('*')
+            && !(menuLabel.textContent || '').replace(/ /g, '').trim()) {
+            menuLabel.textContent = '';
+        }
+
         // Insert inside th-header-wrapper if it exists, otherwise as first child of th
         const headerWrapper = firstTh.querySelector('.th-header-wrapper');
         if (headerWrapper) {

@@ -691,8 +691,14 @@ class SubformService extends BaseFormService
                         $filename = trim((string)$value);
                         $inner = '';
                         if ($filename !== '') {
-                            $base = trim((string)($fieldPaths[$col] ?? ''), '/');
-                            $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+                            // Already-absolute URL (external CDN image) is used as-is;
+                            // base-path + rawurlencode() would mangle it to "/https%3A%2F%2F…".
+                            if (preg_match('#^(https?:)?//#i', $filename)) {
+                                $src = $filename;
+                            } else {
+                                $base = trim((string)($fieldPaths[$col] ?? ''), '/');
+                                $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+                            }
                             $srcEnc = Server::htmlEncode($src);
                             $inner = '<img class="cma-list-thumb" src="' . $srcEnc . '" data-full="' . $srcEnc . '" alt="" loading="lazy">';
                         }

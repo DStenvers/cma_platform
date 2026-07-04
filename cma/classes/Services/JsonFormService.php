@@ -2026,8 +2026,15 @@ class JsonFormService extends BaseFormService
         $filename = trim((string)$value);
         $inner = '';
         if ($filename !== '') {
-            $base = trim((string)($col['path'] ?? ''), '/');
-            $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+            // An already-absolute URL (external image, e.g. a CDN) is used as-is;
+            // prepending the base path + rawurlencode() would mangle it into
+            // "/https%3A%2F%2F…" and break the image.
+            if (preg_match('#^(https?:)?//#i', $filename)) {
+                $src = $filename;
+            } else {
+                $base = trim((string)($col['path'] ?? ''), '/');
+                $src = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
+            }
             $srcEnc = htmlspecialchars($src);
             $inner = '<img class="cma-list-thumb" src="' . $srcEnc . '" data-full="' . $srcEnc . '" alt="" loading="lazy">';
         }
