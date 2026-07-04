@@ -1992,3 +1992,20 @@ karaat-data en staat in de karaat-repo.
 > karaat: the link to the cma stone page is incorrect: https://www.karaatedelstenen.nl/cma/main.php?page=form.php%3Fform%3Dsteensoorten_producten&ID=5008
 
 > the new stones in karaat on the homepage, start with single stones and then the pairs,
+
+> ik zie nu records 1-1800 van 1806 (laden...) (aantal stenen geplaatt)
+
+> ik zie nu records 1-1800 van 1806 (laden...) (aantal stenen geplaatt)
+>
+> de maintenance stand werkt niet: ik krijg nu Error in //index.php
+>
+> Error: Class "App\Library\Application" not found
+>
+> in C:\wwwroot\www.karaatedelstenen.nl\filter.inc:14
+>
+> #0 C:\wwwroot\www.karaatedelstenen.nl\header.inc(14): require_once()
+> #1 C:\wwwroot\www.karaatedelstenen.nl\index.php(11): require_once('...')
+> #2 C:\wwwroot\www.karaatedelstenen.nl\_bootstrap_wrapper.php(61): include('...')
+> #3 {main} tijdens een composer update
+
+> ja graag

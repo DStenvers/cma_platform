@@ -724,24 +724,30 @@ class CmaInfiniteScroll {
                         // Convert NodeList to array to prevent issues during iteration
                         const newRows = Array.from(tempTbody.querySelectorAll('tr'));
 
-                        // Dedupe by row id before appending. Keyset (Id) pagination
-                        // re-emits rows already shown when the list ORDER BY isn't by
-                        // Id (a one-to-many JOIN / non-Id sort), which would otherwise
-                        // DUPLICATE rows — ballooning the DOM and keeping the counter
-                        // below the real total forever ("records 1-N van M (laden...)").
-                        // Track ids already placed, seeded from the initial rows.
-                        if (!this._seenIds) {
-                            this._seenIds = new Set();
-                            tbody.querySelectorAll('tr[data-id]').forEach(r => this._seenIds.add(r.getAttribute('data-id')));
+                        // Dedupe by row id before appending. Two causes conspire here:
+                        //  (1) keyset (Id) pagination re-emits rows already shown when
+                        //      the list ORDER BY isn't by Id (non-Id / JOIN sort), and
+                        //  (2) more than one CmaInfiniteScroll instance can end up
+                        //      loading into the SAME table (diagnosed live: rows were
+                        //      appended twice, ballooning the DOM to 2200 for 1806
+                        //      records and freezing "records 1-N van M (laden...)").
+                        // The seen-id set therefore lives on the TBODY element (shared
+                        // across instances), not on `this` — a per-instance set can't
+                        // catch a second instance's duplicates. Seeded from the initial
+                        // server-rendered rows.
+                        if (!tbody._cmaSeenIds) {
+                            tbody._cmaSeenIds = new Set();
+                            tbody.querySelectorAll('tr[data-id]').forEach(r => tbody._cmaSeenIds.add(r.getAttribute('data-id')));
                         }
+                        const seen = tbody._cmaSeenIds;
                         const beforeCount = tbody.querySelectorAll('tr').length;
                         let uniqueRows = 0;
                         let duplicateRows = 0;
                         newRows.forEach(row => {
                             const rid = row.getAttribute('data-id');
                             if (rid !== null && rid !== '') {
-                                if (this._seenIds.has(rid)) { duplicateRows++; return; }
-                                this._seenIds.add(rid);
+                                if (seen.has(rid)) { duplicateRows++; return; }
+                                seen.add(rid);
                             }
                             tbody.appendChild(row);
                             uniqueRows++;

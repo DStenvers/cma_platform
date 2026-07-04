@@ -20,6 +20,31 @@ describe('pager stall diag', () => {
         const logs = [];
         cy.visit(`/form/${FORM}`, {
             onBeforeLoad(win) {
+                // Patch Node append/insert to find who adds <tr> rows to
+                // #listTable's tbody (the phantom second appender). Synchronous
+                // patch → the stack is the real caller. Injected from the test,
+                // so it works on the live site with no deploy.
+                win.__cmaRowCallers = {};
+                ['appendChild', 'insertBefore'].forEach((fn) => {
+                    const proto = win.Node.prototype;
+                    const orig = proto[fn];
+                    proto[fn] = function (node) {
+                        try {
+                            if (node && node.nodeName === 'TR' && this && this.nodeName === 'TBODY') {
+                                const tbl = this.closest && this.closest('table');
+                                if (tbl && tbl.id === 'listTable') {
+                                    const chain = ((new Error().stack || '').split('\n').slice(2, 7))
+                                        .map((l) => l.replace(/https?:\/\/[^ )]*[/&]/g, '').replace(/\s+at\s+/, '').trim().slice(0, 60))
+                                        .join(' <- ');
+                                    const key = fn + ' | ' + chain;
+                                    win.__cmaRowCallers[key] = (win.__cmaRowCallers[key] || 0) + 1;
+                                }
+                            }
+                        } catch (e) { /* diag */ }
+                        return orig.apply(this, arguments);
+                    };
+                });
+
                 ['log', 'warn', 'error'].forEach((level) => {
                     const orig = win.console[level].bind(win.console);
                     win.console[level] = (...args) => {
@@ -42,9 +67,11 @@ describe('pager stall diag', () => {
         cy.document().then((doc) => {
             const countEl = doc.getElementById('recordCount');
             const domRows = doc.querySelectorAll('#listTable tbody tr').length;
+            const win = doc.defaultView;
             const out = {
                 counterText: countEl ? countEl.textContent.trim() : '(no #recordCount)',
                 domRows,
+                rowCallers: win.__cmaRowCallers || '(none)',
                 relevantConsole: logs.slice(-40),
             };
             cy.writeFile('cypress/pager-stall-out.json', out);
