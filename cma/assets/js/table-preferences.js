@@ -1067,9 +1067,21 @@ class CmaInfiniteScroll {
             }
         }
 
+        // Read the loaded count from the LIVE DOM (unique data rows), not
+        // this.currentCount: more than one scroller can be attached to the same
+        // table and each keeps its own currentCount — a scroller that stopped
+        // early would otherwise clobber the display with a stale, too-low number
+        // (the mobile "records 1-200 van 1806" freeze). The deduped DOM is the
+        // source of truth; if the table isn't reachable, fall back to currentCount.
+        let loaded = this.currentCount;
+        if (this.table) {
+            const tb = this.table.querySelector('tbody');
+            if (tb) loaded = tb.querySelectorAll('tr[data-id]').length;
+        }
+
         if (this.totalCount !== null && this.totalCount > 0) {
             // Show "records 1-X van Y" format, but hide if showing all records
-            const endRecord = Math.min(this.currentCount, this.totalCount);
+            const endRecord = Math.min(loaded, this.totalCount);
             if (endRecord >= this.totalCount) {
                 // All records shown - hide the count
                 countEl.style.display = 'none';
@@ -1078,9 +1090,9 @@ class CmaInfiniteScroll {
                 countEl.textContent = `records 1-${endRecord} van ${this.totalCount}${loadingText}`;
                 countEl.style.display = '';
             }
-        } else if (this.currentCount > 0) {
+        } else if (loaded > 0) {
             // No totalCount available, just show current count
-            countEl.textContent = `${this.currentCount} records`;
+            countEl.textContent = `${loaded} records`;
             countEl.style.display = '';
         } else {
             countEl.style.display = 'none';

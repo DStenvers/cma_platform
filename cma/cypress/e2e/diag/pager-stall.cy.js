@@ -18,6 +18,7 @@ describe('pager stall diag', () => {
             body: { naam: U, wachtwoord: P } });
 
         const logs = [];
+        cy.viewport(390, 844); // iPhone-ish: reproduce the mobile "1-200" behaviour
         cy.visit(`/form/${FORM}`, {
             onBeforeLoad(win) {
                 // Patch Node append/insert to find who adds <tr> rows to
