@@ -1978,3 +1978,5 @@ karaat-data en staat in de karaat-repo.
 > Yes please, keep it simple and say something like We zijn even bezig met de website, duurt niet lang.. Blijft u deze melding langer dan 10 minuten zien? App me even op 0654752275.
 
 > whatsapp is prima. Moeten we dit niet ook voor andere consumer sites doen? Kunnen we een maintenance.php maken die dynamisch logo, emailadres enzo ophaalt?
+
+> ja doe maar voor alle andere sites, en kunnen we de maintenance stand in het systeem menu opnemen? eventueel met een berichtop maat (post[= ander bericht)?

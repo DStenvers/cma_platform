@@ -26,15 +26,22 @@ if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
     if (!is_file($flag)) {
         return;
     }
-    // Stuck-deploy safety: a flag older than 20 min means a crashed/killed
-    // deploy never cleared it — lift it rather than wall the site off forever.
-    if (time() - (int) @filemtime($flag) > 1200) {
+    // A manual toggle (set from the CMA) carries a "manual" marker and stays
+    // until an admin lifts it. A deploy flag has no marker and auto-lifts after
+    // 20 min as a crashed/killed-deploy safety net.
+    $manual = strpos((string) @file_get_contents($flag), '"manual"') !== false;
+    if (!$manual && time() - (int) @filemtime($flag) > 1200) {
         @unlink($flag);
         return;
     }
     // The deploy hatch + its status poller must stay reachable during a deploy.
     $self = basename((string) ($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
     if (in_array($self, ['deploy.php', 'deploy_status.php'], true)) {
+        return;
+    }
+    // Keep the admin app reachable: an admin must be able to open the CMA to
+    // lift a manual flag, and a deploy's own /cma/ health-check must not 503.
+    if (strpos((string) ($_SERVER['REQUEST_URI'] ?? ''), '/cma/') === 0) {
         return;
     }
     http_response_code(503);
