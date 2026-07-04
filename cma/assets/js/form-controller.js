@@ -5598,18 +5598,6 @@ class CmaFormController {
             this.infiniteScroll.destroy();
         }
 
-        // Singleton per table: initTableFeatures() runs from BOTH processListData()
-        // and loadList(), and there can be more than one controller — each would
-        // otherwise spin up its own scroller on the SAME #listTable and both walk
-        // the pages, duplicating rows ("records 1-N van M (laden...)" that never
-        // settles). Destroy whatever scroller is already attached to this table
-        // (even one from another controller) so only one ever loads into it.
-        const existingTable = document.getElementById('listTable');
-        if (existingTable && existingTable._cmaScroller && existingTable._cmaScroller !== this.infiniteScroll) {
-            try { existingTable._cmaScroller.destroy(); } catch (e) { /* best effort */ }
-            existingTable._cmaScroller = null;
-        }
-
         // Check if CmaInfiniteScroll is available
         if (typeof CmaInfiniteScroll === 'undefined') {
             cmaLog.warn('CmaInfiniteScroll not loaded');
@@ -5640,9 +5628,6 @@ class CmaFormController {
                 return await self.loadMoreRows(lastId, pageSize);
             }
         });
-
-        // Register as the table's single active scroller (see singleton note above).
-        table._cmaScroller = this.infiniteScroll;
 
         // Update from initial response
         this.infiniteScroll.updateFromResponse(data);
