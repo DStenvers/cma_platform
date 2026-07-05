@@ -26,6 +26,11 @@
     // full-width.
     function resolveNav(href) {
         if (!href) return null;
+        // Site-specific tools live at the site root (/tools/…, outside /cma/) or
+        // are full URLs — plain scripts, not shell pages. Open them in a new tab.
+        if (/^https?:\/\//i.test(href) || href.charAt(0) === '/') {
+            return { external: true, url: href };
+        }
         if (href.indexOf('form.php?form=') === 0) {
             var f = href.match(/form=([^&]+)/);
             var fn = f ? f[1] : null;
@@ -169,10 +174,12 @@
             var html = flat.map(function (g) {
                 var items = g.items.map(function (it) {
                     var nav = resolveNav(it.href);
+                    var ext = nav && nav.external;
                     var badge = it.badge ? '<span class="cma-launcher__badge" title="Toegangsniveau">' + self._esc(it.badge) + '</span>' : '';
                     var icon = it.icon ? '<span class="cma-launcher__item-icon lnr ' + self._esc(it.icon) + '"></span>' : '';
                     return '<a class="cma-launcher__item" href="' + self._esc(nav && nav.url ? nav.url : (it.href || '#')) + '"' +
-                        ' data-page="' + self._esc(nav ? nav.page : '') + '"' +
+                        (ext ? ' target="_blank" rel="noopener" data-external="1"' : '') +
+                        ' data-page="' + self._esc(nav ? (nav.page || '') : '') + '"' +
                         ' data-url="' + self._esc(nav && nav.url ? nav.url : '') + '"' +
                         ' data-search="' + self._esc((it.label || '').toLowerCase()) + '">' +
                         icon + '<span class="cma-launcher__item-label">' + self._esc(it.label) + '</span>' + badge +
@@ -214,6 +221,9 @@
             }
             this.querySelectorAll('.cma-launcher__item').forEach(function (a) {
                 a.addEventListener('click', function (e) {
+                    // External site tools are real <a target="_blank"> links — let
+                    // the browser open the new tab; just close the launcher.
+                    if (a.getAttribute('data-external')) { self.close(); return; }
                     e.preventDefault();
                     self._navigate(a.getAttribute('data-page'), a.getAttribute('data-url'));
                 });

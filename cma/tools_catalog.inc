@@ -143,5 +143,46 @@ function buildToolsTreeData(bool $isDeveloper): array
         $folders[] = $devFolder;
     }
 
+    // Site-specific tools: a consumer site surfaces its own root-level tools/*.php
+    // scripts in the launcher by dropping a data/tools.json. Kept generic — the
+    // platform never hardcodes a site's filenames. Format:
+    //   { "groups": [ { "label": "...", "icon": "lnr-...", "items": [
+    //       { "label": "...", "href": "/tools/x.php", "icon": "lnr-...", "badge": "A|D" } ] } ] }
+    // Items with an absolute href (/tools/…, http…) open in a new tab (they are
+    // plain scripts at the site root, not shell pages). A "D" badge is dev-only.
+    $siteToolsFile = \App\Library\Server::mapPath('data/tools.json');
+    if (is_file($siteToolsFile)) {
+        $siteCfg = json_decode((string) @file_get_contents($siteToolsFile), true);
+        foreach (($siteCfg['groups'] ?? []) as $g) {
+            $children = [];
+            foreach (($g['items'] ?? []) as $it) {
+                if (empty($it['label']) || empty($it['href'])) {
+                    continue;
+                }
+                if (($it['badge'] ?? '') === 'D' && !$isDeveloper) {
+                    continue;
+                }
+                $child = [
+                    'type'  => 'item',
+                    'label' => (string) $it['label'],
+                    'href'  => (string) $it['href'],
+                    'icon'  => (string) ($it['icon'] ?? 'lnr-cog'),
+                ];
+                if (!empty($it['badge'])) {
+                    $child['badge'] = (string) $it['badge'];
+                }
+                $children[] = $child;
+            }
+            if ($children) {
+                $folders[] = [
+                    'type'     => 'folder',
+                    'label'    => (string) ($g['label'] ?? 'Site'),
+                    'icon'     => (string) ($g['icon'] ?? 'lnr-layers'),
+                    'children' => $children,
+                ];
+            }
+        }
+    }
+
     return $folders;
 }

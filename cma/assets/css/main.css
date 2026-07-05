@@ -1045,9 +1045,10 @@ a.cma-menu-item.active .cma-menu-icon::before {
        container to the viewport below the header so the iframe fills the
        screen again. */
     .cma-content-inner .tools-ajax-container,
-    .cma-content-inner .tools-page {
+    .cma-content-inner .tools-page,
+    .cma-content-inner .cma-form {
         height: calc(100vh - var(--header-height));
-        height: calc(100dvh - var(--header-height)); /* dvh tracks the real mobile viewport (100vh overshoots behind the URL bar, leaving the tool iframe short of full height) */
+        height: calc(100dvh - var(--header-height)); /* dvh tracks the real mobile viewport (100vh overshoots behind the URL bar). Forms need this too: on mobile the overflow:visible relaxations above collapse the flex chain, so .cma-form must be pinned to the viewport like the tools/reports pages — flex:1 alone leaves it short. */
     }
 }
 

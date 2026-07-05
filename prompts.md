@@ -2033,3 +2033,115 @@ karaat-data en staat in de karaat-repo.
 > the height of reports is not 100%, same as with forms
 >
 > https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Dwebp_convert if i scroll the page is reloaded?? and it starts by scanning the default dir, let’s not do that, the page is too slow
+
+> PLAN: Gemstone plausibility validation via specific gravity (SG)
+>
+> CONTEXT
+> - Existing PHP project (karaatedelstenen). Use the existing codebase,
+>   database access layer, and CSS styling. Do NOT use inline CSS.
+> - Database contains: stone types (species) and individual stones with
+>   dimensions (height, width, depth), cut style, and weight in carats.
+> - Goal: for each stone, estimate SG from dimensions + weight, compare
+>   with the reference SG of its stone type, and store/show a reliability
+>   indicator on a 1-5 scale.
+>
+> STEP 0 - INSPECT, DO NOT ASSUME
+> - Read the schema of the stone types table and the stones table.
+>   Confirm: column names, units of dimensions (mm assumed - verify),
+>   weight unit (carat assumed - verify), how cut style is stored
+>   (free text, enum, foreign key?).
+> - Check whether the stone types table already has a specific gravity
+>   column. If not, this must be added (step 2).
+> - List the distinct cut style values actually present in the data.
+> - STOP and report findings before writing code if anything is
+>   ambiguous (unknown units, missing columns, inconsistent cut values).
+>
+> STEP 1 - CALCULATION MODULE
+> - Create one PHP class/function (following existing code conventions)
+>   that computes:
+>     grams = carats / 5
+>     volume_cm3 = (L_mm * W_mm * D_mm * fill_factor) / 1000
+>     sg_calculated = grams / volume_cm3
+> - Fill factors per cut style (approximate):
+>     round brilliant: 0.52
+>     oval: 0.53
+>     cushion: 0.57
+>     emerald/octagon/baguette: 0.62
+>     princess/square: 0.60
+>     pear: 0.48
+>     marquise: 0.45
+>     trillion: 0.48
+>     cabochon: 0.65
+>     heart: 0.50
+>     unknown/other: use 0.55 and flag lower confidence
+> - Map the database's actual cut style values to these factors
+>   (based on the distinct values found in step 0). Put the mapping in
+>   a config array, not hardcoded in logic.
+>
+> STEP 2 - REFERENCE DATA
+> - Ensure the stone types table has: sg_min and sg_max (a range, not a
+>   single value, because natural variation exists).
+> - If the columns are missing: add them via a migration/ALTER script
+>   and populate for the types present in the database. Ask me to
+>   review the populated values before applying.
+>
+> STEP 3 - RELIABILITY SCORE (1-5)
+> - Compute deviation = how far sg_calculated falls outside [sg_min, sg_max],
+>   expressed as a percentage relative to the range midpoint.
+> - Scoring:
+>     5 = inside the reference range
+>     4 = outside range but within 5% of nearest bound
+>     3 = 5-12% outside
+>     2 = 12-25% outside
+>     1 = more than 25% outside (likely wrong type or fake)
+> - Confidence penalties (subtract 1, minimum 1):
+>     - cut style unknown/unmapped
+>     - any dimension missing or zero -> no score at all, mark as
+>       "not assessable" instead of guessing
+> - Store per stone: sg_calculated, score, and a short reason string
+>   (e.g. "SG 5.7 vs expected 3.50-3.53").
+>
+> STEP 4 - EXECUTION
+> - Build it as a batch script/command that processes all stones and
+>   writes results to the stones table (add columns if needed, same
+>   review rule as step 2).
+> - Make it re-runnable (idempotent): recalculates and overwrites.
+>
+> STEP 5 - PRESENTATION
+> - Add the score to the existing stone detail/list views using the
+>   existing CSS classes and styling patterns. No inline CSS.
+>   If a suitable visual pattern (badge/label) already exists in the
+>   project, reuse it.
+>
+> STEP 6 - VERIFY
+> - Show me: 10 sample results across different scores, plus any stones
+>   marked "not assessable", before considering this done.
+>
+> GENERAL RULES
+> - If units, schema, or cut values are unclear at any point: stop and
+>   ask, do not guess.
+> - Keep the fill factor table and SG reference data editable (config
+>   or database), not buried in code.
+
+> Make sure the 1-5 scale is not yet display to front-end, create a report with a link to the stone´s detail page of all stones and their sg-score
+
+> Please commit and push.
+>
+> Desktop now shows: records 1-1800 van 1806 (laden...) and Mobile records 1-400 van 1806 (laden...)
+
+> okay stop. I want you to look up the gravity from the gemdat link in each soorten record. Sillmanite for instane has Specific Gravity    3.20 to 3.26 .
+
+> about that import, please also check if the refractive index and the hardness mohls scale are correct, in fact, just fill it with the value of gemdat
+
+> @"/home/diede/.claude/uploads/fe158292-4673-4e2e-b4b7-5159aecd6533/f0a884ba-IMG_5855.png" i aill check, in the mean time the forma are si
+> till not 100% heigh on mobile, please in estigate and aolve permanently, test yourself
+
+> <task-notification>
+> <task-id>b91xqwpo3</task-id>
+> <tool-use-id>toolu_01Fvy1UK9uYNmnPhaJC8H5Jh</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/fe158292-4673-4e2e-b4b7-5159aecd6533/tasks/b91xqwpo3.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Run mobile height measurement against live" completed (exit code 0)</summary>
+> </task-notification>
+
+> did you include these tools in the site specifiic section of the tools menu?
