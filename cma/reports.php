@@ -104,13 +104,17 @@ cma_script('webcomponents/cma-toolbar.js');
     var menu = document.getElementById('reportsMenu');
     var frame = document.getElementById('reports-content');
     var btn = document.getElementById('reportsMenuBtn');
+    var currentRepId = <?= $repId > 0 ? (int) $repId : 'null' ?>;
 
     // Swap between the tile menu and the full-width report iframe client-side,
     // so picking a report (or returning to the menu) never reloads the shell.
     // history.replaceState keeps the URL deep-linkable (a reload/bookmark of
     // reports.php?RepID=x re-enters via the shell guard above).
     function showReport(id) {
-        frame.src = 'reportdetails.php?RepID=' + encodeURIComponent(id);
+        currentRepId = id;
+        if (frame.getAttribute('src') !== 'reportdetails.php?RepID=' + encodeURIComponent(id)) {
+            frame.src = 'reportdetails.php?RepID=' + encodeURIComponent(id);
+        }
         frame.hidden = false;
         menu.hidden = true;
         if (window.history && history.replaceState) {
@@ -131,7 +135,15 @@ cma_script('webcomponents/cma-toolbar.js');
         e.preventDefault();
         showReport(a.getAttribute('data-repid'));
     });
-    if (btn) btn.addEventListener('click', showMenu);
+    // Toolbar button toggles: menu open -> back to the report (if one is loaded);
+    // report showing -> open the menu. With no report chosen yet it's a no-op.
+    if (btn) btn.addEventListener('click', function () {
+        if (menu.hidden) {
+            showMenu();
+        } else if (currentRepId !== null) {
+            showReport(currentRepId);
+        }
+    });
 })();
 </script>
 

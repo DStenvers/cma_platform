@@ -2017,3 +2017,19 @@ karaat-data en staat in de karaat-repo.
 > je hebt de deploy secret in de locale .env staan
 
 > atart maat met de webp en form height
+
+> i have no access to server now, will have to wait
+
+> can you bump rec? samee server as karaat and can fill the cache
+
+## 2026-07-05
+
+> leave it for now
+>
+> ecords 1-400 van 1806 , on mobile
+>
+> reports big menu does not close when i click on the trigger again
+>
+> the height of reports is not 100%, same as with forms
+>
+> https://www.karaatedelstenen.nl/cma/main.php?page=tools.php%3Ftool%3Dwebp_convert if i scroll the page is reloaded?? and it starts by scanning the default dir, let’s not do that, the page is too slow

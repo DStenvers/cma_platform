@@ -828,7 +828,8 @@ a.cma-menu-item.active .cma-menu-icon::before {
 }
 
 /* Tools/Reports AJAX container needs height for cma-fold to work */
-.cma-content-inner .tools-ajax-container {
+.cma-content-inner .tools-ajax-container,
+.cma-content-inner .tools-page {
     height: 100%;
 }
 
@@ -1043,7 +1044,8 @@ a.cma-menu-item.active .cma-menu-icon::before {
        falls back to the browser's 150px default iframe height. Pin the AJAX
        container to the viewport below the header so the iframe fills the
        screen again. */
-    .cma-content-inner .tools-ajax-container {
+    .cma-content-inner .tools-ajax-container,
+    .cma-content-inner .tools-page {
         height: calc(100vh - var(--header-height));
         height: calc(100dvh - var(--header-height)); /* dvh tracks the real mobile viewport (100vh overshoots behind the URL bar, leaving the tool iframe short of full height) */
     }

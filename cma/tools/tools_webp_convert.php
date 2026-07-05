@@ -1141,8 +1141,10 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
                 showStatus('<lib-message type="error">Fout: ' + err.message + '</lib-message>');
             });
     };
-    // Auto-scan default directory on load
-    window.scanDirectory();
+    // No auto-scan on load — scanning a large image folder (variant status per
+    // file) is slow and made the page feel like it reloaded. Wait for the user
+    // to pick a folder and click "Scannen".
+    showStatus('<lib-message type="info">Kies een map en klik op <span class="cma-tool__strong">Scannen</span> om te beginnen.</lib-message>');
 })();
 </script>
 
