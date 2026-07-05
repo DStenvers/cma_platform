@@ -2145,3 +2145,19 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > did you include these tools in the site specifiic section of the tools menu?
+
+> the numbers for the shapes, where do yhey come from? i find the cabouchon to be quite low on the values
+
+> no i want a reliable source like gemdat.org
+
+> do youbhave a link, incan retrieve them
+
+> place the link so i can paste it, noq they all 404
+
+> leave the cabouchons, and the 1 value, is thatvthe average of the 2 values we calculated?
+
+> no the values ofbtge 3 spurces, they have 1 number, is that number close to our average?
+
+> about the shapes: create a tool that determined the shape for stones that are not round and not oval , using the image and ai, make a 20 piece dry run and a full run, show the current shape and the proposed (new) shape. is we do this the shapes need to be correct
+
+> are the tools now mentioned in the tools menu?

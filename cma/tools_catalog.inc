@@ -150,7 +150,9 @@ function buildToolsTreeData(bool $isDeveloper): array
     //       { "label": "...", "href": "/tools/x.php", "icon": "lnr-...", "badge": "A|D" } ] } ] }
     // Items with an absolute href (/tools/…, http…) open in a new tab (they are
     // plain scripts at the site root, not shell pages). A "D" badge is dev-only.
-    $siteToolsFile = \App\Library\Server::mapPath('data/tools.json');
+    // Site root is one level above cma/ (this file is cma/tools_catalog.inc);
+    // the per-site data/ lives there (same as ReportsService's config path).
+    $siteToolsFile = dirname(__DIR__) . '/data/tools.json';
     if (is_file($siteToolsFile)) {
         $siteCfg = json_decode((string) @file_get_contents($siteToolsFile), true);
         foreach (($siteCfg['groups'] ?? []) as $g) {
