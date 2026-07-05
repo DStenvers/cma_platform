@@ -588,6 +588,19 @@ class CmaInfiniteScroll {
         this.pendingLastId = null; // Track which lastId is being loaded to prevent duplicates
         this.destroyed = false; // Flag to prevent stale async loads from completing
 
+        // One scroller per table element. If a previous scroller is still
+        // attached to this table (e.g. a stale FormController that was never torn
+        // down), destroy it now so two instances can't race: the losing scroller
+        // gets all-duplicate batches and wrongly stops the pager short of the
+        // total ("records 1-400 van 1806" on mobile). Deregistered in destroy().
+        if (this.table) {
+            const prevScroller = this.table._cmaScroller;
+            if (prevScroller && prevScroller !== this && typeof prevScroller.destroy === 'function') {
+                prevScroller.destroy();
+            }
+            this.table._cmaScroller = this;
+        }
+
         // Record count tracking
         this.currentCount = 0; // Current number of loaded records
         this.totalCount = null; // Total records in dataset (from initial load)
@@ -1067,17 +1080,13 @@ class CmaInfiniteScroll {
             }
         }
 
-        // Read the loaded count from the LIVE DOM (unique data rows), not
-        // this.currentCount: more than one scroller can be attached to the same
-        // table and each keeps its own currentCount — a scroller that stopped
-        // early would otherwise clobber the display with a stale, too-low number
-        // (the mobile "records 1-200 van 1806" freeze). The deduped DOM is the
-        // source of truth; if the table isn't reachable, fall back to currentCount.
-        let loaded = this.currentCount;
-        if (this.table) {
-            const tb = this.table.querySelector('tbody');
-            if (tb) loaded = tb.querySelectorAll('tr[data-id]').length;
-        }
+        // Loaded = this.currentCount (total rows appended by THIS scroller). We
+        // deliberately do NOT read it from the live DOM: DOM pruning caps the
+        // table at ~maxRowsInDom rows, so a DOM count under-reports once the user
+        // scrolls — that was the real mobile "records 1-400 van 1806" cap. The
+        // two-scroller race that used to make currentCount unreliable is now
+        // prevented at the source (one scroller per table element, see constructor).
+        const loaded = this.currentCount;
 
         if (this.totalCount !== null && this.totalCount > 0) {
             // Show "records 1-X van Y" format, but hide if showing all records
@@ -1122,6 +1131,10 @@ class CmaInfiniteScroll {
         if (this.topPlaceholder) {
             this.topPlaceholder.remove();
             this.topPlaceholder = null;
+        }
+        // Release the one-per-table registration (only if we still own it).
+        if (this.table && this.table._cmaScroller === this) {
+            this.table._cmaScroller = null;
         }
     }
 }
