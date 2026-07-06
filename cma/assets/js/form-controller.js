@@ -3418,17 +3418,6 @@ class CmaFormController {
                         cmaLog.error('[initHtmlEditorsOnce] initHtmlEditors EXCEPTION:', e.message, e.stack);
                     }
 
-                    // Watchdog: CKEDITOR.replace() immediately hides the textarea
-                    // (visibility:hidden) and then builds the editor chrome async.
-                    // If that async load stalls — e.g. a skin/plugin/lang resource
-                    // 404s on the server — the instance is stuck at status
-                    // 'unloaded' forever: no chrome, textarea hidden, field looks
-                    // empty. A few seconds later, rescue any such field back to a
-                    // usable plain textarea so its content is never lost or hidden.
-                    setTimeout(() => {
-                        try { this.recoverStalledEditors(); }
-                        catch (e) { cmaLog.error('[recoverStalledEditors] EXCEPTION:', e.message, e.stack); }
-                    }, 4000);
 
                     // Initialize content block editing for fields with data-use-blockedit="true"
                     // blockedit_init() is provided by blockedit.js and looks for .blockedit containers
@@ -3550,10 +3539,14 @@ class CmaFormController {
         let skipped = 0;
         let errors = 0;
 
+        // Fresh init pass: clear the per-field ready-watchdog attempt counters so a
+        // field that gave up on a previous form gets a clean set of retries now.
+        // (The watchdog's own recreate calls createEditorForField() directly, not
+        // this method, so its running count is preserved.)
+        this._editorWatchAttempts = {};
+
         htmlTextareas.forEach(textarea => {
             const name = textarea.name;
-            const isSimple = textarea.dataset.limitedHtml === 'true';
-            const noSpamJs = textarea.dataset.noSpamJs === 'true';
 
             // Skip if already initialized
             if (CKEDITOR.instances[name]) {
@@ -3562,20 +3555,9 @@ class CmaFormController {
                 return;
             }
 
-            // Use CreateFKEditor from cma.js
-            // Signature: CreateFKEditor(fieldname, nSize, bSpamJS, nHeight, bSimple, bNoToolbar)
-            // Use the textarea's height so CKEditor starts at the right size (avoids flicker)
-            // offsetHeight works when visible; style.height works when in hidden panel;
-            // rows * 18 matches FormRenderer.php calculation as final fallback
-            const rows = parseInt(textarea.getAttribute('rows')) || 0;
-            const editorHeight = textarea.offsetHeight || parseInt(textarea.style.height) || (rows > 0 ? rows * 18 : 300);
-            // cmaLog.log('[initHtmlEditors] Creating CKEditor for:', name, 'isSimple:', isSimple, 'noSpamJs:', noSpamJs, 'height:', editorHeight);
-            try {
-                CreateFKEditor(name, 0, noSpamJs, editorHeight, isSimple, false);
-                // cmaLog.log('[initHtmlEditors] CreateFKEditor called successfully for:', name);
+            if (this.createEditorForField(name)) {
                 created++;
-            } catch (e) {
-                cmaLog.error('[initHtmlEditors] CreateFKEditor EXCEPTION for', name, ':', e.message, e.stack);
+            } else {
                 errors++;
             }
         });
@@ -3586,52 +3568,100 @@ class CmaFormController {
     }
 
     /**
-     * Rescue rich-HTML memo fields whose CKEditor never finished loading.
+     * Create the CKEditor for one memo field and arm the ready-watchdog.
      *
-     * A rich memo renders as <textarea data-allow-html="true">; CKEDITOR.replace()
-     * immediately hides that textarea (visibility:hidden) and then builds the editor
-     * chrome asynchronously. On this CMA's ancient CKEditor 4.5.7 the async load can
-     * stall — the instance is created but stays at status 'unloaded' forever (no
-     * chrome, textarea hidden, field looks empty and unusable).
-     *
-     * This watchdog runs a few seconds after init. For every allow-HTML textarea
-     * whose editor did NOT reach 'ready', it drops the dead instance and restores
-     * the plain textarea with its original content, so the HTML is always visible
-     * and editable (as source) instead of silently lost behind a hidden field.
-     * Editors that loaded normally are left untouched.
+     * CKEDITOR.replace() (via CreateFKEditor) registers the instance synchronously
+     * but builds the skin/iframe asynchronously; on this CMA's CKEditor 4.5.7 that
+     * build can stall, leaving the instance stuck at status 'unloaded' with no
+     * chrome and the source textarea hidden. watchEditorReady() recovers from that
+     * exactly the way blockedit.js does for content-block editors: destroy the
+     * half-built instance and create it again. Returns true if replace() was called.
      */
-    recoverStalledEditors() {
-        if (typeof CKEDITOR === 'undefined') return;
-        const textareas = this.mainForm?.querySelectorAll('textarea[data-allow-html="true"]') || [];
-        textareas.forEach(textarea => {
-            const name = textarea.name;
-            const inst = CKEDITOR.instances[name];
+    createEditorForField(name) {
+        const textarea = this.mainForm?.querySelector(`textarea[name="${name}"]`);
+        if (!textarea) return false;
 
-            // A fully-built editor is 'ready' — leave it alone.
-            if (inst && inst.status === 'ready') return;
+        const isSimple = textarea.dataset.limitedHtml === 'true';
+        const noSpamJs = textarea.dataset.noSpamJs === 'true';
+        // Use the textarea's height so CKEditor starts at the right size (avoids
+        // flicker). offsetHeight works when visible; style.height works when in a
+        // hidden panel; rows * 18 matches FormRenderer.php as the final fallback.
+        const rows = parseInt(textarea.getAttribute('rows')) || 0;
+        const editorHeight = textarea.offsetHeight || parseInt(textarea.style.height) || (rows > 0 ? rows * 18 : 300);
 
-            // Preserve the content first: a stalled editor holds no data, so we must
-            // NOT let destroy() write its empty data back over the textarea.
-            const savedValue = textarea.value || textarea.getAttribute('data-original-value') || '';
+        try {
+            // Signature: CreateFKEditor(fieldname, nSize, bSpamJS, nHeight, bSimple, bNoToolbar)
+            CreateFKEditor(name, 0, noSpamJs, editorHeight, isSimple, false);
+        } catch (e) {
+            cmaLog.error('[createEditorForField] CreateFKEditor EXCEPTION for', name, ':', e.message, e.stack);
+            return false;
+        }
 
-            if (inst) {
-                try {
-                    inst.destroy(true); // true = do not update the source element
-                } catch (e) {
-                    cmaLog.error('[recoverStalledEditors] destroy failed for', name, ':', e.message);
-                    // Make sure a future re-init can recreate it.
-                    try { delete CKEDITOR.instances[name]; } catch (e2) { /* noop */ }
+        const editor = CKEDITOR.instances[name];
+        if (editor) {
+            this.watchEditorReady(name, editor);
+        }
+        return true;
+    }
+
+    /**
+     * Watchdog for the async part of CKEDITOR.replace(). The instance registers
+     * synchronously, but the skin/iframe build is async and, on CKEditor 4.5.7, can
+     * stall (instance stuck at 'unloaded', no chrome, textarea left hidden). If the
+     * editor is not 'ready' after 1s, destroy the half-built instance and recreate
+     * it — the same create/destroy recovery blockedit.js relies on. After 2 failed
+     * attempts, give up and leave the raw textarea usable (visible, marked
+     * .ckeditor-fallback) so the content is never lost behind a hidden field.
+     */
+    watchEditorReady(name, editor) {
+        this._editorWatchAttempts = this._editorWatchAttempts || {};
+
+        editor.on('instanceReady', () => {
+            delete this._editorWatchAttempts[name];
+        });
+
+        setTimeout(() => {
+            // Only act when this exact instance is still current and not ready.
+            if (CKEDITOR.instances[name] !== editor || editor.status === 'ready') {
+                return;
+            }
+            this._editorWatchAttempts[name] = (this._editorWatchAttempts[name] || 0) + 1;
+
+            if (this._editorWatchAttempts[name] > 2) {
+                cmaLog.error('[watchEditorReady] "' + name + '" not ready after ' +
+                    this._editorWatchAttempts[name] + ' attempts — leaving the raw textarea usable.');
+                this.destroyStalledEditor(name, editor);
+                const textarea = this.mainForm?.querySelector(`textarea[name="${name}"]`);
+                if (textarea) {
+                    textarea.style.visibility = 'visible';
+                    textarea.classList.add('ckeditor-fallback');
                 }
+                return;
             }
 
-            // Restore the plain textarea so the content is visible and editable.
-            textarea.value = savedValue;
-            textarea.style.visibility = 'visible';
-            textarea.classList.add('ckeditor-fallback');
+            cmaLog.warn('[watchEditorReady] "' + name + '" not ready after 1s — destroying and recreating (attempt ' +
+                this._editorWatchAttempts[name] + ')');
+            this.destroyStalledEditor(name, editor);
+            this.createEditorForField(name);
+        }, 1000);
+    }
 
-            cmaLog.error('[recoverStalledEditors] CKEditor stalled for "' + name +
-                '" (never reached ready) — restored plain-textarea fallback.');
-        });
+    /**
+     * Destroy a (possibly half-built) CKEditor instance defensively. destroy(true)
+     * (noUpdate — the textarea already holds the content) can throw on a stalled
+     * instance; then deregister it by hand and remove any stray chrome so a
+     * recreate can succeed.
+     */
+    destroyStalledEditor(name, editor) {
+        try {
+            editor.destroy(true); // true = do not update the source element
+        } catch (e) {
+            try { delete CKEDITOR.instances[name]; } catch (e2) { /* noop */ }
+            const stray = document.getElementById('cke_' + name);
+            if (stray && stray.parentNode) {
+                stray.parentNode.removeChild(stray);
+            }
+        }
     }
 
     /**
