@@ -89,7 +89,7 @@ class Error
         if (preg_match($pattern, $formatted, $matches)) {
             if (isset($matches[1])) {
                 $tableName = $matches[1];
-                $formatted = 'Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel<b>' . str_replace(' tbl', ' ', str_replace('dbo.', '', ' ' . $tableName)) . '</b>.';
+                $formatted = 'Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel' . str_replace(' tbl', ' ', str_replace('dbo.', '', ' ' . $tableName)) . '.';
             }
         }
 
@@ -99,7 +99,7 @@ class Error
         if (preg_match($pattern, $formatted, $matches)) {
             if (isset($matches[1])) {
                 $tableName = $matches[1];
-                $formatted = 'Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel<b>' . str_replace(' tbl', ' ', ' ' . $tableName) . '</b>.';
+                $formatted = 'Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel' . str_replace(' tbl', ' ', ' ' . $tableName) . '.';
             }
         }
 

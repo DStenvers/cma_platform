@@ -1787,7 +1787,10 @@ class FormDataProvider
             // Check if the query actually executed successfully
             if ($stmt === null) {
                 $lastError = Database::getLastError();
-                return self::error('Verwijderen mislukt: ' . ($lastError ?: 'onbekende fout'));
+                // Strip the ODBC/driver noise (SQLSTATE, error numbers, driver +
+                // source references) and surface the friendly "gerelateerde
+                // gegevens in tabel X" message via the shared Error formatter.
+                return self::error($lastError ? \App\Library\Error::format($lastError) : 'Verwijderen mislukt');
             }
 
             // Verify the row was actually affected (rowCount > 0)
@@ -1804,7 +1807,11 @@ class FormDataProvider
             ];
 
         } catch (\Exception $e) {
-            return self::error($e->getMessage());
+            // The related-records / FK violation arrives here as a raw PDOException
+            // ("SQLSTATE[HY000]... [ODBC Microsoft Access Driver] The record cannot
+            // be deleted..."). Route it through the shared formatter so the user
+            // sees only "gerelateerde gegevens in tabel X", not the driver noise.
+            return self::error(\App\Library\Error::format($e->getMessage()));
         }
     }
 
