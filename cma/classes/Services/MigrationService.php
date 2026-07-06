@@ -311,27 +311,32 @@ class MigrationService
     /**
      * Get the latest applied version from a tracking table.  Default
      * table is the platform's; pass a custom name for additional sources.
+     *
+     * "Latest" is the HIGHEST version ever recorded (compared with
+     * version_compare), NOT the most recently inserted row.  Re-running an
+     * older migration inserts a fresh row with today's timestamp; ordering by
+     * applied_at would then pull the reported version back down to that older
+     * value and make every later migration look pending again.  Taking the
+     * semver-max never lowers the version and is also insertion-order- and
+     * clock-independent, so a batch of no-op migrations applied within the
+     * same second still resolves deterministically.
      */
     private function getLatestVersion(\PDO $conn, string $tableName = self::VERSION_TABLE): ?string
     {
         try {
-            $driver = $conn->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            $stmt = $conn->query("SELECT version FROM " . $tableName);
 
-            // Tiebreak on id DESC so that batches of migrations recorded
-            // within the same second (Access DATETIME has 1-second resolution)
-            // resolve to the actual latest insert.  Without the tiebreaker, a
-            // single CLI run that applies dozens of fast no-op migrations
-            // would persist a non-deterministic version, and re-runs would
-            // advance only partially each time.
-            if ($driver === 'sqlite') {
-                $sql = "SELECT version FROM " . $tableName . " ORDER BY applied_at DESC, id DESC LIMIT 1";
-            } else {
-                $sql = "SELECT TOP 1 version FROM " . $tableName . " ORDER BY applied_at DESC, id DESC";
+            $latest = null;
+            while (($version = $stmt->fetchColumn()) !== false) {
+                $version = (string)$version;
+                if ($version === '') {
+                    continue;
+                }
+                if ($latest === null || version_compare($version, $latest, '>')) {
+                    $latest = $version;
+                }
             }
-
-            $stmt = $conn->query($sql);
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return $row ? $row['version'] : null;
+            return $latest;
         } catch (\Throwable $e) {
             $this->log[] = "Waarschuwing: Kan versie niet ophalen uit $tableName: " . $e->getMessage();
             return null;
