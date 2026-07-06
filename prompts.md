@@ -2300,3 +2300,5 @@ karaat-data en staat in de karaat-repo.
 > merge push and commit
 
 > if the page switches through a click on the menu the reports menu is still visible, solve that in the component or perhaps make an overlay sonit cannot happen? and the toggle does not always work
+
+> on cutstom buttons in forms: the lib_current_domain does not add the port number if it is different  than 80 or 443, please make that happen

@@ -548,7 +548,20 @@ class Request
      */
     public static function currentDomain(): string
     {
-        $protocol = (!empty($_SERVER['HTTPS']) && strtoupper($_SERVER['HTTPS']) === 'ON') ? 'https://' : 'http://';
-        return $protocol . self::server('SERVER_NAME', 'localhost');
+        $isHttps = (!empty($_SERVER['HTTPS']) && strtoupper($_SERVER['HTTPS']) === 'ON');
+        $protocol = $isHttps ? 'https://' : 'http://';
+        $host = self::server('SERVER_NAME', 'localhost');
+
+        // Append the port when it's non-standard (anything other than 80 for
+        // http / 443 for https), so URLs built for custom form buttons still
+        // resolve when the site runs on e.g. :8080. Skip it when SERVER_NAME
+        // already carries a port, to avoid doubling it up.
+        $port = (int) self::server('SERVER_PORT', 0);
+        $standardPort = $isHttps ? 443 : 80;
+        if ($port > 0 && $port !== $standardPort && strpos($host, ':') === false) {
+            $host .= ':' . $port;
+        }
+
+        return $protocol . $host;
     }
 }
