@@ -2294,3 +2294,5 @@ karaat-data en staat in de karaat-repo.
 > yes please
 
 > yes please commit
+
+> darkmode: .subform-content is still white hardcoded, datepicker-calendar open is not darkmode aware , detail popup: cma-form body with classes 'mode-tree has-subforms-defined is-creating mode-detail popup' also not darkmode aware

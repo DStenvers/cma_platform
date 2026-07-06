@@ -360,8 +360,8 @@ class LibDatepicker extends HTMLElement {
 
                 .datepicker-calendar {
                     position: fixed;
-                    background: #fff;
-                    border: 1px solid #ddd;
+                    background: var(--bg-surface, #fff);
+                    border: 1px solid var(--border-color, #ddd);
                     border-radius: 0 8px 8px 8px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                     z-index: 10000;
@@ -385,12 +385,12 @@ class LibDatepicker extends HTMLElement {
                     align-items: center;
                     justify-content: space-between;
                     padding: 12px;
-                    background: #f8f9fa;
-                    border-bottom: 1px solid #e0e0e0;
+                    background: var(--bg-surface-alt, #f8f9fa);
+                    border-bottom: 1px solid var(--border-color, #e0e0e0);
                 }
 
                 .datepicker-nav {
-                    background: #fff;
+                    background: transparent;
                     border: 1px solid transparent;
                     cursor: pointer;
                     padding: 0;
@@ -399,7 +399,7 @@ class LibDatepicker extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #888;
+                    color: var(--text-muted, #888);
                     border-radius: 4px;
                     font-size: 0;
                 }
@@ -418,33 +418,33 @@ class LibDatepicker extends HTMLElement {
                 }
 
                 .datepicker-nav:hover {
-                    background: #f5f5f5;
-                    border-color: #077ab2;
-                    color: #077ab2;
+                    background: var(--bg-hover, #f5f5f5);
+                    border-color: var(--color-info, #077ab2);
+                    color: var(--color-info, #077ab2);
                 }
 
                 .datepicker-title {
                     font-weight: 600;
-                    color: #333;
+                    color: var(--text-primary, #333);
                     cursor: pointer;
                 }
 
                 .datepicker-title:hover {
-                    color: #204496;
+                    color: var(--color-primary, #204496);
                 }
 
                 .datepicker-weekdays {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     padding: 8px 12px 4px;
-                    background: #fafafa;
+                    background: var(--bg-surface-alt, #fafafa);
                 }
 
                 .datepicker-weekday {
                     text-align: center;
                     font-size: var(--font-size-xs);
                     font-weight: 600;
-                    color: #999;
+                    color: var(--text-muted, #999);
                     padding: 4px;
                 }
 
@@ -465,31 +465,31 @@ class LibDatepicker extends HTMLElement {
                     cursor: pointer;
                     border-radius: 6px;
                     font-size: var(--font-size);
-                    color: #333;
+                    color: var(--text-primary, #333);
                     transition: all 0.1s ease;
                 }
 
                 .datepicker-day:hover:not(.disabled):not(.selected) {
-                    background: #e8f0fe;
-                    border: 1px solid #204496;
+                    background: var(--bg-hover, #e8f0fe);
+                    border: 1px solid var(--color-primary, #204496);
                 }
 
                 .datepicker-day.other-month {
-                    color: #ccc;
+                    color: var(--text-disabled, #ccc);
                 }
 
                 .datepicker-day.today {
                     font-weight: 700;
-                    color: #204496;
+                    color: var(--color-primary, #204496);
                 }
 
                 .datepicker-day.selected {
-                    background: #204496;
-                    color: #fff;
+                    background: var(--color-primary, #204496);
+                    color: var(--text-inverse, #fff);
                 }
 
                 .datepicker-day.disabled {
-                    color: #ddd;
+                    color: var(--text-disabled, #ddd);
                     cursor: not-allowed;
                 }
 
@@ -497,14 +497,14 @@ class LibDatepicker extends HTMLElement {
                     display: flex;
                     justify-content: space-between;
                     padding: 8px 12px;
-                    border-top: 1px solid #e0e0e0;
-                    background: #fafafa;
+                    border-top: 1px solid var(--border-color, #e0e0e0);
+                    background: var(--bg-surface-alt, #fafafa);
                 }
 
                 .datepicker-btn {
-                    background: #fff;
+                    background: transparent;
                     border: 1px solid transparent;
-                    color: #888;
+                    color: var(--text-muted, #888);
                     cursor: pointer;
                     font-size: var(--font-size);
                     font-weight: normal;
@@ -513,9 +513,9 @@ class LibDatepicker extends HTMLElement {
                 }
 
                 .datepicker-btn:hover {
-                    background: #f5f5f5;
-                    border-color: #077ab2;
-                    color: #077ab2;
+                    background: var(--bg-hover, #f5f5f5);
+                    border-color: var(--color-info, #077ab2);
+                    color: var(--color-info, #077ab2);
                 }
 
                 /* Hidden input for form submission */

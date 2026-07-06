@@ -184,6 +184,11 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Theme the popup/standalone form body itself. As a popup the form isn't
+       inside the sidebar shell, so it must carry its own dark-mode-aware surface
+       + text colour rather than relying on the shell's background. */
+    background-color: var(--bg-body);
+    color: var(--text-primary);
 }
 
 body.cma-form div.label {
@@ -521,7 +526,7 @@ tabs-container {
     min-height: 120px;
     overflow-y: auto;
     height: calc(100% - 32px);
-    background-color: white;
+    background-color: var(--bg-surface, #fff);
 }
 
 /* Subform tab pane loading state */

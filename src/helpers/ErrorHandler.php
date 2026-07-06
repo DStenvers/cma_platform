@@ -1106,6 +1106,27 @@ class ErrorHandler
         // Output HTML comment for automated testing tools
         echo self::generateErrorComment($exception);
 
+        // Platform version for the header. HEAVILY hardened: rendering the actual
+        // error must never be blocked by a version lookup, so every step is
+        // guarded and any failure falls through to 'onbekend'. Prefer the already-
+        // defined constant (cheap, no I/O); only fall back to the Bootstrap reader
+        // (which touches composer.json) if the constant isn't set — e.g. an error
+        // so early that bootstrap.inc hadn't defined it yet.
+        $platformVersion = 'onbekend';
+        try {
+            if (defined('CMA_APP_VERSION') && (string) CMA_APP_VERSION !== '') {
+                $platformVersion = (string) CMA_APP_VERSION;
+            } elseif (class_exists('\\App\\Library\\Bootstrap')
+                && method_exists('\\App\\Library\\Bootstrap', 'getPlatformVersion')) {
+                $v = \App\Library\Bootstrap::getPlatformVersion();
+                if (is_string($v) && $v !== '') {
+                    $platformVersion = $v;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Swallow deliberately — showing the error matters more than its version.
+        }
+
         // Begin output
         echo '<!DOCTYPE html>
         <html lang="en">
@@ -1459,6 +1480,7 @@ class ErrorHandler
                                 in ' . htmlspecialchars($file) . ' on line ' . $line .
                                 ($code ? ' (code: ' . $code . ')' : '') . '
                             </div>
+                            <div class="exception-type">CMA platform v' . htmlspecialchars($platformVersion) . '</div>
                         </div>
                         <button class="copy-button" onclick="var h=this.closest(\'header\');var t=h.querySelector(\'h1\').textContent+\' in \'+h.querySelector(\'.exception-type\').textContent.trim()+\'\\n\'+h.querySelector(\'.exception-message\').textContent;navigator.clipboard.writeText(t).then(function(){this.textContent=\'Gekopieerd!\';setTimeout(function(){this.innerHTML=\'&#128203; Kopieer\'}.bind(this),2000)}.bind(this))" title="Kopieer foutmelding naar klembord">&#128203; Kopieer</button>
                     </div>
