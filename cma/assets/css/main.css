@@ -1439,17 +1439,19 @@ iframe.tools-content-area {
 }
 
 /* Launcher host (reports.php #reports) — the box below the toolbar that is
-   "either empty or a menu". The embedded <cma-launcher> and the report iframe
-   occupy the same box; only one shows at a time (the launcher hides the iframe
-   while open, and reveals it again on close when a report is loaded). */
+   "either empty or a menu". The report iframe stays mounted underneath (z-index
+   1); the embedded <cma-launcher> overlays it (z-index 2) when open and is
+   display:none when closed, revealing the iframe. No show/hide juggling — the
+   panel is opaque, so an open menu fully covers whatever the iframe holds. */
 .launcher-host { flex: 1; min-height: 0; position: relative; overflow: hidden; }
 .launcher-host > iframe.tools-content-area {
-    position: absolute; inset: 0; width: 100%; height: 100%;
+    position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
 }
 
-/* Embedded launcher: fills its host box (100% h/w) instead of overlaying
-   #contentArea from the header down like the shell tools launcher does. */
-.cma-launcher--embedded { position: absolute; inset: 0; }
+/* Embedded launcher: fills its host box (100% h/w) and overlays the iframe,
+   instead of overlaying #contentArea from the header down like the shell tools
+   launcher does. */
+.cma-launcher--embedded { position: absolute; inset: 0; z-index: 2; }
 .cma-launcher--embedded .cma-launcher__panel { inset: 0; }
 @media (max-width: 768px) {
     /* Stay inside the host box on mobile (the overlay launcher pins to the

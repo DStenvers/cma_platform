@@ -2296,3 +2296,7 @@ karaat-data en staat in de karaat-repo.
 > yes please commit
 
 > darkmode: .subform-content is still white hardcoded, datepicker-calendar open is not darkmode aware , detail popup: cma-form body with classes 'mode-tree has-subforms-defined is-creating mode-detail popup' also not darkmode aware
+
+> merge push and commit
+
+> if the page switches through a click on the menu the reports menu is still visible, solve that in the component or perhaps make an overlay sonit cannot happen? and the toggle does not always work

@@ -72,7 +72,7 @@ cma_script('webcomponents/cma-toolbar.js');
         empty-text="Geen rapportages beschikbaar."></cma-launcher>
     <iframe name="R" id="reports-content" class="tools-content-area"
         src="<?= $repId > 0 ? 'reportdetails.php?RepID=' . $repId : 'about:blank' ?>"
-        frameborder="0"<?= $repId > 0 ? '' : ' hidden' ?>></iframe>
+        frameborder="0"></iframe>
 </div>
 
 <script>

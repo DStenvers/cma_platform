@@ -92,16 +92,18 @@
             if (this._open) return;
             this._open = true;
             this.classList.add('is-open');
-            // Embedded menus own their host box; overlay menus dim + lock the page.
-            if (this._embedded) {
-                var t = this._targetEl();
-                if (t) t.hidden = true;
-            } else {
+            // Overlay (shell) menus dim + lock the page. Embedded menus just sit
+            // over their host box — the target iframe stays mounted underneath, so
+            // there is no iframe show/hide state to keep in sync.
+            if (!this._embedded) {
                 document.body.classList.add('cma-launcher-open');
             }
             if (!this._loaded) {
                 this._renderShell('<div class="cma-launcher__loading">Laden…</div>');
                 await this._loadCatalog();
+                // The catalog load is async: if we were toggled shut while it ran,
+                // abort the rest of open() so a dismissed menu isn't resurrected.
+                if (!this._open) return;
             }
             document.addEventListener('keydown', this._onKeydown, true);
             var search = this.querySelector('.cma-launcher__search');
@@ -119,7 +121,7 @@
             if (this._embedded) {
                 var t = this._targetEl();
                 var src = el.getAttribute('data-src') || '';
-                return !!(t && src && !t.hidden && (t.getAttribute('src') || '') === src);
+                return !!(t && src && (t.getAttribute('src') || '') === src);
             }
             var url = el.getAttribute('data-url') || '';
             if (!url) return false;
@@ -148,15 +150,9 @@
             this.classList.remove('is-open');
             document.body.classList.remove('cma-launcher-open');
             document.removeEventListener('keydown', this._onKeydown, true);
-            // Embedded: closing the menu reveals the iframe again, but only if it
-            // actually holds a page — otherwise the host is legitimately empty.
-            if (this._embedded) {
-                var t = this._targetEl();
-                if (t) {
-                    var src = t.getAttribute('src') || '';
-                    t.hidden = !(src && src !== 'about:blank');
-                }
-            }
+            // Nothing else to do: closing just hides the panel (display:none via the
+            // dropped .is-open class). Embedded menus reveal the always-mounted
+            // iframe underneath; overlay menus reveal #contentArea. No state juggling.
         }
 
         toggle() { this._open ? this.close() : this.open(); }
@@ -318,10 +314,10 @@
 
         _navigateIframe(src, url) {
             var target = this._targetEl();
-            if (target && src) {
-                if (target.getAttribute('src') !== src) target.setAttribute('src', src);
-                target.hidden = false;
+            if (target && src && target.getAttribute('src') !== src) {
+                target.setAttribute('src', src);
             }
+            // Closing hides the panel, revealing the iframe (now loading `src`).
             this.close();
             if (url) { try { history.replaceState(null, '', url); } catch (e) {} }
         }
