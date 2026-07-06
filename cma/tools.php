@@ -203,7 +203,7 @@ cma_script('webcomponents/cma-toolbar.js');
     <iframe name="R" id="tools-content" class="tools-content-area"
             src="<?= Server::htmlEncode($initialTool) ?>" frameborder="0"></iframe>
 <?php else: ?>
-    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong"> Alle tools </span> om een beheerstool te kiezen.</div>
+    <div class="tools-empty" id="tools" hidden>Klik op <span class="cma-page__strong"> Alle tools </span> om een beheerstool te kiezen.</div>
 <?php endif; ?>
 
 <script>
@@ -231,7 +231,7 @@ cma_script('webcomponents/cma-toolbar.js');
     (function tryOpen() {
         if (openLauncher()) return;
         if (++tries < 20) { setTimeout(tryOpen, 25); return; }
-        var empty = document.getElementById('toolsEmpty');
+        var empty = document.getElementById('tools');
         if (empty) empty.hidden = false;
     })();
 <?php endif; ?>

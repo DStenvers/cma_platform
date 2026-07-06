@@ -14,9 +14,7 @@
 
 use App\Library\Request;
 use App\Library\Response;
-use App\Library\Server;
 use Cma\SecurityHelper;
-use Cma\Services\ReportsService;
 
 require_once __DIR__ . '/bootstrap.inc';
 
@@ -47,22 +45,6 @@ if (!$isNomenuMode) {
 
 $repId = (int) Request::query('RepID', 0);
 
-// Build the rights-checked report menu, grouped by module. Same data source as
-// the old tree (ReportsService::getGroupedByModule), rendered as tiles.
-$groups = [];
-foreach (ReportsService::getGroupedByModule(true) as $moduleName => $reports) {
-    $items = [];
-    foreach ($reports as $report) {
-        $rid = (int) ($report['id'] ?? 0);
-        if ($rid > 0 && SecurityHelper::checkRights(SecurityHelper::TYPE_REPORT, $rid)) {
-            $items[] = ['id' => $rid, 'title' => (string) ($report['title'] ?? '')];
-        }
-    }
-    if (!empty($items)) {
-        $groups[ucwords(strtolower($moduleName))] = $items;
-    }
-}
-
 echo '<base href="/cma/">';
 echo '<div class="tools-page">';
 cma_script('webcomponents/cma-toolbar.js');
@@ -70,83 +52,56 @@ cma_script('webcomponents/cma-toolbar.js');
 
 <cma-toolbar variant="list" class="tools-toolbar">
     <left>
-        <button type="button" class="cma-launcher-btn" id="reportsMenuBtn" title="Alle rapportages">
+        <button type="button" class="cma-launcher-btn" id="reportsMenuBtn" aria-haspopup="dialog" title="Alle rapportages">
             <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle rapporten</span>
         </button>
     </left>
 </cma-toolbar>
 
-<div class="cma-reports-menu" id="reportsMenu"<?= $repId > 0 ? ' hidden' : '' ?>>
-<?php if (empty($groups)): ?>
-    <div class="tools-empty">Geen rapportages beschikbaar.</div>
-<?php else: foreach ($groups as $groupTitle => $items): ?>
-    <section class="cma-launcher__group">
-        <h3 class="cma-launcher__group-title"><span class="lnr lnr-chart-bars"></span> <?= Server::htmlEncode($groupTitle) ?></h3>
-        <div class="cma-launcher__items">
-        <?php foreach ($items as $it): ?>
-            <a class="cma-launcher__item" href="reports.php?RepID=<?= $it['id'] ?>" data-repid="<?= $it['id'] ?>">
-                <span class="cma-launcher__item-icon lnr lnr-file-empty"></span>
-                <span class="cma-launcher__item-label"><?= Server::htmlEncode($it['title']) ?></span>
-            </a>
-        <?php endforeach; ?>
-        </div>
-    </section>
-<?php endforeach; endif; ?>
-</div>
-
-<?php if (!empty($repId)): ?>
+<!-- #reports is "either empty or a menu": the embedded launcher fills it with
+     the searchable report menu; picking a report collapses the launcher and
+     shows the report full-width in the same box. Both are driven by the shared
+     <cma-launcher> component (nav-mode="iframe"), fed the reports catalog. -->
+<div id="reports" class="launcher-host">
+    <cma-launcher
+        catalog-url="/cma/api/reports-catalog.php"
+        nav-mode="iframe"
+        target="#reports-content"
+        search-placeholder="Zoek een rapport…"
+        aria-label="Alle rapportages"
+        empty-text="Geen rapportages beschikbaar."></cma-launcher>
     <iframe name="R" id="reports-content" class="tools-content-area"
         src="<?= $repId > 0 ? 'reportdetails.php?RepID=' . $repId : 'about:blank' ?>"
         frameborder="0"<?= $repId > 0 ? '' : ' hidden' ?>></iframe>
-<?php else: ?>
-    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong"> alle rapporten </span> om een rapport te kiezen.</div>
-<?php endif; ?>
+</div>
 
 <script>
 (function () {
     'use strict';
-    var menu = document.getElementById('reportsMenu');
-    var frame = document.getElementById('reports-content');
+    var launcher = document.querySelector('#reports cma-launcher');
     var btn = document.getElementById('reportsMenuBtn');
-    var currentRepId = <?= $repId > 0 ? (int) $repId : 'null' ?>;
+    var hasReport = <?= $repId > 0 ? 'true' : 'false' ?>;
 
-    // Swap between the tile menu and the full-width report iframe client-side,
-    // so picking a report (or returning to the menu) never reloads the shell.
-    // history.replaceState keeps the URL deep-linkable (a reload/bookmark of
-    // reports.php?RepID=x re-enters via the shell guard above).
-    function showReport(id) {
-        currentRepId = id;
-        if (frame.getAttribute('src') !== 'reportdetails.php?RepID=' + encodeURIComponent(id)) {
-            frame.src = 'reportdetails.php?RepID=' + encodeURIComponent(id);
-        }
-        frame.hidden = false;
-        menu.hidden = true;
-        if (window.history && history.replaceState) {
-            history.replaceState(null, '', 'reports.php?RepID=' + encodeURIComponent(id));
-        }
-    }
-    function showMenu() {
-        menu.hidden = false;
-        frame.hidden = true;
-        if (window.history && history.replaceState) {
-            history.replaceState(null, '', 'reports.php');
-        }
+    // The custom element may not be upgraded yet when this inline script runs.
+    function whenReady(cb) {
+        var tries = 0;
+        (function w() {
+            if (launcher && typeof launcher.open === 'function') { cb(); return; }
+            if (++tries < 40) { setTimeout(w, 25); }
+        })();
     }
 
-    menu.addEventListener('click', function (e) {
-        var a = e.target.closest('.cma-launcher__item');
-        if (!a) return;
-        e.preventDefault();
-        showReport(a.getAttribute('data-repid'));
-    });
-    // Toolbar button toggles: menu open -> back to the report (if one is loaded);
-    // report showing -> open the menu. With no report chosen yet it's a no-op.
+    // No report chosen: open the menu straight away (host shows the menu). With
+    // one already selected, the iframe is showing — leave it, the button reopens
+    // the menu on demand.
+    if (!hasReport) {
+        whenReady(function () { launcher.open(); });
+    }
+
+    // Toolbar button toggles the menu. Closing it reveals the report iframe when
+    // one is loaded, or an empty host when none is.
     if (btn) btn.addEventListener('click', function () {
-        if (menu.hidden) {
-            showMenu();
-        } else if (currentRepId !== null) {
-            showReport(currentRepId);
-        }
+        whenReady(function () { launcher.toggle(); });
     });
 })();
 </script>

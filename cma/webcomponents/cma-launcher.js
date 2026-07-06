@@ -1,14 +1,25 @@
 /**
- * <cma-launcher> — the BIG tools menu.
+ * <cma-launcher> — the BIG searchable menu (tools AND reports).
  *
- * A full-screen, searchable overlay listing the admin tools/forms catalog
- * (fetched once from /cma/api/tools-catalog.php — same source as the tools.php
- * tree). Opened from the "Menu" button in the shell header. Selecting an item
- * loads it into #contentArea via the shell's window.loadPage() and updates the
- * clean URL, so the header + sidebar stay put.
+ * A full-size, searchable panel listing a catalog of items grouped into
+ * sections. One component, two configurations:
+ *
+ *   nav-mode="shell"  (default) — the admin tools/forms menu. Fetches
+ *       /cma/api/tools-catalog.php, renders as an overlay filling #contentArea
+ *       (opened from the shell header "Menu" button), and navigates by loading
+ *       the selected page into the shell via window.loadPage() + clean URL.
+ *
+ *   nav-mode="iframe" — an embedded menu that fills its own host container
+ *       (e.g. reports.php's #reports). Fetches the catalog named by
+ *       `catalog-url`, and on selection loads the item's href into the iframe
+ *       named by `target`, hides itself, and writes the item's deep-link `url`
+ *       to the address bar. No backdrop, no body scroll-lock.
+ *
+ * Attributes: catalog-url, nav-mode (shell|iframe), target (iframe selector for
+ * iframe mode), search-placeholder, aria-label.
  *
  * Light DOM on purpose: document CSS provides the lnr icon glyphs and theme
- * variables; the overlay is styled by namespaced .cma-launcher__* rules in
+ * variables; the panel is styled by namespaced .cma-launcher__* rules in
  * cma/assets/css/main.css.
  *
  * Public API: open(), close(), toggle(), isOpen().
@@ -18,13 +29,12 @@
 
     if (customElements.get('cma-launcher')) return;
 
-    var CATALOG_URL = '/cma/api/tools-catalog.php';
+    var DEFAULT_CATALOG_URL = '/cma/api/tools-catalog.php';
 
-    // Work out how a catalog href navigates in the shell. Form-backed items are
-    // canonical /cma/form/<form> routes; everything else is a tool page that
-    // loads through tools.php (keyed by tool name), which then shows the tool
-    // full-width.
-    function resolveNav(href) {
+    // Shell-mode navigation: work out how a catalog href navigates in the shell.
+    // Form-backed items are canonical /cma/form/<form> routes; everything else is
+    // a tool page that loads through tools.php (keyed by tool name), full-width.
+    function resolveShellNav(href) {
         if (!href) return null;
         // Site-specific tools live at the site root (/tools/…, outside /cma/) or
         // are full URLs — plain scripts, not shell pages. Open them in a new tab.
@@ -61,13 +71,34 @@
             this._onKeydown = this._onKeydown.bind(this);
         }
 
+        connectedCallback() {
+            this._catalogUrl = this.getAttribute('catalog-url') || DEFAULT_CATALOG_URL;
+            this._navMode = this.getAttribute('nav-mode') === 'iframe' ? 'iframe' : 'shell';
+            this._embedded = this._navMode === 'iframe';
+            this._target = this.getAttribute('target') || null;
+            this._searchPlaceholder = this.getAttribute('search-placeholder') || 'Zoek een tool…';
+            this._ariaLabel = this.getAttribute('aria-label') || 'Alle beheerstools';
+            this._emptyText = this.getAttribute('empty-text') || 'Geen items beschikbaar.';
+            this.classList.toggle('cma-launcher--embedded', this._embedded);
+        }
+
         isOpen() { return this._open; }
+
+        _targetEl() {
+            return (this._embedded && this._target) ? document.querySelector(this._target) : null;
+        }
 
         async open() {
             if (this._open) return;
             this._open = true;
             this.classList.add('is-open');
-            document.body.classList.add('cma-launcher-open');
+            // Embedded menus own their host box; overlay menus dim + lock the page.
+            if (this._embedded) {
+                var t = this._targetEl();
+                if (t) t.hidden = true;
+            } else {
+                document.body.classList.add('cma-launcher-open');
+            }
             if (!this._loaded) {
                 this._renderShell('<div class="cma-launcher__loading">Laden…</div>');
                 await this._loadCatalog();
@@ -79,14 +110,18 @@
                 this._applyFilter('');
                 if (typeof search.focus === 'function') search.focus();
             }
-            // Highlight the item for the tool/form currently open in the shell.
+            // Highlight the item for whatever is currently open.
             this._markActive();
         }
 
-        // Does a catalog item's target URL point at what's open right now?
-        // Matches tool pages by their ?tool= key and form pages by /cma/form/<x>,
-        // so it works whether the shell URL is clean or the main.php?page=… form.
-        _activeMatches(url) {
+        // Does a catalog item's target point at what's open right now?
+        _activeMatches(el) {
+            if (this._embedded) {
+                var t = this._targetEl();
+                var src = el.getAttribute('data-src') || '';
+                return !!(t && src && !t.hidden && (t.getAttribute('src') || '') === src);
+            }
+            var url = el.getAttribute('data-url') || '';
             if (!url) return false;
             var loc;
             try { loc = decodeURIComponent(window.location.href); } catch (e) { loc = window.location.href; }
@@ -103,7 +138,7 @@
         _markActive() {
             var self = this;
             this.querySelectorAll('.cma-launcher__item').forEach(function (a) {
-                a.classList.toggle('is-active', self._activeMatches(a.getAttribute('data-url') || ''));
+                a.classList.toggle('is-active', self._activeMatches(a));
             });
         }
 
@@ -113,6 +148,15 @@
             this.classList.remove('is-open');
             document.body.classList.remove('cma-launcher-open');
             document.removeEventListener('keydown', this._onKeydown, true);
+            // Embedded: closing the menu reveals the iframe again, but only if it
+            // actually holds a page — otherwise the host is legitimately empty.
+            if (this._embedded) {
+                var t = this._targetEl();
+                if (t) {
+                    var src = t.getAttribute('src') || '';
+                    t.hidden = !(src && src !== 'about:blank');
+                }
+            }
         }
 
         toggle() { this._open ? this.close() : this.open(); }
@@ -123,13 +167,13 @@
 
         async _loadCatalog() {
             try {
-                var resp = await fetch(CATALOG_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                var resp = await fetch(this._catalogUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 var data = await resp.json();
-                if (!data || !data.success) throw new Error((data && data.error) || 'Kon de tools niet laden');
+                if (!data || !data.success) throw new Error((data && data.error) || 'Kon de lijst niet laden');
                 this._renderCatalog(data.groups || []);
                 this._loaded = true;
             } catch (err) {
-                this._renderShell('<div class="cma-launcher__error">Kon de tools-lijst niet laden: ' +
+                this._renderShell('<div class="cma-launcher__error">Kon de lijst niet laden: ' +
                     this._esc(err && err.message ? err.message : 'onbekende fout') + '</div>');
             }
         }
@@ -141,11 +185,13 @@
         }
 
         _renderShell(bodyHtml) {
+            // Embedded menus fill their host, so they need no dimming backdrop.
+            var backdrop = this._embedded ? '' : '<div class="cma-launcher__backdrop" data-close></div>';
             this.innerHTML =
-                '<div class="cma-launcher__backdrop" data-close></div>' +
-                '<div class="cma-launcher__panel" role="dialog" aria-modal="true" aria-label="Alle beheerstools">' +
+                backdrop +
+                '<div class="cma-launcher__panel" role="dialog" aria-modal="' + (this._embedded ? 'false' : 'true') + '" aria-label="' + this._esc(this._ariaLabel) + '">' +
                     '<div class="cma-launcher__head">' +
-                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="Zoek een tool…" aria-label="Zoek een tool"></lib-search-input>' +
+                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="' + this._esc(this._searchPlaceholder) + '" aria-label="' + this._esc(this._searchPlaceholder) + '"></lib-search-input>' +
                         '<a href="javascript:void(0)" class="cma-launcher__close" data-close aria-label="Sluiten" title="Sluiten"><span class="cma-launcher__close-x"></span></a>' +
                     '</div>' +
                     '<div class="cma-launcher__body">' + bodyHtml + '</div>' +
@@ -167,19 +213,32 @@
             }, this);
         }
 
+        // Resolve one catalog item to its navigation descriptor for the active mode.
+        _resolveNav(it) {
+            if (this._embedded) {
+                // iframe mode: href is the iframe src, url the optional deep-link.
+                return { iframe: true, src: it.href || '', url: it.url || null };
+            }
+            return resolveShellNav(it.href);
+        }
+
         _renderCatalog(groups) {
             var flat = [];
             this._collectGroups(groups, '', flat);
             var self = this;
             var html = flat.map(function (g) {
                 var items = g.items.map(function (it) {
-                    var nav = resolveNav(it.href);
+                    var nav = self._resolveNav(it);
                     var ext = nav && nav.external;
                     var badge = it.badge ? '<span class="cma-launcher__badge" title="Toegangsniveau">' + self._esc(it.badge) + '</span>' : '';
                     var icon = it.icon ? '<span class="cma-launcher__item-icon lnr ' + self._esc(it.icon) + '"></span>' : '';
-                    return '<a class="cma-launcher__item" href="' + self._esc(nav && nav.url ? nav.url : (it.href || '#')) + '"' +
+                    var linkHref = ext ? (nav.url || it.href || '#')
+                        : (nav && nav.iframe ? (nav.url || nav.src || '#')
+                        : (nav && nav.url ? nav.url : (it.href || '#')));
+                    return '<a class="cma-launcher__item" href="' + self._esc(linkHref) + '"' +
                         (ext ? ' target="_blank" rel="noopener" data-external="1"' : '') +
                         ' data-page="' + self._esc(nav ? (nav.page || '') : '') + '"' +
+                        ' data-src="' + self._esc(nav && nav.iframe ? nav.src : '') + '"' +
                         ' data-url="' + self._esc(nav && nav.url ? nav.url : '') + '"' +
                         ' data-search="' + self._esc((it.label || '').toLowerCase()) + '">' +
                         icon + '<span class="cma-launcher__item-label">' + self._esc(it.label) + '</span>' + badge +
@@ -191,7 +250,7 @@
                     '<div class="cma-launcher__items">' + items + '</div>' +
                     '</section>';
             }).join('');
-            this._renderShell(html || '<div class="cma-launcher__error">Geen tools beschikbaar.</div>');
+            this._renderShell(html || '<div class="cma-launcher__error">' + this._esc(this._emptyText) + '</div>');
         }
 
         _wire() {
@@ -225,7 +284,11 @@
                     // the browser open the new tab; just close the launcher.
                     if (a.getAttribute('data-external')) { self.close(); return; }
                     e.preventDefault();
-                    self._navigate(a.getAttribute('data-page'), a.getAttribute('data-url'));
+                    if (self._embedded) {
+                        self._navigateIframe(a.getAttribute('data-src'), a.getAttribute('data-url'));
+                    } else {
+                        self._navigateShell(a.getAttribute('data-page'), a.getAttribute('data-url'));
+                    }
                 });
             });
         }
@@ -243,7 +306,7 @@
             });
         }
 
-        _navigate(page, url) {
+        _navigateShell(page, url) {
             this.close();
             if (page && typeof window.loadPage === 'function') {
                 window.loadPage(page);
@@ -251,6 +314,16 @@
             } else if (url) {
                 window.location.href = url;
             }
+        }
+
+        _navigateIframe(src, url) {
+            var target = this._targetEl();
+            if (target && src) {
+                if (target.getAttribute('src') !== src) target.setAttribute('src', src);
+                target.hidden = false;
+            }
+            this.close();
+            if (url) { try { history.replaceState(null, '', url); } catch (e) {} }
         }
     }
 
