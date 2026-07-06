@@ -2259,89 +2259,114 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                                 <div class="eh-section-header">
                                     <div>';
                     
-                    // Locate .env* files (supporting multiple environments)
-                    $envFiles = [];
-                    $searchDirs = [
-                        realpath(__DIR__ . '/../..'),  // project root
-                        realpath(__DIR__ . '/..'),     // app directory
-                    ];
+                    // SECURITY GATE: the .env holds secrets, so its content is only
+                    // ever shown when the T (test) environment is active OR a CMA
+                    // user is logged in (per policy — that includes production).
+                    // Fail closed: any doubt → do not disclose.
+                    $showEnv = false;
+                    try {
+                        $omg = class_exists('\\App\\Library\\Application')
+                            ? strtoupper((string) \App\Library\Application::get('omgeving', ''))
+                            : strtoupper((string) ($GLOBALS['_app_env'] ?? ''));
+                        $loggedIn = class_exists('\\Cma\\SecurityHelper') && \Cma\SecurityHelper::isLoggedIn();
+                        $showEnv = ($omg === 'T') || $loggedIn;
+                    } catch (\Throwable $e) {
+                        $showEnv = false;
+                    }
 
-                    foreach ($searchDirs as $dir) {
-                        if ($dir && is_dir($dir)) {
-                            $files = glob($dir . '/.env*');
-                            if ($files !== false && is_array($files)) {
-                                foreach ($files as $file) {
-                                    // Skip .example files
-                                    if (is_file($file) && !preg_match('/\.example$/i', $file)) {
-                                        $envFiles[] = $file;
+                    if (!$showEnv) {
+                        echo '<div class="eh-warning">De inhoud van het .env-bestand is verborgen. '
+                            . 'Deze is alleen zichtbaar op de T-omgeving of voor een ingelogde CMA-gebruiker.</div>';
+                        echo '</div>
+                                </div>';
+                    } else {
+                        // The ACTIVE .env is the single file bootstrap actually loaded
+                        // (single-file model). Show THAT one — not every stray .env* on
+                        // disk. $GLOBALS['_env_file'] is set by Bootstrap::detectAndLoadEnv.
+                        $projectRoot = realpath(__DIR__ . '/../..');
+                        $activeEnvFile = '';
+                        $envName = (string) ($GLOBALS['_env_file'] ?? '');
+                        if ($projectRoot && $envName !== '' && is_file($projectRoot . '/' . $envName)) {
+                            $activeEnvFile = $projectRoot . '/' . $envName;
+                        }
+
+                        // Also list any other .env* files present (names only), so it's
+                        // clear which one is live when several exist.
+                        $envFiles = [];
+                        foreach ([$projectRoot, realpath(__DIR__ . '/..')] as $dir) {
+                            if ($dir && is_dir($dir)) {
+                                $files = glob($dir . '/.env*');
+                                if (is_array($files)) {
+                                    foreach ($files as $file) {
+                                        if (is_file($file) && !preg_match('/\.example$/i', $file)) {
+                                            $envFiles[] = $file;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
+                        $envFiles = array_unique($envFiles);
 
-                    // Remove duplicates
-                    $envFiles = array_unique($envFiles);
-
-                    if (!empty($envFiles)) {
-                        echo '<span class="error-handler__strong">Environment Files:</span> ' . count($envFiles) . ' file(s) found';
-                        echo '<div style="margin-top: 5px;">';
-                        foreach ($envFiles as $file) {
-                            echo '<div style="margin-left: 10px;">- ' . htmlspecialchars(basename($file)) . '</div>';
+                        // Fall back to the first found file if bootstrap didn't record one.
+                        if ($activeEnvFile === '' && !empty($envFiles)) {
+                            $activeEnvFile = $envFiles[0];
                         }
-                        echo '</div>';
-                    } else {
-                        echo '<span class="error-handler__strong">Environment Files:</span> <span class="eh-warning">No .env files found</span>';
-                    }
 
-                    echo '</div>
+                        if (!empty($envFiles)) {
+                            echo '<span class="error-handler__strong">Environment Files:</span> ' . count($envFiles) . ' file(s) found';
+                            echo '<div style="margin-top: 5px;">';
+                            foreach ($envFiles as $file) {
+                                $isActive = ($activeEnvFile !== '' && realpath($file) === realpath($activeEnvFile));
+                                echo '<div style="margin-left: 10px;">- ' . htmlspecialchars(basename($file))
+                                    . ($isActive ? ' <span class="error-handler__strong">(active)</span>' : '') . '</div>';
+                            }
+                            echo '</div>';
+                        } else {
+                            echo '<span class="error-handler__strong">Environment Files:</span> <span class="eh-warning">No .env files found</span>';
+                        }
+
+                        echo '</div>
                                 </div>';
 
-                    // Show redacted .env file content for all found files
-                    if (!empty($envFiles)) {
-                        foreach ($envFiles as $envFile) {
-                            if (file_exists($envFile) && is_readable($envFile)) {
-                                echo '<div style="margin-bottom: 15px;">
-                                        <div style="padding: 5px 10px; background-color: #2d2d2d; color: #569CD6; font-weight: bold; border-radius: 3px 3px 0 0;">
-                                            ' . htmlspecialchars(basename($envFile)) . '
-                                        </div>
-                                        <pre style="margin: 0; max-height: 300px; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 0 0 3px 3px;">';
+                        // Show redacted content of the ACTIVE .env only (the "right" one).
+                        if ($activeEnvFile !== '' && file_exists($activeEnvFile) && is_readable($activeEnvFile)) {
+                            echo '<div style="margin-bottom: 15px;">
+                                    <div style="padding: 5px 10px; background-color: #2d2d2d; color: #569CD6; font-weight: bold; border-radius: 3px 3px 0 0;">
+                                        ' . htmlspecialchars(basename($activeEnvFile)) . ' (active)
+                                    </div>
+                                    <pre style="margin: 0; max-height: 300px; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 0 0 3px 3px;">';
 
-                                $redactedContent = self::getRedactedEnvContent($envFile);
-                                $lines = explode("\n", $redactedContent);
+                            $redactedContent = self::getRedactedEnvContent($activeEnvFile);
+                            $lines = explode("\n", $redactedContent);
 
-                                foreach ($lines as $line) {
-                                    $line = htmlspecialchars($line);
+                            foreach ($lines as $line) {
+                                $line = htmlspecialchars($line);
 
-                                    // Colorize comments
-                                    if (strpos(trim($line), '#') === 0 || strpos(trim($line), '//') === 0) {
-                                        echo '<span style="color: #6A9955;">' . $line . '</span>';
-                                    }
-                                    // Colorize key-value pairs
-                                    elseif (strpos($line, '=') !== false) {
-                                        list($key, $value) = explode('=', $line, 2);
-                                        echo '<span class="eh-ini-directive">' . $key . '</span>=<span style="color: ' .
-                                            (strpos($value, '*****') !== false ? '#FF7B72' : '#CE9178') .
-                                            ';">' . $value . '</span>';
-                                    } else {
-                                        echo $line;
-                                    }
-
-                                    echo "\n";
+                                if (strpos(trim($line), '#') === 0 || strpos(trim($line), '//') === 0) {
+                                    echo '<span style="color: #6A9955;">' . $line . '</span>';
+                                } elseif (strpos($line, '=') !== false) {
+                                    list($key, $value) = explode('=', $line, 2);
+                                    echo '<span class="eh-ini-directive">' . $key . '</span>=<span style="color: ' .
+                                        (strpos($value, '*****') !== false ? '#FF7B72' : '#CE9178') .
+                                        ';">' . $value . '</span>';
+                                } else {
+                                    echo $line;
                                 }
 
-                                echo '</pre>
-                                      </div>';
+                                echo "\n";
                             }
-                        }
 
-                        echo '<div class="eh-info-box-border">
-                                <span style="color:var(--blue);"><span class="error-handler__strong">Note:</span> Sensitive information (passwords, tokens, etc.) has been automatically redacted.</span>
-                              </div>';
-                    } else {
-                        echo '<pre style="margin: 0; max-height: 400px; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 10px;">
-                                <div class="eh-warning">No .env files found or files are not readable.</div>
-                              </pre>';
+                            echo '</pre>
+                                  </div>';
+
+                            echo '<div class="eh-info-box-border">
+                                    <span style="color:var(--blue);"><span class="error-handler__strong">Note:</span> Sensitive information (passwords, tokens, etc.) has been automatically redacted.</span>
+                                  </div>';
+                        } else {
+                            echo '<pre style="margin: 0; max-height: 400px; overflow: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 10px;">
+                                    <div class="eh-warning">No .env files found or files are not readable.</div>
+                                  </pre>';
+                        }
                     }
 
                     echo '</div>
@@ -2854,26 +2879,31 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         $lines = explode("\n", $content);
         $redactedLines = [];
         
-        // Pattern to identify sensitive keys
+        // Sensitive KEY-name patterns — deliberately broad, because failing to
+        // redact leaks a secret while over-redacting only hides a value. Note
+        // '/pass/i' catches SMTP_PASS/passwd/passphrase, '/key/i' catches
+        // API_KEY/PRIVATE_KEY, '/conn|dsn/i' catch connection strings.
         $sensitivePatterns = [
-            '/password/i', '/secret/i', '/key/i', '/token/i',
-            '/auth/i', '/credential/i', '/pwd/i', '/apikey/i',
-            '/client_id/i', '/username/i'
+            '/pass/i', '/pwd/i', '/secret/i', '/key/i', '/token/i',
+            '/auth/i', '/credential/i', '/apikey/i', '/client_id/i',
+            '/client_secret/i', '/username/i', '/salt/i', '/hash/i',
+            '/signature/i', '/private/i', '/cert/i', '/dsn/i', '/conn/i',
+            '/webhook/i', '/bearer/i', '/session/i', '/passphrase/i',
         ];
-        
+
         foreach ($lines as $line) {
             // Skip empty lines and comments
             if (empty(trim($line)) || strpos(trim($line), '#') === 0) {
                 $redactedLines[] = $line;
                 continue;
             }
-            
+
             // Check if the line contains a key-value pair
             if (strpos($line, '=') !== false) {
                 list($key, $value) = explode('=', $line, 2);
                 $key = trim($key);
                 $value = trim($value);
-                
+
                 // Check if the key contains any sensitive patterns
                 $isSensitive = false;
                 foreach ($sensitivePatterns as $pattern) {
@@ -2882,24 +2912,46 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         break;
                     }
                 }
-                
-                // Redact sensitive values
-                if ($isSensitive && !empty($value)) {
-                    // Keep first character if longer than 3 chars
-                    if (strlen($value) > 3) {
-                        $redactedLines[] = $key . '=' . substr($value, 0, 1) . '*****';
-                    } else {
-                        $redactedLines[] = $key . '=*****';
-                    }
+
+                if ($isSensitive && $value !== '') {
+                    // Keep first character if longer than 3 chars, else fully mask.
+                    $value = (strlen($value) > 3) ? (substr($value, 0, 1) . '*****') : '*****';
                 } else {
-                    $redactedLines[] = $line;
+                    // Even a "non-sensitive" key can carry embedded credentials in
+                    // its value (DSN/URL/ODBC connection strings) — scrub those too.
+                    $value = self::scrubEmbeddedSecrets($value);
                 }
+                $redactedLines[] = $key . '=' . $value;
             } else {
                 $redactedLines[] = $line;
             }
         }
-        
+
         return implode("\n", $redactedLines);
+    }
+
+    /**
+     * Mask credentials embedded inside a value even when the KEY name gave no
+     * hint — the classic leak being a connection string / URL whose key is just
+     * "DATABASE_URL" or "conn". Two shapes are covered: userinfo in a URL
+     * (scheme://user:PASS@host) and inline secret assignments in an ODBC/PDO DSN
+     * (…;Pwd=PASS;…). Never throws; returns the value unchanged if nothing matches.
+     *
+     * @param string $value
+     * @return string
+     */
+    protected static function scrubEmbeddedSecrets(string $value): string
+    {
+        // scheme://user:password@host  ->  scheme://user:*****@host
+        $value = preg_replace('#(://[^:/@\s]+:)[^@/\s]+(@)#', '$1*****$2', $value) ?? $value;
+        // Inline secret assignments inside a connection string / DSN, e.g.
+        // "Driver={…};Uid=x;Pwd=secret;" or "password=secret".
+        $value = preg_replace(
+            '/((?:pwd|passwd|password|pass|secret|token|api[_-]?key|key|auth)\s*=\s*)[^;\s"\']+/i',
+            '${1}*****',
+            $value
+        ) ?? $value;
+        return $value;
     }
     
     /**
