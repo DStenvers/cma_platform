@@ -2048,49 +2048,27 @@ class JsonFormService extends BaseFormService
         $filename = trim((string)$value);
         $inner = '';
         if ($filename !== '') {
-            // An already-absolute URL (external image, e.g. a CDN) is used as-is;
-            // prepending the base path + rawurlencode() would mangle it into
-            // "/https%3A%2F%2F…" and break the image.
             if (preg_match('#^(https?:)?//#i', $filename)) {
-                $full = $filename;
-                $thumb = $filename;
+                // Skip external CDN images that reliably 404 (expired inkoop/auction
+                // cloudfront links) — attempting to load them floods the JS error
+                // log. Render an empty cell instead. Other absolute URLs load as-is.
+                if (stripos($filename, 'cloudfront.net') === false) {
+                    $enc = htmlspecialchars($filename);
+                    $inner = '<img class="cma-list-thumb" src="' . $enc . '" data-full="' . $enc . '" alt="" loading="lazy">';
+                }
             } else {
                 $base = trim((string)($col['path'] ?? ''), '/');
                 $full = '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($filename);
                 // Serve the smallest responsive WebP for the ~50px list thumbnail
                 // (the original is often multi-MB). data-full keeps the original
-                // for the hover-enlarge preview. Falls back to the original when
-                // no WebP variant has been generated yet.
-                $thumb = self::smallestWebpThumb($base, $filename) ?? $full;
+                // for the hover-enlarge preview. Falls back to the original when no
+                // WebP exists (or for SVGs, which are already scalable).
+                $thumb = \App\Library\ResponsiveImage::smallestWebpThumb($base, $filename) ?? $full;
+                $inner = '<img class="cma-list-thumb" src="' . htmlspecialchars($thumb)
+                    . '" data-full="' . htmlspecialchars($full) . '" alt="" loading="lazy">';
             }
-            $inner = '<img class="cma-list-thumb" src="' . htmlspecialchars($thumb)
-                . '" data-full="' . htmlspecialchars($full) . '" alt="" loading="lazy">';
         }
         return '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="image" class="cma-list-thumb-cell">' . $prefix . $inner . '</td>';
-    }
-
-    /**
-     * URL of the smallest responsive WebP thumbnail for a LOCAL image, or null
-     * when it hasn't been generated. Variants live in
-     * <path>/.responsive/<name>-300w.webp (see App\Library\ResponsiveImage);
-     * the list only shows a small thumb, so serving the 300w WebP instead of
-     * the (often huge) original is a big saving. Existence is checked on disk
-     * (site root is three levels up from cma/classes/Services/).
-     */
-    private static function smallestWebpThumb(string $base, string $filename): ?string
-    {
-        $name = pathinfo($filename, PATHINFO_FILENAME);
-        if ($name === '') {
-            return null;
-        }
-        $sizes = \App\Library\ResponsiveImage::SIZES;
-        $smallest = $sizes[0] ?? 300;
-        $relDir = ($base !== '' ? $base . '/' : '') . \App\Library\ResponsiveImage::RESPONSIVE_DIR;
-        $file = $name . '-' . $smallest . 'w.webp';
-        if (!is_file(dirname(__DIR__, 3) . '/' . $relDir . '/' . $file)) {
-            return null;
-        }
-        return '/' . $relDir . '/' . rawurlencode($file);
     }
 
     private static function detectColumnType(array $field): string
@@ -2108,7 +2086,10 @@ class JsonFormService extends BaseFormService
         $dataType = strtolower($field['dataType'] ?? '');
         if ($dataType === 'time') return 'time';
         if (!empty($field['dateFormat']) || in_array($dataType, ['date', 'datetime', '7', '133', '135'])) return 'date';
-        if (in_array($dataType, ['int', 'integer', 'smallint', 'decimal', 'numeric', 'float', 'double', 'money', 'number'])) return 'number';
+        // Includes the ADO/schema type CODES the forms actually carry (2=smallint,
+        // 3=integer, 4=single, 5=double, 6=currency, 131=numeric) — without these
+        // a dataType:"5" double stayed 'text' and showed raw "39.0000".
+        if (in_array($dataType, ['int', 'integer', 'smallint', 'decimal', 'numeric', 'float', 'double', 'money', 'number', '2', '3', '4', '5', '6', '131'])) return 'number';
 
         return 'text';
     }

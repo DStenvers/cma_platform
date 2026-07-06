@@ -429,14 +429,27 @@ class TreeService extends BaseFormService
                     break;
                 }
             }
-            $buildTreeImgSrc = function ($file) use ($imagePath) {
+            $imageBase = trim((string)$imagePath, '/');
+            // Full-size URL for a stored image value: external CDN as-is, but skip
+            // cloudfront (expired inkoop/auction links that 404 and flood the JS
+            // error log); otherwise base-path + encoded filename.
+            $buildTreeImgSrc = function ($file) use ($imageBase) {
                 $file = trim((string)$file);
                 if ($file === '') return '';
-                // Already-absolute URL (external CDN image) is used as-is;
-                // base-path + rawurlencode() would mangle it to "/https%3A%2F%2F…".
-                if (preg_match('#^(https?:)?//#i', $file)) return $file;
-                $base = trim((string)$imagePath, '/');
-                return '/' . ($base !== '' ? $base . '/' : '') . rawurlencode($file);
+                if (preg_match('#^(https?:)?//#i', $file)) {
+                    return stripos($file, 'cloudfront.net') !== false ? '' : $file;
+                }
+                return '/' . ($imageBase !== '' ? $imageBase . '/' : '') . rawurlencode($file);
+            };
+            // Thumbnail src: the smallest responsive WebP for a local image (the
+            // tree only shows a tiny thumb — the original is often multi-MB),
+            // falling back to the full image (or SVG/external).
+            $buildTreeThumbSrc = function ($file) use ($imageBase, $buildTreeImgSrc) {
+                $file = trim((string)$file);
+                if ($file === '' || preg_match('#^(https?:)?//#i', $file)) {
+                    return $buildTreeImgSrc($file);
+                }
+                return \App\Library\ResponsiveImage::smallestWebpThumb($imageBase, $file) ?? $buildTreeImgSrc($file);
             };
 
             // Build tree
@@ -507,14 +520,17 @@ class TreeService extends BaseFormService
                 $group3 = $group3Field ? $getField($group3Field) : '';
 
                 $display = (string)$display;
-                $imageSrc = $imageField ? $buildTreeImgSrc($getField($imageField)) : '';
+                $rawImg = $imageField ? (string)$getField($imageField) : '';
+                $imageSrc = $buildTreeImgSrc($rawImg);       // full-size (data-full)
+                $imageThumb = $buildTreeThumbSrc($rawImg);   // smallest WebP (src)
 
                 if ($bSimpleTree) {
                     $activeClass = ($activeId !== null && $recordId == $activeId) ? ' active' : '';
-                    $thumb = $imageSrc !== ''
-                        ? '<img class="cma-list-thumb cma-tree-thumb" src="' . htmlspecialchars($imageSrc) . '" data-full="' . htmlspecialchars($imageSrc) . '" alt="" loading="lazy">'
+                    $hasThumb = $imageSrc !== '';
+                    $thumb = $hasThumb
+                        ? '<img class="cma-list-thumb cma-tree-thumb" src="' . htmlspecialchars($imageThumb) . '" data-full="' . htmlspecialchars($imageSrc) . '" alt="" loading="lazy">'
                         : '';
-                    $htmlParts[] = '<a href="javascript:void(0)" class="' . $formClass . $activeClass . '" target="R" data-id="' . htmlspecialchars($recordId) . '">' . $thumb . htmlspecialchars($display) . '</a>';
+                    $htmlParts[] = '<a href="javascript:void(0)" class="' . $formClass . $activeClass . ($hasThumb ? ' has-thumb' : '') . '" target="R" data-id="' . htmlspecialchars($recordId) . '">' . $thumb . htmlspecialchars($display) . '</a>';
                 } else {
                     // Collect flat item with group keys for later tree assembly
                     $flatItems[] = [
@@ -523,7 +539,7 @@ class TreeService extends BaseFormService
                         'g1' => $group1,
                         'g2' => $group2,
                         'g3' => $group3,
-                        'image' => $imageSrc,
+                        'image' => $imageThumb,
                     ];
                 }
 

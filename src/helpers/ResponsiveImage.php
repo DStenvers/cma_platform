@@ -115,6 +115,12 @@ class ResponsiveImage
             return ['success' => false, 'variants' => [], 'error' => 'Bronbestand niet gevonden'];
         }
 
+        // SVG is resolution-independent vector art — GD can't rasterise it and
+        // there is nothing to shrink. Pass it through instead of erroring.
+        if (strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION)) === 'svg') {
+            return ['success' => true, 'variants' => [], 'passthrough' => true];
+        }
+
         $info = Image::getInfo($sourcePath);
         if ($info === false) {
             $fileSize = filesize($sourcePath);
@@ -156,6 +162,33 @@ class ResponsiveImage
         }
 
         return ['success' => true, 'variants' => $variants];
+    }
+
+    /**
+     * URL of the smallest responsive WebP thumbnail for a LOCAL image, or null
+     * when it hasn't been generated (or the source is an SVG, which is already
+     * scalable so there's no raster thumbnail). $base is the URL directory of the
+     * image ('images/producten'), $filename the stored filename ('photo.jpg').
+     * Existence is checked on disk via Server::mapPath. Shared by the list and
+     * tree image cells so both serve the small WebP instead of the huge original.
+     */
+    public static function smallestWebpThumb(string $base, string $filename): ?string
+    {
+        if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'svg') {
+            return null; // vector: no raster thumbnail
+        }
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+        if ($name === '') {
+            return null;
+        }
+        $smallest = self::SIZES[0] ?? 300;
+        $base = trim($base, '/');
+        $relDir = ($base !== '' ? $base . '/' : '') . self::RESPONSIVE_DIR;
+        $file = $name . '-' . $smallest . 'w.webp';
+        if (!is_file(Server::mapPath('/' . $relDir . '/' . $file))) {
+            return null;
+        }
+        return '/' . $relDir . '/' . rawurlencode($file);
     }
 
     /**

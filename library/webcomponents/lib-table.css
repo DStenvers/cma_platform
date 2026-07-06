@@ -84,6 +84,11 @@ lib-table .cma-list-thumb {
     cursor: zoom-in;
 }
 
+/* Float the thumbnail so a long tree label wraps beside it rather than under. */
+a.has-thumb .cma-tree-thumb {
+    float: left;
+}
+
 .listtable lib-switch {
     height: 20px;
     vertical-align: middle;

@@ -2161,3 +2161,19 @@ karaat-data en staat in de karaat-repo.
 > about the shapes: create a tool that determined the shape for stones that are not round and not oval , using the image and ai, make a 20 piece dry run and a full run, show the current shape and the proposed (new) shape. is we do this the shapes need to be correct
 
 > are the tools now mentioned in the tools menu?
+
+> <task-notification>
+> <task-id>bptnpj6bc</task-id>
+> <tool-use-id>toolu_017YRL22QLKw2ash7jk6aWHR</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/fe158292-4673-4e2e-b4b7-5159aecd6533/tasks/bptnpj6bc.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Wait for karaat to reach .85" completed (exit code 0)</summary>
+> </task-notification>
+
+> If a stone is outside the predicted range, can we compare the sg with glass ? If it falls within that range, note in the ag explaner: nieuwe rgel+‘Deze steen valt buiten de verwachte gewichtstange maar binnen die van glas. Mogelijk glas dus.’
+
+> can we harden these tools to accept no parameters? if a parameter is missing, select the stone first?
+
+## 2026-07-06
+
+> loading external images leads to a lot of javascript errors: can we skip loading files from cloudfront.net?
