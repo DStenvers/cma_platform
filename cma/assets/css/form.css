@@ -154,6 +154,17 @@ textarea[data-required="true"] + .cke.has-content {
     border-left: 3px solid var(--border-color) !important;
 }
 
+/* Fallback when CKEditor fails to load (see FormController.recoverStalledEditors):
+   the rich editor never built, so the plain textarea is restored for raw-HTML
+   editing. Monospace + a warm border signal that this is source-editing mode. */
+textarea.ckeditor-fallback {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    border: 1px solid var(--color-warning, #e0a800);
+    background: var(--bg-warning, #fffbf0);
+}
+
 /* Groupbox end row border */
 tr.groupbox-end > td { border-top: 1px solid var(--border-color); }
 

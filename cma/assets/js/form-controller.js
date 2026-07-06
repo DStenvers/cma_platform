@@ -3418,6 +3418,18 @@ class CmaFormController {
                         cmaLog.error('[initHtmlEditorsOnce] initHtmlEditors EXCEPTION:', e.message, e.stack);
                     }
 
+                    // Watchdog: CKEDITOR.replace() immediately hides the textarea
+                    // (visibility:hidden) and then builds the editor chrome async.
+                    // If that async load stalls — e.g. a skin/plugin/lang resource
+                    // 404s on the server — the instance is stuck at status
+                    // 'unloaded' forever: no chrome, textarea hidden, field looks
+                    // empty. A few seconds later, rescue any such field back to a
+                    // usable plain textarea so its content is never lost or hidden.
+                    setTimeout(() => {
+                        try { this.recoverStalledEditors(); }
+                        catch (e) { cmaLog.error('[recoverStalledEditors] EXCEPTION:', e.message, e.stack); }
+                    }, 4000);
+
                     // Initialize content block editing for fields with data-use-blockedit="true"
                     // blockedit_init() is provided by blockedit.js and looks for .blockedit containers
                     // cmaLog.log('[initHtmlEditorsOnce] blockedit_init available:', typeof blockedit_init === 'function');
@@ -3571,6 +3583,55 @@ class CmaFormController {
         const result = 'created:' + created + ' skipped:' + skipped + ' errors:' + errors;
         // cmaLog.log('[initHtmlEditors] EXIT -', result);
         return result;
+    }
+
+    /**
+     * Rescue rich-HTML memo fields whose CKEditor never finished loading.
+     *
+     * A rich memo renders as <textarea data-allow-html="true">; CKEDITOR.replace()
+     * immediately hides that textarea (visibility:hidden) and then builds the editor
+     * chrome asynchronously. On this CMA's ancient CKEditor 4.5.7 the async load can
+     * stall — the instance is created but stays at status 'unloaded' forever (no
+     * chrome, textarea hidden, field looks empty and unusable).
+     *
+     * This watchdog runs a few seconds after init. For every allow-HTML textarea
+     * whose editor did NOT reach 'ready', it drops the dead instance and restores
+     * the plain textarea with its original content, so the HTML is always visible
+     * and editable (as source) instead of silently lost behind a hidden field.
+     * Editors that loaded normally are left untouched.
+     */
+    recoverStalledEditors() {
+        if (typeof CKEDITOR === 'undefined') return;
+        const textareas = this.mainForm?.querySelectorAll('textarea[data-allow-html="true"]') || [];
+        textareas.forEach(textarea => {
+            const name = textarea.name;
+            const inst = CKEDITOR.instances[name];
+
+            // A fully-built editor is 'ready' — leave it alone.
+            if (inst && inst.status === 'ready') return;
+
+            // Preserve the content first: a stalled editor holds no data, so we must
+            // NOT let destroy() write its empty data back over the textarea.
+            const savedValue = textarea.value || textarea.getAttribute('data-original-value') || '';
+
+            if (inst) {
+                try {
+                    inst.destroy(true); // true = do not update the source element
+                } catch (e) {
+                    cmaLog.error('[recoverStalledEditors] destroy failed for', name, ':', e.message);
+                    // Make sure a future re-init can recreate it.
+                    try { delete CKEDITOR.instances[name]; } catch (e2) { /* noop */ }
+                }
+            }
+
+            // Restore the plain textarea so the content is visible and editable.
+            textarea.value = savedValue;
+            textarea.style.visibility = 'visible';
+            textarea.classList.add('ckeditor-fallback');
+
+            cmaLog.error('[recoverStalledEditors] CKEditor stalled for "' + name +
+                '" (never reached ready) — restored plain-textarea fallback.');
+        });
     }
 
     /**
