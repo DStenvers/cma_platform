@@ -3156,10 +3156,13 @@ a.migration-link:hover {
 
     /* === LAYOUT === */
 
-    /* Allow page to scroll on mobile */
+    /* Allow page to scroll on mobile. NOTE: do NOT force height:auto here — this
+       rule is bundled on every CMA page, so it also hit the shell (main.php) and
+       collapsed the whole height cascade (html/body need the base height:100% for
+       the flex chain + 100dvh to resolve). That was the real cause of the mobile
+       "not full height" saga and the menu X scrolling out of view. */
     html, body {
         overflow: visible !important;
-        height: auto !important;
     }
 
     .cma-form {

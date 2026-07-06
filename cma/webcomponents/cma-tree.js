@@ -551,20 +551,21 @@ class CmaTree extends HTMLElement {
                 li.red a.icon::before { color: var(--color-error, #dc3545); }
                 li.green a.icon::before { color: var(--color-success, #28a745); }
 
-                /* Tree leaf thumbnail (rendered before the label, vertically centred) */
+                /* Tree leaf thumbnail: float it so a long/multi-line label wraps
+                   beside the image rather than under it. (An inline-flex parent
+                   would swallow the float, which is why float:left never showed.) */
                 a.has-thumb {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
+                    display: block;
                 }
                 a.has-thumb .cma-tree-thumb {
+                    float: left;
+                    margin-right: 6px;
                     height: 22px;
                     width: auto;
                     max-width: 40px;
                     object-fit: cover;
                     border: 1px solid var(--border-color, #ddd);
                     border-radius: 3px;
-                    flex-shrink: 0;
                     cursor: zoom-in;
                 }
 

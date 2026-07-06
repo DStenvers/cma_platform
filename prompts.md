@@ -2187,3 +2187,13 @@ karaat-data en staat in de karaat-repo.
 > <status>completed</status>
 > <summary>Background command "Wait for karaat to reach .87" completed (exit code 0)</summary>
 > </task-notification>
+
+> <task-notification>
+> <task-id>b70ahh8i9</task-id>
+> <tool-use-id>toolu_01CAA6tpbsDvhtbEDCdXCyAG</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/fe158292-4673-4e2e-b4b7-5159aecd6533/tasks/b70ahh8i9.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Wait for karaat to reach .88" completed (exit code 0)</summary>
+> </task-notification>
+
+> The X of the menu now dissapears when scrolling and i still don´t see the image´s float:left, .88 is live
