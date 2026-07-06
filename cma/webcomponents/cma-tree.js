@@ -697,18 +697,14 @@ class CmaTree extends HTMLElement {
                 if (!a) return;
                 const li = a.closest('li');
                 if (!li || li.classList.contains('truncated')) return;
-                // DEBUG: log to verify handler fires
-                console.log('[cma-tree tooltip] hover on:', a.getAttribute('data-label'), 'scrollW:', a.scrollWidth, 'clientW:', a.clientWidth, 'offsetW:', a.offsetWidth);
                 // Use Range to measure actual rendered text width
                 var range = document.createRange();
                 range.selectNodeContents(a);
                 var textRect = range.getBoundingClientRect();
                 var containerRect = a.getBoundingClientRect();
-                console.log('[cma-tree tooltip] textW:', textRect.width, 'containerW:', containerRect.width);
                 if (textRect.width > containerRect.width + 2) {
                     li.classList.add('truncated');
                     li.setAttribute('data-tooltip', a.getAttribute('data-label'));
-                    console.log('[cma-tree tooltip] TRUNCATED - tooltip set');
                 }
             };
             this._mouseoutHandler = (e) => {

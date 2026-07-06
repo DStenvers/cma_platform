@@ -2197,3 +2197,91 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > The X of the menu now dissapears when scrolling and i still don´t see the image´s float:left, .88 is live
+
+> One shape svg is not present: cabouchon, based on the existing svg's, can you create a new one for cabouchon? And add it to the filter page
+
+> cma_platform: the error -> Verwijderen mislukt: SQLSTATE[HY000]: General error: -1612 [Microsoft][ODBC Microsoft Access Driver] The record cannot be deleted or changed because table 'tblProducten' includes related records. (SQLExecute[-1612] at ext\pdo_odbc\odbc_stmt.c:266) 
+>
+> i thought we had cleanued up arrors expecially these once to say something like  'Er zijn nog records in de tabel Producten' and skip all other numbers/drivernames/source-references
+
+> chrome: false
+> VM42495:2 val: 202 vis: hidden
+> VM42495:3 CKEDITOR: object CreateFKEditor: function
+> VM42495:5 instance: true status: unloaded
+> VM42495:6 chrome: false
+> VM42496:2 val: 202 vis: hidden
+> VM42496:3 CKEDITOR: object CreateFKEditor: function
+> VM42496:5 instance: true status: unloaded
+> VM42496:6 chrome: false
+> VM42498:2 val: 202 vis: hidden
+> VM42498:3 CKEDITOR: object CreateFKEditor: function
+> VM42498:5 instance: true status: unloaded
+> VM42498:6 chrome: false
+> VM42499:2 val: 202 vis: hidden
+> VM42499:3 CKEDITOR: object CreateFKEditor: function
+> VM42499:5 instance: true status: unloaded
+> VM42499:6 chrome: false
+> VM42500:2 val: 202 vis: hidden
+> VM42500:3 CKEDITOR: object CreateFKEditor: function
+> VM42500:5 instance: true status: unloaded
+> VM42500:6 chrome: false
+> VM42501:2 val: 202 vis: hidden
+> VM42501:3 CKEDITOR: object CreateFKEditor: function
+> VM42501:5 instance: true status: unloaded
+> VM42501:6 chrome: false
+> VM42503:2 val: 202 vis: hidden
+> VM42503:3 CKEDITOR: object CreateFKEditor: function
+> VM42503:5 instance: true status: unloaded
+> VM42503:6 chrome: false
+> VM42504:2 val: 202 vis: hidden
+> VM42504:3 CKEDITOR: object CreateFKEditor: function
+> VM42504:5 instance: true status: unloaded
+> VM42504:6 chrome: false
+> VM42505:2 val: 202 vis: hidden
+> VM42505:3 CKEDITOR: object CreateFKEditor: function
+> VM42505:5 instance: true status: unloaded
+> VM42505:6 chrome: false
+> VM42506:2 val: 202 vis: hidden
+> VM42506:3 CKEDITOR: object CreateFKEditor: function
+> VM42506:5 instance: true status: unloaded
+> VM42506:6 chrome: false
+> VM42508:2 val: 202 vis: hidden
+> VM42508:3 CKEDITOR: object CreateFKEditor: function
+> VM42508:5 instance: true status: unloaded
+> VM42508:6 chrome: false
+> VM42509:2 val: 202 vis: hidden
+> VM42509:3 CKEDITOR: object CreateFKEditor: function
+> VM42509:5 instance: true status: unloaded
+> VM42509:6 chrome: false
+> VM42510:2 val: 202 vis: hidden
+> VM42510:3 CKEDITOR: object CreateFKEditor: function
+> VM42510:5 instance: true status: unloaded
+> VM42510:6 chrome: false
+> VM42512:2 val: 202 vis: hidden
+> VM42512:3 CKEDITOR: object CreateFKEditor: function
+> VM42512:5 instance: true status: unloaded
+> VM42512:6 chrome: false
+> VM42513:2 val: 202 vis: hidden
+> VM42513:3 CKEDITOR: object CreateFKEditor: function
+> VM42513:5 instance: true status: unloaded
+> VM42513:6 chrome: false
+> VM42514:2 val: 202 vis: hidden
+> VM42514:3 CKEDITOR: object CreateFKEditor: function
+> VM42514:5 instance: true status: unloaded
+> VM42514:6 chrome: false
+> VM42515:2 val: 202 vis: hidden
+> VM42515:3 CKEDITOR: object CreateFKEditor: function
+> VM42515:5 instance: true status: unloaded
+> VM42515:6 chrome: false
+
+> i do like the fallback, after failed ckeditor-loading that sounds like a good idea?
+
+> please remove all logging that contains [MenuService::getFormAccessLevel]
+
+> after using the veldkiezer the display swaps to tree view, which is useless because the field chooser is specifically meant for table view.
+
+> case-seneitivity: start there , 404 counter and graph please on dashboard of cma cma-blockeditor is now a fake one (in storybook), i wonder if we should just update storybook
+
+> i don't want blockedit, because that is functionally a different control. I disagree with you assesment of ckeditor, in the blockeditor we regularly create and destroy them without issues. Upgrading is still an option
+
+> please commit all, including other changes you did not make.

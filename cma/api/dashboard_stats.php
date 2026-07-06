@@ -71,10 +71,15 @@ try {
             $response = getLogSettings();
             break;
 
+        case 'notfound':
+            $response = getNotFoundStats();
+            break;
+
         case 'all':
         default:
             $response = [
                 'errors' => getErrorStats(),
+                'notfound' => getNotFoundStats(),
                 'cache' => getCacheStats(),
                 'performance' => getPerformanceStats(),
                 'activity' => getUserActivityStats(),
@@ -243,6 +248,65 @@ function getErrorStats(): array
         ];
     }
     $stats['daily'] = $dailyDisplay;
+
+    return $stats;
+}
+
+/**
+ * Get 404 (page-not-found) statistics for the last 14 days.
+ *
+ * Reads the daily JSON logs written by cma/404.php (cma/logs/404_YYYY-MM-DD.log).
+ * Auto-resolved icon redirects are excluded — only genuine misses are counted.
+ * Returns a per-day series (for the bar chart), today's/total counts, and the
+ * most-missed URL paths.
+ */
+function getNotFoundStats(): array
+{
+    $stats = ['exists' => false, 'today' => 0, 'total' => 0, 'daily' => [], 'top' => []];
+
+    $logsDir = dirname(__DIR__) . '/logs'; // cma/logs (same dir cma/404.php writes to)
+    $days = 14;
+    $maxPerFile = 20000; // safety cap so a pathological log can't stall the dashboard
+    $todayStr = date('Y-m-d');
+    $paths = [];
+
+    for ($i = $days - 1; $i >= 0; $i--) {
+        $date = date('Y-m-d', strtotime("-{$i} days"));
+        $count = 0;
+        $file = $logsDir . '/404_' . $date . '.log';
+        if (is_file($file)) {
+            $stats['exists'] = true;
+            $fh = @fopen($file, 'r');
+            if ($fh) {
+                $lines = 0;
+                while (($line = fgets($fh)) !== false && $lines < $maxPerFile) {
+                    $lines++;
+                    $line = trim($line);
+                    if ($line === '') continue;
+                    $entry = json_decode($line, true);
+                    if (is_array($entry) && ($entry['type'] ?? '') === 'icon_redirect') continue;
+                    $count++;
+                    if (is_array($entry)) {
+                        $url = (string)($entry['url'] ?? '');
+                        $path = parse_url($url, PHP_URL_PATH);
+                        $path = ($path !== null && $path !== false && $path !== '') ? $path : ($url !== '' ? $url : '(onbekend)');
+                        $paths[$path] = ($paths[$path] ?? 0) + 1;
+                    }
+                }
+                fclose($fh);
+            }
+        }
+        $stats['daily'][] = ['date' => date('d-m', strtotime($date)), 'count' => $count];
+        $stats['total'] += $count;
+        if ($date === $todayStr) {
+            $stats['today'] = $count;
+        }
+    }
+
+    arsort($paths);
+    foreach (array_slice($paths, 0, 8, true) as $path => $c) {
+        $stats['top'][] = ['path' => $path, 'count' => $c];
+    }
 
     return $stats;
 }

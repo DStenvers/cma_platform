@@ -5125,8 +5125,23 @@ class CmaFormController {
 
         // Close popup and reload
         this.closeColumnSelector();
+        // Same rationale as saveColumnSelection: the field chooser is a table-view
+        // feature, so reset must land in table mode too.
+        this.ensureTableModeForColumns();
         this.loadList(true); // Force refresh
         this.showNotification('Kolominstellingen gereset', 'success');
+    }
+
+    /**
+     * Force the list into table mode. Called by the field-chooser actions, whose
+     * button is only ever shown in table mode — this keeps the controller's
+     * displayMode (and the persisted cookie) in lock-step with that assumption so
+     * the subsequent loadList() renders the table, not a tree.
+     */
+    ensureTableModeForColumns() {
+        if (this.displayMode === this.LIST_MODE.DISPLAY_TABLE) return;
+        this.setDisplayModeClass('table');
+        this.saveDisplayMode(this.LIST_MODE.DISPLAY_TABLE);
     }
 
     /**
@@ -5195,6 +5210,10 @@ class CmaFormController {
 
             if (data.success) {
                 this.closeColumnSelector();
+                // The field chooser only exists for table view (its button is table-mode
+                // only). Guarantee we land in table mode so the just-chosen columns are
+                // actually shown — a desynced displayMode would otherwise reload as a tree.
+                this.ensureTableModeForColumns();
                 // Reload list to apply new columns
                 this.loadList();
             } else {
@@ -9276,16 +9295,6 @@ class CmaFormController {
 
             // cmaLog.log('saveRecord POST data:', 'formId=', this.formId, 'isJsonForm=', this.isJsonForm, 'currentRecordId=', cmaGetRecordId());
 
-            // TEMP diagnostic: trace numeric field values from input -> collected -> sent
-            try {
-                this.mainForm.querySelectorAll('[data-validation-type="number"]').forEach(el => {
-                    console.log('[NUM-TRACE client] field', el.name,
-                        '| input.value=', JSON.stringify(el.value),
-                        '| collected=', JSON.stringify(formData[el.name]),
-                        '| inPostData=', JSON.stringify(postData.get(el.name)));
-                });
-            } catch (e) { console.warn('[NUM-TRACE] client trace failed', e); }
-
             cmaPerf.mark('saveRecord_fetchStart');
             const response = await fetch(`/cma/form_api.php`, {
                 method: 'POST',
@@ -9304,10 +9313,6 @@ class CmaFormController {
 
             try {
                 result = JSON.parse(responseText);
-                // TEMP diagnostic: server-side numeric trace (received -> param/inlined -> stored)
-                if (result && result._numdebug && Object.keys(result._numdebug).length) {
-                    console.log('[NUM-TRACE server]', JSON.parse(JSON.stringify(result._numdebug)));
-                }
             } catch (e) {
                 // Non-JSON response - show in popup
                 // cmaLog.log('saveRecord: non-JSON response, showing in popup');

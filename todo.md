@@ -2,6 +2,14 @@
 
 ## Wire `<cma-blockeditor>` in as a real replacement for the CKEditor-based block editor
 
+> **Status (2026-07-06): PARKED — someday/maybe, not planned.** Decision: keep the
+> working `blockedit.js` (CKEditor-per-block) editor; the full swap is high-risk
+> (stored-content migration + every HTML memo field) for little user-visible gain.
+> `cma-blockeditor` is now clearly marked **experimental / not in production** in
+> the storybook so nobody mistakes it for the real editor. Revisit only if we
+> deliberately choose to modernise the block editor. The plan below stays as the
+> reference for what that work would entail.
+
 **Goal:** make the `cma/webcomponents/cma-blockeditor.js` web component the actual
 content editor used by forms, replacing the legacy CKEditor-backed content-block
 editor (`cma/assets/js/blockedit.js`) and/or the single-field CKEditor wrapper
@@ -110,3 +118,24 @@ belangrijkste nieuwe logica afdekken, unit-first (deterministisch), dan Cypress.
 
 ### Aanpak
 Eerst A (in de custom runner `cma/tests/TestRunner.php`), dan B gefaseerd.
+
+## Site-specifieke tools generiek in tools.php wiren
+
+- [x] **Gedaan (v1.28.84):** `tools_catalog.inc` leest de site-`data/tools.json`
+      en voegt die groepen toe aan de launcher; items met een absolute href
+      (`/tools/…`) openen in een nieuw tabblad (`data-external` in
+      `cma-launcher.js`). karaat levert nu `data/tools.json` (groep "Karaat
+      onderhoud"). Data-gedreven — het platform kent geen site-bestandsnamen.
+- [ ] Ontdek alle site-specifieke tools (bv. `karaat/tools/*.php` zoals
+      `sg_recalculate.php`, `fill_missing_prices.php`, `detect_stone.php`,
+      `find_duplicate_stone.php`, `similar_stones.php`, `quick_add_stone.php`)
+      en surface ze **generiek** in de CMA `tools.php` / launcher, zonder per
+      site handmatig aliassen in `$toolNameMap` te hoeven zetten.
+- Idee: een conventie/manifest per site (bv. `data/tools.json` of een
+      `tools/*.php` docblock-tag) die het platform inleest en als launcher-tegels
+      toont — analoog aan hoe `menu.json`/`reports` per site werken. Platform
+      blijft de generieke lader; de site levert alleen de lijst + metadata
+      (label, icoon, groep, rechten).
+- Let op: `tools.php` staat in het platform; de site-tools staan in de
+      consumer-repo. De koppeling moet dus data-gedreven zijn (geen platform-code
+      die karaat-bestandsnamen kent).

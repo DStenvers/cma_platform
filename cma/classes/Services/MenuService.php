@@ -292,61 +292,34 @@ class MenuService
      */
     public static function getFormAccessLevel(string $formName): int
     {
-        // DEBUG: Log all access check details
-        $debugLog = function($msg) use ($formName) {
-            error_log("[MenuService::getFormAccessLevel] form=$formName: $msg");
-        };
-
         // Must be logged in
-        $isLoggedIn = SecurityHelper::isLoggedIn();
-        $debugLog("isLoggedIn=" . ($isLoggedIn ? 'true' : 'false'));
-
-        if (!$isLoggedIn) {
-            $debugLog("DENIED: Not logged in");
+        if (!SecurityHelper::isLoggedIn()) {
             return SecurityHelper::ACCESS_NONE;
         }
 
-        // Check cookies directly for debugging
-        $cmau = \App\Library\Cookie::get(SecurityHelper::COOKIE_USERID, '');
-        $debugLog("Cookies: CMAU=$cmau");
-
         // Admins and developers always have full access
-        $isAdmin = SecurityHelper::isAdmin();
-        $isDeveloper = SecurityHelper::isDeveloper();
-        $userLevel = SecurityHelper::getUserLevel();
-        $debugLog("isAdmin=$isAdmin, isDeveloper=$isDeveloper, userLevel=$userLevel");
-
-        if ($isAdmin) {
-            $debugLog("GRANTED: User is admin, returning ACCESS_FULL_BEHEER (40)");
+        if (SecurityHelper::isAdmin()) {
             return SecurityHelper::ACCESS_FULL_BEHEER;
         }
 
         // Normal user: check group-based rights
         $formId = \Cma\JsonFormLoader::getFormIdByName($formName);
-        $debugLog("formId from JsonFormLoader=" . ($formId ?? 'null'));
 
         if ($formId === null) {
             // Form has no sourceFormId - cannot check group rights
-            $debugLog("DENIED: Form has no sourceFormId");
             return SecurityHelper::ACCESS_NONE;
         }
 
         $userId = (int)(\App\Library\Cookie::get(SecurityHelper::COOKIE_USERID, 0));
-        $debugLog("userId from cookie=$userId");
 
         if ($userId <= 0) {
-            $debugLog("DENIED: Invalid userId");
             return SecurityHelper::ACCESS_NONE;
         }
 
         // Check group-based access via SecurityHelper
         // This checks tblGroupRights for the user's group memberships
-        $accessLevel = SecurityHelper::checkFormRights($userId, $formId);
-        $debugLog("checkFormRights returned=$accessLevel");
-
         // Return access level (defaults to NONE if no rights found)
-        $debugLog("FINAL: Returning accessLevel=$accessLevel");
-        return $accessLevel;
+        return SecurityHelper::checkFormRights($userId, $formId);
     }
 
     /**

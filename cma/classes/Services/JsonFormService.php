@@ -1340,11 +1340,17 @@ class JsonFormService extends BaseFormService
      * @param array $options Options
      * @return array ['success' => bool, 'rows' => array, 'columns' => array, ...]
      */
+    /**
+     * @deprecated Never implemented — this is a stub that always returns an error.
+     * The JSON-form list is rendered by getTableHtml() (server-side HTML wrapped in
+     * <lib-table>), NOT via a JSON/data-url table. The only caller chain
+     * (form_api.php action=tableData → ListService::getJsonFormTableJson → here)
+     * is therefore dead for JSON forms. Do not build on this; extend getTableHtml
+     * or remove the tableData route. Kept only so the endpoint fails gracefully.
+     */
     public static function getTableJson(string $formName, array $options = []): array
     {
-        // TODO: Implement getTableJson based on getTableHtml logic
-        // For now, return an error since the web component table is not the default view
-        return self::error('Web component table view is not yet supported for JSON forms');
+        return self::error('Web component table view (tableData) is not supported for JSON forms — deprecated stub; the list uses getTableHtml');
     }
 
     /**

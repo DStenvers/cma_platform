@@ -485,7 +485,7 @@ html.dark-mode .hex-dark { display: inline; }
             icon: 'lnr-layers',
             children: [
                 { label: 'blockeditor (CKEditor)', href: '#blockeditor', icon: 'lnr-text-format' },
-                { label: 'cma-blockeditor', href: '#cma-blockeditor', icon: 'lnr-pencil2' },
+                { label: 'cma-blockeditor (experimenteel)', href: '#cma-blockeditor', icon: 'lnr-pencil2' },
                 { label: 'cma-fold', href: '#cma-fold', icon: 'lnr-folder' },
                 { label: 'cma-groupbox', href: '#cma-groupbox', icon: 'lnr-layers' },
                 { label: 'cma-htmledit', href: '#cma-htmledit', icon: 'lnr-code' },
@@ -2887,7 +2887,8 @@ window.LIBLOG_CONFIG = {
         <div class="component-header">
             <h2>cma-blockeditor</h2>
             <span class="tag cma">CMA</span>
-            <p class="component-description">Block-gebaseerde rich-text editor. Niet hetzelfde als de legacy <code>blockeditor (CKEditor)</code>: dit is een vanilla-JS web component dat zijn inhoud opslaat als JSON-array van getypeerde blokken (paragraph, heading, image, list, quote, divider, html).</p>
+            <lib-label type="warning">Experimenteel — niet in productie</lib-label>
+            <p class="component-description"><span class="storybook__strong">Let op:</span> dit component wordt <span class="storybook__strong">niet</span> in formulieren gebruikt. De echte content-block editor in de CMA is <code>blockedit.js</code> (een CKEditor per blok, aangehaakt door <code>FormRenderer::renderMemo()</code> — zie de sectie <code>blockeditor (CKEditor)</code> hierboven). <code>cma-blockeditor</code> is een op zichzelf staand experiment: een vanilla-JS web component dat zijn inhoud opslaat als JSON-array van getypeerde blokken (paragraph, heading, image, list, quote, divider, html). Alleen hier in de storybook levend; nog niet form-associated en zonder data-migratie, dus (nog) niet inzetbaar in een formulier.</p>
         </div>
         <div class="component-body">
             <div class="component-content">

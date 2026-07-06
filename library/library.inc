@@ -19,7 +19,7 @@ require_once __DIR__ . '/lib_search.inc';
 require_once __DIR__ . '/lib_sendmail.inc';
 require_once __DIR__ . '/lib_table.inc';
 require_once __DIR__ . '/lib_url.inc';
-require_once __DIR__ . '/lib_XMLSnippets.inc';
+require_once __DIR__ . '/lib_xmlsnippets.inc';
 require_once __DIR__ . '/classes/class_mailer.inc';
 require_once __DIR__ . '/classes/class_marketurl.inc';
 require_once __DIR__ . '/classes/class_stringbuffer.inc';

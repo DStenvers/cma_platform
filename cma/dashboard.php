@@ -1144,6 +1144,31 @@ if ($isAdmin) {
         <?php endif; ?>
     </div>
 
+    <!-- 404 monitoring - admins & developers -->
+    <div class="stats-grid">
+        <div class="stats-card" id="notFoundCard">
+            <div class="stats-card-header">
+                <span class="lnr lnr-warning"></span>
+                Pagina niet gevonden (404, 14 dagen)
+                <a href="tools.php?tool=logs" class="header-action" data-tooltip="404-logs bekijken in logreader">
+                    <span class="lnr lnr-list"></span>
+                </a>
+            </div>
+            <div class="stats-card-body" id="notFoundStats">
+                <div class="stats-loading">Laden...</div>
+            </div>
+        </div>
+        <div class="stats-card" id="notFoundTopCard">
+            <div class="stats-card-header">
+                <span class="lnr lnr-link"></span>
+                Meest gemiste URLs
+            </div>
+            <div class="stats-card-body" id="notFoundTop">
+                <div class="stats-loading">Laden...</div>
+            </div>
+        </div>
+    </div>
+
     <?php if ($isDeveloper): ?>
     <!-- JavaScript Logs - Row 4 (Developer only) -->
     <div class="stats-grid">
@@ -1458,8 +1483,10 @@ if ($isAdmin) {
         var securityStats = document.getElementById('securityStats');
         var performanceStats = document.getElementById('performanceStats');
         var jslogStats = document.getElementById('jslogStats');
+        var notFoundStats = document.getElementById('notFoundStats');
+        var notFoundTop = document.getElementById('notFoundTop');
 
-        if (healthStats || cacheStats || jslogStats) {
+        if (healthStats || cacheStats || jslogStats || notFoundStats) {
             loadDashboardStats();
         }
 
@@ -1491,6 +1518,9 @@ if ($isAdmin) {
                     if (jslogStats && data.jslog) {
                         renderJSLogStats(data.jslog);
                     }
+                    if (notFoundStats && data.notfound) {
+                        renderNotFoundStats(data.notfound);
+                    }
                     // Store log settings for the toggle panel
                     if (data.log_settings) {
                         logSettingsData = data.log_settings;
@@ -1507,6 +1537,8 @@ if ($isAdmin) {
                     if (securityStats) securityStats.innerHTML = errorHtml;
                     if (performanceStats) performanceStats.innerHTML = errorHtml;
                     if (jslogStats) jslogStats.innerHTML = errorHtml;
+                    if (notFoundStats) notFoundStats.innerHTML = errorHtml;
+                    if (notFoundTop) notFoundTop.innerHTML = errorHtml;
                 });
         }
 
@@ -1851,6 +1883,51 @@ if ($isAdmin) {
                         '<div class="stat-label">Gebruikers</div>' +
                     '</div>' +
                 '</div>';
+        }
+
+        function renderNotFoundStats(nf) {
+            // Nothing logged -> hide both 404 cards (keeps the dashboard tidy).
+            if (!nf || !nf.exists || (Number(nf.total) || 0) === 0) {
+                [notFoundStats, notFoundTop].forEach(function(el) {
+                    if (el) { var c = el.closest('.stats-card'); if (c) c.style.display = 'none'; }
+                });
+                return;
+            }
+
+            // Per-day bar chart (same .bar-chart/.bar pattern as the activity widget).
+            var daily = nf.daily || [];
+            var maxCount = Math.max.apply(null, daily.map(function(d) { return d.count; }).concat([1]));
+            var barsHtml = daily.map(function(d) {
+                var height = Math.max(2, (d.count / maxCount) * 100);
+                return '<div class="bar" style="height:' + height + '%; background: var(--color-warning, #e0a800);" data-count="' + d.date + ': ' + d.count + '"></div>';
+            }).join('');
+
+            notFoundStats.innerHTML =
+                '<div class="bar-chart">' + barsHtml + '</div>' +
+                '<div class="stats-row">' +
+                    '<div class="stat-item"><div class="stat-value">' + nf.today + '</div><div class="stat-label">Vandaag</div></div>' +
+                    '<div class="stat-item"><div class="stat-value">' + nf.total + '</div><div class="stat-label">14 dagen</div></div>' +
+                '</div>';
+
+            // Most-missed URLs (reuses the .hbar-* list from the forms widget).
+            if (notFoundTop) {
+                var top = nf.top || [];
+                if (top.length === 0) {
+                    var tc = notFoundTop.closest('.stats-card');
+                    if (tc) tc.style.display = 'none';
+                } else {
+                    var maxTop = top[0].count || 1;
+                    notFoundTop.innerHTML = '<div class="hbar-chart">' + top.map(function(t) {
+                        var pct = Math.round((t.count / maxTop) * 100);
+                        var shortPath = t.path.length > 46 ? '…' + t.path.slice(-45) : t.path;
+                        return '<div class="hbar-item">' +
+                            '<span class="hbar-label" title="' + escapeHtml(t.path) + '">' + escapeHtml(shortPath) + '</span>' +
+                            '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%"></div></div>' +
+                            '<span class="hbar-value">' + t.count + '</span>' +
+                        '</div>';
+                    }).join('') + '</div>';
+                }
+            }
         }
 
         function renderFormsStats(forms) {

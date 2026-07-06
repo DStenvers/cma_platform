@@ -1,0 +1,18 @@
+{
+  "counterText": "records 1-200 van 1806",
+  "domRows": 1806,
+  "rowCallers": {
+    "appendChild | v=20260703u:1440:9830 <- Array.forEach (<anonymous>) <- CmaInfiniteScroll.load (v=20260703u:1440:9723) <- async o (v=20260703u:1441:81524)": 1606
+  },
+  "relevantConsole": [
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 200, Actual DOM rows: 400. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 400, Actual DOM rows: 600. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 600, Actual DOM rows: 800. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 800, Actual DOM rows: 1000. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 1000, Actual DOM rows: 1200. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 1200, Actual DOM rows: 1400. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 1400, Actual DOM rows: 1600. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 1600, Actual DOM rows: 1800. Difference: 200",
+    "ERROR: [Infinite Scroll] DOM count mismatch! Tracked: 1800, Actual DOM rows: 1806. Difference: 6"
+  ]
+}

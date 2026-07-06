@@ -1,0 +1,91 @@
+{
+  "innerWidth": 1280,
+  "documentScrollWidth": 1280,
+  "bodyScrollWidth": 1280,
+  "horizontalOverflow": 0,
+  "devicePixelRatio": 1,
+  "viewportMeta": "width=device-width, initial-scale=1",
+  "widestElements": [
+    {
+      "tag": "DIV",
+      "id": "c",
+      "cls": "listcontent blockselect",
+      "w": 2942
+    },
+    {
+      "tag": "DIV",
+      "id": "listContent",
+      "cls": "",
+      "w": 2942
+    },
+    {
+      "tag": "LIB-TABLE",
+      "id": "",
+      "cls": "",
+      "w": 2942
+    },
+    {
+      "tag": "TABLE",
+      "id": "listTable",
+      "cls": "listtable inline-editable filtering sorttable",
+      "w": 2942
+    },
+    {
+      "tag": "THEAD",
+      "id": "",
+      "cls": "",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listheader",
+      "w": 2942
+    },
+    {
+      "tag": "TBODY",
+      "id": "",
+      "cls": "",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listrow",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listrow",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listrow",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listrow",
+      "w": 2942
+    },
+    {
+      "tag": "TR",
+      "id": "",
+      "cls": "listrow",
+      "w": 2942
+    }
+  ],
+  "sidebar": {
+    "left": 0,
+    "width": 260,
+    "display": "flex",
+    "visibility": "visible",
+    "transform": "none",
+    "opacity": "1"
+  },
+  "recordCount": ""
+}

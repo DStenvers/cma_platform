@@ -71,7 +71,7 @@ cma_script('webcomponents/cma-toolbar.js');
 <cma-toolbar variant="list" class="tools-toolbar">
     <left>
         <button type="button" class="cma-launcher-btn" id="reportsMenuBtn" title="Alle rapportages">
-            <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Rapportages</span>
+            <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle rapporten</span>
         </button>
     </left>
 </cma-toolbar>
@@ -94,9 +94,13 @@ cma_script('webcomponents/cma-toolbar.js');
 <?php endforeach; endif; ?>
 </div>
 
-<iframe name="R" id="reports-content" class="tools-content-area"
+<?php if (!empty($repId)): ?>
+    <iframe name="R" id="reports-content" class="tools-content-area"
         src="<?= $repId > 0 ? 'reportdetails.php?RepID=' . $repId : 'about:blank' ?>"
         frameborder="0"<?= $repId > 0 ? '' : ' hidden' ?>></iframe>
+<?php else: ?>
+    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong"> alle rapporten </span> om een rapport te kiezen.</div>
+<?php endif; ?>
 
 <script>
 (function () {

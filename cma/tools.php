@@ -194,7 +194,7 @@ cma_script('webcomponents/cma-toolbar.js');
 <cma-toolbar variant="list" class="tools-toolbar">
     <left>
         <button type="button" class="cma-launcher-btn" id="toolsMenuBtn" aria-haspopup="dialog" title="Alle beheerstools">
-            <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Menu</span>
+            <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle tools</span>
         </button>
     </left>
 </cma-toolbar>
@@ -203,7 +203,7 @@ cma_script('webcomponents/cma-toolbar.js');
     <iframe name="R" id="tools-content" class="tools-content-area"
             src="<?= Server::htmlEncode($initialTool) ?>" frameborder="0"></iframe>
 <?php else: ?>
-    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong">Menu</span> om een beheerstool te kiezen.</div>
+    <div class="tools-empty" id="toolsEmpty" hidden>Klik op <span class="cma-page__strong"> Alle tools </span> om een beheerstool te kiezen.</div>
 <?php endif; ?>
 
 <script>
