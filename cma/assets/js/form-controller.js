@@ -3992,38 +3992,28 @@ class CmaFormController {
 
         const imageUrl = cmaStripResize(this.isAbsoluteUrl(field.value) ? field.value : path + field.value);
 
-        // Never stack preview overlays: if a duplicate click handler (or a
-        // second controller bound to the same form) fires this twice, only one
-        // dialog should ever be open. Clear any existing overlay first.
-        document.querySelectorAll('.image-preview-overlay').forEach(el => el.remove());
+        // Show the preview in the standard lib-dialog component rather than a
+        // hand-rolled overlay: lib-dialog already handles the backdrop, Escape /
+        // backdrop-to-close, and renders into the top window so it covers the
+        // whole screen even when the form runs inside the sidepanel iframe.
+        // Never stack previews: drop any dialog still open from a double-fire.
+        document.querySelectorAll('lib-dialog.image-preview-dialog').forEach(el => el.remove());
 
-        // Create lightbox overlay for better preview experience
-        const overlay = document.createElement('div');
-        overlay.className = 'image-preview-overlay';
-        overlay.innerHTML = `
-            <div class="image-preview-container">
-                <img src="${imageUrl}" alt="Preview" class="image-preview-large">
-                <button class="image-preview-close" data-tooltip="Sluiten">&times;</button>
-            </div>
-        `;
+        const caption = field.dataset.caption || 'Afbeelding';
+        const dialog = document.createElement('lib-dialog');
+        dialog.className = 'image-preview-dialog';
+        dialog.setAttribute('heading', caption);
+        dialog.setAttribute('size', 'large');
 
-        // Close on click outside image or on close button
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay || e.target.classList.contains('image-preview-close')) {
-                overlay.remove();
-            }
-        });
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = caption;
+        img.style.cssText = 'display:block;max-width:100%;max-height:78vh;margin:0 auto;object-fit:contain;';
+        dialog.appendChild(img);
 
-        // Close on Escape key
-        const handleKeydown = (e) => {
-            if (e.key === 'Escape') {
-                overlay.remove();
-                document.removeEventListener('keydown', handleKeydown);
-            }
-        };
-        document.addEventListener('keydown', handleKeydown);
-
-        document.body.appendChild(overlay);
+        dialog.addEventListener('dialog-close', () => dialog.remove());
+        document.body.appendChild(dialog);
+        dialog.open();
     }
 
     /**

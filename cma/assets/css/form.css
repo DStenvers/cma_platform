@@ -2886,54 +2886,8 @@ body.mode-table #btn_columns {
     pointer-events: none;
 }
 
-/* Image preview lightbox overlay */
-.image-preview-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.image-preview-container {
-    position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
-}
-
-.image-preview-large {
-    max-width: 90vw;
-    max-height: 90vh;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    cursor: default;
-}
-
-.image-preview-close {
-    position: absolute;
-    top: -40px;
-    right: -10px;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 36px;
-    cursor: pointer;
-    padding: 5px 10px;
-    line-height: 1;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.image-preview-close:hover {
-    opacity: 1;
-}
+/* Image preview now uses the standard <lib-dialog> component (see
+   FormController.showImagePreview); no bespoke overlay/lightbox CSS here. */
 
 /* Image controls container */
 .image-controls {
