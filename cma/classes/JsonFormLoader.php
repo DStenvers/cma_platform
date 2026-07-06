@@ -632,7 +632,15 @@ class JsonFormLoader
         }
         $fsPath = $docRoot . '/' . ltrim($path, '/');
         if (!is_dir($fsPath)) {
-            return ["{$kindLabel}-veld $label verwijst naar map '$path' die niet bestaat op de server."];
+            // The upload target doesn't exist yet. Rather than block the whole
+            // form, create it — an image/file field needs its destination folder
+            // to exist, and auto-creating it is what the operator would do by
+            // hand anyway. Only a genuine failure (e.g. no write permission on
+            // the parent) is still surfaced as a definition problem.
+            if (@mkdir($fsPath, 0755, true) || is_dir($fsPath)) {
+                return [];
+            }
+            return ["{$kindLabel}-veld $label verwijst naar map '$path' die niet bestaat en niet aangemaakt kon worden op de server."];
         }
         return [];
     }

@@ -145,10 +145,10 @@ $isAdmin = SecurityHelper::isAdmin();
 $isDeveloper = SecurityHelper::isDeveloper();
 $isImpersonating = !empty(Cookie::get('CMAU_ORIGINAL', ''));
 
-// Get menu style preference (sidebar or classic)
-$appMenuStyle = Application::get('cma_menu_style', 'sidebar');
-$menuStyle = Cookie::get('cma_menu_style', $appMenuStyle);
-$isClassicMode = ($menuStyle === 'classic');
+// The classic (horizontal-tabs) layout has been retired — the sidebar shell is
+// the only layout. Kept as an always-false flag so the classic-mode CSS hook on
+// <html> stays inert (and any leftover .classic-mode CSS is simply never applied).
+$isClassicMode = false;
 
 // Get theme preference
 $currentTheme = Cookie::get('cma_theme', 'light');

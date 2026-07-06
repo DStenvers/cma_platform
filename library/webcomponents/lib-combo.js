@@ -360,6 +360,10 @@ class LibCombo extends HTMLElement {
 
                 .combo-dropdown.open {
                     display: block;
+                    /* Lift the open dropdown above dialog/modal overlays so a combo
+                       used inside a dialog isn't clipped behind it. Stays below the
+                       top alert/notification/error layers (99999+). */
+                    z-index: 99998;
                     margin-top: -14px;
                     border-top-left-radius: 0;
                     border-top-right-radius: 0;

@@ -172,10 +172,9 @@ function main()
         $dbconn = null;
         $blnShowForm = Cookie::get(SecurityHelper::COOKIE_USERID, '') == '';
         if (!$blnShowForm) {
-            // Check if using sidebar menu style - redirect to main.php
-            // User preference cookie overrides application default
-            $appMenuStyle = Application::get('cma_menu_style', 'sidebar');
-            $menuStyle = Cookie::get('cma_menu_style', $appMenuStyle);
+            // The sidebar shell is the only layout (classic retired) — always
+            // land on main.php after login.
+            $menuStyle = 'sidebar';
             if ($menuStyle === 'sidebar') {
                 $query = Request::server('QUERY_STRING', '');
                 $redirect = 'main.php' . ($query ? '?' . $query : '');
@@ -198,10 +197,9 @@ function main()
     cma_html_header('', $extraHead, false);
     // force refresh of menu-bar
     if (Request::post('naam', '') != '' && $blnOK && $blnLoggedIn) {
-        // Check if using sidebar menu style - redirect to main.php
-        // User preference cookie overrides application default
-        $appMenuStyle = Application::get('cma_menu_style', 'sidebar');
-        $menuStyle = Cookie::get('cma_menu_style', $appMenuStyle);
+        // The sidebar shell is the only layout (classic retired) — always go to
+        // main.php after a successful login.
+        $menuStyle = 'sidebar';
         if ($menuStyle === 'sidebar') {
             echo '<script>window.top.location="main.php";</script>';
             exit();

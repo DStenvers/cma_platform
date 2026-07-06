@@ -33,7 +33,7 @@ describe('Route → layout (regression)', () => {
         it('/cma/preferences shows the preferences form', () => {
             cy.visit('/preferences');
             cy.url().should('not.include', 'login');
-            cy.get('#preferencesForm, #theme, #menuStyle', { timeout: 15000 }).should('exist');
+            cy.get('#preferencesForm, #theme', { timeout: 15000 }).should('exist');
         });
 
         it('/cma/tools shows the tools tree layout', () => {

@@ -22,11 +22,6 @@ describe('Preferences Page', () => {
             cy.get('#theme option').should('have.length', 3);
         });
 
-        it('should have menu style selection', () => {
-            cy.visit('/preferences');
-            cy.get('#menuStyle').should('exist');
-        });
-
         it('should have popup style selection', () => {
             cy.visit('/preferences');
             cy.get('#popupStyle').should('exist');

@@ -242,7 +242,10 @@ if (Request::method() === 'POST') {
 
         // Collect new preferences
         $theme = Request::post('theme', 'light');
-        $menuStyle = Request::post('menuStyle', 'sidebar');
+        // Menu style is no longer user-configurable — the sidebar shell is the
+        // only layout. Always persist 'sidebar' (normalising any legacy 'classic'
+        // value on the next save).
+        $menuStyle = 'sidebar';
         $popupStyle = Request::post('popupStyle', 'sidepanel');
         $showDebugOverlay = Request::post('showDebugOverlay', '') === 'J';
         $debugMode = Request::post('debugMode', '') === 'J';
@@ -290,7 +293,6 @@ if (Request::method() === 'POST') {
 // Get current preferences from database (with cookie fallback)
 $prefs = getUserPreferences($userId);
 $currentTheme = $prefs['prefTheme'];
-$menuStyle = $prefs['prefMenuStyle'];
 $popupStyle = $prefs['prefPopupStyle'];
 $showDebugOverlay = $prefs['prefDebugOverlay'] ? 'J' : 'N';
 $debugMode = $prefs['prefDebugMode'] ? 'J' : 'N';
@@ -348,18 +350,6 @@ ToolbarHelper::end();
                         <option value="light" <?= $currentTheme === 'light' ? 'selected' : '' ?>><?= $language === 'UK' ? 'Light' : 'Licht' ?></option>
                         <option value="dark" <?= $currentTheme === 'dark' ? 'selected' : '' ?>><?= $language === 'UK' ? 'Dark' : 'Donker' ?></option>
                         <option value="system" <?= $currentTheme === 'system' ? 'selected' : '' ?>><?= $language === 'UK' ? 'System' : 'Systeem' ?></option>
-                    </select>
-                </td>
-                <td class="hint-cell"></td>
-            </tr>
-            <tr id="_g1_2">
-                <td class="label-cell">
-                    <label for="menuStyle"><?= $language === 'UK' ? 'Menu Style' : 'Menustijl' ?></label>
-                </td>
-                <td class="input-cell">
-                    <select name="menuStyle" id="menuStyle" class="form-control" style="width:200px;">
-                        <option value="sidebar" <?= $menuStyle === 'sidebar' ? 'selected' : '' ?>><?= $language === 'UK' ? 'Sidebar' : 'Zijbalk' ?></option>
-                        <option value="classic" <?= $menuStyle === 'classic' ? 'selected' : '' ?>><?= $language === 'UK' ? 'Classic Tabs' : 'Klassieke tabs' ?></option>
                     </select>
                 </td>
                 <td class="hint-cell"></td>
