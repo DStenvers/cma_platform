@@ -1,7 +1,7 @@
 {
     "name": "stenversonline/platform",
     "description": "Shared platform: PHP helpers, library assets, and CMA admin",
-    "version": "1.28.86",
+    "version": "1.28.87",
     "type": "library",
     "license": "proprietary",
     "autoload": {

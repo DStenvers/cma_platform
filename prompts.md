@@ -2177,3 +2177,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-07-06
 
 > loading external images leads to a lot of javascript errors: can we skip loading files from cloudfront.net?
+
+> now it a report can open a form that only works when you click the icon in the first row, please suppoprt clicking on any row (the entire row)

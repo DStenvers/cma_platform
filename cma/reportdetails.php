@@ -611,8 +611,13 @@ if (!$editSidepanelHandlerEmitted) {
     $editSidepanelHandlerEmitted = true;
     echo '<script>(function(){if(window.__cmaReportEditSidepanel)return;window.__cmaReportEditSidepanel=1;'
         . 'document.addEventListener("click",function(e){'
-        . 'var a=e.target.closest?e.target.closest("a.editicon[data-edit-sidepanel]"):null;'
-        . 'if(!a||typeof lib_OpenSidePanel!=="function")return;'
+        . 'if(typeof lib_OpenSidePanel!=="function"||!e.target.closest)return;'
+        // Direct click on the edit icon, OR a click anywhere on the result row
+        // (except on a genuinely interactive element) — then use that row\'s icon.
+        . 'var a=e.target.closest("a.editicon[data-edit-sidepanel]");'
+        . 'if(!a){var tr=e.target.closest("table#resultaat tbody tr");'
+        . 'if(tr&&!e.target.closest("a,button,input,select,textarea,label,lib-switch"))a=tr.querySelector("a.editicon[data-edit-sidepanel]");}'
+        . 'if(!a)return;'
         . 'e.preventDefault();'
         . 'lib_OpenSidePanel(a.getAttribute("data-edit-sidepanel"),"report_edit",600,a.getAttribute("title")||"Bewerken");'
         . '});})();</script>';

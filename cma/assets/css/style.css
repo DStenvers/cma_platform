@@ -743,6 +743,9 @@ a.icon.kalender::before  { content: "\e788" !important }
 a.icon.literatuur::before  { content: "\e6d6" !important } 
 a.icon.autos::before { content:"\e84a" !important}
 a.editicon::before { content: "\e613" !important}
+/* A report row is clickable when it carries an edit link — the delegated handler
+   in reportdetails.php opens the sidepanel on a whole-row click. */
+#resultaat tbody tr:has(a.editicon[data-edit-sidepanel]) { cursor: pointer; }
 /*
 body.listbody li.red::before {background-color:#E01F3D  !important; border-radius:50%; width:8px; height:8px; float:left; display:inline-block; content:'';margin-top:8px}
 body.listbody li.green::before {background-color:#00A04A !important; border-radius:50%; width:8px; height:8px; float:left; display:inline-block; content:'';margin-top:8px}
