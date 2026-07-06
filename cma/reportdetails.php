@@ -178,8 +178,10 @@ function Lib_dbNiceFieldValue($value, string $width = '', bool $vertical = false
         return '<TD' . ($width ? ' width="' . $width . '"' : '') . ' align="right">' . $display . '</TD>';
     }
 
-    // Handle strings - escape HTML
-    $display = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    // Handle strings - escape HTML. Multi-line values (e.g. the SG toelichting)
+    // get real <br> breaks so a stored newline renders as a second line in the
+    // cell instead of breaking the row when the table is exported/copied.
+    $display = nl2br(htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'), false);
 
     // Convert newlines to <br> for display
     $display = nl2br($display);
@@ -737,7 +739,11 @@ if ($useLibTable) {
         }
         $sSingleRecord = '';
         for ($a = 0; $a < $fieldCount; $a++) {
-            if (!isset($currentRow[$a])) continue;
+            // array_key_exists, NOT isset: isset() is false for a NULL value, so an
+            // empty cell (e.g. a stone with no shape) was being skipped entirely,
+            // shifting every later column one to the left. The column exists — it
+            // just holds NULL — so render an empty <td> for it.
+            if (!array_key_exists($a, $currentRow)) continue;
             $fld = $currentRow[$a];
             // Use fieldNames array to get field name
             $fld_name = isset($fieldNames[$a]) ? strtolower($fieldNames[$a]) : '';
