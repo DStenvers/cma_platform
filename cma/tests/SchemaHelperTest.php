@@ -129,4 +129,36 @@ class SchemaHelperTest extends TestCase
     {
         $this->assertEquals('[field]', SqlHelper::formatFieldName('[field]'));
     }
+
+    // ---- getSqlServerTypeName() ------------------------------------------
+
+    public function testSqlServerTypeNameOdbcCodes(): void
+    {
+        $this->assertEquals('datetime', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_TYPE_TIMESTAMP));
+        $this->assertEquals('date', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_TYPE_DATE));
+        $this->assertEquals('bit', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_BIT));
+        $this->assertEquals('int', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_INTEGER));
+        $this->assertEquals('decimal', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_DECIMAL));
+    }
+
+    public function testSqlServerTypeNameAppendsLength(): void
+    {
+        $this->assertEquals('varchar(50)', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_VARCHAR, 50));
+        $this->assertEquals('char(10)', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_CHAR, 10));
+        // No length -> bare type name.
+        $this->assertEquals('varchar', SchemaHelper::getSqlServerTypeName(SchemaHelper::SQL_VARCHAR));
+    }
+
+    public function testSqlServerTypeNameValue6IsFloatNotMoney(): void
+    {
+        // Documented integer collision: SQL_FLOAT (6) and ADO_CURRENCY (6) share
+        // the code 6. getSqlServerTypeName checks the ODBC switch first, so 6
+        // always resolves to 'float' — ADO_CURRENCY's 'money' branch is
+        // unreachable for the literal integer. Pinned so the collision is
+        // visible, not silently "fixed" into ambiguity. (Same class of
+        // collision as the type-11 date/boolean case above.)
+        $this->assertEquals(6, SchemaHelper::SQL_FLOAT);
+        $this->assertEquals(6, SchemaHelper::ADO_CURRENCY);
+        $this->assertEquals('float', SchemaHelper::getSqlServerTypeName(6));
+    }
 }

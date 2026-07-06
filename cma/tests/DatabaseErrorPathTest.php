@@ -167,4 +167,55 @@ class DatabaseErrorPathTest extends TestCase
 
         $this->assertEquals('Specific failure message', Database::getLastError());
     }
+
+    // ------------------------------------------------------------------
+    // Database::cleanErrorMessage — pure string sanitiser (no connection)
+    //
+    // Strips SQLSTATE codes, PDO/ODBC/driver prefixes, [Microsoft][…]
+    // noise, connection-string details and numeric error codes so the
+    // user sees a human-readable message. Capitalises the first letter.
+    // ------------------------------------------------------------------
+
+    public function testCleanErrorStripsSqlStateAndErrorCode(): void
+    {
+        $this->assertEquals(
+            'No such table',
+            Database::cleanErrorMessage(
+                'SQLSTATE[42S02]: Base table or view not found: -1305 no such table'
+            )
+        );
+    }
+
+    public function testCleanErrorStripsMicrosoftOdbcPrefix(): void
+    {
+        $this->assertEquals(
+            'Too few parameters',
+            Database::cleanErrorMessage('[Microsoft][ODBC Microsoft Access Driver] too few parameters')
+        );
+    }
+
+    public function testCleanErrorStripsPdoPrefix(): void
+    {
+        $this->assertEquals(
+            'Syntax error',
+            Database::cleanErrorMessage('PDO::prepare(): syntax error')
+        );
+    }
+
+    public function testCleanErrorCapitalisesFirstLetter(): void
+    {
+        $this->assertEquals('Disk full', Database::cleanErrorMessage('disk full'));
+    }
+
+    public function testCleanErrorEmptyStaysEmpty(): void
+    {
+        // Must not blow up on an empty message (mb_substr on '' is safe).
+        $this->assertEquals('', Database::cleanErrorMessage(''));
+    }
+
+    public function testCleanErrorPreservesUnicodeBody(): void
+    {
+        // Capitalisation is mb-aware; the body text is left intact.
+        $this->assertEquals('Ünïcode blijft staan', Database::cleanErrorMessage('ünïcode blijft staan'));
+    }
 }

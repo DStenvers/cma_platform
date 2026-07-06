@@ -429,6 +429,76 @@ assertContains('tblC', $errorText, "Error should mention tblC");
 echo "\n";
 
 // ============================================================================
+// VALUE QUOTING / INJECTION SAFETY + OPERATOR METADATA
+// ============================================================================
+
+// Test 14: Number-typed condition value is validated (injection neutralised)
+echo "Test 14: Number condition rejects non-numeric injection payload\n";
+$builder = new QueryBuilder([
+    'tables' => [['name' => 't', 'joins' => []]],
+    'fields' => [['table' => 't', 'field' => 'a', 'visible' => true]],
+    'conditions' => [[
+        'table' => 't', 'field' => 'n', 'operator' => '=',
+        'value' => '1 OR 1=1', 'typeCategory' => 'number', 'logic' => ''
+    ]]
+]);
+$sql = $builder->toSql();
+// quoteValue('number') falls back to '0' for non-numeric input — the
+// "OR 1=1" payload can never reach the SQL. (Contrast SQL::postNumber,
+// which passes non-numeric input through unquoted — see SQLTest.)
+assertContains('[t].[n] = 0', $sql, "Non-numeric number value must collapse to 0");
+assertNotContains('OR 1=1', $sql, "Injection payload must not appear in SQL");
+echo "\n";
+
+// Test 15: Text-typed condition value is quote-escaped
+echo "Test 15: Text condition escapes embedded single quote\n";
+$builder = new QueryBuilder([
+    'tables' => [['name' => 't', 'joins' => []]],
+    'fields' => [['table' => 't', 'field' => 'a', 'visible' => true]],
+    'conditions' => [[
+        'table' => 't', 'field' => 's', 'operator' => '=',
+        'value' => "O'Brien", 'typeCategory' => 'text', 'logic' => ''
+    ]]
+]);
+$sql = $builder->toSql();
+// Routed through SQL::postString — the quote is concatenated away.
+assertContains("'O' & chr(39) & 'Brien'", $sql, "Text value must be quote-escaped via postString");
+echo "\n";
+
+// Test 16: BETWEEN operator on a number range
+echo "Test 16: BETWEEN operator\n";
+$builder = new QueryBuilder([
+    'tables' => [['name' => 't', 'joins' => []]],
+    'fields' => [['table' => 't', 'field' => 'a', 'visible' => true]],
+    'conditions' => [[
+        'table' => 't', 'field' => 'n', 'operator' => 'between',
+        'value' => '5', 'value2' => '10', 'typeCategory' => 'number', 'logic' => ''
+    ]]
+]);
+$sql = $builder->toSql();
+assertContains('[t].[n] BETWEEN 5 AND 10', $sql, "BETWEEN should emit both bounds");
+echo "\n";
+
+// Test 17: getOperatorsForType returns the right set per category
+echo "Test 17: getOperatorsForType metadata\n";
+$textOps = QueryBuilder::getOperatorsForType('text');
+$numOps  = QueryBuilder::getOperatorsForType('number');
+$boolOps = QueryBuilder::getOperatorsForType('boolean');
+assertEqual(7, count($textOps), "text should expose 7 operators");
+assertEqual(7, count($numOps), "number should expose 7 operators");
+assertEqual(4, count($boolOps), "boolean should expose 4 operators");
+assertEqual('contains', $textOps[2]['value'], "text[2] should be 'contains'");
+assertEqual('between', $numOps[6]['value'], "number[6] should be 'between'");
+echo "\n";
+
+// Test 18: Unknown type category falls back to the text operator set
+echo "Test 18: getOperatorsForType unknown category falls back to text\n";
+$unknown = QueryBuilder::getOperatorsForType('does-not-exist');
+assertEqual(7, count($unknown), "Unknown category should fall back to text (7 ops)");
+assertEqual('=', $unknown[0]['value'], "Fallback first op should be '='");
+echo "\n";
+
+// ============================================================================
 // RESULTS
 // ============================================================================
 

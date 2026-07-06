@@ -296,4 +296,185 @@ class SQLTest extends TestCase
         $this->assertStringContainsString('john', strtolower($sql));
         $this->assertStringContainsString('doe', strtolower($sql));
     }
+
+    // ========================================================================
+    // postString — quote-escaping / injection safety
+    //
+    // Access/MySQL escape: '  ->  ' & chr(39) & '   (ADO-style concat)
+    // SQL Server escape:   '  ->  '+char(39)+'
+    // The whole value is wrapped in single quotes, so every embedded quote is
+    // neutralised by concatenation and can never break out of the literal.
+    // ========================================================================
+
+    private string $access = 'Driver={Microsoft Access Driver (*.mdb, *.accdb)}';
+    private string $sqlserver = 'Initial Catalog=mydb';
+
+    public function testPostStringEscapesSingleQuoteAccess(): void
+    {
+        $this->assertEquals("'O' & chr(39) & 'Brien'", SQL::postString("O'Brien", $this->access));
+    }
+
+    public function testPostStringEscapesSingleQuoteSqlServer(): void
+    {
+        $this->assertEquals("'O'+char(39)+'Brien'", SQL::postString("O'Brien", $this->sqlserver));
+    }
+
+    public function testPostStringNeutralisesInjectionAttemptAccess(): void
+    {
+        // A classic breakout payload: the leading quote is concatenated away,
+        // so the DROP TABLE text is inert data inside a single string literal.
+        $out = SQL::postString("'; DROP TABLE users; --", $this->access);
+        $this->assertEquals("'' & chr(39) & '; DROP TABLE users; --'", $out);
+        // Structural invariant: the literal begins and ends with a quote and
+        // every internal quote is part of the " & chr(39) & " escape sequence,
+        // so quotes are always balanced — no unescaped breakout possible.
+        $this->assertMatchesRegularExpression("/^'.*'$/", $out);
+    }
+
+    public function testPostStringNeutralisesInjectionAttemptSqlServer(): void
+    {
+        $out = SQL::postString("' OR '1'='1", $this->sqlserver);
+        // Every ' becomes '+char(39)+' and the whole thing is wrapped in quotes,
+        // so the payload is one inert string literal — quotes stay balanced.
+        $this->assertEquals("''+char(39)+' OR '+char(39)+'1'+char(39)+'='+char(39)+'1'", $out);
+        $this->assertMatchesRegularExpression("/^'.*'$/", $out);
+    }
+
+    public function testPostStringPreservesOtherMetacharacters(): void
+    {
+        // Semicolons, comment markers and backticks are harmless data inside a
+        // quoted literal — they must be preserved verbatim, not stripped.
+        $this->assertEquals("'a;b--c`d'", SQL::postString('a;b--c`d', $this->access));
+    }
+
+    public function testPostStringUnicodePassesThrough(): void
+    {
+        $this->assertEquals("'café ünï 日本'", SQL::postString('café ünï 日本', $this->access));
+    }
+
+    public function testPostStringEmptyIsNull(): void
+    {
+        $this->assertEquals('null', SQL::postString('', $this->access));
+        $this->assertEquals('null', SQL::postString(null, $this->access));
+        $this->assertEquals('null', SQL::postString('   ', $this->access));
+    }
+
+    // ========================================================================
+    // postNumber — locale + passthrough behaviour
+    //
+    // NOTE: postNumber does NOT validate numericness. Non-numeric input is
+    // returned trimmed-but-unquoted (see testPostNumberDangerousPassthrough).
+    // The decimal-locale contract IS enforced for real numbers.
+    // ========================================================================
+
+    public function testPostNumberDotDecimalStaysDot(): void
+    {
+        // The known Dutch-locale hazard: a value typed with a '.' decimal must
+        // NOT be mangled to ',' or to an integer. 10.5 stays 10.5.
+        $this->assertEquals('10.5', SQL::postNumber('10.5'));
+        $this->assertEquals('0.05', SQL::postNumber('0.05'));
+    }
+
+    public function testPostNumberDutchGroupingCollapses(): void
+    {
+        // "1.234,56" (dot thousands, comma decimal) -> canonical 1234.56
+        $this->assertEquals('1234.56', SQL::postNumber('1.234,56'));
+    }
+
+    public function testPostNumberNegativeAndBoundary(): void
+    {
+        $this->assertEquals('-42', SQL::postNumber('-42'));
+        $this->assertEquals('0', SQL::postNumber('0'));
+        $this->assertEquals('9999999999', SQL::postNumber('9999999999'));
+    }
+
+    public function testPostNumberDangerousPassthrough(): void
+    {
+        // DOCUMENTED HAZARD (not an assertion of safety): postNumber returns
+        // non-numeric input UNQUOTED. Callers MUST validate with is_numeric()
+        // before trusting it — postNumber is not, by itself, injection-safe.
+        // This test pins the current behaviour so a future "fix" is a
+        // conscious decision, not an accident.
+        $this->assertEquals('1 OR 1=1', SQL::postNumber('1 OR 1=1'));
+    }
+
+    // ========================================================================
+    // postBoolean
+    // ========================================================================
+
+    public function testPostBooleanAccessTrueFalse(): void
+    {
+        $this->assertEquals('True', SQL::postBoolean(true, $this->access));
+        $this->assertEquals('False', SQL::postBoolean(false, $this->access));
+        $this->assertEquals('False', SQL::postBoolean('no', $this->access));
+        $this->assertEquals('True', SQL::postBoolean('yes', $this->access));
+    }
+
+    public function testPostBooleanSqlServerOneZero(): void
+    {
+        $this->assertEquals('1', SQL::postBoolean('yes', $this->sqlserver));
+        $this->assertEquals('0', SQL::postBoolean('0', $this->sqlserver));
+        $this->assertEquals('0', SQL::postBoolean('false', $this->sqlserver));
+    }
+
+    // ========================================================================
+    // postDate / postDateOnly / postDateStr
+    // ========================================================================
+
+    public function testPostDateAccess(): void
+    {
+        $this->assertEquals('#6/7/2026#', SQL::postDate('7', '6', '2026', $this->access));
+    }
+
+    public function testPostDateSqlServer(): void
+    {
+        $this->assertEquals("CAST('6-7-2026' AS DATE)", SQL::postDate('7', '6', '2026', $this->sqlserver));
+    }
+
+    public function testPostDateEmptyComponentIsNull(): void
+    {
+        $this->assertEquals('NULL', SQL::postDate('', '6', '2026', $this->access));
+        $this->assertEquals('NULL', SQL::postDate('7', '', '2026', $this->access));
+    }
+
+    public function testPostDateInvalidIsNull(): void
+    {
+        $this->assertEquals('NULL', SQL::postDate('99', '99', '2026', $this->access));
+    }
+
+    public function testPostDateOnlyAccess(): void
+    {
+        $this->assertEquals('#6/7/2026 0:0#', SQL::postDateOnly('2026-06-07', $this->access));
+    }
+
+    public function testPostDateOnlyNull(): void
+    {
+        $this->assertEquals('NULL', SQL::postDateOnly(null, $this->access));
+        $this->assertEquals('NULL', SQL::postDateOnly('not a date', $this->access));
+    }
+
+    public function testPostDateStrAccess(): void
+    {
+        // DD-MM-YYYY input -> Access #M/D/YYYY#
+        $this->assertEquals('#06/07/2026#', SQL::postDateStr('07-06-2026', $this->access));
+    }
+
+    public function testPostDateStrEmptyIsNull(): void
+    {
+        $this->assertEquals('NULL', SQL::postDateStr('', $this->access));
+    }
+
+    // ========================================================================
+    // guidEquals — Access ODBC needs LIKE, SQL Server uses =
+    // ========================================================================
+
+    public function testGuidEqualsAccessUsesLike(): void
+    {
+        $this->assertEquals("Guid LIKE '%abc-123%'", SQL::guidEquals('Guid', '{abc-123}', $this->access));
+    }
+
+    public function testGuidEqualsSqlServerUsesEquals(): void
+    {
+        $this->assertEquals("Guid = 'abc-123'", SQL::guidEquals('Guid', '{abc-123}', $this->sqlserver));
+    }
 }

@@ -131,4 +131,44 @@ class InstallerSyncJunkTest extends TestCase
         $this->assertEquals(1, count($errors), 'exactly one file should be reported as failed');
         $this->assertStringContainsString('blocked.bin', $errors[0]);
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: nested-dir recursion + nested junk skip,
+    // junk-only source, clean sync reports no errors.
+    // ------------------------------------------------------------------
+
+    public function testNestedDirectoriesAreRecursedAndNestedJunkSkipped(): void
+    {
+        $src = $this->tmpRoot . '/src4';
+        $dest = $this->tmpRoot . '/dest4';
+
+        $this->write('src4/a/b/deep.txt', 'deep-content');
+        $this->write('src4/a/b/desktop.ini', "[.ShellClassInfo]\n");
+        $this->write('src4/a/Thumbs.db', 'thumbs');
+
+        $errors = $this->syncDirectory($src, $dest);
+
+        $this->assertTrue(file_exists($dest . '/a/b/deep.txt'), 'nested real file must be synced');
+        $this->assertEquals('deep-content', file_get_contents($dest . '/a/b/deep.txt'));
+        $this->assertFalse(file_exists($dest . '/a/b/desktop.ini'), 'nested junk must be skipped');
+        $this->assertFalse(file_exists($dest . '/a/Thumbs.db'), 'nested Thumbs.db must be skipped');
+        $this->assertEquals(0, count($errors), 'a clean nested sync reports no errors');
+    }
+
+    public function testJunkOnlySourceProducesNoRealFiles(): void
+    {
+        $src = $this->tmpRoot . '/src5';
+        $dest = $this->tmpRoot . '/dest5';
+
+        $this->write('src5/desktop.ini', "x\n");
+        $this->write('src5/.DS_Store', 'x');
+
+        $errors = $this->syncDirectory($src, $dest);
+
+        // Destination dir is created, but nothing copied into it.
+        $this->assertTrue(is_dir($dest), 'destination dir is created even for a junk-only source');
+        $this->assertFalse(file_exists($dest . '/desktop.ini'));
+        $this->assertFalse(file_exists($dest . '/.DS_Store'));
+        $this->assertEquals(0, count($errors));
+    }
 }

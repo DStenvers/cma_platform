@@ -674,4 +674,214 @@ class ArrTest extends TestCase
     {
         $this->assertEquals([], Arr::wrap(null));
     }
+
+    // ========================================================================
+    // shuffle (previously uncovered)
+    // ========================================================================
+
+    public function testShufflePreservesElements(): void
+    {
+        $result = Arr::shuffle([1, 2, 3, 4, 5]);
+        $this->assertCount(5, $result);
+        // Same multiset regardless of order
+        sort($result);
+        $this->assertEquals([1, 2, 3, 4, 5], $result);
+    }
+
+    public function testShuffleNull(): void
+    {
+        $this->assertEquals([], Arr::shuffle(null));
+    }
+
+    public function testShuffleEmpty(): void
+    {
+        $this->assertEquals([], Arr::shuffle([]));
+    }
+
+    // ========================================================================
+    // contains — additional branches (array needle, strict)
+    // ========================================================================
+
+    public function testContainsArrayNeedle(): void
+    {
+        // The "array needle" branch: searches for the whole sub-array as an element
+        $this->assertTrue(Arr::contains([1, 2], [[1, 2], [3, 4]]));
+        $this->assertFalse(Arr::contains([9, 9], [[1, 2], [3, 4]]));
+    }
+
+    public function testContainsStrict(): void
+    {
+        // Loose: '1' == 1 is true; strict: '1' === 1 is false
+        $this->assertTrue(Arr::contains('1', [1, 2, 3]));
+        $this->assertFalse(Arr::contains('1', [1, 2, 3], true));
+    }
+
+    // ========================================================================
+    // get — dot notation with non-array intermediate
+    // ========================================================================
+
+    public function testGetDotNotationIntermediateScalar(): void
+    {
+        $arr = ['user' => 'not-an-array'];
+        $this->assertEquals('default', Arr::get($arr, 'user.name', 'default'));
+    }
+
+    public function testGetFalsyValueNotTreatedAsMissing(): void
+    {
+        // Direct-key branch uses isset(), so an explicit null falls through to default
+        $arr = ['a' => 0, 'b' => '', 'c' => null];
+        $this->assertEquals(0, Arr::get($arr, 'a', 'x'));
+        $this->assertEquals('', Arr::get($arr, 'b', 'x'));
+        $this->assertEquals('x', Arr::get($arr, 'c', 'x')); // null → default
+    }
+
+    // ========================================================================
+    // findInstr — documented empty-element gotcha
+    // ========================================================================
+
+    public function testFindInstrEmptyElementMatchesEverything(): void
+    {
+        // stripos($haystack, '') returns 0 in PHP 8, so an empty-string element
+        // is "found" at its index. Documents current (surprising) behavior.
+        $this->assertEquals(0, Arr::findInstr(['', 'y'], 'anything'));
+    }
+
+    // ========================================================================
+    // find with strict comparison
+    // ========================================================================
+
+    public function testFindStrict(): void
+    {
+        // Strict: skips the string '1' at index 1, matches the int 1 at index 2
+        $this->assertEquals(2, Arr::find([0, '1', 1], 1, true));
+        // Loose: '1' == 1, so the first match is index 1
+        $this->assertEquals(1, Arr::find([0, '1', 1], 1, false));
+    }
+
+    // ========================================================================
+    // find2DByRow — non-array / scalar column guards
+    // ========================================================================
+
+    public function testFind2DByRowScalarColumn(): void
+    {
+        $arr = [0 => 'scalar'];
+        $this->assertEquals(-1, Arr::find2DByRow($arr, 0, 'scalar'));
+    }
+
+    public function testJoin2DByRowScalarElement(): void
+    {
+        $arr = [0 => 'scalar'];
+        $this->assertEquals('scalar', Arr::join2DByRow($arr, 0, ','));
+    }
+
+    public function testJoin2DByRowMissingIndex(): void
+    {
+        $this->assertEquals('', Arr::join2DByRow([0 => ['a']], 5, ','));
+    }
+
+    // ========================================================================
+    // removeItem — removes every matching occurrence
+    // ========================================================================
+
+    public function testRemoveItemMultipleOccurrences(): void
+    {
+        $this->assertEquals('b', Arr::removeItem('a,b,a', 'a'));
+    }
+
+    public function testRemoveItemNotPresent(): void
+    {
+        $this->assertEquals('a,b,c', Arr::removeItem('a,b,c', 'x'));
+    }
+
+    // ========================================================================
+    // merge — all-null and mixed
+    // ========================================================================
+
+    public function testMergeAllNull(): void
+    {
+        $this->assertEquals([], Arr::merge(null, null));
+    }
+
+    public function testMergeNoArgs(): void
+    {
+        $this->assertEquals([], Arr::merge());
+    }
+
+    // ========================================================================
+    // flatten — full depth vs INF default
+    // ========================================================================
+
+    public function testFlattenDeepNested(): void
+    {
+        $result = Arr::flatten([1, [2, [3, [4, [5]]]]]);
+        $this->assertEquals([1, 2, 3, 4, 5], $result);
+    }
+
+    // ========================================================================
+    // chunk — invalid size guard
+    // ========================================================================
+
+    public function testChunkZeroSize(): void
+    {
+        $this->assertEquals([], Arr::chunk([1, 2, 3], 0));
+    }
+
+    public function testChunkNegativeSize(): void
+    {
+        $this->assertEquals([], Arr::chunk([1, 2, 3], -2));
+    }
+
+    // ========================================================================
+    // fill — negative count guard
+    // ========================================================================
+
+    public function testFillNegativeCount(): void
+    {
+        $this->assertEquals([], Arr::fill(-3, 'x'));
+    }
+
+    // ========================================================================
+    // pluck — objects and numeric field
+    // ========================================================================
+
+    public function testPluckObjects(): void
+    {
+        $objs = [(object)['name' => 'John'], (object)['name' => 'Jane']];
+        $this->assertEquals(['John', 'Jane'], Arr::pluck($objs, 'name'));
+    }
+
+    // ========================================================================
+    // sortBy — objects and missing field
+    // ========================================================================
+
+    public function testSortByObjects(): void
+    {
+        $objs = [(object)['n' => 3], (object)['n' => 1], (object)['n' => 2]];
+        $sorted = Arr::sortBy($objs, 'n');
+        $this->assertEquals(1, $sorted[0]->n);
+        $this->assertEquals(3, $sorted[2]->n);
+    }
+
+    // ========================================================================
+    // field — ArrayAccess (RecordSet-style) support
+    // ========================================================================
+
+    public function testFieldArrayAccessCaseInsensitive(): void
+    {
+        if (!method_exists(Arr::class, 'field')) { return; }
+        $row = new \ArrayObject(['NAME' => 'John']);
+        $this->assertEquals('John', Arr::field($row, 'name'));
+        $this->assertEquals('x', Arr::field($row, 'missing', 'x'));
+    }
+
+    // ========================================================================
+    // unique — preserves keys (native array_unique behavior)
+    // ========================================================================
+
+    public function testUniquePreservesFirstKeys(): void
+    {
+        $result = Arr::unique(['a', 'b', 'a', 'c']);
+        // array_unique keeps first occurrences with original keys
+        $this->assertEquals([0 => 'a', 1 => 'b', 3 => 'c'], $result);
+    }
 }

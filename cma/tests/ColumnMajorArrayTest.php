@@ -135,4 +135,101 @@ class ColumnMajorArrayTest extends TestCase
         // Should be instanceof ArrayObject
         $this->assertTrue($arr instanceof \ArrayObject);
     }
+
+    // ========================================================================
+    // count() override — returns ROW count, not column count (previously uncovered)
+    // ========================================================================
+
+    public function testCountReturnsRowCount(): void
+    {
+        $arr = new ColumnMajorArray($this->sampleData());
+        // 3 rows / 3 columns — count() must return rows (VBScript UBound semantics)
+        $this->assertEquals(3, count($arr));
+    }
+
+    public function testCountEmpty(): void
+    {
+        $arr = new ColumnMajorArray([]);
+        $this->assertEquals(0, count($arr));
+    }
+
+    public function testCountSingleRow(): void
+    {
+        $arr = new ColumnMajorArray([['a' => 1, 'b' => 2, 'c' => 3]]);
+        // 1 row, 3 columns → count is 1
+        $this->assertEquals(1, count($arr));
+    }
+
+    // ========================================================================
+    // numeric column index — second row and out-of-range
+    // ========================================================================
+
+    public function testNumericColumnSecondRow(): void
+    {
+        $arr = new ColumnMajorArray($this->sampleData());
+        // Column 2 = 'city'
+        $this->assertEquals('Rotterdam', $arr[2][1]);
+    }
+
+    public function testNumericColumnOutOfRangeReturnsEmptySafeArray(): void
+    {
+        $arr = new ColumnMajorArray($this->sampleData());
+        // Missing numeric column falls through to name lookup (99 not a name) → empty
+        $this->assertNull($arr[99][0]);
+    }
+
+    // ========================================================================
+    // getRow — first and last rows, partial data
+    // ========================================================================
+
+    public function testGetRowFirst(): void
+    {
+        $arr = new ColumnMajorArray($this->sampleData());
+        $row = $arr->getRow(0);
+        $this->assertEquals('John', $row['name']);
+        $this->assertEquals('Amsterdam', $row['city']);
+    }
+
+    public function testGetRowEmptyArray(): void
+    {
+        $arr = new ColumnMajorArray([]);
+        $this->assertNull($arr->getRow(0));
+    }
+
+    // ========================================================================
+    // Ragged rows — columns are derived from the FIRST row only
+    // ========================================================================
+
+    public function testColumnsDerivedFromFirstRow(): void
+    {
+        // Second row has an extra 'extra' key that the first row lacks;
+        // array_column only extracts columns known from the first row.
+        $arr = new ColumnMajorArray([
+            ['name' => 'A'],
+            ['name' => 'B', 'extra' => 'X'],
+        ]);
+        $this->assertEquals(['name'], $arr->getColumnNames());
+        $this->assertNull($arr['extra'][1]);
+    }
+
+    // ========================================================================
+    // Non-array first row → treated as empty
+    // ========================================================================
+
+    public function testScalarFirstRowYieldsEmpty(): void
+    {
+        $arr = new ColumnMajorArray(['scalar', 'values']);
+        $this->assertEquals(0, $arr->getRowCount());
+        $this->assertEquals([], $arr->getColumnNames());
+    }
+
+    // ========================================================================
+    // Values are preserved by reference position (row order stable)
+    // ========================================================================
+
+    public function testRowOrderStable(): void
+    {
+        $arr = new ColumnMajorArray($this->sampleData());
+        $this->assertEquals(['John', 'Jane', 'Bob'], iterator_to_array($arr['name']));
+    }
 }

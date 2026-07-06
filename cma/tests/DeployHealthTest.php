@@ -95,4 +95,81 @@ class DeployHealthTest extends TestCase
             $this->cleanup();
         }
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: partial-missing, path normalisation, log-dir
+    // auto-create, no-mail-when-no-recipient.
+    // ------------------------------------------------------------------
+
+    public function testPartialMissingListsOnlyAbsentProbes(): void
+    {
+        $root = $this->makeSite(true);
+        try {
+            // Remove exactly one probe — the rest stay present.
+            unlink($root . '/cma/bootstrap.inc');
+
+            $res = DeployHealth::cmaSyncCheck($root);
+            $this->assertFalse($res['ok']);
+            $this->assertCount(1, $res['missing']);
+            $this->assertContains('cma/bootstrap.inc', $res['missing']);
+        } finally {
+            $this->cleanup();
+        }
+    }
+
+    public function testTrailingSlashAndBackslashesAreNormalised(): void
+    {
+        $root = $this->makeSite(true);
+        try {
+            // Pass the root back-slashed and with a trailing separator — the
+            // check normalises both and still resolves every probe.
+            $weird = str_replace('/', '\\', $root) . '\\';
+            $res = DeployHealth::cmaSyncCheck($weird);
+            $this->assertTrue($res['ok'], 'normalised path must resolve the probes');
+            $this->assertCount(0, $res['missing']);
+        } finally {
+            $this->cleanup();
+        }
+    }
+
+    public function testLogDirectoryIsCreatedWhenMissing(): void
+    {
+        // Point the log at a not-yet-existing nested dir; cmaSyncCheck must
+        // mkdir it rather than silently dropping the alert line.
+        $root = $this->makeSite(true);
+        try {
+            $custom = $root . '/nested/deep/deploy.log';
+            DeployHealth::cmaSyncCheck($root, ['log_file' => $custom]);
+            $this->assertTrue(is_file($custom));
+            $this->assertStringContainsString('sync OK', file_get_contents($custom));
+        } finally {
+            $this->cleanup();
+        }
+    }
+
+    public function testFailureAlertIsNoOpWithoutRecipient(): void
+    {
+        // With no mail_to and no DEPLOY_HEALTH_EMAIL/ADMIN_EMAIL/MAIL_FROM env,
+        // the alert path must silently no-op (no throw) and still return the
+        // structured failure. Guard the env keys so the host config can't leak in.
+        $saved = [];
+        foreach (['DEPLOY_HEALTH_EMAIL', 'ADMIN_EMAIL', 'MAIL_FROM'] as $k) {
+            $saved[$k] = $_ENV[$k] ?? null;
+            unset($_ENV[$k]);
+        }
+        $root = $this->makeSite(false);
+        try {
+            $res = DeployHealth::cmaSyncCheck($root);
+            $this->assertFalse($res['ok']);
+            // deploy.log records the FAILED line but NOT an "alert e-mail verstuurd" line.
+            $logged = file_get_contents($root . '/logs/deploy.log');
+            $this->assertStringContainsString('sync FAILED', $logged);
+            $this->assertStringNotContainsString('alert e-mail verstuurd', $logged);
+        } finally {
+            $this->cleanup();
+            foreach ($saved as $k => $v) {
+                if ($v === null) { unset($_ENV[$k]); } else { $_ENV[$k] = $v; }
+            }
+        }
+    }
 }

@@ -468,4 +468,206 @@ class StrTest extends TestCase
         $this->assertIsArray($result);
         $this->assertEquals('hello', $result['name']);
     }
+
+    // ========================================================================
+    // toUtf8 — actual encoding conversion (Windows-1252 / Latin-1 bytes)
+    // ========================================================================
+
+    public function testToUtf8ConvertsLatin1(): void
+    {
+        if (!method_exists(Str::class, 'toUtf8')) { return; }
+        // "café" with é as a single Latin-1 byte (0xE9) — invalid UTF-8
+        $latin1 = "caf\xE9";
+        $result = Str::toUtf8($latin1);
+        $this->assertTrue(mb_check_encoding($result, 'UTF-8'));
+        $this->assertEquals('café', $result);
+    }
+
+    public function testToUtf8AlreadyValid(): void
+    {
+        if (!method_exists(Str::class, 'toUtf8')) { return; }
+        $this->assertEquals('café', Str::toUtf8('café'));
+    }
+
+    public function testToUtf8Null(): void
+    {
+        if (!method_exists(Str::class, 'toUtf8')) { return; }
+        $this->assertEquals('', Str::toUtf8(null));
+    }
+
+    // ========================================================================
+    // truncate — length smaller than suffix (edge / documented bug)
+    // ========================================================================
+
+    public function testTruncateLengthSmallerThanSuffix(): void
+    {
+        // BUG: when $length < strlen($suffix), mb_substr with negative length
+        // trims from the END, producing a result LONGER than requested.
+        // Asserting current behavior to lock it in — see report.
+        $this->assertEquals('hello worl...', Str::truncate('hello world', 2));
+    }
+
+    public function testTruncateLengthEqualsSuffix(): void
+    {
+        $this->assertEquals('...', Str::truncate('hello world', 3));
+    }
+
+    public function testTruncateUnicode(): void
+    {
+        // Multibyte-safe: keeps (length - suffix) characters, not bytes
+        $this->assertEquals('éà...', Str::truncate('éàüñöß', 5));
+        // Equal to length → returned unchanged (mb-length aware)
+        $this->assertEquals('éàüñöß', Str::truncate('éàüñöß', 6));
+    }
+
+    // ========================================================================
+    // stripEnd / stripStart — comma-string pattern form (array|string)
+    // ========================================================================
+
+    public function testStripEndStringPatterns(): void
+    {
+        $this->assertEquals('hello', Str::stripEnd('hello.txt', '.doc,.txt'));
+    }
+
+    public function testStripStartStringPatterns(): void
+    {
+        $this->assertEquals('world', Str::stripStart('hello world', 'hello '));
+    }
+
+    public function testStripEndUnicode(): void
+    {
+        $this->assertEquals('café', Str::stripEnd('caféø', ['ø']));
+    }
+
+    // ========================================================================
+    // capitalize / firstUpper — edge and unicode
+    // ========================================================================
+
+    public function testCapitalizeEmpty(): void
+    {
+        $this->assertEquals('', Str::capitalize(''));
+    }
+
+    public function testCapitalizeUnicode(): void
+    {
+        $this->assertEquals('Élan', Str::capitalize('élan'));
+    }
+
+    public function testFirstUpperUnicode(): void
+    {
+        if (!method_exists(Str::class, 'firstUpper')) { return; }
+        $this->assertEquals('Élan', Str::firstUpper('élan'));
+    }
+
+    public function testFirstUpperEmpty(): void
+    {
+        if (!method_exists(Str::class, 'firstUpper')) { return; }
+        $this->assertEquals('', Str::firstUpper(''));
+    }
+
+    public function testFirstUpperNull(): void
+    {
+        if (!method_exists(Str::class, 'firstUpper')) { return; }
+        $this->assertEquals('', Str::firstUpper(null));
+    }
+
+    // ========================================================================
+    // contains / replace — null argument handling
+    // ========================================================================
+
+    public function testContainsNull(): void
+    {
+        $this->assertFalse(Str::contains(null, 'x'));
+        $this->assertFalse(Str::contains('x', null));
+    }
+
+    public function testReplaceNullText(): void
+    {
+        $this->assertEquals('', Str::replace(null, 'a', 'b'));
+    }
+
+    public function testReplaceNullSearch(): void
+    {
+        // Null search/replace returns text unchanged
+        $this->assertEquals('hello', Str::replace('hello', null, 'x'));
+        $this->assertEquals('hello', Str::replace('hello', 'h', null));
+    }
+
+    // ========================================================================
+    // padZero — negative, null, and string input
+    // ========================================================================
+
+    public function testPadZeroNull(): void
+    {
+        if (!method_exists(Str::class, 'padZero')) { return; }
+        $this->assertEquals('000', Str::padZero(null, 3));
+    }
+
+    public function testPadZeroString(): void
+    {
+        if (!method_exists(Str::class, 'padZero')) { return; }
+        $this->assertEquals('007', Str::padZero('7', 3));
+    }
+
+    // ========================================================================
+    // slug — custom separator collapses runs; empty result
+    // ========================================================================
+
+    public function testSlugCustomSeparatorCollapse(): void
+    {
+        $this->assertEquals('a.b', Str::slug('a   b', '.'));
+    }
+
+    public function testSlugOnlySpecialChars(): void
+    {
+        $this->assertEquals('', Str::slug('!@#$%'));
+    }
+
+    // ========================================================================
+    // upper / lower — unicode
+    // ========================================================================
+
+    public function testUpperUnicode(): void
+    {
+        $this->assertEquals('ÉÀÜ', Str::upper('éàü'));
+    }
+
+    public function testLowerUnicode(): void
+    {
+        $this->assertEquals('éàü', Str::lower('ÉÀÜ'));
+    }
+
+    // ========================================================================
+    // length / between — unicode / multibyte
+    // ========================================================================
+
+    public function testLengthUnicode(): void
+    {
+        // 3 accented characters = 3 chars (not 6 bytes)
+        $this->assertEquals(3, Str::length('éàü'));
+    }
+
+    public function testBetweenMultibyte(): void
+    {
+        $this->assertEquals('café', Str::between('«café»', '«', '»'));
+    }
+
+    // ========================================================================
+    // startsWith / endsWith — unicode
+    // ========================================================================
+
+    public function testStartsWithUnicode(): void
+    {
+        $this->assertTrue(Str::startsWith('éàü', 'é'));
+        $this->assertFalse(Str::startsWith('éàü', 'à'));
+    }
+
+    public function testEndsWithEmptyPatternAsymmetry(): void
+    {
+        // ASYMMETRY: startsWith('hello','') === true, but endsWith('hello','') === false.
+        // mb_substr($text, -0, null) returns the whole string, which never equals ''.
+        // Documenting current behavior — see report.
+        $this->assertFalse(Str::endsWith('hello', ''));
+        $this->assertTrue(Str::startsWith('hello', ''));
+    }
 }

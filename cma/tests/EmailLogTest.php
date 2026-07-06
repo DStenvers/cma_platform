@@ -174,3 +174,164 @@ class EmailLogTest extends TestCase
 
 } // end if (file_exists parent bootstrap)
 
+/**
+ * Deterministic, bootstrap-free coverage for EmailLogService.
+ *
+ * The EmailLogTest class above needs a full CMA + real tblEmailLog and only
+ * declares when the parent _bootstrap.php exists (consumer site). In the bare
+ * platform repo it runs zero tests. This class fills that gap without a DB:
+ *  - the pure address (de)serialisation helpers, via reflection;
+ *  - getById / delete / cleanup / resend against a StubConnection injected
+ *    into Database's connection pool, asserting the SQL shape and the
+ *    null-connection / not-found error paths.
+ */
+require_once __DIR__ . '/StubConnection.php';
+require_once dirname(__DIR__) . '/classes/Services/EmailLogService.php';
+
+use Cma\Services\EmailLogService;
+
+class EmailLogServiceUnitTest extends TestCase
+{
+    private StubConnection $conn;
+    /** @var array [\ReflectionProperty, originalValue] for namedConnections restore. */
+    private array $poolRestore = [];
+
+    public function setUp(): void
+    {
+        $this->conn = StubConnection::create();
+        $ref = new \ReflectionClass(\App\Library\Database::class);
+        $prop = $ref->getProperty('namedConnections');
+        $prop->setAccessible(true);
+        $this->poolRestore = [$prop, $prop->getValue()];
+        $current = $prop->getValue();
+        $current['data'] = $this->conn;
+        $prop->setValue(null, $current);
+    }
+
+    public function tearDown(): void
+    {
+        if ($this->poolRestore) {
+            [$prop, $original] = $this->poolRestore;
+            $prop->setValue(null, $original);
+            $this->poolRestore = [];
+        }
+    }
+
+    private function callPrivate(string $method, array $args): mixed
+    {
+        $m = new \ReflectionMethod(EmailLogService::class, $method);
+        $m->setAccessible(true);
+        return $m->invoke(null, ...$args);
+    }
+
+    // ---- Pure address helpers -----------------------------------------
+
+    public function testFormatAddressesRendersNameAndEmail(): void
+    {
+        $out = $this->callPrivate('formatAddresses', [[
+            ['alice@example.test', 'Alice'],
+            ['bob@example.test', 'Bob'],
+        ]]);
+        $this->assertEquals('Alice <alice@example.test>, Bob <bob@example.test>', $out);
+    }
+
+    public function testFormatAddressesOmitsAngleBracketsWhenNoName(): void
+    {
+        $out = $this->callPrivate('formatAddresses', [[
+            ['alice@example.test', ''],
+        ]]);
+        $this->assertEquals('alice@example.test', $out);
+    }
+
+    public function testFormatAddressesAcceptsPlainStringEntries(): void
+    {
+        // Non-array entries pass through verbatim.
+        $out = $this->callPrivate('formatAddresses', [['plain@example.test']]);
+        $this->assertEquals('plain@example.test', $out);
+    }
+
+    public function testFormatAddressesEmptyGivesEmptyString(): void
+    {
+        $this->assertEquals('', $this->callPrivate('formatAddresses', [[]]));
+    }
+
+    public function testParseAddressesExtractsFromAngleBrackets(): void
+    {
+        $out = $this->callPrivate('parseAddresses', ['Alice <alice@example.test>, bob@example.test']);
+        $this->assertEquals(['alice@example.test', 'bob@example.test'], $out);
+    }
+
+    public function testParseAddressesSkipsEmptyParts(): void
+    {
+        // Trailing comma / blank segment must not yield an empty address.
+        $out = $this->callPrivate('parseAddresses', ['a@example.test, , b@example.test,']);
+        $this->assertEquals(['a@example.test', 'b@example.test'], $out);
+    }
+
+    public function testFormatThenParseRoundTrips(): void
+    {
+        $formatted = $this->callPrivate('formatAddresses', [[
+            ['alice@example.test', 'Alice'],
+            ['bob@example.test', 'Bob'],
+        ]]);
+        $parsed = $this->callPrivate('parseAddresses', [$formatted]);
+        $this->assertEquals(['alice@example.test', 'bob@example.test'], $parsed);
+    }
+
+    // ---- getById / delete / cleanup against the stub ------------------
+
+    public function testGetByIdReturnsRowWhenFound(): void
+    {
+        $this->conn->enqueueResult([['ID' => 5, 'mail_subject' => 'Hi']]);
+        $row = EmailLogService::getById(5);
+        $this->assertNotNull($row);
+        $this->assertEquals('Hi', $row['mail_subject']);
+
+        $call = $this->conn->getLastCall();
+        $this->assertStringContainsString('SELECT * FROM tblEmailLog', $call['sql']);
+        $this->assertEquals([5], $call['params'], 'ID must be bound as a parameter');
+    }
+
+    public function testGetByIdReturnsNullWhenNotFound(): void
+    {
+        $this->conn->enqueueResult([]); // no rows
+        $this->assertNull(EmailLogService::getById(123));
+    }
+
+    public function testDeleteIssuesParameterisedDeleteAndReturnsTrue(): void
+    {
+        $ok = EmailLogService::delete(7);
+        $this->assertTrue($ok);
+        $call = $this->conn->getLastCall();
+        $this->assertStringContainsString('DELETE FROM tblEmailLog WHERE ID = ?', $call['sql']);
+        $this->assertEquals([7], $call['params']);
+    }
+
+    public function testDeleteReturnsFalseOnDbError(): void
+    {
+        // A thrown driver error is caught and reported as a boolean false,
+        // never bubbles up as a fatal.
+        $this->conn->enqueueException(new \PDOException('locked'));
+        $this->assertFalse(EmailLogService::delete(7));
+    }
+
+    public function testCleanupRunsExecWithoutThrowing(): void
+    {
+        EmailLogService::cleanup($this->conn);
+        $call = $this->conn->getLastCall();
+        $this->assertEquals('exec', $call['type']);
+        $this->assertStringContainsString("DELETE FROM tblEmailLog", $call['sql']);
+        $this->assertStringContainsString('-30', $call['sql'], 'cleanup deletes rows older than 30 days');
+    }
+
+    public function testResendOfMissingIdFailsCleanly(): void
+    {
+        // getById → empty result → resend must return a friendly failure and
+        // never attempt to construct/send an email.
+        $this->conn->enqueueResult([]);
+        $result = EmailLogService::resend(999999);
+        $this->assertFalse($result['success']);
+        $this->assertStringContainsString('niet gevonden', $result['error']);
+    }
+}
+

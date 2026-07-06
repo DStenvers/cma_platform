@@ -464,4 +464,191 @@ class DateTest extends TestCase
         $this->assertNull(Date::diff('', '2024-03-15'));
         $this->assertNull(Date::diff('2024-03-15', ''));
     }
+
+    // ========================================================================
+    // age — DateTime objects, int timestamp, same-day, future birthday
+    // ========================================================================
+
+    public function testAgeFromDateTimeObject(): void
+    {
+        $age = Date::age(new \DateTime('2000-01-01'), new \DateTime('2026-03-02'));
+        $this->assertEquals(26, $age);
+    }
+
+    public function testAgeSameDay(): void
+    {
+        $this->assertEquals(0, Date::age('2026-03-02', '2026-03-02'));
+    }
+
+    public function testAgeExactBirthday(): void
+    {
+        // Birthday is exactly the reference date's month/day → full years
+        $this->assertEquals(26, Date::age('2000-03-02', '2026-03-02'));
+    }
+
+    public function testAgeInvalidReference(): void
+    {
+        $this->assertNull(Date::age('2000-01-01', 'not-a-date'));
+    }
+
+    // ========================================================================
+    // diff — same date, seconds, minutes, month across year
+    // ========================================================================
+
+    public function testDiffSameDate(): void
+    {
+        $this->assertEquals(0, Date::diff('2024-03-15', '2024-03-15', 'day'));
+    }
+
+    public function testDiffSeconds(): void
+    {
+        $this->assertEquals(3600, Date::diff('2024-03-15 10:00:00', '2024-03-15 11:00:00', 'second'));
+    }
+
+    public function testDiffMinutes(): void
+    {
+        $this->assertEquals(90, Date::diff('2024-03-15 10:00:00', '2024-03-15 11:30:00', 'minute'));
+    }
+
+    public function testDiffMonthsAcrossYear(): void
+    {
+        $this->assertEquals(14, Date::diff('2023-01-15', '2024-03-15', 'month'));
+    }
+
+    public function testDiffHoursNegative(): void
+    {
+        $this->assertEquals(-24, Date::diff('2024-03-16 00:00:00', '2024-03-15 00:00:00', 'hour'));
+    }
+
+    // ========================================================================
+    // add — hours, minutes, negative month/year, seconds
+    // ========================================================================
+
+    public function testAddHours(): void
+    {
+        $this->assertStringContainsString('2024-03-15 15:00:00', Date::add('2024-03-15 10:00:00', 5, 'hour'));
+    }
+
+    public function testAddMinutes(): void
+    {
+        $this->assertStringContainsString('2024-03-15 10:30:00', Date::add('2024-03-15 10:00:00', 30, 'minute'));
+    }
+
+    public function testAddNegativeMonth(): void
+    {
+        $this->assertStringContainsString('2024-01-15', Date::add('2024-03-15', -2, 'month'));
+    }
+
+    public function testAddNegativeYear(): void
+    {
+        $this->assertStringContainsString('2022-03-15', Date::add('2024-03-15', -2, 'year'));
+    }
+
+    public function testAddUnknownUnitDefaultsToDays(): void
+    {
+        $this->assertStringContainsString('2024-03-20', Date::add('2024-03-15', 5, 'fortnight'));
+    }
+
+    // ========================================================================
+    // shortWeekday / longWeekday — Sunday boundary (index 0)
+    // ========================================================================
+
+    public function testWeekdaySunday(): void
+    {
+        // 2024-03-17 is a Sunday
+        $this->assertEquals('Zo', Date::shortWeekday('2024-03-17'));
+        $this->assertEquals('Zondag', Date::longWeekday('2024-03-17'));
+    }
+
+    // ========================================================================
+    // isValid — numeric-string inputs and zero values
+    // ========================================================================
+
+    public function testIsValidNumericStrings(): void
+    {
+        $this->assertTrue(Date::isValid('15', '3', '2024'));
+    }
+
+    public function testIsValidZeroDay(): void
+    {
+        // '0' is neither '' nor null, so it is validated — day 0 is invalid
+        $this->assertFalse(Date::isValid('0', '3', '2024'));
+    }
+
+    public function testIsValidMonthOutOfRange(): void
+    {
+        $this->assertFalse(Date::isValid(15, 13, 2024));
+    }
+
+    // ========================================================================
+    // fixValue — already dd-mm-yyyy formatted, and time-only variations
+    // ========================================================================
+
+    public function testFixValueAlreadyDutchFormat(): void
+    {
+        // Doesn't match the YYYY-MM-DD anchor → returned unchanged
+        $this->assertEquals('15-03-2024', Date::fixValue('15-03-2024'));
+    }
+
+    public function testFixValueMidnightDropsTime(): void
+    {
+        $this->assertEquals('15-03-2024', Date::fixValue('2024-03-15 00:00:00'));
+    }
+
+    // ========================================================================
+    // isParseable — DateTime object and integer timestamp
+    // ========================================================================
+
+    public function testIsParseableDateTime(): void
+    {
+        $this->assertTrue(Date::isParseable(new \DateTime('2024-03-15')));
+    }
+
+    public function testIsParseableIntTimestamp(): void
+    {
+        $this->assertTrue(Date::isParseable(1710460800));
+    }
+
+    // ========================================================================
+    // sortableDateTime / time — empty handling
+    // ========================================================================
+
+    public function testSortableDateTimeEmpty(): void
+    {
+        $this->assertEquals('', Date::sortableDateTime(''));
+        $this->assertEquals('', Date::sortableDateTime(null));
+    }
+
+    // ========================================================================
+    // dstOffset / isDST — deterministic in a fixed timezone
+    // ========================================================================
+
+    public function testDstDeterministicInEuropeTimezone(): void
+    {
+        $prev = date_default_timezone_get();
+        date_default_timezone_set('Europe/Amsterdam');
+        try {
+            $this->assertTrue(Date::isDST('2024-07-15'));   // summer → DST
+            $this->assertFalse(Date::isDST('2024-01-15'));  // winter → no DST
+            $this->assertEquals(1, Date::dstOffset('2024-07-15'));
+            $this->assertEquals(0, Date::dstOffset('2024-01-15'));
+        } finally {
+            date_default_timezone_set($prev);
+        }
+    }
+
+    // ========================================================================
+    // toGMT — deterministic conversion in a fixed timezone
+    // ========================================================================
+
+    public function testToGMTUtcTimezone(): void
+    {
+        $prev = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        try {
+            $this->assertEquals('20240315T120000Z', Date::toGMT('2024-03-15 12:00:00'));
+        } finally {
+            date_default_timezone_set($prev);
+        }
+    }
 }

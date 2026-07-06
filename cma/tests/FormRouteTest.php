@@ -161,4 +161,95 @@ class FormRouteTest extends TestCase
         $this->assertNull($route->recordId);
         $this->assertFalse($route->isNew);
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: New=Y semantics, copy, popup list mode,
+    // parentIdString() accessor, defaults.
+    // ------------------------------------------------------------------
+
+    /** Docblock contract: New=Y next to an id must KEEP the id (not clear it). */
+    public function testNewFlagKeepsExistingRecordId(): void
+    {
+        $_GET = ['form' => 'x', 'id' => '7', 'New' => 'Y'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertTrue($route->isNew);
+        $this->assertEquals('7', $route->recordId, 'New=Y must not clear an explicit id');
+    }
+
+    /** copy=Y on a new record: isCopy true, no record id. */
+    public function testCopyFlagWithoutId(): void
+    {
+        $_GET = ['form' => 'x', 'copy' => 'Y'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertTrue($route->isCopy);
+        $this->assertNull($route->recordId);
+    }
+
+    /** copy defaults to false when the flag is absent. */
+    public function testCopyDefaultsFalse(): void
+    {
+        $_GET = ['form' => 'x', 'id' => '5'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertFalse($route->isCopy);
+    }
+
+    /** Popup with no popupID is subform LIST mode: no record, not new. */
+    public function testPopupListModeWhenNoPopupId(): void
+    {
+        $_GET = ['form' => 'parent', 'formID' => '123', 'popup' => 'producten'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertEquals('producten', $route->form);
+        $this->assertNull($route->recordId);
+        $this->assertFalse($route->isNew);
+        $this->assertEquals('123', $route->parentId);
+    }
+
+    /** Popup with empty parent formID leaves parentId null (not ''). */
+    public function testPopupParentNullWhenFormIdEmpty(): void
+    {
+        $_GET = ['form' => 'parent', 'popup' => 'producten', 'popupID' => '9'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertNull($route->parentId);
+        $this->assertEquals('9', $route->recordId);
+    }
+
+    /** parentIdString() returns '' for a null parent and the value otherwise. */
+    public function testParentIdStringAccessor(): void
+    {
+        $_GET = ['form' => 'x'];
+        $this->assertEquals('', FormRoute::fromRequest()->parentIdString());
+
+        $_GET = ['form' => 'p', 'formID' => '1', 'popup' => 's', 'popupID' => '2'];
+        $this->assertEquals('1', FormRoute::fromRequest()->parentIdString());
+    }
+
+    /** popupID='new' is case-insensitive ('NEW' also means new-record). */
+    public function testPopupNewIsCaseInsensitive(): void
+    {
+        $_GET = ['form' => 'p', 'formID' => '1', 'popup' => 's', 'popupID' => 'NEW'];
+        $route = FormRoute::fromRequest();
+
+        $this->assertTrue($route->isNew);
+        $this->assertNull($route->recordId);
+    }
+
+    /** view defaults to '' when the param is absent. */
+    public function testViewDefaultsEmpty(): void
+    {
+        $_GET = ['form' => 'x', 'id' => '3'];
+        $this->assertEquals('', FormRoute::fromRequest()->view);
+    }
+
+    /** A bogus numeric FormID that matches no JSON form leaves form ''. */
+    public function testUnknownLegacyFormIdLeavesFormEmpty(): void
+    {
+        $_GET = ['FormID' => '999999999'];
+        $route = FormRoute::fromRequest();
+        $this->assertEquals('', $route->form);
+    }
 }

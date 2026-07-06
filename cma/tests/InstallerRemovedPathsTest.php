@@ -192,4 +192,46 @@ class InstallerRemovedPathsTest extends TestCase
         // sites. Catch that mistake here.
         $this->assertNotEquals(0, count($this->removedPaths));
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: nonexistent root, path-specificity (basename
+    // collisions elsewhere are safe), all-values are relative.
+    // ------------------------------------------------------------------
+
+    public function testNonexistentRootReturnsEmptyAndDoesNotThrow(): void
+    {
+        // A root that was never created (e.g. a stale/renamed site) must be a
+        // harmless no-op, not a fatal.
+        $ghost = $this->tmpRoot . '/never-created-' . bin2hex(random_bytes(4));
+        $removed = Installer::cleanRemovedPaths($ghost);
+        $this->assertEquals([], $removed);
+    }
+
+    public function testSameBasenameInAnotherDirIsNotRemoved(): void
+    {
+        // Only the EXACT retired relative path is removed. A file that merely
+        // shares its basename but lives in a different directory must survive.
+        $retired = $this->removedPaths[0];
+        $decoy = 'unrelated_dir/' . basename($retired);
+
+        $this->touch($retired);
+        $this->touch($decoy, 'keep-me');
+
+        Installer::cleanRemovedPaths($this->tmpRoot);
+
+        $this->assertFalse(file_exists($this->tmpRoot . '/' . $retired), 'exact retired path must go');
+        $this->assertTrue(file_exists($this->tmpRoot . '/' . $decoy), 'same-basename decoy elsewhere must survive');
+        $this->assertEquals('keep-me', file_get_contents($this->tmpRoot . '/' . $decoy));
+    }
+
+    public function testRemovedPathsAreAllRelative(): void
+    {
+        // REMOVED_PATHS must be project-root-relative — an absolute entry would
+        // make cleanRemovedPaths delete outside the consumer site.
+        foreach ($this->removedPaths as $p) {
+            $this->assertFalse(str_starts_with($p, '/'), "REMOVED_PATHS entry must be relative: $p");
+            // Windows-drive absolute (C:\) would also be dangerous.
+            $this->assertFalse((bool)preg_match('/^[A-Za-z]:/', $p), "REMOVED_PATHS entry must not be a drive path: $p");
+        }
+    }
 }

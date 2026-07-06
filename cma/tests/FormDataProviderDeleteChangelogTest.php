@@ -185,4 +185,39 @@ class FormDataProviderDeleteChangelogTest extends TestCase
         $html = $this->build($formDef, ['voornaam' => 'Alice']);
         $this->assertStringContainsString('voornaam', $html);
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: string boolean representations, truncation
+    // boundary, case-insensitive label/type lookup.
+    // ------------------------------------------------------------------
+
+    public function testBooleanStringRepresentationsRenderJaNee(): void
+    {
+        // DB drivers hand back booleans as '1'/'0' strings; with a boolean
+        // dataType those must still map to Ja/Nee, not the raw digit.
+        $formDef = $this->formDef([['name' => 'actief', 'label' => 'Actief', 'dataType' => 'boolean']]);
+        $this->assertStringContainsString('Ja', $this->build($formDef, ['actief' => '1']));
+        $this->assertStringContainsString('Nee', $this->build($formDef, ['actief' => '0']));
+    }
+
+    public function testValueOfExactly500CharsIsNotTruncated(): void
+    {
+        // Boundary mirror of the edit changelog: strlen > 500 truncates,
+        // exactly 500 renders whole with no ellipsis.
+        $formDef = $this->formDef([['name' => 'opmerking', 'label' => 'Opmerking', 'dataType' => 'text']]);
+        $exact = str_repeat('a', 500);
+        $html = $this->build($formDef, ['opmerking' => $exact]);
+        $this->assertStringContainsString($exact, $html);
+        $this->assertStringNotContainsString($exact . '...', $html);
+    }
+
+    public function testCaseInsensitiveLabelLookup(): void
+    {
+        // The record column can arrive UPPERCASED (Access) while the form
+        // declared it lowercase; the label lookup must still resolve.
+        $formDef = $this->formDef([['name' => 'naam', 'label' => 'Naam', 'dataType' => 'text']]);
+        $html = $this->build($formDef, ['NAAM' => 'Alice']);
+        $this->assertStringContainsString('>Naam<', $html, 'label must resolve case-insensitively');
+        $this->assertStringContainsString('>Alice<', $html);
+    }
 }

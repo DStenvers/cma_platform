@@ -55,4 +55,47 @@ class TableFromRecordsetTest extends TestCase
         // No fatal, and a table element is emitted even with zero rows.
         $this->assertStringContainsString('<TABLE', strtoupper($html));
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: HTML escaping, null cells, record-count footer,
+    // id/class options.
+    // ------------------------------------------------------------------
+
+    public function testCellValuesAreHtmlEscaped(): void
+    {
+        // A value containing markup must not break the rendered table.
+        $rs = $this->makeRecordset([['Naam' => '<b>x</b> & y']]);
+        $html = Table::fromRecordset($rs);
+        $this->assertStringNotContainsString('<b>x</b>', $html, 'raw markup must not pass through');
+        $this->assertStringContainsString('&lt;b&gt;', $html);
+        $this->assertStringContainsString('&amp;', $html);
+    }
+
+    public function testNullCellRendersNbsp(): void
+    {
+        // A NULL column value renders as a non-breaking space, not the literal
+        // string "null" or a collapsed cell.
+        $rs = $this->makeRecordset([['Naam' => null]]);
+        $html = Table::fromRecordset($rs);
+        $this->assertStringContainsString('&nbsp;', $html);
+        $this->assertStringNotContainsString('>null<', $html);
+    }
+
+    public function testRecordCountFooterPluralisation(): void
+    {
+        // Footer reads "1 record" (singular) for one row …
+        $one = Table::fromRecordset($this->makeRecordset([['n' => 1]]));
+        $this->assertStringContainsString('1 record<', $one);
+        // … and "N records" (plural) for several.
+        $three = Table::fromRecordset($this->makeRecordset([['n' => 1], ['n' => 2], ['n' => 3]]));
+        $this->assertStringContainsString('3 records', $three);
+    }
+
+    public function testIdAndClassOptionsAreRendered(): void
+    {
+        $rs = $this->makeRecordset([['n' => 1]]);
+        $html = Table::fromRecordset($rs, ['id' => 'myresult', 'class' => 'grid striped']);
+        $this->assertStringContainsString('id="myresult"', $html);
+        $this->assertStringContainsString('class="grid striped"', $html);
+    }
 }

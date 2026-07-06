@@ -77,4 +77,47 @@ class MigrationVersionWarningsTest extends TestCase
         ]);
         $this->assertEquals([], $warnings, 'a 0.x.x site version must produce no advisories');
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: platform-only cleanliness, high-version without
+    // a cross-source collision, empty version strings ignored.
+    // ------------------------------------------------------------------
+
+    public function testPlatformOnlyProducesNoWarnings(): void
+    {
+        // With no extra sources, only the bundled platform manifest loads. It
+        // must be internally consistent: no duplicate versions, and platform
+        // owning 1.0.0+ is legitimate — so zero advisories.
+        $prev = Application::get('migration_sources_extra', null);
+        Application::set('migration_sources_extra', []);
+        try {
+            $svc = new MigrationService();
+            $this->assertEquals([], $svc->getWarnings(), 'the platform manifest alone must be advisory-free');
+        } finally {
+            Application::set('migration_sources_extra', $prev ?? []);
+        }
+    }
+
+    public function testHighSiteVersionWithoutCollisionOnlyFlagsReservedRange(): void
+    {
+        // 2.5.0 is >= 1.0.0 (reserved-range advisory) but not used by the
+        // platform, so there is NO cross-source collision advisory.
+        $warnings = $this->warningsFor([
+            ['version' => '2.5.0', 'description' => 'x', 'changes' => []],
+        ]);
+        $joined = implode("\n", $warnings);
+        $this->assertStringContainsString('gereserveerd voor het platform', $joined);
+        $this->assertStringNotContainsString('meerdere bronnen', $joined);
+        $this->assertEquals(1, count($warnings), 'exactly one advisory (reserved-range) expected');
+    }
+
+    public function testEmptyVersionStringIsIgnored(): void
+    {
+        // A migration with a blank version must not trip either advisory
+        // (it's skipped entirely in detectVersionIssues).
+        $warnings = $this->warningsFor([
+            ['version' => '', 'description' => 'x', 'changes' => []],
+        ]);
+        $this->assertEquals([], $warnings);
+    }
 }

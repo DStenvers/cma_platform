@@ -63,4 +63,123 @@ class StringBufferTest extends TestCase
         $buf = new StringBuffer();
         $this->assertEquals('', $buf->toString());
     }
+
+    // ========================================================================
+    // saveToFile (previously uncovered)
+    // ========================================================================
+
+    private array $tempFiles = [];
+
+    public function tearDown(): void
+    {
+        foreach ($this->tempFiles as $f) {
+            if (is_file($f)) {
+                @unlink($f);
+            }
+        }
+        $this->tempFiles = [];
+    }
+
+    private function tempPath(): string
+    {
+        $path = sys_get_temp_dir() . '/sb_test_' . uniqid('', true) . '.txt';
+        $this->tempFiles[] = $path;
+        return $path;
+    }
+
+    public function testSaveToFileWritesContents(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append('Hello ');
+        $buf->append('File');
+
+        $path = $this->tempPath();
+        $this->assertTrue($buf->saveToFile($path));
+        $this->assertEquals('Hello File', file_get_contents($path));
+    }
+
+    public function testSaveToFileEmptyBuffer(): void
+    {
+        $buf = new StringBuffer();
+        $path = $this->tempPath();
+        // file_put_contents('') returns 0 (bytes written), which is !== false → true
+        $this->assertTrue($buf->saveToFile($path));
+        $this->assertEquals('', file_get_contents($path));
+    }
+
+    // ========================================================================
+    // getSize — counts BYTES, not characters (multibyte)
+    // ========================================================================
+
+    public function testGetSizeCountsBytes(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append('é'); // 2 bytes in UTF-8
+        $this->assertEquals(2, $buf->getSize());
+    }
+
+    public function testGetSizeTracksAppends(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append('ab');
+        $buf->append('cde');
+        $this->assertEquals(5, $buf->getSize());
+    }
+
+    // ========================================================================
+    // appendLine — empty value still adds the CRLF
+    // ========================================================================
+
+    public function testAppendLineEmpty(): void
+    {
+        $buf = new StringBuffer();
+        $buf->appendLine('');
+        $this->assertEquals("\r\n", $buf->toString());
+        $this->assertEquals(2, $buf->getSize());
+    }
+
+    // ========================================================================
+    // clear then reuse
+    // ========================================================================
+
+    public function testClearThenReuse(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append('first');
+        $buf->clear();
+        $buf->append('second');
+        $this->assertEquals('second', $buf->toString());
+        $this->assertEquals(6, $buf->getSize());
+    }
+
+    // ========================================================================
+    // append — type coercion of non-string scalars
+    // ========================================================================
+
+    public function testAppendFloat(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append(3.14);
+        $this->assertEquals('3.14', $buf->toString());
+    }
+
+    public function testAppendBoolTrue(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append(true);   // (string)true === '1'
+        $buf->append(false);  // (string)false === ''
+        $this->assertEquals('1', $buf->toString());
+    }
+
+    // ========================================================================
+    // __toString reflects live buffer state
+    // ========================================================================
+
+    public function testToStringMagicAfterAppend(): void
+    {
+        $buf = new StringBuffer();
+        $buf->append('a');
+        $buf->append('b');
+        $this->assertEquals('ab', (string)$buf);
+    }
 }

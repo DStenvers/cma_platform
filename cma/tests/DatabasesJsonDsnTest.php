@@ -68,4 +68,45 @@ class DatabasesJsonDsnTest extends TestCase
     {
         $this->assertSame('', Database::dsnFromConfigEntry(['name' => 'users'], $this->root));
     }
+
+    // ------------------------------------------------------------------
+    // Database::isSQLServer — connection-string dialect detection.
+    // Pure when passed an explicit string (null would read site config).
+    // ------------------------------------------------------------------
+
+    public function testIsSqlServerDetectsInitialCatalog(): void
+    {
+        $this->assertTrue(Database::isSQLServer('Initial Catalog=mydb;Data Source=srv'));
+    }
+
+    public function testIsSqlServerDetectsNativeClientAndOleDb(): void
+    {
+        $this->assertTrue(Database::isSQLServer('Provider=SQLOLEDB;Server=x'));
+        $this->assertTrue(Database::isSQLServer('Provider=SQLNCLI11;Server=x'));
+        $this->assertTrue(Database::isSQLServer('Provider=MSOLEDBSQL;Server=x'));
+    }
+
+    public function testIsSqlServerFalseForAccessDriver(): void
+    {
+        $this->assertFalse(
+            Database::isSQLServer('Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=/x.mdb')
+        );
+    }
+
+    public function testIsSqlServerFalseForSqliteDsn(): void
+    {
+        $this->assertFalse(Database::isSQLServer('sqlite:/var/db/app.sqlite'));
+    }
+
+    // ------------------------------------------------------------------
+    // Database::isODBC — true only when the string *starts* with DSN=
+    // ------------------------------------------------------------------
+
+    public function testIsOdbcTrueOnlyWhenDsnPrefix(): void
+    {
+        $this->assertTrue(Database::isODBC('DSN=mydb;UID=sa'));
+        // "DSN=" not at position 0 must NOT count as ODBC.
+        $this->assertFalse(Database::isODBC('Server=x;DSN=mydb'));
+        $this->assertFalse(Database::isODBC('sqlite:/var/db/app.sqlite'));
+    }
 }

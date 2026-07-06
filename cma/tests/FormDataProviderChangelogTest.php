@@ -264,4 +264,48 @@ class FormDataProviderChangelogTest extends TestCase
         $html = $this->build($formDef, ['naam' => 'Alice'], []);
         $this->assertEquals('', $html);
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: label fallback, null-old rendering, array
+    // equality, 500-char truncation boundary.
+    // ------------------------------------------------------------------
+
+    public function testLabelDefaultsToFieldNameWhenNoLabel(): void
+    {
+        // A declared field with no explicit label uses its own name.
+        $formDef = $this->formDef([['name' => 'voornaam', 'dataType' => 'text']]);
+        $html = $this->build($formDef, ['voornaam' => 'Alice'], ['voornaam' => 'Bob']);
+        $this->assertStringContainsString('>voornaam<', $html);
+    }
+
+    public function testNullOldValueRendersLeegPlaceholder(): void
+    {
+        // Old value NULL (e.g. column was empty) → "(leeg)" in the Oud column,
+        // new value shown normally.
+        $formDef = $this->formDef([['name' => 'naam', 'label' => 'Naam', 'dataType' => 'text']]);
+        $html = $this->build($formDef, ['naam' => null], ['naam' => 'Bob']);
+        $this->assertStringContainsString('(leeg)', $html);
+        $this->assertStringContainsString('>Bob<', $html);
+    }
+
+    public function testEqualArraysProduceNoRow(): void
+    {
+        // Same multi-select value on both sides → normalised JSON equal → no change.
+        $formDef = $this->formDef([['name' => 'rollen', 'label' => 'Rollen', 'dataType' => 'text']]);
+        $html = $this->build($formDef,
+            ['rollen' => ['editor', 'admin']],
+            ['rollen' => ['editor', 'admin']]
+        );
+        $this->assertEquals('', $html);
+    }
+
+    public function testValueOfExactly500CharsIsNotTruncated(): void
+    {
+        // Boundary: strlen > 500 truncates; exactly 500 must pass through whole.
+        $formDef = $this->formDef([['name' => 'opmerking', 'label' => 'Opmerking', 'dataType' => 'text']]);
+        $exact = str_repeat('a', 500);
+        $html = $this->build($formDef, ['opmerking' => 'short'], ['opmerking' => $exact]);
+        $this->assertStringContainsString($exact, $html, '500-char value must render intact');
+        $this->assertStringNotContainsString($exact . '...', $html, 'no ellipsis at exactly 500');
+    }
 }

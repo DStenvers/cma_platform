@@ -279,4 +279,37 @@ class SaveJsonFormRecordTest extends TestCase
         $this->assertFalse($result['success'] ?? true);
         $this->assertEquals(0, count($this->conn->getCalls()), 'No DB calls when form def missing');
     }
+
+    // ------------------------------------------------------------------
+    // Error paths: post-save verification and DB failure surfacing.
+    // ------------------------------------------------------------------
+
+    public function testVerificationFailureAfterUpdateIsSurfaced(): void
+    {
+        // Happy path reads back cnt=1. If the verification COUNT comes back 0
+        // (the row didn't persist), saveJsonFormRecord must report failure
+        // rather than a false "success".
+        $this->conn->enqueueResult([['ID' => '1', 'naam' => 'Alice']]); // pre-update SELECT *
+        $this->conn->enqueueResult([]);                                  // UPDATE
+        $this->conn->enqueueResult([['cnt' => 0]]);                       // verification COUNT = 0
+
+        $result = FormDataProvider::saveJsonFormRecord('test_form', '1', ['naam' => 'Bob']);
+
+        $this->assertFalse($result['success'] ?? true, 'cnt=0 verification must fail the save');
+        $this->assertStringContainsString('verificatie', strtolower($result['error'] ?? ''));
+    }
+
+    public function testDatabaseExceptionIsSurfacedAsFailure(): void
+    {
+        // A DB error thrown on the first read-back (verification COUNT) must be
+        // caught and returned as a structured failure, never bubble as a fatal.
+        $this->conn->enqueueResult([['ID' => '1', 'naam' => 'Alice']]); // pre-update SELECT *
+        $this->conn->enqueueResult([]);                                  // UPDATE
+        $this->conn->enqueueException(new \PDOException('driver exploded')); // verification blows up
+
+        $result = FormDataProvider::saveJsonFormRecord('test_form', '1', ['naam' => 'Bob']);
+
+        $this->assertFalse($result['success'] ?? true, 'a thrown DB error must not read as success');
+        $this->assertNotEmpty($result['error'] ?? '', 'a failure message must be present');
+    }
 }

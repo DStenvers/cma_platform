@@ -38,4 +38,39 @@ class EncryptionTest extends TestCase
         $hash2 = Encryption::sha256('abd');
         $this->assertFalse($hash1 === $hash2);
     }
+
+    public function testSha256Hex(): void
+    {
+        // Output is always lowercase hexadecimal
+        $hash = Encryption::sha256('anything');
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $hash);
+    }
+
+    public function testSha256Unicode(): void
+    {
+        // Multibyte UTF-8 input hashes over its raw bytes, deterministically
+        $this->assertEquals(hash('sha256', 'café'), Encryption::sha256('café'));
+        $this->assertEquals(64, strlen(Encryption::sha256('café')));
+    }
+
+    public function testSha256Binary(): void
+    {
+        // Binary/NUL bytes hash without truncation
+        $data = "\x00\x01\x02\xFF\x00binary";
+        $hash = Encryption::sha256($data);
+        $this->assertEquals(hash('sha256', $data), $hash);
+        $this->assertEquals(64, strlen($hash));
+    }
+
+    public function testSha256LongInput(): void
+    {
+        $data = str_repeat('a', 100000);
+        $this->assertEquals(hash('sha256', $data), Encryption::sha256($data));
+    }
+
+    public function testSha256AvalancheOneBit(): void
+    {
+        // A one-character change produces a completely different digest
+        $this->assertNotEquals(Encryption::sha256('password'), Encryption::sha256('passwore'));
+    }
 }

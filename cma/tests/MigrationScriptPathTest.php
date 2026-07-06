@@ -69,4 +69,32 @@ class MigrationScriptPathTest extends TestCase
         $this->assertStringContainsString('/../../migrations/0.0.1_create_databases_json.php', $resolved);
         $this->assertTrue(file_exists($resolved));
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: trailing-slash sourceDir, empty-string sourceDir.
+    // ------------------------------------------------------------------
+
+    public function testSourceDirTrailingSlashIsHandled(): void
+    {
+        // rtrim() in resolveScriptPath means a trailing slash on the manifest
+        // dir must not produce a double-slash or a miss.
+        $dir = sys_get_temp_dir() . '/cma_migtest_slash_' . getmypid();
+        @mkdir($dir, 0777, true);
+        $file = $dir . '/fix.php';
+        file_put_contents($file, "<?php return true;");
+
+        $resolved = $this->resolve('fix.php', $dir . '/');
+        $this->assertEquals($file, $resolved);
+
+        @unlink($file);
+        @rmdir($dir);
+    }
+
+    public function testEmptySourceDirFallsBackToCmaRelative(): void
+    {
+        // '' is treated the same as null → platform (cma/) fallback.
+        $resolved = $this->resolve('migrations/0.0.1_create_databases_json.php', '');
+        $this->assertStringContainsString('/../../migrations/0.0.1_create_databases_json.php', $resolved);
+        $this->assertTrue(file_exists($resolved));
+    }
 }

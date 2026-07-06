@@ -100,4 +100,85 @@ class JsonFormValidationTest extends TestCase
         ]]);
         $this->assertEquals(0, count($problems));
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: non-array fields, file fields, path aliases,
+    // URL paths, tip presentational, multiple accumulated problems.
+    // ------------------------------------------------------------------
+
+    public function testNonArrayFieldIsRejected(): void
+    {
+        // A scalar where a field object is expected → "is geen object".
+        $problems = $this->validate(['fields' => ['not-an-object']]);
+        $this->assertEquals(1, count($problems));
+        $this->assertStringContainsString('is geen object', $problems[0]);
+    }
+
+    public function testTipFieldNeedsNoName(): void
+    {
+        // 103 = tip — presentational, so no 'name' is required.
+        $this->assertEquals(0, count($this->validate(['fields' => [['type' => 'tip']]])));
+        $this->assertEquals(0, count($this->validate(['fields' => [['type' => 103]]])));
+    }
+
+    public function testFileFieldWithoutPathIsRejected(): void
+    {
+        $problems = $this->validate(['fields' => [['name' => 'attachment', 'type' => 'file']]]);
+        $this->assertEquals(1, count($problems));
+        $this->assertStringContainsString('geen pad', $problems[0]);
+    }
+
+    public function testNumericImageTypeWithoutPathIsRejected(): void
+    {
+        // 9 = image via the legacy numeric control-type id.
+        $problems = $this->validate(['fields' => [['name' => 'photo', 'type' => 9]]]);
+        $this->assertEquals(1, count($problems));
+        $this->assertStringContainsString('geen pad', $problems[0]);
+    }
+
+    public function testImageFieldWithUrlPathPasses(): void
+    {
+        // An http(s) path is served elsewhere; the directory check is skipped,
+        // so a configured URL path is accepted with no problems.
+        $problems = $this->validate(['fields' => [[
+            'name' => 'photo', 'type' => 'image', 'path' => 'https://cdn.example/imgs',
+        ]]]);
+        $this->assertEquals(0, count($problems));
+    }
+
+    public function testImageLegacyImagePathAliasIsAccepted(): void
+    {
+        // The legacy 'imagePath' key is honoured as a fallback for 'path'.
+        $problems = $this->validate(['fields' => [[
+            'name' => 'photo', 'type' => 'image', 'imagePath' => 'https://cdn.example/imgs',
+        ]]]);
+        $this->assertEquals(0, count($problems));
+    }
+
+    public function testFileLegacyFilePathAliasIsAccepted(): void
+    {
+        $problems = $this->validate(['fields' => [[
+            'name' => 'doc', 'type' => 'file', 'filePath' => 'https://cdn.example/files',
+        ]]]);
+        $this->assertEquals(0, count($problems));
+    }
+
+    public function testMultipleProblemsAccumulateAcrossFields(): void
+    {
+        // Two distinct fields each with their own problem → two entries.
+        $problems = $this->validate(['fields' => [
+            ['type' => 'textbox'],                 // missing name → 1 problem
+            ['name' => 'photo', 'type' => 'image'], // missing path → 1 problem
+        ]]);
+        $this->assertEquals(2, count($problems));
+    }
+
+    public function testUnknownStringTypeDefaultsToTextboxAndNeedsName(): void
+    {
+        // An unrecognised type string falls back to control-type 3 (textbox),
+        // which is not presentational, so a missing name is still flagged.
+        $problems = $this->validate(['fields' => [['type' => 'totally-unknown-type']]]);
+        $this->assertEquals(1, count($problems));
+        $this->assertStringContainsString("geen 'name'", $problems[0]);
+    }
 }

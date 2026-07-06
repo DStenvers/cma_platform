@@ -232,4 +232,65 @@ class FormExpressionEvaluatorTest extends TestCase
     {
         $this->assertThrows("app.cma_sso_enabled = 'true'", 'assignment syntax');
     }
+
+    // ------------------------------------------------------------------
+    // Additional coverage: numeric loose compare, precedence of ==,
+    // non-chainable comparison, nested parens, literal comparisons.
+    // ------------------------------------------------------------------
+
+    public function testNumericLooseComparison(): void
+    {
+        // numeric_key is the STRING '42'; loose == against the number 42 matches.
+        $this->assertTrue(FormExpressionEvaluator::isTrue('app.numeric_key == 42'));
+        $this->assertFalse(FormExpressionEvaluator::isTrue('app.numeric_key == 43'));
+    }
+
+    public function testStringLiteralEquality(): void
+    {
+        $this->assertTrue(FormExpressionEvaluator::isTrue("'a' == 'a'"));
+        $this->assertFalse(FormExpressionEvaluator::isTrue("'a' == 'b'"));
+        $this->assertTrue(FormExpressionEvaluator::isTrue("'a' != 'b'"));
+    }
+
+    public function testNullEqualsNull(): void
+    {
+        $this->assertTrue(FormExpressionEvaluator::isTrue('null == null'));
+    }
+
+    /** == binds tighter than && : `true && 1 == 1` is `true && (1==1)`. */
+    public function testComparisonBindsTighterThanAnd(): void
+    {
+        $this->assertTrue(FormExpressionEvaluator::isTrue('true && 1 == 1'));
+        $this->assertFalse(FormExpressionEvaluator::isTrue('false || 1 == 2'));
+    }
+
+    public function testNestedParentheses(): void
+    {
+        $this->assertTrue(FormExpressionEvaluator::isTrue('((true))'));
+        $this->assertTrue(FormExpressionEvaluator::isTrue('!(( false ))'));
+    }
+
+    /** Comparison is not associative/chainable — `a == b == c` must throw. */
+    public function testChainedComparisonThrows(): void
+    {
+        $this->assertThrows('true == true == true', 'chained comparison');
+    }
+
+    /** A lone operator with no right operand throws (unexpected end). */
+    public function testDanglingOperatorThrows(): void
+    {
+        $this->assertThrows('true &&', 'dangling &&');
+    }
+
+    /** A bare closing parenthesis throws. */
+    public function testStrayCloseParenThrows(): void
+    {
+        $this->assertThrows('true)', 'stray close paren');
+    }
+
+    public function testEvaluateReturnsBoolForLogicalExpression(): void
+    {
+        $this->assertSame(false, FormExpressionEvaluator::evaluate('true && false'));
+        $this->assertSame(true, FormExpressionEvaluator::evaluate('false || true'));
+    }
 }
