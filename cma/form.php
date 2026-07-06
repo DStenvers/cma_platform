@@ -123,57 +123,11 @@ if (!Cookie::has(SecurityHelper::COOKIE_USERID)) {
     );
 }
 
-// Debug: collect all relevant info BEFORE access check
-$_debugCookies = [
-    'CMAU' => Cookie::get(SecurityHelper::COOKIE_USERID, '(not set)'),
-    'CMAU_ORIGINAL' => Cookie::get('CMAU_ORIGINAL', '(not set)'),
-];
-$_debugSecurityChecks = [
-    'isLoggedIn' => SecurityHelper::isLoggedIn(),
-    'isAdmin' => SecurityHelper::isAdmin(),
-    'isDeveloper' => SecurityHelper::isDeveloper(),
-    'getUserLevel' => SecurityHelper::getUserLevel(),
-];
-
-// Output debug as HTTP header (visible in browser DevTools Network tab)
-// Add CORS header to expose custom headers to JavaScript
-header('Access-Control-Expose-Headers: X-Debug-Cookies, X-Debug-Security, X-Debug-AccessLevel, X-Debug-RawCookie-Keys');
-header('X-Debug-Cookies: ' . json_encode($_debugCookies));
-header('X-Debug-Security: ' . json_encode($_debugSecurityChecks));
-// Also output raw cookie array for comparison
-header('X-Debug-RawCookie-Keys: ' . implode(',', array_keys(Cookie::all())));
-
 // Check access rights using centralized menu-based access (same logic as menu filtering)
 $accessLevel = MenuService::getFormAccessLevel($formName);
 
-// Add access level to debug
-$_debugSecurityChecks['accessLevel'] = $accessLevel;
-header('X-Debug-AccessLevel: ' . $accessLevel);
-
-// TEMPORARY: Dump debug info for troubleshooting 403 issue
-if (Request::hasQuery('debug') || $accessLevel == SecurityHelper::ACCESS_NONE) {
-    error_log("form.php ACCESS DEBUG: form=$formName, cookies=" . json_encode($_debugCookies) . ", security=" . json_encode($_debugSecurityChecks));
-}
-
 if ($accessLevel == SecurityHelper::ACCESS_NONE) {
-    // Debug info for 403 errors - helps diagnose cookie/session issues
-    // ALWAYS show debug info for now to diagnose the issue
-    $debugInfo = sprintf(
-        '<br><br><span class="cma-page__strong">Debug info (access denied):</span><br>' .
-        '<small style="color:#666; font-family:monospace;">' .
-        'formName: %s<br>' .
-        'Cookies: %s<br>' .
-        'SecurityChecks: %s<br>' .
-        'Cookie keys: %s<br>' .
-        'REQUEST_URI: %s<br>' .
-        '</small>',
-        htmlspecialchars($formName),
-        htmlspecialchars(json_encode($_debugCookies)),
-        htmlspecialchars(json_encode($_debugSecurityChecks)),
-        htmlspecialchars(implode(', ', array_keys(Cookie::all()))),
-        htmlspecialchars(Request::server('REQUEST_URI', '(not set)'))
-    );
-    showFormError('Geen toegang', 'Je hebt geen toegang tot dit formulier.' . $debugInfo, 403);
+    showFormError('Geen toegang', 'Je hebt geen toegang tot dit formulier.', 403);
 }
 
 // Validate the form definition before rendering. A form whose JSON is missing

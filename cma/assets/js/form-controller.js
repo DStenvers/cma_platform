@@ -1382,8 +1382,6 @@ class CmaFormController {
         // loadRecord looks up controller from DOM via CMA.FormController.getController()
         // This is NOT a global controller reference - it finds the current form's controller
         window.loadRecord = function(recordId) {
-            // cmaLog.log('[window.loadRecord] called with recordId:', recordId, 'type:', typeof recordId);
-            console.trace('[window.loadRecord] stack trace');
             const controller = CMA.FormController.getController();
             if (controller) {
                 controller.loadRecord(recordId);
@@ -4501,17 +4499,6 @@ class CmaFormController {
             return;
         }
         _topWin._cmaOpenPopupAt[_dedupeKey] = _now;
-
-        // DEBUG: Log all incoming options
-        // cmaLog.log('[FormController] openPopup:', {
-        //     formId: formId,
-        //     recordId: recordId,
-        //     parentId: parentId,
-        //     parentField: parentField,
-        //     title: title,
-        //     windowName: windowName,
-        //     jsonForm: this.jsonForm
-        // });
 
         // Build URL - always use form= parameter
         let url = `form.php?form=${encodeURIComponent(formId)}`;

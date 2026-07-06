@@ -13,9 +13,6 @@
  * Native JavaScript version - no jQuery dependency
  */
 
-// DEBUG: Log when this file is loaded
-// console.log('[inline-edit.js] FILE LOADED - version 20260209a');
-
 (function(window) {
     'use strict';
 
@@ -987,9 +984,6 @@
          * Start inline editing - true spreadsheet-like editing with button row below
          */
         async startInlineEditing(rowId, row) {
-            // DEBUG: trace who calls startInlineEditing
-            // console.log('[INLINE-EDIT] startInlineEditing called for rowId:', rowId, 'instance:', this._instanceId);
-            // console.log('[INLINE-EDIT] caller stack:', new Error().stack);
 
             // Guard: prevent re-entrant/double calls
             if (this._startingEdit) {

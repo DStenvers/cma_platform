@@ -1047,7 +1047,7 @@ $appBasePath = Application::get('base_path', '/');
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <?php
     // Combined JS via minify.php
-    $fbJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-dialog.js,webcomponents/cma-toolbar.js,webcomponents/cma-fold.js');
+    $fbJs = minify_asset('../library/assets/js/error-handler.js,../library/webcomponents/lib-dialog.js,webcomponents/cma-toolbar.js,webcomponents/cma-fold.js');
     echo '<script src="' . $fbJs . '"></script>' . PHP_EOL;
     ?>
     <style>
@@ -2596,10 +2596,12 @@ $appBasePath = Application::get('base_path', '/');
         window.confirmSelection = function() {
             if (!selectedFile) return;
 
-            // Build path relative to basepath (excluding basepath from result)
-            // Append ?versie= cache buster so browsers reload overwritten files
-            const relativePath = (currentPath ? currentPath + '/' : '') + selectedFile.name
-                + (selectedFile.modifiedTs ? '?versie=' + selectedFile.modifiedTs : '');
+            // Build path relative to basepath (excluding basepath from result).
+            // NEVER append a ?versie= cache-buster here: this value is stored as
+            // the field value, so a query string would corrupt the saved
+            // filename. Cache-busting belongs on the <img src> at render time,
+            // not on the persisted filename.
+            const relativePath = (currentPath ? currentPath + '/' : '') + selectedFile.name;
 
             // Image dimension validation (from old file-pages.php)
             if (selectedFile.width && selectedFile.height && CONFIG.resizeType > 0) {

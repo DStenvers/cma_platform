@@ -52,11 +52,11 @@ class InstallerSyncJunkTest extends TestCase
         file_put_contents($abs, $contents);
     }
 
-    private function syncDirectory(string $src, string $dest): void
+    private function syncDirectory(string $src, string $dest): array
     {
         $m = new \ReflectionMethod(Installer::class, 'syncDirectory');
         $m->setAccessible(true);
-        $m->invoke(null, $src, $dest, [], null);
+        return (array)$m->invoke(null, $src, $dest, [], null);
     }
 
     public function testJunkFilesAreSkippedRealFilesAreCopied(): void
@@ -96,5 +96,39 @@ class InstallerSyncJunkTest extends TestCase
 
         $this->assertTrue(file_exists($dest . '/real.txt'));
         $this->assertFalse(file_exists($dest . '/Desktop.INI'), 'Desktop.INI (mixed case) must be skipped');
+    }
+
+    /**
+     * The regression that motivated this: a single unwritable file must NOT
+     * abort the whole sync and strand a critical top-level file. We force one
+     * copy() to fail (its destination pre-exists as a directory) and assert
+     * that every other file — crucially library.inc — is still synced, and
+     * that the failure is reported back to the caller rather than swallowed.
+     */
+    public function testOneUnwritableFileDoesNotStrandTheRest(): void
+    {
+        $src = $this->tmpRoot . '/src3';
+        $dest = $this->tmpRoot . '/dest3';
+
+        $this->write('src3/library.inc', 'new-library-inc');
+        $this->write('src3/fonts/blocked.bin', 'cannot-copy-me');
+        $this->write('src3/lib_html.inc', 'html');
+
+        // Make the destination of blocked.bin already exist AS A DIRECTORY so
+        // copy() fails on it the way a locked/permission-denied file would.
+        mkdir($dest . '/fonts/blocked.bin', 0755, true);
+
+        // Suppress the expected copy() warning; we assert on behaviour, not noise.
+        $errors = @$this->syncDirectory($src, $dest);
+
+        // The important guarantee: the top-level requirer got overwritten even
+        // though a sibling file failed.
+        $this->assertTrue(file_exists($dest . '/library.inc'), 'library.inc must be synced despite a sibling failure');
+        $this->assertEquals('new-library-inc', file_get_contents($dest . '/library.inc'));
+        $this->assertTrue(file_exists($dest . '/lib_html.inc'), 'lib_html.inc must be synced');
+
+        // The failure is surfaced, not silently swallowed.
+        $this->assertEquals(1, count($errors), 'exactly one file should be reported as failed');
+        $this->assertStringContainsString('blocked.bin', $errors[0]);
     }
 }

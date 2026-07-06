@@ -937,17 +937,9 @@ class CmaQueryPreview extends HTMLElement {
         if (this._error) {
             dataTableContainer.innerHTML = `<div class="error-message">${SqlUtils.escapeHtml(this._error)}</div>`;
         } else if (this._rows.length === 0) {
-            // TEMP DEBUG: Show SQL when no results
-            const debugSql = this._sql ? `
-                <div class="debug-sql" style="margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: var(--font-size-xs);">
-                    <span class="cma-wc__strong">DEBUG - Gebruikte SQL:</span>
-                    <pre style="margin: 5px 0 0; white-space: pre-wrap; font-family: monospace; font-size: var(--font-size-xs);">${SqlUtils.escapeHtml(this._sql)}</pre>
-                </div>
-            ` : '';
             dataTableContainer.innerHTML = `
                 <div class="empty-state">
                     <div>Geen resultaten</div>
-                    ${debugSql}
                 </div>
             `;
         } else {

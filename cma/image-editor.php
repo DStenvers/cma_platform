@@ -111,7 +111,7 @@ $config = [
     'endpoint'     => 'wizards/file-browser.php',
 ];
 
-$ieJs = minify_asset('../library/error-handler.js,../library/webcomponents/lib-message.js,../library/webcomponents/lib-loader.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
+$ieJs = minify_asset('../library/assets/js/error-handler.js,../library/webcomponents/lib-message.js,../library/webcomponents/lib-loader.js,webcomponents/cma-toolbar.js,assets/js/image-editor.js');
 ?><!DOCTYPE html>
 <html lang="nl">
 <head>

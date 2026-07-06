@@ -43,7 +43,7 @@ function main()
     $sBaseUpload = Request::addToURL(Application::get('base_path', '') . 'cma/wizards/file_upload.php', 'image', (Request::query('image', '') != '' ? Request::query('image', '') : 'n'));
 
     echo '<html lang="nl"><head>';
-    echo '<script src="/library/error-handler.js"></script>';
+    echo '<script src="/library/assets/js/error-handler.js"></script>';
     echo '<script>(function(){if(window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.style.backgroundColor="#1a1a1a";}})();</script>';
     echo '<script type="text/javascript">';
     echo 'var filename_elt = (parent.document.getElementById("filename") ? parent.document.getElementById("filename") : ( parent.filename ? parent.filename : (top.document.getElementById("content") && top.document.getElementById("content").contentDocument ? top.document.getElementById("content").contentDocument.getElementById("filename") : null)));';

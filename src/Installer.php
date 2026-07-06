@@ -117,6 +117,15 @@ class Installer
         'cma/tools/tools_picture_analyse.php',
         'cma/tools/tools_picture_analyse_delete.php',
         'cma/tools/tools_contentblocks.php',
+        // Relocated in v1.28.95: the general error handler's assets moved under
+        // library/assets/ (was library/error-handler.js[.min.js] and
+        // library/css/errorhandler.css). New locations: library/assets/js/ and
+        // library/assets/css/. Without these removals the old copies linger and,
+        // for errorhandler.css, a stale file at the old path could still be
+        // hit by any not-yet-updated reference.
+        'library/error-handler.js',
+        'library/error-handler.min.js',
+        'library/css/errorhandler.css',
     ];
 
     /**
@@ -195,11 +204,18 @@ class Installer
             $io->write('  - removed (retired): ' . $relPath);
         }
 
+        // Per-file copy failures are collected across all three directory syncs
+        // and reported together at the very end (step 9). A single unwritable
+        // file no longer aborts the sync, so critical top-level files like
+        // library/library.inc always get overwritten even if some junk/locked
+        // file elsewhere in the tree fails.
+        $syncErrors = [];
+
         // 1. Sync library → /library/
         $librarySrc = $platformDir . '/library';
         $libraryDest = $projectRoot . '/library';
         if (is_dir($librarySrc)) {
-            self::syncDirectory($librarySrc, $libraryDest, [], $io);
+            $syncErrors = array_merge($syncErrors, self::syncDirectory($librarySrc, $libraryDest, [], $io));
             $io->write('  - library/ synced');
         }
 
@@ -207,7 +223,7 @@ class Installer
         $cmaSrc = $platformDir . '/cma';
         $cmaDest = $projectRoot . '/cma';
         if (is_dir($cmaSrc)) {
-            self::syncDirectory($cmaSrc, $cmaDest, self::PROTECTED_PATHS, $io);
+            $syncErrors = array_merge($syncErrors, self::syncDirectory($cmaSrc, $cmaDest, self::PROTECTED_PATHS, $io));
             $io->write('  - cma/ synced');
         }
 
@@ -215,7 +231,7 @@ class Installer
         $moduleSrc = $platformDir . '/module';
         $moduleDest = $projectRoot . '/module';
         if (is_dir($moduleSrc)) {
-            self::syncDirectory($moduleSrc, $moduleDest, [], $io);
+            $syncErrors = array_merge($syncErrors, self::syncDirectory($moduleSrc, $moduleDest, [], $io));
             $io->write('  - module/ synced');
         }
 
@@ -309,6 +325,25 @@ class Installer
         // 8. Write manifest for tracking
         self::writeManifest($projectRoot, $platformDir);
 
+        // 9. If any file could not be copied, the sync ran to completion (so
+        //    the site got as much of the new version as possible) but the
+        //    result is a mixed-version state. Fail loudly — an unmissable
+        //    non-zero composer exit — so the operator fixes the underlying
+        //    permission/disk/lock problem and re-runs, rather than discovering
+        //    a half-updated site at runtime.
+        if (!empty($syncErrors)) {
+            $io->write('  - <warning>' . count($syncErrors) . ' file(s) could NOT be synced:</warning>');
+            foreach ($syncErrors as $err) {
+                $io->write('    <warning>' . $err . '</warning>');
+            }
+            throw new \RuntimeException(
+                'stenversonline/platform: sync completed with ' . count($syncErrors)
+                . ' file error(s) — the site is on MIXED versions. Fix the file '
+                . 'permission/disk/lock problem listed above and re-run "composer '
+                . 'update stenversonline/platform".'
+            );
+        }
+
         $io->write('<info>stenversonline/platform: sync complete</info>');
     }
 
@@ -392,13 +427,25 @@ class Installer
     /**
      * Skips protected paths. Overwrites everything else.
      *
+     * Resilient by design: a single file that can't be copied (locked, bad
+     * permissions, disk full, an OS-junk file with system attributes) is
+     * recorded and skipped, NOT allowed to abort the whole sync. Aborting on
+     * the first bad file used to strand critical top-level files — e.g. a
+     * `desktop.ini` under library/fonts/ failing left the freshly-retired
+     * `lib_htmleditor.inc` deleted but the top-level `library.inc` (which
+     * required it) never overwritten, so every request fatal-errored. Best-
+     * effort completeness means library.inc always gets copied; the caller
+     * still fails loudly at the end if any file was skipped.
+     *
      * @param string $src Source directory
      * @param string $dest Destination directory
      * @param string[] $protectedPaths Relative paths to skip
      * @param mixed $io Composer IO interface (optional)
+     * @return string[] One message per file that could not be synced (empty on full success).
      */
-    private static function syncDirectory(string $src, string $dest, array $protectedPaths = [], $io = null): void
+    private static function syncDirectory(string $src, string $dest, array $protectedPaths = [], $io = null): array
     {
+        $errors = [];
         if (!is_dir($dest) && !mkdir($dest, 0755, true) && !is_dir($dest)) {
             // Failing silently here meant `composer update` could land
             // half a sync — destination dir missing, no files copied,
@@ -442,7 +489,10 @@ class Installer
 
             if ($item->isDir()) {
                 if (!is_dir($destPath) && !mkdir($destPath, 0755, true) && !is_dir($destPath)) {
-                    throw new \RuntimeException("Installer::syncDirectory could not create $destPath");
+                    // Non-fatal: record and continue. copyFile() recreates the
+                    // parent dir per file anyway, so a failed dir here doesn't
+                    // strand siblings elsewhere in the tree.
+                    $errors[] = "could not create directory: $normalizedRelative";
                 }
             } else {
                 // Skip protected files that already exist
@@ -474,9 +524,21 @@ class Installer
                     continue;
                 }
 
-                self::copyFile($item->getPathname(), $destPath);
+                // Best-effort: one unwritable file must not abort the sync and
+                // leave the site on mixed versions. Record and keep going; the
+                // caller reports every failure and fails the run loudly at the end.
+                try {
+                    self::copyFile($item->getPathname(), $destPath);
+                } catch (\Throwable $e) {
+                    $errors[] = $normalizedRelative . ': ' . $e->getMessage();
+                    if ($io) {
+                        $io->write("  - <warning>skipped (copy failed): $normalizedRelative</warning>");
+                    }
+                }
             }
         }
+
+        return $errors;
     }
 
     /**

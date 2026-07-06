@@ -405,7 +405,7 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
     ?>
     <script>window.CMA_IS_ADMIN = <?= $isAdmin ? 'true' : 'false' ?>; window.CMA_IS_DEVELOPER = <?= $isDeveloper ? 'true' : 'false' ?>; window.CMA_CURRENT_USER_ID = <?= json_encode(SecurityHelper::getCurrentUserId()) ?>; window.CMA_CACHE_VERSION = <?= json_encode(defined('CMA_APP_VERSION') ? CMA_APP_VERSION : '0') ?>;</script>
     <?php cma_script('/cma/assets/js/cma-utils.js'); ?>
-    <?php cma_script('/library/error-handler.js'); ?>
+    <?php cma_script('/library/assets/js/error-handler.js'); ?>
     <script src="/library/jquery.min.js"></script>
     <script src="<?= cma_form_js_url() ?>"></script>
     <script src="/cma/ckeditor/ckeditor.js" defer></script>

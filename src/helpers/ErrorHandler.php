@@ -264,7 +264,7 @@ class ErrorHandler
                             .error-meta strong { color: #555; }
                             .handler-error { background: #fff3f3; border-left: 4px solid #ff5757; margin-top: 30px; padding: 15px; }
                         </style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
                     </head>
                     <body>
@@ -348,7 +348,7 @@ class ErrorHandler
                     .error-meta strong { color: #555; }
                     .handler-error { background: #fff3f3; border-left: 4px solid #ff5757; margin-top: 30px; padding: 15px; }
                 </style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
             </head>
             <body>
@@ -433,7 +433,7 @@ class ErrorHandler
                         h1 { color: #e74c3c; }
                         .code { font-family: monospace; background: #f0f0f0; padding: 10px; overflow-x: auto; }
                     </style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
                 </head>
                 <body>
@@ -661,7 +661,7 @@ class ErrorHandler
                         margin-top: 20px;
                     }
                 </style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
             </head>
             <body>
@@ -1113,7 +1113,7 @@ class ErrorHandler
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Error: ' . htmlspecialchars($message) . '</title>
-            <script src="/assets/js/error-handler.js"></script>
+            <script src="/library/assets/js/error-handler.js"></script>
             <style>
                 :root {
                     --red: #d9534f;
@@ -1445,7 +1445,7 @@ class ErrorHandler
                     display: none !important;
                 }
             </style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
         </head>
         <body>
@@ -1630,7 +1630,7 @@ class ErrorHandler
                         
             echo '</div>
 
-                    <div class="tab-content eh-tab-content-visible" id="stack-tab">
+                    <div class="tab-content eh-tab-content-visible active" id="stack-tab">
                         <table class="request-data">
                             <tr>
                                 <th class="eh-stack-frame-number">#</th>
@@ -2233,7 +2233,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             </div>
                             
 
-                            <div class="tab-content eh-tab-content-visible" id="env-file-tab">
+                            <div class="tab-content eh-tab-content-visible active" id="env-file-tab">
                                 <div class="eh-section-header">
                                     <div>';
                     
@@ -3080,7 +3080,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         echo '.technical-details { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; }';
         echo '.code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace; }';
         echo '</style>
-    <link rel="stylesheet" href="/library/css/errorhandler.css">
+    <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 ';
         echo '</head>';
         echo '<body>';

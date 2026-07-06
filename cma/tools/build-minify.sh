@@ -58,6 +58,7 @@ JS_DIRS=(
     "$CMA_DIR/webcomponents"
     "$CMA_DIR/assets/js"
     "$SITE_DIR/library/webcomponents"
+    "$SITE_DIR/library/assets/js"
     "$SITE_DIR/library"
     "$SITE_DIR"
 )

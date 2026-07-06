@@ -268,7 +268,7 @@ define("CMA_CSS_FILES", implode(',', [
 define("CMA_JS_FILES", implode(',', [
     '../library/webcomponents/lib-log.js',  // MUST be first - intercepts console.* methods
     'assets/js/cma-utils.js',
-    '../library/error-handler.js',
+    '../library/assets/js/error-handler.js',
     'assets/js/request-tracker.js',
     '../library/webcomponents/lib-shared-styles.js',  // Shared styles for web components (must be before components)
     '../library/webcomponents/lib-switch.js',
@@ -319,7 +319,7 @@ $bMinified = false;
  * @return string The script tag if $return is true
  */
 function cma_error_handler($return = false): string {
-    $tag = '<script src="/library/error-handler.js"></script>';
+    $tag = '<script src="/library/assets/js/error-handler.js"></script>';
     if ($return) {
         return $tag;
     }
@@ -674,7 +674,7 @@ function cma_js_bundle(): array {
         // URL Manager for clean URL routing (must be early for other scripts to use)
         'assets/js/url-manager.js',
         // Error handler and request tracker - for error console panel
-        '../library/error-handler.js',
+        '../library/assets/js/error-handler.js',
         'assets/js/request-tracker.js',
         // Base component class (must be before other CMA web components)
         'webcomponents/cma-base-component.js',

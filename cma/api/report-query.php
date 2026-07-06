@@ -20,38 +20,7 @@ while (ob_get_level() > 0) {
     ob_end_clean();
 }
 
-// DEBUG: Test if script is even executing
-// Note: Pre-bootstrap debug checks below use $_GET directly because
-// the Request class is not yet available before bootstrap loads.
-if (isset($_GET['test'])) {
-    echo json_encode(['success' => true, 'message' => 'Script is executing']);
-    exit;
-}
-
-// DEBUG step 1
-if (isset($_GET['step']) && $_GET['step'] == '1') {
-    echo json_encode(['step' => 1, 'message' => 'Before bootstrap']);
-    exit;
-}
-
 require_once __DIR__ . '/../bootstrap.inc';
-
-// DEBUG step 2
-if (isset($_GET['step']) && $_GET['step'] == '2') {
-    echo json_encode(['step' => 2, 'message' => 'After bootstrap']);
-    exit;
-}
-
-// DEBUG: Immediate test after bootstrap for POST requests
-if (isset($_GET['posttest'])) {
-    while (ob_get_level() > 0) ob_end_clean();
-    header('Content-Type: application/json');
-    $raw = file_get_contents('php://input');
-    $out = json_encode(['posttest' => true, 'inputLen' => strlen($raw), 'input' => substr($raw, 0, 200)]);
-    header('Content-Length: ' . strlen($out));
-    echo $out;
-    exit;
-}
 
 use App\Library\Arr;
 use App\Library\Response;
@@ -118,25 +87,6 @@ function sanitizeAlias(string $alias): string {
     return $alias;
 }
 
-// DEBUG step 3
-if (Request::hasQuery('step') && Request::query('step') == '3') {
-    sendJson(['step' => 3, 'message' => 'sendJson works']);
-}
-
-// DEBUG: Log all requests (use debugRaw to avoid conflict with handlePreview debug)
-if (Request::hasQuery('debugRaw')) {
-    $rawInput = file_get_contents('php://input');
-    sendJson([
-        'debug' => true,
-        'method' => Request::server('REQUEST_METHOD', 'unknown'),
-        'contentType' => Request::server('CONTENT_TYPE', 'none'),
-        'contentLength' => Request::server('CONTENT_LENGTH', 0),
-        'rawInputLength' => strlen($rawInput),
-        'rawInputPreview' => substr($rawInput, 0, 500),
-        'action' => Request::query('action', Request::post('action', 'none'))
-    ]);
-}
-
 // Catch all PHP errors and convert to JSON response
 set_error_handler(function($severity, $message, $file, $line) {
     sendJson(['success' => false, 'error' => "PHP Error: $message in $file:$line"], 500);
@@ -155,38 +105,17 @@ register_shutdown_function(function() {
 });
 
 try {
-    // DEBUG: trace each step
-    if (Request::hasQuery('trace')) {
-        $traceStep = Request::queryInt('trace');
-        if ($traceStep === 1) { sendJson(['trace' => 1, 'msg' => 'Before security check']); }
-    }
-
     // Security check - require valid login
     if (!SecurityHelper::isLoggedIn()) {
         sendJson(['success' => false, 'error' => 'Niet ingelogd'], 401);
     }
 
-    if (Request::hasQuery('trace') && Request::queryInt('trace') === 2) {
-        sendJson(['trace' => 2, 'msg' => 'After security, before noCache']);
-    }
-
     Response::noCache();
-
-    if (Request::hasQuery('trace') && Request::queryInt('trace') === 3) {
-        sendJson(['trace' => 3, 'msg' => 'After noCache']);
-    }
 
     $action = Request::post('action', Request::query('action', ''));
 
-    if (Request::hasQuery('trace') && Request::queryInt('trace') === 4) {
-        sendJson(['trace' => 4, 'msg' => 'Action resolved', 'action' => $action]);
-    }
-
     switch ($action) {
         case 'preview':
-            if (Request::hasQuery('trace') && Request::queryInt('trace') === 5) {
-                sendJson(['trace' => 5, 'msg' => 'Entering handlePreview']);
-            }
             handlePreview();
             // Fallback if handlePreview didn't exit
             sendJson(['success' => false, 'error' => 'handlePreview returned without response']);
@@ -227,20 +156,12 @@ sendJson(['success' => false, 'error' => 'Onverwacht einde van script'], 500);
  */
 function handlePreview(): void
 {
-    $trace = Request::queryInt('trace');
-
-    if ($trace === 10) { sendJson(['trace' => 10, 'msg' => 'Inside handlePreview']); return; }
-
     $definition = getDefinitionFromRequest();
-
-    if ($trace === 11) { sendJson(['trace' => 11, 'msg' => 'After getDefinition', 'hasDefinition' => $definition !== null]); return; }
 
     if ($definition === null) {
         sendJson(['success' => false, 'error' => 'Rapport definitie is verplicht'], 400);
         return;
     }
-
-    if ($trace === 12) { sendJson(['trace' => 12, 'msg' => 'Definition valid', 'tables' => count($definition['tables'] ?? [])]); return; }
 
     // Get database ID
     $databaseId = $definition['database'] ?? 0;
@@ -248,8 +169,6 @@ function handlePreview(): void
         sendJson(['success' => false, 'error' => 'Database ID is verplicht'], 400);
         return;
     }
-
-    if ($trace === 13) { sendJson(['trace' => 13, 'msg' => 'Database ID valid', 'dbId' => $databaseId]); return; }
 
     // Get limit (default 100)
     $limit = Request::postInt('limit', 100);
@@ -266,13 +185,9 @@ function handlePreview(): void
         $parameters = getParameterValues($definition['parameters']);
     }
 
-    if ($trace === 14) { sendJson(['trace' => 14, 'msg' => 'Before try block']); return; }
-
     try {
         // Get connection using connection name for proper pooling
         $dbConfig = ConfigLoader::getDatabase((int)$databaseId);
-
-        if ($trace === 15) { sendJson(['trace' => 15, 'msg' => 'Got dbConfig', 'config' => $dbConfig]); return; }
 
         $connName = $dbConfig['name'] ?? null;
 
@@ -283,8 +198,6 @@ function handlePreview(): void
             $conn = Database::getConnection($resolvedConnStr);
         }
 
-        if ($trace === 16) { sendJson(['trace' => 16, 'msg' => 'Got connection', 'isNull' => $conn === null]); return; }
-
         if ($conn === null) {
             sendJson([
                 'success' => false,
@@ -292,8 +205,6 @@ function handlePreview(): void
             ], 500);
             return;
         }
-
-        if ($trace === 17) { sendJson(['trace' => 17, 'msg' => 'Before QueryBuilder']); return; }
 
         // Build and execute query
         $builder = new QueryBuilder($definition, $conn);

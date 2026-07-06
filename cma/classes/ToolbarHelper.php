@@ -490,27 +490,6 @@ class ToolbarHelper
     {
         $formDef = FormDefinition::fromArray($arrRep);
 
-        // DEBUG: Add ?extrabuttondebug=1 to URL to see icon data
-        if (\App\Library\Request::query('extrabuttondebug', '') !== '') {
-            echo '<!-- DEBUG ExtraButtons START -->';
-            echo '<pre style="background:#fff;color:#000;padding:10px;font-size:var(--font-size-xs);overflow:auto;max-height:300px;border:2px solid red;">';
-            echo "FormID: {$formId}, RecordID: {$recordId}, GUID: {$guid}, GUID2: {$guid2}\n\n";
-            echo "Raw arrRep extraIcon indices:\n";
-            echo "Q_EXTRAICONURL (37): " . print_r($arrRep[37] ?? 'NOT SET', true) . "\n";
-            echo "Q_EXTRAICONRES (38): " . print_r($arrRep[38] ?? 'NOT SET', true) . "\n";
-            echo "Q_EXTRAICONTITLE (39): " . print_r($arrRep[39] ?? 'NOT SET', true) . "\n";
-            echo "Q_EXTRAICON2URL (45): " . print_r($arrRep[45] ?? 'NOT SET', true) . "\n";
-            echo "Q_EXTRAICON2RES (46): " . print_r($arrRep[46] ?? 'NOT SET', true) . "\n";
-            echo "Q_EXTRAICON2TITLE (47): " . print_r($arrRep[47] ?? 'NOT SET', true) . "\n";
-            echo "\nFormDefinition getExtraIcon results:\n";
-            for ($i = 1; $i <= 5; $i++) {
-                $icon = $formDef->getExtraIcon($i);
-                echo "Icon {$i}: " . json_encode($icon) . "\n";
-            }
-            echo '</pre>';
-            echo '<!-- DEBUG ExtraButtons END -->';
-        }
-
         // Render extra toolbar buttons (1-5) using FormDefinition
         for ($iconNum = 1; $iconNum <= 5; $iconNum++) {
             $icon = $formDef->getExtraIcon($iconNum);

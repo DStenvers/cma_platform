@@ -2285,3 +2285,12 @@ karaat-data en staat in de karaat-repo.
 > i don't want blockedit, because that is functionally a different control. I disagree with you assesment of ckeditor, in the blockeditor we regularly create and destroy them without issues. Upgrading is still an option
 
 > please commit all, including other changes you did not make.
+
+> Can you find other remnants of debugging sessions and report back to me? At this point I am not debugging anything apart from the continious loading issue that we cannot seem to solve, so all other debugging can be safely removed.
+
+> upgrading mijn rino php version to latest platform lead to: ErrorException
+> require_once(C:\lab\ai_conversion\site\library\lib_htmleditor.inc): Failed to open stream: No such file or directory
+
+> yes please
+
+> yes please commit

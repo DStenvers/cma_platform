@@ -45,25 +45,6 @@ if (empty($returnUrl)) {
 // Genereer authorization URL
 $authUrl = SsoService::getAuthorizationUrl($returnUrl);
 
-// DEBUG: Show what URL is being generated (remove after testing)
-if (Request::hasQuery('debug')) {
-    echo '<pre>';
-    echo 'HTTP_HOST: ' . Request::server('HTTP_HOST', 'not set') . "\n";
-    echo 'SERVER_NAME: ' . Request::server('SERVER_NAME', 'not set') . "\n";
-    echo 'HTTPS: ' . Request::server('HTTPS', 'not set') . "\n";
-    echo 'Callback URL: ' . SsoService::getCallbackUrl() . "\n";
-    echo 'Full Auth URL: ' . $authUrl . "\n";
-    echo "\n--- SSO Config from .env ---\n";
-    echo 'sso_idp_url: [' . Application::get('sso_idp_url', '(not set)') . "]\n";
-    echo 'sso_client_id: [' . Application::get('sso_client_id', '(not set)') . "]\n";
-    echo 'sso_client_base_url: [' . Application::get('sso_client_base_url', '(not set)') . "]\n";
-    echo 'sso_idp_authendpoint: [' . Application::get('sso_idp_authendpoint', '(not set)') . "]\n";
-    echo "\n--- GLOBALS Application array ---\n";
-    print_r($GLOBALS['Application'] ?? 'Not set');
-    echo '</pre>';
-    exit;
-}
-
 // Get application config from menu.json
 $appConfig = MenuService::getApplicationConfig();
 $logoPath = $appConfig['logo'] ?? 'images/logo.svg';

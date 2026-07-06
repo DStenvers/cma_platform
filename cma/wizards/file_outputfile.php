@@ -41,10 +41,8 @@ function main()
     $objUpload->Fieldname = 'blob';
 
     // Detect overwrite: replace selected file with uploaded file
-    $bOverwrite = false;
     if (($_POST['replacefilename'] ?? '') !== '' && ($_POST['replacefileJN'] ?? '') !== '') {
         $objUpload->Filename = basename($_POST['replacefilename']);
-        $bOverwrite = true;
     }
 
     // Save() returns false on any PHP upload error (file too big, no tmp
@@ -120,13 +118,14 @@ function main()
         ResponsiveImage::generate($finalAbs);
     }
 
-    // Cache busting: append ?versie= timestamp so browsers reload overwritten files
-    $sFileParam = $bOverwrite ? $filename . '?versie=' . time() : $filename;
-
+    // Pass the plain filename back — never with a ?versie= cache-buster. This
+    // value flows through file_upload.php to the opener and is stored as the
+    // field value; a query string glued onto it corrupts the saved filename
+    // (and every downstream filesystem op then has to strip it back off).
     $sURL = Request::addAllToURL('file_upload.php');
-    $sURL = Request::addToURL($sURL, 'file', $sFileParam);
+    $sURL = Request::addToURL($sURL, 'file', $filename);
     $sURL = Request::addToURL($sURL, 'upload', 'true');
-    $sURL = Request::addToURL($sURL, 'filename', $sFileParam);
+    $sURL = Request::addToURL($sURL, 'filename', $filename);
     Response::redirect($sURL);
 }
 // Call main function
