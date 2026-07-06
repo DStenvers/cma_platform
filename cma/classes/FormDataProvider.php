@@ -870,11 +870,14 @@ class FormDataProvider
                 if ($fieldName && $fieldType !== 'custom' && $fieldType !== 'label' && $fieldType !== 'separator') {
                     $validFields[strtolower($fieldName)] = $fieldName;
                     $fieldTypeMap[strtolower($fieldName)] = strtolower($fieldType);
-                    // Numeric fields (by reported precision or numeric ADO data-type)
-                    // must be BOUND, not inlined: an inlined decimal is coerced by
-                    // the Jet/ACE connection locale (1043 reads '.' as a thousands
-                    // separator) and silently mangled (9.5 -> 95). Binding sends a
-                    // real number, locale- and driver-independent.
+                    // Track numeric fields (by reported precision or numeric ADO
+                    // data-type) so the INSERT/UPDATE branches below write them as
+                    // INLINE bare period-decimal literals — never bound or quoted.
+                    // A bound/quoted decimal is sent to Access ODBC as TEXT and the
+                    // connection locale (LCID 1043) re-reads '.' as a thousands
+                    // separator, mangling 10.5 -> 1050. A bare numeric literal is
+                    // parsed by the Jet/ACE engine with '.' as the decimal point
+                    // regardless of locale. (Verified by FormSavePipelineTest.)
                     if (($fieldDef['numericPrecision'] ?? '') !== ''
                         || in_array((string)($fieldDef['dataType'] ?? ''), $numericAdoTypes, true)) {
                         $numericFields[strtolower($fieldName)] = true;
