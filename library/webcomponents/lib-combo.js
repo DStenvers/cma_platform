@@ -542,7 +542,7 @@ class LibCombo extends HTMLElement {
                     font-family: 'Linearicons';
                     content: "\\e92a";
                     display: inline-block;
-                    color: var(--text-primary);
+                    color: var(--text-secondary, #666);
                     font-size: 12px;
                     line-height: 23px;
                     width: 23px;
