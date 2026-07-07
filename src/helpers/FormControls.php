@@ -387,6 +387,22 @@ class FormControls
      * @param bool $echo Whether to echo output
      * @return string|null HTML output if $echo is false
      */
+    /**
+     * Encode a value as a safe JavaScript string literal (INCLUDING the
+     * surrounding quotes) for embedding inside a <script> block or an inline
+     * event handler. JSON_HEX_TAG neutralises a </script> breakout and
+     * JSON_HEX_QUOT/APOS a quote breakout, so the result is also safe to place
+     * inside an HTML attribute after Server::htmlEncode(). Prevents XSS from a
+     * field name/value flowing into these JS contexts.
+     */
+    private static function jsLiteral($value): string
+    {
+        return json_encode(
+            (string) $value,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE
+        );
+    }
+
     public static function date(
         string $name,
         string $value = '',
@@ -403,7 +419,7 @@ class FormControls
 
         if ($useScript && !$readonly) {
             // Use JavaScript DatePicker() function (requires datepicker.js)
-            $output = '<script>DatePicker("' . $name . '","' . Server::htmlEncode($value) . '");</script>';
+            $output = '<script>DatePicker(' . self::jsLiteral($name) . ',' . self::jsLiteral($value) . ');</script>';
         } else {
             // Inline HTML matching datepicker.js structure
             $output = '<table cellpadding="0" cellspacing="0" class="dateselect"><tr>';
@@ -421,7 +437,7 @@ class FormControls
             $output .= '>';
             $output .= '</td>';
             if (!$readonly) {
-                $output .= '<td onclick="show_calendar(\'' . $name . '\')" class="cal_arrow">';
+                $output .= '<td onclick="show_calendar(' . Server::htmlEncode(self::jsLiteral($name)) . ')" class="cal_arrow">';
                 $output .= '<div class="cal_arrow"></div>';
                 $output .= '</td>';
             }
@@ -517,7 +533,7 @@ class FormControls
             if (strtotime($value) !== false) {
                 $value = date('d-m-Y', strtotime($value));
             }
-            $output .= '<script>DatePicker("' . $name . '","' . $value . '");</script>';
+            $output .= '<script>DatePicker(' . self::jsLiteral($name) . ',' . self::jsLiteral($value) . ');</script>';
         } else {
             if ($maxLength > 128) {
                 // Use textarea for long text
@@ -554,7 +570,7 @@ class FormControls
 
                 // Show password toggle for admins
                 if ($isPassword && function_exists('UserIsAdmin') && UserIsAdmin()) {
-                    $output .= '<span class="pwd_view" title="Toon wachtwoord" onclick="ShowPwd(this, \'' . $name . '\')">&nbsp;</span>';
+                    $output .= '<span class="pwd_view" title="Toon wachtwoord" onclick="ShowPwd(this, ' . Server::htmlEncode(self::jsLiteral($name)) . ')">&nbsp;</span>';
                 }
             }
         }

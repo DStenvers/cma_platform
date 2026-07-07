@@ -538,4 +538,37 @@ class ServerTest extends TestCase
         Server::addAllowedPath('/another/allowed/path/');
         $this->assertIsString(Server::getDocumentRoot());
     }
+
+    public function testEmptyDocumentRootFailsClosed(): void
+    {
+        // Regression: an EMPTY $_SERVER['DOCUMENT_ROOT'] (CLI / some SAPIs) must
+        // never leave the document root empty — an empty root makes every
+        // allowed-path prefix '' so mapPath's traversal guard matches ANY path.
+        $appBackup = $GLOBALS['Application'] ?? null;
+        unset($GLOBALS['Application']['document_root']); // no configured root
+        $_SERVER['DOCUMENT_ROOT'] = '';
+
+        $rootProp = new \ReflectionProperty(Server::class, 'documentRoot');
+        $rootProp->setAccessible(true);
+        $rootProp->setValue(null, null); // force init() to run fresh
+        $allowedProp = new \ReflectionProperty(Server::class, 'allowedPaths');
+        $allowedProp->setAccessible(true);
+        $allowedProp->setValue(null, []);
+
+        $init = new \ReflectionMethod(Server::class, 'init');
+        $init->setAccessible(true);
+        $init->invoke(null);
+
+        $this->assertNotEquals('', $rootProp->getValue(null), 'empty DOCUMENT_ROOT must fall back to a real dir');
+        foreach ($allowedProp->getValue(null) as $p) {
+            $this->assertNotEquals('', $p, 'no empty allowed-path prefix may survive');
+        }
+
+        // restore
+        if ($appBackup !== null) {
+            $GLOBALS['Application'] = $appBackup;
+        } else {
+            unset($GLOBALS['Application']);
+        }
+    }
 }

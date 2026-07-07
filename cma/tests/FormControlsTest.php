@@ -384,6 +384,32 @@ class FormControlsTest extends TestCase
         $this->assertStringContainsString('<script>DatePicker("birth","15-03-2024");</script>', $out);
     }
 
+    // --- XSS neutralisation locks (values/names in JS contexts) ---
+
+    public function testDateScriptValueXssNeutralised(): void
+    {
+        // A hostile value must not break out of the JS string. It is JS-hex-
+        // escaped (json_encode HEX flags), so the raw payload never appears.
+        $out = FormControls::date('fld', '"};alert(1)//', ['useScript' => true], false);
+        $this->assertStringNotContainsString('"};alert(1)', $out);
+        $this->assertStringContainsString('"', $out); // the quote is escaped
+    }
+
+    public function testDateScriptNameBreakoutNeutralised(): void
+    {
+        // A </script> in the field name must be hex-escaped, not close the block.
+        $out = FormControls::date('n</script><script>alert(2)//', 'x', ['useScript' => true], false);
+        $this->assertStringNotContainsString('</script><script>alert(2)', $out);
+        $this->assertStringContainsString('<', $out);
+    }
+
+    public function testDateOnclickNameXssNeutralised(): void
+    {
+        // The inline (non-script) path puts the name in show_calendar('...').
+        $out = FormControls::date('a")+alert(3)+("', 'x', ['useScript' => false], false);
+        $this->assertStringNotContainsString('show_calendar("a")+alert(3)', $out);
+    }
+
     // ========================================================================
     // time (delegates to text)
     // ========================================================================

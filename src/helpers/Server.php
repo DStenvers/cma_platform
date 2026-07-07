@@ -40,8 +40,18 @@ class Server
             return; // Already initialized
         }
 
-        // Get document root from Application config or $_SERVER
-        self::$documentRoot = Application::get('document_root', $_SERVER['DOCUMENT_ROOT'] ?? getcwd());
+        // Get document root from Application config or $_SERVER. An EMPTY value
+        // must never survive: an empty $_SERVER['DOCUMENT_ROOT'] (CLI / some
+        // SAPIs) is NOT caught by "?? getcwd()" (it isn't null), and an empty
+        // root would make every allowed-path prefix '' so mapPath's traversal
+        // guard (strpos($p,'')===0) matches ANY path — a fail-open hole. Coalesce
+        // an empty/null root to $_SERVER['DOCUMENT_ROOT'] then to getcwd().
+        $docRoot = Application::get('document_root', '');
+        if ($docRoot === '' || $docRoot === null) {
+            $envRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+            $docRoot = ($envRoot !== '') ? $envRoot : getcwd();
+        }
+        self::$documentRoot = $docRoot;
 
         // Ensure document root ends without trailing slash
         self::$documentRoot = rtrim(self::$documentRoot, '/\\');
@@ -71,6 +81,14 @@ class Server
                 self::$allowedPaths[] = str_replace('\\', '/', rtrim($path, '/\\'));
             }
         }
+
+        // Defence-in-depth: never keep an empty allowed prefix. strpos($p, '')
+        // === 0 is always true, so a single '' entry would allow every path
+        // (including traversal). Drop empties/non-strings.
+        self::$allowedPaths = array_values(array_filter(
+            self::$allowedPaths,
+            static fn($p) => is_string($p) && $p !== ''
+        ));
     }
 
     /**

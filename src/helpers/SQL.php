@@ -80,9 +80,16 @@ class SQL
         $strRetval = trim($value . '');
         if ($strRetval == '' || is_null($strRetval)) {
             return 'null';
-        } else {
-            return self::normalizeDecimal($strRetval);
         }
+        $normalized = self::normalizeDecimal($strRetval);
+        // Injection guard: this value is inlined UNQUOTED into SQL, so it must be
+        // a genuine numeric literal. A non-numeric value (e.g. an injection
+        // attempt like "1 OR 1=1", or stray text) collapses to 0 rather than
+        // being emitted raw. Callers wanting NULL for invalid input pass '' above.
+        if (!is_numeric($normalized)) {
+            return '0';
+        }
+        return $normalized;
     }
 
     /**

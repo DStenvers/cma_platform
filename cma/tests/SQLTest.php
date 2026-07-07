@@ -360,10 +360,10 @@ class SQLTest extends TestCase
     }
 
     // ========================================================================
-    // postNumber — locale + passthrough behaviour
+    // postNumber — locale + injection safety
     //
-    // NOTE: postNumber does NOT validate numericness. Non-numeric input is
-    // returned trimmed-but-unquoted (see testPostNumberDangerousPassthrough).
+    // postNumber inlines its result UNQUOTED, so it validates numericness:
+    // a non-numeric value collapses to '0' (see testPostNumberNonNumericIsNeutralised).
     // The decimal-locale contract IS enforced for real numbers.
     // ========================================================================
 
@@ -388,14 +388,20 @@ class SQLTest extends TestCase
         $this->assertEquals('9999999999', SQL::postNumber('9999999999'));
     }
 
-    public function testPostNumberDangerousPassthrough(): void
+    public function testPostNumberNonNumericIsNeutralised(): void
     {
-        // DOCUMENTED HAZARD (not an assertion of safety): postNumber returns
-        // non-numeric input UNQUOTED. Callers MUST validate with is_numeric()
-        // before trusting it — postNumber is not, by itself, injection-safe.
-        // This test pins the current behaviour so a future "fix" is a
-        // conscious decision, not an accident.
-        $this->assertEquals('1 OR 1=1', SQL::postNumber('1 OR 1=1'));
+        // Injection safety: postNumber inlines its result UNQUOTED, so a
+        // non-numeric value must NOT pass through raw — it collapses to '0'.
+        $this->assertEquals('0', SQL::postNumber('1 OR 1=1'));
+        $this->assertEquals('0', SQL::postNumber("1); DROP TABLE users;--"));
+        $this->assertEquals('0', SQL::postNumber('abc'));
+        $this->assertEquals('0', SQL::postNumber('10.5abc'));
+        // Genuine numbers still pass through untouched (locale-normalised).
+        $this->assertEquals('10.5', SQL::postNumber('10.5'));
+        $this->assertEquals('1234.56', SQL::postNumber('1.234,56'));
+        $this->assertEquals('-42', SQL::postNumber('-42'));
+        // Empty stays NULL (unchanged contract).
+        $this->assertEquals('null', SQL::postNumber(''));
     }
 
     // ========================================================================
