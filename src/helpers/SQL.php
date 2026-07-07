@@ -188,6 +188,27 @@ class SQL
     }
 
     /**
+     * Rewrite raw `<col>guid = '<guid>'` occurrences in a SQL string to
+     * `<col>guid LIKE '%<guid>%'` — the Access ODBC Replication-ID fix applied
+     * to already-built SQL (e.g. converted VBScript `WHERE guid = lib_PostGuid(x)`
+     * that never went through guidEquals()). Guarded to a GUID-shaped literal on
+     * a column whose name ends in "guid", so ordinary '=' filters are untouched.
+     * Callers must scope this to Access — see processSQL(). Companion to
+     * guidEquals().
+     *
+     * @param string $sql
+     * @return string
+     */
+    public static function guidEqualsToLike(string $sql): string
+    {
+        return preg_replace_callback(
+            "/([\\w.]*guid)\\s*=\\s*'([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})'/i",
+            static fn($m) => $m[1] . " LIKE '%" . $m[2] . "%'",
+            $sql
+        ) ?? $sql;
+    }
+
+    /**
      * Format a date from day/month/year components
      *
      * @param mixed $dayValue Day component
@@ -399,6 +420,17 @@ class SQL
         }
 
         $isSQLServer = Database::isSQLServer($connectionString);
+
+        // Access ODBC only: Replication-ID (GUID) columns return NO rows when
+        // compared with '=' through the Jet/ACE ODBC driver — rewrite
+        // `guid = '<guid>'` to `guid LIKE '%<guid>%'`. This breaks raw
+        // `WHERE guid = '<guid>'` (assumeidentity / session / password-reset
+        // logins) on converted sites. Access-only: LIKE on a full GUID would
+        // table-scan on SQL Server, and '=' works fine on SQLite/MySQL. See
+        // SQL::guidEquals() for the query-builder side of the same quirk.
+        if (!$isSQLServer && ($connectionString === 'ACCESS_VIA_ODBC' || Database::isODBC($connectionString))) {
+            $sql = self::guidEqualsToLike($sql);
+        }
 
         if ($isSQLServer) {
             // SQL Server fixes for Access commands

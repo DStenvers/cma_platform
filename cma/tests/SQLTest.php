@@ -483,4 +483,37 @@ class SQLTest extends TestCase
     {
         $this->assertEquals("Guid = 'abc-123'", SQL::guidEquals('Guid', '{abc-123}', $this->sqlserver));
     }
+
+    // ========================================================================
+    // guidEqualsToLike — raw `<col>guid = '<guid>'` -> LIKE (Access ODBC fix,
+    // ported from the mijnRINO site). Access columns with Replication-ID (GUID)
+    // return no rows with '=' through Jet/ACE ODBC.
+    // ========================================================================
+
+    public function testGuidEqualsToLikeRewritesGuidShapedEquality(): void
+    {
+        $g = '11223344-5566-7788-99aa-bbccddeeff00';
+        $this->assertEquals(
+            "SELECT * FROM t WHERE userGUID LIKE '%$g%'",
+            SQL::guidEqualsToLike("SELECT * FROM t WHERE userGUID = '$g'")
+        );
+        // Qualified column (table.guid) also rewritten.
+        $this->assertStringContainsString("u.guid LIKE '%$g%'", SQL::guidEqualsToLike("WHERE u.guid = '$g'"));
+    }
+
+    public function testGuidEqualsToLikeLeavesOrdinaryFiltersUntouched(): void
+    {
+        // Non-guid column, and a guid column with a non-GUID-shaped value, stay '='.
+        $this->assertEquals("WHERE naam = 'x' AND id = '5'", SQL::guidEqualsToLike("WHERE naam = 'x' AND id = '5'"));
+        $this->assertEquals("WHERE guid = 'abc'", SQL::guidEqualsToLike("WHERE guid = 'abc'"));
+    }
+
+    public function testProcessSqlAppliesGuidLikeOnlyForAccess(): void
+    {
+        $g = '11223344-5566-7788-99aa-bbccddeeff00';
+        // Access (via ODBC) -> rewritten to LIKE.
+        $this->assertStringContainsString("guid LIKE '%$g%'", SQL::processSQL('ACCESS_VIA_ODBC', "WHERE guid = '$g'"));
+        // A SQL Server connection string -> '=' preserved (LIKE would table-scan).
+        $this->assertStringContainsString("guid = '$g'", SQL::processSQL('Server=x;Provider=SQLNCLI11', "WHERE guid = '$g'"));
+    }
 }
