@@ -401,8 +401,11 @@ class SQL
      * @param string $sql SQL query to process
      * @return string Processed SQL query
      */
-    public static function processSQL($connection, string $sql): string
+    public static function processSQL($connection, ?string $sql): string
     {
+        // Tolerate a null SQL accumulator (converted VBScript seeds it with an
+        // uninitialised Empty variant -> null); treat it as an empty string.
+        $sql = $sql ?? '';
         // Get connection string for database type detection
         if (is_string($connection)) {
             $connectionString = $connection;
@@ -586,8 +589,9 @@ class SQL
      * @param string $whereClause WHERE clause to add (without WHERE keyword)
      * @return string SQL with WHERE clause added
      */
-    public static function addWhere(string $sql, string $whereClause): string
+    public static function addWhere(?string $sql, ?string $whereClause): string
     {
+        $sql = $sql ?? '';
         if (empty($whereClause)) {
             return $sql;
         }
@@ -604,8 +608,9 @@ class SQL
      * @param string $whereClause WHERE clause to add
      * @return string SQL with WHERE clause added
      */
-    public static function addWhereOR(string $sql, string $whereClause): string
+    public static function addWhereOR(?string $sql, ?string $whereClause): string
     {
+        $sql = $sql ?? '';
         if (empty($whereClause)) {
             return $sql;
         }
@@ -622,8 +627,9 @@ class SQL
      * @param string $havingClause HAVING clause to add
      * @return string SQL with HAVING clause added
      */
-    public static function addHaving(string $sql, string $havingClause): string
+    public static function addHaving(?string $sql, ?string $havingClause): string
     {
+        $sql = $sql ?? '';
         if (empty($havingClause)) {
             return $sql;
         }
@@ -642,8 +648,10 @@ class SQL
      * @param int $minInValues Minimum values for IN clause (default: 5)
      * @return string SQL with IN or OR clause added
      */
-    public static function addInClause(string $sql, string $field, string $values, int $minInValues = 5): string
+    public static function addInClause(?string $sql, ?string $field, ?string $values, int $minInValues = 5): string
     {
+        $sql = $sql ?? '';
+        $field = $field ?? '';
         if (empty($values)) {
             return $sql;
         }

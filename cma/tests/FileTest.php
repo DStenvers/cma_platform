@@ -294,4 +294,12 @@ class FileTest extends TestCase
         $this->assertFalse(File::exists('/life.txt'));
         $this->assertTrue(File::exists('/life-copy.txt'));
     }
+
+    public function testExistsToleratesNullPath(): void
+    {
+        // VBScript fso.FileExists(Empty) is False, not a TypeError — converted
+        // code passes an uninitialised path variant (null).
+        $this->assertFalse(File::exists(null));
+        $this->assertFalse(File::exists(''));
+    }
 }

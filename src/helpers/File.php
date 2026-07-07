@@ -26,8 +26,10 @@ class File {
      * @param string $path File path (relative or absolute)
      * @return bool True if file exists, false otherwise
      */
-    public static function exists(string $path): bool {
-        if ($path === '') {
+    public static function exists(?string $path): bool {
+        // Tolerate null (VBScript fso.FileExists(Empty) returns False, not a
+        // TypeError) — converted code passes an uninitialised path variant.
+        if ($path === null || $path === '') {
             return false;
         }
 

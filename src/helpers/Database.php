@@ -2243,7 +2243,7 @@ class Database
      * @param string $sql SQL query
      * @return array Array of ID values
      */
-    public static function getIds($connection, string $sql): array
+    public static function getIds($connection, string $sql): string
     {
         try {
             // Handle connection parameter - getConnection() handles aliases
@@ -2259,11 +2259,15 @@ class Database
                 $ids[] = reset($record);
             }
 
-            return $ids;
+            // ASP lib_dbGetIds returns a comma-string ("1,2,3") for building
+            // `... IN (<ids>)` and feeding SQL::addInClause(string). Returning an
+            // array here caused "Array to string conversion" on concatenation and
+            // a TypeError into addInClause on converted consumers.
+            return implode(',', $ids);
         } catch (\PDOException $e) {
             self::$lastError = $e->getMessage();
             self::logError($sql, [], $e);
-            return [];
+            return '';
         }
     }
 

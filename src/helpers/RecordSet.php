@@ -229,6 +229,11 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
         if (strtoupper($name) === 'EOF') {
             return $this->eof;
         }
+        // ADO RecordCount is a property, but the ASP->PHP converter sometimes
+        // emits it as a method call $rs->RecordCount(). Mirror the __get branch.
+        if (strtoupper($name) === 'RECORDCOUNT') {
+            return $this->scrollable ? count($this->all_rows) : -1;
+        }
         throw new \BadMethodCallException("Method {$name} does not exist on RecordSet");
     }
 

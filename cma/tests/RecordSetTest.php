@@ -573,4 +573,22 @@ class RecordSetTest extends TestCase
         $rs->MoveLast();
         $this->assertEquals('Charlie', $rs->Fields['naam']);
     }
+
+    public function testRecordCountMethodForm(): void
+    {
+        // The ASP->PHP converter sometimes emits $rs->RecordCount() (method form)
+        // for what ADO exposes as a property; __call must handle it like __get.
+        $conn = StubConnection::create();
+        $conn->enqueueResult($this->sampleRows());
+        $rs = null;
+        \App\Library\lib_openRS($rs, 'SELECT * FROM t', $conn, \PDO::CURSOR_SCROLL);
+        $this->assertEquals(3, $rs->RecordCount(), 'Scrollable: method form returns the count');
+
+        // Forward-only cursor -> -1 (unknown), method form, no BadMethodCallException.
+        $conn2 = StubConnection::create();
+        $conn2->enqueueResult($this->sampleRows());
+        $rs2 = null;
+        \App\Library\lib_openRS($rs2, 'SELECT * FROM t', $conn2);
+        $this->assertEquals(-1, $rs2->RecordCount());
+    }
 }

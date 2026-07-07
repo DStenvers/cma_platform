@@ -516,4 +516,21 @@ class SQLTest extends TestCase
         // A SQL Server connection string -> '=' preserved (LIKE would table-scan).
         $this->assertStringContainsString("guid = '$g'", SQL::processSQL('Server=x;Provider=SQLNCLI11', "WHERE guid = '$g'"));
     }
+
+    // ========================================================================
+    // Null-tolerant builders (ported from mijnRINO) — VBScript seeds SQL
+    // accumulators with an uninitialised Empty variant (-> null); the builders
+    // must treat it as '' instead of a TypeError.
+    // ========================================================================
+
+    public function testBuildersTolerateNullSqlAccumulator(): void
+    {
+        $this->assertEquals('', SQL::addWhere(null, null));
+        $this->assertEquals('', SQL::addWhereOR(null, null));
+        $this->assertEquals('', SQL::addHaving(null, null));
+        $this->assertEquals('', SQL::addInClause(null, null, ''));
+        $this->assertEquals('', SQL::processSQL('ACCESS_VIA_ODBC', null));
+        // A null accumulator with a real clause still builds the clause.
+        $this->assertStringContainsString('WHERE x=1', SQL::addWhere(null, 'x=1'));
+    }
 }
