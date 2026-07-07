@@ -53,6 +53,11 @@ class LibTable
     */
     public function Render()
     {
+        // File-scope counter (line 9): shared across all Table instances so the
+        // generated JS function names (row_act<n>/row_hover<n>/sorttable<n>) are
+        // unique per table on a page. The ASP->PHP converter dropped this global
+        // declaration, making $Table_CtrlID an undefined local here.
+        global $Table_CtrlID;
         $fld = null;
         $curID = null;
         $x = null;
@@ -235,6 +240,11 @@ class LibTable
             */
             public function __construct()
             {
+                // See Render(): $Table_CtrlID is a file-scope counter bumped once
+                // per instance (line 270). Needs `global` — the converter dropped
+                // it, so without this the constructor warns "Undefined variable
+                // $Table_CtrlID" and the increment never reaches the shared value.
+                global $Table_CtrlID;
                 $this->TableID = '';
                 // generated
                 $this->TableSQL = '';
