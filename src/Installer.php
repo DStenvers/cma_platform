@@ -41,6 +41,12 @@ class Installer
      * no-ops once the file isn't there anymore.
      */
     private const REMOVED_PATHS = [
+        // Retired in v1.28.112: the classic-frameset menu-rendering page. It
+        // emitted the l/n/f JS arrays into a `parent.window.frames['C']` frameset
+        // (glow_tabs / menu_init()) — dead since the CMA moved to the sidebar
+        // layout. Nothing loads it; the menu-building helpers it shared live on
+        // in menurep.inc, which main.php/dashboard.php still require.
+        'cma/menurep.php',
         'cma/tools/llm_models.php',
         // Renumbered in v1.28.35: these two migrations were never registered in
         // config/migrations.json, so the high-water-mark runner never applied

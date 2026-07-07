@@ -1327,7 +1327,7 @@
     // Menu Module - Navigation menu handling
     // ========================================================================
     CMA.menu = (function() {
-        // Menu arrays - populated by menurep.php
+        // Menu arrays - legacy globals (formerly populated by the removed menurep.php frameset page)
         let c = [];
         let l = typeof window.l !== 'undefined' ? window.l : [];
         let n = typeof window.n !== 'undefined' ? window.n : [];

@@ -156,7 +156,7 @@ $currentTheme = Cookie::get('cma_theme', 'light');
 $themeClass = ($currentTheme === 'dark') ? 'dark-mode' : '';
 $useSystemTheme = ($currentTheme === 'system');
 
-// Get menu items using the same logic as menurep.php
+// Get menu items via the shared menurep.inc helpers (loadMenuData)
 require_once __DIR__ . '/menurep.inc';
 
 // Load application config for logo and background color using centralized function

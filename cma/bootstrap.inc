@@ -1545,7 +1545,6 @@ $_excludedPages = [
     'copyright.php',
     'logout.php',
     'blank.php',
-    'menurep.php',
     'sso_login.php',      // SSO authentication flow
     'sso_callback.php',   // SSO callback from IDP
     'minify.php',         // Static resource handler (CSS/JS)

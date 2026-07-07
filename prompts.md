@@ -2912,3 +2912,5 @@ karaat-data en staat in de karaat-repo.
 > form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) {
 > height: weghalen en    line-height: 26px !important;
 > if cma-sidebar open then #menuToggle { top:10px and z-index: 9999} 
+
+> yes remove menurep.php and do a re-evaluation of all files wether they are in use or not
