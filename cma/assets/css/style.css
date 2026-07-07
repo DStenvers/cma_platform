@@ -785,7 +785,7 @@ form#login label.password span::before { content: "\e66b" }
 form#login label.naam span::before { content: "\e71e" }
 form#login label.email span::before { content: "\e695"}
 form#login input:focus {border:0px; background-color:var(--bg-body) !important; box-shadow:none}
-form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;height: 28px !important;margin: 0;padding: 0 28px;width:363px !important;color: var(--text-primary)}
+form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;line-height: 26px !important;margin: 0;padding: 0 28px;width:363px !important;color: var(--text-primary)}
 form#login input[type="checkbox"] { display:none}
 form#login input[type="checkbox"] + label {display:block;color: var(--text-primary);background-color:transparent;padding-left:38px;width:450px !important}
 form#login input[type="checkbox"] + label:before { font-family:'Linearicons';margin-left: -38px;background-color: var(--bg-surface);position:absolute;font-size:15px;width:28px;height:28px;text-align:center;color:var(--color-primary); content: "\e99d"}
@@ -803,7 +803,7 @@ form#login span.login_vergeten a {text-decoration:none}
     form#login .login-header { max-width: 100% !important; box-sizing: border-box !important; overflow: hidden; }
     form#login .login-header img { max-width: 100% !important; height: auto !important; }
     form#login #loginForm, form#login #login_vergeten_form { max-width: 100% !important; box-sizing: border-box !important; }
-    form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+    form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { max-width: 100% !important; box-sizing: border-box !important; }
     form#login input[type="checkbox"] + label { width: auto !important; max-width: 100% !important; }
     form#login a.sso-button { max-width: 100% !important; box-sizing: border-box; }
 }

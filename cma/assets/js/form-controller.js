@@ -4852,7 +4852,7 @@ class CmaFormController {
                     .col-selector-toolbar label { display:flex; align-items:center; margin:0; cursor:pointer; font-size:var(--font-size); }
                     .col-selector-toolbar label input { margin-right:6px; }
                     .col-selector-toolbar .toolbar-spacer { flex:1; }
-                    .col-selector-list { height:calc(100% - 90px); overflow-y:auto; border:1px solid var(--border-color, #ddd); }
+                    .col-selector-list { height:calc(100% - 90px); overflow-y:auto; border:0; }
                     .col-selector-list:focus { outline:2px solid var(--color-primary, #007bff); outline-offset:-2px; }
                     .col-selector-item { display:flex; align-items:center; padding:5px 8px; border:1px solid transparent; border-bottom:1px solid #eee; cursor:grab; background:var(--bg-surface, #fff); }
                     .col-selector-item:hover { background:var(--bg-hover, #d0e8f8); }

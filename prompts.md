@@ -2302,3 +2302,613 @@ karaat-data en staat in de karaat-repo.
 > if the page switches through a click on the menu the reports menu is still visible, solve that in the component or perhaps make an overlay sonit cannot happen? and the toggle does not always work
 
 > on cutstom buttons in forms: the lib_current_domain does not add the port number if it is different  than 80 or 443, please make that happen
+
+> okay, i want detailed tests for all classes in the library inclusing edge cases and anything you can think of that might go wrong. Also test for error-handling
+
+> also check the existing tests for their test-coverage
+
+> <task-notification>
+> <task-id>a4e64e6b7a5c3dc03</task-id>
+> <tool-use-id>toolu_01NZtZ3M9ahEepiEwfBCbScH</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a4e64e6b7a5c3dc03.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test Cache file backend" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>The `WebConfigCmaRoutesTest` failures are pre-existing and unrelated — they fail identically in isolation, before `CacheTest` existed. My new tests do not leak global state.
+>
+> ## Report
+>
+> **File created:** `/mnt/c/repos/cma_platform/cma/tests/CacheTest.php`
+>
+> **Result:** 40 tests, all passing (`php tests/TestRunner.php CacheTest`).
+>
+> **Backend / config used:** Forced the FILE backend by setting `$GLOBALS['Application']` config in `setUp`: `cma_caching=true`, `cache_backend='file'`, `cache_directory=&lt;throwaway temp dir&gt;`, `cache_log_enabled=false`. Because `Cache::init()` memoizes the chosen backend in a private static, each test resets all relevant statics (`backend`, `redis`, `cacheDir`, `enabled`, `hits`, `misses`, `logEnabled`, `invalidationFile`, `invalidationCache`, `lastInvalidationCheck`) via reflection in `setUp`/`tearDown`, and restores/removes the prior `$GLOBALS['Application']` and `rmrf`s the temp dir in `tearDown`. No Redis/APCu extension required or touched.
+>
+> **Coverage:** backend selection; set/get for string, empty string, int, zero, float, bool true/false, flat array, nested array, unicode; missing-key default (null and provided); overwrite; delete (present + missing); `has` (present/absent/after-delete); `clear`; TTL (long persists, null uses default, short TTL expires via `sleep(2)`); disabled-cache paths; hit/miss stats; corrupt-file → default + no fatal; unwritable path (dir planted at file location) → `set` returns false, no throw; raw file helpers `saveFile`/`loadFile` (round-trip, missing→null, BOM strip)/`clearFile`/`clearAllFiles`; and the file-based cross-instance invalidation (`setWithInvalidation`/`getWithInvalidation` round-trip, `invalidateGroup` expiring earlier entries, group isolation, signal-file write).
+>
+> **Uncovered methods (with reason):**
+> - `retrieve`, `retrieveFromFile`, `executeQuery`, `retrieveSchema`, `fetchSchema` — require a live PDO/`Database` connection; out of scope for deterministic file-only tests.
+> - Redis paths (`getRedis`/`setRedis`/`refreshInvalidationFromRedis`/`writeInvalidationSignal` Redis branch) and APCu paths (`getApcu`/`setApcu`) — excluded per instructions; would need the extensions.
+> - `clearAll`, `getStatus` — thin wrappers over `opcache_reset`/`apcu_*`/`opcache_get_status`; environment-dependent, not deterministic. Left out.
+> - `pruneInvalidationSignals`, `clearInvalidationSignals`, `getInvalidationStatus`, `isValid`, `resetStats` (partially exercised) — reachable but lower value; not exhaustively covered to keep the suite focused.
+> - No `remember`/get-or-compute method exists on this class, so that requested scenario is N/A.
+>
+> **Suspected bug (pinned by `testStoringNullIsLossyReturnsDefault`):** Storing `null` is lossy. `getFile()` returns `$data['value'] ?? $default`, so a genuinely-stored `null` is indistinguishable from a miss — `get('k', 'DEFAULT')` returns `'DEFAULT'` even though `has('k')` returns `true`. The same `?? $default` reliance also drives `get()`'s hit/miss classification (`$result !== $default`), so a stored `null` is always counted as a miss. I did not modify production code; the test documents current behavior so a future change is noticed. (`false`, `0`, and `''` round-trip correctly — only `null` is affected.)</result>
+> <usage><subagent_tokens>64027</subagent_tokens><tool_uses>9</tool_uses><duration_ms>179720</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a0c7a59dbff8e44bb</task-id>
+> <tool-use-id>toolu_01A9eUdjzjaSewQvHVaieFVi</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a0c7a59dbff8e44bb.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test Hilight, Table, Debug" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All 68 of my new tests pass. The 6 failures in the full run are in unrelated pre-existing suites (`ServerTest` path-traversal and `WebConfigCmaRoutesTest` web.config patching) — different domains, and my tests fully restore global state so they don't leak.
+>
+> ## Report
+>
+> Created three test files, all green:
+>
+> - `/mnt/c/repos/cma_platform/cma/tests/HilightTest.php` — 26 tests pass
+> - `/mnt/c/repos/cma_platform/cma/tests/TableExtraTest.php` — 15 tests pass
+> - `/mnt/c/repos/cma_platform/cma/tests/DebugTest.php` — 27 tests pass
+>
+> Verified individually and in the full suite (my suites contribute 0 failures to the 890/896 total).
+>
+> ### Coverage
+> - **Hilight**: `text()` (basic highlight, default/custom class, case-insensitive with original-case preservation, multiple/adjacent non-overlapping matches, empty term/text, absent term, unicode, forward-slash-in-term), the full regex-metacharacter group (`.`, `.*`, `*`, `(`, `[` all treated literally), `multiple()`, `setDefaultClass()`/`getDefaultClass()` (global state saved/restored in setUp/tearDown).
+> - **Table**: `fromArray()` — empty array, single/multiple rows, alternating odd/even classes, header/cell HTML-escaping, null→`&amp;nbsp;`, numeric/zero values, missing keys (later rows), extra keys ignored, all id/class/cellspacing/cellpadding/headerClass/oddClass/evenClass options, and the numeric-keyed-first-row limitation.
+> - **Debug**: `getActive/setActive`, `write()` in all four paths (inactive=silent, console with valid-JSON payload, screen, file), `setJsonMode` (suppresses screen, writes file), `array/multiArray/collection` (active/inactive/escaping), `postContent/paramContent/cookiesContent` (escaping; superglobals saved/restored locally), `settingsWrite` (off/console/screen), `recordset`/`fullRecordset` via an anonymous `fetchAll` stub. Private static state (enabled/toFile/toScreen/jsonMode/fileName) snapshotted and restored via reflection; file output redirected to a temp file that's cleaned up.
+>
+> ### Uncovered methods (with reason)
+> - `Debug::init()` — resets state from `Application::get('omgeving')` and hardcodes the real `debug.log` path; testing it would clobber global state and touch the repo-root log file. Its effects (enabled flag, fileName) are already exercised via `setActive`/reflection.
+> - `Debug::cookies()` and `Debug::postContent`/`paramContent` full round-trips through `write()` — the underlying rendering + escaping is covered by the `*Content()` tests and `write()` tests; the thin wrappers add no logic.
+> - `Debug::getCurrentUrl()`, `writeToFile()` — private; exercised indirectly through `write()`/toFile tests.
+> - `Table::fromRecordset()` — already covered by the existing `TableFromRecordsetTest`, not duplicated per instructions.
+>
+> ### Suspected bugs (reported, not fixed)
+> 1. **Regex metacharacters ARE handled correctly.** `Hilight::text()` uses `preg_quote($searchText, '/')`, so `.`, `*`, `(`, `[`, `.*`, and `/` are matched literally — not as regex. No bug here; locked in by `testDotIsLiteralNotWildcard`, `testDotStarDoesNotMatchEverything`, etc.
+>
+> 2. **Hilight does NOT HTML-escape text or the term.** `text()` wraps matches via `preg_replace_callback` and emits `$matches[0]` plus surrounding text verbatim — no `htmlspecialchars` anywhere. If either the haystack or the search term contains attacker-controlled HTML (e.g. `&lt;script&gt;` in a search query reflected into results), it passes through unescaped — a potential stored/reflected XSS depending on caller usage. Documented by `testSurroundingHtmlIsNotEscaped` and `testMatchedHtmlTermIsNotEscaped`.
+>
+> 3. **`Hilight::multiple()` re-scans its own injected markup.** It applies each term sequentially to the accumulated output, so a later term that matches characters inside the injected `&lt;span class="..."&gt;` markup corrupts earlier highlights (e.g. term `c` matches the `c` in `class`). Documented by `testMultipleRescansInjectedMarkup`. A safe implementation would tokenize/match against the original text or escape/skip already-wrapped regions.
+>
+> 4. **`Debug::recordset()` rejects plain arrays.** The guard `if (!$rs || !is_object($rs))` returns "Recordset is empty or invalid" for any array, making the later `is_array($rs) ? $rs : $rs-&gt;fetchAll()` array-branch unreachable for real arrays — only objects with `fetchAll()` reach the dump path. Same dead `is_array` branch exists in `fullRecordset()`. Minor, but the array support is effectively non-functional. Tests use an object stub to reach the working path.
+>
+> No production code was modified.</result>
+> <usage><subagent_tokens>60988</subagent_tokens><tool_uses>18</tool_uses><duration_ms>313426</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a3ec280f54d546f85</task-id>
+> <tool-use-id>toolu_01W74VNmS7CeV8d4vnC4KVZs</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a3ec280f54d546f85.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test Profiler, Log, File" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All three suites pass cleanly, individually and in the full run.
+>
+> ## Summary
+>
+> Created three test files, all passing (67 tests total):
+>
+> - `/mnt/c/repos/cma_platform/cma/tests/ProfilerTest.php` — 23 tests
+> - `/mnt/c/repos/cma_platform/cma/tests/LogTest.php` — 14 tests
+> - `/mnt/c/repos/cma_platform/cma/tests/FileTest.php` — 30 tests
+>
+> Full suite: 896 tests, 891 passing. The only 5 failures are **pre-existing** `WebConfigCmaRoutesTest` failures present in the baseline before my work (confirmed by running the suite with my files removed) — unrelated to this task.
+>
+> ### Coverage per class
+>
+> - **Profiler** — `setEnabled`/`isEnabled`/`verbose`, `start`/`getElapsed` (non-negative, positive after `usleep`, restart resets clock, auto-init), `mark`/`markEnd` (non-negative, unknown-marker no-throw, mark consumption, multiple independent marks, threshold gating), `threshold` storage, `end` (no-op when disabled, yellow-box echo captured via `ob_*` when enabled in test env), `tussenstand` (no-op when disabled, no-throw when enabled), `log` (CSV write, append, newline-stripping, dir creation).
+> - **Log** — `init`/`getFilename`/`write`/`writeLine`/`close`: create+content, append-across-calls, append preserves pre-existing content, unicode, re-init switches file, close resets filename and is idempotent, and the fail-safe path (parent is a file → `init` returns `false`, no exception).
+> - **File** — all public methods: `createAsciiFile`/`readAsciiFile` round-trip (accounting for the appended `PHP_EOL`), overwrite, dir creation, empty content, `exists` (file-only, not dirs), `folderExists`, `createFolder` (nested + `$raw` literal-path mode), `copy` (dup, dest-dir creation, missing source, preserves original), `delete` (incl. graceful missing-file and unicode filename), full lifecycle.
+>
+> ### Uncovered methods (with reason)
+>
+> - **Profiler::`getCurrentUrl`** — `private`, exercised indirectly through `log()`.
+> - **File::`makeDirStepwise`** — `private`, exercised through `createFolder` (nested + raw tests).
+>
+> ### Key implementation notes (not bugs, but caller-relevant)
+>
+> - `File` and `Log` resolve paths through `Server::mapPath()`, whose `documentRoot`/`allowedPaths` are cached statics. Tests point them at a per-run temp dir (`sys_get_temp_dir() . '/…-' . bin2hex(random_bytes(6))`) via reflection, and **reset them to null in tearDown**. This reset was necessary: without it, the polluted `Server` statics caused `ServerTest` and `HilightTest` to fail later in the run. `ProfilerTest` similarly resets Profiler's own statics in setUp for order-independence.
+> - `Debug::write()` (called internally by Profiler's `end`/`tussenstand`/`markEnd`) is a no-op while `Debug` is disabled — which it is by default in the test process — so those paths are safe to exercise without side effects.
+>
+> ### No suspected bugs in production code
+>
+> One minor design observation (not a bug): `Log::init()` assigns `self::$logFilename` **before** the directory-creation check, so after a failed `init()` `getFilename()` returns the (unusable) mapped path rather than `null`. The file handle is correctly left `null`. I adjusted the fail-safe test to assert on the return value and that no file was created, rather than on `getFilename()`. No production code was modified.</result>
+> <usage><subagent_tokens>76694</subagent_tokens><tool_uses>23</tool_uses><duration_ms>325102</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a8897d1687606153a</task-id>
+> <tool-use-id>toolu_015ERr84hmxDrzQkyNMXDsah</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a8897d1687606153a.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test Server helper" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All 6 pre-existing failures are WebConfigCmaRoutesTest/HilightTest — none are ServerTest. Done.
+>
+> ## Report
+>
+> **File created:** `/mnt/c/repos/cma_platform/cma/tests/ServerTest.php`
+>
+> **Result:** 69 tests, all passing — both in isolation (`php tests/TestRunner.php ServerTest`) and within the full suite (no ServerTest failures; the 6 remaining suite failures are pre-existing in `WebConfigCmaRoutesTest` and `HilightTest`, unrelated to this work — they fail/order-depend independently of my file).
+>
+> **Coverage** (methods enumerated from `src/helpers/Server.php`):
+> - `htmlEncode` / `htmlDecode` — empty, null, `&lt;&gt;&amp;"'`, unicode/multibyte, plain, long string, and full round-trips. Confirmed `ENT_QUOTES|ENT_HTML5` encodes `'`→`&amp;apos;`, `"`→`&amp;quot;`.
+> - `urlEncode` / `urlDecode` — space→`+`, reserved chars, `+` sign, empty, already-encoded (double-encode), unicode, long-string round-trip.
+> - `mapPath` — absolute existing/non-existent-under-root, backslash normalization, leading/duplicate slashes, `.`/`..` resolving inside (allowed) vs outside (throws), relative-via-SCRIPT_FILENAME, empty string, forward-slash output.
+> - `getDocumentRoot` — string, no trailing slash, forward slashes.
+> - `getVar` / `getAllVars` — present, missing→default, custom/non-string default, explicit empty value, key presence.
+> - `getServerName`, `getServerSoftware`, `getProtocol` (HTTPS on / port 443 / plain / off), `getServerUrl`.
+> - `setScriptTimeout` (30 and 0), `getScriptTimeout` (int, non-negative).
+> - `createObject` — always-throws stub.
+> - `execute` — error-handling paths only (traversal→false, missing file→false).
+> - `addAllowedPath` — idempotency, trailing-slash tolerance, no doc-root side effect.
+>
+> **Superglobals:** `$_SERVER` is snapshotted in `setUp` and restored in `tearDown`.
+>
+> **Methods intentionally not fully covered (with reason):**
+> - `transfer()` — skipped: `require`s a file then calls `exit`, which would kill the test runner. No pure sub-logic to test beyond `mapPath` (already covered).
+> - `execute()` success path — skipped: would `require` and run an arbitrary include. Only its error branches are exercised.
+> - `init()` / `normalizePath()` — private; exercised indirectly through `mapPath`/`getDocumentRoot`.
+> - `setScriptTimeout` — return value tested; the actual `set_time_limit` side effect isn't observable in CLI and isn't asserted.
+>
+> **Environment note (not a production bug, but a test-design hazard worth flagging):** `Server::init()` caches `documentRoot` in a process-wide static with no reset, and in CLI `$_SERVER['DOCUMENT_ROOT']` is an empty string. An empty document root makes `allowedPaths` contain `""`, and `strpos($path, "") === 0` is always true, so **every path — including traversal — would be treated as allowed** and `mapPath` would never throw. I did not modify production code; instead I force `documentRoot`/`allowedPaths` via reflection in `setUp` (the same convention already used by `FileTest`/`LogTest`) so the tests are deterministic and order-independent.
+>
+> No production code was changed.</result>
+> <usage><subagent_tokens>67909</subagent_tokens><tool_uses>19</tool_uses><duration_ms>389462</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a654a89fd03e2642f</task-id>
+> <tool-use-id>toolu_01QkRgmnQWqBSTpAaQ3VmZeb</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a654a89fd03e2642f.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test FormControls" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>The 5 failures are all in `WebConfigCmaRoutesTest` — a completely unrelated file (web.config route injection), pre-existing and not caused by my tests. My `FormControlsTest` contributes 70/70 passing.
+>
+> ## Report
+>
+> **File created:** `/mnt/c/repos/cma_platform/cma/tests/FormControlsTest.php`
+>
+> **Result:** 70 tests, all passing (`php tests/TestRunner.php FormControlsTest`). No production code was modified. The 5 failures in the full-suite run are all in the unrelated `WebConfigCmaRoutesTest` and are pre-existing.
+>
+> **Coverage** — every public method of `App\Library\FormControls` is exercised: `combo` (both the dynamic/AJAX branch and the standard `&lt;select&gt;` shell), `text`, `textarea`, `checkbox`, `hidden`, `date`, `time`, `textBox`, `switchBox`, `url`, `file`, `label`, `getOptions`, `checkList`, `sortList`, plus the echo-vs-return output paths. Assertions verify correct tag/type, `name`/`id`/`value`, checked/selected/required/readonly/disabled state, option/placeholder rendering, int-coercion of `maxlength`, and HTML-escaping of hostile values (`&lt;script&gt;`, `"`, `'`, `&amp;`).
+>
+> **Not fully covered (with reason):**
+> - The **option-rendering loop** of `combo` (standard path), `checkList`, and `sortList` — these pull rows via `Database::openRS()`, and injecting a fake `RecordSet` isn't possible without either a configured DB or a static mock. Per the "no live DB" rule I tested only their no-DB behaviour: `combo` still emits a valid `&lt;select&gt;` shell + empty option; `getOptions` returns an empty array; `checkList`/`sortList` throw an `Exception`. Their per-option `Server::htmlEncode` escaping is therefore unverified by these tests (though the code does call it).
+> - Note: `FormControls` uses the bare constant `adOpenForwardOnly`, normally defined by Bootstrap. `setUp()` defines it (value 0) so DB-backed methods don't fatal on an undefined constant.
+>
+> **Suspected bugs — output-escaping / XSS holes (reported, NOT fixed):**
+>
+> 1. **`textBox()` date branch — real stored-XSS.** `src/helpers/FormControls.php:520` emits `&lt;script&gt;DatePicker("$name","$value");&lt;/script&gt;` with **both `$name` and `$value` completely unescaped**. A value like `"};alert(1)//` produces `&lt;script&gt;DatePicker("fld",""};alert(1)//");&lt;/script&gt;` — arbitrary JS execution from a DB-sourced date value. This is the most serious finding.
+>
+> 2. **`date()` `useScript` branch — line 406.** `'&lt;script&gt;DatePicker("' . $name . '",...'` interpolates `$name` unescaped into a `&lt;script&gt;` context. A name containing `"` or `&lt;/script&gt;` breaks out.
+>
+> 3. **`date()` inline branch — line 424.** `onclick="show_calendar('$name')"` uses `$name` raw; the `id`/`name` attributes are escaped, but this JS-string-in-attribute is not, so a `"` in the name breaks the attribute (confirmed: output `onclick="show_calendar('n"m')"`).
+>
+> 4. **`textBox()` password toggle — line 557** and **`sortList` toolbar onclicks** interpolate `$name` / field names into `onclick` JS strings unescaped. `sortList`'s field name is `srtlst_&lt;int id&gt;` so it's safe in practice; the `textBox` password one takes an arbitrary `$name`.
+>
+> The common pattern: values placed into **JavaScript-string contexts** (inside `&lt;script&gt;` or `onclick`) are either unescaped or escaped with `Server::htmlEncode` (HTML-encoding), which is the wrong encoding for JS and doesn't neutralize a `&lt;script&gt;`-context breakout. All standard HTML-attribute and element-text outputs (`text`, `textarea`, `hidden`, `checkbox`, `url`, `file`, `label`, `switchBox`, and `textBox`'s non-date branches) are correctly escaped via `Server::htmlEncode` and verified by the tests.</result>
+> <usage><subagent_tokens>82140</subagent_tokens><tool_uses>21</tool_uses><duration_ms>353153</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a4d0e7204968c6e8d</task-id>
+> <tool-use-id>toolu_01Tv1MX7CnuZ1MuTbRdNYdm4</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a4d0e7204968c6e8d.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test ErrorHandler helpers + Response" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>The 6 failures are in pre-existing, unrelated suites (`ArrTest`, `WebConfigCmaRoutesTest`) — my two files add 49 tests, all passing.
+>
+> ## Report
+>
+> **Files created:**
+> - `/mnt/c/repos/cma_platform/cma/tests/ErrorHandlerHelpersTest.php` — 35 tests, all passing
+> - `/mnt/c/repos/cma_platform/cma/tests/ResponseTest.php` — 14 tests, all passing
+>
+> Both run clean via `php tests/TestRunner.php ErrorHandlerHelpersTest` / `ResponseTest`. No production code was modified. The 6 failures in the full-suite run are pre-existing and in unrelated files (`ArrTest::testFindStrict`, `WebConfigCmaRoutesTest`).
+>
+> ### ErrorHandler coverage
+> - **Secret redaction (the priority)** — `getRedactedEnvContent` + `scrubEmbeddedSecrets`, invoked via reflection against a temp `.env` with all the specified keys. Verified: plain host/URL/`PLAIN_URL` stay visible; `SMTP_PASS`/`ANTHROPIC_API_KEY`/`DEPLOY_SECRET` values are masked to first-char+`*****`; the `DATABASE_URL` userinfo password becomes `user:*****@`; the `ODBC` `Pwd=hunter2` becomes `Pwd=*****` (cleartext secret never appears). Also unit-tested `scrubEmbeddedSecrets` directly for URL userinfo, ODBC Pwd, inline `password=`/`token=`/`api_key=`, and plain-value pass-through. **No redaction misses found — the redaction is sound**, including the tricky `SMTP_PASS` case (caught by `/pass/i`, not a literal "password").
+> - `isLocalEnvironment` — localhost/127.0.0.1/::1/.test/.local → true; real hostname and absent vars → false.
+> - `viewerIsElevated` — asserted bool + no-throw (fails closed to false since `Cma\SecurityHelper` isn't loaded).
+> - Other deterministic helpers: `generateErrorComment` (incl. `--`/newline neutralisation), `formatExceptionForLog` (incl. previous-exception chaining), `getDatabaseDiagnostics` (null / connection-refused / access-denied / driver-not-found), `getFileLines`, `getTraceFrames`, `formatFileSize`, `renderPermissionStatus`, `getRecentLogEntries`.
+>
+> ### Response coverage
+> Response is almost entirely HTTP header I/O. Fully exercised the body-emitting methods by capturing output: `write`/`writeEncoded` (incl. XSS escaping), `json` (payload + unescaped slashes/unicode + custom options), `xml`, `download`/`inline` (missing-file and happy-path streaming), `clearBuffers`, `headersSent`. Header setters (`setHeader`/`setContentType`/`setStatus`/`cacheControl`/`noCache`/`cacheExpires`/`enableCors`) are guarded by `if (!headers_sent())` so they never fatal — asserted their bool contract and no-throw.
+>
+> ### Uncovered methods / coverage gaps (with reason)
+> - **`ErrorHandler::wantsJson()`** — short-circuits to `false` when `PHP_SAPI === 'cli'`. Since the test runner IS the CLI SAPI, the true-branches (`/api/`, `_api.php`, `X-Requested-With`, `Accept: application/json`, JSON content-type header) are **unreachable in unit tests**. The test proves the CLI guard holds even with all JSON signals set, but the positive detection logic can only be covered by an HTTP/integration test.
+> - **ErrorHandler rendering paths** (`renderJsonError`, `renderProductionError`, `renderDetailedError`, `renderCliError`, `renderHtmlError`, `handleException`, `handleShutdown`, `handleError`) — emit full pages and/or call `exit()`; out of scope per the task.
+> - **`ErrorHandler::testDatabaseConnection`** — opens a real PDO connection; env-dependent, not unit-testable.
+> - **`Response::redirect`/`redirectPermanent`/`notFound`/`serverError`/`forbidden`/`unauthorized`** — all call `exit()`, which would terminate the whole runner; deliberately avoided.
+>
+> **No suspected bugs found.** The secret-redaction logic correctly masks every secret in the required test matrix.</result>
+> <usage><subagent_tokens>87484</subagent_tokens><tool_uses>15</tool_uses><duration_ms>318178</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>af3e6280980f94e52</task-id>
+> <tool-use-id>toolu_0122jKaG92XvoyBiCkaU4PEa</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/af3e6280980f94e52.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test WebConfigCmaRoutes + ImageProfiles" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Both new test files pass. The 2 failures (`ArrTest::testFindStrict`, `SQLTest::testPostStringNeutralisesInjectionAttemptSqlServer`) are pre-existing and in files I did not touch.
+>
+> ## Report
+>
+> ### Files created
+> - `/mnt/c/repos/cma_platform/cma/tests/WebConfigCmaRoutesTest.php` — 6 tests, all passing
+> - `/mnt/c/repos/cma_platform/cma/tests/ImageProfilesTest.php` — 16 tests, all passing
+>
+> ### WebConfigCmaRoutesTest (6 passing)
+> Covers `applyToParent`: fresh valid config gets routes + marker injected (result well-formed, backup created, pre-existing rules preserved); idempotency (2nd run → `noop`, no duplicate rule, file unchanged); malformed XML → `error` with file left byte-for-byte intact; missing `&lt;rules&gt;` node → `manual` (graceful, no error); non-existent path → `skipped` (no fatal, file not created); hand-added rules → only the marker is stamped, no duplicate block injected, then idempotent.
+>
+> **Important environment caveat:** this PHP CLI (8.3.6) is built **without ext-simplexml / ext-dom / ext-xml**, and I lack root to `apt-get install php8.3-xml`. `WebConfigCmaRoutes` deliberately refuses (returns status `skipped`) when `simplexml_load_string` is absent. So I made each simplexml-dependent test self-adapting via a `skipIfNoSimpleXml()` guard: where the extension is missing it asserts the documented graceful-skip contract (status `skipped`, no errors, no backup, file untouched); where simplexml **is** present (every consumer site — the class's stated precondition — and any standard PHP build, which bundles simplexml) the full patch/idempotency/error assertions run. **In this sandbox the tests exercised the skip path; the full patch-logic assertions were written against the code but could not be executed here for want of the extension.** They will run on any host with ext-simplexml.
+>
+> ### ImageProfilesTest (16 passing)
+> Fully exercised (only needs ext-json, which is present): `load` (missing file → empty config; valid profiles + managed_paths load; malformed JSON degrades gracefully, no fatal; wrong-typed sections coerce to empty), `clearCache` (cache reused until cleared, then re-reads disk), `getProfile` (found / unknown→null), `isManaged` (managed dir + subdir + backslash normalisation true; unmanaged false; false when no managed_paths), `imgTag` (unknown profile → HTML comment; src+alt; fallback extension follows the variant's `format`; srcset+sizes+base_url composition; no srcset when profile lacks one; attribute escaping via htmlspecialchars ENT_QUOTES).
+>
+> Config path is redirected by setting `Bootstrap::$rootDir` (private static) via reflection to a temp dir in `setUp`, restored in `tearDown`; `resolveSiteRoot()` then reads `&lt;tmp&gt;/data/image-profiles.json`.
+>
+> ### Uncovered methods (with reason)
+> - `ImageProfiles::generate`, and its private helpers `renderVariant` / `cropCenter` / `resolveSourceExt` — call the GD-backed `App\Library\Image` class against real image files (resize/crop/WebP transcode). Out of scope for a config/lookup unit test; would need real image fixtures + GD. Noted in the test file's header docblock.
+>
+> ### Suspected bugs
+> None. Both classes behaved exactly as documented for every input tested. The graceful-degradation paths (missing simplexml, malformed XML, malformed JSON, unknown profile, missing file) are all correctly fail-safe. No production code was modified.</result>
+> <usage><subagent_tokens>82118</subagent_tokens><tool_uses>27</tool_uses><duration_ms>474524</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a6c71ff9d41a5f4a5</task-id>
+> <tool-use-id>toolu_01XP8H2BdhS6foUB8harXn4o</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a6c71ff9d41a5f4a5.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit SQL/DB test coverage" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All my new tests pass. The single failure in the full run (`ArrTest::testFindStrict`) is in a file outside my scope that I never touched — pre-existing and unrelated to SQL/Database.
+>
+> ## Coverage audit — SQL &amp; Database unit tests
+>
+> Added **48 passing tests** across 5 in-scope files. Per-class verdict:
+>
+> ### `App\Library\SQL` (`src/helpers/SQL.php`) — was thin, now solid
+> **Before:** `SQLTest` (38) exercised `postNumber`, `normalizeDecimal`, `postGuid`, `postTimeStr`, `sqlDateToRealDate`, the `add*`/`complicatedWhere` clause helpers. The escaping/injection surface (`postString`), `postBoolean`, `postDate*`, `guidEquals` had **zero** coverage.
+> **Filled (SQLTest 38 → 61):** `postString` quote-escaping for both Access (`' &amp; chr(39) &amp; '`) and SQL Server (`'+char(39)+'`) dialects, two injection payloads (`'; DROP TABLE …`, `' OR '1'='1`) proving quotes stay balanced, metacharacter/`;`/`--`/backtick preservation, unicode passthrough, empty/null→`null`; `postBoolean` both dialects; `postDate`/`postDateOnly`/`postDateStr` (valid, empty-component, invalid-date, SQL-Server CAST); `guidEquals` (Access `LIKE` vs SQL Server `=`); decimal-locale hardening (`10.5`→`10.5`, `1.234,56`→`1234.56`, negatives/boundaries).
+> **Remaining untestable/untested:** `processSQL` (huge Access↔SQL-Server dialect rewriter) and `convertDoubleQuotesToSingle` are pure and testable but large — left as a follow-up, not a connection blocker.
+>
+> ### 🚩 SUSPECTED HAZARD — `SQL::postNumber` is not injection-safe by itself
+> `postNumber` does **not** validate numericness: non-numeric input is returned **trimmed but unquoted**. `SQL::postNumber('1 OR 1=1')` emits `1 OR 1=1` raw into SQL. This is documented ("callers validate with `is_numeric()`") but is a foot-gun — any caller that trusts `postNumber` to sanitise a numeric field has an injection hole. I pinned the current behaviour in `testPostNumberDangerousPassthrough` (did **not** change src). Contrast: `QueryBuilder::quoteValue('number')` *does* validate and collapses the same payload to `0` — so the QueryBuilder path is safe, the bare `SQL::postNumber` path is not. Worth an audit of `postNumber` call sites.
+>
+> ### `App\Library\Database` (`src/helpers/Database.php`) — safe/pure helpers extended
+> **Before:** safe-wrappers, insert/exists, error-path logging, DSN building, drop-index idempotency all covered via `StubConnection`.
+> **Filled:**
+> - `DatabaseErrorPathTest` (7 → 13): `cleanErrorMessage` — SQLSTATE + error-code stripping, `[Microsoft][ODBC …]` prefix, `PDO::` prefix, capitalisation, empty-string safety, mb-aware unicode.
+> - `DatabasesJsonDsnTest` (6 → 11): `isSQLServer` (Initial Catalog / SQLOLEDB / SQLNCLI / MSOLEDBSQL true; Access/SQLite false) and `isODBC` (true **only** when string starts with `DSN=`).
+> **Remaining untestable:** connection-bound helpers (`quoteIdentifier`, `escape`, `getDriverName`, the `*PDO` schema mutators beyond drop-index) need a live/SQLite PDO; `quoteIdentifier`/`escape` swallow the no-connection path into a fallback, so they're only partially exercisable without a real driver — left to integration coverage.
+>
+> ### `Cma\QueryBuilder` (`cma/classes/QueryBuilder.php`) — good, extended
+> **Filled (QueryBuilderTest 27 → 38, run directly via `php tests/QueryBuilderTest.php`):** number-value injection neutralised to `0`, text-value quote-escaping via `postString`, `BETWEEN` bounds, `getOperatorsForType` per-category counts + unknown-category fallback-to-text.
+>
+> ### `Cma\SchemaHelper` (`cma/classes/SchemaHelper.php`) — already strong, topped up
+> **Filled (14 → 17):** `getSqlServerTypeName` (ODBC codes, length suffix, no-length). Pinned the **value-6 collision** (`SQL_FLOAT` and `ADO_CURRENCY` both = 6 → always resolves `float`, `money` unreachable) — same benign integer-collision class as the already-tested type-11 date/boolean case. Not a bug, but now visible.
+>
+> ### `StubConnection` (`cma/tests/StubConnection.php`) — fully covered, untouched
+> `StubConnectionTest` (12) already pins queue FIFO, call recording, exec/insertId/driver/reset. No gaps; left as-is.
+>
+> **Notes:** No `src/` production code was modified. `SqlParserTest`/`QueryBuilderTest` are procedural (excluded from the default glob) and were run directly per their headers. The full-suite `ArrTest::testFindStrict` failure is pre-existing and outside scope.
+>
+> Files changed (all absolute):
+> - `/mnt/c/repos/cma_platform/cma/tests/SQLTest.php`
+> - `/mnt/c/repos/cma_platform/cma/tests/DatabaseErrorPathTest.php`
+> - `/mnt/c/repos/cma_platform/cma/tests/DatabasesJsonDsnTest.php`
+> - `/mnt/c/repos/cma_platform/cma/tests/QueryBuilderTest.php`
+> - `/mnt/c/repos/cma_platform/cma/tests/SchemaHelperTest.php`</result>
+> <usage><subagent_tokens>123085</subagent_tokens><tool_uses>35</tool_uses><duration_ms>338597</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a7881c257200e201a</task-id>
+> <tool-use-id>toolu_01RyxoZ9Uw1QeBGut6YsMFHZ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a7881c257200e201a.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit pure-logic test coverage" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Full suite green (1181 passing). Here is the coverage audit.
+>
+> ## Coverage audit — 7 helper classes
+>
+> ### 1. `Arr` (App\Library\Arr)
+> - **Before:** ~42/43 public methods covered; `shuffle()` entirely uncovered; no strict-comparison, array-needle, or invalid-size guard branches tested.
+> - **Filled:** `shuffle` (elements preserved / null / empty); `contains` array-needle branch + `strict`; `get` dot-notation with scalar intermediate + isset/null-falls-to-default semantics; `findInstr` empty-element gotcha; `find` strict vs loose; `find2DByRow`/`join2DByRow` scalar-column guards + missing index; `removeItem` multi-occurrence + not-present; `merge` all-null/no-args; `flatten` deep nesting; `chunk` zero/negative size guard; `fill` negative count; `pluck` objects; `sortBy` objects; `field` ArrayAccess (RecordSet-style) case-insensitive; `unique` key-preservation.
+> - **Result:** 95 → **119 passing**.
+>
+> ### 2. `Str`
+> - **Before:** ~24/26 methods covered but almost all ASCII; `toUtf8` real conversion, unicode paths, and null-arg branches untested.
+> - **Filled:** `toUtf8` real Latin-1→UTF-8 conversion + already-valid + null; `truncate` sub-suffix edge + unicode; `stripEnd`/`stripStart` comma-string form + unicode; `capitalize`/`firstUpper` empty+unicode; `contains`/`replace` null args; `padZero` null/string; `slug` custom-sep collapse + empty result; `upper`/`lower`/`length`/`between`/`startsWith` multibyte; endsWith empty-pattern asymmetry.
+> - **Result:** 72 → **99 passing**.
+>
+> ### 3. `Html`
+> - **Before:** 5/5 methods hit but few `fixUnicode` branches, no double-encode/self-closing/attribute cases.
+> - **Filled:** more `fixUnicode` maps (en-dash, bullet, ó/ü, ç); `encode` double-encoding + empty; `decode` named entities; `stripTags` multi-allowed + self-closing; `containsHtml` attributes + entities-only.
+> - **Result:** 17 → **28 passing**.
+>
+> ### 4. `Date`
+> - **Before:** broad method coverage but no DateTime-object inputs, no hour/minute/second `diff`/`add`, DST/toGMT were timezone-nondeterministic (only asserted "is bool").
+> - **Filled:** `age` from DateTime/same-day/exact-birthday/invalid-ref; `diff` same-date/seconds/minutes/cross-year-months/negative-hours; `add` hours/minutes/negative month+year/unknown-unit default; Sunday weekday boundary; `isValid` numeric-strings/zero-day/month-range; `fixValue` already-Dutch + midnight-drops-time; `isParseable` DateTime/int; **deterministic** DST and `toGMT` (pinned Europe/Amsterdam + UTC, restored in finally).
+> - **Result:** 66 → **91 passing**.
+>
+> ### 5. `Encryption`
+> - **Before:** 1/1 method, only ASCII vectors.
+> - **Filled:** hex-format regex, unicode bytes, binary/NUL, 100k-char input, avalanche.
+> - **Result:** 4 → **9 passing**.
+>
+> ### 6. `ColumnMajorArray`
+> - **Before:** `count()` override (its whole reason to exist — returns row not column count) **untested**; ragged/scalar-row paths untested.
+> - **Filled:** `count()` returns row count (multi/empty/single-row-3-col); numeric column second-row + out-of-range; `getRow` first/empty; columns-from-first-row-only with ragged data; scalar-first-row → empty; stable row order.
+> - **Result:** 13 → **23 passing**.
+>
+> ### 7. `StringBuffer`
+> - **Before:** `saveToFile()` **untested**; no byte-vs-char size, type-coercion, or clear-then-reuse cases.
+> - **Filled:** `saveToFile` (contents + empty buffer, temp files cleaned in `tearDown`); `getSize` counts bytes (multibyte); `appendLine('')` still emits CRLF; clear-then-reuse; float/bool coercion; live `__toString`.
+> - **Result:** 7 → **16 passing**.
+>
+> ## Suspected bugs found (no src/ changed — tests lock current behavior)
+> 1. **`Str::truncate()` overshoots when `length &lt; strlen(suffix)`.** `truncate('hello world', 2)` returns `'hello worl...'` (13 chars — far longer than the requested 2). Cause: `mb_substr($text, 0, $length - mb_strlen($suffix))` gets a negative length, which trims from the *end* instead of clamping to empty. `truncate(..., 3)` (== suffix length) collapses to just `'...'`. Locked in `testTruncateLengthSmallerThanSuffix`.
+> 2. **`Str::startsWith`/`endsWith` empty-pattern asymmetry.** `startsWith('hello','') === true` but `endsWith('hello','') === false` (`mb_substr($t, -0, null)` returns the whole string, never `''`). Locked in `testEndsWithEmptyPatternAsymmetry`.
+> 3. **`Arr::findInstr` matches on empty-string array elements.** An element of `''` is "found" for any haystack because `stripos($haystack, '')` returns `0` in PHP 8, so a list containing `''` always yields index 0. Locked in `testFindInstrEmptyElementMatchesEverything`.
+>
+> Minor (not bugs, documented): `Html::encode()` double-encodes existing entities (default `htmlspecialchars`); `Arr::get()` uses `isset()` so an explicit `null` value returns the default.
+>
+> ## Remaining gaps not tested (with reason)
+> - `Date::mediumDate/longDate/fullDate` with `useRelative` left at its `null` default — that path calls `Application::get(...)`, an external dependency the existing tests deliberately avoid; I kept passing `false` as they do. The relative-name and explicit-`false` branches are fully covered.
+> - `Str::padRight/padLeft` STR_PAD_BOTH branch of the bundled `mb_str_pad` polyfill isn't reachable through `Str`'s public API (only LEFT/RIGHT are exposed), so I left it alone.
+>
+> Final passing counts: **ArrTest 119, StrTest 99, HtmlTest 28, DateTest 91, EncryptionTest 9, ColumnMajorArrayTest 23, StringBufferTest 16** — all green, and the full runner stays at 1181/1181.</result>
+> <usage><subagent_tokens>113514</subagent_tokens><tool_uses>38</tool_uses><duration_ms>429759</duration_ms></usage>
+> </task-notification>
+
+> can you condiem that all classes functions are called and tested with null strings, 0 numbers and other strange parameters?
+
+> <task-notification>
+> <task-id>aa96315c55d1da9dc</task-id>
+> <tool-use-id>toolu_01QSSmtYqnJtdqp1cG5c3d6M</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/aa96315c55d1da9dc.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit CMA/forms/migration test coverage" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All 1239 tests pass, no production code touched. Here is the coverage assessment.
+>
+> ## Coverage assessment (per target)
+>
+> **FormRoute** (`cma/classes/FormRoute.php`) — Well covered before; missed `New=Y`+id interaction, copy defaults, popup list mode, and the `parentIdString()` accessor. Added 9: New-flag-keeps-id, copy-without-id, copy-default-false, popup-list-mode (no popupID), popup-parent-null-when-formID-empty, `parentIdString()` both branches, case-insensitive `popupID=NEW`, view default, unknown legacy FormID → empty form. 13→22.
+>
+> **FormExpressionEvaluator** — Operators/errors covered; missed numeric loose-compare, `==` precedence vs `&amp;&amp;`, non-chainable comparison, nested parens, literal equality. Added 9. 28→37.
+>
+> **JsonFormLoader::validateDefinitionData** — Missed non-array fields, file-type fields, URL paths, legacy path aliases, `tip` presentational, multi-problem accumulation, unknown-type default. Added 9. 10→19.
+>
+> **EmailLogService** — The existing `EmailLogTest` is DB-integration and only declares when a parent bootstrap exists, so it ran **zero** tests in the bare repo. Added an unguarded `EmailLogServiceUnitTest` (same file): pure `formatAddresses`/`parseAddresses` (+ round-trip) via reflection, and `getById`/`delete`/`cleanup`/`resend` against an injected `StubConnection` incl. SQL-shape asserts and the not-found / DB-error paths. 0→13.
+>
+> **DeployHealth** — Missed partial-missing, path normalisation, log-dir auto-create, no-recipient alert no-op. Added 4. 3→7.
+>
+> **EnvFile** — Missed `load()` (missing + real file), duplicate-key-last-wins, no-`=` line, invalid-key skip, empty value, single-quote literalness, unbalanced quote, `loadInto` `$_SERVER`/`putenv` side effects. Added 9. 8→17.
+>
+> **Installer::cleanRemovedPaths** — Added nonexistent-root no-op, same-basename-elsewhere survives (path specificity), and a guard that every `REMOVED_PATHS` entry is relative (no `/` or drive prefix). 7→10.
+>
+> **Installer::syncDirectory** — Added nested-recursion + nested-junk skip, and junk-only source produces an empty dest with no errors. 3→5.
+>
+> **MigrationService::resolveScriptPath** — Added trailing-slash sourceDir and empty-string-sourceDir → cma fallback. 5→7.
+>
+> **MigrationService::getWarnings/detectVersionIssues** — Added platform-only-is-clean, high-site-version-without-collision (reserved-range only, not "meerdere bronnen"), and empty-version-string ignored. 3→6.
+>
+> **FormDataProvider::buildEditChangelog** — Added label-defaults-to-name, null-old → "(leeg)", equal-arrays → no row, exactly-500-chars not truncated (boundary). 17→21.
+>
+> **FormDataProvider::buildDeleteChangelog** — Added string boolean `'1'`/`'0'` → Ja/Nee, 500-char boundary, case-insensitive label lookup. 14→17.
+>
+> **FormDataProvider::saveJsonFormRecord** — Added two error-path tests: verification `COUNT=0` → surfaced failure ("verificatie mislukt"), and a thrown `PDOException` on read-back → structured failure, no fatal. 8→10.
+>
+> **Table::fromRecordset** — Added HTML escaping of cells, NULL → `&amp;nbsp;`, record-count footer pluralisation (1 record / N records), id/class option rendering. 3→7.
+>
+> ## Suspected bugs
+> None. Every error/edge path behaved defensibly and I asserted the current behavior: save verification failures and DB exceptions surface as `success=false`, `delete` swallows driver errors into `false`, `resend` of a missing id fails cleanly without sending, and validation accumulates one problem per offending field.
+>
+> ## Remaining untestable gaps (by design)
+> - `EmailLogTest` (the DB class): `testSendAndLog`, `testTableExists`, real `resend` send — need a live `tblEmailLog` + SMTP; left to the bootstrap-guarded integration class.
+> - `DeployHealth::alert()` success email and `EmailLogService::resend()` success: require a working mailer/SMTP; only the no-recipient/not-found branches are deterministic.
+> - `MigrationService` version read-back (`getCurrentVersions`/`getLatestVersion`): needs a real tracking table; already reachable only through a live connection.
+>
+> ## Final passing counts (per modified file)
+> - FormRouteTest **22**, FormExpressionEvaluatorTest **37**, JsonFormValidationTest **19**, EmailLogTest **13**, DeployHealthTest **7**, EnvFileTest **17**, InstallerRemovedPathsTest **10**, InstallerSyncJunkTest **5**, MigrationScriptPathTest **7**, MigrationVersionWarningsTest **6**, FormDataProviderChangelogTest **21**, FormDataProviderDeleteChangelogTest **17**, SaveJsonFormRecordTest **10**, TableFromRecordsetTest **7**.
+> - Full suite: **1239 passed, 0 failed**.</result>
+> <usage><subagent_tokens>154242</subagent_tokens><tool_uses>62</tool_uses><duration_ms>651369</duration_ms></usage>
+> </task-notification>
+
+> nico to focus on security but the past 150 bugs have been about primary functions failing
+
+> yes please build these tests
+
+> <task-notification>
+> <task-id>a777a00b2eb73fe36</task-id>
+> <tool-use-id>toolu_016ZTxDMJsyFGN1yo7ynuFjM</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a777a00b2eb73fe36.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test save-path SQL correctness" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Both suites green.
+>
+> ## Summary
+>
+> Created `/mnt/c/repos/cma_platform/cma/tests/FormSavePipelineTest.php` — **10 tests, all passing**. It uses the existing `TestHarness` + `StubConnection` doubles to run the real `Cma\FormDataProvider::saveJsonFormRecord` without a DB and asserts on the exact SQL string and bound-params the code records. `TestHarness::reset()` + globals restore run in `tearDown`.
+>
+> ### What each failure-mode test pins about the built SQL
+>
+> 1. **Decimal / Dutch-locale (×100 corruption)** — three tests:
+>    - `10.5` on an UPDATE emits `[gewicht] = 10.5` (bare, unquoted); asserts it is NOT `'10.5'`, NOT `1050`, NOT `10,5`, and that `params == []` (inlined, never bound).
+>    - Assorted on an INSERT: `1234.56`, `-3.14`, and integer `42` (declared numeric) all inlined bare; asserts none are quoted or ×100-scaled and `params == []`.
+>    - Comma form `2,41` normalises to bare `2.41` even without a numeric hint (the `strpos('.')` branch).
+> 2. **NULL vs empty** — empty string and explicit `null` both produce `[col] = NULL` on the UPDATE; asserts NOT `= ''`, NOT `= '0'`, NOT `= 0`.
+> 3. **Field filtering** — `naam__label`, `actie`, `required`, `user_groups[]` are absent from the INSERT columns while declared `[naam]`/`Alice` are present.
+> 4. **Date field** — posted `15-06-2026` becomes `[DATESTAMP] = '2026-06-15'` (ISO, SQLite path); raw `15-06-2026` never appears.
+> 5. **INSERT vs UPDATE** — no id → `INSERT INTO [tblTest]` with `isNew=true` and no UPDATE/pre-read; id `1` → `UPDATE [tblTest] SET … WHERE [ID] = 1` with `isNew=false`.
+> 6. **Changelog pre-read** — extends the model suite: asserts the pre-update `SELECT *` scopes to `WHERE [ID] = 1` (same record) AND precedes the UPDATE.
+> 7. **Error path** — new coverage: INSERT-path verification `COUNT = 0` surfaces `success=false` with the "verificatie" message (model suite already covered the UPDATE-path cnt=0 and read-back PDOException, which I did not duplicate).
+>
+> ### Primary-function bug findings
+>
+> **None** — the decimal path behaves correctly. Note: the production code carries a **stale comment** at `FormDataProvider.php:874-881` claiming numeric fields "must be BOUND, not inlined," but the actual code (lines 939-947 / 969-974) *inlines* them as bare `$norm` literals via `SQL::normalizeDecimal`, and `$params` is never populated. The inlining is the correct, locale-safe behaviour (matching the tests and the memory note on Access decimal writes); only the comment contradicts it. I did not modify production code per the rules — flagging the misleading comment for a possible one-line cleanup.
+>
+> No production code was changed. `SaveJsonFormRecordTest` still passes (10/10).</result>
+> <usage><subagent_tokens>72517</subagent_tokens><tool_uses>22</tool_uses><duration_ms>260233</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a6ac53aa48584113f</task-id>
+> <tool-use-id>toolu_011pQGct7FTTNZFTaZcR2rbn</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a6ac53aa48584113f.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test form control rendering" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Done. All green — 76 new tests in the file, and the full suite (1325 tests) still passes.
+>
+> ## File
+> `/mnt/c/repos/cma_platform/cma/tests/FormRendererControlsTest.php` — 76 tests, all passing. Loads `FormControlHelper.php` + `FormRenderer.php` via `require_once`; no harness/DB needed (the renderer is pure).
+>
+> ## Per-control-type coverage
+> Every control type is driven both through its per-type entry point AND through the `renderControl($type, …)` dispatcher with the correct integer constant:
+>
+> - **textbox** (3): input emitted, name/data-field, maxlength on positive limit + omitted for 0, required/readonly (native + data-attr), defaultValue→data-default, long→textarea, number-validation width, name escaping, XSS escaping, empty config, isDate→datepicker
+> - **password** (22): `type="password"`, autocomplete, opt-in visibility toggle
+> - **date** (24): lib-datepicker, required, datetime-group (datepicker+timepicker), readonly datetime→plain input, name escaping
+> - **time** (21): lib-timepicker
+> - **combo** (2): lib-combo shell + id, empty option when optional / omitted when required, static options all appear (incl. `label` fallback), option-text escaping, empty options, dynamic ajax-url/min-search, name escaping
+> - **checkbox** (5): lib-switch, Ja:Nee / Aan:Uit labels, readonly→disabled, defaultValue
+> - **radiogroup** (100): options attr, defaultValue→value=+data-default, value-not-in-options graceful, readonly, pipe/colon percent-encoding
+> - **memo** (6): textarea, allow-html, readonly-html→div, json class, defaultValue
+> - **checklist** (8): multi lib-combo + hidden state fields, controlId→name fallback, readonly
+> - **image** (9): value input + metadata, select button, clear only when optional
+> - **file** (11): hidden value/path, select only when editable, clear only when optional+editable
+>
+> Edge cases: unknown type → safe disabled-input fallback (no fatal), HTMLSTRIP/THUMBNAIL → empty string, every mapped type survives empty config, explicit null value, caption→data-label.
+>
+> ## DB-backed option loops (not reachable, as expected)
+> - **Static** combo/radio options come from `config['options']` and are fully covered.
+> - **Checklist** options are client-loaded (renderer only emits the shell + `data-control-id`) — not reachable, covered structurally only.
+> - **Dynamic combo** option loop is client-side AJAX; the renderer just emits `ajax-url`. The combo static path's "add related" button (`CmaRepository::getFormIdBySourceTable`) only fires when `sourceTable` is set — I deliberately omit `sourceTable` to keep the tests DB-free, so that DB branch is not exercised.
+>
+> ## Key finding (not a bug — a design contract worth flagging)
+> Unlike the lower-level `App\Library\FormControls`, **`Cma\FormRenderer` never reads `config['value']`** — it renders value-free shells and the client populates current values via AJAX (per the class docblock). So the task's "current value populates (input value=, selected option, checked state)" does not apply server-side here. I tested the server-side analogs instead — `config['defaultValue']` (→ `data-default`, and the radio `value=` attribute) and static `config['options']` — and added `testValueKeyIsNotReflectedByDesign` to lock the contract (a `config['value']` never appears in output).
+>
+> No primary-function bugs found: every control emits the correct element for valid input, all `$name`/option/`defaultValue` output is escaped through `self::escape()` (including the date/datetime paths — the unescaped-`$name` issue flagged in the sibling `FormControls` effort does **not** reproduce in `FormRenderer`), and an unknown control type returns a safe disabled placeholder rather than fataling.</result>
+> <usage><subagent_tokens>88413</subagent_tokens><tool_uses>12</tool_uses><duration_ms>230458</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a319f87a3e906c182</task-id>
+> <tool-use-id>toolu_01XPPNkJEqK3ow5Li2X9tgCv</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a319f87a3e906c182.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test list/table rendering" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Both suites are green. The stack-trace lines in the Save output are that suite's own expected-exception logging, not a failure (10/10 pass).
+>
+> ## Report
+>
+> **File:** `/mnt/c/repos/cma_platform/cma/tests/ListTableRenderTest.php` — 8 test methods, all passing. No production code was modified.
+>
+> **How the full path runs without a DB:** `TestHarness` logs in as admin, injects each form definition into `JsonFormLoader`'s cache, and injects a `StubConnection` as the `data` connection. `getTableHtml` runs its real code; `Database::openRS` does `prepare()+execute()`, each popping one result off the stub queue. On an initial (non-loadMore) load it runs the COUNT(*) query first (~line 372) then the data-rows query (~line 386), so fixtures are enqueued count-first.
+>
+> **What each failure-mode test proves:**
+> 1. **Happy path** — N-column def + 3 rows renders `&lt;lib-table&gt;&lt;table class="listtable"&gt;`, one `&lt;th data-field&gt;` per visible column, one `&lt;tr class="listrow"&gt;` per record, `count == 3`.
+> 2. **Empty result set** — a COUNT of 0 with zero data rows returns `success:true`, `count === 0`, a structurally valid empty table, and the "Geen gegevens gevonden" empty-state. No crash, no warning.
+> 3. **Record-count correctness** — with COUNT(*)=100 but only 3 data rows, the grand total surfaces in `totalCount` (100) independent of rendered rows; `count` is the rendered-page count (3).
+> 4. **Memo exclusion** — a `memo` field is dropped from the column list (no `data-field="notitie"`), while the sibling text column renders.
+> 5. **Escaping + null/empty** — a value `a&lt;b&gt; &amp; "c"` is entity-encoded (`a&amp;lt;b&amp;gt;`, `&amp;amp;`) and the raw markup does not leak; NULL/'' render as empty `&lt;td&gt;`. The null/empty test runs under a strict error handler that promotes warnings to exceptions, so an "Undefined array key" warning would fail it — it doesn't.
+> 6. **User-selected columns** — `options['columns'] = ['plaats','naam']` renders exactly those two, drops the unselected `land`, and preserves the requested order.
+> 7. **Required-filter path** — a form with `filter.field` and no filter value short-circuits to `success:true, requiresFilter:true, filterFieldName, count:0`, emits the `filter-required-table` message, and issues zero DB calls.
+>
+> **Empty-set and count paths: both correct.** Empty result is handled gracefully (COUNT(*) legitimately returns one row holding 0). The count-query value is exposed correctly.
+>
+> **Primary-function finding (not a bug, but a contract sharp edge worth flagging):** the response exposes two distinct counts — `count` = rows rendered in *this* response/page, and `totalCount` = the COUNT(*) grand total. They coincide only when all rows fit one page. Any caller/pager that reads `count` as the record total will undercount whenever paging kicks in (the classic "records 1–N van M" undercount class). The grand total to trust is `totalCount`. The service computes both correctly; the risk lives entirely in which field a consumer reads. The tests pin this contract so a future refactor that conflates the two will fail.
+>
+> One incidental note (pre-existing, not touched): the NULL value in the first visible column can't be asserted "empty" because column 1 always carries the row-menu trigger span (`row-menu-trigger`) inside its `&lt;td&gt;`; the empty-cell assertion therefore targets a non-first column.</result>
+> <usage><subagent_tokens>100463</subagent_tokens><tool_uses>34</tool_uses><duration_ms>386421</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a01bce878dbd12845</task-id>
+> <tool-use-id>toolu_018jfs4GiSF5asaMmgqQ7KUJ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a01bce878dbd12845.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Test tree + row rendering" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Full suite green: 1349 passed (my 16 new tests included), no regressions or state bleed.
+>
+> ## Report
+>
+> Two new test files, both passing:
+>
+> - `/mnt/c/repos/cma_platform/cma/tests/TreeRenderTest.php` — 8 tests for `Cma\Services\TreeService::getJsonFormTreeHtml`
+> - `/mnt/c/repos/cma_platform/cma/tests/RowRenderTest.php` — 8 tests for `Cma\Services\JsonFormService::getRowHtml`
+>
+> Both follow the established `TestHarness` + `StubConnection` pattern (login short-circuit, injected form def, injected `data` connection, enqueued SELECT rows). No production code was modified.
+>
+> ### TreeRenderTest — what each failure-mode test proves
+> - **Grouped happy path**: rows spanning 2 group values produce `treeData` with exactly `[Fruit, Groente]` folders (first-seen order), `count`=3, `hasGrouping`=true, and `html` emptied in favour of `treeData`.
+> - **Empty group value (the historical crash class)**: rows with `categorie =&gt; ''` and `categorie =&gt; null` do **not** fatal — they degrade into a single `"[leeg]"` folder holding both leaves, `count`=2, `success`=true. This is the documented safe fallback in `buildTreeFromFlat` (the `$g1 === ''` branch), and it holds. Plus a mixed present+empty test confirming a real folder and a `[leeg]` folder coexist.
+> - **No grouping**: flat def yields a `simpletree` html list, `hasGrouping`=false, no `treeData`.
+> - **Empty result set**: zero rows → `success`=true, `count`=0, no `treeData` (grouped) / friendly "Geen gegevens gevonden" (flat).
+> - **Multi-level (Group1+Group2)**: nests level-2 folders inside level-1, with the leaf item at the deepest level.
+>
+> ### RowRenderTest — what each test proves
+> - **Population**: a record's values land in the `&lt;tr&gt;` (`Appel` in the `naam` cell; `1.50` number-formatted to `1.5`); `displayText` = first column value.
+> - **NULL/empty safety**: `naam =&gt; null`, `prijs =&gt; ''` render without warning/fatal; cells still emit (table structure intact), `displayText` degrades to `''` not `"null"`.
+> - **displayMode**: confirmed via code trace that `$displayMode` only branches for JSON-config forms; for table-backed forms modes 1 and 2 produce identical row HTML — asserted so a future coupling regression is caught.
+> - **Type rendering**: boolean → checked `&lt;lib-switch&gt;` for admin; memo value populates its cell; HTML-special chars are escaped (no raw `&lt;b&gt;` survives into the DOM).
+>
+> ### Primary-function bugs found
+> None. Both UI-producing functions behave correctly for every probed failure mode — most importantly, the empty/null grouping value degrades gracefully into a `[leeg]` folder rather than crashing, and rows populate (and null-render) safely.
+>
+> Note on the task brief: for these JSON-form entry points the grouping fields come from the def's `groupFields` array (not `Group1Field`/`Group2Field`/`Group3Field` — those are the FormDefinition getters used by the separate `getTreeHtml(int $formId, …)` path). Tests model the actual `groupFields` shape used by `getJsonFormTreeHtml`.</result>
+> <usage><subagent_tokens>103647</subagent_tokens><tool_uses>29</tool_uses><duration_ms>375540</duration_ms></usage>
+> </task-notification>
+
+> the security fixes you deprioritised (FormControls date-path XSS, postNumber, mapPath fail-open), and the remaining unit-coverage gaps (Request especially). 
+>
+> all please
+
+## 2026-07-07
+
+> yes please, but all five
+
+> dark mode lib-switch: background-color: #5a5959; border-color: #0f0f0f
+
+> today i am working on the mijn rino, if you changed something to the platform can you run composer update in /mnt/c/lab/ai_conversion/site ?
+
+> huh? so the mijn rino has changed platform files? Take a detailed look at the changes if they are usefull to implement into the base source
+
+> yes please
+
+> Ok, is cma platform up to date?
+
+> the include issue is still there, should i do something?
+
+> is cma-menurep.php still used?
+
+>
+> http://172.30.208.1:8090/cma/main.php?page=tools.php%3Ftool%3Dendpoint_tester
+> Remove #gaugePending 
+> Looking at index.php i still see a lot of globals 
+> @media (max-width: 600px) {
+>     remove width: 100% !important;
+> .col-selector-list {     border: 0px; }
+>
+> form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) {
+> height: weghalen en    line-height: 26px !important;
+> if cma-sidebar open then #menuToggle { top:10px and z-index: 9999} 

@@ -475,7 +475,6 @@ echo '<div id="c" class="tools">';
         <div class="gauge-row">
             <lib-gauge id="gaugeSuccess" value="0" max="<?= $totalEndpoints ?>" size="sm" type="success" format="raw" label="0 geslaagd"></lib-gauge>
             <lib-gauge id="gaugeError" value="0" max="<?= $totalEndpoints ?>" size="sm" type="error" format="raw" label="0 fouten"></lib-gauge>
-            <lib-gauge id="gaugePending" value="<?= $totalEndpoints ?>" max="<?= $totalEndpoints ?>" size="sm" type="warning" format="raw" label="<?= $totalEndpoints ?> niet getest"></lib-gauge>
         </div>
     </div>
 
@@ -657,13 +656,6 @@ echo '<div id="c" class="tools">';
             gError.setAttribute('value', stats.error);
             gError.setAttribute('max', total);
             gError.setAttribute('label', stats.error + ' fouten');
-        }
-
-        var gPending = document.getElementById('gaugePending');
-        if (gPending) {
-            gPending.setAttribute('value', stats.pending);
-            gPending.setAttribute('max', total);
-            gPending.setAttribute('label', stats.pending + ' niet getest');
         }
 
         document.getElementById('testGauges').style.display = '';

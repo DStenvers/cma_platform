@@ -999,6 +999,13 @@ a.cma-menu-item.active .cma-menu-icon::before {
         transform: translateX(0);
     }
 
+    /* When the sidebar is slid open, lift the hamburger above it (z 1000)
+       and pin it to the top so it stays reachable as a close affordance. */
+    body:has(.cma-sidebar.open) #menuToggle {
+        top: 10px;
+        z-index: 9999;
+    }
+
     .cma-sidebar .cma-toggle-btn {
         display: none;
     }

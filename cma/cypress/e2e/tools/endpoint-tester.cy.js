@@ -56,11 +56,10 @@ describe('Endpoint Tester', () => {
       cy.get('#testGauges').should('exist').and('not.be.visible');
     });
 
-    it('should have lib-gauge elements for progress, success, error, pending', () => {
+    it('should have lib-gauge elements for progress, success, error', () => {
       cy.get('#gaugeProgress').should('exist');
       cy.get('#gaugeSuccess').should('exist');
       cy.get('#gaugeError').should('exist');
-      cy.get('#gaugePending').should('exist');
     });
   });
 
