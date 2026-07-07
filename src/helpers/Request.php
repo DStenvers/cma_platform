@@ -219,7 +219,14 @@ class Request
      */
     public static function queryInt(string $key, string $default = ''): string
     {
-        return Str::numbersOnly(self::query($key, $default));
+        $value = self::query($key, $default);
+        $digits = Str::numbersOnly($value);
+        // Preserve a leading minus — numbersOnly() strips it, which would
+        // silently turn a negative value positive.
+        if ($digits !== '' && strpos(ltrim((string) $value), '-') === 0) {
+            $digits = '-' . $digits;
+        }
+        return $digits;
     }
 
     /**
@@ -233,7 +240,11 @@ class Request
      */
     public static function queryIntAndComma(string $key): string
     {
-        return Str::numbersOnlyAndComma(self::query($key, ''));
+        $value = Str::numbersOnlyAndComma(self::query($key, ''));
+        // Drop empty elements ("1,,3" / ",1," -> "1,3" / "1") so a later split()
+        // doesn't yield empty/zero ids from a stripped-out token.
+        $parts = array_filter(explode(',', $value), static fn($p) => $p !== '');
+        return implode(',', $parts);
     }
 
     /**
@@ -311,11 +322,13 @@ class Request
 
         $normalized = strtolower(trim((string)$value));
 
-        if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+        // Includes the Dutch ja/nee (j/ja/y true, n/nee false) used throughout
+        // the CMA alongside the English forms.
+        if (in_array($normalized, ['1', 'true', 'yes', 'on', 'j', 'ja', 'y'], true)) {
             return true;
         }
 
-        if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) {
+        if (in_array($normalized, ['0', 'false', 'no', 'off', '', 'n', 'nee'], true)) {
             return false;
         }
 
@@ -344,8 +357,14 @@ class Request
      */
     public static function float(string $key, float $default = 0.0): float
     {
-        $value = self::get($key, $default);
-        return (float)$value;
+        $raw = self::get($key, null);
+        if ($raw === null || $raw === '') {
+            return $default;
+        }
+        // Honour Dutch-locale decimals ("1,5" -> 1.5, "1.234,56" -> 1234.56)
+        // before casting — a bare (float) cast stops at the comma and silently
+        // drops the fractional part.
+        return (float) SQL::normalizeDecimal((string) $raw);
     }
 
     /**
@@ -476,10 +495,12 @@ class Request
         $base = $parts[0];
         $queryString = $parts[1] ?? '';
 
-        // No parameters yet
+        // No parameters yet. URL-encode name+value the SAME way the existing-
+        // query branch (http_build_query) does, so a space/&/# in the value can't
+        // break the link and the same input encodes identically either way.
         if (empty($queryString)) {
             if (!empty($value)) {
-                return $base . '?' . $name . '=' . $value;
+                return $base . '?' . urlencode($name) . '=' . urlencode($value);
             }
             return $base;
         }

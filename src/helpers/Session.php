@@ -112,7 +112,9 @@ class Session
     {
         self::init();
 
-        return isset($_SESSION[$key]);
+        // array_key_exists (not isset) so a key explicitly stored as null still
+        // reports present — isset() would wrongly say a null-valued key is absent.
+        return array_key_exists($key, $_SESSION);
     }
 
     /**
@@ -125,7 +127,9 @@ class Session
     {
         self::init();
 
-        if (isset($_SESSION[$key])) {
+        // array_key_exists (not isset) so a key explicitly stored as null can
+        // still be removed — isset() would skip it, matching has()'s contract.
+        if (array_key_exists($key, $_SESSION)) {
             unset($_SESSION[$key]);
             return true;
         }

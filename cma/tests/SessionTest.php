@@ -73,10 +73,13 @@ class SessionTest extends TestCase
         $this->assertFalse(Session::has('absent'));
     }
 
-    public function testHasFalseForNullValue(): void
+    public function testHasTrueForNullValue(): void
     {
-        // has() uses isset(), so an explicit null reads as "not set".
+        // has() uses array_key_exists(), so an explicit null still reads present.
         Session::set('nullkey', null);
+        $this->assertTrue(Session::has('nullkey'));
+        // An absent key is still absent.
+        Session::remove('nullkey');
         $this->assertFalse(Session::has('nullkey'));
     }
 

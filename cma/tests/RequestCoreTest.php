@@ -319,11 +319,14 @@ class RequestCoreTest extends TestCase
         $this->assertSame('', Request::queryInt('id'));
     }
 
-    public function testQueryIntStripsMinusSign(): void
+    public function testQueryIntPreservesMinusSign(): void
     {
-        // Bug-adjacent: numbersOnly drops the '-', so "-5" -> "5".
+        // A leading minus is preserved: "-5" stays "-5" (no silent sign flip).
         $_GET['id'] = '-5';
-        $this->assertSame('5', Request::queryInt('id'));
+        $this->assertSame('-5', Request::queryInt('id'));
+        // But a minus not at the start is still stripped (it's not a sign).
+        $_GET['id'] = '5-3';
+        $this->assertSame('53', Request::queryInt('id'));
     }
 
     public function testQueryIntFloatLosesDot(): void
@@ -374,12 +377,14 @@ class RequestCoreTest extends TestCase
         $this->assertSame('1,2,3,4', Request::queryIntAndComma('ids'));
     }
 
-    public function testQueryIntAndCommaStripsOtherChars(): void
+    public function testQueryIntAndCommaDropsEmptyElements(): void
     {
-        // Only chars outside [0-9,] are removed; commas are preserved verbatim,
-        // so the stripped "abc" between two commas leaves an empty element.
+        // Chars outside [0-9,] are removed AND the resulting empty elements are
+        // dropped, so a stripped "abc" between commas does not leave "1,2,,3".
         $_GET['ids'] = '1, 2, abc,3';
-        $this->assertSame('1,2,,3', Request::queryIntAndComma('ids'));
+        $this->assertSame('1,2,3', Request::queryIntAndComma('ids'));
+        $_GET['ids'] = ',1,,2,';
+        $this->assertSame('1,2', Request::queryIntAndComma('ids'));
     }
 
     public function testQueryIntAndCommaMissingIsEmpty(): void
@@ -537,19 +542,22 @@ class RequestCoreTest extends TestCase
         $this->assertTrue(Request::bool('b', true));
     }
 
-    public function testBoolDutchJIsFalse(): void
+    public function testBoolDutchJIsTrue(): void
     {
-        // GOTCHA: the Dutch "J" (ja) is NOT in the truthy set, and filter_var
-        // does not recognise it either, so bool('J') is FALSE.
+        // The Dutch "J"/"ja" is recognised as true (case-insensitive).
         $_REQUEST['b'] = 'J';
+        $this->assertTrue(Request::bool('b'));
+        $_REQUEST['b'] = 'ja';
+        $this->assertTrue(Request::bool('b'));
+        $_REQUEST['b'] = 'nee';
         $this->assertFalse(Request::bool('b'));
     }
 
-    public function testBoolYSingleLetterIsFalse(): void
+    public function testBoolYSingleLetterIsTrue(): void
     {
-        // Likewise "Y" alone is not recognised (only "yes").
+        // "Y" alone is now recognised as true (alongside "yes").
         $_REQUEST['b'] = 'Y';
-        $this->assertFalse(Request::bool('b'));
+        $this->assertTrue(Request::bool('b'));
     }
 
     public function testBoolUnknownFallsBackToFilterVar(): void
@@ -575,11 +583,18 @@ class RequestCoreTest extends TestCase
         $this->assertSame(10.0, Request::float('f'));
     }
 
-    public function testFloatCommaDecimalNotHonoured(): void
+    public function testFloatHonoursCommaDecimal(): void
     {
-        // GOTCHA: (float) cast stops at the comma, so "1,5" -> 1.0, not 1.5.
+        // Dutch-locale decimals are honoured: "1,5" -> 1.5, "1.234,56" -> 1234.56.
         $_REQUEST['f'] = '1,5';
-        $this->assertSame(1.0, Request::float('f'));
+        $this->assertSame(1.5, Request::float('f'));
+        $_REQUEST['f'] = '1.234,56';
+        $this->assertSame(1234.56, Request::float('f'));
+        $_REQUEST['f'] = '3.14';
+        $this->assertSame(3.14, Request::float('f'));
+        // Missing / non-numeric fall back to the default.
+        unset($_REQUEST['f']);
+        $this->assertSame(9.0, Request::float('f', 9.0));
     }
 
     public function testFloatNonNumericIsZero(): void
@@ -863,12 +878,12 @@ class RequestCoreTest extends TestCase
         );
     }
 
-    public function testAddToUrlDoesNotEncodeValueWhenNoQueryString(): void
+    public function testAddToUrlEncodesValueWhenNoQueryString(): void
     {
-        // BUG-ADJACENT: on the no-query branch the value is concatenated raw,
-        // so a space is NOT url-encoded. Documented here as current behavior.
+        // The no-query branch now URL-encodes name+value the same way the
+        // existing-query branch does (space -> '+'), so links can't break.
         $this->assertSame(
-            'http://x.com/p?b=x y',
+            'http://x.com/p?b=x+y',
             Request::addToURL('http://x.com/p', 'b', 'x y')
         );
     }
