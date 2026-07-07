@@ -671,7 +671,30 @@
             }).join('\n\n');
 
             const copyBtn = errorPanel ? errorPanel.querySelector('.error-btn-copy') : null;
-            navigator.clipboard.writeText(text).then(function() {
+            // navigator.clipboard is UNDEFINED in insecure contexts (http://, IP
+            // hosts), so a bare navigator.clipboard.writeText() throws
+            // synchronously and the .catch() below never runs. Guard it and fall
+            // back to the legacy execCommand copy.
+            (function (t) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(t);
+                }
+                return new Promise(function (resolve, reject) {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = t;
+                        ta.style.position = 'fixed';
+                        ta.style.top = '-1000px';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        var ok = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        ok ? resolve() : reject(new Error('execCommand copy failed'));
+                    } catch (e) { reject(e); }
+                });
+            })(text).then(function() {
                 if (copyBtn) {
                     copyBtn.innerHTML = '<span class="lnr lnr-checkmark-circle"></span> Gekopieerd';
                     setTimeout(function() { copyBtn.innerHTML = '<span class="lnr lnr-copy"></span> Copy'; }, 2000);

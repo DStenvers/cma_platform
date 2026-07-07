@@ -302,8 +302,10 @@ body.mode-detail.is-creating .detail-content { display: block; }
 body.is-creating .fold-horizontal,
 body.is-creating .subform-section { display: none; }
 
-/* When loading data: hide form content until data is ready to prevent empty form flash */
-body.data-loading .detail-content { visibility: hidden; position: relative; }
+/* While loading a record, keep the previous content visible and let the fields
+   update in place. Hiding it (blank panel) flashed on every record switch —
+   "Xwijzigen" -> blank -> "Xwijzigen". position stays for the (disabled) spinner. */
+body.data-loading .detail-content { position: relative; }
 body.data-loading #noDataMessage { display: none; }
 body.data-loading .detail-content::after {
     content: '';

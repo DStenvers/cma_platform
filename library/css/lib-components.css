@@ -195,6 +195,14 @@ lib-switch {
     box-shadow: inset 0 2px 3px rgba(0,0,0,.4);
 }
 
+/* Off state: the light track (#f9f8f8) clashes on a dark background. Scope to
+   :not(.lib-switch--checked) so the green checked track (.lib-switch--checked)
+   isn't overridden by this higher-specificity dark-mode rule. */
+.dark-mode .lib-switch:not(.lib-switch--checked) {
+    background: #5a5959;
+    border-color: #0f0f0f;
+}
+
 .dark-mode .lib-switch__thumb {
     background: linear-gradient(#e0e0e0, #909090);
 }

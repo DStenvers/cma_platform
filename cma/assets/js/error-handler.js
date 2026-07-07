@@ -194,7 +194,7 @@
                     background-color: #ff3333;
                     color: #ffffff;
                 }
-                #cma-error-panel .error-btn:hover .lnr::before {
+                #cma-error-panel .error-btn:hover span::before {
                     color: #ffffff;
                 }
                 #cma-error-panel #cma-error-list {
@@ -612,7 +612,28 @@
             }).join('\n\n');
 
             const copyBtn = errorPanel ? errorPanel.querySelector('.error-btn-copy') : null;
-            navigator.clipboard.writeText(text).then(function() {
+            // navigator.clipboard is UNDEFINED on insecure contexts (http://, IP
+            // hosts) — a bare writeText() throws synchronously past the .catch().
+            (function (t) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(t);
+                }
+                return new Promise(function (resolve, reject) {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = t;
+                        ta.style.position = 'fixed';
+                        ta.style.top = '-1000px';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        var ok = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        ok ? resolve() : reject(new Error('execCommand copy failed'));
+                    } catch (e) { reject(e); }
+                });
+            })(text).then(function() {
                 if (copyBtn) {
                     copyBtn.textContent = 'Copied!';
                     setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
