@@ -198,6 +198,42 @@ class ListTableRenderTest extends TestCase
         $this->assertEquals(3, $result['count'], "count is the rendered-rows-on-this-page value");
     }
 
+    public function testJoinDuplicateRowsAreDedupedAndTotalIsDistinct(): void
+    {
+        // A list whose query has a one-to-many JOIN emits several physical rows
+        // per record. The table is a one-row-per-record view, so:
+        //   - duplicate joined rows must NOT render a second <tr>, and
+        //   - totalCount must be the DISTINCT-id count, not COUNT(*) of the
+        //     inflated join.
+        // Otherwise the loaded-distinct count can never reach the inflated total
+        // and the counter freezes short forever — the "records 1-1800 van 1806
+        // (laden...)" stall. Query has no table + a JOIN listQuery so getTableHtml
+        // takes the listQuery path and detects the join (distinct-count branch).
+        $this->injectForm('list_join', [
+            ['name' => 'naam', 'type' => 'textbox', 'caption' => 'Naam'],
+        ], [
+            'table'     => '', // force the listQuery path
+            'listQuery' => 'SELECT tblTest.ID, tblTest.naam FROM tblTest INNER JOIN tblChild ON tblChild.parent = tblTest.ID',
+        ]);
+
+        // COUNT query runs first. Because the query has a JOIN, getTableHtml asks
+        // for COUNT of DISTINCT ids — here 2 real records.
+        $this->conn->enqueueResult([['cnt' => 2]]);
+        // Data rows: 3 physical rows, but id 1 is repeated by the join → 2 distinct.
+        $this->conn->enqueueResult([
+            ['ID' => 1, 'naam' => 'Alice'],
+            ['ID' => 1, 'naam' => 'Alice'],
+            ['ID' => 2, 'naam' => 'Bob'],
+        ]);
+
+        $result = JsonFormService::getTableHtml('list_join', null, []);
+
+        $this->assertTrue($result['success'] ?? false, 'JOIN list must render: ' . ($result['error'] ?? ''));
+        $this->assertEquals(2, substr_count($result['html'], 'class="listrow'), 'duplicate joined row for id 1 must be deduped to a single <tr>');
+        $this->assertEquals(2, $result['count'], 'count must reflect distinct records, not inflated join rows');
+        $this->assertEquals(2, $result['totalCount'], 'totalCount must be the distinct-id count, not COUNT(*) of the join');
+    }
+
     // ------------------------------------------------------------------
     // 4. Memo / long-text columns excluded from the table
     // ------------------------------------------------------------------

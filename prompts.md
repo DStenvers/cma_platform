@@ -3216,3 +3216,14 @@ karaat-data en staat in de karaat-repo.
 > 3: if you select a record in the tree or the table, that should also be stored in localstorage, can you make that happen?
 
 > yes please do
+
+> okay and the 1-1800 of 1806?? that issue is still there, why dont you just loop :
+>
+> while recordleft {
+> await retrieverecords(offset)
+> }
+
+> still there, why dont you just loop :
+> while recordleft {
+> await retrieverecords(offset)
+> }

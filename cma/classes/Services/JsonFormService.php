@@ -367,8 +367,21 @@ class JsonFormService extends BaseFormService
             // Get total count for initial load (before adding ORDER BY and TOP)
             $totalCount = null;
             if (!$isLoadMore) {
-                // Build count SQL from current query (before ORDER BY)
-                $countSql = preg_replace('/^SELECT\s+.+?\s+FROM/is', 'SELECT COUNT(*) FROM', $sql);
+                // Count DISTINCT record ids when the query has a one-to-many JOIN.
+                // A JOIN inflates the row count (several joined rows per record), but
+                // the table shows — and both server and client dedupe to — one row
+                // per id. A plain COUNT(*) then overcounts: the counter freezes at
+                // e.g. "records 1-1800 van 1806" (1806 joined rows vs 1800 distinct
+                // records actually shown) and the "(laden...)" suffix never clears,
+                // because the loaded-distinct count can never reach the inflated
+                // total. Distinct-id count matches what the user sees. Access has no
+                // COUNT(DISTINCT), so wrap a SELECT DISTINCT in a subquery.
+                if ($hasJoin) {
+                    $innerSql = preg_replace('/^SELECT\s+.+?\s+FROM/is', 'SELECT DISTINCT ' . $qualifiedIdField . ' FROM', $sql);
+                    $countSql = 'SELECT COUNT(*) FROM (' . $innerSql . ') AS cma_cnt';
+                } else {
+                    $countSql = preg_replace('/^SELECT\s+.+?\s+FROM/is', 'SELECT COUNT(*) FROM', $sql);
+                }
                 $countRs = Database::openRS($countSql, $conn);
                 if ($countRs && !$countRs->EOF) {
                     $countRow = $countRs->fetchAssoc();
@@ -612,10 +625,24 @@ class JsonFormService extends BaseFormService
                 $html .= '<tbody>';
             }
             $count = 0;
+            // Dedupe by id within this batch: a one-to-many JOIN emits several rows
+            // per record, but the table is a one-row-per-record view. Skipping the
+            // repeats here keeps the rendered HTML and $count aligned with the
+            // distinct-id totalCount, so the record counter settles instead of
+            // freezing a few rows short. (The client dedupes across batches too;
+            // the keyset cursor $lastRowId is set in the collect pass and is not
+            // affected by skipping a render here.)
+            $renderedIds = [];
             // Check if form is editable (for inline switch toggles)
             $hasFullAccess = SecurityHelper::isAdmin();
             foreach ($rows as $fields) {
                 $recordId = $fields[$idField] ?? $fields[strtolower($idField)] ?? $fields[strtoupper($idField)] ?? '';
+                if ($recordId !== '' && isset($renderedIds[$recordId])) {
+                    continue; // duplicate joined row for a record already rendered
+                }
+                if ($recordId !== '') {
+                    $renderedIds[$recordId] = true;
+                }
                 $isActive = ($activeId !== null && $recordId == $activeId);
                 $rowClass = 'listrow' . ($isActive ? ' active' : '');
 
