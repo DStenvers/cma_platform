@@ -575,30 +575,8 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
             <div class="cma-content" id="contentArea">
                 <div class="cma-content-loading">Laden...</div>
             </div>
-            <?php if (SecurityHelper::isAdmin()): ?>
-            <!-- Lives inside .cma-main (a sibling of #contentArea, so loadPage's
-                 content swap can't wipe it) and its panel fills #contentArea. -->
-            <cma-launcher id="toolsLauncher"></cma-launcher>
-            <?php endif; ?>
         </main>
     </div>
-
-    <?php if (SecurityHelper::isAdmin()): ?>
-    <script>
-    (function () {
-        // Exposed so /cma/tools (no ?tool=) can auto-open the launcher.
-        window.openToolsLauncher = function () {
-            var l = document.getElementById('toolsLauncher');
-            if (l && l.open) l.open();
-        };
-        // Exposed so the tools-page Menu button can toggle (open/close) it too.
-        window.toggleToolsLauncher = function () {
-            var l = document.getElementById('toolsLauncher');
-            if (l && l.toggle) l.toggle();
-        };
-    })();
-    </script>
-    <?php endif; ?>
 
     <script>
     // Wait for main.js to define loadInitialPage

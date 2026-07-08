@@ -22,13 +22,11 @@ Response::noCache();
 // use SELECT and add edit button to it for enabling editing
 // use field object caching for speed (like in list.php)
 $nStarted = microtime(true);
-echo '<HTML><HEAD>';
-echo '<meta name="robots" content="noindex,nofollow,noarchive">';
-echo '<TITLE>Content Management Application - Report details</TITLE>';
-// PERFORMANCE FIX: Removed unused table_functions.js (488KB) - Excel export is done server-side via PHP
-// Backup saved as table_functions.js.backup
-cma_css();
-cma_js();
+// cma_html_header emits the doctype + theme (dark-mode) class on <html> — the
+// old hand-rolled <HTML><HEAD> put the page in quirks mode and ignored the
+// theme cookie, so the report rendered with the legacy look and a white
+// background in dark mode.
+cma_html_header('Report details', '<meta name="robots" content="noindex,nofollow,noarchive">', false);
 echo '<script>;
 var bDocReady = false;
 document.addEventListener("DOMContentLoaded", function() {
@@ -109,8 +107,8 @@ function flip_group( id )
     document.getElementById("grp_img_"+sID).src = (strNewStyle==\'none\'?\'images/report_expand.gif\':\'images/report_collapse.gif\');
 }
 </script>';
-echo '</HEAD>';
-echo '<BODY style="margin:0px" class="contentbody reportdetails">';
+echo '</head>';
+echo '<BODY class="contentbody reportdetails">';
 define("FSO_FORREADING", 1);
 define("FSO_FORWRITING", 2);
 $sRepID = null;

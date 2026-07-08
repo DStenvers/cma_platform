@@ -812,6 +812,26 @@ if ($isAdmin) {
         .activity-badge.delete { background: #ffebee; color: #c62828; }
         .activity-badge.login { background: #e0f2f1; color: #00695c; }
 
+        .activity-table-wrap {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .activity-table-wrap .listtable {
+            width: 100%;
+        }
+
+        .activity-table-wrap .activity-form-link {
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .activity-table-wrap td.activity-time {
+            text-align: right;
+            color: var(--text-muted);
+            font-size: var(--font-size-2xs);
+        }
+
         /* Security stats */
         .security-grid {
             display: grid;
@@ -1410,16 +1430,16 @@ if ($isAdmin) {
                 exportBtn.style.display = 'flex';
             }
 
-            // Build standard cma-table
-            var html = '<div style="max-height: 200px; overflow-y: auto;">' +
-                '<table class="libTable" style="width: 100%; font-size: var(--font-size-sm);">' +
-                '<thead><tr>' +
-                '<th class="libTableTH" style="width: 80px; padding: 6px 8px;">Actie</th>' +
-                '<th class="libTableTH" style="padding: 6px 8px;">Formulier</th>' +
-                '<th class="libTableTH" style="width: 60px; padding: 6px 8px; text-align: right;">Tijd</th>' +
+            // Build a lib-table (dark-mode aware .listtable styling)
+            var html = '<div class="activity-table-wrap">' +
+                '<lib-table export="n"><table class="listtable">' +
+                '<thead><tr class="listheader">' +
+                '<th style="width: 80px;">Actie</th>' +
+                '<th>Formulier</th>' +
+                '<th style="width: 60px;">Tijd</th>' +
                 '</tr></thead><tbody>';
 
-            data.entries.forEach(function(entry, idx) {
+            data.entries.forEach(function(entry) {
                 var actionClass = 'view';
                 var actionLabel = entry.action;
                 if (entry.action === 'edit' || entry.action === 'wijzig') {
@@ -1440,15 +1460,14 @@ if ($isAdmin) {
                     href += '&id=' + entry.record;
                 }
 
-                var rowClass = (idx % 2 === 0) ? 'libTableTD1' : 'libTableTD2';
-                html += '<tr class="libTableTR">' +
-                    '<td class="' + rowClass + '" style="padding: 6px 8px;"><span class="activity-badge ' + actionClass + '">' + actionLabel + '</span></td>' +
-                    '<td class="' + rowClass + '" style="padding: 6px 8px;"><a href="' + href + '" style="text-decoration: none; color: var(--text-primary);">' + escapeHtml(entry.formTitle) + '</a></td>' +
-                    '<td class="' + rowClass + '" style="padding: 6px 8px; text-align: right; color: var(--text-muted); font-size: var(--font-size-2xs);">' + entry.time + '</td>' +
+                html += '<tr class="listrow">' +
+                    '<td><span class="activity-badge ' + actionClass + '">' + actionLabel + '</span></td>' +
+                    '<td><a href="' + href + '" class="activity-form-link">' + escapeHtml(entry.formTitle) + '</a></td>' +
+                    '<td class="activity-time">' + entry.time + '</td>' +
                 '</tr>';
             });
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table></lib-table></div>';
             recentActivity.innerHTML = html;
         }
 

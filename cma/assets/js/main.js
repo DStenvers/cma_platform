@@ -486,13 +486,6 @@
     // =========================================================================
 
     window.toggleSidebar = function(forceState) {
-        // Clicking the sidebar trigger dismisses the big tools/reports launcher
-        // overlay if it's open — the two menus shouldn't stack on screen.
-        const launcher = document.getElementById('toolsLauncher');
-        if (launcher && typeof launcher.close === 'function'
-            && (typeof launcher.isOpen !== 'function' || launcher.isOpen())) {
-            launcher.close();
-        }
         // PERFORMANCE: Use cached sidebar reference
         const sidebar = getCachedSidebar();
         const menuCheckbox = document.getElementById('menuToggleCheckbox');

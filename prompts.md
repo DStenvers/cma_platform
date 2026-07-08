@@ -2914,3 +2914,282 @@ karaat-data en staat in de karaat-repo.
 > if cma-sidebar open then #menuToggle { top:10px and z-index: 9999} 
 
 > yes remove menurep.php and do a re-evaluation of all files wether they are in use or not
+
+> <task-notification>
+> <task-id>ad1fab762e9231ff4</task-id>
+> <tool-use-id>toolu_01WGAGeYn9uc3Bg6nN4zgukt</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/ad1fab762e9231ff4.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit cma webcomponents/classes/js" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough to classify everything. Let me compile the final audit.
+>
+> ## Audit results
+>
+> ### Web components — `cma/webcomponents/*.js`
+>
+> | File | Verdict | Evidence |
+> |---|---|---|
+> | cma-base-component.js | USED | bundled in bootstrap.inc:680; base class extended by other cma-* components |
+> | cma-blockeditor.js | USED | bundled bootstrap.inc:286,699 |
+> | cma-fold.js | USED | bundled bootstrap.inc:290,700 |
+> | cma-tree.js | USED | bundled bootstrap.inc:701 (also loaded per-page) |
+> | cma-sortlist.js | USED | bundled bootstrap.inc:287,702 |
+> | cma-groupbox.js | USED | bundled bootstrap.inc:288,703 |
+> | cma-toolbar.js | USED | bundled bootstrap.inc:292,704; also image-editor.php:114 |
+> | cma-tabs.js | USED | bundled bootstrap.inc:293,705 |
+> | cma-launcher.js | USED | bundled bootstrap.inc:294,706 |
+> | cma-htmledit.js | USED | bundled bootstrap.inc:301,715 |
+> | shared-icons.js | USED | bundled bootstrap.inc:698 (provides icons for other components) |
+> | cma-schema-canvas.js | USED | loaded via cma_script in report-designer.php:76 |
+> | cma-field-config.js | USED | report-designer.php:77 |
+> | cma-conditions-panel.js | USED | report-designer.php:78 |
+> | cma-param-config.js | USED | report-designer.php:79 |
+> | cma-sort-config.js | USED | report-designer.php:80 |
+> | cma-group-config.js | USED | report-designer.php:81 |
+> | cma-query-preview.js | USED | report-designer.php:83 |
+> | cma-sql-editor.js | USED | report-designer.php:84 |
+> | cma-combo.js | LIKELY DEAD | 11-line deprecated stub ("should not be loaded"); merged into lib-combo.js; loaded nowhere (bootstrap.inc:289 comment + storybook doc only) |
+> | UNUSED_cma-checklist.js | LIKELY DEAD | filename + `&lt;cma-checklist&gt;` tag appear nowhere outside its own def; already flagged by `UNUSED_` prefix |
+> | UNUSED_cma-rights-matrix.js | LIKELY DEAD | filename + `&lt;cma-rights-matrix&gt;` tag appear nowhere outside its own def; `UNUSED_` prefix |
+>
+> ### Classes — `cma/classes/**/*.php`
+>
+> All 46 are USED except two. Each USED class has ≥2 cross-file references (`require_once` + `::`/`new`). Notable low-but-live: HtmlHelper (FormTemplate.php:21,210,357), OptionsService(3), ProcessRunner(2), SubformService(3), DatabasesService(2), FormRoute(3), ReportExporter/ReportStorage, SqlHelper(3), form_constants(5). Suspects:
+>
+> | File | Verdict | Evidence |
+> |---|---|---|
+> | classes/FormColumn.php | LIKELY DEAD | `class FormColumn` referenced only inside its own docblock; the only repo hits for "FormColumn" are an unrelated `$hasFormColumn` var in migration 5.7.0. No `require_once`, `new`, or `FormColumn::` anywhere |
+> | classes/Services/FormMetadataService.php | LIKELY DEAD | `require_once`'d in bootstrap.inc:156 but no `FormMetadataService::`, `new`, or `extends` anywhere; all public methods are static and none are called qualified. Loaded-but-never-invoked. (Note: removal must also drop the bootstrap.inc:156 require line) |
+>
+> ### assets/js — `cma/assets/js/*.js`
+>
+> | File | Verdict | Evidence |
+> |---|---|---|
+> | cma-utils.js | USED | bundled bootstrap.inc:270,673 |
+> | url-manager.js | USED | bundled bootstrap.inc:675 |
+> | request-tracker.js | USED | bundled bootstrap.inc:272,678 |
+> | cma.js | USED | bundled bootstrap.inc:299,713 |
+> | cma-users.js | USED | bundled bootstrap.inc:300,714 |
+> | blockedit.js | USED | bundled bootstrap.inc:302,716 |
+> | table-preferences.js | USED | bundled bootstrap.inc:303,718 |
+> | inline-edit.js | USED | bundled bootstrap.inc:304,719 |
+> | perf-logger.js | USED | bundled bootstrap.inc:305,720 |
+> | cma-tours.js | USED | bundled bootstrap.inc:307,722 |
+> | cma-list-thumb.js | USED | bundled bootstrap.inc:723 |
+> | main.js | USED | bundled bootstrap.inc:308,724 |
+> | form-controller.js | USED | injected into form JS bundle bootstrap.inc:737,739 |
+> | image-editor.js | USED | loaded via minify_asset in image-editor.php:114 |
+> | error-handler.js | LIKELY DEAD | stale duplicate — every load path points to `library/assets/js/error-handler.js` (bootstrap.inc:271,322,677; main.php:408; image-editor.php:114), which differs in content. The `cma/assets/js/` copy is loaded nowhere; only prose-referenced in documentation.php:2503 |
+> | UNUSED_form-helpers.js | LIKELY DEAD | filename referenced nowhere; `UNUSED_` prefix |
+> | UNUSED_image-wizard.js | LIKELY DEAD | filename referenced nowhere; `UNUSED_` prefix |
+>
+> ## Recommend removing (LIKELY DEAD)
+>
+> Web components:
+> - `/mnt/c/repos/cma_platform/cma/webcomponents/cma-combo.js` (deprecated stub; also remove the storybook.php:2865 mention)
+> - `/mnt/c/repos/cma_platform/cma/webcomponents/UNUSED_cma-checklist.js`
+> - `/mnt/c/repos/cma_platform/cma/webcomponents/UNUSED_cma-rights-matrix.js`
+>
+> Classes:
+> - `/mnt/c/repos/cma_platform/cma/classes/FormColumn.php`
+> - `/mnt/c/repos/cma_platform/cma/classes/Services/FormMetadataService.php` (also drop `require_once` at bootstrap.inc:156)
+>
+> assets/js:
+> - `/mnt/c/repos/cma_platform/cma/assets/js/error-handler.js` (stale duplicate of the live `library/assets/js/error-handler.js`; update documentation.php:2503 to point at the library path)
+> - `/mnt/c/repos/cma_platform/cma/assets/js/UNUSED_form-helpers.js`
+> - `/mnt/c/repos/cma_platform/cma/assets/js/UNUSED_image-wizard.js`
+>
+> Caveats: removals of any of these must also add the path to `Installer.php::REMOVED_PATHS` (per project rule) so consumer sites drop the dead files. FormMetadataService and the cma-copy error-handler are the only "surprising" ones — both are genuinely loaded (require/doc-referenced) but never actually invoked/served; I rated them LIKELY DEAD rather than UNCERTAIN because no qualified call site exists. Everything not listed here is USED. I found no truly UNCERTAIN files in this slice.</result>
+> <usage><subagent_tokens>39796</subagent_tokens><tool_uses>13</tool_uses><duration_ms>607741</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>acee909e8992a8777</task-id>
+> <tool-use-id>toolu_01X4cLBPKG9BbtfCnntv7rz4</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/acee909e8992a8777.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit cma root pages + includes" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Analysis complete. Here are my findings for all 41 top-level `cma/*.php` and `cma/*.inc` files.
+>
+> ## Dead-file audit — `cma/*.php` and `cma/*.inc`
+>
+> | File | Verdict | Evidence |
+> |------|---------|----------|
+> | `html_edit_cell.php` | LIKELY DEAD | Zero launchers; uses IE-only `window.dialogArguments` (`showModalDialog`) API. Siblings table/image/link are opened via `cma.js` `lib_OpenWindowCentered`, but cell/row have NO cma.js caller. Only "ref" is `tools_endpoint_tester.php` which auto-`glob()`s the dir (not real use). |
+> | `html_edit_row.php` | LIKELY DEAD | Same as cell: `window.dialogArguments["table_row"]` IE modal API; no JS launcher anywhere. |
+> | `wizard.php` | LIKELY DEAD | Legacy iframe wizard shell (`WizardInit`, `IMAGES/pixel.gif`, `blank.php` content frame). Current wizards open standalone via `wizards/file-browser.php?...` (form-controller.js). Zero launchers; only ref is a stale comment in `wizards/link-pages.php:149`. (Note: `wizards/wizard.js` it loads is still live via html_edit_* / template_edit — keep the JS.) |
+> | `reports_DEPRECATED.php` | LIKELY DEAD | Self-documented archive of the old two-pane reports browser; superseded by `reports.php`; header says "reachable only by direct URL; nothing links to it. Remove after v1.29" (current v1.28.92). |
+> | `tools_DEPRECATED.php` | LIKELY DEAD | Archived two-pane cma-tree tools view, superseded by `tools.php`; only mentioned as "archived" in `tools.php:9` + docs. Direct-URL-only intentional archive. |
+> | `listTemplates.php` | UNCERTAIN | Routable full page (recently modernized to `cma-tree`) but NO menu.json / tools-catalog / tile / link points to it. Entry to the template-editing island. |
+> | `template_edit.php` | UNCERTAIN | Reachable only from `listTemplates.php:158` (and `template_post.php` redirect) — part of the same island; no external entry. |
+> | `template_post.php` | UNCERTAIN | POST handler for `template_edit.php`'s form (`action=template_post.php`); island member, no external entry. |
+> | `template_fillrep.php` | UNCERTAIN | Linked only from `listTemplates.php:50`; redirects to `blank.php`. Island member. |
+> | `subform.php` | UNCERTAIN | Full page "Modernized with lib-table" but zero launchers found; subforms are now served via `api/form_subform.php` (form-controller.js) — possibly superseded standalone page. |
+> | `copyright.php` | UNCERTAIN | Full page emitting `versie &lt;STRCMAVERSION&gt;`; in bootstrap public-pages whitelist but nothing links it. Likely a frameset-era footer remnant; can't prove it's unreachable (may be loaded site-side). |
+> | `404.php` | USED | web.config `httpErrors` → `path="/cma/404.php"`. |
+> | `blank.php` | USED | Public-pages whitelist; iframe placeholder for `wizard.php` + `template_fillrep.php` redirect target. |
+> | `bootstrap.inc` | USED | Required by virtually every root page (`require_once __DIR__.'/bootstrap.inc'`); builds bundles. |
+> | `dashboard.php` | USED | web.config rewrite `main.php?page=dashboard.php`; requires `menurep.inc`. |
+> | `default.php` | USED | IIS default document (web.config `&lt;add value="default.php"&gt;`); redirects logged-in users to `main.php`. |
+> | `details_getdata.php` | USED | Called as dynamic AJAX URL by `classes/FormControlHelper.php` (3 sites). |
+> | `form.php` | USED | Primary form page; many web.config rewrites `main.php?page=form.php`. |
+> | `form_api.php` | USED | Central AJAX endpoint (325+ refs across JS). |
+> | `html_edit_image.php` | USED | Opened via `cma.js:905` `lib_OpenWindowCentered('html_edit_image.php',...)`. |
+> | `html_edit_link.php` | USED | Opened via `cma.js:801/913` (insert/edit modes). |
+> | `html_edit_table.php` | USED | Opened via `cma.js:889/897` (insert/edit modes). |
+> | `image-editor.php` | USED | Opened by `wizards/file-browser.php:2325` (`../image-editor.php?...`); documented. |
+> | `imageupload_crop.php` | USED | Opened via `cma.js:808/1628` `CMA.image.openDialog(...)` and `wizards/file_upload.php`. |
+> | `imageupload_crop_upload_handler.php` | USED | `endpoint` for `&lt;lib-fileuploader&gt;` in `imageupload_crop.php:225`. |
+> | `index.php` | USED | IIS default doc; redirects to `default.php`. |
+> | `login.php` | USED | Auth entry; public-pages whitelist; links `password.php`, `sso_login.php`. |
+> | `logout.php` | USED | Auth flow; public-pages whitelist. |
+> | `main.php` | USED | The sidebar shell; target of all web.config rewrites (`main.php?page=...`). |
+> | `menurep.inc` | USED | Required by `main.php:160` and `dashboard.php:17` (`loadMenuData()`); Installer notes the dependency. |
+> | `minify.php` | USED | Asset pipeline (`minify.php?f=...`) referenced by all pages; public-pages whitelist. |
+> | `password.php` | USED | Linked from `login.php:358` (`&lt;a href="password.php"&gt;` change-password). |
+> | `preferences.php` | USED | web.config rewrite `main.php?page=preferences.php`. |
+> | `report-designer.php` | USED | `menu.json:484` `"href": "report-designer.php"`. |
+> | `reportdetails.php` | USED | `reports-catalog.php:44` `'href' =&gt; 'reportdetails.php?RepID=...'`. |
+> | `reports.php` | USED | `menu.json:475` `"href": "reports.php"`. |
+> | `sso_callback.php` | USED | Public-pages whitelist; `SsoService.php:153` uses it as IDP callback path. |
+> | `sso_login.php` | USED | Linked from `login.php:267`; public-pages whitelist. |
+> | `task.php` | USED | Externally-triggered daily batch endpoint (`/cma/task.php`); head comment confirms it's the scheduled job (flagged for CLI-move but live). |
+> | `tools.php` | USED | web.config rewrite `main.php?page=tools.php`; 182 refs. |
+> | `tools_catalog.inc` | USED | Required by `api/tools-catalog.php:14` and `tools_DEPRECATED.php:28` (`buildToolsTreeData()`, shared launcher source). |
+> | `wizard.php` | (see above) | — |
+>
+> ### Recommend removing (LIKELY DEAD)
+> 1. `cma/html_edit_cell.php` — orphaned IE `showModalDialog` table-cell dialog, no launcher.
+> 2. `cma/html_edit_row.php` — orphaned IE `showModalDialog` table-row dialog, no launcher.
+> 3. `cma/wizard.php` — legacy iframe wizard shell; wizards now open standalone (keep `wizards/wizard.js`, still used).
+> 4. `cma/reports_DEPRECATED.php` — intentional archive, superseded by `reports.php` ("Remove after v1.29").
+> 5. `cma/tools_DEPRECATED.php` — intentional archive, superseded by `tools.php`.
+>
+> Notes for the caller:
+> - Items 4–5 are deliberate transitional archives inside their stated keep-window (current release v1.28.92, slated for removal ~v1.29) — dead, but removal is a scheduled cleanup, not an accident.
+> - Any removal must add the path to `src/Installer.php::REMOVED_PATHS` (per the repo's installer-propagation rule) or consumer sites keep the dead file forever. `reports_DEPRECATED.php`/`tools_DEPRECATED.php` also `require` `tools_catalog.inc` — that .inc is still shared with `api/tools-catalog.php`, so keep it.
+> - The **template cluster** (`listTemplates` → `template_edit` → `template_post`, plus `template_fillrep`) is a self-contained island with no discoverable entry link, but was recently modernized to `cma-tree` and the pages are directly routable — worth confirming with the user whether "wijzigbare pagina's" is still a live feature before removing. Same caution for `subform.php` (superseded-looking but recently touched) and `copyright.php` (frameset-era footer remnant, still whitelisted).</result>
+> <usage><subagent_tokens>52217</subagent_tokens><tool_uses>12</tool_uses><duration_ms>764665</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a7fa63c43dadb45bd</task-id>
+> <tool-use-id>toolu_01KE39rgfWMxja7qktxJzxtX</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/9acb05bb-e63e-4d18-894e-ce08c9e1a363/tasks/a7fa63c43dadb45bd.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit cma tools/api/wizards" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough evidence. Key mechanism confirmed: tools are registered in `cma/tools_catalog.inc` (`buildToolsTreeData()`) + `cma/tools.php`; `cma/tools_DEPRECATED.php` is archived and never loaded (only mentioned in comments/docs), so references from it are NOT evidence of use. The modern `wizards/file-browser.php` (used by blockedit.js, form-controller.js, image-editor.js) self-serves its API via `fetch('?action=...')` and has superseded the entire legacy frameset file-picker family.
+>
+> ## Dead-file audit: `cma/tools`, `cma/api`, `cma/wizards`
+>
+> | File | Verdict | Evidence |
+> |------|---------|----------|
+> | `cma/tools/phpinfo_check.php` | LIKELY DEAD | 37-line debug dump ("Quick PHP configuration check for debugging"), no auth, zero references anywhere; not in catalog/tools.php/menu/docs. |
+> | `cma/tools/reload_env.php` | LIKELY DEAD | Standalone .env-reload utility, zero references, not registered in catalog/tools.php, not documented. |
+> | `cma/tools/temp_get_subform_order.php` | LIKELY DEAD | Throwaway debug script (`temp_` prefix), requires `_bootstrap.php` directly and reads removed `conn_data`/`conn_rep` globals (gone since DB-single-source v1.25.0); zero references. |
+> | `cma/tools/tools_process_test.php` | LIKELY DEAD | Unregistered "Process Runner Test Page"; zero references; sole consumer of `ProcessRunner` service (nothing else uses it). |
+> | `cma/tools/tools_test_config.php` | LIKELY DEAD | Unregistered developer "ConfigLoader Test Script"; zero references; not in any catalog. |
+> | `cma/tools/tools_welcome.php` | LIKELY DEAD | 5-line empty-state page referenced only by the archived, never-loaded `tools_DEPRECATED.php`. |
+> | `cma/api/contentblocks_api.php` | LIKELY DEAD | Standalone content-blocks CRUD API superseded by the `contentblocks` JSON form (handled by `ConfigFormService`/`form_api`); zero live consumers (only the endpoint-tester's dynamic `glob`). |
+> | `cma/wizards/file-pages.php` | LIKELY DEAD | Legacy file-picker wizard superseded by `file-browser.php` (which labels it "old file-pages.php wizard"); referenced only in comments; no launcher. |
+> | `cma/wizards/link-pages.php` | LIKELY DEAD | Legacy frameset picker; zero external references; only embeds the dead `file_frameset.php`. |
+> | `cma/wizards/table-pages.php` | LIKELY DEAD | Legacy frameset picker; zero references in either direction. |
+> | `cma/wizards/file_frameset.php` | LIKELY DEAD | Referenced only by dead `file-pages.php`/`link-pages.php`; classic frameset remnant. |
+> | `cma/wizards/file_controls.php` | LIKELY DEAD | Referenced only within the dead frameset family (`file_frameset.php`, `file_controls_delete.php`). |
+> | `cma/wizards/file_controls_delete.php` | LIKELY DEAD | Mutual reference with dead `file_controls.php` only. |
+> | `cma/wizards/file_list.php` | LIKELY DEAD | Referenced only by dead-family members (`file_frameset`, `file_upload`, `file_list_ajaxdata`). |
+> | `cma/wizards/file_list_ajaxdata.php` | LIKELY DEAD | Referenced only by dead `file_list.php`. |
+> | `cma/wizards/file_outputfile.php` | LIKELY DEAD | Referenced by dead `file_upload.php`; the `LibUpload.php` hit is a comment, not a call. |
+> | `cma/wizards/file_upload.php` | LIKELY DEAD | Referenced only within the dead frameset family (`file_frameset`, `file_outputfile`). |
+> | `cma/wizards/file_browser_api.php` | LIKELY DEAD | Self-described "modern file browser API" but orphaned — `file-browser.php` self-serves via `fetch('?action=list/details')`; zero references anywhere. |
+> | `cma/tools/set_migration_version.php` | UNCERTAIN | Dev-only utility (`isDeveloper` gate), documented as direct-URL in its own header; zero external references but a plausibly-intentional dev entry point. |
+> | `cma/tools/tools_export_repository_cli.php` | UNCERTAIN | CLI companion of the registered `tools_export_repository.php`, meant to be run manually (`php …_cli.php`); no code refs expected, but paths look stale. |
+> | `cma/tools/tools_validate_config.php` | UNCERTAIN | Unregistered config-validation maintenance script (browser/CLI, admin-gated); zero references, but plausibly run manually by URL. |
+> | `cma/api/config_api.php` | UNCERTAIN | Config-read API (`?type=databases`); no live consumer found in JS/forms/menu/classes — only the endpoint-tester glob + a recorded test run; likely superseded by `ConfigFormService` but reachable by direct URL. |
+> | `cma/api/config_post.php` | UNCERTAIN | Config-save POST handler; no form or JS posts to it (config-backed forms now go through `ConfigFormService`); referenced only in a comment + endpoint-tester list. |
+> | `cma/api/file_edit.php` | UNCERTAIN | Local-env dev-only API ("open file in system editor"); zero consumers found, but a dev-mode link/fetch may exist outside this repo's grep surface. |
+> | `cma/tools/db_health.php` | USED | Registered in `tools_catalog.inc` + `tools.php`. |
+> | `cma/tools/diag.php` | USED | Documented direct-URL diagnostic endpoint (`?key=DEPLOY_SECRET`) in `documentation.php`; intentionally bootstrap-independent. |
+> | `cma/tools/documentation.php` | USED | Registered tool; the docs hub. |
+> | `cma/tools/llm_analyse.php` | USED | Linked from `cma/config/menu.json` (`href: tools/llm_analyse.php`). |
+> | `cma/tools/logreader.php` | USED | Registered in catalog + tools.php; cypress specs. |
+> | `cma/tools/opcache_reset.php` | USED | Linked as a live tool in `documentation.php` ("Tools → OPcache reset", `href="tools/opcache_reset.php"`). |
+> | `cma/tools/storybook.php` | USED | Registered in catalog + tools.php; cypress specs. |
+> | `cma/tools/tools_consistency_picture_delete.php` | USED | Invoked by `tools_db_consistency.php`. |
+> | `cma/tools/tools_generate_forms.php` | USED | Registered in `tools.php`; invokes `tools_validate_parentfields.php`. |
+> | `cma/tools/tools_validate_parentfields.php` | USED | Invoked by `tools_generate_forms.php`. |
+> | `cma/tools/tools_backup / tools_clearcache / tools_create_indexes / tools_db_consistency / tools_db_sync / tools_dbcompact / tools_dbsummary / tools_deploy_setup / tools_dev_copymod / tools_endpoint_tester / tools_export_repository / tools_formedit / tools_formwiz / tools_llm / tools_maintenance / tools_migrate_prepare / tools_migrations / tools_phpunit / tools_query / tools_serverinfo / tools_sqlite_repair / tools_testrunner / tools_webp_convert` | USED | All registered in `tools_catalog.inc` + `tools.php`. |
+> | `cma/api/change-password.php` | USED | Fetched by `main.js`; used by `password.php`; cypress. |
+> | `cma/api/dashboard_stats.php` | USED | Used by `dashboard.php`; cypress. |
+> | `cma/api/email-actions.php` | USED | Fetched by `cma.js`; tests + cypress. |
+> | `cma/api/form_definition.php / form_list.php / form_record.php / form_subform.php` | USED | Fetched by `form-controller.js` / `subform.php`; endpoint-tester + cypress. |
+> | `cma/api/forms_index.php` | USED | `ajaxUrl` in `assets/forms/definitions/_menu_items.json`. |
+> | `cma/api/icon_add.php` | USED | Used by `storybook.php`; cypress. |
+> | `cma/api/log.php` | USED | Fetched by `main.js`, `perf-logger.js`, `lib-log.js`. |
+> | `cma/api/report-definition / report-export / report-query / report-save / report-schema.php` | USED | Used by `report-designer.php`/`reportdetails.php` and report web components; cypress. |
+> | `cma/api/reports-catalog.php` | USED | Used by `reports.php`. |
+> | `cma/api/tools-catalog.php` | USED | Fetched by `cma-launcher.js`. |
+> | `cma/api/test_ip_match.php` | USED | Registered in `bootstrap.inc` allowlist (env-protected); cypress spec. |
+> | `cma/api/user_actions.php` | USED | Fetched by `cma-users.js`; `main.php`. |
+> | `cma/api/user_activity.php / user_forms.php` | USED | Used by `dashboard.php`; cypress. |
+> | `cma/api/user_tips.php` | USED | Fetched by `lib-tip.js`; cypress. |
+> | `cma/wizards/file-browser.php` | USED | Opened by `blockedit.js`, `form-controller.js`, `image-editor.js/php`; cypress. |
+>
+> ### Recommend removing (LIKELY DEAD)
+> Tools:
+> - `cma/tools/phpinfo_check.php`
+> - `cma/tools/reload_env.php`
+> - `cma/tools/temp_get_subform_order.php`
+> - `cma/tools/tools_process_test.php`
+> - `cma/tools/tools_test_config.php`
+> - `cma/tools/tools_welcome.php`
+>
+> API:
+> - `cma/api/contentblocks_api.php`
+>
+> Wizards (entire legacy frameset file-picker family, superseded by `file-browser.php`):
+> - `cma/wizards/file-pages.php`
+> - `cma/wizards/link-pages.php`
+> - `cma/wizards/table-pages.php`
+> - `cma/wizards/file_frameset.php`
+> - `cma/wizards/file_controls.php`
+> - `cma/wizards/file_controls_delete.php`
+> - `cma/wizards/file_list.php`
+> - `cma/wizards/file_list_ajaxdata.php`
+> - `cma/wizards/file_outputfile.php`
+> - `cma/wizards/file_upload.php`
+> - `cma/wizards/file_browser_api.php`
+>
+> Note (per your Installer-propagation memory): any of these that gets `git rm`'d must also be added to `src/Installer.php` `REMOVED_PATHS`, or consumer sites keep the dead file forever. I verified none of the above are currently in `REMOVED_PATHS`. The 6 UNCERTAIN files (`set_migration_version.php`, `tools_export_repository_cli.php`, `tools_validate_config.php`, `config_api.php`, `config_post.php`, `file_edit.php`) each have zero discoverable live consumers but remain plausibly reachable as manual/direct-URL dev or maintenance endpoints — worth a human confirm before removal.</result>
+> <usage><subagent_tokens>65119</subagent_tokens><tool_uses>17</tool_uses><duration_ms>908690</duration_ms></usage>
+> </task-notification>
+
+> okay remove all items where you are sure of that they are unused
+
+>
+> PHP Unit Tests : alles selecteren checkbox in eerste colom header met alleen vinkje, geen label 
+>
+> The cma-launcher should be inside tools-content , zelfde als bij rapportages
+> http://172.30.208.1:8090/cma/reportdetails.php?RepID=83 -> oude weergave, geen mooie toolbar en achtergrond is wit bij dark mode 
+> dark mode: . canvas-container bij cma-schema-canvas in dark mode: zwart als achtergrond
+> :host-context(html.dark-mode) .tabs-list {
+> 1.        Background-color: #474747
+>
+> Call to undefined method App\Library\SQL::normalizeDecimal() : http://172.30.208.1:8090/cma/form/opleidingen:0 
+>
+> Mijn recente activiteit uses a libTable and other old styling, use  a lib-table that knows dark mode as well , remove the old css 
+>
+> Turning 
+> Performance logging        Log API-aanroepen, queries en laadtijden
+> Cache logging        Log cache hits en misses
+> Debug logging        
+> Off does not work, they keep being ON 
+> Bij de opmerkingen staat dat het in Deze instellingen gelden voor alle gebruikers en worden opgeslagen in het .env.local bestand. 
+> Maar we zijn over op het enkelvoudige .env bestand. 
+
+## 2026-07-08
+
+> continue

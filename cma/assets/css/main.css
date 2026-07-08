@@ -1440,12 +1440,7 @@ body.cma-launcher-open { overflow: hidden; }
 iframe.tools-content-area {
     flex: 1; height: 100%; width: 100%; border: none; background: var(--bg-body);
 }
-.tools-empty {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted); font-size: var(--font-size); padding: 24px; text-align: center;
-}
-
-/* Launcher host (reports.php #reports) — the box below the toolbar that is
+/* Launcher host (reports.php #reports, tools.php #tools) — the box below the toolbar that is
    "either empty or a menu". The report iframe stays mounted underneath (z-index
    1); the embedded <cma-launcher> overlays it (z-index 2) when open and is
    display:none when closed, revealing the iframe. No show/hide juggling — the

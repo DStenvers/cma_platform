@@ -235,8 +235,6 @@ ToolbarHelper::title('PHP Unit Tests');
 ToolbarHelper::separator();
 ToolbarHelper::button('javascript:runAllTests()', 'lnr-rocket', $canRun, 'Alle tests', 'Alle tests uitvoeren', 'btnRunAll');
 ToolbarHelper::button('javascript:runSelectedTests()', 'lnr-play', $canRun, 'Selectie', 'Geselecteerde tests uitvoeren', 'btnRunSelected');
-ToolbarHelper::startRight();
-echo '<label class="select-all-label"><input type="checkbox" id="selectAll"> Alles selecteren</label>';
 ToolbarHelper::end();
 
 echo '<div id="c" class="tools">';
@@ -256,7 +254,7 @@ if (!empty($testFiles)):
 <table class="tests-table">
     <thead>
         <tr>
-            <th style="width:5%;"></th>
+            <th style="width:5%;"><input type="checkbox" id="selectAll" title="Alles selecteren"></th>
             <th style="width:30%;">Test</th>
             <th style="width:25%;">Bestand</th>
             <th style="width:15%;">Laatst gewijzigd</th>
@@ -307,14 +305,6 @@ if (!empty($testFiles)):
 
 #resultsPanel:not(:empty) {
     margin-bottom: 20px;
-}
-
-.select-all-label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    color: var(--text-primary);
 }
 
 .test-output {

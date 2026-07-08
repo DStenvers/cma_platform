@@ -212,8 +212,13 @@
         // Resolve one catalog item to its navigation descriptor for the active mode.
         _resolveNav(it) {
             if (this._embedded) {
-                // iframe mode: href is the iframe src, url the optional deep-link.
-                return { iframe: true, src: it.href || '', url: it.url || null };
+                // Site-root / absolute hrefs are plain scripts, not CMA pages —
+                // resolveShellNav flags them external; open in a new tab here too.
+                var nav = resolveShellNav(it.href);
+                if (nav && nav.external) return nav;
+                // iframe mode: href is the iframe src; deep-link from the item's
+                // own url, falling back to the shell route (/cma/tools?tool=…).
+                return { iframe: true, src: it.href || '', url: it.url || (nav && nav.url) || null };
             }
             return resolveShellNav(it.href);
         }

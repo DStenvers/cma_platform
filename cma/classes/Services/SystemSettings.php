@@ -23,7 +23,11 @@ class SystemSettings
     ];
 
     /**
-     * Get the environment-specific .env file path
+     * Get the .env file path — MUST be the same file the bootstrap loaded,
+     * otherwise settings are written to a file the app never reads (the
+     * "toggle stays on" bug). Mirrors Bootstrap::detectAndLoadEnv(): the
+     * single-file model (.env) is preferred; the per-environment files are
+     * only a fallback for boxes that haven't been migrated.
      */
     private static function getEnvFile(): string
     {
@@ -31,22 +35,29 @@ class SystemSettings
             // Go up from /cma/classes/Services to /site
             $siteRoot = dirname(__DIR__, 3);
 
-            // Determine which env file based on APP_ENVIRONMENT
-            $appEnv = $_ENV['APP_ENVIRONMENT'] ?? \App\Library\Request::server('APP_ENVIRONMENT', null);
-
-            if ($appEnv && isset(self::ENV_FILE_MAP[$appEnv])) {
-                self::$envFileName = self::ENV_FILE_MAP[$appEnv];
+            // 1) The file Bootstrap actually loaded (set in detectAndLoadEnv).
+            $loaded = $GLOBALS['_env_file'] ?? null;
+            if (is_string($loaded) && $loaded !== '' && file_exists($siteRoot . '/' . $loaded)) {
+                self::$envFileName = $loaded;
+            } elseif (file_exists($siteRoot . '/.env')) {
+                // 2) Single-file model.
+                self::$envFileName = '.env';
             } else {
-                // Auto-detect by checking which .env file exists
-                foreach (self::ENV_FILE_MAP as $code => $fileName) {
-                    if (file_exists($siteRoot . '/' . $fileName)) {
-                        self::$envFileName = $fileName;
-                        break;
+                // 3) Legacy per-environment fallback: APP_ENVIRONMENT mapping,
+                //    then existence scan.
+                $appEnv = $_ENV['APP_ENVIRONMENT'] ?? \App\Library\Request::server('APP_ENVIRONMENT', null);
+                if ($appEnv && isset(self::ENV_FILE_MAP[$appEnv]) && file_exists($siteRoot . '/' . self::ENV_FILE_MAP[$appEnv])) {
+                    self::$envFileName = self::ENV_FILE_MAP[$appEnv];
+                } else {
+                    foreach (self::ENV_FILE_MAP as $code => $fileName) {
+                        if (file_exists($siteRoot . '/' . $fileName)) {
+                            self::$envFileName = $fileName;
+                            break;
+                        }
                     }
-                }
-                // Fallback to .env if none found
-                if (self::$envFileName === null) {
-                    self::$envFileName = '.env';
+                    if (self::$envFileName === null) {
+                        self::$envFileName = '.env';
+                    }
                 }
             }
 

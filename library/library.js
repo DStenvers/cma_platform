@@ -2154,11 +2154,23 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 
 			mObj.innerHTML = header + content;
 
-			// When iframe loads, hide spinner and show content
+			// Reveal the iframe as soon as its DOCUMENT is parsed, not at the
+			// full 'load' event: load waits for every subresource (ckeditor.js
+			// ~500KB + skin CSS + plugin files), which kept the panel blank for
+			// a second-plus while the form HTML was long since renderable.
 			if (!htmlContent) {
 				var iframe = mObj.querySelector('#' + iframeId);
 				var loadingEl = mObj.querySelector('#' + panelId + '_loading');
 				var loadingTimer = null;
+				var revealed = false;
+
+				var reveal = function() {
+					if (revealed) return;
+					revealed = true;
+					if (loadingTimer) clearTimeout(loadingTimer);
+					if (loadingEl) loadingEl.style.display = 'none';
+					iframe.style.opacity = '1';
+				};
 
 				// Show spinner after 500ms delay (only if still loading)
 				if (loadingEl) {
@@ -2168,12 +2180,20 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 				}
 
 				if (iframe) {
-					iframe.onload = function() {
-						// Cancel spinner timer if it hasn't fired yet
-						if (loadingTimer) clearTimeout(loadingTimer);
-						if (loadingEl) loadingEl.style.display = 'none';
-						iframe.style.opacity = '1';
-					};
+					// Same-origin poll: body with content = document parsed enough
+					// to paint. 'load' below stays as the fallback (and handles a
+					// cross-origin url, where contentDocument access throws).
+					var readyPoll = setInterval(function() {
+						if (revealed || !iframe.isConnected) { clearInterval(readyPoll); return; }
+						try {
+							var doc = iframe.contentDocument;
+							if (doc && doc.readyState !== 'loading' && doc.body && doc.body.childElementCount > 0) {
+								clearInterval(readyPoll);
+								reveal();
+							}
+						} catch (e) { clearInterval(readyPoll); /* cross-origin: wait for load */ }
+					}, 50);
+					iframe.onload = reveal;
 				}
 			}
 

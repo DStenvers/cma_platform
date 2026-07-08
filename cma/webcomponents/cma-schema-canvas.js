@@ -643,6 +643,13 @@ class CmaSchemaCanvas extends HTMLElement {
                         #f9f9f9;
                 }
 
+                :host-context(html.dark-mode) .canvas-container {
+                    background:
+                        linear-gradient(90deg, #2a2a2a 1px, transparent 1px) 0 0 / 20px 20px,
+                        linear-gradient(#2a2a2a 1px, transparent 1px) 0 0 / 20px 20px,
+                        #000000;
+                }
+
                 .canvas-inner {
                     position: relative;
                     width: 100%;

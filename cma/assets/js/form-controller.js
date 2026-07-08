@@ -3623,6 +3623,22 @@ class CmaFormController {
             if (CKEDITOR.instances[name] !== editor || editor.status === 'ready') {
                 return;
             }
+            // Status 'loaded' = skin/plugins are initializing — the build is
+            // PROGRESSING, just slow. Destroying it now makes its async plugin
+            // init run against a destroyed editor (the ckeditor.js
+            // "reading 'allow'" TypeError from fakeobjects). Give it one more
+            // watchdog cycle instead; only a true stall (still 'unloaded')
+            // warrants destroy+recreate.
+            if (editor.status === 'loaded') {
+                setTimeout(() => {
+                    if (CKEDITOR.instances[name] === editor && editor.status !== 'ready') {
+                        cmaLog.warn('[watchEditorReady] "' + name + '" stuck at loaded — destroying and recreating');
+                        this.destroyStalledEditor(name, editor);
+                        this.createEditorForField(name);
+                    }
+                }, 1000);
+                return;
+            }
             this._editorWatchAttempts[name] = (this._editorWatchAttempts[name] || 0) + 1;
 
             if (this._editorWatchAttempts[name] > 2) {
@@ -3659,6 +3675,14 @@ class CmaFormController {
             if (stray && stray.parentNode) {
                 stray.parentNode.removeChild(stray);
             }
+        }
+        // Async plugin-init callbacks queued before the destroy can still fire
+        // against this instance (e.g. fakeobjects calls editor.filter.allow()
+        // → "reading 'allow'" TypeError). Leave a no-op filter behind so those
+        // late callbacks land harmlessly.
+        if (!editor.filter) {
+            const noop = function () { return false; };
+            editor.filter = { allow: noop, disallow: noop, check: noop, addTransformations: noop, addFeature: noop, addContentForms: noop };
         }
     }
 

@@ -1,11 +1,11 @@
 <?php
 /**
- * Unified Tools Page — toolbar + shared launcher.
+ * Unified Tools Page — toolbar + embedded launcher.
  *
- * The tools page content is a slim toolbar with a single "Menu" button that
- * opens the shared header launcher (cma-launcher) — the one and only tools
- * menu, so there is no second inline menu with its own visibility state to
- * manage. Selecting a tool (from the launcher) loads it full-width here.
+ * Mirrors the reports page: a slim toolbar with an "Alle tools" button plus an
+ * embedded <cma-launcher> (nav-mode="iframe") that fills the content host with
+ * the searchable tools menu. Selecting a tool collapses the launcher and loads
+ * it full-width in the same box (the #tools-content iframe).
  * The former two-pane cma-tree view is archived in tools_DEPRECATED.php.
  *
  * URL Parameters:
@@ -199,42 +199,51 @@ cma_script('webcomponents/cma-toolbar.js');
     </left>
 </cma-toolbar>
 
-<?php if (!empty($initialTool)): ?>
+<!-- #tools is "either empty or a menu": the embedded launcher fills it with
+     the searchable tools menu; picking a tool collapses the launcher and
+     shows the tool full-width in the same box. Both are driven by the shared
+     <cma-launcher> component (nav-mode="iframe"), fed the tools catalog. -->
+<div id="tools" class="launcher-host">
+    <cma-launcher
+        catalog-url="/cma/api/tools-catalog.php"
+        nav-mode="iframe"
+        target="#tools-content"
+        search-placeholder="Zoek een tool…"
+        aria-label="Alle beheerstools"
+        empty-text="Geen tools beschikbaar."></cma-launcher>
     <iframe name="R" id="tools-content" class="tools-content-area"
-            src="<?= Server::htmlEncode($initialTool) ?>" frameborder="0"></iframe>
-<?php else: ?>
-    <div class="tools-empty" id="tools" hidden>Klik op <span class="cma-page__strong"> Alle tools </span> om een beheerstool te kiezen.</div>
-<?php endif; ?>
+        src="<?= !empty($initialTool) ? Server::htmlEncode($initialTool) : 'about:blank' ?>"
+        frameborder="0"></iframe>
+</div>
 
 <script>
 (function () {
     'use strict';
-    // The "Menu" button toggles the single shared launcher (cma-launcher) that
-    // lives in the shell — same overlay as the header Menu button. It owns its
-    // own open/close state, so there is nothing to manage here.
-    var win = window.top || window;
-    function toggleLauncher() {
-        if (typeof win.toggleToolsLauncher === 'function') { win.toggleToolsLauncher(); return true; }
-        return false;
-    }
-    function openLauncher() {
-        if (typeof win.openToolsLauncher === 'function') { win.openToolsLauncher(); return true; }
-        return false;
-    }
+    var launcher = document.querySelector('#tools cma-launcher');
     var btn = document.getElementById('toolsMenuBtn');
-    if (btn) btn.addEventListener('click', toggleLauncher);
-<?php if (empty($initialTool)): ?>
-    // No tool selected: open the mega-menu straight away instead of showing the
-    // placeholder. Retry briefly in case the shell hasn't defined the opener yet;
-    // if it never appears, reveal the hint text as a fallback.
-    var tries = 0;
-    (function tryOpen() {
-        if (openLauncher()) return;
-        if (++tries < 20) { setTimeout(tryOpen, 25); return; }
-        var empty = document.getElementById('tools');
-        if (empty) empty.hidden = false;
-    })();
-<?php endif; ?>
+    var hasTool = <?= !empty($initialTool) ? 'true' : 'false' ?>;
+
+    // The custom element may not be upgraded yet when this inline script runs.
+    function whenReady(cb) {
+        var tries = 0;
+        (function w() {
+            if (launcher && typeof launcher.open === 'function') { cb(); return; }
+            if (++tries < 40) { setTimeout(w, 25); }
+        })();
+    }
+
+    // No tool chosen: open the menu straight away (host shows the menu). With
+    // one already selected, the iframe is showing — leave it, the button reopens
+    // the menu on demand.
+    if (!hasTool) {
+        whenReady(function () { launcher.open(); });
+    }
+
+    // Toolbar button toggles the menu. Closing it reveals the tool iframe when
+    // one is loaded, or an empty host when none is.
+    if (btn) btn.addEventListener('click', function () {
+        whenReady(function () { launcher.toggle(); });
+    });
 })();
 </script>
 
