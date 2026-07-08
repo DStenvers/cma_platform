@@ -5911,6 +5911,13 @@ class CmaFormController {
             extraButtons: extraButtons,
             // Callbacks for integration with form controller
             // Note: Don't set onRowClick - let CmaInlineEdit use its default behavior (openFormPopup)
+            // Remember the selected row in localStorage (same store tree mode uses),
+            // so a table→tree switch or a return to the list restores the selection.
+            onRowSelect: (rowId) => {
+                if (rowId !== null && rowId !== undefined && rowId !== '') {
+                    this.saveLastRecordId(rowId);
+                }
+            },
             onSaveSuccess: (rowId, record) => {
                 // Refresh the row data after save
                 this.showNotification('Opgeslagen', 'success');

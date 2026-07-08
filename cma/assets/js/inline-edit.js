@@ -833,6 +833,12 @@
                     row.classList.add('active');
 
                     const rowId = self.getRowId(row);
+                    // Persist the table selection the same way tree selection is
+                    // persisted (cma_lastRecord_<jsonForm>), so switching table→tree
+                    // or returning to the list restores the row you just picked.
+                    if (typeof self.options.onRowSelect === 'function') {
+                        self.options.onRowSelect(rowId);
+                    }
                     self.openFormPopup(rowId, false);
                 };
                 this.addTrackedListener(the_table, 'click', rowClickHandler);

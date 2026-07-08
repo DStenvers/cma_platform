@@ -3210,3 +3210,9 @@ karaat-data en staat in de karaat-repo.
 > just commit everything please
 
 > commit and push ann changes
+
+> there is a trick to remember filter criteria accross forms through a cookie in the old CMA, i remember you have added that to the new cma as well, but did you?
+
+> 3: if you select a record in the tree or the table, that should also be stored in localstorage, can you make that happen?
+
+> yes please do
