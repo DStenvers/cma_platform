@@ -3193,3 +3193,6 @@ karaat-data en staat in de karaat-repo.
 ## 2026-07-08
 
 > continue
+
+> [08:41:49] JS: [iframe] Uncaught TypeError: Cannot read properties of undefined (reading '$')
+>   at http://172.30.208.1:8090/cma/ckeditor/ckeditor.js:969
