@@ -230,7 +230,7 @@ class FormTemplate
 
         // CKEditor is large and should be loaded separately with defer to avoid blocking
         if ($needsCKEditor) {
-            $html .= '<script src="ckeditor/ckeditor.js" defer></script>' . PHP_EOL;
+            $html .= '<script src="ckeditor/ckeditor.js?v=' . cma_asset_version() . '" defer></script>' . PHP_EOL;
 
             // Include blockedit.js for content blocks if available
             // Content blocks allow structured content editing with predefined block types
@@ -380,7 +380,7 @@ class FormTemplate
 
         // CKEditor is large and should be loaded separately with defer to avoid blocking
         if ($needsCKEditor) {
-            $html .= '<script src="ckeditor/ckeditor.js" defer></script>' . PHP_EOL;
+            $html .= '<script src="ckeditor/ckeditor.js?v=' . cma_asset_version() . '" defer></script>' . PHP_EOL;
 
             // Include blockedit.js for content blocks if available
             if (FormRenderer::hasContentBlocks() && $this->hasMemoWithBlockEdit()) {

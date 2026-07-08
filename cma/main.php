@@ -408,7 +408,7 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
     <?php cma_script('/library/assets/js/error-handler.js'); ?>
     <script src="/library/jquery.min.js"></script>
     <script src="<?= cma_form_js_url() ?>"></script>
-    <script src="/cma/ckeditor/ckeditor.js" defer></script>
+    <script src="/cma/ckeditor/ckeditor.js?v=<?= cma_asset_version() ?>" defer></script>
     <script>
     // CKEditor configuration for HTML editors
     document.addEventListener('DOMContentLoaded', function() {

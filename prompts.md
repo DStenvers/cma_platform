@@ -3196,3 +3196,5 @@ karaat-data en staat in de karaat-repo.
 
 > [08:41:49] JS: [iframe] Uncaught TypeError: Cannot read properties of undefined (reading '$')
 >   at http://172.30.208.1:8090/cma/ckeditor/ckeditor.js:969
+
+> can you load ckeditor with a version parameter?

@@ -775,8 +775,16 @@ function minify_asset($files): string {
     }
     // Use absolute path from site root to work from any subdirectory (like tools/)
     // Add version parameter for cache busting (increment when making JS changes)
-    $version = '20260706c';
-    return '/cma/minify.php?f=' . $files . '&v=' . $version;
+    return '/cma/minify.php?f=' . $files . '&v=' . cma_asset_version();
+}
+
+/**
+ * The single asset cache-busting version. Bump when changing any JS/CSS —
+ * including raw scripts loaded outside minify.php (e.g. ckeditor/ckeditor.js),
+ * which stamp `?v=` with this so a patched bundle isn't served from cache.
+ */
+function cma_asset_version(): string {
+    return '20260707a';
 }
 
 // Legacy aliases for backward compatibility
