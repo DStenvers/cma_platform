@@ -1048,18 +1048,20 @@ class CmaInfiniteScroll {
         const tbody = this.table.querySelector('tbody');
         if (!tbody) return;
 
-        // Count actual rows in DOM (excluding placeholder rows)
-        const actualRows = tbody.querySelectorAll('tr:not(.infinite-scroll-placeholder)').length;
+        // Count actual DATA rows in DOM (data-id only — excludes the header,
+        // group-header rows when hasGrouping, any .nodata row, and placeholders).
+        const actualRows = tbody.querySelectorAll('tr[data-id]').length;
 
-        // Check if tracked count matches DOM
+        // DIAGNOSTIC ONLY. Never write currentCount from a DOM count: the DOM
+        // legitimately diverges from the true appended total (group-header rows,
+        // nodata row, future pruning), and overwriting currentCount with it
+        // clobbers the honest running count below the real total — freezing
+        // "records 1-N van M (laden...)" a few rows short. currentCount is the
+        // single source of truth (accumulated appends); see the v1.28.83 fix
+        // note. The two-scroller double-append this helper once corrected for is
+        // now prevented at the source (one scroller per table, see constructor).
         if (this.currentCount !== actualRows) {
-            const msg = `[Infinite Scroll] DOM count mismatch! Tracked: ${this.currentCount}, Actual DOM rows: ${actualRows}. Difference: ${Math.abs(this.currentCount - actualRows)}`;
-            cmaLog.error(msg);
-
-            // Correct the tracked count to match reality
-            cmaLog.warn('[Infinite Scroll] Correcting currentCount from', this.currentCount, 'to', actualRows);
-            this.currentCount = actualRows;
-            this.updateRecordCountDisplay();
+            cmaLog.warn(`[Infinite Scroll] DOM/count divergence (diagnostic, not corrected). Tracked: ${this.currentCount}, DOM data rows: ${actualRows}, diff: ${Math.abs(this.currentCount - actualRows)}`);
         }
     }
 

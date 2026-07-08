@@ -3206,3 +3206,5 @@ karaat-data en staat in de karaat-repo.
 > the webP conversie halts after a few images with a generic error 500. Pleas make sure the information i need is shown on the screen (non P)
 
 >  commit/tag/push please
+
+> just commit everything please

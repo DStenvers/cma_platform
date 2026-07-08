@@ -5769,8 +5769,17 @@ class CmaFormController {
             params.set('filters', JSON.stringify(this.searchFilters));
         }
 
+        // Hard timeout so a HUNG request can never park the scroller. A bare
+        // fetch() has no timeout: if the last batch's connection stalls, the
+        // promise never settles, load()'s finally never runs, isLoading sticks
+        // true, and the auto-prefetch loop freezes on `await load()` — the
+        // "records 1-N van M (laden…)" counter stuck forever. A stalled fetch
+        // throws nothing, so it slips past every hasMore safety net. Aborting
+        // turns it into the retriable failure the retry machinery already handles.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         try {
-            const response = await fetch(`/cma/form_api.php?${params}`);
+            const response = await fetch(`/cma/form_api.php?${params}`, { signal: controller.signal });
             if (!response.ok) {
                 throw new Error(`[loadMoreRows] HTTP ${response.status} ${response.statusText}`);
             }
@@ -5786,13 +5795,15 @@ class CmaFormController {
             }
             return { success: false, hasMore: false };
         } catch (error) {
-            // Network/HTTP failure is RETRIABLE. Never report hasMore:false here —
-            // the server proven to hold all rows, so a single transient blip
-            // mid-scroll would otherwise silently end pagination below the total
-            // (the "records 1-1500 van 1796 (laden…)" stall). The scroller retries
-            // a few times before giving up.
+            // Network/HTTP failure (including an aborted timeout) is RETRIABLE.
+            // Never report hasMore:false here — the server is proven to hold all
+            // rows, so a single transient blip mid-scroll would otherwise silently
+            // end pagination below the total (the "records 1-1500 van 1796
+            // (laden…)" stall). The scroller retries a few times before giving up.
             cmaLog.error('[loadMoreRows] Error:', error.message || error);
             return { success: false, retriable: true };
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
 
