@@ -63,6 +63,34 @@ if ($action !== '') {
         $gdDiag['iniScanned'] = php_ini_scanned_files();
     }
 
+    // Parse a php.ini shorthand size ("512M", "1G", "268435456") to bytes.
+    // Returns -1 for unlimited.
+    $iniBytes = static function (string $val): int {
+        $val = trim($val);
+        if ($val === '' || $val === '-1') {
+            return -1;
+        }
+        $unit = strtolower($val[strlen($val) - 1]);
+        $num = (int) $val;
+        switch ($unit) {
+            case 'g': $num *= 1024; // fall through
+            case 'm': $num *= 1024; // fall through
+            case 'k': $num *= 1024;
+        }
+        return $num;
+    };
+
+    // Estimate the bytes GD needs to decode a source image of these dimensions.
+    // GD holds the whole picture as a truecolor bitmap (~4 bytes/pixel) plus
+    // decode overhead; ~5 bytes/pixel is a safe upper bound across JPEG/PNG.
+    // Returns 0 when dimensions are unknown (can't estimate → don't block).
+    $estimateBytes = static function (?int $w, ?int $h): int {
+        if (!$w || !$h) {
+            return 0;
+        }
+        return (int) ($w * $h * 5);
+    };
+
     switch ($action) {
         case 'scan':
             if (!is_dir($fullPath)) {
@@ -104,19 +132,57 @@ if ($action !== '') {
             // Convert a single file and return variant details for row update
             set_time_limit(120);
             ini_set('memory_limit', '512M');
+            // A big image can exhaust memory inside GD — an uncatchable fatal
+            // that would otherwise return a bare HTTP 500. Emit JSON naming the
+            // file and the fatal so the row shows a real reason.
+            $oneDone = false;
+            $oneName = basename(Request::query('file', ''));
+            register_shutdown_function(static function () use (&$oneDone, &$oneName) {
+                if ($oneDone) {
+                    return;
+                }
+                $err = error_get_last();
+                $isFatal = $err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true);
+                while (ob_get_level() > 0) { ob_end_clean(); }
+                if (!headers_sent()) {
+                    header('Content-Type: application/json');
+                }
+                $msg = $isFatal ? $err['message'] : 'Serverproces afgebroken (mogelijk geheugen of time-out)';
+                echo json_encode([
+                    'success' => false,
+                    'fatal' => true,
+                    'error' => 'Afgebroken bij "' . $oneName . '": ' . $msg
+                        . ' — geheugenlimiet ' . ini_get('memory_limit')
+                        . ', piek ' . round(memory_get_peak_usage(true) / 1048576, 1) . ' MB.',
+                ]);
+            });
             if (!Image::isWebPSupported()) {
                 echo json_encode(['success' => false, 'error' => 'WebP niet ondersteund door GD']);
+                $oneDone = true;
                 break;
             }
             $file = Request::query('file', '');
             if ($file === '') {
                 echo json_encode(['success' => false, 'error' => 'Geen bestand opgegeven']);
+                $oneDone = true;
                 break;
             }
             $file = str_replace('..', '', $file);
             $singlePath = $fullPath . str_replace('/', DIRECTORY_SEPARATOR, $file);
             if (!file_exists($singlePath)) {
                 echo json_encode(['success' => false, 'error' => 'Bestand niet gevonden: ' . $file]);
+                $oneDone = true;
+                break;
+            }
+            // Refuse images that won't fit in memory rather than crashing the request.
+            $oneInfo = Image::getInfo($singlePath);
+            $oneLimit = $iniBytes(ini_get('memory_limit'));
+            $oneNeed = $estimateBytes($oneInfo['width'] ?? null, $oneInfo['height'] ?? null);
+            if ($oneLimit > 0 && $oneNeed > 0 && $oneNeed > $oneLimit - memory_get_usage(true)) {
+                echo json_encode(['success' => false, 'error' => 'Afbeelding te groot voor conversie: ~'
+                    . round($oneNeed / 1048576) . ' MB nodig, limiet ' . ini_get('memory_limit')
+                    . '. Verhoog memory_limit of verklein de afbeelding.']);
+                $oneDone = true;
                 break;
             }
             $quality = (int)Request::query('quality', (string)ResponsiveImage::DEFAULT_QUALITY);
@@ -130,6 +196,7 @@ if ($action !== '') {
             $genResult = ResponsiveImage::generate($singlePath, $quality);
             if (empty($genResult['success'])) {
                 echo json_encode(['success' => false, 'error' => $genResult['error'] ?? 'Conversie mislukt']);
+                $oneDone = true;
                 break;
             }
             // Return updated file info with variants for row update
@@ -167,6 +234,7 @@ if ($action !== '') {
                 'variants' => $variants,
                 'webpSize' => $webpSize,
             ]);
+            $oneDone = true;
             break;
 
         case 'convert':
@@ -202,6 +270,43 @@ if ($action !== '') {
             $skipped = 0;
             $errors = 0;
             $results = [];
+            $memLimit = $iniBytes(ini_get('memory_limit'));
+
+            // If a fatal (memory exhaustion / time-out) escapes the per-file
+            // try/catch below it kills the whole request, and without this the
+            // client only sees an empty HTTP 500. This shutdown handler replaces
+            // that with JSON naming the file it died on and the fatal message, so
+            // the batch that "halts after a few images" tells you exactly why.
+            $currentFile = null;
+            $done = false;
+            register_shutdown_function(static function () use (&$done, &$currentFile, &$converted, &$skipped, &$errors, &$results, &$offset) {
+                if ($done) {
+                    return; // normal completion already emitted JSON
+                }
+                $err = error_get_last();
+                $isFatal = $err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true);
+                while (ob_get_level() > 0) { ob_end_clean(); }
+                if (!headers_sent()) {
+                    header('Content-Type: application/json');
+                }
+                $msg = $isFatal ? $err['message'] : 'Serverproces afgebroken (mogelijk geheugen of time-out)';
+                if ($currentFile !== null) {
+                    $errors++;
+                    $results[] = ['file' => $currentFile, 'error' => $msg];
+                }
+                echo json_encode([
+                    'success' => false,
+                    'fatal' => true,
+                    'error' => ($currentFile !== null ? 'Afgebroken bij "' . $currentFile . '": ' : '') . $msg
+                        . ' — geheugenlimiet ' . ini_get('memory_limit')
+                        . ', piek ' . round(memory_get_peak_usage(true) / 1048576, 1) . ' MB.',
+                    'converted' => $converted,
+                    'skipped' => $skipped,
+                    'errors' => $errors,
+                    'offset' => $offset,
+                    'errorDetails' => $results,
+                ]);
+            });
 
             foreach ($batch as $f) {
                 $filePath = $f['path'];
@@ -209,10 +314,21 @@ if ($action !== '') {
                     $skipped++;
                     continue;
                 }
+                // Refuse images too large to fit in memory instead of letting GD
+                // trigger an uncatchable OOM fatal that aborts the whole batch.
+                $need = $estimateBytes($f['width'] ?? null, $f['height'] ?? null);
+                if ($memLimit > 0 && $need > 0 && $need > $memLimit - memory_get_usage(true)) {
+                    $errors++;
+                    $results[] = ['file' => basename($filePath), 'error' => 'Overgeslagen — te groot: ~'
+                        . round($need / 1048576) . ' MB nodig, limiet ' . ini_get('memory_limit')
+                        . '. Verhoog memory_limit of verklein de afbeelding.'];
+                    continue;
+                }
                 // Delete existing variants before regenerating
                 if ($regenerate && ResponsiveImage::hasVariants($filePath)) {
                     ResponsiveImage::deleteVariants($filePath);
                 }
+                $currentFile = basename($filePath); // so a fatal knows which file
                 try {
                     @error_clear_last();
                     $result = ResponsiveImage::generate($filePath, $quality);
@@ -226,10 +342,12 @@ if ($action !== '') {
                     $errors++;
                     $results[] = ['file' => basename($filePath), 'error' => $e->getMessage()];
                 }
+                $currentFile = null;
                 // Free memory after each image to prevent OOM on large batches
                 gc_collect_cycles();
             }
 
+            $done = true;
             echo json_encode([
                 'success' => true,
                 'converted' => $converted,
@@ -453,6 +571,25 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
     var platformInfo = null;
 
     /**
+     * Read a fetch Response as JSON, even when the status is not 2xx.
+     * The convert endpoint reports fatal errors (OOM / time-out) as a JSON
+     * body, sometimes alongside a 500 status, so we must parse regardless of
+     * r.ok. If the body isn't JSON (a raw PHP error page), strip the HTML tags
+     * so the real message is readable instead of a truncated tag soup.
+     */
+    function readJson(r) {
+        return r.text().then(function(txt) {
+            try {
+                return JSON.parse(txt);
+            } catch (e) {
+                var plain = txt.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                throw new Error('Server gaf geen JSON terug (HTTP ' + r.status + '): ' +
+                    (plain ? plain.substring(0, 300) : '(lege respons)'));
+            }
+        });
+    }
+
+    /**
      * Get platform-specific restart instructions based on GD diagnostics.
      * @param {object} gd - GD diagnostics from scan response
      * @returns {object} { isWindows, sapi, restartCmd, restartLabel, iniInstruction }
@@ -500,6 +637,23 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
         };
     }
 
+    /**
+     * Render a scrollable list of per-file conversion errors (file + reason).
+     * Shared by the batch "done" and "aborted" branches.
+     */
+    function renderErrorDetails(list) {
+        if (!list || list.length === 0) return '';
+        var html = '<div style="margin-top: 8px; max-height: 200px; overflow-y: auto; ' +
+            'background: var(--bg-surface, #f9f9f9); border: 1px solid var(--border-color, #ddd); ' +
+            'border-radius: 4px; padding: 8px; font-size: 0.85em;">';
+        html += '<span class="cma-tool__strong" style="color: var(--color-danger, #c00);">Fouten:</span><ul style="margin: 4px 0 0 16px; padding: 0;">';
+        for (var ei = 0; ei < list.length; ei++) {
+            html += '<li><span class="cma-tool__strong">' + list[ei].file + '</span>: ' + list[ei].error + '</li>';
+        }
+        html += '</ul></div>';
+        return html;
+    }
+
     function formatSize(bytes) {
         if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
         if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -519,14 +673,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
         document.getElementById('action-buttons').style.display = 'none';
 
         fetch('tools_webp_convert.php?action=scan&directory=' + encodeURIComponent(dir))
-            .then(function(r) {
-                if (!r.ok || !r.headers.get('content-type')?.includes('json')) {
-                    return r.text().then(function(txt) {
-                        throw new Error('Server fout (HTTP ' + r.status + '): ' + txt.substring(0, 200));
-                    });
-                }
-                return r.json();
-            })
+            .then(readJson)
             .then(function(data) {
                 if (!data.success) {
                     showStatus('<lib-message type="error">' + data.error + '</lib-message>');
@@ -850,14 +997,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
             '&regenerate=1';
 
         fetch(url)
-            .then(function(r) {
-                if (!r.ok || !r.headers.get('content-type')?.includes('json')) {
-                    return r.text().then(function(txt) {
-                        throw new Error('Server fout (HTTP ' + r.status + '): ' + txt.substring(0, 200));
-                    });
-                }
-                return r.json();
-            })
+            .then(readJson)
             .then(function(data) {
                 if (!data.success) {
                     variantCells.forEach(function(c) { c.innerHTML = '<span style="color:red;" title="' + (data.error || '') + '">Fout</span>'; });
@@ -1021,17 +1161,21 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
                 (regenerate ? '&regenerate=1' : '');
 
             fetch(url)
-                .then(function(r) {
-                    if (!r.ok || !r.headers.get('content-type')?.includes('json')) {
-                        return r.text().then(function(txt) {
-                            throw new Error('Server fout (HTTP ' + r.status + '): ' + txt.substring(0, 200));
-                        });
-                    }
-                    return r.json();
-                })
+                .then(readJson)
                 .then(function(data) {
                     if (!data.success) {
-                        showStatus('<lib-message type="error">' + (data.error || 'Conversie mislukt') + '</lib-message>');
+                        // A fatal (OOM / time-out) aborted this batch. The server
+                        // still returns which file died and any partial results —
+                        // fold them in and show the reason plus the error list.
+                        totalConverted += data.converted || 0;
+                        totalErrors += data.errors || 0;
+                        if (data.errorDetails && data.errorDetails.length > 0) {
+                            allErrorDetails = allErrorDetails.concat(data.errorDetails);
+                        }
+                        var failMsg = data.error || 'Conversie mislukt';
+                        showStatus('<lib-message type="error">' + failMsg +
+                            ' (' + totalConverted + ' geconverteerd voordat het stopte)</lib-message>' +
+                            renderErrorDetails(allErrorDetails));
                         btnConvert.disabled = false;
                         btnConvert.innerHTML = '<span class="lnr lnr-picture"></span> Alles converteren';
                         return;
@@ -1070,15 +1214,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
 
                         // Show error details if any
                         if (allErrorDetails.length > 0) {
-                            var errHtml = '<div style="margin-top: 8px; max-height: 200px; overflow-y: auto; ' +
-                                'background: var(--bg-surface, #f9f9f9); border: 1px solid var(--border-color, #ddd); ' +
-                                'border-radius: 4px; padding: 8px; font-size: 0.85em;">';
-                            errHtml += '<span class="cma-tool__strong" style="color: var(--color-danger, #c00);">Fouten:</span><ul style="margin: 4px 0 0 16px; padding: 0;">';
-                            for (var ei = 0; ei < allErrorDetails.length; ei++) {
-                                errHtml += '<li><span class="cma-tool__strong">' + allErrorDetails[ei].file + '</span>: ' + allErrorDetails[ei].error + '</li>';
-                            }
-                            errHtml += '</ul></div>';
-                            progressText.innerHTML = doneText + errHtml;
+                            progressText.innerHTML = doneText + renderErrorDetails(allErrorDetails);
                         }
 
                         btnConvert.disabled = false;
@@ -1113,14 +1249,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
             method: 'POST',
             body: formData
         })
-            .then(function(r) {
-                if (!r.ok || !r.headers.get('content-type')?.includes('json')) {
-                    return r.text().then(function(txt) {
-                        throw new Error('Server fout (HTTP ' + r.status + '): ' + txt.substring(0, 200));
-                    });
-                }
-                return r.json();
-            })
+            .then(readJson)
             .then(function(data) {
                 btnCleanup.disabled = false;
                 btnCleanup.innerHTML = '<span class="lnr lnr-trash"></span> Opruimen';

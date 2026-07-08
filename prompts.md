@@ -3198,3 +3198,11 @@ karaat-data en staat in de karaat-repo.
 >   at http://172.30.208.1:8090/cma/ckeditor/ckeditor.js:969
 
 > can you load ckeditor with a version parameter?
+
+> what is your status in this repo
+
+> okay, STILL the annoying records 1-1800 van 1809 (laden...) on desktop, ultra think on how to solve that
+
+> the webP conversie halts after a few images with a generic error 500. Pleas make sure the information i need is shown on the screen (non P)
+
+>  commit/tag/push please
