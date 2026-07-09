@@ -1594,11 +1594,29 @@ if ($_testToken === 'cma_endpoint_test_2025' && in_array(strtoupper($_cmaEnv), [
     // Look up first admin user from DB and set real auth cookies
     try {
         $_testConn = \App\Library\Database::getConnection('users');
-        $_testUser = \App\Library\Database::fetchOne(
-            "SELECT TOP 1 ID, userGUID FROM tblUsers WHERE userAdministrator = true OR userLevel >= 1 ORDER BY ID",
+        // Find a user to impersonate so the tester runs with real auth. Do NOT
+        // name userLevel / userGUID / userAdministrator in the SQL: converted /
+        // legacy schemas (e.g. RINO) don't have all of them, and Access ODBC then
+        // treats the unknown identifier as a bind param and raises "te weinig
+        // parameters (verwacht 1)" — logged on EVERY tester request. SecurityHelper
+        // already treats these columns as optional; do the same here: select * and
+        // pick the best user in PHP (prefer an admin, else the first user).
+        $_testCandidates = \App\Library\Database::fetchAll(
+            "SELECT TOP 50 * FROM tblUsers ORDER BY ID",
             [],
             $_testConn
         );
+        $_testUser = null;
+        foreach ($_testCandidates as $_u) {
+            $_lvl = $_u['userLevel'] ?? null;
+            if (($_lvl !== null && (int)$_lvl >= 1) || !empty($_u['userAdministrator'])) {
+                $_testUser = $_u;
+                break;
+            }
+        }
+        if (!$_testUser && !empty($_testCandidates)) {
+            $_testUser = $_testCandidates[0]; // no admin flagged — first user is fine in O/L/T
+        }
         if ($_testUser) {
             $_COOKIE[SecurityHelper::COOKIE_USERID] = (string)$_testUser['ID'];
             $_COOKIE[SecurityHelper::COOKIE_USERGUID] = $_testUser['userGUID'] ?? '';

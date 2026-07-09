@@ -3227,3 +3227,13 @@ karaat-data en staat in de karaat-repo.
 > while recordleft {
 > await retrieverecords(offset)
 > }
+
+## 2026-07-09
+
+> can you check if blockedit.js has been worked on in this repo or in the one of mijnrino
+
+> in /mnt/c/repos/mijnrino/cma/include blockedit.js has been battletested and approved, please check your version (in /assets/js) to see if changes need to be miograted to it
+
+> i have a 404 on /cma/opcache_reset.php , is that called internally?
+
+> yes please do
