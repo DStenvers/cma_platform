@@ -60,7 +60,6 @@ if ($parFormID != '') {
                             $sFieldSpec = str_ireplace(arrRep(Q_CTRLIDFIELD, $intRec) . ' ,', '', $sFieldSpec);
                             $testSQL = SQL::addWhere($comboSQL, $sFieldSpec . " LIKE '%" . $parQuery . "%'");
                             $testSQL = SQL::processSQL($Myconn, $testSQL);
-                            $testRS = null;
                             $testRS = Database::openRS($testSQL, $Myconn, adOpenForwardOnly);
                             if ($testRS === null) {
                                 throw new \Exception('Database query failed: ' . Database::getLastError());

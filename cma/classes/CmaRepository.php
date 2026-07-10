@@ -127,7 +127,6 @@ class CmaRepository
         $escapedId = is_numeric($recordId) ? intval($recordId) : SQL::postString($recordId);
         $descrSQL = "SELECT * FROM (" . $baseQuery . ") AS _subq WHERE [" . $idField . "] = " . $escapedId;
 
-        $dataRs = null;
         $dataRs = Database::openRS($descrSQL, $conn, adOpenForwardOnly);
 
         // Fallback to original method if subquery fails (some older Access databases may not support this)

@@ -57,7 +57,6 @@ class MarketingUrl
     public function CreateFile()
     {
         $MyFile = null;
-        $sFilename = null;
         $sFilename = Server::mapPath(Application::get('base_path', '') . $this->MarketURLBasePath . $this->MarketUrlDir . '\\' . $this->MarketUrlFileName);
         $MyFile = $this->MarketUrlFso->CreateTextFile($sFilename, true);
         if (!is_object($MyFile)) {

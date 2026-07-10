@@ -3363,3 +3363,8 @@ karaat-data en staat in de karaat-repo.
 > in C:\lab\ai_conversion\site\library\lib_xmlsnippets.inc on line 182
 
 > please commit and push to git
+
+> ja patch m maar even idd
+
+> Creation of dynamic property LibTable::$Recordset is deprecated
+> in C:\lab\ai_conversion\site\rapportage_voordrachten_po.inc on line 89
