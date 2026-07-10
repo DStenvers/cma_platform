@@ -11,27 +11,76 @@ $Table_CtrlID = 0;
 // Link: Set the LinkUrl or LinkTarget or set the OnClick ([ID] will be replaced by the actual value)
 // 2do : use the more powerfull filtering option
 if (class_exists('LibTable')) { return; }
-// Legacy ADO-style table: callers set data/layout via properties (Recordset,
-// ShowIDField, RowsPerPage, Filtered, …) that aren't all declared. PHP 8.2+
-// deprecates such dynamic properties, so opt this class in explicitly.
-#[AllowDynamicProperties]
+#[\AllowDynamicProperties]
 class LibTable
 {
+    // VBScript exposed public Property Let/Get/Set accessors (SQL, Recordset,
+    // Connection, RowsPerPage, ShowIDField, ...) that stored into the private
+    // Table* fields. The ASP→PHP conversion dropped those Property methods, so
+    // callers doing `$oTable->SQL = $sql` / `$oTable->SQL()` / `$oTable->Recordset = $rs`
+    // hit undefined-method / dynamic-property errors and the table never got its
+    // SQL or recordset. These magic methods restore the accessors: public name
+    // (case-insensitive) -> internal Table* field, preserving the ASP side effects.
+    private const PROP_MAP = [
+        'sql' => 'TableSQL', 'recordset' => 'TableRS', 'connection' => 'TableConnection',
+        'rowsperpage' => 'TableRowsPerPage', 'activerowid' => 'TableActiveRowID',
+        'fieldcaptions' => 'TableFieldCaptions', 'defaultsortcol' => 'TableDefaultSortCol',
+        'idfield' => 'TableIDField', 'groupfield' => 'TableGroupField',
+        'showcaptions' => 'TableShowCaptions', 'showidfield' => 'TableShowIDField',
+        'attribtable' => 'TableAttrib', 'attribtd' => 'TableTDAttrib',
+        'attribtr' => 'TableTRAttrib', 'fieldstyles' => 'TableStyles',
+        'linkbaseurl' => 'TableLinkBaseURL', 'onclick' => 'TableOnClick',
+        'filtered' => 'TableFiltered', 'name' => 'TableName',
+        'emptymessage' => 'TableEmptyMessage',
+    ];
+
+    private function _setProp(string $name, $value): void
+    {
+        $key = strtolower($name);
+        if (!isset(self::PROP_MAP[$key])) { $this->$name = $value; return; }
+        $field = self::PROP_MAP[$key];
+        if ($key === 'activerowid') { $value = $value . ''; }
+        $this->$field = $value;
+        if ($key === 'recordset') { $this->TableExternalRS = true; }
+        if ($key === 'filtered' && $value) { $this->TableSortable = false; }
+    }
+
+    public function __set($name, $value) { $this->_setProp($name, $value); }
+
+    public function __get($name)
+    {
+        $key = strtolower($name);
+        return isset(self::PROP_MAP[$key]) ? ($this->{self::PROP_MAP[$key]} ?? null) : ($this->$name ?? null);
+    }
+
+    public function __call($name, $args)
+    {
+        // Property Get used as a method call, e.g. $oTable->SQL(), or a
+        // Property Let used as a method call, e.g. $oTable->ShowIDField(false).
+        $key = strtolower($name);
+        if (isset(self::PROP_MAP[$key])) {
+            if (count($args) === 0) { return $this->{self::PROP_MAP[$key]} ?? null; }
+            $this->_setProp($name, $args[0]);
+            return null;
+        }
+        throw new \BadMethodCallException('LibTable::' . $name . '() is not defined');
+    }
+
     public $TableTRColor1;
     public $TableTRColor2;
     public $TableTRActiveColor;
     public $TableTRHoverColor;
     public $TableRS;
     private $TableID;
-    private $TableName;
+    private $TableName = '';
     private $TableSQL;
     private $TableIDField;
     private $TableGroupField;
     private $TableActiveRowID;
     private $TableConnection;
-    private $TableLinkBaseURL;
-    private $TableLinkTarget;
-    private $TableFieldCaptions;
+    private $TableLinkBaseURL = '';
+    private $TableLinkTarget = '';
+    private $TableFieldCaptions = [];
     private $TableDefaultSortCol;
     private $TableRowsPerPage;
     private $TablePage;
@@ -43,7 +92,7 @@ class LibTable
     private $TableTDAttrib;
     private $TableShowCaptions;
     private $TableShowIDField;
-    private $TableFieldWidths;
+    private $TableFieldWidths = [];
     private $TableExternalRS;
     private $TableOnClick;
     private $TableDeleteField;
@@ -57,10 +106,6 @@ class LibTable
     */
     public function Render()
     {
-        // File-scope counter (line 9): shared across all Table instances so the
-        // generated JS function names (row_act<n>/row_hover<n>/sorttable<n>) are
-        // unique per table on a page. The ASP->PHP converter dropped this global
-        // declaration, making $Table_CtrlID an undefined local here.
         global $Table_CtrlID;
         $fld = null;
         $curID = null;
@@ -79,7 +124,6 @@ class LibTable
             $this->TableExternalRS = true;
         }
         if (!$this->TableExternalRS) {
-            $this->TableRS = null;
             $this->TableRS = Database::openRS($this->TableSQL, $this->TableConnection, adOpenForwardOnly);
             if ($this->TableRS === null) {
                 throw new \Exception('Database query failed: ' . Database::getLastError());
@@ -244,10 +288,6 @@ class LibTable
             */
             public function __construct()
             {
-                // See Render(): $Table_CtrlID is a file-scope counter bumped once
-                // per instance (line 270). Needs `global` — the converter dropped
-                // it, so without this the constructor warns "Undefined variable
-                // $Table_CtrlID" and the increment never reaches the shared value.
                 global $Table_CtrlID;
                 $this->TableID = '';
                 // generated
