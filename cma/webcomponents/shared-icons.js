@@ -214,7 +214,7 @@
         '3d-rotate': 'e875',
 
         // Used in code but previously missing from the optimized subset
-        // (rendered as tofu). Codes verified against cma/docs/linearicons.css.
+        // (rendered as tofu). Codes verified against library/css/linearicons.css.
         'apartment': 'e60c',
         'archive': 'e6a0',
         'arrow-up': 'e941',

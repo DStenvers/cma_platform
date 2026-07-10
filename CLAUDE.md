@@ -190,7 +190,7 @@ When a documented feature is retired, mark the topic with `<lib-label type="warn
 
 ### No new `.md` documentation files
 
-From v1.16.0 forward, all reference documentation lives in `cma/tools/documentation.php`. Do not create new `.md` files in `cma/docs/`. Do not resurrect deleted ones. The `cma/docs/linearicons.css` file stays — it's not a doc, it's a data file used by the storybook.
+From v1.16.0 forward, all reference documentation lives in `cma/tools/documentation.php`. Do not create new `.md` files in `cma/docs/`. Do not resurrect deleted ones. The Linearicons class reference (`library/css/linearicons.css`, moved there from `cma/docs/` in v1.28.121) is not a doc — it's a data file linked by the front-end and read by the storybook; leave it in place.
 
 ### Live self-checks per topic (sinds v1.20.0)
 

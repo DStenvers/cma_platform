@@ -2468,7 +2468,7 @@ npm run build                 # icons + minify
 &lt;span class="lnr lnr-rocket"&gt;&lt;/span&gt;
 &lt;span class="lnr lnr-bubble"&gt;&lt;/span&gt;
 </code></pre>
-    <p>Beschikbare icon-namen staan in <code>cma/docs/linearicons.css</code>. De Storybook-pagina (sectie "Linearicons") rendert de complete lijst zodat je visueel kan kiezen.</p>
+    <p>Beschikbare icon-namen staan in <code>library/css/linearicons.css</code>. De Storybook-pagina (sectie "Linearicons") rendert de complete lijst zodat je visueel kan kiezen.</p>
 
     <h2>Menu-group iconen</h2>
     <p>Sidebar menu-groups krijgen automatisch een icon op basis van de slug. Het <code>$menuGroupIcons</code> array in <code>cma/main.php</code> mapt slug → lnr-class:</p>

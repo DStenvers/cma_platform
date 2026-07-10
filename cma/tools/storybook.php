@@ -4678,7 +4678,7 @@ $origSize = filesize($demoPath);
 
 <?php
 // Parse linearicons.css to extract all icons
-$lineariconsPath = __DIR__ . '/../docs/linearicons.css';
+$lineariconsPath = __DIR__ . '/../../library/css/linearicons.css';
 $allIcons = [];
 if (file_exists($lineariconsPath)) {
     $css = file_get_contents($lineariconsPath);

@@ -25,6 +25,10 @@ CMA_ROOT = os.path.dirname(SCRIPT_DIR)
 SITE_ROOT = os.path.dirname(CMA_ROOT)
 
 SHARED_ICONS_JS = os.path.join(CMA_ROOT, 'webcomponents', 'shared-icons.js')
+# Full named-icon reference. The subset also pulls from here so that EVERY named
+# .lnr-* a page/template can use ends up in the font — sourcing only from the
+# curated shared-icons.js list is what left hundreds of used icons as tofu.
+LINEARICONS_CSS = os.path.join(SITE_ROOT, 'library', 'css', 'linearicons.css')
 FULL_TTF = os.path.join(SITE_ROOT, 'library', 'fonts', 'Linearicons', 'Font', 'Linearicons.ttf')
 FONTS_DIR = os.path.join(SITE_ROOT, 'library', 'fonts')
 FULL_FONT_DIR = os.path.join(FONTS_DIR, 'Linearicons', 'Font')
@@ -37,19 +41,97 @@ FULL_WOFF = os.path.join(FULL_FONT_DIR, 'Linearicons.woff')
 FULL_WOFF2 = os.path.join(FULL_FONT_DIR, 'Linearicons.woff2')
 
 
-def parse_icon_codes():
-    """Extract unique hex codes from shared-icons.js ICON_CODES."""
-    with open(SHARED_ICONS_JS, 'r') as f:
-        content = f.read()
+# lnr- references in these are NOT production usage and must not bloat the
+# subset: the storybook and the docs page deliberately list the WHOLE set (and
+# load the full font themselves), the reference CSS defines every glyph, and the
+# Cypress tests touch many for coverage.
+USAGE_EXCLUDE = (
+    'cma/tools/storybook.php',
+    'cma/tools/documentation.php',
+    'library/css/linearicons.css',
+    'cma/docs/',
+    'cypress/',
+)
+SCAN_EXTS = ('.php', '.inc', '.js', '.css', '.json', '.html')
 
-    # Match patterns like: 'icon-name': 'e6b4'
-    codes = set(re.findall(r"'[a-z0-9-]+':\s*'([a-f0-9]+)'", content))
+
+def _load_name_to_codes():
+    """Map .lnr-<name> → {hex codes} from EVERY css that defines icon glyphs:
+    linearicons.css (the full named reference) PLUS custom aliases/overrides in
+    style.css, form.css, library.css, lib-components.css, … Without the aliases,
+    semantic names like lnr-cancel / lnr-moveup (defined only in style.css) don't
+    resolve and their glyphs get dropped from the subset (tofu). A name can map to
+    more than one code (reference + override) — keep both so it always renders."""
+    # Note: allow whitespace before the ':' — style.css writes `content : "\e6b2"`.
+    rx = re.compile(r'\.lnr-([a-z0-9-]+)\s*:{1,2}before\s*\{[^}]*?content\s*:\s*"\\([a-fA-F0-9]{3,6})"', re.I)
+    mapping = {}
+    for base in (os.path.join(SITE_ROOT, 'library'), os.path.join(CMA_ROOT, 'assets', 'css')):
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d not in ('node_modules', '.git')]
+            for fn in files:
+                if not fn.endswith('.css') or '.min.' in fn:
+                    continue
+                try:
+                    with open(os.path.join(root, fn), 'r', errors='ignore') as f:
+                        for m in rx.finditer(f.read()):
+                            mapping.setdefault(m.group(1), set()).add(m.group(2).lower())
+                except OSError:
+                    pass
+    return mapping
+
+
+def _scan_used_icon_names():
+    """Scan the deployment tree (SITE_ROOT) for actually-used lnr-<name> classes,
+    excluding storybook/docs/reference/tests. Run on the platform this yields the
+    CMA's usage; run on a consumer site it also picks up that site's front-end."""
+    names = set()
+    for root, dirs, files in os.walk(SITE_ROOT):
+        dirs[:] = [d for d in dirs if d not in ('node_modules', '.git', 'vendor')]
+        for fn in files:
+            if not fn.endswith(SCAN_EXTS) or '.min.' in fn:
+                continue
+            rel = os.path.relpath(os.path.join(root, fn), SITE_ROOT).replace('\\', '/')
+            if any(ex in rel for ex in USAGE_EXCLUDE):
+                continue
+            try:
+                with open(os.path.join(root, fn), 'r', errors='ignore') as f:
+                    # Include hyphens so lnr-chevron-down is captured whole, not
+                    # truncated to lnr-chevron (which is not a real icon name).
+                    names |= set(re.findall(r'lnr-([a-z0-9]+(?:-[a-z0-9]+)*)', f.read()))
+            except OSError:
+                pass
+    names.discard('')
+    return names
+
+
+def parse_icon_codes():
+    """Codes the subset must contain = shared-icons.js (web-component lookups)
+    UNION the codes of every .lnr-* actually USED across the deployment. The old
+    behaviour (only shared-icons.js) left hundreds of used icons as tofu; pulling
+    the WHOLE linearicons.css instead over-corrected to ~the full font. Scanning
+    real usage is the middle ground: everything used renders, nothing else ships."""
+    codes = set()
+
+    with open(SHARED_ICONS_JS, 'r') as f:
+        # Match patterns like: 'icon-name': 'e6b4'
+        codes |= set(re.findall(r"'[a-z0-9-]+':\s*'([a-f0-9]+)'", f.read()))
+
+    name_to_codes = _load_name_to_codes()
+    unresolved = []
+    for name in _scan_used_icon_names():
+        if name in name_to_codes:
+            codes |= name_to_codes[name]
+        elif name != 'lnr':
+            unresolved.append(name)
+    if unresolved:
+        print(f"  note: {len(unresolved)} used lnr- name(s) not in linearicons.css (skipped): "
+              + ', '.join(sorted(unresolved)[:15]) + (' …' if len(unresolved) > 15 else ''))
 
     if not codes:
-        print("ERROR: No icon codes found in shared-icons.js")
+        print("ERROR: No icon codes found in shared-icons.js or scanned usage")
         sys.exit(1)
 
-    return sorted(codes)
+    return sorted(c.lower() for c in codes)
 
 
 def format_size(size_bytes):
@@ -183,7 +265,7 @@ def main():
 
     # Parse icon codes
     codes = parse_icon_codes()
-    print(f"Found {len(codes)} unique icon codes in shared-icons.js")
+    print(f"Found {len(codes)} unique icon codes (shared-icons.js + scanned lnr- usage)")
 
     # Generate full web fonts for storybook
     generate_full_web_fonts()

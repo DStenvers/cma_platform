@@ -32,6 +32,8 @@ table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) }
 .lnr-kopieer::before { content: "\e6b8"}
 .lnr-delete::before { content: "\e681" }
 .lnr-cancel::before { content:"\e92a"}
+.lnr-certificate::before { content: "\e6db" } /* alias -> lnr-license (verklaringen) */
+.lnr-flip::before { content: "\e97d" } /* alias -> lnr-flip-horizontal (spiegelen) */
 .lnr-save::before { content:"\e6ae"; font-size:14px; }
 .lnr-back::before {content:"\e8d5"}
 .lnr-search::before {content:"\e922"}

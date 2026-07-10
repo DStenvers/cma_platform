@@ -3237,3 +3237,124 @@ karaat-data en staat in de karaat-repo.
 > i have a 404 on /cma/opcache_reset.php , is that called internally?
 
 > yes please do
+
+> in errorhandler.js the tabs are not correctly set during initialisation, perhaps a race condition, the tab Call Stack and Database tests should be selected, perhaps after 300ms check for being active?
+
+> over de tabel filtering: is het een mogelijkheid dat het laatst toegepaste filter wordt opgeslagen in localstorage en dat tijdens initialisatie deze wordt uitgelezen en weer geactiveerd?
+
+> nee goed, start maar op
+
+> okay we willen dus opslaan welke gegevens je NIET wilt zien, want als je alleen kiest wat e wel wilt zien zal het vaak foutgaan .
+
+> okay, andere vraag; bij een libConfirm of libAlert, zorgen deze schermen ervoor dat ze in de scrollview staan als ze op een lange pagina worden getoond? De vorige versie centreerde ze verticaal maar bij lange pagina's leidde dat ertoe dat ze niet altijd zichtbaar waren.
+
+> ik dacht dat we de extra buttons een domeinnaam ook portnummers hebben gegeven, is dat 'kwijt'?
+
+> nee we gaan nog even lekker door....
+>
+> major issue: alle comboboxen die veel data bevatten geven nu "Geen resultaten'. Ajax lijkt ook niet te werken . Dit geeft form_api.php terug: {success: true, combos: {,…}}
+> combos
+> : 
+> {,…}
+> fkAssistent
+> : 
+> {success: true,…}
+> options
+> : 
+> [{id: "23", text: "__Renée de Haan"}, {id: "2", text: "Angelique van Wees"},…]
+> success
+> : 
+> true
+> fkDeelnemer
+> : 
+> {success: true, options: [], requires_search: true, min_search_length: 3, table_count: 1625}
+> min_search_length
+> : 
+> 3
+> options
+> : 
+> []
+> requires_search
+> : 
+> true
+> success
+> : 
+> true
+> table_count
+> : 
+> 1625
+> fkDocent
+> : 
+> {success: true,…}
+> options
+> : 
+> [{id: "4814", text: "Joost van der Aa"}, {id: "4393", text: "Ineke Abdoelaziz-Hoogeveen"},…]
+> success
+> : 
+> true
+> fkKlantContactpersoon
+> : 
+> {success: true, options: []}
+> fkP_PraktOpl
+> : 
+> {success: true, options: [{id: "240", text: "Karin Hattink"}, {id: "239", text: "Sanne Kriens"}]}
+> fkPraktijkOpleider
+> : 
+> {success: true, options: [{id: "61", text: "Laurien Aben"}, {id: "74", text: "Rachel Adriaanse"},…]}
+> fkSRHForumLid
+> : 
+> {success: true,…}
+> fkSupervisor
+> : 
+> {success: true, options: []}
+> fkWerkbegeleider
+> : 
+> {success: true, options: []}
+> success
+> : 
+> true 
+> medewerker kan ik dus kiezen maar deelnemers of docenten niet
+
+> another issue: Error Handler Failed
+> The error handler encountered a problem while processing an error.
+>
+> Error in Error Handler: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated
+> In file: C:\lab\ai_conversion\site\app\library\ErrorHandler.php
+> On line: 1642
+> Original Error:
+> Error: Call to undefined function lib_AuditLog()
+> In file: C:\lab\ai_conversion\site\index.php
+> On line: 95
+> Error Handler Stack Trace:
+> #0 [internal function]: App\Library\ErrorHandler::handleError(8192, 'htmlspecialchar...', 'C:\\lab\\ai_conve...', 1642)
+> #1 C:\lab\ai_conversion\site\app\library\ErrorHandler.php(1642): htmlspecialchars(NULL)
+> #2 C:\lab\ai_conversion\site\app\library\ErrorHandler.php(798): App\Library\ErrorHandler::renderHtmlError(Object(Error), false)
+> #3 C:\lab\ai_conversion\site\app\library\ErrorHandler.php(252): App\Library\ErrorHandler::renderDetailedError(Object(Error))
+> #4 [internal function]: App\Library\ErrorHandler::handleException(Object(Error))
+> #5 {main}
+> Original Error Stack Trace:
+> #0 C:\lab\ai_conversion\site\_bootstrap_wrapper.php(70): include()
+> #1 {main}
+> Time: 2026-07-09 15:17:59 | PHP Version: 8.4.5 | Server: cgi-fcgi 
+>
+> duid you change anything to the platform errorhandler that can cause this?
+
+> ja die fout wordt al opgelost in een ander venster
+
+## 2026-07-10
+
+>
+> ﻿
+> (index):1 Refused to apply style from 'http://172.30.208.1:8090/library/css/linearicons.css?v=1' because its MIME type ('') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+
+> Graag de linearicons.css in library/css plaatsen en alle overige locaties weghalen en de interne verwijzingen updaten
+
+> maar die linearicons.css verwijst die naar de verkleinde versie van het font?
+
+> woil je de subset opnieuw genereren want ik mis inderdaad vaak iconen (al eerder gerapporteerd)
+
+> Maar die 634 zijn ook de storybook referenties toch? En dat is juist om de hele set te tonen, kun je die eraf halen?
+
+> maak maar aliassen ajb
+
+> laten we een release doen, commit en push alle wijzigingen, of ze uit deze thread komen of niet

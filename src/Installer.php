@@ -73,6 +73,11 @@ class Installer
         'cma/docs/forms.md',
         'cma/docs/api-reference.md',
         'cma/docs/menuicons.md',
+        // Moved in v1.28.121: the full Linearicons class reference now lives at
+        // library/css/linearicons.css (the RINO front-end links it there, and the
+        // storybook reads it from there). Remove the old cma/docs copy so sites
+        // don't keep a stale duplicate.
+        'cma/docs/linearicons.css',
         // Retired in v1.22.0: BOTH the standalone single-file webhook and the
         // framework webhook (cma/tools/deploy_webhook.php → DeployWebhook) are
         // superseded by the one-and-only site-root recovery hatch /deploy.php
