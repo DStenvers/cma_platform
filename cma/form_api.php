@@ -1125,7 +1125,14 @@ try {
             addDebug('case:combo');
             // Get combo box options
             $fieldName = Request::query('field', '');
+            // Accept both 'search' (CMA convention) and 'q' (lib-combo's generic
+            // ajax contract). lib-combo posts the typed term as ?q=, so without the
+            // 'q' fallback every requires_search combo (large table) silently got an
+            // empty term → returned no options → "Geen resultaten" in the UI.
             $search = Request::query('search', '');
+            if ($search === '') {
+                $search = Request::query('q', '');
+            }
             $lookupId = Request::query('id', '');
             // Filter context for parameterized SQL queries
             $filterField = Request::query('filterField', '');
