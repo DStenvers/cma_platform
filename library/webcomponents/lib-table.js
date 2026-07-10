@@ -1664,6 +1664,9 @@ class LibTable extends HTMLElement {
         // Initialize filtering on each column
         this._initializeFilters();
 
+        // Re-apply the last saved column filters for this list (if any)
+        this._restoreFilters();
+
         // Initialize export menu
         this._initializeExportMenu();
 
@@ -2408,6 +2411,7 @@ class LibTable extends HTMLElement {
         });
 
         this._updateView();
+        this._saveFilters();
     }
 
     _getCellValue(cell) {
@@ -2702,6 +2706,7 @@ class LibTable extends HTMLElement {
         // Re-collect rows and rebuild filters
         this._rows = Array.from(this._table.querySelectorAll('tbody tr'));
         this._initializeFilters();
+        this._restoreFilters();
         this._updateView();
     }
 
@@ -2737,6 +2742,117 @@ class LibTable extends HTMLElement {
             }
         });
         this._updateRowVisibility();
+    }
+
+    // --- Column-filter persistence (localStorage) --------------------------
+    // The last applied column filters are remembered per form and re-applied on
+    // the next render, matching the existing cma_* persistence pattern
+    // (cma_filter_field_, cma_lastRecord_, cma_lastViewMode). Keyed on the
+    // table's data-json-form so it is stable per list; tables without that
+    // attribute simply are not persisted.
+
+    _filterStorageKey() {
+        if (!this._table) return null;
+        var form = this._table.getAttribute('data-json-form') ||
+                   this._table.getAttribute('data-name') || '';
+        return form ? 'cma_tableFilter_' + form : null;
+    }
+
+    _normalizeFilterValue(v) {
+        return String(v == null ? '' : v).trim().replace(/ +(?= )/g, '');
+    }
+
+    // Serialize only the ACTIVE filters. Checkbox columns store the excluded
+    // (unchecked) values — usually the short list — so a value that only appears
+    // in a later dataset defaults to included.
+    _serializeFilters() {
+        var state = {};
+        var self = this;
+        this._filterMenus.forEach(function(fm) {
+            var field = (fm.th && fm.th.dataset) ? (fm.th.dataset.field || '') : '';
+            if (!field) return;
+            if (fm.isDateColumn) {
+                var df = fm.dateFromInput ? fm.dateFromInput.value : '';
+                var dt = fm.dateToInput ? fm.dateToInput.value : '';
+                if (df || dt) state[field] = { t: 'd', f: df, to: dt };
+            } else if (fm.isTimeColumn) {
+                var tf = fm.timeFromInput ? fm.timeFromInput.value : '';
+                var tt = fm.timeToInput ? fm.timeToInput.value : '';
+                if (tf || tt) state[field] = { t: 'ti', f: tf, to: tt };
+            } else if (fm.isNumberColumn) {
+                var nf = fm.numberFromInput ? fm.numberFromInput.value : '';
+                var nt = fm.numberToInput ? fm.numberToInput.value : '';
+                if (nf !== '' || nt !== '') state[field] = { t: 'n', f: nf, to: nt };
+            } else if (fm.isTextFilterMode) {
+                var tv = fm.textFilter ? fm.textFilter.value : '';
+                if (tv) state[field] = { t: 'x', v: tv };
+            } else if (fm.inputs && fm.inputs.length) {
+                var excluded = fm.inputs.filter(function(i) { return !i.checked; })
+                    .map(function(i) { return self._normalizeFilterValue(i.value); });
+                if (excluded.length) state[field] = { t: 'c', ex: excluded };
+            }
+        });
+        return state;
+    }
+
+    _saveFilters() {
+        if (this._restoringFilters) return;
+        var key = this._filterStorageKey();
+        if (!key) return;
+        try {
+            var state = this._serializeFilters();
+            if (Object.keys(state).length) {
+                localStorage.setItem(key, JSON.stringify(state));
+            } else {
+                localStorage.removeItem(key);
+            }
+        } catch (e) { /* localStorage unavailable / quota — non-fatal */ }
+    }
+
+    _restoreFilters() {
+        var key = this._filterStorageKey();
+        if (!key || !this._filterMenus.length) return;
+        var state;
+        try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return;
+            state = JSON.parse(raw);
+        } catch (e) { return; }
+        if (!state || typeof state !== 'object') return;
+
+        var self = this;
+        this._restoringFilters = true;
+        var applied = false;
+        this._filterMenus.forEach(function(fm) {
+            var field = (fm.th && fm.th.dataset) ? (fm.th.dataset.field || '') : '';
+            var s = field && state[field];
+            if (!s) return;
+            if (s.t === 'c' && fm.inputs && fm.inputs.length) {
+                var ex = s.ex || [];
+                fm.inputs.forEach(function(i) {
+                    i.checked = ex.indexOf(self._normalizeFilterValue(i.value)) === -1;
+                });
+                self._updateSelectAll(fm);
+                applied = true;
+            } else if (s.t === 'x' && fm.textFilter) {
+                fm.textFilter.value = s.v || '';
+                applied = true;
+            } else if (s.t === 'd') {
+                if (fm.dateFromInput) fm.dateFromInput.value = s.f || '';
+                if (fm.dateToInput) fm.dateToInput.value = s.to || '';
+                applied = true;
+            } else if (s.t === 'ti') {
+                if (fm.timeFromInput) fm.timeFromInput.value = s.f || '';
+                if (fm.timeToInput) fm.timeToInput.value = s.to || '';
+                applied = true;
+            } else if (s.t === 'n') {
+                if (fm.numberFromInput) fm.numberFromInput.value = s.f || '';
+                if (fm.numberToInput) fm.numberToInput.value = s.to || '';
+                applied = true;
+            }
+        });
+        this._restoringFilters = false;
+        if (applied) this._updateRowVisibility();
     }
 }
 
