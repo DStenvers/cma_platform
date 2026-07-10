@@ -3368,3 +3368,6 @@ karaat-data en staat in de karaat-repo.
 
 > Creation of dynamic property LibTable::$Recordset is deprecated
 > in C:\lab\ai_conversion\site\rapportage_voordrachten_po.inc on line 89
+
+> Undefined variable $php_error_number
+> in C:\lab\ai_conversion\site\cma\details_getdata.php on line 68

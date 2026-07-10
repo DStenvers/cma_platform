@@ -225,11 +225,9 @@ function lib_CreateAsciiFile($strLocalPath, $sFileContent)
 
             $f->WriteLine($sFileContent);
 
-            if ($php_error_number > 0) {
-
-                $f->DeleteFile($strLocalPath);
-
-            }
+            // (Removed a dead ASP-conversion cleanup that deleted the file on
+            // $php_error_number > 0 — that variable is never set, so it never ran.
+            // Write failures now surface via ErrorHandler.php.)
 
             // ON ERROR GOTO 0 - Error handling via ErrorHandler.php
 

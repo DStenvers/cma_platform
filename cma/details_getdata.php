@@ -64,9 +64,9 @@ if ($parFormID != '') {
                             if ($testRS === null) {
                                 throw new \Exception('Database query failed: ' . Database::getLastError());
                             }
-                            if ($php_error_number == 0) {
-                                $comboSQL = $testSQL;
-                            }
+                            // openRS() above throws on failure, so reaching here
+                            // means the test query succeeded — use it as the filter.
+                            $comboSQL = $testSQL;
                             $testRS = null;
                         }
                     } else {

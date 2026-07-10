@@ -159,8 +159,9 @@ function RetrieveExternalURLText($txtModuleURL, $txtCurrentUrl)
                 Debug::write("External content taken from '" . $txtModuleURL . "'");
                 // ON ERROR RESUME NEXT - Errors handled by ErrorHandler.php
                 $txtModuleHTML = lib_HttpGet($txtModuleURL);
-                // ON ERROR GOTO 0 - Error handling via ErrorHandler.php
-                if ($php_error_number != 0) {
+                // lib_HttpGet() returns '' on any error or non-200 response
+                // (was checked via the never-set $php_error_number before).
+                if ($txtModuleHTML === '') {
                     $txtModuleHTML = 'Er is een fout opgetreden. Mogelijk zijn de door u opgegeven parameters onjuist. Controleer deze en probeer opnieuw...';
                 }
             }
