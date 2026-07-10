@@ -3371,3 +3371,29 @@ karaat-data en staat in de karaat-repo.
 
 > Undefined variable $php_error_number
 > in C:\lab\ai_conversion\site\cma\details_getdata.php on line 68
+
+> Call to a member function MoveNext() on string
+> in C:\lab\ai_conversion\site\rapportage_presentie.inc on line 68
+
+> http://172.30.208.1:8090/index.php?pageaction=rapportage_presentie 500 (Internal Server Error)
+> index.php?pageaction=rapportage_presentie:1121  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> index.php?pageaction=rapport_vrijstellingen:1  GET http://172.30.208.1:8090/index.php?pageaction=rapport_vrijstellingen 500 (Internal Server Error)
+> index.php?pageaction=rapportage_presentie:1  POST http://172.30.208.1:8090/index.php?pageaction=rapportage_presentie 500 (Internal Server Error)
+> index.php?pageaction=rapportage_presentie:4315  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> index.php?pageaction=rapport_deelnemers_praktijkopleiders:1  GET http://172.30.208.1:8090/index.php?pageaction=rapport_deelnemers_praktijkopleiders 500 (Internal Server Error)
+> index.php?pageaction=rapport_deelnemers_praktijkopleiders:1223  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> index.php?pageaction=rapportage_presentie_ontbrekend:1  GET http://172.30.208.1:8090/index.php?pageaction=rapportage_presentie_ontbrekend 500 (Internal Server Error)
+> index.php?pageaction=rapportage_presentie_ontbrekend:1019  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> index.php?pageaction…ntie_ontbrekend:421 Uncaught TypeError: Cannot read properties of undefined (reading 'writeText')
+>     at HTMLButtonElement.onclick (index.php?pageaction=rapportage_presentie_ontbrekend:421:663)
+> onclick @ index.php?pageaction=rapportage_presentie_ontbrekend:421
+> index.php?pageaction=rapport_vrijstellingen:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+> index.php?pageaction=rapportage_presentie_ontbrekend:1  GET http://172.30.208.1:8090/index.php?pageaction=rapportage_presentie_ontbrekend 500 (Internal Server Error)
+> index.php?pageaction=rapport_deelnemers_praktijkopleiders:1  GET http://172.30.208.1:8090/index.php?pageaction=rapport_deelnemers_praktijkopleiders 500 (Internal Server Error)
+> index.php?pageaction=rapport_deelnemers_praktijkopleiders:2523  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> agenda.php:216 Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules
+> agenda.php:469  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+> agenda.php:216 Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules (at agenda.php:216:17)
+> agenda.php:469  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
+
+> Maak in de recordste een functie EOF() die de property eof retourneerd, backwars-compatibility

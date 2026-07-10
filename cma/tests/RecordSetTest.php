@@ -118,6 +118,21 @@ class RecordSetTest extends TestCase
         $this->assertEquals(0, $rs->RecordCount);
     }
 
+    public function testEofMethodFormMatchesProperty(): void
+    {
+        // ADO-style code (and the ASP->PHP converter) sometimes writes $rs->EOF()
+        // as a method; the explicit EOF() method must return the same as $rs->EOF.
+        $rs = $this->forwardRs([['ID' => 1]]);
+        $this->assertFalse($rs->EOF());
+        $this->assertSame($rs->EOF, $rs->EOF());
+        $rs->MoveNext();
+        $this->assertTrue($rs->EOF());
+        $this->assertSame($rs->EOF, $rs->EOF());
+
+        // Empty set is at EOF immediately, method form.
+        $this->assertTrue($this->forwardRs([])->EOF());
+    }
+
     public function testEofBecomesTrueAfterMovingPastLastRow(): void
     {
         $rs = $this->forwardRs([['ID' => 1]]);

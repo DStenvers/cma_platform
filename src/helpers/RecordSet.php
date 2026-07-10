@@ -247,6 +247,19 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
     }
 
     /**
+     * EOF as an explicit method — ADO-style code (and the ASP→PHP converter)
+     * sometimes writes $rs->EOF() with parentheses instead of the $rs->EOF
+     * property. Return the same value so both forms work. PHP method names are
+     * case-insensitive, so this also covers $rs->eof(). (Was previously only
+     * handled by __call(); an explicit method is clearer and can't be missed.)
+     *
+     * @return bool True if at end of file
+     */
+    public function EOF() {
+        return $this->eof;
+    }
+
+    /**
      * Get all remaining rows as array (PDO-friendly method)
      *
      * @return array All rows
