@@ -2443,7 +2443,7 @@ echo '</lib-dialog>';
 echo '<lib-dialog id="jsonPreviewDialog" heading="JSON preview" size="large" maximizable>';
 echo '<textarea id="jsonPreviewArea" readonly></textarea>';
 echo '<div slot="footer">';
-echo '<button class="btn" id="jsonCopyBtn" onclick="navigator.clipboard.writeText(document.getElementById(\'jsonPreviewArea\').value);document.getElementById(\'jsonCopyLabel\').textContent=\'Gekopieerd!\';setTimeout(function(){document.getElementById(\'jsonCopyLabel\').textContent=\'Kopieer naar klembord\'},2000)"><span class="lnr lnr-copy"></span> <span id="jsonCopyLabel">Kopieer naar klembord</span></button>';
+echo '<button class="btn" id="jsonCopyBtn" onclick="cmaCopyToClipboard(document.getElementById(\'jsonPreviewArea\').value);document.getElementById(\'jsonCopyLabel\').textContent=\'Gekopieerd!\';setTimeout(function(){document.getElementById(\'jsonCopyLabel\').textContent=\'Kopieer naar klembord\'},2000)"><span class="lnr lnr-copy"></span> <span id="jsonCopyLabel">Kopieer naar klembord</span></button>';
 echo '<button class="btn btn-primary" id="jsonDownloadBtn" onclick="(function(){var json=document.getElementById(\'jsonPreviewArea\').value;var name=(FormEditor.currentForm||\'form\')+\'.json\';var blob=new Blob([json],{type:\'application/json\'});var a=document.createElement(\'a\');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)})()"><span class="lnr lnr-download"></span> Downloaden</button>';
 echo '</div>';
 echo '</lib-dialog>';

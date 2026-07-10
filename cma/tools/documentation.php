@@ -403,7 +403,7 @@ body.tool-docs #c.tools { padding: 0; }
                 done();
             };
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(done).catch(fallback);
+                cmaCopyToClipboard(text).then(done).catch(fallback);
             } else {
                 fallback();
             }

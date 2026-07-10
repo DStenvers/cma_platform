@@ -479,7 +479,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             document.getElementById("copy-btn").addEventListener("click", function() {
                 const jsonText = document.getElementById("json-editor").value;
-                navigator.clipboard.writeText(jsonText);
+                cmaCopyToClipboard(jsonText);
                 this.textContent = "Gekopieerd!";
                 setTimeout(() => this.textContent = "Kopieer naar klembord", 2000);
             });

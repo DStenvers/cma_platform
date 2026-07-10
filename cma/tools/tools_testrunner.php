@@ -815,7 +815,7 @@ function displayResults($data, $isPrevious = false): void
     if ($command) {
         echo '<span class="cma-tool__strong">Command:</span> <button type="button" onclick="copyCommand()" class="btn" style="font-size:var(--font-size-2xs); padding:2px 8px;">Kopiëren</button><br>';
         echo '<code id="cypressCommand" style="display:block; padding:5px; background:#fff; margin:5px 0 10px 0; word-break:break-all; cursor:pointer;" onclick="copyCommand()" title="Klik om te kopiëren">' . htmlspecialchars($command) . '</code>';
-        echo '<script>function copyCommand() { navigator.clipboard.writeText(' . json_encode($command) . '); libToast("Command gekopieerd!"); }</script>';
+        echo '<script>function copyCommand() { cmaCopyToClipboard(' . json_encode($command) . '); libToast("Command gekopieerd!"); }</script>';
     }
     if ($workingDir) {
         echo '<span class="cma-tool__strong">Working directory:</span> ' . htmlspecialchars($workingDir) . '<br><br>';
@@ -1098,7 +1098,7 @@ if (!empty($specs)) {
     window.copyToClipboard = function(el) {
         var code = el.querySelector('code');
         if (code) {
-            navigator.clipboard.writeText(code.textContent).then(function() {
+            cmaCopyToClipboard(code.textContent).then(function() {
                 libToast('Gekopieerd naar klembord!');
             });
         }

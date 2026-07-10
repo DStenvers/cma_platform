@@ -1482,7 +1482,7 @@ class ErrorHandler
                             </div>
                             <div class="exception-type">CMA platform v' . htmlspecialchars($platformVersion) . '</div>
                         </div>
-                        <button class="copy-button" onclick="var h=this.closest(\'header\');var t=h.querySelector(\'h1\').textContent+\' in \'+h.querySelector(\'.exception-type\').textContent.trim()+\'\\n\'+h.querySelector(\'.exception-message\').textContent;navigator.clipboard.writeText(t).then(function(){this.textContent=\'Gekopieerd!\';setTimeout(function(){this.innerHTML=\'&#128203; Kopieer\'}.bind(this),2000)}.bind(this))" title="Kopieer foutmelding naar klembord">&#128203; Kopieer</button>
+                        <button class="copy-button" onclick="var h=this.closest(\'header\');var t=h.querySelector(\'h1\').textContent+\' in \'+h.querySelector(\'.exception-type\').textContent.trim()+\'\\n\'+h.querySelector(\'.exception-message\').textContent;cmaCopyToClipboard(t).then(function(){this.textContent=\'Gekopieerd!\';setTimeout(function(){this.innerHTML=\'&#128203; Kopieer\'}.bind(this),2000)}.bind(this))" title="Kopieer foutmelding naar klembord">&#128203; Kopieer</button>
                     </div>
                 </header>';
 
@@ -1572,7 +1572,7 @@ class ErrorHandler
                 <script>
                 function copySQL() {
                     var sql = document.getElementById("sql-query").innerText;
-                    navigator.clipboard.writeText(sql).then(function() {
+                    cmaCopyToClipboard(sql).then(function() {
                         var btn = document.querySelector(".copy-button");
                         var originalText = btn.innerHTML;
                         btn.innerHTML = "Copied!";
@@ -2706,6 +2706,27 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
 
         echo '</div>
         <script>
+            // Copy helper that also works on insecure (http) origins where
+            // navigator.clipboard is undefined — falls back to execCommand. Returns
+            // a Promise so the copy buttons keep their .then() feedback.
+            function cmaCopyToClipboard(text) {
+                text = (text === null || text === undefined) ? "" : String(text);
+                if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function(resolve, reject) {
+                    try {
+                        var ta = document.createElement("textarea");
+                        ta.value = text; ta.setAttribute("readonly", "");
+                        ta.style.position = "fixed"; ta.style.top = "-9999px";
+                        document.body.appendChild(ta); ta.select();
+                        var ok = document.execCommand("copy");
+                        document.body.removeChild(ta);
+                        ok ? resolve() : reject(new Error("copy failed"));
+                    } catch (e) { reject(e); }
+                });
+            }
+
             function showTab(tabName) {
                 var selectedTab = document.getElementById(tabName + "-tab");
                 if (!selectedTab) { return false; }
@@ -3183,7 +3204,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         echo '<div class="error-container">';
         echo '<div class="error-header" style="display:flex;justify-content:space-between;align-items:center">';
         echo '<h1 style="margin:0">⚠️ ' . htmlspecialchars($errorInfo['title']) . '</h1>';
-        echo '<button onclick="var t=document.querySelector(\'.error-message\').textContent+\'\\n\'+document.querySelector(\'.error-solution\').textContent;navigator.clipboard.writeText(t).then(function(){this.textContent=\'Gekopieerd!\';setTimeout(function(){this.innerHTML=\'&#128203; Kopieer\'}.bind(this),2000)}.bind(this))" style="background:#fff3;color:white;border:1px solid #fff6;border-radius:4px;padding:5px 10px;cursor:pointer;font-size:12px" title="Kopieer foutmelding">&#128203; Kopieer</button>';
+        echo '<button onclick="var t=document.querySelector(\'.error-message\').textContent+\'\\n\'+document.querySelector(\'.error-solution\').textContent;cmaCopyToClipboard(t).then(function(){this.textContent=\'Gekopieerd!\';setTimeout(function(){this.innerHTML=\'&#128203; Kopieer\'}.bind(this),2000)}.bind(this))" style="background:#fff3;color:white;border:1px solid #fff6;border-radius:4px;padding:5px 10px;cursor:pointer;font-size:12px" title="Kopieer foutmelding">&#128203; Kopieer</button>';
         echo '</div>';
         echo '<div class="error-body">';
         echo '<div class="error-message">';

@@ -27,6 +27,30 @@
 // Guard against double registration
 if (!customElements.get('lib-message')) {
 
+// Clipboard helper that also works on insecure (http) origins where
+// navigator.clipboard is undefined. Reuses window.cmaCopyToClipboard (cma-utils.js)
+// when present, otherwise defines the same secure+execCommand fallback so this
+// library component also works on a plain-http front-end.
+if (typeof window.cmaCopyToClipboard !== 'function') {
+    window.cmaCopyToClipboard = function(text) {
+        text = (text === null || text === undefined) ? '' : String(text);
+        if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+        }
+        return new Promise(function(resolve, reject) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed'; ta.style.top = '-9999px';
+                document.body.appendChild(ta); ta.select();
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                ok ? resolve() : reject(new Error('copy failed'));
+            } catch (e) { reject(e); }
+        });
+    };
+}
+
 class LibMessage extends HTMLElement {
     static get observedAttributes() {
         return ['type', 'closable', 'auto-dismiss', 'icon', 'compact', 'details'];
@@ -208,7 +232,7 @@ class LibMessage extends HTMLElement {
         }
 
         try {
-            await navigator.clipboard.writeText(textToCopy);
+            await window.cmaCopyToClipboard(textToCopy);
             // Visual feedback - briefly change icon to checkmark
             const copyBtn = this.querySelector('.lib-message__copy');
             if (copyBtn) {

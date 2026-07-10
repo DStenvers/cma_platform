@@ -99,6 +99,40 @@ if (typeof window.cmaLog === 'undefined' || !window.LibLog) {
  * - Standard PHP Fatal error output
  * - Standard PHP Parse error output
  */
+
+/**
+ * Copy text to the clipboard, working on BOTH secure (https/localhost) and
+ * insecure (plain http, e.g. a LAN dev box) contexts. navigator.clipboard is
+ * undefined on insecure origins, so a direct navigator.clipboard.writeText()
+ * throws "Cannot read properties of undefined (reading 'writeText')". This
+ * helper uses the async Clipboard API when available and falls back to a hidden
+ * textarea + execCommand('copy'). Always returns a Promise so callers can keep
+ * using .then()/await unchanged.
+ * @param {string} text
+ * @returns {Promise<void>}
+ */
+window.cmaCopyToClipboard = function(text) {
+    text = (text === null || text === undefined) ? '' : String(text);
+    if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(resolve, reject) {
+        try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            ta.setSelectionRange(0, ta.value.length);
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? resolve() : reject(new Error('execCommand copy failed'));
+        } catch (e) { reject(e); }
+    });
+};
+
 window.cmaErrorParser = {
     /**
      * Extract PHP error from HTML response

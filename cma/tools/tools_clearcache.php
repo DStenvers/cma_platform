@@ -1051,7 +1051,7 @@ if (!$_terserAvailable) {
         echo 'Voer uit in een terminal:<br>';
         echo '<code id="terserInstallCmd" style="display:inline-block;margin:4px 0;padding:4px 8px;background:var(--bg-code,#f0f0f0);border-radius:3px;user-select:all;word-break:break-all">'
             . htmlspecialchars($installCmd) . '</code> ';
-        echo '<button onclick="navigator.clipboard.writeText(document.getElementById(\'terserInstallCmd\').textContent).then(function(){var b=document.getElementById(\'terserCopyBtn\');b.textContent=\'Gekopieerd!\';setTimeout(function(){b.textContent=\'Kopieer\'},1500)})" '
+        echo '<button onclick="cmaCopyToClipboard(document.getElementById(\'terserInstallCmd\').textContent).then(function(){var b=document.getElementById(\'terserCopyBtn\');b.textContent=\'Gekopieerd!\';setTimeout(function(){b.textContent=\'Kopieer\'},1500)})" '
             . 'id="terserCopyBtn" class="btn" style="font-size:var(--font-size-xs);padding:2px 8px;vertical-align:middle">Kopieer</button>';
     }
     echo '</td></tr>';
@@ -1063,7 +1063,7 @@ if (!$_terserAvailable) {
     $iisCmd = 'iisreset';
     echo '<code id="iisResetCmd" style="display:inline-block;padding:4px 8px;background:var(--bg-code,#f0f0f0);border-radius:3px;user-select:all">'
         . htmlspecialchars($iisCmd) . '</code> ';
-    echo '<button onclick="navigator.clipboard.writeText(document.getElementById(\'iisResetCmd\').textContent).then(function(){var b=document.getElementById(\'iisCopyBtn\');b.textContent=\'Gekopieerd!\';setTimeout(function(){b.textContent=\'Kopieer\'},1500)})" '
+    echo '<button onclick="cmaCopyToClipboard(document.getElementById(\'iisResetCmd\').textContent).then(function(){var b=document.getElementById(\'iisCopyBtn\');b.textContent=\'Gekopieerd!\';setTimeout(function(){b.textContent=\'Kopieer\'},1500)})" '
         . 'id="iisCopyBtn" class="btn" style="font-size:var(--font-size-xs);padding:2px 8px;vertical-align:middle">Kopieer</button>';
     echo '</td></tr>';
 

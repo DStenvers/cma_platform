@@ -4940,7 +4940,7 @@ window.ALL_LINEARICONS = <?= json_encode($allIcons) ?>;
             // Copy the CSS content specification
             const contentCode = item.dataset.content;
             const cssSpec = `content: "${contentCode}";`;
-            navigator.clipboard.writeText(cssSpec).then(function() {
+            cmaCopyToClipboard(cssSpec).then(function() {
                 item.classList.add('copied');
                 const nameEl = item.querySelector('.icon-name');
                 const originalText = nameEl.textContent;

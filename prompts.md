@@ -3397,3 +3397,5 @@ karaat-data en staat in de karaat-repo.
 > agenda.php:469  GET http://172.30.208.1:8090/uploads/profielfotos/100.jpg 404 (Not Found)
 
 > Maak in de recordste een functie EOF() die de property eof retourneerd, backwars-compatibility
+
+> pak alsjeblieft alles op wat je vaststeld

@@ -506,7 +506,7 @@ class CmaSqlEditor extends HTMLElement {
         if (!this._sql) return;
 
         try {
-            await navigator.clipboard.writeText(this._sql);
+            await cmaCopyToClipboard(this._sql);
             const originalHtml = btnCopy.innerHTML;
             btnCopy.innerHTML = '<span class="lnr lnr-checkmark-circle"></span> Gekopieerd';
 

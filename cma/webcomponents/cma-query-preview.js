@@ -1034,7 +1034,7 @@ class CmaQueryPreview extends HTMLElement {
         };
 
         try {
-            await navigator.clipboard.writeText(this._sql);
+            await cmaCopyToClipboard(this._sql);
             showCopied();
         } catch (err) {
             // Fallback for older browsers
