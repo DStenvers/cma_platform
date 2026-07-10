@@ -149,7 +149,9 @@ return str_ireplace('<?xml version="1.0"?>', '', $sHTML . '');
 */
 function GetSnippetContent($cXMLStore)
 {
-    global $intSnippetLevel, $libObjXMLDOM;
+    // $CACHE_XSLTS is set at file scope (line ~22 from Application::get('cma_XML_caching'));
+    // pull it in explicitly — without this it is undefined inside the function.
+    global $intSnippetLevel, $libObjXMLDOM, $CACHE_XSLTS;
     $cParam = '';
     $cache_id = '';
     $total_cacheid = $cXMLStore;

@@ -3358,3 +3358,6 @@ karaat-data en staat in de karaat-repo.
 > maak maar aliassen ajb
 
 > laten we een release doen, commit en push alle wijzigingen, of ze uit deze thread komen of niet
+
+> Undefined variable $CACHE_XSLTS
+> in C:\lab\ai_conversion\site\library\lib_xmlsnippets.inc on line 182
