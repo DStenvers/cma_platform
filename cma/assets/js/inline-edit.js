@@ -2309,7 +2309,9 @@
 
             url = url.replace(/\[guid\]/gi, guid);
             url = url.replace(/\[guid2\]/gi, guid2);
-            url = url.replace(/\[domein\]/gi, window.location.hostname);
+            // [domein] = hostname AND port (window.location.host), so links keep
+            // working on a non-standard port (e.g. a dev site on :8090).
+            url = url.replace(/\[domein\]/gi, window.location.host);
 
             // Match protocol to current page (avoid https on localhost/IP)
             if (window.location.protocol === 'http:') {

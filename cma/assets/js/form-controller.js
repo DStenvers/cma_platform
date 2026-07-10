@@ -10455,8 +10455,10 @@ class CmaFormController {
                 url = url.replace(/\[guid2\]/gi, recordGuid2);
             }
 
-            // Replace [domein] placeholder with current domain (without https://)
-            url = url.replace(/\[domein\]/gi, window.location.hostname);
+            // Replace [domein] placeholder with the current host — hostname AND
+            // port (window.location.host), so links keep working on a non-standard
+            // port (e.g. a dev site on :8090). On ports 80/443 host === hostname.
+            url = url.replace(/\[domein\]/gi, window.location.host);
 
             // Generic field-based substitution — any remaining `[fieldname]`
             // placeholder is looked up as the value of a form input with
@@ -10539,8 +10541,10 @@ class CmaFormController {
             url = url.replace(/\[guid2\]/gi, recordGuid2);
         }
 
-        // Replace [domein] placeholder with current domain (without https://)
-        url = url.replace(/\[domein\]/gi, window.location.hostname);
+        // Replace [domein] placeholder with the current host — hostname AND port
+        // (window.location.host), so links keep working on a non-standard port
+        // (e.g. a dev site on :8090). On ports 80/443 host === hostname.
+        url = url.replace(/\[domein\]/gi, window.location.host);
 
         // Match protocol to current page (avoid https on localhost/IP)
         if (window.location.protocol === 'http:') {
