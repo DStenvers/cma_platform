@@ -1754,7 +1754,7 @@ class ErrorHandler
                 $formattedValue = is_array($value) ? json_encode($value) : $value;
                 echo '<tr>
                         <td><span class="error-handler__strong">$_GET[\'' . htmlspecialchars($key) . '\']</span></td>
-                        <td>' . htmlspecialchars($formattedValue) . '</td>
+                        <td>' . htmlspecialchars((string)$formattedValue) . '</td>
                       </tr>';
             }
 
@@ -1763,7 +1763,7 @@ class ErrorHandler
                 $formattedValue = is_array($value) ? json_encode($value) : $value;
                 echo '<tr>
                         <td><span class="error-handler__strong">$_POST[\'' . htmlspecialchars($key) . '\']</span></td>
-                        <td>' . htmlspecialchars($formattedValue) . '</td>
+                        <td>' . htmlspecialchars((string)$formattedValue) . '</td>
                       </tr>';
             }
 
@@ -1782,7 +1782,7 @@ class ErrorHandler
                 if (!is_array($value) && !is_object($value)) {
                     echo '<tr>
                             <td><span class="error-handler__strong">$_SERVER[\'' . htmlspecialchars($key) . '\']</span></td>
-                            <td>' . htmlspecialchars($value) . '</td>
+                            <td>' . htmlspecialchars((string)$value) . '</td>
                           </tr>';
                 }
             }
@@ -1803,7 +1803,7 @@ class ErrorHandler
                     $formattedValue = is_array($value) ? json_encode($value) : $value;
                     echo '<tr>
                             <td><span class="error-handler__strong">$_COOKIE[\'' . htmlspecialchars($key) . '\']</span></td>
-                            <td>' . htmlspecialchars($formattedValue) . '</td>
+                            <td>' . htmlspecialchars((string)$formattedValue) . '</td>
                           </tr>';
                 }
             } else {
@@ -1826,7 +1826,7 @@ class ErrorHandler
                     $formattedValue = is_array($value) ? json_encode($value) : (is_object($value) ? get_class($value) : $value);
                     echo '<tr>
                             <td><span class="error-handler__strong">$_SESSION[\'' . htmlspecialchars($key) . '\']</span></td>
-                            <td>' . htmlspecialchars($formattedValue) . '</td>
+                            <td>' . htmlspecialchars((string)$formattedValue) . '</td>
                           </tr>';
                 }
             } else {
@@ -2249,13 +2249,13 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                                 <span class="error-handler__strong">Diagnostics & Tests</span>
                             </div>
                             <div class="tab-buttons">
-                                <button class="tab-button active" onclick="showTab(\'env-file\');" data-tab="env-file">Environment File</button>
-                                <button class="tab-button" onclick="showTab(\'db-test\');" data-tab="db-test">Database Tests</button>
+                                <button class="tab-button" onclick="showTab(\'env-file\');" data-tab="env-file">Environment File</button>
+                                <button class="tab-button active" onclick="showTab(\'db-test\');" data-tab="db-test">Database Tests</button>
                                 <button class="tab-button" onclick="showTab(\'filesystem\');" data-tab="filesystem">File System Status</button>
                             </div>
                             
 
-                            <div class="tab-content eh-tab-content-visible active" id="env-file-tab">
+                            <div class="tab-content eh-tab-content-hidden" id="env-file-tab">
                                 <div class="eh-section-header">
                                     <div>';
                     
@@ -2372,7 +2372,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     echo '</div>
                             
                             <!-- Database Tests Tab -->
-                            <div class="tab-content eh-tab-content-hidden" id="db-test-tab">
+                            <div class="tab-content eh-tab-content-visible active" id="db-test-tab">
                                 <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px 4px 0 0;">
                                     <span class="error-handler__strong">Database Connection Tests</span>
                                 </div>
@@ -2707,32 +2707,50 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
         echo '</div>
         <script>
             function showTab(tabName) {
-                // Hide all tab contents
-                var tabContents = document.getElementsByClassName("tab-content");
+                var selectedTab = document.getElementById(tabName + "-tab");
+                if (!selectedTab) { return false; }
+
+                // This page has MORE THAN ONE tab group (Debug information +
+                // Diagnostics & Tests). Scope every hide/show to the group (card)
+                // that owns the selected tab — a page-global toggle would blank
+                // the other group active tab.
+                var group = selectedTab.closest(".card") || document;
+
+                var tabContents = group.getElementsByClassName("tab-content");
                 for (var i = 0; i < tabContents.length; i++) {
                     tabContents[i].style.display = "none";
+                    tabContents[i].classList.remove("active");
                 }
-                
-                // Remove active class from all buttons
-                var tabButtons = document.getElementsByClassName("tab-button");
+
+                var tabButtons = group.getElementsByClassName("tab-button");
                 for (var i = 0; i < tabButtons.length; i++) {
-                    tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+                    tabButtons[i].classList.remove("active");
                 }
-                
-                // Show the selected tab
-                var selectedTab = document.getElementById(tabName + "-tab");
-                if (selectedTab) {
-                    selectedTab.style.display = "block";
-                }
-                
-                // Make button active
+
+                selectedTab.style.display = "block";
+                selectedTab.classList.add("active");
+
                 for (var i = 0; i < tabButtons.length; i++) {
                     if (tabButtons[i].getAttribute("data-tab") === tabName) {
-                        tabButtons[i].className += " active";
+                        tabButtons[i].classList.add("active");
                     }
                 }
-                
+
                 return false;
+            }
+
+            // Re-assert the initially-active tab of each group from JS. That tab
+            // visibility otherwise depends on the async errorhandler.css
+            // (.eh-tab-content-visible/-hidden); if that stylesheet lands after
+            // first paint the wrong tab can flash. Running showTab() per group
+            // pins the intended tab via inline styles, independent of the CSS.
+            function initErrorTabs() {
+                var groups = document.getElementsByClassName("tab-buttons");
+                for (var g = 0; g < groups.length; g++) {
+                    var active = groups[g].querySelector(".tab-button.active") ||
+                                 groups[g].querySelector(".tab-button");
+                    if (active) { showTab(active.getAttribute("data-tab")); }
+                }
             }
             
             // Toggle comments visibility in php.ini display
@@ -2749,10 +2767,14 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                 }
             }
 
-            // Apply initial state (comments hidden by default)
+            // Apply initial state (comments hidden by default) and pin the active
+            // tab of each group.
             document.addEventListener("DOMContentLoaded", function() {
                 toggleComments();
+                initErrorTabs();
             });
+            // Safety net for the async-stylesheet race: re-assert once things settle.
+            setTimeout(initErrorTabs, 300);
 
             // Simple function to ask Claude for help
             function askClaudeHelp() {
