@@ -2100,8 +2100,11 @@ class Database
      * @param string $fieldName Field name (empty string to check table only)
      * @return bool True if field/table exists
      */
-    public static function fieldExists(?string $connectionString, string $table, string $fieldName = ''): bool
+    public static function fieldExists($connectionString, string $table, string $fieldName = ''): bool
     {
+        // Accept a DSN string, null, or a PDO connection (ASP-converted callers
+        // pass the open connection object). The value only feeds the null-default
+        // below; the actual query runs on the default connection.
         if ($connectionString === null) {
             $connectionString = self::getConfiguredDsn('data');
         }
@@ -2159,8 +2162,13 @@ class Database
      * @param string $table Table name
      * @return bool True if table exists
      */
-    public static function tableExists(?string $connectionString, string $table): bool
+    public static function tableExists($connectionString, string $table): bool
     {
+        // $connectionString accepts a DSN string, null, OR a PDO connection —
+        // ASP-converted callers pass the open connection object (e.g.
+        // $conn_data). It is not used to select the connection here (fieldExists
+        // uses the default connection), so any of those is fine; the loose type
+        // just avoids a TypeError on the PDO case.
         return self::fieldExists($connectionString, $table, '');
     }
 

@@ -3407,3 +3407,5 @@ karaat-data en staat in de karaat-repo.
 > zijn er openstaande zaken? kun je een full endpoints scan doen?
 
 > ja graag
+
+> ja graag, iisreset is gedraaid..
