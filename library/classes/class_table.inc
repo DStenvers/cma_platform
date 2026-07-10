@@ -11,6 +11,10 @@ $Table_CtrlID = 0;
 // Link: Set the LinkUrl or LinkTarget or set the OnClick ([ID] will be replaced by the actual value)
 // 2do : use the more powerfull filtering option
 if (class_exists('LibTable')) { return; }
+// Legacy ADO-style table: callers set data/layout via properties (Recordset,
+// ShowIDField, RowsPerPage, Filtered, …) that aren't all declared. PHP 8.2+
+// deprecates such dynamic properties, so opt this class in explicitly.
+#[AllowDynamicProperties]
 class LibTable
 {
     public $TableTRColor1;

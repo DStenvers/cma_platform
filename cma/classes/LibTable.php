@@ -11,6 +11,9 @@ namespace Cma;
 use App\Library\Database;
 use App\Library\Server;
 
+// Legacy ADO-style table — callers set arbitrary layout properties beyond the
+// declared ones; PHP 8.2+ deprecates dynamic properties, so opt in explicitly.
+#[AllowDynamicProperties]
 class LibTable
 {
     private static int $ctrlId = 0;
