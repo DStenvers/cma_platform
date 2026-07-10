@@ -8,6 +8,10 @@ require_once __DIR__ . '/bootstrap.inc';
 */
 function main()
 {
+    // These labels are set at file scope in bootstrap.inc; pull them in so they
+    // aren't undefined inside this function (a strict error handler turns the
+    // "Undefined variable" warning into a 500).
+    global $lang_wizard_back, $lang_wizard_cancel, $lang_wizard_finish, $lang_wizard_next;
     Response::noCache();
     $extraHead = '<STYLE>button{font-family:verdana;font-size:var(--font-size-xs)}</STYLE>';
     cma_html_header('Wizard', $extraHead, false);

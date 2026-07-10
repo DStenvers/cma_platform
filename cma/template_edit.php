@@ -127,6 +127,7 @@ function template_CreateFKEditor( fieldname, bSpamJS, nHeight )
 */
 function main()
 {
+    global $lang_tb_preview, $lang_required_entry; // set at file scope in bootstrap.inc
     $ScriptObject = null;
     $MyFile = null;
     $strID = Request::queryInt('ID');

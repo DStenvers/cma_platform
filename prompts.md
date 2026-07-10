@@ -3399,3 +3399,11 @@ karaat-data en staat in de karaat-repo.
 > Maak in de recordste een functie EOF() die de property eof retourneerd, backwars-compatibility
 
 > pak alsjeblieft alles op wat je vaststeld
+
+> wil je die oppakken inderdaad? Jij weet nu goed wat er aan de hand is.
+
+> ja graag systemisch aanpakken dus de converter aanpassen
+
+> zijn er openstaande zaken? kun je een full endpoints scan doen?
+
+> ja graag

@@ -6,6 +6,7 @@ require_once __DIR__ . '/bootstrap.inc';
 */
 function main()
 {
+    global $lang_geen; // set at file scope in bootstrap.inc
     echo '<HTML><HEAD> ';
 
     echo '<TITLE>Cel eigenschappen</TITLE>';
