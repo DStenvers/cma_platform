@@ -2838,6 +2838,10 @@ body.mode-table #btn_columns {
     color: var(--color-danger);
 }
 
+.image-edit .lnr {
+    color: var(--color-primary, #204496);
+}
+
 /* Image preview button - shows thumbnail with icon button styling */
 .image-preview-btn {
     display: inline-flex;
@@ -2898,6 +2902,7 @@ body.mode-table #btn_columns {
 
 /* Disabled state for image control buttons */
 .image-crop.disabled,
+.image-edit.disabled,
 .image-clear.disabled {
     cursor: not-allowed;
     opacity: 0.4;

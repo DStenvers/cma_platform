@@ -1047,14 +1047,6 @@ ToolbarHelper::end(true);
             });
         }
 
-        // Initialize Select2 on sort and group config dropdowns
-        if (elements.sortConfigComponent && typeof elements.sortConfigComponent.initSelect2 === 'function') {
-            elements.sortConfigComponent.initSelect2();
-        }
-        if (elements.groupConfigComponent && typeof elements.groupConfigComponent.initSelect2 === 'function') {
-            elements.groupConfigComponent.initSelect2();
-        }
-
         // Query options: DISTINCT checkbox
         const distinctCheckbox = document.getElementById('distinctCheckbox');
         if (distinctCheckbox) {

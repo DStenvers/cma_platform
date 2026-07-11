@@ -1903,7 +1903,7 @@ class CmaSchemaCanvas extends HTMLElement {
                 <div class="rel-dialog-row">
                     <div class="rel-dialog-field">
                         <label>Hoofdtabel veld <span class="cardinality">(1)</span></label>
-                        <select class="rel-to">${optionsHtml}</select>
+                        <lib-combo class="rel-to" placeholder="-- Selecteer veld --">${optionsHtml}</lib-combo>
                     </div>
                     <div class="rel-dialog-join">
                         <label>Koppelwijze</label>
@@ -1914,7 +1914,7 @@ class CmaSchemaCanvas extends HTMLElement {
                     </div>
                     <div class="rel-dialog-field">
                         <label>Gerelateerd veld <span class="cardinality">(∞)</span></label>
-                        <select class="rel-from">${optionsHtml}</select>
+                        <lib-combo class="rel-from" placeholder="-- Selecteer veld --">${optionsHtml}</lib-combo>
                     </div>
                 </div>
                 <div class="rel-dialog-help" id="relDialogHelp">
@@ -1939,36 +1939,20 @@ class CmaSchemaCanvas extends HTMLElement {
         const saveBtn = dialog.querySelector('[data-action="save"]');
         const cancelBtn = dialog.querySelector('[data-action="cancel"]');
 
-        // Initialize Select2 on the dropdowns (if jQuery and Select2 are available)
-        // Note: dropdownParent must be document.body because lib-dialog uses Shadow DOM
-        // with z-index 2000. We add CSS to ensure Select2 dropdown appears above it.
-        let $fromSelect, $toSelect;
-        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-            // Add global CSS for dialog positioning and Select2 z-index if not already present
-            if (!document.getElementById('cma-select2-dialog-fix')) {
-                const style = document.createElement('style');
-                style.id = 'cma-select2-dialog-fix';
-                style.textContent = `
-                    lib-dialog[id^="cma-rel-dialog-"] { position: absolute; z-index: 100000; }
-                    .select2-container--open .select2-dropdown, .select2-drop.select2-drop-active { z-index: 100001 !important; }
-                    .select2-container--open { z-index: 100001 !important; }
-                `;
-                document.head.appendChild(style);
-            }
+        // The field pickers are <lib-combo> web components. lib-combo is
+        // Shadow-DOM-safe: it owns its search <input> inside its own shadow root
+        // and drives focus itself, so typing/searching works inside this dialog's
+        // Shadow DOM. (Select2 v3 could not — it resolves focus via
+        // document.activeElement, which returns the shadow host rather than the
+        // search box, so its search field could not be typed into here.)
 
-            $fromSelect = jQuery(fromSelect).select2({
-                placeholder: '-- Selecteer veld --',
-                allowClear: false,
-                width: '100%',
-                dropdownParent: jQuery(document.body)
-            });
-            $toSelect = jQuery(toSelect).select2({
-                placeholder: '-- Selecteer veld --',
-                allowClear: false,
-                width: '100%',
-                dropdownParent: jQuery(document.body)
-            });
-        }
+        // Re-read a combo's <option> children after its innerHTML is rebuilt.
+        const refreshCombo = (combo) => {
+            if (combo && typeof combo.refresh === 'function') combo.refresh();
+        };
+
+        const joinTypeSelect = dialog.querySelector('.rel-join-type');
+        const helpDiv = dialog.querySelector('#relDialogHelp');
 
         // Set initial values if editing - filter each dropdown to exclude the other's table
         if (editRel) {
@@ -1978,43 +1962,22 @@ class CmaSchemaCanvas extends HTMLElement {
             // Filter child dropdown to exclude parent table
             if (toTable) {
                 fromSelect.innerHTML = buildOptionsHtml(toTable);
+                refreshCombo(fromSelect);
             }
             // Filter parent dropdown to exclude child table
             if (fromTable) {
                 toSelect.innerHTML = buildOptionsHtml(fromTable);
+                refreshCombo(toSelect);
             }
 
-            if ($fromSelect && $toSelect) {
-                // Reinitialize Select2 with filtered options
-                $fromSelect.select2('destroy');
-                $toSelect.select2('destroy');
-                $fromSelect = jQuery(fromSelect).select2({
-                    placeholder: '-- Selecteer veld --',
-                    allowClear: false,
-                    width: '100%',
-                    dropdownParent: jQuery(document.body)
-                });
-                $toSelect = jQuery(toSelect).select2({
-                    placeholder: '-- Selecteer veld --',
-                    allowClear: false,
-                    width: '100%',
-                    dropdownParent: jQuery(document.body)
-                });
-                $fromSelect.val(fromValue).trigger('change.select2');
-                $toSelect.val(toValue).trigger('change.select2');
-            } else {
-                fromSelect.value = fromValue;
-                toSelect.value = toValue;
-            }
+            fromSelect.value = fromValue;
+            toSelect.value = toValue;
         }
-
-        const joinTypeSelect = dialog.querySelector('.rel-join-type');
-        const helpDiv = dialog.querySelector('#relDialogHelp');
 
         // Update help text based on current selections
         const updateHelpText = () => {
-            const fromVal = $fromSelect ? $fromSelect.val() : fromSelect.value;
-            const toVal = $toSelect ? $toSelect.val() : toSelect.value;
+            const fromVal = fromSelect.value;
+            const toVal = toSelect.value;
             const joinType = joinTypeSelect.value;
 
             if (!fromVal || !toVal) {
@@ -2034,84 +1997,46 @@ class CmaSchemaCanvas extends HTMLElement {
 
         // Enable/disable save button based on selection
         const updateSaveButton = () => {
-            const fromVal = $fromSelect ? $fromSelect.val() : fromSelect.value;
-            const toVal = $toSelect ? $toSelect.val() : toSelect.value;
-            saveBtn.disabled = !fromVal || !toVal;
+            saveBtn.disabled = !fromSelect.value || !toSelect.value;
             updateHelpText();
         };
 
-        // When one dropdown changes, filter the other to exclude the selected table
-        const filterOppositeDropdown = (changedSelect, oppositeSelect, $changed, $opposite) => {
-            const val = $changed ? $changed.val() : changedSelect.value;
+        // When one dropdown changes, filter the other to exclude the selected table.
+        // With lib-combo we keep the same element and only rebuild its options, so the
+        // 'change' listener wired below stays attached — no destroy/re-init needed.
+        const filterOppositeDropdown = (changedSelect, oppositeSelect) => {
+            const val = changedSelect.value;
             const selectedTable = val ? val.split('.')[0] : null;
 
             // Remember current value of opposite dropdown
-            const oppositeVal = $opposite ? $opposite.val() : oppositeSelect.value;
+            const oppositeVal = oppositeSelect.value;
 
             // Rebuild opposite dropdown excluding the selected table
-            const newHtml = buildOptionsHtml(selectedTable);
-
-            if ($opposite) {
-                $opposite.select2('destroy');
-            }
-            oppositeSelect.innerHTML = newHtml;
+            oppositeSelect.innerHTML = buildOptionsHtml(selectedTable);
+            refreshCombo(oppositeSelect);
 
             // Restore value if still valid, otherwise clear
-            if (oppositeVal) {
-                const oppositeTable = oppositeVal.split('.')[0];
-                if (oppositeTable !== selectedTable) {
-                    oppositeSelect.value = oppositeVal;
-                } else {
-                    oppositeSelect.value = '';
-                }
-            }
-
-            if ($opposite) {
-                const $new = jQuery(oppositeSelect).select2({
-                    placeholder: '-- Selecteer veld --',
-                    allowClear: false,
-                    width: '100%',
-                    dropdownParent: jQuery(document.body)
-                });
-                if (oppositeSelect.value) {
-                    $new.val(oppositeSelect.value).trigger('change.select2');
-                }
-                // Update reference
-                if (oppositeSelect === fromSelect) {
-                    $fromSelect = $new;
-                    $fromSelect.on('change', onFromChange);
-                } else {
-                    $toSelect = $new;
-                    $toSelect.on('change', onToChange);
-                }
+            if (oppositeVal && oppositeVal.split('.')[0] !== selectedTable) {
+                oppositeSelect.value = oppositeVal;
+            } else {
+                oppositeSelect.value = '';
             }
 
             updateSaveButton();
         };
 
-        const onFromChange = () => {
-            filterOppositeDropdown(fromSelect, toSelect, $fromSelect, $toSelect);
-        };
-        const onToChange = () => {
-            filterOppositeDropdown(toSelect, fromSelect, $toSelect, $fromSelect);
-        };
+        const onFromChange = () => filterOppositeDropdown(fromSelect, toSelect);
+        const onToChange = () => filterOppositeDropdown(toSelect, fromSelect);
 
-        // Listen for changes (Select2 or native)
-        if ($fromSelect && $toSelect) {
-            $fromSelect.on('change', onFromChange);
-            $toSelect.on('change', onToChange);
-        } else {
-            fromSelect.addEventListener('change', onFromChange);
-            toSelect.addEventListener('change', onToChange);
-        }
+        fromSelect.addEventListener('change', onFromChange);
+        toSelect.addEventListener('change', onToChange);
 
         // Listen for join type changes
         joinTypeSelect.addEventListener('change', updateHelpText);
 
-        // Trigger initial update if editing (works for both Select2 and native)
+        // Trigger initial update if editing
         if (editRel) {
-            // Small delay for Select2 to finish initializing
-            setTimeout(updateHelpText, 50);
+            updateHelpText();
         }
 
         // Cancel button
@@ -2175,8 +2100,8 @@ class CmaSchemaCanvas extends HTMLElement {
 
         // Save button
         saveBtn.addEventListener('click', () => {
-            const fromVal = $fromSelect ? $fromSelect.val() : fromSelect.value;
-            const toVal = $toSelect ? $toSelect.val() : toSelect.value;
+            const fromVal = fromSelect.value;
+            const toVal = toSelect.value;
             const innerJoin = joinTypeSelect.value === 'inner';
 
             if (fromVal && toVal) {
@@ -2254,13 +2179,6 @@ class CmaSchemaCanvas extends HTMLElement {
 
         // Open dialog
         dialog.open().then(() => {
-            // Cleanup Select2 instances before removing dialog
-            if ($fromSelect) {
-                $fromSelect.select2('destroy');
-            }
-            if ($toSelect) {
-                $toSelect.select2('destroy');
-            }
             dialog.remove();
             this._editingRelationship = null;
         });

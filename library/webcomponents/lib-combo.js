@@ -1155,6 +1155,21 @@ class LibCombo extends HTMLElement {
         }
     }
 
+    /**
+     * Re-read <option> children from the light DOM. Call after replacing the
+     * element's innerHTML with a fresh set of <option>/<optgroup> nodes so the
+     * combo reflects the new choices (used when a caller rebuilds its options as
+     * an HTML string rather than via setOptions()).
+     */
+    refresh() {
+        this._collectOptions();
+        if (this._isOpen) {
+            const searchInput = this.shadowRoot.querySelector('.combo-search input');
+            this._renderOptions(searchInput ? searchInput.value : '');
+        }
+        this._updateDisplay();
+    }
+
     _escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

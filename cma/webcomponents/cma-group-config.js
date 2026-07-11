@@ -3,7 +3,7 @@
  *
  * Grouping configuration component for the Query Designer.
  * Allows adding fields for grouping with aggregation options.
- * No Shadow DOM - allows Select2 integration.
+ * The field picker is a <lib-combo> (Shadow-DOM-safe searchable dropdown).
  *
  * Usage:
  *   <cma-group-config id="groupConfig"></cma-group-config>
@@ -22,7 +22,6 @@
  *   - getGrouping(): Get current group configuration
  *   - addGroup(field): Add a field to group by
  *   - removeGroup(index): Remove a group field
- *   - initSelect2(): Initialize Select2 on the field dropdown
  */
 
 // Guard against double registration
@@ -35,29 +34,18 @@ class CmaGroupConfig extends HTMLElement {
 
     constructor() {
         super();
-        // No shadow DOM - inherit styles from page, allows Select2 integration
+        // No shadow DOM - inherit styles from page; field picker is a <lib-combo>
 
         // State
         this._availableFields = [];
         this._grouping = [];
         this._draggedIndex = null;
         this._placeholder = null;
-        this._$select2 = null;
     }
 
     connectedCallback() {
         this._render();
         this._setupEventListeners();
-    }
-
-    disconnectedCallback() {
-        // Cleanup Select2
-        if (this._$select2) {
-            try {
-                this._$select2.select2('destroy');
-            } catch (e) { /* ignore */ }
-            this._$select2 = null;
-        }
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -161,38 +149,6 @@ class CmaGroupConfig extends HTMLElement {
         }
     }
 
-    /**
-     * Initialize Select2 on the field dropdown
-     */
-    initSelect2() {
-        const select = this.querySelector('.group-field-select');
-        if (!select) return;
-
-        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-            // Destroy existing Select2 instance
-            if (this._$select2) {
-                try {
-                    this._$select2.select2('destroy');
-                } catch (e) { /* ignore */ }
-            }
-
-            this._$select2 = jQuery(select).select2({
-                placeholder: '-- Selecteer veld --',
-                allowClear: false,
-                width: '100%',
-                dropdownParent: jQuery(document.body)
-            });
-
-            // Handle Select2 change
-            this._$select2.on('change', () => {
-                const addBtn = this.querySelector('.group-add-btn');
-                if (addBtn) {
-                    addBtn.disabled = !select.value;
-                }
-            });
-        }
-    }
-
     // =========================================================================
     // Private Methods
     // =========================================================================
@@ -201,9 +157,7 @@ class CmaGroupConfig extends HTMLElement {
         this.innerHTML = `
             <div class="group-config-container">
                 <div class="group-header">
-                    <select class="group-field-select">
-                        <option value="">-- Selecteer veld --</option>
-                    </select>
+                    <lib-combo class="group-field-select" placeholder="-- Selecteer veld --"></lib-combo>
                     <button type="button" class="group-add-btn btn" disabled>
                         + Toevoegen
                     </button>
@@ -266,19 +220,8 @@ class CmaGroupConfig extends HTMLElement {
             `).join('')}
         `;
 
-        // Sync Select2 with new options
-        if (this._$select2) {
-            // Destroy and reinit to pick up new options (trigger('change') doesn't work for replaced innerHTML)
-            try {
-                this._$select2.select2('destroy');
-            } catch (e) { /* ignore */ }
-            this._$select2 = null;
-            // Reinitialize after a small delay to ensure DOM is ready
-            const self = this;
-            setTimeout(function() {
-                self.initSelect2();
-            }, 10);
-        }
+        // lib-combo re-reads its <option> children after the innerHTML rebuild.
+        if (select.refresh) select.refresh();
 
         if (addBtn) {
             addBtn.disabled = availableFields.length === 0 || !select.value;
@@ -305,23 +248,20 @@ class CmaGroupConfig extends HTMLElement {
         // Add group button
         if (addBtn) {
             addBtn.addEventListener('click', () => {
-                const selectedOption = select.selectedOptions[0];
-                if (!selectedOption || !selectedOption.value) return;
+                const value = select.value;
+                if (!value) return;
 
                 // Find the field in available fields that's not already grouped
                 const availableFields = this._availableFields.filter(f =>
                     !this._grouping.some(g => g.table === f.table && g.field === f.field)
                 );
 
-                const fieldIndex = parseInt(selectedOption.value, 10);
+                const fieldIndex = parseInt(value, 10);
                 const field = availableFields[fieldIndex];
 
                 if (field) {
                     this.addGroup(field);
                     select.value = '';
-                    if (this._$select2) {
-                        this._$select2.val('').trigger('change');
-                    }
                     addBtn.disabled = true;
                 }
             });

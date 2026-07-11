@@ -3409,3 +3409,390 @@ karaat-data en staat in de karaat-repo.
 > ja graag
 
 > ja graag, iisreset is gedraaid..
+
+## 2026-07-11
+
+> kun jij de refresh aanroepen?
+
+> ja moet toch gebeuren namelijk
+
+> ja graag
+
+> typing in a select2 does not trigger a search (cma version 119)
+
+> ja zet allrs maar om naar lib-combo voor consistentie
+
+> trek dat onderzoek breder, kijk naar alle state management of die kunnen lekken
+
+> <task-notification>
+> <task-id>a5ad217c3a459f80c</task-id>
+> <tool-use-id>toolu_01DYPtKnjmZNc1La9MtNb1AD</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a5ad217c3a459f80c.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map multi-form + combo architecture" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have all the evidence needed. Here is my analysis.
+>
+> ---
+>
+> # CMA Platform — Combobox State-Isolation Analysis
+>
+> ## Summary of the failure mode
+> The entire `CmaFormController` is written on the assumption that **exactly one form exists per JS document/realm**. Form identity and DOM roots are resolved through document-global singleton lookups — `document.getElementById('mainForm')` and `document.querySelector('.form-layout')` — never through an instance-owned root element. The combo cache compounds this: it is a module-level singleton backed by `sessionStorage` (shared across all same-origin iframes) keyed only by *form-name + recordId*, not by form instance. When more than one form is live in the same document context, the getters resolve to the *wrong* (first) form, so one form's combos get populated and the other's `lib-combo`s never receive options and stay empty.
+>
+> ---
+>
+> ## 1. FormController: per-form instance, but with global DOM lookups
+>
+> Per-form instance, **not** a `window.formController` singleton. Class is `CmaFormController` (exported as `CMA.FormController`), constructed once per rendered `form.php` page.
+>
+> - `cma/assets/js/form-controller.js:986` `class CmaFormController {`
+> - `cma/assets/js/form-controller.js:991-1078` constructor; instance ref stored on the DOM element, not a global:
+>   - `:1073` `formLayout._cmaController = this;`
+>   - `:1377` (in `init()`) `formLayout._cmaFormController = this;`  ← stored under a *second* property name
+> - Instantiation site is server-emitted: `cma/classes/FormTemplate.php` emits `new CMA.FormController(id, CMA.formConfig)` (referenced in the code comment at `form-controller.js:1170`).
+>
+> `this.mainForm` is **not a stored field** — it's a getter returning a hardcoded ID:
+> ```js
+> // form-controller.js:1298
+> get mainForm() {
+>     return document.getElementById('mainForm');   // singleton ID lookup
+> }
+> set mainForm(value) { /* no-op */ }               // :1306
+> ```
+> So `this.mainForm` always points at whatever element currently has `id="mainForm"` in the controller's document — never at an instance-scoped subtree.
+>
+> Note the property-name split: the constructor writes `_cmaController` (`:1073`) while `getController()` reads `_cmaFormController`:
+> ```js
+> // form-controller.js:1086
+> static getController(element) {
+>     if (element) {
+>         const layout = element.closest('.form-layout');
+>         if (layout &amp;&amp; layout._cmaFormController) return layout._cmaFormController;  // :1090
+>     }
+>     const layout = document.querySelector('.form-layout');   // :1095 fallback = FIRST form-layout
+>     return layout?._cmaFormController || null;
+> }
+> ```
+> `init()` (`:1377`) does set `_cmaFormController`, so both names end up populated, but `main.js` reads `_cmaController` (`main.js:83,121,146,161,875`) — two parallel names for the same reference, fragile. The fallback branch (`:1095`) always returns the **first** `.form-layout`'s controller regardless of which form is meant.
+>
+> ## 2. How "multiple forms open" — sidepanel **iframes** (plus SPA staging)
+>
+> - Main content forms are loaded into `#contentArea` in the top document via `main.js` `loadPage`. Each `form.php` renders exactly one `id="mainForm"`: `cma/classes/FormTemplate.php:1458`.
+> - Sub/sub-sub forms open as stacked **side panels, each an `&lt;iframe src="form.php?..."&gt;`**:
+>   - `library/library.js:2044` `function lib_OpenSidePanel(...)`
+>   - `library/library.js:2152` `'&lt;iframe id="' + iframeId + '" class="lib_sidepanel_content" src="' + url + '" ...&gt;'`
+>   - Auto-open of subform/subsubform panels: `main.js:1564 checkForPendingSidepanel` → `lib_OpenSidePanel(...)` at `:1585, :1598, :1631`.
+> - The SPA layer also keeps a **cache of up to 5 detached form wrappers** in a Map and restores them (`main.js:82-161`), and stages incoming forms off-screen in `#cma-staging` (`main.js:900-911`).
+>
+> So: one top-document form + N sidepanel iframes can be live simultaneously. Each iframe is its own realm, so its `getElementById('mainForm')` normally resolves within that iframe — *unless* two form subtrees land in one document (staging overlap, a restored cached wrapper, or any inline detail/subform), which is exactly the fragile case the code guards against.
+>
+> The design's single-form assumption is explicitly acknowledged here:
+> ```
+> // main.js:900-903
+> // CRITICAL: Clear old content BEFORE staging new content
+> // This ensures document.querySelector('.form-layout') in CmaFormController
+> // finds the NEW form-layout (in staging), not the OLD one (in contentArea)
+> contentArea.innerHTML = '';
+> ```
+> i.e. they must manually delete one form so the global `querySelector('.form-layout')`/`getElementById('mainForm')` picks the right one — confirming there is no per-instance scoping.
+>
+> ## 3. Combo cache — module-level singleton in sessionStorage, keyed by form-name+field+recordId
+>
+> `cma/assets/js/modules/cma-combo-cache.js` is one IIFE singleton attached to `window.cmaComboCache` (`:262-264`), backed by `sessionStorage` (`:11-259`). `sessionStorage` is **shared across all same-origin iframes in the tab**, so every open form/panel shares this store.
+>
+> Key construction (`:74-80`):
+> ```js
+> buildKey(formId, field, recordId) {
+>     let key = CACHE_PREFIX + formId + '_' + field;               // 'cma_combo_' + formId + '_' + field
+>     if (recordId !== null &amp;&amp; recordId !== undefined &amp;&amp; recordId !== '')
+>         key += '_' + recordId;
+>     return key;
+> }
+> ```
+> `formId` here is **not** a unique per-open-instance id — it's the form *type name* (see Q4). Two open forms of the same type with the same (or both empty/new) recordId collide on the same key. There is no notion of "which open instance" in the key, so the cache cannot isolate two simultaneously-open forms.
+>
+> Load path keys the cache with the **document-global** record id:
+> ```js
+> // form-controller.js:3141-3145
+> const cacheFormId = this.getCacheFormId();
+> const recordId = cmaGetRecordId();                               // no element arg → global lookup
+> const cacheResult = cmaComboCache.getMultiple(cacheFormId, fieldNames, recordId);
+> ```
+> and `cmaGetRecordId()` with no element reads the **first** `.form-layout`:
+> ```js
+> // form-controller.js:928
+> function cmaGetRecordId(element) {
+>     const formLayout = element ? element.closest('.form-layout')
+>                                : document.querySelector('.form-layout');   // FIRST form-layout
+>     return formLayout?.dataset.recordId || null;
+> }
+> ```
+> So if a second form-layout is present, the cache read/write can be keyed with the *other* form's recordId.
+>
+> ## 4. `getCacheFormId()` — returns the form type name (not instance-unique)
+>
+> ```js
+> // form-controller.js:3044
+> getCacheFormId() {
+>     return this.jsonForm;   // e.g. "opleidingen" — the form definition name
+> }
+> ```
+> `this.jsonForm` is the form-definition name captured at construction from `CMA.formConfig`/`data-json-form`. It is identical for every open instance of the same form type and is **not** unique per open panel. Combined with the global `cmaGetRecordId()` (Q3), the cache key can be identical or stale across two open forms.
+>
+> ## 5. Where `this.mainForm` resolves, and how a second form breaks it
+>
+> There is no per-instance `this.mainForm` assignment — it is the getter `document.getElementById('mainForm')` (`:1298`). All combo population targets it:
+> ```js
+> // initCombos — form-controller.js:2894
+> const comboEls = this.mainForm?.querySelectorAll('lib-combo') || [];
+> ...
+> return this.loadAllComboOptions(combosToLoad, comboElements);   // :2928
+> ```
+> `loadAllComboOptions` → `applyComboOptions` (`:3138`, `:3237`) call `comboElement.setOptions(...)` on those gathered elements.
+>
+> Failure mechanism when &gt;1 form is live in the same document:
+> - `getElementById('mainForm')` returns the **first** `#mainForm`. Both the first form's controller and a second form's controller therefore see the **same** DOM subtree.
+> - Controller B's `initCombos()` collects `lib-combo`s from form A's subtree (or an empty set if B isn't first), fetches options, and applies them to form A's combos. Form B's own `lib-combo`s never get `setOptions` → they **stay empty**.
+> - Identity helpers reinforce the wrong target: `getFormParam()` falls back to the first `.form-layout` (`:1324`), `cmaGetRecordId()` reads the first `.form-layout` (`:929`), and `getController()`'s fallback returns the first `.form-layout`'s controller (`:1095`). All of these silently bind to "form #1."
+>
+> There is even an "identity tripwire" (`verifyIdentity`, `:1133-…`) that re-syncs `this.jsonForm/formId` from `document.querySelector('.form-layout')` — again the first one — which will actively *rewrite* a second controller's identity to match the first form if both coexist.
+>
+> ---
+>
+> ## Shared/mutable state that breaks isolation (root causes)
+> 1. `get mainForm()` = `document.getElementById('mainForm')` — a hardcoded singleton ID; no per-instance form root. (`form-controller.js:1298`)
+> 2. Global identity resolvers assume one form per document: `cmaGetRecordId()` (`:928`), `getFormParam()` (`:1324`), `getController()` fallback (`:1095`), `verifyIdentity()` re-sync from first `.form-layout`.
+> 3. Combo cache is a process-wide singleton over `sessionStorage` (shared across same-origin iframes), keyed only by `getCacheFormId()` = form *name* + field + recordId (`cma-combo-cache.js:74`, `form-controller.js:3044,3141-3145`) — no per-open-instance dimension, so two open forms collide or key off the wrong record id.
+> 4. Controller reference stored under two different property names (`_cmaController` vs `_cmaFormController`) across constructor (`:1073`), `init()` (`:1377`), `getController()` (`:1090/1095`) and `main.js` (`:83` etc.) — fragile, and lookups still fall back to the first form.
+>
+> The fix direction (not applied): scope every DOM/identity lookup to an instance-owned root element (the controller's own `.form-layout`, e.g. via `closest()`/passing `element`) instead of `document.getElementById('mainForm')`/`document.querySelector('.form-layout')`, and add a per-open-instance dimension to the combo cache key.</result>
+> <usage><subagent_tokens>51211</subagent_tokens><tool_uses>27</tool_uses><duration_ms>249360</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a8487449b8d42cb56</task-id>
+> <tool-use-id>toolu_016ueF4cbZuYMDdFWEfnReyT</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a8487449b8d42cb56.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Web component instance-state leaks" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough to report. All non-min source files in scope have been swept for the five patterns. Findings below.
+>
+> ## State-leak audit — `cma/webcomponents/*.js` + `library/webcomponents/*.js`
+>
+> ### Components WITH a genuine cross-instance leak / singleton assumption
+>
+> | Component | Leak? | Location + excerpt | Severity / effect |
+> |---|---|---|---|
+> | `cma/webcomponents/cma-groupbox.js` | **YES** (pattern 5 + 4) | `:190` `document.querySelector('cma-groupbox[group-id="' + groupId + '"]')` (also `:199`, `:208`); `:138-143` `document.getElementById('_g'+this._groupId+'_'+index)` | **Moderate.** `grp_flip`/`grp_set` find "the" groupbox by `group-id` and row visibility is toggled via global `document.getElementById` keyed only on `groupId`. Two open forms that reuse the same group-id collide — the wrong form's group toggles / rows hidden. Cross-form bleed, but affects group collapse, not combos. |
+> | `cma/webcomponents/cma-htmledit.js` | **YES** (pattern 3 + 4) | `:363` `window.SetFKEditorConfig = function(config){ window.CMA?.editor?.setConfig(config); }`; `:367/378` `document.querySelector('cma-htmledit[name="${fieldname}"]')`; `:125` `CKEDITOR.instances[textarea.id]` | **Medium — most combo-relevant.** "FK" = foreign-key editor. `SetFKEditorConfig` pushes into a single global config; component/CKEDITOR lookups are keyed by field *name*/textarea id, not by the open form. Two forms with the same field name overwrite/collide. This is the closest in-scope match to "FK/combobox data not isolated per form." |
+>
+> ### Module-level / static mutable state that is shared-by-design (reviewed, not bugs)
+>
+> | Component | Item | Why it's safe |
+> |---|---|---|
+> | `library/webcomponents/lib-field.js` | `:48` `let _libFieldId = 0` → `:81` `` `lib-field-${++_libFieldId}` `` | Monotonic unique-id generator — the *correct* anti-collision pattern, never read as shared state. |
+> | `cma/webcomponents/cma-schema-canvas.js` | `:62` `static _instanceCounter = 0` | Same: monotonic instance-id counter. All real state (`:70-93`) is per-instance `Map`/`Set`. |
+> | `library/webcomponents/lib-shared-styles.js` | `:28` `const styleSheetCache = new Map()` keyed by category | Intended cache of immutable constructable stylesheets shared across instances. Safe. |
+> | `library/webcomponents/lib-toaster.js` | `:400` `let _instance` / `let _config`; `:406` `document.querySelector('lib-toaster')` | Intentional app-wide singleton toaster. |
+> | `library/webcomponents/lib-tip.js` | `:47` `let skipList = null` | App-global "tips to skip" cache; global by design, not per-form. |
+> | `library/webcomponents/lib-message.js` | `:394` fixed id `'lib-top-notification'` singleton banner; `window.libMessage`/`Lib_ToonTopNotificatie` factories | Single global top-notification region; helpers are stateless factories. |
+> | `library/webcomponents/lib-log.js` | module-level saved console methods + `window.LIBLOG_CONFIG` | Intentional global logging interceptor. |
+> | `cma/webcomponents/shared-icons.js` `:334-341`; `cma-base-component.js:360`; `lib-dialog.js:1224`; `lib-menu.js:595`; `lib-fileuploader.js:653`; `lib-table.js` static `_ensureStyles`/`_ensureDependencies` | `window.*` assignments hold **class refs, constants (ICON_CODES), stateless factory helpers, or idempotent style/dep injectors** | No per-instance state stored; not overwritten by a 2nd instance. |
+> | `cma-blockeditor.js:38` `static blockTypes`, `cma-field-config.js:62`/`cma-schema-canvas.js:43` `static _typeTranslations`, `lib-radio-group.js:132` `static parseOptions` | Constant lookup tables / pure helpers | Read-only; not mutated. |
+>
+> ### Components with NO shared-state issue (clean)
+> `cma-base-component.js`, `cma-blockeditor.js`, `cma-combo.js` (deprecated no-op — real combo is in the excluded `lib-combo.js`), `cma-conditions-panel.js`, `cma-field-config.js`, `cma-fold.js`, `cma-group-config.js`, `cma-launcher.js`, `cma-param-config.js`, `cma-query-preview.js`, `cma-schema-canvas.js`, `cma-sort-config.js`, `cma-sortlist.js`, `cma-sql-editor.js`, `cma-tabs.js`, `cma-toolbar.js`, `cma-tree.js`, `shared-icons.js`, `UNUSED_cma-checklist.js`, `UNUSED_cma-rights-matrix.js`, `lib-arrowsteps.js`, `lib-datepicker.js`, `lib-dialog.js`, `lib-field.js`, `lib-fileuploader.js`, `lib-gauge.js`, `lib-histogram.js`, `lib-menu.js`, `lib-radio-group.js`, `lib-search-input.js`, `lib-sheet.js`, `lib-switch.js`, `lib-table.js`, `lib-timepicker.js`, `lib-toaster.js` (all shadow-DOM `getElementById`/`querySelector` calls are scoped to `this.shadowRoot`, i.e. per-instance).
+>
+> ### Note on the combobox bug
+> `cma-combo.js` is a deprecated no-op; the actual combo registers from `lib-combo.js`, which you excluded as already-audited-clean for *module-level* state. Within the in-scope files the only leaks that touch field/FK data are **`cma-htmledit.js`'s global `SetFKEditorConfig` + name-keyed lookups** (FK = foreign key = the combo's data source) and, secondarily, groupbox's group-id collisions. If the empty-combo repro doesn't involve the FK editor path, the per-form leak is most likely inside `lib-combo.js` itself (e.g. option-loading that reads a global `window.CMA` config or a fixed DOM id rather than per-instance) — worth re-auditing lib-combo's option-population code specifically, even though its top-level `let`/`var` scope is clean.</result>
+> <usage><subagent_tokens>29355</subagent_tokens><tool_uses>9</tool_uses><duration_ms>177358</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a7fef20f6aa080152</task-id>
+> <tool-use-id>toolu_016pV1GZSUAZjPeeZBsq1VSX</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a7fef20f6aa080152.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Client-side global/persistent state leaks" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have a comprehensive picture. Here is my report.
+>
+> ---
+>
+> # Client-side shared/persistent state audit — "multiple forms open → combos/fields empty"
+>
+> ## Critical architecture fact that reframes everything
+> Second forms open as **sidepanel iframes**, not same-document nodes: `lib_OpenSidePanel` builds a `.lib_sidepanel_container` containing an `&lt;iframe&gt;` (`/mnt/c/repos/cma_platform/library/library.js:2044`, iframe/`contentDocument` at `:2189`, `:1034`; stack counters `lib_sidepanel_counter`/`lib_sidepanel_stack` at `:2008-2009`).
+>
+> Consequence: each open form has its **own `window`, its own `document`, and its own copy of every module**. So `window.*` globals and module-level `let/const/Map` state are **per-frame and cannot collide across forms**. The real cross-form collision surface is only:
+> - **localStorage** (shared across all same-origin frames), and
+> - **sessionStorage** (shared across same-origin frames in the same tab), and
+> - code that explicitly writes **`window.top.*`**.
+>
+> This narrows the plausible culprits sharply. Ranked below.
+>
+> ---
+>
+> ## Ranked culprits
+>
+> ### 1. Shared sessionStorage combo cache keyed by form-name, not per open instance (TOP suspect)
+> Keys are `cma_combo_&lt;formId&gt;_&lt;field&gt;[_&lt;recordId&gt;]`:
+> - `/mnt/c/repos/cma_platform/cma/assets/js/modules/cma-combo-cache.js:74-78` `buildKey(formId, field, recordId)` — recordId is *optional* and omitted for record-independent combos.
+> - `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:560` `CACHE_PREFIX = 'cma_combo_'`; invalidation key `combo_ + getCacheFormId() + _ + fieldName` at `:2987`.
+>
+> Because sessionStorage is shared across the main frame and same-origin sidepanel iframes, **two open instances of the same form share these keys**. If one instance populates `cma_combo_&lt;form&gt;_&lt;field&gt;` via a record-*independent* path (no recordId) while another instance's combo is actually record-scoped — or an invalidation in one frame (`sessionStorage.removeItem`, form-controller `:2988`) races the other frame's read — the second form gets a stale/empty option set. Shared same-origin sessionStorage is the only cache that both frames touch, which matches the "combos empty" symptom. (These two files are owned by the other agents — flagged here purely as the cross-frame storage interaction.)
+>
+> ### 2. Shared localStorage keys namespaced by form-NAME, so a second instance of the same form clobbers the first
+> - `cma_lastRecord_&lt;jsonForm&gt;` — `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:2671,2685,2700` (set/get/remove). Two instances of the same form (main list + sidepanel edit, or two sidepanels) overwrite each other's "last selected record", so on refresh/reselect a form can target the wrong record → fields render empty.
+> - `cma_filter_field_&lt;filterFieldName&gt;` — `:2064`, and read/write at `:6531,:6560,:6638,:6652`. Keyed only by filter-field name (not by form or instance). Any two open forms sharing that filter-field name clobber each other's persisted filter → list filtered to nothing / fields empty.
+> - `cma_filter_field_&lt;filterIdName&gt;` — `:6638`.
+>
+> These are the clearest "shared global storage key, two forms clobber it" instances in the codebase.
+>
+> ### 3. `window.top.*` CKEditor dialog singletons (cross-frame, rich-text fields)
+> `/mnt/c/repos/cma_platform/cma/assets/js/cma.js:789-882` writes single global slots on the top window:
+> - `window.top.activeEditor` (`:798,:805`), `window.top.activeEditorBookmark` (`:789,:791,:838,:882`), `window.top.selectedAnchor` (`:799,:837`), `window.top.selectedImage` (`:806,:857`).
+>
+> Last editor to open a link/image dialog wins; the other form's rich-text operations then target the wrong editor. Genuine cross-form collision, but scoped to CKEditor link/image insertion (fields), not comboboxes.
+>
+> ### 4. `document.querySelector('.form-layout')` first-match as an implicit "current form" pointer
+> `getController()` and sibling helpers fall back to the **first** `.form-layout` in the document when called without an element:
+> `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:1095` (getController), `:1105` (getRecordId), `:929,:952,:968,:978,:1016,:1134`.
+>
+> Isolated across iframes, but if two `.form-layout` nodes ever coexist in one document (SPA content swap in `main.js`, or an inline subform), all no-arg lookups resolve to the first form, so field/combo population/state reads point at the wrong DOM. (form-controller internals — other agent; flagged as the global-lookup interaction.)
+>
+> ### 5. `CMA.formConfig` shared singleton, re-emitted per page/form
+> Emitted as a single global by the server: `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php:294` and `:440` (`CMA.formConfig = {…}`), and the controller is constructed from it at `:568`. The controller documents this exact hazard: a page-swap re-emit repoints the global while a stale controller holds the old object (`/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:1169-1184`), mitigated by `verifyIdentity` (`:1133`). Per-frame, so mainly a same-frame SPA/navigation hazard rather than a two-iframe one.
+>
+> ---
+>
+> ## Things that look scary but are NOT cross-form collisions (per-frame, or correctly namespaced)
+> - **Module-level mutable state is per-frame**, so isolated across sidepanels: request-coalescer `inFlight = new Map()` (`/mnt/c/repos/cma_platform/cma/assets/js/modules/cma-request-coalescer.js:13`; note it parses the body once and shares the resulting `data` object — safe for reads, but a caller mutating the returned array would affect same-frame co-callers); cma-perf `timers/counters/gauges/measurements` (`/mnt/c/repos/cma_platform/cma/assets/js/modules/cma-perf.js:28-31`); in-memory `_pageCache` Map (`/mnt/c/repos/cma_platform/cma/assets/js/main.js:56`, keyed by full page URL incl. form+record).
+> - **`window.cma*` singletons** (`cmaComboCache`, `cmaFormCache`, `cmaRecordCache`, `cmaRequestCoalescer`, `cmaNotification`, `cmaApiError`, `cmaPerf`, `cmaLog`, `cmaRequestTracker`) are all `window.X = X` service objects re-created per frame — not per-form state pointers. No `window.currentForm` / `window.activeController` / `window.currentRecord` singleton exists anywhere.
+> - **table-preferences** is correctly per-form: `this.storageKey = cma_v2_table_prefs_${formId}` (`/mnt/c/repos/cma_platform/cma/assets/js/table-preferences.js:12`; also form-controller `:4809,:5162,:5226,:5229`).
+> - **url-manager.js is stateless** — `parseURL()` returns a fresh object from `window.location` each call (`/mnt/c/repos/cma_platform/cma/assets/js/url-manager.js:25-82`); there is no stored "current form" global to overwrite.
+> - **App-global-by-design localStorage keys** (not per-form, correctly so): `cma_v2_menu_state` / `cma_v2_menu_collapsed` (`main.js:460,509,516`), `cma_popup_style` (`library.js:2017,2029`), request-tracker/error-handler log stores.
+> - **`window._cmaGlobalSwitchHandlerInitialized`** (`/mnt/c/repos/cma_platform/cma/assets/js/inline-edit.js:2666`) is a one-shot init guard, not per-form data. inline-edit's own "current row/cell" (`this.editingRow`, `this.editingRowId`, `this._contextMenuRow`, `this._pending`) is per-instance, though note its no-arg global lookups like `document.querySelector('.inline-edit-button-row')` at `:1387` share the first-match hazard of item 4 within a frame.
+>
+> ## Bottom line
+> Given the iframe architecture, the highest-probability cause of "combos/fields empty with multiple forms open" is **shared same-origin storage keyed by form-name rather than by open-instance** — specifically the `cma_combo_*` sessionStorage cache (item 1) and the `cma_lastRecord_*` / `cma_filter_field_*` localStorage keys (item 2), where a second instance of the same form (or two forms sharing a filter-field name) clobbers the first. The `window.*`/module singletons and `CMA.formConfig` are per-frame and are not the cross-form vector here.</result>
+> <usage><subagent_tokens>54215</subagent_tokens><tool_uses>24</tool_uses><duration_ms>272035</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a1f09c9f392930220</task-id>
+> <tool-use-id>toolu_01PD2ArgGEdSPSUp5rkftHRt</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a1f09c9f392930220.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Server-side PHP state leaks" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough evidence to report. Here are my findings, ranked by likelihood.
+>
+> ## Summary of the combo-serving architecture
+>
+> There are three distinct server paths, and they differ sharply in how much shared/cached state they carry:
+>
+> - **Live form-field combos (primary UI path):** `form_api.php` actions `combo`/`combos`/`init` → `FormDataProvider::getJsonFormComboOptions()` (`cma/classes/FormDataProvider.php:1264`). This path does **NOT** use the `Cache` layer at all and resolves the form purely from the per-request `jsonForm` request parameter (`cma/form_api.php:382`). It is essentially stateless.
+> - **List/table-view FK combos:** `TableService` → `OptionsService::getComboOptionsForFields()` (`cma/classes/Services/OptionsService.php:584`, called at `TableService.php:353` and `:763`). This path uses **static in-memory caches and a persistent file/redis cache** and is where the real server-side collision risk lives.
+> - **Legacy server-rendered combos:** `FormControlHelper::internalComboBox()` (`cma/classes/FormControlHelper.php:153`).
+>
+> Because the primary interactive combo endpoint is stateless and un-cached, if the empty combos are the normal select2 form fields, the server is an unlikely cause (that points to the client sending a wrong/empty `jsonForm` when two forms are open). The ranked culprits below all live in the `OptionsService`/legacy paths.
+>
+> ---
+>
+> ## Rank 1 (most plausible): `OptionsService::findFieldIndex` static cache keyed by first-3 field names, NOT by formId
+>
+> `cma/classes/Services/OptionsService.php:310` and `:319-345`:
+>
+> ```php
+> protected static array $fieldIndexCache = [];
+> ...
+> // line 328:
+> $cacheKey = is_object($arrRep) ? spl_object_id($arrRep)
+>           : md5(serialize(array_slice((array)$fieldNames, 0, 3)));
+> if (!isset(self::$fieldIndexCache[$cacheKey])) {
+>     $lookup = [];
+>     foreach ($fieldNames as $i =&gt; $name) { ... $lookup[$nameLower] = $i; }
+>     self::$fieldIndexCache[$cacheKey] = $lookup;
+> }
+> return self::$fieldIndexCache[$cacheKey][$fieldNameLower] ?? -1;
+> ```
+>
+> `getFormDef()` returns a plain legacy array (from `JsonFormLoader::convertToLegacyFormat`, `JsonFormLoader.php:1036`), so the **array branch** applies: the cache key is `md5(serialize(first 3 field names))`.
+>
+> Why this matches "second form's combos come back empty":
+> - The static `$fieldIndexCache` persists across requests within a PHP-FPM/FastCGI worker (it is never reset).
+> - Two different forms that share their first three field names (extremely common — e.g. `ID, Naam, Datum, …`) hash to the **same key**. Whichever form populates the entry first wins; the stored lookup map contains only *that* form's field→index mapping.
+> - When the second form later asks for one of *its own* fields that the first form did not have, the lookup returns `-1` → `getComboOptions()` returns `'Veld niet gevonden'` / empty options (`OptionsService.php:83-86`), while fields shared in the first 3 positions still resolve correctly. That is precisely "form A works, form B's combos are empty."
+> - The object branch (`spl_object_id`) is even less safe in principle: `spl_object_id` values are **recycled** once an object is freed, so a later request's `arrRep` can inherit a freed object's id and read a stale map — but the array branch is the one actually hit here.
+>
+> This is the strongest "static holds stale/wrong per-form state, not keyed by form" candidate. Reached via `getComboOptions` (`:83`) and `getComboOptionsForFields` (`:603`), i.e. the list/table-view combo path.
+>
+> Note: the live `getJsonFormComboOptions` does its own inline field loop (`FormDataProvider.php:1289`) and does NOT call `findFieldIndex`, so this bug only bites the OptionsService/TableService path.
+>
+> ---
+>
+> ## Rank 2: `OptionsService` combo-result cache keyed by SQL only (empty results cached; databaseId dropped from key)
+>
+> Two places build the same key:
+> - `cma/classes/Services/OptionsService.php:174`: `$cacheKey = 'combo_' . md5($sql . ($databaseId !== '' ? '_db' . $databaseId : ''));`
+> - `cma/classes/Services/OptionsService.php:639`: identical construction in the batch path.
+>
+> Backed by a static in-memory map `private static array $sqlResultCache = [];` (`:29`) plus the persistent `Cache` (`:184-207`, `:648-664`).
+>
+> Problems relevant to the failure mode:
+> 1. **Empty results are cached.** `:205-207` and `:662-664` store `$options` unconditionally into both the static map and the persistent cache (TTL `COMBO_CACHE_TTL = 1800`, `:58`) even when the query returned zero rows. Once any request produces an empty result for a given SQL, every form/request hitting that SQL gets empty for 30 minutes (and for the life of the worker via the static map).
+> 2. **databaseId is omitted from the key when empty** (`:174`, `:639`). Two forms whose combo fields generate an identical SQL string but resolve against different physical connections (both with `databaseId === ''`, differentiated only by the `global $conn` current connection) collide on one key → form B can serve form A's cached options, or a cached empty.
+> 3. The key contains **no formId and no record context** in the single-field path (`getComboOptions` calls `buildComboSql` without `recordContext`, `:105`), so a record-dependent field falls back to the source-table query and shares one cache entry across contexts.
+>
+> ---
+>
+> ## Rank 3: `global $conn` used as a shared "current connection" pointer
+>
+> `cma/classes/Services/OptionsService.php:134-136` and `:598-599`:
+>
+> ```php
+> CmaRepository::openConnectionById($formDef-&gt;getDatabaseId());
+> global $conn;
+> ```
+>
+> and `details_getdata.php` builds `$Myconn` similarly (`details_getdata.php:40-42`). `Database::getConnection()` pools connections statically (`Database.php:308-318`, `$namedConnections`/`$connData`/`$connRep`). Within a single request this is fine, but it is mutable shared state representing "the current form's connection." It is a lower-likelihood cross-form cause because concurrent forms are normally separate FPM processes; I flag it because combined with Rank 2's databaseId-less cache key it can produce wrong-connection results.
+>
+> ---
+>
+> ## Rank 4 (least likely of the real candidates): `FormControlHelper` legacy combo cache
+>
+> `cma/classes/FormControlHelper.php:178`:
+> ```php
+> $cacheId = 'CMA_combo_' . $formId . '_' . $name . '_' . $extraCacheId;
+> ```
+> and `:296` `Cache::set($cacheId, $completeCombo);` (note: **no TTL argument** → default 24h).
+>
+> This key is comparatively well-formed — it includes `formId`, field `name`, and `$extraCacheId`, which is set to the record id when the SQL has an `[ID]` placeholder (`:139`, `$hasIdPlaceholder ? $recordId : ''`). So cross-form collision is unlikely here. The residual risk is that an **empty combo is cached with no explicit TTL** (24h) for a record-dependent field, but only within the same form+record key.
+>
+> ---
+>
+> ## Things I checked that are NOT the culprit
+>
+> - `JsonFormLoader::load()` caches form definitions correctly keyed by normalized form name (`JsonFormLoader.php:83` `$cache` array, `:462-512`) — no single "current form" pointer.
+> - `BaseFormService::$formDefCache` and the persistent `formdef_&lt;formId&gt;` cache are keyed by `formId` (`BaseFormService.php:61-86`) — correct.
+> - `GetFormDef()` in `cma/bootstrap.inc:1754` resolves per formId → per form name; its `$_formDefCache` is an undeclared function-local (dead cache), harmless.
+> - The `arrRep()` global helper (`bootstrap.inc:2093`, `global $arrRep`) is reassigned per request in `details_getdata.php:31`; consistent within a request.
+> - The live `getJsonFormComboOptions` path performs **no caching** and resolves the form from the request param — so if the empty combos are the ordinary select2 form fields, the server is not holding stale state; investigate whether the client sends the correct `jsonForm`/`field` when a second form is open.
+>
+> ## Recommended focus for a fix (no changes made)
+> 1. Key `$fieldIndexCache` by something form-unique (e.g. include `formId` or a full hash of all field names), or drop the static entirely — `OptionsService.php:328`.
+> 2. Do not cache empty option results, and include `databaseId` unconditionally in the `combo_` key — `OptionsService.php:174/205-207` and `:639/662-664`.
+> 3. Confirm whether the failing combos are list/table-view (OptionsService path → Rank 1/2 apply) or live form fields (JSON path → likely client-side `jsonForm` param).</result>
+> <usage><subagent_tokens>65404</subagent_tokens><tool_uses>33</tool_uses><duration_ms>330978</duration_ms></usage>
+> </task-notification>
+
+> maar nogmaals, dit soort state management errors zijn architectureel, dat moet ook daar opgelost worden, niet met globals werken en alleen geparameteriseerd cachen. Zorg dat een lege cache onderscheiden kan worden van een cache die nooit gevuld is, dus nul is nooit gevuld en [] leeg.
+
+> for an image field in the cma; create an icon to edit is, thw same way we have done for karaat at https://www.karaatedelstenen.nl/tools/quick_add_stone.php
+
+> /login
+
+> push and commit

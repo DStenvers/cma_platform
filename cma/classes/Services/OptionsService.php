@@ -170,8 +170,14 @@ class OptionsService extends BaseFormService
                 $sql = SQL::addTop($sql, 100);
             }
 
-            // Check caches (3 levels: memory -> persistent -> database)
-            $cacheKey = 'combo_' . md5($sql . ($databaseId !== '' ? '_db' . $databaseId : ''));
+            // Check caches (3 levels: memory -> persistent -> database).
+            // The key MUST include the connection the SQL runs against. When the
+            // field has no own databaseId it runs on the form's default connection,
+            // so key by that default id — otherwise two forms whose combo produces
+            // an identical SQL string but resolves against different physical
+            // databases collide and one serves the other's (or a cached-empty) rows.
+            $connKey = $databaseId !== '' ? $databaseId : ('form' . $formDef->getDatabaseId());
+            $cacheKey = 'combo_' . md5($sql . '_db' . $connKey);
 
             // Level 1: In-memory cache (fastest, within request)
             if (isset(self::$sqlResultCache[$cacheKey])) {
@@ -304,13 +310,19 @@ class OptionsService extends BaseFormService
     }
 
     /**
-     * Static cache for field index lookups - avoids O(n) search per field
-     * @var array formKey => [lowercaseFieldName => index]
-     */
-    protected static array $fieldIndexCache = [];
-
-    /**
-     * Find field index by name (with caching)
+     * Find field index by name.
+     *
+     * Pure function: a straight scan of the form definition passed in, holding no
+     * state between calls. An earlier version memoised the field→index map in a
+     * `static` array keyed by `md5(first 3 field names)` (or a recycled
+     * `spl_object_id`). Under FastCGI that static outlives the request and is
+     * shared by every request the worker handles, so two DIFFERENT forms whose
+     * opening columns matched (e.g. `ID, Naam, Datum, …` — very common) collided
+     * on one cached map. The second form's own fields then resolved to -1
+     * ("Veld niet gevonden") and its combos came back empty — visible as "open a
+     * second form / tab and the comboboxes are empty". State keyed by a lossy hash
+     * is the bug; there is nothing to cache here (a few dozen fields, called a
+     * handful of times per request), so we don't. Matches FormDataProvider's copy.
      *
      * @param array|\ArrayAccess $arrRep Form definition array
      * @param string $fieldName Field name to find
@@ -324,24 +336,13 @@ class OptionsService extends BaseFormService
             return -1;
         }
 
-        // Build cache key from form definition (use object hash or first field + count)
-        $cacheKey = is_object($arrRep) ? spl_object_id($arrRep) : md5(serialize(array_slice((array)$fieldNames, 0, 3)));
-
-        // Build lookup map if not cached
-        if (!isset(self::$fieldIndexCache[$cacheKey])) {
-            $lookup = [];
-            foreach ($fieldNames as $i => $name) {
-                $nameLower = strtolower((string)($name ?? ''));
-                if ($nameLower !== '') {
-                    $lookup[$nameLower] = $i;
-                }
-            }
-            self::$fieldIndexCache[$cacheKey] = $lookup;
-        }
-
-        // O(1) lookup
         $fieldNameLower = strtolower((string)$fieldName);
-        return self::$fieldIndexCache[$cacheKey][$fieldNameLower] ?? -1;
+        foreach ($fieldNames as $i => $name) {
+            if (strtolower((string)($name ?? '')) === $fieldNameLower) {
+                return $i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -635,8 +636,12 @@ class OptionsService extends BaseFormService
             // Execute query with limit for performance
             $sql = SQL::addTop($sql, 2000);
 
-            // Check caches (3 levels: memory -> persistent -> database)
-            $cacheKey = 'combo_' . md5($sql . ($databaseId !== '' ? '_db' . $databaseId : ''));
+            // Check caches (3 levels: memory -> persistent -> database).
+            // Key by the effective connection (field's own db, else the form
+            // default) so identical SQL on different databases can't collide —
+            // see the note in getComboOptions().
+            $connKey = $databaseId !== '' ? $databaseId : ('form' . $formDef->getDatabaseId());
+            $cacheKey = 'combo_' . md5($sql . '_db' . $connKey);
 
             // Level 1: In-memory cache (fastest)
             if (isset(self::$sqlResultCache[$cacheKey])) {

@@ -764,6 +764,18 @@ class FormRenderer
             self::escape($imagePath)
         );
 
+        // Edit the CURRENT image in place (rotate / flip / crop / brightness …)
+        // via the stand-alone image editor. Disabled until an image is present.
+        if (!$readonly) {
+            $html .= sprintf(
+                '<a class="image-edit btn-icon disabled" data-edit-field="%s" data-path="%s" title="Afbeelding bewerken (draaien / bijsnijden)">
+                    <span class="lnr lnr-crop"></span>
+                </a>',
+                self::escape($name),
+                self::escape($imagePath)
+            );
+        }
+
         if (!$required) {
             $html .= sprintf(
                 '<a class="image-clear btn-icon disabled" data-clear-field="%s" title="Afbeelding verwijderen">

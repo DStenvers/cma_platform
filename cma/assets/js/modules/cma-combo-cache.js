@@ -2,6 +2,16 @@
  * Client-side combo cache using sessionStorage
  * Reduces server load by caching combo options locally for the session
  *
+ * Empty vs never-filled contract (deliberate, do not conflate):
+ *   - A MISS — the key was never written (or expired) — is represented by `null`
+ *     from get() / an entry in `uncached` from getMultiple(). The caller must
+ *     fetch it. "null = nooit gevuld."
+ *   - A HIT of a genuinely empty result is represented by `[]` — a real, cached
+ *     answer meaning "this combo legitimately has zero options". The caller must
+ *     NOT refetch it. "[] = leeg."
+ * set() therefore stores only arrays; a null/undefined value is never written,
+ * so it can never masquerade as a cached-empty and hide a real miss.
+ *
  * @module cma-combo-cache
  */
 
@@ -143,6 +153,11 @@ const cmaComboCache = (function() {
          */
         set(formId, field, options, recordId) {
             if (!isAvailable()) return;
+
+            // Only cache a real array result. Refuse null/undefined so a "never
+            // filled" value can never be stored as if it were a cached-empty []
+            // (which would suppress the refetch and leave the combo blank).
+            if (!Array.isArray(options)) return;
 
             const key = this.buildKey(formId, field, recordId);
             try {

@@ -542,6 +542,22 @@ class FormRendererControlsTest extends TestCase
         $this->assertStringNotContainsString('image-clear', $out);
     }
 
+    public function testImageHasEditButtonWhenEditable(): void
+    {
+        $out = FormRenderer::renderImage('photo', []);
+        // Edit-in-place icon, starts disabled (no image yet) and targets the field.
+        $this->assertStringContainsString('image-edit', $out);
+        $this->assertStringContainsString('data-edit-field="photo"', $out);
+        $this->assertStringContainsString('image-edit btn-icon disabled', $out);
+    }
+
+    public function testImageNoEditButtonWhenReadonly(): void
+    {
+        // A read-only image field can't be modified, so no edit-in-place icon.
+        $out = FormRenderer::renderImage('photo', ['readonly' => true]);
+        $this->assertStringNotContainsString('data-edit-field', $out);
+    }
+
     public function testImageViaRenderControl(): void
     {
         $out = FormRenderer::renderControl(FormRenderer::TYPE_IMAGE, 'photo', []);

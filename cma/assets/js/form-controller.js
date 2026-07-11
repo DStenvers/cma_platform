@@ -3922,21 +3922,43 @@ class CmaFormController {
 
             // Image/file field controls - delegate to form level
             this.mainForm.addEventListener('click', (e) => {
-                const target = e.target.closest('[data-select-field], [data-clear-field], [data-preview-field]');
+                const target = e.target.closest('[data-select-field], [data-clear-field], [data-preview-field], [data-edit-field]');
                 if (!target) return;
 
                 e.preventDefault();
-                const fieldName = target.dataset.selectField ||
-                                  target.dataset.clearField || target.dataset.previewField;
+                const fieldName = target.dataset.selectField || target.dataset.clearField ||
+                                  target.dataset.previewField || target.dataset.editField;
 
                 if (target.dataset.selectField) {
                     this.openImageFileSelector(fieldName, target.dataset.path);
+                } else if (target.dataset.editField) {
+                    if (target.classList.contains('disabled')) return; // nothing to edit yet
+                    this.openImageEditor(fieldName, target.dataset.path);
                 } else if (target.dataset.clearField) {
                     this.clearImageFile(fieldName);
                 } else if (target.dataset.previewField) {
                     this.showImagePreview(fieldName);
                 }
             });
+
+            // The stand-alone image editor (opened by openImageEditor) posts its
+            // result back with postMessage. It targets window.opener, which — even
+            // when this form runs inside a sidepanel iframe — is exactly this
+            // window (the popup was opened from here), so we listen on self. Bind
+            // once per controller; the pending field is tracked in _imageEditField.
+            if (!this._imageEditMsgBound) {
+                this._imageEditMsgBound = true;
+                window.addEventListener('message', (ev) => {
+                    const d = ev.data || {};
+                    if (d.type !== 'image-editor-complete' && d.type !== 'image-editor-cancel') return;
+                    const fieldName = this._imageEditField;
+                    if (!fieldName) return; // not our edit (another controller opened it)
+                    this._imageEditField = null;
+                    if (d.type === 'image-editor-complete' && d.file) {
+                        this.setImageFileValue(fieldName, d.file, d.width, d.height);
+                    }
+                });
+            }
 
             // URL preview button clicks - open URL in new tab
             this.mainForm.addEventListener('click', (e) => {
@@ -4044,6 +4066,55 @@ class CmaFormController {
     }
 
     /**
+     * Open the stand-alone image editor on the field's CURRENT image (rotate /
+     * flip / crop / brightness / contrast …). On finish the editor posts
+     * {type:'image-editor-complete', file, width, height}; the message handler in
+     * setupEventListeners() applies it via setImageFileValue().
+     * @param {string} fieldName - Name of the image field
+     * @param {string} path - Upload path for the image (field's imagePath)
+     */
+    openImageEditor(fieldName, path) {
+        const field = this.mainForm.querySelector(`[name="${fieldName}"]`);
+        if (!field) {
+            cmaLog.warn('Image field not found:', fieldName);
+            return;
+        }
+
+        // Only a local upload can be edited in place. An absolute http(s) URL is
+        // an external reference the editor can't resolve on our filesystem.
+        const currentValue = field.value || '';
+        if (!currentValue || this.isAbsoluteUrl(currentValue)) {
+            if (typeof libAlert === 'function') {
+                libAlert('Er is nog geen (lokale) afbeelding om te bewerken.');
+            }
+            return;
+        }
+
+        // Forward the field's resize rule so the editor enforces the same
+        // free/maximum/fixed + dimensions the field was defined with.
+        const resizeVal = (suffix) => {
+            const el = this.mainForm.querySelector(`[name="${fieldName}${suffix}"]`);
+            return el ? (el.value || '0') : '0';
+        };
+        const basePath = path || field.dataset.path || '';
+        const url = 'image-editor.php'
+            + '?basepath=' + encodeURIComponent(basePath)
+            + '&file=' + encodeURIComponent(currentValue)
+            + '&resizetype=' + encodeURIComponent(resizeVal('_resizetype'))
+            + '&resizewidth=' + encodeURIComponent(resizeVal('_resizewidth'))
+            + '&resizeheight=' + encodeURIComponent(resizeVal('_resizeheight'));
+
+        // Mark which field this edit targets; the postMessage handler reads it.
+        this._imageEditField = fieldName;
+
+        if (typeof lib_OpenWindowCentered === 'function') {
+            lib_OpenWindowCentered(url, 'Afbeelding bewerken', 1200, 820);
+        } else {
+            window.open(url, 'imageEdit', 'width=1200,height=820');
+        }
+    }
+
+    /**
      * Clear the image/file field value
      * @param {string} fieldName - Name of the image/file field
      */
@@ -4065,11 +4136,13 @@ class CmaFormController {
             preview.style.display = 'none';
         }
 
-        // Disable preview and clear buttons (crop is NEVER disabled - it's used to upload new images)
+        // Disable preview, clear and edit buttons (select is NEVER disabled - it uploads new images)
         const previewBtn = this.mainForm.querySelector(`[data-preview-field="${fieldName}"]`);
         const clearBtn = this.mainForm.querySelector(`[data-clear-field="${fieldName}"]`);
+        const editBtn = this.mainForm.querySelector(`[data-edit-field="${fieldName}"]`);
         if (previewBtn) previewBtn.classList.add('disabled');
         if (clearBtn) clearBtn.classList.add('disabled');
+        if (editBtn) editBtn.classList.add('disabled');
 
         // Clear dimensions
         const widthField = this.mainForm.querySelector(`[data-image-width="${fieldName}"]`);
@@ -4169,8 +4242,10 @@ class CmaFormController {
         // Note: crop button is NEVER disabled - it's used to upload and crop new images
         const previewBtn = this.mainForm.querySelector(`[data-preview-field="${fieldName}"]`);
         const clearBtn = this.mainForm.querySelector(`[data-clear-field="${fieldName}"]`);
+        const editBtn = this.mainForm.querySelector(`[data-edit-field="${fieldName}"]`);
         if (previewBtn) previewBtn.classList.toggle('disabled', !filename);
         if (clearBtn) clearBtn.classList.toggle('disabled', !filename);
+        if (editBtn) editBtn.classList.toggle('disabled', !filename);
 
         // Update dimensions if provided
         if (width) {
@@ -8350,12 +8425,17 @@ class CmaFormController {
                         if (old404) old404.remove();
                     }
                     // Toggle disabled state on buttons based on whether image exists
-                    // Note: crop button is NEVER disabled - it's used to upload and crop new images
+                    // Note: select button is NEVER disabled - it's used to upload new images
                     if (previewBtn) {
                         previewBtn.classList.toggle('disabled', !value);
                     }
                     if (clearBtn) {
                         clearBtn.classList.toggle('disabled', !value);
+                    }
+                    // Edit acts on the current image, so it's only usable when one exists
+                    const editBtn = this.mainForm.querySelector(`[data-edit-field="${name}"]`);
+                    if (editBtn) {
+                        editBtn.classList.toggle('disabled', !value);
                     }
                     break;
 
