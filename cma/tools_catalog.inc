@@ -2,11 +2,41 @@
 /**
  * Tools catalog — the single source of truth for the admin tools/forms menu.
  *
- * Side-effect-free: only defines buildToolsTreeData(). Consumed by
+ * Side-effect-free: defines buildToolsTreeData() (and the cma_db_uses_sqlite()
+ * helper it uses to gate SQLite-only tools). Consumed by
  * api/tools-catalog.php, which serves it as JSON to the launcher overlay
  * (cma-launcher) — the single tools menu. Keep it free of output/redirects so
  * it can be included anywhere. Uses fully-qualified class names (no use-imports).
  */
+
+/**
+ * True when any (non-deprecated) configured database connection uses SQLite.
+ * Reads databases.json via ConfigLoader — no live DB connection, so it's cheap
+ * and safe at menu-build time. Gates the SQLite-only repair tool out of the menu
+ * on Access / SQL Server / MySQL sites (where it was pointless and always reported
+ * "alles goed" on a database that isn't even SQLite). Fails closed: if the config
+ * can't be read, the tool stays hidden.
+ */
+function cma_db_uses_sqlite(): bool
+{
+    try {
+        foreach (\Cma\ConfigLoader::getDatabases() as $db) {
+            if (!empty($db['deprecated'])) {
+                continue;
+            }
+            $type = strtolower((string)($db['type'] ?? ''));
+            $cs = strtolower((string)($db['connectionString'] ?? ''));
+            if ($type === 'sqlite'
+                || strncmp($cs, 'sqlite:', 7) === 0
+                || preg_match('/\.(sqlite3?|db)\b/', $cs) === 1) {
+                return true;
+            }
+        }
+    } catch (\Throwable $e) {
+        // fall through to false — hide the tool when config is unreadable
+    }
+    return false;
+}
 
 function buildToolsTreeData(bool $isDeveloper): array
 {
@@ -64,9 +94,15 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'Migraties', 'badge' => 'A', 'href' => 'tools/tools_migrations.php', 'target' => 'R', 'icon' => 'lnr-arrow-right'],
             ['type' => 'item', 'label' => 'SQL uitvoeren', 'badge' => 'D', 'href' => 'tools/tools_query.php', 'target' => 'R', 'icon' => 'lnr-code'],
             ['type' => 'item', 'label' => 'Indexen aanmaken', 'badge' => 'D', 'href' => 'tools/tools_create_indexes.php', 'target' => 'R', 'icon' => 'lnr-list'],
-            ['type' => 'item', 'label' => 'SQLite reparatie', 'badge' => 'A', 'href' => 'tools/tools_sqlite_repair.php', 'target' => 'R', 'icon' => 'lnr-sync'],
         ]
     ];
+
+    // SQLite-reparatie alleen tonen als er echt een SQLite-connectie is. Op
+    // Access/SQL Server/MySQL-sites is de tool zinloos — hij meldde daar altijd
+    // "alles goed" op een database die niet eens SQLite is.
+    if (cma_db_uses_sqlite()) {
+        $dbFolder['children'][] = ['type' => 'item', 'label' => 'SQLite reparatie', 'badge' => 'A', 'href' => 'tools/tools_sqlite_repair.php', 'target' => 'R', 'icon' => 'lnr-sync'];
+    }
 
     $folders[] = $dbFolder;
 
