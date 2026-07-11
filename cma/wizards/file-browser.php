@@ -1687,6 +1687,29 @@ $appBasePath = Application::get('base_path', '/');
         .view-file-link:hover {
             opacity: 1;
         }
+
+        /* Narrow viewports (mobile, a small popup, or a narrow sidepanel): the
+           fixed side-by-side split doesn't fit — the 300px details panel crowds
+           the file list off-screen. Stack vertically instead: the file list on
+           top (it comes first in the DOM) and the details below it, and hide the
+           vertical drag-divider, which only means anything for a side-by-side
+           split. cma-fold writes an inline width/flex on the details panel, so
+           both are overridden with !important here. */
+        @media (max-width: 700px) {
+            .browser-container { flex-direction: column; }
+            .file-list-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                min-height: 0;
+            }
+            .details-panel {
+                width: 100% !important;
+                max-width: none !important;
+                flex: 0 0 auto !important;
+                max-height: 45%;
+            }
+            cma-fold[orientation="vertical"] { display: none; }
+        }
     </style>
 </head>
 <body>

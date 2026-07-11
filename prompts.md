@@ -3796,3 +3796,5 @@ karaat-data en staat in de karaat-repo.
 > /login
 
 > push and commit
+
+> the file browser dialog is not browser aware,  perhaps we should show the files first and then the details?
