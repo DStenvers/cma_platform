@@ -3800,3 +3800,9 @@ karaat-data en staat in de karaat-repo.
 > the file browser dialog is not browser aware,  perhaps we should show the files first and then the details?
 
 > i installed the latest version, but the storybook does not work, i wonder if the full linearicons.css removal was so smart because it should show there all the icons
+
+> 2e check: er zijn dus nog steeds 2 linearicons fonts, de totale en de gecomprimeerde met alleen de gebruikte icons?
+
+> in welke versie is het tools menu gefixt?
+
+> de db health check mag uit de tools, bestand mag weg

@@ -48,7 +48,6 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'E-mail log', 'badge' => 'A', 'href' => 'form.php?form=emaillog', 'target' => 'R', 'icon' => 'lnr-envelope'],
             ['type' => 'item', 'label' => 'Controleer bestanden', 'badge' => 'A', 'href' => 'tools/tools_db_consistency.php', 'target' => 'R', 'icon' => 'lnr-sync'],
             ['type' => 'item', 'label' => 'LLM management', 'badge' => 'A', 'href' => 'tools/tools_llm.php', 'target' => 'R', 'icon' => 'lnr-brain'],
-            ['type' => 'item', 'label' => 'Database health check', 'badge' => 'A', 'href' => 'tools/db_health.php', 'target' => 'R', 'icon' => 'lnr-heart-pulse'],
         ]
     ];
     $folders[] = $healthFolder;

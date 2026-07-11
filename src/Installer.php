@@ -48,6 +48,10 @@ class Installer
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
         'cma/tools/llm_models.php',
+        // Removed in v1.28.134: the standalone "Database health check" tool
+        // (tools/db_health.php) is dropped from the tools menu and repo. Clean
+        // the synced copy off consumer sites so its URL stops resolving.
+        'cma/tools/db_health.php',
         // Renumbered in v1.28.35: these two migrations were never registered in
         // config/migrations.json, so the high-water-mark runner never applied
         // them (leaving tblCMAMarketingUrl / api_call_log missing on sites past

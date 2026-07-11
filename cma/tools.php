@@ -108,7 +108,6 @@ $toolNameMap = [
     'dbcompact' => 'tools/tools_dbcompact.php',
     'create_indexes' => 'tools/tools_create_indexes.php',
     'sqlite_repair' => 'tools/tools_sqlite_repair.php',
-    'db_health' => 'tools/db_health.php',
     'generate_forms' => 'tools/tools_generate_forms.php',
     'migrate_prepare' => 'tools/tools_migrate_prepare.php',
     'export_repository' => 'tools/tools_export_repository.php',
