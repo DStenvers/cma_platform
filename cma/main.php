@@ -104,6 +104,17 @@ if (Request::hasQuery('nomenu')) {
         $_REQUEST[$key] = $value;
     }
 
+    // A bare launcher route — e.g. "tools" coming from the friendly
+    // /cma/tools?tool=… URL, where the .php entrypoint was dropped from the page
+    // segment during SPA/history navigation — has no extension. cma/tools/ also
+    // exists as a physical directory, so without this it 404s on the folder.
+    // Resolve a bare, extension-less page to its .php file so page=tools?tool=X
+    // loads the same as page=tools.php?tool=X. basename()/traversal-strip above
+    // already sanitised $page, so appending .php here is safe.
+    if ($page !== '' && pathinfo($page, PATHINFO_EXTENSION) === '' && is_file(__DIR__ . '/' . $page . '.php')) {
+        $page .= '.php';
+    }
+
     // Validate file exists and is PHP
     $filePath = __DIR__ . '/' . $page;
     if (!file_exists($filePath) || pathinfo($page, PATHINFO_EXTENSION) !== 'php') {
