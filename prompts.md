@@ -3806,3 +3806,5 @@ karaat-data en staat in de karaat-repo.
 > in welke versie is het tools menu gefixt?
 
 > de db health check mag uit de tools, bestand mag weg
+
+> database compacteee : of werkend maken (hij gaat naar het verkeerde pad), of weggooien, want dat kan volgend mij niet via odbc

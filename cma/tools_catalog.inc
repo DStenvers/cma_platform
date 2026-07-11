@@ -63,7 +63,6 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'Backups beheren', 'badge' => 'A', 'href' => 'tools/tools_backup.php?tab=manage', 'target' => 'R', 'icon' => 'lnr-undo'],
             ['type' => 'item', 'label' => 'Migraties', 'badge' => 'A', 'href' => 'tools/tools_migrations.php', 'target' => 'R', 'icon' => 'lnr-arrow-right'],
             ['type' => 'item', 'label' => 'SQL uitvoeren', 'badge' => 'D', 'href' => 'tools/tools_query.php', 'target' => 'R', 'icon' => 'lnr-code'],
-            ['type' => 'item', 'label' => 'Database compacteren', 'badge' => 'A', 'href' => 'tools/tools_dbcompact.php', 'target' => 'R', 'icon' => 'lnr-database'],
             ['type' => 'item', 'label' => 'Indexen aanmaken', 'badge' => 'D', 'href' => 'tools/tools_create_indexes.php', 'target' => 'R', 'icon' => 'lnr-list'],
             ['type' => 'item', 'label' => 'SQLite reparatie', 'badge' => 'A', 'href' => 'tools/tools_sqlite_repair.php', 'target' => 'R', 'icon' => 'lnr-sync'],
         ]

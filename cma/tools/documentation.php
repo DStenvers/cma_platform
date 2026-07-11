@@ -1481,7 +1481,7 @@ function render_doc_backups(): void
     <p>Voor diepere corruptie: <code>tools/tools_sqlite_repair.php</code> draait <code>sqlite3 .dump</code> + her-import. Use sparingly — eerst backup, dan repair.</p>
 
     <h2>MS Access compaction</h2>
-    <p>Access (<code>.mdb</code>) DB's groeien onbegrensd na veel writes. <a href="tools.php?tool=dbcompact" target="_top">Tools → DB-compact</a> draait een compact + repair (gelijkwaardig aan Access's "Compact &amp; Repair Database"). Doe dit periodiek — eens per maand bij actieve sites.</p>
+    <p>Access (<code>.mdb</code>) DB's groeien onbegrensd na veel writes. Comprimeren (Access's "Compact &amp; Repair Database") kan <span class="cma-tool__strong">niet</span> via de ODBC-driver waarmee het platform draait — ODBC kent geen compact-commando, en de JRO/DAO-COM-route is niet beschikbaar in de PHP-omgeving. Comprimeer daarom periodiek (bij actieve sites ± eens per maand) <span class="cma-tool__strong">handmatig in Microsoft Access</span>: open de <code>.mdb</code> en kies <span class="cma-tool__em">Database Tools → Compact and Repair Database</span>. De losse "Database compacteren"-tool is in v1.28.135 verwijderd omdat hij niets deed (een stub die alleen het pad toonde).</p>
 
     <h2>Backup-retentie</h2>
     <p>Het platform verwijdert niks automatisch. Stel een Windows Task Scheduler taak in voor <code>logs/</code>-style cleanup (b.v. delete files older than 60 days in <code>backup/</code>) als je schijfruimte een bottleneck is.</p>

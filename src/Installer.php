@@ -52,6 +52,11 @@ class Installer
         // (tools/db_health.php) is dropped from the tools menu and repo. Clean
         // the synced copy off consumer sites so its URL stops resolving.
         'cma/tools/db_health.php',
+        // Removed in v1.28.135: the "Database compacteren" tool was a dead stub —
+        // Access compaction needs JRO/DAO COM (unavailable in PHP) and can't be
+        // done over ODBC at all, so it only ever printed a "do it in Access"
+        // notice (with a stale path). Compact manually in Access instead.
+        'cma/tools/tools_dbcompact.php',
         // Renumbered in v1.28.35: these two migrations were never registered in
         // config/migrations.json, so the high-water-mark runner never applied
         // them (leaving tblCMAMarketingUrl / api_call_log missing on sites past
