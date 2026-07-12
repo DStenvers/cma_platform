@@ -214,10 +214,24 @@ class ErrorHandler
             return false;
         }
 
-        // Convert error to exception (except for silenced errors with @ operator)
-        if (error_reporting() !== 0) {
-            throw new \ErrorException($message, 0, $level, $file, $line);
+        // @-silenced errors (error_reporting() === 0): ignore.
+        if (error_reporting() === 0) {
+            return true;
         }
+
+        // On Dev/Test (O/T) — and production — a non-fatal warning/notice/
+        // deprecation is LOGGED and execution CONTINUES, matching prod, instead
+        // of being escalated to a 500. Only Local (L) keeps escalating.
+        $nonFatal = E_WARNING | E_NOTICE | E_DEPRECATED | E_USER_WARNING
+                  | E_USER_NOTICE | E_USER_DEPRECATED;
+        if (($level & $nonFatal)
+                && (in_array((self::$config['environment'] ?? ''), ['O', 'T'], true)
+                    || empty(self::$config['debug']))) {
+            error_log(sprintf('PHP %s: %s in %s on line %d', $level, $message, $file, $line));
+            return true;
+        }
+
+        throw new \ErrorException($message, 0, $level, $file, $line);
 
         return true;
     }

@@ -65,10 +65,19 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
      * @param bool $scrollable Whether this is a scrollable cursor
      * @param bool $arrayMode Whether data comes from an array (ODBC native mode)
      */
-    public function __construct($stmt, $scrollable = false, $arrayMode = false) {
+    public function __construct($stmt = null, $scrollable = false, $arrayMode = false) {
         $this->stmt = $stmt;
         $this->scrollable = $scrollable;
         $this->arrayMode = $arrayMode;
+
+        // `new RecordSet()` (no statement) — an empty disconnected recordset the
+        // caller fills in later (ASP Server.CreateObject("ADODB.Recordset")).
+        if ($stmt === null) {
+            $this->arrayMode = true;
+            $this->all_rows = [];
+            $this->eof = true;
+            return;
+        }
 
         // Load first row immediately (ASP ADO compatibility).
         // All existing code expects $rs->EOF and $rs->fields to work right after openRS().

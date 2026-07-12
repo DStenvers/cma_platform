@@ -867,6 +867,12 @@ class Database
         }
         $sqlLogStart = self::$sqlLogEnabled ? microtime(true) : null;
         $sqlSnippet = substr(preg_replace('/\s+/', ' ', $sql), 0, 100);
+        // SELECT * is discouraged: with the Access ODBC driver a MEMO column is
+        // only returned in full when it is the LAST column, so SELECT * can
+        // truncate long content and couples callers to column order.
+        if (is_string($sql) && preg_match('/\bSELECT\s+\*/i', $sql)) {
+            error_log('SQL warning: SELECT * — list columns explicitly (MEMO/long fields must be last for Access ODBC): ' . $sqlSnippet);
+        }
         try {
             // Handle native ODBC connection objects specially
             if (is_object($connection) && get_class($connection) === 'Odbc\Connection') {
@@ -968,6 +974,9 @@ class Database
                     $odbcResult = @odbc_exec($odbcConn, $sql);
 
                     if ($odbcResult) {
+                        // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
+                        // full — the default (~4096) silently truncates Access MEMO fields.
+                        @odbc_longreadlen($odbcResult, 1048576);
                         self::debugSQL("Native ODBC execution successful!");
 
                         // Fetch all data into an array
@@ -1106,6 +1115,9 @@ class Database
             $odbcResult = @odbc_exec($odbcConn, $sql);
 
             if ($odbcResult) {
+                // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
+                // full — the default (~4096) silently truncates Access MEMO fields.
+                @odbc_longreadlen($odbcResult, 1048576);
                 self::debugSQL("Native ODBC execution successful!");
 
                 // Fetch all data into an array
