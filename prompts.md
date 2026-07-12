@@ -3814,3 +3814,106 @@ karaat-data en staat in de karaat-repo.
 > .cma-launcher__group-title {
 >     font-size: 18px;
 >     remove text-transform: uppercase;
+
+> <task-notification>
+> <task-id>a0b0571fe0326eb50</task-id>
+> <tool-use-id>toolu_01Y4ksATWWgCfDsCXcZrKGJv</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a0b0571fe0326eb50.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map karaat app for stone features" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have a complete map. Here is the structured summary.
+>
+> # Karaat webshop — feature map
+>
+> ## Big picture / naming
+> "Stenen" (stones for sale) and "producten" are the **same entity**: table **`tblProducten`**, exposed via the form **`steensoorten_producten`** (form title "Producten", `titleSingular` "Product"). There is **no separate `tblStenen` table** — a "steen" is a row in `tblProducten`. "Soorten" (stone types) = **`tblSteensoorten`** via form **`steensoorten`**. Backend is MS Access (`db/main.mdb`, connection name `main`/`conn_data`); databases defined in `/mnt/c/repos/karaat/data/databases.json`.
+>
+> ---
+>
+> ## 1. Database schema (MOST IMPORTANT)
+>
+> ### `tblSteensoorten` — stone types ("soorten")
+> Form: `/mnt/c/repos/karaat/assets/forms/steensoorten.json` (`"table": "tblSteensoorten"`, `idField: id`, sourceFormId **18**).
+> Key columns (field `name` = exact column):
+> - `id` — PK
+> - `Soortnaam` (UK/English name), **`SoortnaamNL`** (Dutch name, `detailField`) — steensoorten.json:31-45
+> - `bVisible` (checkbox) — the **active/visible flag** for soorten — :24-29
+> - **`SoortBeschrijvingNL`** / `SoortBeschrijvingUK` — description memos (HTML) — :66-72, :93-99
+> - **`Beeld`** — image column (`type:image`, `path: images/producten/`, resize 600x400) — :74-84
+> - `SoortKeywords`, `gemdaturl`, `bZeldzaam`, `bGroteVoorraad`
+> - Pricing: **`PrijsStart`** (start price), **`PrijsPerKaraat`** (price per carat), `PrijsPerKleur` — :106-125 (used to compute product price in `tools/steen_price.php`)
+> - Technical: `RI`, `Birefringence`, `Mohsscale`, **`sg_min`/`sg_max`** (specific gravity range) — :132-170
+> - Subform: Producten via `fkSteensoort` — :172-180
+>
+> ### `tblProducten` — products / stones ("producten"/"stenen")
+> Form: `/mnt/c/repos/karaat/assets/forms/steensoorten_producten.json` (`"table": "tblProducten"`, **`idField: Id`**, sourceFormId **6**).
+> Key columns:
+> - `Id` — PK
+> - **`bLeverbaar`** (checkbox, caption "Actief") — **the active/online flag** — steensoorten_producten.json:34-40. (Confirmed in listQuery: `IIf(bLeverbaar=True,'Actief','Niet tonen')` :10, and used in every front-end query as `tblProducten.[bLeverbaar]=True`.)
+> - `bGecontroleerd` (checkbox "Gecontroleerd" — second gate; front-end requires `bGecontroleerd=True`), `bCheckedSecat`
+> - `aantal` (item count), `voorraad` (stock)
+> - **`fkSteensoort`** — FK to `tblSteensoorten.id` (the soort foreign key), combobox — :100-109
+> - `fkCategorie` — FK to `tblProductCategorien.Id` (1=losse stenen, 7=paren, 3=partijen) — :88-98
+> - Pricing: **`Prijs`** (actual), **`BerekendPrijs`** (calculated) — :73-87
+> - **`Beeld`** — image column (`type:image`, `path: images/producten/`, resize 600x400) — :142-153
+> - `video`, `VideoStill` (path `images/video/`), `BlockVideo`
+> - **`Beschrijving`** — description memo (HTML) — :181-188
+> - **`Karaat`** — weight in carats (dataType 5 decimal) — :205-211
+> - **`afm1`, `afm2`, `afm3`** — dimensions L×B×H in mm (decimal) — :212-234
+> - `datestamp`, `bZeldzaam`, `fkCertificaat`
+> - Inkoop (purchase/sourcing) group: `inkoopNr`, `InkoopTitel`, `inkoopBeeld` (path `images/inkoop/`), **`inkoopPrijs`** (USD cost), `inkoopUrl`, `inkoopVindplaats` — :240-281
+> - SG-control (read-only, auto): `sg_score`, `sg_calculated`, `sg_reason` — :287-313
+>
+> ### Junction / lookup tables (many-to-many on products)
+> From the checklist SQL in steensoorten_producten.json:111-136:
+> - **`tblVormen`** (shapes; `ID`, `VormNL`) ↔ **`tblProductVormen`** (`fkProduct`, `fkVorm`)
+> - **`tblKleuren`** (colors; `ID`, `kleurNL`) ↔ **`tblProductKleuren`** (`fkProduct`, `fkKleur`)
+> - **`tblBehandelingen`** (treatments; `BehandelingNL`) ↔ **`tblProductBehandelingen`** (`fkProduct`, `fkBehandeling`)
+> - Also `tblProductCategorien` (`Id`,`Naam`), `tblCertificaten` (`ID`,`NaamCertificaat`).
+>
+> ---
+>
+> ## 2. Image handling
+> - Images live under **`/images/producten/`** (web) — see `IMG_PATH = '/images/producten/'` in `/mnt/c/repos/karaat/tools/quick_add_stone.php:230`. Both `tblProducten.Beeld` and `tblSteensoorten.Beeld` forms declare `"path": "images/producten/"`.
+> - The `Beeld` column stores **just the filename** (random name; `"randomName": true`), not a path. The front-end/tool prefixes `IMG_PATH + filename`.
+> - Upload flow (quick_add_stone.php): file POSTed to **`/cma/imageupload_crop_upload_handler.php?path=/images/producten/`**, which returns `{success, filename}`; that filename is written into the hidden `Beeld` input (`setBeeld()` :320-324) and saved with the record via `/cma/form_api.php` `action=save`.
+> - Image editing (rotate/crop): **`/cma/image-editor.php?basepath=/images/&amp;path=producten/&amp;file=&lt;Beeld&gt;`** in a lib-dialog iframe; posts back `{type:'image-editor-complete', file}` (:362-389).
+> - Responsive/WebP variants generated from the base name; the raw `_resized{W}x{H}` suffix is stripped when resolving (see `views/soorten.inc:39-47`, `App\Library\ResponsiveImage`). Cards use `data-img` (lazy-load) not `src` — `filter.inc:162`.
+> - Linking product→image is simply the `Beeld` string column on the same `tblProducten` row (no separate image table). Updating an existing stone's photo: `/mnt/c/repos/karaat/ajax_product_update.php` (called from the dedupe "Vul aan met foto + prijs" path, quick_add_stone.php:694-726).
+>
+> ---
+>
+> ## 3. Front-end "Stenen" navigation &amp; list pages
+> - **Front-end routing** is web.config rewrite → `_bootstrap_wrapper.php?pagina=X` → **`/mnt/c/repos/karaat/index.php`** `$viewMap` (index.php:15-33) → `views/X.inc`. E.g. `web.config:176-181` rewrites `^soorten` to `_bootstrap_wrapper.php?pagina=soorten`. To add a new front-end list page you add: (a) a rewrite rule in `web.config`, (b) a `$viewMap` entry in index.php, (c) a `views/&lt;name&gt;.inc` file.
+> - The public "Stenen" experience is the **`/aanbod`** listing → **`/mnt/c/repos/karaat/views/aanbod.inc`** (filter UI + paginated card grid; soort/shape/color/treatment filters built via `FilterWriteSQLElement`), and the A–Z types index **`/soorten`** → **`/mnt/c/repos/karaat/views/soorten.inc`** (one card per soort, links to `/aanbod?soort=&lt;id&gt;` and `/soort/&lt;name&gt;`).
+> - Categories map to routes: cat 1 → `/aanbod`, cat 7 → `/aanbod-paren`, cat 3 → `/aanbod-partijen` (soorten.inc:28).
+> - The main top nav bar (`ul.pageMenu__list`, active-item logic in index.php:88-96, href pattern `/pagina/&lt;menuID&gt;/`) is rendered by the **platform**, not the site code — it's driven by CMA-managed pages (`tblPagina`-style), so a public menu entry is added through the CMA, whereas ad-hoc list pages are added via the viewMap/web.config path above. The header itself only emits the utility links (FAQ/Contact) at header.inc:447-454.
+>
+> Note: **`/mnt/c/repos/karaat/data/menu.json`** is the **CMA admin menu** (not the public site menu). Its "Stenen" group (menu.json:5-47) contains: Stenen → form `steensoorten_producten` (formId 6), Soorten → form `Steensoorten` (formId 18), Vormen, and "Snel toevoegen" → `/tools/quick_add_stone.php`.
+>
+> ---
+>
+> ## 4. Standard stone web component — `&lt;karaat-stone&gt;`
+> - Source: **`/mnt/c/repos/karaat/assets/js/karaat.js:359-410`** (merged into `karaat.min.js`; also a minified copy in `karaat-home.min.js`). Original standalone lived at `assets/components/karaat-stone.js` (now inlined).
+> - Tag: **`karaat-stone`**. Class `KaraatStone extends HTMLElement`. It renders in **light DOM** and has **no `observedAttributes`/`attributeChangedCallback`** — it does **not** build markup client-side anymore. The canonical HTML is produced **server-side** by PHP `karaat_render_stone_card($rs, $basePath, $bEditable, $maps)` in **`/mnt/c/repos/karaat/filter.inc:95`** (emits `&lt;karaat-stone&gt;&lt;div class="card card--searchResult"&gt;…&lt;/div&gt;&lt;/karaat-stone&gt;`, filter.inc:109/193). The component's only job (`connectedCallback` → `wireRemove`, karaat.js:399-406) is wiring the optional `.card__remove` (✕) button and dispatching a **`stone-remove`** CustomEvent `{detail:{id}}`.
+> - Documented client-render attributes (legacy, karaat.js:376-380): `stone-id` (required), `soort`, `karaat`, `prijs`, `img`, `afm` ("lxbxd"), `url`, `certificaat`, `zeldzaam`, `video`, `removable`. Product id surfaces as `data-product` on an inner element (used by quick_add_stone.php:494-499 and wishlist JS).
+> - **Edit mode**: handled by the PHP renderer, not the JS. `karaat_render_stone_card`'s `$bEditable` param (filter.inc:95, set from `Application::get('local')` at filter.inc:48) adds an **`&lt;a class=edit href=".../cma/form.php?FormID=6&amp;ID=&lt;id&gt;"&gt;edit&lt;/a&gt;`** link (filter.inc:165) and color-name labels (filter.inc:209-211 in `karaat_build_card_maps`). Cards are consumed via `/ajax_stones.php?ids=…` which returns this HTML.
+>
+> ---
+>
+> ## 5. Karaat tools pattern &amp; adding a soorten-iterating admin tool
+> - Site-specific tools live in **`/mnt/c/repos/karaat/tools/`** (NOT in the platform `cma/` tree, so `composer update` never touches them). Existing examples: `quick_add_stone.php`, `sg_recalculate.php`, `gemdat_import.php`, `fill_missing_prices.php`, `find_duplicate_stone.php`, `similar_stones.php`, `steen_price.php`, `detect_stone.php`/`detect_shape.php`, `GemstoneSg.php`, `stone_picker.inc`.
+> - **Tools launcher registry**: **`/mnt/c/repos/karaat/data/tools.json`** — the platform reads this via `tools_catalog.inc` and surfaces items in the CMA tools launcher (`tools.php`, linked from the CMA "Systeem → Alle beheerstools" menu). Each item: `{label, href:"/tools/xxx.php", icon, badge:"A"(admin)/"D"(dev)}`, grouped under "Karaat onderhoud".
+> - **Tool bootstrap pattern** (from quick_add_stone.php:15-22): `require_once __DIR__ . '/../cma/bootstrap.inc';` then `use Cma\SecurityHelper;` and gate with `if (!SecurityHelper::isLoggedIn()) { header('Location: /cma/login.php?return=…'); exit; }`. Reuse platform endpoints: `/cma/form_api.php` (combo/checklist/save), `/cma/imageupload_crop_upload_handler.php`.
+> - **DB access for a new tool** iterating soorten: use `App\Library\Database::openRS('SELECT id, SoortnaamNL, … FROM tblSteensoorten …', 'data', …)` (the `'data'` connection = `main.mdb`; see pattern in index.php:102 and `views/soorten.inc`). `App\Library\SQL` for escaping, `App\Library\Cache` for cached reads.
+> - **To add a new admin tool that iterates `tblSteensoorten`**: (1) create `/tools/&lt;name&gt;.php` with the bootstrap+auth header above; (2) query `tblSteensoorten` via `Database::openRS(..., 'data')`; (3) register it in `data/tools.json` (add an item, badge `"A"`) so it appears in the CMA tools launcher; optionally also add a link under the "Stenen" group in `data/menu.json` like the existing "Snel toevoegen" → `/tools/quick_add_stone.php` entry (menu.json:37-45).
+>
+> ### Migrations (for schema changes)
+> Site migrations are separate from the platform: **`/mnt/c/repos/karaat/migrations/site_migrations.json`**, registered in `app.php:179-186` as source `karaat` (tracking table `_cma_karaat_version`, db `data`). Add new columns to `tblProducten`/`tblSteensoorten` here (recent commits show `tblSteensoorten.Beeld` fixes, sg fields etc.).</result>
+> <usage><subagent_tokens>77148</subagent_tokens><tool_uses>23</tool_uses><duration_ms>238974</duration_ms></usage>
+> </task-notification>
+
+> hoe zie ik de probleemstenen op front-end of in de cma?
+
+> bump the version to 1.29.0 and push and commit
