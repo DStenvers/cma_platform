@@ -944,6 +944,18 @@ function lib_OpenPopupCentered(adres, naam, win_width, win_height, title) {
 // 	new: win_content to add content instead of an iframe
 //
 function lib_OpenWindowCentered(adres, naam, win_width, win_height, title, win_content) {
+	// Guard against accidental double-opens: a double-click or two handlers wired
+	// to the same action fire near-instantly, opening the same URL twice. Ignore a
+	// repeat of the same URL within 600ms (a real re-open is a separate, later
+	// action). Only guards URL mode — content popups (win_content) are exempt.
+	if (adres) {
+		var _libOwNow = Date.now();
+		if (lib_OpenWindowCentered._lastUrl === adres && (_libOwNow - (lib_OpenWindowCentered._lastAt || 0)) < 600) {
+			return null;
+		}
+		lib_OpenWindowCentered._lastUrl = adres;
+		lib_OpenWindowCentered._lastAt = _libOwNow;
+	}
 	var mObj = null;
 	try {
 		// Fix relative URLs when using clean URLs

@@ -3921,3 +3921,9 @@ karaat-data en staat in de karaat-repo.
 > https://www.karaatedelstenen.nl/cma/main.php?page=%2Fprobleemstenen is echt leeg, na herberekenen
 
 > maak een migratie om video's te kunnen plaatsen. Zorg dat er een nieuw control type video is, vergelijkbaar met image, maar dan met de selectie *.mp4 , bij producten 1 veld maken voor een video die in /videos gebruik de bestaande file browser. In de lijstweergave een video symbool plaatsen en in de detailweergave de video tonen net als wanneer de video extern staat. Bij een interne video de <video> tag implementeren zonder geluid en met #t=0.001 achter de url om een safari bug te omzeilen.
+
+> the openwindow centered sometimes opens the same url twice, can we put a guard against that in the function itself? It happens on multiple places to alow-level solution fixes that
+>
+> uploading a video that is too large leads to a cryptic error 'inexpected end of json input', please make the uploader check the size, i want a new maximum of 50mb to allow for video's
+
+> records 1-1500 van 1827 (laden...) -> POk I want you to loop until this is finished, you claimed multilple times that this was the case, I want you to 1) acknowlegde it is not solved and prove it to moslty yourself. 2) make sure to iterate iuntil solved. Think race conditions. boundary checks etc.

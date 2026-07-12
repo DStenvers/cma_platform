@@ -2940,6 +2940,16 @@ $appBasePath = Application::get('base_path', '/');
         }
 
         async function uploadFile(file, overwrite, targetName) {
+            // Client-side size guard: block an oversized upload with a clear
+            // message instead of letting the server reject the body and returning
+            // an empty/HTML response, which surfaced as the cryptic "Unexpected end
+            // of JSON input". 50 MB allows video (.mp4).
+            var MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+            if (file.size > MAX_UPLOAD_BYTES) {
+                showToast('Bestand te groot: ' + (file.size / 1048576).toFixed(1) + ' MB. Maximum is 50 MB.', 'error');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('action', 'upload');
             formData.append('file', file);
@@ -2954,7 +2964,19 @@ $appBasePath = Application::get('base_path', '/');
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
+                // An oversized POST that slips past the client check (e.g. an IIS
+                // request-size limit below 50 MB) returns an empty/HTML body, not
+                // JSON — surface a clear message instead of "Unexpected end of JSON
+                // input".
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseErr) {
+                    showToast(!response.ok
+                        ? ('Upload mislukt (HTTP ' + response.status + '). Mogelijk is het bestand te groot voor de server.')
+                        : 'Upload mislukt: onverwacht antwoord van de server (mogelijk te groot bestand).', 'error');
+                    return;
+                }
 
                 if (data.success) {
                     showToast('Bestand geüpload: ' + data.filename, 'success');

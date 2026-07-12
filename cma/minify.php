@@ -316,15 +316,21 @@ foreach ($files as $file) {
 $cacheKey = md5(implode('|', $files) . '|' . $latestMtime);
 $etag = '"' . $cacheKey . '"';
 
+// Content type — computed BEFORE the 304 too. A 304 that falls back to PHP's
+// default text/html, combined with X-Content-Type-Options: nosniff, makes Chrome
+// reject the revalidated stylesheet as a MIME mismatch ("Failed to load link:
+// …minify.php?f=…css"). Send the real CSS/JS type (and the ETag) on the 304 so the
+// cached asset stays valid.
+$contentType = ($ext === 'css') ? 'text/css' : 'application/javascript';
+
 // Check if client has current version
 $ifNoneMatch = Request::server('HTTP_IF_NONE_MATCH', '');
 if ($ifNoneMatch === $etag) {
+    header('Content-Type: ' . $contentType . '; charset=utf-8');
+    header('ETag: ' . $etag);
     http_response_code(304);
     exit;
 }
-
-// Set content type
-$contentType = ($ext === 'css') ? 'text/css' : 'application/javascript';
 
 // Check disk cache (skip cache if minification is disabled for easier debugging)
 $cacheDir = $config['cache_dir'];
