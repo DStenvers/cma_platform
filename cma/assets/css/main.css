@@ -1389,7 +1389,7 @@ cma-launcher.is-open { display: block; }
 .cma-launcher__group { min-width: 0; }
 .cma-launcher__group[hidden] { display: none; }
 .cma-launcher__group-title {
-    margin: 0 0 8px 11px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
+    margin: 0 0 8px 11px; font-size: 18px; letter-spacing: .04em;
     color: var(--text-muted); display: flex; align-items: center; gap: 6px;
 }
 .cma-launcher__items { display: flex; flex-direction: column; gap: 2px; }

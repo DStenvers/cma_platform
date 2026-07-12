@@ -3808,3 +3808,9 @@ karaat-data en staat in de karaat-repo.
 > de db health check mag uit de tools, bestand mag weg
 
 > database compacteee : of werkend maken (hij gaat naar het verkeerde pad), of weggooien, want dat kan volgend mij niet via odbc
+
+## 2026-07-12
+
+> .cma-launcher__group-title {
+>     font-size: 18px;
+>     remove text-transform: uppercase;
