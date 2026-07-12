@@ -536,20 +536,15 @@
         var url = target.src || target.href || '';
         if (!url) return;
 
-        // Ignore CMA image preview 404s — handled by onerror on the element
-        if (tag === 'img' && target.hasAttribute('data-image-preview')) return;
+        // A broken <img> is just a 404 — the browser shows a broken-image icon and
+        // image fields show their own placeholder (onerror). It's a missing file,
+        // not an application error, so never surface or log it.
+        if (tag === 'img') return;
 
         // Ignore browser extension resources
         if (url.includes('chrome-extension://') || url.includes('moz-extension://')) return;
 
-        // Gather context: parent element, field name, closest form field
         var context = '';
-        if (tag === 'img') {
-            var parentEl = target.closest('[data-field], [name], textarea, .cke_editable');
-            var fieldName = parentEl ? (parentEl.dataset.field || parentEl.getAttribute('name') || parentEl.id || '') : '';
-            var inEditor = !!target.closest('.cke_editable, .cke_contents, iframe');
-            context = (fieldName ? ' in field "' + fieldName + '"' : '') + (inEditor ? ' (CKEditor content)' : '');
-        }
 
         var errorInfo = {
             type: 'resource',

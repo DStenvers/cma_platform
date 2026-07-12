@@ -3929,3 +3929,9 @@ karaat-data en staat in de karaat-repo.
 > records 1-1500 van 1827 (laden...) -> POk I want you to loop until this is finished, you claimed multilple times that this was the case, I want you to 1) acknowlegde it is not solved and prove it to moslty yourself. 2) make sure to iterate iuntil solved. Think race conditions. boundary checks etc.
 
 > mouseover over een imgae and video placeholder en de layout verschiift, er is ook geen echte video placeholder, oogt leeg nu..
+
+> throw a javascript error in these cases
+
+> Failed to load img: https://www.karaatedelstenen.nl/IMG_4414.jpg in field "Beeld
+>
+> this should lead to a 404 not an error in the php log

@@ -854,6 +854,25 @@ class CmaInfiniteScroll {
                 // runs before those flip hasMore=false, so without this the
                 // "(laden...)" suffix sticks forever even though loading has stopped.
                 this.updateRecordCountDisplay();
+
+                // Loud failure instead of a silent short stop. If pagination has
+                // ENDED (hasMore=false) yet we never reached the known total, the
+                // tail was dropped — a failed/slow last batch that gave up, a
+                // keyset that couldn't advance, an all-duplicate batch, or a
+                // two-scroller race. Rendering "records 1-1500 van 1827" as if it
+                // were complete hides a real bug. Throw so it reaches the global
+                // error handler (window 'error'/'unhandledrejection' -> panel +
+                // server report) instead of falling back silently. Only fires on
+                // the load() that flips hasMore false (later calls early-return on
+                // !hasMore), so it throws once, at the transition. totalCount===null
+                // means the total is unknown, so incompleteness can't be asserted.
+                if (!this.hasMore && this.totalCount !== null &&
+                    this.currentCount < this.totalCount) {
+                    throw new Error('[Infinite Scroll] Pagination stopped at ' +
+                        this.currentCount + '/' + this.totalCount + ' — ' +
+                        (this.totalCount - this.currentCount) + ' record(s) not loaded ' +
+                        '(last id ' + this.lastId + ', form ' + this.formId + ').');
+                }
             }
         }
     }

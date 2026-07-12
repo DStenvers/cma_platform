@@ -5526,9 +5526,13 @@ class CmaFormController {
             try {
                 await scroller.load();
             } catch (e) {
-                cmaLog.error('[autoPrefetch] Error:', e);
+                // Don't swallow — a load() that ends below the total (or errors)
+                // throws on purpose. Reset state, then re-throw so the rejection
+                // reaches the global error handler (panel + server report) rather
+                // than silently stopping the background prefetch with a wrong,
+                // "complete"-looking count.
                 scroller.paused = false;
-                return;
+                throw e;
             }
             if (scroller.hasMore && !scroller.destroyed) {
                 // Background prefetch is gentle: a 200ms gap between batches so it
