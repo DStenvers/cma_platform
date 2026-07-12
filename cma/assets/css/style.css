@@ -1355,6 +1355,27 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
     }
 }
 
+/* Mobile — the record-list quick search sits in .toolbar-right, which is
+   justified to the far edge. On a phone that strands it across an empty gap
+   from the buttons (and off the visible edge next to the wide, horizontally
+   scrolling table). Pull it in so it sits directly next to the toolbar
+   buttons and fills the remaining width instead. min-width:0 lets the flex
+   items shrink within the viewport so the field can't overflow. */
+@media only screen and (max-width: 600px) {
+    #listToolbar {
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    #listToolbar .toolbar-right {
+        justify-content: flex-start;
+        min-width: 0;
+    }
+    #listToolbar .toolbar-right lib-search-input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
 /* Persistent error display in detail panel */
 /* When using lib-message, it provides its own styling via shadow DOM */
 /* Only add margin/positioning here - lib-message handles the visual appearance */

@@ -2850,6 +2850,15 @@ body.mode-table #btn_columns {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    /* Reserve the box's size explicitly. Its dimensions used to come ONLY from
+       whatever content was inside (the .disabled::before placeholder, the <img>,
+       or the .image-404 icon). When the image is empty / display:none / 404'd and
+       no placeholder is rendering, there is nothing to hold the box open and it
+       collapses to ~0 ("the preview completely disappears"). A fixed 46×46 box
+       (40px content + 2px padding + 1px border each side) keeps a stable, clickable
+       frame in EVERY state — empty, image, 404, video, and on hover. */
+    min-width: 46px;
+    min-height: 46px;
     padding: 2px;
     cursor: pointer;
     text-decoration: none;
@@ -2922,10 +2931,11 @@ body.mode-table #btn_columns {
     border-radius: 2px;
 }
 
+/* File-not-found marker: a solid red cross shown in place of a broken image
+   (added by the <img> onerror handler in form-controller). */
 .image-404 {
-    font-size: 20px;
+    font-size: 24px;
     color: var(--color-error, #c0392b);
-    opacity: 0.6;
     cursor: help;
 }
 

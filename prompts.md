@@ -3935,3 +3935,612 @@ karaat-data en staat in de karaat-repo.
 > Failed to load img: https://www.karaatedelstenen.nl/IMG_4414.jpg in field "Beeld
 >
 > this should lead to a 404 not an error in the php log
+
+> this is how a form looks on mobile, the search should be next to the buttons
+
+> not treue:  scriptProcessor="C:\Program Files\PHP\v8.5.6\php-cgi.exe" is in the web.config in an add command
+
+> look at what you changed and revert that, its not that difficult
+
+> we have a live site down, don't go philisophiocal on me, fix it first
+
+> ik kijk zo
+
+> did you change anything to the bootstrapnor web.config handling recenyly?
+
+> nee niet alleen /aanbod, de hele site is 404
+
+> <?xml version="1.0" encoding="UTF-8"?>
+> <configuration>
+>
+>     <system.web>
+>         <httpRuntime maxRequestLength="1048576" executionTimeout="600" />
+>         <sessionState mode="Off" />
+>     </system.web>
+>
+>     <system.webServer>
+>
+>         <!-- MIME types -->
+>         <staticContent>
+>             <remove fileExtension=".webp" />
+>             <mimeMap fileExtension=".webp" mimeType="image/webp" />
+>             <remove fileExtension=".woff2" />
+>             <mimeMap fileExtension=".woff2" mimeType="font/woff2" />
+>             <remove fileExtension=".json" />
+>             <mimeMap fileExtension=".json" mimeType="application/json" />
+>             <remove fileExtension=".woff" />
+>             <mimeMap fileExtension=".woff" mimeType="font/x-woff" />
+>         </staticContent>
+>
+>         <!-- URL Rewrite rules -->
+>         <rewrite>
+>
+>             <outboundRules rewriteBeforeCache="true">
+>                 <rule name="Remove Server header">
+>                     <match serverVariable="RESPONSE_Server" pattern=".+" />
+>                     <action type="Rewrite" value="Who cares" />
+>                 </rule>
+>                 <rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing">
+>                     <match serverVariable="RESPONSE_Content-Type" pattern=".*" />
+>                     <action type="Rewrite" value="text/html; charset=UTF-8" />
+>                 </rule>
+>                 <preConditions>
+>                     <preCondition name="ContentTypeMissing">
+>                         <add input="{RESPONSE_Content-Type}" pattern="^$" />
+>                     </preCondition>
+>                 </preConditions>
+>             </outboundRules>
+>
+>             <rules>
+>                 <!-- Factuur template wordt server-side via file_get_contents gelezen; directe HTTP-toegang blokkeren (404). -->
+>                 <rule name="Block factuur template" stopProcessing="true">
+>                     <match url="^factuur\.html$" ignoreCase="true" />
+>                     <action type="CustomResponse" statusCode="404" statusReason="Not Found" statusDescription="Not Found" />
+>                 </rule>
+>                 <!-- Google OAuth webshop-callback -> google_callback.php via de bootstrap-wrapper. -->
+>                 <rule name="Google OAuth webshop callback" stopProcessing="true">
+>                     <match url="^auth/google/callback/?$" ignoreCase="true" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/google_callback.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>                 <!-- CMA rewrite rules (cma_platform) -->
+>                 <rule name="CMA Root" stopProcessing="true">
+>                     <match url="^cma/?$" />
+>                     <action type="Redirect" url="/cma/dashboard" redirectType="Found" />
+>                 </rule>
+>                 <!-- cma_platform: CMA rewrite rules applied (v1.20.12+) --><rule name="CMA Dashboard" stopProcessing="true">
+>                     <match url="^cma/dashboard/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=dashboard.php" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Preferences" stopProcessing="true">
+>                     <match url="^cma/preferences/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=preferences.php" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Tools" stopProcessing="true">
+>                     <match url="^cma/tools/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=tools.php" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form list" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form with record" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}&amp;formID={R:2}" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form with subform list" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/([^/]+)/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}&amp;formID={R:2}&amp;popup={R:3}" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form with subform record" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/([^/]+)/([^/]+)/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}&amp;formID={R:2}&amp;popup={R:3}&amp;popupID={R:4}" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form with subsubform list" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}&amp;formID={R:2}&amp;popup={R:3}&amp;popupID={R:4}&amp;subpopup={R:5}" appendQueryString="true" />
+>                 </rule>
+>                 <rule name="CMA Form with subsubform record" stopProcessing="true">
+>                     <match url="^cma/form/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/?$" />
+>                     <action type="Rewrite" url="/cma/main.php?page=form.php%3Fform%3D{R:1}&amp;formID={R:2}&amp;popup={R:3}&amp;popupID={R:4}&amp;subpopup={R:5}&amp;subpopupID={R:6}" appendQueryString="true" />
+>                 </rule>
+>
+>                 <!-- Domain and HTTPS redirects -->
+>                 <rule name="Redirect to www subdomain">
+>                     <match url=".*" />
+>                     <conditions>
+>                         <add input="{HTTP_HOST}" pattern="^karaatedelstenen\.nl$" />
+>                     </conditions>
+>                     <action type="Redirect" url="https://www.karaatedelstenen.nl/{R:0}" redirectType="Permanent" />
+>                 </rule>
+>
+>                 <rule name="Redirect to https" stopProcessing="true">
+>                     <match url="(.*)" />
+>                     <conditions logicalGrouping="MatchAll">
+>                         <add input="{HTTPS}" pattern="off" ignoreCase="true" />
+>                         <add input="{HTTP_HOST}" pattern="^localhost" negate="true" />
+>                         <add input="{HTTP_HOST}" pattern="^168\." negate="true" />
+>                         <add input="{HTTP_HOST}" pattern="^172\." negate="true" />
+>                     </conditions>
+>                     <action type="Redirect" url="https://{HTTP_HOST}/{R:0}" redirectType="Permanent" />
+>                 </rule>
+>
+>                 <!-- Hand /cma/* off to the child cma/web.config -->
+>                 <rule name="Skip /cma to child config" stopProcessing="true">
+>                     <match url="^cma($|/)" />
+>                     <action type="None" />
+>                 </rule>
+>
+>                 <!-- Friendly URL rewrites -->
+>                 <rule name="edelsteen" enabled="true" stopProcessing="true">
+>                     <match url="^edelsteen/([0-9]+)/(.*)" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?id={R:1}" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="soortinfo_id" enabled="true" stopProcessing="true">
+>                     <match url="^soort/([0-9]+)/bekijk" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=soort&amp;soort={R:1}" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="soortinfo" enabled="true" stopProcessing="true">
+>                     <match url="^soort/(.*)" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=soort&amp;soortnaam={R:1}" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="diamanten" enabled="true" stopProcessing="true">
+>                     <match url="^diamanten" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=diamant" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="soortinfo_alles" enabled="true" stopProcessing="true">
+>                     <match url="^soorten" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=soorten" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="pagina" enabled="true" stopProcessing="true">
+>                     <match url="^pagina/([0-9]+)/(.*)" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pageID={R:1}" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="aanbod-ruw" enabled="true" stopProcessing="true">
+>                     <match url="^aanbod-ruw" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod&amp;type=2" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="aanbod-ruw-en-geslepen" enabled="true" stopProcessing="true">
+>                     <match url="^aanbod-ruw-en-geslepen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod&amp;type=6" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="aanbod-partijen" enabled="true" stopProcessing="true">
+>                     <match url="^aanbod-partijen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod&amp;type=3" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="aanbod-paren" enabled="true" stopProcessing="true">
+>                     <match url="^aanbod-paren" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod&amp;type=7" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="aanbod" enabled="true" stopProcessing="true">
+>                     <match url="^aanbod" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod&amp;type=1" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="winkelwagen" enabled="true" stopProcessing="true">
+>                     <match url="^winkelwagen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=winkelwagen" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="wensenlijst" enabled="true" stopProcessing="true">
+>                     <match url="^wensenlijst" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=wensenlijst" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="inloggen" enabled="true" stopProcessing="true">
+>                     <match url="^inloggen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=inloggen" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="account" enabled="true" stopProcessing="true">
+>                     <match url="^account" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=account" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="eerlijk-over-edelstenen" enabled="true" stopProcessing="true">
+>                     <match url="^eerlijk-over-edelstenen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=eerlijk-over-edelstenen" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="winkelmand" enabled="true" stopProcessing="true">
+>                     <match url="^winkelmand" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=winkelwagen" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="winkel" enabled="true" stopProcessing="true">
+>                     <match url="^winkel" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=aanbod" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="verzendkosten" enabled="true" stopProcessing="true">
+>                     <match url="^verzendkosten" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=verzendkosten" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="afrekenen" enabled="true" stopProcessing="true">
+>                     <match url="^afrekenen" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=afrekenen" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="betalen" enabled="true" stopProcessing="true">
+>                     <match url="^betalen/(.*)" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=betalen&amp;guid={R:1}" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="contact" enabled="true" stopProcessing="true">
+>                     <match url="^contact" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=contact" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="bestelling_bedankt" enabled="true" stopProcessing="true">
+>                     <match url="^bestelling_bedankt" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=bestelling_bedankt" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="zoeken" enabled="true" stopProcessing="true">
+>                     <match url="^zoeken" />
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php?pagina=zoeken" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <rule name="voorwaarden" enabled="true" stopProcessing="true">
+>                     <match url="^voorwaarden" />
+>                     <action type="Rewrite" url="./algemenevoorwaarden.pdf" logRewrittenUrl="false" />
+>                 </rule>
+>
+>                 <!-- Bootstrap PHP infrastructure -->
+>                 <rule name="Bootstrap Directory Default" stopProcessing="true">
+>                     <match url="^(.*?)/?$" ignoreCase="true" />
+>                     <conditions>
+>                         <add input="{REQUEST_FILENAME}" matchType="IsDirectory" />
+>                         <add input="{REQUEST_FILENAME}/default.php" matchType="IsFile" />
+>                     </conditions>
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/{R:1}/default.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>
+>                 <rule name="Bootstrap Directory Index" stopProcessing="true">
+>                     <match url="^(.*?)/?$" ignoreCase="true" />
+>                     <conditions>
+>                         <add input="{REQUEST_FILENAME}" matchType="IsDirectory" />
+>                         <add input="{REQUEST_FILENAME}/index.php" matchType="IsFile" />
+>                     </conditions>
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/{R:1}/index.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>
+>                 <rule name="CMA Tools Friendly URL" stopProcessing="true">
+>                     <match url="^cma/tools/([a-z0-9_-]+)$" ignoreCase="true" />
+>                     <conditions>
+>                         <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+>                         <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+>                     </conditions>
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="/cma/tools.php" />
+>                         <set name="HTTP_X_TOOL_NAME" value="{R:1}" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>
+>                 <rule name="Bootstrap PHP Files" stopProcessing="true">
+>                     <match url="^(.*)\.php$" ignoreCase="true" />
+>                     <conditions>
+>                         <add input="{REQUEST_FILENAME}" matchType="IsFile" />
+>                         <add input="{REQUEST_URI}" pattern="_bootstrap\.php$" negate="true" />
+>                         <add input="{REQUEST_URI}" pattern="_bootstrap_wrapper\.php$" negate="true" />
+>                     </conditions>
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="{URL}" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>
+>                 <rule name="ASP redirect" stopProcessing="true">
+>                     <match url="^(.*)\.asp$" ignoreCase="true" />
+>                     <conditions>
+>                         <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+>                     </conditions>
+>                     <serverVariables>
+>                         <set name="HTTP_X_ORIGINAL_FILE" value="{R:1}.php" />
+>                     </serverVariables>
+>                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+>                 </rule>
+>
+>             </rules>
+>         </rewrite>
+>
+>         <!-- Default document settings -->
+>         <defaultDocument>
+>             <files>
+>                 <clear />
+>                 <add value="default.php" />
+>                 <add value="index.php" />
+>             </files>
+>         </defaultDocument>
+>
+>         <!-- Security and custom headers -->
+>         <httpProtocol>
+>             <customHeaders>
+>                 <clear />
+>                 <remove name="Server" />
+>                 <remove name="X-Powered-By" />
+>                 <add name="Vary" value="Accept-Encoding" />
+>                 <add name="Strict-Transport-Security" value="max-age=31536000" />
+>                 <add name="X-Content-Type-Options" value="nosniff" />
+>                 <add name="X-Frame-Options" value="SAMEORIGIN" />
+>             </customHeaders>
+>         </httpProtocol>
+>
+>         <!-- Hide sensitive files -->
+>         <security>
+>             <requestFiltering>
+>                 <hiddenSegments>
+>                     <add segment=".env" />
+>                     <add segment=".app_started" />
+>                     <add segment="composer.json" />
+>                     <add segment="composer.lock" />
+>                 </hiddenSegments>
+>             </requestFiltering>
+>         </security>
+>
+>         <!-- gzip compression -->
+>         <httpCompression directory="%SystemDrive%\inetpub\temp\IIS Temporary Compressed Files">
+>             <scheme name="gzip" dll="%Windir%\system32\inetsrv\gzip.dll" />
+>             <dynamicTypes>
+>                 <add mimeType="text/*" enabled="true" />
+>                 <add mimeType="message/*" enabled="true" />
+>                 <add mimeType="application/javascript" enabled="true" />
+>                 <add mimeType="application/json" enabled="true" />
+>                 <add mimeType="*/*" enabled="false" />
+>             </dynamicTypes>
+>             <staticTypes>
+>                 <add mimeType="text/*" enabled="true" />
+>                 <add mimeType="message/*" enabled="true" />
+>                 <add mimeType="application/javascript" enabled="true" />
+>                 <add mimeType="application/json" enabled="true" />
+>                 <add mimeType="*/*" enabled="false" />
+>             </staticTypes>
+>         </httpCompression>
+>
+>         <!-- Let PHP error output pass through -->
+>         <httpErrors existingResponse="PassThrough" />
+>
+>         <!-- PHP 8.5 FastCGI handler (overrides any inherited PHP_via_FastCGI mappings) -->
+>         <handlers accessPolicy="Read, Execute, Script">
+>             <remove name="PHP_via_FastCGI1" />
+>             <remove name="PHP_via_FastCGI" />
+>             <remove name="PHP_via_FastCGI3" />
+>             <remove name="PHP_via_FastCGI2" />
+>             <remove name="PHP53_via_FastCGI" />
+>             <add name="php 8.5" path="*.php" verb="*" modules="FastCgiModule" scriptProcessor="C:\Program Files\PHP\v8.5.6\php-cgi.exe" resourceType="File" />
+>         </handlers>
+>
+>     </system.webServer>
+>
+>     <!-- Static content caching -->
+>
+>     <location path="library">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="cma/images">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="cma/include">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="28.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="karaat.bundle.min.css">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/js">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/css">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/logo">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/components/magicscroll">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/components/tooltipster">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="module/mmenu">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="images/producten">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/images">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="assets/fonts">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>             <httpProtocol>
+>                 <customHeaders>
+>                     <add name="Access-Control-Allow-Origin" value="*" />
+>                 </customHeaders>
+>             </httpProtocol>
+>         </system.webServer>
+>     </location>
+>
+>     <location path="favicon.ico">
+>         <system.webServer>
+>             <staticContent>
+>                 <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" />
+>             </staticContent>
+>         </system.webServer>
+>     </location>
+>
+> </configuration>
+
+> on hover the preview completely dissapears
+
+> karaat's cma_platform version is at 1.29.2
+
+> stop: ik heb composer update gedraaid en alles draait weer, nu op 1.29.7
+
+> earlier i asked you to write code to fix soorten, the image and the description
+
+> switching logfiles does not work, is that correctly implemented? And i see an amaerican date format if i select 404 errors, the combo shows Javascript errors and if i select another date it reverts back to javascript errors-date gone!
+
+> site down again!!! did you do anything?
+
+> waarom moet die probleemstenen een rewrite hebben? kan dat noet zonder?
+
+> niets meer deployen of pushen tot ik het zeg
+
+> sote seaait weer na een composer update dus die fixt het, niet de veroorzaker
+
+> commit them

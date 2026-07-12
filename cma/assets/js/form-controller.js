@@ -4256,7 +4256,7 @@ class CmaFormController {
                 const icon = this.parentElement.querySelector('.image-404');
                 if (!icon) {
                     const el = document.createElement('span');
-                    el.className = 'image-404 lnr lnr-picture';
+                    el.className = 'image-404 lnr lnr-cross-circle';
                     el.title = 'Afbeelding niet gevonden';
                     this.parentElement.appendChild(el);
                 }
@@ -8444,7 +8444,7 @@ class CmaFormController {
                             const icon = this.parentElement.querySelector('.image-404');
                             if (!icon) {
                                 const el = document.createElement('span');
-                                el.className = 'image-404 lnr lnr-picture';
+                                el.className = 'image-404 lnr lnr-cross-circle';
                                 el.title = 'Afbeelding niet gevonden';
                                 this.parentElement.appendChild(el);
                             }
