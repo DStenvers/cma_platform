@@ -169,6 +169,10 @@ if ($isAjax && $intDatabase !== '') {
                             $typeName = $row['TYPE_NAME'] ?? 'UNKNOWN';
                             $colSize = $row['COLUMN_SIZE'] ?? '';
                             $decimals = $row['DECIMAL_DIGITS'] ?? '';
+                            // 0 decimalen zegt niets (integers, datums, tekst) — leeg laten.
+                            if ($decimals === 0 || $decimals === '0') {
+                                $decimals = '';
+                            }
                             // NULLABLE: 0=NO, 1=YES, 2=UNKNOWN - cast to int as ODBC may return string
                             $nullableVal = (int)($row['NULLABLE'] ?? 1);
                             $nullable = $nullableVal === 0 ? 'Nee' : 'Ja';
