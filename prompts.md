@@ -3927,3 +3927,5 @@ karaat-data en staat in de karaat-repo.
 > uploading a video that is too large leads to a cryptic error 'inexpected end of json input', please make the uploader check the size, i want a new maximum of 50mb to allow for video's
 
 > records 1-1500 van 1827 (laden...) -> POk I want you to loop until this is finished, you claimed multilple times that this was the case, I want you to 1) acknowlegde it is not solved and prove it to moslty yourself. 2) make sure to iterate iuntil solved. Think race conditions. boundary checks etc.
+
+> mouseover over een imgae and video placeholder en de layout verschiift, er is ook geen echte video placeholder, oogt leeg nu..

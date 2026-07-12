@@ -830,10 +830,13 @@ class FormRenderer
         $html .= sprintf('<input type="hidden" name="%s_path" value="%s">', self::escape($name), self::escape($videoPath));
         $html .= sprintf('<input type="hidden" name="%s_random" value="%s">', self::escape($name), $randomName ? 'Y' : 'N');
 
-        // "View" link — opens the selected video in a new tab. JS keeps its href in
-        // sync with the value (data-video-view); starts disabled with no href.
+        // Preview/play box — the SAME 44×44 box the image field uses, so a video
+        // field doesn't look empty and the layout matches. A film-icon placeholder
+        // (CSS ::before, no mp4 thumbnail); when a video is set it becomes a
+        // clickable play link (its href is kept in sync by the form-controller via
+        // data-video-view). Disabled until a video is chosen.
         $html .= sprintf(
-            '<a class="video-view-btn btn-icon disabled" data-video-view="%s" target="_blank" rel="noopener" title="Video bekijken"><span class="lnr lnr-film-play"></span></a>',
+            '<a class="image-preview-btn video-preview-btn disabled" data-video-view="%s" target="_blank" rel="noopener" title="Video bekijken"></a>',
             self::escape($name)
         );
 

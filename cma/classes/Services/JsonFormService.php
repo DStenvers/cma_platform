@@ -346,13 +346,24 @@ class JsonFormService extends BaseFormService
             $orderDir = strtoupper($jsonData['orderDirection'] ?? 'ASC');
             if ($orderDir !== 'DESC') $orderDir = 'ASC';
 
-            // FIX: Qualify idField with table name when query has JOIN to avoid ambiguous column error
+            // FIX: Qualify idField with table name when query has JOIN to avoid ambiguous column error.
+            // NOTE: qualification stays gated on the ' JOIN ' keyword — broadening
+            // it (e.g. to comma-joins) would rewrite the keyset/ORDER BY of forms
+            // that already work, and a bare-table name breaks when the FROM table
+            // is aliased (SQL Server: "multi-part identifier could not be bound").
             $hasJoin = stripos($sql, ' JOIN ') !== false;
             $effectiveTable = $tableName;
             if (!$effectiveTable && $hasJoin && preg_match('/\bFROM\s+\[?(\w+)\]?/i', $sql, $m)) {
                 $effectiveTable = $m[1];
             }
             $qualifiedIdField = ($hasJoin && $effectiveTable) ? "[$effectiveTable].[$idField]" : "[$idField]";
+
+            // A custom listQuery (no tableName) can emit duplicate ids via ANY
+            // one-to-many shape — an explicit JOIN, a comma/implicit join
+            // (FROM a, b WHERE ...), a UNION ALL, or a one-to-many view — not
+            // only when the ' JOIN ' keyword is present. Whether the count needs
+            // deduping keys off "came from a listQuery", NOT the keyword.
+            $customQuery = empty($tableName);
 
             // Apply keyset pagination for infinite scroll
             if ($lastId !== null) {
@@ -367,16 +378,19 @@ class JsonFormService extends BaseFormService
             // Get total count for initial load (before adding ORDER BY and TOP)
             $totalCount = null;
             if (!$isLoadMore) {
-                // Count DISTINCT record ids when the query has a one-to-many JOIN.
-                // A JOIN inflates the row count (several joined rows per record), but
-                // the table shows — and both server and client dedupe to — one row
-                // per id. A plain COUNT(*) then overcounts: the counter freezes at
-                // e.g. "records 1-1800 van 1806" (1806 joined rows vs 1800 distinct
-                // records actually shown) and the "(laden...)" suffix never clears,
-                // because the loaded-distinct count can never reach the inflated
-                // total. Distinct-id count matches what the user sees. Access has no
-                // COUNT(DISTINCT), so wrap a SELECT DISTINCT in a subquery.
-                if ($hasJoin) {
+                // Count DISTINCT record ids for ANY custom listQuery, because a
+                // one-to-many query inflates the row count (several physical rows
+                // per record) while the table shows — and both server and client
+                // dedupe to — one row per id. A plain COUNT(*) then overcounts:
+                // the counter freezes at e.g. "records 1-1500 van 1827" (1827
+                // joined rows vs 1500 distinct records actually shown) and the
+                // "(laden...)" suffix never clears, because the loaded-distinct
+                // count can never reach the inflated total. This must NOT be gated
+                // on the ' JOIN ' keyword: a comma-join / UNION / view repeats ids
+                // with no JOIN token (the bug that made this recur). Distinct-id
+                // count matches what the user sees. Access has no COUNT(DISTINCT),
+                // so wrap a SELECT DISTINCT in a subquery.
+                if ($customQuery) {
                     $innerSql = preg_replace('/^SELECT\s+.+?\s+FROM/is', 'SELECT DISTINCT ' . $qualifiedIdField . ' FROM', $sql);
                     $countSql = 'SELECT COUNT(*) FROM (' . $innerSql . ') AS cma_cnt';
                 } else {

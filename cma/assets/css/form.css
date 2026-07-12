@@ -2860,8 +2860,9 @@ body.mode-table #btn_columns {
 }
 
 .image-preview-btn:hover:not(.disabled) {
+    /* Only change the border colour on hover — the previous box-shadow drew a 1px
+       ring OUTSIDE the box, which read as the placeholder growing/shifting. */
     border-color: var(--border-hover);
-    box-shadow: 0 0 0 1px var(--border-hover);
 }
 
 /* Disabled state: same box/padding as a normal preview button — only the
@@ -2882,6 +2883,27 @@ body.mode-table #btn_columns {
     justify-content: center;
     width: 40px;
     height: 40px;
+}
+
+/* Video preview box: same 44×44 box, but a film-play icon in BOTH states (a video
+   has no cheap thumbnail). More specific than the image placeholder above, so it
+   wins for a video field whether set or empty. */
+.image-preview-btn.video-preview-btn::before {
+    content: "\e6f8"; /* film-play icon */
+    font-family: 'Linearicons';
+    font-size: 22px;
+    color: var(--text-muted, #999);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+.image-preview-btn.video-preview-btn:not(.disabled)::before {
+    color: var(--color-primary, #204496); /* a video is set → clickable play link */
+}
+.image-preview-btn.video-preview-btn:not(.disabled) {
+    cursor: pointer;
 }
 
 .image-preview-btn img {
