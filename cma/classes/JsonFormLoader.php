@@ -317,6 +317,7 @@ class JsonFormLoader
         'image' => 9,
         'url' => 10,
         'file' => 11,
+        'video' => 25,
         'label' => 12,
         'sortlist' => 13,
         'directory' => 14,
@@ -600,6 +601,9 @@ class JsonFormLoader
                 case 11: // file
                     // Canonical key is 'path'; accept the legacy 'filePath' alias.
                     $problems = array_merge($problems, self::validateFieldPath($label, 'Bestand', 'path', $field['path'] ?? $field['filePath'] ?? ''));
+                    break;
+                case 25: // video
+                    $problems = array_merge($problems, self::validateFieldPath($label, 'Video', 'path', $field['path'] ?? ''));
                     break;
             }
         }
@@ -1512,6 +1516,7 @@ class JsonFormLoader
 
                 case 9: // image
                 case 11: // file
+                case 25: // video
                     if (!empty($arrRep[Q_IMGPATH][$i])) {
                         $field['path'] = $arrRep[Q_IMGPATH][$i];
                     }

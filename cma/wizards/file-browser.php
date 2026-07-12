@@ -42,6 +42,7 @@ Response::noCache();
 $basePath = Request::query('basepath', '');
 $fieldName = Request::query('fieldname', '');
 $imageOnly = Request::query('image', '') !== '';
+$videoOnly = Request::query('video', '') !== '';  // video control type: show/accept .mp4 only
 $currentFile = strtok(Request::query('file', ''), '?'); // Strip ?versie= cache buster if present
 $currentPath = Request::query('path', '');
 
@@ -167,7 +168,7 @@ if ($action !== '') {
     switch ($action) {
         case 'list':
             $fileSpecAjax = Request::query('filespec', '*.*');
-            echo json_encode(listDirectory($fullPath, $basePath, $path, $imageOnly, $fileSpecAjax));
+            echo json_encode(listDirectory($fullPath, $basePath, $path, $imageOnly, $videoOnly, $fileSpecAjax));
             break;
 
         case 'upload':
@@ -242,7 +243,7 @@ if ($action !== '') {
 /**
  * List directory contents
  */
-function listDirectory(string $fullPath, string $basePath, string $relativePath, bool $imageOnly, string $fileSpec = '*.*'): array {
+function listDirectory(string $fullPath, string $basePath, string $relativePath, bool $imageOnly, bool $videoOnly = false, string $fileSpec = '*.*'): array {
     if (!is_dir($fullPath)) {
         // Try to create it using URL path (File::createFolder handles mapping)
         $urlPath = rtrim($basePath . $relativePath, '/');
@@ -313,9 +314,12 @@ function listDirectory(string $fullPath, string $basePath, string $relativePath,
         if (is_file($filePath)) {
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp']);
+            $isVideo = ($ext === 'mp4');
 
             // Skip non-images if image-only mode
             if ($imageOnly && !$isImage) continue;
+            // Skip non-videos if video-only mode (the video control type asks for .mp4)
+            if ($videoOnly && !$isVideo) continue;
 
             // Skip if doesn't match filespec
             if (!empty($allowedExtensions) && !in_array($ext, $allowedExtensions)) continue;
@@ -1971,6 +1975,7 @@ $appBasePath = Application::get('base_path', '/');
             basePath: <?= json_encode($basePath) ?>,
             fieldName: <?= json_encode($fieldName) ?>,
             imageOnly: <?= $imageOnly ? 'true' : 'false' ?>,
+            videoOnly: <?= $videoOnly ? 'true' : 'false' ?>,
             currentFile: <?= json_encode($currentFile) ?>,
             // Image constraints
             resizeType: <?= json_encode($resizeType) ?>,  // 0=none, 1=maximum, 2=fixed
@@ -2051,7 +2056,7 @@ $appBasePath = Application::get('base_path', '/');
             currentPathEl.textContent = CONFIG.basePath + currentPath;
             fileList.innerHTML = '<div class="loading">Laden...</div>';
 
-            fetch('?action=list&path=' + encodeURIComponent(currentPath) + '&basepath=' + encodeURIComponent(CONFIG.basePath) + (CONFIG.imageOnly ? '&image=1' : '') + '&filespec=' + encodeURIComponent(CONFIG.fileSpec))
+            fetch('?action=list&path=' + encodeURIComponent(currentPath) + '&basepath=' + encodeURIComponent(CONFIG.basePath) + (CONFIG.imageOnly ? '&image=1' : '') + (CONFIG.videoOnly ? '&video=1' : '') + '&filespec=' + encodeURIComponent(CONFIG.fileSpec))
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {

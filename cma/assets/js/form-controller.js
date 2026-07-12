@@ -4032,6 +4032,7 @@ class CmaFormController {
         }
 
         const isImage = field.dataset.type === 'image';
+        const isVideo = field.dataset.type === 'video';
         // An absolute http(s) URL is an external reference, not a local upload:
         // don't seed the browser with it (it can't be found in the upload dir).
         const currentValue = this.isAbsoluteUrl(field.value) ? '' : (field.value || '');
@@ -4044,10 +4045,16 @@ class CmaFormController {
         const resizeParams = isImage
             ? `&resizetype=${encodeURIComponent(resizeVal('_resizetype'))}&resizewidth=${encodeURIComponent(resizeVal('_resizewidth'))}&resizeheight=${encodeURIComponent(resizeVal('_resizeheight'))}`
             : '';
+        const base = `wizards/file-browser.php?basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`;
         // layout=0 hides alignment/border/margin options (those are only for HTML editor)
-        const popupUrl = isImage
-            ? `wizards/file-browser.php?image=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}${resizeParams}`
-            : `wizards/file-browser.php?basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`;
+        let popupUrl;
+        if (isVideo) {
+            popupUrl = `wizards/file-browser.php?video=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}`;
+        } else if (isImage) {
+            popupUrl = `wizards/file-browser.php?image=1&layout=0&basepath=${encodeURIComponent(path || '')}&fieldname=${encodeURIComponent(fieldName)}&file=${encodeURIComponent(currentValue)}${resizeParams}`;
+        } else {
+            popupUrl = base;
+        }
 
         // Store callback on form-layout element (NOT global)
         const formLayout = document.querySelector('.form-layout');
@@ -4144,6 +4151,9 @@ class CmaFormController {
         if (clearBtn) clearBtn.classList.add('disabled');
         if (editBtn) editBtn.classList.add('disabled');
 
+        // Disable the video "view" link (video control type)
+        this.updateVideoViewLink(fieldName, '', '');
+
         // Clear dimensions
         const widthField = this.mainForm.querySelector(`[data-image-width="${fieldName}"]`);
         const heightField = this.mainForm.querySelector(`[data-image-height="${fieldName}"]`);
@@ -4203,6 +4213,25 @@ class CmaFormController {
     }
 
     /**
+     * Sync the video control's "view" link (data-video-view) with the current
+     * value: point its href at the file and enable it, or disable when empty.
+     * @param {string} fieldName
+     * @param {string} filename
+     * @param {string} path - the field's upload dir (data-path)
+     */
+    updateVideoViewLink(fieldName, filename, path) {
+        const videoView = this.mainForm.querySelector(`[data-video-view="${fieldName}"]`);
+        if (!videoView) return;
+        if (filename) {
+            videoView.href = this.isAbsoluteUrl(filename) ? filename : (path || '') + filename;
+            videoView.classList.remove('disabled');
+        } else {
+            videoView.removeAttribute('href');
+            videoView.classList.add('disabled');
+        }
+    }
+
+    /**
      * Set the value of an image/file field (called from selector popup)
      * @param {string} fieldName - Name of the field
      * @param {string} filename - Selected filename
@@ -4246,6 +4275,9 @@ class CmaFormController {
         if (previewBtn) previewBtn.classList.toggle('disabled', !filename);
         if (clearBtn) clearBtn.classList.toggle('disabled', !filename);
         if (editBtn) editBtn.classList.toggle('disabled', !filename);
+
+        // Video "view" link (video control type): point it at the selected file.
+        this.updateVideoViewLink(fieldName, filename, path);
 
         // Update dimensions if provided
         if (width) {
@@ -8437,6 +8469,13 @@ class CmaFormController {
                     if (editBtn) {
                         editBtn.classList.toggle('disabled', !value);
                     }
+                    break;
+
+                case 'video':
+                    field.value = value || '';
+                    const vClearBtn = this.mainForm.querySelector(`[data-clear-field="${name}"]`);
+                    if (vClearBtn) vClearBtn.classList.toggle('disabled', !value);
+                    this.updateVideoViewLink(name, value || '', field.dataset.path || '');
                     break;
 
                 case 'file':

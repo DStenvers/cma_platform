@@ -2324,7 +2324,7 @@ echo '<div class="dlg-form">';
 echo '<div class="form-row">';
 echo '<div><label>Naam</label><input type="text" id="fe-name" required style="width:200px"></div>';
 echo '<div><label>Type</label><select id="fe-type" required style="width:150px">';
-foreach (['textbox','memo','checkbox','combobox','date','time','datetime','dropdown','email','password','file','image','url','checklist','checklisttree','checklistinline','sortlist','label','groupseparator','readonly','radiogroup','custom','userlist','xmlstore','directory'] as $ft) {
+foreach (['textbox','memo','checkbox','combobox','date','time','datetime','dropdown','email','password','file','image','video','url','checklist','checklisttree','checklistinline','sortlist','label','groupseparator','readonly','radiogroup','custom','userlist','xmlstore','directory'] as $ft) {
     echo '<option value="' . $ft . '">' . $ft . '</option>';
 }
 echo '</select></div>';

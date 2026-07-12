@@ -816,6 +816,7 @@ class FormDefinition
             FormControlHelper::TYPE_CHECKLIST,
             FormControlHelper::TYPE_SORTLIST,
             FormControlHelper::TYPE_IMAGE,
+            FormControlHelper::TYPE_VIDEO,
             FormControlHelper::TYPE_FILE,
             FormControlHelper::TYPE_THUMBNAIL,
             FormControlHelper::TYPE_DIRECTORY,

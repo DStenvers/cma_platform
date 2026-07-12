@@ -43,6 +43,7 @@ class FormRenderer
     public const TYPE_PASSWORD = 22;
     public const TYPE_IGNOREFIELD = 23;
     public const TYPE_DATE = 24;
+    public const TYPE_VIDEO = 25;
     public const TYPE_RADIOGROUP = 100;
 
     /**
@@ -55,6 +56,7 @@ class FormRenderer
         self::TYPE_MEMO => 'memo',
         self::TYPE_CHECKLIST => 'checklist',
         self::TYPE_IMAGE => 'image',
+        self::TYPE_VIDEO => 'video',
         self::TYPE_URL => 'url',
         self::TYPE_FILE => 'file',
         self::TYPE_LABEL => 'label',
@@ -107,6 +109,8 @@ class FormRenderer
             self::TYPE_CHECKLIST => self::renderChecklist($name, $config),
 
             self::TYPE_IMAGE => self::renderImage($name, $config),
+
+            self::TYPE_VIDEO => self::renderVideo($name, $config),
 
             self::TYPE_FILE => self::renderFile($name, $config),
 
@@ -785,6 +789,71 @@ class FormRenderer
             );
         }
 
+        $html .= '</span>';
+
+        return $html;
+    }
+
+    /**
+     * Render a video control — pick an .mp4 from the field's upload dir via the
+     * file browser. A slimmed-down image control: no resize/edit/thumbnail (video
+     * playback lives in the consumer front-end), just select + clear + a "view"
+     * link. Reuses the image control's data-select-field / data-clear-field so the
+     * existing form-controller click delegation drives it (video-aware via
+     * data-type="video"). The stored value is the bare filename; the field's path
+     * (JSON "path") is where the file lives, e.g. videos/.
+     */
+    public static function renderVideo(string $name, array $config): string
+    {
+        $required = $config['required'] ?? false;
+        $readonly = $config['readonly'] ?? false;
+        $newChangableOnly = $config['newChangableOnly'] ?? false;
+        // JSON "path" -> Q_IMGPATH -> imagePath (shared with the image control).
+        $videoPath = $config['imagePath'] ?? '';
+        if ($videoPath !== '' && $videoPath[0] !== '/' && !str_starts_with($videoPath, 'http')) {
+            $videoPath = '/' . $videoPath;
+        }
+        $randomName = $config['randomName'] ?? false;
+        $caption = $config['caption'] ?? '';
+
+        $dataAttrs = self::buildDataAttributes($name, 'video', $required, $readonly, [
+            'path' => $videoPath,
+            'random-name' => $randomName ? 'true' : 'false',
+        ], $newChangableOnly, $caption);
+
+        // Hidden input holding the stored filename.
+        $html = sprintf(
+            '<input type="text" style="height:0px;width:0px;display:none" name="%s" %s readonly>',
+            self::escape($name),
+            $dataAttrs
+        );
+        $html .= sprintf('<input type="hidden" name="%s_path" value="%s">', self::escape($name), self::escape($videoPath));
+        $html .= sprintf('<input type="hidden" name="%s_random" value="%s">', self::escape($name), $randomName ? 'Y' : 'N');
+
+        // "View" link — opens the selected video in a new tab. JS keeps its href in
+        // sync with the value (data-video-view); starts disabled with no href.
+        $html .= sprintf(
+            '<a class="video-view-btn btn-icon disabled" data-video-view="%s" target="_blank" rel="noopener" title="Video bekijken"><span class="lnr lnr-film-play"></span></a>',
+            self::escape($name)
+        );
+
+        // Controls (reuse .image-controls layout + the image select/clear hooks).
+        $html .= '<span class="image-controls" data-image-controls="' . self::escape($name) . '">';
+        $html .= sprintf(
+            '<a class="image-select btn-icon" data-select-field="%s" data-path="%s" title="Video selecteren">
+                <span class="lnr lnr-film-play"></span>
+            </a>',
+            self::escape($name),
+            self::escape($videoPath)
+        );
+        if (!$required) {
+            $html .= sprintf(
+                '<a class="image-clear btn-icon disabled" data-clear-field="%s" title="Video verwijderen">
+                    <span class="lnr lnr-cross-circle"></span>
+                </a>',
+                self::escape($name)
+            );
+        }
         $html .= '</span>';
 
         return $html;

@@ -558,6 +558,47 @@ class FormRendererControlsTest extends TestCase
         $this->assertStringNotContainsString('data-edit-field', $out);
     }
 
+    // ========================================================================
+    // Video control type (parallels image; selects .mp4 via the file browser)
+    // ========================================================================
+
+    public function testVideoEmitsValueSelectAndPath(): void
+    {
+        $out = FormRenderer::renderVideo('clip', ['imagePath' => 'videos/']);
+        $this->assertStringContainsString('name="clip"', $out);
+        $this->assertStringContainsString('data-type="video"', $out);
+        $this->assertStringContainsString('name="clip_path"', $out);
+        // Reuses the image select hook so the existing JS delegation drives it.
+        $this->assertStringContainsString('data-select-field="clip"', $out);
+        // Path is normalised with a leading slash.
+        $this->assertStringContainsString('/videos/', $out);
+    }
+
+    public function testVideoHasViewLinkAndClearWhenOptional(): void
+    {
+        $out = FormRenderer::renderVideo('clip', []);
+        $this->assertStringContainsString('data-video-view="clip"', $out);
+        $this->assertStringContainsString('data-clear-field="clip"', $out);
+    }
+
+    public function testVideoNoClearWhenRequired(): void
+    {
+        $out = FormRenderer::renderVideo('clip', ['required' => true]);
+        $this->assertStringNotContainsString('data-clear-field', $out);
+    }
+
+    public function testVideoViaRenderControl(): void
+    {
+        $out = FormRenderer::renderControl(FormRenderer::TYPE_VIDEO, 'clip', ['imagePath' => 'videos/']);
+        $this->assertStringContainsString('data-type="video"', $out);
+        $this->assertStringContainsString('data-select-field="clip"', $out);
+    }
+
+    public function testVideoTypeConstant(): void
+    {
+        $this->assertSame(25, FormRenderer::TYPE_VIDEO);
+    }
+
     public function testImageViaRenderControl(): void
     {
         $out = FormRenderer::renderControl(FormRenderer::TYPE_IMAGE, 'photo', []);

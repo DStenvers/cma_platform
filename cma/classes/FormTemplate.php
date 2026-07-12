@@ -1001,6 +1001,7 @@ class FormTemplate
             // Skip file/image/checklist/sortlist/password controls (not searchable)
             if (in_array($controlType, [
                 FormRenderer::TYPE_IMAGE,
+                FormRenderer::TYPE_VIDEO,
                 FormRenderer::TYPE_FILE,
                 FormRenderer::TYPE_CHECKLIST,
                 FormRenderer::TYPE_SORTLIST,
@@ -1822,6 +1823,12 @@ class FormTemplate
                 $config['randomName'] = $this->toBool($this->arrRep[\Q_FILERANDOM][$index] ?? false);
                 break;
 
+            case FormRenderer::TYPE_VIDEO:
+                // renderVideo reads the upload dir from 'imagePath' (shared key).
+                $config['imagePath'] = $this->arrRep[\Q_IMGPATH][$index] ?? '';
+                $config['randomName'] = $this->toBool($this->arrRep[\Q_FILERANDOM][$index] ?? false);
+                break;
+
             case FormRenderer::TYPE_URL:
                 $config['maxLength'] = (int)($this->arrRep[\Q_SCHEMA_CHAR_MAXL][$index] ?? 255);
                 break;
@@ -2125,6 +2132,12 @@ class FormTemplate
                         $features['controlTypes'][FormRenderer::TYPE_CHECKBOX] = true;
                     } elseif ($fieldType === 'image') {
                         $features['controlTypes'][FormRenderer::TYPE_IMAGE] = true;
+                    } elseif ($fieldType === 'video') {
+                        // Video reuses the image field's select/clear JS + the
+                        // .image-controls CSS, so mark image too (a video-only form
+                        // still needs that machinery loaded).
+                        $features['controlTypes'][FormRenderer::TYPE_IMAGE] = true;
+                        $features['controlTypes'][FormRenderer::TYPE_VIDEO] = true;
                     } elseif ($fieldType === 'date') {
                         $features['hasDateFields'] = true;
                     }

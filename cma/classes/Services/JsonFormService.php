@@ -149,7 +149,7 @@ class JsonFormService extends BaseFormService
                 if (empty($listColumns) && !empty($jsonData['fields'])) {
                     // Build from fields array (default columns)
                     $maxCols = (int)($options['maxColumns'] ?? 999);
-                    $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
+                    $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
                     // Skip the filter field in default columns - when filtering is required,
                     // all rows have the same filter value so it's not useful to display
                     // Check both filterIdName (legacy) and filter.field (new format)
@@ -731,7 +731,7 @@ class JsonFormService extends BaseFormService
 
             // Build field definitions for inline editing from $fieldsByName (already built from legacy format)
             $fieldDefs = [];
-            $skipTypes = ['groupseparator', 'label', 'hidden', 'password', 'image', 'file', 'checklist', 'sortlist', 'checklisttree', 'checklistinline', 'custom', 'tip', 'ignorefield'];
+            $skipTypes = ['groupseparator', 'label', 'hidden', 'password', 'image', 'video', 'file', 'checklist', 'sortlist', 'checklisttree', 'checklistinline', 'custom', 'tip', 'ignorefield'];
 
             // Build lookup for newOnly from JSON fields (not in legacy format)
             $newOnlyFields = [];
@@ -954,7 +954,7 @@ class JsonFormService extends BaseFormService
 
                 // Build from fields if no columns defined
                 if (empty($listColumns) && !empty($jsonData['fields'])) {
-                    $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
+                    $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
                     // Skip the filter field in default columns
                     // Check both filterIdName (legacy) and filter.field (new format)
                     $filterIdName = strtolower($jsonData['filterIdName'] ?? '');
@@ -1721,7 +1721,7 @@ class JsonFormService extends BaseFormService
 
         // Build columns from fields if listColumns is not defined
         if (empty($listColumns) && !empty($jsonData['fields'])) {
-            $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'hidden', 'custom', 'password', 'ignorefield'];
+            $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'hidden', 'custom', 'password', 'ignorefield'];
             // Skip the filter field in default columns
             // Check both filterIdName (legacy) and filter.field (new format)
             $filterIdName = strtolower($jsonData['filterIdName'] ?? '');
@@ -1867,7 +1867,7 @@ class JsonFormService extends BaseFormService
         $fieldDefs = [];
         $comboOptions = [];
         $rawFields = $rawFormDef['fields'] ?? [];
-        $skipTypes = ['groupseparator', 'label', 'hidden', 'password', 'image', 'file', 'checklist', 'sortlist', 'checklisttree', 'checklistinline', 'custom', 'tip', 'ignorefield'];
+        $skipTypes = ['groupseparator', 'label', 'hidden', 'password', 'image', 'video', 'file', 'checklist', 'sortlist', 'checklisttree', 'checklistinline', 'custom', 'tip', 'ignorefield'];
 
         foreach ($rawFields as $field) {
             $fieldName = $field['name'] ?? '';
@@ -1949,7 +1949,7 @@ class JsonFormService extends BaseFormService
 
         // Build columns from fields if listColumns is not defined
         if (empty($listColumns) && !empty($jsonData['fields'])) {
-            $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'hidden', 'custom', 'password', 'ignorefield'];
+            $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'hidden', 'custom', 'password', 'ignorefield'];
             $filterIdName = strtolower($jsonData['filterIdName'] ?? '');
             if ($filterIdName === '' && isset($jsonData['filter']['field'])) {
                 $filterIdName = strtolower($jsonData['filter']['field']);
@@ -2136,6 +2136,7 @@ class JsonFormService extends BaseFormService
             \Cma\FormRenderer::TYPE_MEMO => 'memo',
             \Cma\FormRenderer::TYPE_CHECKLIST => 'checklist',
             \Cma\FormRenderer::TYPE_IMAGE => 'image',
+            \Cma\FormRenderer::TYPE_VIDEO => 'video',
             \Cma\FormRenderer::TYPE_URL => 'url',
             \Cma\FormRenderer::TYPE_FILE => 'file',
             \Cma\FormRenderer::TYPE_LABEL => 'label',

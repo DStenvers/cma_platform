@@ -103,6 +103,7 @@ table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) }
 .lnr-file-image::before {content:"\e90d"}
 .lnr-crop::before {content:"\e970"}
 .lnr-camera::before {content:"\e6ff"}
+.lnr-film-play::before {content:"\e6f8"}
 .lnr-arrow-left::before {content:"\e943"}
 .lnr-rocket::before {content:"\e837"}
 /* New menu icons */

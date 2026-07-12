@@ -3917,3 +3917,7 @@ karaat-data en staat in de karaat-repo.
 > hoe zie ik de probleemstenen op front-end of in de cma?
 
 > bump the version to 1.29.0 and push and commit
+
+> https://www.karaatedelstenen.nl/cma/main.php?page=%2Fprobleemstenen is echt leeg, na herberekenen
+
+> maak een migratie om video's te kunnen plaatsen. Zorg dat er een nieuw control type video is, vergelijkbaar met image, maar dan met de selectie *.mp4 , bij producten 1 veld maken voor een video die in /videos gebruik de bestaande file browser. In de lijstweergave een video symbool plaatsen en in de detailweergave de video tonen net als wanneer de video extern staat. Bij een interne video de <video> tag implementeren zonder geluid en met #t=0.001 achter de url om een safari bug te omzeilen.

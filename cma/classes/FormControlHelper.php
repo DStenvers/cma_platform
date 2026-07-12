@@ -46,6 +46,7 @@ class FormControlHelper
     public const TYPE_THUMBNAIL = 20;
     public const TYPE_TIME = 21;
     public const TYPE_PASSWORD = 22;
+    public const TYPE_VIDEO = 25;
 
     /**
      * Initialize Select2 dropdowns
