@@ -320,11 +320,44 @@
         _navigateIframe(src, url) {
             var target = this._targetEl();
             if (target && src && target.getAttribute('src') !== src) {
+                this._showIframeSpinner(target);
                 target.setAttribute('src', src);
             }
             // Closing hides the panel, revealing the iframe (now loading `src`).
             this.close();
             if (url) { try { history.replaceState(null, '', url); } catch (e) {} }
+        }
+
+        // Overlay a spinner on the iframe host while the selected tool loads.
+        // Some tools (e.g. "Cache leegmaken") do all their work server-side before
+        // emitting any HTML, so the iframe stays blank for several seconds — this
+        // gives immediate feedback. Hidden on the iframe's `load` event; a 150ms
+        // show-delay avoids a flash for fast tools, and a timeout is a safety net.
+        _showIframeSpinner(iframe) {
+            var host = iframe.parentNode;
+            if (!host) return;
+            var self = this;
+            var sp = host.querySelector('.cma-launcher__iframe-spinner');
+            if (!sp) {
+                sp = document.createElement('div');
+                sp.className = 'cma-launcher__iframe-spinner';
+                sp.setAttribute('role', 'status');
+                sp.setAttribute('aria-live', 'polite');
+                sp.innerHTML = '<div class="cma-launcher__spinner-ring"></div>' +
+                    '<div class="cma-launcher__spinner-text">Laden&hellip;</div>';
+                sp.style.display = 'none';
+                host.appendChild(sp);
+            }
+            clearTimeout(this._spinnerShowTimer);
+            clearTimeout(this._spinnerHideTimer);
+            this._spinnerShowTimer = setTimeout(function () { sp.style.display = 'flex'; }, 150);
+            var hide = function () {
+                clearTimeout(self._spinnerShowTimer);
+                clearTimeout(self._spinnerHideTimer);
+                sp.style.display = 'none';
+            };
+            iframe.addEventListener('load', hide, { once: true });
+            this._spinnerHideTimer = setTimeout(hide, 60000);
         }
     }
 
