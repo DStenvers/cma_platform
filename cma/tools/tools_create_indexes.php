@@ -24,10 +24,10 @@ use Cma\ToolbarHelper;
 require_once __DIR__ . '/../bootstrap.inc';
 
 Response::noCache();
-cma_html_header('CMA - Create Performance Indexes');
+cma_html_header('Indexen aanmaken');
 echo '<BODY class="contentbody tools">';
 
-ToolbarHelper::report('Create Performance Indexes', false, false, false);
+ToolbarHelper::report('Indexen aanmaken', false, false, false);
 echo '<div id="c" class="tools">';
 
 // Define indexes to create. Only CMA-standard tables — the deprecated repository

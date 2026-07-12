@@ -586,10 +586,10 @@ document.addEventListener("DOMContentLoaded", function() {
 .combo-display-select { width: 150px; }
 </style>';
 
-cma_html_header('CMA - Form Wizard', $extraScript);
+cma_html_header('Formulier wizard', $extraScript);
 echo '<body class="contentbody tools">';
 
-ToolbarHelper::report('Formulieren wizard', false, false, false, false, 'Genereer automatisch een JSON formulierdefinitie vanuit een database tabel');
+ToolbarHelper::report('Formulier wizard', false, false, false, false, 'Genereer automatisch een JSON formulierdefinitie vanuit een database tabel');
 echo '<div id="c" class="tools">';
 
 // Database selection - default to 'data' database

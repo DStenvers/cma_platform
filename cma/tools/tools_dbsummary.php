@@ -265,7 +265,7 @@ if (!$bJSON) {
         $toolbarTitle = 'Database structuur | ' . $dbName;
     }
 
-    cma_html_header('CMA - Database Summary', '', false);
+    cma_html_header('Database structuur', '', false);
     ToolbarHelper::writeJS();
     echo '</HEAD><BODY class="contentbody tools tool-dbsummary">';
     ToolbarHelper::start(true);

@@ -108,8 +108,6 @@ $toolNameMap = [
     'create_indexes' => 'tools/tools_create_indexes.php',
     'sqlite_repair' => 'tools/tools_sqlite_repair.php',
     'generate_forms' => 'tools/tools_generate_forms.php',
-    'migrate_prepare' => 'tools/tools_migrate_prepare.php',
-    'export_repository' => 'tools/tools_export_repository.php',
     // Nested tool: the launcher's resolveNav() derives the key from the path
     // after "tools/", which for tools/tests/*.php keeps the "tests/" segment.
     // Map that exact key so the "Endpoint foutcontrole" tile resolves instead

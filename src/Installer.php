@@ -57,6 +57,12 @@ class Installer
         // done over ODBC at all, so it only ever printed a "do it in Access"
         // notice (with a stale path). Compact manually in Access instead.
         'cma/tools/tools_dbcompact.php',
+        // Removed in v1.28.140: two obsolete developer-only tools. The SQL Server
+        // migration-prep helper and the repository exporter both targeted the
+        // deprecated repository DB / one-off migration path and are no longer used.
+        'cma/tools/tools_migrate_prepare.php',
+        'cma/tools/tools_export_repository.php',
+        'cma/tools/tools_export_repository_cli.php',
         // Renumbered in v1.28.35: these two migrations were never registered in
         // config/migrations.json, so the high-water-mark runner never applied
         // them (leaving tblCMAMarketingUrl / api_call_log missing on sites past

@@ -509,11 +509,11 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>';
 
-cma_html_header('CMA - SQL Query Tool', $extraHead);
+cma_html_header('SQL uitvoeren', $extraHead);
 echo '<BODY class="contentbody tools tool-query query">';
 echo '<lib-loader id="queryLoader" overlay text="Query uitvoeren..."></lib-loader>';
 
-ToolbarHelper::report('SQL commando', false, false, false, false, 'Voer SQL queries uit op de database', $extras);
+ToolbarHelper::report('SQL uitvoeren', false, false, false, false, 'Voer SQL queries uit op de database', $extras);
 echo '<div id="c" class="tools">';
 if ($CustomSQL != '') {
     $strHistory = $CustomSQL . '|' . Request::post('_save_history', '');

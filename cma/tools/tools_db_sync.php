@@ -184,10 +184,10 @@ if ($action === 'sync') {
     }
 }
 
-cma_html_header('CMA - Database Sync', '', false);
+cma_html_header('CMA ↔ DB synchronisatie', '', false);
 ToolbarHelper::writeJS();
 echo '</HEAD><BODY class="contentbody tools tool-db-sync">';
-ToolbarHelper::report('Database veld synchronisatie', false, false, false, false, 'Synchroniseer JSON formulier-velden met database kolommen');
+ToolbarHelper::report('CMA ↔ DB synchronisatie', false, false, false, false, 'Synchroniseer JSON formulier-velden met database kolommen');
 echo '<div id="c" class="tools">';
 
 // Show messages

@@ -22,7 +22,7 @@ use App\Library\Server;
 require_once __DIR__ . '/../bootstrap.inc';
 require_once __DIR__ . '/../../library/lib_imgformat.inc';
 Response::noCache();
-cma_html_header('CMA - Database Consistency');
+cma_html_header('Controleer bestanden');
 echo '<BODY class="contentbody tools tool-db-consistency">';
 define("SHOW_ALL_IMAGE_INFO", false);
 define("SHOW_UNRESOLVED_ERRORS", true);
