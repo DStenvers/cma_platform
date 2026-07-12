@@ -20,6 +20,91 @@ use App\Library\Database;
 use App\Library\Request;
 use App\Library\Response;
 use Cma\ToolbarHelper;
+use Cma\Services\PerformanceLogger;
+
+/**
+ * Suggest which site-specific tables/forms to optimise, based on the performance
+ * log. Query-level logging isn't wired into the DB layer, so the richest signal
+ * is slow API calls (form_api.php) — we aggregate those by form over the last few
+ * days. When the perf-log is off we can't suggest anything, so we hint how to turn
+ * it on. Read-only: this proposes, it never creates app-specific indexes (the
+ * right column is a human call).
+ */
+function cma_render_perf_index_suggestions(): void
+{
+    echo '<h3 style="margin-top:28px;">Voorstel op basis van de performance-log</h3>';
+
+    if (!PerformanceLogger::isEnabled()) {
+        echo '<lib-message type="info">';
+        echo 'De <span class="cma-tool__strong">performance-log staat uit</span>, dus er zijn geen metingen om site-specifieke voorstellen op te baseren. ';
+        echo 'Zet hem aan (<code>PERF_LOG_ENABLED=true</code> in <code>.env</code>, of via de systeeminstellingen) en laat de site een tijdje draaien — daarna toont deze tool welke formulieren/tabellen op déze site het traagst zijn, zodat je gericht kunt indexeren op hun filter-, sorteer- en FK-kolommen.';
+        echo '</lib-message>';
+        return;
+    }
+
+    // Aggregate slow entries over the last few days. Query entries (if ever wired
+    // up) carry a table; API entries carry the form in their URL.
+    $SLOW_MS = 100.0;
+    $agg = []; // key => ['label','kind','count','total','max']
+    for ($d = 0; $d < 5; $d++) {
+        $date = date('Y-m-d', strtotime("-{$d} days"));
+        foreach (PerformanceLogger::readLogs($date, null, 20000) as $e) {
+            $ms = (float)($e['ms'] ?? 0);
+            if ($ms < $SLOW_MS) {
+                continue;
+            }
+            $type = $e['type'] ?? '';
+            $key = null; $label = null; $kind = null;
+            if ($type === 'query') {
+                $sql = $e['ctx']['sql'] ?? '';
+                if (preg_match('/\bfrom\s+\[?([a-z0-9_]+)\]?/i', $sql, $m)) {
+                    $kind = 'Tabel'; $label = $m[1]; $key = 'q:' . strtolower($m[1]);
+                }
+            } elseif ($type === 'api' || $type === 'fetch') {
+                $url = $e['url'] ?? ($e['ctx']['url'] ?? '');
+                if ($url !== '' && preg_match('/[?&]form=([a-z0-9_]+)/i', $url, $m)) {
+                    $kind = 'Formulier'; $label = $m[1]; $key = 'f:' . strtolower($m[1]);
+                } elseif (!empty($e['name'])) {
+                    $kind = 'Endpoint'; $label = $e['name']; $key = 'a:' . strtolower($e['name']);
+                }
+            }
+            if ($key === null) {
+                continue;
+            }
+            if (!isset($agg[$key])) {
+                $agg[$key] = ['label' => $label, 'kind' => $kind, 'count' => 0, 'total' => 0.0, 'max' => 0.0];
+            }
+            $agg[$key]['count']++;
+            $agg[$key]['total'] += $ms;
+            $agg[$key]['max'] = max($agg[$key]['max'], $ms);
+        }
+    }
+
+    if (empty($agg)) {
+        echo '<lib-message type="success">Geen trage calls (&ge; ' . (int)$SLOW_MS . ' ms) in de performance-log van de afgelopen dagen — niets te optimaliseren.</lib-message>';
+        return;
+    }
+
+    // Rank by total time spent (impact), show the top 15.
+    uasort($agg, function ($a, $b) { return $b['total'] <=> $a['total']; });
+    $agg = array_slice($agg, 0, 15, true);
+
+    echo '<p>De traagste site-specifieke formulieren/tabellen op déze site (laatste 5 dagen, &ge; ' . (int)$SLOW_MS . ' ms), gesorteerd op totale tijd. Kandidaten om te indexeren op hun filter-, sorteer- en FK-kolommen; bekijk de bijbehorende query in <a href="tools_query.php" target="_top">SQL uitvoeren</a>.</p>';
+    echo '<table cellpadding="5" cellspacing="0" border="1">';
+    echo '<tr><th>Soort</th><th>Formulier / tabel</th><th style="text-align:right">Trage calls</th><th style="text-align:right">Gemiddeld</th><th style="text-align:right">Max</th></tr>';
+    foreach ($agg as $row) {
+        $avg = $row['count'] > 0 ? $row['total'] / $row['count'] : 0;
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($row['kind']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['label']) . '</td>';
+        echo '<td style="text-align:right">' . $row['count'] . '</td>';
+        echo '<td style="text-align:right">' . number_format($avg, 0) . ' ms</td>';
+        echo '<td style="text-align:right">' . number_format($row['max'], 0) . ' ms</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+    echo '<p style="color:var(--text-muted);font-size:var(--font-size-sm);">Tip: query-niveau logging (met exacte tabel + kolommen) is nog niet ingeschakeld in de DB-laag; deze lijst is afgeleid van API-metingen per formulier.</p>';
+}
 
 require_once __DIR__ . '/../bootstrap.inc';
 
@@ -105,14 +190,7 @@ if ($action === 'create') {
 
 } else {
     // Show overview and confirmation
-    echo '<h3>Performance Index Summary</h3>';
-    echo '<p>Deze tool maakt indexes aan op de CMA-standaard tabellen om veelgebruikte queries te versnellen. Access-DDL <code>CREATE INDEX</code> loopt gewoon via ODBC. De <span class="cma-tool__strong">deprecated</span> repository-database wordt niet aangeraakt; app-specifieke tabellen in de hoofddatabase zijn per site verschillend en horen daar niet.</p>';
-    echo '<ul>';
-    echo '<li><span class="cma-tool__strong">users</span> — inlog- en groepsbeheer (tblUsers, tblGroups, tblGroupMembers, tblUserDataNotifications).</li>';
-    echo '<li><span class="cma-tool__strong">data</span> (hoofddatabase) — het audit-log <code>tblCMAMonitoring</code> op <code>datestamp</code> (elke dashboard/activiteit-query filtert en sorteert hierop), plus <code>Actie</code>/<code>Username</code> voor de aggregaties.</li>';
-    echo '</ul>';
-
-    echo '<h4>Indexes to Create:</h4>';
+    echo '<h3>CMA-standaard indexen</h3>';
     echo '<table cellpadding="5" cellspacing="0" border="1">';
     echo '<tr><th>Database</th><th>Table</th><th>Index Name</th><th>Columns</th></tr>';
 
@@ -135,7 +213,9 @@ if ($action === 'create') {
     echo '<button type="submit" class="btn-success">Create All Indexes</button>';
     echo '</form>';
 
-    echo '<br><p><span class="cma-tool__strong">Note:</span> If an index already exists, it will be skipped.</p>';
+    echo '<br><p><span class="cma-tool__strong">Let op:</span> een index die al bestaat wordt overgeslagen.</p>';
+
+    cma_render_perf_index_suggestions();
 }
 
 echo '</div></BODY></HTML>';
