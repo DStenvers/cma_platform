@@ -74,13 +74,10 @@ if ($action === 'buildTree') {
 
     // Load all site-specific forms
     $siteFormsDir = __DIR__ . '/../../assets/forms';
-    error_log("[FORMEDIT buildTree] siteFormsDir: $siteFormsDir, is_dir: " . (is_dir($siteFormsDir) ? 'YES' : 'NO'));
     $allForms = [];
     if (is_dir($siteFormsDir)) {
         $files = glob($siteFormsDir . '/*.json');
-        error_log("[FORMEDIT buildTree] glob found " . count($files) . " JSON files");
         if (count($files) < 5) {
-            error_log("[FORMEDIT buildTree] files: " . implode(', ', $files));
         }
         $loadedCount = 0;
         $nullCount = 0;
@@ -92,12 +89,9 @@ if ($action === 'buildTree') {
                 $loadedCount++;
             } else {
                 $nullCount++;
-                error_log("[FORMEDIT buildTree] loadRaw returned null for: $name");
             }
         }
-        error_log("[FORMEDIT buildTree] loaded: $loadedCount, null: $nullCount, total forms: " . count($allForms));
     } else {
-        error_log("[FORMEDIT buildTree] WARNING: siteFormsDir does not exist: $siteFormsDir");
     }
 
     // Build set of all forms that are subforms of another form
@@ -191,8 +185,6 @@ if ($action === 'buildTree') {
         }
     }
 
-    error_log("[FORMEDIT buildTree] rootNames: " . count($rootNames) . ", treeChildren: " . count($treeChildren));
-    error_log("[FORMEDIT buildTree] JSON output length: " . strlen(json_encode($tree)));
     echo json_encode($tree);
     exit;
 }

@@ -1601,6 +1601,14 @@ if ($isAdmin) {
             // Calculate total including 'other' for accurate display
             var totalWeek = (weekTypes.error || 0) + (weekTypes.warning || 0) + (weekTypes.notice || 0) + (weekTypes.other || 0);
 
+            // Nothing logged this week (all columns 0) — hide the whole card
+            // instead of showing an empty bar chart.
+            var healthCard = healthStats.closest('.stats-card');
+            if (totalWeek === 0 && healthCard) {
+                healthCard.style.display = 'none';
+                return;
+            }
+
             healthStats.innerHTML =
                 '<div class="bar-chart">' + barsHtml + '</div>' +
                 '<div class="stats-row">' +

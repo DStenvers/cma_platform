@@ -291,11 +291,15 @@ foreach ($files as $file) {
         die('All files must have the same extension');
     }
 
-    // Resolve the file path
+    // Resolve the file path. A single missing file must NOT 404 the whole bundle
+    // — on a consumer site running an older platform version a newly-added file
+    // (e.g. library/css/lib-variables.css) may not be synced yet, and 404-ing the
+    // bundle drops ALL the page's CSS/JS. Skip the missing one; the rest still
+    // loads (degraded, not broken). Log so it stays diagnosable.
     $resolvedPath = resolveFilePath($file, $basePath);
     if ($resolvedPath === null) {
-        http_response_code(404);
-        die('File not found: ' . htmlspecialchars($file));
+        error_log('[minify.php] skipping missing bundle file: ' . $file);
+        continue;
     }
 
     $fileData[] = [
