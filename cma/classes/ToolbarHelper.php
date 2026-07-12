@@ -461,8 +461,11 @@ class ToolbarHelper
         }
 
         if ($excel) {
+            // All three export buttons hit the same server route the export menu
+            // uses (reportdetails.php ?export=excel|csv|word) so they stay in lock-step.
             self::separator();
-            self::button('javascript:export_to_excel()', 'filetype_xls', true, 'Excel', 'Excel export');
+            self::button(Request::addToURL('', 'export', 'excel'), 'filetype_xls', true, 'Excel', 'Excel export');
+            self::button(Request::addToURL('', 'export', 'csv'), 'lnr-list', true, 'CSV', 'CSV export');
             self::separator();
             self::button(Request::addToURL('', 'export', 'word'), 'filetype_doc', true, 'Word', 'Word export');
         }

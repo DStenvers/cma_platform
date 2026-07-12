@@ -203,9 +203,13 @@ function main()
     $sOldFilterItem = null;
     $strTitle = "";
     $sFilterID = Request::query('filterID', '');
-    $blnExcel = (($pos = stripos(Request::query('export', ''), 'excel', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0;
-    $blnWord = (($pos = stripos(Request::query('export', ''), 'word', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0;
-    $blnCSV = (($pos = stripos(Request::query('type', ''), 'csv', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0;
+    // Export routing. CSV is an Excel-family export (ExcelExportRS with the CSV
+    // flag), so blnExcel is also true for CSV. Accept the unified export=csv AND
+    // the legacy export=excel&type=CSV so old toolbar/menu links keep working.
+    $exportParam = strtolower(Request::query('export', ''));
+    $blnCSV = strpos($exportParam, 'csv') !== false || stripos(Request::query('type', ''), 'csv') !== false;
+    $blnExcel = strpos($exportParam, 'excel') !== false || $blnCSV;
+    $blnWord = strpos($exportParam, 'word') !== false;
     // give it some time!
     set_time_limit(900000);
     $sRepID = Request::queryInt('RepID');
@@ -360,7 +364,7 @@ function main()
             }
             echo '</select></td></tr>';
             echo '<tr valign=top><td style=padding-top:6px><b>Aktie</td><td>';
-            echo '<input type=radio checked name=export value="">Toon op het scherm<br><input type=radio name=export value="word">Exporteer naar Microsoft Word<br><input type=radio name=export value="excel">Exporteer naar Microsoft Excel</td></tr>';
+            echo '<input type=radio checked name=export value="">Toon op het scherm<br><input type=radio name=export value="word">Exporteer naar Microsoft Word<br><input type=radio name=export value="excel">Exporteer naar Microsoft Excel<br><input type=radio name=export value="csv">Exporteer naar CSV</td></tr>';
             echo '<tr><td><button class="btn btn-primary" onclick="document.forms.main.submit()" id="go">Ok</button></td></tr>';
             echo '</table>';
         } else {
