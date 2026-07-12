@@ -2,7 +2,7 @@
         "$schema": "../../../config/schema/form-definition.schema.json",
         "version": "1.0.0",
         "name": "cmamonitoring",
-        "title": "CMA monitoring",
+        "title": "CMA Monitoring",
         "titleSingular": "Monitoringrecord",
         "table": "tblCMAMonitoring",
         "database": "data",

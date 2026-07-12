@@ -1170,7 +1170,7 @@ if ($isAdmin) {
             <div class="stats-card-header">
                 <span class="lnr lnr-warning"></span>
                 Pagina niet gevonden (404, 14 dagen)
-                <a href="tools.php?tool=logs" class="header-action" data-tooltip="404-logs bekijken in logreader">
+                <a href="tools.php?tool=logs&log=404" class="header-action" data-tooltip="404-logs bekijken in logreader">
                     <span class="lnr lnr-list"></span>
                 </a>
             </div>
@@ -1243,7 +1243,7 @@ if ($isAdmin) {
                     <span class="lnr lnr-code"></span>
                     <span>SQL Query</span>
                 </a>
-                <a href="tools.php?tool=logs" class="quick-card developer-only">
+                <a href="tools.php?tool=logs&log=php" class="quick-card developer-only">
                     <span class="lnr lnr-list"></span>
                     <span>Logbestanden</span>
                 </a>
@@ -1787,7 +1787,7 @@ if ($isAdmin) {
             var dialog = document.getElementById('errorDialog');
             if (dialog) dialog.close();
             if (typeof window.loadPage === 'function') {
-                window.loadPage('tools.php?tool=logs');
+                window.loadPage('tools.php?tool=logs&log=php');
                 return false;
             }
             return true;
