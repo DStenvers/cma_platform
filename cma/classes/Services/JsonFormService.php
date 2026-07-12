@@ -378,19 +378,38 @@ class JsonFormService extends BaseFormService
             // Get total count for initial load (before adding ORDER BY and TOP)
             $totalCount = null;
             if (!$isLoadMore) {
-                // Count DISTINCT record ids for ANY custom listQuery, because a
-                // one-to-many query inflates the row count (several physical rows
-                // per record) while the table shows — and both server and client
-                // dedupe to — one row per id. A plain COUNT(*) then overcounts:
-                // the counter freezes at e.g. "records 1-1500 van 1827" (1827
-                // joined rows vs 1500 distinct records actually shown) and the
+                // A one-to-many query inflates the row count (several physical
+                // rows per record) while the table shows — and both server and
+                // client dedupe to — one row per id. A plain COUNT(*) then
+                // overcounts: the counter freezes at e.g. "records 1-1500 van
+                // 1827" (1827 joined rows vs 1500 distinct records shown) and the
                 // "(laden...)" suffix never clears, because the loaded-distinct
-                // count can never reach the inflated total. This must NOT be gated
-                // on the ' JOIN ' keyword: a comma-join / UNION / view repeats ids
-                // with no JOIN token (the bug that made this recur). Distinct-id
-                // count matches what the user sees. Access has no COUNT(DISTINCT),
-                // so wrap a SELECT DISTINCT in a subquery.
+                // count can never reach the inflated total. So count DISTINCT ids
+                // for any query that MIGHT repeat them.
+                //
+                // Crucially this must NOT be gated on the ' JOIN ' keyword: a
+                // comma/implicit join (FROM a, b), a UNION or a one-to-many view
+                // all repeat ids with no JOIN token — that narrow gate is exactly
+                // why this bug kept coming back. Default to the safe deduped count
+                // for every custom listQuery and only downgrade to a plain (and
+                // cheaper) COUNT(*) when the query is CERTAINLY single-source, so
+                // large single-table log lists don't pay for a needless DISTINCT
+                // scan. Bias matters: a false "multi" merely costs one scan, a
+                // false "single" resurrects the stall — so when in doubt, DISTINCT.
+                $useDistinctCount = false;
                 if ($customQuery) {
+                    // Isolate the FROM clause so commas inside a WHERE IN(...) list
+                    // don't read as a comma-join.
+                    $fromClause = preg_match('/\bFROM\b(.*?)(?:\bWHERE\b|\bGROUP\s+BY\b|\bHAVING\b|\bORDER\s+BY\b|\bUNION\b|$)/is', $sql, $fm) ? $fm[1] : '';
+                    $certainSingleSource = $fromClause !== ''
+                        && strpos($fromClause, ',') === false          // no comma-join
+                        && stripos($sql, ' JOIN ') === false           // no explicit join
+                        && stripos($sql, ' UNION ') === false;         // no union
+                    $useDistinctCount = !$certainSingleSource;
+                }
+
+                if ($useDistinctCount) {
+                    // Access has no COUNT(DISTINCT), so wrap a SELECT DISTINCT in a subquery.
                     $innerSql = preg_replace('/^SELECT\s+.+?\s+FROM/is', 'SELECT DISTINCT ' . $qualifiedIdField . ' FROM', $sql);
                     $countSql = 'SELECT COUNT(*) FROM (' . $innerSql . ') AS cma_cnt';
                 } else {

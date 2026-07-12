@@ -2800,6 +2800,7 @@ body.mode-table #btn_columns {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     width: 26px;
     height: 26px;
     cursor: pointer;
@@ -2809,7 +2810,8 @@ body.mode-table #btn_columns {
     border: 1px solid var(--border-light);
     border-radius: 4px;
     background-color: var(--bg-body);
-    transition: all 0.15s ease;
+    /* Colour-only transition (not "all") so a hover never animates the box. */
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
     margin: 0 2px;
 }
 
@@ -2847,6 +2849,7 @@ body.mode-table #btn_columns {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     padding: 2px;
     cursor: pointer;
     text-decoration: none;
@@ -2854,9 +2857,13 @@ body.mode-table #btn_columns {
     border: 1px solid var(--border-light);
     border-radius: 4px;
     background-color: var(--bg-body);
-    transition: all 0.15s ease;
+    /* Transition only the colour, not "all" — an "all" transition animates the
+       border-box on any change and, with the float below, made the row jitter on
+       hover. Also: NO float. Floating the preview next to the inline-flex
+       .image-controls pulled it out of flow, so hovering re-laid-out the row by
+       more than a pixel. Keep both preview + controls in-flow, middle-aligned. */
+    transition: border-color 0.15s ease, background-color 0.15s ease;
     margin-right: 6px;
-    float: left;
 }
 
 .image-preview-btn:hover:not(.disabled) {

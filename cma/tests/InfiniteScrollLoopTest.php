@@ -420,4 +420,68 @@ class InfiniteScrollLoopTest extends TestCase
         $this->assertTrue($res['converged'], 'string-id pager did not converge: ' . json_encode($res));
         $this->assertEquals(1200, $res['currentCount']);
     }
+
+    // -----------------------------------------------------------------
+    // Count-query shape: correctness-safe DISTINCT vs cheap COUNT(*).
+    // These inspect the SQL the server actually builds — the stub returns
+    // whatever count we enqueue, so only the emitted SQL proves the choice.
+    // -----------------------------------------------------------------
+
+    /** Return the COUNT query SQL getTableHtml builds for an initial load. */
+    private function countSqlFor(string $form): string
+    {
+        $this->conn->enqueueResult([['cnt' => 1]]); // COUNT(*) result
+        $this->conn->enqueueResult([['ID' => 1, 'naam' => 'x']]); // data page
+        JsonFormService::getTableHtml($form, null, []);
+        return $this->conn->getCalls()[0]['sql'] ?? '';
+    }
+
+    /**
+     * A SINGLE-TABLE listQuery cannot repeat ids, so it must use the cheap
+     * plain COUNT(*) — no DISTINCT subquery scan on every list open. (Large
+     * log lists like audit_log take this path.)
+     */
+    public function testSingleTableListQueryUsesPlainCount(): void
+    {
+        TestHarness::injectFormDef('lsingle', ['_json' => [
+            'name' => 'lsingle', 'title' => 'T', 'table' => '',
+            'idField' => 'ID', 'database' => 'data', 'orderDirection' => 'DESC',
+            'listQuery' => 'SELECT ID, naam FROM tblTest ORDER BY ID DESC',
+            'fields' => [['name' => 'naam', 'type' => 'textbox', 'caption' => 'Naam']],
+        ]]);
+
+        $sql = $this->countSqlFor('lsingle');
+        $this->assertTrue(stripos($sql, 'DISTINCT') === false,
+            "single-table listQuery must use a plain COUNT(*), not a DISTINCT scan — got: $sql");
+    }
+
+    /** A UNION listQuery can repeat ids across the arms → must COUNT DISTINCT. */
+    public function testUnionListQueryUsesDistinctCount(): void
+    {
+        TestHarness::injectFormDef('lunion', ['_json' => [
+            'name' => 'lunion', 'title' => 'T', 'table' => '',
+            'idField' => 'ID', 'database' => 'data', 'orderDirection' => 'ASC',
+            'listQuery' => 'SELECT ID, naam FROM tblA UNION ALL SELECT ID, naam FROM tblB',
+            'fields' => [['name' => 'naam', 'type' => 'textbox', 'caption' => 'Naam']],
+        ]]);
+
+        $sql = $this->countSqlFor('lunion');
+        $this->assertTrue(stripos($sql, 'DISTINCT') !== false,
+            "a UNION listQuery can repeat ids; totalCount must COUNT DISTINCT — got: $sql");
+    }
+
+    /** A WHERE ... IN (1,2,3) list must NOT be misread as a comma-join. */
+    public function testInListIsNotMistakenForCommaJoin(): void
+    {
+        TestHarness::injectFormDef('linlist', ['_json' => [
+            'name' => 'linlist', 'title' => 'T', 'table' => '',
+            'idField' => 'ID', 'database' => 'data', 'orderDirection' => 'ASC',
+            'listQuery' => 'SELECT ID, naam FROM tblTest WHERE status IN (1, 2, 3)',
+            'fields' => [['name' => 'naam', 'type' => 'textbox', 'caption' => 'Naam']],
+        ]]);
+
+        $sql = $this->countSqlFor('linlist');
+        $this->assertTrue(stripos($sql, 'DISTINCT') === false,
+            "an IN(...) list is single-source; must not trigger a DISTINCT scan — got: $sql");
+    }
 }
