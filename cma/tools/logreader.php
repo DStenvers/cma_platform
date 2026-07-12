@@ -263,9 +263,14 @@ if ($selectedLog === 'jserrors') {
                 ORDER BY datestamp DESC";
         $rs = \App\Library\Database::openRS($sql, $dataConn);
         while ($rs && !$rs->EOF) {
+            // Access/ODBC hands datestamp back in the server locale (often US:
+            // m/d/Y h:i:s AM/PM). Normalise to Dutch d-m-Y H:i:s; keep the raw
+            // value if it doesn't parse.
+            $rawDs = (string)($rs->fields['datestamp'] ?? '');
+            $dsTime = $rawDs !== '' ? strtotime($rawDs) : false;
             $jsErrorsData[] = [
                 'id' => $rs->fields['ID'] ?? '',
-                'datestamp' => $rs->fields['datestamp'] ?? '',
+                'datestamp' => $dsTime !== false ? date('d-m-Y H:i:s', $dsTime) : $rawDs,
                 'level' => 'error',  // All entries in this table are errors
                 'source' => $rs->fields['page_url'] ?? '',
                 'message' => $rs->fields['error_message'] ?? '',
@@ -485,7 +490,11 @@ ToolbarHelper::title('Logbestanden lezen');
             // default ('perf'), otherwise the page is already showing it.
             var last = localStorage.getItem(KEY);
             if (last && /^[a-z0-9_-]+$/i.test(last) && last !== current) {
-                window.location.replace('logreader.php?log=' + encodeURIComponent(last));
+                // Navigate on the SAME URL we were loaded from (may be
+                // tools/logreader.php OR tools.php?tool=logs) — only swap ?log=.
+                var url = new URL(window.location.href);
+                url.searchParams.set('log', last);
+                window.location.replace(url.toString());
             }
         }
     } catch (e) { /* localStorage disabled — fall back to default */ }
@@ -497,9 +506,15 @@ function submitLogFilter() {
         var pick = fd.get('log');
         if (pick) { localStorage.setItem('cma.logreader.last', pick); }
     } catch (e) {}
-    var params = new URLSearchParams(fd);
-    // Stay within current frame - logreader is loaded inside tools.php iframe
-    window.location.href = 'logreader.php?' + params.toString();
+    // Navigate on the SAME path we were loaded from. The tool is reachable both
+    // directly (tools/logreader.php) AND via tools.php?tool=logs; a hardcoded
+    // relative 'logreader.php?' breaks the latter (wrong path → ?log= dropped →
+    // the localStorage restore snaps back to the last log, e.g. jserrors). Update
+    // only the form-managed params, keep the rest (e.g. tool=logs) intact.
+    var url = new URL(window.location.href);
+    ['log', 'date', 'lines', 'filter'].forEach(function (p) { url.searchParams.delete(p); });
+    new URLSearchParams(fd).forEach(function (v, k) { url.searchParams.set(k, v); });
+    window.location.href = url.toString();
 }
 </script>
 <?php
