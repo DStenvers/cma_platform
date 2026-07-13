@@ -3938,6 +3938,7 @@ class CmaFormController {
                 } else if (target.dataset.clearField) {
                     this.clearImageFile(fieldName);
                 } else if (target.dataset.previewField) {
+                    if (target.classList.contains('disabled')) return; // no valid image to preview
                     this.showImagePreview(fieldName);
                 } else if (target.dataset.videoView) {
                     if (target.classList.contains('disabled')) return; // no video chosen yet
@@ -4258,12 +4259,29 @@ class CmaFormController {
         const videoView = this.mainForm.querySelector(`[data-video-view="${fieldName}"]`);
         if (!videoView) return;
         if (filename) {
-            videoView.href = this.isAbsoluteUrl(filename) ? filename : (path || '') + filename;
+            const url = this.isAbsoluteUrl(filename) ? filename : (path || '') + filename;
+            videoView.href = url;
             videoView.classList.remove('disabled');
+            // A video has no thumbnail to trigger onerror, so probe its existence
+            // and block the view button if the file 404s (same idea as the image).
+            this._probeVideoExists(url, videoView);
         } else {
             videoView.removeAttribute('href');
             videoView.classList.add('disabled');
         }
+    }
+
+    /** HEAD-probe a video URL; disable its view button (+ "niet gevonden" tooltip) when missing. */
+    _probeVideoExists(url, videoView) {
+        fetch(url, { method: 'HEAD' })
+            .then((r) => {
+                if (!r.ok) {
+                    videoView.classList.add('disabled');
+                    const name = String(url).split('?')[0].split(/[\\/]/).pop();
+                    videoView.setAttribute('data-tooltip', `Bestand '${name}' niet gevonden`);
+                }
+            })
+            .catch(() => { videoView.classList.add('disabled'); });
     }
 
     /**
@@ -4296,6 +4314,12 @@ class CmaFormController {
         // overwrite an existing data-tooltip, so a re-error would keep a stale name.
         icon.setAttribute('data-tooltip', name ? `Bestand '${name}' niet gevonden` : 'Bestand niet gevonden');
         icon.removeAttribute('title');
+        // Block the preview button — there's no valid image to open.
+        const fieldName = previewImg.getAttribute('data-image-preview');
+        if (fieldName) {
+            const previewBtn = this.mainForm.querySelector(`[data-preview-field="${fieldName}"]`);
+            if (previewBtn) previewBtn.classList.add('disabled');
+        }
     }
 
     setImageFileValue(fieldName, filename, width, height) {
