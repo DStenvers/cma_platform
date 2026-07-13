@@ -975,24 +975,56 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     $bgR = (int) round($sumR / $samples);
     $bgG = (int) round($sumG / $samples);
     $bgB = (int) round($sumB / $samples);
-    $tol = 24;
-    $differs = function (int $x, int $y) use ($an, $bgR, $bgG, $bgB, $tol): bool {
-        $c = imagecolorat($an, $x, $y);
-        return abs((($c >> 16) & 0xFF) - $bgR) > $tol
-            || abs((($c >> 8) & 0xFF) - $bgG) > $tol
-            || abs(($c & 0xFF) - $bgB) > $tol;
+    // Content bounding box for a given tolerance: scan inward from each edge for
+    // the first pixel that differs from the sampled background by more than $tol.
+    // Returns [minX,minY,maxX,maxY] in analysis space, or null if the whole image
+    // reads as background at that tolerance.
+    $computeBox = function (int $tol) use ($an, $aw, $ah, $bgR, $bgG, $bgB) {
+        $differs = function (int $x, int $y) use ($an, $bgR, $bgG, $bgB, $tol): bool {
+            $c = imagecolorat($an, $x, $y);
+            return abs((($c >> 16) & 0xFF) - $bgR) > $tol
+                || abs((($c >> 8) & 0xFF) - $bgG) > $tol
+                || abs(($c & 0xFF) - $bgB) > $tol;
+        };
+        $minY = 0;
+        for (; $minY < $ah; $minY++) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $minY)) { $hit = true; break; } } if ($hit) break; }
+        if ($minY >= $ah) { return null; } // fully uniform at this tolerance
+        $maxY = $ah - 1;
+        for (; $maxY > $minY; $maxY--) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $maxY)) { $hit = true; break; } } if ($hit) break; }
+        $minX = 0;
+        for (; $minX < $aw; $minX++) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($minX, $y)) { $hit = true; break; } } if ($hit) break; }
+        $maxX = $aw - 1;
+        for (; $maxX > $minX; $maxX--) { $hit = false; for ($y = $minY; $y <= $maxY; $y++) { if ($differs($maxX, $y)) { $hit = true; break; } } if ($hit) break; }
+        return [$minX, $minY, $maxX, $maxY];
     };
 
-    // Content bounding box on the analysis image: scan inward from each edge.
-    $aMinY = 0;
-    for (; $aMinY < $ah; $aMinY++) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMinY)) { $hit = true; break; } } if ($hit) break; }
-    if ($aMinY >= $ah) { return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)']; }
-    $aMaxY = $ah - 1;
-    for (; $aMaxY > $aMinY; $aMaxY--) { $hit = false; for ($x = 0; $x < $aw; $x++) { if ($differs($x, $aMaxY)) { $hit = true; break; } } if ($hit) break; }
-    $aMinX = 0;
-    for (; $aMinX < $aw; $aMinX++) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMinX, $y)) { $hit = true; break; } } if ($hit) break; }
-    $aMaxX = $aw - 1;
-    for (; $aMaxX > $aMinX; $aMaxX--) { $hit = false; for ($y = $aMinY; $y <= $aMaxY; $y++) { if ($differs($aMaxX, $y)) { $hit = true; break; } } if ($hit) break; }
+    // Iterate the tolerance upward until a real trim is found. A lively (non-
+    // uniform) background needs a higher threshold before its border pixels read
+    // as background; a single fixed value either trims nothing (busy background)
+    // or eats into the subject (too high). Take the first tolerance that yields a
+    // box smaller than the full image; stop once the image goes fully uniform
+    // (too aggressive) or the max tolerance is reached with no trim.
+    $box = null;
+    $sawContent = false;
+    foreach ([24, 40, 56, 72, 90, 110, 130] as $tol) {
+        $b = $computeBox($tol);
+        if ($b === null) { break; } // fully uniform: gone too far
+        $sawContent = true;
+        [$bMinX, $bMinY, $bMaxX, $bMaxY] = $b;
+        if ($bMinX > 0 || $bMinY > 0 || $bMaxX < $aw - 1 || $bMaxY < $ah - 1) {
+            $box = $b; // a border was trimmed at this tolerance
+            break;
+        }
+        // Box is the full image at this tolerance — background too busy, raise it.
+    }
+
+    if ($box === null) {
+        if (!$sawContent) {
+            return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)'];
+        }
+        return ['success' => true, 'message' => 'Geen witruimte gevonden om bij te snijden (achtergrond te onrustig)', 'width' => $w, 'height' => $h];
+    }
+    [$aMinX, $aMinY, $aMaxX, $aMaxY] = $box;
     // (No imagedestroy(): it's a no-op since PHP 8.0 and emits a deprecation in 8.5,
     // which would corrupt the JSON response. GD images are freed when they go out of scope.)
 
