@@ -824,6 +824,7 @@ main.detail-panel .form-title {
     flex-wrap: nowrap;
     flex-shrink: 0; /* Prevent shrinking - buttons should always be visible */
     min-width: fit-content; /* Ensure toolbar-left doesn't collapse to 0 */
+    margin-left: -6px;
     position: relative;
     z-index: 2; /* Above toolbar-right content to prevent overlap issues */
 }

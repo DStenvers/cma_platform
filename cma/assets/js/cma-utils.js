@@ -558,6 +558,14 @@ window.cmaTooltips = (function() {
         if (tagName === 'input' || tagName === 'select' || tagName === 'textarea') {
             return true;
         }
+        // Image/video preview button: it's a tiny fixed-size box in tight form
+        // layout whose ::before IS its icon, so the CSS ::after tooltip gets
+        // clipped / fights the hover restyle ("tooltip doesn't show"). Use the
+        // fixed-position JS tooltip, which escapes clipping and doesn't move with
+        // any hover layout shift.
+        if (el.classList && el.classList.contains('image-preview-btn')) {
+            return true;
+        }
         // Check if any ancestor has overflow:hidden (causes clipping)
         let parent = el.parentElement;
         while (parent && parent !== document.body) {
