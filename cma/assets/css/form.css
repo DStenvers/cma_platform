@@ -2382,6 +2382,7 @@ span.dateselect .cal_arrow:hover::before {
 
 .combo-clear::before {
     line-height: 27px;
+    margin-top: 2px;
 }
 
 /* Clear button inside file display input (like combo-clear) */
