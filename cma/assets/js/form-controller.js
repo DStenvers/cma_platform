@@ -4208,7 +4208,9 @@ class CmaFormController {
         const img = document.createElement('img');
         img.src = imageUrl;
         img.alt = caption;
-        img.style.cssText = 'display:block;max-width:100%;max-height:78vh;margin:0 auto;object-fit:contain;';
+        img.style.cssText = 'display:block;max-width:100%;max-height:78vh;margin:0 auto;object-fit:contain;cursor:zoom-out;';
+        // Clicking the image closes the preview (like a lightbox).
+        img.addEventListener('click', () => { if (typeof dialog.close === 'function') dialog.close(); else dialog.remove(); });
         dialog.appendChild(img);
 
         dialog.addEventListener('dialog-close', () => dialog.remove());
