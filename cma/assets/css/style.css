@@ -1275,8 +1275,11 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
 }
 
 /* Hide CSS tooltip when JS tooltip is active */
-/* Note: Don't hide ::before on elements that use it for icon content (.lnr, .icon, tree links) */
-[data-tooltip].js-tooltip-active:not(.lnr):not(.icon):not(.t):hover::before,
+/* Note: Don't hide ::before on elements that use it for icon content (.lnr, .icon,
+   tree links, and the image/video preview button whose placeholder/film icon IS a
+   ::before — hiding it on hover made the preview look empty, the tooltip "replacing"
+   the picture). */
+[data-tooltip].js-tooltip-active:not(.lnr):not(.icon):not(.t):not(.image-preview-btn):hover::before,
 [data-tooltip].js-tooltip-active:hover::after {
     display: none !important;
 }

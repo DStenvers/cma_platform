@@ -4238,6 +4238,31 @@ class CmaFormController {
      * @param {number} width - Image width (optional)
      * @param {number} height - Image height (optional)
      */
+    /**
+     * Mark an image/video preview as broken (the file 404'd): hide the thumbnail
+     * and drop in a red cross with a "Bestand '<naam>' niet gevonden" tooltip, so
+     * the user gets a clear error marker instead of an empty-looking preview.
+     * .image-404 carries .lnr, so the tooltip system leaves its ::before cross
+     * icon alone (see the :not(.lnr) tooltip rule in style.css).
+     */
+    _showImage404(previewImg, filename) {
+        previewImg.style.display = 'none';
+        previewImg.src = '';
+        const box = previewImg.parentElement;
+        if (!box) return;
+        let icon = box.querySelector('.image-404');
+        if (!icon) {
+            icon = document.createElement('span');
+            icon.className = 'image-404 lnr lnr-cross-circle';
+            box.appendChild(icon);
+        }
+        const name = String(filename || '').split(/[\\/]/).pop();
+        // Set data-tooltip directly — the global title→tooltip converter won't
+        // overwrite an existing data-tooltip, so a re-error would keep a stale name.
+        icon.setAttribute('data-tooltip', name ? `Bestand '${name}' niet gevonden` : 'Bestand niet gevonden');
+        icon.removeAttribute('title');
+    }
+
     setImageFileValue(fieldName, filename, width, height) {
         const field = this.mainForm.querySelector(`[name="${fieldName}"]`);
         if (!field) return;
@@ -4250,17 +4275,8 @@ class CmaFormController {
         // Update preview if it's an image
         const preview = this.mainForm.querySelector(`[data-image-preview="${fieldName}"]`);
         if (preview) {
-            preview.onerror = function() {
-                this.style.display = 'none';
-                this.src = '';
-                const icon = this.parentElement.querySelector('.image-404');
-                if (!icon) {
-                    const el = document.createElement('span');
-                    el.className = 'image-404 lnr lnr-cross-circle';
-                    el.title = 'Afbeelding niet gevonden';
-                    this.parentElement.appendChild(el);
-                }
-            };
+            const self = this;
+            preview.onerror = function() { self._showImage404(this, filename); };
             const old404 = preview.parentElement.querySelector('.image-404');
             if (old404) old404.remove();
             preview.src = filename ? cmaStripResize(this.isAbsoluteUrl(filename) ? filename : path + filename) : '';
@@ -8438,17 +8454,8 @@ class CmaFormController {
                     // Note: crop button is NEVER disabled - it's used to upload new images
                     if (preview && value) {
                         const path = field.dataset.path || '';
-                        preview.onerror = function() {
-                            this.style.display = 'none';
-                            this.src = '';
-                            const icon = this.parentElement.querySelector('.image-404');
-                            if (!icon) {
-                                const el = document.createElement('span');
-                                el.className = 'image-404 lnr lnr-cross-circle';
-                                el.title = 'Afbeelding niet gevonden';
-                                this.parentElement.appendChild(el);
-                            }
-                        };
+                        const self = this;
+                        preview.onerror = function() { self._showImage404(this, value); };
                         // Remove previous 404 icon if re-loading
                         const old404 = preview.parentElement.querySelector('.image-404');
                         if (old404) old404.remove();
