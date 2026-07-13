@@ -2,9 +2,9 @@
 @charset "UTF-8";
 @font-face {
   font-family: 'Linearicons';
-  src: url('../../../library/fonts/Linearicons.woff2') format('woff2'),
-       url('../../../library/fonts/Linearicons.woff') format('woff'),
-       url('../../../library/fonts/Linearicons.ttf') format('truetype');
+  src: url('../../../library/fonts/Linearicons.woff2?v=20260713') format('woff2'),
+       url('../../../library/fonts/Linearicons.woff?v=20260713') format('woff'),
+       url('../../../library/fonts/Linearicons.ttf?v=20260713') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;

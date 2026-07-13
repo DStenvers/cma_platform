@@ -580,9 +580,25 @@ class Image
             $bgColor = imagecolorallocatealpha($sourceImage, 255, 255, 255, 127);
         } else {
             // Opaque formats (JPG): fill the triangular corners left by a non-right-angle
-            // rotation with white rather than black. Product photos sit on white, so a
-            // small straighten (e.g. 5°) blends in and reads cleanly before cropping.
-            $bgColor = imagecolorallocate($sourceImage, 255, 255, 255);
+            // rotation (e.g. a 5° straighten) with the AVERAGE of the top-left 10x10
+            // corner — i.e. the background — so it blends into off-white / tinted
+            // backdrops instead of hard white. Same corner-sampling idea as the autocrop
+            // background detect. Falls back to white if the sample can't be read.
+            $sr = 0; $sg = 0; $sb = 0; $n = 0;
+            $sw = min(10, imagesx($sourceImage));
+            $sh = min(10, imagesy($sourceImage));
+            for ($yy = 0; $yy < $sh; $yy++) {
+                for ($xx = 0; $xx < $sw; $xx++) {
+                    $c = imagecolorat($sourceImage, $xx, $yy);
+                    $sr += ($c >> 16) & 0xFF;
+                    $sg += ($c >> 8) & 0xFF;
+                    $sb += $c & 0xFF;
+                    $n++;
+                }
+            }
+            $bgColor = $n > 0
+                ? imagecolorallocate($sourceImage, (int) round($sr / $n), (int) round($sg / $n), (int) round($sb / $n))
+                : imagecolorallocate($sourceImage, 255, 255, 255);
         }
 
         // GD's imagerotate() rotates counter-clockwise, negate for clockwise

@@ -1006,23 +1006,23 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     // (too aggressive) or the max tolerance is reached with no trim.
     $box = null;
     $sawContent = false;
-    foreach ([24, 40, 56, 72, 90, 110, 130] as $tol) {
+    $debug = ['bg' => [$bgR, $bgG, $bgB], 'analyze' => [$aw, $ah], 'scale' => round($scale, 4), 'full' => [$w, $h], 'tries' => []];
+    foreach ([24, 40, 56, 72, 90, 110, 130, 160, 190, 220, 240] as $tol) {
         $b = $computeBox($tol);
-        if ($b === null) { break; } // fully uniform: gone too far
+        if ($b === null) { $debug['tries'][] = ['tol' => $tol, 'uniform' => true]; break; } // gone too far
         $sawContent = true;
         [$bMinX, $bMinY, $bMaxX, $bMaxY] = $b;
-        if ($bMinX > 0 || $bMinY > 0 || $bMaxX < $aw - 1 || $bMaxY < $ah - 1) {
-            $box = $b; // a border was trimmed at this tolerance
-            break;
-        }
+        $trimmed = ($bMinX > 0 || $bMinY > 0 || $bMaxX < $aw - 1 || $bMaxY < $ah - 1);
+        $debug['tries'][] = ['tol' => $tol, 'box' => $b, 'trimmed' => $trimmed];
+        if ($trimmed) { $box = $b; $debug['chosenTol'] = $tol; break; }
         // Box is the full image at this tolerance — background too busy, raise it.
     }
 
     if ($box === null) {
         if (!$sawContent) {
-            return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)'];
+            return ['success' => false, 'error' => 'Geen inhoud gevonden (volledig egaal beeld)', 'debug' => $debug];
         }
-        return ['success' => true, 'message' => 'Geen witruimte gevonden om bij te snijden (achtergrond te onrustig)', 'width' => $w, 'height' => $h];
+        return ['success' => true, 'message' => 'Geen witruimte gevonden om bij te snijden (achtergrond te onrustig; tolerance tot 240 geprobeerd)', 'width' => $w, 'height' => $h, 'debug' => $debug];
     }
     [$aMinX, $aMinY, $aMaxX, $aMaxY] = $box;
     // (No imagedestroy(): it's a no-op since PHP 8.0 and emits a deprecation in 8.5,
@@ -1047,18 +1047,25 @@ function autocropImage(string $fullPath, string $file, int $marginPct): array {
     $cropW = $x2 - $x + 1;
     $cropH = $y2 - $y + 1;
 
+    $debug['contentBoxFull'] = [$minX, $minY, $maxX, $maxY];
+    $debug['marginPx'] = [$marX, $marY];
+    $debug['crop'] = [$x, $y, $cropW, $cropH];
+
     if ($x === 0 && $y === 0 && $cropW >= $w && $cropH >= $h) {
-        return ['success' => true, 'message' => 'Geen witruimte om bij te snijden', 'width' => $w, 'height' => $h];
+        // A border WAS detected but the margin grew it back to the full frame — so
+        // there's effectively nothing to trim. The debug (contentBoxFull vs full)
+        // shows how small the detected trim was.
+        return ['success' => true, 'message' => 'Geen witruimte om bij te snijden (gedetecteerde rand kleiner dan de marge)', 'width' => $w, 'height' => $h, 'debug' => $debug];
     }
 
     ensureImageOriginalBackup($targetPath);
     if (!Image::crop($targetPath, $targetPath, $x, $y, $cropW, $cropH)) {
-        return ['success' => false, 'error' => 'Kan afbeelding niet bijsnijden'];
+        return ['success' => false, 'error' => 'Kan afbeelding niet bijsnijden', 'debug' => $debug];
     }
     ResponsiveImage::deleteVariants($targetPath);
     ResponsiveImage::generate($targetPath);
     $dim = @getimagesize($targetPath);
-    return ['success' => true, 'message' => 'Witruimte bijgesneden', 'width' => $dim ? $dim[0] : null, 'height' => $dim ? $dim[1] : null];
+    return ['success' => true, 'message' => 'Witruimte bijgesneden', 'width' => $dim ? $dim[0] : null, 'height' => $dim ? $dim[1] : null, 'debug' => $debug];
 }
 
 // Get application base path for URLs

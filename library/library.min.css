@@ -188,9 +188,9 @@ a#lib_clear_editbutton {position:absolute;cursor:pointer; background-repeat: no-
 .fa-facebook::after { content:"\f09a"}
 @font-face {
 font-family: 'Linearicons';
-src: url('fonts/Linearicons.woff2') format('woff2'),
-url('fonts/Linearicons.woff') format('woff'),
-url('fonts/Linearicons.ttf') format('truetype');
+src: url('fonts/Linearicons.woff2?v=20260713') format('woff2'),
+url('fonts/Linearicons.woff?v=20260713') format('woff'),
+url('fonts/Linearicons.ttf?v=20260713') format('truetype');
 font-weight: normal;
 font-style: normal;
 font-display: swap;
