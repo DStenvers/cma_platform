@@ -301,11 +301,16 @@ class LibCombo extends HTMLElement {
                     align-items: center;
                     gap: var(--spacing-xs, 4px);
                     padding: 2px var(--spacing-sm, 8px);
-                    background-color: var(--bg-hover, #d0e8f8);
-                    border: 1px solid var(--color-accent-hover);
+                    background-color: #ffffff;
+                    border: 1px solid var(--border-color, #ccc);
                     border-radius: var(--radius-sm, 3px);
                     font-size: var(--font-size-sm, 13px);
                     color: var(--color-primary-dark, #1a365d);
+                }
+
+                .combo-tag:hover {
+                    background-color: var(--bg-hover, #d0e8f8);
+                    border: 1px solid var(--color-accent-hover);
                 }
 
                 .combo-tag-remove {
