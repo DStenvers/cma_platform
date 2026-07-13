@@ -784,7 +784,7 @@ function minify_asset($files): string {
  * which stamp `?v=` with this so a patched bundle isn't served from cache.
  */
 function cma_asset_version(): string {
-    return '20260713d';
+    return '20260713e';
 }
 
 // Legacy aliases for backward compatibility

@@ -2368,7 +2368,10 @@ $appBasePath = Application::get('base_path', '/');
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.success) {
-                        showToast('Bewerking opgeslagen', 'success');
+                        // A no-op result (e.g. autocrop found no whitespace to trim)
+                        // returns a 'message' — surface THAT instead of the generic
+                        // "saved", so the user knows nothing changed and why.
+                        showToast(data.message || 'Bewerking opgeslagen', data.message ? 'info' : 'success');
                         loadFileDetails(selectedFile.name);
                     } else {
                         showToast((data && data.error) || 'Bewerking mislukt', 'error');

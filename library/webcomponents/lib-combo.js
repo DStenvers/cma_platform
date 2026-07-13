@@ -301,7 +301,7 @@ class LibCombo extends HTMLElement {
                     align-items: center;
                     gap: var(--spacing-xs, 4px);
                     padding: 2px var(--spacing-sm, 8px);
-                    background-color: #ffffff;
+                    background-color: var(--bg-surface);
                     border: 1px solid var(--border-color, #ccc);
                     border-radius: var(--radius-sm, 3px);
                     font-size: var(--font-size-sm, 13px);
