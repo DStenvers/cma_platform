@@ -308,7 +308,7 @@ align-items: center;
 justify-content: center;
 background-color: rgba(128, 128, 156, 0.3);
 }
-div.lib_window_dialog {position:relative; top:0; left:0; background-color:var(--popup-bg, #ffffff); background-size:100px auto; overflow:hidden; border-radius:8px; background-image:url(images/wait_indicator.gif); background-position:center center; background-repeat:no-repeat; box-shadow:var(--popup-shadow, 0.4em 0.4em 1em rgba(0,0,0,0.4)); max-height:calc(100vh - 20px)}
+div.lib_window_dialog {position:relative; top:0; left:0; height:100%; background-color:var(--popup-bg, #ffffff); background-size:100px auto; overflow:hidden; border-radius:8px; background-image:url(images/wait_indicator.gif); background-position:center center; background-repeat:no-repeat; box-shadow:var(--popup-shadow, 0.4em 0.4em 1em rgba(0,0,0,0.4)); max-height:calc(100vh - 20px)}
 DIV.lib_window_caption { width:100%; height:32px; background-color: var(--popup-caption-bg, #eef6ff); padding-left:5px; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 div.lib_window_caption_title { float:left; line-height:24px; padding-top:8px; padding-left:6px; color:var(--popup-caption-text, #204496); font:normal 15px "Trebuchet MS",Verdana,arial }
 div.lib_window_caption div.lib_window_max { cursor:pointer; float: right; position:relative; height: 32px; width: 32px; text-align: center; line-height:32px }
@@ -669,7 +669,25 @@ padding: 0 16px;
 background: var(--popup-caption-bg, #eef6ff);
 border-bottom: 1px solid var(--border-color, #ddd);
 flex-shrink: 0;
+position: relative;
 }
+/* Read-only badge, centered in the sidepanel header (moved here from the
+in-form toolbar). Absolutely centered so title/buttons keep their layout. */
+.lib_sidepanel_header .lib_sidepanel_readonly {
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+margin: 0;
+display: inline-flex;
+align-items: center;
+gap: 5px;
+white-space: nowrap;
+pointer-events: none;
+font-size: 12px;
+color: var(--text-muted, #999);
+}
+.lib_sidepanel_header .lib_sidepanel_readonly .lnr { font-size: 13px; }
 .lib_sidepanel_title {
 flex: 1;
 font-size: 15px;

@@ -3922,12 +3922,13 @@ class CmaFormController {
 
             // Image/file field controls - delegate to form level
             this.mainForm.addEventListener('click', (e) => {
-                const target = e.target.closest('[data-select-field], [data-clear-field], [data-preview-field], [data-edit-field]');
+                const target = e.target.closest('[data-select-field], [data-clear-field], [data-preview-field], [data-edit-field], [data-video-view]');
                 if (!target) return;
 
                 e.preventDefault();
                 const fieldName = target.dataset.selectField || target.dataset.clearField ||
-                                  target.dataset.previewField || target.dataset.editField;
+                                  target.dataset.previewField || target.dataset.editField ||
+                                  target.dataset.videoView;
 
                 if (target.dataset.selectField) {
                     this.openImageFileSelector(fieldName, target.dataset.path);
@@ -3938,6 +3939,9 @@ class CmaFormController {
                     this.clearImageFile(fieldName);
                 } else if (target.dataset.previewField) {
                     this.showImagePreview(fieldName);
+                } else if (target.dataset.videoView) {
+                    if (target.classList.contains('disabled')) return; // no video chosen yet
+                    this.showVideoPreview(fieldName);
                 }
             });
 
@@ -4208,6 +4212,35 @@ class CmaFormController {
         dialog.appendChild(img);
 
         dialog.addEventListener('dialog-close', () => dialog.remove());
+        document.body.appendChild(dialog);
+        dialog.open();
+    }
+
+    /**
+     * Show the selected video in a modal <video> player (same lib-dialog as the
+     * image preview) instead of opening an ugly new browser tab.
+     */
+    showVideoPreview(fieldName) {
+        const field = this.mainForm.querySelector(`[name="${fieldName}"]`);
+        if (!field || !field.value) return;
+        const path = field.dataset.path || '';
+        const videoUrl = this.isAbsoluteUrl(field.value) ? field.value : path + field.value;
+
+        document.querySelectorAll('lib-dialog.image-preview-dialog').forEach(el => el.remove());
+
+        const caption = field.dataset.caption || 'Video';
+        const dialog = document.createElement('lib-dialog');
+        dialog.className = 'image-preview-dialog';
+        dialog.setAttribute('heading', caption);
+        dialog.setAttribute('size', 'large');
+
+        const video = document.createElement('video');
+        video.src = videoUrl;
+        video.controls = true;
+        video.style.cssText = 'display:block;max-width:100%;max-height:78vh;margin:0 auto;';
+        dialog.appendChild(video);
+
+        dialog.addEventListener('dialog-close', () => { try { video.pause(); } catch (e) {} dialog.remove(); });
         document.body.appendChild(dialog);
         dialog.open();
     }

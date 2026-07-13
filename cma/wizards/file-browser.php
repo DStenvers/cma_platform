@@ -530,7 +530,11 @@ function getFileDetails(string $fullPath, string $file, string $webPath): array 
         'modified' => date('d-m-Y H:i:s', $modified),
         'modifiedTs' => $modified,
         'isImage' => $isImage,
-        'url' => $webPath . $file . '?versie=' . $modified
+        // Clean URL (no ?versie= query) — used by the view link, the video player
+        // and error messages. Cache-busting for edited images is applied only on
+        // the inline <img> preview at render time (images/producten has a 1-year
+        // client cache, so an edited image would otherwise show stale there).
+        'url' => $webPath . $file
     ];
 
     if ($isImage && $ext !== 'svg') {
@@ -2150,6 +2154,9 @@ $appBasePath = Application::get('base_path', '/');
             if (['doc', 'docx'].includes(item.ext)) {
                 return { class: 'doc lnr lnr-file-empty' };
             }
+            if (item.ext === 'mp4') {
+                return { class: 'video lnr lnr-film-play' };
+            }
             return { class: 'file lnr lnr-file-empty' };
         }
 
@@ -2211,7 +2218,7 @@ $appBasePath = Application::get('base_path', '/');
 
             if (file.isImage) {
                 html += '<div class="preview-wrap" id="previewWrap">';
-                html += '<img src="' + escapeHtml(file.url) + '" class="preview-image" id="previewImage" alt="Voorbeeld">';
+                html += '<img src="' + escapeHtml(file.url) + (file.modifiedTs ? '?v=' + file.modifiedTs : '') + '" class="preview-image" id="previewImage" alt="Voorbeeld">';
                 html += '</div>';
                 // Inline image editor (raster only — SVG can't be pixel-edited).
                 // Each button posts to the existing rotate/filter/crop actions,
@@ -2239,6 +2246,12 @@ $appBasePath = Application::get('base_path', '/');
                         + (file.hasOriginal ? '<button type="button" class="img-edit-btn img-edit-btn--undo" title="Origineel terugzetten (alle bewerkingen ongedaan maken)" onclick="restoreImageOriginal()"><span class="lnr lnr-history"></span></button>' : '')
                         + '</div>';
                 }
+            } else if (file.ext === 'mp4') {
+                // Video: show a real player. Rendering it as an <img> (or the image
+                // zoom) is what produced "error loading '...mp4'".
+                html += '<div class="preview-wrap" id="previewWrap">';
+                html += '<video src="' + escapeHtml(file.url) + '" controls playsinline preload="metadata" style="max-width:100%;max-height:60vh;display:block;margin:0 auto;background:#000;border-radius:4px;"></video>';
+                html += '</div>';
             }
 
             html += '<table class="details-table">';
@@ -2592,6 +2605,19 @@ $appBasePath = Application::get('base_path', '/');
         });
 
         window.showFullImage = function(url, name) {
+            var ext = (String(name).split('.').pop() || '').toLowerCase();
+            // Video: the image zoom renders the URL as an <img>, which is what
+            // produced "error loading '...mp4'". Open a real <video> player instead.
+            if (ext === 'mp4') {
+                var openWin = (window.parent && window.parent.lib_OpenWindowCentered) || (window.top && window.top.lib_OpenWindowCentered);
+                if (openWin) {
+                    openWin('about:blank', '', 800, 600, name || 'Video',
+                        "<script src=/library/library.min.js><\/script><video src='" + url + "' controls autoplay playsinline style='max-width:100%;max-height:100%;background:#000'></video>");
+                } else {
+                    window.open(url, '_blank');
+                }
+                return;
+            }
             // Use lib_window_ImageZoom from parent/top window (loaded via library.js)
             var fn = (window.parent && window.parent.lib_window_ImageZoom) || (window.top && window.top.lib_window_ImageZoom);
             if (fn) {

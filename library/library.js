@@ -1297,7 +1297,8 @@ function lib_window_ImageZoom( imagepath, sTitle ) {
 		lib_OpenWindowCentered ("about:blank", "", win_width, win_height, (sTitle ? sTitle : win_height>200?"Vergroot venster":"Beeld"),"<script src=/library/library.min.js></script><img src='"+imagepath+"' onclick='javascript:lib_OpenWindowCenteredClose()' alt='Sluit venster'>");
 	}
 	large_image.onerror = function () {
-		libAlert("error loading '" + imagepath +"'");
+		var naam = String(imagepath).split('/').pop().split('?')[0];
+		libAlert("De afbeelding kon niet worden geladen: '" + naam + "'.\n\nControleer of het bestand nog bestaat en een afbeelding is (geen video of ander bestandstype).");
 	}
 	// should be placed below onload for IE
 	large_image.src = imagepath;

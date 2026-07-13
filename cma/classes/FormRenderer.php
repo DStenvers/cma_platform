@@ -836,7 +836,7 @@ class FormRenderer
         // clickable play link (its href is kept in sync by the form-controller via
         // data-video-view). Disabled until a video is chosen.
         $html .= sprintf(
-            '<a class="image-preview-btn video-preview-btn disabled" data-video-view="%s" target="_blank" rel="noopener" title="Video bekijken"></a>',
+            '<a class="image-preview-btn video-preview-btn disabled" href="javascript:void(0)" data-video-view="%s" title="Video bekijken"></a>',
             self::escape($name)
         );
 
