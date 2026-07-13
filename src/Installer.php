@@ -334,18 +334,7 @@ class Installer
             }
         }
 
-        // 7a. Clear regenerable disk caches (minified JS/CSS, cached form
-        //     definitions) so freshly-synced code/assets take effect on the next
-        //     request instead of waiting for TTLs. These are file-based and
-        //     shared with the web process, so clearing them here (composer CLI)
-        //     IS effective. NOTE: this can NOT clear the web server's OPcache or
-        //     APCu — those live in the FastCGI worker, not this CLI run — so an
-        //     app-pool recycle / iisreset is still required for PHP code changes.
-        foreach (self::clearRegenerableCaches($projectRoot) as $line) {
-            $io->write('  - ' . $line);
-        }
-
-        // 7b. Touch the root web.config to trigger an IIS application-pool
+        // 7a. Touch the root web.config FIRST to trigger the IIS application-pool
         //     recycle. IIS watches web.config; bumping its mtime restarts the
         //     worker (and its PHP FastCGI children) — the only way to flush the
         //     in-process OPcache/APCu that a file sync alone can't reach. This
@@ -355,6 +344,20 @@ class Installer
         $rootWebConfig = $projectRoot . '/web.config';
         if (is_file($rootWebConfig) && @touch($rootWebConfig)) {
             $io->write('  - touched web.config (app-pool recycle → flushes OPcache/APCu)');
+        }
+
+        // 7b. THEN clear the regenerable disk caches (minified JS/CSS, cached form
+        //     definitions) — AFTER the recycle, never before. Clearing before the
+        //     recycle left a race that took the front-end down on deploy: an
+        //     in-flight request still running on the OLD OPcache bytecode would
+        //     regenerate the just-emptied cache/cma/{forms,minify} with STALE
+        //     output, which the freshly-recycled worker then served — the classic
+        //     "first composer update breaks the site, a second one fixes it".
+        //     Clearing last means the new worker repopulates the caches from the
+        //     new code. (These files are shared with the web process, so clearing
+        //     them from this composer CLI run IS effective.)
+        foreach (self::clearRegenerableCaches($projectRoot) as $line) {
+            $io->write('  - ' . $line);
         }
 
         // 8. Write manifest for tracking
