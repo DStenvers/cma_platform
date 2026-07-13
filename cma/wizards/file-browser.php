@@ -530,11 +530,12 @@ function getFileDetails(string $fullPath, string $file, string $webPath): array 
         'modified' => date('d-m-Y H:i:s', $modified),
         'modifiedTs' => $modified,
         'isImage' => $isImage,
-        // Clean URL (no ?versie= query) — used by the view link, the video player
-        // and error messages. Cache-busting for edited images is applied only on
-        // the inline <img> preview at render time (images/producten has a 1-year
-        // client cache, so an edited image would otherwise show stale there).
-        'url' => $webPath . $file
+        // ?versie= cache-buster is REQUIRED here: images/producten has a 1-year
+        // client cache (web.config), so after an inline rotate/crop the preview
+        // <img> would otherwise show the stale pre-edit image ("cropping no longer
+        // works"). The video player / view link tolerate the query fine. For a
+        // clean video URL specifically we strip it at render time instead.
+        'url' => $webPath . $file . '?versie=' . $modified
     ];
 
     if ($isImage && $ext !== 'svg') {
@@ -2218,7 +2219,7 @@ $appBasePath = Application::get('base_path', '/');
 
             if (file.isImage) {
                 html += '<div class="preview-wrap" id="previewWrap">';
-                html += '<img src="' + escapeHtml(file.url) + (file.modifiedTs ? '?v=' + file.modifiedTs : '') + '" class="preview-image" id="previewImage" alt="Voorbeeld">';
+                html += '<img src="' + escapeHtml(file.url) + '" class="preview-image" id="previewImage" alt="Voorbeeld">';
                 html += '</div>';
                 // Inline image editor (raster only — SVG can't be pixel-edited).
                 // Each button posts to the existing rotate/filter/crop actions,
@@ -2250,7 +2251,7 @@ $appBasePath = Application::get('base_path', '/');
                 // Video: show a real player. Rendering it as an <img> (or the image
                 // zoom) is what produced "error loading '...mp4'".
                 html += '<div class="preview-wrap" id="previewWrap">';
-                html += '<video src="' + escapeHtml(file.url) + '" controls playsinline preload="metadata" style="max-width:100%;max-height:60vh;display:block;margin:0 auto;background:#000;border-radius:4px;"></video>';
+                html += '<video src="' + escapeHtml(file.url.split('?')[0]) + '" controls playsinline preload="metadata" style="max-width:100%;max-height:60vh;display:block;margin:0 auto;background:#000;border-radius:4px;"></video>';
                 html += '</div>';
             }
 
@@ -2609,12 +2610,13 @@ $appBasePath = Application::get('base_path', '/');
             // Video: the image zoom renders the URL as an <img>, which is what
             // produced "error loading '...mp4'". Open a real <video> player instead.
             if (ext === 'mp4') {
+                var videoUrl = String(url).split('?')[0]; // clean URL for video (no ?versie=)
                 var openWin = (window.parent && window.parent.lib_OpenWindowCentered) || (window.top && window.top.lib_OpenWindowCentered);
                 if (openWin) {
                     openWin('about:blank', '', 800, 600, name || 'Video',
-                        "<script src=/library/library.min.js><\/script><video src='" + url + "' controls autoplay playsinline style='max-width:100%;max-height:100%;background:#000'></video>");
+                        "<script src=/library/library.min.js><\/script><video src='" + videoUrl + "' controls autoplay playsinline style='max-width:100%;max-height:100%;background:#000'></video>");
                 } else {
-                    window.open(url, '_blank');
+                    window.open(videoUrl, '_blank');
                 }
                 return;
             }
