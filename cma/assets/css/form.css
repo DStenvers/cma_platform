@@ -2940,6 +2940,9 @@ body.mode-table #btn_columns {
     color: var(--color-error, #c0392b);
     cursor: help;
 }
+.image-404::before {
+    color: red;
+}
 
 /* Disabled state for image control buttons */
 .image-crop.disabled,

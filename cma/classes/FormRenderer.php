@@ -783,7 +783,7 @@ class FormRenderer
         if (!$required) {
             $html .= sprintf(
                 '<a class="image-clear btn-icon disabled" data-clear-field="%s" title="Afbeelding verwijderen">
-                    <span class="lnr lnr-cross-circle"></span>
+                    <span class="lnr lnr-trash"></span>
                 </a>',
                 self::escape($name)
             );
@@ -852,7 +852,7 @@ class FormRenderer
         if (!$required) {
             $html .= sprintf(
                 '<a class="image-clear btn-icon disabled" data-clear-field="%s" title="Video verwijderen">
-                    <span class="lnr lnr-cross-circle"></span>
+                    <span class="lnr lnr-trash"></span>
                 </a>',
                 self::escape($name)
             );
