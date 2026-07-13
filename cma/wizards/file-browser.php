@@ -2445,6 +2445,59 @@ $appBasePath = Application::get('base_path', '/');
             overlay.addEventListener('mousedown', cropDown);
             overlay.addEventListener('mousemove', cropMove);
             window.addEventListener('mouseup', cropUp);
+            window.addEventListener('keydown', cropKey);
+        }
+        // Keyboard nudging for fine control once a selection has been drawn:
+        // arrows move 1px (Shift = 10px), Alt+arrows resize (keeping the locked
+        // aspect ratio if any), Enter applies, Escape cancels.
+        function cropKey(e) {
+            if (!_cropState) return;
+            const tag = (e.target && e.target.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+            if (e.key === 'Enter') { e.preventDefault(); applyCrop(); return; }
+            if (e.key === 'Escape') { e.preventDefault(); cancelCrop(); return; }
+            const s = _cropState.sel;
+            if (s.style.display === 'none' || !parseFloat(s.style.width)) return; // no selection yet
+            const r = _cropState.overlay.getBoundingClientRect();
+            const step = e.shiftKey ? 10 : 1;
+            let left = parseFloat(s.style.left) || 0;
+            let top  = parseFloat(s.style.top) || 0;
+            let w = parseFloat(s.style.width) || 0;
+            let h = parseFloat(s.style.height) || 0;
+            let handled = true;
+            if (e.altKey) {
+                switch (e.key) {
+                    case 'ArrowRight': w += step; break;
+                    case 'ArrowLeft':  w -= step; break;
+                    case 'ArrowDown':  h += step; break;
+                    case 'ArrowUp':    h -= step; break;
+                    default: handled = false;
+                }
+                if (handled) {
+                    if (_cropState.ratio > 0) h = w / _cropState.ratio; // drive by width
+                    w = Math.max(5, Math.min(w, r.width - left));
+                    h = Math.max(5, Math.min(h, r.height - top));
+                    if (_cropState.ratio > 0) w = h * _cropState.ratio; // re-derive after clamp
+                }
+            } else {
+                switch (e.key) {
+                    case 'ArrowRight': left += step; break;
+                    case 'ArrowLeft':  left -= step; break;
+                    case 'ArrowDown':  top  += step; break;
+                    case 'ArrowUp':    top  -= step; break;
+                    default: handled = false;
+                }
+                if (handled) {
+                    left = Math.max(0, Math.min(left, r.width - w));
+                    top  = Math.max(0, Math.min(top, r.height - h));
+                }
+            }
+            if (!handled) return;
+            e.preventDefault();
+            s.style.left = left + 'px';
+            s.style.top = top + 'px';
+            s.style.width = w + 'px';
+            s.style.height = h + 'px';
         }
         function cropDown(e) {
             if (!_cropState) return;
@@ -2495,6 +2548,7 @@ $appBasePath = Application::get('base_path', '/');
             if (wrap) wrap.classList.remove('cropping');
             if (_cropState) {
                 window.removeEventListener('mouseup', cropUp);
+                window.removeEventListener('keydown', cropKey);
                 if (_cropState.overlay) _cropState.overlay.remove();
                 if (_cropState.actions) _cropState.actions.remove();
                 _cropState = null;
