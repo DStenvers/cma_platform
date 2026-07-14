@@ -5616,9 +5616,14 @@ class CmaFormController {
                 // Back off longer before a retry so a transient failure recovers.
                 setTimeout(prefetchBatch, scroller._loadRetries ? 500 : 200);
             } else {
-                // All data loaded — re-enable scroll handler and hide counter
+                // All data loaded — re-enable scroll handler and hide counter.
+                // A destroyed scroller retired as stale (its list was re-rendered);
+                // its counts belong to the previous list, so never write them to
+                // the shared #recordCount element.
                 scroller.paused = false;
-                self.updateRecordCount(scroller.currentCount, scroller.totalCount);
+                if (!scroller.destroyed) {
+                    self.updateRecordCount(scroller.currentCount, scroller.totalCount);
+                }
             }
         }, 0);
     }

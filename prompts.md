@@ -4611,3 +4611,63 @@ karaat-data en staat in de karaat-repo.
 > de sg berekening zegt: 
 > Simulant-detectie: UIT (tblSimulanten ontbreekt of is leeg — draai migratie 0.7.0)
 > maar die migratie zie ik nie?!
+
+> hij doet het. De svg is een dappere poging, maar onduidelijk. denk dat we geen tekst erin moeten zetten maar een tooltip met uitleg moeten doen. Het beeld moet alleen grafische elementen bevatten.
+
+> graag een data-tooltip met html gebruiken en de kleuren ook echt uitleggen , de balk met de verwachte waardes graag grijs, daarin is een donkerblauw element opgenomen, wat is dat? Graag alles uitleggen
+
+> the tooltip is blak°ck and has grey body text, unreadable and the svg now misses the labels, please show the start and end value of the diagram shown below it )and remove that from the tooltip' and place the measured value above the measured value.
+
+> in formulier_dispensatie there are 2 volgende buttons, for now remove the volgende 2 button
+
+> can you revert that change?
+
+> The table view has coninious scrolling implemented, but it stops at records 1-1400 van 1423 (laden...) 
+>
+> the console has this error: minify.php:31650 Uncaught (in promise) Error: [Infinite Scroll] Pagination stopped at 200/1423 — 1223 record(s) not loaded (last id 403, form deelnemers).
+>     at CmaInfiniteScroll.load (minify.php:31650:27)
+>     at async prefetchBatch (minify.php:37811:17)
+>
+> ﻿
+>  which is also incorrect
+
+> The table view has coninious scrolling implemented, but it stops at records 1-1400 van 1423 (laden...) 
+>
+> the console has this error: minify.php:31650 Uncaught (in promise) Error: [Infinite Scroll] Pagination stopped at 200/1423 — 1223 record(s) not loaded (last id 403, form deelnemers).
+>     at CmaInfiniteScroll.load (minify.php:31650:27)
+>     at async prefetchBatch (minify.php:37811:17)
+>
+> ﻿
+>  which is also incorrect
+>
+> /cma/form.php?form=deelnemers_laatste_100_berichten&ID=30697:1 Refused to apply style from 'https://test-mijn.rino.nl/assets/css/rinoportal.css' because its MIME type ('') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+
+> The table view has coninious scrolling implemented, but it stops at records 1-1400 van 1423 (laden...) 
+>
+> the console has this error: minify.php:31650 Uncaught (in promise) Error: [Infinite Scroll] Pagination stopped at 200/1423 — 1223 record(s) not loaded (last id 403, form deelnemers).
+>     at CmaInfiniteScroll.load (minify.php:31650:27)
+>     at async prefetchBatch (minify.php:37811:17)
+>
+> ﻿
+>  which is also incorrect
+>
+> /cma/form.php?form=deelnemers_laatste_100_berichten&ID=30697:1 Refused to apply style from 'https://test-mijn.rino.nl/assets/css/rinoportal.css' because its MIME type ('') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+>
+> Single sign on, can we stay in the login dialog and not create a new one? So empty the user name and password and place 
+>
+> Single Sign-On geactiveerd. Bezig met aanmelden.
+
+> The table view has coninious scrolling implemented, but it stops at records 1-1400 van 1423 (laden...) 
+>
+> the console has this error: minify.php:31650 Uncaught (in promise) Error: [Infinite Scroll] Pagination stopped at 200/1423 — 1223 record(s) not loaded (last id 403, form deelnemers).
+>     at CmaInfiniteScroll.load (minify.php:31650:27)
+>     at async prefetchBatch (minify.php:37811:17)
+>
+> ﻿
+>  which is also incorrect
+>
+> /cma/form.php?form=deelnemers_laatste_100_berichten&ID=30697:1 Refused to apply style from 'https://test-mijn.rino.nl/assets/css/rinoportal.css' because its MIME type ('') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+>
+> Single sign on, can we stay in the login dialog and not create a new one? So empty the user name and password and place 
+>
+> Single Sign-On geactiveerd. Bezig met aanmelden.

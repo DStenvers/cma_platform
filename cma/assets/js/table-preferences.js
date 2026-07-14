@@ -669,6 +669,13 @@ class CmaInfiniteScroll {
             return;
         }
 
+        // Retire BEFORE fetching if our table already left the DOM, so a stale
+        // prefetch loop doesn't keep hitting the server; the mid-load check
+        // below covers a table replaced during the await.
+        if (this._retireIfStale()) {
+            return;
+        }
+
         // Additional guard: prevent loading the same lastId twice
         if (this.pendingLastId === this.lastId && this.lastId !== null) {
             return;
@@ -712,17 +719,9 @@ class CmaInfiniteScroll {
 
                 // Append new rows to table
                 if (result.html && this.table) {
-                    // CRITICAL: Check if table is still in the DOM (may be stale after list reload)
-                    if (!document.body.contains(this.table)) {
-                        // Table was replaced - try to find the current one
-                        const currentTable = document.getElementById('listTable');
-                        if (currentTable) {
-                            this.table = currentTable;
-                        } else {
-                            cmaLog.warn('Infinite scroll: table is stale and no replacement found');
-                            this.hasMore = false;
-                            return;
-                        }
+                    // CRITICAL: table may have been replaced during the await
+                    if (this._retireIfStale()) {
+                        return;
                     }
 
                     const tbody = this.table.querySelector('tbody');
@@ -875,6 +874,32 @@ class CmaInfiniteScroll {
                 }
             }
         }
+    }
+
+    /**
+     * Retire this scroller if its table left the DOM. Returns true when retired.
+     *
+     * A gone table means the list was re-rendered: the replacement table gets
+     * its OWN scroller via initInfiniteScroll, so this instance is stale by
+     * definition. Adopting document.getElementById('listTable') instead (as
+     * this code once did) resurrects the two-scroller race the constructor
+     * guard exists to prevent: two prefetch loops interleave into one tbody,
+     * each counting only its own appends, so the shared #recordCount counter
+     * fights/freezes below the total ("records 1-1400 van 1423 (laden...)")
+     * and the stale scroller throws a pagination error with numbers from a
+     * list that is no longer on screen (it can even append another form's
+     * rows after in-page form navigation). destroyed=true also suppresses the
+     * loud incomplete-pagination throw in load()'s finally block, which would
+     * otherwise report the stale counts as a real bug.
+     */
+    _retireIfStale() {
+        if (this.destroyed) return true;
+        if (!this.table || document.body.contains(this.table)) return false;
+        cmaLog.warn('[Infinite Scroll] Table for form ' + this.formId +
+            ' left the DOM (list re-rendered); retiring this scroller at ' +
+            this.currentCount + '/' + this.totalCount + '.');
+        this.destroy();
+        return true;
     }
 
     /**
@@ -1089,6 +1114,13 @@ class CmaInfiniteScroll {
      * Only shows when the container is scrollable (has overflow)
      */
     updateRecordCountDisplay() {
+        // #recordCount is a single shared element: only the scroller that owns
+        // the current table may write it, otherwise a not-yet-retired stale
+        // scroller (mid-load when its list got re-rendered) overwrites the
+        // live scroller's count with numbers from the previous list.
+        if (this.destroyed) return;
+        if (this.table && this.table._cmaScroller && this.table._cmaScroller !== this) return;
+
         const countEl = document.getElementById('recordCount');
         if (!countEl) return;
 
