@@ -267,9 +267,6 @@ function main()
                 echo '<a href="sso_login.php" class="btn btn-primary sso-button">';
                 echo htmlspecialchars($ssoProviderName);
                 echo '</a>';
-                // Shown by the sso-button click handler; sso_login.php redirects
-                // straight to the IDP, so this dialog stays visible during SSO
-                echo '<lib-message type="info" id="ssoBusy" style="display:none;margin-top:15px;text-align:left;">Single Sign-On geactiveerd. Bezig met aanmelden.</lib-message>';
                 echo '</div>' . PHP_EOL;
 
                 // Scheidingslijn met "of"
@@ -306,6 +303,10 @@ function main()
                 }
             }
             echo '<input type=hidden value="' . Request::server('QUERY_STRING', '') . '" name=nextpage />';
+            // Shown by the sso-button click handler in place of the naam/wachtwoord
+            // form; sso_login.php redirects straight to the IDP, so this dialog
+            // stays visible during SSO
+            echo '<lib-message type="info" id="ssoBusy" style="display:none;margin:15px;text-align:left;">Single Sign-On geactiveerd. Bezig met aanmelden.</lib-message>' . PHP_EOL;
             echo '<div id="loginForm"' . ($bShowForgotten ? ' style="display:none"' : '') . '>';
             if ($strError) {
                 echo '<div class="login-row loginerror">' . $strError . '</div>';
@@ -338,10 +339,12 @@ function main()
                 echo 'var _lf = document.getElementById("txtLogin"); if (_lf) { _lf.focus(); if (_lf.select) _lf.select(); }' . PHP_EOL;
             }
             // SSO: stay in this login dialog while the (immediate) redirect to
-            // the IDP runs — clear the credential fields and show the busy
-            // message, then let the navigation to sso_login.php proceed.
+            // the IDP runs — replace the naam/wachtwoord form (and the "of"
+            // divider) with the busy message, then let the navigation to
+            // sso_login.php proceed.
             echo 'jQuery("a.sso-button").on("click", function() {' . PHP_EOL;
             echo '    jQuery("#txtLogin, #txtPW").val("");' . PHP_EOL;
+            echo '    jQuery("#loginForm, .login-divider").hide();' . PHP_EOL;
             echo '    jQuery("#ssoBusy").show();' . PHP_EOL;
             echo '});' . PHP_EOL;
             echo '});</script>' . PHP_EOL;

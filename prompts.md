@@ -4671,3 +4671,5 @@ karaat-data en staat in de karaat-repo.
 > Single sign on, can we stay in the login dialog and not create a new one? So empty the user name and password and place 
 >
 > Single Sign-On geactiveerd. Bezig met aanmelden.
+
+> the sso message should replace the username and password form
