@@ -13097,8 +13097,8 @@ function calculateDynamicSubformHeight() {
     const rows = mainTable.querySelectorAll('tr');
     let visibleFieldCount = 0;
     rows.forEach(function(row) {
-        // Skip hidden rows
-        if (row.style.display === 'none' || row.classList.contains('groupbox-end')) {
+        // Skip hidden rows (groupbox-hidden = row inside a collapsed groupbox)
+        if (row.style.display === 'none' || row.classList.contains('groupbox-hidden') || row.classList.contains('groupbox-end')) {
             return;
         }
         // Count as a field row

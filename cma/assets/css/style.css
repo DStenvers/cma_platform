@@ -513,11 +513,11 @@ cma-groupbox:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease-in;
 }
 
 .groupbox-chevron::before {
-    content: "\e939"; /* default: chevron down (open) */
+    content: "\e939"; /* chevron down; rotated -90deg when closed */
     font-family: 'Linearicons';
     font-size: 14px;
     color: var(--text-secondary, #666);
@@ -545,12 +545,8 @@ cma-groupbox.group_open {
     margin-bottom: 0px;
 }
 
-cma-groupbox.group_open .groupbox-chevron::before {
-    content: "\e939"; /* chevron down */
-}
-
-cma-groupbox.group_closed .groupbox-chevron::before {
-    content: "\e93a"; /* chevron right */
+cma-groupbox.group_closed .groupbox-chevron {
+    transform: rotate(-90deg);
 }
 
 cma-groupbox:hover .groupbox-chevron::before,
@@ -567,6 +563,46 @@ cma-groupbox:hover .groupbox-chevron::before,
     border-radius: 0 0 6px 6px;
     margin-top: -8px;
     margin-bottom: 8px;
+}
+
+/* Groupbox fold animation. cma-groupbox toggles groupbox-hidden on its target
+   elements; groupbox-animate is added one paint later so the restored state on
+   page load never animates. Table rows can only fade (a <tr> can't clip its
+   height); standalone blocks (groupbox-block) also fold their height closed. */
+.groupbox-collapsible.groupbox-hidden {
+    display: none;
+    opacity: 0;
+}
+
+.groupbox-collapsible.groupbox-animate {
+    transition: opacity 0.3s ease-in, display 0.3s ease-in allow-discrete;
+}
+
+.groupbox-block {
+    interpolate-size: allow-keywords;
+    height: auto;
+    overflow: clip;
+}
+
+.groupbox-block.groupbox-hidden {
+    height: 0;
+    padding-block: 0;
+}
+
+.groupbox-block.groupbox-animate {
+    transition: height 0.3s ease-in, padding-block 0.3s ease-in,
+        opacity 0.3s ease-in, display 0.3s ease-in allow-discrete;
+}
+
+@starting-style {
+    .groupbox-collapsible.groupbox-animate {
+        opacity: 0;
+    }
+
+    .groupbox-block.groupbox-animate {
+        height: 0;
+        padding-block: 0;
+    }
 }
 
 /* Preferences table with groupbox sections - matches storybook pattern */

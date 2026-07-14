@@ -138,21 +138,37 @@ class CmaGroupbox extends HTMLElement {
         var index = 1;
         var row = document.getElementById(prefix + index);
         while (row) {
-            row.style.display = this._isOpen ? '' : 'none';
+            this._setTargetState(row);
             index++;
             row = document.getElementById(prefix + index);
         }
         var groupRows = document.querySelectorAll('[data-group-row="' + this._groupId + '"]');
-        groupRows.forEach(row => {
-            row.style.display = this._isOpen ? '' : 'none';
-        });
+        groupRows.forEach(row => this._setTargetState(row));
     }
 
     _applyStandaloneVisibility() {
         // Toggle the next sibling element
         var next = this.nextElementSibling;
         if (next && !next.matches('cma-groupbox')) {
-            next.style.display = this._isOpen ? '' : 'none';
+            next.classList.add('groupbox-block');
+            this._setTargetState(next);
+        }
+    }
+
+    _setTargetState(el) {
+        // Visibility goes through CSS classes so the fold can animate;
+        // clear inline display in case legacy code (CMA.groups) set it.
+        el.classList.add('groupbox-collapsible');
+        el.classList.toggle('groupbox-hidden', !this._isOpen);
+        el.style.display = '';
+        if (!el.classList.contains('groupbox-animate')) {
+            // Transitions are gated on groupbox-animate, added a paint after the
+            // initial state, so restoring a collapsed group never animates on load
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    el.classList.add('groupbox-animate');
+                });
+            });
         }
     }
 

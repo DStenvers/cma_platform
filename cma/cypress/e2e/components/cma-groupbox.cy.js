@@ -636,19 +636,19 @@ describe('cma-groupbox Web Component', () => {
                     // Initially open - all rows visible
                     expect(groupbox.isOpen).to.be.true;
                     const endRow = doc.querySelector('[data-group-row="120"]');
-                    expect(endRow.style.display).to.not.equal('none');
+                    expect(endRow.classList.contains('groupbox-hidden')).to.be.false;
 
-                    // Collapse - rows should be hidden
+                    // Collapse - rows should be hidden (via class; CSS animates the fold)
                     groupbox.close();
-                    expect(doc.getElementById('_g120_1').style.display).to.equal('none');
-                    expect(doc.getElementById('_g120_2').style.display).to.equal('none');
-                    expect(endRow.style.display).to.equal('none');
+                    expect(doc.getElementById('_g120_1').classList.contains('groupbox-hidden')).to.be.true;
+                    expect(doc.getElementById('_g120_2').classList.contains('groupbox-hidden')).to.be.true;
+                    expect(endRow.classList.contains('groupbox-hidden')).to.be.true;
 
                     // Expand - rows should be visible
                     groupbox.open();
-                    expect(doc.getElementById('_g120_1').style.display).to.equal('');
-                    expect(doc.getElementById('_g120_2').style.display).to.equal('');
-                    expect(endRow.style.display).to.equal('');
+                    expect(doc.getElementById('_g120_1').classList.contains('groupbox-hidden')).to.be.false;
+                    expect(doc.getElementById('_g120_2').classList.contains('groupbox-hidden')).to.be.false;
+                    expect(endRow.classList.contains('groupbox-hidden')).to.be.false;
                 });
             });
         });

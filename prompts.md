@@ -4544,3 +4544,70 @@ karaat-data en staat in de karaat-repo.
 > sote seaait weer na een composer update dus die fixt het, niet de veroorzaker
 
 > commit them
+
+## 2026-07-13
+
+> over de preview van een nbeeld/video: ik denk dat de tooltip het probleem is, die neemt de :after over en vervangt het beeld. Wil je daarnaar kijken? En als javascript een 404 tegenkomt moet er geen gewone preview komen maar eentje met een rood kruis er doorheen, de gebruiker moet wel weten dat er iets aan de hand is. Zet de tooltip dan op 'bestand [x] niet gevonden'
+
+> .combo-clear::before { add     margin-top: 2px;
+> }
+
+> word form.min.css wel ergens aangeroepen? Anders mag hij weg. Het idee is dat altijd de minify.php word gebruikt.
+
+> puysh and commit please, i will watch karaat
+
+> karaat blijft draaien. Vreems is dat in de file browser de video de volgende fout geeft:  error loading '/videos/MVI_5975.MP4?versie=1783872290' , ten eerste: die melding moet in het nederlands en informatiever. Ten tweede het versienummer moet eraf, hetzelfde bij images en bestanden, het hele versienummer moet eraf. ten derde: het forms.php zelf kan 'm prima tonen, weliswaar in een lelijke nieuwe tab (graag hier een modal popup) , maar hij toont 'm wel.
+
+> karaat is weer down??? Heb jij iets gereleased?
+
+> karaat doet het na een composer update..
+
+> http://www.karaatedelstenen.nl/index.php?pagina=probleemstenen zegt Deze pagina is alleen voor ingelogde beheerders. Inloggen. Maa ik open m vanuit de CMA? En ben dus al ingelogd, bij https://www.karaatedelstenen.nl/cma/main.php?page=%2Ftools%2Fquick_add_stone.php gaat dat wel goed, vergelijk die twee alsjeblieft.
+
+> maak probleemstenen ook een back-end formulier inderdaad 
+>
+> .toolbar-left {margin-left: -6px;}
+
+> .combo-tag { background-color: #ffffff;border:1px solid var(--border-color, #ccc); } .combo-tag:hover { background-color: var(--bg-hover, #d0e8f8); border:1px solid var(--color-accent-hover);}
+
+> when cropping, the keyoard is not supported, handy for subtle movements, can you make that happen?
+
+> the witruimte automatisch bijwerken does not work, probably because the threshold is not met. Can we iterate the thereshold until it is met? The background is sometimes quite lively.
+
+> witruimte autocrop doet niets en meldt ook niets.
+
+> Hij doet nog steeds nix en meldt ook niets, url van het beeld is https://www.karaatedelstenen.nl/images/producten/.responsive/IMG_4904.webp?v=1781682601
+
+> versie die ik gebruik is de .19
+
+> on front-end , the lnr lnr-frame-expand and lnr lnr-frame-contract are not visible, the ugly rectangle is shown to indicate an inknown character
+
+> the quick edit form, show a gauge withe the weight confidence level, 1 and 2 red, 3 orange, 4 and 5 green. Make that a site specific web component
+
+> continue
+
+> in het formulier is er een ...lnr-cross-circle::before om een video of plaatje weg te halen, maak daar een prullenbakje van. 
+>
+> an: .image-404::before {
+>     color: red;
+> }
+
+> Preview of a video is not inside a dialog, the image is. Clicking the preview image should close the window.
+
+> if an image or video cannot be found, block the preview option
+
+## 2026-07-14
+
+> de video preview image was eigenlijk iets waar ik niet om heb gevraagd, kunnen we die automatisch laten vullen?
+
+> okay, we proberen A, maar haal dan ook de still control uit tblforms (of de-activeer m voor nu)
+
+> sorry, fout, het is een json, tblFOrms is oud.
+
+> cma-groupbox -> expanding and collapsing is now instant, create a .3s animation through css alone (ease-in) to visualise the folding better, including rotating the icon.
+
+> maak de sg-berekening leeg voor alle stenen anders dan enkele stenen, partijen en ruwe stenen vermelden de formaten per steen terwijl het er meerdere zijn; berekening onbetrouwbaar.
+
+> de sg berekening zegt: 
+> Simulant-detectie: UIT (tblSimulanten ontbreekt of is leeg — draai migratie 0.7.0)
+> maar die migratie zie ik nie?!
