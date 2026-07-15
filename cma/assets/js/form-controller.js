@@ -5449,13 +5449,12 @@ class CmaFormController {
     }
 
     /**
-     * Escape HTML for safe display
+     * Escape HTML for safe display. Delegates to the canonical
+     * CMA.utils.escapeHtml (cma-utils.js, loaded before this bundle) so quote
+     * escaping stays consistent — a private copy here previously skipped it.
      */
     escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        return window.escapeHtml(str);
     }
 
     /**

@@ -1443,12 +1443,12 @@ class CmaFieldChooser {
     }
 
     /**
-     * Escape HTML
+     * Escape HTML. Delegates to the canonical CMA.utils.escapeHtml
+     * (cma-utils.js, loaded before this bundle) — the private copy skipped
+     * quote escaping and had no null guard.
      */
     escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        return window.escapeHtml(str);
     }
 }
 

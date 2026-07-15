@@ -4696,3 +4696,729 @@ karaat-data en staat in de karaat-repo.
 > then take a good look at the whole codebase and try to find more duplicates or multiple paths, I suspect there are more of them
 
 > try and dind more instaances of peomises that need await, we had that bug before, do a full scan of the cma platforms: plan mode
+
+> <task-notification>
+> <task-id>a687de6b9bb32efc8</task-id>
+> <tool-use-id>toolu_012nZz8YPtEEedBG9ttosAKg</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a687de6b9bb32efc8.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Scan utils/editor/tables JS for missing await" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Analysis complete. I read all seven files in full and grepped every async construct (`async`/`await`/`.then(`/`fetch(`/`Promise`/`sendBeacon`). Note: `request-tracker.js` and `url-manager.js` live in `cma/assets/js/`, not `library/assets/js/` (which contains only `error-handler.js`); I covered them anyway.
+>
+> ## Findings: no missing-await correctness bugs
+>
+> Every async/Promise site in scope is either correctly awaited/chained or a legitimate fire-and-forget with nothing depending on completion.
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/table-preferences.js`** — None. The only `async` function is `CmaInfiniteScroll.load()` (line 666), which correctly `await`s `this.loadMore()` (line 692) and re-checks `this.destroyed`/`_retireIfStale()` after the await. Callers (`onScroll` → `this.load()` at line 658) are intentional fire-and-forget, guarded by `isLoading`/`hasMore`/`destroyed` flags — no race.
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/cma-utils.js`** — None. `cmaCopyToClipboard` returns a Promise but is never consumed within this file (callers live elsewhere). No async value is misused as a resolved value.
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/image-editor.js`** — None. All `fetch` chains in `editOp` (line 249) and `reload` (line 283) are fully `.then`-chained with `.catch`. The one place a result is depended upon — `finish()`'s "maximum" resize branch — correctly chains `this.editOp({...}).then(ok =&gt; { if (ok) self.postComplete(); })` (lines 578-579). The plain op methods (`rotate`/`flip`/`filter`/`autocrop`/`applyCrop`) fire `editOp` without awaiting, but each is a self-contained server round-trip that reloads the preview; no JS after the call reads its result, so this is legitimate fire-and-forget.
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/error-handler.js`** — None. `sendError`'s `fetch` (line 426) has a `.catch`; `sendBeacon` is sync. `copy()`'s clipboard IIFE returns a Promise that is `.then`/`.catch`-handled (lines 636-643).
+>
+> **`/mnt/c/repos/cma_platform/library/assets/js/error-handler.js`** — None. Same structure as the CMA copy; `sendError` fetch `.catch`ed (line 450), `copy()` Promise handled with both `.then` and `.catch` (lines 696-712).
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/request-tracker.js`** — None. Fully synchronous (localStorage + in-memory array); no Promises at all.
+>
+> **`/mnt/c/repos/cma_platform/cma/assets/js/url-manager.js`** — None. Fully synchronous URL parse/build/history manipulation; no Promises at all.</result>
+> <usage><subagent_tokens>107946</subagent_tokens><tool_uses>11</tool_uses><duration_ms>84228</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>aa62efdf84e14925b</task-id>
+> <tool-use-id>toolu_018oghXdqHhqSFAW4FXiN3om</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/aa62efdf84e14925b.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Scan library webcomponents for missing await" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I've completed a full scan of every non-min `.js` file in `/mnt/c/repos/cma_platform/library/webcomponents/`. The async surface is small and concentrated; I traced each async definition to its call sites.
+>
+> ## Findings: no missing-await correctness bugs
+>
+> Files with an actual async surface (all checked, all clean):
+>
+> - **lib-tip.js** — `_loadSkipList`, `isSkipped`, `show`, `tour`, `dismiss`, `reset` are all `async`. Every internal dependency is correctly awaited: `show`/`tour` do `if (await this.isSkipped(id))` (lines 711, 724) before showing; `isSkipped` awaits `_loadSkipList` (line 702). The only unawaited call is `LibTip.dismiss(this._tourId)` at line 629 (`_dismiss` handler) — legitimate fire-and-forget (server-side dismissal persist; nothing downstream reads the result, and it closes the tip synchronously right after). Public API returns Promises but callers use them fire-and-forget by design (boolean not needed).
+>
+> - **lib-table.js** — `async load()` (line 168). Call sites at 128, 325, 1118 (`this.load(...)`) are unawaited, but this is correct: `load()` guards re-entrancy with `if (this.#state.isLoading) return;` (line 169), manages its own `isLoading`/render/error state internally (`try/catch/finally`), and no caller reads its return value. Infinite-scroll append (1118) is protected by the same guard. No race.
+>
+> - **lib-dialog.js** — `alert`/`confirm`/`prompt` correctly `return dialog.open().then(...)` (lines 992, 1043, 1187), and the top-level `confirm/alert/prompt` wrappers `return LibDialog.*` (1237, 1247, 1266). Promise chains returned intact; nothing dropped.
+>
+> - **lib-combo.js** — `_searchAjax` fetch→`.then().then().catch()` chain (1079-1101) is self-contained: sets `_loading` and calls `_renderOptions()` in every branch. Search-as-you-type; correct fire-and-forget with error handling.
+>
+> - **lib-message.js** — `async _copyToClipboard()` (224) invoked from a click handler as `() =&gt; this._copyToClipboard()` (211); self-contained `await` + `try/catch`. Fine.
+>
+> - **lib-fileuploader.js** / **lib-log.js** — use callback-based `XMLHttpRequest` (`load`/`error`/`progress` listeners), no Promise/async misuse.
+>
+> - **responsive-tabs/index.js** — `Promise.all([loadCSS(), loadJS()]).then(...)` and `customElements.whenDefined(...).then(...)` returned/handled correctly.
+>
+> Files with **no async surface at all** (verified via grep for `async`/`await`/`.then`/`fetch`/`XMLHttpRequest`/`new Promise`): lib-datepicker.js, lib-sheet.js, lib-histogram.js, lib-gauge.js, lib-loader.js, lib-menu.js, lib-toaster.js, lib-field.js, lib-switch.js, lib-search-input.js, lib-radio-group.js, lib-timepicker.js, lib-arrowsteps.js, lib-shared-styles.js, responsive-tabs/responsive-tabs.js.
+>
+> **Conclusion:** No used-as-value, race/sequencing, promise-as-value, or dropped-result bugs found in any of the categories requested. Every async call either has its result properly awaited/returned, or is a deliberate fire-and-forget with self-contained state and error handling (and, where it matters, a re-entrancy guard). Nothing was edited — analysis only.</result>
+> <usage><subagent_tokens>39084</subagent_tokens><tool_uses>15</tool_uses><duration_ms>106165</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a8dcefba63bbd5f85</task-id>
+> <tool-use-id>toolu_01HWk5VKwmBPRmaXjYv6D8pk</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a8dcefba63bbd5f85.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Scan cma webcomponents for missing await" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Analysis complete. I audited every non-min, non-UNUSED `.js` file in `/mnt/c/repos/cma_platform/cma/webcomponents/`. Triage found 13 of the 20 files contain no async surface at all (no `async`/`await`/`.then`/`fetch`/`Promise`, and no calls to the async helpers `libConfirm`/`libPrompt`/`libAlert`/`cmaCopyToClipboard`): cma-combo.js, cma-field-config.js, cma-fold.js, cma-group-config.js, cma-groupbox.js, cma-htmledit.js, cma-param-config.js, cma-sort-config.js, cma-sortlist.js, cma-tabs.js, cma-toolbar.js, cma-tree.js, shared-icons.js. Nothing to report in those.
+>
+> For the 7 files with async surfaces, I traced every async target to its call sites.
+>
+> Findings: NO high-signal missing-await correctness bugs found.
+>
+> Every async call is either correctly awaited, correctly chained with `.then/.catch`, or legitimately fire-and-forget. Details of what I checked and cleared:
+>
+> - cma-launcher.js — `open()` (line 91, async) awaits `_loadCatalog()` at line 103 and even guards `if (!this._open) return` afterward against a concurrent close. `_loadCatalog()` (164) awaits `fetch` + `.json()` inside try/catch. `toggle()` (158) calls `this.open()` unawaited, but nothing follows it — correct fire-and-forget. Clean.
+>
+> - cma-schema-canvas.js — `loadSchema()` (374, async) called without `await` at lines 111 (connectedCallback) and 121 (attributeChangedCallback). Both calls are the last statement in their branch; no synchronous code after depends on the result, and completion is signalled via a `schema-loaded` CustomEvent (line 409). Re-entrancy is guarded by `this._loading` (line 375). Legitimate fire-and-forget. `dialog.open().then()` (2181) and the `async` delete handler awaiting `libConfirm` (2050-2051) are both correct. Clean.
+>
+> - cma-conditions-panel.js — `_fetchWherePreview` (979) runs a `fetch(...).then().then().catch()` chain inside a debounce `setTimeout`; the result only writes `previewElement.innerHTML` inside the `.then`, with a `.catch` fallback (985-1008). Self-contained. Clean.
+>
+> - cma-blockeditor.js — `libPrompt(...).then(url =&gt; ...)` (933) consumes the resolved value inside the callback with `index` captured by closure; the parallel wizard path uses an `onComplete` callback (924). Clean.
+>
+> - cma-query-preview.js — `_copyToClipboard()` (async, 1023, awaits `cmaCopyToClipboard`) invoked from a click handler at 690 unawaited; pure UI action, nothing depends on completion. Clean.
+>
+> - cma-sql-editor.js — same pattern: `_copyToClipboard()` (504) invoked from a click handler at 431 unawaited; fire-and-forget UI. Clean.
+>
+> - cma-base-component.js — exposes a `_readyPromise` via `whenReady()` (69); it's a ready-state primitive with no unawaited-consumer bug in this directory. Clean.
+>
+> No edits were made (read-only analysis, as requested).</result>
+> <usage><subagent_tokens>35817</subagent_tokens><tool_uses>12</tool_uses><duration_ms>117560</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a500dc23a1b0dcb30</task-id>
+> <tool-use-id>toolu_01CVHAB7htgi4gXjPHEXnYcF</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a500dc23a1b0dcb30.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Scan core CMA JS for missing await" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Analysis complete. I traced every async function in the five files to its call sites and checked each unawaited call against the four bug categories.
+>
+> ## Findings
+>
+> **No high-signal missing-await correctness bugs found.** Every dependent async call is either properly `await`ed or is legitimate fire-and-forget. Details per file:
+>
+> ### cma/assets/js/inline-edit.js — clean
+> - `RequestBatcher.flush()` at line 170 (inside `scheduleFlush`'s `setTimeout`) is fire-and-forget by design; the flush has its own internal `try/await/catch` (line 187-205). No caller depends on it.
+> - `saveInlineEdit` line 1406 `self.updateRowAfterSave(row, rowData)` — unawaited, but safe: `updateRowAfterSave` reads `this.editingRowId` synchronously (line 1434, before its first `await`) and owns its own cleanup via `finishInlineEditing()` (line 1550). Nothing after line 1406 in `saveInlineEdit` depends on it.
+> - `deleteRow` (691), `startInlineEditing` (669), `saveInlineEdit` (854/872/890) call sites are UI event handlers; each async target self-contains its DOM update. No post-call code races.
+> - `startInlineEditing` line 1056 `this.loadRecordForInlineEdit(...)` is the last statement — fire-and-forget is correct.
+> - `fetchJson`/`fetchWithRetry` are always `await`ed at every call site.
+>
+> ### cma/assets/js/cma.js — clean
+> - `resend` (1989) awaits `libConfirm`, then fires a jQuery.post callback — correct.
+> - `fetch(config.contentsCss)` (516) is a deliberate diagnostic-only probe with `.then/.catch`; result intentionally unused.
+>
+> ### cma/assets/js/main.js — clean
+> - `loadPage` (693) correctly `await`s `cmaCheckUnsavedChanges()` (699) and gates navigation on the result.
+> - All `loadPage(...)` call sites (650, 807, 1392, 1400, 1501, 1552) are navigation triggers — no caller consumes the returned Promise; no post-call race.
+> - `loadFormController().then(runScripts).catch(...)` (1021) is properly chained.
+> - `fetch` chains in `loadPage`/`loadPagePost`/change-password all use `.then` correctly.
+>
+> ### cma/assets/js/blockedit.js — clean
+> - No genuine async call-site issues. `string_JSON_fetch` (1965) is synchronous despite the name (the "fetch" comments at 1193/1203/1332/1615 describe CKEditor's internal async build, not unawaited JS calls here).
+>
+> ### cma/assets/js/cma-tours.js — clean
+> - `showReportDesignerTips` (437) is invoked fire-and-forget from a `setTimeout` (433); it only branches to synchronous tour-render helpers — no awaited value is dropped.
+> - `LibTip.reset(tourId).then(() =&gt; initTours())` (1345) is properly chained.
+>
+> ### One observation (not a live bug)
+> `startEditing` (inline-edit.js:962) calls `this.loadRecordData(rowId, row)` at line 984 WITHOUT await, then immediately runs `positionEditControls(row)` (985) and shows controls (986). `loadRecordData` fetches and only then swaps the row into edit controls (`renderEditableRow`), so positioning would run against the pre-edit row height — a real sequencing defect in principle. However, `startEditing` has zero callers anywhere in the repo (confirmed by grep across cma/ and library/); it is dead code superseded by `startInlineEditing`. Confidence that it is a live bug: low (dead code). Worth deleting, but not a correctness bug in any executed path.</result>
+> <usage><subagent_tokens>47355</subagent_tokens><tool_uses>16</tool_uses><duration_ms>144921</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>affdacb5a9901d918</task-id>
+> <tool-use-id>toolu_01XV9Qkg9DHLuPJo47KRw9Yt</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/11968c9b-70ed-460f-9055-e6fe9af77946/tasks/affdacb5a9901d918.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit form-controller JS duplication" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have thoroughly mapped the duplication. Here is my structured audit, ranked by drift risk (most severe first).
+>
+> ---
+>
+> ## Duplicated Logic &amp; Parallel Code Paths — form-controller.js + inline-edit.js
+>
+> ### FINDING 1 — [CRITICAL] Title/action-suffix building duplicated in 8 sites with 5 different fallback chains
+> This is the exact bug class you just fixed, still present across the codebase.
+>
+> **Action-suffix computation (`toevoegen/wijzigen/bekijken/kopiëren`) — duplicated 3x, each with a DIFFERENT permission source:**
+> - inline-edit.js:2177-2186 — uses `!this.options.canEdit`, and *has* a `copy → ' kopiëren'` branch
+> - form-controller.js:4645-4653 (`openFormPopup`) — uses `this.config.accessLevel &lt; 2`, *no* copy branch
+> - form-controller.js:11694 (`openSubformRecord`) — uses `this.config.accessLevel &gt;= 2`, only `wijzigen/bekijken`
+>
+> **Name-fallback chains — 5 inconsistent variants (this is where drift bites):**
+> - form-controller.js:4642 → `formNameSingular || formName || 'Record'`
+> - form-controller.js:9229 (`updateSidepanelTitle`) → `formNameSingular || formName || 'Record'`
+> - inline-edit.js:2176 → `formNameSingular || formName || jsonFormToUse || 'Record'` (extra `jsonFormToUse` link)
+> - form-controller.js:11479 (`addSubformRecord`) → `titleSingular || title || subformId`
+> - form-controller.js:11691 (`openSubformRecord`) → `subformNameSingular || subformName || subformId`
+> - inline-edit.js:439 &amp; 447 (context menu "Voeg X toe"/"Bekijk X") → `formNameSingular || 'record'` (lowercased, no `formName` fallback)
+> - form-controller.js:11441 (subform add tooltip) → `titleSingular || title || 'record'`
+>
+> **Bare literal concatenations:**
+> - form-controller.js:11480 → `formName + ' toevoegen'`
+> - form-controller.js:2056-2058 → status text `'Wijzigen'/'Bekijken'` computed separately from the suffix, yet another parallel permission read.
+>
+> **Signs of drift already visible:** inline-edit is the only path that handles `copy → kopiëren`; `openSubformRecord` is the only edit path that can never say `toevoegen`; two paths gate on `canEdit`, two gate on `accessLevel`, and they can disagree for subforms. Fallback chains silently differ (`'Record'` vs `'record'` vs `subformId`).
+> **Canonical home:** one `buildFormTitle({name, action, canEdit, isNew, isCopy})` helper (plus a single `resolveFormName(config)`) in cma-utils.js, called by every site.
+>
+> ---
+>
+> ### FINDING 2 — [CRITICAL] Two near-identical subform loaders (~85 lines each) with behavioral drift
+> - form-controller.js:11148 `loadSubformDataAndCount(index, subformId, parentId)`
+> - form-controller.js:11283 `loadSubformData(index, pane)`
+>
+> Both do the same fetch (`action=subform…&amp;SubformIndex`), same `checkRequireLogin`, same `renderSubformList` + `setSubformCount` + `renderSubformToolbar`, same requestTracker start/end, same try/catch. **Divergences that indicate accidental drift:**
+> - Parent id source: `parentId` arg (11164) vs `cmaGetRecordId()` (11292)
+> - Network-error UI: `&lt;lib-message type="error"&gt;` (11223) vs `&lt;div class="list-loading"&gt;Netwerkfout&lt;/div&gt;` (11345) — inconsistent styling
+> - Count fallback: `data.count || data.total || (data.items?.length)` (11200) vs `data.count || data.total || 0` (11322)
+> - `loadSubformData` has a `fixable/missingParentField` developer dialog branch (11333) the other lacks
+> - `loadSubformDataAndCount` sets `pane.classList` loading/loaded + a `finally` and sets count `'!'` on error; `loadSubformData` does neither on catch.
+>
+> **Canonical home:** collapse into one `loadSubform(index, {parentId, updateCount})`; the count/pane-state is a boolean flag, not a second function.
+>
+> ---
+>
+> ### FINDING 3 — [HIGH] `#recordCount` written by two owners with duplicated, drifting format/visibility rules
+> - form-controller.js:6358 `updateRecordCount(currentCount, totalCount)`
+> - table-preferences.js:1116 `CmaInfiniteScroll.updateRecordCountDisplay()`
+>
+> Both write `#recordCount` with the identical template `records 1-${end} van ${total}`, identical "hide when `end &gt;= total`", identical scrollable-overflow gate, identical `${n} records` fallback. **Drift:**
+> - table-preferences adds ` (laden...)` suffix when `hasMore`; form-controller never does.
+> - form-controller adds two guards the scroller lacks: hide in non-table mode (6363) and hide when `searchFilters` active (6369).
+> - Different "loaded" source: `currentCount` arg vs `this.currentCount` (with the long comment at 1136 explaining DOM-count must not be used — that reasoning is absent from the form-controller copy).
+>
+> Two independent writers of one shared DOM node is inherently race-prone (the table-preferences comment at 1117 already documents a stale-overwrite bug).
+> **Canonical home:** a single `renderRecordCount(el, {loaded, total, hasMore, visibleContext})`; make form-controller delegate to the scroller's method rather than reimplement the string.
+>
+> ---
+>
+> ### FINDING 4 — [HIGH] `openFormPopup` implemented twice + popup-open + URL-update logic duplicated
+> - inline-edit.js:2079 `openFormPopup` vs form-controller.js:4639 `openFormPopup` → 4686 `openPopup`
+>
+> The **popup-dispatch block** is copy-pasted:
+> - inline-edit.js:2189-2203 (`prefAvailable`/`pref`/`useSidepanel` → `lib_OpenSidePanel` / `lib_OpenWindowCentered` / `window.open`)
+> - form-controller.js:4751-4822 (same three-way branch; form-controller additionally wraps title in `toFirstCaps`, does dedupe (4700), onClose interval polling (4803), cascade offset).
+>
+> The **CMA.url.update block** is also duplicated:
+> - inline-edit.js:2133-2171 (main/level-1/level-2/level-3 depth branches: `form/subform/subsubform`)
+> - form-controller.js:4761-4792 and again 4824-4845 (main-vs-subform branches).
+> Both recompute `isInSidepanel`/`currentDepth` and the `effectiveRecordId = (recordId != null &amp;&amp; != '')` guard independently. inline-edit supports 3 levels; openPopup only 2 → they already disagree on depth handling.
+> Both recompute `width/height = innerWidth*0.85` independently (2173 vs 4740).
+>
+> **Canonical home:** inline-edit's `openFormPopup` should build the URL/title and delegate to a single shared `openPopup(options)` (already the "unified" function per its own docstring at 4672); the URL-sync should be one `syncPopupUrl(state)` helper.
+>
+> ---
+>
+> ### FINDING 5 — [MEDIUM] `lib_OpenWindowCentered` "extra action / post result" popups duplicated
+> Repeated `if (typeof lib_OpenWindowCentered === 'function')` blank-window + post-result pattern:
+> - inline-edit.js:2340, 2391-2392, 2452-2453, 2543-2544
+> - form-controller.js:4073, 4122, 4424-4426, 10766-10767, 12334-12337
+>
+> The `about:blank` + form-post-into-popup pattern (inline-edit.js:2391 `afterpost_result` / 2543 `post_result` vs form-controller.js:12334 `post_result`) is essentially the same afterpost-result window logic in both files.
+> **Canonical home:** a shared `openResultWindow(title, {width,height})` / `openExtraActionWindow(...)` helper.
+>
+> ---
+>
+> ### FINDING 6 — [MEDIUM] Row-column-derivation and "no data" rendering duplicated
+> - form-controller.js:7848 (`renderList`) and 11530 (`renderSubformList`) both derive display columns via `Object.keys(item).filter(k =&gt; !k.startsWith('_') &amp;&amp; k.toLowerCase() !== 'id')`.
+> - "Empty list" strings diverge: `renderList` → `'Geen records gevonden'` (7837); `renderSubformList` → `'Geen gegevens' + …'Toevoegen'…` (11534); subform loaders inject `'Netwerkfout…'` two different ways (Finding 2). No single empty/error-state renderer.
+> **Canonical home:** `getDisplayColumns(item)` util + a shared `renderEmptyState(el, {canAdd})`.
+>
+> ---
+>
+> ### FINDING 7 — [LOW] Field/row "hidden" test computed in several places with different rules
+> - form-controller.js:10406 `isFieldHidden` (validation): checks `display/visibility`, collapsed-groupbox exception, LIB-COMBO shadow-DOM, parent-row.
+> - form-controller.js:13107 (subform-height calc): "hidden" = `style.display==='none' || .groupbox-hidden || .groupbox-end`.
+> - form-controller.js:9125 (save/serialize) "skip invisible fields" and inline-edit.js:6218/7399 (`r.style.display !== 'none'` visible-row counts).
+> These encode "is this row/field visible?" with independent, non-matching predicates (computed-style vs inline-style vs class list).
+> **Canonical home:** `isRowVisible(el)` / `isFieldAccessible(field)` predicates shared by all counters/validators. Low drift risk today (different intents) but easy to desync.
+>
+> ---
+>
+> ### Not a concern
+> - `deleteRow` (inline-edit.js:2209) and form-controller delete (10514) share the jsonForm-from-table-dataset guard pattern (also repeated in `openFormPopup` 2080-2094) — minor `jsonFormToUse` resolution duplication worth a `resolveJsonForm(el)` helper, but low risk.
+>
+> **Recommended fix order:** 1 (title builder) → 2 (subform loaders) → 3 (record count) → 4 (popup/url unify), as these carry live, already-diverged behavior.</result>
+> <usage><subagent_tokens>57088</subagent_tokens><tool_uses>25</tool_uses><duration_ms>203392</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a0fd60b70edc05665</task-id>
+> <tool-use-id>toolu_01A2WqTSaDisyTTfDLeivaQr</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/11968c9b-70ed-460f-9055-e6fe9af77946/tasks/a0fd60b70edc05665.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit API endpoint duplication" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough to produce the audit. Here are the findings, ranked by drift risk (most severe first).
+>
+> ---
+>
+> # Endpoint-layer duplication audit — `/mnt/c/repos/cma_platform/cma`
+>
+> ## 1. [CRITICAL] Auth/permission gate is implemented 4 different ways for the same form data — and is entirely ABSENT on the JSON API endpoints
+> The same underlying record/list data is reachable through four entry points, each with a different (or missing) permission check:
+>
+> - `cma/form.php:108-131` — enforces login cookie + `MenuService::getFormAccessLevel($formName)`, returns 403 on `ACCESS_NONE`. This is the *only* path that actually gates form access.
+> - `cma/form_api.php:439-1530` — **no top-level auth at all.** The switch starts straight after form-name validation (`:401-434`). Only `debug_access` checks `isDeveloper` (`:443`) and `logJsError` peeks at `isLoggedIn` (`:1279`). `save`/`delete`/`record`/`tableData`/`subform` run with zero permission check.
+> - `cma/api/form_list.php`, `cma/api/form_record.php`, `cma/api/form_subform.php` — **no `SecurityHelper` call anywhere** (confirmed: the auth grep returns nothing for these three; only a `405`/JSON-encode line). Anyone who can reach the URL can GET/POST/DELETE records.
+> - `cma/subform.php:36-49` — legacy path, uses `SecurityHelper::checkFormRights($userId, $formId)` with a *parent-inheritance* rule and a `SUBFORM_BEHEER`/`ACCESS_FULL_BEHEER` refinement that exists nowhere else.
+>
+> **Drift evidence:** `form.php` was hardened with menu-based access; the JSON endpoints it feeds were not. Contrast with the *other* files in `cma/api/` which do gate (`config_api.php:25`, `dashboard_stats.php:23`, `form_definition.php:20`, `forms_index.php:28`) — so the pattern exists and was simply never applied to the form-data endpoints.
+> **Canonical home:** one `requireFormAccess($formName, $minLevel)` helper (wrapping `MenuService::getFormAccessLevel`) called at the top of `form_api.php` and each `cma/api/form_*.php`; delete the bespoke check in `subform.php`.
+>
+> ## 2. [HIGH] Record get / save / delete implemented twice with divergent business logic
+> - `cma/form_api.php` — `record`/`get_form` (`:791-845`), `save` (`:847-1016`), `delete` (`:1018-1048`). Uses `FormDataProvider::getJsonFormRecordData / saveJsonFormRecord / deleteJsonFormRecord` (form-name based).
+> - `cma/api/form_record.php` — `GET`/`POST`/`DELETE` (`:29-167`). Uses `FormDataProvider::getRecordData / saveRecord / deleteRecord` plus `JsonFormService` / `ConfigFormService` (formId based).
+>
+> **Drift evidence (already diverged):** the `form_api.php` `save` path does datetime date+time recombination (`:934-958`), `users`-form validation (`:973-984`), `ensureMinimumUserLevels()` (`:998-1000`), and WebP variant regeneration (`:1006-1012`). `form_record.php` POST (`:111-136`) does **none** of these — a record saved through `form_record.php` skips all of it. Parameter parsing also differs: `form_api` reads POST form fields + `ID`; `form_record.php` reads a JSON body with `formId`/`id`/`data`. ID handling differs (`Request::queryIntAndGuid` + raw `id` in `form_record.php:35-36` vs `id`-then-`ID` fallback in `form_api.php:796-797`).
+> **Canonical home:** collapse onto one service method (`FormDataProvider::save/get/deleteJsonFormRecord`); make `form_record.php` a thin adapter or retire it.
+>
+> ## 3. [HIGH] Subform data has THREE parallel server paths returning two different shapes
+> - `cma/form_api.php` `subform` (`:1050-1066`) and batch `subforms` (`:1068-1122`) → `ListService::getSubformTableHtml` (**HTML**).
+> - `cma/api/form_subform.php:113` → `ListService::getSubformTableJson`, and for config forms `ConfigFormService::getSubformListData` (`:56`) (**JSON rows**).
+> - `cma/api/form_list.php:58-71` subform branch → `ConfigFormService::getSubformListData` / `JsonFormService::getSubformListData` (**JSON rows**) — a *second* JSON subform entry point.
+>
+> Consumer `cma/subform.php:105` hard-codes `data-url="api/form_subform.php?..."`, while `form_api.php:823` piggybacks `getSubformTableHtml` onto the record response.
+>
+> **Drift evidence:** subform-index resolution is written three ways — `form_list.php:60-67` loops `$jsonData['subforms']` matching `name`/`formName`; `form_subform.php:32` just casts `subform` to int; `form_api.php:1054` reads `SubformIndex`. `ConfigFormService::getSubformListData` is now called from three unrelated call sites (`form_list.php:68`, `form_subform.php:56`, `SubformService.php:105,431`).
+> **Canonical home:** `SubformService` should expose one `getSubform(formName, parentId, index, options)`; endpoints choose only HTML-vs-JSON rendering of its result. `form_list.php`'s subform branch should delegate to `form_subform.php`'s logic.
+>
+> ## 4. [HIGH] List/table data duplicated; `list` action is advertised but dead
+> - `cma/form_api.php` `tableData` (`:709-755`) → `ListService::getJsonFormTableJson` (JSON rows).
+> - `cma/api/form_list.php` (whole file) → `FormDataProvider::getListData` / `JsonFormService::getListData` / `ConfigFormService::getListData` (JSON rows).
+>
+> Same responsibility (paged/filtered JSON list), two independent implementations with independent option-building.
+> **Drift evidence:** `list` is whitelisted (`form_api.php:161`) and given cache headers (`:195`) but has **no `case 'list'` in the main switch** (only the cache switch at `:195`; main switch default is `:1530`) — so `?action=list` falls through to "Ongeldige actie". The handler was moved out to `api/form_list.php` but the whitelist/cache stub was left behind. `form_list.php` also clamps `pageSize` to 10–100 (`:85`) while `form_api.php` `tableData` defaults `limit` to 50 with no clamp (`:716`).
+> **Canonical home:** `api/form_list.php` is the JSON-list endpoint; drop `list` from `form_api.php`'s whitelist/cache switch, or make it an internal alias.
+>
+> ## 5. [MEDIUM] Duplicate request-parameter parsing blocks (filters / lastId / limit / search / sort)
+> Near-identical blocks, copy-pasted, no shared helper:
+> - `form_api.php` `init` (`:553-582`), `tree` (`:651-684`), `tableData` (`:713-745`) — each re-parses `filters` (json_decode + `Arr::isArray`), `lastId`, `limit`, `search`.
+> - `api/form_subform.php:77-110` — same four params parsed again (plus `pageSize ?: limit`, `sortDirection ?: sortDir`).
+> - `api/form_list.php:83-98` and `:128-143` — the `filter[...]` bracket-form parser is duplicated **twice within the same file** (JSON-form branch and legacy-ID branch, identical loop).
+>
+> **Drift evidence:** `limit` default is calculated differently per case — `init` uses 200 (`:579`), `tree` uses 500 (`:679`), `tableData` uses 50 (`:716`); `sortDir` default is `ASC` in most but `form_subform.php:94` layers `sortDirection`→`sortDir`→`ASC`. Two different filter grammars coexist (`filters={json}` vs `filter[name]=val`).
+> **Canonical home:** a `ListOptions::fromRequest()` (or `ListQuery` value object) parsing filters/lastId/limit/search/sort once; every list/tree/table/subform case consumes it.
+>
+> ## 6. [MEDIUM] Combo-options loop copy-pasted, plus a separate combo endpoint
+> - `form_api.php` builds the field→options map with an identical `foreach … getJsonFormComboOptions` loop in three places: `init` combos (`:606-611`), `init` searchCombos (`:623-628`), and `combos` batch (`:1177-1182`); single `combo` at `:1158`.
+> - `cma/api/forms_index.php` is a *fourth* combo source (the `[{id,text}]` shape for the `form` field picker), independently checking auth and filtering system forms (`:40-53`).
+>
+> **Drift evidence:** the three in-file loops are byte-for-byte the same except the target array name — any change (e.g. adding filter context, which `combo` at `:1150-1157` already has but the batch loops do not) has to be made in three spots and already isn't consistent.
+> **Canonical home:** `FormDataProvider::getComboMap(formName, array $fields, $filterContext)`; the four call sites reduce to one call.
+>
+> ## 7. [MEDIUM] Response-envelope shaping done three incompatible ways
+> - `form_api.php:309` defines `outputJson()` — adds UTF-8 sanitisation, dev diagnostics, and `PerformanceLogger::logApi`.
+> - 11 files under `cma/api/` use `Response::json(...)`.
+> - 39 occurrences under `cma/api/` hand-roll `echo json_encode(['success' =&gt; false, 'error' =&gt; …])`. `form_list.php` inlines `json_encode($result, JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE)` four times (`:72,106,148` + error `:162`); `form_record.php` repeats the same flags at `:94` and bare `json_encode` elsewhere.
+>
+> **Drift evidence:** three success envelopes with different guarantees — `outputJson` sanitises UTF-8 and perf-logs; `Response::json` sets status codes; the raw `echo json_encode` in `form_record.php`/`form_list.php` does neither, and inconsistently applies `JSON_INVALID_UTF8_SUBSTITUTE` (present on list/record reads, absent on their own error branches → a corrupt-UTF8 error message can itself fail to encode and emit an empty body).
+> **Canonical home:** everything routes through `Response::json()` (or `outputJson` folded into it); ban bare `echo json_encode` in endpoints.
+>
+> ## 8. [MEDIUM] Tool name→file routing exists in two independent maps
+> - `cma/tools.php:60-116` `$toolNameMap` (friendly name → `tools/*.php`) and `:124-136` `$formBackedTools` (alias → JSON form) resolve `?tool=`.
+> - `cma/api/tools-catalog.php:27` `buildToolsTreeData()` independently produces the launcher catalog that lists the same tools.
+> - `cma/main.php:86` separately whitelists `^(tools|api)/[a-zA-Z0-9_-]+\.php$`, and `cma/web.config:65-68` has its own `^tools/?$` rewrite.
+>
+> **Drift evidence:** the code comments themselves document this drift class — `tools.php:106-115` explains keys had to be hand-added to `$toolNameMap` because a tool was "surfaced in the catalog but previously reachable only by URL," and warns the launcher's `resolveNav()` derives keys that must be matched "or [the tile] renders blank." Catalog and resolver are two sources of truth for one tool set.
+> **Canonical home:** derive both the catalog and the `?tool=` resolver from a single tools registry (one array/JSON), so `tools-catalog.php` and `$toolNameMap` can't disagree.
+>
+> ## 9. [LOW-MEDIUM] Form-URL grammar parsed in three layers
+> - `cma/web.config:105-139` — six `form/…` rewrite rules mapping path segments → `main.php?page=form.php?form=&amp;formID=&amp;popup=&amp;popupID=&amp;subpopup=…`.
+> - `cma/main.php:61-119` — re-parses `page`, splits embedded query, re-injects params.
+> - `cma/form.php:38-39` → `FormRoute::fromRequest()` normalises `formID`/`id`/`ID`/`popup`/`popupID`/`New`; the comment at `form.php:31-37` states it is "the server-side mirror of cma/assets/js/url-manager.js."
+>
+> **Drift evidence:** four spellings of the record id (`formID`, `id`, `ID`, `New`) are reconciled in `FormRoute`, but the web.config rules emit `formID`/`popupID` positionally and `main.php` forwards them blindly — a new segment added to the rewrite grammar must also be taught to `FormRoute` and to `url-manager.js`. Three parsers, one grammar.
+> **Canonical home:** `FormRoute` is already the intended single contract; keep web.config purely positional and ensure `url-manager.js` and `FormRoute` share a documented segment spec (the only unavoidable duplication is JS-vs-PHP).
+>
+> ## 10. [LOW] config read/write split — clean but same pattern
+> `cma/api/config_api.php` (GET: `list`/`get`/`schema`, `:41-51`) and `cma/api/config_post.php` (POST: `save`/`delete`, `:49-54`) duplicate the `isAdmin` gate (`:25` / `:27`) and the action-switch skeleton. This is a deliberate GET/POST split and currently consistent, so drift risk is low — noted only because it's the same "two files, one resource" shape as #2/#4 and is a candidate to merge behind one method-dispatching endpoint.
+>
+> ---
+>
+> ### Cross-cutting recommendation
+> The recurring root cause is that `form_api.php` (HTML-returning, form-name based, migration-era) and `cma/api/form_*.php` (JSON-returning, formId based) were written as parallel stacks over the same `FormDataProvider`/`ListService`/`ConfigFormService`/`JsonFormService` services. The services are already shared; the duplication lives entirely in the **HTTP adapter layer** (param parsing, auth, envelope). Three small shared helpers would eliminate most of findings 1, 5, 6, 7: `requireFormAccess()`, `ListOptions::fromRequest()`, and routing all output through `Response::json()`.
+>
+> Not inspected but flagged as likely additional list-data paths worth the same audit: `cma/details_getdata.php` (7.8 KB, name suggests a legacy list/detail data endpoint) and `cma/wizards/file_list_ajaxdata.php`.</result>
+> <usage><subagent_tokens>78404</subagent_tokens><tool_uses>20</tool_uses><duration_ms>225159</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a5e9842e1525ebbd4</task-id>
+> <tool-use-id>toolu_015V2PkkdWC2HXZirKX6QfG8</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/4c10bf01-6ac5-42cd-b645-c012d5313179/tasks/a5e9842e1525ebbd4.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Scan form-controller.js for missing await" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have completed a thorough analysis of all ~45 async methods/functions in `form-controller.js` and their call sites.
+>
+> ## Findings
+>
+> The file is largely clean with respect to missing-await bugs. The overwhelming majority of non-awaited async calls are **deliberate fire-and-forget terminal actions** — click-handler navigation (`self.loadRecord(id)` on row/tree/list clicks), post-save/post-delete list refreshes, cross-window parent refreshes (`openerCmaForm.loadList()`), and top-level `formInit()` bootstrap in `init()`. None of those have dependent code after them, so they are correct. The core save/load/delete flow (`saveRecord` → `executeAfterPost`/`loadList`/`refreshRow`, `_doLoadRecord`, `Promise.allSettled` for checklists/subforms/renderers) is properly awaited.
+>
+> I found **one** plausible correctness bug plus one intentional-by-design non-await worth noting:
+>
+> ### 1. `setParentFieldValue()` not awaited before `captureOriginalValues()` — race — medium confidence
+> `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:9051`
+> Call: `this.setParentFieldValue();` (async, line 2781) inside `newRecord()`, followed 10 lines later by `this.captureOriginalValues();` at **line 9061**.
+>
+> `setParentFieldValue()` is async and, when the parent field is a `lib-combo`, always takes the async branch: it `await fetch(...)`s the option label and only then sets `field.value = String(this.parentID)` (lines 2818-2834). Because the call is not awaited, `captureOriginalValues()` (line 9061) runs first and records the parent field's `data-original-value` as **empty**. `setParentFieldValue` then sets the field to `parentID` afterward.
+>
+> Concrete failure: user clicks "add subform record" for a subform whose parent FK is a `lib-combo`. The form opens; the parent combo gets its value set asynchronously *after* originals were captured. `hasUnsavedChanges()` (line 9681, compares current vs `dataset.originalValue`) now reports the fresh record as dirty even though the user typed nothing → cancelling or navigating away triggers a bogus "unsaved changes" confirmation, and `buildChangelog` (line 10036/10042) sees the parent field as a change from `''` to `parentID`. (Also affects the combos-not-yet-loaded path via the 5s poll at lines 2789-2793, for any parent field type.) The copy path at `loadRecordForCopy` line 8293 has the same non-await but is harmless there since it uses `setDirty(true)` and never captures originals.
+>
+> Fix would be `await this.setParentFieldValue();` in `newRecord()` (and making `newRecord`'s callers await it) — but that's an implementation decision, not requested here.
+>
+> ### 2. `applyRecordData(data.record)` not awaited in `_doFormInit()` — intentional, NOT a bug
+> `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:1962` — `this.applyRecordData(data.record);` (async, line 1996). The code comment at line 2016 explicitly documents this as intended ("formInit() calls applyRecordData() without await, then loadRecord()"), and `applyRecordData` internally awaits its own subform/checklist loads and calls `captureOriginalValues` at line 2042 after populating. Reporting for completeness; I do not consider it a defect.
+>
+> No category-1 (used-as-value in `if`/assignment), category-3 (promise assigned to DOM/innerHTML/JSON), or category-4 (dropped required return value) bugs were found — a grep for `if (this.&lt;async&gt;(` and `= this.&lt;async&gt;(` patterns across all listed async methods returned nothing, and `handleResponse` (the only async whose return value is consumed) is awaited at both call sites (lines 7036, 8183).</result>
+> <usage><subagent_tokens>52289</subagent_tokens><tool_uses>18</tool_uses><duration_ms>230268</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a4d07ed7b123931b2</task-id>
+> <tool-use-id>toolu_017uc7ujioa9Toa9f8dUhhuQ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/11968c9b-70ed-460f-9055-e6fe9af77946/tasks/a4d07ed7b123931b2.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit PHP services duplication" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have gathered enough evidence across all five areas. Here are my findings, ranked by drift risk.
+>
+> ---
+>
+> # Duplicated Logic / Parallel Code Path Audit — `cma/classes`
+>
+> ## Architecture note
+> The delegation chain is clean and should be *skipped*: `FormDataProvider::*` → `Services\ListService::*` → real service; `ListService`'s subform/table methods are all thin `@deprecated`-style pass-throughs (`ListService.php:308-327`, `266-301`). The duplication lives in the *real* implementations, which split legacy-DB vs JSON into fully parallel bodies.
+>
+> ---
+>
+> ## 1. HAS BITTEN — `getTableHtml` legacy vs JSON: twin query+render+pagination builders
+> **`Services/TableService.php:33-485` (legacy, numeric formId) vs `Services/JsonFormService.php:45-485` (JSON, string formName).**
+> `TableService::getTableHtml` line 36-38 hands string forms to `JsonFormService::getTableHtml`, so these two are the two halves of one feature, each ~450 lines, independently doing: column selection, SELECT build, search filter, field filters, keyset pagination, FK batch lookup, `&lt;lib-table&gt;` HTML render, empty-state message. This is the same twin-builder shape as the FormTemplate bug you already found. Concrete drift already present:
+>
+> - **`totalCount` exists on the JSON path only.** `JsonFormService.php:378-423` computes `totalCount` with elaborate DISTINCT-dedup logic and a comment block about a bug that "kept coming back." `TableService`'s result array (`TableService.php:448-467`) has **no `totalCount` key at all** — the legacy record counter can never have received that fix.
+> - **Keyset pagination block is copy-paste and already forked.** `TableService.php:266-273` uses `"[$idField] $comparison $lastIdEscaped"`; `JsonFormService.php:368-376` is byte-for-byte the same except it uses `$qualifiedIdField` (a JOIN-ambiguity fix, `:349-359`) the legacy copy never got.
+> - **Search filter forked.** `JsonFormService.php:279-337` grew numeric-search + search-by-ID fixes (with regression comments); `TableService.php:247-256` is still a bare `LIKE` over every column.
+>
+> Canonical home: extract a shared `ListQueryBuilder` (columns + WHERE + keyset + count) and a shared row/HTML renderer; the two entry points should differ only in how they load field metadata.
+>
+> ---
+>
+> ## 2. LIKELY TO BITE — column-type detection has two mappers that already disagree
+> **`Services/JsonFormService.php:2140-2161` (`detectColumnType`) vs `Services/TableService.php:920-964` (`getColumnDataType`).**
+> Both map a field to the same output vocabulary (`date`/`time`/`boolean`/`combobox`/`number`/`text`) for the `data-type` attribute, from the same ADO schema codes — independently, and they have drifted:
+> - Numeric codes: legacy recognizes `[2,3,4,5,6,14,17,18,19,20,21,131]`; JSON recognizes only `['2','3','4','5','6','131']` — misses 14,17,18,19,20,21.
+> - Time: legacy maps schema code `134` → `time`; JSON `detectColumnType` checks only the string `'time'` and **never code 134**, so a JSON-form time column carrying `dataType:"134"` renders as `text`.
+>
+> There is also a *third, cruder* copy of this same "detect type from value" logic inline in the subform methods (`RecordService.php:604-609`, `SubformService.php:220-231`, the latter additionally handling `DateTime`/`bool`). Canonical home: one `FieldType::detect()` used by every list/subform renderer.
+>
+> ---
+>
+> ## 3. LIKELY TO BITE — subform list data implemented four independent times
+> Four methods produce a "subform rows for a parent record" response with overlapping-but-inconsistent shapes:
+>
+> | Method | file:line | Source | Pagination | Notable shape |
+> |---|---|---|---|---|
+> | `RecordService::getSubformData` | `RecordService.php:490-649` | legacy SQL, `TOP 500` | none | `rows/columns/totalCount/canAdd` |
+> | `SubformService::getSubformTableJson` | `SubformService.php:48-364` | legacy SQL | keyset + `hasMore`/`lastId` | `rows/columns/totalCount/hasMore/lastId/canAdd` |
+> | `ConfigFormService::getSubformListData` | `ConfigFormService.php:593-776` | JSON config file (nested) | none | `html/items/data/columns/total/count/canAdd/canEdit/canDelete` |
+> | `JsonFormService::getSubformListData` | `JsonFormService.php:1571-1661` | JSON DB table | none | `data/total` only |
+>
+> `SubformService::getSubformData` (`:32-36`) even delegates *back* to `FormDataProvider::getSubformData` → `RecordService::getSubformData`, so the codebase maintains both the paginated (`getSubformTableJson`) and unpaginated (`getSubformData`) legacy readers side by side. Evidence of accidental drift:
+> - Type detection differs (see finding 2): `RecordService.php:604-609` has no `DateTime`/`bool` branch that `SubformService.php:224-227` has.
+> - The empty-`parentField` error path diverged: `SubformService.php:133-146` returns a rich `fixable`/`candidateFields` developer payload; `RecordService.php:539-546` returns a plain `self::error(...)` string.
+> - `canAdd` computed differently: `RecordService.php:644` = `$rights &gt;= ACCESS_FULL`; `SubformService.php:359` = `$rights &gt;= ACCESS_FULL &amp;&amp; $hasValidJsonForm`.
+>
+> Canonical home: one `SubformService::getRows()` returning a single shape, with source (legacy SQL / JSON table / JSON config) as a strategy.
+>
+> ---
+>
+> ## 4. LIKELY TO BITE — permission booleans (canAdd/canEdit/canDelete/canCopy) computed in 7 places
+> Each recomputes access from `formDef`/`jsonData` + level independently, and they don't agree on the formula:
+> - `FormDataProvider.php:645-647` — `$accessLevel &gt;= ACCESS_FULL &amp;&amp; ($jsonData['allowEdit'] ?? true)` (no `canCopy`)
+> - `Services/TableService.php:456-459` — `$canX &amp;&amp; $rights &gt;= ACCESS_FULL`, sourced from `formDef-&gt;hasMenuNew()/allowEdit()/hasMenuCopy()/hasMenuDelete()` (includes `canCopy`)
+> - `FormTemplate.php:275-277`, `611-620`, `1228-1230` — `$this-&gt;formDef-&gt;allowAdd() &amp;&amp; $this-&gt;accessLevel &gt;= ACCESS_FULL` (three separate spots inside one file)
+> - `Services/ConfigFormService.php:769-771` — `($subformJsonData['allowAdd'] ?? true) &amp;&amp; $hasFullAccess` where **`$hasFullAccess = SecurityHelper::isAdmin()`** (`:671`) — a *different gate* than `accessLevel &gt;= ACCESS_FULL` used everywhere else
+> - `RecordService.php:644` and `SubformService.php:359` — subform `canAdd` only, two more formulas (see finding 3)
+> - `LibTable.php:57-60` / `281-285` — object-property version
+>
+> Drift is definitional: three different truth sources (`jsonData['allowX']` vs `formDef-&gt;allowX()` vs `isAdmin()`), and `canCopy` present in some payloads and silently absent in others. Canonical home: `SecurityHelper::computePermissions(FormDefinition $def, int $level): array` returning all four keys.
+>
+> ---
+>
+> ## 5. CosmETIC→LIKELY — JSON combo/FK option loading duplicated (and legacy FK-label resolver parallels it)
+> - **JSON combo options loaded two ways.** `FormDataProvider::getJsonFormComboOptions` (`FormDataProvider.php:1264-1400+`, single field, API) and the **inline block** in `JsonFormService::getTableHtml` (`JsonFormService.php:544-626`, batch, for the table) both independently branch on the same JSON field structure (`optionsSource.type==='jsonConfig'` → `ConfigFormService::getOptionsFromConfig`; else `sql`/`dataSource`/`sourceTable`+`idField`+`displayField`). They cache differently (JsonFormService uses APCu `:584-620`; FormDataProvider doesn't).
+> - **FK-lookup map building triplicated:** `TableService.php:362-376`, `JsonFormService.php:628-640` — identical `$fkLookup[$field][$id] = $opt['text'] ?? $opt['label'] ?? $id` loops.
+> - **Single-record FK label resolution is a legacy/JSON pair:** `RecordService::resolveFkLabels` (`RecordService.php:1028-1260`) vs `FormDataProvider::resolveJsonFormFkLabels` (`FormDataProvider.php:1975-2105`) — same job (resolve FK codes → display text for one record), two bodies.
+>
+> Canonical home: a single `OptionsService::getJsonComboOptions()` used by both the table renderer and the API, plus one FK-label resolver.
+>
+> ---
+>
+> ## 6. COSMETIC (but a live drift trap) — dead duplicate `buildComboSql`
+> **`FormDataProvider.php:325-350` vs `Services/OptionsService.php:357`.**
+> `FormDataProvider::buildComboSql` is `private` and has **no callers** (grep confirms only `OptionsService::buildComboSql` is invoked, at `OptionsService.php:105,615`). It is a stale copy that has already drifted — `OptionsService`'s version added a `$recordContext` parameter and context substitution the dead copy lacks. Suggestion: delete the `FormDataProvider` copy.
+>
+> ---
+>
+> ## 7. COSMETIC — `getTableJson` twins mirror the `getTableHtml` twins
+> `TableService::getTableJson` (`:494`) and `JsonFormService::getTableJson` (`:1411`) repeat, in JSON-output form, the same column/SQL/search/keyset logic already duplicated in the two `getTableHtml` methods (finding 1) — so the query+pagination logic effectively exists **four** times. Folding finding 1 into a shared query builder collapses these too. (`ListService::getTableJson:274` and `getListData` at `ConfigFormService:61`/`JsonFormService:1425`/`ListService:38` are genuinely different data sources — a strategy split, not copy-paste — so lower priority.)
+>
+> ---
+>
+> ### Suggested priority order
+> 1. Unify `getTableHtml` legacy/JSON (finding 1) — same failure mode that already bit you; the missing `totalCount` on the legacy path is a concrete latent bug.
+> 2. Single `FieldType::detect()` (finding 2) — proven-divergent, easy to consolidate.
+> 3. Single subform-rows service (finding 3) and single `computePermissions()` (finding 4).
+> 4. Consolidate combo/FK loading (finding 5), delete dead `buildComboSql` (finding 6).</result>
+> <usage><subagent_tokens>87818</subagent_tokens><tool_uses>35</tool_uses><duration_ms>286472</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>af148d298af9bc075</task-id>
+> <tool-use-id>toolu_015G9GA93SSABsCJYeEAVhc6</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/11968c9b-70ed-460f-9055-e6fe9af77946/tasks/af148d298af9bc075.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit helpers/lib duplication" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough to compile the audit. Here are the findings, ranked by drift risk.
+>
+> ---
+>
+> # Duplication Audit: src/helpers vs library/lib_*.inc vs cma/classes
+>
+> ## Summary of the landscape
+> The migration is partly done well: many legacy procedural functions have already been reduced to **thin wrappers** that delegate to the class (`Lib_FixDateValue`→`Date::fixValue`, `gfxSpex`→`Image::getInfo`, `SendMail`/`LibMailer`→`Email`, `lib_Cache_FromFile`→`Cache::loadFile`, `SqlHelper::quoteValue`→`SQL::postString`). Those are healthy and need no action. The genuine drift risks are a smaller set where a **full second implementation** still lives, or where a **constant is defined with different values in different files**. Most duplicated procedural bodies are now *unreachable* (dead), which lowers their risk but leaves live landmines.
+>
+> ---
+>
+> ## SEVERITY 1 — Constant value drift, both copies reachable
+>
+> ### 1a. `CACHE_PATH` / `XSLT_PATH` — backslash vs forward-slash
+> - `library/library.inc:30` → `define("CACHE_PATH", 'cache\\')` (Windows backslash) and `:29` → `XSLT_PATH = 'xslt\\'`
+> - `library/config/constants.php:16-17` → `'xslt/'` / `'cache/'`
+> - `templates/_bootstrap_constants.inc:16-17` → `'xslt/'` / `'cache/'`
+>
+> Duplicated: the cache/xslt directory-path constants. All three are `if(!defined)`-guarded, so the **value depends on which file loads first** — a classic ASP-ism (`cache\`) can win on one entry point and the POSIX form on another. On Linux (this deploy is WSL/Linux) the backslash form produces a literal `cache\` filename. Reachability: `library.inc` is the legacy aggregator; `constants.php` and `_bootstrap_constants.inc` are the modern bootstrap constants — different request entry points load different ones.
+> Canonical home: keep the POSIX definition in `library/config/constants.php` only; delete the backslash defines in `library.inc`.
+>
+> ### 1b. jQuery asset version drift (`STRJQUERYVERSION` / `JQUERYVERSION`)
+> - `cma/bootstrap.inc:246-247` → `STRJQUERYVERSION = '1.10.2'`, then `JQUERYVERSION = STRJQUERYVERSION`
+> - `templates/_bootstrap_constants.inc:74,77` → `JQUERYVERSION = '1.11.3'`, `STRJQUERYVERSION = '1.11.3'`
+>
+> Duplicated: the asset-version constant used to build jQuery `&lt;script&gt;` URLs (point 3, asset-URL/version helper). Guarded, so whichever bootstrap loads first pins the version — the app can serve **jQuery 1.10.2 on one path and 1.11.3 on another**. Both files are live bootstraps.
+> Canonical home: one constants file; the two disagree on the actual version number, so this needs a decision, not just dedup.
+>
+> ---
+>
+> ## SEVERITY 2 — Full re-implementation, reachable, output differs
+>
+> ### 2. Date formatting: `library/lib_general.inc` vs `App\Library\Date`
+> Reachable caller of the legacy path: `library/classes/class_table.inc:219-227` (loaded via `cma/bootstrap.inc` / `library/library.inc`) calls `lib_time()`, `strMediumDate()`, `Lib_FixDateValue()`.
+>
+> - `strMediumDate()` `library/lib_general.inc:111` vs `Date::mediumDate()` `src/helpers/Date.php:276` — **real output drift**:
+>   - legacy: `15-mrt-2024` (dash-separated, zero-padded day via `date('d')`, **never** relative)
+>   - class: `15 mrt 2024` (space-separated, unpadded day via `date('j')`, and returns `Vandaag/Morgen/Gisteren` when `Application::get('library_relative_dates')` is on)
+>   So the legacy list renderer and the new renderer format the same date differently.
+> - `lib_date_sortable()` `:89` returns `Ymd` (`20240315`) vs `Date::sortable()` `:133` returns `Y-m-d` (`2024-03-15`) — different format.
+> - `lib_datetime_sortable()` `:69` returns `Ymd H:i:s` vs `Date::sortableDateTime()` `:149` returns `Y-m-d_H_i` — different format.
+> - `lib_date_ddmmmmmyyyy()` `:38` and `strWeekday()` `:142` duplicate `Date::longDate()`/`Date::shortWeekday()` (these two are currently *not* called elsewhere).
+> - `lib_time()` `:26` == `Date::time()` `:168` — identical (safe).
+> - `Lib_FixDateValue()` `:15` is already a clean wrapper to `Date::fixValue` — good.
+>
+> Canonical home: `App\Library\Date`. Convert the remaining `lib_general.inc` date functions to wrappers (as `Lib_FixDateValue` already is), or repoint `class_table.inc` at `Date::` directly. Note `strMediumDate` cannot become a pure wrapper without accepting the dash-vs-space/relative behavior change.
+>
+> ---
+>
+> ## SEVERITY 3 — Divergent duplicate logic, currently dead (latent landmines)
+>
+> ### 3. File-cache path scheme: `library/lib_cache.inc` vs `App\Library\Cache`
+> `lib_cache.inc` self-describes as "NOT YET MIGRATED". Two incompatible path schemes exist, and the legacy file is even **internally inconsistent**:
+> - `lib_Cache_GetFilename()` `library/lib_cache.inc:78` → `base_path + 'cache/' + Lib_FilenameSanitize(...)`
+> - `lib_CacheFileClear()` `:25` → `base_path + CACHE_PATH + $identifier` (raw, **no sanitize, different constant**) — so Clear can't reliably delete what Save wrote.
+> - `Cache::getCacheFilename()` `src/helpers/Cache.php:1052` → `Application::get('cache_directory', sys_get_temp_dir().'/cma_cache') + '/' + preg_replace('/[^a-zA-Z0-9_\-]/','_',$id) + '.cache'` — **different directory, different sanitizer, `.cache` suffix**.
+>
+> Reachability: `lib_CacheFileSave/Load/Clear` have **zero real callers** (the earlier "1 hit" was a doc-comment in `Cache.php:1025`). `lib_Cache_FromFile/ToFile` are already wrappers to `Cache::`. Risk is latent: if anyone revives the `lib_CacheFile*` trio it silently reads/writes a different location than `Cache`.
+> Canonical home: `App\Library\Cache`; delete the `lib_CacheFile*` bodies. Also note the duplicated filename sanitizer — `Lib_FilenameSanitize()` (`library/lib_filename.inc`, only used by the dead `lib_cache.inc`) vs the inline `preg_replace` inside `Cache::getCacheFilename`.
+>
+> ### 4. HTML helpers: `library/lib_html.inc` vs `App\Library\Html` (+ private copy in Email)
+> - `HTMLDecompile()` `library/lib_html.inc:40` is reachable via `cma/template_fillrep.php:138`. It is ~70 lines; `Html::decode()` `src/helpers/Html.php:105` is a one-line `html_entity_decode`. These are **not equivalent** despite the name overlap — the class version does not cover the legacy behavior, so you cannot blindly swap.
+> - `lib_HTML_CharacterCompile()` `library/lib_html.inc:165` is duplicated as a **private method** `Email::htmlCharacterCompile()` `src/helpers/Email.php:840` (the code comment at `:842` even says "This would contain the lib_HTML_CharacterCompile logic"). `Html::fixUnicode()` `:23` corresponds to `lib_HTML_fixUnicode()` `library/lib_html.inc:124` (legacy dead).
+> Canonical home: `App\Library\Html`; port the full `HTMLDecompile`/`CharacterCompile` bodies into `Html` and have both `template_fillrep.php` and `Email` call it (Email currently has its own private fork → drift-prone).
+>
+> ---
+>
+> ## SEVERITY 4 — Dead 1:1 duplicates (cleanup, low risk)
+>
+> ### 5. Filesystem helpers: `library/lib_dir.inc` vs `App\Library\File`
+> Direct twins, all with **zero live callers** (legacy side dead):
+> `lib_FileExists`↔`File::exists`, `lib_FileDelete`↔`File::delete`, `lib_FolderExists`↔`File::folderExists`, `lib_FileCopy`↔`File::copy`, `lib_CreateFolder`↔`File::createFolder`, `lib_ReadAsciiFile`↔`File::readAsciiFile`, `lib_CreateAsciiFile`↔`File::createAsciiFile` (`library/lib_dir.inc:13-207` vs `src/helpers/File.php:29-228`).
+> Canonical home: `App\Library\File`; retire `lib_dir.inc`.
+>
+> ### 6. URL slug: `lib_friendlyURL()` vs `Str::slug()`
+> `library/lib_url.inc:92` vs `src/helpers/Str.php:73`. **Different algorithms** — `lib_friendlyURL` has Dutch-specific rules (`&amp;`→`en`, `%`→`procent`, strips lidwoorden) that `Str::slug` does not. `lib_friendlyURL` has zero callers (dead). If URL slugging is ever needed again, these will produce different slugs.
+> Canonical home: fold the Dutch rules into `Str::slug` (or a `Str::friendlyUrl`) before deleting the legacy one.
+>
+> ### 7. Query-string/int helpers overlap (3-way)
+> `lib_general.inc` `Lib_QueryString_Int` / `_IntAndComma` / `_IntAndGuid` / `Lib_CleanUserInput` (`:290-316`) overlap both `Request::queryInt`/`queryIntAndComma`/`queryIntAndGuid` (`src/helpers/Request.php:220-279`) and `Str::numbersOnly`/`numbersOnlyAndComma` (`src/helpers/Str.php:181-195`). Legacy side dead.
+> Canonical home: `Request::` for request parsing, `Str::` for pure string cleaning.
+>
+> ---
+>
+> ## SEVERITY 5 — Multiple logging/config layers (architectural fragmentation, not output drift)
+>
+> ### 8. Logging systems
+> `App\Library\Log` (`src/helpers/Log.php`, simple single-file init/write/close) is used **only** by `src/helpers/Database.php`. `Cma\Services\Logger` (`cma/classes/Services/Logger.php`, leveled PSR-style) is used in ~28 files. Plus `Cma\Services\PerformanceLogger` and the very large `src/helpers/ErrorHandler.php` + `src/helpers/Error.php`. These overlap on "append a line to a log file" with different formats/locations.
+> Canonical home: consolidate on `Cma\Services\Logger`; make `App\Library\Log` (or the `Database` call site) delegate to it.
+>
+> ### 9. Constants defined in 2 places with equal values (low risk, guarded)
+> `ADBOOLEAN`/`ADINTEGER`/`ADDATE` — `cma/bootstrap.inc:988` vs `cma/classes/CmaRepository.php:20` (both `11`, guarded). `CONST_STRSORTPARAM='Sort'` in three files (`cma/bootstrap.inc:15`, `library/lib_table.inc:5`, `library/config/constants.php:70`). `VIEW_LIST`/`VIEW_THUMB`/`VIEW_COOKIE` duplicated across `cma/wizards/file_list.php:18` and `file_list_ajaxdata.php:14`. Values currently agree, so risk is only future drift.
+> Canonical home: one constants file (`library/config/constants.php`); remove the inline re-defines.
+>
+> ---
+>
+> ## Confirmed NON-issues (already correct wrapper pattern — do not touch)
+> - `Lib_FixDateValue()` → `Date::fixValue` (`library/lib_general.inc:15`)
+> - `gfxSpex()` → `Image::getInfo`/`getType` (`library/lib_imgformat.inc:23`) — reachable from `cma/tools/tools_db_consistency.php:193`, `cma/wizards/file_outputfile.php:83`, but a clean delegate
+> - `SendMail()`/`LibMailer` → `App\Library\Email` (documented thin wrapper since v1.28.30)
+> - `Cma\SqlHelper::quoteValue` → composes `SQL::postString`/`postDateStr` (schema-aware layer, not a duplicate escaper)
+> - `lib_Cache_FromFile`/`ToFile` → `Cache::loadFile`/`saveFile`
+>
+> ## Key file:line index
+> - Date twins: `library/lib_general.inc:26,38,69,89,111,142` ↔ `src/helpers/Date.php:133,149,168,206,223,276`; live caller `library/classes/class_table.inc:219,221,227`
+> - Cache twins: `library/lib_cache.inc:25,36,53,78` ↔ `src/helpers/Cache.php:981,1000,1031,1052`
+> - File twins: `library/lib_dir.inc:13-207` ↔ `src/helpers/File.php:29-228`
+> - HTML twins: `library/lib_html.inc:40,124,165` ↔ `src/helpers/Html.php:105,23` + `src/helpers/Email.php:840`
+> - Constant drift: `library/library.inc:29-30`, `library/config/constants.php:16-17`, `templates/_bootstrap_constants.inc:16-17,74,77`, `cma/bootstrap.inc:246-247`</result>
+> <usage><subagent_tokens>62681</subagent_tokens><tool_uses>17</tool_uses><duration_ms>488919</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a719340cb332b417a</task-id>
+> <tool-use-id>toolu_01YCEUhytuemF1QKd2JSHgXt</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/11968c9b-70ed-460f-9055-e6fe9af77946/tasks/a719340cb332b417a.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit webcomponents/CSS duplication" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have gathered comprehensive evidence. Here is the structured audit, ranked most severe first.
+>
+> ---
+>
+> # Front-end Duplication / Parallel-Path Audit — cma_platform
+>
+> ## 1. `escapeHtml` — 11+ divergent copies, quote-escaping drifts (SECURITY-RELEVANT) — HIGHEST
+> The canonical global escapes quotes; almost every private copy does not, so the same helper name is XSS-safe in attribute context in some call sites and unsafe in others.
+>
+> - Canonical: `cma/assets/js/cma-utils.js:271` `CMA.utils.escapeHtml` → `div.innerHTML` **plus** `.replace(/"/g,'&amp;quot;').replace(/'/g,'&amp;#039;')` (attribute-safe), exported as `window.escapeHtml`.
+> - Drifted copies that do NOT escape quotes:
+>   - `cma/assets/js/cma-utils.js:251` (inside `cmaErrorParser` object) — `div.textContent`, no quote escaping — **same file as the canonical one**.
+>   - `cma/assets/js/cma.js:779` — regex `&amp; &lt; &gt;` only.
+>   - `cma/assets/js/form-controller.js:5454` — `textContent`, no quotes.
+>   - `cma/assets/js/table-preferences.js:1448` — `textContent`, no quotes, **no null guard** (throws on null).
+>   - `cma/assets/js/inline-edit.js:2643` — correctly delegates to global (the one good citizen).
+>   - Component-private copies: `library/webcomponents/lib-dialog.js:908` &amp; `:1202`, `library/webcomponents/lib-loader.js:274`, `library/webcomponents/lib-table.js:1126` (`#escapeHtml`), `cma/webcomponents/cma-groupbox.js:179`, `cma/webcomponents/cma-tabs.js:1386`.
+> - Reachable: yes, all. Drift evidence: quote handling and null handling differ across copies.
+> - Canonical home: delete local copies, everyone calls `CMA.utils.escapeHtml` / `window.escapeHtml` (component copies can keep a thin private alias but must match quote behavior).
+>
+> ## 2. Group folding — legacy `CMA.groups`/`grp_flip` + `.groupbox` markup vs `cma-groupbox` component — HIGH (this is the exact pattern the user flagged, still live)
+> - Component path: `cma/classes/FormRenderer.php:1045` emits `&lt;cma-groupbox&gt;`; behavior in `cma/webcomponents/cma-groupbox.js`; CSS `cma/assets/css/style.css:473-633`.
+> - Legacy path still reachable: `cma/classes/FormControlHelper.php:365` (`FormControlHelper::editTip()`) emits `&lt;div class="groupbox group_open" onclick="grp_flip(0,formId)"&gt;` + `.groupbox-title` / `.groupbox-chevron`, driven by `CMA.groups` at `cma/assets/js/cma.js:1476-1522` via globals `grp_set/grp_flip/grp_init` (`cma.js:2095-2097`). `grp_init` is also still called from `form-controller.js:1440`.
+> - Drift evidence: `style.css:473` comment says "no `.groupbox` class needed" — the component was migrated off `.groupbox`, but `editTip()` still relies on `.groupbox group_open` + `grp_flip` and the surviving `.groupbox-chevron` rule. The two toggles compute chevron glyph independently (`cma.js:1493` sets `lnr-chevron-right/down`; the component sets its own).
+> - Canonical home: convert `editTip()` to `&lt;cma-groupbox&gt;` and delete `CMA.groups` + `grp_*` globals.
+>
+> ## 3. CSS `style.css` vs `form.css` — same selectors maintained twice, values already drifted — HIGH
+> Both files are loaded together on at least `cma/html_edit_link.php:15` and `cma/html_edit_image.php:12` (`minify.php?f=...style.css,form.css`), so the later file silently wins.
+> - Duplicated selectors (intersection): `.tb-btn`, `.tb-btn:hover`, `.tb-btn a`, `.tb-btn .lnr-table`, `.tb-sep`, `.toolbar-left`, `.toolbar-right`, `.checklist-group` (+ `-header/-hint/-inline/-item`), `.select2-container .select2-choice`, `tr.groupbox-end &gt; td`, `#listContent a.active::before`.
+> - Concrete drift — `.tb-btn`:
+>   - `style.css:1115` → `padding:4px`; `.tb-btn a` uses `gap:4px`; hover on `.tb-btn a:hover`.
+>   - `form.css:975` → `padding:0; padding-right:4px`; `.tb-btn a` uses `padding:3px`; hover on `.tb-btn:hover a`.
+>   - Same class, different box metrics and different hover selector structure.
+> - `tr.groupbox-end &gt; td`: `style.css:534` vs `form.css:169` (form.css adds a `border-top`).
+> - Canonical home: one owner per selector. Toolbar/groupbox/checklist/select2 rules belong in `style.css` (global); remove the `form.css` copies or scope them (`div.toolbar .tb-btn` already exists at `form.css:798` as the intended scoped variant).
+>
+> ## 4. `form.php?form=...` URL building by hand vs `url-manager.js` — HIGH volume
+> Canonical builder exists: `cma/assets/js/url-manager.js:179` `toPageUrl()` / `:127` `buildUrl()` (documented as the `Cma\FormRoute` contract at `url-manager.js:164-181`, i.e. `'form.php?form=' + encodeURIComponent(state.form)` + id/subform params). Hand-rolled concatenations bypass it:
+> - `cma/assets/js/inline-edit.js:2096` and `:2438`
+> - `cma/assets/js/main.js:1577`, `:1590`, `:1617`, `:1648`
+> - `cma/assets/js/form-controller.js:4403`, `:4710`, `:12548`
+> - `cma/assets/js/cma.js:1391` / `:1393` (`'form.php?FormID=' + sID` — note **different param name `FormID`** vs the canonical `form`/`id`, drift evidence).
+> - Reachable: all. Worst offenders: `main.js` (4 sites building sub/subsub URLs by hand) and `form-controller.js` (3 sites), which re-derive param names the url-manager already owns.
+> - Canonical home: route every internal navigation through `UrlManager.toPageUrl()` / `navigateToForm`.
+>
+> ## 5. Popup/window opening — sizing/naming duplicated across files &amp; two APIs — MEDIUM-HIGH
+> Helpers defined once in `library/library.js`: `lib_OpenWindowCentered` (`:946`), `lib_OpenWindowCenteredClose` (`:1221`), `lib_OpenSidePanel` (`:2057`), plus `lib_OpenPanel`. But raw `window.open` with hardcoded sizes coexists, and the same logical popup is opened two different ways:
+> - `'addRelated'` 800×600: `cma/assets/js/form-controller.js:4429` uses raw `window.open(popupUrl,'addRelated','width=800,height=600')` while `cma/assets/js/inline-edit.js:2451` uses `lib_OpenPanel(popupUrl,'addRelated',800,600)` — same window name/size, two mechanisms (drift risk if size changes).
+> - Other raw `window.open` sizing scattered: `form-controller.js:4076` (fileSelect 1100×700), `:4125` (imageEdit 1200×820), `cma.js:1650` (view 1000×700), `inline-edit.js:2201/2455`, plus `library/library.js:936`, `library/classes/class_tablescroll.js:72`, `cma/wizards/wizard.js:29`.
+> - The `useSidepanel ? lib_OpenSidePanel : lib_OpenWindowCentered` branch is itself re-implemented independently in `form-controller.js:4757/5102`, `inline-edit.js:2194`, and `main.js:1574/1629`.
+> - Canonical home: a single `openFormPopup(url, {name,width,height,sidepanel})` wrapper in `cma-utils.js` that internally chooses `lib_OpenSidePanel`/`lib_OpenWindowCentered`.
+>
+> ## 6. Copy-to-clipboard — canonical helper exists, 4 reimplementations — MEDIUM
+> Canonical: `cma/assets/js/cma-utils.js:114` `window.cmaCopyToClipboard` (Clipboard API + hidden-textarea/`execCommand` fallback, http-safe). Byte-for-byte re-implementations of the same fallback:
+> - `cma/assets/js/error-handler.js:618-635`
+> - `library/webcomponents/lib-message.js:37-49`
+> - `cma/webcomponents/cma-query-preview.js:1023-1047`
+> - `cma/webcomponents/cma-sql-editor.js:504-524`
+> - Reachable: yes. Drift risk: only `cma-utils`/`lib-message` guard `navigator` existence for insecure origins; the two `cma-*` component copies call `document.execCommand('copy')` directly.
+> - Canonical home: components call `window.cmaCopyToClipboard`.
+>
+> ## 7. Sortlist — legacy `CMA.listbox` (`lb_*`) vs `renderSortlist`/`cma-sortlist` — MEDIUM
+> Two server renderers for `TYPE_SORTLIST = 13` produce incompatible markup + behavior:
+> - Legacy live path: `src/helpers/FormControls.php:726-749` emits a `&lt;select name="srtlst_..."&gt;` with `onclick="lb_sortup/lb_sort(...)"` and `onkeydown="lb_key(event)"`, driven by `CMA.listbox` at `cma/assets/js/cma.js:1527-1606` (globals `lb_*` at `cma.js:2100-2105`).
+> - Modern path: `cma/classes/FormRenderer.php:1005` `renderSortlist()` emits `&lt;div class="sortlist-container" data-sortlist&gt;` + hidden input (enhanced client-side, DnD).
+> - Component `cma-sortlist` (`cma/webcomponents/cma-sortlist.js`) exists but is referenced **only** in `cma/tools/storybook.php` — an unadopted third implementation.
+> - Drift evidence: two different DOM shapes and two different reorder mechanisms (Ctrl+arrow bubble-sort vs DnD) for the same control type; `RecordService.php:1425` still parses `srtlst_{id}_info`.
+> - Canonical home: standardize on `renderSortlist` + `cma-sortlist`; retire `FormControls.php` sortlist + `CMA.listbox`.
+>
+> ## 8. Legacy client-side tree `CMA.tree` vs `cma-tree` component — MEDIUM (dormant but wired)
+> - Component: `cma/webcomponents/cma-tree.js`, used across `cma/reports.php`, `tools.php`, `listTemplates.php`, `TreeService.php`, etc.
+> - Legacy dTree builder: `cma/assets/js/cma.js:68-486` (`CMA.tree`, `Folder`/`Item`, `initializeToElement`, cookie state) with globals `gFld/insFld/F/D/I/initializeToElement` (`cma.js:2021-2043`). Still invoked defensively by `form-controller.js:2313` and `:7134` when a server response contains a `gFld` script.
+> - Reachability: no PHP currently emits `gFld`/`insFld` output (grep found zero emitters), so the legacy path appears dormant, but the branch and ~420 lines remain and re-implement expand/collapse/cookie-persist that `cma-tree` owns.
+> - Canonical home: `cma-tree`; delete `CMA.tree` and the `form-controller` fallback branches once confirmed no legacy tree emitters remain.
+>
+> ## 9. Tooltip fragmentation — 3 systems — MEDIUM/LOW
+> - `cma/assets/js/cma-utils.js:409-575` — full JS tooltip engine (`createTooltip`/`showTooltip`/`hideTooltip`/`needsJsTooltip`, class `cma-tooltip`) for `data-tooltip` + CSS `::after` fallback.
+> - `library/webcomponents/lib-tip.js` — `&lt;lib-tip&gt;` web component.
+> - `library/tooltip.css` — a third styling source.
+> - Overlap: `cma-utils` and `lib-tip` both render floating tooltips with arrow + positioning logic. Drift risk: positioning/arrow code maintained twice; which one applies depends on whether markup uses `data-tooltip` or `&lt;lib-tip&gt;`.
+> - Canonical home: pick `lib-tip` as the component; keep `cma-utils` engine only as the documented "escapes overflow:hidden clipping" fallback, or fold that capability into `lib-tip`.
+>
+> ## 10. Cookie get/set — canonical exists, side copies — LOW-MEDIUM
+> Canonical: `cma/assets/js/cma-utils.js:328` `CMA.utils.getCookie` / `:347` `setCookie` (cma.js:2089-2090 aliases `Get_Cookie`/`Set_Cookie` to these; comment at `cma.js:1468` confirms the migration).
+> - Independent re-implementations: `library/webcomponents/lib-log.js:28` `getCookie` (own copy), and direct `document.cookie` regex reads in `form-controller.js:181` and `cma/assets/js/modules/cma-perf.js:69` (identical `cma_perf_logging` regex — duplicated in two files).
+> - Canonical home: `CMA.utils.getCookie`; `lib-log` may keep a standalone copy only to stay dependency-free of `CMA`.
+>
+> ## 11. `debounce` — LOW
+> Canonical: `cma/assets/js/cma-utils.js:368` `window.cmaDebounce` (used correctly by `form-controller.js:3776`). Private re-impl: `library/webcomponents/lib-table.js:845` `#debounce`. Only one component copy — low drift, note only.
+>
+> ## 12. Two `error-handler.js` files drifting — LOW (library copy is outside the core cma layer but worth flagging)
+> `cma/assets/js/error-handler.js` (27,770 bytes, Jul 7) vs `library/assets/js/error-handler.js` (30,821 bytes, Jul 14) — `diff` reports DIFFERENT, and each carries its own clipboard fallback (see #6). Parallel maintenance of the same error-parser/notifier. Canonical home: one shared file (the library copy is newer — reconcile toward it).
+>
+> ---
+>
+> ### Suggested priority of remediation
+> 1. Consolidate `escapeHtml` (security).
+> 2. Kill legacy `CMA.groups`/`editTip` `.groupbox` path.
+> 3. De-dupe `style.css`↔`form.css` selectors (start with `.tb-btn`).
+> 4. Route hand-built `form.php?form=` URLs through `url-manager`.
+> 5. Single popup wrapper over `lib_Open*`.
+> 6. Point clipboard callers at `cmaCopyToClipboard`.
+> 7. Pick one sortlist and one tree implementation; retire `CMA.listbox` / `CMA.tree`.
+>
+> Note: all `*.min.*` files were ignored per instructions; findings above are from source files only.</result>
+> <usage><subagent_tokens>68880</subagent_tokens><tool_uses>28</tool_uses><duration_ms>493699</duration_ms></usage>
+> </task-notification>
+
+> ja fijn als je die toepast
+
+> please solve all and double check assumptions

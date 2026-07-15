@@ -179,7 +179,7 @@ class CmaGroupbox extends HTMLElement {
     _escapeHtml(str) {
         var div = document.createElement('div');
         div.textContent = str || '';
-        return div.innerHTML;
+        return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     attributeChangedCallback(name, oldValue, newValue) {

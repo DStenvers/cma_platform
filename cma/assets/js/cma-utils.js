@@ -249,10 +249,10 @@ window.cmaErrorParser = {
      * @returns {string} - Escaped string
      */
     escapeHtml: function(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        // Delegate to the canonical CMA.utils.escapeHtml defined below (assigned
+        // at module load; this method only runs on error-render). Keeps one
+        // escaping implementation with consistent quote handling.
+        return window.escapeHtml(str);
     }
 };
 

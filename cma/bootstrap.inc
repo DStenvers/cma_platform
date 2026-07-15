@@ -243,7 +243,10 @@ function lib_dbMoveSchemaToField(&$rsSchema, string $fieldName): bool
 // =========================================================================
 
 define("STRCMAVERSION", '5.13');
-if (!defined('STRJQUERYVERSION')) { define("STRJQUERYVERSION", '1.10.2'); }
+// Fallback only — the deployed _bootstrap_constants.inc defines this first
+// (1.11.3) and wins on real sites. Kept in lock-step so a standalone /cma
+// load (no constants file) serves the same jQuery version, not a stale 1.10.2.
+if (!defined('STRJQUERYVERSION')) { define("STRJQUERYVERSION", '1.11.3'); }
 if (!defined('JQUERYVERSION')) { define("JQUERYVERSION", STRJQUERYVERSION); }
 define("STRCHARSET", 'utf-8');
 define("CMA_FILTER_COOKIE", 'CMAfilter');

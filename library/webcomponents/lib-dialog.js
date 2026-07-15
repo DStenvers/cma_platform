@@ -906,9 +906,12 @@ class LibDialog extends HTMLElement {
     }
 
     _escapeHtml(str) {
+        if (str === null || str === undefined) return '';
         const div = document.createElement('div');
         div.textContent = str;
-        return div.innerHTML;
+        // Escape quotes too: this value is interpolated into attribute context
+        // (placeholder="", value="", data-*="") as well as text.
+        return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     // =========================================================================
@@ -1200,9 +1203,12 @@ class LibDialog extends HTMLElement {
     }
 
     static _escapeHtml(str) {
+        if (str === null || str === undefined) return '';
         const div = document.createElement('div');
         div.textContent = str;
-        return div.innerHTML;
+        // Escape quotes too: this value is interpolated into attribute context
+        // (placeholder="", value="", data-*="") as well as text.
+        return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     /**
