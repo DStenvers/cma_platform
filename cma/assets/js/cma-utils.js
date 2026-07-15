@@ -277,6 +277,28 @@ CMA.utils.escapeHtml = function(str) {
 window.escapeHtml = CMA.utils.escapeHtml;
 
 /**
+ * Format the toolbar record-count indicator text. Single source of truth for
+ * the "records 1-N van M" string shared by FormController.updateRecordCount
+ * and CmaInfiniteScroll.updateRecordCountDisplay (each keeps its own
+ * visibility gating; only the text formatting lives here so the two can't
+ * drift). Returns null when the indicator should be hidden (all records shown,
+ * or nothing loaded).
+ * @param {number} loaded   Records loaded so far
+ * @param {number|null} total  Total in dataset (null/undefined if unknown)
+ * @param {boolean} hasMore Still loading — appends the " (laden...)" suffix
+ * @returns {string|null}
+ */
+CMA.utils.formatRecordCount = function(loaded, total, hasMore) {
+    if (total !== null && total !== undefined && total > 0) {
+        const endRecord = Math.min(loaded, total);
+        if (endRecord >= total) return null; // all records shown -> hide
+        return `records 1-${endRecord} van ${total}${hasMore ? ' (laden...)' : ''}`;
+    }
+    if (loaded > 0) return `${loaded} records`;
+    return null;
+};
+
+/**
  * Capitalize first letter of a string
  * @param {string} str
  * @returns {string}

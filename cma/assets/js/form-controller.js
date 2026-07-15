@@ -6380,22 +6380,14 @@ class CmaFormController {
             }
         }
 
-        if (totalCount !== null && totalCount !== undefined && totalCount > 0) {
-            // Show "records 1-X van Y" format, but hide if showing all records
-            const endRecord = Math.min(currentCount, totalCount);
-            if (endRecord >= totalCount) {
-                // All records shown - hide the count
-                countEl.style.display = 'none';
-            } else {
-                countEl.textContent = `records 1-${endRecord} van ${totalCount}`;
-                countEl.style.display = '';
-            }
-        } else if (currentCount > 0) {
-            // No totalCount available, just show current count
-            countEl.textContent = `${currentCount} records`;
-            countEl.style.display = '';
-        } else {
+        // Shared formatter (cma-utils) — no "(laden...)" here; this path is the
+        // non-scroll / final render, the infinite-scroll path passes hasMore.
+        const text = CMA.utils.formatRecordCount(currentCount, totalCount, false);
+        if (text === null) {
             countEl.style.display = 'none';
+        } else {
+            countEl.textContent = text;
+            countEl.style.display = '';
         }
     }
 

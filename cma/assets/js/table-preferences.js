@@ -1141,23 +1141,14 @@ class CmaInfiniteScroll {
         // prevented at the source (one scroller per table element, see constructor).
         const loaded = this.currentCount;
 
-        if (this.totalCount !== null && this.totalCount > 0) {
-            // Show "records 1-X van Y" format, but hide if showing all records
-            const endRecord = Math.min(loaded, this.totalCount);
-            if (endRecord >= this.totalCount) {
-                // All records shown - hide the count
-                countEl.style.display = 'none';
-            } else {
-                const loadingText = this.hasMore ? ' (laden...)' : '';
-                countEl.textContent = `records 1-${endRecord} van ${this.totalCount}${loadingText}`;
-                countEl.style.display = '';
-            }
-        } else if (loaded > 0) {
-            // No totalCount available, just show current count
-            countEl.textContent = `${loaded} records`;
-            countEl.style.display = '';
-        } else {
+        // Shared formatter (cma-utils) — same string as FormController's
+        // non-scroll path; here hasMore drives the "(laden...)" suffix.
+        const text = CMA.utils.formatRecordCount(loaded, this.totalCount, this.hasMore);
+        if (text === null) {
             countEl.style.display = 'none';
+        } else {
+            countEl.textContent = text;
+            countEl.style.display = '';
         }
     }
 
