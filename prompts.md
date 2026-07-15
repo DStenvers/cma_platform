@@ -4690,3 +4690,9 @@ karaat-data en staat in de karaat-repo.
 > .qa-layout and .qa-wrap { height:100% }
 
 > Root cause: there are two places that emit the form config. /: Code smell! Centralise that
+
+> i have 2 clients yhat are called rino, the rino portal was deliberate, please restore
+>
+> then take a good look at the whole codebase and try to find more duplicates or multiple paths, I suspect there are more of them
+
+> try and dind more instaances of peomises that need await, we had that bug before, do a full scan of the cma platforms: plan mode

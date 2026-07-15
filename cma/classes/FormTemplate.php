@@ -294,7 +294,10 @@ class FormTemplate
             'editorConfig' => [
                 'allowBR' => !Application::get('cma_htmledit_allowBR', ''),
                 'customCSS' => Application::get('cma_htmledit_css', ''),
-                'extraPlugins' => stripos($appName, 'rino') !== false ? ',literatuur' : '',
+                // Exact match is DELIBERATE: two clients have "rino" in their
+                // name and only RINO Portal gets the literatuur plugin — do
+                // not loosen this to a contains-check.
+                'extraPlugins' => Application::get('appname', '') === 'RINO Portal' ? ',literatuur' : '',
             ],
             'onLoadJS' => $this->arrRep[\Q_ONLOADJS][0] ?? '',
         ];
