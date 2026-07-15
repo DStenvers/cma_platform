@@ -242,8 +242,12 @@ class FormTemplate
         // Build comprehensive config for JSON forms
         // sourceFormId is used for subforms and permission checks (references tblForms.ID)
         // formName = plural title (e.g., "Opleidingen") for table headers
-        // formNameSingular = singular title (e.g., "Opleiding") for add/details actions
-        $titleSingular = $jsonData['titleSingular'] ?? $title;
+        // formNameSingular = singular title (e.g., "Opleiding") for add/details actions.
+        // getTitleSingular() prefers an explicit titleSingular and otherwise
+        // auto-derives the Dutch singular — falling back to the plural $title
+        // here made popup/detail titles open as "Orders wijzigen" and only
+        // flip to "Order wijzigen" after the form's own config loaded.
+        $titleSingular = $this->formDef->getTitleSingular() ?: $title;
         $config = [
             'sourceFormId' => $this->sourceFormId, // For subforms and permission checks
             'formName' => $title,

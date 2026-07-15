@@ -963,6 +963,24 @@ class FormDefinition
     }
 
     /**
+     * Singular display name for a subform: an explicit titleSingular on the
+     * subform's own JSON definition wins, otherwise derive it from the
+     * (plural) display name. Used by the subform list endpoints so popup
+     * titles open singular ("Order wijzigen") instead of flipping from the
+     * plural after the form loads.
+     */
+    public static function subformTitleSingular(string $jsonFormName, string $displayName): string
+    {
+        if ($jsonFormName !== '') {
+            $raw = JsonFormLoader::loadRaw($jsonFormName);
+            if (!empty($raw['titleSingular'])) {
+                return $raw['titleSingular'];
+            }
+        }
+        return self::dutchSingular($displayName);
+    }
+
+    /**
      * Check if adding new records is allowed
      *
      * @return bool

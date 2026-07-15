@@ -4678,3 +4678,13 @@ karaat-data en staat in de karaat-repo.
 > Call to undefined method App\Library\SQL::normalizeDecimal() bij opslaan record: versie v1.29.27
 
 > https://test-mijn.rino.nl/cma/main.php?page=tools%3Ftool%3Ddocumentation if i select another document-item, it should only replace the content-area
+
+## 2026-07-15
+
+> continue
+
+> als het de php versie betreft laat maar even zitten
+
+> the detail form first shows 'Orders wijzigen', and then 'Order wijzigen', so the plural seems to be the default, for the detail screen singular is a better default
+
+> .qa-layout and .qa-wrap { height:100% }

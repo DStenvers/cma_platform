@@ -635,6 +635,10 @@ class RecordService extends BaseFormService
                 'totalCount' => count($items),
                 'subformId' => $subformId,
                 'subformName' => $arrSubForms[\SUBFORM_NAME][$subformIndex] ?? '',
+                'subformNameSingular' => \Cma\FormDefinition::subformTitleSingular(
+                    $jsonFormName ?? '',
+                    $arrSubForms[\SUBFORM_NAME][$subformIndex] ?? ''
+                ),
                 'parentField' => $arrSubForms[\SUBFORM_PARENT][$subformIndex] ?? '',
                 'fullWidth' => (bool)($arrSubForms[\SUBFORM_FULLWIDTH][$subformIndex] ?? false),
                 'canAdd' => $rights >= SecurityHelper::ACCESS_FULL,

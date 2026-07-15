@@ -761,6 +761,7 @@ class ConfigFormService
                 'count' => count($items),
                 'formName' => $subformName,
                 'subformName' => $subformName, // Alias for frontend
+                'subformNameSingular' => ($subformJsonData['titleSingular'] ?? '') ?: \Cma\FormDefinition::dutchSingular($subformName),
                 'subformId' => $subformName, // Use name as ID for JSON forms
                 'parentFormName' => $parentFormName,
                 'parentId' => $parentId,

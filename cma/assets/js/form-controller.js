@@ -11615,7 +11615,7 @@ class CmaFormController {
             formId: 0,
             jsonForm: data.subformId || data.subformName,
             formName: data.subformName || data.subformId || 'Subform',
-            formNameSingular: data.subformName || data.subformId || 'Record',
+            formNameSingular: data.subformNameSingular || data.subformName || data.subformId || 'Record',
             accessLevel: this.config.accessLevel || 0,
             canAdd: data.canAdd !== false,
             canEdit: data.canEdit !== false,
@@ -11686,8 +11686,9 @@ class CmaFormController {
     openSubformRecord(recordId, data) {
         const subformId = data.subformId;
         const parentField = data.parentField || '';
-        // Use subformName with action suffix
-        const formName = data.subformName || subformId;
+        // Popup titles use the singular subform name (server-derived), so the
+        // title opens as e.g. "Order wijzigen" instead of "Orders wijzigen"
+        const formName = data.subformNameSingular || data.subformName || subformId;
         // For subforms, check if parent form allows edit (accessLevel >= 2)
         const canEdit = this.config.accessLevel >= 2;
         const actionSuffix = canEdit ? ' wijzigen' : ' bekijken';
