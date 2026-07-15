@@ -4673,3 +4673,8 @@ karaat-data en staat in de karaat-repo.
 > Single Sign-On geactiveerd. Bezig met aanmelden.
 
 > the sso message should replace the username and password form
+
+> opslaan record: 
+> Call to undefined method App\Library\SQL::normalizeDecimal() bij opslaan record: versie v1.29.27
+
+> https://test-mijn.rino.nl/cma/main.php?page=tools%3Ftool%3Ddocumentation if i select another document-item, it should only replace the content-area

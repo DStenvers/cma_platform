@@ -111,6 +111,20 @@ function flatten_topics(array $tree, array &$out = []): array
 }
 $flat = flatten_topics($topics);
 
+$selected = strtolower(trim((string)Request::query('topic', 'overview')));
+if (!isset($flat[$selected]) || !isset($flat[$selected]['render'])) {
+    $selected = 'overview';
+}
+
+// Fragment mode: emit only the rendered topic, no page chrome. The client-side
+// topic router fetches this to swap the content area in place instead of a
+// full page (re)load. Sits BEFORE the search-index build below, which renders
+// every topic and would be pure waste on a fragment request.
+if (Request::query('fragment', '') === '1') {
+    call_user_func($flat[$selected]['render']);
+    exit;
+}
+
 // =========================================================================
 // Full-text search index — render every topic ONCE into plain text so the
 // sidebar search box can match across ALL documents, not just the open one.
@@ -133,11 +147,6 @@ foreach ($flat as $slug => $node) {
 }
 $GLOBALS['_docs_indexing'] = false;
 
-$selected = strtolower(trim((string)Request::query('topic', 'overview')));
-if (!isset($flat[$selected]) || !isset($flat[$selected]['render'])) {
-    $selected = 'overview';
-}
-
 cma_html_header('CMA - Documentatie');
 echo '<body class="contentbody tools tool-docs">';
 // cma-tree is not in the auto-load list (cma-fold is); load it explicitly
@@ -151,7 +160,11 @@ ToolbarHelper::title('Documentatie');
 ToolbarHelper::separator();
 ToolbarHelper::status($flat[$selected]['label']);
 ToolbarHelper::end();
-echo '<div id="c" class="tools">';
+// The tool-docs class sits on the #c wrapper (not only on <body>): inside the
+// main.php shell this page is loadPage-injected into #contentArea and the
+// <body> tag (with its classes) is stripped by the HTML parser — every
+// .tool-docs-scoped rule below would silently stop matching there.
+echo '<div id="c" class="tools tool-docs">';
 ?>
 
 <style>
@@ -159,12 +172,16 @@ echo '<div id="c" class="tools">';
    the sidebar + content layout below has its own internal spacing and
    the outer padding pushed everything off-center and added a visible
    double border. Matches the pattern used by body.tool-serverinfo. */
-body.tool-docs #c.tools { padding: 0; }
+#c.tools.tool-docs { padding: 0; }
 
 /* No fixed height — the layout grows with its content so the page never looks
    misformed (cut off / double scrollbar). Sidebar and content can still scroll
    internally via their own overflow:auto when they individually overflow. */
 .tool-docs .docs-layout { display: flex; gap: 0; align-items: stretch; }
+/* The fold divider must span the full layout height. The component's own
+   height:100% resolves to auto here (this flex row has no definite height),
+   leaving a stub — stretch it along the cross axis instead. */
+.tool-docs .docs-layout > cma-fold { height: auto; align-self: stretch; }
 .tool-docs .docs-sidebar { flex: 0 0 260px; padding: 14px 8px 14px 14px; overflow: auto; background: var(--bg-surface-alt, #f6f8fa); border-right: 1px solid var(--border-color, #e0e0e0); }
 .tool-docs .docs-content { flex: 1; min-width: 0; padding: 16px 22px; overflow: auto; }
 /* Sidebar search box + cross-document results list. When results are shown the
@@ -232,19 +249,105 @@ body.tool-docs #c.tools { padding: 0; }
     var nav = document.getElementById('docsNav');
     if (!nav) return;
     var data = <?= json_encode(build_sidebar_data($topics)) ?>;
+    var topicLabels = <?= json_encode(array_map(static fn($n) => $n['label'], $flat), JSON_UNESCAPED_UNICODE) ?>;
     nav.setData(data);
     nav.expandAll();
     nav.selectByHref(<?= json_encode(slug_to_href($selected)) ?>);
 
+    // Embedded in the main.php shell (loadPage-injected) or standalone page?
+    var inShell = !!document.getElementById('contentArea');
+
+    function topicFromHref(href) {
+        var m = /[?&]topic=([^&#]+)/.exec(href);
+        return m ? decodeURIComponent(m[1]) : 'overview';
+    }
+
+    // Topic navigation replaces ONLY the content area: fetch the topic as a
+    // fragment (?fragment=1) and swap it in. The fetch URL is absolute — a
+    // relative 'documentation.php' inside the shell would resolve against
+    // /cma/main.php to the nonexistent /cma/documentation.php. Exposed on
+    // window (and refreshed per docs render) for the once-bound document
+    // click router below.
+    window.cmaDocsNavigate = function (href, skipHistory) {
+        var slug = topicFromHref(href);
+        var hashPos = href.indexOf('#');
+        var hash = hashPos === -1 ? '' : href.slice(hashPos);
+        fetch('/cma/tools/documentation.php?fragment=1&topic=' + encodeURIComponent(slug), { credentials: 'same-origin' })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function (html) {
+                var content = document.querySelector('.tool-docs .docs-content');
+                if (!content) { window.location.href = href; return; }
+                content.innerHTML = html;
+                nav.selectByHref(slug === 'overview' ? 'documentation.php' : 'documentation.php?topic=' + slug);
+                var status = document.querySelector('.toolbar-status');
+                if (status && topicLabels[slug]) status.textContent = topicLabels[slug];
+                // Leaving via a search result: restore the tree in the sidebar
+                var si = document.getElementById('docsSearch');
+                if (si) si.value = '';
+                var sr = document.getElementById('docsSearchResults');
+                if (sr) { sr.hidden = true; sr.innerHTML = ''; }
+                var sb = document.getElementById('docsSidebar');
+                if (sb) sb.classList.remove('is-searching');
+                // Keep the URL addressable. Standalone gets a real history
+                // entry so Back/Forward walk topics. In the shell only the
+                // CURRENT entry is rewritten (replaceState): pushing would
+                // fight main.js's history handling, whose popstate loadPage()s
+                // e.state.page — the state keeps that shape so Forward/refresh
+                // reopens this topic inside the shell.
+                if (!skipHistory) {
+                    if (inShell) {
+                        var page = 'tools.php?tool=documentation' + (slug === 'overview' ? '' : '&topic=' + slug);
+                        history.replaceState({ page: page }, '', '/cma/main.php?page=' + encodeURIComponent(page));
+                    } else {
+                        history.pushState({ cmaDocsTopic: slug }, '', (slug === 'overview' ? 'documentation.php' : 'documentation.php?topic=' + slug) + hash);
+                    }
+                }
+                window.scrollTo(0, 0);
+                content.scrollTop = 0;
+                var ca = document.getElementById('contentArea');
+                if (ca) ca.scrollTop = 0;
+                docsInitCopyButtons();
+                var qm = /[#&]q=([^&]+)/.exec(hash);
+                if (qm) docsHighlightQuery(decodeURIComponent(qm[1].replace(/\+/g, ' ')).trim());
+            })
+            .catch(function () { window.location.href = href; });
+    };
+
     // cma-tree calls e.preventDefault() on item clicks and only dispatches
-    // an item-click event — the default anchor navigation never runs. Wire
-    // the navigation explicitly. Same-page reload keeps the docs sidebar
-    // state via the cma-tree storage-key cookie.
+    // an item-click event — the default anchor navigation never runs.
     nav.addEventListener('item-click', function (e) {
         var href = e.detail && e.detail.href;
         if (!href || href === '#') return;
-        window.location.href = href;
+        window.cmaDocsNavigate(href);
     });
+
+    // Route every other topic link (in-content cross-links, search results)
+    // through the fragment swap. Capture phase on document: inside the shell
+    // this must outrun main.js's #contentArea link interceptor, which would
+    // otherwise loadPage() the nonexistent /cma/documentation.php. Bound once
+    // per browser session — it always calls the LATEST window.cmaDocsNavigate
+    // and stands down when no docs content is on screen.
+    if (!window._cmaDocsLinkRouterBound) {
+        window._cmaDocsLinkRouterBound = true;
+        document.addEventListener('click', function (e) {
+            if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+            var a = e.target.closest ? e.target.closest('a[href^="documentation.php"]') : null;
+            if (!a) return;
+            if (!document.querySelector('.tool-docs .docs-content')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.cmaDocsNavigate(a.getAttribute('href'));
+        }, true);
+    }
+
+    // Standalone only: Back/Forward re-render the topic from the URL. In the
+    // shell main.js owns popstate and reloads the docs page at e.state.page.
+    if (!inShell && !window._cmaDocsPopstateBound) {
+        window._cmaDocsPopstateBound = true;
+        window.addEventListener('popstate', function () {
+            window.cmaDocsNavigate(window.location.search + window.location.hash, true);
+        });
+    }
 })();
 
 // -----------------------------------------------------------------------
@@ -326,16 +429,16 @@ body.tool-docs #c.tools { padding: 0; }
     });
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { input.value = ''; render(''); }
-        if (e.key === 'Enter') { var a = results.querySelector('a'); if (a) window.location.href = a.getAttribute('href'); }
+        if (e.key === 'Enter') { var a = results.querySelector('a'); if (a) a.click(); }
     });
 })();
 
-// Highlight + scroll to the search term on the destination page (#q=…).
-(function () {
-    var m = /[#&]q=([^&]+)/.exec(window.location.hash);
-    if (!m) return;
-    var query = decodeURIComponent(m[1].replace(/\+/g, ' ')).trim();
-    var tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+// Highlight + scroll to the search term in the current topic content.
+// A hoisted function declaration: the topic router above re-runs it after
+// swapping the content area (initial full-page load calls it below with the
+// #q=… hash a search result appends).
+function docsHighlightQuery(query) {
+    var tokens = (query || '').toLowerCase().split(/\s+/).filter(Boolean);
     var root = document.querySelector('.docs-content');
     if (!tokens.length || !root) return;
     var reEsc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
@@ -367,11 +470,16 @@ body.tool-docs #c.tools { padding: 0; }
         node.parentNode.replaceChild(frag, node);
     });
     if (first) first.scrollIntoView({ block: 'center' });
+}
+
+(function () {
+    var m = /[#&]q=([^&]+)/.exec(window.location.hash);
+    if (m) docsHighlightQuery(decodeURIComponent(m[1].replace(/\+/g, ' ')).trim());
 })();
 
-// Generic copy button on every code block. The page fully reloads on topic
-// switch (item-click above navigates), so running once at load is enough.
-(function () {
+// Generic copy button on every code block. Idempotent (skips a <pre> that
+// already has one); the topic router re-runs it after each content swap.
+function docsInitCopyButtons() {
     document.querySelectorAll('.docs-content pre').forEach(function (pre) {
         if (pre.querySelector('.docs-copy-btn')) return;
         // Capture the plain text from the <code> (or the <pre>) BEFORE the
@@ -410,7 +518,8 @@ body.tool-docs #c.tools { padding: 0; }
         });
         pre.appendChild(btn);
     });
-})();
+}
+docsInitCopyButtons();
 </script>
 
 <?php
