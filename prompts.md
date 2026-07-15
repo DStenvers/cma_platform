@@ -4688,3 +4688,5 @@ karaat-data en staat in de karaat-repo.
 > the detail form first shows 'Orders wijzigen', and then 'Order wijzigen', so the plural seems to be the default, for the detail screen singular is a better default
 
 > .qa-layout and .qa-wrap { height:100% }
+
+> Root cause: there are two places that emit the form config. /: Code smell! Centralise that

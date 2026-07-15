@@ -239,27 +239,42 @@ class FormTemplate
             }
         }
 
-        // Build comprehensive config for JSON forms
-        // sourceFormId is used for subforms and permission checks (references tblForms.ID)
-        // formName = plural title (e.g., "Opleidingen") for table headers
-        // formNameSingular = singular title (e.g., "Opleiding") for add/details actions.
-        // getTitleSingular() prefers an explicit titleSingular and otherwise
-        // auto-derives the Dutch singular — falling back to the plural $title
-        // here made popup/detail titles open as "Orders wijzigen" and only
-        // flip to "Order wijzigen" after the form's own config loaded.
-        $titleSingular = $this->formDef->getTitleSingular() ?: $title;
-        $config = [
+        // Store form config in CMA namespace (not global window.CMA_FORM_CONFIG)
+        $html .= '<script>' . $this->formConfigScript($formName, $title) . '</script>' . PHP_EOL;
+        $html .= '</head>' . PHP_EOL;
+
+        return $html;
+    }
+
+    /**
+     * Build the CMA.formConfig payload — the SINGLE source for both the JSON
+     * header (generateHeaderForJson) and the legacy header (generateHeader).
+     * Only the values that legitimately differ per form source (API form
+     * identifier, display title) are passed in; everything else derives from
+     * the form definition, whose accessors already fold JSON data over the
+     * legacy format (allowAdd/allowDelete/allowCopy/getTitleSingular).
+     *
+     * formName = plural title (e.g., "Opleidingen") for table headers.
+     * formNameSingular = singular title (e.g., "Opleiding") for add/details
+     * actions; getTitleSingular() prefers an explicit titleSingular and
+     * otherwise auto-derives the Dutch singular.
+     */
+    private function buildFormConfig(string $jsonFormIdentifier, string $title): array
+    {
+        $jsonData = $this->arrRep['_json'] ?? [];
+        $appName = Services\MenuService::getApplicationValue('name', Application::get('appname', ''));
+        return [
             'sourceFormId' => $this->sourceFormId, // For subforms and permission checks
             'formName' => $title,
-            'formNameSingular' => $titleSingular,
-            'jsonForm' => $formName, // JSON form name for JSON-specific API calls
+            'formNameSingular' => $this->formDef->getTitleSingular() ?: $title,
+            'jsonForm' => $jsonFormIdentifier, // Form identifier for API calls (e.g., "locaties")
             'tableName' => $jsonData['table'] ?? $this->formDef->getSqlTableName(),
             'idField' => $jsonData['idField'] ?? $this->formDef->getFormIdField(),
             'hasSubforms' => Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess,
             'accessLevel' => $this->accessLevel,
-            'canAdd' => ($jsonData['allowAdd'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canDelete' => ($jsonData['allowDelete'] ?? true) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => ($this->formDef->hasMenuCopy() || ($jsonData['allowCopy'] ?? ($jsonData['allowAdd'] ?? true))) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canAdd' => $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canDelete' => $this->formDef->allowDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'filterIdName' => $this->formDef->getFilterIdName(),
@@ -269,7 +284,7 @@ class FormTemplate
             'domain' => Request::currentDomain(),
             'debug' => (bool) Application::get('development', ''),
             'showDetails' => SecurityHelper::isAdmin() || SecurityHelper::isDeveloper(),
-            'appName' => Services\MenuService::getApplicationValue('name', Application::get('appname', '')),
+            'appName' => $appName,
             'imageConfig' => [
                 'resize_type' => FormControlHelper::IMG_MAXIMUM,
                 'max_width' => Application::get('cma_htmledit_img_maxwidth', 800),
@@ -279,26 +294,30 @@ class FormTemplate
             'editorConfig' => [
                 'allowBR' => !Application::get('cma_htmledit_allowBR', ''),
                 'customCSS' => Application::get('cma_htmledit_css', ''),
-                'extraPlugins' => stripos(Services\MenuService::getApplicationValue('name', Application::get('appname', '')), 'rino') !== false ? ',literatuur' : '',
+                'extraPlugins' => stripos($appName, 'rino') !== false ? ',literatuur' : '',
             ],
+            'onLoadJS' => $this->arrRep[\Q_ONLOADJS][0] ?? '',
         ];
+    }
 
-        // Store form config in CMA namespace (not global window.CMA_FORM_CONFIG)
-        // Use JSON_THROW_ON_ERROR in PHP 7.3+ or check for encoding failure
+    /**
+     * Render the CMA.formConfig assignment (script CONTENT, no <script> tags)
+     * with the shared json_encode-failure fallback.
+     */
+    private function formConfigScript(string $jsonFormIdentifier, string $title): string
+    {
+        $config = $this->buildFormConfig($jsonFormIdentifier, $title);
         $configJson = json_encode($config, JSON_UNESCAPED_UNICODE);
         if ($configJson === false) {
             // JSON encoding failed - create minimal valid config and log error
             Logger::error('FormTemplate: json_encode failed for config', ['error' => json_last_error_msg()]);
             $configJson = json_encode([
                 'error' => 'Config encoding failed',
-                'jsonForm' => $this->jsonFormName,
-                'formName' => $formName,
+                'jsonForm' => $jsonFormIdentifier,
+                'formName' => $title,
             ]);
         }
-        $html .= '<script>window.CMA = window.CMA || {}; CMA.formConfig = ' . $configJson . ';</script>' . PHP_EOL;
-        $html .= '</head>' . PHP_EOL;
-
-        return $html;
+        return 'window.CMA = window.CMA || {}; CMA.formConfig = ' . $configJson . ';';
     }
 
     /**
@@ -394,54 +413,7 @@ class FormTemplate
 
         // Form configuration (stored in CMA namespace)
         $html .= '<script>' . PHP_EOL;
-        $config = [
-            'sourceFormId' => $this->sourceFormId,
-            'jsonForm' => $this->jsonFormName ?: $formName,  // Form identifier for API calls (e.g., "locaties")
-            'formName' => $formName,  // Display title (e.g., "Locaties")
-            'formNameSingular' => $this->formDef->getTitleSingular() ?: $formName,
-            'tableName' => $this->formDef->getSqlTableName(),
-            'idField' => $this->formDef->getFormIdField(),
-            'hasSubforms' => Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess,
-            'accessLevel' => $this->accessLevel,
-            'canAdd' => $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canDelete' => $this->formDef->hasMenuDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'storeLastModified' => $this->formDef->hasStoreLastModified(),
-            'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
-            'filterIdName' => $this->formDef->getFilterIdName(),
-            'filterFieldName' => $this->formDef->getFilterFieldName(),
-            'language' => Application::get('CMA_Language', 'NL'),
-            'basePath' => Application::get('base_path', ''),
-            'domain' => Request::currentDomain(),
-            'debug' => (bool) Application::get('development', ''),
-            'showDetails' => SecurityHelper::isAdmin() || SecurityHelper::isDeveloper(),
-            'imageConfig' => [
-                'resize_type' => FormControlHelper::IMG_MAXIMUM,
-                'max_width' => Application::get('cma_htmledit_img_maxwidth', 800),
-                'max_height' => Application::get('cma_htmledit_img_maxheight', 600),
-                'path' => Application::get('cma_htmledit_img_path', ''),
-            ],
-            'editorConfig' => [
-                'allowBR' => !Application::get('cma_htmledit_allowBR', ''),
-                'customCSS' => Application::get('cma_htmledit_css', ''),
-                'extraPlugins' => Application::get('appname', '') === 'RINO Portal' ? ',literatuur' : '',
-            ],
-            'onLoadJS' => $this->arrRep[\Q_ONLOADJS][0] ?? '',
-        ];
-        // Use JSON_UNESCAPED_UNICODE to handle special characters properly
-        $configJson = json_encode($config, JSON_UNESCAPED_UNICODE);
-        if ($configJson === false) {
-            // JSON encoding failed - create minimal valid config and log error
-            \Cma\Services\Logger::warning('FormTemplate: json_encode failed for legacy config', [
-                'jsonError' => json_last_error_msg()
-            ]);
-            $configJson = json_encode([
-                'error' => 'Config encoding failed',
-                'jsonForm' => $this->jsonFormName ?: $formName,
-                'formName' => $formName,
-            ]);
-        }
-        $html .= 'window.CMA = window.CMA || {}; CMA.formConfig = ' . $configJson . ';' . PHP_EOL;
+        $html .= $this->formConfigScript($this->jsonFormName ?: $formName, $formName) . PHP_EOL;
 
         // CKEditor config for HTML editors
         if ($needsCKEditor) {
