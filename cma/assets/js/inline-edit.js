@@ -2174,17 +2174,11 @@
             const height = Math.round(window.innerHeight * 0.85);
             // Use singular form name with action suffix
             const formName = this.options.formNameSingular || this.options.formName || jsonFormToUse || 'Record';
-            let actionSuffix = '';
-            if (recordId === null || recordId === undefined || recordId === '') {
-                actionSuffix = ' toevoegen';
-            } else if (copy) {
-                actionSuffix = ' kopiëren';
-            } else if (!this.options.canEdit) {
-                actionSuffix = ' bekijken';
-            } else {
-                actionSuffix = ' wijzigen';
-            }
-            const title = formName + actionSuffix;
+            const title = CMA.utils.formActionTitle(formName, {
+                recordId: recordId,
+                canEdit: this.options.canEdit,
+                isCopy: copy
+            });
 
             // Check user preference for popup style
             const prefAvailable = typeof lib_getPopupStylePreference === 'function';

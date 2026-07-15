@@ -299,6 +299,31 @@ CMA.utils.formatRecordCount = function(loaded, total, hasMore) {
 };
 
 /**
+ * Build a form popup/detail title like "Order wijzigen". Single source of the
+ * action-suffix precedence (new > copy > view > edit) that was previously
+ * inlined at ~8 call sites in form-controller.js / inline-edit.js with
+ * inconsistent branches. Callers still resolve `name` themselves (the singular
+ * form/subform name comes from different data shapes).
+ * @param {string} name    Singular form name, already resolved
+ * @param {Object} opts
+ * @param {*} opts.recordId  Record id; null/undefined/'' => new ("toevoegen")
+ * @param {boolean} opts.canEdit  falsy => "bekijken" (pass an explicit boolean)
+ * @param {boolean} opts.isCopy   true (and not new) => "kopiëren"
+ * @returns {string}
+ */
+CMA.utils.formActionTitle = function(name, opts) {
+    opts = opts || {};
+    const rid = opts.recordId;
+    const isNew = rid === null || rid === undefined || rid === '';
+    let suffix;
+    if (isNew) suffix = 'toevoegen';
+    else if (opts.isCopy) suffix = 'kopiëren';
+    else if (!opts.canEdit) suffix = 'bekijken'; // matches inline-edit's !canEdit
+    else suffix = 'wijzigen';
+    return name + ' ' + suffix;
+};
+
+/**
  * Capitalize first letter of a string
  * @param {string} str
  * @returns {string}

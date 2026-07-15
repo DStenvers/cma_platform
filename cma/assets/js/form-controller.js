@@ -4641,22 +4641,17 @@ class CmaFormController {
         const formIdentifier = this.config.jsonForm;
         const formName = this.config.formNameSingular || this.config.formName || 'Record';
 
-        // Determine action suffix based on mode
-        let actionSuffix = '';
-        if (recordId === null || recordId === undefined || recordId === '') {
-            actionSuffix = ' toevoegen';
-        } else if (this.config.accessLevel < 2) {
-            // accessLevel 0 or 1 = readonly
-            actionSuffix = ' bekijken';
-        } else {
-            actionSuffix = ' wijzigen';
-        }
+        // Title suffix: shared helper (accessLevel 0/1 = readonly -> "bekijken")
+        const title = CMA.utils.formActionTitle(formName, {
+            recordId: recordId,
+            canEdit: this.config.accessLevel >= 2
+        });
 
         const self = this;
         this.openPopup({
             formId: formIdentifier,
             recordId: recordId,
-            title: formName + actionSuffix,
+            title: title,
             windowName: 'form_popup',
             cascadeOffset: false,
             onClose: function() {
@@ -11468,7 +11463,7 @@ class CmaFormController {
         const parentField = subformConfig.parentField || subformConfig.linkField || '';
         // Use subform title with action suffix
         const formName = subformConfig.titleSingular || subformConfig.title || subformId;
-        const title = formName + ' toevoegen';
+        const title = CMA.utils.formActionTitle(formName, { recordId: null }); // new record
 
         const self = this;
         this.openPopup({
@@ -11680,10 +11675,13 @@ class CmaFormController {
         // Popup titles use the singular subform name (server-derived), so the
         // title opens as e.g. "Order wijzigen" instead of "Orders wijzigen"
         const formName = data.subformNameSingular || data.subformName || subformId;
-        // For subforms, check if parent form allows edit (accessLevel >= 2)
-        const canEdit = this.config.accessLevel >= 2;
-        const actionSuffix = canEdit ? ' wijzigen' : ' bekijken';
-        const title = formName + actionSuffix;
+        // For subforms, check if parent form allows edit (accessLevel >= 2).
+        // recordId is always an existing record here (never new), so the shared
+        // helper resolves to wijzigen/bekijken.
+        const title = CMA.utils.formActionTitle(formName, {
+            recordId: recordId,
+            canEdit: this.config.accessLevel >= 2
+        });
 
         // cmaLog.log('openSubformRecord: subformId=', subformId, 'recordId=', recordId, 'parentField=', parentField);
 
