@@ -2148,14 +2148,14 @@ class JsonFormService extends BaseFormService
         if ($fieldType === 'combobox' || $fieldType === 'userlist') return 'combobox';
         if ($fieldType === 'image' || $fieldType === 'thumbnail') return 'image';
 
-        // Fallback: detect from dataType for unmigrated forms
-        $dataType = strtolower($field['dataType'] ?? '');
-        if ($dataType === 'time') return 'time';
-        if (!empty($field['dateFormat']) || in_array($dataType, ['date', 'datetime', '7', '133', '135'])) return 'date';
-        // Includes the ADO/schema type CODES the forms actually carry (2=smallint,
-        // 3=integer, 4=single, 5=double, 6=currency, 131=numeric) — without these
-        // a dataType:"5" double stayed 'text' and showed raw "39.0000".
-        if (in_array($dataType, ['int', 'integer', 'smallint', 'decimal', 'numeric', 'float', 'double', 'money', 'number', '2', '3', '4', '5', '6', '131'])) return 'number';
+        // Fallback: detect from dataType for unmigrated forms. The schema
+        // code->category mapping is shared with TableService via FieldType so
+        // the legacy and JSON list paths can't drift (they used to: this path
+        // was missing time code 134 and numeric codes 14,17-21).
+        $category = FieldType::categoryForSchemaType($field['dataType'] ?? '');
+        if ($category === 'time') return 'time';
+        if ($category === 'date' || !empty($field['dateFormat'])) return 'date';
+        if ($category === 'number') return 'number';
 
         return 'text';
     }

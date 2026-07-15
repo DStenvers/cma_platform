@@ -157,6 +157,7 @@ require_once __DIR__ . '/classes/Services/FormMetadataService.php';
 require_once __DIR__ . '/classes/Services/ConfigFormService.php';
 require_once __DIR__ . '/classes/Services/DatabasesService.php';
 require_once __DIR__ . '/classes/Services/JsonFormService.php';
+require_once __DIR__ . '/classes/Services/FieldType.php';
 require_once __DIR__ . '/classes/Services/ListServiceHelper.php';
 require_once __DIR__ . '/classes/Services/SubformService.php';
 require_once __DIR__ . '/classes/Services/TableService.php';

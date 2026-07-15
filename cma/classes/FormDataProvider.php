@@ -320,36 +320,6 @@ class FormDataProvider
     }
 
     /**
-     * Build combo SQL
-     */
-    private static function buildComboSql(array|\ArrayAccess $arrRep, int $fieldIndex, int $controlType): string
-    {
-        if ($controlType === FormRenderer::TYPE_USERLIST) {
-            return 'SELECT ID, userFullName FROM tblUsers ORDER BY userFullName';
-        }
-
-        // XMLStore is handled by OptionsService::getXmlStoreOptions() - should not reach here
-        if ($controlType === FormRenderer::TYPE_XMLSTORE) {
-            return '';
-        }
-
-        $sqlList = $arrRep[\Q_SQLLIST][$fieldIndex] ?? '';
-        if ($sqlList !== '') {
-            // Remove ID placeholders for option list
-            $sqlList = str_ireplace('[ID]', 'NULL', $sqlList);
-            $sqlList = str_ireplace('[ProdID]', 'NULL', $sqlList);
-            return $sqlList;
-        }
-
-        // Build default combo SQL
-        $displayField = $arrRep[\Q_FOREIGNIDFIELD][$fieldIndex] ?? '';
-        $idField = $arrRep[\Q_CTRLIDFIELD][$fieldIndex] ?? '';
-        $sourceTable = $arrRep[\Q_SOURCETABLE][$fieldIndex] ?? '';
-
-        return "SELECT $idField, $displayField FROM $sourceTable ORDER BY $displayField";
-    }
-
-    /**
      * Format field value for JSON output
      */
     private static function formatFieldValue(string $fieldName, $value, array|\ArrayAccess $arrRep): mixed

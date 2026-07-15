@@ -927,36 +927,13 @@ class TableService extends BaseFormService
         }
 
         if ($fieldIndex !== null) {
-            $schemaType = $arrRep[\Q_SCHEMA_DATATYPE][$fieldIndex] ?? '';
-            $schemaTypeLower = strtolower((string)$schemaType);
-            $isTimeField = false;
-            $isDateField = false;
-            $isNumberField = false;
-
-            if (is_numeric($schemaType) && (int)$schemaType === 134) {
-                $isTimeField = true;
-            } elseif ($schemaTypeLower === 'time') {
-                $isTimeField = true;
-            }
-
-            if (!$isTimeField && is_numeric($schemaType) && in_array((int)$schemaType, [7, 133, 135])) {
-                $isDateField = true;
-            } elseif (!$isTimeField && in_array($schemaTypeLower, ['date', 'datetime', 'datetime2', 'smalldatetime', 'datetimeoffset'])) {
-                $isDateField = true;
-            }
-
-            if (!$isDateField && !$isTimeField && is_numeric($schemaType) && in_array((int)$schemaType, [2, 3, 4, 5, 6, 14, 17, 18, 19, 20, 21, 131])) {
-                $isNumberField = true;
-            } elseif (in_array($schemaTypeLower, ['int', 'integer', 'bigint', 'smallint', 'tinyint', 'decimal', 'numeric', 'float', 'real', 'money', 'number'])) {
-                $isNumberField = true;
-            }
-
-            if ($isTimeField) {
-                $dataType = 'time';
-            } elseif ($isDateField) {
-                $dataType = 'date';
-            } elseif ($isNumberField) {
-                $dataType = 'number';
+            // Shared schema code->category mapping (see FieldType) — keeps this
+            // legacy path and JsonFormService::detectColumnType in lock-step.
+            // A schema date/time/number type wins over the control-type default
+            // set above, preserving prior behaviour.
+            $category = FieldType::categoryForSchemaType($arrRep[\Q_SCHEMA_DATATYPE][$fieldIndex] ?? '');
+            if ($category !== null) {
+                $dataType = $category;
             }
         }
 
