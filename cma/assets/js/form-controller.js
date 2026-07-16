@@ -4398,7 +4398,7 @@ class CmaFormController {
 
         // Build the popup URL - include New=Y to open in add mode
         // formName is the JSON form name (e.g., "deelnemers")
-        const popupUrl = 'form.php?form=' + encodeURIComponent(formName) + '&New=Y&updatevalues=' + encodeURIComponent(fieldName);
+        const popupUrl = CMA.url.toPageUrl({ form: formName, isNew: true }) + '&updatevalues=' + encodeURIComponent(fieldName);
 
         // Store reference to the field for later refresh
         this._pendingComboRefresh = fieldName;
@@ -12249,7 +12249,7 @@ class CmaFormController {
             if (topWin.CMA && topWin.CMA.url) {
                 const st = topWin.CMA.url.parse();
                 if (st.form) {
-                    const listPage = 'form.php?form=' + encodeURIComponent(st.form);
+                    const listPage = topWin.CMA.url.toPageUrl({ form: st.form });
                     if (typeof topWin.loadPage === 'function') {
                         topWin.loadPage(listPage); // loads the list + sets /cma/form/<form>
                     } else {

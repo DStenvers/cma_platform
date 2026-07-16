@@ -486,15 +486,15 @@ CMA.utils.cancelPopupWatch = null;
         }
         topWin._cmaOpenPopupAt[dedupeKey] = now;
 
-        // Build URL - always use form= parameter
-        let url = 'form.php?form=' + encodeURIComponent(formId);
-        if (hasRecordId) {
-            url += '&id=' + encodeURIComponent(recordId);
-            if (isCopy) {
-                url += '&copy=Y';
-            }
-        } else {
-            url += '&New=Y';
+        // Base URL via url-manager (single owner of the form.php query format),
+        // then popup-specific extras
+        let url = CMA.url.toPageUrl({
+            form: formId,
+            recordId: hasRecordId ? String(recordId) : null,
+            isNew: !hasRecordId
+        });
+        if (hasRecordId && isCopy) {
+            url += '&copy=Y';
         }
         if (parentId) {
             url += '&parentID=' + encodeURIComponent(parentId);

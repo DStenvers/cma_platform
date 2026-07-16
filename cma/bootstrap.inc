@@ -267,50 +267,6 @@ define("CMA_CSS_FILES", implode(',', [
     'assets/css/main.css'
 ]));
 
-// PERFORMANCE FIX: Separated form-controller.js (276KB) from global bundle
-// It's only needed on form pages, not on reports, tools, etc.
-define("CMA_JS_FILES", implode(',', [
-    '../library/webcomponents/lib-log.js',  // MUST be first - intercepts console.* methods
-    'assets/js/cma-utils.js',
-    '../library/assets/js/error-handler.js',
-    'assets/js/request-tracker.js',
-    '../library/webcomponents/lib-shared-styles.js',  // Shared styles for web components (must be before components)
-    '../library/webcomponents/lib-switch.js',
-    '../library/webcomponents/lib-radio-group.js',
-    '../library/webcomponents/lib-dialog.js',
-    '../library/webcomponents/lib-message.js',
-    '../library/webcomponents/lib-menu.js',
-    '../library/webcomponents/lib-toaster.js',
-    '../library/webcomponents/lib-search-input.js',
-    '../library/webcomponents/lib-datepicker.js',
-    '../library/webcomponents/lib-histogram.js',
-    '../library/webcomponents/lib-gauge.js',
-    '../library/webcomponents/lib-fileuploader.js',
-    '../library/webcomponents/lib-combo.js',
-    'webcomponents/cma-blockeditor.js',
-    'webcomponents/cma-sortlist.js',
-    'webcomponents/cma-groupbox.js',
-    // cma-combo.js removed - merged into lib-combo.js (registers both tag names)
-    'webcomponents/cma-fold.js',
-    // cma-tree.js is loaded explicitly by pages that need it (webcomponents/cma-tree.js)
-    'webcomponents/cma-toolbar.js',
-    'webcomponents/cma-tabs.js',
-    'webcomponents/cma-launcher.js',
-    '../library/library.js',
-    '../library/datepicker.js',
-    '../library/select2/select2.js',
-    '../library/webcomponents/lib-table.js',
-    'assets/js/cma.js',
-    'assets/js/cma-users.js',  // User form actions (password reset, login as)
-    'webcomponents/cma-htmledit.js',  // Must be after cma.js (depends on CMA.editor)
-    'assets/js/blockedit.js',
-    'assets/js/table-preferences.js',
-    'assets/js/inline-edit.js',
-    'assets/js/perf-logger.js',
-    '../library/webcomponents/lib-tip.js',
-    'assets/js/cma-tours.js',
-    'assets/js/main.js'
-]));
 
 $bMinified = false;
 
@@ -452,7 +408,10 @@ function cma_js($extraJs = ''): void {
     cma_script('/library/webcomponents/lib-loader.js');
 
     // Use centralized bundle URL for consistent caching
-    $url = ($extraJs === '') ? cma_js_url() : minify_asset(CMA_JS_FILES . ',' . $extraJs);
+    // Extra JS is appended to the SAME base bundle (cma_js_bundle) - a second
+    // hand-maintained file list here used to drift (it silently missed
+    // url-manager.js, cma-base-component.js and others).
+    $url = ($extraJs === '') ? cma_js_url() : minify_asset(implode(',', cma_js_bundle()) . ',' . $extraJs);
     echo '<script src="' . $url . '"></script>' . PHP_EOL;
 }
 

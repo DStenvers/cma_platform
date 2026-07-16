@@ -2362,8 +2362,8 @@
             }
 
             const self = this;
-            const popupUrl = 'form.php?form=' + encodeURIComponent(formName) +
-                '&New=Y&updatevalues=' + encodeURIComponent(fieldName);
+            const popupUrl = CMA.url.toPageUrl({ form: formName, isNew: true }) +
+                '&updatevalues=' + encodeURIComponent(fieldName);
 
             // Store callback on form-layout element for popup close handler
             const formLayout = document.querySelector('.form-layout');

@@ -1574,12 +1574,12 @@
                 if (typeof lib_OpenSidePanel === 'function') {
                     const width = Math.round(window.innerWidth * 0.85);
 
-                    let subUrl = 'form.php?form=' + encodeURIComponent(urlState.subform);
-                    if (urlState.subformId && !urlState.isSubformNew) {
-                        subUrl += '&id=' + urlState.subformId;
-                    } else {
-                        subUrl += '&New=Y';
-                    }
+                    const subIsNew = !urlState.subformId || urlState.isSubformNew;
+                    let subUrl = window.CMA.url.toPageUrl({
+                        form: urlState.subform,
+                        recordId: subIsNew ? null : urlState.subformId,
+                        isNew: subIsNew
+                    });
                     subUrl += '&parentID=' + recordId;
 
                     lib_OpenSidePanel(subUrl, 'form_popup_sub', width, 'Bewerken');
@@ -1587,12 +1587,12 @@
                     // If there's a subsubform (3rd level), open that too
                     if (urlState.subsubform) {
                         setTimeout(() => {
-                            let subsubUrl = 'form.php?form=' + encodeURIComponent(urlState.subsubform);
-                            if (urlState.subsubformId && !urlState.isSubsubformNew) {
-                                subsubUrl += '&id=' + urlState.subsubformId;
-                            } else {
-                                subsubUrl += '&New=Y';
-                            }
+                            const subsubIsNew = !urlState.subsubformId || urlState.isSubsubformNew;
+                            let subsubUrl = window.CMA.url.toPageUrl({
+                                form: urlState.subsubform,
+                                recordId: subsubIsNew ? null : urlState.subsubformId,
+                                isNew: subsubIsNew
+                            });
                             subsubUrl += '&parentID=' + (urlState.subformId || '');
 
                             lib_OpenSidePanel(subsubUrl, 'form_popup_subsub', width, 'Bewerken');
@@ -1614,12 +1614,12 @@
 
         // cmaLog.log('[main.js] Found legacy popup params, auto-opening sidepanel:', popupForm, popupId);
 
-        let url = 'form.php?form=' + encodeURIComponent(popupForm);
-        if (popupId && popupId !== '0') {
-            url += '&id=' + popupId;
-        } else {
-            url += '&New=Y';
-        }
+        const popupIsNew = !popupId || popupId === '0';
+        let url = window.CMA.url.toPageUrl({
+            form: popupForm,
+            recordId: popupIsNew ? null : popupId,
+            isNew: popupIsNew
+        });
 
         const parentId = params.get('popupParentID');
         const parentField = params.get('popupParentField');
@@ -1645,7 +1645,7 @@
         // If just a form name (no path/query), convert to full URL
         let page = pageOrForm;
         if (!page.includes('.php') && !page.includes('?') && !page.includes('/')) {
-            page = 'form.php?form=' + encodeURIComponent(pageOrForm);
+            page = window.CMA.url.toPageUrl({ form: pageOrForm });
         }
 
         setActiveMenuItem(page);
