@@ -1037,16 +1037,12 @@ class CmaQueryPreview extends HTMLElement {
             await cmaCopyToClipboard(this._sql);
             showCopied();
         } catch (err) {
-            // Fallback for older browsers
-            const textarea = document.createElement('textarea');
-            textarea.value = this._sql;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showCopied();
+            // cmaCopyToClipboard already retried the legacy textarea fallback
+            // internally - both paths failed, so show failure instead of success
+            copyBtn.innerHTML = '<a href="javascript:void(0)"><span class="lnr lnr-warning"></span> Kopiëren mislukt</a>';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<a href="javascript:void(0)"><span class="lnr lnr-copy"></span> Kopiëren</a>';
+            }, 2000);
         }
     }
 

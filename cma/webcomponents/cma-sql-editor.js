@@ -514,18 +514,10 @@ class CmaSqlEditor extends HTMLElement {
                 btnCopy.innerHTML = originalHtml;
             }, 2000);
         } catch (err) {
-            // Fallback
-            const textarea = document.createElement('textarea');
-            textarea.value = this._sql;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
+            // cmaCopyToClipboard already retried the legacy textarea fallback
+            // internally - both paths failed, so show failure instead of success
             const originalHtml = btnCopy.innerHTML;
-            btnCopy.innerHTML = '<span class="lnr lnr-checkmark-circle"></span> Gekopieerd';
+            btnCopy.innerHTML = '<span class="lnr lnr-warning"></span> Kopiëren mislukt';
 
             setTimeout(() => {
                 btnCopy.innerHTML = originalHtml;

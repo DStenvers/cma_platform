@@ -161,6 +161,20 @@ class Installer
         'cma/assets/css/form.min.css',
         'cma/assets/css/style.min.css',
         'cma/assets/css/main.min.css',
+        // Removed in v1.29.38: the assets/js/modules/ ES-module set was an
+        // extract-of-form-controller that was never wired up — nothing loads
+        // it (the files use `export` syntax, so a plain <script> tag would
+        // throw), no page uses type="module", and no consumer app references
+        // it. The live implementations are the guarded inline copies in
+        // form-controller.js. Deleted to remove the confusable parallel path.
+        'cma/assets/js/modules/cma-api-error.js',
+        'cma/assets/js/modules/cma-combo-cache.js',
+        'cma/assets/js/modules/cma-form-cache.js',
+        'cma/assets/js/modules/cma-notification.js',
+        'cma/assets/js/modules/cma-perf.js',
+        'cma/assets/js/modules/cma-record-cache.js',
+        'cma/assets/js/modules/cma-request-coalescer.js',
+        'cma/assets/js/modules/index.js',
     ];
 
     /**

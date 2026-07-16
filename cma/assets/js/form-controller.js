@@ -24,8 +24,8 @@ if (typeof CMA_DEBUG === 'undefined') {
 
 // =============================================================================
 // UTILITY MODULES
-// These are now available as separate ES6 modules in /assets/js/modules/
-// If modules are pre-loaded, use them; otherwise define inline for backward compat
+// Defined inline; the typeof-guard lets a page-provided window.X win if a
+// page ever pre-loads its own implementation
 // =============================================================================
 
 // cmaApiError - API error handler
@@ -135,7 +135,7 @@ if (typeof window.cmaApiError === 'undefined') {
     var cmaApiError = window.cmaApiError;
 }
 
-// cmaPerf - Performance monitoring (now available from modules/cma-perf.js)
+// cmaPerf - Performance monitoring
 if (typeof window.cmaPerf === 'undefined') {
     var cmaPerf = (function() {
     // Storage for timers, counters, and metrics
@@ -178,8 +178,7 @@ if (typeof window.cmaPerf === 'undefined') {
      * @returns {boolean}
      */
     function isServerLoggingEnabled() {
-        var match = document.cookie.match(/(?:^|; )cma_perf_logging=([^;]*)/);
-        return match && match[1] === 'J';
+        return CMA.utils.getCookie('cma_perf_logging') === 'J';
     }
 
     return {
@@ -554,7 +553,7 @@ if (typeof window.cmaPerf === 'undefined') {
     var cmaPerf = window.cmaPerf;
 }
 
-// cmaComboCache - Combo options cache (now available from modules/cma-combo-cache.js)
+// cmaComboCache - Combo options cache
 if (typeof window.cmaComboCache === 'undefined') {
     var cmaComboCache = (function() {
     var CACHE_PREFIX = 'cma_combo_';
@@ -809,7 +808,7 @@ if (typeof window.cmaComboCache === 'undefined') {
     var cmaComboCache = window.cmaComboCache;
 }
 
-// cmaRequestCoalescer - Prevents duplicate in-flight requests (now available from modules/cma-request-coalescer.js)
+// cmaRequestCoalescer - Prevents duplicate in-flight requests
 if (typeof window.cmaRequestCoalescer === 'undefined') {
     var cmaRequestCoalescer = (function() {
     // Map of URL -> { promise, timestamp }

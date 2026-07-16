@@ -527,12 +527,12 @@ class ErrorHandler
 
     /**
      * Emit a structured JSON error for AJAX/fetch callers. The shape matches
-     * what cma-api-error.js (cmaApiError.handleResponse) consumes:
+     * what the cmaApiError module in form-controller.js (handleResponse) consumes:
      *   { success:false, error, errorType, debug:{ file, line, trace, diagnostics } }
      *
      * The debug block is included for an elevated viewer (admin/supervisor/
      * developer) or in a debug environment; otherwise only a generic message is
-     * returned so details never leak to ordinary users. cma-api-error.js shows
+     * returned so details never leak to ordinary users. cmaApiError shows
      * the debug block in an expandable panel when formConfig.showDetails is set
      * (also admin/developer), so the two ends agree on who sees what.
      *
@@ -575,7 +575,7 @@ class ErrorHandler
             ];
             $diagnostics = self::getDatabaseDiagnostics($exception);
             if ($diagnostics) {
-                // cma-api-error.js reads diagnostics.likelyCauses; the PHP array
+                // cmaApiError (form-controller.js) reads diagnostics.likelyCauses; the PHP array
                 // uses snake_case likely_causes — expose both so the client's
                 // "Mogelijke oorzaak" line works without changing every reader.
                 if (isset($diagnostics['likely_causes']) && !isset($diagnostics['likelyCauses'])) {

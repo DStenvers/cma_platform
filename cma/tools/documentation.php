@@ -2668,8 +2668,8 @@ function render_doc_errors(): void
     nietszeggende "HTTP 500" zag.</p>
     <p>De JS-kant toont datzelfde <code>debug</code>-blok wanneer
     <code>window.CMA.formConfig.showDetails</code> waar is (óók admin/developer):
-    <code>cma-api-error.js</code> <code>formatError()</code> en de lijst-foutweergave in
-    <code>form-controller.js</code>. Zo zijn beide kanten het eens over wie wat ziet;
+    de <code>cmaApiError</code>-module (<code>formatError()</code>) en de lijst-foutweergave,
+    beide in <code>form-controller.js</code>. Zo zijn beide kanten het eens over wie wat ziet;
     volledige file/line/trace staan sowieso in de console en in het uitklap-paneel van
     <code>lib-message</code>.</p>
 

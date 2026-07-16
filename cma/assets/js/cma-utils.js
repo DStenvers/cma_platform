@@ -113,24 +113,29 @@ if (typeof window.cmaLog === 'undefined' || !window.LibLog) {
  */
 window.cmaCopyToClipboard = function(text) {
     text = (text === null || text === undefined) ? '' : String(text);
-    if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(text);
+    function legacyCopy() {
+        return new Promise(function(resolve, reject) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.top = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length);
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                ok ? resolve() : reject(new Error('execCommand copy failed'));
+            } catch (e) { reject(e); }
+        });
     }
-    return new Promise(function(resolve, reject) {
-        try {
-            var ta = document.createElement('textarea');
-            ta.value = text;
-            ta.setAttribute('readonly', '');
-            ta.style.position = 'fixed';
-            ta.style.top = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            ta.setSelectionRange(0, ta.value.length);
-            var ok = document.execCommand('copy');
-            document.body.removeChild(ta);
-            ok ? resolve() : reject(new Error('execCommand copy failed'));
-        } catch (e) { reject(e); }
-    });
+    if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        // writeText can still reject when available (document not focused,
+        // permission denied) - retry via the legacy textarea path
+        return navigator.clipboard.writeText(text).catch(function() { return legacyCopy(); });
+    }
+    return legacyCopy();
 };
 
 window.cmaErrorParser = {
