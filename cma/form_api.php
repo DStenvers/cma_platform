@@ -454,7 +454,7 @@ try {
             $userLevel = \Cma\SecurityHelper::getUserLevel();
 
             // Get detailed access check with debug info
-            $accessLevel = \Cma\SecurityHelper::checkFormRightsByName($userId, true);
+            $accessLevel = \Cma\SecurityHelper::checkFormRightsByName($userId, $jsonFormName, true);
             $debugInfo = $security_debug ?? [];
 
             // Get user's group memberships

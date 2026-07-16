@@ -13,6 +13,7 @@ use App\Library\Arr;
 use App\Library\Request;
 use App\Library\Response;
 use Cma\FormDataProvider;
+use Cma\SecurityHelper;
 use Cma\Services\ConfigFormService;
 use Cma\Services\JsonFormService;
 use Cma\Services\Logger;
@@ -38,6 +39,15 @@ try {
 
             if (empty($formId) && empty($formName)) {
                 echo json_encode(['success' => false, 'error' => 'formId or formName is required']);
+                exit;
+            }
+
+            // Per-form authorization: reading a record needs at least read
+            // access on the form (parity with the form_api.php path; global
+            // login is already enforced by bootstrap)
+            if (SecurityHelper::currentUserFormRights((int)$formId, $formName) < SecurityHelper::ACCESS_READ) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'Geen toegang tot dit formulier']);
                 exit;
             }
 
@@ -131,6 +141,13 @@ try {
                 exit;
             }
 
+            // Per-form authorization: writing needs full access on the form
+            if (SecurityHelper::currentUserFormRights($formId) < SecurityHelper::ACCESS_FULL) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'Geen toegang tot dit formulier']);
+                exit;
+            }
+
             $result = FormDataProvider::saveRecord($formId, $recordId, $data);
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
             break;
@@ -154,6 +171,13 @@ try {
 
             if ($recordId === '' || $recordId === null) {
                 echo json_encode(['success' => false, 'error' => 'Record ID is required']);
+                exit;
+            }
+
+            // Per-form authorization: deleting needs full access on the form
+            if (SecurityHelper::currentUserFormRights($formId) < SecurityHelper::ACCESS_FULL) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'Geen toegang tot dit formulier']);
                 exit;
             }
 

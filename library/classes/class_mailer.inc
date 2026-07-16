@@ -12,24 +12,35 @@ use App\Library\Str;
 
 /**
  * Sendmail
+ *
+ * Guarded (not unconditional) so a consumer site can register its own legacy
+ * dialect in its bootstrap before this file loads. Not every converted ASP
+ * site speaks this 8-parameter signature: mijnRINO's ASP mailer had
+ * 9-parameter SendMail/SendMailNoTemplate (strFromName between from and cc).
+ * A predefined function wins; these versions then stay out of the way.
  */
+if (!function_exists('SendMail')) {
 function SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, $strCCName, $strSubject, $strBody, $strAttachmentLocation)
 {
     return internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, $strCCName, $strSubject, $strBody, $strAttachmentLocation, true);
+}
 }
 // For compatibility reasons (older sites do not use the class so i created rewrote this function as a wrapper function of the class)
 /**
 * Sendmailnotemplate
 *
 */
+if (!function_exists('SendMailNoTemplate')) {
 function SendMailNoTemplate($strToEMail, $strToName, $strFromEMail, $strCCEMail, $strCCName, $strSubject, $strBody, $strAttachmentLocation)
 {
     return internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, $strCCName, $strSubject, $strBody, $strAttachmentLocation, false);
+}
 }
 /**
 * Internal Sendmail
 *
 */
+if (!function_exists('internal_SendMail')) {
 function internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, $strCCName, $strSubject, $strBody, $strAttachmentLocation, $blnTemplate)
 {
     $strRetval = "";
@@ -47,6 +58,7 @@ function internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, 
     }
     $sendmail_objMail = null;
     return $strRetval;
+}
 }
 if (class_exists('LibMailer')) { return; }
 

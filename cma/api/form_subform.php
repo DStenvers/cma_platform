@@ -13,6 +13,7 @@
 use App\Library\Arr;
 use App\Library\Request;
 use App\Library\Response;
+use Cma\SecurityHelper;
 use Cma\Services\ListService;
 use Cma\Services\ConfigFormService;
 use Cma\Services\Logger;
@@ -38,6 +39,15 @@ try {
 
     if (empty($parentId)) {
         echo json_encode(['success' => false, 'error' => 'ParentID is required']);
+        exit;
+    }
+
+    // Per-form authorization: subform data needs at least read access on the
+    // (parent) form (parity with the form_api.php path; global login is
+    // already enforced by bootstrap)
+    if (SecurityHelper::currentUserFormRights((int)$formId, $formName) < SecurityHelper::ACCESS_READ) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Geen toegang tot dit formulier']);
         exit;
     }
 

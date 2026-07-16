@@ -300,6 +300,23 @@ class SecurityHelper
     }
 
     /**
+     * Resolve the current user's access level for a form identified by either
+     * its numeric id or its JSON form name (name wins when both are given).
+     * Convenience for API endpoints that accept both identifiers; admins
+     * resolve to ACCESS_FULL_BEHEER via the underlying checks.
+     */
+    public static function currentUserFormRights(int $formId, string $formName = ''): int
+    {
+        $userId = (int)self::getCurrentUserId();
+        if ($userId <= 0) {
+            return self::ACCESS_NONE;
+        }
+        return $formName !== ''
+            ? self::checkFormRightsByName($userId, $formName)
+            : self::checkFormRights($userId, $formId);
+    }
+
+    /**
      * Get user's display name
      */
     public static function getUserName(int $userId): string

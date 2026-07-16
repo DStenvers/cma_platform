@@ -5612,3 +5612,13 @@ karaat-data en staat in de karaat-repo.
 >                 end if
 >               next
 >             end if
+
+> ehhm, three mailers?  helpers/src/Email.php, converter/templates/library/Email.php, and site/app/library/Email.php ?? Can we not do that? Use 1 class and stub the others of needed, but i prefer to have them deleted
+
+> a : yes but readonly is also allowed, not just FULL access
+
+> continue
+
+> look at the bootstrap/autoloader : are there more duplicated area's?
+
+> continue

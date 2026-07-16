@@ -1748,6 +1748,22 @@ function render_doc_security(): void
     exit;
 }</code></pre>
 
+    <h2>Autorisatie per formulier (API-endpoints)</h2>
+    <p>Naast de globale login-gate (bootstrap geeft een 401 voor API's zonder sessie) dwingen de
+    formulier-endpoints sinds v1.29.45 per-formulier autorisatie af via
+    <code>SecurityHelper::currentUserFormRights($formId, $formName)</code> (menu-/groepsrechten,
+    subforms vallen terug op het parent-formulier; admins krijgen <code>ACCESS_FULL_BEHEER</code>):</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Endpoint</th><th>Lezen</th><th>Schrijven/verwijderen</th></tr></thead>
+        <tbody>
+            <tr><td><code>cma/api/form_list.php</code></td><td>&ge; <code>ACCESS_READ</code></td><td>—</td></tr>
+            <tr><td><code>cma/api/form_subform.php</code></td><td>&ge; <code>ACCESS_READ</code></td><td>—</td></tr>
+            <tr><td><code>cma/api/form_record.php</code></td><td>&ge; <code>ACCESS_READ</code> (GET)</td><td>&ge; <code>ACCESS_FULL</code> (POST/DELETE)</td></tr>
+        </tbody>
+    </table>
+    <p>Onvoldoende rechten geeft een HTTP 403 met <code>{"success": false, "error": "Geen toegang tot dit formulier"}</code>.
+    Leesrechten (readonly) volstaan dus voor lijst- en record-GETs; mutaties vereisen volledige toegang.</p>
+
     <h2>CSRF</h2>
     <p>POST-endpoints in <code>cma/api/*</code> en <code>cma/form_api.php</code> krijgen automatisch een CSRF-token via de form-controller (verzonden in een hidden field). Custom POST-handlers moeten het token valideren met de form-helper voordat ze een mutation uitvoeren.</p>
 
@@ -3105,6 +3121,7 @@ $ok = Email::create()
     <p>De oude <code>library/classes/class_mailer.inc</code> (<code>LibMailer</code> plus de globale <code>SendMail()</code> / <code>SendMailNoTemplate()</code> functies, een VBScript-conversie) is nu een dunne wrapper rond <code>App\Library\Email</code>. Bij <code>Send()</code> bouwt <code>LibMailer</code> een <code>Email</code>-object en delegeert. Gevolg: er is <span class="cma-tool__strong">één</span> mail-codepad, en ook deze legacy-mails lopen door de afterSend-hook en landen dus in <code>tblEmailLog</code>. Vóór v1.28.30 sprak <code>LibMailer</code> PHPMailer rechtstreeks aan en werden die mails NIET gelogd.</p>
     <p>De publieke API is ongewijzigd (<code>-&gt;Subject</code>, <code>-&gt;Body</code>, <code>-&gt;From</code>, <code>-&gt;AddRecipient(s)</code>, <code>-&gt;AddRecipientCC/BCC</code>, <code>-&gt;AddAttachment</code>, <code>-&gt;Send()</code>, <code>-&gt;strError</code>, <code>-&gt;CheckSend()</code>). Body wordt bewust <span class="cma-tool__strong">zonder</span> template verstuurd (<code>setUseTemplate(false)</code>), gelijk aan wat de oude class effectief deed.</p>
     <p>Sinds v1.28.31 kun je optioneel een Reply-To zetten via <code>$mailer-&gt;replyTo = 'antwoord@example.nl'</code> — die wordt doorgegeven aan <code>Email::setReplyTo()</code>. Leeg = geen Reply-To. In local/simulatie-modus rendert <code>LibMailer</code> zijn eigen klassieke on-screen preview-tabel (<code>ShowPreview()</code>) i.p.v. te versturen, zodat de vertrouwde preview-opzet behouden blijft.</p>
+    <p>Sinds v1.29.43 staan de globale functies <code>SendMail()</code>, <code>SendMailNoTemplate()</code> en <code>internal_SendMail()</code> in een <code>function_exists</code>-guard. Niet elke geconverteerde ASP-site spreekt dit 8-parameter dialect: mijnRINO's ASP-mailer had bijvoorbeeld 9 parameters (<code>strFromName</code> tussen from en cc). Zo'n site definieert zijn eigen variant in de eigen bootstrap vóórdat <code>class_mailer.inc</code> laadt; de voorgedefinieerde functie wint dan. Sinds diezelfde versie slaat <code>Email</code> bij verzenden bijlagen over via <code>is_file()</code> i.p.v. <code>file_exists()</code>, zodat ook directory-paden stil worden overgeslagen (gelijk aan <code>lib_FileExists</code> in het ASP-origineel).</p>
 
     <h2>Test-mail formulier</h2>
     <p>Op de Omgeving-tab van <a href="tools_serverinfo.php" target="_top">Server informatie</a> staat een test-mail form dat <code>Email::create()-&gt;send()</code> aanroept tegen de huidige config — handig om SMTP-bereikbaarheid te testen zonder een echte form-action te triggeren. Developers-only.</p>

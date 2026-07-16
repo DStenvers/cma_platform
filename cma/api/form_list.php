@@ -17,6 +17,7 @@ use App\Library\Request;
 use App\Library\Response;
 use Cma\FormDataProvider;
 use Cma\JsonFormLoader;
+use Cma\SecurityHelper;
 use Cma\Services\ConfigFormService;
 use Cma\Services\JsonFormService;
 use Cma\Services\Logger;
@@ -33,6 +34,18 @@ try {
     $formName = Request::query('formName', '');
     $subformName = Request::query('subform', '');
     $parentId = Request::query('parentId', '');
+
+    // Per-form authorization: listing needs at least read access on the form
+    // (parity with the form_api.php path; global login is already enforced by
+    // bootstrap). Subform requests are checked against the parent form, which
+    // is what checkFormRightsByName resolves for subform names too.
+    if (!empty($formId) || !empty($formName)) {
+        if (SecurityHelper::currentUserFormRights((int)$formId, $formName) < SecurityHelper::ACCESS_READ) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Geen toegang tot dit formulier']);
+            exit;
+        }
+    }
 
     // Resolve form from formName if provided
     if (empty($formId) && !empty($formName)) {
