@@ -2612,7 +2612,7 @@ function render_doc_errors(): void
     <p>Het platform heeft een JavaScript-laag en een PHP-laag die samen werken:</p>
     <ul>
         <li><span class="cma-tool__strong">LibLog</span> (<code>library/webcomponents/lib-log.js</code>) — onderschept <code>console.*</code> calls, batched naar de server.</li>
-        <li><span class="cma-tool__strong">CmaErrorHandler</span> (<code>cma/assets/js/error-handler.js</code>) — vangt <code>window.onerror</code> en <code>unhandledrejection</code>, toont visueel paneel in dev-mode, post naar <code>form_api.php?action=logJsError</code>.</li>
+        <li><span class="cma-tool__strong">CmaErrorHandler</span> (<code>library/assets/js/error-handler.js</code>) — vangt <code>window.onerror</code> en <code>unhandledrejection</code>, toont visueel paneel in dev-mode, post naar <code>form_api.php?action=logJsError</code>.</li>
         <li><span class="cma-tool__strong">Logger</span> (<code>cma/classes/Services/Logger.php</code>) — server-side PSR-3 logger.</li>
         <li><span class="cma-tool__strong">PerformanceLogger</span> (<code>cma/classes/Services/PerformanceLogger.php</code>) — timing metrics.</li>
     </ul>

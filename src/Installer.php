@@ -175,6 +175,14 @@ class Installer
         'cma/assets/js/modules/cma-record-cache.js',
         'cma/assets/js/modules/cma-request-coalescer.js',
         'cma/assets/js/modules/index.js',
+        // Removed in v1.29.39: the stale CMA-local error-handler copy. Every
+        // loader (main.php standalone tag, cma_js_bundle, cma_form_js_bundle,
+        // image-editor, file-browser, file_frameset) uses
+        // library/assets/js/error-handler.js; this fork froze at v1.28.106
+        // and silently missed the double-load guard, the resource-error
+        // capture handler and later fixes.
+        'cma/assets/js/error-handler.js',
+        'cma/assets/js/error-handler.min.js',
     ];
 
     /**
