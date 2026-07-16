@@ -10986,7 +10986,7 @@ class CmaFormController {
             }
         } else {
             // Fallback: load first tab via separate request
-            await this.loadSubformDataAndCount(0, firstTab.id, parentId);
+            await this.loadSubformData(0, parentId);
         }
 
         // Step 2: Batch load remaining tabs in a single request
@@ -11129,12 +11129,14 @@ class CmaFormController {
     }
 
     /**
-     * Load subform data and update count badge
+     * Load subform data, update count badge and toolbar
+     * @param {number} index - Subform tab index
+     * @param {string|number} [parentId] - Parent record id (defaults to the current record)
      */
-    async loadSubformDataAndCount(index, subformId, parentId) {
+    async loadSubformData(index, parentId = null) {
         const pane = document.getElementById('subform' + index);
         if (!pane) {
-            console.warn('[SUBFORM_TRACE] loadSubformDataAndCount: pane not found for index', index);
+            console.warn('[SUBFORM_TRACE] loadSubformData: pane not found for index', index);
             return;
         }
 
@@ -11147,15 +11149,16 @@ class CmaFormController {
             listEl.innerHTML = '<div class="list-loading">...</div>';
         }
 
-        const url = `/cma/form_api.php?action=subform&${this.getFormParam()}&ParentID=${parentId}&SubformIndex=${index}`;
-        const requestId = window.CMA?.requestTracker?.start(url, 'GET', 'loadSubformDataAndCount[' + index + ']') || null;
+        const effectiveParentId = parentId != null ? parentId : cmaGetRecordId();
+        const url = `/cma/form_api.php?action=subform&${this.getFormParam()}&ParentID=${effectiveParentId}&SubformIndex=${index}`;
+        const requestId = window.CMA?.requestTracker?.start(url, 'GET', 'loadSubformData[' + index + ']') || null;
 
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 const error = `HTTP ${response.status} ${response.statusText}`;
                 if (requestId) window.CMA.requestTracker.end(requestId, false, { httpStatus: response.status, error: error });
-                throw new Error(`[loadSubform] ${error}`);
+                throw new Error(`[loadSubformData] ${error}`);
             }
             const data = await response.json();
 
@@ -11164,7 +11167,6 @@ class CmaFormController {
                 if (listEl) {
                     listEl.innerHTML = '<div class="list-loading">Sessie verlopen...</div>';
                 }
-                pane.classList.remove('loading');
                 if (requestId) window.CMA.requestTracker.end(requestId, false, { error: 'Session expired' });
                 return;
             }
@@ -11192,7 +11194,11 @@ class CmaFormController {
                 const errorMsg = data.error || 'Laden mislukt';
                 this.logSubformError(index, errorMsg);
                 if (requestId) window.CMA.requestTracker.end(requestId, false, { httpStatus: response.status, error: errorMsg });
-                if (listEl) {
+
+                // Check if this is a fixable error and user is developer
+                if (data.fixable && data.fixType === 'missingParentField' && window.CMA_IS_DEVELOPER && listEl) {
+                    this.showParentFieldFixDialog(listEl, data, index);
+                } else if (listEl) {
                     // Display error with proper error styling
                     // Don't escape if it contains HTML (has <div or <details tags)
                     const hasHtml = /<div\s|<details\s|<span\s|<strong\s/i.test(errorMsg);
@@ -11258,77 +11264,8 @@ class CmaFormController {
                     // cmaLog.log('activateSubformTab: skipping load for tab', index, '- already loaded');
                     return;
                 }
-                await this.loadSubformData(index, pane);
+                await this.loadSubformData(index);
             }
-        }
-    }
-
-    /**
-     * Load subform data
-     */
-    async loadSubformData(index, pane) {
-        const listEl = pane.querySelector('.subform-list');
-        if (!listEl) {
-            console.warn('[SUBFORM_TRACE] loadSubformData: listEl not found for index', index);
-            return;
-        }
-
-        listEl.innerHTML = '<div class="list-loading">...</div>';
-
-        const url = `/cma/form_api.php?action=subform&${this.getFormParam()}&ParentID=${cmaGetRecordId()}&SubformIndex=${index}`;
-        const requestId = window.CMA?.requestTracker?.start(url, 'GET', 'loadSubformData[' + index + ']') || null;
-
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const error = `HTTP ${response.status} ${response.statusText}`;
-                if (requestId) window.CMA.requestTracker.end(requestId, false, { httpStatus: response.status, error: error });
-                throw new Error(`[refreshSubform] ${error}`);
-            }
-            const data = await response.json();
-
-            // Check for login required
-            if (this.checkRequireLogin(data)) {
-                listEl.innerHTML = '<div class="list-loading">Sessie verlopen...</div>';
-                if (requestId) window.CMA.requestTracker.end(requestId, false, { error: 'Session expired' });
-                return;
-            }
-
-            if (data.success) {
-                if (requestId) {
-                    window.CMA.requestTracker.end(requestId, true, {
-                        httpStatus: response.status,
-                        responseSize: JSON.stringify(data).length
-                    });
-                }
-
-                this.renderSubformList(listEl, data);
-
-                // Update count badge via cma-tabs component
-                const count = data.count || data.total || 0;
-                this.setSubformCount(index, count);
-
-                // Populate subform toolbar
-                this.renderSubformToolbar(pane, index, data);
-            } else {
-                const errorMsg = data.error || 'Laden mislukt';
-                this.logSubformError(index, errorMsg);
-                if (requestId) window.CMA.requestTracker.end(requestId, false, { httpStatus: response.status, error: errorMsg });
-
-                // Check if this is a fixable error and user is developer
-                if (data.fixable && data.fixType === 'missingParentField' && window.CMA_IS_DEVELOPER) {
-                    this.showParentFieldFixDialog(listEl, data, index);
-                } else {
-                    // Display error with proper error styling
-                    const hasHtml = /<div\s|<details\s|<span\s|<strong\s/i.test(errorMsg);
-                    const displayMsg = hasHtml ? errorMsg : this.escapeHtml(errorMsg);
-                    listEl.innerHTML = `<lib-message type="error" style="margin: 10px;">${displayMsg}</lib-message>`;
-                }
-            }
-        } catch (error) {
-            cmaLog.error('%c⚠ Subform netwerkfout: %c' + this.getSubformName(index), 'color: #d32f2f; font-weight: bold;', 'color: #1976d2;', error.message || error);
-            if (requestId) window.CMA.requestTracker.end(requestId, false, { error: error.message || String(error) });
-            listEl.innerHTML = '<div class="list-loading">Netwerkfout</div>';
         }
     }
 

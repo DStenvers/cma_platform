@@ -5422,3 +5422,11 @@ karaat-data en staat in de karaat-repo.
 > ja fijn als je die toepast
 
 > please solve all and double check assumptions
+
+## 2026-07-16
+
+> a restart forced a quit, do you know what you were working on?
+
+> continue
+
+> yes please do
