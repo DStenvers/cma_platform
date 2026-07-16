@@ -166,7 +166,13 @@ textarea.ckeditor-fallback {
 }
 
 /* Groupbox end row border */
-tr.groupbox-end > td { border-top: 1px solid var(--border-color); }
+tr.groupbox-end > td {
+    padding: 0 !important;
+    height: 8px;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
 
 /* Hide empty groupboxes - when groupbox-row is immediately followed by groupbox-end */
 tr.groupbox-row:has(+ tr.groupbox-end) { display: none; }
@@ -877,6 +883,7 @@ body.popup #detailToolbar .responsive-btn .btn-text {
 .toolbar-right {
     display: flex;
     align-items: center;
+    gap: 8px;
     flex: 1;
     justify-content: flex-start;
     padding-left: 8px;
@@ -999,6 +1006,7 @@ body.popup #detailToolbar .responsive-btn .btn-text {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     padding: 3px;
 }
 
@@ -1816,6 +1824,11 @@ lib-table .subform-section table thead {
 }
 
 .checklist-inline {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
     background-color: var(--bg-body);
 }
 
@@ -1823,8 +1836,13 @@ lib-table .subform-section table thead {
     margin-bottom: 8px;
 }
 
+.checklist-group:last-child {
+    margin-bottom: 0;
+}
+
 .checklist-group-header {
     font-weight: bold;
+    font-size: var(--font-size);
     padding: 4px 0;
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-light);
@@ -1835,6 +1853,10 @@ lib-table .subform-section table thead {
     display: block;
     padding: 2px 0 2px 8px;
     cursor: pointer;
+}
+
+.checklist-item input[type="checkbox"] {
+    margin-top: 2px;
 }
 
 .checklist-item-inline {
@@ -1858,10 +1880,15 @@ lib-table .subform-section table thead {
     outline-offset: -1px;
 }
 
+.checklist-item:hover {
+    color: var(--color-primary);
+}
+
 .checklist-hint {
     display: block;
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
+    margin-left: 22px;
     padding-left: 20px;
 }
 
@@ -3030,6 +3057,8 @@ body.mode-table #btn_columns {
     height: 26px !important;
     line-height: 24px !important;
     padding-left: 8px !important;
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
 }
 
 .select2-container .select2-choice .select2-arrow {

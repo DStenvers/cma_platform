@@ -286,7 +286,6 @@ select {padding-top:2px}
 body.contentbody input.url, body.contentbody input.file, body.contentbody  .select2 {min-width:370px !important}
 body.contentbody input.url, body.contentbody input.file {padding-right:24px}
 /* Select2 customizations - !important needed to override base select2.css gradients */
-.select2-container .select2-choice {padding-left:4px !important; background: var(--input-bg) !important; border-color: var(--input-border) !important}
 .select2-container .select2-choice	a {background-image:url() !important}
 .select2-results .select2-highlighted {background: none repeat scroll 0 0 var(--color-accent)}
 .select2-results .select2-highlighted  div { color: var(--text-inverse) !important}
@@ -530,14 +529,6 @@ tr.groupbox-row > td {
     line-height: 0;
 }
 
-/* Groupbox end row - visual separator between groups */
-tr.groupbox-end > td {
-    padding: 0 !important;
-    height: 8px;
-    background: transparent;
-    border: none;
-}
-
 cma-groupbox.group_open {
     border-bottom: 0px;
     border-bottom-left-radius: 0px;
@@ -708,13 +699,6 @@ table#buttonbar button {width:110px}
     text-overflow: ellipsis;
     font-family: var(--font-family);
     font-size: var(--font-size);}
-.complextree li a.active,
-.complextree li a.active::before,
-#listContent a.active,
-#listContent a.active::before {
-    background-color: var(--color-primary) !important;
-    color: var(--text-inverse);
-}
 span.arrow::before,
 .complextree li.f_open > a::before,
 .complextree li.f_closed > a::before { content:""; display:inline-block; border-bottom: 1px solid var(--color-primary); margin-right:8PX;  border-left: 1px solid var(--color-primary); width:6px; height:6px; transition: all 0.15s ease-in-out; transform-origin: center center 1px; transform: rotate(-135deg);}
@@ -1095,58 +1079,8 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
     z-index: 100;
 }
 
-/* Toolbar left section */
-.toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-}
-
-/* Toolbar right section */
-.toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    justify-content: flex-end;
-}
-
-/* Toolbar button */
-.tb-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border-radius: 3px;
-    cursor: pointer;
-    border: 1px solid transparent;
-}
-
-.tb-btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--border-hover);
-}
-
-.tb-btn a {
-    color: var(--text-primary);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
 .tb-btn a:hover {
     color: var(--color-accent);
-}
-
-.tb-btn .lnr {
-    font-size: 18px;
-    line-height: 1;
-}
-
-.tb-btn .lnr-table {
-    font-weight: 700;
 }
 
 .tb-btn .tb-btn-text {
@@ -1181,26 +1115,6 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-}
-
-/* Toolbar separator */
-.tb-sep {
-    display: inline-block;
-    width: 1px;
-    height: 20px;
-    background: var(--border-dark);
-    margin: 0 6px;
-}
-
-/* Disabled toolbar button */
-.tb-btn.disabled {
-    opacity: 0.4;
-    pointer-events: none;
-    cursor: default;
-}
-
-.tb-btn.disabled a {
-    cursor: default;
 }
 
 /* Dirty state - handled by save-pulse animation on .lnr-save::before above */
@@ -1941,66 +1855,6 @@ table.rights-matrix tr.section-header .header-radio:hover {
     table.rights-matrix td.button-col {
         display: none;
     }
-}
-
-/* ===== Checklist Styles ===== */
-.checklist-tree,
-.checklist,
-.checklist-inline {
-    max-height: 400px;
-    overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 10px;
-    background-color: var(--bg-surface);
-}
-
-.checklist-group {
-    margin-bottom: 12px;
-}
-
-.checklist-group:last-child {
-    margin-bottom: 0;
-}
-
-.checklist-group-header {
-    font-weight: 600;
-    font-size: var(--font-size);
-    color: var(--text-primary);
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 8px;
-}
-
-.checklist-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 4px 0;
-    cursor: pointer;
-}
-
-.checklist-item:hover {
-    color: var(--color-primary);
-}
-
-.checklist-item input[type="checkbox"] {
-    margin-top: 2px;
-}
-
-.checklist-item-inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px 4px 0;
-    cursor: pointer;
-}
-
-.checklist-hint {
-    display: block;
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    margin-left: 22px;
 }
 
 /* Small button modifier - overrides base .btn sizing */
