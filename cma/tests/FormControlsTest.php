@@ -7,7 +7,7 @@
  * Notes:
  * - All controls are exercised with $echo = false so the produced HTML string
  *   is returned and can be asserted on directly.
- * - Some methods (combo standard path, getOptions, checkList, sortList) pull
+ * - Some methods (combo standard path, getOptions, checkList) pull
  *   their options from the database via Database::openRS(). No live DB is
  *   available in the test harness, so those methods are tested only for their
  *   no-DB behaviour (structural shell, empty result, or thrown exception). The
@@ -631,7 +631,7 @@ class FormControlsTest extends TestCase
     }
 
     // ========================================================================
-    // getOptions / checkList / sortList — DB-backed, no-DB behaviour only
+    // getOptions / checkList — DB-backed, no-DB behaviour only
     // ========================================================================
 
     public function testGetOptionsReturnsArrayWithoutDb(): void
@@ -653,20 +653,6 @@ class FormControlsTest extends TestCase
             ob_end_clean();
         }
         $this->assertTrue($threw, 'checkList should throw when the query cannot run');
-    }
-
-    public function testSortListThrowsWhenQueryFails(): void
-    {
-        $threw = false;
-        ob_start();
-        try {
-            FormControls::sortList('Cap', 5, 'SELECT 1', '', 5, false);
-        } catch (\Exception $e) {
-            $threw = true;
-        } finally {
-            ob_end_clean();
-        }
-        $this->assertTrue($threw, 'sortList should throw when the query cannot run');
     }
 
     // ========================================================================

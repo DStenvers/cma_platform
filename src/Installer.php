@@ -183,6 +183,13 @@ class Installer
         // capture handler and later fixes.
         'cma/assets/js/error-handler.js',
         'cma/assets/js/error-handler.min.js',
+        // Removed in v1.29.42: legacy image-based a.tt tooltip styling. Nothing
+        // links tooltip.css and no a.tt markup exists anywhere; the live systems
+        // are the data-tooltip CSS/JS engine (cma-utils.js + style.css) and the
+        // lib-tip component. The two gifs were only referenced by tooltip.css.
+        'library/tooltip.css',
+        'library/images/tooltip.gif',
+        'library/images/tooltip_filler.gif',
     ];
 
     /**

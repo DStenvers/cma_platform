@@ -5430,3 +5430,165 @@ karaat-data en staat in de karaat-repo.
 > continue
 
 > yes please do
+
+> <task-notification>
+> <task-id>a09a7ff6382a75bdc</task-id>
+> <tool-use-id>toolu_01V2nXLB1iLJxvPgVnryRUae</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/bdfd0d27-ce63-4936-89b3-95bc964247f8/tasks/a09a7ff6382a75bdc.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map tooltip system usage" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have all the evidence needed. Here is the map.
+>
+> # Tooltip Systems Map — cma_platform
+>
+> ## System 1: `data-tooltip` CSS+JS engine (the primary, live system)
+> Two cooperating layers that both key off the `data-tooltip` attribute:
+> - CSS `::after` layer — `cma/assets/css/style.css:1159-1235` (base at 1165, position variants 1198-1220, responsive-only toolbar rules 1184-1195, JS-active suppression 1232-1234).
+> - JS floating layer — `cma/assets/js/cma-utils.js:690-898` (IIFE): `createTooltip` (693), `showTooltip` (713), `hideTooltip` (820), `needsJsTooltip` (839), `init` delegation (869). Element class `cma-tooltip` styled at `style.css:1238-1258`.
+>
+> ## System 2: `&lt;lib-tip&gt;` / `LibTip` — tours and one-shot coach tips
+> - `library/webcomponents/lib-tip.js`: custom element `lib-tip` defined at :641, `LibTip` API object at :644 (`show`/`tour`/`dismiss`/`close`/`reset`). Creates its element via `document.createElement('lib-tip')` (:653). Uses Shadow DOM (`.tip-title`, `.tip-content`, `.tip-nav-next` per the cypress specs).
+>
+> ## System 3: `library/tooltip.css` — legacy `a.tt` image-based tooltip
+> - Styles only `a.tt` / `a.tt:hover span.tooltip` etc., using `images/tooltip.gif` background images (whole file, 56 lines).
+>
+> ---
+>
+> ## A. Who sets `data-tooltip`, and how many distinct places
+> The single largest source is automatic: the global **title→data-tooltip converter** at `cma-utils.js:905-967` (sets at :918-919, :939, :953) — it strips every `title` attribute in the document (and via MutationObserver, dynamically) and re-emits it as `data-tooltip`. So effectively *every* titled element feeds System 1.
+>
+> Explicit emitters (~20 distinct sites):
+>
+> PHP:
+> - `cma/classes/ToolbarHelper.php:207-211` — central `linearButton` helper (emits `data-tooltip` for many toolbars across the app)
+> - `cma/classes/FormTemplate.php:622` — readonly indicator
+> - `cma/bootstrap.inc:2023` — subform "add" toolbar button
+> - `cma/dashboard.php:1068,1071,1088,1091,1108,1124,1173,1199`
+> - `cma/image-editor.php:156-178` (16 buttons)
+> - `cma/main.php:505` (menu header) and inline JS at `:609-612`
+> - `cma/report-designer.php:97,257,337,347` + JS template strings at `:2532,3014-3019`
+> - `cma/listTemplates.php:46,50`; `cma/template_edit.php:182`; `cma/reports_DEPRECATED.php:83`
+>
+> JS:
+> - `cma/assets/js/cma.js:224`; `blockedit.js:806`; `inline-edit.js:494,497,594`; `form-controller.js:4279,4311-4313,4815`
+>
+> ## B. CSS `::after` fallback and when JS takes over
+> - Fallback defined in `cma/assets/css/style.css` — base `[data-tooltip]:hover::after` at **:1165** (with `:not(input):not(select):not(textarea)` since pseudo-elements can't attach to form controls), position variants :1198-1220.
+> - JS takeover logic: `needsJsTooltip(el)` at `cma-utils.js:839-863`. Documented reasons in the code comments:
+>   1. `input`/`select`/`textarea` can't host `::after` (:842-843).
+>   2. `.image-preview-btn` — its `::before` *is* the icon, so the `::after` tooltip gets clipped/fights the hover restyle (:845-851).
+>   3. **Any ancestor with `overflow:hidden`/`overflowX/Y:hidden` clips the CSS tooltip** — walks up to `document.body` (:853-861). This is the primary "escape clipping" rationale: the JS tooltip is `position:fixed; z-index:100000` (`style.css:1238-1249`) so it escapes overflow clipping. When JS is active it adds `js-tooltip-active` (:813) which suppresses the CSS `::after`/`::before` via `style.css:1232-1234`.
+>
+> So the two layers of System 1 are mutually exclusive on any given element — CSS by default, JS only when `needsJsTooltip` returns true.
+>
+> ## C. Who uses `&lt;lib-tip&gt;`, and is it loaded everywhere
+> - Consumers: `cma/assets/js/cma-tours.js` (guarded by `typeof LibTip` at :44, and 18 `LibTip.tour(...)`/`LibTip.show(...)` calls, e.g. :190,258,395,553,738,869,977,1262). Storybook demo/docs at `cma/tools/storybook.php:2234-2282, 5387-5441`. No PHP markup emits a literal `&lt;lib-tip&gt;` tag — it's always created programmatically by `LibTip` (`lib-tip.js:653`).
+> - Loaded on all bundle pages: yes — `cma/bootstrap.inc:684` (`lib-tip.js`) and `:685` (`cma-tours.js`) are in `cma_js_bundle()`. Note `cma/dashboard.php:961-962` *also* loads both via `cma_script(...)` — a redundant double-load on the dashboard on top of the bundle.
+>
+> ## D. Who loads `library/tooltip.css` and does it overlap
+> - **Nobody.** Zero references to `tooltip.css` anywhere in the repo (grep across php/inc/js/css/html/json returned nothing).
+> - Its selectors (`a.tt`, `a.tt:hover span.tooltip/.tt_top/.tt_middle/.tt_bottom`) require `&lt;a class="tt"&gt;…&lt;span class="tooltip"&gt;` markup. No such `a.tt` markup exists (grep for `class="tt"` = none). The one `class="tooltip"` hit (`cma/tools/tools_clearcache.php:940`) is inside `&lt;span class="info-icon"&gt;`, not an `a.tt` ancestor, so tooltip.css cannot match it (that info-icon is a separate small system styled elsewhere).
+> - No selector overlap with System 1's `.cma-tooltip` or `[data-tooltip]`, nor with lib-tip's shadow styles. It relies on `images/tooltip.gif` / `tooltip_filler.gif`.
+> - Verdict: **dead** — not linked, no matching markup, image-based legacy.
+>
+> ## E. Do System 1 (engine) and System 2 (lib-tip) ever style the same element
+> - **Disjoint trigger mechanisms.** System 1 fires on hover of `[data-tooltip]` elements (delegated `mouseenter`/`mouseleave`, `cma-utils.js:871-887`). System 2 is invoked imperatively via `LibTip.show/tour` and renders its own `&lt;lib-tip&gt;` shadow-DOM overlay pointing at a target selector; it never reads or writes `data-tooltip`. They never style the same element and never compete — one is hover microcopy, the other is click/programmatic coach-marks and multi-step tours.
+>
+> ---
+>
+> ## Verdict
+>
+> - **`library/tooltip.css` (System 3): dead.** Removable with zero behavior change — no loader, no `a.tt` markup, self-contained legacy image tooltip. Safe deletion candidate (also its `images/tooltip.gif`/`tooltip_filler.gif`).
+> - **`&lt;lib-tip&gt;` (System 2): keep, not consolidatable.** It serves a genuinely different purpose (tours + dismissible coach tips with server-persisted skip state), disjoint from hover tooltips. No overlap to collapse.
+> - **System 1 (CSS `::after` + `cma-tooltip` JS): keep, already a single coordinated system.** The CSS and JS layers are complementary (CSS default, JS only for the `needsJsTooltip` cases) rather than duplicative, and share visual tokens.
+>
+> Minimal consolidation with no behavior change:
+> 1. Delete `library/tooltip.css` (and its two gif assets) — pure dead code.
+> 2. Remove the redundant `cma/dashboard.php:961-962` `cma_script` loads of `lib-tip.js`/`cma-tours.js`, since `cma/bootstrap.inc:684-685` already ship them in the bundle (dashboard double-loads them).
+>
+> Leave Systems 1 and 2 intact; they are neither dead nor duplicative.</result>
+> <usage><subagent_tokens>36745</subagent_tokens><tool_uses>10</tool_uses><duration_ms>142155</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a235d3e15ffbdd561</task-id>
+> <tool-use-id>toolu_01TfyTeBGwJNiXACjy5dwWYQ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/bdfd0d27-ce63-4936-89b3-95bc964247f8/tasks/a235d3e15ffbdd561.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Verify legacy CMA.tree dormancy" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have everything I need. Here is my thorough verdict.
+>
+> ## Summary: CMA.tree IS effectively dead — no runtime emitter exists anywhere. Safe to delete in one coordinated change (JS + tests). Details and exact line ranges below.
+>
+> ---
+>
+> ## A. Every hit for gFld / insFld / initializeToElement / aux0 / foldersTree / 'new Folder(' — classified
+>
+> **Definitions** (inside the `CMA.tree` IIFE, `cma/assets/js/cma.js`):
+> - `cma.js:68` — `CMA.tree = (function() {` … `cma.js:486` `})();` — the whole legacy module
+> - `cma.js:78` `function Folder(...)`, `cma.js:101` `function Item(...)` — constructors (`new Folder(`/`new Item(` used internally at `:448`, `:452`, `:464`)
+> - `cma.js:366` `function initializeToElement(...)`
+> - `cma.js:447` `gFld`, `:451` `gLnk`, `:455` `F`, `:459` `D`, `:463` `I`
+> - `cma.js:468-485` public API export object
+>
+> **Global aliases** (`cma/assets/js/cma.js:2017-2043`):
+> - `:2019` `Folder`, `:2020` `Item`, `:2021` `gFld`, `:2022` `gLnk`, `:2023` `insFld`, `:2024` `insDoc`, `:2025` `F`, `:2026` `D`, `:2027` `I`, `:2037` `fSaveTree`, `:2038` `fRestoreTree`, `:2039` `initializeDocument`, `:2040` `initializeToElement`, `:2041` `clickOnFolder`, `:2042` `clickOnNode`, `:2043` `hi`
+> - `:2028-2036` `fExpandAll`/`fCollapseAll` — **hybrid**: try `#listContent cma-tree` first, fall back to `CMA.tree`. These are the only ones with live external callers (see D).
+>
+> **Defensive consumers** (`cma/assets/js/form-controller.js`):
+> - `:2296-2320` — matches a `&lt;script&gt;` in `data.html` whose body `.includes('gFld')`, then `eval`s it and calls `initializeToElement`
+> - `:6874-6926` — matches any `&lt;script&gt;` in `data.html`, checks `typeof gFld !== 'function'`, `eval`s it, calls `initializeToElement`
+>
+> **Actual emitters: NONE.** No PHP/inc/sql/json/template/XSLT file emits `gFld`, `insFld`, `F(`, `D(`, `I(`-script, `foldersTree`, or `aux0`.
+> - `aux0` and `foldersTree` (the classic dTree/ftiens4 server-emitter variable names): **zero hits repo-wide.**
+> - No `ftiens4.js` or `dtree*` file exists anywhere (the error strings in form-controller reference a file that is already gone).
+>
+> **Test references** (would break on deletion):
+> - `cma/cypress/e2e/core/utility-functions.cy.js:677` asserts `win.CMA.tree` exists
+> - `utility-functions.cy.js:842-844` (`gFld`), `:848-850` (`gLnk`), `:854-856` (`insFld`), `:860-862` (`insDoc`)
+>
+> **Build artifact:** `cma/assets/js/cma.min.js` contains the minified `CMA.tree` — excluded per your instruction and regenerated from `cma.js`, so not a manual deletion target.
+>
+> ---
+>
+> ## B. XSLT / legacy server-side tree builders — clean
+> - **No XSLT files exist** in the repo at all.
+> - `cma/classes/Services/TreeService.php` builds tree data via `buildTreeFromFlat()` (`:602`) returning a nested **array/JSON structure** consumed by the `cma-tree` web component. It emits no `gFld`/`F(`/`D(` script. (The `buildTree*` matches at `:270/436/447/524/576` are image-src closures and the modern JSON builder — unrelated.)
+> - `cma/reports.php`, `cma/menurep.inc`, `cma/listTemplates.php`: no `gFld`/`insFld`. Their `&lt;script&gt;` blocks (`reports.php:78`, `listTemplates.php:20/56/104`) define `window.fExpandAll/fCollapseAll` that call the **cma-tree** component (`tree.expandAll()`), not `CMA.tree`.
+> - `library/lib_*.inc`: no tree-script emitters.
+> - Archived files `cma/reports_DEPRECATED.php` and `cma/tools_DEPRECATED.php` use the `cma-tree` web component too, and are referenced only in comments/docs — not routed or included.
+>
+> ## C. templates/ and library/ — clean
+> `grep` for `gFld|insFld|initializeToElement|ftiens4|foldersTree` across `templates/`, `cma/templates/`, and `library/` returned **zero hits**.
+>
+> ## D. The two form-controller defensive branches
+> Both live in the `else if (data.html …)` arm, reached only when the list endpoint returns `data.html` (not `data.tree`/a cma-tree). Triggers:
+> - `form-controller.js:2298` — fires only if `data.html` contains a `&lt;script&gt;` whose body string-includes `gFld`.
+> - `form-controller.js:6874` — fires if `data.html` contains any literal `&lt;script&gt;`, then `eval`s it (relies on global `gFld`/`initializeToElement`).
+>
+> Because **no server code emits such a script**, both branches are unreachable dead code. If they, `CMA.tree`, and the tree global aliases were all deleted, nothing breaks at runtime: the modern path is the `data.tree`→`cma-tree` branch, and the plain `else { this.listContent.innerHTML = data.html }` simple-HTML branch (`:2322-2324`, `:6927+`) remains. The only caller-visible globals that must be **preserved** are `fExpandAll`/`fCollapseAll` (emitted as `javascript:fExpandAll()`/`fCollapseAll()` buttons at `cma/classes/FormTemplate.php:605-606` and `cma/classes/ToolbarHelper.php:75-76`) — but their bodies already prefer the `cma-tree` component; only the `else { CMA.tree.expandAll() }` fallback needs to be dropped.
+>
+> ## E. Cookie / state persistence — no shared readers
+> - `CMA.tree` persists open-folder state via `lib_storage_set(cookieID, ':'+s, 'tree')` / `lib_storage_get(sCookieID, 'tree')` where `cookieID = 'tree_' + formId` (`cma.js:301,313`). The **only reader** of this `'tree'`-typed store is `CMA.tree` itself (`cma.js:301`).
+> - The modern `cma/webcomponents/cma-tree.js` uses a **separate, incompatible** store: raw `localStorage.getItem('tree_' + this._storageKey)` holding a JSON array (`cma-tree.js:291,303`). Different serialization, different access path — no overlap.
+> - Deleting `CMA.tree` orphans only its own legacy entries; nothing else reads them.
+>
+> ---
+>
+> ## Verdict: safe to delete in one change
+>
+> Deletion list (do not edit — for your reference):
+>
+> 1. `cma/assets/js/cma.js:62-486` — the `CMA.tree` module (deprecation comment + IIFE).
+> 2. `cma/assets/js/cma.js:2017-2027` and `2037-2043` — legacy tree global aliases (`Folder, Item, gFld, gLnk, insFld, insDoc, F, D, I, fSaveTree, fRestoreTree, initializeDocument, initializeToElement, clickOnFolder, clickOnNode, hi`).
+> 3. `cma/assets/js/cma.js:2028-2036` — **keep** `fExpandAll`/`fCollapseAll` but remove their `else { CMA.tree.expandAll()/collapseAll() }` fallback (component-only).
+> 4. `cma/assets/js/form-controller.js:2295-2321` — collapse the `gFld`-script sub-branch into the plain simple-HTML `else` (keep `:2322-2324`).
+> 5. `cma/assets/js/form-controller.js:6874-6926` — collapse the `&lt;script&gt;`-eval branch into the plain simple-HTML `else` (keep `:6927+`).
+> 6. Tests: `cma/cypress/e2e/core/utility-functions.cy.js:677` (drop `CMA.tree` assertion) and the `Tree Functions` describe block `:841-865` (`gFld`/`gLnk`/`insFld`/`insDoc`).
+> 7. Regenerate `cma/assets/js/cma.min.js` from `cma.js` after the change (build artifact).
+>
+> Caveat/coordination note: this is safe **because** no PHP emits a `gFld`/`F(`/`D(` inline tree script today — the deletion relies on that invariant. Items 1-6 must land together so the removed `CMA.tree` symbol is not referenced by the surviving `fExpandAll`/`fCollapseAll` fallback or the tests. `fExpandAll`/`fCollapseAll` themselves must survive (live toolbar callers). No server-side, XSLT, template, or cookie dependency blocks the deletion.</result>
+> <usage><subagent_tokens>33744</subagent_tokens><tool_uses>19</tool_uses><duration_ms>217333</duration_ms></usage>
+> </task-notification>

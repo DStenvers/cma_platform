@@ -2292,37 +2292,9 @@ class CmaFormController {
                 tree.selectById(String(this._activeRecordId));
             }
         } else if (data.html) {
-            // Check for legacy embedded tree script (backward compat for old-style grouped trees)
-            const scriptMatch = data.html.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
-
-            if (scriptMatch && scriptMatch[1] && scriptMatch[1].includes('gFld')) {
-                const htmlWithoutScript = data.html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-                this.listContent.innerHTML = htmlWithoutScript;
-                this.listContent.style.display = 'block';
-
-                if (typeof gFld !== 'function') {
-                    cmaLog.error('ftiens4.js not loaded - tree functions unavailable');
-                    this.listContent.innerHTML = '<div class="list-error">Tree bibliotheek niet geladen. <a href="javascript:location.reload()">Vernieuw de pagina</a>.</div>';
-                    return;
-                }
-
-                try {
-                    eval(scriptMatch[1]);
-                    if (typeof initializeToElement === 'function') {
-                        const formClass = this.config.formName ? this.config.formName.toLowerCase().replace(/ /g, '_') : '';
-                        this.waitForJQuery(() => {
-                            initializeToElement('listContent', 'tree_' + this.formId, '', formClass);
-                        });
-                    }
-                } catch (e) {
-                    cmaLog.error('Tree script error in processListData:', e);
-                    this.listContent.innerHTML = '<div class="list-error">Fout bij laden boomstructuur: ' + this.escapeHtml(e.message) + '</div>';
-                }
-            } else {
-                // Simple tree or table - just set HTML
-                this.listContent.innerHTML = data.html;
-                this.listContent.style.display = 'block';
-            }
+            // Simple tree or table - just set HTML
+            this.listContent.innerHTML = data.html;
+            this.listContent.style.display = 'block';
         }
 
         // Initialize tree/table handlers
@@ -6871,59 +6843,6 @@ class CmaFormController {
                         if (this._activeRecordId) {
                             tree.selectById(String(this._activeRecordId));
                         }
-                    } else if (data.html && data.html.indexOf('<script>') !== -1) {
-                        // Extract script content
-                        const scriptMatch = data.html.match(/<script>([\s\S]*?)<\/script>/);
-                        const htmlWithoutScript = data.html.replace(/<script>[\s\S]*?<\/script>/, '');
-
-                        // Set HTML first (may be empty for grouped trees)
-                        this.listContent.innerHTML = htmlWithoutScript;
-                        this.listContent.style.display = 'block';
-
-                        // Execute tree script to build tree structure
-                        if (scriptMatch && scriptMatch[1]) {
-                            // Check if ftiens4.js is loaded (gFld function should exist)
-                            if (typeof gFld !== 'function') {
-                                cmaLog.error('ftiens4.js not loaded - tree functions unavailable');
-                                this.listContent.innerHTML = '<div class="list-error">Tree bibliotheek niet geladen. <a href="javascript:location.reload()">Vernieuw de pagina</a>.</div>';
-                                // Don't return - let finally block clean up
-                                throw new Error('ftiens4.js not loaded');
-                            }
-
-                            try {
-                                // Execute tree script - it will store tree root on listContent element
-                                // No window globals needed - tree uses local variables and element storage
-                                eval(scriptMatch[1]);
-                                // Initialize tree rendering to specific element (reads tree root from element._treeRoot)
-                                if (typeof initializeToElement === 'function') {
-                                    const formClass = this.config.formName ? this.config.formName.toLowerCase().replace(/ /g, '_') : '';
-                                    // cmaLog.log('loadList: calling initializeToElement for tree_' + this.formId);
-                                    // Wait for jQuery to be available before initializing tree
-                                    this.waitForJQuery(() => {
-                                        // cmaLog.log('loadList: initializeToElement executing now');
-                                        initializeToElement('listContent', 'tree_' + this.formId, '', formClass);
-                                    });
-                                } else {
-                                    cmaLog.error('initializeToElement not found - using document.write fallback');
-                                }
-                            } catch (e) {
-                                cmaLog.error('Tree script error:', e);
-                                // cmaLog.log('Script content:', scriptMatch[1].substring(0, 500) + '...');
-
-                                // Provide more informative error message
-                                let errorMsg = 'Fout bij laden boomstructuur';
-                                if (e.message.includes('addChild')) {
-                                    errorMsg = 'Boomstructuur fout: groepering data is inconsistent (lege groep waarde?)';
-                                    cmaLog.error('Tree hierarchy error - likely empty group value in data. Check Group1Field/Group2Field/Group3Field values.');
-                                } else if (e.message.includes('undefined')) {
-                                    errorMsg = 'Boomstructuur fout: ontbrekende variabele (' + e.message + ')';
-                                } else {
-                                    errorMsg += ': ' + e.message;
-                                }
-
-                                this.listContent.innerHTML = '<div class="list-error">' + this.escapeHtml(errorMsg) + '</div>';
-                            }
-                        }
                     } else {
                         // Simple tree or table - just set HTML
                         // cmaLog.log('loadList: setting simple tree/table HTML, length:', data.html?.length);
@@ -9825,23 +9744,12 @@ class CmaFormController {
                     let sNewSel = '';
                     let sOldSel = '';
 
-                    // Sortlists require determination of changed order
-                    if (objfield.name.substr(0, 6).toLowerCase() === 'srtlst') {
-                        const orderField = this.mainForm.elements[objfield.name + '_info_order'];
-                        if (orderField) {
-                            sOldSel = orderField.value;
-                            for (let opt = 0; opt < objfield.options.length; opt++) {
-                                sNewSel = (sNewSel === '' ? '' : sNewSel + '<br>') + objfield.options[opt].text;
-                            }
+                    for (let opt = 0; opt < objfield.options.length; opt++) {
+                        if (objfield.options[opt].defaultSelected) {
+                            sOldSel = (sOldSel === '' ? '' : sOldSel + ';') + objfield.options[opt].text;
                         }
-                    } else {
-                        for (let opt = 0; opt < objfield.options.length; opt++) {
-                            if (objfield.options[opt].defaultSelected) {
-                                sOldSel = (sOldSel === '' ? '' : sOldSel + ';') + objfield.options[opt].text;
-                            }
-                            if (objfield.options[opt].selected) {
-                                sNewSel = (sNewSel === '' ? '' : sNewSel + ';') + objfield.options[opt].text;
-                            }
+                        if (objfield.options[opt].selected) {
+                            sNewSel = (sNewSel === '' ? '' : sNewSel + ';') + objfield.options[opt].text;
                         }
                     }
 

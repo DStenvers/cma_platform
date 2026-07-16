@@ -674,7 +674,6 @@ describe('Core Utility Functions', () => {
             it('should have all expected modules', () => {
                 cy.window().then(win => {
                     expect(win.CMA).to.exist;
-                    expect(win.CMA.tree).to.exist;
                     expect(win.CMA.editor).to.exist;
                     expect(win.CMA.form).to.exist;
                     expect(win.CMA.toolbar).to.exist;
@@ -839,27 +838,10 @@ describe('Global Function Aliases (Legacy Compatibility)', () => {
     });
 
     describe('Tree Functions', () => {
-        it('gFld() should be defined (alias for CMA.tree.gFld)', () => {
+        it('fExpandAll()/fCollapseAll() should be defined (drive <cma-tree>)', () => {
             cy.window().then(win => {
-                expect(win.gFld).to.be.a('function');
-            });
-        });
-
-        it('gLnk() should be defined', () => {
-            cy.window().then(win => {
-                expect(win.gLnk).to.be.a('function');
-            });
-        });
-
-        it('insFld() should be defined', () => {
-            cy.window().then(win => {
-                expect(win.insFld).to.be.a('function');
-            });
-        });
-
-        it('insDoc() should be defined', () => {
-            cy.window().then(win => {
-                expect(win.insDoc).to.be.a('function');
+                expect(win.fExpandAll).to.be.a('function');
+                expect(win.fCollapseAll).to.be.a('function');
             });
         });
     });
