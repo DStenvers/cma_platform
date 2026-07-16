@@ -1059,7 +1059,6 @@ class CmaFormController {
         this._libTableInstance = null;
 
         // Cleanup tracking - prevents memory leaks from accumulated event listeners and intervals
-        this._popupCheckInterval = null;        // Tracks popup closed check interval
         this._abortController = null;           // AbortController for cancelling in-flight requests
         this._boundTreeHandler = null;          // Bound tree click handler for removal
         this._boundListItemHandler = null;      // Bound list item click handler for removal
@@ -4665,246 +4664,26 @@ class CmaFormController {
     }
 
     /**
-     * Open a form popup with standardized behavior
-     * This is the unified function for opening any form in a popup
+     * Open a form popup with standardized behavior.
+     * Thin wrapper around the shared CMA.utils.openFormPopup (dedupe, URL
+     * build, clean-URL sync, popup-style dispatch, close-watcher): injects
+     * the toolbar filter context and title-cases the window title.
      *
-     * @param {Object} options - Popup options
-     * @param {string|number} options.formId - Form ID (numeric for legacy) or JSON form name (string)
-     * @param {string|number|null} options.recordId - Record ID (null/0 for new, number for edit)
-     * @param {string|null} options.parentId - Parent record ID for subforms
-     * @param {string|null} options.parentField - Parent field name for subforms
-     * @param {string} options.title - Window title
-     * @param {string} options.windowName - Unique window name (for reuse)
-     * @param {function|null} options.onClose - Callback when popup closes
-     * @param {boolean} options.cascadeOffset - Apply cascading offset for multiple windows
+     * @param {Object} options - See CMA.utils.openFormPopup
      */
     openPopup(options) {
-        const formId = options.formId;
-        const recordId = options.recordId;
-        const parentId = options.parentId || null;
-        const parentField = options.parentField || '';
-        const title = options.title || 'Form';
-        const windowName = options.windowName || 'form_popup';
-        const onClose = options.onClose || null;
-        const cascadeOffset = options.cascadeOffset !== false;
-
-        // Guard against opening the SAME record sidepanel twice in quick succession
-        // (e.g. a deep link whose controller initialises more than once opened two
-        // identical panels). Dedupe on form+record+parent within a short window;
-        // opening a different record, or the same one later, is unaffected.
-        const _dedupeKey = String(formId) + ':' + String(recordId ?? '') + ':' + String(parentId ?? '');
-        const _topWin = window.top || window;
-        _topWin._cmaOpenPopupAt = _topWin._cmaOpenPopupAt || {};
-        const _now = Date.now();
-        if (_topWin._cmaOpenPopupAt[_dedupeKey] && (_now - _topWin._cmaOpenPopupAt[_dedupeKey]) < 1500) {
-            return;
-        }
-        _topWin._cmaOpenPopupAt[_dedupeKey] = _now;
-
-        // Build URL - always use form= parameter
-        let url = `form.php?form=${encodeURIComponent(formId)}`;
-        if (recordId === null || recordId === undefined || recordId === '') {
-            url += '&New=Y';
-        } else {
-            url += `&id=${recordId}`;
-        }
-        if (parentId) {
-            url += `&parentID=${parentId}`;
-        }
-        if (parentField) {
-            url += `&parentField=${encodeURIComponent(parentField)}`;
-        }
+        const opts = Object.assign({}, options);
+        opts.title = toFirstCaps(opts.title || 'Form');
 
         // Pass current toolbar filter value to ALL popups (new AND edit)
         // This ensures the filter context is available when clicking "Add" from within the popup
         const filterFieldName = this.config.filterFieldName;
         if (filterFieldName && this.searchFilters && this.searchFilters[filterFieldName]) {
-            const filterValue = this.searchFilters[filterFieldName];
-            url += `&filterField=${encodeURIComponent(filterFieldName)}`;
-            url += `&filterValue=${encodeURIComponent(filterValue)}`;
-            // cmaLog.log('[openPopup] Passing filter context:', filterFieldName, '=', filterValue);
+            opts.filterField = filterFieldName;
+            opts.filterValue = this.searchFilters[filterFieldName];
         }
 
-        // Clear any previous popup check interval to prevent leaks
-        if (this._popupCheckInterval) {
-            clearInterval(this._popupCheckInterval);
-            this._popupCheckInterval = null;
-        }
-
-        // Calculate popup size - 85% of viewport with optional cascade offset
-        let width = Math.round(window.innerWidth * 0.85);
-        let height = Math.round(window.innerHeight * 0.85);
-
-        if (cascadeOffset && typeof lib_OpenWindowCount === 'function') {
-            const openWindows = lib_OpenWindowCount();
-            width -= 20 + (50 * openWindows);
-            height -= 50 + (75 * openWindows);
-        }
-
-        const self = this;
-
-        // Check user preference for popup style
-        const prefAvailable = typeof lib_getPopupStylePreference === 'function';
-        const pref = prefAvailable ? lib_getPopupStylePreference() : 'popup';
-        const useSidepanel = pref === 'sidepanel';
-        // cmaLog.log('openPopup: prefAvailable=', prefAvailable, 'pref=', pref, 'useSidepanel=', useSidepanel, 'lib_OpenSidePanel available=', typeof lib_OpenSidePanel === 'function');
-
-        if (useSidepanel && typeof lib_OpenSidePanel === 'function') {
-            // Use sidepanel - opens from the right side
-            lib_OpenSidePanel(url, windowName, width, toFirstCaps(title));
-
-            // Update URL to reflect open sidepanel (for refresh persistence)
-            // Uses clean URL format: /cma/form/formname/recordId/subform/subformId
-            try {
-                const topWin = window.top || window;
-
-                if (topWin.CMA && topWin.CMA.url) {
-                    // Use clean URL format
-                    const currentState = topWin.CMA.url.parse();
-                    const effectiveRecordId = (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : null;
-
-                    if (parentId) {
-                        // This is a subform popup
-                        topWin.CMA.url.update({
-                            form: currentState.form,
-                            recordId: parentId,
-                            subform: formId,
-                            subformId: effectiveRecordId,
-                            isSubformNew: !effectiveRecordId
-                        }, true);
-                    } else {
-                        // This is a main record popup
-                        topWin.CMA.url.update({
-                            form: formId,
-                            recordId: effectiveRecordId,
-                            isNew: !effectiveRecordId
-                        }, true);
-                    }
-                    // cmaLog.log('[openPopup] Updated URL with clean format for:', formId, effectiveRecordId);
-                }
-            } catch (e) {
-                cmaLog.warn('[openPopup] Could not update URL for sidepanel:', e.message);
-            }
-
-            // Set up callback to execute onClose when sidepanel closes
-            if (onClose) {
-                // Clear any existing interval before setting a new one
-                if (this._popupCheckInterval) {
-                    clearInterval(this._popupCheckInterval);
-                    this._popupCheckInterval = null;
-                }
-                let checkCount = 0;
-                const maxChecks = 3600; // Max 30 minutes (3600 * 500ms)
-                this._popupCheckInterval = setInterval(() => {
-                    checkCount++;
-                    // Must check top.lib_sidepanel_stack because lib_OpenSidePanel adds to top window
-                    // The local lib_sidepanel_stack would always be empty if we're in an iframe
-                    const topWindow = window.top || window;
-                    const stack = topWindow.lib_sidepanel_stack;
-                    if (typeof stack === 'undefined' || stack.length === 0) {
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                        onClose();
-                    } else if (checkCount >= maxChecks) {
-                        // cmaLog.log('[openPopup] Sidepanel check timeout reached, clearing interval');
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                    }
-                }, 500);
-            }
-        } else if (typeof lib_OpenWindowCentered === 'function') {
-            // Use centered popup
-            lib_OpenWindowCentered(url, windowName, width, height, toFirstCaps(title));
-
-            // URL parity with the sidepanel path: reflect the open popup in the
-            // URL (refresh/deep-link persistence) so closing it reverts the URL
-            // the same way closing a sidepanel does. Best-effort — never block.
-            try {
-                const topWin = window.top || window;
-                if (topWin.CMA && topWin.CMA.url) {
-                    const currentState = topWin.CMA.url.parse();
-                    const effectiveRecordId = (recordId !== null && recordId !== undefined && recordId !== '') ? recordId : null;
-                    if (parentId) {
-                        // Subform popup
-                        topWin.CMA.url.update({
-                            form: currentState.form,
-                            recordId: parentId,
-                            subform: formId,
-                            subformId: effectiveRecordId,
-                            isSubformNew: !effectiveRecordId
-                        }, true);
-                    } else {
-                        // Main record popup
-                        topWin.CMA.url.update({
-                            form: formId,
-                            recordId: effectiveRecordId,
-                            isNew: !effectiveRecordId
-                        }, true);
-                    }
-                }
-            } catch (e) {
-                cmaLog.warn('[openPopup] Could not update URL for popup:', e.message);
-            }
-
-            // Set up callback to execute onClose when popup closes
-            if (onClose) {
-                // Clear any existing interval before setting a new one
-                if (this._popupCheckInterval) {
-                    clearInterval(this._popupCheckInterval);
-                    this._popupCheckInterval = null;
-                }
-                let checkCount = 0;
-                const maxChecks = 3600; // Max 30 minutes (3600 * 500ms)
-                this._popupCheckInterval = setInterval(() => {
-                    checkCount++;
-                    // Check if any centered window is open via lib_OpenGetTopmostWindow
-                    // This searches for __lib_win1 through __lib_win20 in top.document
-                    const hasOpenWindow = typeof lib_OpenGetTopmostWindow === 'function' && lib_OpenGetTopmostWindow() !== null;
-                    if (!hasOpenWindow) {
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                        onClose();
-                    } else if (checkCount >= maxChecks) {
-                        // cmaLog.log('[openPopup] Centered window check timeout reached, clearing interval');
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                    }
-                }, 500);
-            }
-        } else {
-            // Fallback to standard window.open
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
-
-            const popup = window.open(
-                url,
-                windowName,
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-            );
-
-            // Set up callback to execute onClose when popup closes
-            if (popup && onClose) {
-                // Clear any existing interval before setting a new one
-                if (this._popupCheckInterval) {
-                    clearInterval(this._popupCheckInterval);
-                    this._popupCheckInterval = null;
-                }
-                let checkCount = 0;
-                const maxChecks = 3600; // Max 30 minutes (3600 * 500ms)
-                this._popupCheckInterval = setInterval(() => {
-                    checkCount++;
-                    if (popup.closed) {
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                        onClose();
-                    } else if (checkCount >= maxChecks) {
-                        // cmaLog.log('[openPopup] Window check timeout reached, clearing interval');
-                        clearInterval(self._popupCheckInterval);
-                        self._popupCheckInterval = null;
-                    }
-                }, 500);
-            }
-        }
+        CMA.utils.openFormPopup(opts);
     }
 
     /**
@@ -12733,10 +12512,7 @@ class CmaFormController {
         // no need to clear/reassign per form.
 
         // Clear timers
-        if (this._popupCheckInterval) {
-            clearInterval(this._popupCheckInterval);
-            this._popupCheckInterval = null;
-        }
+        CMA.utils.cancelPopupWatch();
         if (this.listLoadingTimer) {
             clearTimeout(this.listLoadingTimer);
             this.listLoadingTimer = null;
@@ -12869,10 +12645,7 @@ class CmaFormController {
         }
 
         // Clear popup check interval
-        if (this._popupCheckInterval) {
-            clearInterval(this._popupCheckInterval);
-            this._popupCheckInterval = null;
-        }
+        CMA.utils.cancelPopupWatch();
 
         // Clear list loading timer
         if (this.listLoadingTimer) {

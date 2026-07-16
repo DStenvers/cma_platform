@@ -2093,85 +2093,12 @@
                 log.warn('[openFormPopup] Using table data-jsonForm:', jsonFormFromTable, 'instead of closure:', this.options.jsonForm);
             }
 
-            let url = 'form.php?form=' + encodeURIComponent(jsonFormToUse);
-
-            if (recordId) {
-                url += '&ID=' + encodeURIComponent(recordId);
-                if (copy) {
-                    url += '&copy=Y';
-                }
-            } else {
-                url += '&New=Y';
-            }
-
             // Pass filter context to the popup so new records can inherit the filter field value
             // This gets the filter from the parent CmaFormController's searchFilters
             const controller = CMA.FormController?.getController();
-            if (controller) {
-                const filterFieldName = controller.config?.filterFieldName;
-                const filterValue = controller.searchFilters?.[filterFieldName];
-                if (filterFieldName && filterValue) {
-                    url += '&filterField=' + encodeURIComponent(filterFieldName);
-                    url += '&filterValue=' + encodeURIComponent(filterValue);
-                }
-            }
+            const filterFieldName = controller?.config?.filterFieldName;
+            const filterValue = filterFieldName ? controller?.searchFilters?.[filterFieldName] : null;
 
-            // DEBUG: Log URL being opened
-            if (typeof window._cmaDebugLog === 'function') {
-                window._cmaDebugLog('openFormPopup', {
-                    url: url,
-                    jsonForm: jsonFormToUse,
-                    recordId: recordId,
-                    copy: copy,
-                    instanceId: this._instanceId || 'unknown'
-                });
-            }
-
-            // Update browser URL to include record ID (not for copy operations)
-            // This allows bookmarking and sharing direct links to records
-            // Supports up to 3 levels: /form/x/id/subform/subId/subsubform/subsubId
-            const topWindow = window.top || window;
-            if (!copy && topWindow.CMA && topWindow.CMA.url) {
-                const formNameForUrl = jsonFormToUse;
-                const currentState = topWindow.CMA.url.parse();
-                const currentDepth = topWindow.CMA.url.getDepth();
-
-                // Determine what level we're at based on sidepanel nesting
-                const isInSidepanel = window !== topWindow;
-
-                if (!isInSidepanel) {
-                    // Main content area - this is a main form record (level 1)
-                    topWindow.CMA.url.update({
-                        form: formNameForUrl,
-                        recordId: recordId,
-                        isNew: recordId === null || recordId === undefined || recordId === ''
-                    });
-                } else if (currentDepth === 1) {
-                    // First sidepanel - opening a subform record (level 2)
-                    topWindow.CMA.url.update({
-                        form: currentState.form,
-                        recordId: currentState.recordId,
-                        subform: formNameForUrl,
-                        subformId: recordId,
-                        isSubformNew: recordId === null || recordId === undefined || recordId === ''
-                    });
-                } else if (currentDepth === 2) {
-                    // Second sidepanel - opening a sub-subform record (level 3)
-                    topWindow.CMA.url.update({
-                        form: currentState.form,
-                        recordId: currentState.recordId,
-                        subform: currentState.subform,
-                        subformId: currentState.subformId,
-                        subsubform: formNameForUrl,
-                        subsubformId: recordId,
-                        isSubsubformNew: recordId === null || recordId === undefined || recordId === ''
-                    });
-                }
-                // For 4th+ levels, don't update URL (not supported)
-            }
-
-            const width = Math.round(window.innerWidth * 0.85);
-            const height = Math.round(window.innerHeight * 0.85);
             // Use singular form name with action suffix
             const formName = this.options.formNameSingular || this.options.formName || jsonFormToUse || 'Record';
             const title = CMA.utils.formActionTitle(formName, {
@@ -2180,20 +2107,26 @@
                 isCopy: copy
             });
 
-            // Check user preference for popup style
-            const prefAvailable = typeof lib_getPopupStylePreference === 'function';
-            const pref = prefAvailable ? lib_getPopupStylePreference() : 'popup';
-            const useSidepanel = pref === 'sidepanel';
+            const url = CMA.utils.openFormPopup({
+                formId: jsonFormToUse,
+                recordId: recordId || null,
+                copy: copy,
+                title: title,
+                windowName: 'form_popup',
+                cascadeOffset: false,
+                filterField: filterValue ? filterFieldName : null,
+                filterValue: filterValue
+            });
 
-            if (useSidepanel && typeof lib_OpenSidePanel === 'function') {
-                lib_OpenSidePanel(url, 'form_popup', width, title);
-            } else if (typeof lib_OpenWindowCentered === 'function') {
-                lib_OpenWindowCentered(url, 'form_popup', width, height, title);
-            } else {
-                const left = (screen.width - width) / 2;
-                const top = (screen.height - height) / 2;
-                window.open(url, 'form_popup',
-                    'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
+            // DEBUG: Log URL that was opened (null = deduped rapid double-open)
+            if (typeof window._cmaDebugLog === 'function') {
+                window._cmaDebugLog('openFormPopup', {
+                    url: url,
+                    jsonForm: jsonFormToUse,
+                    recordId: recordId,
+                    copy: copy,
+                    instanceId: this._instanceId || 'unknown'
+                });
             }
         }
 

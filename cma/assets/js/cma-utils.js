@@ -335,6 +335,238 @@ CMA.utils.ucfirst = function(str) {
 window.ucfirst = CMA.utils.ucfirst;
 
 /**
+ * Open a record form (form.php) in a popup, sidepanel or window with unified
+ * behavior: rapid double-open dedupe, clean-URL sync (up to 3 levels), popup
+ * style preference dispatch and an optional close-watcher. Single source of
+ * truth shared by CmaFormController.openPopup and CmaInlineEdit.openFormPopup.
+ *
+ * @param {Object} options
+ * @param {string|number} options.formId - JSON form name (or legacy numeric id)
+ * @param {string|number|null} options.recordId - Record id (null/'' = new record)
+ * @param {string|number|null} [options.parentId] - Parent record id for subform records
+ * @param {string} [options.parentField] - Parent FK field name for subform records
+ * @param {boolean} [options.copy] - Open as a copy of recordId (skips URL sync)
+ * @param {string} [options.title] - Window title (used as-is; caller casing wins)
+ * @param {string} [options.windowName] - Window name for reuse, default 'form_popup'
+ * @param {string} [options.filterField] - Toolbar filter field to inherit in the popup
+ * @param {string} [options.filterValue] - Toolbar filter value
+ * @param {function} [options.onClose] - Called once the popup/sidepanel closes
+ * @param {boolean} [options.cascadeOffset] - Shrink size for stacked windows (default true)
+ * @returns {string|null} The form.php URL that was opened, or null when deduped
+ */
+CMA.utils.openFormPopup = null; // assigned below (IIFE keeps the watcher private)
+CMA.utils.cancelPopupWatch = null;
+(function() {
+    let checkInterval = null;
+
+    function cancelWatch() {
+        if (checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+        }
+    }
+
+    function watchClose(isClosed, onClose) {
+        cancelWatch();
+        let checkCount = 0;
+        const maxChecks = 3600; // Max 30 minutes (3600 * 500ms)
+        checkInterval = setInterval(function() {
+            checkCount++;
+            if (isClosed()) {
+                cancelWatch();
+                onClose();
+            } else if (checkCount >= maxChecks) {
+                cancelWatch();
+            }
+        }, 500);
+    }
+
+    /**
+     * Reflect the opened record in the clean URL (refresh/deep-link
+     * persistence). Depth-aware up to 3 levels: a parentId means we're opening
+     * a child of the current detail view (subform record, or sub-subform when
+     * already two levels deep); without parentId the level follows the window
+     * nesting (main record, or one level deeper per sidepanel).
+     */
+    function syncUrl(formId, recordId, parentId) {
+        try {
+            const topWin = window.top || window;
+            if (!topWin.CMA || !topWin.CMA.url) return;
+
+            const cs = topWin.CMA.url.parse();
+            const depth = topWin.CMA.url.getDepth();
+            const isInSidepanel = window !== topWin;
+
+            if (parentId) {
+                if (!isInSidepanel || depth <= 1) {
+                    // Subform record under the current main record
+                    topWin.CMA.url.update({
+                        form: cs.form,
+                        recordId: parentId,
+                        subform: formId,
+                        subformId: recordId,
+                        isSubformNew: !recordId
+                    }, true);
+                } else if (depth === 2) {
+                    // Sub-subform record under the open subform record
+                    topWin.CMA.url.update({
+                        form: cs.form,
+                        recordId: cs.recordId,
+                        subform: cs.subform,
+                        subformId: parentId,
+                        subsubform: formId,
+                        subsubformId: recordId,
+                        isSubsubformNew: !recordId
+                    }, true);
+                }
+                // 4th+ levels: not supported by the URL format
+            } else {
+                if (!isInSidepanel) {
+                    // Main content area - a main form record (level 1)
+                    topWin.CMA.url.update({
+                        form: formId,
+                        recordId: recordId,
+                        isNew: !recordId
+                    }, true);
+                } else if (depth === 1) {
+                    // First sidepanel - a subform record (level 2)
+                    topWin.CMA.url.update({
+                        form: cs.form,
+                        recordId: cs.recordId,
+                        subform: formId,
+                        subformId: recordId,
+                        isSubformNew: !recordId
+                    }, true);
+                } else if (depth === 2) {
+                    // Second sidepanel - a sub-subform record (level 3)
+                    topWin.CMA.url.update({
+                        form: cs.form,
+                        recordId: cs.recordId,
+                        subform: cs.subform,
+                        subformId: cs.subformId,
+                        subsubform: formId,
+                        subsubformId: recordId,
+                        isSubsubformNew: !recordId
+                    }, true);
+                }
+                // 4th+ levels: not supported by the URL format
+            }
+        } catch (e) {
+            if (window.cmaLog) window.cmaLog.warn('[openFormPopup] Could not update URL:', e.message);
+        }
+    }
+
+    CMA.utils.openFormPopup = function(options) {
+        const formId = options.formId;
+        const recordId = options.recordId;
+        const parentId = options.parentId || null;
+        const parentField = options.parentField || '';
+        const isCopy = !!options.copy;
+        const title = options.title || 'Form';
+        const windowName = options.windowName || 'form_popup';
+        const onClose = options.onClose || null;
+        const cascadeOffset = options.cascadeOffset !== false;
+        const hasRecordId = recordId !== null && recordId !== undefined && recordId !== '';
+
+        // Guard against opening the SAME record popup twice in quick succession
+        // (e.g. a deep link whose controller initialises more than once opened two
+        // identical panels). Dedupe on form+record+parent within a short window;
+        // opening a different record, or the same one later, is unaffected.
+        const dedupeKey = String(formId) + ':' + String(recordId ?? '') + ':' + String(parentId ?? '');
+        const topWin = window.top || window;
+        topWin._cmaOpenPopupAt = topWin._cmaOpenPopupAt || {};
+        const now = Date.now();
+        if (topWin._cmaOpenPopupAt[dedupeKey] && (now - topWin._cmaOpenPopupAt[dedupeKey]) < 1500) {
+            return null;
+        }
+        topWin._cmaOpenPopupAt[dedupeKey] = now;
+
+        // Build URL - always use form= parameter
+        let url = 'form.php?form=' + encodeURIComponent(formId);
+        if (hasRecordId) {
+            url += '&id=' + encodeURIComponent(recordId);
+            if (isCopy) {
+                url += '&copy=Y';
+            }
+        } else {
+            url += '&New=Y';
+        }
+        if (parentId) {
+            url += '&parentID=' + encodeURIComponent(parentId);
+        }
+        if (parentField) {
+            url += '&parentField=' + encodeURIComponent(parentField);
+        }
+        // Pass filter context to the popup so new records can inherit the filter field value
+        if (options.filterField && options.filterValue) {
+            url += '&filterField=' + encodeURIComponent(options.filterField);
+            url += '&filterValue=' + encodeURIComponent(options.filterValue);
+        }
+
+        // Update the browser URL to include the record id (bookmarking/refresh
+        // persistence). Not for copies: the URL would deep-link to the source record.
+        if (!isCopy) {
+            syncUrl(formId, hasRecordId ? recordId : null, parentId);
+        }
+
+        // Clear any previous popup check interval to prevent leaks
+        cancelWatch();
+
+        // Calculate popup size - 85% of viewport with optional cascade offset
+        let width = Math.round(window.innerWidth * 0.85);
+        let height = Math.round(window.innerHeight * 0.85);
+        if (cascadeOffset && typeof lib_OpenWindowCount === 'function') {
+            const openWindows = lib_OpenWindowCount();
+            width -= 20 + (50 * openWindows);
+            height -= 50 + (75 * openWindows);
+        }
+
+        // Check user preference for popup style
+        const prefAvailable = typeof lib_getPopupStylePreference === 'function';
+        const pref = prefAvailable ? lib_getPopupStylePreference() : 'popup';
+        const useSidepanel = pref === 'sidepanel';
+
+        if (useSidepanel && typeof lib_OpenSidePanel === 'function') {
+            // Use sidepanel - opens from the right side
+            lib_OpenSidePanel(url, windowName, width, title);
+            if (onClose) {
+                watchClose(function() {
+                    // Must check top.lib_sidepanel_stack because lib_OpenSidePanel adds to
+                    // the top window - the local stack is always empty inside an iframe
+                    const stack = (window.top || window).lib_sidepanel_stack;
+                    return typeof stack === 'undefined' || stack.length === 0;
+                }, onClose);
+            }
+        } else if (typeof lib_OpenWindowCentered === 'function') {
+            // Use centered popup
+            lib_OpenWindowCentered(url, windowName, width, height, title);
+            if (onClose) {
+                watchClose(function() {
+                    // lib_OpenGetTopmostWindow searches __lib_win1..20 in top.document
+                    return !(typeof lib_OpenGetTopmostWindow === 'function' && lib_OpenGetTopmostWindow() !== null);
+                }, onClose);
+            }
+        } else {
+            // Fallback to standard window.open
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            const popup = window.open(
+                url,
+                windowName,
+                'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes'
+            );
+            if (popup && onClose) {
+                watchClose(function() { return popup.closed; }, onClose);
+            }
+        }
+
+        return url;
+    };
+
+    CMA.utils.cancelPopupWatch = cancelWatch;
+})();
+
+/**
  * Pretty-print HTML with indentation
  * @param {string} html - Raw HTML string
  * @returns {string} - Formatted HTML with newlines and indentation
