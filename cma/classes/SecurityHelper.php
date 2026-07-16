@@ -307,10 +307,10 @@ class SecurityHelper
      */
     public static function currentUserFormRights(int $formId, string $formName = ''): int
     {
+        // No early return on a missing user id: admin status is carried by its
+        // own cookie and resolves to FULL_BEHEER inside the checks below, while
+        // a not-logged-in user resolves to ACCESS_NONE there anyway.
         $userId = (int)self::getCurrentUserId();
-        if ($userId <= 0) {
-            return self::ACCESS_NONE;
-        }
         return $formName !== ''
             ? self::checkFormRightsByName($userId, $formName)
             : self::checkFormRights($userId, $formId);

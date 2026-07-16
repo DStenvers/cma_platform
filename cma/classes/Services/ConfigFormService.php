@@ -668,7 +668,9 @@ class ConfigFormService
 
             // Get subform's JSON data to check allowAdd
             $subformJsonData = $subformFormDef['_json'] ?? $subformFormDef;
-            $hasFullAccess = \Cma\SecurityHelper::isAdmin();
+            // Editability follows the user's rights on the parent config form
+            // (admins resolve to FULL_BEHEER via the rights check)
+            $hasFullAccess = \Cma\SecurityHelper::currentUserFormRights(0, $parentFormName) >= \Cma\SecurityHelper::ACCESS_FULL;
 
             // Build columns from subform fields
             $columns = [];

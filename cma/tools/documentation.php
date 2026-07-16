@@ -1763,6 +1763,10 @@ function render_doc_security(): void
     </table>
     <p>Onvoldoende rechten geeft een HTTP 403 met <code>{"success": false, "error": "Geen toegang tot dit formulier"}</code>.
     Leesrechten (readonly) volstaan dus voor lijst- en record-GETs; mutaties vereisen volledige toegang.</p>
+    <p>Sinds v1.29.46 volgen ook de bewerk-affordances (add/edit/delete-knoppen en inline switches) op
+    JSON-formulierlijsten en config-subforms dezelfde rechten (&ge; <code>ACCESS_FULL</code>) in plaats van
+    admin-only, en geldt voor formulieren zónder <code>sourceFormId</code> (config-/systeemformulieren)
+    een rechten-check op de formuliernaam in plaats van een harde admin-eis.</p>
 
     <h2>CSRF</h2>
     <p>POST-endpoints in <code>cma/api/*</code> en <code>cma/form_api.php</code> krijgen automatisch een CSRF-token via de form-controller (verzonden in een hidden field). Custom POST-handlers moeten het token valideren met de form-helper voordat ze een mutation uitvoeren.</p>

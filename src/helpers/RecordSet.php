@@ -371,6 +371,56 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
     public function offsetUnset($offset): void {
         // RecordSet is read-only
     }
+
+    /**
+     * ADO-compatible `rs.Fields` collection for the CURRENT row.
+     *
+     * Converted VBScript iterates `foreach ($rs->Fields() as $fld) { $fld->name(); echo $fld; }`
+     * (a Field collection), so each element is a RecordSetField exposing
+     * `name()`/`value()`/`Name`/`Value` and stringifying to its value. Field
+     * ACCESS by key (`$rs->Fields['col']`) keeps working via __get('FIELDS')
+     * returning a CaseArray snapshot.
+     *
+     * @return RecordSetField[]
+     */
+    public function Fields() {
+        $row = is_array($this->current_row) ? $this->current_row : [];
+        $out = [];
+        foreach ($row as $name => $value) {
+            $out[] = new RecordSetField($name, $value);
+        }
+        return $out;
+    }
+}
+
+/**
+ * One column of the current row, as returned by RecordSet::Fields().
+ * Mirrors an ADO Field object: `->name()` / `->Name` give the column name,
+ * `->value()` / `->Value` the value, and string context (echo/concat) yields
+ * the value — so converted `$fld->name()` and `echo $fld` both work.
+ */
+class RecordSetField {
+    private $_name;
+    private $_value;
+
+    public function __construct($name, $value) {
+        $this->_name = $name;
+        $this->_value = $value;
+    }
+
+    public function name() { return $this->_name; }
+    public function value() { return $this->_value; }
+
+    public function __get($prop) {
+        $u = strtoupper((string)$prop);
+        if ($u === 'NAME') { return $this->_name; }
+        if ($u === 'VALUE') { return $this->_value; }
+        return null;
+    }
+
+    public function __toString() {
+        return $this->_value === null ? '' : (string)$this->_value;
+    }
 }
 
 /**

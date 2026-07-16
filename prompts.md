@@ -5622,3 +5622,7 @@ karaat-data en staat in de karaat-repo.
 > look at the bootstrap/autoloader : are there more duplicated area's?
 
 > continue
+
+> please fix them by priority
+
+> Note I left ConfigFormService::getSubformListData's stricter isAdmin() check is too strict, normal users should also have access.

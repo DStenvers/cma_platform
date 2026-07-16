@@ -606,4 +606,44 @@ class RecordSetTest extends TestCase
         \App\Library\lib_openRS($rs2, 'SELECT * FROM t', $conn2);
         $this->assertEquals(-1, $rs2->RecordCount());
     }
+
+    // ---- Fields() method form (converted VBScript Field collections) -----
+
+    public function testFieldsMethodReturnsFieldObjectsForCurrentRow(): void
+    {
+        // Converted VBScript iterates `for each fld in rs.Fields` — emitted as
+        // foreach ($rs->Fields() as $fld) with name()/value()/string context.
+        // The constructor already positions on the first row (ADO semantics).
+        $rs = $this->forwardRs($this->sampleRows());
+        $fields = $rs->Fields();
+        $this->assertEquals(2, count($fields));
+        $this->assertEquals('ID', $fields[0]->name());
+        $this->assertEquals(1, $fields[0]->value());
+        $this->assertEquals('naam', $fields[1]->name());
+        $this->assertEquals('Alice', $fields[1]->value());
+        // Case-insensitive property form + string context
+        $this->assertEquals('naam', $fields[1]->Name);
+        $this->assertEquals('Alice', $fields[1]->Value);
+        $this->assertEquals('Alice', (string)$fields[1]);
+    }
+
+    public function testFieldsMethodEmptyAfterEofAndStringifiesNull(): void
+    {
+        $rs = $this->forwardRs([['a' => null]]);
+        $fields = $rs->Fields();
+        $this->assertEquals('', (string)$fields[0], 'null value stringifies to empty string');
+        $rs->MoveNext();
+        $this->assertTrue($rs->EOF);
+        $this->assertEquals([], $rs->Fields(), 'Past EOF -> empty collection');
+    }
+
+    public function testFieldsPropertyFormStillReturnsCaseArraySnapshot(): void
+    {
+        // The property form ($rs->Fields['col']) must keep its CaseArray
+        // snapshot behaviour, untouched by the new Fields() method.
+        $rs = $this->forwardRs($this->sampleRows());
+        $snapshot = $rs->Fields;
+        $this->assertTrue($snapshot instanceof CaseArray);
+        $this->assertEquals('Alice', $snapshot['NAAM'], 'case-insensitive key access');
+    }
 }

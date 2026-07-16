@@ -109,6 +109,20 @@ class HttpClient
     }
 
     /**
+     * ServerXMLHTTP async compatibility: wait up to $timeout seconds for the
+     * response. This client is synchronous — send() already completed the request
+     * — so this is a no-op that reports success. Kept for source fidelity with
+     * legacy `objXMLHTTP.waitForResponse n` calls.
+     *
+     * @param int $timeout Seconds to wait (ignored)
+     * @return bool
+     */
+    public function waitForResponse($timeout = 0)
+    {
+        return true;
+    }
+
+    /**
      * Get HTTP status code
      * @return int
      */

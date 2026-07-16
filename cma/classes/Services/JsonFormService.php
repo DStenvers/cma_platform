@@ -208,8 +208,10 @@ class JsonFormService extends BaseFormService
                 if ($accessError !== null) {
                     return $accessError;
                 }
-            } elseif (!SecurityHelper::isAdmin()) {
-                // For system forms without sourceFormId, require admin
+            } elseif (SecurityHelper::currentUserFormRights(0, $formName) < SecurityHelper::ACCESS_READ) {
+                // Forms without sourceFormId (config/system forms) follow the
+                // user's menu/group rights on the form name; admins resolve to
+                // FULL_BEHEER, users without any rights are still denied
                 return self::error('Geen toegang tot dit formulier');
             }
 
@@ -667,7 +669,7 @@ class JsonFormService extends BaseFormService
             // affected by skipping a render here.)
             $renderedIds = [];
             // Check if form is editable (for inline switch toggles)
-            $hasFullAccess = SecurityHelper::isAdmin();
+            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
             foreach ($rows as $fields) {
                 $recordId = $fields[$idField] ?? $fields[strtolower($idField)] ?? $fields[strtoupper($idField)] ?? '';
                 if ($recordId !== '' && isset($renderedIds[$recordId])) {
@@ -1147,7 +1149,7 @@ class JsonFormService extends BaseFormService
             }
 
             // Render the row
-            $hasFullAccess = SecurityHelper::isAdmin();
+            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
             $html = '<tr class="listrow" data-id="' . htmlspecialchars($recordId) . '">';
 
             // Menu trigger goes inside the first data cell
@@ -1835,7 +1837,7 @@ class JsonFormService extends BaseFormService
         $html .= '<tbody>';
         $count = 0;
         // Check if form is editable (for inline switch toggles)
-        $hasFullAccess = SecurityHelper::isAdmin();
+        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
         foreach ($items as $item) {
             $recordId = $item[$idField] ?? $item['id'] ?? '';
             $isActive = ($activeId !== null && $recordId == $activeId);
@@ -1940,8 +1942,9 @@ class JsonFormService extends BaseFormService
             }
         }
 
-        // For JSON config forms, admin users have full access
-        $hasFullAccess = SecurityHelper::isAdmin();
+        // Editability follows the user's rights on the form
+        // (admins resolve to FULL_BEHEER via the rights check)
+        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
 
         $response = [
             'success' => true,
@@ -2026,7 +2029,7 @@ class JsonFormService extends BaseFormService
         }
 
         // Check if form is editable (for inline switch toggles)
-        $hasFullAccess = SecurityHelper::isAdmin();
+        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
 
         // Build the row HTML
         $html = '<tr class="listrow" data-id="' . htmlspecialchars($recordId) . '">';
