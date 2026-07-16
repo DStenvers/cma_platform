@@ -1001,6 +1001,12 @@ class FormRenderer
 
     /**
      * Render a sortlist control
+     *
+     * Items are record-specific (the control's SQL contains an [ID] placeholder),
+     * so the list arrives with the record data as srtlst_{controlId} and is
+     * populated client-side (form-controller populateSortlist -> cma-sortlist).
+     * The hidden srtlst_{controlId}_info input carries the comma-separated id
+     * order that RecordService::saveSortlistValues reads on save.
      */
     public static function renderSortlist(string $name, array $config): string
     {
@@ -1016,14 +1022,13 @@ class FormRenderer
 
         return sprintf(
             '<div class="sortlist-container" %s data-sortlist="%s">
-                <ul class="sortlist" data-sortlist-items="%s"></ul>
-                <input type="hidden" name="%s" data-sortlist-value="%s">
+                <cma-sortlist%s></cma-sortlist>
+                <input type="hidden" name="srtlst_%s_info" data-sortlist-value>
             </div>',
             $dataAttrs,
             self::escape($name),
-            self::escape($name),
-            self::escape($name),
-            self::escape($name)
+            $readonly ? ' disabled' : '',
+            self::escape((string)$controlId)
         );
     }
 

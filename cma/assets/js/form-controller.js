@@ -8125,6 +8125,13 @@ class CmaFormController {
         }
 
         for (const [name, value] of Object.entries(fields)) {
+            // Sortlists come as srtlst_{controlId} item arrays (RecordService::getSortlistValues)
+            // and populate a cma-sortlist component instead of a plain form field
+            if (name.toLowerCase().startsWith('srtlst_') && Array.isArray(value)) {
+                this.populateSortlist(name, value);
+                continue;
+            }
+
             // Case-insensitive field lookup
             const field = fieldMap[name.toLowerCase()];
             if (!field) continue;
@@ -8450,6 +8457,41 @@ class CmaFormController {
             if (oldField && oldField.dataset.trackOriginal === 'true') {
                 oldField.value = value || '';
             }
+        }
+    }
+
+    /**
+     * Populate a sortlist control from record data.
+     * RecordService::getSortlistValues supplies srtlst_{controlId} as
+     * [{id, name, sortOrder}] in current order; the cma-sortlist component
+     * handles reordering and the hidden srtlst_{controlId}_info input carries
+     * the comma-separated id order that RecordService::saveSortlistValues reads.
+     * @param {string} key - Field key, e.g. "srtlst_12"
+     * @param {Array} items - Items in current sort order
+     */
+    populateSortlist(key, items) {
+        const controlId = key.substring('srtlst_'.length);
+        const container = this.mainForm.querySelector(
+            '.sortlist-container[data-control-id="' + CSS.escape(controlId) + '"]');
+        if (!container) {
+            cmaLog.warn('populateSortlist: no sortlist container for', key);
+            return;
+        }
+        const list = container.querySelector('cma-sortlist');
+        const info = container.querySelector('input[data-sortlist-value]');
+        if (!list || !info || typeof list.setItems !== 'function') {
+            cmaLog.warn('populateSortlist: cma-sortlist not available for', key);
+            return;
+        }
+
+        list.setItems(items.map(item => ({ value: item.id, label: item.name })));
+        info.value = list.value.join(',');
+
+        if (!list._cmaInfoBound) {
+            list._cmaInfoBound = true;
+            list.addEventListener('change', () => {
+                info.value = list.value.join(',');
+            });
         }
     }
 

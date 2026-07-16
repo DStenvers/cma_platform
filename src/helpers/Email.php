@@ -564,9 +564,10 @@ class Email
                 $this->mailer->addReplyTo($this->replyTo);
             }
 
-            // Add attachments
+            // Add attachments; is_file (not file_exists) so directory paths are
+            // skipped too, matching lib_FileExists in the ASP original
             foreach ($this->attachments as $filepath) {
-                if (file_exists($filepath)) {
+                if (is_file($filepath)) {
                     $this->mailer->addAttachment($filepath);
                 }
             }

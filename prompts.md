@@ -5592,3 +5592,23 @@ karaat-data en staat in de karaat-repo.
 > Caveat/coordination note: this is safe **because** no PHP emits a `gFld`/`F(`/`D(` inline tree script today — the deletion relies on that invariant. Items 1-6 must land together so the removed `CMA.tree` symbol is not referenced by the surviving `fExpandAll`/`fCollapseAll` fallback or the tests. `fExpandAll`/`fCollapseAll` themselves must survive (live toolbar callers). No server-side, XSLT, template, or cookie dependency blocks the deletion.</result>
 > <usage><subagent_tokens>33744</subagent_tokens><tool_uses>19</tool_uses><duration_ms>217333</duration_ms></usage>
 > </task-notification>
+
+> \1 : wire the cma-sortlist please, yes please gate it 3 ; where can i see that? 4: leave them, but possibly move them to a date specific file?
+
+> maijn rino repo holds the original asp code, there the adding of attachments should be gated by an empty test, and make sure the new code has a simular gate; 
+>
+>
+> ● Update(/mnt/c/dev/kl/library/classes/class_mailer.inc)
+> Added 5 lines, removed 2 lines
+>             '
+>             if strAttachment<>"" then
+>               arrAttachments = lib_array_split( replace(strAttachment, " ; ", ";"), ";")
+>               for teller = 0 to ubound(arrAttachments)
+>                 .addAttachment (arrAttachments(teller))
+>               for teller = 0 to ubound(arrAttachments)
+>                 ' skip missing files and directory paths: CDO raises 0x80070005 (access denied) on those
+>                 if lib_FileExists( arrAttachments(teller) ) then
+>                   .addAttachment (arrAttachments(teller))
+>                 end if
+>               next
+>             end if

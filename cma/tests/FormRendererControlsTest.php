@@ -716,4 +716,33 @@ class FormRendererControlsTest extends TestCase
         $out = FormRenderer::renderTextBox('f', ['caption' => 'Naam']);
         $this->assertStringContainsString('data-label="Naam"', $out);
     }
+
+    // ========================================================================
+    // SORTLIST (TYPE_SORTLIST = 13)
+    // ========================================================================
+
+    public function testSortlistEmitsComponentAndInfoInput(): void
+    {
+        $out = FormRenderer::renderSortlist('volgorde', ['controlId' => 12, 'caption' => 'Volgorde']);
+        // The cma-sortlist component is populated client-side (populateSortlist);
+        // the hidden info input carries the id order RecordService reads on save.
+        $this->assertStringContainsString('<cma-sortlist></cma-sortlist>', $out);
+        $this->assertStringContainsString('name="srtlst_12_info"', $out);
+        $this->assertStringContainsString('data-sortlist-value', $out);
+        $this->assertStringContainsString('data-field="volgorde"', $out);
+        $this->assertStringContainsString('data-type="sortlist"', $out);
+        $this->assertStringContainsString('data-control-id="12"', $out);
+    }
+
+    public function testSortlistReadonlyDisablesComponent(): void
+    {
+        $out = FormRenderer::renderSortlist('volgorde', ['controlId' => 12, 'readonly' => true]);
+        $this->assertStringContainsString('<cma-sortlist disabled></cma-sortlist>', $out);
+    }
+
+    public function testSortlistViaDispatcher(): void
+    {
+        $out = FormRenderer::renderControl(FormRenderer::TYPE_SORTLIST, 'volgorde', ['controlId' => 7]);
+        $this->assertStringContainsString('name="srtlst_7_info"', $out);
+    }
 }

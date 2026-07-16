@@ -2416,6 +2416,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
         <code>readonly</code>, <code>custom</code>.
     </p>
     <p class="docs-meta"><code>cma/config/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
+    <p class="docs-meta">Sinds v1.29.43 rendert <code>sortlist</code> als de <code>&lt;cma-sortlist&gt;</code> web component (drag-and-drop). De items komen record-specifiek mee in de record-data (sleutel <code>srtlst_{controlId}</code>, gesorteerd op <code>SortOrder</code>); de gekozen volgorde reist terug via het verborgen veld <code>srtlst_{controlId}_info</code> en wordt als <code>SortOrder</code>-update in de brontabel opgeslagen.</p>
 
     <h2>Subforms</h2>
     <p>Een subform koppelt records aan een parent-record via een foreign key. Subforms staan in de <code>subforms</code>-array van de parent-definitie:</p>
