@@ -747,10 +747,15 @@ class ConfigFormService
 
             if (count($items) === 0) {
                 $canAdd = ($subformJsonData['allowAdd'] ?? true) && $hasFullAccess;
-                $message = $canAdd
-                    ? 'Geen gegevens, klik op \'Toevoegen\' om een nieuw record aan te maken'
-                    : 'Geen gegevens';
-                $html = '<div class="no-data">' . $message . '</div>';
+                // Same display as the detail pane's empty state (see SubformService).
+                $emptySingular = strtolower($subformJsonData['titleSingular'] ?? $subformJsonData['title'] ?? 'record');
+                $html = '<div class="no-data"><div class="no-data__inner">'
+                      . '<p class="no-data__text">Geen gegevens</p>'
+                      . ($canAdd
+                          ? '<button type="button" class="btn btn-primary no-data__add" data-subform-add>'
+                            . '<span class="lnr lnr-file-add"></span> Voeg ' . htmlspecialchars($emptySingular) . ' toe</button>'
+                          : '')
+                      . '</div></div>';
             }
 
             return [

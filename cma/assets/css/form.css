@@ -451,11 +451,6 @@ form#mainForm {
     gap: 14px;
 }
 
-.no-data__icon {
-    font-size: 32px;
-    color: var(--text-muted);
-    opacity: 0.6;
-}
 
 .no-data__text {
     margin: 0;

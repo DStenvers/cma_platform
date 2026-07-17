@@ -11201,6 +11201,18 @@ class CmaFormController {
         if (data.html) {
             listEl.innerHTML = data.html;
 
+            // Empty-state add button (server emits [data-subform-add]): route
+            // it through the same addSubformRecord path as the pane toolbar.
+            const emptyAdd = listEl.querySelector('[data-subform-add]');
+            if (emptyAdd) {
+                const self = this;
+                emptyAdd.addEventListener('click', function() {
+                    const pane = listEl.closest('[id^="subform"]');
+                    const index = pane ? parseInt(pane.id.replace('subform', ''), 10) || 0 : 0;
+                    self.addSubformRecord(data.subformId, index);
+                });
+            }
+
             // Initialize table filtering (includes sorting, dropdown filters, export menu)
             const filterableTable = listEl.querySelector('table.filtering');
             if (filterableTable && typeof filtering_init === 'function') {

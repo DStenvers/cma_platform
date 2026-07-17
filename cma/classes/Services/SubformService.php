@@ -741,10 +741,17 @@ class SubformService extends BaseFormService
 
             if ($count === 0) {
                 $canAdd = $canAddForm && $rights >= SecurityHelper::ACCESS_FULL;
-                $message = $canAdd
-                    ? 'Geen gegevens, klik op \'Toevoegen\' om een nieuw record aan te maken'
-                    : 'Geen gegevens';
-                $html = '<div class="no-data">' . $message . '</div>';
+                // Same display as the detail pane's empty state: message plus a
+                // real "Voeg <enkelvoud> toe" button (bound by renderSubformList
+                // via [data-subform-add] to addSubformRecord).
+                $emptySingular = strtolower(\Cma\FormDefinition::subformTitleSingular($jsonFormName ?? '', $subformName));
+                $html = '<div class="no-data"><div class="no-data__inner">'
+                      . '<p class="no-data__text">Geen gegevens</p>'
+                      . ($canAdd
+                          ? '<button type="button" class="btn btn-primary no-data__add" data-subform-add>'
+                            . '<span class="lnr lnr-file-add"></span> Voeg ' . htmlspecialchars($emptySingular) . ' toe</button>'
+                          : '')
+                      . '</div></div>';
             }
 
             $hasValidJsonForm = !empty($jsonFormName);

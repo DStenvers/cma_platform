@@ -1449,20 +1449,21 @@ class FormTemplate
         if (Application::get('CMA_Language', '') == 'UK') {
             $noDataText = 'Select a record from the list on the left to ' .
                 ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'view' : 'edit');
-            $noDataButton = 'Add';
         } else {
             $noDataText = 'Selecteer een record uit de linker lijst om te ' .
                 ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'bekijken' : 'wijzigen');
-            $noDataButton = 'Toevoegen';
         }
         $html .= '<div class="no-data__inner">' . PHP_EOL;
-        $html .= '<span class="no-data__icon lnr lnr-select"></span>' . PHP_EOL;
         $html .= '<p class="no-data__text">' . $noDataText . '</p>' . PHP_EOL;
         if ($noDataCanAdd) {
+            $noDataSingular = strtolower($this->formDef->getTitleSingular() ?: $this->formDef->getTitle());
+            $noDataButtonLabel = Application::get('CMA_Language', '') == 'UK'
+                ? 'Add ' . $noDataSingular
+                : 'Voeg ' . $noDataSingular . ' toe';
             // Same data-action="add" contract as the toolbar button, so the
             // controller's action delegation handles it identically.
             $html .= '<button type="button" class="btn btn-primary no-data__add" data-action="add">'
-                   . '<span class="lnr lnr-file-add"></span> ' . $noDataButton . '</button>' . PHP_EOL;
+                   . '<span class="lnr lnr-file-add"></span> ' . Server::htmlEncode($noDataButtonLabel) . '</button>' . PHP_EOL;
         }
         $html .= '</div>' . PHP_EOL;
         $html .= '</div>' . PHP_EOL;
