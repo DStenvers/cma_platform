@@ -1851,8 +1851,11 @@ class Database
         // (empty list / no record found) is unchanged. The "silent" half
         // of the silent fallback is gone: every DB error is now in the
         // log, with SQL + params + trace, regardless of environment.
+        // Lead with a stable, greppable [SQL ERROR] marker so the log viewer
+        // (cma/tools/logreader.php) can classify the entry as an error and
+        // render it in a red row, and operators can filter on "SQL ERROR".
         error_log(sprintf(
-            "Database Error: %s\nSQL: %s\nParams: %s\nTrace: %s",
+            "[SQL ERROR] %s\nSQL: %s\nParams: %s\nTrace: %s",
             $e->getMessage(),
             $sql,
             json_encode($params),

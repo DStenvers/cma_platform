@@ -795,17 +795,40 @@ async function confirmDelete() {
     </script>
     <?php elseif (!empty($logContent)): ?>
     <div class="log-output"><?php
-        $isFirst = true;
         $isPhpLog = ($selectedLog === 'php');
-        foreach ($logContent as $line) {
-            // For PHP error log, add separator before each new error entry
-            if ($isPhpLog && preg_match('/^\[\d{2}-\w{3}-\d{4}\s+\d{2}:\d{2}:\d{2}/', $line)) {
-                if (!$isFirst) {
-                    echo '<hr class="log-separator">';
+        if ($isPhpLog) {
+            // Group the raw PHP error log into per-error entries (each starts
+            // with a "[dd-Mon-yyyy hh:mm:ss ...]" timestamp) so we can classify
+            // and colour each entry. Failed SQL is logged by Database::logError
+            // with a leading "[SQL ERROR]" marker (v1.29.63) — those, plus PHP
+            // Fatal/Parse/Uncaught errors, render as red rows.
+            $entries = [];
+            $current = '';
+            foreach ($logContent as $line) {
+                if (preg_match('/^\[\d{2}-\w{3}-\d{4}\s+\d{2}:\d{2}:\d{2}/', $line) && $current !== '') {
+                    $entries[] = $current;
+                    $current = '';
                 }
-                $isFirst = false;
+                $current .= $line;
             }
-            echo Server::htmlEncode($line);
+            if ($current !== '') {
+                $entries[] = $current;
+            }
+            foreach ($entries as $entry) {
+                // Classify by the most severe keyword present.
+                if (preg_match('/\[SQL ERROR\]|PHP Fatal error|PHP Parse error|Uncaught|Database Error/i', $entry)) {
+                    $lvl = 'error';
+                } elseif (preg_match('/PHP Warning|PHP Deprecated/i', $entry)) {
+                    $lvl = 'warn';
+                } else {
+                    $lvl = 'info';
+                }
+                echo '<div class="log-entry log-entry--' . $lvl . '">' . Server::htmlEncode($entry) . '</div>';
+            }
+        } else {
+            foreach ($logContent as $line) {
+                echo Server::htmlEncode($line);
+            }
         }
     ?></div>
     <?php elseif (empty($error) && empty($flashMessage)): ?>
@@ -895,6 +918,21 @@ async function confirmDelete() {
     border: none;
     border-top: 1px solid var(--border-color, #ccc);
     margin: 12px 0;
+}
+.log-entry {
+    padding: 6px 10px;
+    margin: 0 0 6px;
+    border-left: 3px solid transparent;
+    border-radius: 3px;
+}
+.log-entry--error {
+    background: var(--color-error-bg, rgba(224, 31, 61, 0.08));
+    border-left-color: var(--color-error, #e01f3d);
+    color: var(--color-error, #e01f3d);
+}
+.log-entry--warn {
+    background: var(--color-warning-bg, rgba(230, 162, 60, 0.08));
+    border-left-color: var(--color-warning, #e6a23c);
 }
 #c.tools:has(.log-output) {
     height: 100%;

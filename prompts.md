@@ -5953,3 +5953,21 @@ karaat-data en staat in de karaat-repo.
 
 >
 > Selecteer een record uit de linker lijst om te wijzigen, skip the icon and change the button from Toevoegen to Voeg [singular description] toe
+
+> ck-editor still not functioning, see if all required resources are still in place after we moveed them eround, that is probably the cause
+
+> ck-editor still not functioning, see if all required resources are still in place after we moveed them eround, that is probably the cause. I am on version .59, not 60, but composer install did not dive me a newer version?!
+
+> /loop until no action points are there, STOP AT NOTHING! !
+
+> /loop until no action points are there, STOP AT NOTHING! !
+
+> /loop until no action points are there, STOP AT NOTHING! !
+
+> /loop until no action points are there, STOP AT NOTHING! !
+
+> /loop until no action points are there, STOP AT NOTHING! !
+
+> /frontend-design
+
+> /loop continue with a full test per role and log errors , after that fix the errors one by one

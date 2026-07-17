@@ -1644,7 +1644,7 @@ function render_doc_logs(): void
     <h2>Logreader</h2>
     <p>Alle file-based logs hebben een UI: <a href="logreader.php" target="_top">Tools → Logbestanden lezen</a>. Per log-type:</p>
     <ul>
-        <li><span class="cma-tool__strong">PHP errors / Deploy / Cache</span> — plain text view, leegmaken via "Log leegmaken" toolbar-knop (truncate, niet delete, zodat de volgende write kan appenden).</li>
+        <li><span class="cma-tool__strong">PHP errors / Deploy / Cache</span> — plain text view, leegmaken via "Log leegmaken" toolbar-knop (truncate, niet delete, zodat de volgende write kan appenden). Sinds v1.29.63 kleurt de PHP-error view per foutregel: entries met <code>[SQL ERROR]</code> (mislukte database-query, geschreven door <code>Database::logError()</code>), <code>PHP Fatal/Parse error</code> of <code>Uncaught</code> krijgen een rode rij; <code>PHP Warning/Deprecated</code> een oranje rij. Typ <code>SQL ERROR</code> in het filterveld om alleen mislukte queries te tonen.</li>
         <li><span class="cma-tool__strong">Performance</span> — JSON-rendered table, klikbare detail-rows, SQL-threshold filter op de toolbar.</li>
         <li><span class="cma-tool__strong">404</span> — JSON-rendered table met URL + referrer + datum.</li>
         <li><span class="cma-tool__strong">Debug</span> — date-picker bovenaan voor historische dagen.</li>
