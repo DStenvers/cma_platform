@@ -25,6 +25,11 @@ use App\Library\Request;
 // Minimal bootstrap - no session needed for logging
 require_once dirname(__DIR__) . '/../_bootstrap.php';
 require_once dirname(__DIR__) . '/classes/Services/PerformanceLogger.php';
+// SystemSettings gates debug logging (isDebugLogEnabled). This endpoint runs a
+// MINIMAL bootstrap (no cma/bootstrap.inc require-chain), so the class must be
+// required here explicitly — without it every type=debug POST 500'd with
+// "Class Cma\Services\SystemSettings not found".
+require_once dirname(__DIR__) . '/classes/Services/SystemSettings.php';
 
 header('Content-Type: application/json');
 

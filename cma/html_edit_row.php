@@ -12,7 +12,7 @@ function main()
 
     echo '<TITLE>Regel eigenschappen</TITLE>';
 
-    echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
+    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
 
     echo '<script>
     var selectedRow = window.dialogArguments["table_row"];

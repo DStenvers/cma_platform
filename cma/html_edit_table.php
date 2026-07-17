@@ -10,7 +10,7 @@ function main()
 {
     echo '<HTML><HEAD> ';
     echo '<STYLE>.tab_elt{background-color:white;padding-left:8px}</STYLE>';
-    echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js"></script>';
+    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js"></script>';
     echo '<script >;
     var selectedTable = window.parent.window.dialogArguments["table"] ;
     var selectedRow   = window.parent.window.dialogArguments["table_row"];

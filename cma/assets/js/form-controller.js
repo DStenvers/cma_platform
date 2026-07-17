@@ -3725,7 +3725,7 @@ class CmaFormController {
         // Toolbar buttons - only bind if not already bound (prevents duplicate handlers)
         // IMPORTANT: Scope to .toolbar and .detail-toolbar to avoid binding context menu items
         // (.cma-context-menu also uses data-action attributes)
-        const actionButtons = document.querySelectorAll('.toolbar [data-action], .detail-toolbar [data-action], .form-layout [data-action]');
+        const actionButtons = document.querySelectorAll('.toolbar [data-action], .detail-toolbar [data-action], .form-layout [data-action], .no-data [data-action]');
         actionButtons.forEach(btn => {
             // Skip context menu items (they have their own handler in CmaInlineEdit)
             if (btn.closest('.cma-context-menu')) return;
@@ -6443,6 +6443,20 @@ class CmaFormController {
             this.searchFilters = rest;
         }
 
+        // In tree view a filter switch invalidates the record on the right —
+        // it belongs to the previous filter selection. Reset the detail pane
+        // to the "Selecteer een record" state instead of leaving it up.
+        if (this.isTreeMode() && cmaGetRecordId()) {
+            cmaSetRecordId(null);
+            this._activeRecordId = null;
+            document.body.classList.remove('has-record', 'is-creating');
+            const formLayout = document.querySelector('.form-layout');
+            if (formLayout) {
+                formLayout.classList.remove('has-record', 'is-creating');
+            }
+            this.updateUrl();
+        }
+
         this.loadList();
     }
 
@@ -7790,7 +7804,28 @@ class CmaFormController {
      * Internal record loading implementation
      * @private
      */
+    /**
+     * Highlight the active record in the tree pane. _activeRecordId is read by
+     * the two tree-render paths (setData + selectById after render), which
+     * covers "list renders after the record"; this helper covers the reverse
+     * order ("record loads after the list") — e.g. a first load where the URL
+     * record and the restored filter load concurrently and the tree used to
+     * stay unhighlighted because nothing ever assigned _activeRecordId.
+     */
+    _syncTreeSelection() {
+        if (!this._activeRecordId) return;
+        const tree = this.listContent && this.listContent.querySelector('cma-tree');
+        if (tree && typeof tree.selectById === 'function') {
+            tree.selectById(String(this._activeRecordId));
+        }
+    }
+
     async _doLoadRecord(recordId, forceRefresh, formLayout) {
+        // Track the active record for tree-pane highlighting and sync the
+        // tree now (covers the record-loads-after-list ordering).
+        this._activeRecordId = recordId;
+        this._syncTreeSelection();
+
         // Clean up subform editors when loading a new record
         // They will be recreated when subforms are rendered
         this.destroySubformEditors();

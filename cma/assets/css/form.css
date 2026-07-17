@@ -210,7 +210,7 @@ body.cma-form div.label {
 /* List panel sizing for side-by-side layout */
 #leftlist {
     width: 320px;
-    min-width: 200px;
+    min-width: 350px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -441,6 +441,28 @@ form#mainForm {
     color: var(--text-primary);
     margin-bottom: 10px;
     font-size: 1.2em;
+}
+
+/* no-data content: icon + message + optional Toevoegen button, stacked */
+.no-data__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.no-data__icon {
+    font-size: 32px;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.no-data__text {
+    margin: 0;
+}
+
+.no-data__add .lnr {
+    margin-right: 6px;
 }
 
 /* Loading state - positioned absolutely so it doesn't push content */
@@ -1314,6 +1336,7 @@ button.search-more-btn span.lnr::before {
     padding: 0 10px;
     justify-content: flex-start;
     margin-right: auto;
+    overflow: hidden;
 }
 
 /* Toolbar filter dropdown (for forms with FilterFieldName) */
@@ -3623,6 +3646,10 @@ a.migration-link:hover {
    ============================================================================= */
 
 /* Readonly indicator badge in toolbar */
+/* In tree view the detail form already shows the readonly state — the
+   toolbar lock would appear twice. Table view keeps it (no detail pane). */
+body.mode-tree #listReadonlyIndicator { display: none; }
+
 .toolbar-readonly-indicator {
     display: inline-flex;
     align-items: center;

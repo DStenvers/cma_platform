@@ -99,7 +99,7 @@ if ($isAdmin) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - CMA</title>
-    <link rel="stylesheet" href="minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,assets/css/style.css">
+    <link rel="stylesheet" href="/cma/minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,assets/css/style.css">
     <?php cma_error_handler(); ?>
     <?php if ($useSystemTheme): ?>
     <script>

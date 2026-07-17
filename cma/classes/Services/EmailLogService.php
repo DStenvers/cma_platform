@@ -137,7 +137,15 @@ class EmailLogService
                 }
             }
 
-            if (!$email->send()) {
+            // Email::send() ECHOES a simulated-mail debug table on non-production
+            // environments. This method feeds a JSON API (email-actions.php), so
+            // any echoed HTML lands in front of the JSON body and the client's
+            // strict 'json' parse fails ("Kan de e-mail actie niet uitvoeren"
+            // while the mail was actually handled). Buffer and discard it.
+            ob_start();
+            $sent = $email->send();
+            ob_end_clean();
+            if (!$sent) {
                 return ['success' => false, 'error' => $email->getError()];
             }
 

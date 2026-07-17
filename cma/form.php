@@ -75,7 +75,7 @@ function showFormError(string $title, string $message, int $httpCode = 400): voi
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($title) ?></title>
-    <link rel="stylesheet" href="minify.php?f=assets/css/style.css">
+    <link rel="stylesheet" href="/cma/minify.php?f=assets/css/style.css">
     <?php cma_script('../library/webcomponents/lib-message.js'); ?>
     <style>
         body { background: #f5f5f5; padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }

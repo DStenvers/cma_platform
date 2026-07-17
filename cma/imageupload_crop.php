@@ -39,7 +39,7 @@ function main()
     echo '	<link rel="shortcut icon" href="/favicon.ico">';
     if ($intStep == '1') {
     }
-    echo '	<link rel="stylesheet" href="minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,assets/css/style.css" type="text/css">';
+    echo '	<link rel="stylesheet" href="/cma/minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,assets/css/style.css" type="text/css">';
     echo '	<script src="//ajax.googleapis.com/ajax/libs/jquery/' . STRJQUERYVERSION . '/jquery.' . ((Application::get('local')) ? "" : "min.") . 'js"></script>';
     echo '	<script src="../library/formval_nl.js"></script>';
     if ($intStep == '1') {

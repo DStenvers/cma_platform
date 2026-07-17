@@ -9,8 +9,8 @@ function main()
     echo '<HTML><HEAD> ';
 
     cma_error_handler();
-    echo '<link rel="stylesheet" href="minify.php?f=assets/css/style.css,assets/css/form.css">';
-    echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js"></script>';
+    echo '<link rel="stylesheet" href="/cma/minify.php?f=assets/css/style.css,assets/css/form.css">';
+    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js"></script>';
 
     echo '<script>
     // The editor and selected image live on the top window (set by CMA.editor before

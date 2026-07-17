@@ -11,7 +11,7 @@ function main()
 
     echo '<TITLE>Cel eigenschappen</TITLE>';
 
-    echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
+    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
 
     echo '<script>
     var selectedCell = window.dialogArguments["table_cell"];

@@ -294,6 +294,8 @@ class LibCombo extends HTMLElement {
 
                 .combo-value {
                     color: var(--text-primary, #333);
+                    overflow: hidden;
+                    white-space: nowrap;
                 }
 
                 .combo-tag {

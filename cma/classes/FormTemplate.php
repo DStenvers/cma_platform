@@ -1445,18 +1445,26 @@ class FormTemplate
 
         // Empty state
         $html .= '<div class="no-data" id="noDataMessage">' . PHP_EOL;
+        $noDataCanAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
         if (Application::get('CMA_Language', '') == 'UK') {
-            $html .= 'Please select a record from the list to edit';
-            if ($this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL) {
-                $html .= ", or click 'Add' to add a record.";
-            }
+            $noDataText = 'Select a record from the list on the left to ' .
+                ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'view' : 'edit');
+            $noDataButton = 'Add';
         } else {
-            $html .= 'Selecteer een record uit de linker lijst om te ' .
+            $noDataText = 'Selecteer een record uit de linker lijst om te ' .
                 ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'bekijken' : 'wijzigen');
-            if ($this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL) {
-                $html .= ", of klik op 'Toevoegen' om een nieuw record aan te maken";
-            }
+            $noDataButton = 'Toevoegen';
         }
+        $html .= '<div class="no-data__inner">' . PHP_EOL;
+        $html .= '<span class="no-data__icon lnr lnr-select"></span>' . PHP_EOL;
+        $html .= '<p class="no-data__text">' . $noDataText . '</p>' . PHP_EOL;
+        if ($noDataCanAdd) {
+            // Same data-action="add" contract as the toolbar button, so the
+            // controller's action delegation handles it identically.
+            $html .= '<button type="button" class="btn btn-primary no-data__add" data-action="add">'
+                   . '<span class="lnr lnr-file-add"></span> ' . $noDataButton . '</button>' . PHP_EOL;
+        }
+        $html .= '</div>' . PHP_EOL;
         $html .= '</div>' . PHP_EOL;
 
         // Detail form container - visibility controlled via CSS based on body.has-record or body.is-creating classes

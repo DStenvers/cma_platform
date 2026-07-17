@@ -12,7 +12,7 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $mode === 'edit' ? 'Link bewerken' : 'Link invoegen'; ?></title>
     <?php cma_error_handler(); ?>
-    <link rel="stylesheet" href="minify.php?f=assets/css/style.css,assets/css/form.css">
+    <link rel="stylesheet" href="/cma/minify.php?f=assets/css/style.css,assets/css/form.css">
     <style>
         body {
             margin: 0;
