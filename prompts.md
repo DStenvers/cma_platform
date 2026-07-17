@@ -5860,3 +5860,7 @@ karaat-data en staat in de karaat-repo.
 > The bug was indeed widespread — 309 leaked semicolons across 78 pages, most inside `&lt;script&gt;`/`&lt;style&gt;` blocks where a leading `;` between object-literal properties would throw `Uncaught SyntaxError` and silently kill that page's JavaScript.</result>
 > <usage><subagent_tokens>59539</subagent_tokens><tool_uses>22</tool_uses><duration_ms>548549</duration_ms></usage>
 > </task-notification>
+
+> the  opleidingen.asp is still empty, since it the starting point of many complicated pages you have not even seen, let's focus on that first
+
+> the wissel rol does nothing, the role is never changed. And rename the button Ga verder to Wissel rol

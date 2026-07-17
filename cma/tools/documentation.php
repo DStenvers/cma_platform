@@ -1362,6 +1362,10 @@ function render_doc_json_config(): void
 'control-types' &rarr; /cma/control-types.json
 'migrations'    &rarr; /cma/config/migrations.json</code></pre>
 
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Elke store in data-sources.json moet een gevulde <code>query</code> hebben.</span> De XML-snippets (front-end markers <code>[[Gegevensbron:store{param}]]</code>) draaien via <code>HandleXMLSnippets</code> → <code>XMLStore_XMLRetrieve</code>: is <code>query</code> leeg, dan wordt er geen XML gebouwd en rendert de snippet <span class="cma-tool__em">stil naar niets</span> — de pagina blijft leeg zonder foutmelding. De queries komen uit de legacy-tabel <code>tblXMLStore.Query</code> (repository-DB) en worden geëxporteerd door de migratie <code>3.1.0_export_datastores.php</code>. Controleer bij lege opleiding-/deelnemer-/contactpagina's eerst of de stores een <code>query</code> hebben.
+    </div>
+
     <h2>Bescherming door de Installer</h2>
     <p><code>src/Installer.php</code> synct alleen <code>cma/</code>, <code>library/</code> en <code>module/</code> — nooit <code>data/</code>. De lijst <code>PROTECTED_PATHS</code> bevat <code>data/app.json</code>, <code>data/databases.json</code>, <code>data/menu.json</code> en <code>data/reports.json</code> als belt-and-braces: de check is feitelijk nooit triggerbaar (de Installer raakt <code>data/</code> toch niet aan) maar maakt expliciet welke paden per ontwerp project-bezit zijn.</p>
 

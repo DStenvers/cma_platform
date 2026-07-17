@@ -508,7 +508,7 @@ function HandleParam($param, $expression, $Value, $blnSaveOnly)
     */
 function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
 {
-    global $cache_pre_identifier, $cache_xmlstore_ident, $dictParams, $libArrXMLStore, $libObjXMLDOM, $sActiveRepository, $sRootFieldName, $strStoreCacheID, $strmenuid, $strmoduleid, $strpageid, $strXMLSQL;
+    global $cache_pre_identifier, $cache_xmlstore_ident, $dictParams, $libArrXMLStore, $libObjXMLDOM, $sActiveRepository, $sRootFieldName, $strStoreCacheID, $strmenuid, $strmoduleid, $strpageid, $strXMLSQL, $XML_SNIPPET_SETTING_RESOLVE_FIELDS;
 
     $blnSearch = false;
     $strSearchIn = "";
@@ -645,7 +645,6 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                     if ($rs === null) {
                         throw new \Exception('Database query failed: ' . Database::getLastError());
                     }
-                    $rs_current_row = $rs->fetch(PDO::FETCH_ASSOC);
                     if ($XML_SNIPPET_SETTING_RESOLVE_FIELDS) {
                         $sImageSQL = 'SELECT tblControls.ImgPath, tblControls.FieldName, tblSqlStatements.Table FROM tblSqlStatements INNER JOIN (tblForms INNER JOIN tblControls ON tblForms.ID = tblControls.FormID) ON tblSqlStatements.ID = tblForms.SqlID WHERE (tblForms.fkModule=' . ($libArrXMLStore[STORE_MODULE] ?? 0) . ' AND (tblControls.ControlTypeID=' . CONSTFLDTYPE_FILE . ' or tblControls.ControlTypeID=' . CONSTFLDTYPE_IMAGE . ' or tblControls.ControlTypeID=' . CONSTFLDTYPE_THUMBNAIL . '))';
                         $arrImgFields = Cache::retrieve($cache_xmlstore_ident . '_imgfields_' . ($libArrXMLStore[STORE_MODULE] ?? 0), $sActiveRepository, $sImageSQL);
@@ -826,8 +825,10 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
         return $libObjXMLDOM;
     }
 
-    // Handle PDOStatement or pre-fetched array
-    if ($objRS instanceof PDOStatement) {
+    // Handle RecordSet (what Database::openRS returns), PDOStatement or pre-fetched array
+    if ($objRS instanceof RecordSet) {
+        $allRows = $objRS->fetchAll();
+    } elseif ($objRS instanceof PDOStatement) {
         $allRows = $objRS->fetchAll(PDO::FETCH_ASSOC);
     } elseif (Arr::isArray($objRS)) {
         $allRows = $objRS;
@@ -846,7 +847,9 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
 
     // Get field names from first row
     $fieldNames = array_keys($allRows[0]);
-    $intNumFields = count($fieldNames);
+    // Loops below use "<= $intNumFields" / "<= $intNumRows" (VBScript UBound
+    // convention), so these hold the highest valid index, not the count.
+    $intNumFields = count($fieldNames) - 1;
 
     // Convert rows to column-indexed array for compatibility with original code
     $aryRows = [];
@@ -858,8 +861,6 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
         }
     }
     $intNumRows = count($allRows) - 1;
-    $intNumFields = count($aryRows);
-    $intNumRows = (count($aryRows) - 1);
 
     // Create the row template element
     $objXMLRow = $libObjXMLDOM->createElement(strtoupper($strRowNodeName));
