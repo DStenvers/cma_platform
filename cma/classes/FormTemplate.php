@@ -1379,8 +1379,16 @@ class FormTemplate
                     if (strpos($res, 'lnr') === 0) {
                         // CSS icon class (e.g. "lnr lnr-redo")
                         $html .= '<span class="' . Server::htmlEncode($res) . '"></span>';
+                    } elseif (strpos($res, '/') === 0) {
+                        // Site-specific icon: an absolute path (e.g.
+                        // "/assets/icons/ico-moodle.png" on the site root, never
+                        // touched by the Installer) is used EXACTLY as written —
+                        // no /cma/ prefix and no .png→.svg swap, which only
+                        // holds for the platform-bundled linearicons set.
+                        $html .= '<img src="' . Server::htmlEncode($res) . '" alt="">';
                     } else {
-                        // Image file path
+                        // Platform icon: normalize into /cma/assets/icons and
+                        // swap .png→.svg (the bundled set is SVG-only)
                         $iconPath = str_replace('.png', '.svg', $res);
                         if (strpos($iconPath, 'assets/icons/') !== 0) {
                             $iconPath = 'assets/icons/' . basename($iconPath);

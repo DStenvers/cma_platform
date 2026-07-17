@@ -61,7 +61,7 @@ class Bootstrap
         self::$config = array_merge([
             'app_config'     => $rootDir . '/app.php',
             'global_asa'     => $rootDir . '/global.asa.php',
-            'session_dir'    => $rootDir . '/sessions',
+            'session_dir'    => $rootDir . '/.sessions',
             'constants_file' => $rootDir . '/_bootstrap_constants.inc',
             'log_dir'        => $rootDir . '/logs',
             'db_dir'         => $rootDir . '/db',
@@ -221,9 +221,31 @@ class Bootstrap
 
         $sessionDir = self::$config['session_dir'];
 
-        // Cache session directory check in APCu
+        // Session files live in a dot-directory (.sessions) so they read as
+        // non-web content next to the site code. Sites configured with the
+        // legacy plain 'sessions' name are migrated once via rename (keeps
+        // active sessions); if the rename fails (open handles) while no
+        // .sessions exists yet, a fresh dot-dir is created below and the old
+        // directory is simply abandoned — users log in again once.
+        if (basename($sessionDir) === 'sessions') {
+            $dotDir = dirname($sessionDir) . '/.sessions';
+            if (!is_dir($dotDir) && is_dir($sessionDir)) {
+                @rename($sessionDir, $dotDir);
+            }
+            $sessionDir = $dotDir;
+        }
+
+        // Deterministic garbage collection: some distros/php.ini's set
+        // gc_probability to 0 or 1/1000, leaving the session dir to grow
+        // forever. 1/100 on session_start keeps it bounded (files older than
+        // session.gc_maxlifetime are removed by PHP's own files-handler GC).
+        @ini_set('session.gc_probability', '1');
+        @ini_set('session.gc_divisor', '100');
+
+        // Cache session directory check in APCu (v2 key: the pre-.sessions
+        // flag must not skip the existence check for the renamed dir)
         $sessionDirChecked = false;
-        if (function_exists('apcu_fetch') && apcu_fetch('session_dir_ok') === true) {
+        if (function_exists('apcu_fetch') && apcu_fetch('session_dir_ok2') === true) {
             session_save_path($sessionDir);
             $sessionDirChecked = true;
         }
@@ -234,7 +256,7 @@ class Bootstrap
             } else {
                 session_save_path($sessionDir);
                 if (function_exists('apcu_store')) {
-                    apcu_store('session_dir_ok', true, 3600);
+                    apcu_store('session_dir_ok2', true, 3600);
                 }
             }
         } elseif (!$sessionDirChecked) {
@@ -244,7 +266,7 @@ class Bootstrap
             } else {
                 session_save_path($sessionDir);
                 if (function_exists('apcu_store')) {
-                    apcu_store('session_dir_ok', true, 3600);
+                    apcu_store('session_dir_ok2', true, 3600);
                 }
             }
         }

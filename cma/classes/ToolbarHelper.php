@@ -500,14 +500,30 @@ class ToolbarHelper
                 if (SecurityHelper::checkFormButtonRights((int) Cookie::get(SecurityHelper::COOKIE_USERID, ''), (int) $formId, $iconNum)) {
                     $enabled = !$alwaysDisabled && self::checkButtonEnabled($icon['url'], $recordId, $guid, $guid2);
                     self::separator();
-                    // Convert .png to .svg and ensure correct path (absolute to prevent wrong resolution with clean URLs)
-                    $iconPath = str_replace('.png', '.svg', $icon['resource'] ?? '');
-                    if (strpos($iconPath, 'assets/icons/') !== 0) {
-                        $iconPath = 'assets/icons/' . basename($iconPath);
+                    // Site-specific icons: a path starting with '/' (e.g.
+                    // "/assets/icons/ico-moodle.png" on the site root, never
+                    // touched by the Installer) is used EXACTLY as written — no
+                    // /cma/ prefix, no basename rewrite and no .png→.svg swap,
+                    // which only holds for the platform-bundled linearicons set.
+                    // Custom icons don't belong in /cma/assets/icons: composer
+                    // update overwrites that tree, and the forced .svg swap
+                    // 404'd icons that only exist as .png.
+                    $rawIcon = $icon['resource'] ?? '';
+                    if (strpos($rawIcon, '/') === 0) {
+                        $iconSrc = $rawIcon;
+                    } else {
+                        // Platform icon: convert .png to .svg and normalize into
+                        // /cma/assets/icons (absolute to prevent wrong resolution
+                        // with clean URLs)
+                        $iconPath = str_replace('.png', '.svg', $rawIcon);
+                        if (strpos($iconPath, 'assets/icons/') !== 0) {
+                            $iconPath = 'assets/icons/' . basename($iconPath);
+                        }
+                        $iconSrc = '/cma/' . $iconPath;
                     }
                     self::imageButton(
                         self::makeLink($icon['url'], $recordId, $guid, $guid2),
-                        '/cma/' . $iconPath,
+                        $iconSrc,
                         $enabled,
                         $icon['title'],
                         $icon['title']

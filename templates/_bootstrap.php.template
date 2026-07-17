@@ -75,7 +75,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 \App\Library\Bootstrap::init(__DIR__, [
     'app_config'     => __DIR__ . '/app.php',
     'global_asa'     => __DIR__ . '/global.asa.php',
-    'session_dir'    => __DIR__ . '/sessions',
+    'session_dir'    => __DIR__ . '/.sessions',
     'constants_file' => __DIR__ . '/_bootstrap_constants.inc',
     'log_dir'        => __DIR__ . '/logs',
     'db_dir'         => __DIR__ . '/db',

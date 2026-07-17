@@ -142,6 +142,7 @@
                 <hiddenSegments>
                     <add segment=".env" />
                     <add segment=".app_started" />
+                    <add segment=".sessions" />
                     <add segment="composer.json" />
                     <add segment="composer.lock" />
                 </hiddenSegments>

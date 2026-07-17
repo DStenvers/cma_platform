@@ -654,12 +654,12 @@ function cma_doc_check_parent_frame_options(): array {
 }
 
 function cma_doc_check_parent_hidden_segments(): array {
-    $label = 'Parent web.config: hiddenSegments (.env / composer.json / composer.lock)';
+    $label = 'Parent web.config: hiddenSegments (.env / composer.json / composer.lock / .sessions)';
     $xml = cma_doc_parent_webconfig();
     if ($xml === null) {
         return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
     }
-    $required = ['.env', 'composer.json', 'composer.lock'];
+    $required = ['.env', 'composer.json', 'composer.lock', '.sessions'];
     $present  = [];
     foreach ($xml->xpath("//security/requestFiltering/hiddenSegments/add") as $node) {
         $present[] = (string)$node['segment'];
@@ -1134,7 +1134,7 @@ DEPLOY_SECRET=&lt;64-char hex via openssl rand -hex 32&gt;</code></pre>
             <tr><td><code>module/</code></td><td>Installer-sync target.</td></tr>
             <tr><td><code>web.config</code></td><td>App-pool recycle via touch tijdens deploys.</td></tr>
             <tr><td><code>db/</code> (bij SQLite)</td><td>SQLite database write, WAL/SHM files.</td></tr>
-            <tr><td><code>sessions/</code></td><td>PHP-session files.</td></tr>
+            <tr><td><code>.sessions/</code></td><td>PHP-session files (sinds v1.29.53 een dot-map; een bestaande <code>sessions/</code>-map wordt bij de eerste bootstrap automatisch hernoemd). Opschoning: PHP's eigen GC draait sinds diezelfde versie gegarandeerd 1-op-100 per <code>session_start</code> en verwijdert files ouder dan <code>session.gc_maxlifetime</code>. De map hoort in <code>hiddenSegments</code> (zie de check hierboven).</td></tr>
             <tr><td><code>backup/</code></td><td>Database backups door <code>BackupService</code>.</td></tr>
             <tr><td>Site-root <code>.env</code></td><td>Env-switch UI op de Omgeving-tab schrijft hierheen.</td></tr>
         </tbody>
@@ -2399,7 +2399,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>storeLastModified</code></td><td>Houd last-modified timestamp bij.</td></tr>
             <tr><td><code>protectedRecords</code></td><td>Record-IDs die niet verwijderd mogen worden.</td></tr>
             <tr><td><code>filter</code></td><td>Configuratie van de filter-dropdown.</td></tr>
-            <tr><td><code>extraButtons</code></td><td>Custom toolbar-knoppen (<code>icon</code>, <code>title</code>, <code>url</code>, <code>target</code>, <code>openInNewWindow</code>, <code>condition</code>). Ondersteunt placeholders zoals <code>[slug]</code>.</td></tr>
+            <tr><td><code>extraButtons</code></td><td>Custom toolbar-knoppen (<code>icon</code>, <code>title</code>, <code>url</code>, <code>target</code>, <code>openInNewWindow</code>, <code>condition</code>). Ondersteunt placeholders zoals <code>[slug]</code>. <code>icon</code> kent drie vormen: een <code>lnr …</code> CSS-class, een platform-icoonnaam (genormaliseerd naar <code>/cma/assets/icons/</code>, met automatische <code>.png</code>→<code>.svg</code>-swap — de gebundelde set is SVG-only), of sinds v1.29.53 een <span class="cma-tool__strong">absoluut site-pad</span> zoals <code>/assets/icons/ico-moodle.png</code> dat exact zo wordt gebruikt. Site-eigen iconen horen in <code>/assets/icons/</code> op de site-root (Installer blijft er vanaf); in <code>/cma/assets/icons/</code> worden ze door composer update overschreven en door de svg-swap ge-404't.</td></tr>
             <tr><td><code>tips</code></td><td>Helptips in de zijbalk.</td></tr>
             <tr><td><code>postHandler</code> / <code>afterPostUrl</code> / <code>previewUrl</code> / <code>onLoadJs</code></td><td>Hooks: eigen POST-handler PHP-bestand, redirect-na-opslaan, preview-URL-template, on-load JavaScript.</td></tr>
             <tr><td><code>clearCache</code></td><td>Lijst glob-patronen (relatief aan de site-<code>cache/</code>-map) die na elke geslaagde save gewist worden &mdash; de moderne opvolger van <code>cma_afterpost.asp</code>. <code>{ID}</code>/<code>{id}</code> wordt vervangen door het record-id, bijv. <code>["prod_detail_v8_{ID}.html", "stenen_*.html"]</code>. Wist ook de data-cachelaag (<code>App\Library\Cache</code>) zodat afgeleide lijsten/carousels niet verouderen. Best-effort en gesandboxed tot <code>cache/</code>.</td></tr>
