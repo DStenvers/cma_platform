@@ -176,7 +176,7 @@ function lib_random($minimum, $maximum)
 {
     global $Rnd;
     mt_srand();
-    return Max(Min(round($maximum * Rnd, 0), $maximum), $minimum);
+    return Max(Min(round($maximum * (mt_rand() / mt_getrandmax()), 0), $maximum), $minimum);
 }
 /**
 * Lib Createguid

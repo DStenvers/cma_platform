@@ -5913,3 +5913,15 @@ karaat-data en staat in de karaat-repo.
 > Yes please let's start there, can i expand it to report groups? On the homepage there are groups of reports as well and let's guard the same type of items at once. Forms later, reports now.
 
 > okay, let's retire  cma/tools/config/app.json
+
+> the original asp had the general.js in header.inc, why is that lost?
+
+>   GET http://172.30.208.1:8090/agenda.php?events=Y&start=2026-07-13T00%3A00%3A00&end=2026-07-20T00%3A00%3A00&_=1784296264000 500 (Internal Server Error) : does not appear on the error console?
+
+> GET http://172.30.208.1:8090/ajax_profiel_popup.php?preview=J&id=100 500 (Internal Server Error)
+
+>  
+>  GET http://172.30.208.1:8090/ajax_profiel_popup.php?preview=J&id=100 500 (Internal Server Error) and  
+>  GET http://172.30.208.1:8090/agenda.php?events=Y&start=2026-07-13T00%3A00%3A00&end=2026-07-20T00%3A00%3A00&_=1784296264000 500 (Internal Server Error)
+
+> on mijn rino i still see 4 files in app/library
