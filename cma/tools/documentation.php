@@ -2415,7 +2415,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
         <tbody>
             <tr><td><code>name</code> <span class="cma-tool__strong">*</span></td><td>Kolomnaam in de tabel.</td></tr>
             <tr><td><code>type</code> <span class="cma-tool__strong">*</span></td><td>Control-type — zie de lijst hieronder.</td></tr>
-            <tr><td><code>caption</code> / <code>captionEnglish</code></td><td>Label (NL / EN).</td></tr>
+            <tr><td><code>caption</code> / <code>captionEnglish</code></td><td>Label (NL / EN). Ontbreekt de caption, dan valt de weergave terug op de ruwe veldnaam; bekende afkortingen uit geconverteerde databases worden daarbij sinds v1.29.59 vertaald (<code>JsonFormService::fieldNameCaption</code>, o.a. <code>descr</code> → "Omschrijving") — breid die map uit als er meer opduiken.</td></tr>
             <tr><td><code>hint</code> / <code>hintEnglish</code></td><td>Tooltip-tekst.</td></tr>
             <tr><td><code>required</code> / <code>readonly</code></td><td>Verplicht / alleen-lezen.</td></tr>
             <tr><td><code>maxLength</code> / <code>height</code></td><td>Max. aantal tekens / hoogte (memo-velden).</td></tr>

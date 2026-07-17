@@ -28,6 +28,20 @@ class JsonFormService extends BaseFormService
      * @param array $options Options
      * @return array ['success' => bool, 'html' => string, 'count' => int]
      */
+    /**
+     * Human caption for a raw field name when the definition has none.
+     * Converted databases are full of abbreviated column names (descr) that
+     * mean nothing to end users; map the common ones instead of showing the
+     * bare name. Extend the map as more abbreviations surface.
+     */
+    public static function fieldNameCaption(string $fieldName): string
+    {
+        static $known = [
+            'descr' => 'Omschrijving',
+        ];
+        return $known[strtolower($fieldName)] ?? $fieldName;
+    }
+
     public static function getTreeHtml(string $formName, string|int|null $activeId = null, array $options = []): array
     {
         // Tree view is handled by TreeService
@@ -70,7 +84,7 @@ class JsonFormService extends BaseFormService
                     $fieldsByName[strtolower($fieldName)] = [
                         'name' => $fieldName,
                         'type' => self::controlTypeToFieldType((int)($formDef[Q_CONTROLTYPEID][$i] ?? 0)),
-                        'caption' => $formDef[Q_CAPTION][$i] ?? $fieldName,
+                        'caption' => $formDef[Q_CAPTION][$i] ?? self::fieldNameCaption($fieldName),
                         'dataType' => $formDef[Q_SCHEMA_DATATYPE][$i] ?? '',
                         'dateFormat' => $formDef[Q_SCHEMA_DATE_PREC][$i] ?? '',
                         'numericPrecision' => $formDef[Q_SCHEMA_NUM_PREC][$i] ?? '',
@@ -89,7 +103,7 @@ class JsonFormService extends BaseFormService
                     $fieldsByName[strtolower($fieldName)] = [
                         'name' => $fieldName,
                         'type' => $field['type'] ?? 'textbox',
-                        'caption' => $field['caption'] ?? $fieldName,
+                        'caption' => $field['caption'] ?? self::fieldNameCaption($fieldName),
                         'dataType' => $field['dataType'] ?? '',
                         'dateFormat' => $field['dateFormat'] ?? '',
                     ];
@@ -447,7 +461,7 @@ class JsonFormService extends BaseFormService
                 // Header row
                 $html .= '<thead><tr class="listheader">';
                 foreach ($listColumns as $col) {
-                    $title = $col['title'] ?? $col['field'] ?? '';
+                    $title = $col['title'] ?? self::fieldNameCaption($col['field'] ?? '');
                     $width = $col['width'] ?? '';
                     $colType = $col['type'] ?? 'text';
                     $fieldName = $col['field'] ?? '';
@@ -807,7 +821,7 @@ class JsonFormService extends BaseFormService
 
                 $fieldDefs[] = [
                     'name' => $fieldName,
-                    'caption' => $field['caption'] ?? $fieldName,
+                    'caption' => $field['caption'] ?? self::fieldNameCaption($fieldName),
                     'type' => $dataType,
                     'controlType' => $fieldType,
                     'required' => $field['required'] ?? false,
@@ -917,7 +931,7 @@ class JsonFormService extends BaseFormService
                     $fieldsByName[strtolower($fieldName)] = [
                         'name' => $fieldName,
                         'type' => self::controlTypeToFieldType((int)($formDef[Q_CONTROLTYPEID][$i] ?? 0)),
-                        'caption' => $formDef[Q_CAPTION][$i] ?? $fieldName,
+                        'caption' => $formDef[Q_CAPTION][$i] ?? self::fieldNameCaption($fieldName),
                         'dataType' => $formDef[Q_SCHEMA_DATATYPE][$i] ?? '',
                     ];
                 }
@@ -932,7 +946,7 @@ class JsonFormService extends BaseFormService
                     $fieldsByName[$lcFieldName] = [
                         'name' => $fieldName,
                         'type' => $field['type'] ?? 'textbox',
-                        'caption' => $field['caption'] ?? $fieldName,
+                        'caption' => $field['caption'] ?? self::fieldNameCaption($fieldName),
                         'dataType' => $field['dataType'] ?? '',
                     ];
                 }
@@ -1824,7 +1838,7 @@ class JsonFormService extends BaseFormService
         // Header row
         $html .= '<thead><tr class="listheader">';
         foreach ($listColumns as $col) {
-            $title = $col['title'] ?? $col['field'] ?? '';
+            $title = $col['title'] ?? self::fieldNameCaption($col['field'] ?? '');
             $width = $col['width'] ?? '';
             $colType = $col['type'] ?? 'text';
             $fieldName = $col['field'] ?? '';
@@ -1915,7 +1929,7 @@ class JsonFormService extends BaseFormService
 
             $fieldDefs[] = [
                 'name' => $fieldName,
-                'caption' => $field['caption'] ?? $fieldName,
+                'caption' => $field['caption'] ?? self::fieldNameCaption($fieldName),
                 'type' => $fieldType,
                 'required' => $field['required'] ?? false,
                 'readonly' => $field['readonly'] ?? false,
