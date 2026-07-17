@@ -288,9 +288,14 @@ body.mode-tree #btn_tableview { opacity: 1; pointer-events: auto; }
 #detailContent, .detail-content { display: none; }
 /* noDataMessage: no display override here - parent flex container handles centering */
 
-/* When creating a new record: show form, hide message */
+/* When creating a new record: show form, hide message. The fold and
+   subform-section are hidden in this state, so the form is the only child —
+   let it take the full panel height. Both height and flex are needed: in
+   mode-detail over table mode the panel is display:block (flex:1 is inert
+   there, height:100% sizes it), in tree mode the panel is a flex column
+   (flex:1 sizes it). */
 body.is-creating #detailContent,
-body.is-creating .detail-content { display: block; }
+body.is-creating .detail-content { display: block; height: 100%; flex: 1; }
 body.is-creating #noDataMessage { display: none; }
 
 /* When a record is loaded: show form, hide message */
