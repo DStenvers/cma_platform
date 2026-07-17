@@ -73,6 +73,17 @@ if (isset($_GET['api']) && $_GET['api'] === '1') {
     exit;
 }
 
+// Immediate visual feedback: everything below (the pre-bootstrap file clears
+// AND the bootstrap itself) runs BEFORE the results page renders, which on a
+// large cache takes seconds of blank tab. Flush a busy indicator first; its
+// styling comes from the regular bundle (style.css .cma-tool__busy — no
+// inline CSS), linked here explicitly because the page <head> only renders
+// after the work is done. The indicator is removed again by the results page.
+echo '<link rel="stylesheet" href="/cma/minify.php?f=assets/css/style.css&v=busy">' . "\n";
+echo '<div id="clearcacheBusy" class="cma-tool__busy">Caches worden geleegd, even geduld&hellip;</div>' . "\n";
+while (ob_get_level() > 0) { @ob_end_flush(); }
+@flush();
+
 // ============================================================================
 // PHASE 1: Clear file-based caches BEFORE bootstrap (to get accurate counts)
 // ============================================================================
@@ -770,6 +781,8 @@ foreach ($_clearedFiles as $category => $files) {
 // Output HTML
 cma_html_header('Cache leegmaken');
 echo '<BODY class="contentbody tools tool-clearcache">';
+// The work is done — remove the early-flushed busy indicator.
+echo '<script>document.getElementById("clearcacheBusy") && document.getElementById("clearcacheBusy").remove();</script>' . "\n";
 ToolbarHelper::report('Cache leegmaken', false, false, false, false, 'Leeg de applicatie en form caches');
 echo '<div id="c" class="tools">';
 
