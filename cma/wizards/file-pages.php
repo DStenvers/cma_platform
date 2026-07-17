@@ -391,7 +391,7 @@ function main()
                         echo '</TABLE>';
                         echo '</TD></TR>';
                         echo '</TABLE> ';
-                        echo '<script>;
+                        echo '<script>
                         Redisplay();
                         document.getElementById("resizetype").value=wizardArgs["resizetype"];
                         document.getElementById("resizeheight").value=wizardArgs["resizeheight"];

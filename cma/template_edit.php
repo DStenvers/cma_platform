@@ -21,7 +21,7 @@ echo '<script src=../library/formval_' . (Application::get('cma_language')) . ''
 echo '<script src="wizards/wizard.js"></script>';
 echo '<script src="ckeditor/ckeditor.js?v=' . cma_asset_version() . '" defer></script> ';
 echo '<script src="include/all' . ((!Application::get('test')) ? ".min" : "") . '' . '.js"></script>';
-echo '<script>;
+echo '<script>
 var HTMLEdit = new Object();
 HTMLEdit.image_resize_type = ' . FormControlHelper::IMG_MAXIMUM . ';
 HTMLEdit.image_max_width   = ' . (Application::get('cma_htmledit_img_maxwidth')) . '' . ';

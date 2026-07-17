@@ -204,7 +204,7 @@ function main()
             echo '<script>window.top.location="main.php";</script>';
             exit();
         }
-        echo '		<script>;
+        echo '		<script>
         if (window.parent.frames) {
             window.parent.frames[\'U\'].location.reload(false);
             window.parent.frames[\'C\'].location="login.php?dummy";

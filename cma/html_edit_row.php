@@ -14,7 +14,7 @@ function main()
 
     echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
 
-    echo '<script>;
+    echo '<script>
     var selectedRow = window.dialogArguments["table_row"];
     var rowvAlign = selectedRow.vAlign;
 

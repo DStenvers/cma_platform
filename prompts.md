@@ -5806,3 +5806,57 @@ karaat-data en staat in de karaat-repo.
 > first of all: harden the modules as well for double includes, did you harden the cma library files against it?
 
 > remove the Verkort (KNP) checkbox in http://172.30.208.1:8090/index.php?pageaction=evaluatie_curcie and see why datepicker does not work. And i am missing the javascript error handling, the panel does not show.
+
+> the planning status and planning_overzicht refer to localhost in the menu, let them just use /planning and /planningsoverzicht
+
+> nice: [09:17:51] JS: Uncaught SyntaxError: Unexpected token ';'
+>   at http://172.30.208.1:8090/agenda.php:366
+
+> agenda.php delivers: <script>;
+> ;
+> var nCalendarOffset = 0 - (1000 * 7200);
+> var currentEvent;
+> var DATEFORMAT = "DD MM YYYY";
+
+> yes please go after all echo '; instances, it might explain a lot
+
+> okay, but how do we handle the sweep then? We need to fix it. Do you want me to halt all other agents?
+
+> <task-notification>
+> <task-id>a59723278bfd67dba</task-id>
+> <tool-use-id>toolu_01Bmc6VSPtRgrA7oDpbbcvse</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/bdfd0d27-ce63-4936-89b3-95bc964247f8/tasks/a59723278bfd67dba.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Sweep site for leaked-semicolon echo bug" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All 78 edited files pass `php -l`, and the protected `cma/` directory is untouched.
+>
+> ## Summary
+>
+> Fixed the systematic converter bug (stray leading `;` leaking into emitted JS/HTML/CSS) across the mijnRINO PHP site at `/mnt/c/repos/adam/mijnrino_php`.
+>
+> **Total: 309 fixes across 78 files.** All changed files pass `php -l`.
+>
+> ### Fix categories
+>
+> | Category | Count | Pattern | Fix |
+> |---|---|---|---|
+> | A — leading `;` on a continuing echo | 178 | `echo ';` / `echo ";` (quote, `;`, EOL — string body continues on next lines) | drop the `;` → `echo '` |
+> | B — bare `&lt;script&gt;;` | 58 | `echo '…&lt;script&gt;;` | `&lt;script&gt;;` → `&lt;script&gt;` |
+> | Tag-adjacent (scope extension) | 73 | `&lt;style&gt;;`, `&lt;STYLE&gt;;`, `&lt;script type="text/javascript"&gt;;`, `&lt;style media=print&gt;;` | remove `;` right after the opening tag |
+>
+> ### Verification performed
+> - **No dangerous incomplete-previous-expression cases.** I dumped prev/curr/next context for all 243 pattern-A/B hits and scanned for a preceding echo ending in `=`,`+`,`(`,`&amp;&amp;`, etc. The only flagged prev-lines were pattern-B `&lt;script&gt;;` cases whose previous line ends in a closing tag (`&lt;/script&gt;`, `&lt;/div&gt;`, `&lt;/title&gt;`) or a PHP assignment — all safe. No pattern-A hit had an incomplete preceding JS expression.
+> - **No SQL false positives.** The three "SQL-looking" next-lines were jQuery `$('select')`, not SQL.
+> - **No complete-string false positives.** The grep anchors on `;` at end-of-line after the opening quote, so legitimate `echo ';'` / `echo ";"` single-semicolon outputs never matched and were left alone. Mid-string JS terminators (`echo 'var x=1;`) were untouched.
+> - Re-grepping after edits: zero remaining target hits outside protected dirs.
+>
+> ### Important scope note
+> My initial exclusion filter (`grep -vE '/(vendor|cma|node_modules)/'`) failed to exclude the top-level `cma/` directory because grep emitted paths without a leading `./`. The first fix pass therefore edited 7 files under `cma/` (`html_edit_cell.php`, `html_edit_row.php`, `login.php`, `reportdetails.php`, `template_edit.php`, `wizard.php`, `wizards/file-pages.php`). I caught this immediately and reverted all 7 via `git checkout`; `git status` confirms **no `cma/` modifications remain**. Those 7 files still contain the same bug but were left untouched per the instruction to not edit `cma/`. All later passes correctly excluded `cma/`.
+>
+> ### Files touched (78)
+> Notable high-count files: `upload.php` (47), `verslag.php` (14), `cgo_document.php` / `inventarisatie/excel.php` / `opleiding_voordracht.inc` (12 each), `opleiding_vrijstelling.inc` (11), `inventarisatie/rapport.php` (10), `opleiding_draaiboek_wijzigroosteritem.php` / `opleiding_kbts_poging.php` / `planning_wijzig.php` (9 each). Full per-file breakdown is available; the change logs are in the scratchpad (`changes.txt`, `changes2.txt`).
+>
+> The bug was indeed widespread — 309 leaked semicolons across 78 pages, most inside `&lt;script&gt;`/`&lt;style&gt;` blocks where a leading `;` between object-literal properties would throw `Uncaught SyntaxError` and silently kill that page's JavaScript.</result>
+> <usage><subagent_tokens>59539</subagent_tokens><tool_uses>22</tool_uses><duration_ms>548549</duration_ms></usage>
+> </task-notification>

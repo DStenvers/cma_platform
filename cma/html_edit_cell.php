@@ -13,7 +13,7 @@ function main()
 
     echo '<script src="minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js"></script>';
 
-    echo '<script>;
+    echo '<script>
     var selectedCell = window.dialogArguments["table_cell"];
     var cellAlign = selectedCell.align;
     var cellvAlign = selectedCell.vAlign;

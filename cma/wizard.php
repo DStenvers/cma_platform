@@ -15,7 +15,7 @@ function main()
     Response::noCache();
     $extraHead = '<STYLE>button{font-family:verdana;font-size:var(--font-size-xs)}</STYLE>';
     cma_html_header('Wizard', $extraHead, false);
-    echo '<script>;
+    echo '<script>
     var active_page = -1;
     var content_frame;
     var content_document;

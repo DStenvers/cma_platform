@@ -27,7 +27,7 @@ $nStarted = microtime(true);
 // theme cookie, so the report rendered with the legacy look and a white
 // background in dark mode.
 cma_html_header('Report details', '<meta name="robots" content="noindex,nofollow,noarchive">', false);
-echo '<script>;
+echo '<script>
 var bDocReady = false;
 document.addEventListener("DOMContentLoaded", function() {
     bDocReady = true;
