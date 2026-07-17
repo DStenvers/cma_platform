@@ -2814,6 +2814,9 @@ function render_doc_testing(): void
         <li><span class="cma-tool__strong">Cypress E2E</span> — al sterk in UI-flows (109 specs). Toevoegen alleen voor regressie-incident-pairs die niet op service-laag te isoleren zijn (multi-form-flows, popup-close-then-reopen edge cases) of waar het écht eind-tot-eind moet draaien tegen een echte CMA-DB.</li>
     </ol>
 
+    <h2>JavaScript-error tripwire in Cypress (sinds v1.29.49)</h2>
+    <p>Elke uncaught exception en unhandled promise rejection uit de app wordt tijdens élke spec verzameld en ná de test ge-assert (in <code>cypress/support/e2e.js</code>): een test die functioneel slaagt maar waaronder de pagina een JS-error gooide, <span class="cma-tool__strong">faalt alsnog</span> met de volledige lijst errors. Vóór v1.29.49 werden alle app-errors met <code>return false</code> ingeslikt — een pagina vol console-errors kon groen door de hele suite. De handler laat de test wél uitlopen (geen mid-test abort) zodat de afterEach álle errors in één keer rapporteert; let op: een falende afterEach slaat de rest van dat describe-blok over (standaard Mocha-gedrag). Bekende ruis (zoals <code>ResizeObserver loop</code>) staat in de <code>IGNORED_JS_ERRORS</code>-allowlist bovenin het support-bestand — voeg dáár patronen toe, nooit door de handler weer blanket-<code>false</code> te maken.</p>
+
     <h2>Quick-win plan (sprint-1 status)</h2>
     <p>Eén PR die het meeste regressie-risico per uur afdekt — start bij wat <span class="cma-tool__em">geen</span> DB-harness nodig heeft:</p>
     <ol>

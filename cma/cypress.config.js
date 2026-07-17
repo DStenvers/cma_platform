@@ -3,7 +3,7 @@ const { defineConfig } = require('cypress');
 module.exports = defineConfig({
     e2e: {
         // Base configuration
-        baseUrl: 'http://172.29.208.1/cma',
+        baseUrl: 'http://172.30.208.1:8090/cma',
         supportFile: 'cypress/support/e2e.js',
         specPattern: 'cypress/e2e/**/*.cy.js',
 

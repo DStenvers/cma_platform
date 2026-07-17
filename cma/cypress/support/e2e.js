@@ -15,18 +15,35 @@ import './commands/api';
 import './commands/forms';  // forms.js last - has the most up-to-date form commands
 import './commands/tripwire';  // identity-mismatch watcher (verifyIdentity check)
 
-// Prevent Cypress from failing on uncaught exceptions from the app
-Cypress.on('uncaught:exception', (err, runnable) => {
-    // Ignore specific known errors
-    if (err.message.includes('ResizeObserver loop')) {
-        return false;
+// JavaScript-error tripwire: every uncaught exception and unhandled promise
+// rejection from the app is RECORDED and asserted empty after each test, so a
+// spec that passes functionally still fails when the page threw underneath.
+// (The previous handler returned false for everything, making app errors
+// invisible to the entire suite.) The handler still returns false so the test
+// keeps running to completion — afterEach then reports ALL collected errors at
+// once instead of aborting on the first.
+const IGNORED_JS_ERRORS = [
+    'ResizeObserver loop', // benign browser noise, not an app defect
+];
+let jsErrorsDuringTest = [];
+
+Cypress.on('uncaught:exception', (err) => {
+    if (!IGNORED_JS_ERRORS.some((pattern) => err.message.includes(pattern))) {
+        jsErrorsDuringTest.push(err.message);
     }
-    if (err.message.includes('Cannot read properties of null')) {
-        return false;
-    }
-    // Log the error but don't fail the test
-    console.log('Uncaught exception:', err.message);
     return false;
+});
+
+beforeEach(() => {
+    jsErrorsDuringTest = [];
+});
+
+afterEach(() => {
+    if (jsErrorsDuringTest.length > 0) {
+        const list = jsErrorsDuringTest.map((m) => `  - ${m}`).join('\n');
+        jsErrorsDuringTest = [];
+        throw new Error(`JavaScript error(s) occurred during this test:\n${list}`);
+    }
 });
 
 // Configure default timeouts
