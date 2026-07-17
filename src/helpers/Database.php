@@ -871,7 +871,10 @@ class Database
         // only returned in full when it is the LAST column, so SELECT * can
         // truncate long content and couples callers to column order.
         if (is_string($sql) && preg_match('/\bSELECT\s+\*/i', $sql)) {
-            error_log('SQL warning: SELECT * — list columns explicitly (MEMO/long fields must be last for Access ODBC): ' . $sqlSnippet);
+            // Lead with a [SQL WARN] marker (parallel to logError's [SQL ERROR])
+            // so the log viewer classifies it as an amber warning row and
+            // operators can filter on "SQL WARN".
+            error_log('[SQL WARN] SELECT * — list columns explicitly (MEMO/long fields must be last for Access ODBC): ' . $sqlSnippet);
         }
         try {
             // Handle native ODBC connection objects specially

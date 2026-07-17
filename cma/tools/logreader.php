@@ -818,7 +818,7 @@ async function confirmDelete() {
                 // Classify by the most severe keyword present.
                 if (preg_match('/\[SQL ERROR\]|PHP Fatal error|PHP Parse error|Uncaught|Database Error/i', $entry)) {
                     $lvl = 'error';
-                } elseif (preg_match('/PHP Warning|PHP Deprecated/i', $entry)) {
+                } elseif (preg_match('/\[SQL WARN\]|PHP Warning|PHP Deprecated/i', $entry)) {
                     $lvl = 'warn';
                 } else {
                     $lvl = 'info';
