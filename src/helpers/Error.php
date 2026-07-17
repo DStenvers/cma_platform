@@ -311,7 +311,10 @@ class Error
 
         // Make dialog visible with absolute positioning
         if ($makeSureVisible) {
-            Response::write('</script><div style="display:block; visibility:visible !important; border-radius:8px; z-index: 9999;position:absolute;left:50%;top:50%;margin-left:-220px;margin-top:-50px;z-index:99999;box-shadow:4px 4px 4px 4px #e2e2e2">');
+            // position:fixed (not absolute) so the dialog escapes any positioned/overflow
+            // parent table or div it happens to be echoed inside; transform-centering keeps
+            // it centred regardless of its own size, and the max z-index puts it above all.
+            Response::write('</script><div style="display:block; visibility:visible !important; border-radius:8px; position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;box-shadow:0 6px 28px rgba(0,0,0,0.35)">');
         }
 
         // Error dialog HTML

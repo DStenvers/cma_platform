@@ -5925,3 +5925,31 @@ karaat-data en staat in de karaat-repo.
 >  GET http://172.30.208.1:8090/agenda.php?events=Y&start=2026-07-13T00%3A00%3A00&end=2026-07-20T00%3A00%3A00&_=1784296264000 500 (Internal Server Error)
 
 > on mijn rino i still see 4 files in app/library
+
+> [16:07:38] JS: Uncaught ReferenceError: lib_readCookie is not defined
+>   at http://172.30.208.1:8090/general.js?v=1:544 
+>
+> that function resided in library.js
+
+> Agenda.php, selecting a groups does not stick, it reverts to Mijn groepen
+
+> those 4 , should they not be in the library ?
+
+> the converter is in /mnt/c/lab/ai_converter
+
+> you keep showing the list:  
+>
+>   4 tasks (3 done, 1 in progress, 0 open)
+>   ✔ Fix Undefined constant XML_SNIPPET_SETTING_RESOLVE_FIELDS (opleidingen list)
+>   ✔ Fix Arr::splitAlways null on formulier_voordracht_praktijkopleider.php
+>   ✔ Fix vrijstellingen report SQL construction (+ vs &amp; concatenator)
+>   ◼ Fix presentielijst.php + assistent report SQL syntax errors
+>
+> Thanks for the feedback!
+> (Optional) Press [1] to tell us what went wrong · /feedback
+> is that still uo-to-date? We still have open threads, like you pointed out i don't see
+
+> about the errorhandler: make sure it breaks out of any div/table it might be shown in. So an absolute positioned div is key.
+
+>
+> Selecteer een record uit de linker lijst om te wijzigen, skip the icon and change the button from Toevoegen to Voeg [singular description] toe
