@@ -5,7 +5,7 @@
 
 :root {
     --sidebar-width: 260px;
-    --sidebar-collapsed-width: 60px;
+    --sidebar-collapsed-width: 50px;
     --header-height: 50px;
     /* Light mode sidebar (dark sidebar on light background) */
     --sidebar-bg: #1e1e2d;
@@ -279,7 +279,7 @@ html.dark-mode {
 
 .cma-sidebar.collapsed .cma-menu-group-header {
     justify-content: center;
-    padding: 10px 5px;
+    padding: 5px 5px;
 }
 
 .cma-sidebar.collapsed .cma-menu-group-title,
@@ -352,7 +352,7 @@ a.cma-menu-item.active .cma-menu-icon::before {
 
 /* Single-item menus */
 .cma-menu-group.single-item .cma-menu-group-header {
-    padding: 8px 10px 8px 15px;
+    padding: 4px 10px 4px 15px;
 }
 
 .cma-menu-item-text {

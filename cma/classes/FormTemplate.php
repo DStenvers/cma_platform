@@ -271,6 +271,7 @@ class FormTemplate
             'tableName' => $jsonData['table'] ?? $this->formDef->getSqlTableName(),
             'idField' => $jsonData['idField'] ?? $this->formDef->getFormIdField(),
             'hasSubforms' => Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess,
+            'subforms' => $this->buildSubformClientConfig(),
             'accessLevel' => $this->accessLevel,
             'canAdd' => $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'canDelete' => $this->formDef->allowDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
@@ -301,6 +302,53 @@ class FormTemplate
             ],
             'onLoadJS' => $this->arrRep[\Q_ONLOADJS][0] ?? '',
         ];
+    }
+
+    /**
+     * Per-subform display config for the client (CMA.formConfig.subforms).
+     * The JS (addSubformRecord, renderSubformToolbar) reads title/titleSingular
+     * for popup titles and tooltips; before this existed, config.subforms was
+     * always undefined and every add-popup fell back to the RAW form id
+     * ("Toetsen_per_deelnemer toevoegen" instead of "Resultaat per deelnemer
+     * toevoegen"). One source of truth: the tab caption (SUBFORM_NAME — the
+     * parent's subform entry title) is the plural; the singular prefers the
+     * subform definition's own titleSingular and otherwise auto-derives the
+     * Dutch singular from the tab caption, so tab and popup can never diverge.
+     */
+    private function buildSubformClientConfig(): array
+    {
+        $result = [];
+        if (!(Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess)) {
+            return $result;
+        }
+        $count = count($this->arrSubForms[\SUBFORM_ID] ?? []);
+        for ($i = 0; $i < $count; $i++) {
+            $tabTitle = (string)($this->arrSubForms[\SUBFORM_NAME][$i] ?? '');
+            $jsonFormName = (string)($this->arrSubForms[\SUBFORM_JSONFORM][$i] ?? '');
+            $titleSingular = '';
+            if ($jsonFormName !== '') {
+                $subDef = JsonFormLoader::loadRaw($jsonFormName);
+                if (is_array($subDef)) {
+                    if ($tabTitle === '') {
+                        $tabTitle = (string)($subDef['title'] ?? '');
+                    }
+                    $titleSingular = (string)($subDef['titleSingular'] ?? '');
+                }
+            }
+            if ($tabTitle === '') {
+                $tabTitle = str_replace('_', ' ', (string)($this->arrSubForms[\SUBFORM_ID][$i] ?? ''));
+            }
+            if ($titleSingular === '') {
+                $titleSingular = FormDefinition::dutchSingular($tabTitle);
+            }
+            $result[] = [
+                'form' => $this->arrSubForms[\SUBFORM_ID][$i] ?? '',
+                'title' => $tabTitle,
+                'titleSingular' => $titleSingular,
+                'parentField' => $this->arrSubForms[\SUBFORM_PARENT][$i] ?? '',
+            ];
+        }
+        return $result;
     }
 
     /**
