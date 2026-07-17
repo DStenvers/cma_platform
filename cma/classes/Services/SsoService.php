@@ -321,7 +321,7 @@ class SsoService
 
         // Zoek op email (primair) of login (fallback)
         $emailSafe = SQL::postString(strtolower($email));
-        $sql = "SELECT * FROM tblUsers WHERE (LCASE(userEMail) = $emailSafe OR LCASE(userLogin) = $emailSafe)";
+        $sql = "SELECT ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips FROM tblUsers WHERE (LCASE(userEMail) = $emailSafe OR LCASE(userLogin) = $emailSafe)";
 
         $rs = Database::openRS($sql, $conn, adOpenForwardOnly);
         if ($rs === null || $rs->EOF) {

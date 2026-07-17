@@ -208,7 +208,7 @@ class SecurityHelper
             }
             $safeId = intval($userId);
             // Use direct PDO instead of RecordSet — RecordSet has field lookup issues with Access ODBC
-            $stmt = $conn->prepare("SELECT * FROM tblUsers WHERE ID = ?");
+            $stmt = $conn->prepare("SELECT ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips FROM tblUsers WHERE ID = ?");
             $stmt->execute([$safeId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $userData = null;

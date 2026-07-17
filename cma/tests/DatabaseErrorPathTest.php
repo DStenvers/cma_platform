@@ -94,7 +94,7 @@ class DatabaseErrorPathTest extends TestCase
         Database::query('UPDATE tblUsers SET x = ?', ['v'], $conn);
 
         $log = $this->logContents();
-        $this->assertStringContainsString('Database Error', $log);
+        $this->assertStringContainsString('[SQL ERROR]', $log);
         $this->assertStringContainsString('Syntax error', $log, 'PDOException message must appear');
         $this->assertStringContainsString('UPDATE tblUsers SET x = ?', $log, 'Failing SQL must be logged');
     }

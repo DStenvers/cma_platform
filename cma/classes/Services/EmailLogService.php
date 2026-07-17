@@ -188,7 +188,7 @@ class EmailLogService
             $conn = Database::getConnection('data');
             if ($conn === null) return null;
 
-            $stmt = $conn->prepare("SELECT * FROM tblEmailLog WHERE ID = ?");
+            $stmt = $conn->prepare("SELECT ID, datestamp, mail_from, mail_from_name, mail_subject, mail_status, mail_environment, mail_user, mail_to, mail_cc, mail_bcc, mail_body, mail_attachments, mail_error FROM tblEmailLog WHERE ID = ?");
             $stmt->execute([$id]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row ?: null;

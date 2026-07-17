@@ -5973,3 +5973,9 @@ karaat-data en staat in de karaat-repo.
 > /loop continue with a full test per role and log errors , after that fix the errors one by one
 
 > fuck, just continue please
+
+> do a full sweep in the codebase for select * and fix if possible
+
+> lee an agent do a sweep in platform code
+> have another agent. run tests
+> and another to fix issues

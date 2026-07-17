@@ -288,7 +288,8 @@ class EmailLogServiceUnitTest extends TestCase
         $this->assertEquals('Hi', $row['mail_subject']);
 
         $call = $this->conn->getLastCall();
-        $this->assertStringContainsString('SELECT * FROM tblEmailLog', $call['sql']);
+        $this->assertStringContainsString('FROM tblEmailLog', $call['sql']);
+        $this->assertStringContainsString('mail_error', $call['sql'], 'memo columns (mail_body/mail_error) must be selected last');
         $this->assertEquals([5], $call['params'], 'ID must be bound as a parameter');
     }
 

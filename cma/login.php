@@ -54,11 +54,11 @@ function main()
         // Case-insensitive login lookup
         // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
         $postLogin = strtolower(Request::post('naam', '') ?? '');
-        $SQL = 'select * from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
+        $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
         // If lower() fails (ODBC Access), fall back to scanning all users in PHP
         if ($rs !== null && $rs->EOF) {
-            $SQL = 'select * from tblUsers';
+            $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers';
             $rsAll = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
             if ($rsAll !== null) {
                 while (!$rsAll->EOF) {
@@ -276,7 +276,7 @@ function main()
             }
             if (Request::post('actie', '') == 'login_vergeten' && Request::post('email', '') != '') {
                 $postEmail = strtolower(Request::post('email', '') ?? '');
-                $SQL = 'select * from tblUsers WHERE userEMail=' . SQL::postString($postEmail);
+                $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers WHERE userEMail=' . SQL::postString($postEmail);
                 $rs = Database::openRS($SQL, 'users', adOpenDynamic, adLockOptimistic);
                 if ($rs === null) {
                     throw new \Exception('Database query failed: ' . Database::getLastError());
