@@ -785,6 +785,13 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
             }
         }
     }
+// The closing brace above ends the if($strXMLSQL)-block; this one ends
+// XMLStore_XMLRetrieve itself. It was missing since the ASP conversion,
+// which nested lib_XMLfromRS INSIDE XMLStore_XMLRetrieve: the second
+// XMLStore_XMLRetrieve call per request then fatalled with "Cannot
+// redeclare lib_XMLfromRS", and until the first call completed the
+// function did not exist at all.
+}
 
 /**
     * Creates XML from a PDO recordset with support for:
@@ -932,7 +939,7 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
                         $objXMLField->nodeValue = '';
                         } else {
                         if ((count($arrTxtConvert) - 1) >= $intCurFieldIdx) {
-                            if (arrTxtConvert($intCurFieldIdx) == true) {
+                            if (($arrTxtConvert[$intCurFieldIdx] ?? false) == true) {
                                 if ((($pos = stripos($sCurValue, '�', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
                                     $sCurValue = '<UL>' . str_replace('�', '<LI>', $sCurValue);
                                     $intLIpos = (($pos = strrpos(substr($sCurValue, 0, -1), '<LI>')) !== false ? $pos + 1 : 0);
@@ -942,12 +949,12 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
                                         } else {
                                         $sCurValue .= '</UL>';
                                         }
-                                    $sCurValue = str_replace(PHP_EOL + PHP_EOL, '</UL><UL>', $sCurValue);
+                                    $sCurValue = str_replace(PHP_EOL . PHP_EOL, '</UL><UL>', $sCurValue);
                                     }
                                 $sCurValue = str_ireplace(PHP_EOL, '<BR />', $sCurValue);
                                 $sCurValue = LinkURLs($sCurValue);
                                 } else {
-                                $sCurValue = arrPaths($intCurFieldIdx) . $sCurValue;
+                                $sCurValue = ($arrPaths[$intCurFieldIdx] ?? '') . $sCurValue;
                                 }
                             }
                         }
@@ -1046,7 +1053,6 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
             // Copy the current row to give it a new memory address (copy children too)
             $objXMLRow = $objXMLRow->cloneNode(true);
             }
-        }
         // The XML declaration is already set in DOMDocument constructor
         // Return the DOMDocument for XSLT transformation
         return $libObjXMLDOM;

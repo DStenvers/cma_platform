@@ -5626,3 +5626,183 @@ karaat-data en staat in de karaat-repo.
 > please fix them by priority
 
 > Note I left ConfigFormService::getSubformListData's stricter isAdmin() check is too strict, normal users should also have access.
+
+> PHP Warning:  require(C:\lab\ai_conversion\site\vendor\composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in C:\lab\ai_conversion\site\vendor\composer\autoload_real.php on line 41
+
+> I am genuily concerned about error handling, pages like opleidingen / agenda fail silently with no trace of errors, javascript or otherwise, we need a broader (role-based) test-script touching more area's of the system. An active deelnemer, a docent, a praktijkopleider and a contactpersoon inventarisatie, and a rino medewerker and just walk through all links in the menu and pages. Deep think in to how we can achieve a better test coverage with this in mind. You may access the database in search of other roles.
+
+> <task-notification>
+> <task-id>a75aa07292a300dc7</task-id>
+> <tool-use-id>toolu_014h3NFQ8aXmGiWC8vZVnb4t</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/bdfd0d27-ce63-4936-89b3-95bc964247f8/tasks/a75aa07292a300dc7.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map mijnRINO auth/roles/menu" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I now have a complete picture. Here is the structured report.
+>
+> ---
+>
+> # mijnRINO Front-End — Role-Based Login &amp; Menu Map
+>
+> Scope note: the login engine lives in `module/login/class_login.inc` (platform-adjacent, but `require_once`'d directly by `index.php`, `login/index.php`, and every entry page, so it's in-scope). The `Request`/`Cookie` helpers resolve to `vendor/stenversonline/platform/src/helpers/`.
+>
+> ## A. LOGIN MECHANICS
+>
+> **Password login is alive and is the default in this environment** (SSO is optional and currently OFF).
+>
+> - Entry point / form renderer: `Login::ShowForm()` — `module/login/class_login.inc:414-451`. Rendered by `index.php:180` when not logged in and `force_sso` is false.
+> - Login gate decision: `index.php:174-181`
+>   - `if (OPT_LIVE &amp;&amp; ... )` → redirect to `/`. **`OPT_LIVE` is hard-defined `false`** (`utils.inc:23,34,59`), so this branch never fires.
+>   - `elseif (Application::get('force_sso'))` → SSO. **`force_sso = false`** (`app.php:121`).
+>   - `else` → `Login::ShowForm()` (password form).
+> - **POST target:** the form (`class_login.inc:417`) has `action=""` when there's no ReturnURL, i.e. it posts to the current URL — normally `/` which is served by `index.php`. Handler: `index.php:107-119` (`if (Request::post('formactie')=='login') Login::TryLogin('')`).
+> - **POST fields** (form field names, `class_login.inc:417-431`):
+>   - `formactie` = `login` (hidden, required trigger — `index.php:107`)
+>   - `login` = e-mail address (text; DB match is `login` OR `email_primair`)
+>   - `pwd` = password
+>   - `ReturnURL` = optional post-login redirect (hidden)
+>   - `SupportInfo` = decoy textarea (ignore)
+>   - Note: `Request::post()` is **case-insensitive** (`vendor/stenversonline/platform/src/helpers/Request.php:70-85`), so the form's `login`/`pwd` correctly satisfy `TryLogin`'s reads of `Request::post('Login')` / `Request::post('Pwd')` at `class_login.inc:341-342`.
+> - **Password verification** (`class_login.inc:343`):
+>   ```
+>   SELECT ... FROM tblLogins
+>   WHERE (actief=true)
+>     AND (login=&lt;user&gt; OR email_primair=&lt;user&gt;)
+>     AND password_enc = SHA256(&lt;pwd&gt;)
+>   ```
+>   Hash = `Encryption::sha256($password)` compared to column `tblLogins.password_enc`. Account must be `actief=true`. (Fields: `strFieldLoginName='login'`, `strFieldPwdName='password_enc'`, `class_login.inc:157-158`.)
+> - **What success sets (COOKIES, not PHP sessions)** — `TryLogin`, `class_login.inc:352-377`:
+>   - `USID` = login ID (`COOKIE_ID`)
+>   - `CHK` = guid (`COOKIE_GUID`) — the id/guid pair is the auth check (`isLoggedIn()`, `class_login.inc:531-561`)
+>   - `UNAME` = display name, `UROEPNAAM`, `UCID` = PromptusID, `email`, optional `login_naam`
+>   - Then `Login_GetRelated()` (the post-login hook, `strPostLogin`, `class_login.inc:111`) computes roles/opleidingen and writes the role cookies/app-vars (see section B).
+> - **CSRF:** none. The login form carries no CSRF/nonce token (`class_login.inc:414-451`). No token is validated in `index.php`.
+> - **Cookie mechanics:** `Login::isLoggedIn()` re-seeds `USID`/`CHK` from cookies and validates `SELECT guid FROM tblLogins WHERE id=USID` == `CHK`. To script a session you can either POST the form and keep cookies, or set `USID`+`CHK` cookies directly to a valid id/guid pair.
+>
+> **SSO** (`sso_tester.html`, `sso.php`, `sso_login.php`, `sso_callback.php`, `sso_shared.inc`):
+> - `sso_tester.html` posts name/pwd to `sso.php`, but `sso.php` ignores them and just redirects to an external `sso_handshake.php` — it's a legacy/stub. Real SSO is OAuth: `sso_login.php` → IdP → `sso_callback.php`.
+> - `sso_callback.php:22` → `Sso_callback-&gt;handleCallback()` → `sso_shared.inc:226` calls `$this-&gt;objUserLogin-&gt;LoginByEmailAddress($tokenUsername)` (`class_login.inc:203-225`): looks up `tblLogins WHERE actief=true AND (email_primair=... OR login=...)`, then `TryLogin($userID)`. So SSO logs in by e-mail with **no password**. If unknown → redirect to `profile_url`.
+> - Password login remains fully possible because `force_sso=false`. For a test harness, **use the password form** — simplest and self-contained.
+>
+> **Impersonation ("login as" / switch user):** YES, two distinct mechanisms:
+> 1. **Assume identity** (staff impersonation): `index.php:76` `$intLoginAs = Request::queryIntAndGuid('assumeidentity')` → `index.php:79-102` calls `Login::LoginAs($guid)` (`class_login.inc:169-198`). Trigger URL: `index.php?assumeidentity=&lt;tblLogins.guid&gt;`. Link is rendered for staff at `ajax_profiel_popup.inc:150` ("Login als.."). Original identity saved in cookie `original_login` (`COOKIE_ORIGINAL_LOGIN`); "Terug naar eigen rol" link at `header.inc:479`. `isLoggedInAs()` / `originalLogin()` at `class_login.inc:566-582`.
+> 2. **Role switch** (same person, multiple roles): `index_wissel_rol.inc` + menu form `#menurol` posting `gewensterol` to `/?pageaction=wissel_rol` (`header.inc:439-476`). Sets cookie `GEWENSTE_ROL` (`COOKIE_ROL`) and re-runs `Login_GetRelated()`.
+>
+> ## B. ROLE MODEL
+>
+> **One person = one `tblLogins` row; roles are foreign-key links to per-role tables.** A single login can hold multiple roles simultaneously.
+>
+> Role detection — `Login_GetRelated()`, `class_login.inc:903-1085`. It reads `tblLogins.*` and counts/assigns roles from these FK columns (non-empty = has that role):
+>
+> | Role | tblLogins FK column | Linked table | USER_TYPE constant (value) | Runtime ID global |
+> |---|---|---|---|---|
+> | deelnemer (participant) | `fkDeelnemer` | `tblDeelnemers` (+ `tblDeelname` for active enrolments) | `USER_TYPE_DEELNEMER` = **1423** | `$deelnemerID` |
+> | docent (teacher / hoofd-/jaargroepopleider) | `fkDocent` | `tblDocenten` (+ `tblOpleidingenPerDocent`, flags `blnHoofddocent/blnHoofdopleider`) | `USER_TYPE_DOCENT` = **2224** | `$docentID` |
+> | praktijkopleider | `fkPraktijkopleider` | `tblPraktijkOpleiders` | `USER_TYPE_PRAKTIJKOPL` = **7873** | `$praktijkopleiderID` |
+> | P-opleider | `fkP_Praktopl` | (P-opleider) | `USER_TYPE_P_PRAKTOPL` = **3455** | `$p_praktoplID` |
+> | RINO medewerker / manager (staff/admin) | `fkAssistent` | `tblContactpersonen` (flags `bSuperUser,BIG,BNS,bPlanning,bServicebureau`) | `USER_TYPE_ASSISTENT` = **8312** | `$assistentID` |
+> | contactpersoon inventarisatie | `fkSRHForumLid` | `tblSRHForumLeden` | `USER_TYPE_CONTACTP_INV` = **9989** | `$ContInvID` |
+> | supervisor | `fkSupervisor` | `tblSupervisoren` | `USER_TYPE_SUPERVISOR` = **8300** | `$SupervisorID` |
+> | werkbegeleider | `fkWerkbegeleider` | `tblWerkbegeleiders` | `USER_TYPE_WERKBEGELEIDER` = **8301** | `$WerkbegeleiderID` |
+> | contactpersoon (klant) | `fkKlantContactPersoon` | `tblklantcontactpersonen` | `USER_TYPE_KLANTCP` = **9131** | `$klantContactpersoonID` |
+>
+> Constants defined `class_login.inc:89-107`. The reverse maps (type→FK column, type→table) are `User_GetPersoonsTypeField()` `utils.inc:1860-1888` and `User_GetPersoonsTableName()` `utils.inc:1894+`. Human label map: `Login_GetTypeString()` `utils.inc:566-598`.
+>
+> **Active/inactive:**
+> - Login-level: `tblLogins.actief=true` is required by every login query (`class_login.inc:211,339,343`).
+> - Deelnemer enrolment state: driven by `tblDeelname` (`toegelaten IN (1,2)` / `&lt;&gt;3`, `einddatum`, `certificaatdatum`, `bPauze`) — `class_login.inc:979-980`. A paused participant = `tblDeelname.bPauze` → `$bDeelnemerPauze` affects the menu.
+>
+> **Runtime role variable (the "current" role):**
+> - `$LoginType` (global) = the active role's USER_TYPE. Persisted as app-var `login_setting_&lt;USID&gt;_TYPE` (`COOKIE_TYPE`) via `Login::StoreValue` (`class_login.inc:230-237`) and re-hydrated by `Login_InitVars()` (`class_login.inc:1147-1189`, sets `$LoginType` from `COOKIE_TYPE`, and all the per-role `*ID` globals from `login_setting_*` values).
+> - Desired role when multi-role: cookie `GEWENSTE_ROL` (`COOKIE_ROL`). `Login_GetRelated` picks the active role as: the sole role if `intRollen==1`, else the one matching `GEWENSTE_ROL`, else defaults (assistent auto-defaults, `class_login.inc:1026-1031`; deelnemer is the fallback default at `index.php:131-132`).
+> - Role count: `$UserAantalRollen` (app-var `AANTALROLLEN`). If `&gt;1`, user is sent to the "wissel rol" chooser after login (`index.php:98-99`, `127-128`).
+> - Per-page enforcement: `Login::Check()` (`class_login.inc:499-526`, called e.g. `agenda.php:75`) verifies the active role's FK column is still present on the login row, else bounces to `/?ReturnURL=`.
+>
+> **Doelgroepen:** `Login_GetRelated` also builds a comma list `sDoelgroep` (stored as `COOKIE_DOELGROEPEN`) mixing role types with sub-flags `USER_TYPE_HOOFDOPL(7291)`, `USER_TYPE_JAARGROEPOPL(9912)`, `USER_TYPE_HOOFDDOC(5480)` derived from docent flags (`class_login.inc:1003-1011`).
+>
+> ## C. MENU (per-role, front-end)
+>
+> - Builder: `get_menu($bExternal)` in **`header.inc:249`** (emitted at `header.inc:231` inside `&lt;ul id="menu"&gt;`). Helpers `WriteInMenu()` (`header.inc:164`), `WriteSubItem()` (`header.inc:~195`), `AddRapportItem()`, `BuildRapportageItems()`. This is the front-end menu — unrelated to CMA's `menu.json`.
+> - **Source: hardcoded per-role in PHP**, gated by `$LoginType == USER_TYPE_*` plus data probes (`check_toegang()`, `AgendaZichtbaar()`, `CheckToonDossioma()`, `Nieuws_GetAllowed()`, `AlgemeneInfo_GetAllowed()`, feature flags `feature_planning/feature_taken/feature_inventarisatie`, etc.). Result is cached per `menu_cache_id = 'opl_menu_..._&lt;USID&gt;_&lt;LoginType&gt;_&lt;date&gt;_...'` (`header.inc:265`).
+> - Statically enumerable base items and their role gates:
+>   - **Dashboard** — all logged-in (`header.inc:326`).
+>   - **Agenda** — if `AgendaZichtbaar()` (`header.inc:327-328`).
+>   - **Planning** (+ Status submenu) — `USER_TYPE_ASSISTENT` AND `$UserPlanning` AND `feature_planning` (`header.inc:331-332`).
+>   - **Taken** — `feature_taken` &amp;&amp; `check_toegang('taken')` &amp;&amp; not deelnemer &amp;&amp; no active opleiding filter (`header.inc:334-335`).
+>   - **opleiding(en)** — any role with `$UserOpleidingen` set, not a temp group (`header.inc:342`).
+>   - **deelnemers** — everyone with opleidingen except plain deelnemers (`header.inc:343-344`).
+>   - Sub-items (Toetsen, IOP, Competentieprofiel, Verslagen, Verklaringen, Dossioma('s), CGO portfolio) — gated by role + `CheckToon*()` (`header.inc:346-398`; note this whole block is wrapped in `if (false)` currently, i.e. disabled).
+>   - **Inventarisatie** — `USER_TYPE_CONTACTP_INV` &amp;&amp; `feature_inventarisatie` (`header.inc:402-403`).
+>   - **Nieuws** — if `Nieuws_GetAllowed()` (`header.inc:410-412`).
+>   - **Algemene info** — DB-driven from `tblAlgemeneInfo` (`header.inc:414-432`).
+>   - **Rapportages** submenu — assembled by `BuildRapportageItems()`; individual items gated (e.g. Rapportage dispensaties: assistent/docent/PO/P-opleider; Vrijstellingen &amp; Voordrachten PO: assistent / beoordelend hoofdopleider) — `header.inc:283-306,434-436`.
+>   - **Profile block ("me")** — Mijn profiel / Registraties / Interesselijst / Facturen / Accreditaties / (Deelnemers delegeren if `check_toegang('delegeren')`) / Berichten (`header.inc:439-447`).
+>   - **Rol switcher** — only if `$UserAantalRollen &gt; 1`; one `&lt;li&gt;` per held role, posting `gewensterol` to `/?pageaction=wissel_rol` (`header.inc:448-477`). Labels: Deelnemer, "Docent of hoofd-/jaargroepopleider", Praktijkopleider, P-opleider, Contactpersoon inventarisatie, Supervisor, Werkbegeleider, Contactpersoon, "Opleidingsmedewerker / Manager".
+>   - **"Login als.." / "Terug naar eigen rol"** — impersonation links for staff (`header.inc:478-479`).
+> - The "Algemene info-links" sidebar (`$sAlgInfoLinks`) adds role-specific quick links: PO/contactpersoon-inv get "Praktijkopleider voordragen", "Dispensatie aanvragen", "Inventarisatie en voordracht kandidaten" (`header.inc:286-289`); deelnemer gets "Vrijstelling aanvragen" (`header.inc:307-308`).
+>
+> ## D. TEST USERS / DEV BYPASS
+>
+> - **Environment is hard-pinned to dev:** `app.php:123` `omgeving='O'` → `local=true`, `test=true` (`app.php:125-126,138-139`), `force_sso=false` (`app.php:121`), `cma_sso_enabled='true'` but unused for gating. `global.asa.php:14` marks `development=true` for L/O/T. This is why the **password form is shown and `OPT_LIVE=false`**, so no live-redirect and no forced SSO.
+> - **No dev auto-login / hardcoded credential bypass exists.** There is no "log in as X without password" shortcut other than the `assumeidentity` impersonation flow (which itself requires you to already be an authenticated staff/assistent user, since it saves `COOKIE_ORIGINAL_LOGIN` only when the prior role was assistent — `index.php:84-86`). Note `LoginAs()` itself does not re-check the caller's rights, but you reach it only via a logged-in `index.php` request.
+> - **No fixtures / seed accounts** in the repo. The endpoint tester `tests/test_frontend_endpoints.php` does **not** authenticate — it GETs pages and ignores auth gates (`forcelogin=J`). `tests/test_frontend_functions.php` and `tests/test_all_endpoints.php` likewise don't log in.
+> - **Anonymized DB pattern (useful for harness):** `db/anonimiseer.php:140` rewrites every `tblLogins` row to `login='login&lt;ID&gt;@testmail.nl'` and `email_primair='login&lt;ID&gt;@testmail.nl'`. So in an anonymized dev copy, the login e-mail is deterministically `login&lt;tblLogins.ID&gt;@testmail.nl`. **Passwords (`password_enc`) are NOT reset by the anonymizer**, so you still need a known password per account (or set `password_enc` = `SHA256(known)` directly in `db/pdodomain.mdb` → `tblLogins`). Env file: `.env.local` points `CONN_USERS_PATH=/db/CMAusers.mdb`; the primary domain DB is `db/pdodomain.mdb` (`global.asa.php:80`), which holds `tblLogins`.
+> - Cypress is wired (`.env.local:89-92` `NODEJS_PATH`, `CYPRESS_CACHE_FOLDER`) but no spec directory was found under the site root.
+>
+> **Recommended harness login recipe (per role):**
+> 1. Pick a `tblLogins` row that has the desired FK set (`fkDeelnemer`/`fkDocent`/`fkPraktijkopleider`/`fkP_Praktopl`/`fkAssistent`/`fkSRHForumLid`) and `actief=true`.
+> 2. Ensure a known password: `UPDATE tblLogins SET password_enc = &lt;SHA256(pw)&gt; WHERE ID=...` (or read existing).
+> 3. POST to `/` (index.php): `formactie=login`, `login=&lt;email_primair&gt;`, `pwd=&lt;pw&gt;`; keep cookies (`USID`, `CHK`, `UNAME`, `UCID`).
+> 4. If the account holds &gt;1 role, the app redirects to `index.php?pageaction=wissel_rol`; select the role by POSTing `gewensterol=&lt;USER_TYPE_*&gt;` to `/?pageaction=wissel_rol` (sets `GEWENSTE_ROL` cookie), which fixes `$LoginType`.
+> 5. Walk the menu from `&lt;ul id="menu"&gt;` rendered by `get_menu()`.
+>
+> ## E. PAGE INVENTORY — role-specific entry points
+>
+> Routing is mostly `index.php?pageaction=&lt;x&gt;` (dispatch table `index.php:184+`), plus standalone root scripts.
+>
+> - **index.php** — dashboard/homepage + login + role switch + `pageaction` router. Notable actions: `opleidingen`, `deelnemers`, `taken`, `berichten`, `eigen_gegevens`, `delegeren`, `wissel_rol`, `inventarisatie`, `nieuws`, `info`, `zoek`, `afspraak`, and the `rapport_*` / `rapportage_*` / `evaluatie_*` families (see grep list above). Rapport/afspraak actions are gated to `USER_TYPE_ASSISTENT` (staff), a few also allow docent-hoofdopleider (`index.php:186-199`).
+> - **agenda.php** — all roles; content branches by `$LoginType` (deelnemer/docent/assistent) — role gate `Login::Check()` at `agenda.php:75`; assistent gets wider scope (`agenda.php:56,870`).
+> - **opleiding.php** — opleiding detail; `pageaction=voortgang|toetsen|verslagen|verklaringen|dossioma|iop|competenties|cgoportfolio|vrijstellingen|delegeren`. Forces login via `Login::ForceLoginAndReturn()` (`opleiding.php:70`).
+> - **inventarisatie/** (`inventarisatie/index.php`, `inventarisatie.inc`) — contactpersoon-inventarisatie (`USER_TYPE_CONTACTP_INV`) entry (`header.inc:402-403`).
+> - **planningsoverzicht/**, `plannings_status` — assistent + planning feature.
+> - **Praktijkopleider / voordracht flows:** `formulier_voordracht_praktijkopleider.php` (PO/contactpersoon-inv; calls its own `Login::TryLogin`), `formulier_dispensatie.php` (dispensatie aanvraag), `deelnemer_selecteer_compensatie.php`, `deelnemer_pauze.php`.
+> - **Docent-oriented:** `presentielijst.php`, `dig_presentie.php`, `planning_docent_verstuur.php`, `opleiding_draaiboek_*`, `verslag.php`, `eval_resultaten.php`.
+> - **Deelnemer-oriented:** `opleiding.php?pageaction=dossioma|iop|verslagen`, `sollicitatie.php`, `verklaring.php`, `ziekmelding.php`, `bericht.php`.
+> - **Auth/support pages:** `login/index.php` (redirects to `/`), `login_email.php` (unconfirmed-email notice), `login_forgotten.php`/`Login::ForgotPassword`, `login_reset.php`/`bevestig_email.php` (password reset via `guid`), `login_change.php`, `logout.php` (`Login::Logout`, clears all cookies), `sso.php`/`sso_login.php`/`sso_callback.php`.
+>
+> Key files to cite for the harness: `module/login/class_login.inc` (engine, constants, role resolution), `index.php` (login POST handler + impersonation + router), `header.inc` (`get_menu`), `utils.inc` (`Login_GetTypeString`, `User_GetPersoonsTypeField/TableName`), `app.php` + `global.asa.php` (env pinned to `O`, `force_sso=false`), `vendor/stenversonline/platform/src/helpers/Request.php` (case-insensitive POST), `db/anonimiseer.php` (test-email pattern).</result>
+> <usage><subagent_tokens>113788</subagent_tokens><tool_uses>31</tool_uses><duration_ms>277482</duration_ms></usage>
+> </task-notification>
+
+> Okay, this is a pivot moment. We are leaving the converter. We are moving directly into the mijn rino php version. So we can target bugs more directlty. Can you do that?
+
+> the /module path is yours as well, you may alter that, it is site-specific
+
+> site stopped
+
+> i halted the toepassingsgroep as well, can you move it now?
+
+> i copied/moved it to  /mnt/c/repos/adam/mijnrino_php, and changed iis settings shall we continue?
+
+> i put you in a /loop didn’t I, and you stop?! Continue
+
+## 2026-07-17
+
+> continue
+
+> the login page still has the text '
+> Let op: log hier in als je deelneemt aan, of betrokken bent bij, één van de pilot-groepen: GZ2024-B, GZ2024-J, GZ2024-R, GZ2024-V, GZ2024-W.
+> Zo nee, ga dan naar profiel.rino.nl om op de vertrouwde manier in te loggen.'
+>
+> Can you change that into: 
+> Log hier in als je bij RINO Amsterdam een BIG opleiding volgt. 
+> Zo nee, ga dan naar profiel.rino.nl om in te loggen.
+
+> 1 please do the rewrite
+
+> i am running version 1.29.44 and still i see records 1-2000 van 2174 (laden...)
+> This is a re-occuring bug on desktop that you annot seem to solve. think hard to solve this
+
+> first of all: harden the modules as well for double includes, did you harden the cma library files against it?
+
+> remove the Verkort (KNP) checkbox in http://172.30.208.1:8090/index.php?pageaction=evaluatie_curcie and see why datepicker does not work. And i am missing the javascript error handling, the panel does not show.

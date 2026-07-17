@@ -639,15 +639,15 @@ class FormTemplate
                 // No options found - show quick search box instead
                 // The filter field will be included in the search panel
                 $html .= '<div class="toolbar-right">' . PHP_EOL;
-                $html .= '<span id="recordCount" class="toolbar-status table-mode-only" style="display:none"></span>' . PHP_EOL;
                 $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="Zoeken..."></lib-search-input>' . PHP_EOL;
+                $html .= '<span id="recordCount" class="toolbar-status table-mode-only" style="display:none"></span>' . PHP_EOL;
                 $html .= '</div>' . PHP_EOL;
             }
         } else {
             // Standard quick search box on right
             $html .= '<div class="toolbar-right">' . PHP_EOL;
-            $html .= '<span id="recordCount" class="toolbar-status table-mode-only" style="display:none"></span>' . PHP_EOL;
             $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="Zoeken..."></lib-search-input>' . PHP_EOL;
+            $html .= '<span id="recordCount" class="toolbar-status table-mode-only" style="display:none"></span>' . PHP_EOL;
             $html .= '</div>' . PHP_EOL;
         }
 

@@ -584,6 +584,7 @@ class CmaInfiniteScroll {
         this.hasMore = true;
         this.lastId = null;
         this.pageSize = options.pageSize || 500;
+        this.stallTimeoutMs = options.stallTimeoutMs || 30000; // loadMore stall guard, see _loadWithStallGuard
         this.scrollDebounceTimer = null; // Debounce timer for scroll events
         this.pendingLastId = null; // Track which lastId is being loaded to prevent duplicates
         this.destroyed = false; // Flag to prevent stale async loads from completing
@@ -685,11 +686,16 @@ class CmaInfiniteScroll {
         this.isLoading = true;
         this.pendingLastId = this.lastId;
 
-        this.showLoading();
-
         const requestedLastId = this.lastId;
         try {
-            const result = await this.loadMore(this.lastId, this.pageSize);
+            // showLoading must live INSIDE the try: it touches the DOM/web
+            // components, and a synchronous throw between isLoading=true and
+            // the try would skip the finally — isLoading sticks true forever
+            // and every future load() (scroll AND prefetch) early-returns,
+            // freezing "records 1-N van M (laden...)" permanently. Proven by
+            // the repro harness (scenario "showLoading throws").
+            this.showLoading();
+            const result = await this._loadWithStallGuard();
 
             // Check if destroyed while loading - prevents stale loads from appending to new table
             if (this.destroyed) {
@@ -874,6 +880,38 @@ class CmaInfiniteScroll {
                 }
             }
         }
+    }
+
+    /**
+     * Await the loadMore callback, but never forever. The whole pipeline hangs
+     * on this ONE promise: if it never settles, isLoading and paused stick
+     * true, the prefetch loop parks on its await, onScroll early-returns on
+     * both flags, and the counter freezes at a batch boundary showing
+     * "records 1-2000 van 2174 (laden...)" with no error and no recovery —
+     * not even scrolling helps. That is exactly what happens when the fetch
+     * stalls AND its 20s abort timer is lost (system sleep / tab freeze mid
+     * request); proven by the repro harness (scenario "abort timer dead").
+     * The guard races a timer against the callback and resolves the loss as
+     * the same retriable failure shape the retry/give-up machinery already
+     * handles: the page is retried a few times, then pagination stops loudly.
+     * 30s deliberately exceeds loadMoreRows' internal 20s abort, so this only
+     * fires when that inner mechanism has already failed.
+     */
+    _loadWithStallGuard() {
+        const stallMs = this.stallTimeoutMs;
+        let timer = null;
+        const stallResult = new Promise((resolve) => {
+            timer = setTimeout(() => {
+                cmaLog.warn('[Infinite Scroll] loadMore did not settle within ' +
+                    (stallMs / 1000) + 's past id ' + this.lastId +
+                    '; treating it as a retriable failure.');
+                resolve({ success: false, retriable: true });
+            }, stallMs);
+        });
+        return Promise.race([
+            this.loadMore(this.lastId, this.pageSize),
+            stallResult
+        ]).finally(() => clearTimeout(timer));
     }
 
     /**

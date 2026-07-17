@@ -342,8 +342,11 @@ class Arr
      * @param string $delimiter Delimiter (default: ',')
      * @return array Array of values (never null, always array)
      */
-    public static function splitAlways(string $string, string $delimiter = ','): array
+    public static function splitAlways(?string $string, string $delimiter = ','): array
     {
+        // Accept null (converted callers routinely pass unset globals) and treat
+        // it as an empty string rather than throwing a TypeError.
+        $string = $string ?? '';
         if (empty($string)) {
             return [$string];
         }
