@@ -5864,3 +5864,52 @@ karaat-data en staat in de karaat-repo.
 > the  opleidingen.asp is still empty, since it the starting point of many complicated pages you have not even seen, let's focus on that first
 
 > the wissel rol does nothing, the role is never changed. And rename the button Ga verder to Wissel rol
+
+> http://172.30.208.1:8090/formulier_voordracht_praktijkopleider.php
+
+>  http://172.30.208.1:8090/formulier_voordracht_praktijkopleider.php shows an enormeous pile of garbage \n\n and the layout is all gone. It also has these javascript error: [10:21:04] JS: Uncaught SyntaxError: Invalid or unexpected token at http://172.30.208.1:8090/formulier_voordracht_praktijkopleider.php:61
+>  
+> add a rule in web.config to map /berichten to '/index.php?pageaction=berichten and delete the directory berichten
+> Simular with /taakoveraicht/but that also has parameters that need to be parsed: in php Response::redirect('/index.php?pageaction=taken&taak=' . Request::query('taak', '')); Then remove the taakoverzicht folder. 
+>
+>
+> move the css files – including cma.css - in \css to assets\css and update all references to it , if they are platform related, create a migration to perform the action for other consumers to use it as well.. Make sure you only copy css files  that are actually used. Copy unused ones to /Deprecated_ Change paths inside the css files to reflect changed paths. 
+>
+> move the font files in \fonts to assets\ fonts and update all references to it , if they are platform related, create a migration to perform the action for other consumers to use it as well.. Make sure you only copy fonts  that are actually used. Copy unused ones to /Deprecated_
+>
+> move the image files in \images\interface to assets\ images and update all references to it , if they are platform related, create a migration to perform the action for other consumers to use it as well.. Make sure you only copy images that are actually used.
+>
+> The settings folder, can we move that to data? And can we move all databases to data too? And update databases.json to reflect this change. Preferably through a migration for other consumers to use it as well.
+>
+> The uploads folder needs to be empty in GitHub only the folders need to be created (with .gitkeep?)
+>
+> The root has  _probe*.php ,   audit_*,  \upload.php , upload_dummy.html , fix_* , .platform-manifest.json, are they still needed?
+>
+> Can we introduce a /src directory with the following structure: 
+> -    Src\ajax  : alle ajax processing
+>
+> Please advice on how we can clean up the root folder and make sensible sections inside /src , like forms/menu/etc? 
+
+> continue
+
+> i moved draaiboek-timeline.css to assets/css
+
+> draaiboek-timeline.css → assets/css/: index_opleidingen.inc:221 and opleiding_draaiboek_digitaal.inc:859 : is n't that a duplicate?
+
+> the form title is Toetsen_per_deelnemer toevoegen but it is opened from the tab called Resultaten per deelnemer. Can we make sure those titles are synced? I would expect Resultaat per deelnemer in the detailform
+
+> the rapport dispensaties, to whom is that shown?
+
+> can you check these 404's? /cma/assets/icons/ico-moodle.svg
+> 4
+> /cma/opcache_reset.php
+> 1
+> /cma/convert.php , i think we should move custom icons to site specific /assets/icons, agreed?
+
+> /images/interface/cma_logo.svg , can we move that to /assets/images
+
+> okay, can we think of a structured way to prevent this, are there standard methods to fix this?
+
+> Yes please let's start there, can i expand it to report groups? On the homepage there are groups of reports as well and let's guard the same type of items at once. Forms later, reports now.
+
+> okay, let's retire  cma/tools/config/app.json
