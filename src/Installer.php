@@ -190,6 +190,17 @@ class Installer
         'library/tooltip.css',
         'library/images/tooltip.gif',
         'library/images/tooltip_filler.gif',
+        // Removed in v1.29.54: cma/tools/config/ was a RINO-specific config
+        // snapshot (app/menu/data-sources/databases/control-types/reports)
+        // that leaked into the initial package import and shipped to every
+        // consumer site since. Nothing reads it — ConfigLoader points at the
+        // site's data/ dir and the bundled defaults live in cma/config/.
+        'cma/tools/config/app.json',
+        'cma/tools/config/control-types.json',
+        'cma/tools/config/data-sources.json',
+        'cma/tools/config/databases.json',
+        'cma/tools/config/menu.json',
+        'cma/tools/config/reports.json',
     ];
 
     /**
@@ -486,6 +497,11 @@ class Installer
             $abs = $projectRoot . '/' . $relPath;
             if (is_file($abs) && @unlink($abs)) {
                 $removed[] = $relPath;
+                // Sweep the parent directory when the removal emptied it, so a
+                // fully-retired directory (e.g. cma/tools/config/) doesn't
+                // linger as an empty husk. rmdir refuses non-empty dirs, so
+                // this is a safe no-op whenever anything else still lives there.
+                @rmdir(dirname($abs));
             }
         }
         return $removed;
