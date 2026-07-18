@@ -1174,8 +1174,25 @@ class ErrorHandler
                 }
 
                 .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
+                    /* Uncaught exceptions are rendered at the point of failure —
+                       often nested inside a <table>/<div> of the half-built page.
+                       A fixed, centered overlay (like Error::renderDialog) makes
+                       the error break OUT of that layout and sit on top of the
+                       viewport instead of trapped/mangled inside it. */
+                    max-width: 1000px;
+                    width: calc(100% - 40px);
+                    position: fixed;
+                    left: 50%;
+                    top: 50%;
+                    transform: translate(-50%, -50%);
+                    max-height: 92vh;
+                    overflow: auto;
+                    z-index: 2147483647;
+                    background: var(--gray, #f5f5f5);
+                    box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-sizing: border-box;
                 }
 
                 header {
