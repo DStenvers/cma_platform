@@ -109,13 +109,10 @@ function HTMLDecompile($strInput)
 */
 function lib_html_CleanComments($sHTML)
 {
-    $sRetval = $sHTML;
-    $objRegExp = new Regexp();
-    $objRegExp->IgnoreCase = true;
-    $objRegExp->Global = true;
-    $objRegExp->Pattern = '<!--(.|\\n)+?-->';
-    $sRetval = $objRegExp->Replace($sRetval, '');
-    return $sRetval;
+    // VBScript RegExp was never ported to PHP; use PCRE. /i = IgnoreCase;
+    // global replace is preg_replace's default. Strips HTML comments (incl.
+    // newlines inside them).
+    return preg_replace('/<!--(.|\n)+?-->/i', '', $sHTML);
 }
 /**
 * Lib Html Fixunicode
@@ -297,14 +294,11 @@ function HTMLToAscii($strHTML)
 */
 function HTMLstrip($strHTML)
 {
-    $strOutput = STRHTML . '';
-    // initialise components!
-    $objRegExp = new Regexp();
-    $objRegExp->IgnoreCase = true;
-    $objRegExp->Global = true;
+    // Was: STRHTML (an undefined constant, converter artifact) — the input to
+    // strip is the $strHTML parameter. VBScript RegExp replaced with PCRE (/i).
+    $strOutput = $strHTML . '';
     // beautify the resulting text a little
-    $objRegExp->Pattern = '<ul[^>]*><li[^>]*>';
-    $strOutput = $objRegExp->Replace($strOutput, PHP_EOL . '-');
+    $strOutput = preg_replace('/<ul[^>]*><li[^>]*>/i', PHP_EOL . '-', $strOutput);
     $strOutput = str_ireplace('</td>', ' ', $strOutput);
     $strOutput = str_ireplace('</tr>', PHP_EOL, $strOutput);
     $strOutput = str_ireplace('<ul>', PHP_EOL, $strOutput);
@@ -312,21 +306,12 @@ function HTMLstrip($strHTML)
     $strOutput = str_ireplace('<li>', PHP_EOL . '-', $strOutput);
     $strOutput = str_ireplace(XMLSNIPPET_START, PHP_EOL, $strOutput);
     $strOutput = str_ireplace(XMLSNIPPET_END, PHP_EOL, $strOutput);
-    $objRegExp->Pattern = '<a[^>]*>';
-    $strOutput = $objRegExp->Replace($strOutput, PHP_EOL);
-    $objRegExp->Pattern = '<div[^>]*>';
-    $strOutput = $objRegExp->Replace($strOutput, PHP_EOL);
-    $objRegExp->Pattern = '<span[^>]*>';
-    $strOutput = $objRegExp->Replace($strOutput, PHP_EOL);
-    $objRegExp->Pattern = '<hr[^>]*>';
-    $strOutput = $objRegExp->Replace($strOutput, PHP_EOL . '------------------------------' . PHP_EOL);
+    $strOutput = preg_replace('/<a[^>]*>/i', PHP_EOL, $strOutput);
+    $strOutput = preg_replace('/<div[^>]*>/i', PHP_EOL, $strOutput);
+    $strOutput = preg_replace('/<span[^>]*>/i', PHP_EOL, $strOutput);
+    $strOutput = preg_replace('/<hr[^>]*>/i', PHP_EOL . '------------------------------' . PHP_EOL, $strOutput);
     $strOutput = str_ireplace(PHP_EOL . PHP_EOL . PHP_EOL, PHP_EOL . PHP_EOL, $strOutput);
     $strOutput = HTMLToAscii($strOutput);
-    // remove any datastores
-    // 2do: does not work!
-    // objRegExp.Pattern = replace( XMLSnippet_Start, "[", "\[") & "[^\]]*]]"
-    // strOutput = objRegExp.Replace(strOutput, " ")
-    $objRegExp = null;
     return str_ireplace('  ', ' ', $strOutput);
 }
 ?>
