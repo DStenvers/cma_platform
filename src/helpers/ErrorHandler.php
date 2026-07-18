@@ -1218,6 +1218,12 @@ class ErrorHandler
                     background-color: var(--color-error, var(--red, #d9534f));
                 }
 
+                /* Let the header blend into the red container — no raised card. */
+                .container.error header {
+                    box-shadow: none;
+                    background-color: var(--color-error, var(--red, #d9534f));
+                }
+
                 .exception-message,
                 .exception-type {
                     color: #ffffff;
