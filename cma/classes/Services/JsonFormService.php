@@ -9,6 +9,7 @@ use App\Library\SQL;
 use Cma\CmaRepository;
 use Cma\JsonFormLoader;
 use Cma\ListMode;
+use Cma\SchemaHelper;
 use Cma\SecurityHelper;
 use Cma\SqlParser;
 
@@ -1059,7 +1060,7 @@ class JsonFormService extends BaseFormService
 
             // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
             $idValue = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId, $conn);
-            $sql = "SELECT * FROM [$tableName] WHERE [$idField] = " . $idValue;
+            $sql = "SELECT " . self::memoLastSelectList($conn, $tableName) . " FROM [$tableName] WHERE [$idField] = " . $idValue;
             $rs = Database::openRS($sql, $conn);
             if (!$rs || $rs->EOF) {
                 return self::error('Record niet gevonden');
@@ -1640,7 +1641,7 @@ class JsonFormService extends BaseFormService
 
             // Build query with parent filter
             $parentIdSafe = is_numeric($parentId) ? (int)$parentId : "'" . str_replace("'", "''", (string)$parentId) . "'";
-            $sql = "SELECT * FROM [$tableName] WHERE [$foreignKey] = $parentIdSafe";
+            $sql = "SELECT " . self::memoLastSelectList($conn, $tableName) . " FROM [$tableName] WHERE [$foreignKey] = $parentIdSafe";
 
             // Add sorting
             if (isset($jsonData['orderField'])) {
@@ -1673,6 +1674,49 @@ class JsonFormService extends BaseFormService
 
         } catch (\Exception $e) {
             return self::error($e->getMessage());
+        }
+    }
+
+    /**
+     * Build a "[col], …, [memo], [memo]" column list for a table, ordering MEMO /
+     * long-text columns LAST. MS Access ODBC returns an empty value for any MEMO
+     * column that is followed by a non-memo column in the SELECT list, so a plain
+     * "SELECT *" (physical column order) silently drops memo data whenever a memo
+     * field isn't physically last. Returns '*' when the schema can't be read OR the
+     * table has no memo columns — in both cases "SELECT *" is safe (and cheaper), so
+     * callers never regress to a broken query.
+     *
+     * @param mixed $conn PDO/connection accepted by SchemaHelper::getColumns
+     */
+    private static function memoLastSelectList($conn, string $tableName): string
+    {
+        try {
+            $columns = SchemaHelper::getColumns($conn, $tableName);
+            if (empty($columns)) {
+                return '*';
+            }
+            $normal = [];
+            $memo = [];
+            foreach ($columns as $col) {
+                $name = $col['name'] ?? '';
+                if ($name === '') {
+                    continue;
+                }
+                // ADO long-text (201 adLongVarChar / 203 adLongVarWChar) and ODBC
+                // SQL_LONGVARCHAR (-1) / SQL_WLONGVARCHAR (-10) are Access MEMO fields.
+                if (in_array((int)($col['dataType'] ?? 0), [201, 203, -1, -10], true)) {
+                    $memo[] = $name;
+                } else {
+                    $normal[] = $name;
+                }
+            }
+            if (empty($memo)) {
+                return '*'; // no memo columns → SELECT * cannot mis-order anything
+            }
+            $all = array_merge($normal, $memo);
+            return implode(', ', array_map(static fn($c) => "[$c]", $all));
+        } catch (\Throwable $e) {
+            return '*';
         }
     }
 
