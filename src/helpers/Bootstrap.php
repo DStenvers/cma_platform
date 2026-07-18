@@ -823,10 +823,21 @@ class Bootstrap
      */
     private static function appliedMigrationVersion(): string
     {
-        $row = \App\Library\Database::executeSingleRecord(
-            'SELECT version FROM _cma_version ORDER BY applied_at DESC, id DESC'
-        );
-        return (is_array($row) && !empty($row['version'])) ? (string)$row['version'] : '0.0.0';
+        // "Applied version" is the HIGHEST version ever recorded (semver), NOT the
+        // most recently inserted row. Re-running an older migration inserts a fresh
+        // row with today's timestamp; ordering by applied_at would pull the reported
+        // version back down and make every later migration look pending again — a
+        // false-positive "migration needed" banner. Mirrors MigrationService::
+        // getLatestVersion(); the two must stay in agreement.
+        $rows = \App\Library\Database::executeQuery('SELECT version FROM _cma_version');
+        $latest = '0.0.0';
+        foreach ($rows as $row) {
+            $v = is_array($row) ? (string)($row['version'] ?? '') : '';
+            if ($v !== '' && version_compare($v, $latest, '>')) {
+                $latest = $v;
+            }
+        }
+        return $latest;
     }
 
     private static function bootstrapError(string $message, string $code): void

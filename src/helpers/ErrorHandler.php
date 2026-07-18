@@ -1232,6 +1232,7 @@ class ErrorHandler
                 header.error h1 {
                     color: #ffffff;
                     font-size: 18px;
+                    padding-top: 0;
                 }
 
                 header.error h1::before {
