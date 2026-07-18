@@ -533,4 +533,44 @@ class SQLTest extends TestCase
         // A null accumulator with a real clause still builds the clause.
         $this->assertStringContainsString('WHERE x=1', SQL::addWhere(null, 'x=1'));
     }
+
+    // ---- stripSelfAlias (Access circular-alias fix) ------------------------
+
+    public function testStripSelfAliasBareColumn(): void
+    {
+        $this->assertEquals(
+            'SELECT EindVerslagTemplate from tblOpleidingen',
+            SQL::stripSelfAlias('SELECT EindVerslagTemplate as EINDVERSLAGTEMPLATE from tblOpleidingen')
+        );
+    }
+
+    public function testStripSelfAliasTableQualified(): void
+    {
+        $this->assertEquals(
+            'SELECT t.Naam FROM x',
+            SQL::stripSelfAlias('SELECT t.Naam AS naam FROM x')
+        );
+    }
+
+    public function testStripSelfAliasKeepsRealAliases(): void
+    {
+        $sql = 'SELECT id as CompetentieGebiedID, Naam AS Competentiegebied FROM x';
+        $this->assertEquals($sql, SQL::stripSelfAlias($sql));
+    }
+
+    public function testStripSelfAliasIgnoresExpressionAliases(): void
+    {
+        // The char before AS isn't a word char, so IIF(...) AS a / count(*) AS n
+        // are never matched — only a bare identifier before AS qualifies.
+        $sql = 'SELECT count(*) AS Aantal, IIF(a>0,1,0) AS a FROM x';
+        $this->assertEquals($sql, SQL::stripSelfAlias($sql));
+    }
+
+    public function testProcessSqlStripsSelfAliasOnAccess(): void
+    {
+        $this->assertEquals(
+            'SELECT Field FROM t',
+            SQL::processSQL('ACCESS_VIA_ODBC', 'SELECT Field as FIELD FROM t')
+        );
+    }
 }

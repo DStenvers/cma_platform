@@ -209,6 +209,28 @@ class SQL
     }
 
     /**
+     * Strip self-referential column aliases (`Field AS FIELD`, `t.Field AS FIELD`)
+     * where the alias equals the column name case-insensitively. Access/Jet is
+     * case-insensitive and rejects these as a circular reference; the alias adds
+     * nothing, so it is removed. Only a bare identifier immediately before `AS`
+     * qualifies — expression aliases (`IIF(...) AS x`, `count(*) AS n`) never
+     * match because the character before `AS` is not a word character.
+     */
+    public static function stripSelfAlias(string $sql): string
+    {
+        return preg_replace_callback(
+            '/([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\s+AS\s+([A-Za-z_]\w*)/i',
+            static function ($m) {
+                $field = $m[1];
+                $dot = strrpos($field, '.');
+                $last = $dot === false ? $field : substr($field, $dot + 1);
+                return strcasecmp($last, $m[2]) === 0 ? $field : $m[0];
+            },
+            $sql
+        ) ?? $sql;
+    }
+
+    /**
      * Format a date from day/month/year components
      *
      * @param mixed $dayValue Day component
@@ -433,6 +455,13 @@ class SQL
         // SQL::guidEquals() for the query-builder side of the same quirk.
         if (!$isSQLServer && ($connectionString === 'ACCESS_VIA_ODBC' || Database::isODBC($connectionString))) {
             $sql = self::guidEqualsToLike($sql);
+            // Access is case-insensitive, so `Field AS FIELD` (alias == the field
+            // name) is a self-referential/circular alias and Jet rejects it
+            // ("de alias X ... veroorzaakt een kringverwijzing"). The alias is
+            // redundant there anyway — strip it. Only simple `<col> AS <alias>`
+            // (or `<tbl>.<col> AS <alias>`) is touched; expression aliases like
+            // `IIF(...) AS x` never match (the char before AS isn't a word char).
+            $sql = self::stripSelfAlias($sql);
         }
 
         if ($isSQLServer) {
