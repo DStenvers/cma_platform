@@ -5979,3 +5979,13 @@ karaat-data en staat in de karaat-repo.
 > lee an agent do a sweep in platform code
 > have another agent. run tests
 > and another to fix issues
+
+> rename Deprecated_ to .deprecated
+>
+> are you still logging prompts to prompts.md ? if not you create a trigger to do so
+
+> okay continue the loop
+
+## 2026-07-18
+
+> continue testing

@@ -563,7 +563,7 @@ class Bootstrap
     {
         $aliases = [
             'LibUpload', 'Arr', 'Str', 'SQL', 'Error', 'ErrorHandler',
-            'Date', 'Hilight', 'HttpClient', 'Cookie'
+            'Date', 'Hilight', 'HttpClient', 'Cookie', 'Regexp'
         ];
 
         foreach ($aliases as $alias) {

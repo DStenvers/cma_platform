@@ -2220,6 +2220,13 @@ $sql = "SELECT * FROM tblUsers WHERE userName = " . SQL::postString($_POST['user
     </table>
     <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASS</code>) of uit <code>app.php</code>.</p>
 
+    <h2>VBScript-shims: RecordSet, ScriptingDictionary, Regexp</h2>
+    <p>ASP&rarr;PHP geconverteerde code verwacht een paar VBScript-objecten die letterlijk in de code blijven staan. Het platform levert ze zodat de converter-output zonder handwerk draait:</p>
+    <ul>
+        <li><code>RecordSet</code> &mdash; ADO-cursor (zie boven).</li>
+        <li><span class="cma-tool__strong"><code>Regexp</code></span> (sinds v1.29.67, <code>App\Library\Regexp</code>, globaal gealiast) &mdash; de VBScript <code>RegExp</code>: properties <code>Pattern</code>, <code>IgnoreCase</code>, <code>Global</code>, <code>MultiLine</code> en methods <code>Test()</code>, <code>Replace()</code>, <code>Execute()</code>. Intern PCRE. VBScript-regex is vrijwel een subset van PCRE; de shim overbrugt alleen de echte verschillen: flags-als-properties &rarr; inline modifiers, <code>Global</code> &rarr; replace-all-vs-first, <code>&#92;uFFFF</code> &rarr; <code>&#92;x{FFFF}</code>, en delimiter-keuze. Byte-semantiek (geen <code>/u</code>), passend bij de ISO-8859-1 codebase. <span class="cma-tool__strong">Converter mag <code>new Regexp()</code> gewoon emitten</span> &mdash; niet meer per geval naar <code>preg_*</code> herschrijven.</li>
+    </ul>
+
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=migrations">Migraties schrijven</a>, <a href="documentation.php?topic=architecture">Architectuur</a>.
     </div>
