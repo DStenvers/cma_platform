@@ -1212,6 +1212,26 @@ class ErrorHandler
                     background-color: var(--blue);
                 }
 
+                /* Make an uncaught error stand out: colour the whole dialog, not
+                   just its header, and keep header text legible on the red. */
+                .container.error {
+                    background-color: var(--color-error, var(--red, #d9534f));
+                }
+
+                .exception-message,
+                .exception-type {
+                    color: #ffffff;
+                }
+
+                header.error h1 {
+                    color: #ffffff;
+                    font-size: 18px;
+                }
+
+                header.error h1::before {
+                    display: none;
+                }
+
                 h1, h2, h3 {
                     margin-top: 0;
                 }
@@ -1501,7 +1521,7 @@ class ErrorHandler
 
         </head>
         <body>
-            <div class="container">
+            <div class="container ' . $severityClass . '">
                 <header class="' . $severityClass . '">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start">
                         <div>
