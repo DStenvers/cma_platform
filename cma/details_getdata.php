@@ -34,30 +34,30 @@ if ($parFormID != '') {
         exit();
     } else {
         for ($intRec = 0; $intRec <= (count($arrRep) - 1); $intRec++) {
-            if ((is_null(arrRep(Q_FIELDNAME, $intRec)) ? "" : strtolower(arrRep(Q_FIELDNAME, $intRec))) == (is_null($parControl) ? "" : strtolower($parControl))) {
+            if ((is_null($arrRep[Q_FIELDNAME][$intRec]) ? "" : strtolower($arrRep[Q_FIELDNAME][$intRec])) == (is_null($parControl) ? "" : strtolower($parControl))) {
                 $bControlFound = true;
-                if (arrRep(Q_DATABASEID, $intRec)) {
-                    $Myconn = CmaRepository::getResolvedConnectionString((int)arrRep(Q_DATABASEID, $intRec));
+                if ($arrRep[Q_DATABASEID][$intRec]) {
+                    $Myconn = CmaRepository::getResolvedConnectionString((int)$arrRep[Q_DATABASEID][$intRec]);
                 } else {
-                    $Myconn = CmaRepository::getResolvedConnectionString((int)arrRep(Q_FKDATABASE, $intRec));
+                    $Myconn = CmaRepository::getResolvedConnectionString((int)$arrRep[Q_FKDATABASE][$intRec]);
                 }
-                if (is_null(arrRep(Q_SQLLIST, $intRec))) {
-                    $comboSQL = 'select ' . arrRep(Q_FOREIGNIDFIELD, $intRec) . ',' . arrRep(Q_CTRLIDFIELD, $intRec) . ' from ' . arrRep(Q_SOURCETABLE, $intRec) . ' order by ' . arrRep(Q_FOREIGNIDFIELD, $intRec);
+                if (is_null($arrRep[Q_SQLLIST][$intRec])) {
+                    $comboSQL = 'select ' . $arrRep[Q_FOREIGNIDFIELD][$intRec] . ',' . $arrRep[Q_CTRLIDFIELD][$intRec] . ' from ' . $arrRep[Q_SOURCETABLE][$intRec] . ' order by ' . $arrRep[Q_FOREIGNIDFIELD][$intRec];
                 } else {
-                    $comboSQL = str_replace('[ID]', '[ProdID]', arrRep(Q_SQLLIST, $intRec));
+                    $comboSQL = str_replace('[ID]', '[ProdID]', $arrRep[Q_SQLLIST][$intRec]);
                     $comboSQL = str_replace('[ProdID]', $parID, $comboSQL);
                 }
                 if ($parQuery != '') {
-                    if ((($pos = stripos($comboSQL, ' as ' . arrRep(Q_FOREIGNIDFIELD, $intRec), max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
-                        if (arrRep(Q_DATABASEID, $intRec)) {
+                    if ((($pos = stripos($comboSQL, ' as ' . $arrRep[Q_FOREIGNIDFIELD][$intRec], max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
+                        if ($arrRep[Q_DATABASEID][$intRec]) {
                         } else {
-                            $sFieldSpec = trim(str_ireplace('SELECT ', '', substr($comboSQL, 0, max(0, min((($pos = stripos($comboSQL, ' as ' . arrRep(Q_FOREIGNIDFIELD, $intRec), max(0, 1 - 1))) !== false ? $pos + 1 : 0), strlen($comboSQL))))));
-                            $sFieldSpec = str_ireplace('[' . arrRep(Q_SOURCETABLE, $intRec) . '].[' . arrRep(Q_CTRLIDFIELD, $intRec) . '],', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace('[' . arrRep(Q_SOURCETABLE, $intRec) . '].[' . arrRep(Q_CTRLIDFIELD, $intRec) . '] ,', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace(arrRep(Q_SOURCETABLE, $intRec) . '.' . arrRep(Q_CTRLIDFIELD, $intRec) . ',', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace(arrRep(Q_SOURCETABLE, $intRec) . '.' . arrRep(Q_CTRLIDFIELD, $intRec) . ' ,', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace(arrRep(Q_CTRLIDFIELD, $intRec) . ',', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace(arrRep(Q_CTRLIDFIELD, $intRec) . ' ,', '', $sFieldSpec);
+                            $sFieldSpec = trim(str_ireplace('SELECT ', '', substr($comboSQL, 0, max(0, min((($pos = stripos($comboSQL, ' as ' . $arrRep[Q_FOREIGNIDFIELD][$intRec], max(0, 1 - 1))) !== false ? $pos + 1 : 0), strlen($comboSQL))))));
+                            $sFieldSpec = str_ireplace('[' . $arrRep[Q_SOURCETABLE][$intRec] . '].[' . $arrRep[Q_CTRLIDFIELD][$intRec] . '],', '', $sFieldSpec);
+                            $sFieldSpec = str_ireplace('[' . $arrRep[Q_SOURCETABLE][$intRec] . '].[' . $arrRep[Q_CTRLIDFIELD][$intRec] . '] ,', '', $sFieldSpec);
+                            $sFieldSpec = str_ireplace($arrRep[Q_SOURCETABLE][$intRec] . '.' . $arrRep[Q_CTRLIDFIELD][$intRec] . ',', '', $sFieldSpec);
+                            $sFieldSpec = str_ireplace($arrRep[Q_SOURCETABLE][$intRec] . '.' . $arrRep[Q_CTRLIDFIELD][$intRec] . ' ,', '', $sFieldSpec);
+                            $sFieldSpec = str_ireplace($arrRep[Q_CTRLIDFIELD][$intRec] . ',', '', $sFieldSpec);
+                            $sFieldSpec = str_ireplace($arrRep[Q_CTRLIDFIELD][$intRec] . ' ,', '', $sFieldSpec);
                             $testSQL = SQL::addWhere($comboSQL, $sFieldSpec . " LIKE '%" . $parQuery . "%'");
                             $testSQL = SQL::processSQL($Myconn, $testSQL);
                             $testRS = Database::openRS($testSQL, $Myconn, adOpenForwardOnly);
@@ -70,10 +70,10 @@ if ($parFormID != '') {
                             $testRS = null;
                         }
                     } else {
-                        $comboSQL = SQL::addWhere($comboSQL, arrRep(Q_FOREIGNIDFIELD, $intRec) . " LIKE '%" . $parQuery . "%'");
+                        $comboSQL = SQL::addWhere($comboSQL, $arrRep[Q_FOREIGNIDFIELD][$intRec] . " LIKE '%" . $parQuery . "%'");
                     }
                 }
-                GetData_WriteRecords($Myconn, $comboSQL, $parQuery, arrRep(Q_FOREIGNIDFIELD, $intRec), arrRep(Q_CTRLIDFIELD, $intRec), arrRep(Q_ISREQUIRED, $intRec));
+                GetData_WriteRecords($Myconn, $comboSQL, $parQuery, $arrRep[Q_FOREIGNIDFIELD][$intRec], $arrRep[Q_CTRLIDFIELD][$intRec], $arrRep[Q_ISREQUIRED][$intRec]);
             }
         }
     }

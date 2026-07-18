@@ -105,7 +105,7 @@ function lib_FormValRequired()
         if (!$blnRequired) {
             if (Arr::isArray($arrRequired)) {
                 for ($intTeller = 0; $intTeller <= (count($arrRequired) - 1); $intTeller++) {
-                    if ((is_null(arrRequired($intTeller)) ? "" : strtolower(arrRequired($intTeller))) == (is_null($fld) ? "" : strtolower($fld))) {
+                    if ((is_null($arrRequired[$intTeller]) ? "" : strtolower($arrRequired[$intTeller])) == (is_null($fld) ? "" : strtolower($fld))) {
                         $blnRequired = true;
                     }
                 }
