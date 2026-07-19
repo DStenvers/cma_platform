@@ -22,7 +22,6 @@ border-radius: 0
 }
 textarea {white-space: pre-wrap; min-height: 50px; resize: none}
 .required { color:#E01F3D }
-.req { color: #E01F3D; font-weight: bold; font-size: var(--font-size-md); vertical-align: middle; }
 .invalid { border:1px solid #E01F3D !important; background-position: calc(100% - 4px) center; background-repeat: no-repeat; background-image:url(images/inputfield_error.svg) !important; background-size: auto 18px; }
 .forgotten {border:1px solid #DD4B18}
 td.disabled, input[disabled], label[disabled], select[disabled], textarea[disabled] {color: var(--text-disabled, #999999); opacity: 1}
