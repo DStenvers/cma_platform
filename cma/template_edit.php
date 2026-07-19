@@ -254,7 +254,7 @@ function main()
                         }
                         echo (is_null(substr($strName, 0, max(0, min(1, strlen($strName))))) ? "" : strtoupper(substr($strName, 0, max(0, min(1, strlen($strName)))))) . substr($strName, max(0, 2 - 1)) . '</TD><TD class=c2 width=1% >';
                         if ($blnRequired) {
-                            echo '<span class="req" title="' . $lang_required_entry . '">*</span>';
+                            echo '<span class="required" title="' . $lang_required_entry . '">*</span>';
                         }
                         echo '</TD>';
                         echo '<TD class=c3>';

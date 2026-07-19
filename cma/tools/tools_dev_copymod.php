@@ -51,7 +51,7 @@ function displayform()
     echo '<FORM action="tools_dev_copymod.php" method=GET id=main name=main style=margin:0px>';
     echo '<table cellpadding=2 cellspacing=2 width=600>';
     echo '<tr><td colspan=' . $intCols . '>Deze wizard kan een volledige module uit een andere repository kopiëren naar de huidige repository.<BR>&nbsp;</td></tr>';
-    echo '<tr><td nowrap width=1%><B>Repository waarvanuit module<BR />gekopieerd moet worden&nbsp;<span class="req" title="' . ($lang_required_entry ?? 'Verplicht') . '">*</span>:&nbsp;</B></td><td>';
+    echo '<tr><td nowrap width=1%><B>Repository waarvanuit module<BR />gekopieerd moet worden&nbsp;<span class="required" title="' . ($lang_required_entry ?? 'Verplicht') . '">*</span>:&nbsp;</B></td><td>';
 
     if ($iRepository != '') {
         echo '<input type=text value="' . htmlspecialchars($iRepository) . '" style=width:240px name=repository readonly> ';
@@ -61,11 +61,11 @@ function displayform()
     }
     echo '&nbsp;</td></tr>';
 
-    echo '<tr><td height=24><B>Te kopiëren module&nbsp;<span class="req" title="' . ($lang_required_entry ?? 'Verplicht') . '">*</span>:&nbsp;</B></td><td>';
+    echo '<tr><td height=24><B>Te kopiëren module&nbsp;<span class="required" title="' . ($lang_required_entry ?? 'Verplicht') . '">*</span>:&nbsp;</B></td><td>';
     echo '<input type=text style=width:240px name=Module placeholder="Module ID...">';
     echo '</td></tr>';
 
-    echo '<tr><td nowrap><B>Gegevens komen in database&nbsp;<span class="req">*</span>:&nbsp;</B></td><td>';
+    echo '<tr><td nowrap><B>Gegevens komen in database&nbsp;<span class="required">*</span>:&nbsp;</B></td><td>';
     echo ToolsDatabaseSelect($iDatabase ?? '', ($iDatabase ?? '') == '', false, true);
     echo '&nbsp;</td></tr>';
 
