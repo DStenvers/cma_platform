@@ -546,12 +546,26 @@ class SQL
             // Normalize IIF function to uppercase to prevent ODBC parameter interpretation
             $sql = str_ireplace('iif(', 'IIF(', $sql);
 
-            // ODBC workaround: Add spaces around comparison operators to prevent misinterpretation
-            // ODBC sometimes treats patterns like "<date()" as parameter markers
-            // First, ensure spaces exist around operators
-            $sql = preg_replace('/\s*([<>=!]+)\s*/', ' $1 ', $sql);
-            // Clean up multiple spaces
-            $sql = preg_replace('/\s+/', ' ', $sql);
+            // ODBC workaround: normalise whitespace around comparison operators (ODBC
+            // can treat patterns like "<date()" as parameter markers) — but ONLY outside
+            // string literals. Otherwise `<`/`>`/`=` inside quoted values (e.g. the
+            // '<html>...' raw-cell and '<sort:...>' sort-key markers the reports embed)
+            // get corrupted with spaces and stop matching downstream.
+            $sql = preg_replace_callback(
+                "/'(?:[^']|'')*'|\\s*([<>=!]+)\\s*/",
+                static function ($m) {
+                    return (isset($m[1]) && $m[1] !== '') ? ' ' . $m[1] . ' ' : $m[0];
+                },
+                $sql
+            ) ?? $sql;
+            // Collapse runs of whitespace, again only outside string literals.
+            $sql = preg_replace_callback(
+                "/'(?:[^']|'')*'|\\s+/",
+                static function ($m) {
+                    return ($m[0] !== '' && $m[0][0] === "'") ? $m[0] : ' ';
+                },
+                $sql
+            ) ?? $sql;
 
             // Convert Access date literals to proper format (DD-MM-YYYY -> YYYY-MM-DD)
             // But keep the # delimiters that Access requires

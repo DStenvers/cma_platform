@@ -517,6 +517,22 @@ class SQLTest extends TestCase
         $this->assertStringContainsString("guid = '$g'", SQL::processSQL('Server=x;Provider=SQLNCLI11', "WHERE guid = '$g'"));
     }
 
+    public function testProcessSqlOperatorSpacingSkipsStringLiterals(): void
+    {
+        // The ODBC operator-spacing must NOT corrupt < > = inside quoted string
+        // literals — reports embed '<html>...' and '<sort:KEY>' cell markers there.
+        $in  = "SELECT '<sort:' & a.Achternaam & '>' & a.Naam AS X, "
+             . "'<html><status class=paused>x</status>' AS S FROM t WHERE a.n<date() AND a.k>=5";
+        $out = SQL::processSQL('ACCESS_VIA_ODBC', $in);
+        // Literals preserved verbatim (no injected spaces).
+        $this->assertStringContainsString("'<sort:'", $out, 'sort marker literal preserved');
+        $this->assertStringContainsString("'<html><status class=paused>x</status>'", $out, 'html marker literal preserved');
+        $this->assertStringNotContainsString('< sort', $out, 'no space injected into literal');
+        // Real comparison operators (outside literals) are still normalised.
+        $this->assertStringContainsString('a.n < date()', $out, 'operator outside literal still spaced');
+        $this->assertStringContainsString('a.k >= 5', $out);
+    }
+
     // ========================================================================
     // Null-tolerant builders (ported from mijnRINO) — VBScript seeds SQL
     // accumulators with an uninitialised Empty variant (-> null); the builders
