@@ -52,6 +52,13 @@ if (!SecurityHelper::isLoggedIn()) {
     exit;
 }
 
+// Minimum access level per page/tool (developer/admin/user), derived from the tools
+// catalog badges. Default is any logged-in user; raised pages 403 below their level.
+// Runs for BOTH the nomenu (content) and full-page loads — every CMA page arrives
+// here as main.php?page=X.
+require_once __DIR__ . '/page_levels.inc';
+cma_enforce_page_level((string) Request::query('page', ''));
+
 // Handle nomenu mode - proxy content from requested page
 if (Request::hasQuery('nomenu')) {
     // Don't set cache headers here - let included pages decide their own caching

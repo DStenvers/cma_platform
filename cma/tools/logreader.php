@@ -242,6 +242,15 @@ $logSources = [
         'path' => dirname(dirname(__DIR__)) . '/logs/deploy.log',
         'pattern' => null,
         'hasDateSelect' => false
+    ],
+    'unauthorized' => [
+        'name' => 'Ongeautoriseerde toegang',
+        // Site-level log written by the front-end RBAC gate (config/page_roles.php +
+        // enforce_page_roles()). Lives outside cma/ in the site's gitignored .logsh/
+        // dir. One JSON object per line (ts, file, listed, reason, role, login, ip…).
+        'path' => dirname(dirname(__DIR__)) . '/.logsh/unauthorized_access.log',
+        'pattern' => '/^{.*}$/m',
+        'hasDateSelect' => false
     ]
 ];
 
@@ -326,8 +335,9 @@ if ($selectedLog === 'jserrors') {
             foreach ($rawLines as $line) {
                 // Apply filter if set
                 if (empty($filter) || stripos($line, $filter) !== false) {
-                    // Try to parse as JSON for performance logs and 404 logs
-                    if ($selectedLog === 'perf' || $selectedLog === '404') {
+                    // Try to parse as JSON for performance logs, 404 logs and the
+                    // unauthorized-access log (all one JSON object per line).
+                    if ($selectedLog === 'perf' || $selectedLog === '404' || $selectedLog === 'unauthorized') {
                         $json = json_decode($line, true);
                         if ($json) {
                             // Apply SQL threshold filter for query entries (perf log only)
@@ -365,8 +375,9 @@ if ($selectedLog === 'jserrors') {
     // Only show error if we didn't just delete the file
     if (empty($currentLog['path'])) {
         $error = 'Log pad niet geconfigureerd';
-    } elseif ($selectedLog === 'perf' || $selectedLog === 'debug' || $selectedLog === '404') {
-        // Date-based logs: show friendly message if no log exists yet (first use)
+    } elseif ($selectedLog === 'perf' || $selectedLog === 'debug' || $selectedLog === '404' || $selectedLog === 'unauthorized') {
+        // Date-based logs (+ the unauthorized log, which simply may not exist until
+        // the first denial): show a friendly message rather than a path error.
         $error = null; // Will show "Geen log entries gevonden" instead
     } else {
         $error = 'Log bestand niet gevonden: ' . str_replace('\\', '/', $currentLog['path']);
@@ -793,6 +804,54 @@ async function confirmDelete() {
         // escapeHtml() provided by cma-utils.js
     })();
     </script>
+    <?php elseif ($selectedLog === 'unauthorized' && !empty($logContent)): ?>
+    <lib-table
+        id="unauthLogTable"
+        filterable
+        sortable
+        resizable
+        paginate="50"
+        export-filename="unauthorized-access"
+        storage-key="logreader_unauthorized"
+    >
+        <table class="listtable filtering" cellspacing="0" cellpadding="0">
+            <thead>
+                <tr class="listheader">
+                    <th data-type="string" data-field="tijd" style="width: 140px;">Datum/tijd</th>
+                    <th data-type="string" data-field="reden" style="width: 130px;">Reden</th>
+                    <th data-type="string" data-field="inlijst" style="width: 90px;">In lijst?</th>
+                    <th data-type="string" data-field="bestand">Bestand</th>
+                    <th data-type="string" data-field="login" style="width: 80px;">Login</th>
+                    <th data-type="string" data-field="rol" style="width: 90px;">Rol</th>
+                    <th data-type="string" data-field="ip" style="width: 120px;">IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($logContent as $row): ?>
+                <tr>
+                    <td data-field="tijd" style="white-space: nowrap; font-size: var(--font-size-xs);"><?= Server::htmlEncode($row['ts'] ?? '-') ?></td>
+                    <td data-field="reden"><?php
+                        $reason = (string)($row['reason'] ?? '');
+                        $reasonLabels = [
+                            'not_listed'    => 'niet in lijst',
+                            'role_denied'   => 'rol geweigerd',
+                            'not_logged_in' => 'niet ingelogd',
+                        ];
+                        echo '<span style="color: var(--color-error);">' . Server::htmlEncode($reasonLabels[$reason] ?? $reason) . '</span>';
+                    ?></td>
+                    <td data-field="inlijst"><?= !empty($row['listed'])
+                        ? 'ja'
+                        : '<span style="color: var(--color-warning);">nee</span>' ?></td>
+                    <td data-field="bestand" style="font-family: monospace; font-size: var(--font-size-xs); word-break: break-all;" title="<?= Server::htmlEncode($row['uri'] ?? '') ?>"><?= Server::htmlEncode($row['file'] ?? '-') ?></td>
+                    <td data-field="login"><?= Server::htmlEncode((string)($row['login'] ?? '-')) ?></td>
+                    <td data-field="rol"><?= Server::htmlEncode((string)($row['role'] ?? '-')) ?></td>
+                    <td data-field="ip" style="font-size: var(--font-size-xs);"><?= Server::htmlEncode($row['ip'] ?? '-') ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </lib-table>
+
     <?php elseif (!empty($logContent)): ?>
     <div class="log-output"><?php
         $isPhpLog = ($selectedLog === 'php');
