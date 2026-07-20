@@ -1,12 +1,16 @@
 {
     "name": "stenversonline/platform",
     "description": "Shared platform: PHP helpers, library assets, and CMA admin",
-    "version": "1.29.86",
+    "version": "1.29.87",
     "type": "library",
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "App\\Library\\": "src/helpers/"
+            "App\\Library\\": [
+                "src/helpers/",
+                "src/ajax/",
+                "src/library/"
+            ]
         },
         "classmap": [
             "src/Installer.php"

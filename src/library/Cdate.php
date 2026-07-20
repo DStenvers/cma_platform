@@ -12,7 +12,7 @@ namespace App\Library;
  * coercion) that a modern PHP API should not carry — same category as the
  * ADO-emulating RecordSet. Use only from converted ASP code.
  */
-class Vb
+class Cdate
 {
     /**
      * VBScript CDate() equivalent.
