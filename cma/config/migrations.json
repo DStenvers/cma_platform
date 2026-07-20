@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.16.0",
+    "targetVersion": "9.17.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1161,6 +1161,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.16.0_rename_menu_to_cma_menu.php",
                     "note": "Hernoemt data/menu.json -> data/cma_menu.json zodat CMA-eigen site-configs een gedeelde cma_-prefix krijgen. MenuService leest bij voorkeur data/cma_menu.json en valt terug op de legacy data/menu.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
+                }
+            ]
+        },
+        {
+            "version": "9.17.0",
+            "description": "data/tools.json hernoemen naar data/cma_tools.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.17.0_rename_tools_to_cma_tools.php",
+                    "note": "Hernoemt data/tools.json -> data/cma_tools.json (zelfde cma_-prefix als cma_menu.json). tools_catalog.inc leest bij voorkeur data/cma_tools.json en valt terug op de legacy data/tools.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
                 }
             ]
         }

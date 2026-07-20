@@ -184,7 +184,15 @@ function buildToolsTreeData(bool $isDeveloper): array
     // plain scripts at the site root, not shell pages). A "D" badge is dev-only.
     // Site root is one level above cma/ (this file is cma/tools_catalog.inc);
     // the per-site data/ lives there (same as ReportsService's config path).
-    $siteToolsFile = dirname(__DIR__) . '/data/tools.json';
+    // Prefer data/cma_tools.json (cma_-prefixed, consistent with cma_menu.json);
+    // fall back to the legacy data/tools.json until migration 9.17.0 renames it.
+    $siteToolsFile = dirname(__DIR__) . '/data/cma_tools.json';
+    if (!is_file($siteToolsFile)) {
+        $legacyToolsFile = dirname(__DIR__) . '/data/tools.json';
+        if (is_file($legacyToolsFile)) {
+            $siteToolsFile = $legacyToolsFile;
+        }
+    }
     if (is_file($siteToolsFile)) {
         $siteCfg = json_decode((string) @file_get_contents($siteToolsFile), true);
         foreach (($siteCfg['groups'] ?? []) as $g) {

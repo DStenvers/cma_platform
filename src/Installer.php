@@ -32,6 +32,8 @@ class Installer
         'data/menu.json',
         'data/cma_reports.json',
         'data/reports.json',
+        'data/cma_tools.json',
+        'data/tools.json',
     ];
 
     /**
