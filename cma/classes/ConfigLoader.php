@@ -43,6 +43,17 @@ class ConfigLoader
         'migrations' => '/cma/config/migrations',
     ];
 
+    /**
+     * Configs renamed for clarity (a "cma_" prefix makes the CMA ownership obvious).
+     * Readers prefer the NEW file name and fall back to the legacy one, so a site that
+     * has not renamed its data/<old>.json yet keeps working — no forced migration.
+     * @var array<string,string> logical name => new file base name
+     */
+    private static array $renamed = [
+        'app'     => 'cma_branding',
+        'reports' => 'cma_reports',
+    ];
+
     private static function resolveFilePath(string $name): string
     {
         // Resolve aliases (e.g. 'data-sources' -> '/assets/datastores/data-sources')
@@ -53,8 +64,16 @@ class ConfigLoader
             return $siteRoot . $name . '.json';
         }
 
+        $dir = self::getConfigPath();
+        // Renamed configs: prefer the new file name, fall back to the legacy one.
+        if (isset(self::$renamed[$name])) {
+            $renamedPath = $dir . self::$renamed[$name] . '.json';
+            if (file_exists($renamedPath)) {
+                return $renamedPath;
+            }
+        }
         // All configs are in /data/
-        return self::getConfigPath() . $name . '.json';
+        return $dir . $name . '.json';
     }
 
     /**

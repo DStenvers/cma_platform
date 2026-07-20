@@ -85,6 +85,10 @@ $readCfgMsg = static function (string $path, bool $nested): string {
 };
 $defaultMsg = $readCfgMsg($siteRoot . '/data/maintenance.json', false);
 if ($defaultMsg === '') {
+    // data/cma_branding.json (renamed from app.json) "maintenance" block; legacy fallback.
+    $defaultMsg = $readCfgMsg($siteRoot . '/data/cma_branding.json', true);
+}
+if ($defaultMsg === '') {
     $defaultMsg = $readCfgMsg($siteRoot . '/data/app.json', true);
 }
 if ($defaultMsg === '') {

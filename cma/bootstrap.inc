@@ -782,13 +782,21 @@ function cma_get_app_logo(): array {
         'height' => 62,
     ];
 
-    // Primary source: per-site /data/app.json (post-9.9.0 location, not
-    // overwritten by composer). Falls back to bundled cma/config/app.json
-    // (with neutral defaults) when no per-site override exists.
+    // Primary source: per-site /data/cma_branding.json (renamed from app.json; not
+    // overwritten by composer). Falls back to the legacy app.json name, then to the
+    // bundled cma/config/*.json (neutral defaults) when no per-site override exists.
     $siteRoot = dirname(__DIR__);
-    $appJsonPath = $siteRoot . '/data/app.json';
-    if (!file_exists($appJsonPath)) {
-        $appJsonPath = __DIR__ . '/config/app.json';
+    $appJsonPath = '';
+    foreach ([
+        $siteRoot . '/data/cma_branding.json',
+        $siteRoot . '/data/app.json',
+        __DIR__ . '/config/cma_branding.json',
+        __DIR__ . '/config/app.json',
+    ] as $__candidate) {
+        if (file_exists($__candidate)) {
+            $appJsonPath = $__candidate;
+            break;
+        }
     }
     if (file_exists($appJsonPath)) {
         $appJson = @json_decode(file_get_contents($appJsonPath), true);

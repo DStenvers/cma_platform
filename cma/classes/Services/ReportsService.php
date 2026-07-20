@@ -8,7 +8,24 @@ namespace Cma\Services;
 class ReportsService
 {
     private static ?array $reports = null;
-    private static string $configPath = __DIR__ . '/../../../data/reports.json';
+
+    /**
+     * Resolve the reports config path: prefer the renamed data/cma_reports.json, fall
+     * back to the legacy data/reports.json, and default to the new name when neither
+     * exists yet (so a fresh save writes cma_reports.json).
+     */
+    private static function configPath(): string
+    {
+        $new = __DIR__ . '/../../../data/cma_reports.json';
+        $old = __DIR__ . '/../../../data/reports.json';
+        if (file_exists($new)) {
+            return $new;
+        }
+        if (file_exists($old)) {
+            return $old;
+        }
+        return $new;
+    }
 
     /**
      * Get all reports from JSON config
@@ -142,7 +159,7 @@ class ReportsService
      */
     public static function updateById(int $id, array $updates): bool
     {
-        $configPath = self::$configPath;
+        $configPath = self::configPath();
         if (!file_exists($configPath)) {
             return false;
         }
@@ -195,10 +212,10 @@ class ReportsService
      */
     public static function getRawJson()
     {
-        if (!file_exists(self::$configPath)) {
+        if (!file_exists(self::configPath())) {
             return false;
         }
-        return file_get_contents(self::$configPath);
+        return file_get_contents(self::configPath());
     }
 
     /**
@@ -220,11 +237,11 @@ class ReportsService
 
         self::$reports = [];
 
-        if (!file_exists(self::$configPath)) {
+        if (!file_exists(self::configPath())) {
             return;
         }
 
-        $content = file_get_contents(self::$configPath);
+        $content = file_get_contents(self::configPath());
         if ($content === false) {
             return;
         }
