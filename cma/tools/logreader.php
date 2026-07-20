@@ -891,7 +891,17 @@ async function confirmDelete() {
         }
     ?></div>
     <?php elseif (empty($error) && empty($flashMessage)): ?>
-    <lib-message type="info">Geen log entries gevonden</lib-message>
+    <?php
+        // Show exactly where we looked — otherwise "no entries" is indistinguishable
+        // from "wrong path / file elsewhere" (e.g. after a logs-dir rename).
+        $lookedIn = !empty($currentLog['isDatabase'])
+            ? 'database-tabel tblCMAJavascriptErrors'
+            : (!empty($currentLog['path']) ? str_replace('\\', '/', $currentLog['path']) : '(geen pad geconfigureerd)');
+        $existsNote = (!empty($currentLog['path']) && !file_exists($currentLog['path'])) ? ' (bestand bestaat nog niet)' : '';
+    ?>
+    <lib-message type="info">Geen log entries gevonden.<br>
+        <span style="font-size: var(--font-size-xs, 12px); color: var(--text-muted, #888);">Gezocht in: <code><?= Server::htmlEncode($lookedIn) ?></code><?= Server::htmlEncode($existsNote) ?></span>
+    </lib-message>
     <?php endif; ?>
 </div>
 

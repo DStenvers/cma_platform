@@ -1284,18 +1284,43 @@
             }
         }
 
-        // Strategy 3: Match by page filename (for pages like tools.php, dashboard.php)
+        // Strategy 2b: Match by tool parameter (e.g. page=tools?tool=clearcache).
+        // A tool links either as "...?tool=X" or as a "tools/..._X.php" / "tools/X.php"
+        // file — so page=tools?tool=X re-activates the matching Systeem/tools item.
+        if (!newItem) {
+            const toolMatch = page.match(/[?&]tool=([^&]+)/i);
+            if (toolMatch) {
+                const toolName = decodeURIComponent(toolMatch[1]).toLowerCase();
+                document.querySelectorAll('.cma-menu-item[data-page]').forEach(function(item) {
+                    if (newItem) return;
+                    const itemPage = (item.dataset.page || '').toLowerCase();
+                    const itemTool = itemPage.match(/[?&]tool=([^&]+)/i);
+                    if (itemTool && decodeURIComponent(itemTool[1]).toLowerCase() === toolName) {
+                        newItem = item;
+                        return;
+                    }
+                    const base = itemPage.split('?')[0].split('/').pop().replace(/\.php$/, '');
+                    if (base === toolName || base === 'tools_' + toolName) {
+                        newItem = item;
+                    }
+                });
+            }
+        }
+
+        // Strategy 3: Match by page filename (for pages like tools.php, dashboard.php).
+        // Normalise the .php extension on both sides: page=tools (extension-less, as
+        // resolved server-side to tools.php) must still match data-page="tools.php".
         // IMPORTANT: Skip this for form.php pages - Strategy 2 should have handled those.
         // Otherwise we incorrectly match the first form.php menu item for forms not in the menu.
         if (!newItem) {
-            const pageFile = page.split('?')[0].toLowerCase();
+            const pageFile = page.split('?')[0].toLowerCase().replace(/\.php$/, '');
             const hasFormParam = /[?&]form=/i.test(page);
 
             // Only use filename matching for non-form pages
             if (!hasFormParam) {
                 document.querySelectorAll('.cma-menu-item[data-page]').forEach(function(item) {
                     if (newItem) return;
-                    const itemPage = (item.dataset.page || '').split('?')[0].toLowerCase();
+                    const itemPage = (item.dataset.page || '').split('?')[0].toLowerCase().replace(/\.php$/, '');
                     if (itemPage === pageFile) {
                         newItem = item;
                     }
