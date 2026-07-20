@@ -159,7 +159,7 @@ class LibTable
                             }
                         } else {
                             foreach ($this->TableRS->Fields() as $fld) {
-                                if (!!$this->TableShowIDField && (is_null($fld->name()) ? "" : strtolower($fld->name())) == (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
+                                if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $sNiceField = Str::firstUpper(str_replace('_', ' ', $fld->name()));
                                     echo '<TH nowrap ' . $this->TableTHAttrib . '>' . Server::htmlEncode($sNiceField) . '</TH>';
                                 }
@@ -197,12 +197,12 @@ class LibTable
                                 echo '<td ' . $curAttrib . ' ><a href="' . $this->TableDeleteAction . $curID . '"><img src="library/images/formbtn_del.gif"></a></td>';
                             }
                             foreach ($this->TableRS->Fields() as $fld) {
-                                if (!!$this->TableShowIDField && (is_null($fld->name()) ? "" : strtolower($fld->name())) == (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
+                                if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     echo '<TD ' . $curAttrib;
-                                    if (Arr::isArray($this->TableFieldWidths)) {
+                                    if (Arr::isArray($this->TableFieldWidths) && isset($this->TableFieldWidths[$fldTel])) {
                                         echo ' width=' . $this->TableFieldWidths[$fldTel];
                                     }
-                                    if (Arr::isArray($this->TableStyles)) {
+                                    if (Arr::isArray($this->TableStyles) && isset($this->TableStyles[$fldTel])) {
                                         echo ' style="' . $this->TableStyles[$fldTel] . chr(34);
                                     }
                                     echo '>';
@@ -239,6 +239,10 @@ class LibTable
                                 $curAttrib = $this->TableTDAttrib . '1';
                             }
                         }
+                        // Advance the cursor each iteration (the ASP->PHP conversion
+                        // dropped the RS.MoveNext at the end of the Do-While body, so
+                        // the loop re-rendered the first row until it hit RowsPerPage).
+                        $this->TableRS->MoveNext();
                     }
                     echo '</TBODY>';
                     if ($blnPrevious || $blnNext) {
