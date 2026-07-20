@@ -6269,3 +6269,21 @@ karaat-data en staat in de karaat-repo.
 > <status>completed</status>
 > <summary>Background command "Bump + sync + commit+tag+push required repoint" completed (exit code 0)</summary>
 > </task-notification>
+
+## 2026-07-20
+
+> set ==feature_page_rbac on, also when committing and pushing
+
+> Delete the legacy safety copies data/app.json + data/reports.json if the new locations are used
+
+> 2026-07-20 12:29:12 rol geweigerd ja formulier_voordracht_praktijkopleider.php 2248 8312 ... can you log the rol description instead of the code?
+
+> Review before relying on fail-closed in production 4. Many registry entries carry review:true can you run a test-run and report which are set to true?
+
+> can you create a isempotent migration to fo that?
+
+> and then commit everything
+
+> #this site is not yet in production, it is a migration still in proces
+
+> are you still logging to prompts.md? I asked you to mention the logfile in logreader if there were no logs, but i don't see it yet.
