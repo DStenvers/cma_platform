@@ -277,7 +277,6 @@ body div.no-data {font-style:italic;padding:2px;padding-left:4px}
 input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]),textarea,select,table.dateselect {border:1px solid var(--input-border);border-radius: .3em;padding:4px}
 input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]):not(:read-only):focus, textarea:not(:read-only):focus, select:focus  {background-color:var(--bg-body) !important; border-color:var(--color-accent) !important; outline:none; box-shadow:none}
 input[type=checkbox], input[type=radio], input.noborder {border:0px}
-select, .select2 {min-width:250px} 
 option { padding:2px;min-height:22px}
 
 /* input[type=text], input[type=password], textarea padding defined above on line 207 */

@@ -142,6 +142,21 @@ if ($deleteAction) {
                 $deleteMessage = 'Deploy log niet gevonden';
             }
             break;
+
+        case 'unauthorized':
+            // Truncate the site-level unauthorized-access log written by the front-end
+            // RBAC gate (site-root /.logs/unauthorized_access.log). Same @-prefixed
+            // truncate pattern as 'php'/'deploy' so a warning can't break the redirect.
+            $unauthLogFile = dirname(dirname(__DIR__)) . '/.logs/unauthorized_access.log';
+            if (file_exists($unauthLogFile)) {
+                $deleteResult = @file_put_contents($unauthLogFile, '') !== false;
+                $deleteMessage = $deleteResult
+                    ? 'Log ongeautoriseerde toegang geleegd'
+                    : 'Kon de log niet legen';
+            } else {
+                $deleteMessage = 'Log niet gevonden';
+            }
+            break;
     }
 
     // Redirect to remove action from URL (prevents re-delete on refresh)
@@ -412,6 +427,8 @@ $logSettings = [
 foreach ($logSettings as $key => &$setting) {
     $setting['exists'] = !empty($setting['path']) && file_exists($setting['path']);
 }
+unset($setting); // break the reference — otherwise a later foreach corrupts the last
+                 // row (the classic PHP by-reference bug: 'php' became a copy of 'debug').
 
 // Build table data for lib-table
 $tableData = [];
@@ -452,7 +469,7 @@ ToolbarHelper::title('Logbestanden lezen');
 <form method="get" class="toolbar-filters" id="logFilterForm">
     <select name="log" onchange="submitLogFilter()" class="form-control">
         <?php foreach ($logSources as $key => $source): ?>
-        <option value="<?= $key ?>" <?= $selectedLog === $key ? 'selected' : '' ?>><?= Server::htmlEncode($source['name']) ?></option>
+        <option value="<?= $key ?>" <?= (string) $key === $selectedLog ? 'selected' : '' ?>><?= Server::htmlEncode($source['name']) ?></option>
         <?php endforeach; ?>
     </select>
     <?php
@@ -510,6 +527,21 @@ ToolbarHelper::title('Logbestanden lezen');
         }
     } catch (e) { /* localStorage disabled — fall back to default */ }
 })();
+
+// The delete flow redirects with ?msg=... (PRG, so a refresh doesn't re-delete). The
+// server already rendered that message once; strip msg + action from the address bar
+// now so it doesn't persist — switching logs won't repeat it and a refresh is clean.
+(function () {
+    try {
+        var u = new URL(window.location.href);
+        if (u.searchParams.has('msg') || u.searchParams.has('action')) {
+            u.searchParams.delete('msg');
+            u.searchParams.delete('action');
+            history.replaceState(null, '', u.toString());
+        }
+    } catch (e) {}
+})();
+
 function submitLogFilter() {
     var form = document.getElementById('logFilterForm');
     var fd = new FormData(form);
@@ -523,7 +555,8 @@ function submitLogFilter() {
     // the localStorage restore snaps back to the last log, e.g. jserrors). Update
     // only the form-managed params, keep the rest (e.g. tool=logs) intact.
     var url = new URL(window.location.href);
-    ['log', 'date', 'lines', 'filter'].forEach(function (p) { url.searchParams.delete(p); });
+    // Also drop msg/action so a delete's one-off flash never rides along to the next log.
+    ['log', 'date', 'lines', 'filter', 'msg', 'action'].forEach(function (p) { url.searchParams.delete(p); });
     new URLSearchParams(fd).forEach(function (v, k) { url.searchParams.set(k, v); });
     window.location.href = url.toString();
 }
