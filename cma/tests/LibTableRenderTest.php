@@ -95,6 +95,30 @@ class LibTableRenderTest extends TestCase
         $this->assertStringNotContainsString('&lt;status', $html, 'raw HTML cell not encoded');
     }
 
+    public function testSortMarkerBecomesDataSortAndIsHidden(): void
+    {
+        $rows = [
+            ['ID' => 1, 'Deelnemer' => '<sort:Hagens>Jan Hagens'],
+            ['ID' => 2, 'Deelnemer' => '<sort:Abma>Ties Abma'],
+        ];
+        $t = new \LibTable();
+        $t->Recordset   = new RecordSet(new \ArrayIterator($rows), false, true);
+        $t->IDField     = 'ID';
+        $t->ShowIDField = false;
+        $t->ShowCaptions = true;
+        $t->RowsPerPage = 99999;
+        ob_start();
+        $t->Render();
+        $html = ob_get_clean();
+
+        // <sort:KEY> becomes the cell's data-sort (honoured by <lib-table>) ...
+        $this->assertStringContainsString('data-sort="Hagens"', $html, 'sort key emitted as data-sort');
+        // ... and the marker itself is not displayed ...
+        $this->assertStringNotContainsString('sort:Hagens', $html, 'sort marker not shown');
+        // ... while the remaining display text is kept.
+        $this->assertStringContainsString('Jan Hagens', $html, 'display text kept after stripping the marker');
+    }
+
     public function testIdColumnShownWhenShowIdFieldTrue(): void
     {
         $html = $this->render(true);

@@ -202,6 +202,15 @@ class LibTable
                             }
                             foreach ($this->TableRS->Fields() as $fld) {
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
+                                    $raw = (string)$fld;
+                                    // <sort:KEY> marker: sets this cell's sort key
+                                    // (honoured by <lib-table> via the data-sort
+                                    // attribute) and is itself NOT displayed.
+                                    $sortKey = null;
+                                    if (preg_match('/<sort:([^>]*)>/i', $raw, $mSort)) {
+                                        $sortKey = $mSort[1];
+                                        $raw = str_replace($mSort[0], '', $raw);
+                                    }
                                     echo '<TD ' . $curAttrib;
                                     if (Arr::isArray($this->TableFieldWidths) && isset($this->TableFieldWidths[$fldTel])) {
                                         echo ' width=' . $this->TableFieldWidths[$fldTel];
@@ -209,30 +218,21 @@ class LibTable
                                     if (Arr::isArray($this->TableStyles) && isset($this->TableStyles[$fldTel])) {
                                         echo ' style="' . $this->TableStyles[$fldTel] . chr(34);
                                     }
-                                    echo '>';
-                                    if ($fld == "") {
-                                        echo '&nbsp;';
-                                    } else {
-                                        $value = $fld;
-                                        if ($fld->type == 11) {
-                                            $value = ($fld ? 'Ja' : 'Nee');
-                                        }
-                                        $value = Html::fixUnicode($value);
-                                        if ($fld->type == ADDATE) {
-                                            if (date("Y", strtotime($value)) <= 1900) {
-                                                echo lib_time($value);
-                                            } else {
-                                                echo (is_null(strMediumDate($value)) ? "" : strtolower(strMediumDate($value)));
-                                            }
-                                        } else {
-                                            if (substr($value, 0, max(0, min(6, strlen($value)))) == '<html>') {
-                                                echo substr($value, max(0, 7 - 1));
-                                            } else {
-                                                echo Server::htmlEncode(Lib_FixDateValue($value . ''));
-                                            }
-                                        }
+                                    if ($sortKey !== null) {
+                                        echo ' data-sort="' . Server::htmlEncode($sortKey) . '"';
                                     }
-                                    echo '</A></TD>';
+                                    echo '>';
+                                    if ($raw === '') {
+                                        echo '&nbsp;';
+                                    } elseif (substr($raw, 0, 6) === '<html>') {
+                                        // Raw-HTML cell: strip the <html> marker and emit the
+                                        // inner content unencoded. Checked on the RAW value so
+                                        // fixUnicode can't mangle the marker.
+                                        echo substr($raw, 6);
+                                    } else {
+                                        echo Server::htmlEncode(Lib_FixDateValue(Html::fixUnicode($raw)));
+                                    }
+                                    echo '</TD>';
                                 }
                                 $fldTel = $fldTel + 1;
                             }
