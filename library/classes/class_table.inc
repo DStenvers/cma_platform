@@ -5,6 +5,7 @@ use App\Library\Database;
 use App\Library\Html;
 use App\Library\Request;
 use App\Library\Server;
+use App\Library\Str;
 
 $Table_CtrlID = 0;
 // Data: you can either set the SQL and the Connection, of the Recordset
@@ -153,11 +154,14 @@ class LibTable
                         if ($this->TableDeleteField != '') {
                             echo '<TH ' . $this->TableTHAttrib . '></TH>';
                         }
-                        if (Arr::isArray($this->TableFieldCaptions)) {
+                        if (Arr::isArray($this->TableFieldCaptions) && count($this->TableFieldCaptions) > 0) {
                             for ($x = 0; $x <= (count($this->TableFieldCaptions) - 1); $x++) {
                                 echo '<TH nowrap ' . $this->TableTHAttrib . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
                             }
                         } else {
+                            // No explicit captions -> auto-generate headers from the
+                            // field names (TableFieldCaptions defaults to [], which is
+                            // Arr::isArray()==true but empty, so this fallback was skipped).
                             foreach ($this->TableRS->Fields() as $fld) {
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $sNiceField = Str::firstUpper(str_replace('_', ' ', $fld->name()));

@@ -67,6 +67,34 @@ class LibTableRenderTest extends TestCase
         $this->assertStringNotContainsString('<TFOOT', $html, 'no pagination footer for a 2-row set');
     }
 
+    public function testAutoHeadersAndRawHtmlCell(): void
+    {
+        $rows = [
+            ['ID' => 1, 'Opleiding' => 'GZ', 'Status' => '<html><status class="approved">Actief</status>'],
+            ['ID' => 2, 'Opleiding' => 'KP', 'Status' => 'Open'],
+        ];
+        $t = new \LibTable();
+        $t->Recordset   = new RecordSet(new \ArrayIterator($rows), false, true);
+        $t->IDField     = 'ID';
+        $t->ShowIDField = false;
+        $t->ShowCaptions = true;
+        $t->RowsPerPage = 99999;
+        ob_start();
+        $t->Render();
+        $html = ob_get_clean();
+
+        // Headers auto-generate from field names when no explicit captions are set
+        // (empty TableFieldCaptions [] must fall through to the field-name fallback,
+        // which also requires `use App\Library\Str`).
+        $this->assertStringContainsString('>Opleiding</TH>', $html, 'auto header from field name');
+        $this->assertStringContainsString('>Status</TH>', $html);
+        $this->assertStringNotContainsString('>Id</TH>', $html, 'ID column header hidden');
+
+        // A cell value prefixed with the <html> marker renders its inner HTML raw.
+        $this->assertStringContainsString('<status class="approved">Actief</status>', $html, '<html> cell rendered raw');
+        $this->assertStringNotContainsString('&lt;status', $html, 'raw HTML cell not encoded');
+    }
+
     public function testIdColumnShownWhenShowIdFieldTrue(): void
     {
         $html = $this->render(true);
