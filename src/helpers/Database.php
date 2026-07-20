@@ -643,7 +643,7 @@ class Database
         static $logInitialized = false;
         if (!$logInitialized) {
             try {
-                Log::init('logs/sql_debug.log');
+                Log::init('.logs/sql/sql_debug.log');
                 $logInitialized = true;
             } catch (\Exception $e) {
                 // If log init fails, write directly to file
@@ -662,7 +662,7 @@ class Database
             // write, fall back further to error_log() so the developer
             // still sees the SQL trace they enabled — silent failure
             // here would defeat the whole point of sql_debug mode.
-            $logPath = __DIR__ . '/../../logs/sql_debug.log';
+            $logPath = __DIR__ . '/../../.logs/sql/sql_debug.log';
             $logDir  = dirname($logPath);
             $line    = date('Y-m-d H:i:s') . ' - ' . $message . "\n" . ($sql ? 'SQL: ' . $sql . "\n" : '');
             if ((is_dir($logDir) || @mkdir($logDir, 0755, true))

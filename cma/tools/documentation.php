@@ -869,7 +869,7 @@ function cma_doc_check_logs_dir(): array {
 }
 
 function cma_doc_check_data_logs_dir(): array {
-    return cma_doc_check_dir_writable('data/logs', 'data/logs/ — app/performance/debug logs', 'warn');
+    return cma_doc_check_dir_writable('.logs', '.logs/ — app/performance/debug logs', 'warn');
 }
 
 function cma_doc_check_cache_dir(): array {
@@ -1126,9 +1126,9 @@ DEPLOY_SECRET=&lt;64-char hex via openssl rand -hex 32&gt;</code></pre>
         <tbody>
             <tr><td><code>vendor/</code></td><td><code>composer update</code> tijdens deploys.</td></tr>
             <tr><td><code>logs/</code></td><td>deploy.log, php_errors.log (mits <code>php.ini</code> daar wijst).</td></tr>
-            <tr><td><code>data/logs/</code></td><td>app-log, performance-log (in <code>data/logs/perf/</code>), debug-log. Wordt door Logger/PerformanceLogger/api-log.php gecreëerd indien afwezig, maar de IIS-user heeft schrijfrechten op de parent <code>data/</code> nodig.</td></tr>
+            <tr><td><code>.logs/</code></td><td>app-log, performance-log (in <code>.logs/perf/</code>), debug-log. Wordt door Logger/PerformanceLogger/api-log.php gecreëerd indien afwezig, maar de IIS-user heeft schrijfrechten op de parent <code>data/</code> nodig.</td></tr>
             <tr><td><code>cache/</code></td><td>cache.log, OpCache-files, form-definition cache, perf-log oude locatie waar logreader nog naar zoekt.</td></tr>
-            <tr><td><code>cma/logs/</code></td><td>404 log; oude locatie waar logreader nog naar debug-logs zoekt.</td></tr>
+            <tr><td><code>.logs/404/</code></td><td>404 log; oude locatie waar logreader nog naar debug-logs zoekt.</td></tr>
             <tr><td><code>cma/</code></td><td>Installer kopieert hier nieuwe bestanden naartoe.</td></tr>
             <tr><td><code>library/</code></td><td>Installer-sync target.</td></tr>
             <tr><td><code>module/</code></td><td>Installer-sync target.</td></tr>
@@ -1628,17 +1628,17 @@ function render_doc_logs(): void
         <tbody>
             <tr><td>PHP error log</td><td><code>ini_get('error_log')</code> — typisch <code>logs/php_errors.log</code></td><td>Alle uncaught exceptions, fatal errors, warnings (in dev), en <code>error_log()</code> output. Locatie hangt af van <code>php.ini</code>.</td></tr>
             <tr><td>Deploy log</td><td><code>logs/deploy.log</code></td><td>Output van elke deploy-pipeline; banner per run. Override via <code>DEPLOY_LOG_FILE</code>.</td></tr>
-            <tr><td>Application log</td><td><code>data/logs/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
-            <tr><td>Performance log</td><td><code>data/logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>
-            <tr><td>Debug log</td><td><code>data/logs/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>LibLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
-            <tr><td>404 log</td><td><code>cma/logs/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door <code>cma/404.php</code>.</td></tr>
+            <tr><td>Application log</td><td><code>.logs/app/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
+            <tr><td>Performance log</td><td><code>.logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>
+            <tr><td>Debug log</td><td><code>.logs/debug/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>LibLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
+            <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door <code>cma/404.php</code>.</td></tr>
             <tr><td>Cache log</td><td><code>cache/cache.log</code></td><td>Cache-hit/-miss events. Aan via <code>CACHE_LOG_ENABLED=true</code>.</td></tr>
             <tr><td>JS errors (DB)</td><td>Tabel <code>tblCMAJavascriptErrors</code></td><td>Client-side errors gevangen door <code>CmaErrorHandler</code>. Rate-limited tot 100 per IP per uur.</td></tr>
         </tbody>
     </table>
 
     <div class="docs-callout docs-callout--warn">
-        <span class="cma-tool__strong">Bekende discrepantie (codebase-bug):</span> de logreader-UI verwacht performance-logs in <code>cache/perf_logs/perf_*.log</code> en debug-logs in <code>cma/logs/debug_*.log</code>, terwijl de writers ze naar <code>data/logs/perf/</code> en <code>data/logs/</code> sturen. Resultaat: voor Performance en Debug toont de logreader-UI vaak "geen entries gevonden" omdat hij in de verkeerde map kijkt. Tail de bestanden direct via de console totdat dit gesynchroniseerd is. Files-on-disk zijn de bron van waarheid; logreader paden moeten matchen.
+        <span class="cma-tool__strong">Log-locaties (gesynchroniseerd):</span> alle logs staan onder de site-root <code>.logs/</code> met een submap per type — <code>.logs/perf/</code>, <code>.logs/debug/</code>, <code>.logs/404/</code>, <code>.logs/cache/</code>, <code>.logs/deploy/</code>, <code>.logs/app/</code>, <code>.logs/phperrors/</code> en <code>.logs/access/</code>. Writers én de logreader-UI lezen/schrijven dezelfde paden; de vroegere discrepantie (writers naar <code>data/logs</code>, reader naar <code>cache/perf_logs</code>/<code>cma/logs</code>) is opgelost.
     </div>
 
     <h2>Logreader</h2>
@@ -2756,7 +2756,7 @@ PerformanceLogger::logQuery($sql, $ms, ['table' =&gt; 'users']);
 PerformanceLogger::logApi('endpoint_name', $ms, ['arg' =&gt; …]);
 PerformanceLogger::logMemory('checkpoint');
 </code></pre>
-    <p>Wordt door <code>PERF_LOG_ENABLED=true</code> aangezet. Output naar <code>data/logs/perf/perf_YYYY-MM-DD.log</code> als JSON-per-regel (locatie gezet in <code>PerformanceLogger.php</code> line 75).</p>
+    <p>Wordt door <code>PERF_LOG_ENABLED=true</code> aangezet. Output naar <code>.logs/perf/perf_YYYY-MM-DD.log</code> als JSON-per-regel (locatie gezet in <code>PerformanceLogger.php</code> line 75).</p>
 
     <h2>Best practices</h2>
     <ul>
@@ -3008,9 +3008,9 @@ function render_doc_troubleshooting(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
-            <tr><td>Logreader → Performance: "Geen log entries gevonden", maar er IS verkeer.</td><td>logreader leest <code>cache/perf_logs/perf_*.log</code>; <code>PerformanceLogger</code> schrijft naar <code>data/logs/perf/perf_*.log</code>. De UI kijkt in de verkeerde map.</td><td>Bekijk de files direct op disk in <code>data/logs/perf/</code> totdat een release de paden synchroniseert. Open issue.</td></tr>
-            <tr><td>Logreader → Debug: "Geen log entries gevonden", LibLog console-logging staat aan.</td><td>Zelfde patroon: logreader leest <code>cma/logs/debug_*.log</code>; <code>cma/api/log.php</code> schrijft naar <code>data/logs/debug_*.log</code>.</td><td>Bekijk de files in <code>data/logs/</code>. Same fix.</td></tr>
-            <tr><td>Logreader → Application: log-bron ontbreekt in de dropdown.</td><td>De logreader-config heeft geen 'app' source-entry — Logger's <code>data/logs/app_*.log</code> wordt nergens via de UI ontsloten.</td><td>Open de bestanden direct, of voeg een source-entry toe aan <code>logreader.php</code>.</td></tr>
+            <tr><td>Logreader → Performance: "Geen log entries gevonden", maar er IS verkeer.</td><td>logreader leest <code>.logs/perf/perf_*.log</code>; <code>PerformanceLogger</code> schrijft naar <code>.logs/perf/perf_*.log</code>. De UI kijkt in de verkeerde map.</td><td>Bekijk de files direct op disk in <code>.logs/perf/</code> totdat een release de paden synchroniseert. Open issue.</td></tr>
+            <tr><td>Logreader → Debug: "Geen log entries gevonden", LibLog console-logging staat aan.</td><td>Zelfde patroon: logreader leest <code>.logs/debug/debug_*.log</code>; <code>cma/api/log.php</code> schrijft naar <code>.logs/debug/debug_*.log</code>.</td><td>Bekijk de files in <code>.logs/</code>. Same fix.</td></tr>
+            <tr><td>Logreader → Application: log-bron ontbreekt in de dropdown.</td><td>De logreader-config heeft geen 'app' source-entry — Logger's <code>.logs/app/app_*.log</code> wordt nergens via de UI ontsloten.</td><td>Open de bestanden direct, of voeg een source-entry toe aan <code>logreader.php</code>.</td></tr>
         </tbody>
     </table>
 

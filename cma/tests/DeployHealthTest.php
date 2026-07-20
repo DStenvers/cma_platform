@@ -53,7 +53,7 @@ class DeployHealthTest extends TestCase
             $this->assertIsArray($res['missing']);
             $this->assertCount(0, $res['missing']);
 
-            $logged = file_get_contents($root . '/logs/deploy.log');
+            $logged = file_get_contents($root . '/.logs/deploy/deploy.log');
             $this->assertStringContainsString('/cma/ sync OK', $logged);
         } finally {
             $this->cleanup();
@@ -74,7 +74,7 @@ class DeployHealthTest extends TestCase
             $this->assertContains('cma/form.php', $res['missing']);
             $this->assertContains('cma/main.php', $res['missing']);
 
-            $logged = file_get_contents($root . '/logs/deploy.log');
+            $logged = file_get_contents($root . '/.logs/deploy/deploy.log');
             $this->assertStringContainsString('/cma/ sync FAILED', $logged);
             $this->assertStringContainsString('cma/form.php', $logged);
         } finally {
@@ -162,7 +162,7 @@ class DeployHealthTest extends TestCase
             $res = DeployHealth::cmaSyncCheck($root);
             $this->assertFalse($res['ok']);
             // deploy.log records the FAILED line but NOT an "alert e-mail verstuurd" line.
-            $logged = file_get_contents($root . '/logs/deploy.log');
+            $logged = file_get_contents($root . '/.logs/deploy/deploy.log');
             $this->assertStringContainsString('sync FAILED', $logged);
             $this->assertStringNotContainsString('alert e-mail verstuurd', $logged);
         } finally {

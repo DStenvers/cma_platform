@@ -33,7 +33,7 @@ if (preg_match('#/assets/icons/([^/]+\.svg)$#', $requestedPath, $matches)) {
 }
 
 // Log the 404 error
-$logDir = __DIR__ . '/logs';
+$logDir = dirname(__DIR__) . '/.logs/404';
 if (!is_dir($logDir)) {
     @mkdir($logDir, 0755, true);
 }

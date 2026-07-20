@@ -56,7 +56,7 @@ class DeployHealth
     public static function cmaSyncCheck(string $siteRoot, array $opts = []): array
     {
         $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
-        $logFile  = (string)($opts['log_file'] ?? $siteRoot . '/logs/deploy.log');
+        $logFile  = (string)($opts['log_file'] ?? $siteRoot . '/.logs/deploy/deploy.log');
 
         $missing = [];
         foreach (self::CMA_PROBES as $rel) {

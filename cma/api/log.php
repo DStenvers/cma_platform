@@ -45,8 +45,8 @@ if (Request::server('REQUEST_METHOD') === 'OPTIONS') {
     exit(0);
 }
 
-// Log directories
-$logsDir = dirname(__DIR__, 2) . '/data/logs';
+// Consolidated logs live under the site-root .logs/ with per-type subfolders.
+$logsDir = dirname(__DIR__, 2) . '/.logs';
 if (!is_dir($logsDir)) {
     mkdir($logsDir, 0755, true);
 }
@@ -59,7 +59,10 @@ function writeDebugLog(string $source, $info, ?string $level = 'debug', ?string 
     global $logsDir;
 
     $date = date('Y-m-d');
-    $logFile = $logsDir . "/debug_{$date}.log";
+    $logFile = $logsDir . "/debug/debug_{$date}.log";
+    if (!is_dir(dirname($logFile))) {
+        @mkdir(dirname($logFile), 0755, true);
+    }
 
     $timestamp = date('Y-m-d H:i:s.') . substr(microtime(), 2, 3);
     $infoStr = Arr::isArray($info) || is_object($info) ? json_encode($info, JSON_UNESCAPED_UNICODE) : $info;
@@ -76,7 +79,10 @@ function writePerfLog(array $entries): bool
     global $logsDir;
 
     $date = date('Y-m-d');
-    $logFile = $logsDir . "/perf_{$date}.log";
+    $logFile = $logsDir . "/perf/perf_{$date}.log";
+    if (!is_dir(dirname($logFile))) {
+        @mkdir(dirname($logFile), 0755, true);
+    }
 
     $output = '';
     foreach ($entries as $entry) {

@@ -85,7 +85,7 @@ class Logger
     private static function getLogDir(): string
     {
         if (self::$logDir === null) {
-            self::$logDir = dirname(__DIR__, 3) . '/data/logs';
+            self::$logDir = dirname(__DIR__, 3) . '/.logs/app';
 
             if (!is_dir(self::$logDir)) {
                 @mkdir(self::$logDir, 0755, true);

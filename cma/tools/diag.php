@@ -162,9 +162,9 @@ $paths = [
     '.env'                 => $siteRoot . '/.env',
     '.env.production'      => $siteRoot . '/.env.production',
     '.env.local'           => $siteRoot . '/.env.local',
-    'logs/'                => $siteRoot . '/logs',
-    'logs/php_errors.log'  => $siteRoot . '/logs/php_errors.log',
-    'logs/deploy.log'      => $siteRoot . '/logs/deploy.log',
+    'logs/'                => $siteRoot . '/.logs',
+    'logs/php_errors.log'  => $siteRoot . '/.logs/phperrors/php_errors.log',
+    'logs/deploy.log'      => $siteRoot . '/.logs/deploy/deploy.log',
     'cache/'               => $siteRoot . '/cache',
     'sessions/'            => $siteRoot . '/sessions',
     'db/'                  => $siteRoot . '/db',
@@ -256,10 +256,10 @@ foreach ($envKeys as $k) {
 }
 
 $h('LOGS — logs/php_errors.log (last 30 lines)');
-echo $tail($siteRoot . '/logs/php_errors.log', 30) . "\n";
+echo $tail($siteRoot . '/.logs/phperrors/php_errors.log', 30) . "\n";
 
 $h('LOGS — logs/deploy.log (last 30 lines)');
-echo $tail($siteRoot . '/logs/deploy.log', 30) . "\n";
+echo $tail($siteRoot . '/.logs/deploy/deploy.log', 30) . "\n";
 
 $h('SERVER VARS ($_SERVER, filtered)');
 $srvKeys = ['SERVER_SOFTWARE', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS', 'REQUEST_SCHEME',

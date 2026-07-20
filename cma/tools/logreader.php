@@ -26,6 +26,11 @@ if (!SecurityHelper::isDeveloper()) {
 $siteRoot = dirname(__DIR__, 2);
 $cacheDir = $siteRoot . '/cache';
 
+// All logs are consolidated under the site-root .logs/ with per-type subfolders
+// (perf/, debug/, 404/, cache/, deploy/, phperrors/, access/). This is the single
+// base every log path below is derived from.
+$logsBase = $siteRoot . '/.logs';
+
 // CMA logs directory (created by api/log.php)
 $cmaLogsDir = dirname(__DIR__) . '/logs';
 
@@ -61,7 +66,7 @@ if ($deleteAction) {
 
         case 'perf':
             // Delete specific performance log file
-            $perfLogFile = $cacheDir . '/perf_logs/perf_' . $selectedDate . '.log';
+            $perfLogFile = $logsBase . '/perf/perf_' . $selectedDate . '.log';
             if (file_exists($perfLogFile)) {
                 $deleteResult = @unlink($perfLogFile);
                 $deleteMessage = $deleteResult
@@ -74,7 +79,7 @@ if ($deleteAction) {
 
         case 'debug':
             // Delete specific debug log file
-            $debugLogFile = $cmaLogsDir . '/debug_' . $selectedDate . '.log';
+            $debugLogFile = $logsBase . '/debug/debug_' . $selectedDate . '.log';
             if (file_exists($debugLogFile)) {
                 $deleteResult = @unlink($debugLogFile);
                 $deleteMessage = $deleteResult
@@ -100,7 +105,7 @@ if ($deleteAction) {
 
         case 'cache':
             // Delete cache log file
-            $cacheLogFile = $cacheDir . '/cache.log';
+            $cacheLogFile = $logsBase . '/cache/cache.log';
             if (file_exists($cacheLogFile)) {
                 $deleteResult = @unlink($cacheLogFile);
                 $deleteMessage = $deleteResult
@@ -113,7 +118,7 @@ if ($deleteAction) {
 
         case '404':
             // Delete specific 404 log file
-            $notFoundLogFile = $cmaLogsDir . '/404_' . $selectedDate . '.log';
+            $notFoundLogFile = $logsBase . '/404/404_' . $selectedDate . '.log';
             if (file_exists($notFoundLogFile)) {
                 $deleteResult = @unlink($notFoundLogFile);
                 $deleteMessage = $deleteResult
@@ -132,7 +137,7 @@ if ($deleteAction) {
             // header('Location: ...') below from firing, leaving the
             // browser with a 200 OK + warning text. iOS Safari then
             // prompts to save the response as "logreader.php".
-            $deployLogFile = dirname(dirname(__DIR__)) . '/logs/deploy.log';
+            $deployLogFile = $logsBase . '/deploy/deploy.log';
             if (file_exists($deployLogFile)) {
                 $deleteResult = @file_put_contents($deployLogFile, '') !== false;
                 $deleteMessage = $deleteResult
@@ -147,7 +152,7 @@ if ($deleteAction) {
             // Truncate the site-level unauthorized-access log written by the front-end
             // RBAC gate (site-root /.logs/unauthorized_access.log). Same @-prefixed
             // truncate pattern as 'php'/'deploy' so a warning can't break the redirect.
-            $unauthLogFile = dirname(dirname(__DIR__)) . '/.logs/unauthorized_access.log';
+            $unauthLogFile = $logsBase . '/access/unauthorized_access.log';
             if (file_exists($unauthLogFile)) {
                 $deleteResult = @file_put_contents($unauthLogFile, '') !== false;
                 $deleteMessage = $deleteResult
@@ -176,7 +181,7 @@ $flashMessage = Request::query('msg', '');
 
 // Get available performance log dates
 $perfLogDates = [];
-$perfLogDir = $cacheDir . '/perf_logs';
+$perfLogDir = $logsBase . '/perf';
 if (is_dir($perfLogDir)) {
     $files = glob($perfLogDir . '/perf_*.log');
     foreach ($files as $file) {
@@ -189,8 +194,8 @@ if (is_dir($perfLogDir)) {
 
 // Get available debug log dates
 $debugLogDates = [];
-if (is_dir($cmaLogsDir)) {
-    $files = glob($cmaLogsDir . '/debug_*.log');
+if (is_dir($logsBase)) {
+    $files = glob($logsBase . '/debug/debug_*.log');
     foreach ($files as $file) {
         if (preg_match('/debug_(\d{4}-\d{2}-\d{2})\.log$/', $file, $matches)) {
             $debugLogDates[] = $matches[1];
@@ -201,8 +206,8 @@ if (is_dir($cmaLogsDir)) {
 
 // Get available 404 log dates
 $notFoundLogDates = [];
-if (is_dir($cmaLogsDir)) {
-    $files = glob($cmaLogsDir . '/404_*.log');
+if (is_dir($logsBase)) {
+    $files = glob($logsBase . '/404/404_*.log');
     foreach ($files as $file) {
         if (preg_match('/404_(\d{4}-\d{2}-\d{2})\.log$/', $file, $matches)) {
             $notFoundLogDates[] = $matches[1];
@@ -222,13 +227,13 @@ $logSources = [
     ],
     'perf' => [
         'name' => 'Performance Log',
-        'path' => $cacheDir . '/perf_logs/perf_' . $selectedDate . '.log',
+        'path' => $logsBase . '/perf/perf_' . $selectedDate . '.log',
         'pattern' => '/^{.*}$/m',
         'hasDateSelect' => true
     ],
     'debug' => [
         'name' => 'Debug Log',
-        'path' => $cmaLogsDir . '/debug_' . $selectedDate . '.log',
+        'path' => $logsBase . '/debug/debug_' . $selectedDate . '.log',
         'pattern' => null,
         'hasDateSelect' => true
     ],
@@ -240,13 +245,13 @@ $logSources = [
     ],
     'cache' => [
         'name' => 'Cache Log',
-        'path' => $cacheDir . '/cache.log',
+        'path' => $logsBase . '/cache/cache.log',
         'pattern' => null,
         'hasDateSelect' => false
     ],
     '404' => [
         'name' => '404 Errors',
-        'path' => $cmaLogsDir . '/404_' . $selectedDate . '.log',
+        'path' => $logsBase . '/404/404_' . $selectedDate . '.log',
         'pattern' => '/^{.*}$/m',
         'hasDateSelect' => true
     ],
@@ -254,7 +259,7 @@ $logSources = [
         'name' => 'Deploy Log',
         // Site-level log written by the /deploy.php webhook;
         // lives outside cma/ because deploys are a site-level concern.
-        'path' => dirname(dirname(__DIR__)) . '/logs/deploy.log',
+        'path' => $logsBase . '/deploy/deploy.log',
         'pattern' => null,
         'hasDateSelect' => false
     ],
@@ -263,7 +268,7 @@ $logSources = [
         // Site-level log written by the front-end RBAC gate (config/page_roles.php +
         // enforce_page_roles()). Lives outside cma/ in the site's gitignored .logs/
         // dir. One JSON object per line (ts, file, listed, reason, role, login, ip…).
-        'path' => dirname(dirname(__DIR__)) . '/.logs/unauthorized_access.log',
+        'path' => $logsBase . '/access/unauthorized_access.log',
         'pattern' => '/^{.*}$/m',
         'hasDateSelect' => false
     ]
@@ -405,17 +410,17 @@ $logSettings = [
     'perf' => [
         'label' => 'Performance logging',
         'enabled' => $sysSettings['perf_log_enabled'] ?? false,
-        'path' => $cacheDir . '/perf_logs/perf_' . date('Y-m-d') . '.log',
+        'path' => $logsBase . '/perf/perf_' . date('Y-m-d') . '.log',
     ],
     'cache' => [
         'label' => 'Cache logging',
         'enabled' => $sysSettings['cache_log_enabled'] ?? false,
-        'path' => $cacheDir . '/cache.log',
+        'path' => $logsBase . '/cache/cache.log',
     ],
     'debug' => [
         'label' => 'Debug logging',
         'enabled' => $sysSettings['debug_log_enabled'] ?? false,
-        'path' => $cmaLogsDir . '/debug_' . date('Y-m-d') . '.log',
+        'path' => $logsBase . '/debug/debug_' . date('Y-m-d') . '.log',
     ],
     'php' => [
         'label' => 'PHP error log',

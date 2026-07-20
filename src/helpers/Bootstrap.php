@@ -63,7 +63,7 @@ class Bootstrap
             'global_asa'     => $rootDir . '/global.asa.php',
             'session_dir'    => $rootDir . '/.sessions',
             'constants_file' => $rootDir . '/_bootstrap_constants.inc',
-            'log_dir'        => $rootDir . '/logs',
+            'log_dir'        => $rootDir . '/.logs',
             'db_dir'         => $rootDir . '/db',
             'env_file'       => null, // auto-detect
         ], $config);
@@ -526,7 +526,7 @@ class Bootstrap
         }
 
         \App\Library\ErrorHandler::register([
-            'error_log_file' => self::$config['log_dir'] . '/php_errors.log'
+            'error_log_file' => self::$config['log_dir'] . '/phperrors/php_errors.log'
         ]);
     }
 

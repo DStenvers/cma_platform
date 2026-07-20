@@ -264,7 +264,7 @@ function getNotFoundStats(): array
 {
     $stats = ['exists' => false, 'today' => 0, 'total' => 0, 'daily' => [], 'top' => []];
 
-    $logsDir = dirname(__DIR__) . '/logs'; // cma/logs (same dir cma/404.php writes to)
+    $logsDir = dirname(__DIR__, 2) . '/.logs/404'; // site .logs/404 (same dir cma/404.php writes to)
     $days = 14;
     $maxPerFile = 20000; // safety cap so a pathological log can't stall the dashboard
     $todayStr = date('Y-m-d');
@@ -851,7 +851,7 @@ function getLogSettings(): array
     $perfEnabled = $sysSettings['perf_log_enabled'] ?? false;
     $settings['perf_log']['enabled'] = $perfEnabled;
     if ($perfEnabled) {
-        $perfLogDir = dirname(__DIR__, 2) . '/cache/perf_logs';
+        $perfLogDir = dirname(__DIR__, 2) . '/.logs/perf';
         $perfLogFile = $perfLogDir . '/perf_' . date('Y-m-d') . '.log';
         $settings['perf_log']['path'] = $perfLogFile;
         $settings['perf_log']['exists'] = file_exists($perfLogFile);

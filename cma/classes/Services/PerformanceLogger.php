@@ -70,9 +70,10 @@ class PerformanceLogger
     private static function getLogDir(): string
     {
         if (self::$logDir === null) {
-            // Use site root data directory (outside cache and CMA, survives updates)
+            // Consolidated logs live under the site-root .logs/ (per-type subfolders),
+            // outside cache and CMA so they survive updates.
             $siteRoot = dirname(__DIR__, 3);
-            self::$logDir = $siteRoot . '/data/logs/perf';
+            self::$logDir = $siteRoot . '/.logs/perf';
 
             if (!is_dir(self::$logDir)) {
                 @mkdir(self::$logDir, 0755, true);
