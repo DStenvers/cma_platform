@@ -1335,14 +1335,14 @@ function render_doc_json_config(): void
         <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th><th>Lezer</th><th>Welke laag wint</th></tr></thead>
         <tbody>
             <tr><td><code>app.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/app.json</code> → terugval op <code>cma/config/app.json</code></td></tr>
-            <tr><td><code>menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Alleen <code>data/menu.json</code> (géén terugval)</td></tr>
+            <tr><td><code>cma_menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Bij voorkeur <code>data/cma_menu.json</code>, met legacy-terugval naar <code>data/menu.json</code> tot migratie 9.16.0 heeft gedraaid (géén terugval naar <code>cma/config/</code>)</td></tr>
             <tr><td><code>reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::$configPath</code></td><td>Alleen <code>data/reports.json</code> (géén terugval)</td></tr>
             <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> → terugval op <code>cma/config/databases.json</code></td></tr>
             <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
             <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>MigrationService</code> + <code>Bootstrap</code> + <code>ConfigLoader</code></td><td><code>/cma/config/migrations.json</code> (systeem-eigen, enige bron; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
         </tbody>
     </table>
-    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval. Ontbreekt <code>data/menu.json</code>, dan is het menu leeg — er wordt niet teruggevallen op <code>cma/config/menu.json</code>.</p>
+    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>cma_menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval naar <code>cma/config/</code>. <code>MenuService</code> leest bij voorkeur <code>data/cma_menu.json</code> en valt alleen terug op de legacy <code>data/menu.json</code> (tot migratie 9.16.0 heeft gedraaid). Ontbreken beide, dan is het menu leeg.</p>
 
     <h2>Runtime DB-connecties (single source of truth)</h2>
     <p><code>Bootstrap::initDatabaseConnections()</code> bouwt de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>
@@ -1972,7 +1972,7 @@ function render_doc_architecture(): void
         <li><code>JsonFormService</code> + <code>JsonFormLoader</code> + <code>JsonFormRenderer</code> — JSON form pipeline, zie <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.</li>
         <li><code>ListService</code>, <code>TableService</code>, <code>TreeService</code> — list / detail rendering en navigatie.</li>
         <li><code>Logger</code> + <code>PerformanceLogger</code> — server-side logging, zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</li>
-        <li><code>MenuService</code> — leest <code>data/menu.json</code> rechtstreeks via <code>CONFIG_PATH</code> (géén fallback naar <code>cma/config/menu.json</code>; bestaat <code>data/menu.json</code> niet, dan is het menu leeg). Zie <a href="documentation.php?topic=json_config">JSON-configuratie</a>.</li>
+        <li><code>MenuService</code> — leest bij voorkeur <code>data/cma_menu.json</code> via <code>CONFIG_PATH</code>, met legacy-terugval naar <code>data/menu.json</code> (géén fallback naar <code>cma/config/</code>; ontbreken beide, dan is het menu leeg). Zie <a href="documentation.php?topic=json_config">JSON-configuratie</a>.</li>
         <li><code>SystemSettings</code> — leest env-vars zoals <code>PERF_LOG_ENABLED</code> / <code>CACHE_LOG_ENABLED</code> + persisted UI-settings.</li>
     </ul>
 

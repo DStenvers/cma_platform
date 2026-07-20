@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.15.0",
+    "targetVersion": "9.16.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1150,6 +1150,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.15.0_create_api_call_log.php",
                     "note": "Maakt api_call_log (snake_case, geen tbl-prefix) aan zodat het CMA-monitoring-formulier niet faalt met 'cannot find the input table api_call_log'. Hernummerd van 9.11.0 — zelfde manifest-omissie als 9.14.0. Idempotent (bestaanscontrole vóór CREATE)."
+                }
+            ]
+        },
+        {
+            "version": "9.16.0",
+            "description": "data/menu.json hernoemen naar data/cma_menu.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.16.0_rename_menu_to_cma_menu.php",
+                    "note": "Hernoemt data/menu.json -> data/cma_menu.json zodat CMA-eigen site-configs een gedeelde cma_-prefix krijgen. MenuService leest bij voorkeur data/cma_menu.json en valt terug op de legacy data/menu.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
                 }
             ]
         }

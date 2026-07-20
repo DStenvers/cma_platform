@@ -27,6 +27,7 @@ class Installer
     private const PROTECTED_PATHS = [
         'data/app.json',
         'data/databases.json',
+        'data/cma_menu.json',
         'data/menu.json',
         'data/reports.json',
     ];

@@ -34,18 +34,28 @@ class MenuService
     /**
      * Config path (in /site/data/, outside CMA so updates don't overwrite it)
      */
-    private const CONFIG_PATH = __DIR__ . '/../../../data/menu.json';
+    private const CONFIG_PATH = __DIR__ . '/../../../data/cma_menu.json';
+    /** Legacy filename, read as a fallback until the site runs the rename migration. */
+    private const LEGACY_CONFIG_PATH = __DIR__ . '/../../../data/menu.json';
 
     /**
-     * Get the active config path (external preferred, fallback to internal)
+     * Get the active config path: prefer data/cma_menu.json, fall back to the legacy
+     * data/menu.json until the consumer site has been migrated (see the
+     * *_rename_menu_to_cma_menu migration). Defaults to the new name when neither exists.
      */
     private static function getConfigPath(): string
     {
+        if (is_file(self::CONFIG_PATH)) {
+            return self::CONFIG_PATH;
+        }
+        if (is_file(self::LEGACY_CONFIG_PATH)) {
+            return self::LEGACY_CONFIG_PATH;
+        }
         return self::CONFIG_PATH;
     }
 
     /**
-     * Get the save path (always use external for new saves)
+     * Get the save path (always the new data/cma_menu.json for new saves)
      */
     private static function getSavePath(): string
     {
