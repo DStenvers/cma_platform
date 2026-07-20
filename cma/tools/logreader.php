@@ -246,9 +246,9 @@ $logSources = [
     'unauthorized' => [
         'name' => 'Ongeautoriseerde toegang',
         // Site-level log written by the front-end RBAC gate (config/page_roles.php +
-        // enforce_page_roles()). Lives outside cma/ in the site's gitignored .logsh/
+        // enforce_page_roles()). Lives outside cma/ in the site's gitignored .logs/
         // dir. One JSON object per line (ts, file, listed, reason, role, login, ip…).
-        'path' => dirname(dirname(__DIR__)) . '/.logsh/unauthorized_access.log',
+        'path' => dirname(dirname(__DIR__)) . '/.logs/unauthorized_access.log',
         'pattern' => '/^{.*}$/m',
         'hasDateSelect' => false
     ]
