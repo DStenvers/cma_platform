@@ -1174,6 +1174,28 @@
                     "note": "Hernoemt data/tools.json -> data/cma_tools.json (zelfde cma_-prefix als cma_menu.json). tools_catalog.inc leest bij voorkeur data/cma_tools.json en valt terug op de legacy data/tools.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
                 }
             ]
+        },
+        {
+            "version": "9.19.0",
+            "description": "data/app.json hernoemen naar data/cma_branding.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.19.0_rename_app_to_cma_branding.php",
+                    "note": "Hernoemt data/app.json -> data/cma_branding.json (zelfde cma_-prefix als cma_menu.json). ConfigLoader/bootstrap/tools_maintenance lezen bij voorkeur data/cma_branding.json en vallen terug op de legacy data/app.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
+                }
+            ]
+        },
+        {
+            "version": "9.20.0",
+            "description": "data/reports.json hernoemen naar data/cma_reports.json",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.20.0_rename_reports_to_cma_reports.php",
+                    "note": "Hernoemt data/reports.json -> data/cma_reports.json (zelfde cma_-prefix). ReportsService/ConfigLoader lezen bij voorkeur data/cma_reports.json en vallen terug op de legacy data/reports.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
+                }
+            ]
         }
     ]
 }
