@@ -742,32 +742,28 @@ if (!$_terserAvailable) {
     $caches['JS Minify']['hint'] = 'terser niet beschikbaar';
 }
 
-// ── 12b. CSS Minification (lightningcss — the CSS counterpart of terser) ──────
-// lightningcss is a fast, safe CSS minifier (Rust). It is the CSS equivalent of
-// terser: installed as a devDependency of cma/ (`cd cma && npm install`), it ships
-// a native binary under node_modules/.bin/. We build <name>.min.css next to each
-// source, skipping any already-current one — exactly like the terser JS pass above.
-// header.inc and cma/minify.php then SERVE the pre-built .min.css when current
-// (min mtime >= source), else the raw .css. Per-file invocation:
-//     lightningcss --minify <src>.css -o <src>.min.css
-// Deliberately NO --bundle (no @import inlining) and NO --targets (no downleveling/
-// prefixing): pure minify, and a sibling .min.css keeps every relative url() valid.
+// ── 12b. CSS Minification (lightningcss library — the CSS counterpart of terser) ─
+// lightningcss is a fast, safe CSS minifier. We call the LIBRARY through a tiny node
+// wrapper (cma/tools/minify-css.js), invoked exactly like terser: `node <wrapper>
+// <src> <out>`. Using the library (napi binding, loaded directly) instead of
+// lightningcss-cli avoids the CLI's fragile native-binary postinstall on Windows.
+// Install: `cd cma && npm install`. We build <name>.min.css next to each source,
+// skipping any already-current one — like the terser JS pass above; header.inc and
+// cma/minify.php then serve the .min.css when current, else raw. The wrapper does a
+// pure minify (no @import inlining, no image data-URIs), so a sibling .min.css keeps
+// every relative url() valid. Reuses $_nodePath resolved by the terser pass.
 $_lcssCmd   = '';
 $_lcssDebug = [];
-$_lcssCandidates = $_isWindows
-    ? [$_cmaRoot . '\\node_modules\\.bin\\lightningcss.cmd', $_cmaRoot . '\\node_modules\\.bin\\lightningcss.exe']
-    : [$_cmaRoot . '/node_modules/.bin/lightningcss'];
-foreach ($_lcssCandidates as $_c) {
-    if (file_exists($_c)) { $_lcssCmd = escapeshellarg($_c); break; }
-}
-if ($_lcssCmd !== '') {
-    $verOut = shell_exec($_lcssCmd . ' --version 2>&1');
-    $_lcssDebug['versie'] = trim($verOut ?: 'geen output');
-    if (!$verOut || !preg_match('/\d+\.\d+/', $verOut)) {
-        $_lcssCmd = ''; // binary present but not runnable (missing native subpackage)
-    }
-} else {
+$_cssWrapper = $_cmaRoot . '/tools/minify-css.js';
+if ($_nodePath === '') {
+    $_lcssDebug['lightningcss'] = 'node niet gevonden (zie JS Minify)';
+} elseif (!is_file($_cssWrapper)) {
+    $_lcssDebug['lightningcss'] = 'wrapper ontbreekt: ' . $_cssWrapper;
+} elseif (!is_dir($_cmaRoot . '/node_modules/lightningcss')) {
     $_lcssDebug['lightningcss'] = 'niet geïnstalleerd — run: cd cma && npm install';
+} else {
+    $_lcssCmd = escapeshellarg($_nodePath) . ' ' . escapeshellarg($_cssWrapper);
+    $_lcssDebug['wrapper'] = $_cssWrapper;
 }
 
 $_cssAvailable   = $_lcssCmd !== '';
@@ -797,7 +793,7 @@ if ($_cssAvailable) {
             $origSize   = filesize($cssFile);
             $escapedCss = escapeshellarg($cssFile);
             $escapedMin = escapeshellarg($minFile);
-            $output     = shell_exec("{$_lcssCmd} --minify {$escapedCss} -o {$escapedMin} 2>&1");
+            $output     = shell_exec("{$_lcssCmd} {$escapedCss} {$escapedMin} 2>&1");
             clearstatcache(true, $minFile);
             if (file_exists($minFile) && filesize($minFile) > 0) {
                 $minSize = filesize($minFile);

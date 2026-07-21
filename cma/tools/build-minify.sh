@@ -46,23 +46,21 @@ if [ -z "$TERSER" ]; then
 fi
 echo "Using terser: $TERSER"
 
-# Discover lightningcss binary (CSS minifier — the counterpart of terser).
-# Installed as a devDependency (npm install), so prefer the local node_modules/.bin.
-LIGHTNINGCSS=""
-if command -v lightningcss &> /dev/null; then
-    LIGHTNINGCSS="$(command -v lightningcss)"
-else
-    for candidate in "$CMA_DIR/node_modules/.bin/lightningcss" /usr/local/bin/lightningcss /usr/bin/lightningcss; do
-        if [ -x "$candidate" ]; then
-            LIGHTNINGCSS="$candidate"
-            break
-        fi
-    done
+# CSS minifier: the lightningcss LIBRARY via a node wrapper (tools/minify-css.js),
+# invoked like terser (node <wrapper> <src> <out>). Using the library avoids
+# lightningcss-cli's fragile native-binary postinstall. Needs node + the wrapper +
+# the lightningcss package (cd cma && npm install).
+NODE_BIN=""
+if command -v node &> /dev/null; then
+    NODE_BIN="$(command -v node)"
 fi
-if [ -z "$LIGHTNINGCSS" ]; then
-    echo "WARN: lightningcss not found (run: cd cma && npm install) — CSS will NOT be minified."
+CSS_WRAPPER="$CMA_DIR/tools/minify-css.js"
+CSS_MINIFY_OK=""
+if [ -n "$NODE_BIN" ] && [ -f "$CSS_WRAPPER" ] && [ -d "$CMA_DIR/node_modules/lightningcss" ]; then
+    CSS_MINIFY_OK="1"
+    echo "Using lightningcss (library) via node $CSS_WRAPPER"
 else
-    echo "Using lightningcss: $LIGHTNINGCSS"
+    echo "WARN: lightningcss/node not available (run: cd cma && npm install) — CSS will NOT be minified."
 fi
 
 # Counters
@@ -132,14 +130,14 @@ for dir in "${JS_DIRS[@]}"; do
     echo ""
 done
 
-# CSS minification (lightningcss — the single CSS minifier, counterpart of terser).
-# --minify only: no --bundle (no @import inlining) and no --targets (no downleveling);
-# a sibling .min.css keeps relative url() valid. Skipped entirely if lightningcss
-# is absent (JS is still built above).
+# CSS minification (lightningcss library via node wrapper — the single CSS minifier,
+# counterpart of terser). Pure minify (no @import inlining, no downleveling); a
+# sibling .min.css keeps relative url() valid. Skipped entirely if unavailable
+# (JS is still built above).
 echo "Processing CSS files..."
 for cssfile in "$CMA_DIR"/webcomponents/*.css; do
     [ -f "$cssfile" ] || continue
-    [ -z "$LIGHTNINGCSS" ] && continue
+    [ -z "$CSS_MINIFY_OK" ] && continue
     basename=$(basename "$cssfile")
     minfile="${cssfile%.css}.min.css"
 
@@ -149,7 +147,7 @@ for cssfile in "$CMA_DIR"/webcomponents/*.css; do
     fi
 
     orig_size=$(wc -c < "$cssfile")
-    "$LIGHTNINGCSS" --minify "$cssfile" -o "$minfile" 2>/dev/null
+    "$NODE_BIN" "$CSS_WRAPPER" "$cssfile" "$minfile" 2>/dev/null
     min_size=$(wc -c < "$minfile")
     savings=$((orig_size - min_size))
     if [ "$orig_size" -gt 0 ]; then
