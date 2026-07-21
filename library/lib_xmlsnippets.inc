@@ -1063,6 +1063,13 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
                 // unterminated entity "&O…", which libxml rejects — it blanks the field AND
                 // makes the whole XSLT transform fail ("unterminated entity reference").
                 // createTextNode() stores the value as LITERAL text and escapes it correctly.
+                // REPLACE, don't accumulate: the row template's field nodes are REUSED across
+                // rows via cloneNode, so a bare appendChild piles EVERY prior row's value into
+                // the field (doubled codes + multi-MB output). Clear the field first, then set
+                // exactly one text node.
+                while ($objXMLField->firstChild !== null) {
+                    $objXMLField->removeChild($objXMLField->firstChild);
+                }
                 $objXMLField->appendChild($libObjXMLDOM->createTextNode((string) $sCurValue));
                 // if err and application("local") then
                 // response.write "<BR>Data error |<B>" & Server::htmlEncode(sCurValue) & "</B>|<BR>"
