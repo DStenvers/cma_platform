@@ -149,7 +149,7 @@ class LibTable
                 if (id!=intActiveRowID) {' . PHP_EOL . "    var x=document.getElementById('lt_row_'+id.toString());" . PHP_EOL . "
                     if(x){x.className=(bOn?'" . $this->TableTRClass . "_hover':'libTableTR')}" . PHP_EOL . '  }' . PHP_EOL . '}</script>' . PHP_EOL;
                     echo '<lib-table resizable>';
-                    echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ($this->TableFiltered ?' class=' :'') . $this->TableAttrib . ($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :'')) .' onselectstart="return(false)"><THEAD><TR>';
+                    echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :'')) .' onselectstart="return(false)"><THEAD><TR>';
                     if ($this->TableShowCaptions) {
                         if ($this->TableDeleteField != '') {
                             echo '<TH ' . $this->TableTHAttrib . '></TH>';
