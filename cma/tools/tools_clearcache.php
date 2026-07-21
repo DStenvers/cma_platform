@@ -742,6 +742,97 @@ if (!$_terserAvailable) {
     $caches['JS Minify']['hint'] = 'terser niet beschikbaar';
 }
 
+// ── 12b. CSS Minification (lightningcss — the CSS counterpart of terser) ──────
+// lightningcss is a fast, safe CSS minifier (Rust). It is the CSS equivalent of
+// terser: installed as a devDependency of cma/ (`cd cma && npm install`), it ships
+// a native binary under node_modules/.bin/. We build <name>.min.css next to each
+// source, skipping any already-current one — exactly like the terser JS pass above.
+// header.inc and cma/minify.php then SERVE the pre-built .min.css when current
+// (min mtime >= source), else the raw .css. Per-file invocation:
+//     lightningcss --minify <src>.css -o <src>.min.css
+// Deliberately NO --bundle (no @import inlining) and NO --targets (no downleveling/
+// prefixing): pure minify, and a sibling .min.css keeps every relative url() valid.
+$_lcssCmd   = '';
+$_lcssDebug = [];
+$_lcssCandidates = $_isWindows
+    ? [$_cmaRoot . '\\node_modules\\.bin\\lightningcss.cmd', $_cmaRoot . '\\node_modules\\.bin\\lightningcss.exe']
+    : [$_cmaRoot . '/node_modules/.bin/lightningcss'];
+foreach ($_lcssCandidates as $_c) {
+    if (file_exists($_c)) { $_lcssCmd = escapeshellarg($_c); break; }
+}
+if ($_lcssCmd !== '') {
+    $verOut = shell_exec($_lcssCmd . ' --version 2>&1');
+    $_lcssDebug['versie'] = trim($verOut ?: 'geen output');
+    if (!$verOut || !preg_match('/\d+\.\d+/', $verOut)) {
+        $_lcssCmd = ''; // binary present but not runnable (missing native subpackage)
+    }
+} else {
+    $_lcssDebug['lightningcss'] = 'niet geïnstalleerd — run: cd cma && npm install';
+}
+
+$_cssAvailable   = $_lcssCmd !== '';
+$_cssMinifyCount = 0;
+$_cssMinifySaved = 0;
+$_cssMinifyResult = true;
+$_clearedFiles['css_minify'] = [];
+
+if ($_cssAvailable) {
+    // Same source dirs as the JS pass (front-end + library) plus cma's own CSS.
+    $_cssDirs = [
+        $_siteRoot                            => 'site',
+        $_siteRoot . '/library'               => 'library',
+        $_siteRoot . '/library/css'           => 'library/css',
+        $_siteRoot . '/library/webcomponents' => 'library/webcomponents',
+        __DIR__ . '/../assets/css'            => 'cma/assets/css',
+    ];
+    foreach ($_cssDirs as $dir => $label) {
+        if (!is_dir($dir)) continue;
+        foreach (glob($dir . '/*.css') as $cssFile) {
+            if (substr($cssFile, -8) === '.min.css') continue;          // skip already-min
+            $minFile  = substr($cssFile, 0, -4) . '.min.css';
+            $basename = basename($cssFile);
+            if (file_exists($minFile) && filemtime($minFile) >= filemtime($cssFile)) {
+                continue;                                               // already current
+            }
+            $origSize   = filesize($cssFile);
+            $escapedCss = escapeshellarg($cssFile);
+            $escapedMin = escapeshellarg($minFile);
+            $output     = shell_exec("{$_lcssCmd} --minify {$escapedCss} -o {$escapedMin} 2>&1");
+            clearstatcache(true, $minFile);
+            if (file_exists($minFile) && filesize($minFile) > 0) {
+                $minSize = filesize($minFile);
+                $saved   = $origSize - $minSize;
+                $_cssMinifyCount++;
+                $_cssMinifySaved += $saved;
+                $_clearedFiles['css_minify'][] = [
+                    'name' => $basename, 'path' => $label . '/' . $basename, 'size' => $saved,
+                    'type' => "Geminificeerd ({$origSize} → {$minSize} bytes)",
+                ];
+            } else {
+                $_cssMinifyResult = false;
+                $_clearedFiles['css_minify'][] = [
+                    'name' => $basename, 'path' => $label . '/' . $basename, 'size' => 0,
+                    'type' => 'FOUT: ' . trim($output ?: 'geen output'),
+                ];
+            }
+        }
+    }
+}
+
+$caches['CSS Minify'] = [
+    'available' => $_cssAvailable,
+    'result'    => $_cssMinifyResult,
+    'detail'    => $_cssMinifyCount . ' bestanden',
+    'count'     => $_cssMinifyCount,
+    'files'     => $_clearedFiles['css_minify'],
+    'extra'     => $_cssMinifyCount > 0
+        ? array_merge(['Bestanden geminificeerd' => $_cssMinifyCount, 'Totaal bespaard' => formatSize($_cssMinifySaved)], $_lcssDebug)
+        : $_lcssDebug,
+];
+if (!$_cssAvailable) {
+    $caches['CSS Minify']['hint'] = 'lightningcss niet beschikbaar — cd cma && npm install';
+}
+
 // Check if any available cache failed or was only handled-but-unverified
 $anyFailed = false;
 $failedCaches = [];
@@ -1152,6 +1243,7 @@ if ($hasDetails) {
             'sessions' => 'Sessions',
             'temp' => 'Temp',
             'js_minify' => 'JS Minify',
+            'css_minify' => 'CSS Minify',
         ];
 
         foreach ($byCategory as $cat => $files) {

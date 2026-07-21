@@ -206,6 +206,12 @@ class Installer
         'cma/tools/config/databases.json',
         'cma/tools/config/menu.json',
         'cma/tools/config/reports.json',
+        // Removed 2026-07-20: the classic CMA 404 template. It only did
+        // require header/footer + Response::redirect('?PageAction=404') — a dead
+        // indirection (it would infinite-loop if it WERE the PageAction=404 handler,
+        // so it never was), referenced by no code. Front-end 404s are handled by
+        // the consumer's own handler now; drop the synced copy off consumer sites.
+        'cma/templates/404.inc',
     ];
 
     /**

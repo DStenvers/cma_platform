@@ -1,7 +1,10 @@
 <?php
 /**
- * Minify.php - CSS/JS file server with minification support
- * Uses matthiasmullie/minify library
+ * Minify.php - CSS/JS bundle server.
+ * Serves each file's pre-built .min sibling when current (min mtime >= source),
+ * otherwise the raw source. Two SINGLE minifiers, one per type, both run by the
+ * cache-clear tool: terser for JS (.min.js), lightningcss for CSS (.min.css).
+ * (matthiasmullie/minify was removed 2026-07-21 — it was a second, divergent path.)
  *
  * Self-bootstrapping: some consumer-site web.configs ship a "Skip
  * Bootstrap for Minify" URL Rewrite rule that hands minify.php
@@ -28,8 +31,6 @@ if (ob_get_level() > 0) {
     ob_end_clean();
 }
 
-use MatthiasMullie\Minify\CSS;
-use MatthiasMullie\Minify\JS;
 use App\Library\Request;
 
 // Determine environment - P = Production, others = Development/Test/Local/Acceptance
@@ -346,60 +347,35 @@ if ($MINIFY_ACTIVE && isCacheValid($cachePath, $latestMtime)) {
 // Minify the files (or just combine if MINIFY_ACTIVE is false)
 try {
     if ($ext === 'css') {
-        // For CSS, we need to rewrite URLs before minifying
+        // CSS: lightningcss (via the cache-clear tool) is the SINGLE CSS minifier.
+        // Prefer each file's pre-built .min.css when current (min mtime >= source),
+        // otherwise the raw source. Then rewrite relative url()s to resolve from
+        // /cma/minify.php and concatenate. (The .min.css is a sibling of the source,
+        // so url() rewriting is identical either way.)
         $content = '';
         foreach ($fileData as $file) {
-            $fileContent = file_get_contents($file['resolved']);
-            // Rewrite relative URLs to be correct from /cma/minify.php
-            // Pass the original requested path so we can calculate proper relative URLs
+            $srcPath = $file['resolved'];
+            $minPath = preg_replace('/\.css$/i', '.min.css', $srcPath);
+            $usePath = ($MINIFY_ACTIVE && is_string($minPath) && $minPath !== $srcPath
+                        && file_exists($minPath) && filemtime($minPath) >= filemtime($srcPath))
+                ? $minPath : $srcPath;
+            $fileContent = file_get_contents($usePath);
             $fileContent = rewriteCssUrls($fileContent, $file['original']);
             $content .= $fileContent . "\n";
         }
-
-        // Minify the combined CSS (if enabled)
-        if ($MINIFY_ACTIVE) {
-            $minifier = new CSS();
-            $minifier->add($content);
-            $content = $minifier->minify();
-        }
     } else {
-        // JS files - no URL rewriting needed
-        // In production: use pre-built .min.js files (from terser) when available
-        // In dev/test: always use raw source files for easier debugging
-        $prebuiltContent = '';
-        $needsMinify = [];
-        $rawFiles = [];
-
+        // JS: terser (via the cache-clear tool) is the SINGLE JS minifier. Prefer the
+        // pre-built .min.js when current; otherwise serve the raw source (no on-the-fly
+        // JS minifier). $MINIFY_ACTIVE only decides whether pre-built .min.js are used.
+        $content = '';
         foreach ($fileData as $file) {
             $minFile = $MINIFY_ACTIVE ? getPrebuiltMinFile($file['resolved']) : null;
             if ($minFile !== null) {
-                // Use the pre-built terser-minified version directly (production only)
-                $prebuiltContent .= file_get_contents($minFile) . ";\n";
-            } elseif ($MINIFY_ACTIVE) {
-                // No pre-built version, collect for MatthiasMullie (production only)
-                $needsMinify[] = $file;
+                $content .= file_get_contents($minFile) . ";\n";           // pre-built terser .min.js
             } else {
-                // Dev/test mode: always use raw source for easier debugging
-                $rawFiles[] = $file;
-            }
-        }
-
-        if (!empty($needsMinify)) {
-            $minifier = new JS();
-            foreach ($needsMinify as $file) {
-                $minifier->add($file['resolved']);
-            }
-            $content = $prebuiltContent . $minifier->minify();
-        } elseif (!empty($rawFiles)) {
-            // Dev mode: mix of pre-built and raw files
-            $content = $prebuiltContent;
-            foreach ($rawFiles as $file) {
                 $content .= "/* === " . $file['original'] . " === */\n";
-                $content .= file_get_contents($file['resolved']) . ";\n\n";
+                $content .= file_get_contents($file['resolved']) . ";\n\n"; // raw source
             }
-        } else {
-            // All files had pre-built versions
-            $content = $prebuiltContent;
         }
     }
 

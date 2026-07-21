@@ -662,6 +662,10 @@ class MigrationService
         // Record migration in all affected databases
         $this->recordMigration($migration);
 
+        // Invalidate the front-end migration banner immediately (not after its 5-min
+        // TTL) now that the applied set has changed.
+        self::clearCache();
+
         return ['success' => true, 'error' => null];
     }
 
@@ -1775,5 +1779,11 @@ class MigrationService
     {
         self::$migrationStatusCache = [];
         self::$columnExistsCache = [];
+        // Also drop the front-end migration banner's file cache (header.inc's
+        // WriteMigratieBanner, key 'migratie_banner_status') so applying/rolling back
+        // a migration reflects immediately instead of after that banner's 5-min TTL.
+        if (class_exists('\App\Library\Cache')) {
+            \App\Library\Cache::clearFile('migratie_banner_status');
+        }
     }
 }

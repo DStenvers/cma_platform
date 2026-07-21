@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.17.0",
+    "targetVersion": "9.20.0",
     "migrations": [
         {
             "version": "0.0.1",

@@ -46,6 +46,25 @@ if [ -z "$TERSER" ]; then
 fi
 echo "Using terser: $TERSER"
 
+# Discover lightningcss binary (CSS minifier — the counterpart of terser).
+# Installed as a devDependency (npm install), so prefer the local node_modules/.bin.
+LIGHTNINGCSS=""
+if command -v lightningcss &> /dev/null; then
+    LIGHTNINGCSS="$(command -v lightningcss)"
+else
+    for candidate in "$CMA_DIR/node_modules/.bin/lightningcss" /usr/local/bin/lightningcss /usr/bin/lightningcss; do
+        if [ -x "$candidate" ]; then
+            LIGHTNINGCSS="$candidate"
+            break
+        fi
+    done
+fi
+if [ -z "$LIGHTNINGCSS" ]; then
+    echo "WARN: lightningcss not found (run: cd cma && npm install) — CSS will NOT be minified."
+else
+    echo "Using lightningcss: $LIGHTNINGCSS"
+fi
+
 # Counters
 total_files=0
 total_original=0
@@ -113,10 +132,14 @@ for dir in "${JS_DIRS[@]}"; do
     echo ""
 done
 
-# CSS minification (simple whitespace/comment strip)
+# CSS minification (lightningcss — the single CSS minifier, counterpart of terser).
+# --minify only: no --bundle (no @import inlining) and no --targets (no downleveling);
+# a sibling .min.css keeps relative url() valid. Skipped entirely if lightningcss
+# is absent (JS is still built above).
 echo "Processing CSS files..."
 for cssfile in "$CMA_DIR"/webcomponents/*.css; do
     [ -f "$cssfile" ] || continue
+    [ -z "$LIGHTNINGCSS" ] && continue
     basename=$(basename "$cssfile")
     minfile="${cssfile%.css}.min.css"
 
@@ -126,13 +149,7 @@ for cssfile in "$CMA_DIR"/webcomponents/*.css; do
     fi
 
     orig_size=$(wc -c < "$cssfile")
-    # Simple CSS minification: strip comments, collapse whitespace
-    sed -e 's|/\*[^*]*\*\+\([^/][^*]*\*\+\)*/||g' \
-        -e 's/^[[:space:]]*//g' \
-        -e 's/[[:space:]]*$//g' \
-        -e '/^$/d' \
-        -e 's/[[:space:]]\{2,\}/ /g' \
-        "$cssfile" > "$minfile"
+    "$LIGHTNINGCSS" --minify "$cssfile" -o "$minfile" 2>/dev/null
     min_size=$(wc -c < "$minfile")
     savings=$((orig_size - min_size))
     if [ "$orig_size" -gt 0 ]; then

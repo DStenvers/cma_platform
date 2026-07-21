@@ -80,7 +80,7 @@ Cypress config is in `cma/cypress.config.js`. Tests require a running CMA instan
 
 ```bash
 cd cma && npm run build             # Build icons + minify JS/CSS
-cd cma && npm run build:minify      # Minify only (terser for JS, sed for CSS)
+cd cma && npm run build:minify      # Minify only (terser for JS, lightningcss for CSS)
 cd cma && npm run build:icons       # Generate icon font (requires python3)
 ```
 
