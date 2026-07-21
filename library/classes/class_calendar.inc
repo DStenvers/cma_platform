@@ -3,6 +3,7 @@
 use App\Library\Application;
 use App\Library\Request;
 use App\Library\Server;
+use App\Library\Dictionary;
 
 $blnSmartLinks = null;
 // only links to days that have activities!
@@ -47,7 +48,7 @@ class Calendar
         }
         $blnSmartLinks = true;
         $blnShowEventsInCalendar = false;
-        $this->mcolDays = new ArrayObject();
+        $this->mcolDays = new Dictionary();
         if (Request::query('date', '') != '') {
             $this->SetDate(Request::query('date', ''));
         } else {
@@ -75,7 +76,7 @@ class Calendar
     {
         $nDayIndex = null;
         $objNewDay = null;
-        if ($this->mcolDays->Count > 0) {
+        if ($this->mcolDays->count() > 0) {
             $this->mcolDays->RemoveAll();
         }
         for ($nDayIndex = 1; $nDayIndex <= $this->mnDaysInMonth; $nDayIndex++) {
@@ -267,7 +268,7 @@ class CalendarDay
         $objActivity = new CalendarActivity();
         $objActivity->Text = $sActivity;
         $objActivity->Color = $sColor;
-        $this->mcolActivities->Add($this->mcolActivities->Count + 1, $objActivity);
+        $this->mcolActivities->Add($this->mcolActivities->count() + 1, $objActivity);
         $objActivity = null;
     }
     /**
@@ -313,7 +314,7 @@ class CalendarDay
     */
     public function InitActivities()
     {
-        $this->mcolActivities = new ArrayObject();
+        $this->mcolActivities = new Dictionary();
         $this->mbActivitiesInit = true;
     }
     /**
