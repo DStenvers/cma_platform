@@ -13,7 +13,7 @@
 // File System Constants (from library.inc)
 // ============================================================
 
-define('XSLT_PATH', 'xslt/');
+defined('XSLT_PATH') || define('XSLT_PATH', 'assets/xslt/'); // moved to assets/xslt/ in migration 9.17/9.18
 define('CACHE_PATH', 'cache/');
 define('CACHE_DIR_INDENT', 'dirs');
 
