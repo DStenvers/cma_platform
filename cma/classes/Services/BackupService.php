@@ -24,7 +24,7 @@ class BackupService
     public function __construct(?string $backupDir = null)
     {
         $this->siteRoot = dirname(__DIR__, 3);
-        $this->backupDir = $backupDir ?? $this->siteRoot . '/backup';
+        $this->backupDir = $backupDir ?? $this->siteRoot . '/.backup';
 
         // Ensure backup directory exists
         if (!is_dir($this->backupDir)) {

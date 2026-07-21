@@ -31,7 +31,7 @@ Response::noCache();
 
 // Get site root and backup directory
 $siteRoot = dirname(__DIR__, 2);
-$backupDir = $siteRoot . '/backup';
+$backupDir = $siteRoot . '/.backup';
 $dbDir = $siteRoot . '/db';
 
 // Ensure backup directory exists
