@@ -1041,9 +1041,12 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
 
                 // prevents data error of XML processor - was in use in RINO Support
                 $sCurValue = str_ireplace('', '&nbsp;', $sCurValue);
-                // this is the preferred way, but display is crippeled
-                // objXMLField.text = lib_XMLEncode( sCurValue )
-                $objXMLField->nodeValue = $sCurValue;
+                // Assigning to ->nodeValue PARSES entity references: a raw '&' in the data
+                // (e.g. an opleiding titel "V&O Start Kwartaal 2") is read as the invalid,
+                // unterminated entity "&O…", which libxml rejects — it blanks the field AND
+                // makes the whole XSLT transform fail ("unterminated entity reference").
+                // createTextNode() stores the value as LITERAL text and escapes it correctly.
+                $objXMLField->appendChild($libObjXMLDOM->createTextNode((string) $sCurValue));
                 // if err and application("local") then
                 // response.write "<BR>Data error |<B>" & Server::htmlEncode(sCurValue) & "</B>|<BR>"
                 // end if
