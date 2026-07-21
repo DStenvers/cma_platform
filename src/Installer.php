@@ -206,6 +206,11 @@ class Installer
         'cma/tools/config/databases.json',
         'cma/tools/config/menu.json',
         'cma/tools/config/reports.json',
+        // Renamed in v1.29.87: the Vb helper became Cdate (Vb.php → src/library/Cdate.php;
+        // VbTest → CdateTest). CdateTest.php now ships, but composer's additive sync leaves
+        // the old VbTest.php twin behind on existing installs — drop it (it also require's
+        // the moved src/helpers/Vb.php, so it's a broken file until removed).
+        'cma/tests/VbTest.php',
     ];
 
     /**
