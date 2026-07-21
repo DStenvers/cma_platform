@@ -211,19 +211,36 @@ function GetSnippetContent($cXMLStore)
 
         // Perform XSLT transformation using PHP XSLTProcessor
         if ($objXSL instanceof DOMDocument && $libObjXMLDOM instanceof DOMDocument) {
+            // A cached/empty XSL DOMDocument with no root element (e.g. a stale
+            // cma_XML_caching object, or a load that silently failed) makes
+            // importStylesheet() a no-op, after which transformToXML() throws a PHP
+            // Error: "can only be called after a stylesheet has been imported".
+            // Reload from disk when the object looks empty so a stale cache can't 500.
+            if ($objXSL->documentElement === null && file_exists($xsltFilePath)) {
+                $objXSL = new DOMDocument();
+                $objXSL->preserveWhiteSpace = false;
+                @$objXSL->load($xsltFilePath);
+            }
+            // catch \Throwable, not \Exception: transformToXML()/importStylesheet()
+            // raise \Error in PHP 8, which \Exception does NOT catch → would 500.
             try {
                 $xslt = new XSLTProcessor();
-                $xslt->importStyleSheet($objXSL);
-                $sPage = $xslt->transformToXML($libObjXMLDOM);
-
-                if ($sPage !== false) {
-                    $sRetval = str_ireplace('&amp;amp;', '&amp;', str_ireplace('&amp;', '&', str_ireplace('&lt;', '<', str_ireplace('&gt;', '>', $sPage))));
-                } else {
+                $imported = ($objXSL->documentElement !== null) && @$xslt->importStyleSheet($objXSL);
+                if (!$imported) {
                     $error = libxml_get_last_error();
-                    Error::show("Error parsing XSLT file '" . $cXMLStore . ".xslt'.<BR>" .
-                        'Description: ' . ($error ? $error->message : 'Unknown error') . '.<BR>');
+                    Error::show("Error: XSLT-stylesheet '" . $cXMLStore . ".xslt' kon niet worden geladen of is ongeldig.<BR>" .
+                        'Description: ' . ($error ? $error->message : 'leeg/ongeldig stylesheet') . '.<BR>');
+                } else {
+                    $sPage = $xslt->transformToXML($libObjXMLDOM);
+                    if ($sPage !== false) {
+                        $sRetval = str_ireplace('&amp;amp;', '&amp;', str_ireplace('&amp;', '&', str_ireplace('&lt;', '<', str_ireplace('&gt;', '>', $sPage))));
+                    } else {
+                        $error = libxml_get_last_error();
+                        Error::show("Error parsing XSLT file '" . $cXMLStore . ".xslt'.<BR>" .
+                            'Description: ' . ($error ? $error->message : 'Unknown error') . '.<BR>');
+                    }
                 }
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 Error::show("Error parsing XSLT file '" . $cXMLStore . ".xslt'.<BR>" .
                     'Description: ' . $e->getMessage() . '.<BR>');
             }
