@@ -135,16 +135,48 @@ class SystemSettings
     {
         $envFile = self::getEnvFile();
 
-        if (!file_exists($envFile)) {
+        // A site may not have an .env yet (fresh install, or env supplied by the
+        // web server). An admin toggling a system setting must not silently fail
+        // because of that — create the file, writing just this key. getEnvFile()
+        // already resolves the correct target name (the single-file '.env' by
+        // default), so we only need to seed empty content when it's absent.
+        if (file_exists($envFile)) {
+            $content = file_get_contents($envFile);
+            if ($content === false) {
+                return false;
+            }
+        } else {
+            $content = '';
+        }
+
+        $newContent = self::applyEnvContent($content, $key, $value);
+
+        // Write back to file
+        if (file_put_contents($envFile, $newContent) === false) {
             return false;
         }
 
-        $content = file_get_contents($envFile);
-        if ($content === false) {
-            return false;
-        }
+        // Update the runtime environment
+        putenv($key . '=' . $value);
+        $_ENV[$key] = $value;
 
-        $lines = explode("\n", $content);
+        return true;
+    }
+
+    /**
+     * Pure .env transform: return $content with $key set to $value — replacing
+     * the existing assignment in place, or inserting a new one (after any other
+     * logging keys, else at the end). No file I/O, so it is unit-testable and
+     * carries the create-from-empty behaviour that fixes the "no .env yet →
+     * saving system settings fails" bug.
+     *
+     * @param string $content Current file contents ('' for a file to be created)
+     */
+    public static function applyEnvContent(string $content, string $key, string $value): string
+    {
+        // explode('') yields [''] — a phantom blank line that would head a
+        // freshly-created .env; start from an empty set instead.
+        $lines = ($content === '') ? [] : explode("\n", $content);
         $found = false;
         $newLines = [];
 
@@ -176,18 +208,7 @@ class SystemSettings
             }
         }
 
-        $newContent = implode("\n", $newLines);
-
-        // Write back to file
-        if (file_put_contents($envFile, $newContent) === false) {
-            return false;
-        }
-
-        // Update the runtime environment
-        putenv($key . '=' . $value);
-        $_ENV[$key] = $value;
-
-        return true;
+        return implode("\n", $newLines);
     }
 
     /**
