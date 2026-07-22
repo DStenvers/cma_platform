@@ -68,9 +68,9 @@ class JsonFormLoader
 
     /**
      * Directory for cached parsed form definitions
-     * Uses site root cache: /site/cache/cma/forms/
+     * Uses site root cache: /site/.cache/cma/forms/
      */
-    private const CACHE_DIR = __DIR__ . '/../../cache/cma/forms';
+    private const CACHE_DIR = __DIR__ . '/../../.cache/cma/forms';
 
     /**
      * Default cache TTL in seconds (1 week)

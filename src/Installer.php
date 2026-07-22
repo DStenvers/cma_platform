@@ -382,7 +382,7 @@ class Installer
         }
 
         // 7. Ensure writable directories exist
-        foreach (['sessions', 'cache', 'logs'] as $dir) {
+        foreach (['sessions', '.cache', '.logs'] as $dir) {
             $path = $projectRoot . '/' . $dir;
             if (!is_dir($path)) {
                 @mkdir($path, 0755, true);
@@ -406,7 +406,7 @@ class Installer
         //     definitions) — AFTER the recycle, never before. Clearing before the
         //     recycle left a race that took the front-end down on deploy: an
         //     in-flight request still running on the OLD OPcache bytecode would
-        //     regenerate the just-emptied cache/cma/{forms,minify} with STALE
+        //     regenerate the just-emptied .cache/cma/{forms,minify} with STALE
         //     output, which the freshly-recycled worker then served — the classic
         //     "first composer update breaks the site, a second one fixes it".
         //     Clearing last means the new worker repopulates the caches from the
@@ -443,7 +443,7 @@ class Installer
 
     /**
      * Clear the platform's regenerable disk caches (minified JS/CSS in
-     * cache/cma/minify, cached form definitions in cache/cma/forms). They are
+     * .cache/cma/minify, cached form definitions in .cache/cma/forms). They are
      * file-based and shared with the web process, so clearing them from the
      * composer CLI is effective — the web process simply regenerates them.
      * Does NOT (cannot) clear the FastCGI worker's OPcache/APCu.
@@ -453,7 +453,7 @@ class Installer
     private static function clearRegenerableCaches(string $projectRoot): array
     {
         $log = [];
-        foreach (['cache/cma/minify', 'cache/cma/forms'] as $rel) {
+        foreach (['.cache/cma/minify', '.cache/cma/forms'] as $rel) {
             $dir = $projectRoot . '/' . $rel;
             if (!is_dir($dir)) {
                 continue;

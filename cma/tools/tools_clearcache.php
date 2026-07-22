@@ -9,13 +9,13 @@
  */
 
 // Pre-calculate cache directories (before Application class is available)
-// Cache is now in site root: /site/cache/cma/
+// Cache is now in site root: /site/.cache/cma/
 $_siteRoot = dirname(__DIR__, 2);
 $_envCacheDir = getenv('CACHE_DIRECTORY') ?: ($_ENV['CACHE_DIRECTORY'] ?? null);
 $_appCacheDir = $_envCacheDir ?: ($_siteRoot . '/cache');
-$_cmaCacheDir = $_siteRoot . '/cache/cma';
-$_formCacheDir = $_siteRoot . '/cache/cma/forms';
-$_minifyDir = $_siteRoot . '/cache/cma/minify';
+$_cmaCacheDir = $_siteRoot . '/.cache/cma';
+$_formCacheDir = $_siteRoot . '/.cache/cma/forms';
+$_minifyDir = $_siteRoot . '/.cache/cma/minify';
 
 // Session and temp directories
 $_sessionDir = ini_get('session.save_path') ?: sys_get_temp_dir();
@@ -1016,7 +1016,7 @@ if ($caches['OPcache']['available'] && function_exists('opcache_get_configuratio
 $cacheInfo = [
     'OPcache' => 'PHP bytecode cache. Slaat gecompileerde PHP scripts op in geheugen voor snellere uitvoering. Wordt geleegd met opcache_reset().',
     'APCu' => 'PHP gebruikerscache. Slaat applicatiedata op in gedeeld geheugen. Wordt geleegd met apcu_clear_cache().',
-    'App Cache' => 'Applicatie-cache (Redis, APCu of Bestand). Slaat database queries, formulierdefinities en andere data op. Configureer CACHE_DIRECTORY in .env naar een map binnen de site (bijv. /cache/cma).',
+    'App Cache' => 'Applicatie-cache (Redis, APCu of Bestand). Slaat database queries, formulierdefinities en andere data op. Configureer CACHE_DIRECTORY in .env naar een map binnen de site (bijv. /.cache/cma).',
     'File Cache' => 'Bestandsgebaseerde cache map. Bevat geserialiseerde cachedata op schijf.',
     'Minify' => 'Geminificeerde CSS/JS bestanden. Gecomprimeerde versies van stylesheets en scripts voor sneller laden.',
     'Form HTML' => 'Vooraf gegenereerde formuliertemplates. Gecachte HTML bestanden in cache/forms/.',

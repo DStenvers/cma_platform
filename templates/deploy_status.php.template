@@ -1,7 +1,7 @@
 <?php
 /**
  * deploy_status.php — read-only JSON summary of the last deploy run,
- * read from <site-root>/logs/deploy.log.
+ * read from <site-root>/.logs/deploy/deploy.log.
  *
  * THIS FILE IS PROVISIONED BY stenversonline/platform (Installer.php) and
  * overwritten on every `composer update stenversonline/platform` — edit
@@ -115,7 +115,7 @@ if (isset($_GET['config'])) {
         || $probe('"C:\ProgramData\ComposerSetup\bin\composer.bat"')
         || (is_file(__DIR__ . '/composer.phar') && $probe('php "' . __DIR__ . '\composer.phar"'));
 
-    $logDir       = __DIR__ . '/logs';
+    $logDir       = __DIR__ . '/.logs/deploy';
     $logsWritable = is_dir($logDir) ? is_writable($logDir) : is_writable(__DIR__);
 
     // Installed stenversonline/platform version — read straight from the vendored
@@ -153,7 +153,7 @@ if (isset($_GET['config'])) {
     return;
 }
 
-$logFile = __DIR__ . '/logs/deploy.log';
+$logFile = __DIR__ . '/.logs/deploy/deploy.log';
 
 if (!is_file($logFile)) {
     http_response_code(404);

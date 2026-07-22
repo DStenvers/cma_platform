@@ -85,6 +85,6 @@ require_once __DIR__ . '/vendor/autoload.php';
     'global_asa'     => __DIR__ . '/global.asa.php',
     'session_dir'    => __DIR__ . '/.sessions',
     'constants_file' => __DIR__ . '/_bootstrap_constants.inc',
-    'log_dir'        => __DIR__ . '/logs',
+    'log_dir'        => __DIR__ . '/.logs',
     'db_dir'         => __DIR__ . '/db',
 ]);

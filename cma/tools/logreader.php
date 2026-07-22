@@ -31,9 +31,6 @@ $cacheDir = $siteRoot . '/cache';
 // base every log path below is derived from.
 $logsBase = $siteRoot . '/.logs';
 
-// CMA logs directory (created by api/log.php)
-$cmaLogsDir = dirname(__DIR__) . '/logs';
-
 // Get request parameters
 $logExplicit  = isset($_GET['log']) && $_GET['log'] !== '';
 $selectedLog = Request::query('log', 'perf');

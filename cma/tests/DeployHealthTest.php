@@ -17,7 +17,7 @@ class DeployHealthTest extends TestCase
     {
         // Unique temp site root per call. No Date.now reliance — uniqid is fine here.
         $root = sys_get_temp_dir() . '/dh_' . uniqid('', true);
-        @mkdir($root . '/logs', 0777, true);
+        @mkdir($root . '/.logs/deploy', 0777, true);
         @mkdir($root . '/cma', 0777, true);
         if ($withCma) {
             foreach (DeployHealth::CMA_PROBES as $rel) {
@@ -86,7 +86,7 @@ class DeployHealthTest extends TestCase
     {
         $root = $this->makeSite(false); // no cma probes → all missing
         try {
-            $custom = $root . '/logs/custom-deploy.log';
+            $custom = $root . '/.logs/deploy/custom-deploy.log';
             $res = DeployHealth::cmaSyncCheck($root, ['log_file' => $custom]);
             $this->assertFalse($res['ok']);
             $this->assertCount(count(DeployHealth::CMA_PROBES), $res['missing']);

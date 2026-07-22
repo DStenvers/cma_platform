@@ -30,7 +30,7 @@ header('Content-Type: text/html; charset=utf-8');
         <h2>Reset Results:</h2>
         <?php
         // Clear forms cache (file-based)
-        $formsDir = __DIR__ . '/../cache/cma/forms';
+        $formsDir = __DIR__ . '/../.cache/cma/forms';
         $filesCleared = 0;
         if (is_dir($formsDir)) {
             foreach (glob($formsDir . '/*') as $file) {

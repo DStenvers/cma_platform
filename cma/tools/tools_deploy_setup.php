@@ -98,7 +98,7 @@ $branch    = $env['DEPLOY_BRANCH'] ?? '';
 $alert     = $env['DEPLOY_ALERT_EMAIL'] ?? '';
 $runTests  = $env['DEPLOY_RUN_TESTS'] ?? '';
 
-$logsDir       = $siteRoot . '/logs';
+$logsDir       = $siteRoot . '/.logs/deploy';
 $logsWritable  = is_dir($logsDir) ? is_writable($logsDir) : is_writable($siteRoot);
 $envWritable   = is_file($targetPath) ? is_writable($targetPath) : is_writable($siteRoot);
 $isWin         = stripos(PHP_OS, 'WIN') === 0;

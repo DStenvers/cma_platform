@@ -49,9 +49,9 @@ class FormTemplate
 
     /**
      * Directory for storing static templates (cached HTML)
-     * Uses site root cache: /site/cache/cma/forms/
+     * Uses site root cache: /site/.cache/cma/forms/
      */
-    private const TEMPLATE_DIR = __DIR__ . '/../../cache/cma/forms';
+    private const TEMPLATE_DIR = __DIR__ . '/../../.cache/cma/forms';
 
     /**
      * @var int Source Form ID (from JSON definition's sourceFormId, used for subforms and permissions)

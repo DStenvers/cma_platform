@@ -11,6 +11,8 @@
 /sessions/
 /cache/
 /logs/
+/.cache/
+/.logs/
 vendor/
 cma/vendor/
 

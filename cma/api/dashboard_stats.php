@@ -255,7 +255,7 @@ function getErrorStats(): array
 /**
  * Get 404 (page-not-found) statistics for the last 14 days.
  *
- * Reads the daily JSON logs written by cma/404.php (cma/logs/404_YYYY-MM-DD.log).
+ * Reads the daily JSON logs written by cma/404.php (.logs/404/404_YYYY-MM-DD.log).
  * Auto-resolved icon redirects are excluded — only genuine misses are counted.
  * Returns a per-day series (for the bar chart), today's/total counts, and the
  * most-missed URL paths.

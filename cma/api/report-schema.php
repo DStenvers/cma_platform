@@ -588,7 +588,7 @@ function getConnectionForDatabase(int $databaseId): \PDO
  */
 function getFieldCachePath(int $databaseId): string
 {
-    $cacheDir = dirname(__DIR__, 2) . '/cache/cma';
+    $cacheDir = dirname(__DIR__, 2) . '/.cache/cma';
     if (!is_dir($cacheDir)) {
         @mkdir($cacheDir, 0755, true);
     }

@@ -166,8 +166,8 @@ function saveUserPreferences(int $userId, array $prefs): bool {
 // Handle GET actions (view/clear log)
 $getAction = Request::query('action', '');
 if ($getAction !== '' && SecurityHelper::isAdmin()) {
-    $logDir = __DIR__ . '/logs';
-    $todayLog = $logDir . '/performance_' . date('Y-m-d') . '.log';
+    $logDir = dirname(__DIR__) . '/.logs/perf';
+    $todayLog = $logDir . '/perf_' . date('Y-m-d') . '.log';
 
     if ($getAction === 'viewLog') {
         header('Content-Type: application/json');
@@ -189,7 +189,7 @@ if ($getAction !== '' && SecurityHelper::isAdmin()) {
         header('Content-Type: application/json');
         // Delete all performance log files
         $deleted = 0;
-        $files = glob($logDir . '/performance_*.log');
+        $files = glob($logDir . '/perf_*.log');
         foreach ($files as $file) {
             if (unlink($file)) {
                 $deleted++;

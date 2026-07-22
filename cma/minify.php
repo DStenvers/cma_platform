@@ -43,7 +43,7 @@ $MINIFY_ACTIVE = $isProduction;
 $DISK_CACHE_ACTIVE = $isProduction; // Only disk-cache minified content in production
 
 $config = [
-    'cache_dir' => dirname(__DIR__) . '/cache/cma/minify',  // Cache directory in site root
+    'cache_dir' => dirname(__DIR__) . '/.cache/cma/minify',  // Cache directory in site root
     'cache_time' => 86400 * 28,  // Browser cache: 28 days (URL versioning handles cache busting)
     'gzip' => true,              // Enable gzip compression
 ];

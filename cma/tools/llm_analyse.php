@@ -106,7 +106,7 @@ $installed = is_dir($modelsDir) ? glob($modelsDir . DIRECTORY_SEPARATOR . '*.ggu
 // errors stay out of view so this surface doesn't become a generic log
 // reader.
 // ---------------------------------------------------------------------------
-$logFile = $siteRoot . '/logs/php_errors.log';
+$logFile = $siteRoot . '/.logs/phperrors/php_errors.log';
 $recentErrors = [];
 if (is_file($logFile)) {
     $size = filesize($logFile) ?: 0;

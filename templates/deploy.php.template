@@ -56,7 +56,7 @@
  *                            Default: <root>/web.config. "-" to skip.
  *   DEPLOY_POST_HOOK         PHP file required after a successful deploy.
  *                            Default: <root>/deploy_post.php. "-" to skip.
- *   DEPLOY_LOG_FILE          log path. Default: <root>/logs/deploy.log.
+ *   DEPLOY_LOG_FILE          log path. Default: <root>/.logs/deploy/deploy.log.
  *   DEPLOY_ALERT_EMAIL       if set, a FAILED deploy also tries mail() to this
  *                            address (best-effort; no MTA required to succeed).
  *
@@ -99,7 +99,7 @@ $envRead = static function (string $key, string $default = '') use ($env): strin
 };
 
 $ROOT     = rtrim($envRead('DEPLOY_SITE_ROOT', $SCRIPT_DIR), '/\\');
-$LOG_FILE = $envRead('DEPLOY_LOG_FILE', $ROOT . '/logs/deploy.log');
+$LOG_FILE = $envRead('DEPLOY_LOG_FILE', $ROOT . '/.logs/deploy/deploy.log');
 $LOG_DIR  = dirname($LOG_FILE);
 if (!is_dir($LOG_DIR)) {
     @mkdir($LOG_DIR, 0755, true);

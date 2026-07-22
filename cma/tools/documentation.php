@@ -865,7 +865,7 @@ function cma_doc_check_dir_writable(string $relPath, string $description, string
 }
 
 function cma_doc_check_logs_dir(): array {
-    return cma_doc_check_dir_writable('logs', 'logs/ — deploy.log + php_errors.log');
+    return cma_doc_check_dir_writable('.logs', '.logs/ — deploy/, perf/, phperrors/');
 }
 
 function cma_doc_check_data_logs_dir(): array {
@@ -914,8 +914,8 @@ function cma_doc_check_vendor_in_sync(): array {
 }
 
 function cma_doc_check_deploy_log(): array {
-    $label = 'logs/deploy.log';
-    $path = cma_doc_site_root() . '/logs/deploy.log';
+    $label = '.logs/deploy/deploy.log';
+    $path = cma_doc_site_root() . '/.logs/deploy/deploy.log';
     if (!file_exists($path)) {
         return ['label' => $label, 'status' => 'info', 'detail' => 'Nog niet aangemaakt — webhook is op deze site nog niet gevuurd.', 'fix' => ''];
     }
@@ -1382,7 +1382,7 @@ function render_doc_json_config(): void
 function render_doc_deployment(): void
 {
     $deployLogHref = 'logreader.php?log=deploy';
-    $logFile       = dirname(__DIR__, 2) . '/logs/deploy.log';
+    $logFile       = dirname(__DIR__, 2) . '/.logs/deploy/deploy.log';
     ?>
     <h1>Deployment</h1>
     <p class="docs-meta">Hoe code op een consumer-site terechtkomt en welke instellingen daarvoor nodig zijn.</p>
