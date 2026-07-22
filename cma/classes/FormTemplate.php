@@ -343,6 +343,7 @@ class FormTemplate
             }
             $result[] = [
                 'form' => $this->arrSubForms[\SUBFORM_ID][$i] ?? '',
+                'jsonForm' => $jsonFormName, // JSON form name — matches the client's data.subformId
                 'title' => $tabTitle,
                 'titleSingular' => $titleSingular,
                 'parentField' => $this->arrSubForms[\SUBFORM_PARENT][$i] ?? '',

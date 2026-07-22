@@ -11158,7 +11158,19 @@ class CmaFormController {
      * Add new subform record - uses unified openPopup function
      */
     addSubformRecord(subformId, subformIndex) {
-        const subformConfig = this.config.subforms?.[subformIndex] || {};
+        // Resolve the subform config by matching its form id FIRST. The positional
+        // subformIndex can be stale/incorrect — notably the empty-state add button,
+        // which derives the index from the pane id and falls back to 0 — which would
+        // mislabel the popup with the first tab's name ("Deelnemer toevoegen" instead
+        // of "Verklaring toevoegen"). The form id is always correct here (it's what
+        // actually loads the popup), so prefer it; fall back to the index.
+        const subs = this.config.subforms || [];
+        const sid = String(subformId || '');
+        const subformConfig =
+            (sid !== '' && subs.find(s => s &&
+                (String(s.jsonForm || '') === sid || String(s.form || '') === sid)))
+            || subs[subformIndex]
+            || {};
         // Use linkField (JSON form schema) or parentField (legacy) for parent relationship
         const parentField = subformConfig.parentField || subformConfig.linkField || '';
         // Use subform title with action suffix
