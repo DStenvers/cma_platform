@@ -399,8 +399,12 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
         }
     });
     </script>
-    <?php if ($appBgColor): ?>
-    <style>:root { --sidebar-header-bg: <?= $appBgColor ?>; }</style>
+    <?php if ($appBgColor || $appLogoHeight > 0): ?>
+    <?php /* --header-height grows to fit a configured logo so the sidebar/content
+             headers contain it and align-items:center actually centres it
+             vertically (cma_get_app_logo()['height'] = max(logoHeight+2, 62)).
+             Left at the 50px default when no logo height is configured. */ ?>
+    <style>:root {<?php if ($appBgColor): ?> --sidebar-header-bg: <?= $appBgColor ?>;<?php endif; ?><?php if ($appLogoHeight > 0): ?> --header-height: <?= (int)($appLogoConfig['height'] ?? 62) ?>px;<?php endif; ?> }</style>
     <?php endif; ?>
     <?php if ($useSystemTheme): ?>
     <script>
