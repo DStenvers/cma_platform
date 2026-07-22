@@ -281,7 +281,7 @@ class ErrorHandler
     <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
                     </head>
-                    <body>
+                    <body>' . self::maintenanceNoticeHtml() . '
                         <div class="error-container">
                             <div class="error-title">Error Handler Failure</div>
                             <p class="error-message">The error handler encountered a problem while processing the original error.</p>
@@ -329,6 +329,14 @@ class ErrorHandler
                 return;
             }
 
+            // If the site is in maintenance, a fatal here is most likely a side
+            // effect of the mid-deploy vendor swap rather than a real application
+            // bug. Surface that hint above whichever HTML error page renders below
+            // (none of the HTML renderers clear the output buffer, so this survives).
+            if (PHP_SAPI !== 'cli') {
+                echo self::maintenanceNoticeHtml();
+            }
+
             // Do not display errors in production with display_errors off —
             // EXCEPT for an admin/supervisor, who gets the full detailed page so
             // they can actually diagnose it.
@@ -365,7 +373,7 @@ class ErrorHandler
     <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
             </head>
-            <body>
+            <body>' . self::maintenanceNoticeHtml() . '
                 <div class="error-container">
                     <div class="error-title">Error Handler Failed</div>
                     <p class="error-message">The error handler encountered a problem while processing an error.</p>
@@ -450,7 +458,7 @@ class ErrorHandler
     <link rel="stylesheet" href="/library/assets/css/errorhandler.css">
 
                 </head>
-                <body>
+                <body>' . self::maintenanceNoticeHtml() . '
                     <div class="error-box">
                         <h1>Fatal Error</h1>
                         <p>A critical error occurred that could not be handled by the error handler:</p>
@@ -526,6 +534,80 @@ class ErrorHandler
     }
 
     /**
+     * Locate the maintenance.flag file (raised by deploy.php around a
+     * `composer update`, or by the CMA maintenance tool). Checked from a few
+     * anchors because the error handler runs from vendor/ and the working
+     * directory differs between the front-end and the /cma/ admin app.
+     * Dependency-free (native PHP only) so it works even while the autoloader
+     * and vendor/ tree are mid-swap during a deploy.
+     */
+    protected static function maintenanceFlagFile(): ?string
+    {
+        // vendor/stenversonline/platform/src/helpers/ErrorHandler.php -> app root
+        $candidates = [dirname(__DIR__, 5) . '/maintenance.flag'];
+        if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+            $candidates[] = rtrim($_SERVER['DOCUMENT_ROOT'], "/\\") . '/maintenance.flag';
+        }
+        $cwd = @getcwd();
+        if (is_string($cwd) && $cwd !== '') {
+            $candidates[] = $cwd . '/maintenance.flag';           // site root
+            $candidates[] = dirname($cwd) . '/maintenance.flag';  // e.g. cwd == cma/
+        }
+        foreach ($candidates as $file) {
+            if (@is_file($file)) {
+                return $file;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * True when the site is currently in maintenance. Mirrors the gate in
+     * _bootstrap.php: a manual toggle ("manual":true) stays until an admin lifts
+     * it; an unmarked deploy flag auto-expires after 20 minutes as a
+     * crashed/killed-deploy safety net.
+     */
+    protected static function maintenanceActive(): bool
+    {
+        $file = self::maintenanceFlagFile();
+        if ($file === null) {
+            return false;
+        }
+        $raw  = trim((string) @file_get_contents($file));
+        $data = ($raw !== '') ? json_decode($raw, true) : [];
+        if (!is_array($data)) {
+            $data = [];
+        }
+        if (empty($data['manual']) && (time() - (int) @filemtime($file)) > 1200) {
+            return false; // stale deploy flag
+        }
+        return true;
+    }
+
+    /**
+     * A self-contained maintenance banner for error pages. When the site is in
+     * maintenance, a fatal is most likely a side effect of the mid-deploy swap
+     * rather than a real bug — this tells the viewer so. Inline-styled and
+     * position:fixed so it renders on top of any error page (even before <body>,
+     * and even when stylesheets / the autoloader are unavailable during a deploy).
+     * Returns '' when no maintenance is active, so callers can echo it blindly.
+     */
+    protected static function maintenanceNoticeHtml(): string
+    {
+        if (!self::maintenanceActive()) {
+            return '';
+        }
+        return '<div role="alert" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;'
+            . 'box-sizing:border-box;margin:0;padding:12px 18px;background:#b8892b;color:#fff;'
+            . 'font-family:system-ui,-apple-system,\'Segoe UI\',Roboto,sans-serif;font-size:14px;'
+            . 'line-height:1.45;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.25)">'
+            . '<strong>Er vindt momenteel onderhoud plaats.</strong> '
+            . 'Deze foutmelding is daar hoogstwaarschijnlijk het gevolg van &mdash; '
+            . 'probeer het over enkele minuten opnieuw.'
+            . '</div>';
+    }
+
+    /**
      * Emit a structured JSON error for AJAX/fetch callers. The shape matches
      * what the cmaApiError module in form-controller.js (handleResponse) consumes:
      *   { success:false, error, errorType, debug:{ file, line, trace, diagnostics } }
@@ -566,6 +648,15 @@ class ErrorHandler
             'error'     => $detailed ? $exception->getMessage() : 'Er is een interne serverfout opgetreden.',
             'errorType' => $detailed ? get_class($exception) : 'ServerError',
         ];
+
+        // Maintenance hint: a fatal during a deploy/maintenance window is most
+        // likely a side effect of the mid-swap vendor tree, not a real bug.
+        if (self::maintenanceActive()) {
+            $payload['maintenance'] = true;
+            $payload['error'] = 'Er vindt momenteel onderhoud plaats; deze fout is daar '
+                . 'hoogstwaarschijnlijk het gevolg van. Probeer het over enkele minuten opnieuw.'
+                . ($detailed ? ' (Oorspronkelijke fout: ' . $exception->getMessage() . ')' : '');
+        }
 
         if ($detailed) {
             $debug = [
@@ -3259,6 +3350,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
 ';
         echo '</head>';
         echo '<body>';
+        echo self::maintenanceNoticeHtml();
         echo '<div class="error-container">';
         echo '<div class="error-header" style="display:flex;justify-content:space-between;align-items:center">';
         echo '<h1 style="margin:0">⚠️ ' . htmlspecialchars($errorInfo['title']) . '</h1>';
