@@ -24,6 +24,17 @@ class MenuGroupIconTest extends TestCase
         $this->assertSame('lnr-inbox', menuGroupIcon('Inventarisatie'));
     }
 
+    // Regression: these two real group names contain a space/word that did not
+    // match the underscore keys, so they fell back to the generic lnr-menu.
+    public function testMultiWordGroupNamesResolveNotFallback(): void
+    {
+        $this->assertSame('lnr-file-check', menuGroupIcon('Toetsen en opdrachten'));
+        $this->assertSame('lnr-book', menuGroupIcon('RINO info'));
+        // These must NOT be the generic fallback.
+        $this->assertTrue(menuGroupIcon('Toetsen en opdrachten') !== 'lnr-menu');
+        $this->assertTrue(menuGroupIcon('RINO info') !== 'lnr-menu');
+    }
+
     public function testLookupIsCaseInsensitive(): void
     {
         $this->assertSame('lnr-cog', menuGroupIcon('SYSTEEM'));

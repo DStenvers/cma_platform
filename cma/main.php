@@ -182,6 +182,12 @@ $appLogoConfig = cma_get_app_logo();
 $appLogoPath = $appLogoConfig['logo'] ?? '';
 $appLogoUrl = $appLogoConfig['url'] ?? '../';
 $appBgColor = $appLogoConfig['backgroundColor'] ?? '#3F096E';
+// Logo image dimensions from cma_branding.json (0 = use the CSS defaults).
+$appLogoWidth  = (int)($appLogoConfig['logoWidth'] ?? 0);
+$appLogoHeight = (int)($appLogoConfig['logoHeight'] ?? 0);
+$appLogoStyle  = '';
+if ($appLogoWidth > 0)  { $appLogoStyle .= 'width:' . $appLogoWidth . 'px;max-width:' . $appLogoWidth . 'px;'; }
+if ($appLogoHeight > 0) { $appLogoStyle .= 'height:' . $appLogoHeight . 'px;'; }
 
 // Environment label
 $omgeving = Application::get('omgeving', '');
@@ -444,6 +450,7 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
                        still reads the app title. */ ?>
                     <img src="<?= Server::htmlEncode($appLogoPath) ?>"
                          alt="<?= Server::htmlEncode($appTitle) ?>"
+                         <?php if ($appLogoWidth > 0): ?>width="<?= $appLogoWidth ?>" <?php endif; ?><?php if ($appLogoHeight > 0): ?>height="<?= $appLogoHeight ?>" <?php endif; ?><?php if ($appLogoStyle !== ''): ?>style="<?= Server::htmlEncode($appLogoStyle) ?>" <?php endif; ?>
                          onerror="this.outerHTML='<span class=&quot;cma-logo-text&quot;><?= Server::htmlEncode($appTitle) ?></span>'">
                     <?php else: ?>
                     <span class="cma-logo-text"><?= Server::htmlEncode($appTitle) ?></span>

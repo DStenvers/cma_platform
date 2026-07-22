@@ -780,6 +780,11 @@ function cma_get_app_logo(): array {
         'url' => '../',
         'backgroundColor' => '#3F096E',
         'height' => 62,
+        // Actual logo image dimensions from cma_branding.json (0 = not set →
+        // fall back to the CSS defaults in main.css). 'height' above stays the
+        // (clamped) sidebar-header height; these two size the <img> itself.
+        'logoWidth' => 0,
+        'logoHeight' => 0,
     ];
 
     // Primary source: per-site /data/cma_branding.json (renamed from app.json; not
@@ -812,6 +817,8 @@ function cma_get_app_logo(): array {
                 $config['backgroundColor'] = $company['backgroundColor'];
             }
             $config['height'] = max((int)($company['logoHeight'] ?? 0) + 2, 62);
+            $config['logoWidth'] = (int)($company['logoWidth'] ?? 0);
+            $config['logoHeight'] = (int)($company['logoHeight'] ?? 0);
         }
     }
 
@@ -827,6 +834,12 @@ function cma_get_app_logo(): array {
         }
         if ($config['height'] === 62 && !empty($menuConfig['logoHeight'])) {
             $config['height'] = max((int)$menuConfig['logoHeight'] + 2, 62);
+        }
+        if ($config['logoWidth'] === 0 && !empty($menuConfig['logoWidth'])) {
+            $config['logoWidth'] = (int)$menuConfig['logoWidth'];
+        }
+        if ($config['logoHeight'] === 0 && !empty($menuConfig['logoHeight'])) {
+            $config['logoHeight'] = (int)$menuConfig['logoHeight'];
         }
     }
 
