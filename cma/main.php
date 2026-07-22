@@ -197,54 +197,9 @@ if ($omgeving === 'A') {
 
 $menuItems = [];
 
-// Menu group icons mapping - based on kader_icon from login.php
-$menuGroupIcons = [
-    'dashboard' => 'lnr-home',
-    'systeem' => 'lnr-cog',
-    'beheer' => 'lnr-database',
-    'content' => 'lnr-file-add',
-    'rapportage' => 'lnr-document',        // e6d8 - document icon
-    'rapporten' => 'lnr-document',         // e6d8 - document icon
-    'rapportages' => 'lnr-document',       // e6d8 - document icon
-    'rapport' => 'lnr-document',           // e6d8 - document icon
-    'instellingen' => 'lnr-cog',
-    'tools' => 'lnr-construction',
-    'utilities' => 'lnr-construction',
-    'formulieren' => 'lnr-layers',
-    'opleidingen' => 'lnr-graduation-hat',
-    'toetsing' => 'lnr-diploma',           // e6db - diploma/certificate
-    'toetsen' => 'lnr-file-check',         // e6b5 - file with checkmark
-    'opdrachten' => 'lnr-file-check',      // e6b5 - file with checkmark
-    'evaluaties' => 'lnr-thumbs-up',
-    'rino_info' => 'lnr-clipboard-user',   // e6d0 - user-tailored information
-    'marketing_url' => 'lnr-link',
-    'marketing' => 'lnr-link',
-    'afspraken' => 'lnr-calendar-31',      // e788 - calendar with 31
-    'literatuur' => 'lnr-book',
-    'personen' => 'lnr-users2',
-    'cgo' => 'lnr-file-preview',           // e911 - file preview
-    'gesprekken' => 'lnr-group-work',      // e726 - group conversation
-    'servicebureau' => 'lnr-site-map',     // e883 - site-map/organization
-    'menu' => 'lnr-menu',
-    'zoektermen' => 'lnr-magnifier',
-    'urls' => 'lnr-link',
-    'materialen' => 'lnr-box',
-    'artikelen' => 'lnr-file-empty',
-    'nieuws' => 'lnr-news',                // e6d5 - news icon
-    'agenda' => 'lnr-calendar-31',         // e788 - calendar with 31
-    'agendareserveringen' => 'lnr-calendar-31',
-    'tijdsblokken' => 'lnr-calendar-31',
-    'kalender' => 'lnr-calendar-31',
-    'rooster' => 'lnr-calendar-31',        // e788 - calendar with 31
-    'tags' => 'lnr-tag',
-    'autos' => 'lnr-car',
-    'taken' => 'lnr-clipboard-check',      // e6cc - clipboard with checkmark
-    'teksten' => 'lnr-papers',             // e6d4 - papers/documents
-    'inventarisatie' => 'lnr-inbox',       // e69c - inbox/inventory
-    'audit' => 'lnr-clipboard-pencil',     // e6ca - clipboard with pencil
-    'audit_log' => 'lnr-clipboard-pencil', // e6ca - clipboard with pencil
-    'documenten' => 'lnr-document',        // e6d8 - document icon
-];
+// Menu group icons: the group-name -> lnr mapping now lives in menurep.inc's
+// menuGroupIcon() (shared with the dashboard menu cards), based on kader_icon
+// from login.php.
 
 // Add Dashboard as first menu item
 $menuItems[0] = [
@@ -281,8 +236,7 @@ if (\App\Library\Arr::isArray($arrMenu)) {
         if ($currentMenuName !== $menuName) {
             $currentMenuName = $menuName;
             $menuIndex++;
-            $menuNameLower = strtolower($menuName);
-            $groupIcon = $menuGroupIcons[$menuNameLower] ?? 'lnr-menu';
+            $groupIcon = menuGroupIcon($menuName);
             $menuItems[$menuIndex] = [
                 'name' => $menuName,
                 'icon' => $groupIcon,

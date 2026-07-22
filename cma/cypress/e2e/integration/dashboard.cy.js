@@ -26,6 +26,14 @@ describe('Dashboard', () => {
       // Dashboard should have at least one card or section
       cy.get('.dashboard-card, .stats-card').should('have.length.at.least', 1);
     });
+
+    it('should show a group icon on every menu card header', () => {
+      // Regression: the menu cards had lost the per-group icon (menuGroupIcon()).
+      cy.get('.menu-card').should('have.length.at.least', 1);
+      cy.get('.menu-card-header').each($h => {
+        cy.wrap($h).find('.lnr').should('exist');
+      });
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -46,6 +54,14 @@ describe('Dashboard', () => {
     it('should display Mijn recente activiteit (Recent Activity) section', () => {
       cy.get('#recentActivityCard').should('exist');
       cy.get('#recentActivityCard .dashboard-card-header').should('contain', 'Mijn recente activiteit');
+    });
+
+    it('should right-align the recent activity header action icons', () => {
+      // The view-all (+ conditionally shown export) icons live in a
+      // margin-left:auto .header-actions group so they hug the right edge.
+      cy.get('#recentActivityCard .dashboard-card-header .header-actions')
+        .should('exist')
+        .find('.lnr-list').should('exist');
     });
 
     it('should load recent activity data', () => {

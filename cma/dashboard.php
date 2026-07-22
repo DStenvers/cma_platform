@@ -160,6 +160,38 @@ if ($isAdmin) {
             font-size: var(--font-size-lg);
         }
 
+        /* Header action icons (export / view-all) right-aligned in the header.
+           Wrapped in .header-actions so the group hugs the right even when the
+           export button starts hidden (display:none until there is data). */
+        .dashboard-card-header .header-actions {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dashboard-card-header .header-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            background: none;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .dashboard-card-header .header-action:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .dashboard-card-header .header-action .lnr {
+            font-size: var(--font-size-lg);
+            line-height: 1;
+        }
+
         .dashboard-card-body {
             padding: 16px;
         }
@@ -201,6 +233,14 @@ if ($isAdmin) {
             padding: 12px 16px;
             font-size: var(--font-size-md);
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-card-header .lnr::before {
+            color: #fff;
+            font-size: var(--font-size-lg);
         }
 
         .menu-card-body {
@@ -1065,12 +1105,14 @@ if ($isAdmin) {
             <div class="dashboard-card-header">
                 <span class="lnr lnr-history"></span>
                 Mijn recente activiteit
-                <a href="#" class="header-action" id="exportActivityBtn" onclick="exportRecentActivity(); return false;" data-tooltip="Exporteer naar CSV" style="display:none;">
-                    <span class="lnr lnr-download"></span>
-                </a>
-                <a href="form.php?form=cmamonitoring" class="header-action" data-tooltip="Alle activiteit bekijken">
-                    <span class="lnr lnr-list"></span>
-                </a>
+                <div class="header-actions">
+                    <a href="#" class="header-action" id="exportActivityBtn" onclick="exportRecentActivity(); return false;" data-tooltip="Exporteer naar CSV" style="display:none;">
+                        <span class="lnr lnr-download"></span>
+                    </a>
+                    <a href="form.php?form=cmamonitoring" class="header-action" data-tooltip="Alle activiteit bekijken">
+                        <span class="lnr lnr-list"></span>
+                    </a>
+                </div>
             </div>
             <div class="dashboard-card-body" id="recentActivity" style="padding: 0;">
                 <div class="stats-loading" style="padding: 16px;">Laden...</div>
@@ -1260,7 +1302,7 @@ if ($isAdmin) {
     <div class="menu-grid">
         <?php foreach ($menuGroups as $groupName => $items): ?>
         <div class="menu-card">
-            <div class="menu-card-header"><?= htmlspecialchars($groupName) ?></div>
+            <div class="menu-card-header"><span class="lnr <?= htmlspecialchars(menuGroupIcon($groupName)) ?>"></span><?= htmlspecialchars($groupName) ?></div>
             <div class="menu-card-body">
                 <?php foreach ($items as $item): ?>
                 <a href="<?= htmlspecialchars($item['href']) ?>"><?= htmlspecialchars($item['name']) ?></a>

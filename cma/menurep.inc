@@ -80,3 +80,60 @@ function loadMenuData(): array {
 
     return $result;
 }
+
+/**
+ * Map a menu-group name to its Linearicons class — the "kader_icon" the old CMA
+ * showed on each menu block/card. Case-insensitive on the group name; falls back
+ * to a generic menu icon. Single source of truth shared by the header dropdowns
+ * (main.php) and the dashboard menu cards (dashboard.php).
+ */
+function menuGroupIcon(string $menuName): string {
+    static $icons = [
+        'dashboard' => 'lnr-home',
+        'systeem' => 'lnr-cog',
+        'beheer' => 'lnr-database',
+        'content' => 'lnr-file-add',
+        'rapportage' => 'lnr-document',
+        'rapporten' => 'lnr-document',
+        'rapportages' => 'lnr-document',
+        'rapport' => 'lnr-document',
+        'instellingen' => 'lnr-cog',
+        'tools' => 'lnr-construction',
+        'utilities' => 'lnr-construction',
+        'formulieren' => 'lnr-layers',
+        'opleidingen' => 'lnr-graduation-hat',
+        'toetsing' => 'lnr-diploma',
+        'toetsen' => 'lnr-file-check',
+        'opdrachten' => 'lnr-file-check',
+        'evaluaties' => 'lnr-thumbs-up',
+        'rino_info' => 'lnr-clipboard-user',
+        'marketing_url' => 'lnr-link',
+        'marketing' => 'lnr-link',
+        'afspraken' => 'lnr-calendar-31',
+        'literatuur' => 'lnr-book',
+        'personen' => 'lnr-users2',
+        'cgo' => 'lnr-file-preview',
+        'gesprekken' => 'lnr-group-work',
+        'servicebureau' => 'lnr-site-map',
+        'menu' => 'lnr-menu',
+        'zoektermen' => 'lnr-magnifier',
+        'urls' => 'lnr-link',
+        'materialen' => 'lnr-box',
+        'artikelen' => 'lnr-file-empty',
+        'nieuws' => 'lnr-news',
+        'agenda' => 'lnr-calendar-31',
+        'agendareserveringen' => 'lnr-calendar-31',
+        'tijdsblokken' => 'lnr-calendar-31',
+        'kalender' => 'lnr-calendar-31',
+        'rooster' => 'lnr-calendar-31',
+        'tags' => 'lnr-tag',
+        'autos' => 'lnr-car',
+        'taken' => 'lnr-clipboard-check',
+        'teksten' => 'lnr-papers',
+        'inventarisatie' => 'lnr-inbox',
+        'audit' => 'lnr-clipboard-pencil',
+        'audit_log' => 'lnr-clipboard-pencil',
+        'documenten' => 'lnr-document',
+    ];
+    return $icons[strtolower($menuName)] ?? 'lnr-menu';
+}
