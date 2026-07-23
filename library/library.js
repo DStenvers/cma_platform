@@ -2591,3 +2591,57 @@ $("#notification_top, #notification_fixed").click( function () {
         setTimeout(function () { btn.classList.remove('btn--clicked'); }, 240);
     }, true);
 })();
+
+/**
+ * Lazy-load library/table_functions.min.js (TableExport + SheetJS + FileSaver,
+ * ~470KB) and run the callback once window.TableExport is available.
+ *
+ * The client-side export menus (lib-table `_doExport`, form-controller
+ * `_exportTable`) call this before touching TableExport. The library is kept
+ * out of the JS bundle on purpose - only the export menu needs it, and it is
+ * larger than the rest of the bundle combined. Always the minified build: it is
+ * vendor code, so there is nothing to debug in the unminified copy.
+ *
+ * Concurrent calls share one <script> tag; their callbacks are queued and fire
+ * together on load. On a load failure the callbacks are dropped and the user is
+ * told, so the caller cannot run into an undefined TableExport.
+ *
+ * @param {Function} callback Runs when TableExport is ready
+ */
+function lib_LoadTableFunctions(callback) {
+    if (typeof window.TableExport !== 'undefined') {
+        callback();
+        return;
+    }
+
+    lib_LoadTableFunctions._queue = lib_LoadTableFunctions._queue || [];
+    lib_LoadTableFunctions._queue.push(callback);
+    if (lib_LoadTableFunctions._loading) { return; }
+    lib_LoadTableFunctions._loading = true;
+
+    // Path resolution mirrors LibTable._ensureDependencies: derive the library
+    // folder from our own script tag (carrying over any ?v= cache buster) when
+    // the page loads assets unbundled, otherwise fall back to the site-root
+    // convention that the rest of the platform assumes.
+    var tag = document.querySelector('script[src*="/library/library.js"], script[src*="/library/library.min.js"]');
+    var src = tag ? tag.src.replace(/\/library\/library(\.min)?\.js/, '/library/table_functions.min.js')
+                  : '/library/table_functions.min.js';
+
+    var script = document.createElement('script');
+    script.src = src;
+    script.onload = function () {
+        var queue = lib_LoadTableFunctions._queue;
+        lib_LoadTableFunctions._queue = [];
+        lib_LoadTableFunctions._loading = false;
+        queue.forEach(function (fn) { fn(); });
+    };
+    script.onerror = function () {
+        lib_LoadTableFunctions._queue = [];
+        lib_LoadTableFunctions._loading = false;
+        console.error('lib_LoadTableFunctions: kon ' + script.src + ' niet laden');
+        if (window.libToast) {
+            libToast.error('De exportmodule kon niet geladen worden.');
+        }
+    };
+    document.head.appendChild(script);
+}

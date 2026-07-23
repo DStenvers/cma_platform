@@ -6287,3 +6287,11 @@ karaat-data en staat in de karaat-repo.
 > #this site is not yet in production, it is a migration still in proces
 
 > are you still logging to prompts.md? I asked you to mention the logfile in logreader if there were no logs, but i don't see it yet.
+
+## 2026-07-23
+
+> this code is also used inside the cma_platform, can you check if the patch is needed there as well?
+
+> 1 and re-wire the function into the cma and platform, the excel export from the .php file is probably less reliable
+
+> can you do the same in the cma_platform repo?
