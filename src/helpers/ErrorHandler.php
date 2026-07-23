@@ -2527,38 +2527,77 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                                 </div>
                                 <div style="padding: 15px;">';
                     
-                    // Get database connections from Config class if available
+                    // The connections as the runtime actually resolved them:
+                    // Database::getConfiguredDsn() returns the DSN Bootstrap
+                    // registered from databases.json (per-site data/ first, the
+                    // platform default second) and falls back to the legacy
+                    // conn_<name> Application global per connection. Reading the
+                    // globals directly - as this tab used to - tests a different
+                    // connection than the one that just failed on any site that
+                    // configures its databases in databases.json.
                     $dbConnections = [];
-                    if (class_exists('\\App\\Library\\Config')) {
-                        // Try to get all database connections from config
-                        try {
-                            $config = \App\Library\Config::all();
-                            if (isset($config['database']['connections']) && is_array($config['database']['connections'])) {
-                                $dbConnections = $config['database']['connections'];
+                    if (class_exists('\\App\\Library\\Database')) {
+                        // Which logical connections databases.json actually fills -
+                        // an entry with an empty connectionString defines nothing and
+                        // leaves the legacy global in charge, which is exactly the
+                        // case that makes people think the file isn't read at all.
+                        $fromJson = [];
+                        if (class_exists('\\App\\Library\\Bootstrap')) {
+                            $aliases = [
+                                'users' => 'users', 'cmausers' => 'users',
+                                'data' => 'data', 'database' => 'data', 'main' => 'data',
+                                'rep' => 'rep', 'repository' => 'rep',
+                            ];
+                            try {
+                                foreach (\App\Library\Bootstrap::loadDatabasesConfig() as $entry) {
+                                    $key = $aliases[strtolower(trim((string)($entry['name'] ?? '')))] ?? null;
+                                    if ($key !== null && trim((string)($entry['connectionString'] ?? '')) !== '') {
+                                        $fromJson[$key] = true;
+                                    }
+                                }
+                            } catch (\Throwable $e) {
+                                // Bootstrap not initialised - fall back to "unknown source"
                             }
-                        } catch (\Exception $e) {
-                            // Config class might throw exception if not initialized
+                        }
+
+                        foreach (['data', 'rep', 'users'] as $logical) {
+                            try {
+                                $dsn = \App\Library\Database::getConfiguredDsn($logical);
+                            } catch (\Throwable $e) {
+                                continue;
+                            }
+                            if ($dsn === '') {
+                                continue; // not configured (rep legitimately falls back to data)
+                            }
+                            $scheme = strtolower((string)strstr($dsn, ':', true));
+                            $dbConnections[] = [
+                                'name' => $logical,
+                                'source' => isset($fromJson[$logical])
+                                    ? 'databases.json'
+                                    : 'conn_' . $logical . ' (app.php)',
+                                'driver' => $scheme !== '' ? $scheme : 'unknown',
+                                'connection_string' => $dsn,
+                                'username' => '',
+                                'password' => ''
+                            ];
                         }
                     }
 
-                    // Fallback: Check for legacy $GLOBALS['Application'] connections
+                    // Fallback for sites without the Database class loaded: the
+                    // legacy $GLOBALS['Application'] connection strings.
                     if (empty($dbConnections)) {
                         try {
                             if (isset($GLOBALS['Application']) && is_array($GLOBALS['Application'])) {
-                                if (isset($GLOBALS['Application']['conn_data']) && !empty($GLOBALS['Application']['conn_data'])) {
+                                foreach (['conn_data', 'conn_rep', 'conn_users'] as $legacyKey) {
+                                    if (empty($GLOBALS['Application'][$legacyKey])) {
+                                        continue;
+                                    }
+                                    $legacyDsn = (string)$GLOBALS['Application'][$legacyKey];
+                                    $scheme = strtolower((string)strstr($legacyDsn, ':', true));
                                     $dbConnections[] = [
-                                        'name' => 'conn_data (Legacy)',
-                                        'driver' => 'access',
-                                        'connection_string' => $GLOBALS['Application']['conn_data'],
-                                        'username' => '',
-                                        'password' => ''
-                                    ];
-                                }
-                                if (isset($GLOBALS['Application']['conn_rep']) && !empty($GLOBALS['Application']['conn_rep'])) {
-                                    $dbConnections[] = [
-                                        'name' => 'conn_rep (Legacy)',
-                                        'driver' => 'access',
-                                        'connection_string' => $GLOBALS['Application']['conn_rep'],
+                                        'name' => $legacyKey . ' (Legacy)',
+                                        'driver' => $scheme !== '' ? $scheme : 'access',
+                                        'connection_string' => $legacyDsn,
                                         'username' => '',
                                         'password' => ''
                                     ];
@@ -2568,7 +2607,7 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             // Silently ignore if $GLOBALS['Application'] is not accessible
                         }
                     }
-                    
+
                     if (!empty($dbConnections)) {
                         echo '<table class="request-data">
                                 <tr>
@@ -2588,63 +2627,29 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             $status = 'Not Tested';
                             $details = '';
                             
-                            // Test connection (safely - avoiding exceptions)
+                            // Every entry carries a full PDO DSN, so it is opened
+                            // exactly as the runtime would open it.
+                            $dsn = (string)($connection['connection_string'] ?? '');
                             try {
-                                switch ($driver) {
-                                    case 'mysql':
-                                        $dsn = "mysql:host=" . ($connection['host'] ?? 'localhost') . 
-                                               ";dbname=" . ($connection['database'] ?? '');
-                                        $status = self::testDatabaseConnection(
-                                            $dsn, 
-                                            $connection['username'] ?? '', 
-                                            $connection['password'] ?? ''
-                                        );
-                                        break;
-                                        
-                                    case 'sqlsrv':
-                                        $dsn = "sqlsrv:Server=" . ($connection['host'] ?? 'localhost') . 
-                                               ";Database=" . ($connection['database'] ?? '');
-                                        $status = self::testDatabaseConnection(
-                                            $dsn, 
-                                            $connection['username'] ?? '', 
-                                            $connection['password'] ?? ''
-                                        );
-                                        break;
-                                        
-                                    case 'access':
-                                        if (isset($connection['connection_string'])) {
-                                            $dsn = $connection['connection_string'];
-                                            $status = self::testDatabaseConnection(
-                                                $dsn, 
-                                                $connection['username'] ?? '', 
-                                                $connection['password'] ?? ''
-                                            );
-                                        } elseif (isset($connection['database_path'])) {
-                                            $dsn = "odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" . 
-                                                  $connection['database_path'];
-                                            $status = self::testDatabaseConnection(
-                                                $dsn, 
-                                                $connection['username'] ?? '', 
-                                                $connection['password'] ?? ''
-                                            );
-                                        } else {
-                                            $status = ['success' => false, 'message' => 'Missing database path or connection string'];
-                                        }
-                                        break;
-                                        
-                                    default:
-                                        $status = ['success' => false, 'message' => 'Unsupported database driver'];
-                                }
-                            } catch (\Exception $e) {
+                                $status = $dsn !== ''
+                                    ? self::testDatabaseConnection(
+                                        $dsn,
+                                        $connection['username'] ?? '',
+                                        $connection['password'] ?? ''
+                                      )
+                                    : ['success' => false, 'message' => 'No connection string configured'];
+                            } catch (\Throwable $e) {
                                 $status = ['success' => false, 'message' => 'Error testing connection: ' . $e->getMessage()];
                             }
-                            
+
                             $statusClass = ($status['success'] ?? false) ? 'green' : 'red';
                             $statusText = ($status['success'] ?? false) ? 'Connected' : 'Failed';
                             $details = $status['message'] ?? '';
-                            
+
                             echo '<tr>
-                                    <td><span class="error-handler__strong">' . htmlspecialchars($name) . '</span></td>
+                                    <td><span class="error-handler__strong">' . htmlspecialchars($name) . '</span>'
+                                        . (isset($connection['source']) ? ' <span class="eh-conn-source">via ' . htmlspecialchars($connection['source']) . '</span>' : '')
+                                        . '<div class="eh-conn-dsn">' . htmlspecialchars($dsn) . '</div></td>
                                     <td>' . htmlspecialchars($driver) . '</td>
                                     <td style="color: ' . $statusClass . ';">' . $statusText . '</td>
                                     <td>' . htmlspecialchars($details) . '</td>

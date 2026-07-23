@@ -464,6 +464,11 @@ wél gebruiken hebben nog steeds een werkende ODBC-omgeving nodig.
 3. **Bitness match:** een 64-bits app-pool heeft de 64-bits ACE-redistributable nodig
    (en omgekeerd). Mismatch geeft exact dezelfde "Algemene fout".
 
-**Snel verifiëren welke named connection faalt:** `cma/tools/db_health.php`
-(self-contained, geen bootstrap) test elke ODBC-verbinding apart en rapporteert de
-oorzaak + bovenstaande remediatie.
+**Snel verifiëren welke named connection faalt:** de foutpagina zelf. Sinds v1.29.108
+somt **Diagnostics & Tests → Database Tests** de logische verbindingen (`data`, `rep`,
+`users`) op zoals de runtime ze oplost — met de DSN erbij en de herkomst ervan
+(`via databases.json` of `via conn_<naam> (app.php)`) — en opent elke DSN apart.
+Een entry in `databases.json` met een lege `connectionString` definieert niets: dan
+wint de legacy `conn_*`-global uit `app.php`, en dat is precies wat die kolom laat
+zien. (De losse tool `cma/tools/db_health.php` is vervallen in v1.28.134 en wordt
+door de Installer van consumer-sites verwijderd.)

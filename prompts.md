@@ -6299,3 +6299,11 @@ karaat-data en staat in de karaat-repo.
 > Selecteer een record uit de linker lijst om te wijzigen
 >
 >  : ik mis de of tussen de tekst en de knop, liefst in italic
+
+> PDOException in in D:\wwwroot\test-mijn.rino.nl\vendor\stenversonline\platform\src\helpers\Database.php on line 542 (code: 63) Database connection 'data' failed.Driver: odbcDSN: odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=D:\wwwroot\test-mijn.rino.nl\db\pdodomain.mdb;Charset=UTF-8Error: SQLSTATE[HY000] SQLDriverConnect: 63 [Microsoft][ODBC Microsoft Access Driver]General error Unable to open registry key Temporary (volatile) Ace DSN for process 0x2ea0 Thread 0x1110 DBC 0xcd81b6d8 Jet'.
+
+> on the test-site it says: [zelfde PDOException, met stacktrace via index.php:68 / _bootstrap_wrapper.php:90], but it seems database.json is not read?!
+
+> the database tab in errorhandler, does that read databaess.json ? Diagnostics & Tests
+
+> yes, release and push

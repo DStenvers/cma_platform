@@ -263,6 +263,20 @@
     margin-top: 20px;
 }
 
+/* Connection tests: where the DSN came from, and the DSN itself */
+.eh-conn-source {
+    font-size: 11px;
+    color: #666;
+}
+
+.eh-conn-dsn {
+    margin-top: 2px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #666;
+    word-break: break-all;
+}
+
 /* Layout utilities */
 .eh-flex-between {
     display: flex;
