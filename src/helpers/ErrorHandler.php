@@ -2609,6 +2609,12 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                     }
 
                     if (!empty($dbConnections)) {
+                        // Which databases.json the runtime actually loaded (set by
+                        // Bootstrap::loadDatabasesConfig): data/databases.json when the
+                        // site has one, otherwise the platform default in cma/config.
+                        echo '<div class="eh-conn-source">Config: '
+                             . htmlspecialchars((string)($GLOBALS['_db_config_source'] ?? 'no databases.json loaded'))
+                             . '</div>';
                         echo '<table class="request-data">
                                 <tr>
                                     <th>Connection Name</th>
@@ -2630,6 +2636,17 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             // Every entry carries a full PDO DSN, so it is opened
                             // exactly as the runtime would open it.
                             $dsn = (string)($connection['connection_string'] ?? '');
+
+                            // A file-based DSN (Access/SQLite) that points at a
+                            // missing file fails inside the driver with a message
+                            // that rarely mentions the path, so check it up front.
+                            $missingFile = '';
+                            if (preg_match('/(?:Dbq|Database)=([^;]+)/i', $dsn, $m) || preg_match('/^sqlite:(.+)$/i', $dsn, $m)) {
+                                $file = trim($m[1]);
+                                if ($file !== '' && strcasecmp($file, ':memory:') !== 0 && !is_file($file)) {
+                                    $missingFile = $file;
+                                }
+                            }
                             try {
                                 $status = $dsn !== ''
                                     ? self::testDatabaseConnection(
@@ -2645,6 +2662,9 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             $statusClass = ($status['success'] ?? false) ? 'green' : 'red';
                             $statusText = ($status['success'] ?? false) ? 'Connected' : 'Failed';
                             $details = $status['message'] ?? '';
+                            if ($missingFile !== '') {
+                                $details = 'File does not exist: ' . $missingFile . ' — ' . $details;
+                            }
 
                             echo '<tr>
                                     <td><span class="error-handler__strong">' . htmlspecialchars($name) . '</span>'
@@ -2717,16 +2737,25 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                             </table>
                           </div>';
                     
-                    // Check important directories
+                    // Check important directories. Resolved against the site root
+                    // rather than the working directory - under IIS the cwd is the
+                    // running script's folder, so './logs' from /cma/main.php would
+                    // look for cma/logs. Non-existing entries are skipped below, so
+                    // both spellings of the sessions dir can be listed.
+                    $fsRoot = (class_exists('\\App\\Library\\Bootstrap') && \App\Library\Bootstrap::getRootDir() !== '')
+                        ? rtrim(\App\Library\Bootstrap::getRootDir(), "/\\")
+                        : '.';
                     $importantDirs = [
-                        '.' => 'Root Directory',
-                        './app' => 'App Directory',
-                        './public' => 'Public Directory',
-                        './uploads' => 'Uploads Directory',
-                        './logs' => 'Logs Directory',
-                        './cache' => 'Cache Directory',
-                        './storage' => 'Storage Directory',
-                        './vendor' => 'Vendor Directory'
+                        $fsRoot => 'Site Root',
+                        $fsRoot . '/data' => 'Data Directory (JSON config, Access files)',
+                        $fsRoot . '/data/db' => 'Database Directory',
+                        $fsRoot . '/db' => 'Database Directory (old location)',
+                        $fsRoot . '/.config' => 'Config Directory',
+                        $fsRoot . '/.logs' => 'Logs Directory',
+                        $fsRoot . '/.cache' => 'Cache Directory',
+                        $fsRoot . '/.sessions' => 'Sessions Directory',
+                        $fsRoot . '/uploads' => 'Uploads Directory',
+                        $fsRoot . '/vendor' => 'Vendor Directory'
                     ];
                     
                     echo '<div>

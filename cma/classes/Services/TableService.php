@@ -812,14 +812,35 @@ class TableService extends BaseFormService
      */
     public static function getColumnPreferences(int|string $formId): array
     {
-        $cookieName = 'cma_cols_' . $formId;
-        $cookieValue = Cookie::get($cookieName, '');
+        $cookieValue = Cookie::get(self::columnCookieName($formId), '');
+
+        // Preferences saved before the name was lowercased (callers pass the JSON
+        // form name with whatever casing they have, so 'Opleidingen' and
+        // 'opleidingen' used to write two separate cookies).
+        if ($cookieValue === '' && (string)$formId !== strtolower((string)$formId)) {
+            $cookieValue = Cookie::get('cma_cols_' . $formId, '');
+        }
 
         if ($cookieValue === '') {
             return [];
         }
 
         return array_filter(explode(',', $cookieValue));
+    }
+
+    /**
+     * Cookie name for a form's column preferences.
+     *
+     * Lowercased: $formId is either a numeric form ID or a JSON form name, and
+     * the name's casing differs per caller. Cookie names are case-sensitive, so
+     * without this the same list ends up with one preference cookie per casing.
+     *
+     * @param int|string $formId Form ID or JSON form name
+     * @return string
+     */
+    private static function columnCookieName(int|string $formId): string
+    {
+        return 'cma_cols_' . strtolower((string)$formId);
     }
 
     /**
@@ -831,11 +852,15 @@ class TableService extends BaseFormService
      */
     public static function saveColumnPreferences(int|string $formId, array $columns): bool
     {
-        $cookieName = 'cma_cols_' . $formId;
         $cookieValue = implode(',', $columns);
 
         // Save for 1 year
-        Cookie::set($cookieName, $cookieValue, 365 * 24 * 60 * 60);
+        Cookie::set(self::columnCookieName($formId), $cookieValue, 365 * 24 * 60 * 60);
+
+        // Drop a mixed-case leftover so it can't shadow the lowercase one later
+        if ((string)$formId !== strtolower((string)$formId)) {
+            Cookie::delete('cma_cols_' . $formId);
+        }
         return true;
     }
 

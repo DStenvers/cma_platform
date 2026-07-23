@@ -6307,3 +6307,15 @@ karaat-data en staat in de karaat-repo.
 > the database tab in errorhandler, does that read databaess.json ? Diagnostics & Tests
 
 > yes, release and push
+
+> the errorhandler does not check the data directory, /logs should be .logs and cache should be .cache
+
+> it now shows: [Database Tests tabel] data via conn_data (app.php) ... Failed ... rep via conn_rep (app.php) ... Connected ... users via conn_users (app.php) ... Connected , but i don's want app.php to be used, it is retired, databases.json should be used
+
+> i have moved the databases from /db to /data
+
+> $fsRoot . '/sessions' => 'Sessions Directory (legacy name)', remove it
+
+> perhals .config should also be checked?
+
+> i see [$_COOKIE lijst] cma_cols_Opleidingen and cms_cols_opleidingen (lowercase), shall we always use lowercase whe saving form columns?

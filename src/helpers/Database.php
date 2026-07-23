@@ -244,6 +244,13 @@ class Database
         'database' => 'data',
         'repository' => 'rep',
         'cmausers' => 'users',
+        // Legacy call sites pass the Application-global name itself, e.g.
+        // Database::getNamedConnection('conn_data'). Those resolve to the logical
+        // connection (and thus to the DSN from databases.json) instead of throwing
+        // "connection 'conn_data' not configured".
+        'conn_data' => 'data',
+        'conn_rep' => 'rep',
+        'conn_users' => 'users',
     ];
 
     /**
