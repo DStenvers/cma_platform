@@ -456,6 +456,13 @@ form#mainForm {
     margin: 0;
 }
 
+/* "of" between the message and the Toevoegen button; the flex gap above is
+   generous, so pull it in a bit to keep the three lines reading as one block */
+.no-data__or {
+    margin: -6px 0;
+    font-style: italic;
+}
+
 .no-data__add .lnr {
     margin-right: 6px;
 }

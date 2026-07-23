@@ -1461,6 +1461,8 @@ class FormTemplate
             $noDataButtonLabel = Application::get('CMA_Language', '') == 'UK'
                 ? 'Add ' . $noDataSingular
                 : 'Voeg ' . $noDataSingular . ' toe';
+            $html .= '<p class="no-data__or">'
+                   . (Application::get('CMA_Language', '') == 'UK' ? 'or' : 'of') . '</p>' . PHP_EOL;
             // Same data-action="add" contract as the toolbar button, so the
             // controller's action delegation handles it identically.
             $html .= '<button type="button" class="btn btn-primary no-data__add" data-action="add">'

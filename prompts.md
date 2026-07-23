@@ -6295,3 +6295,7 @@ karaat-data en staat in de karaat-repo.
 > 1 and re-wire the function into the cma and platform, the excel export from the .php file is probably less reliable
 
 > can you do the same in the cma_platform repo?
+
+> Selecteer een record uit de linker lijst om te wijzigen
+>
+>  : ik mis de of tussen de tekst en de knop, liefst in italic
