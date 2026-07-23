@@ -6333,3 +6333,7 @@ karaat-data en staat in de karaat-repo.
 > i get an error on a missing xslt , we moved them to /assets/xslt but it is looking in /xslt
 
 > can you also set the cache to .cache ?
+
+> 1 yes, 2 identical rows  [beoordeling-conversie: ja; keuzemodules: identieke rijen]
+
+> 3 let's fix that at the root please, so yes: go ahead  [RecordSet::GetRows]

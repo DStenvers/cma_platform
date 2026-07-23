@@ -292,15 +292,21 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
     }
 
     /**
-     * Get all remaining rows as 2D array (ADO compatibility)
+     * Get all remaining rows, ADO-style: indexed (field, row).
      *
-     * ADO method: rs.GetRows() returns all remaining rows
-     * Alias for fetchAll()
+     * ADO's rs.GetRows() returns array(field, row) and converted VBScript reads it
+     * that way — arrBlokken(0, i) becomes $rows[0][$i]. This used to return
+     * fetchAll() (row-major), so such code silently read fields as rows: no error,
+     * just wrong values, and eventually a "Undefined array key"/type error deep in
+     * the page. ColumnMajorArray is the same shape Cache::retrieve() hands back,
+     * so both routes into converted code now agree.
      *
-     * @return array 2D array of remaining rows
+     * Row-major is still available: use fetchAll().
+     *
+     * @return ColumnMajorArray Columns keyed by name and by position, each holding a row-indexed array
      */
     public function GetRows() {
-        return $this->fetchAll();
+        return new ColumnMajorArray($this->fetchAll());
     }
 
     /**

@@ -379,10 +379,21 @@ class RecordSetTest extends TestCase
         $this->assertEquals([], $rs->fetchAll());
     }
 
-    public function testGetRowsIsAliasOfFetchAll(): void
+    public function testGetRowsReturnsAdoShape(): void
     {
+        // ADO indexeert (veld, rij); GetRows() geeft daarom een ColumnMajorArray
+        // terug, net als Cache::retrieve(). fetchAll() blijft row-major.
         $rs = $this->forwardRs($this->sampleRows());
         $rows = $rs->GetRows();
+        $this->assertEquals('Alice', $rows['naam'][0]);
+        $this->assertEquals('Bob', $rows['naam'][1]);
+        $this->assertCount(3, $rows['naam']);
+    }
+
+    public function testFetchAllStaysRowMajor(): void
+    {
+        $rs = $this->forwardRs($this->sampleRows());
+        $rows = $rs->fetchAll();
         $this->assertCount(3, $rows);
         $this->assertEquals('Alice', $rows[0]['naam']);
     }
