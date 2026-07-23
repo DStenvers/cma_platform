@@ -14,7 +14,7 @@
 // ============================================================
 
 defined('XSLT_PATH') || define('XSLT_PATH', 'assets/xslt/'); // moved to assets/xslt/ in migration 9.17/9.18
-define('CACHE_PATH', 'cache/');
+defined('CACHE_PATH') || define('CACHE_PATH', '.cache/'); // consolidated to .cache/ in migration 9.16
 define('CACHE_DIR_INDENT', 'dirs');
 
 // ============================================================

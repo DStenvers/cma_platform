@@ -6331,3 +6331,5 @@ karaat-data en staat in de karaat-repo.
 > these are / in the path, should that not be \ ?
 
 > i get an error on a missing xslt , we moved them to /assets/xslt but it is looking in /xslt
+
+> can you also set the cache to .cache ?

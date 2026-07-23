@@ -30,7 +30,7 @@ require_once __DIR__ . '/classes/class_tabs.inc';
 // Linux/WSL deployments too, where a literal 'cache\' backslash becomes part
 // of the filename. Matches library/config/constants.php.
 if (!defined("XSLT_PATH")) define("XSLT_PATH", 'assets/xslt/'); // moved to assets/xslt/ in migration 9.17/9.18
-if (!defined("CACHE_PATH")) define("CACHE_PATH", 'cache/');
+if (!defined("CACHE_PATH")) define("CACHE_PATH", '.cache/'); // consolidated to .cache/ in migration 9.16
 if (!defined("CACHE_DIR_INDENT")) define("CACHE_DIR_INDENT", 'dirs');
 define("CONSTFILEFORREADING", 1);
 define("CONSTFILEFORWRITING", 2);
