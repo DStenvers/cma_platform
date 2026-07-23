@@ -13,7 +13,9 @@
 // File System Constants (from library.inc)
 // ============================================================
 
-define('XSLT_PATH', 'xslt/');
+// Guarded like library/library.inc and library/config/constants.php: this file is
+// loaded first, so an unconditional define() here silently wins over both.
+defined('XSLT_PATH') || define('XSLT_PATH', 'assets/xslt/'); // moved to assets/xslt/ in migration 9.17/9.18
 define('CACHE_PATH', 'cache/');
 define('CACHE_DIR_INDENT', 'dirs');
 

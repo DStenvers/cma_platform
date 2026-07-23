@@ -6329,3 +6329,5 @@ karaat-data en staat in de karaat-repo.
 > this is a new error : PDOException ... Database.php on line 338 Database connection 'data' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named 'data'). [+ inhoud van data/databases.json, die wel klopt]
 
 > these are / in the path, should that not be \ ?
+
+> i get an error on a missing xslt , we moved them to /assets/xslt but it is looking in /xslt
