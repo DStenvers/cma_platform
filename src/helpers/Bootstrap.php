@@ -194,6 +194,24 @@ class Bootstrap
     }
 
     /**
+     * Register the data/rep/users connections from databases.json.
+     *
+     * init() does this itself. This entry point is for sites that predate it and
+     * still run their own _bootstrap.php: without it they have to rebuild the
+     * name mapping and the DSN conversion by hand, which is how a site ends up
+     * silently running on the legacy conn_* globals instead of databases.json.
+     *
+     * @param string $rootDir Project root, used when init() has not set one
+     */
+    public static function registerDatabaseConnections(string $rootDir = ''): void
+    {
+        if ($rootDir !== '' && self::$rootDir === '') {
+            self::$rootDir = rtrim($rootDir, "/\\");
+        }
+        self::initDatabaseConnections();
+    }
+
+    /**
      * Get a config value.
      */
     public static function getConfig(string $key, $default = null)
@@ -677,7 +695,7 @@ class Bootstrap
             if ($key === null || $dsns[$key] !== '') {
                 continue; // unknown name, or already filled (first match wins)
             }
-            $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::$rootDir);
+            $dsns[$key] = \App\Library\Database::dsnFromConfigEntry($entry, self::resolveRootDir());
         }
 
         // Back-compat: honour the legacy conn_* Application globals (still set in
@@ -706,12 +724,25 @@ class Bootstrap
         $accessDefaults = ['data' => 'main.mdb', 'users' => 'CMAUsers.mdb'];
         foreach ($accessDefaults as $key => $file) {
             if ($dsns[$key] === '') {
-                $path = self::$rootDir . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $file;
+                $path = self::resolveRootDir() . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $file;
                 $dsns[$key] = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $path;
             }
         }
 
         \App\Library\Database::initConnections($dsns);
+    }
+
+    /**
+     * Project root, also when init() never ran.
+     *
+     * Sites that predate Bootstrap::init() run their own _bootstrap.php, so
+     * self::$rootDir stays empty and every path built from it would start at the
+     * filesystem root. Fall back to our own location:
+     * vendor/stenversonline/platform/src/helpers -> site root.
+     */
+    private static function resolveRootDir(): string
+    {
+        return self::$rootDir !== '' ? self::$rootDir : dirname(__DIR__, 4);
     }
 
     /**
@@ -726,9 +757,11 @@ class Bootstrap
      */
     public static function loadDatabasesConfig(): array
     {
+        $root = self::resolveRootDir();
+
         $candidates = [
-            self::$rootDir . '/data/databases.json',
-            self::$rootDir . '/cma/config/databases.json',
+            $root . '/data/databases.json',
+            $root . '/cma/config/databases.json',
         ];
         foreach ($candidates as $file) {
             if (!is_file($file)) {

@@ -6319,3 +6319,13 @@ karaat-data en staat in de karaat-repo.
 > perhals .config should also be checked?
 
 > i see [$_COOKIE lijst] cma_cols_Opleidingen and cms_cols_opleidingen (lowercase), shall we always use lowercase whe saving form columns?
+
+> the databases are now in data/db
+
+> 2. Strip the conn_data/conn_rep/conn_users assignments from app.php and global.asa.php. : can you do that?
+
+> clear them too
+
+> this is a new error : PDOException ... Database.php on line 338 Database connection 'data' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named 'data'). [+ inhoud van data/databases.json, die wel klopt]
+
+> these are / in the path, should that not be \ ?
