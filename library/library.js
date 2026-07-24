@@ -2263,30 +2263,13 @@ function lib_ToggleSidePanelMaximize(btn) {
 	var icon = btn.querySelector('.lnr');
 	if (!icon) return;
 
-	if (panel.classList.contains('maximized')) {
-		// Restore
-		panel.classList.remove('maximized');
-		panel.style.width = panel.dataset.saveWidth || '';
-		panel.style.top = panel.dataset.saveTop || '';
-		panel.style.maxWidth = panel.dataset.saveMaxWidth || '';
-		panel.style.borderTopLeftRadius = '';
-		icon.classList.remove('lnr-frame-contract');
-		icon.classList.add('lnr-frame-expand');
-		btn.title = 'Maximaliseren venstergrootte';
-	} else {
-		// Maximize - save current dimensions
-		panel.dataset.saveWidth = panel.style.width;
-		panel.dataset.saveTop = panel.style.top;
-		panel.dataset.saveMaxWidth = panel.style.maxWidth;
-		panel.classList.add('maximized');
-		panel.style.width = '100vw';
-		panel.style.top = '0';
-		panel.style.maxWidth = '100vw';
-		panel.style.borderTopLeftRadius = '0';
-		icon.classList.remove('lnr-frame-expand');
-		icon.classList.add('lnr-frame-contract');
-		btn.title = 'Herstellen venstergrootte';
-	}
+	// Sizing is driven entirely by the `.lib_sidepanel_container.maximized` rule in
+	// library.css (with !important, overriding the inline width/top/max-width set at
+	// creation). Restoring just removes the class → the inline values reapply.
+	var maximized = panel.classList.toggle('maximized');
+	icon.classList.toggle('lnr-frame-expand', !maximized);
+	icon.classList.toggle('lnr-frame-contract', maximized);
+	btn.title = maximized ? 'Herstellen venstergrootte' : 'Maximaliseren venstergrootte';
 }
 
 /**

@@ -6495,3 +6495,168 @@ karaat-data en staat in de karaat-repo.
 > Startdatum2024-deelnemers_algemeen.inc: datum is still 2024-02-09 00:00:00
 
 > can you bump the platform version, so i can check the special characters?
+
+> what are you doing?
+
+> shy are you witing if so much work is stil open, /loop until finished and keep me better informed of your progress
+
+> <task-notification>
+> <task-id>a5e1d2397d9035b33</task-id>
+> <tool-use-id>toolu_01BRoTw8Ltrtws75GFe4rJm9</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/da1cb063-f5e4-46ef-bf55-3dd561f1e3a3/tasks/a5e1d2397d9035b33.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit memo-not-last in SQL" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have enough to compile the report. All confirmed. Let me write up the findings.
+>
+> ---
+>
+> # MEMO-not-last Audit — mijnRINO (`/mnt/c/repos/adam/mijnrino_php`)
+>
+> Method: reconstructed the `SELECT … FROM` column list of every SQL string literal in all `.php`/`.inc` files (excluding `vendor/`), handling PHP concatenation, then flagged any where a MEMO column (per the supplied name list) is followed by ≥1 more column before `FROM`. All flagged queries run against the Access connection (`Database::openRS(…, 'data', …)`) unless noted. Two raw hits were confirmed false positives and excluded; see the end.
+>
+> **Total real findings: 34 query-sites across 30 files** (26 high, 4 medium, 4 low/deprecated).
+>
+> ---
+>
+> ## HIGH confidence
+>
+> These use exact known-memo column names, on the Access `'data'` connection, with the memo clearly not last.
+>
+> **Verslag display (matches the described symptom exactly — "Nog niet ingediend" / hours 0):**
+>
+> - `src/opleiding/opleiding_verslagen.inc:416` — memos `tblVerslagen.urenOpmerking` AND `tblVerslagen.verslag` sit at cols 2 and 8 of a **137-column** SELECT; ~130 columns (all the `*_UREN`, `*_Omschr`, `PR#_CLIENTEN`, `_Combi` fields) follow. This is the master verslag/uren read — everything after `verslag` reads NULL and rows with report text throw Jet 3197. Fix: move `urenOpmerking` and `verslag` to the very end of the list.
+> - `verslag.php:326` (edit branch of `$SQLUrenTemplate`) — `tblVerslagen.verslag` is col 3 of an ~85-column SELECT; all the bijlage/uren columns follow. Fix: move `tblVerslagen.verslag` to the end. (Note: the sibling `add` branch at line 324 only uses `'' as Opmerking` literals — not affected.)
+> - `cma_afterpost.php:492` — `tblVerslagen.Verslag` followed by `tblVerslagen.Volgnummer`. Fix: `…, tblVerslagen.ID, tblVerslagen.Volgnummer, tblVerslagen.Verslag`.
+> - `src/opleiding/opleiding_dossioma.inc:1219` — `tblVerslagen.HoofdopleiderOpmerking` followed by `HoofdopleiderGoedgekeurd`, `tblOpleidingen.id as opleidingID`. Fix: move `HoofdopleiderOpmerking` last.
+>
+> **Afwezigheid / presentie (hours read as 0):**
+>
+> - `src/opleiding/opleiding_voortgang.inc:779` — the **Access (`else`) branch** of `$SQLAbsenties`: `tblAfwezigheid.Opmerking` is followed by `CompensatieAkkoord, fkVervangendeOpdracht, InhalenIngepland, iif(…) AS Uren`. The `Uren` computation (and compensation flags) read NULL. Note: the `isSQLServer()` branch at line 777 already puts `Opmerking` last correctly — only the Access path is broken. Fix: reorder the else-branch to end with `…AS Uren, tblAfwezigheid.Opmerking`.
+> - `src/opleiding/opleiding_dossioma.inc:909` — `tblAfwezigheid.Opmerking` followed by `CompensatieAkkoord, InhalenIngepland, fkVervangendeOpdracht`. Fix: move `Opmerking` last.
+> - `src/reports/rapportage_presentie.inc:69` — `tblAfwezigheid.Opmerking` followed by `inhaler, fkVervangendeOpdracht, InhalenIngepland`. Fix: move `Opmerking` last.
+> - `dig_presentie.php:528`, `:530`, `:532` — three near-identical queries; `presentieOpmerking` followed by `docentAkkoord`. Fix: `…, docentAkkoord, presentieOpmerking`.
+>
+> **Beoordeling / IOP / toetsen / verklaringen:**
+>
+> - `opleiding_beoordeling.php:554` — `tblDeelname.HoofdopleiderOpmerking` followed by `tblPraktijkOpleiders.Email, .ID as praktijkopleiderID, .EmailNotificaties` (the email columns used to notify the PO read NULL). Fix: move `HoofdopleiderOpmerking` last.
+> - `src/opleiding/opleiding_iop.inc:55` — **three** memos: `PraktijkopleiderOpmerking, HoofdopleiderOpmerking, HoofdopleiderOpmerking_Oud`, then `Hoofddocent, AssistentWerkplanCheck` follow. Multiple long-text columns are inherently unsafe on Access ODBC; at minimum the trailing two columns are lost. Fix: collapse the three memos to the end (and be aware only the last is reliably readable — consider a second query for the extra memos).
+> - `src/opleiding/opleiding_toetsen.inc:242` — `tblToetsPerDeelnemer.Opmerking` at col 22 of a 34-col SELECT, then `Opmerking_Oud` + 11 more (`AssistentCheck`, elearning/scorm fields, `grademethod`). Fix: move both `Opmerking`/`Opmerking_Oud` to the end.
+> - `src/opleiding/opleiding_verklaringen.inc:255` — `start_PraktijkopleiderOpmerking` and `einde_PraktijkopleiderOpmerking` each followed by document/date/goedgekeurd columns. Fix: move both opmerking columns last.
+> - `opleiding_toets_eerderebeoordeling.php:36` and `utils.inc:3617` — `Opmerking` followed by `Opmerking_Oud` (two long-text columns adjacent at the tail). The earlier memo breaks reading of the later. Fix: only one memo can be truly last; split into two reads if both are needed.
+>
+> **Portfolio / startdocumenten / CGO:**
+>
+> - `src/opleiding/opleiding_cgo_portfolio.inc:469` — `tblDeelnameCGOPortfolio.OpmerkingHO` followed by `bestand AS Uitwerking, Naam AS Omschrijving, datestamp, CGOToetsformulier, HoofdOpleider`. Fix: move `OpmerkingHO` last.
+> - `src/opleiding/opleiding_startdocumenten.inc:75` — `tbldeelname.AanvangsdocumentenOpmerking` followed by `AanvangsdocumentenCompleet, VolledigeNaam`. Fix: move memo last.
+> - `upload_portfolio.php:176` — `tblStartdocumenten.Opmerking` followed by `Sortorder, template`. Fix: move memo last.
+> - `upload_portfolio.php:215` — `tblStartdocumenten.Opmerking` followed by `bMeerdereDocs, template, verplicht, template`. Fix: move memo last.
+>
+> **Nieuws / gesprekken / voordracht / reports:**
+>
+> - `index.php:448` — `tblRinoNieuws.Inhoud` followed by `tblRinoNieuws.Beeld, DatOnline`. Fix: `…, Beeld, DatOnline, tblRinoNieuws.Inhoud`. (The scanner also emitted spurious `index.php:359/360` rows — those are the same query reached by a forward window, not separate bugs.)
+> - `src/reports/rapportage_gesprekkenrapport.inc:141` — `tblUitnodigingGesprekken.sbOpmerking` at col 3 of a 28-col SELECT; date/time/location/email columns follow. Fix: move `sbOpmerking` last.
+> - `src/reports/rapportage_gesprekkenrapport.inc:163` — `tblUitnodigingPerDeelname.sbopmerking` at col 2 of a 13-col SELECT; the rest follow. Fix: move `sbopmerking` last.
+> - `src/opleiding/opleiding_voordracht.inc:158` — `Opmerking` at col 8, then ~29 persoonsgegevens columns follow. Fix: move `Opmerking` last.
+>
+> **Utility / migration (lower operational surface but same bug):**
+>
+> - `inventarisatie/excel.php:522` — `SBopmerking` at col 3, then ~15 columns (Access `iif(…)` syntax) follow. Fix: move `SBopmerking` last.
+> - `data/db/migreer_systeemteksten.php:101` — three memos not last: `Beschrijving`, `Inhoud`, `businessreden`, each followed by more (`meldingtrigger, blokkade, naarwie` trail). One-off migration script, but reads Access. Fix: move the three long-text columns to the end.
+>
+> ---
+>
+> ## MEDIUM confidence
+>
+> Suffix-only memo match (`*beschrijving`) — likely long-text but not on the exact-name list.
+>
+> - `agenda_route.php:36` — `tblOpleidingen.Routebeschrijving` followed by `route_aanvullend, Locatie, LocatieAdres, LocatiePostcode, LocatiePlaats`.
+> - `src/classes/calendar/class_calendar.inc:546` — `tblOpleidingen.Routebeschrijving` at col 2 of a 24-col agenda SELECT; the rest follow.
+> - `src/opleiding/opleiding_draaiboek_digitaal.inc:1122` — `tblOpleidingen.Routebeschrijving` at col 15 of a 33-col SELECT; agenda/download columns follow.
+> - `cma/task.php:39` — `tblUserDataNotifications.notBeschrijving` followed by `tblUsers.userFullName, tblUsers.userEMail` (CMA notifications; `notBeschrijving` may be short varchar rather than true MEMO — verify column type).
+>
+> Fix for all: move the `*beschrijving` column to the end of the SELECT.
+>
+> ---
+>
+> ## LOW / deprecated
+>
+> - `src/opleiding/opleiding_kba_oud.inc:139` — `select Beschrijving, Bestand, Beschrijving, datumGeplaatst, NaamSupervisor, datumBesproken` — `Beschrijving` listed twice (as-is in source), memo not last. File is the `_oud` (superseded) KBA variant; verify it is still reachable before fixing.
+> - `.deprecated/inventarisatie/rapport_mailing.php:123` and `:124` — `tblPOInstellingen.SBOpmerking` not last. This is **un-ported Classic ASP** (uses `&amp;` concatenation, `_ //`) under `.deprecated/`; not live PHP.
+> - `.deprecated/_moodle/moodle.inc:65` — `draaiboekIntro` followed by `sluitdatum`. Deprecated Moodle integration.
+>
+> ---
+>
+> ## Confirmed FALSE POSITIVES (excluded — no action needed)
+>
+> - `task_controles.php:910` — the "memo" is a string literal built by a PHP ternary: `'" . ($intMaanden == 6 ? 'half' : '') . "jaarverslag' as verslagtype`. Not a column.
+> - `task_controles.php:710` — the flagged `akkoord_hoofdopleider_opmerking` etc. do have trailing columns, but this is a 117-column `tblControles`-style flat read; I list it here as a **watch item** rather than confirmed: several `*_opmerking`, `*_reden`, `situatie_toelichting`, `motivatie` memo-named columns appear mid-list with `opmerkingen, deelname_ids, situatie_*, UNIQUE_CODE, *_naam_*` after them. If those columns read empty in practice, this is a genuine high-impact instance — worth a targeted check, but I couldn't confirm the column types are MEMO vs. short text from the SQL alone.
+> - `verslag.php:324` (add branch) — only `'' as Opmerking` / `'' as UrenOpmerking` literals; not real columns.
+> - `index.php:359/360` — duplicate reconstructions of the real `index.php:448` query.
+>
+> ---
+>
+> The scanning script is at `/tmp/claude-1000/-mnt-c-repos-cma-platform/da1cb063-f5e4-46ef-bf55-3dd561f1e3a3/scratchpad/scan.py` if you want to re-run or tune the memo list. Note one methodological caveat surfaced during the audit: an early 3000-char window missed very long SELECTs (verslag.php:326, opleiding_verslagen.inc:416) — the final run uses a 20000-char window, which covered every query in this schema, but any future SELECT with a &gt;20k-char column list would need a larger window.</result>
+> <usage><subagent_tokens>82150</subagent_tokens><tool_uses>15</tool_uses><duration_ms>386667</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a5f47d9d75c75d66a</task-id>
+> <tool-use-id>toolu_01CyJerHPEtYdHuKd8HgbE4X</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/da1cb063-f5e4-46ef-bf55-3dd561f1e3a3/tasks/a5f47d9d75c75d66a.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Apply memo-not-last SQL fixes" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>All 21 edited files pass `php -l`. Here is the complete report.
+>
+> ## Applied fixes (memo column(s) moved to immediately before FROM)
+>
+> | File | Query | Moved to end |
+> |---|---|---|
+> | src/opleiding/opleiding_verslagen.inc:416 | urentemplate SELECT (~137 cols) | `urenOpmerking`, `verslag` |
+> | verslag.php:326 | edit-branch SELECT | `tblVerslagen.verslag` (add branch left untouched) |
+> | cma_afterpost.php:492 | verslag-mail SELECT | `tblVerslagen.Verslag` (now after `Volgnummer`) |
+> | src/opleiding/opleiding_dossioma.inc:1219 | verslagen SELECT | `HoofdopleiderOpmerking` |
+> | src/opleiding/opleiding_dossioma.inc:909 | absenties SELECT | `tblAfwezigheid.Opmerking` |
+> | src/reports/rapportage_presentie.inc:69 | rooster SELECT | `tblAfwezigheid.Opmerking` |
+> | dig_presentie.php:528, 530, 532 | 3 identical roosteritem SELECTs | `presentieOpmerking` (after `docentAkkoord`) |
+> | opleiding_beoordeling.php:554 | PO-mail SELECT | `tblDeelname.HoofdopleiderOpmerking` |
+> | src/opleiding/opleiding_iop.inc:55 | IOP SELECT | `PraktijkopleiderOpmerking`, `HoofdopleiderOpmerking`, `HoofdopleiderOpmerking_Oud` |
+> | src/opleiding/opleiding_toetsen.inc:242 | toets/deelnemer SELECT | `Opmerking`, `Opmerking_Oud` |
+> | src/opleiding/opleiding_verklaringen.inc:255 | verklaringen SELECT | `start_PraktijkopleiderOpmerking`, `einde_PraktijkopleiderOpmerking` |
+> | src/opleiding/opleiding_cgo_portfolio.inc:469 | documenten SELECT | `OpmerkingHO` |
+> | src/opleiding/opleiding_startdocumenten.inc:75 | basesql SELECT | `AanvangsdocumentenOpmerking` |
+> | upload_portfolio.php:176 | bestanden SELECT | `tblStartdocumenten.Opmerking` |
+> | upload_portfolio.php:215 | vereist SELECT | `tblStartdocumenten.Opmerking` |
+> | index.php:448 | nieuws SELECT | `tblRinoNieuws.Inhoud` (after `Beeld, DatOnline`) |
+> | src/reports/rapportage_gesprekkenrapport.inc:163 | niet-ingeplande SELECT | `sbopmerking` |
+> | inventarisatie/excel.php:522 | voordrachten SELECT | `SBopmerking` |
+> | data/db/migreer_systeemteksten.php:101 | systeemteksten SELECT | `Beschrijving`, `Inhoud`, `businessreden` |
+> | agenda_route.php:36 | route SELECT | `Routebeschrijving` |
+> | src/classes/calendar/class_calendar.inc:546 | calendar SELECT | `Routebeschrijving` (GROUP BY uses names, safe) |
+> | src/opleiding/opleiding_draaiboek_digitaal.inc:1122 | rooster-details SELECT | `Routebeschrijving` |
+> | cma/task.php:39 | notifications SELECT | `notBeschrijving` |
+>
+> ## Skipped
+>
+> - **src/reports/rapportage_gesprekkenrapport.inc:141** — skipped: positional `order by 1, ...`. Per the safety rule I did not reorder it (OplCode is aliased at position 1 and drives the sort).
+> - **src/opleiding/opleiding_voordracht.inc:158** — skipped: the SQL is a commented-out `// VBS:` line (`$oTable-&gt;SQL` assignment is dead/un-ported), not a live query. Editing it would have no runtime effect.
+>
+> ## Already correct (no change needed)
+>
+> - **opleiding_toets_eerderebeoordeling.php:36** — `Opmerking, Opmerking_Oud` already sit immediately before `FROM`.
+> - **utils.inc:3617** — `Opmerking, Opmerking_Oud` already sit immediately before `FROM`.
+>
+> ## Failed
+>
+> None. All 21 touched files pass `php -l`.
+>
+> Notes: A few queries contain additional plausibly-memo columns the audit did not flag (e.g. `tblVerslagen.Opmerking`/`Urenopmerking` in verslag.php:326, `Intro` in index.php:448, `route_aanvullend`, `draaiboekText`/`draaiboektext` in the draaiboek query). I moved only the columns named in the audit, as instructed, and left the rest in place.</result>
+> <usage><subagent_tokens>94323</subagent_tokens><tool_uses>71</tool_uses><duration_ms>379694</duration_ms></usage>
+> </task-notification>
+
+> maximize a sidepanel: should stay below the header, so top:60px and i don't see the icon changes. it has a maximized class, but all is written css inline, can we move that to css?
+
+> composer says: noting to update?
+
+> push all changes to cma_platform to 117

@@ -590,10 +590,83 @@
     });
 
     // =========================================================================
+    // Reveal errors trapped in hidden containers
+    // =========================================================================
+    //
+    // A server/PHP error is often rendered inline exactly where the failure
+    // happened - which may be inside a collapsed accordion, an inactive tab, a
+    // <details>, or any display:none/[hidden] container - leaving the message
+    // invisible to the user. These helpers walk from the error element up to the
+    // document root and force every ancestor visible. Kept framework-free and
+    // generic (no site-specific classes): a container hidden by a stylesheet
+    // rule is un-hidden by overriding the computed display/visibility, so it
+    // works regardless of HOW the ancestor was collapsed.
+
+    const ERROR_SELECTOR = '.error-container, .error-detail, lib-message[type="error"]';
+
+    /**
+     * Walk from el up to <html>, forcing every ancestor (and el) visible.
+     * @param {Element} el
+     */
+    function revealAncestors(el) {
+        let node = el;
+        while (node && node.nodeType === 1 && node !== document.documentElement) {
+            if (node.hasAttribute('hidden')) node.removeAttribute('hidden');
+            if (node.tagName === 'DETAILS') node.open = true;
+            // display:none - inline first, then override a stylesheet/class rule
+            if (getComputedStyle(node).display === 'none') {
+                node.style.removeProperty('display');
+                if (getComputedStyle(node).display === 'none') {
+                    node.style.setProperty('display', 'block', 'important');
+                }
+            }
+            if (getComputedStyle(node).visibility === 'hidden') {
+                node.style.setProperty('visibility', 'visible', 'important');
+            }
+            node = node.parentElement;
+        }
+    }
+
+    /**
+     * Reveal any error element currently in (or under) root.
+     * @param {ParentNode} [root=document]
+     */
+    function revealHiddenErrors(root) {
+        (root || document).querySelectorAll(ERROR_SELECTOR).forEach(revealAncestors);
+    }
+
+    // Reveal errors present at load, then watch for errors injected later (e.g.
+    // AJAX-loaded tab/accordion content) and reveal those too.
+    function initErrorReveal() {
+        revealHiddenErrors(document);
+        if (!('MutationObserver' in window) || !document.body) return;
+        new MutationObserver(function(mutations) {
+            for (const m of mutations) {
+                for (const node of m.addedNodes) {
+                    if (node.nodeType !== 1) continue;
+                    if (node.matches && node.matches(ERROR_SELECTOR)) {
+                        revealAncestors(node);
+                    } else if (node.querySelector) {
+                        revealHiddenErrors(node);
+                    }
+                }
+            }
+        }).observe(document.body, { childList: true, subtree: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initErrorReveal);
+    } else {
+        initErrorReveal();
+    }
+
+    // =========================================================================
     // Public API
     // =========================================================================
 
     window.CmaErrorHandler = {
+        revealAncestors: revealAncestors,
+        revealHiddenErrors: revealHiddenErrors,
         getErrors: function() { return [...panelErrors]; },
         getCount: function() { return panelErrors.length; },
 
