@@ -6359,3 +6359,7 @@ karaat-data en staat in de karaat-repo.
 > CMA platform v1.29.113
 
 > back to the cma_platform, can you bump the version and commit/push please?
+
+> th lib_window_dialog is now set to 100% , but the container  __lib_win1 has fixed with and height to it falls within those. So we need to change those sizes (as well)
+
+> de uitleg bij clearcache mag korter, eigenlijk wat ik heb aangeleverd.

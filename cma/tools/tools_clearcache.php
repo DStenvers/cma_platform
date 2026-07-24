@@ -297,15 +297,19 @@ if (function_exists('opcache_get_status')) {
 if (function_exists('opcache_reset')) {
     $_preOpcacheResult = @opcache_reset();
 }
-// True baseline: read the count again straight after the reset, BEFORE bootstrap
-// (Phase 2) recompiles the framework back into the cache. This is what "cleared"
-// actually looks like — near zero. A number close to the pre-count here means the
-// reset did NOT take effect (see the OPcache config table for why, e.g. restrict_api).
+// OPcache reset is DEFERRED: opcache_reset() only schedules a restart that the
+// engine performs at the START OF THE NEXT request — the SHM is NOT emptied mid-
+// request. So num_cached_scripts stays at the pre-count here even on a successful
+// reset (unlike APCu, which clears synchronously). The only reliable in-request
+// signal that the flush is queued is restart_pending; combined with the boolean
+// opcache_reset() result it tells us whether the reset took.
 $_postOpcacheScripts = null;
+$_postOpcacheRestartPending = null;
 if (function_exists('opcache_get_status')) {
     $_postStats = @opcache_get_status(false);
     if (is_array($_postStats)) {
         $_postOpcacheScripts = $_postStats['opcache_statistics']['num_cached_scripts'] ?? null;
+        $_postOpcacheRestartPending = $_postStats['restart_pending'] ?? null;
     }
 }
 
@@ -414,7 +418,10 @@ if (function_exists('opcache_reset')) {
             'Geheugen gebruikt' => number_format(($_preOpcacheStats['memory_usage']['used_memory'] ?? 0) / 1024 / 1024, 2) . ' MB',
             'Geheugen vrij' => number_format(($_preOpcacheStats['memory_usage']['free_memory'] ?? 0) / 1024 / 1024, 2) . ' MB',
             'Gecachte scripts' => $_preOpcacheScripts,
-            'Direct na reset' => ($_postOpcacheScripts === null ? 'onbekend' : $_postOpcacheScripts . ' (werkelijke stand ná legen, vóór bootstrap)'),
+            'Reset uitgevoerd' => ($_preOpcacheResult === true ? 'ja (opcache_reset gaf true)' : 'nee (opcache_reset gaf false — geblokkeerd, meestal opcache.restrict_api)'),
+            'Herstart gepland' => ($_postOpcacheRestartPending === null ? 'onbekend'
+                : ($_postOpcacheRestartPending ? 'ja — SHM wordt geleegd bij het volgende request (uitgestelde flush; daarom blijft de telling nu staan)' : 'nee')),
+            'Telling direct na reset' => ($_postOpcacheScripts === null ? 'onbekend' : $_postOpcacheScripts . ' — blijft gelijk aan vóór, óók bij succes: OPcache flusht uitgesteld, niet in dit request'),
             'Bootstrap scripts' => $_bootstrapOpcacheCount . ' (normaal na refresh)',
             'Cache hits' => number_format($_preOpcacheStats['opcache_statistics']['hits'] ?? 0),
             'Cache misses' => number_format($_preOpcacheStats['opcache_statistics']['misses'] ?? 0),
@@ -1002,15 +1009,18 @@ if ($caches['OPcache']['available'] && function_exists('opcache_get_configuratio
             : 'Uitgeschakeld: gewijzigde .php-bestanden worden NIET automatisch opgepikt; elke deploy vereist een reset of recycle.',
     ];
 
-    // enable_cli — informational: CLI reset/warm scripts only work when on.
+    // enable_cli — aan (=1) is de gewenste stand voor dit hulpmiddel: een CLI-reset
+    // raakt dan dezelfde cache als de web-server -> groen vinkje (pass). Uit (=0)
+    // betekent dat een `php`-reset de web-cache NIET raakt -> rood kruis (fail), zodat
+    // het meteen opvalt. Bewust geen blauwe/neutrale tussenstand.
     $enableCli = (int) $getDirective('opcache.enable_cli');
     $opcacheChecks[] = [
         'label' => 'opcache.enable_cli',
         'value' => $enableCli ? '1' : '0',
-        'status' => 'info',
+        'status' => $enableCli ? 'pass' : 'fail',
         'detail' => $enableCli
             ? 'OPcache actief voor CLI — een reset via de commandline werkt op dezelfde cache.'
-            : 'OPcache uit voor CLI — een `php` commando raakt de web-cache niet (meestal prima).',
+            : 'OPcache UIT voor CLI — een `php`-reset raakt de web-cache niet. Zet opcache.enable_cli=1 om betrouwbaar via de commandline te kunnen legen.',
     ];
 
     echo '<h3>OPcache configuratie</h3>';
@@ -1082,7 +1092,11 @@ foreach ($caches as $name => $info) {
         $noAction = $hasCount && $info['count'] === 0;
 
         if ($alwaysRuns) {
-            echo '<td class="status always">✓</td>';
+            // "Altijd-uitgevoerd" stappen (Realpath, Groups) legen wél degelijk een
+            // cache — voor de gebruiker is dat gewoon "geleegd", dus een groen vinkje
+            // (status ok) i.p.v. het blauwe "always". De detail-kolom houdt zijn eigen
+            // 'always'-toelichting, dus het onderscheid blijft in de tekst zichtbaar.
+            echo '<td class="status ok">✓</td>';
         } elseif ($noAction) {
             echo '<td class="status noaction">–</td>';
         } else {
@@ -1137,10 +1151,8 @@ echo '</table>';
 // Explain why the memory-cache counts never read zero on a re-run.
 echo '<lib-message type="info" style="margin-top:12px;" closable="false">';
 echo '<span class="cma-tool__strong">Waarom deze aantallen nooit 0 worden.</span> ';
-echo 'OPcache, APCu en de applicatiecache worden door het framework bij <span class="cma-tool__strong">élk</span> request automatisch opnieuw gevuld: <code>_bootstrap.php</code> wordt vóór iedere pagina geladen (auto-prepend) en compileert/cachet de kernbestanden meteen weer. ';
-echo 'De getoonde aantallen zijn de stand <span class="cma-tool__strong">vlak vóór</span> het legen; direct ná het legen zijn ze (bijna) nul — zie <span class="cma-tool__em">Direct na reset / Direct na legen</span> onder "Toon details" — maar de eerstvolgende paginalading (inclusief déze resultatenpagina) vult ze alweer. ';
-echo 'Een gelijk blijvend aantal bij herhaald legen is dus normaal en betekent niet dat het legen mislukt. ';
-echo 'Blijft "Direct na reset" wél hoog, dan nam de reset niet — kijk dan naar de tabel <span class="cma-tool__em">OPcache configuratie</span> hierboven (meestal <code>opcache.restrict_api</code> of <code>opcache.file_cache</code>).';
+echo 'Het zijn standen vlak vóór het legen; het framework vult de caches bij elk request meteen weer (auto-prepend van <code>_bootstrap.php</code>). ';
+echo '<span class="cma-tool__strong">APCu</span> leegt direct (<span class="cma-tool__em">Direct na legen</span> = 0); <span class="cma-tool__strong">OPcache</span> flusht uitgesteld — pas bij het volgende request — dus de scripttelling blijft nu staan, óók bij een geslaagde reset (kijk naar <span class="cma-tool__em">Reset uitgevoerd = ja</span>).';
 echo '</lib-message>';
 
 // ==================== TERSER SETUP INSTRUCTIONS ====================
