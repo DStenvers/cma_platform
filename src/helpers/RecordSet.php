@@ -82,14 +82,14 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
         // Load first row immediately (ASP ADO compatibility).
         // All existing code expects $rs->EOF and $rs->fields to work right after openRS().
         if ($arrayMode) {
-            $this->all_rows = iterator_to_array($stmt);
+            $this->all_rows = array_map([$this, 'convertRowEncoding'], iterator_to_array($stmt));
             $this->eof = (count($this->all_rows) == 0);
             if (!$this->eof) {
                 $this->position = 0;
                 $this->current_row = $this->all_rows[0];
             }
         } elseif ($scrollable) {
-            $this->all_rows = $this->stmt->fetchAll(PDO::FETCH_BOTH);
+            $this->all_rows = array_map([$this, 'convertRowEncoding'], $this->stmt->fetchAll(PDO::FETCH_BOTH));
             $this->eof = (count($this->all_rows) == 0);
             if (!$this->eof) {
                 $this->position = 0;
@@ -99,6 +99,33 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
             // Forward-only: fetch first row now
             $this->MoveNext();
         }
+    }
+
+    /**
+     * Convert Windows-1252 encoded strings in a fetched row to UTF-8.
+     *
+     * Access ODBC returns text in Windows-1252, which reaches the page as invalid
+     * UTF-8 — htmlspecialchars(..., 'UTF-8') then returns '' and the value silently
+     * disappears (e.g. a name with "ë"). RecordSet reads rows straight from the
+     * PDO statement, so it must do the same conversion Database's own fetch helpers
+     * already do. The mb_check_encoding guard makes this a no-op for values that are
+     * already valid UTF-8 (MySQL/SQL Server, or Access text without high bytes), so
+     * it is safe regardless of driver and never double-converts.
+     *
+     * @param array|false $row
+     * @return array|false
+     */
+    private function convertRowEncoding($row) {
+        if (!is_array($row)) {
+            return $row;
+        }
+        foreach ($row as $key => &$value) {
+            if (is_string($value) && $value !== '' && !mb_check_encoding($value, 'UTF-8')) {
+                $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+            }
+        }
+        unset($value);
+        return $row;
     }
 
     /**
@@ -119,7 +146,7 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
             }
         } else {
             // Forward-only cursor - fetch next row from PDO
-            $this->current_row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+            $this->current_row = $this->convertRowEncoding($this->stmt->fetch(PDO::FETCH_ASSOC));
             $this->eof = ($this->current_row === false);
             if (!$this->eof) {
                 $this->position++;
