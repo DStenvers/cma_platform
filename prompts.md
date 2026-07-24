@@ -6664,3 +6664,11 @@ karaat-data en staat in de karaat-repo.
 > the mask-image has too thick lines, 1px please, for both lnr lnr-frame-expand and lnr lnr-frame-collapse
 
 > yes push
+
+> active subform tab: is flickers, can we set the active tab immediately?
+
+> switch to mijn rino php converted repo when committed and pushed and then : 
+>
+> http://172.30.208.1:8090/agenda.php?events=Y&start=2024-08-26&end=2024-10-07&_=1784900917447 -> empty which is incorrect 
+>
+> then in agenda the right column the CalenderTable does not wrap every 7 days, it is now 1 long line with 28-31 days.

@@ -3868,9 +3868,11 @@ class CmaFormController {
         const subformTabs = document.getElementById('subformTabs');
         if (subformTabs) {
             subformTabs.addEventListener('tab-select', (e) => {
+                // The programmatic restore in loadSubforms sets `selected` itself and
+                // drives its own load — skip here to avoid a duplicate load + cookie write.
+                if (this._suppressSubformTabEvent) return;
                 this.activateSubformTab(e.detail.index, true, e.detail.id);
-                // Remember the active subform tab per form so it is restored on reload
-                // (see loadSubforms). Read by JS only; a plain cookie keeps it simple.
+                // Remember the active subform tab per form so it is restored on reload.
                 this._setViewCookie('cma_subformTab_' + this.jsonForm, String(e.detail.index));
             });
         }
@@ -10725,66 +10727,76 @@ class CmaFormController {
             }
         }
 
-        // Activate first tab visually and create its pane
-        const firstTab = tabs[0];
-        this.getOrCreateSubformPane(0, firstTab.id);
-        this.activateSubformTab(0, false, firstTab.id); // false = don't reload data yet
+        // Determine which tab to start on: restore the last-active subform tab from a
+        // cookie (saved on user tab-select), else tab 0. Activating it BEFORE any data
+        // load avoids the flicker of showing tab 0 first and then switching.
+        let startIdx = 0;
+        const savedTab = parseInt(this._getViewCookie('cma_subformTab_' + this.jsonForm), 10);
+        if (!isNaN(savedTab) && savedTab > 0 && savedTab < tabs.length) {
+            startIdx = savedTab;
+        }
+        const startTab = tabs[startIdx];
 
-        // Step 1: Load first (visible) tab — use prefetched data if available
+        // Highlight the start tab in the header up front. Suppress the select event so it
+        // doesn't kick off its own (duplicate) load — loading is driven below.
+        if (startIdx !== 0) {
+            const tc = document.getElementById('subformTabs');
+            if (tc) {
+                this._suppressSubformTabEvent = true;
+                tc.setAttribute('selected', String(startIdx));
+                this._suppressSubformTabEvent = false;
+            }
+        }
+        this.getOrCreateSubformPane(startIdx, startTab.id);
+        this.activateSubformTab(startIdx, false, startTab.id); // visual only, no reload yet
+
+        // Render the prefetched FIRST subform (always tab 0) into pane 0 whether or not it
+        // is the active tab — so switching to it later is instant and the prefetch isn't
+        // wasted.
         const prefetchedFirst = this._prefetchedFirstSubform;
         this._prefetchedFirstSubform = null; // consume it
-
+        let tab0Rendered = false;
         if (prefetchedFirst && prefetchedFirst.success) {
-            // cmaLog.log('loadSubforms: using prefetched first subform data');
-            const pane = document.getElementById('subform0');
-            if (pane) {
-                pane.classList.add('loading');
-                pane.classList.remove('loaded');
-                const listEl = pane.querySelector('.subform-list');
+            this.getOrCreateSubformPane(0, tabs[0].id);
+            const pane0 = document.getElementById('subform0');
+            if (pane0) {
+                pane0.classList.add('loading');
+                pane0.classList.remove('loaded');
+                const listEl = pane0.querySelector('.subform-list');
                 if (listEl) {
                     this.renderSubformList(listEl, prefetchedFirst);
                 }
                 const count = prefetchedFirst.count || prefetchedFirst.total || (prefetchedFirst.items ? prefetchedFirst.items.length : 0);
                 this.setSubformCount(0, count);
-                this.renderSubformToolbar(pane, 0, prefetchedFirst);
-                pane.classList.remove('loading');
-                pane.classList.add('loaded');
+                this.renderSubformToolbar(pane0, 0, prefetchedFirst);
+                pane0.classList.remove('loading');
+                pane0.classList.add('loaded');
+                tab0Rendered = true;
             }
-        } else {
-            // Fallback: load first tab via separate request
-            await this.loadSubformData(0, parentId);
         }
 
-        // Step 2: Batch load remaining tabs in a single request
-        if (tabs.length > 1) {
-            const remainingIndices = [];
-            tabs.forEach((tab, index) => {
-                if (index > 0) {
-                    remainingIndices.push(index);
-                    // Create pane on demand and show loading state
-                    const pane = this.getOrCreateSubformPane(index, tab.id);
-                    if (pane) {
-                        const listEl = pane.querySelector('.subform-list');
-                        if (listEl) {
-                            listEl.innerHTML = '<div class="list-loading">...</div>';
-                        }
-                    }
+        // Load the active start tab's data first (unless it's tab 0 already rendered above).
+        if (!(startIdx === 0 && tab0Rendered)) {
+            await this.loadSubformData(startIdx, parentId);
+        }
+
+        // Batch load the remaining tabs (exclude the start tab and tab 0 when prefetched).
+        const remainingIndices = [];
+        tabs.forEach((tab, index) => {
+            if (index === startIdx) return;
+            if (index === 0 && tab0Rendered) return;
+            remainingIndices.push(index);
+            // Create pane on demand and show loading state
+            const pane = this.getOrCreateSubformPane(index, tab.id);
+            if (pane) {
+                const listEl = pane.querySelector('.subform-list');
+                if (listEl) {
+                    listEl.innerHTML = '<div class="list-loading">...</div>';
                 }
-            });
-
-            // Batch request for all remaining subforms
+            }
+        });
+        if (remainingIndices.length) {
             await this.loadSubformsBatch(parentId, remainingIndices);
-        }
-
-        // Restore the last-active subform tab from cookie (saved on user tab-select).
-        // All tabs are loaded by now, so this is a cheap visual switch. Setting the
-        // `selected` attribute fires the cma-tabs 'tab-select' event, which runs the
-        // normal activation path. Guarded so a stale index (form changed) falls back
-        // to tab 0.
-        const savedTab = parseInt(this._getViewCookie('cma_subformTab_' + this.jsonForm), 10);
-        if (!isNaN(savedTab) && savedTab > 0 && savedTab < tabs.length) {
-            const tc = document.getElementById('subformTabs');
-            if (tc) tc.setAttribute('selected', String(savedTab));
         }
     }
 
