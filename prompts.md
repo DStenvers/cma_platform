@@ -6660,3 +6660,7 @@ karaat-data en staat in de karaat-repo.
 > composer says: noting to update?
 
 > push all changes to cma_platform to 117
+
+> the mask-image has too thick lines, 1px please, for both lnr lnr-frame-expand and lnr lnr-frame-collapse
+
+> yes push

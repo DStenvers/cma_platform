@@ -3869,6 +3869,9 @@ class CmaFormController {
         if (subformTabs) {
             subformTabs.addEventListener('tab-select', (e) => {
                 this.activateSubformTab(e.detail.index, true, e.detail.id);
+                // Remember the active subform tab per form so it is restored on reload
+                // (see loadSubforms). Read by JS only; a plain cookie keeps it simple.
+                this._setViewCookie('cma_subformTab_' + this.jsonForm, String(e.detail.index));
             });
         }
 
@@ -10773,6 +10776,16 @@ class CmaFormController {
             await this.loadSubformsBatch(parentId, remainingIndices);
         }
 
+        // Restore the last-active subform tab from cookie (saved on user tab-select).
+        // All tabs are loaded by now, so this is a cheap visual switch. Setting the
+        // `selected` attribute fires the cma-tabs 'tab-select' event, which runs the
+        // normal activation path. Guarded so a stale index (form changed) falls back
+        // to tab 0.
+        const savedTab = parseInt(this._getViewCookie('cma_subformTab_' + this.jsonForm), 10);
+        if (!isNaN(savedTab) && savedTab > 0 && savedTab < tabs.length) {
+            const tc = document.getElementById('subformTabs');
+            if (tc) tc.setAttribute('selected', String(savedTab));
+        }
     }
 
     /**

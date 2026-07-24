@@ -833,16 +833,16 @@ class LibDialog extends HTMLElement {
                     height: 20px;
                     background-color: currentColor;
                     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-                    -webkit-mask-position: center; mask-position: center;
+                    -webkit-mask-position: center calc(50% + 2px); mask-position: center calc(50% + 2px);
                     -webkit-mask-size: contain; mask-size: contain;
                 }
                 .dialog-maximize .lnr-frame-expand::before {
-                    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L17 7 M17 7 L13 7 M17 7 L17 11'/%3E%3C/svg%3E");
-                    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L17 7 M17 7 L13 7 M17 7 L17 11'/%3E%3C/svg%3E");
+                    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L17 7 M17 7 L13 7 M17 7 L17 11'/%3E%3C/svg%3E");
+                    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L17 7 M17 7 L13 7 M17 7 L17 11'/%3E%3C/svg%3E");
                 }
                 .dialog-maximize .lnr-frame-contract::before {
-                    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L7 17 M7 17 L11 17 M7 17 L7 13'/%3E%3C/svg%3E");
-                    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L7 17 M7 17 L11 17 M7 17 L7 13'/%3E%3C/svg%3E");
+                    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L7 17 M7 17 L11 17 M7 17 L7 13'/%3E%3C/svg%3E");
+                    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M12 12 L7 17 M7 17 L11 17 M7 17 L7 13'/%3E%3C/svg%3E");
                 }
 
                 /* Maximized state */
