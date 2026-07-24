@@ -795,10 +795,10 @@
             const frm = document.forms.main;
 
             if (typeof libConfirm === 'function') {
-                libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
+                libConfirm('Wil je dit record verwijderen?', {
                     title: 'Verwijderen',
-                    confirmText: 'Verwijderen',
-                    cancelText: 'Behouden',
+                    confirmText: 'Ja verwijder',
+                    cancelText: 'Nee laat staan',
                     type: 'warning'
                 }).then(function(confirmed) {
                     if (confirmed) {
@@ -808,10 +808,10 @@
                     }
                 });
             } else {
-                libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
+                libConfirm('Wil je dit record verwijderen?', {
                     title: 'Verwijderen',
-                    confirmText: 'Verwijderen',
-                    cancelText: 'Behouden',
+                    confirmText: 'Ja verwijder',
+                    cancelText: 'Nee laat staan',
                     type: 'warning'
                 }).then(function(confirmed) {
                     if (confirmed) {

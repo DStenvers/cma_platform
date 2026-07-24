@@ -6337,3 +6337,25 @@ karaat-data en staat in de karaat-repo.
 > 1 yes, 2 identical rows  [beoordeling-conversie: ja; keuzemodules: identieke rijen]
 
 > 3 let's fix that at the root please, so yes: go ahead  [RecordSet::GetRows]
+
+## 2026-07-24
+
+> lib_OpenWindowCenteredMax does not maximize the dialog, can you dedug and fix?
+
+> in tools_query ignore lines stat start with --, those are comments
+
+> i see the maximized class being added, but i don't see the css that goes with it
+
+> the lib_window_max has an icon with a suqre and 2 arrows, if the dialog is shown normal, i want the left bottom arrow to be removed, if it is maximized I want hte upper right arrow to be removed, use inline svg if needed
+
+> http://172.30.208.1:8090/?pageAction=deelnemers&deelnameID=205#Verslagen - verslagen are empty, but there are 3 so that cannot be
+
+> SELECT tblOpleidingen.ID, tblOpleidingen.Titel, tblOpleidingen.fkoplsoort, tblOpleidingen.Code, (SELECT MIN(h.Code) FROM (tblDeelname AS kd INNER JOIN tblDeelname AS hd ON kd.fkHoofddeelname = hd.ID) INNER JOIN tblOpleidingen AS h ON h.ID = hd.fkOpleiding WHERE kd.fkOpleiding = tblOpleidingen.ID) AS HoofdCode, (SELECT Count(*) FROM tblDeelname WHERE tblDeelname.fkOpleiding = tblOpleidingen.ID AND (tblDeelname.certificaatdatum is null or tblDeelname.certificaatdatum > date()) and ((tblDeelname.bPauze = -1 and tblDeelname.datPauze <= date()) or tblDeelname.Einddatum is null or tblDeelname.Einddatum > date()) AND [DEELNAMEROLFILTER]) AS AantalActief FROM tblOpleidingen WHERE TBLOPLEIDINGEN.ID in (17,238) ORDER BY tblOpleidingen.CodeSELECT tblOpleidingen.ID, tblOpleidingen.Titel, tblOpleidingen.fkoplsoort, tblOpleidingen.Code, (SELECT MIN(h.Code) FROM (tblDeelname AS kd INNER JOIN tblDeelname AS hd ON kd.fkHoofddeelname = hd.ID) INNER JOIN tblOpleidingen AS h ON h.ID = hd.fkOpleiding WHERE kd.fkOpleiding = tblOpleidingen.ID) AS HoofdCode, (SELECT Count(*) FROM tblDeelname WHERE tblDeelname.fkOpleiding = tblOpleidingen.ID AND (tblDeelname.certificaatdatum is null or tblDeelname.certificaatdatum > date()) and ((tblDeelname.bPauze = -1 and tblDeelname.datPauze <= date()) or tblDeelname.Einddatum is null or tblDeelname.Einddatum > date()) AND [DEELNAMEROLFILTER]) AS AantalActief FROM tblOpleidingen WHERE TBLOPLEIDINGEN.ID in (17,238) ORDER BY tblOpleidingen.Code 
+>
+>
+> Exception
+> Database query failed: SQLSTATE[07002]: COUNT field incorrect: -3010 [Microsoft][ODBC Microsoft Access-stuurprogramma] Er zijn te weinig parameters. Het verwachte aantal is: 1. (SQLExecute[-3010] at ext\pdo_odbc\odbc_stmt.c:267)
+> in C:\repos\adam\mijnrino_php\library\lib_xmlsnippets.inc on line 663
+> CMA platform v1.29.113
+
+> back to the cma_platform, can you bump the version and commit/push please?

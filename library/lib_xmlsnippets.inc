@@ -545,6 +545,15 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
 
     $strXMLSQL = isset($libArrXMLStore[STORE_QUERY]) ? $libArrXMLStore[STORE_QUERY] : '';
     $strStoreCacheID = '';
+    // Role-scoping placeholder: a store query may contain [DEELNAMEROLFILTER], which
+    // is filled per viewer role from a site-set global (see the consumer app's
+    // lib_XMLStore_DeelnameRolFilter). The role suffix MUST enter the cache key, else
+    // one role's cached count would leak to another. No-op for stores without the
+    // placeholder, so this is safe platform-wide.
+    if (strpos($strXMLSQL, '[DEELNAMEROLFILTER]') !== false) {
+        $strXMLSQL = str_replace('[DEELNAMEROLFILTER]', $GLOBALS['xmlstore_deelname_rolfilter'] ?? '(1=1)', $strXMLSQL);
+        $strStoreCacheID .= $GLOBALS['xmlstore_deelname_rolcachekey'] ?? '';
+    }
     $dictParams = new ArrayObject();
     if ($strXMLSQL!= '') {
             if ($cParam == PARAM_AUTO_RETRIEVE) {

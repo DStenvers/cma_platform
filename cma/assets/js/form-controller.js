@@ -10246,10 +10246,10 @@ class CmaFormController {
         this.verifyIdentity('deleteRecord');
         if (!cmaGetRecordId()) return;
 
-        const confirmed = await libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
+        const confirmed = await libConfirm('Wil je dit record verwijderen?', {
             title: 'Verwijderen',
-            confirmText: 'Verwijderen',
-            cancelText: 'Niet verwijderen',
+            confirmText: 'Ja verwijder',
+            cancelText: 'Nee laat staan',
             type: 'danger'
         });
 

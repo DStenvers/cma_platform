@@ -2134,10 +2134,10 @@
          * Delete row
          */
         async deleteRow(rowId) {
-            const confirmed = await libConfirm('Weet je zeker dat je dit record wilt verwijderen?', {
+            const confirmed = await libConfirm('Wil je dit record verwijderen?', {
                 title: 'Record verwijderen',
-                confirmText: 'Verwijderen',
-                cancelText: 'Niet verwijderen',
+                confirmText: 'Ja verwijder',
+                cancelText: 'Nee laat staan',
                 type: 'danger'
             });
             if (!confirmed) {

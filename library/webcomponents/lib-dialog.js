@@ -157,14 +157,33 @@ class LibDialog extends HTMLElement {
         this.setAttribute('open', '');
         this._resetDragPosition();
 
-        // Use unified z-index manager if available
+        // Put this dialog above every overlay currently on screen. Two sources,
+        // combined so neither gap bites:
+        //   - lib_zindex_manager: the registered-overlay counter (windows,
+        //     sidepanels, other dialogs).
+        //   - lib_getMaxZIndex: a live DOM+shadow-DOM walk for the highest applied
+        //     z-index, which also catches overlays that never registered with the
+        //     manager (site chrome, or an active dialog that fell back to the CSS
+        //     max-int default). This is why a libConfirm opened over an already-
+        //     active lib-dialog/window landed *behind* it: the two used different
+        //     z-index sources. max(manager, walker+1) reconciles them.
+        // With no library.js loaded at all, the CSS default (max int) still wins.
         this._dialogId = 'lib-dialog-' + Date.now();
-        if (typeof lib_zindex_manager !== 'undefined') {
-            const zIndex = lib_zindex_manager.push(this._dialogId, 'dialog');
-            const backdrop = this.shadowRoot.querySelector('.dialog-backdrop');
-            if (backdrop) {
-                backdrop.style.zIndex = zIndex;
+        const backdrop = this.shadowRoot.querySelector('.dialog-backdrop');
+        if (backdrop) {
+            // Neutralise our own backdrop first so the walker doesn't count it.
+            backdrop.style.zIndex = '0';
+            let zIndex = 0;
+            if (typeof lib_zindex_manager !== 'undefined') {
+                zIndex = lib_zindex_manager.push(this._dialogId, 'dialog');
             }
+            if (typeof lib_getMaxZIndex === 'function') {
+                zIndex = Math.max(zIndex, lib_getMaxZIndex(this.ownerDocument || document) + 1);
+            }
+            // >0 → apply computed value; 0 → restore the CSS max-int fallback.
+            backdrop.style.zIndex = zIndex > 0 ? zIndex : '';
+        } else if (typeof lib_zindex_manager !== 'undefined') {
+            lib_zindex_manager.push(this._dialogId, 'dialog');
         }
 
         this.dispatchEvent(new CustomEvent('dialog-open', { bubbles: true }));

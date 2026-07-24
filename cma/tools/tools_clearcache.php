@@ -297,6 +297,17 @@ if (function_exists('opcache_get_status')) {
 if (function_exists('opcache_reset')) {
     $_preOpcacheResult = @opcache_reset();
 }
+// True baseline: read the count again straight after the reset, BEFORE bootstrap
+// (Phase 2) recompiles the framework back into the cache. This is what "cleared"
+// actually looks like — near zero. A number close to the pre-count here means the
+// reset did NOT take effect (see the OPcache config table for why, e.g. restrict_api).
+$_postOpcacheScripts = null;
+if (function_exists('opcache_get_status')) {
+    $_postStats = @opcache_get_status(false);
+    if (is_array($_postStats)) {
+        $_postOpcacheScripts = $_postStats['opcache_statistics']['num_cached_scripts'] ?? null;
+    }
+}
 
 $_preApcuInfo = null;
 $_preApcuCount = 0;
@@ -307,6 +318,14 @@ if (function_exists('apcu_cache_info')) {
 }
 if (function_exists('apcu_clear_cache')) {
     $_preApcuResult = @apcu_clear_cache();
+}
+// APCu baseline straight after clearing, before bootstrap repopulates it.
+$_postApcuCount = null;
+if (function_exists('apcu_cache_info')) {
+    $_postApcuInfo = @apcu_cache_info(true);
+    if (is_array($_postApcuInfo)) {
+        $_postApcuCount = $_postApcuInfo['num_entries'] ?? null;
+    }
 }
 
 // ============================================================================
@@ -395,6 +414,7 @@ if (function_exists('opcache_reset')) {
             'Geheugen gebruikt' => number_format(($_preOpcacheStats['memory_usage']['used_memory'] ?? 0) / 1024 / 1024, 2) . ' MB',
             'Geheugen vrij' => number_format(($_preOpcacheStats['memory_usage']['free_memory'] ?? 0) / 1024 / 1024, 2) . ' MB',
             'Gecachte scripts' => $_preOpcacheScripts,
+            'Direct na reset' => ($_postOpcacheScripts === null ? 'onbekend' : $_postOpcacheScripts . ' (werkelijke stand ná legen, vóór bootstrap)'),
             'Bootstrap scripts' => $_bootstrapOpcacheCount . ' (normaal na refresh)',
             'Cache hits' => number_format($_preOpcacheStats['opcache_statistics']['hits'] ?? 0),
             'Cache misses' => number_format($_preOpcacheStats['opcache_statistics']['misses'] ?? 0),
@@ -414,6 +434,7 @@ if (function_exists('apcu_clear_cache')) {
         'extra' => $_preApcuInfo ? [
             'Geheugengrootte' => number_format(($_preApcuInfo['mem_size'] ?? 0) / 1024 / 1024, 2) . ' MB',
             'Items' => $_preApcuCount,
+            'Direct na legen' => ($_postApcuCount === null ? 'onbekend' : $_postApcuCount . ' (werkelijke stand ná legen, vóór bootstrap)'),
             'Hits' => number_format($_preApcuInfo['num_hits'] ?? 0),
             'Misses' => number_format($_preApcuInfo['num_misses'] ?? 0),
         ] : null
@@ -1112,6 +1133,15 @@ echo '</tr>';
 
 echo '</tbody>';
 echo '</table>';
+
+// Explain why the memory-cache counts never read zero on a re-run.
+echo '<lib-message type="info" style="margin-top:12px;" closable="false">';
+echo '<span class="cma-tool__strong">Waarom deze aantallen nooit 0 worden.</span> ';
+echo 'OPcache, APCu en de applicatiecache worden door het framework bij <span class="cma-tool__strong">élk</span> request automatisch opnieuw gevuld: <code>_bootstrap.php</code> wordt vóór iedere pagina geladen (auto-prepend) en compileert/cachet de kernbestanden meteen weer. ';
+echo 'De getoonde aantallen zijn de stand <span class="cma-tool__strong">vlak vóór</span> het legen; direct ná het legen zijn ze (bijna) nul — zie <span class="cma-tool__em">Direct na reset / Direct na legen</span> onder "Toon details" — maar de eerstvolgende paginalading (inclusief déze resultatenpagina) vult ze alweer. ';
+echo 'Een gelijk blijvend aantal bij herhaald legen is dus normaal en betekent niet dat het legen mislukt. ';
+echo 'Blijft "Direct na reset" wél hoog, dan nam de reset niet — kijk dan naar de tabel <span class="cma-tool__em">OPcache configuratie</span> hierboven (meestal <code>opcache.restrict_api</code> of <code>opcache.file_cache</code>).';
+echo '</lib-message>';
 
 // ==================== TERSER SETUP INSTRUCTIONS ====================
 if (!$_terserAvailable) {

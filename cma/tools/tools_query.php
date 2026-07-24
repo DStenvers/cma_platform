@@ -543,7 +543,14 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
         if ($conn === null) {
             throw new \RuntimeException('Geen databaseverbinding beschikbaar voor database ' . htmlspecialchars((string)$iDatabase));
         }
-        $arrQueries = Arr::splitAlways($CustomSQL, ';');
+        // Drop full-line SQL comments (lines whose first non-whitespace is "--") so
+        // operators can annotate their queries. Done before splitting on ";" so a
+        // ";" inside a comment line can't accidentally break the query into pieces.
+        $sqlToRun = implode("\n", array_filter(
+            preg_split('/\r\n|\r|\n/', $CustomSQL),
+            function ($line) { return strncmp(ltrim($line), '--', 2) !== 0; }
+        ));
+        $arrQueries = Arr::splitAlways($sqlToRun, ';');
         for ($tel = 0; $tel <= (count($arrQueries) - 1); $tel++) {
             $tempSQL = Str::trim($arrQueries[$tel]);
             if ($tempSQL === '') continue;

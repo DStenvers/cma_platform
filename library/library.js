@@ -217,6 +217,39 @@ var lib_zindex_manager = (function() {
 })();
 
 /**
+ * Walk a document (shadow roots included) and return the highest numeric z-index
+ * currently applied to any element. Returns 0 when nothing is stacked.
+ *
+ * Modal overlays that MUST sit on top (e.g. a libConfirm called while a dialog or
+ * window is already open) use this + 1 so they beat everything on screen — even
+ * overlays that never registered with lib_zindex_manager, and even ones rendered
+ * inside a web component's shadow DOM (which a plain document walk cannot see).
+ *
+ * @param {Document} [doc=document] - Document to scan (use the TOP document for
+ *        overlays that render in the top window from an iframe).
+ * @returns {number} The highest z-index found, or 0.
+ */
+function lib_getMaxZIndex(doc) {
+    doc = doc || document;
+    var win = doc.defaultView || window;
+    var max = 0;
+    function scan(root) {
+        var els = root.querySelectorAll ? root.querySelectorAll('*') : [];
+        for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            var z = win.getComputedStyle(el).zIndex;
+            if (z && z !== 'auto') {
+                var n = parseInt(z, 10);
+                if (!isNaN(n) && n > max) { max = n; }
+            }
+            if (el.shadowRoot) { scan(el.shadowRoot); }
+        }
+    }
+    scan(doc.body || doc.documentElement || doc);
+    return max;
+}
+
+/**
  * Visibility checker and fixer utility
  * Ensures an element is actually visible on screen. If not, tries to fix it.
  * Uses jQuery to check visibility and attempts to increase z-index if hidden.
@@ -1151,34 +1184,12 @@ function lib_OpenWindowCenteredMax() {
 	var container = lib_OpenWindowGetElement();
 	if (!container) return;
 
-	// Target the dialog inside the fullscreen container
-	var dialog = container.querySelector('.lib_window_dialog');
-	if (!dialog) return;
-
-	var $container = $(container);
-	var $dialog = $(dialog);
-
-	// is it already maximized? Restore original coordinates
-	if ($container.hasClass("maximized")) {
-		// Restore saved values from dialog
-		$dialog.css("width", $dialog.attr("data-save-width"));
-		$dialog.css("height", $dialog.attr("data-save-height"));
-		$dialog.css("max-width", "");
-		$dialog.css("max-height", "");
-		$container.removeClass("maximized");
-	} else {
-		// Save current dialog values
-		$dialog.attr("data-save-width", $dialog.css("width"));
-		$dialog.attr("data-save-height", $dialog.css("height"));
-		// Maximize dialog to fill container (with padding)
-		$dialog.css({
-			"width": "calc(100% - 20px)",
-			"height": "calc(100% - 20px)",
-			"max-width": "100%",
-			"max-height": "100%"
-		});
-		$container.addClass("maximized");
-	}
+	// Toggle the maximized state on the container. The dialog sizing is driven by the
+	// `.lib_window_container.maximized .lib_window_dialog` rule in library.css (with
+	// !important). We deliberately do NOT set inline width/height here: inline styles
+	// cannot override the `!important` mobile dialog rules in cma/assets/css/form.css
+	// (95vw/90vh on <=768px), which is why direct inline resizing did nothing there.
+	$(container).toggleClass("maximized");
 }
 
 //
