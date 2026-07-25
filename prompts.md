@@ -6672,3 +6672,33 @@ karaat-data en staat in de karaat-repo.
 > http://172.30.208.1:8090/agenda.php?events=Y&start=2024-08-26&end=2024-10-07&_=1784900917447 -> empty which is incorrect 
 >
 > then in agenda the right column the CalenderTable does not wrap every 7 days, it is now 1 long line with 28-31 days.
+
+> continue
+
+> verslagen_bekijk passes the deelnemerID not the deelnameID, please fix that
+
+> The date IOP ingediend does not show, is that intended?
+
+> http://172.30.208.1:8090/?pageaction=opleidingen&opleidingID=17#Toetsen -> names of the deelenmers and submitted toetsen not visible
+
+> toetsuitwerkingen are not downoadable, they should be
+
+> i asked you to improce the visualisation of http://172.30.208.1:8090/verslagen_bekijk.asp?ID=821 , make ut clearer that a verslag x is clickable. I see no changes
+
+> 2 yes and after that commit and push
+
+> just continue
+
+> Plan mode: Investigate if miving display to Twig template is possible and potentially more stable, we have had a lot of issues with generating screens, are twif templates a possible solition? Investigate thoroughly
+
+> and can we reuse the ajax calls already in use?
+
+> First commit and push, start a new branch twig implementation and start working on teig templates, don’t do reports (i want another route for that), so the suggested xslt conversion is great and then try berichten/nieuws /rino info pages as simple screens
+
+## 2026-07-25
+
+> GET http://172.30.208.1:8090/?pageAction=deelnemers&deelnameID=216 500 (Internal Server Error)
+>   GET http://172.30.208.1:8090/upload_cgoportfolio.asp?deelnameid=212&cgo_portfolioid= 403 (Forbidden)
+> lib_OpenWindowCentered @ :8090/general.min.js?v=1784899882:1
+> cgo_portfolio @ :8090/general.min.js?v=1784899882:1
+> (anonymous) @ (unknown)

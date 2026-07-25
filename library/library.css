@@ -403,7 +403,7 @@ div.lib_window_container.maximized { position:fixed !important; inset:0 !importa
 div.lib_window_container.maximized div.lib_window_dialog { width:calc(100% - 20px) !important; height:calc(100vh - 20px) !important; max-width:100% !important; max-height:100vh !important }
 
 div.lib_window_caption div.lib_window_close::before,
-div.lib_window_caption div.lib_window_close::after { content: ''; position: absolute; height: 2px; width: 100%; top: 50%; left: 0; margin-top: 1px; background: var(--popup-close-bg, #bbbbbb)}
+div.lib_window_caption div.lib_window_close::after { content: ''; position: absolute; height: 1px; width: 100%; top: 50%; left: 0; margin-top: 1px; background: var(--popup-close-bg, #bbbbbb)}
 div.lib_window_caption a {    display: block;     float: right;     height: 32px;     width: 32px;     text-align: center; }
 div.lib_window_caption A div.lib_window_close,
 div.lib_window_caption A:link div.lib_window_close,
