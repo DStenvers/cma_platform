@@ -16,6 +16,12 @@ $_appCacheDir = $_envCacheDir ?: ($_siteRoot . '/cache');
 $_cmaCacheDir = $_siteRoot . '/.cache/cma';
 $_formCacheDir = $_siteRoot . '/.cache/cma/forms';
 $_minifyDir = $_siteRoot . '/.cache/cma/minify';
+// Compiled Twig templates (site-side, only present on sites that render Twig).
+// Twig's auto_reload recompiles on a source mtime change, so this is normally
+// self-healing — but a deploy that copies templates with older mtimes, or a
+// change to the Twig options/filters/globals (which are baked into the compiled
+// class), leaves stale PHP behind. Cleared here so "leeg alle caches" means it.
+$_twigCacheDir = $_siteRoot . '/.cache/twig';
 
 // Session and temp directories
 $_sessionDir = ini_get('session.save_path') ?: sys_get_temp_dir();
@@ -61,6 +67,25 @@ if (isset($_GET['api']) && $_GET['api'] === '1') {
         }
     }
 
+    // Clear compiled Twig templates (nested per hash prefix)
+    if (is_dir($_twigCacheDir)) {
+        try {
+            $it = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($_twigCacheDir, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($it as $f) {
+                if ($f->isFile() && @unlink($f->getPathname())) {
+                    $cleared++;
+                } elseif ($f->isDir()) {
+                    @rmdir($f->getPathname());
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore
+        }
+    }
+
     // Clear memory caches (APCu, OPcache) to invalidate form templates
     if (function_exists('apcu_clear_cache')) {
         @apcu_clear_cache();
@@ -97,6 +122,7 @@ $_clearedFiles = [
     'sessions' => [],
     'temp' => [],
     'js_minify' => [],
+    'twig' => [],
 ];
 
 // Count and clear App Cache files (before bootstrap creates new ones)
@@ -192,6 +218,40 @@ if (is_dir($_cmaCacheDir)) {
                 ];
             }
         }
+    }
+}
+
+// Count and clear compiled Twig templates (recursive: Twig nests them per hash prefix)
+$_preTwigCount = 0;
+$_preTwigDirs = 0;
+if (is_dir($_twigCacheDir) && is_readable($_twigCacheDir)) {
+    try {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($_twigCacheDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $basename = $file->getBasename();
+                $size = $file->getSize();
+                $subpath = str_replace($_siteRoot . '/', '', $file->getPathname());
+                if (@unlink($file->getPathname())) {
+                    $_preTwigCount++;
+                    $_clearedFiles['twig'][] = [
+                        'name' => $basename,
+                        'path' => $subpath,
+                        'size' => $size,
+                        'type' => 'Gecompileerde Twig-template'
+                    ];
+                }
+            } elseif ($file->isDir()) {
+                if (@rmdir($file->getPathname())) {
+                    $_preTwigDirs++;
+                }
+            }
+        }
+    } catch (Exception $e) {
+        // Ignore
     }
 }
 
@@ -522,6 +582,18 @@ $caches['Minify'] = [
     'count' => $_preMinifyCount,
     'files' => $_clearedFiles['minify']
 ];
+
+// 5b. Compiled Twig templates — only listed on sites that actually render Twig,
+// so consumer sites without it don't get an empty row.
+if (is_dir($_twigCacheDir) || $_preTwigCount > 0) {
+    $caches['Twig'] = [
+        'available' => true,
+        'result' => true,
+        'detail' => $_preTwigCount . ' bestanden' . ($_preTwigDirs > 0 ? ", {$_preTwigDirs} mappen" : ''),
+        'count' => $_preTwigCount,
+        'files' => $_clearedFiles['twig']
+    ];
+}
 
 // 6. Form templates - use pre-cleared values
 $caches['Form HTML'] = [
@@ -1282,6 +1354,7 @@ if ($hasDetails) {
             'temp' => 'Temp',
             'js_minify' => 'JS Minify',
             'css_minify' => 'CSS Minify',
+            'twig' => 'Twig',
         ];
 
         foreach ($byCategory as $cat => $files) {
