@@ -2773,8 +2773,14 @@ $pdo = new PDO($dsn, "username", "password");</code></pre>';
                         $path = realpath($dir);
                         $exists = $path && is_dir($path);
 
-                        // Skip non-existing directories
+                        // Show expected-but-missing directories instead of hiding
+                        // them, so a removed or relocated dir is visible in the audit
+                        // rather than silently absent.
                         if (!$exists) {
+                            echo '<tr>
+                                    <td><span class="error-handler__strong">' . htmlspecialchars($label) . '</span><br><small>' . htmlspecialchars($dir) . '</small></td>
+                                    <td colspan="4"><span style="color: red;">✗ missing</span></td>
+                                  </tr>';
                             continue;
                         }
 

@@ -187,7 +187,7 @@ function GetSnippetContent($cXMLStore)
                 $objXSL = Application::get($cache_id, '');
                 }
             }
-        $cXSLTFile = Application::get('base_path', '') . XSLT_PATH . $cXMLStore . '.xslt';
+        $cXSLTFile = Application::get('base_path', '') . 'assets/xslt/' . $cXMLStore . '.xslt';
         $xsltFilePath = Server::mapPath($cXSLTFile);
 
         // Load XSLT using PHP DOMDocument
@@ -318,7 +318,7 @@ function XMLStore_GenerateXSLT($XMLStore, $XMLTTemplateType)
         }
 
         // Write output file
-        $outPath = Server::mapPath(Application::get('base_path', '') . XSLT_PATH . strtolower($XMLStore) . '.xslt');
+        $outPath = Server::mapPath(Application::get('base_path', '') . 'assets/xslt/' . strtolower($XMLStore) . '.xslt');
         $outDir = dirname($outPath);
         if (!is_dir($outDir)) {
             mkdir($outDir, 0777, true);

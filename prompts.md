@@ -6726,3 +6726,33 @@ karaat-data en staat in de karaat-repo.
 
 > [12:32:03] JS: Uncaught TypeError: top.lib_OpenWindowCenteredClose is not a function
 >   at http://172.30.208.1:8090/general.js?v=1785060004:1769 at login screen. the top. is not available perhaps? Why is this an issue all of a sudden?
+
+> remove the internal info: URL-map oud↔nieuw: pad blijft gelijk, .php→.asp. Let op: bestanden onder /src/ajax/ stonden in de klassieke ASP-app in de root — die worden dus vergeleken met /<bestand>.asp. upload_handler.php wordt overgeslagen (geen ASP-tegenhanger).
+
+> the bekijk screens are empty, should not the complete url be added?
+
+> /upload.php bekijk
+> netwerkfout
+> undefined    –    0 / 0    ≠ oud[] nieuw[]    0 gedeeld    0 / -0 / +0    0 gedeeld / 0 oud / 0 nieuw
+> bekijk
+> Geen accounts voor rol: docent
+
+> /export_pdf.php is die wel in gebruik? Zo nee: verplaats naar .deprecated en haal uit deze lijst
+
+> can you open the comparison in a new page, i keep closing the main report page
+
+> the body:has(#column_right) div#pagina {
+>     width: calc(100% - 16px) !important;
+> } seems to have dissapeared in the php version
+
+> the rol_walkers ajax calls are fantastically slow, why? 
+>
+> http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=inventory
+> http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=coverage
+> http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=diff&role=assistent
+>
+> still nothing after > 30 seconds
+
+> shat is the status?
+
+> yes please and the. the endpoints analyses

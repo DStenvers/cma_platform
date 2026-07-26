@@ -15,7 +15,6 @@
 
 // Guarded like library/library.inc and library/config/constants.php: this file is
 // loaded first, so an unconditional define() here silently wins over both.
-defined('XSLT_PATH') || define('XSLT_PATH', 'assets/xslt/'); // moved to assets/xslt/ in migration 9.17/9.18
 defined('CACHE_PATH') || define('CACHE_PATH', '.cache/'); // consolidated to .cache/ in migration 9.16
 define('CACHE_DIR_INDENT', 'dirs');
 
