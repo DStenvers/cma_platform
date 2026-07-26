@@ -476,7 +476,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'libAlert', href: '#libAlert', icon: 'lnr-warning' },
                 { label: 'libConfirm', href: '#libConfirm', icon: 'lnr-question-circle' },
                 { label: 'libPrompt', href: '#libPrompt', icon: 'lnr-text-format' },
-                { label: 'LibLog', href: '#LibLog', icon: 'lnr-bug' }
+                { label: 'LibLog', href: '#liblog', icon: 'lnr-bug' }
             ]
         },
         {
@@ -2605,7 +2605,7 @@ LibTip.reset();</div>
         </div>
     </section>
 
-    <section class="component-section" id="LibLog">
+    <section class="component-section" id="liblog">
         <div class="component-header">
             <h2>LibLog</h2>
             <span class="tag lib">library</span>

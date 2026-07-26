@@ -5,8 +5,9 @@
 // Use libLog instead of console.log for debug-only output
 // LibLog provides: console interception, batching, server-side logging
 var libLog = (function() {
-    // Check if LibLog is loaded (from lib-log.js)
-    if (window.LibLog) {
+    // Check if LibLog is loaded (from lib-log.js). Probe a method, not just the
+    // identifier: an element with id="LibLog" also makes window.LibLog truthy.
+    if (window.LibLog && typeof window.LibLog.log === 'function') {
         return window.LibLog;
     }
     // Fallback if LibLog not loaded - simple conditional logging

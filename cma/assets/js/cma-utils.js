@@ -61,26 +61,34 @@ if (typeof window.CMA_CONSOLE_LOGGING === 'undefined') {
  * (server logging, batching, error panel integration).
  * Otherwise, fall back to simple console wrapper.
  */
-if (typeof window.cmaLog === 'undefined' || !window.LibLog) {
+// NOTE: never test `typeof LibLog !== 'undefined'` to decide whether the real
+// logger is present. Any element with id="LibLog" makes window.LibLog a DOM node
+// (named element access), so the identifier exists but has no log/warn/error.
+// Always probe the method itself.
+function cmaHasLibLog(method) {
+    return !!window.LibLog && typeof window.LibLog[method] === 'function';
+}
+
+if (typeof window.cmaLog === 'undefined' || !cmaHasLibLog('log')) {
     // LibLog not loaded or cmaLog not set - provide fallback
-    window.cmaLog = window.LibLog || {
+    window.cmaLog = cmaHasLibLog('log') ? window.LibLog : {
         log: function(...args) {
             // Delegate to LibLog if available, otherwise use console directly
-            if (typeof LibLog !== 'undefined') { LibLog.log(...args); }
+            if (cmaHasLibLog('log')) { window.LibLog.log(...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.log(...args); }
         },
         warn: function(...args) {
-            if (typeof LibLog !== 'undefined') { LibLog.warn(...args); }
+            if (cmaHasLibLog('warn')) { window.LibLog.warn(...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.warn(...args); }
         },
         error: function(...args) {
             // Always log errors - important for debugging production issues
-            if (typeof LibLog !== 'undefined') { LibLog.error(...args); }
+            if (cmaHasLibLog('error')) { window.LibLog.error(...args); }
             else { console.error(...args); }
         },
         // Alias for convenience
         debug: function(...args) {
-            if (typeof LibLog !== 'undefined') { LibLog.log('[DEBUG]', ...args); }
+            if (cmaHasLibLog('log')) { window.LibLog.log('[DEBUG]', ...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.log('[DEBUG]', ...args); }
         },
         // Method to check if logging is enabled

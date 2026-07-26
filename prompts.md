@@ -6702,3 +6702,24 @@ karaat-data en staat in de karaat-repo.
 > lib_OpenWindowCentered @ :8090/general.min.js?v=1784899882:1
 > cgo_portfolio @ :8090/general.min.js?v=1784899882:1
 > (anonymous) @ (unknown)
+
+> the name twig_datastores is confusing bacause it should be twig_templates, twig is not data
+
+> we need all xslts to be migrated, i dont see them all in the list?
+
+> no deprecate all of them
+
+> the determination of the match by sheer filesize is limited, can we read the content area and count the number of links and tr’s as a smoke test?
+
+> can you create a full test for eva and her po and jgo an parallel run it?
+
+> focus on the content area of the page
+
+> yes please and for now skip the Draaiboeken tab if on the dashboard a button is shown (both sites please)
+
+> skip the tab differences, focus on the draaiboeken tab first
+
+## 2026-07-26
+
+> [12:04:43] JS: [iframe] Uncaught TypeError: LibLog.log is not a function
+>   at http://172.30.208.1:8090/cma/minify.php?f=assets/js/cma-utils.js,assets/js/url-manager.js,../library/assets/js/error-handler.js,assets/js/request-tracker.js,webcomponents/cma-base-component.js,../library/webcomponents/lib-shared-styles.js,../library/webcomponents/lib-loader.js,../library/webcomponents/lib-switch.js,../library/webcomponents/lib-radio-group.js,../library/webcomponents/lib-dialog.js,../library/webcomponents/lib-message.js,../library/webcomponents/lib-menu.js,../library/webcomponents/lib-toaster.js,../library/webcomponents/lib-search-input.js,../library/webcomponents/lib-datepicker.js,../library/webcomponents/lib-timepicker.js,../library/webcomponents/lib-histogram.js,../library/webcomponents/lib-gauge.js,../library/webcomponents/lib-combo.js,webcomponents/shared-icons.js,webcomponents/cma-blockeditor.js,webcomponents/cma-fold.js,webcomponents/cma-tree.js,webcomponents/cma-sortlist.js,webcomponents/cma-groupbox.js,webcomponents/cma-toolbar.js,webcomponents/cma-tabs.js,webcomponents/cma-launcher.js,../library/library.js,../library/formval_nl.js,../library/datepicker.js,../library/select2/select2.js,../library/webcomponents/lib-table.js,assets/js/cma.js,assets/js/cma-users.js,webcomponents/cma-htmledit.js,assets/js/blockedit.js,assets/js/table-preferences.js,assets/js/inline-edit.js,assets/js/perf-logger.js,../library/webcomponents/lib-tip.js,assets/js/cma-tours.js,assets/js/cma-list-thumb.js,assets/js/main.js&v=20260725a:70
