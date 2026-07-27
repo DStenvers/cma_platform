@@ -7113,3 +7113,7 @@ karaat-data en staat in de karaat-repo.
 > document your learnings of today
 
 > document your learnings of today
+
+> such: mijnRINO’s log is still ~387 MB with no rotation on the site’s own volume, and the lib_xmlsnippets.inc undefined-array-key writes plus a DOMDocument cache-serialization error are still the residual log traffic — separate from today’s calendar work.
+>
+> please fix

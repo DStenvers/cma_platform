@@ -4,6 +4,7 @@ use App\Library\Arr;
 use App\Library\Cache;
 use App\Library\Database;
 use App\Library\Debug;
+use App\Library\Dictionary;
 use App\Library\Error;
 use App\Library\RecordSet;
 use App\Library\Request;
@@ -499,7 +500,7 @@ function HandleParam($param, $expression, $Value, $blnSaveOnly)
     // Debug::write ("HandleParam resulted in SQL : " &strXMLSQL & " with cache id " & strStoreCacheID)
     // store values in a dictionary to enable adding parameters later on
     if (!is_object($dictParams)) {
-        $dictParams = new ArrayObject();
+        $dictParams = new Dictionary();
         }
     // sometimes a key is already in the dictParams collection, skip it
     if (!$dictParams->offsetExists($param)) {
@@ -554,7 +555,7 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
         $strXMLSQL = str_replace('[DEELNAMEROLFILTER]', $GLOBALS['xmlstore_deelname_rolfilter'] ?? '(1=1)', $strXMLSQL);
         $strStoreCacheID .= $GLOBALS['xmlstore_deelname_rolcachekey'] ?? '';
     }
-    $dictParams = new ArrayObject();
+    $dictParams = new Dictionary();
     if ($strXMLSQL!= '') {
             if ($cParam == PARAM_AUTO_RETRIEVE) {
                 if (Request::queryAll()) {
@@ -662,7 +663,6 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                 $libObjXMLDOM = new DOMDocument();
                 $libObjXMLDOM->preserveWhiteSpace = true;
                 $libObjXMLDOM->load(Server::mapPath(Application::get($strStoreCacheID, '')));
-                Cache::set($strStoreCacheID . CONST_XMLPOSTFIX, $libObjXMLDOM);
             } else {
                 Debug::write('XMLSnippets => First call to XML Store ' . $strStoreCacheID);
                 if ($strXMLSQL!= '') {
@@ -675,60 +675,36 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                         $sImageSQL = 'SELECT tblControls.ImgPath, tblControls.FieldName, tblSqlStatements.Table FROM tblSqlStatements INNER JOIN (tblForms INNER JOIN tblControls ON tblForms.ID = tblControls.FormID) ON tblSqlStatements.ID = tblForms.SqlID WHERE (tblForms.fkModule=' . ($libArrXMLStore[STORE_MODULE] ?? 0) . ' AND (tblControls.ControlTypeID=' . CONSTFLDTYPE_FILE . ' or tblControls.ControlTypeID=' . CONSTFLDTYPE_IMAGE . ' or tblControls.ControlTypeID=' . CONSTFLDTYPE_THUMBNAIL . '))';
                         $arrImgFields = Cache::retrieve($cache_xmlstore_ident . '_imgfields_' . ($libArrXMLStore[STORE_MODULE] ?? 0), $sActiveRepository, $sImageSQL);
                         // REDIM arrImagePaths($rs->fields->count) - Create new array
-                        $new_size = ($rs->fields->count) + 1; // VBScript arrays are 0-based
+                        $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                         $arrImagePaths = array_fill(0, $new_size, null);
-                        if (Arr::isArray($arrImgFields)) {
-                            for ($t = 0; $t <= $rs->fields->count - 1; $t++) {
-                                $cur_fld = $rs->Fields[$t];
-                                $strTableName = (is_null($cur_fld->properties['BASETABLENAME']) ? "" : strtolower($cur_fld->properties['BASETABLENAME']));
-                                $strFieldName = (is_null($cur_fld->properties[0]) ? "" : strtolower($cur_fld->properties[0]));
-                                for ($x = 0; $x <= (count($arrImgFields) - 1); $x++) {
-                                    // response.write "  -> checking " & arrImgFields( 2, x) & " - " & arrImgFields( 1, x) & " against " & strFieldname
-                                    if ((is_null($arrImgFields[2][$x]) ? "" : strtolower($arrImgFields[2][$x])) == $strTableName && (is_null($arrImgFields[1][$x]) ? "" : strtolower($arrImgFields[1][$x])) == $strFieldName) {
-                                        if (Application::get('base_resource_path', '') != '') {
-                                            $arrImagePaths[$t] = Application::get('base_resource_path', '');
-                                            } else {
-                                            $arrImagePaths[$t] = Application::get('base_path', '');
-                                            }
-                                        $arrImagePaths[$t] = $arrImagePaths[$t] . $arrImgFields[0][$x];
-                                        }
-                                    }
-                                }
-                            }
+                        // Kolom-metadata per veld (welke tabel, welke kolom) is hier niet
+                        // te krijgen: RecordSet levert per veld alleen name en value
+                        // (RecordSetField), niet ADO's Field.Properties met BASETABLENAME
+                        // en BASECOLUMNNAME. Zonder die twee valt een veld niet aan een
+                        // tblControls-regel te koppelen, dus blijft de tabel leeg — wat
+                        // downstream betekent "dit veld is geen afbeelding". Wil je dit
+                        // laten werken, dan moet RecordSet eerst kolomtype en herkomst
+                        // per veld beschikbaar maken.
                         // REDIM arrDateFields($rs->fields->count) - Create new array
-                        $new_size = ($rs->fields->count) + 1; // VBScript arrays are 0-based
+                        $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                         $arrDateFields = array_fill(0, $new_size, null);
-                        if (Arr::isArray($arrDateFields)) {
-                            for ($t = 0; $t <= $rs->fields->count - 1; $t++) {
-                                $cur_fld = $rs->Fields[$t];
-                                $arrDateFields[$t] = ($cur_fld->type == ADDATE ? $cur_fld->name() : '');
-                                }
-                            }
+                        // Idem: het onderscheid "is dit veld een datum" komt in ADO uit
+                        // Field.Type, en dat kent RecordSetField niet. Elke entry blijft
+                        // dus leeg en lib_XMLfromRS behandelt het veld als gewone tekst.
                         $sTextSQL = 'SELECT tblControls.FieldName, tblSqlStatements.Table FROM tblSqlStatements INNER JOIN (tblForms INNER JOIN tblControls ON tblForms.ID = tblControls.FormID) ON tblSqlStatements.ID = tblForms.SqlID WHERE (tblForms.fkModule=' . ($libArrXMLStore[STORE_MODULE] ?? 0) . ' AND (tblControls.ControlTypeID=' . CONSTFLDTYPE_MEMO . ' and tblControls.TagsAllowed=False))';
                         $arrTxtFields = Cache::retrieve($cache_xmlstore_ident . '_textfields_' . ($libArrXMLStore[STORE_MODULE] ?? 0), $sActiveRepository, $sTextSQL);
                         // REDIM arrTxtConvert($rs->fields->count) - Create new array
-                        $new_size = ($rs->fields->count) + 1; // VBScript arrays are 0-based
+                        $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                         $arrTxtConvert = array_fill(0, $new_size, null);
-                        if (Arr::isArray($arrTxtFields)) {
-                            for ($t = 0; $t <= $rs->fields->count - 1; $t++) {
-                                $cur_fld = $rs->Fields[$t];
-                                $strTableName = (is_null($cur_fld->properties['BASETABLENAME']) ? "" : strtolower($cur_fld->properties['BASETABLENAME']));
-                                $strFieldName = (is_null($cur_fld->properties[0]) ? "" : strtolower($cur_fld->properties[0]));
-                                for ($x = 0; $x <= (count($arrTxtFields) - 1); $x++) {
-                                    if ((is_null($arrTxtFields[1][$x]) ? "" : strtolower($arrTxtFields[1][$x])) == $strTableName && (is_null($arrTxtFields[0][$x]) ? "" : strtolower($arrTxtFields[0][$x])) == $strFieldName) {
-                                        $arrTxtConvert[$t] = true;
-                                        
-                                    }
-                                }
-                            }
-                        }
+                        // Idem: koppelen aan tblControls vraagt tabel- en kolomnaam per
+                        // veld, die RecordSetField niet levert.
                         if (false) {
                             $sEMailSQL = 'SELECT tblControls.ImgPath, tblControls.FieldName, tblSqlStatements.Table FROM tblSqlStatements INNER JOIN (tblForms INNER JOIN tblControls ON tblForms.ID = tblControls.FormID) ON tblSqlStatements.ID = tblForms.SqlID WHERE (tblForms.fkModule=' . ($libArrXMLStore[STORE_MODULE] ?? 0) . ' AND tblControls.ControlTypeID=' . CONSTFLDTYPE_EMAIL . ')';
                             $arrEMailFields = Cache::retrieve($cache_xmlstore_ident . '_emailfields_' . ($libArrXMLStore[STORE_MODULE] ?? 0), $sActiveRepository, $sEMailSQL);
                             // REDIM arrEMailConvert($rs->fields->count) - Create new array
-                            $new_size = ($rs->fields->count) + 1; // VBScript arrays are 0-based
+                            $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                             $arrEMailConvert = array_fill(0, $new_size, null);
-                            for ($t = 0; $t <= $rs->fields->count - 1; $t++) {
+                            for ($t = 0; $t <= count($rs->fields) - 1; $t++) {
                                 $cur_fld = $rs->Fields[$t];
                                 $strTableName = (is_null($cur_fld->Properties['BaseTableName']) ? "" : strtolower($cur_fld->Properties['BaseTableName']));
                                 $strFieldName = (is_null($cur_fld->Properties['BaseColumnName']) ? "" : strtolower($cur_fld->Properties['BaseColumnName']));
@@ -803,9 +779,13 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                         // ON ERROR GOTO 0 - Error handling via ErrorHandler.php
                         }
                     }
-                if (!Application::get('cma_caching', '') == false) {
-                    Cache::set($strStoreCacheID . CONST_XMLPOSTFIX, $libObjXMLDOM);
-                    }
+                // Het opgebouwde document wordt bewust NIET in de Cache gezet: dat is
+                // een DOMDocument en PHP kan die niet serialiseren, dus elke poging
+                // eindigde in "Cache set error: Serialization of 'DOMDocument' is not
+                // allowed" en er belandde nooit iets in de cache. De leesregel hierboven
+                // haalt het document uit Application (per request), niet uit Cache, dus
+                // er werd ook niets gemist. Wil je hier wel over requests heen cachen,
+                // bewaar dan saveXML() als tekst en bouw hem bij het lezen opnieuw op.
                 }
             }
         }
@@ -906,7 +886,7 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
             // Set objXMLField = objXMLField.cloneNode(True)
             // end if
             // if XML_SNIPPET_SETTING_RESOLVE_FIELDS then
-            $sFldName = $arrDateFields[$intCurFieldIdx] . '';
+            $sFldName = ($arrDateFields[$intCurFieldIdx] ?? '') . '';
             if ($sFldName != '') {
                 $objXMLField = $libObjXMLDOM->createElement((is_null(str_replace(' ', '_', (is_null($sFldName . '_shortdate') ? "" : strtoupper($sFldName . '_shortdate')))) ? "" : strtoupper(str_replace(' ', '_', (is_null($sFldName . '_shortdate') ? "" : strtoupper($sFldName . '_shortdate'))))));
                 $objXMLRow->appendChild($objXMLField);
@@ -996,7 +976,7 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
                 // arrIndex = arrIndex + 1
                 // end if
                 if (Arr::isArray($arrDateFields)) {
-                    if ($arrDateFields[$intCurFieldIdx]!= '') {
+                    if (($arrDateFields[$intCurFieldIdx] ?? '')!= '') {
                         $objXMLDateField = $objXMLNodeList[$arrIndex];
                         if (is_object($objXMLDateField)) {
                             if ($aryRows[$intCurFieldIdx][$intCurRowIdx]!= '') {
