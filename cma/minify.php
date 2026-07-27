@@ -40,15 +40,13 @@ $isProduction = (strtoupper($environment) === 'P');
 // Configuration - browser caching always enabled; the URL version parameter (v=xxx)
 // handles cache busting when files change.
 //
-// Minification is ALWAYS on. It used to be production-only, which meant dev/test
-// served raw sources and therefore never exercised the pre-built .min bundles — so a
-// broken or stale .min only ever surfaced in production, which is the one place you
-// don't want to find it. Serving the same artefact everywhere is the point.
+// Minification is on in EVERY environment, so every environment exercises the same
+// artefact: a broken or stale .min surfaces while developing instead of only in
+// production.
 $MINIFY_ACTIVE = true;
-// Disk cache stays production-only: it is a pure speed-up, and in dev it would hand
-// back a cached bundle while you are still editing the source. (This variable was
-// declared but never read — both cache gates below tested $MINIFY_ACTIVE, so making
-// minification unconditional would have silently enabled dev disk caching too.)
+// The disk cache is production-only. It is a pure speed-up, and in dev it would hand
+// back a cached bundle while the source is still being edited. Keep the two flags
+// separate — the cache gates below must test THIS one, not $MINIFY_ACTIVE.
 $DISK_CACHE_ACTIVE = $isProduction;
 
 $config = [
