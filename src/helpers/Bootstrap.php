@@ -740,9 +740,32 @@ class Bootstrap
      * filesystem root. Fall back to our own location:
      * vendor/stenversonline/platform/src/helpers -> site root.
      */
+    /**
+     * The site root. init() sets it on every web request; the fallback below is
+     * for CLI tooling and anything that calls a static helper before boot.
+     *
+     * That fallback used to be dirname(__DIR__, 4), which lands on <site>/vendor
+     * — one level short — so loadDatabasesConfig() found no databases.json and
+     * silently returned an empty list. A caller then sees "no connections
+     * configured" instead of the real ones, which is the worst kind of wrong:
+     * plausible and quiet.
+     */
     private static function resolveRootDir(): string
     {
-        return self::$rootDir !== '' ? self::$rootDir : dirname(__DIR__, 4);
+        if (self::$rootDir !== '') {
+            return self::$rootDir;
+        }
+        // Installed layout: <site>/vendor/stenversonline/platform/src/helpers
+        $vendored = dirname(__DIR__, 5);
+        if (is_dir($vendored . '/data') || is_file($vendored . '/app.php')) {
+            return $vendored;
+        }
+        // Platform checkout: <platform>/src/helpers
+        $checkout = dirname(__DIR__, 2);
+        if (is_dir($checkout . '/cma')) {
+            return $checkout;
+        }
+        return dirname(__DIR__, 4);
     }
 
     /**

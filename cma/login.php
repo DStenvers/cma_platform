@@ -10,6 +10,7 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\SQL;
 use App\Library\Email;
+use Cma\SchemaHelper;
 use Cma\SecurityHelper;
 use Cma\Services\SsoService;
 
@@ -162,11 +163,28 @@ function main()
                     Cookie::delete(SecurityHelper::COOKIE_USERGUID);
                 }
             }
-            if (Database::getFieldValue('users', 'select count(*) as Aantal from tblUsers where (userAdministrator=true)', '') < '1') {
-                Database::execute("INSERT INTO tblUsers (userLogin, userFullName, userPassword, userAdministrator) VALUES ('Admin', 'Administrator', 'Admin', True)");
+            // Bootstrap een beheerder als er nog geen is. Twee dingen gaan hier
+            // makkelijk mis, en gingen dat ook:
+            //  - De adminvlag heet op moderne sites `userLevel`; `userAdministrator`
+            //    is de legacy-kolom (zie SecurityHelper::getUserLevel, dat beide
+            //    kent). Access meldt een onbekende kolom als "te weinig parameters",
+            //    dus vragen naar de verkeerde kolom ziet eruit als een parameterfout.
+            //  - Database::execute() schrijft naar de DEFAULT connectie (`data`).
+            //    tblUsers leeft in `users`, dus de INSERT landde in de verkeerde
+            //    database en faalde met "kan de uitvoertabel niet vinden". Elke
+            //    paginaload schreef zo twee stacktraces naar het errorlog.
+            $usersConn = Database::getConnection('users');
+            $adminColumn = SchemaHelper::hasColumn($usersConn, 'tblUsers', 'userLevel')
+                ? 'userLevel >= 1'
+                : 'userAdministrator = true';
+            if (Database::getFieldValue('users', 'select count(*) as Aantal from tblUsers where (' . $adminColumn . ')', '') < '1') {
+                $adminInsert = SchemaHelper::hasColumn($usersConn, 'tblUsers', 'userLevel')
+                    ? "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userLevel) VALUES ('Admin', 'Administrator', 'Admin', 1)"
+                    : "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userAdministrator) VALUES ('Admin', 'Administrator', 'Admin', True)";
+                Database::executeOn('users', $adminInsert);
             }
             if (Database::getFieldValue('users', 'select count(*) as Aantal from tblGroups where (ID=0)', '') < '1') {
-                Database::execute("INSERT INTO tblGroups (ID, grpName) VALUES (0, 'Iedereen')");
+                Database::executeOn('users', "INSERT INTO tblGroups (ID, grpName) VALUES (0, 'Iedereen')");
             }
         }
         $dbconn = null;

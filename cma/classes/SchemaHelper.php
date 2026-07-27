@@ -168,6 +168,24 @@ class SchemaHelper
      * @param bool $includeHidden Include columns starting with underscore (default: false)
      * @return array Array of column info
      */
+    /**
+     * Does $tableName have $columnName on this connection?
+     *
+     * Cheap guard for schema drift between sites: the admin flag is `userLevel`
+     * on modern installs and `userAdministrator` on legacy ones, and Access
+     * reports an unknown column as "te weinig parameters" — a message that reads
+     * like a parameter-binding bug, not a missing column. Ask first.
+     */
+    public static function hasColumn($connection, string $tableName, string $columnName): bool
+    {
+        foreach (self::getColumns($connection, $tableName, true) as $column) {
+            if (strcasecmp((string)($column['name'] ?? ''), $columnName) === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function getColumns($connection, string $tableName, bool $includeHidden = false): array
     {
         $columns = [];
