@@ -195,21 +195,21 @@ describe('Frontend Forms - Elizabeth Wansink', () => {
 
     describe('Inventarisatie Index New', () => {
         it('should load without PHP errors', () => {
-            cy.visit(`${SITE_URL}/inventarisatie/index_new.php?hideheader=false`, {
+            cy.visit(`${SITE_URL}/inventarisatie/index.php`, {
                 failOnStatusCode: false
             });
             assertNoPhpErrors();
         });
 
         it('should have page styling', () => {
-            cy.visit(`${SITE_URL}/inventarisatie/index_new.php?hideheader=false`, {
+            cy.visit(`${SITE_URL}/inventarisatie/index.php`, {
                 failOnStatusCode: false
             });
             cy.get('head link[rel="stylesheet"]').should('have.length.greaterThan', 0);
         });
 
         it('should display page content', () => {
-            cy.visit(`${SITE_URL}/inventarisatie/index_new.php?hideheader=false`, {
+            cy.visit(`${SITE_URL}/inventarisatie/index.php`, {
                 failOnStatusCode: false
             });
             cy.get('body').invoke('text').should('not.be.empty');

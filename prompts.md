@@ -7021,3 +7021,12 @@ karaat-data en staat in de karaat-repo.
 >     at form_valid_report (http://172.30.208.1:8090/library/formval_nl.min.js?v=1785148176:1:2312)
 
 >  /mnt/c/repos/rino/bedankje2024/library/lib_error.inc is zeker niet het origineel:  /mnt/c/repos/adam/mijnrino/library/lib_error.inc is dat, maar dan met copy knop
+
+> kuynnen we inventarisatie/index_new.php hernoemen naar index.php en de oude weghalen? bij beide repo's ? Dit werkt verwarrend
+
+> Kies eerst een verslag of een deelnemer om de urenverantwoording te bekijken.-> Geef het verslagnummer of deelnemer om het verslag en uren te bekijken.
+
+> and an internal error in the walker± [12:57:42] JS: Uncaught SyntaxError: Unexpected token '>'
+>   at http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=proxy&side=new&role=praktijkopleider&account=903&path=%2Finventarisatie%2Fexcel.php:111
+
+> #cma-error-panel .error-btn .lnr { color:inherit} #cma-error-panel .error-btn .lnr::before { color: inherit }

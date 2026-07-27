@@ -443,8 +443,8 @@ describe('Portal - Standalone Pages', () => {
         assertNoPhpErrors();
     });
 
-    it('should load inventarisatie/index_new.php without PHP errors', () => {
-        visitPage('/inventarisatie/index_new.php?hideheader=false');
+    it('should load inventarisatie/index.php without PHP errors', () => {
+        visitPage('/inventarisatie/index.php');
         assertNoPhpErrors();
     });
 

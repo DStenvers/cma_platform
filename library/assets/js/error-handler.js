@@ -199,11 +199,12 @@
                     gap: 4px;
                 }
                 #cma-error-panel .error-btn .lnr {
+                    color: inherit;
                     width: 14px;
                     height: 14px;
                 }
                 #cma-error-panel .error-btn .lnr::before {
-                    color: red;
+                    color: inherit;
                     font-size: 12px;
                     line-height: 14px;
                     width: 14px;
