@@ -305,25 +305,43 @@ class Error
      * textarea+execCommand fallback for the non-secure contexts (plain http on
      * a dev host) where navigator.clipboard is undefined.
      */
-    private static function copyButtonHtml(string $title, string $message): string
+    /**
+     * Copy-to-clipboard control, ported from the ASP original
+     * (library/lib_error.inc :: lib_error_CopyButton).
+     *
+     * It walks the rendered card and copies what is actually ON it — including
+     * comment nodes, which is where the extra diagnostics live — instead of a
+     * string baked at render time. That way the operator always copies exactly
+     * what they are looking at.
+     *
+     * Self-contained by necessity: this card shows up on pages whose stylesheet
+     * and scripts may never have loaded. Hence the inline handler, inline SVG,
+     * and a textarea+execCommand fallback for non-secure contexts (plain http on
+     * a dev host) where navigator.clipboard is undefined.
+     */
+    private static function copyButtonHtml(): string
     {
-        // The clipboard gets the plain text, not the HTML: strip tags, decode
-        // entities, and collapse the whitespace that the markup introduced.
-        $plain = html_entity_decode(strip_tags(str_replace(['<br>', '<BR>', '<P>', '<p>'], "\n", $title . "\n\n" . $message)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $plain = trim(preg_replace("/[ \t]+/", ' ', $plain));
-        // Escaped once, when the whole handler goes into the attribute below.
-        $js = json_encode($plain, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-        $onclick = "var t=" . $js . ";var b=this;"
-            . "var done=function(){b.title='Gekopieerd';b.style.opacity='0.55';setTimeout(function(){b.title='Kopieer deze foutmelding';b.style.opacity='1'},1500)};"
-            . "if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done)}"
-            . "else{var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(a)}";
-
-        return '<a href="javascript:void(0)" title="Kopieer deze foutmelding" style="display:inline-block;width:22px;height:22px;line-height:0;cursor:pointer;text-decoration:none" onclick="' . htmlspecialchars($onclick, ENT_QUOTES, 'UTF-8') . '">'
-            . '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-            . '<rect x="9" y="9" width="13" height="13" rx="2"></rect>'
+        $html = '<button type="button" title="Kopieer foutmelding naar klembord" onclick="libErrorCopy(this);return false;"'
+            . ' style="position:absolute;top:6px;right:8px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.55);border-radius:4px;color:#ffffff;width:22px;height:22px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:0">'
+            . '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            . '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>'
             . '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>'
-            . '</svg></a>';
+            . '</svg></button>';
+
+        $html .= '<script>window.libErrorCopy=window.libErrorCopy||function(b){'
+            . "var c=b.closest?b.closest('.lib-error-card'):null;"
+            . "if(!c){var p=b.parentNode;while(p){if(p.className&&(' '+p.className+' ').indexOf(' lib-error-card ')>-1){c=p;break;}p=p.parentNode;}}"
+            . 'if(!c)return;'
+            . "var skip=function(n){var p=n.parentNode;while(p&&p!==c){var nm=p.nodeName;if(nm==='SCRIPT'||nm==='STYLE'||nm==='NOSCRIPT')return 2;p=p.parentNode;}return 1;};"
+            . "var t='',w=document.createTreeWalker(c,132,skip,false),n;"
+            . "while(n=w.nextNode()){if(n.nodeType===8)t+='\\n'+n.nodeValue+'\\n';else t+=n.nodeValue;}"
+            . "t=t.replace(/\\u00a0/g,' ').replace(/[ \\t]+\\n/g,'\\n').replace(/\\n{3,}/g,'\\n\\n').trim();"
+            . "function ok(){var o=b.innerHTML;b.innerHTML='&#10003;';b.title='Gekopieerd';setTimeout(function(){b.innerHTML=o;b.title='Kopieer foutmelding naar klembord';},1200);}"
+            . "function fb(){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.left='-9999px';document.body.appendChild(a);a.select();try{document.execCommand('copy');ok();}catch(e){}document.body.removeChild(a);}"
+            . 'if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb);}else{fb();}'
+            . '};</script>';
+
+        return $html;
     }
 
     private static function renderDialog(string $title, string $message, bool $showBackButton, bool $makeSureVisible): void
@@ -339,34 +357,31 @@ class Error
         // Format message
         $message = self::format($message);
 
-        // Make dialog visible with absolute positioning
-        if ($makeSureVisible) {
-            // position:fixed (not absolute) so the dialog escapes any positioned/overflow
-            // parent table or div it happens to be echoed inside; transform-centering keeps
-            // it centred regardless of its own size, and the max z-index puts it above all.
-            Response::write('</script><div style="display:block; visibility:visible !important; border-radius:8px; position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;box-shadow:0 6px 28px rgba(0,0,0,0.35)">');
-        }
+        // Markup mirrors the ASP original (library/lib_error.inc ::
+        // internal_errordialog): .lib-error-card wrapper, red h3 header holding
+        // the title plus the copy button, 24px body. Everything is inline-styled
+        // for the same reason it was there — this card has to render on a page
+        // whose stylesheet never loaded, which is exactly when errors appear.
+        //
+        // One deliberate deviation: position:fixed + transform-centring instead
+        // of the original's position:relative/top:35%/margin:auto. The original
+        // got trapped inside any positioned or overflow:hidden parent it
+        // happened to be echoed into, and then nobody saw the error at all.
+        $position = $makeSureVisible
+            ? 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;'
+            : 'position:relative;margin:auto;';
 
-        // Error dialog HTML. Everything is inline-styled on purpose: this card
-        // has to render on a page whose stylesheet may never have loaded — that
-        // is precisely when errors show up.
-        Response::write('<table cellspacing=0 border=0 cellpadding=1 style="width:380px;background-color:#ffffff;border:1px solid #dddddd;box-shadow:8px 8px 8px rgba(128,128,128,.3); border-radius:8px"><tr>');
-        Response::write('<td style="background-color:#E01F3D;min-height:24px;border-top-left-radius:8px;border-top-right-radius:8px"><table width=100% cellspacing=2 cellpadding=0><tr><td align=left><font style="font-family:Trebuchet MS;font-size:15px;line-height:24px;font-weight:100;color:#dddddd">&nbsp;');
-        Response::write(PHP_EOL . $title . '&nbsp;&nbsp;</font></td>');
-        Response::write('<td align=right style="width:34px">' . self::copyButtonHtml($title, $message) . '</td></tr></table></td></tr>');
-        Response::write('<tr><td style="padding:10px;line-height:22px" data-error-body>' . $message . '</td></tr>');
+        Response::write('</script><div class="lib-error-card" style="display:block;visibility:visible !important;border-radius:8px;max-width:800px;width:calc(100% - 32px);' . $position . 'box-shadow:0 6px 28px rgba(0,0,0,0.35);background-color:#ffffff;border:1px solid #dddddd">');
+        Response::write('<h3 style="position:relative;margin:0;font-family:Verdana;font-size:18px;line-height:1.2;text-transform:initial;border-top-left-radius:8px;border-top-right-radius:8px;background-color:#E01F3D;color:#ffffff;display:block;padding:8px 48px 8px 24px">' . $title . self::copyButtonHtml() . '</h3>');
+        Response::write('<div style="padding:24px">');
+        Response::write('<table cellpadding=0 cellspacing=0 style="border-collapse:collapse;width:100%"><tr><td style="line-height:22px">' . $message . '</td></tr>');
 
         // Back button
         if ($showBackButton) {
-            $backFunction = 'javascript:history.go(-1)';
-            Response::write('<tr><td colspan=9 align=center><a class="button GenButton FormBack" href="' . $backFunction . '">Terug</a><br>&nbsp;</td></tr>');
+            Response::write('<tr><td colspan=9 align=center style="padding-top:16px"><a class="button GenButton FormBack" href="javascript:history.go(-1)">Terug</a><br>&nbsp;</td></tr>');
         }
 
-        Response::write('</table>');
-
-        if ($makeSureVisible) {
-            Response::write('</div>');
-        }
+        Response::write('</table></div></div>');
     }
 
     /**

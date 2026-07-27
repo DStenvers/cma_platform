@@ -6997,3 +6997,27 @@ karaat-data en staat in de karaat-repo.
 > /index.php?pageaction=404 -> wordt die nog wel aangeroepen? Anders weg graag
 
 > /index.php?pageaction=zoek -> wordt die nog wel aangeroepen? Anders weg graag, ook uit de walker
+
+> table fopr agenda_gesprekken : the third column for date : nowrap
+
+> ajax_postcode: the new one returns an empty body while the old one had this: {"status": "error", "error": {"message": "Missing nl_fourpp, nl_sixpp or be_fourpp parameter"}, "results": []} in json
+
+> [12:33:39] JS: Uncaught TypeError: c.open is not a function
+>   at http://172.30.208.1:8090/library/webcomponents/lib-dialog.min.js?v=1785148176:1
+
+> <task-notification>
+> <task-id>bosjlja9d</task-id>
+> <tool-use-id>toolu_01GJo7iwfvfpcEE25ZUX3BNb</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/69c69884-d57c-4397-a408-cfc6325e3aff/tasks/bosjlja9d.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Look for the original ASP error page" completed (exit code 0)</summary>
+> </task-notification>
+
+> http://172.30.208.1:8090/library/webcomponents/lib-dialog.min.js?v=1785148176:1
+> TypeError: c.open is not a function
+>     at e.alert (http://172.30.208.1:8090/library/webcomponents/lib-dialog.min.js?v=1785148176:1:31378)
+>     at libAlert (http://172.30.208.1:8090/library/webcomponents/lib-dialog.min.js?v=1785148176:1:36274)
+>     at lib_alertbox (http://172.30.208.1:8090/library/library.min.js?v=1785148176:1:11677)
+>     at form_valid_report (http://172.30.208.1:8090/library/formval_nl.min.js?v=1785148176:1:2312)
+
+>  /mnt/c/repos/rino/bedankje2024/library/lib_error.inc is zeker niet het origineel:  /mnt/c/repos/adam/mijnrino/library/lib_error.inc is dat, maar dan met copy knop
