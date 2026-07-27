@@ -1377,7 +1377,7 @@ function cma_doc_check_php_version(): array {
 function cma_doc_check_php_extensions(): array {
     $label = 'PHP-extensies';
     $required = ['mbstring'];
-    $optional = ['gd' => 'beeldbewerking/WebP', 'openssl' => 'encryptie + secrets', 'curl' => 'externe HTTP-calls'];
+    $optional = ['gd' => 'beeldbewerking/WebP', 'openssl' => 'encryptie + secrets', 'curl' => 'externe HTTP-calls', 'fileinfo' => 'MIME-detectie bij downloads; zonder deze extensie valt het platform terug op een extensie-tabel'];
 
     $missingRequired = array_values(array_filter($required, fn($e) => !extension_loaded($e)));
     if ($missingRequired !== []) {
@@ -1530,7 +1530,7 @@ function render_doc_installation(): void
         <li>Windows Server (of Windows 10/11) met IIS geïnstalleerd.</li>
         <li><span class="cma-tool__strong">IIS URL Rewrite Module</span> — download van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net</a>. Zonder deze module worden alle friendly-URL rewrites in <code>web.config</code> stilzwijgend genegeerd.</li>
         <li>PHP 8.4+ via FastCGI handler (PHP 8.5 wordt ondersteund maar test consumer-code op nieuwe deprecaties).</li>
-        <li>PHP-extensies: <code>mbstring</code> (verplicht — <code>App\Library\Str</code> draait volledig op <code>mb_*</code>), <code>gd</code> (beeldbewerking/WebP), <code>odbc</code> of <code>pdo_odbc</code> (Access), <code>openssl</code>, <code>curl</code>. Controleer met <code>php -m</code>, of lees de check-tabel bovenaan deze pagina.</li>
+        <li>PHP-extensies: <code>mbstring</code> (verplicht — <code>App\Library\Str</code> draait volledig op <code>mb_*</code>), <code>gd</code> (beeldbewerking/WebP), <code>odbc</code> of <code>pdo_odbc</code> (Access), <code>openssl</code>, <code>curl</code>, <code>fileinfo</code> (MIME-detectie bij downloads). Controleer met <code>php -m</code>, of lees de check-tabel bovenaan deze pagina.</li>
         <li>Composer 2.x in het <code>PATH</code> van de IIS app-pool user (anders faalt <code>DEPLOY_COMPOSER_UPDATE</code> stilzwijgend tijdens deploys).</li>
         <li>Git voor pull-deploys.</li>
     </ul>

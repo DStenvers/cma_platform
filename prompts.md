@@ -7079,3 +7079,13 @@ karaat-data en staat in de karaat-repo.
 > het werkt
 
 > Ik vind de 681 iets duidelijker als trashbin, dus die graag overal toepassen
+
+> yea please
+
+> ja zou je een grijze precies jl willen maken?
+
+> kunnen we niet beter 1 pijl maken en de kleur in css zetten?
+
+> i am strughling with the 27 pages, it now is unvlear if that is a hood idea or not, if the current content is totally empty i think it is safe tonput a guard in place letting anyoone viewing that page know why it is empty, agreed that that is a safe option?
+
+> do a full tester run and anything you notice : investigate, manual comparisonnis a bitch

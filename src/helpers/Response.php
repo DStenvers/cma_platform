@@ -180,7 +180,7 @@ class Response
         }
 
         $downloadName = $downloadName ?? basename($filePath);
-        $mimeType = $mimeType ?? mime_content_type($filePath) ?: 'application/octet-stream';
+        $mimeType = $mimeType ?? self::guessMimeType($filePath);
 
         if (!headers_sent()) {
             header('Content-Type: ' . $mimeType);
@@ -210,7 +210,7 @@ class Response
         }
 
         $filename = $filename ?? basename($filePath);
-        $mimeType = $mimeType ?? mime_content_type($filePath) ?: 'application/octet-stream';
+        $mimeType = $mimeType ?? self::guessMimeType($filePath);
 
         if (!headers_sent()) {
             header('Content-Type: ' . $mimeType);
@@ -380,5 +380,51 @@ class Response
         self::setContentType('text/html');
         echo "<h1>401 Unauthorized</h1><p>" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . "</p>";
         exit;
+    }
+
+    /**
+     * Best-effort MIME type for a file on disk.
+     *
+     * mime_content_type() lives in ext-fileinfo, which is NOT enabled on every
+     * PHP build. Calling it unguarded turns a missing extension into a fatal on
+     * every download/inline — the `?:` fallback never runs, because the error
+     * happens before the function returns. So: probe the extension, then fall
+     * back to a small map of the types this platform actually serves, and only
+     * then to octet-stream. The map matters for inline(): octet-stream makes a
+     * browser download a PDF instead of showing it.
+     */
+    private static function guessMimeType(string $filePath): string
+    {
+        if (function_exists('mime_content_type')) {
+            $detected = @mime_content_type($filePath);
+            if (is_string($detected) && $detected !== '') {
+                return $detected;
+            }
+        }
+
+        static $byExtension = [
+            'pdf'  => 'application/pdf',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+            'ico'  => 'image/x-icon',
+            'css'  => 'text/css',
+            'js'   => 'text/javascript',
+            'json' => 'application/json',
+            'xml'  => 'application/xml',
+            'txt'  => 'text/plain',
+            'csv'  => 'text/csv',
+            'zip'  => 'application/zip',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls'  => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+        $extension = strtolower((string) pathinfo($filePath, PATHINFO_EXTENSION));
+
+        return $byExtension[$extension] ?? 'application/octet-stream';
     }
 }

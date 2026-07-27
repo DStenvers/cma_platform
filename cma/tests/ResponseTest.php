@@ -121,6 +121,36 @@ class ResponseTest extends TestCase
         }
     }
 
+    /**
+     * mime_content_type() zit in ext-fileinfo, die lang niet overal aanstaat.
+     * Ongeguard aanroepen maakte van een ontbrekende extensie een fatal bij
+     * ELKE download; de `?:`-fallback draaide nooit, want de fout viel eerder.
+     * Deze twee tests draaien dus ook (juist) op een PHP zonder fileinfo.
+     */
+    public function testDownloadWorksWithoutTheFileinfoExtension(): void
+    {
+        $path = sys_get_temp_dir() . '/resp-dl-' . bin2hex(random_bytes(4)) . '.pdf';
+        file_put_contents($path, '%PDF-1.4 payload');
+        try {
+            $out = $this->capture(fn() => Response::download($path));
+            $this->assertEquals('%PDF-1.4 payload', $out, 'de bytes moeten hoe dan ook de deur uit');
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testInlineWorksWithoutTheFileinfoExtension(): void
+    {
+        $path = sys_get_temp_dir() . '/resp-inline-' . bin2hex(random_bytes(4)) . '.png';
+        file_put_contents($path, 'PNGDATA');
+        try {
+            $out = $this->capture(fn() => Response::inline($path));
+            $this->assertEquals('PNGDATA', $out);
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testInlineMissingFileEmitsNotFoundBody(): void
     {
         $out = $this->capture(fn() => Response::inline(sys_get_temp_dir() . '/missing-' . uniqid() . '.pdf'));
