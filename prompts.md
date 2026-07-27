@@ -6917,3 +6917,15 @@ karaat-data en staat in de karaat-repo.
 > Server-header (je andere punt), in dezelfde commit: de docu claimde dat removeServerHeader="true" fingerprinting beperkt. Dat klopt alleen vanaf IIS 10.0. Op oudere IIS kent het configuratieschema het attribuut niet en weigert IIS de héle web.config met een 500.19 — de site is dan plat, niet alleen de header zichtbaar. Dat staat er nu bij, met de twee alternatieven: de outbound rewrite van RESPONSE_Server (met rewriteBeforeCache="true", anders mis je responses uit de kernel-cache — en http.sys-antwoorden blijven sowieso buiten bereik) en de DisableServerHeader-registrykey.
 >
 > ben je in staat te kijken op welke server de site draait? Zo ja dan kun je die tekst slim maken.
+
+> expose_php = Off in php.ini gezet en herstart, kun je valideren?
+
+> Al die documentatie / checks gaan er vanuit dat het op IIS draait, als we ooit naar Apache gaan of een andere Linux distro, leidt dat tot issues?
+
+> /opleiding.php?pageaction=contactpersonen
+> error page: Unexpected token &quot;name&quot; of value &quot;if&quot; (&quot;end of statement block&quot; expected) in &quot;_macros/person.twig&quot; a
+> PHP_ERROR marker: [PHP_ERROR] Type: Twig\Error\SyntaxError | Message: Unexpected token "name" of value "if" ("end of statement block" expected) in "_macros/person.twig" at line 25 column 35. | File: C:\repos\adam\mijnrino_php\src kopieer
+
+> ja graag een docu-hoofdstuk van maken
+
+> caroline flipse: agenda.php weergave : Gesprekken inplannen wordt getoond mara dat hoeft niet. Daarnaast ontbreekt de optie Rapportage gesprekken en is er een script error.

@@ -12,7 +12,7 @@
  * changed, or null when the config already had it (idempotent by contract).
  */
 
-// === AUTO-FIX (sinds v1.29.128) =========================================
+// === AUTO-FIX =============================================================
 // A handful of checks describe a MISSING piece of the site-root web.config.
 // That file is PROJECT-owned — the Installer never writes it — so it drifts,
 // and the operator had to hand-edit XML from a doc snippet. Each fixer below

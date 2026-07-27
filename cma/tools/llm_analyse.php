@@ -12,7 +12,7 @@
  *     operator can see what's failing without scraping the box.
  *
  * Auth: standard CMA admin login (was a DEPLOY_SECRET ?key= flow until
- * v1.13.x — refactored to match every other tools/ page now that the
+ * Matches the layout of every other tools/ page now that the
  * platform's broader bootstrap is reliable enough not to need the
  * secret-door fallback).
  */
