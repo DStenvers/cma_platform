@@ -2136,6 +2136,80 @@ function lib_setPopupStylePreference(style) {
  * @param {string} htmlContent Optional HTML content instead of iframe
  * @returns {HTMLElement} The sidepanel element
  */
+/**
+ * Push the newly opened sidepanel onto the clean URL.
+ *
+ * Mirrors the unwind logic in lib_CloseSidePanel: the state is derived from the
+ * iframe URLs on the stack, so both directions read the same source and cannot
+ * drift apart. Depth is the stack size; buildUrl (url-manager.js) supports three
+ * levels, so anything deeper leaves the URL untouched rather than writing a
+ * shape the parser cannot read back.
+ *
+ * @param {Window} topWindow The window owning the sidepanel stack + CMA.url
+ */
+function lib_sidepanel_syncUrl(topWindow) {
+	try {
+		if (!topWindow || !topWindow.CMA || !topWindow.CMA.url) return;
+
+		var stack = topWindow.lib_sidepanel_stack || [];
+		if (stack.length === 0 || stack.length > 3) return;
+
+		// Read the panel that was just opened; a panel without an iframe (plain
+		// htmlContent) carries no record and must not rewrite the URL.
+		var top = stack[stack.length - 1];
+		var iframe = top && top.panel ? top.panel.querySelector('iframe') : null;
+		if (!iframe || !iframe.src) return;
+
+		var opened = new URL(iframe.src, topWindow.location.origin);
+		var form = opened.searchParams.get('form');
+		if (!form) return;
+		var id = opened.searchParams.get('id') || opened.searchParams.get('ID') || null;
+		var isNew = !id;
+		var parentId = opened.searchParams.get('parentID') || null;
+
+		var state = topWindow.CMA.url.parse() || {};
+
+		if (stack.length === 1) {
+			topWindow.CMA.url.update({
+				form: form,
+				recordId: id,
+				isNew: isNew,
+				subform: null, subformId: null, isSubformNew: false,
+				subsubform: null, subsubformId: null, isSubsubformNew: false
+			}, false);
+		} else if (stack.length === 2) {
+			// Keep the parent visible: its form comes from the URL we are already
+			// on, its id from parentID when the subform passed one.
+			topWindow.CMA.url.update({
+				form: state.form,
+				recordId: parentId || state.recordId,
+				isNew: false,
+				subform: form,
+				subformId: id,
+				isSubformNew: isNew,
+				subsubform: null, subsubformId: null, isSubsubformNew: false
+			}, false);
+		} else {
+			topWindow.CMA.url.update({
+				form: state.form,
+				recordId: state.recordId,
+				isNew: false,
+				subform: state.subform,
+				subformId: parentId || state.subformId,
+				isSubformNew: false,
+				subsubform: form,
+				subsubformId: id,
+				isSubsubformNew: isNew
+			}, false);
+		}
+	} catch (e) {
+		// Never let a URL nicety break opening the panel itself.
+		if (typeof console !== 'undefined' && console.warn) {
+			console.warn('[lib_sidepanel_syncUrl]', e && e.message);
+		}
+	}
+}
+
 function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 	// libLog.log('[lib_OpenSidePanel] Called with url:', url, 'name:', name, 'title:', title);
 	var mObj = null;
@@ -2304,6 +2378,17 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 				previousTitle: previousTitle,
 				url: url
 			});
+
+			// Reflect the opened panel in the address bar. lib_CloseSidePanel
+			// already unwinds the URL when a panel closes; without the mirror
+			// image here the URL never showed an OPEN record, so an open record
+			// could not be bookmarked or shared and Back did not step out of it.
+			// form-controller's own updateUrl() deliberately skips while inside a
+			// sidepanel precisely because this is meant to own it.
+			//
+			// Deeper levels keep the parent segments: /form/<form>/<id>/<subform>/<subId>
+			// — the parent form and record stay readable in the URL.
+			lib_sidepanel_syncUrl(topWindow);
 
 			// Sync browser title with sidepanel title
 			topWindow.document.title = displayTitle + ' - CMA';

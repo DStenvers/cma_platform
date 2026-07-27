@@ -7089,3 +7089,7 @@ karaat-data en staat in de karaat-repo.
 > i am strughling with the 27 pages, it now is unvlear if that is a hood idea or not, if the current content is totally empty i think it is safe tonput a guard in place letting anyoone viewing that page know why it is empty, agreed that that is a safe option?
 
 > do a full tester run and anything you notice : investigate, manual comparisonnis a bitch
+
+> deeplinks naar een geopend record. kun je dat oplossen en dan zo dat de parent form en id ook zichtbaar blijft?
+
+> revalidate all links by searching for them in the spurce without parameters to see what is actually used as parameter, especially general js

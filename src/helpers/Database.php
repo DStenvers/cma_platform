@@ -594,7 +594,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             $result = $stmt->fetch();
 
@@ -618,7 +618,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll());
         } catch (PDOException $e) {
@@ -1240,7 +1240,7 @@ class Database
     {
         try {
             $conn = self::getConnection();
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
@@ -1264,7 +1264,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
@@ -1304,7 +1304,7 @@ class Database
                 throw new \InvalidArgumentException('Invalid connection parameter');
             }
 
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
@@ -1457,7 +1457,7 @@ class Database
             return [];
         }
         try {
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll(\PDO::FETCH_ASSOC));
         } catch (\Throwable $t) {
@@ -1497,7 +1497,7 @@ class Database
             return $default;
         }
         try {
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             $v = $stmt->fetchColumn();
             return $v === false ? $default : $v;
@@ -1535,7 +1535,7 @@ class Database
             return false;
         }
         try {
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             return (bool)$stmt->execute($params);
         } catch (\Throwable $t) {
             if ($context !== '') {
@@ -1572,7 +1572,7 @@ class Database
             return false;
         }
         try {
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute($params);
             return $stmt->fetchColumn() !== false;
         } catch (\Throwable $t) {
@@ -2043,6 +2043,31 @@ class Database
     }
 
     /**
+     * Dialect-translate a raw SQL string for the connection it will run on.
+     *
+     * openRS() has always done this (SQL::processSQL()); the other entry points prepared
+     * the string as-is. That difference was invisible until it bit: on Access/ODBC a
+     * Replication-ID column never matches with `=` — processSQL() rewrites
+     * `guid = '<guid>'` to `guid LIKE '%<guid>%'` — so the SAME query returned a row
+     * through openRS() and NOTHING through getFieldValue()/getIds(). Converted ASP code
+     * mixes those helpers freely, so the rewrite has to be everywhere or nowhere.
+     *
+     * Note it is a no-op for the dialect the SQL was already written in.
+     *
+     * @param PDO    $conn The connection the statement is prepared on.
+     * @param string $sql  Raw SQL.
+     * @return string SQL for this driver.
+     */
+    private static function forDriver(PDO $conn, string $sql): string
+    {
+        $processed = SQL::processSQL($conn, $sql);
+        if ($processed !== $sql) {
+            self::debugSQL("SQL PROCESSED", "Before: " . $sql . "\n\nAfter: " . $processed);
+        }
+        return $processed;
+    }
+
+    /**
      * Process SQL for database compatibility (deprecated - use SQL::processSQL())
      *
      * @param mixed $connection Connection object or string
@@ -2143,10 +2168,10 @@ class Database
                 $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?";
                 if (!empty($fieldName)) {
                     $sql .= " AND COLUMN_NAME = ?";
-                    $stmt = $conn->prepare($sql);
+                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
                     $stmt->execute([$table, $fieldName]);
                 } else {
-                    $stmt = $conn->prepare($sql);
+                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
                     $stmt->execute([$table]);
                 }
             } elseif ($driver === 'sqlsrv' || $driver === 'mssql') {
@@ -2154,10 +2179,10 @@ class Database
                 $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?";
                 if (!empty($fieldName)) {
                     $sql .= " AND COLUMN_NAME = ?";
-                    $stmt = $conn->prepare($sql);
+                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
                     $stmt->execute([$table, $fieldName]);
                 } else {
-                    $stmt = $conn->prepare($sql);
+                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
                     $stmt->execute([$table]);
                 }
             } else {
@@ -2167,7 +2192,7 @@ class Database
                 } else {
                     $sql = "SELECT * FROM $table WHERE 1=0";
                 }
-                $stmt = $conn->prepare($sql);
+                $stmt = $conn->prepare(self::forDriver($conn, $sql));
                 $stmt->execute();
             }
 
@@ -2246,7 +2271,7 @@ class Database
             // ('users' => conn_users, 'rep' => conn_rep, 'data' => conn_data)
             $conn = self::getConnection($connection);
 
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute();
             $record = $stmt->fetch();
 
@@ -2282,7 +2307,7 @@ class Database
             // Handle connection parameter - getConnection() handles aliases
             $conn = self::getConnection($connection);
 
-            $stmt = $conn->prepare($sql);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
             $stmt->execute();
             $records = $stmt->fetchAll();
             $ids = [];
