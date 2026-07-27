@@ -1083,17 +1083,38 @@ function cma_doc_check_server_header(): array {
     ];
 }
 
+/**
+ * The outbound Content-Type rule belongs in the PARENT config only. IIS merges
+ * outboundRules from parent into child, and two rules sharing a name blow up
+ * the whole /cma tree with a 500.50 — so the child carrying it is the defect,
+ * not the child missing it.
+ */
 function cma_doc_check_child_default_content_type(): array {
-    $label = 'Child cma/web.config: outbound "Default Content-Type" rule';
+    $label = 'Child cma/web.config: géén dubbele outbound "Default Content-Type" rule';
     $xml = cma_doc_child_webconfig();
     if ($xml === null) {
         return ['label' => $label, 'status' => 'fail', 'detail' => 'Child <code>cma/web.config</code> niet gevonden.', 'fix' => 'Doe <code>composer update stenversonline/platform</code>.'];
     }
-    $hit = $xml->xpath("//rewrite/outboundRules/rule[@name='Default Content-Type to text/html']");
-    if (!empty($hit)) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    $inChild  = !empty($xml->xpath("//rewrite/outboundRules/rule[@name='Default Content-Type to text/html']"));
+    $parent   = cma_doc_parent_webconfig();
+    $inParent = $parent !== null && !empty($parent->xpath("//rewrite/outboundRules/rule[@name='Default Content-Type to text/html']"));
+
+    if ($inChild && $inParent) {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => 'De regel staat in <span class="cma-tool__strong">beide</span> configs. IIS merget outbound rules van parent naar child; twee rules met dezelfde naam geven een <code>500.50 URL Rewrite Module Error</code> op de hele <code>/cma</code>-tree.',
+            'fix' => 'Haal het <code>&lt;outboundRules&gt;</code>-blok uit <code>cma/web.config</code> — de parent hoort de enige plek te zijn.'];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt in kind-config (outbound rules erven niet over).', 'fix' => 'Standaard aanwezig. <code>composer update stenversonline/platform</code>.'];
+    if ($inChild) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => 'De regel staat in de child-config maar niet in de parent. Dat werkt, maar zodra de parent hem ook krijgt (migratie 9.9.0, of de fix-knop op deze pagina) botsen de namen en volgt een 500.50.',
+            'fix' => 'Verplaats de regel naar de site-root <code>web.config</code>.'];
+    }
+    if ($inParent) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Correct: alleen in de parent, niet in de child.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn',
+        'detail' => 'De regel staat nergens — een response zonder Content-Type wordt door iOS Safari als download aangeboden.',
+        'fix' => 'Voeg hem toe aan de <span class="cma-tool__strong">parent</span> web.config (zie de knop bij de parent-check hierboven).'];
 }
 
 function cma_doc_check_child_404_handler(): array {
@@ -2471,7 +2492,7 @@ function render_doc_iis_config(): void
     <p>Omdat dit per server verschilt, staat er in de check-tabel op <a href="documentation.php?topic=iis_config">IIS-configuratie</a> een live meting: die doet een request op de eigen site en laat zien of er nog een <code>Server</code>-header meekomt. Vertrouw die meting, niet de aanwezigheid van het attribuut in <code>web.config</code>.</p>
 
     <h2>Belt-and-suspenders: default Content-Type</h2>
-    <p>In zowel <code>templates/web.config.template</code> als <code>cma/web.config</code> staat een outbound-rewrite die een lege <code>Content-Type</code> respons-header overschrijft naar <code>text/html; charset=UTF-8</code>:</p>
+    <p>In <code>templates/web.config.template</code> — en uitsluitend daar, niet in <code>cma/web.config</code> — staat een outbound-rewrite die een lege <code>Content-Type</code> respons-header overschrijft naar <code>text/html; charset=UTF-8</code>:</p>
     <pre><code>&lt;outboundRules&gt;
     &lt;rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing"&gt;
         &lt;match serverVariable="RESPONSE_Content-Type" pattern=".*" /&gt;
