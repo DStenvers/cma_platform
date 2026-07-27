@@ -40,6 +40,7 @@ class LibTable
         // klasse over. FieldFilters: per kolom de waarde van data-filter op de <th>
         // ('N' = geen filterkeuzelijst, voor icoon-/actiekolommen).
         'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
+        'hidefields' => 'TableHideFields',
         // Master-detail: onder elke rij van deze tabel één of meer eigen tabelletjes met
         // de bijbehorende regels. Zie Details hieronder.
         'details' => 'TableDetails',
@@ -88,6 +89,8 @@ class LibTable
     public $TableRowClassField = '';
     /** data-filter per kolomindex, bv. [0 => 'N', 1 => 'N']. */
     public $TableFieldFilters = [];
+    /** Veldnamen die gegevens dragen maar nooit een kolom worden. */
+    public $TableHideFields = [];
 
     /**
      * Master-detail: onder elke masterrij één of meer eigen tabellen.
@@ -205,7 +208,15 @@ class LibTable
         if ($this->TableRowClassField != '' && $naam === strtolower((string)$this->TableRowClassField)) {
             return true;
         }
-        return $this->TableGroupField != '' && $naam === strtolower((string)$this->TableGroupField);
+        if ($this->TableGroupField != '' && $naam === strtolower((string)$this->TableGroupField)) {
+            return true;
+        }
+        foreach ((Arr::isArray($this->TableHideFields) ? $this->TableHideFields : []) as $veld) {
+            if ($naam === strtolower((string)$veld)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -421,6 +432,11 @@ class LibTable
                 // Het kind rendert zichzelf: zo gelden daar dezelfde cel-conventies en
                 // opties als in de mastertabel, en kan het zelf weer kinderen hebben.
                 $obj = $kind['object'];
+                // De koppelkolom is stuurinformatie, geen kolom om te tonen.
+                $obj->HideFields = array_merge(
+                    Arr::isArray($obj->HideFields) ? $obj->HideFields : [],
+                    [$kind['keyfield']]
+                );
                 $obj->Recordset = new RecordSet(new \ArrayIterator($regels), false, true);
                 $obj->_alsKind();
                 echo '<TR class="libTableDetail"><TD ' . $this->TableTDAttrib . '1 colspan=' . $breedte . '>';
@@ -503,7 +519,7 @@ class LibTable
                     if (!$this->TableIsChild) {
                         echo '<lib-table resizable>';
                     }
-                    echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :'')) .' onselectstart="return(false)"><THEAD><TR>';
+                    echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableIsChild ? '' : ($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :''))) .' onselectstart="return(false)"><THEAD><TR>';
                     if ($this->TableShowCaptions) {
                         if ($this->TableDeleteField != '') {
                             echo '<TH ' . $this->TableTHAttrib . '></TH>';
@@ -567,7 +583,14 @@ class LibTable
                         if ($blnShow) {
                             $curID = $this->TableRS->Fields[$this->TableIDField];
                             $this->_groepsKop($vorigeGroep);
-                            echo '<TR ID="lt_row_' . $curID . '" class="' . $this->TableTRClass . $this->_rijKlasse() . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
+                            if ($this->TableIsChild || $curID === null || $curID === '') {
+                                // Kindtabel (of een rij zonder eigen ID): geen rij-id en geen
+                                // klik-/hoverafhandeling. Die horen bij de mastertabel; hier
+                                // zouden ze dubbele DOM-id's en 'row_act(,true)' opleveren.
+                                echo '<TR class="' . $this->TableTRClass . $this->_rijKlasse() . '">';
+                            } else {
+                                echo '<TR ID="lt_row_' . $curID . '" class="' . $this->TableTRClass . $this->_rijKlasse() . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
+                            }
                             $fldTel = 0;
                             if ($this->TableDeleteField != '') {
                                 if ($this->TableRS->fields[$this->TableDeleteField]!= '0') {
