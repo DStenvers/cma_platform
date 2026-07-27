@@ -2701,6 +2701,8 @@ npm run build:minify          # alleen minify
 npm run build                 # icons + minify
 </code></pre>
     <p>De build-stap slaat over wanneer <code>.min.js</code> nieuwer is dan de source. Wanneer terser een fout geeft, fix de source — minified output committeer je NIET als je deps niet hebt; CI of de pre-commit hook zou dat moeten regenereren.</p>
+    <p><span class="cma-page__strong">Sinds v1.29.127</span> serveert <code>cma/minify.php</code> de geminificeerde bundels in <span class="cma-page__strong">elke</span> omgeving. Daarvóór stond minificatie alleen in productie aan (<code>$MINIFY_ACTIVE = $isProduction</code>), waardoor dev/test altijd de raw sources kreeg en een kapotte of verouderde <code>.min</code> pas in productie opviel — precies de plek waar je dat niet wil ontdekken. De disk-cache blijft wél productie-only (<code>$DISK_CACHE_ACTIVE</code>): die is puur snelheid en zou tijdens het ontwikkelen een gecachete bundel teruggeven terwijl je de source nog aan het wijzigen bent.</p>
+    <p>Gevolg voor ontwikkelaars: wijzig je een <code>.js</code>/<code>.css</code>, draai dan <code>npm run build:minify</code> (of de cache-clear tool) — anders serveert minify.php de <span class="cma-page__strong">raw source</span>, want een <code>.min</code> die ouder is dan zijn source wordt bewust genegeerd.</p>
 
     <h2>Storybook-integratie</h2>
     <p>Elk nieuwe component hoort een entry in <code>cma/tools/storybook.php</code>. Sectie-structuur:</p>

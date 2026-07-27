@@ -37,10 +37,19 @@ use App\Library\Request;
 $environment = $_ENV['APP_ENVIRONMENT'] ?? $GLOBALS['Application']['omgeving'] ?? 'P';
 $isProduction = (strtoupper($environment) === 'P');
 
-// Configuration - minification active in production only, browser caching always enabled
-// The URL version parameter (v=xxx) handles cache busting when files change
-$MINIFY_ACTIVE = $isProduction;
-$DISK_CACHE_ACTIVE = $isProduction; // Only disk-cache minified content in production
+// Configuration - browser caching always enabled; the URL version parameter (v=xxx)
+// handles cache busting when files change.
+//
+// Minification is ALWAYS on. It used to be production-only, which meant dev/test
+// served raw sources and therefore never exercised the pre-built .min bundles — so a
+// broken or stale .min only ever surfaced in production, which is the one place you
+// don't want to find it. Serving the same artefact everywhere is the point.
+$MINIFY_ACTIVE = true;
+// Disk cache stays production-only: it is a pure speed-up, and in dev it would hand
+// back a cached bundle while you are still editing the source. (This variable was
+// declared but never read — both cache gates below tested $MINIFY_ACTIVE, so making
+// minification unconditional would have silently enabled dev disk caching too.)
+$DISK_CACHE_ACTIVE = $isProduction;
 
 $config = [
     'cache_dir' => dirname(__DIR__) . '/.cache/cma/minify',  // Cache directory in site root
@@ -337,7 +346,7 @@ if ($ifNoneMatch === $etag) {
 $cacheDir = $config['cache_dir'];
 $cachePath = getCachePath($cacheDir, $cacheKey, $ext);
 
-if ($MINIFY_ACTIVE && isCacheValid($cachePath, $latestMtime)) {
+if ($DISK_CACHE_ACTIVE && isCacheValid($cachePath, $latestMtime)) {
     // Serve from cache
     $content = file_get_contents($cachePath);
     sendResponse($content, $contentType, $config['cache_time'], $etag, $config['gzip']);
@@ -380,7 +389,7 @@ try {
     }
 
     // Save to cache (only when minification is active)
-    if ($MINIFY_ACTIVE && ensureCacheDir($cacheDir)) {
+    if ($DISK_CACHE_ACTIVE && ensureCacheDir($cacheDir)) {
         file_put_contents($cachePath, $content);
         // Probabilistically clean old cache files
         cleanOldCacheFiles($cacheDir);
