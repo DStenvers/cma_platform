@@ -133,6 +133,75 @@ class ErrorHandler
         ini_set('display_errors', $enabled ? '1' : '0');
     }
 
+    /** Days of error logs to keep. Older daily files are pruned on rollover. */
+    private const ERROR_LOG_RETENTION_DAYS = 7;
+
+    /**
+     * Turn the configured error-log path into today's file and prune old ones.
+     *
+     * The prune runs ONLY when today's file does not exist yet — i.e. once per
+     * day, on the first request after midnight — not on every request. Scanning
+     * a directory on every hit would be pure waste for a check that can only
+     * change once a day.
+     *
+     * Retention is decided by the DATE IN THE FILENAME, not by mtime: a tool
+     * that opens or copies a log would otherwise make it look fresh and keep it
+     * alive forever.
+     *
+     * @param  string $configuredPath e.g. <root>/.logs/phperrors/php_errors.log
+     * @return string                 e.g. <root>/.logs/phperrors/php_errors_2026-07-27.log
+     */
+    private static function prepareDailyErrorLog(string $configuredPath): string
+    {
+        $dir = dirname($configuredPath);
+        $base = basename($configuredPath, '.log');
+        $today = $dir . '/' . $base . '_' . date('Y-m-d') . '.log';
+
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        if (is_file($today)) {
+            return $today;
+        }
+
+        // First write of the day: roll over, then clean up behind us.
+        if (@touch($today) === false) {
+            // Can't create today's file (permissions?) — fall back to the
+            // configured path rather than losing the errors entirely.
+            return $configuredPath;
+        }
+        self::pruneErrorLogs($dir, $base);
+
+        return $today;
+    }
+
+    /** Delete daily error logs older than the retention window. */
+    private static function pruneErrorLogs(string $dir, string $base): void
+    {
+        $cutoff = strtotime('-' . self::ERROR_LOG_RETENTION_DAYS . ' days');
+        if ($cutoff === false) {
+            return;
+        }
+        foreach (glob($dir . '/' . $base . '_*.log') ?: [] as $file) {
+            if (!preg_match('/_(\d{4}-\d{2}-\d{2})\.log$/', $file, $m)) {
+                continue;
+            }
+            $stamp = strtotime($m[1]);
+            if ($stamp !== false && $stamp < $cutoff) {
+                @unlink($file);
+            }
+        }
+    }
+
+    /**
+     * The error log this request writes to (today's file). Tools that show or
+     * tail the log should ask here instead of rebuilding the path themselves.
+     */
+    public static function getErrorLogFile(): ?string
+    {
+        return self::$config['error_log_file'] ?? null;
+    }
+
     /**
      * Register the error handler
      *
@@ -168,12 +237,11 @@ class ErrorHandler
             ob_start();
         }
 
-        // Create error log directory if it doesn't exist
+        // One log file per day, with retention. A single ever-growing file runs
+        // into the hundreds of megabytes on a busy or misconfigured site — every
+        // failing query writes a full stack trace — and then nobody opens it.
         if (self::$config['log_errors'] && self::$config['error_log_file']) {
-            $logDir = dirname(self::$config['error_log_file']);
-            if (!is_dir($logDir)) {
-                mkdir($logDir, 0755, true);
-            }
+            self::$config['error_log_file'] = self::prepareDailyErrorLog(self::$config['error_log_file']);
         }
 
         // Set PHP error reporting level

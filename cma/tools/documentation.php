@@ -1239,6 +1239,14 @@ function cma_doc_check_cache_dir(): array {
     return cma_doc_check_dir_writable('cache', 'cache/ — OpCache + form-cache', 'warn');
 }
 
+/** Bytes leesbaar maken voor de check-tabellen. */
+function cma_doc_format_bytes(int $bytes): string {
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $i = 0;
+    while ($bytes >= 1024 && $i < count($units) - 1) { $bytes = (int) round($bytes / 1024); $i++; }
+    return $bytes . ' ' . $units[$i];
+}
+
 function cma_doc_check_php_error_log(): array {
     $label = 'php.ini error_log destination';
     $cfg = ini_get('error_log');
@@ -1251,7 +1259,21 @@ function cma_doc_check_php_error_log(): array {
     if (file_exists($cfg) && !is_writable($cfg)) {
         return ['label' => $label, 'status' => 'fail', 'detail' => '<code>' . htmlspecialchars($cfg) . '</code> bestaat maar is niet schrijfbaar.', 'fix' => 'Geef Modify-rechten.'];
     }
-    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($cfg) . '</code> schrijfbaar.', 'fix' => ''];
+    $detail = '<code>' . htmlspecialchars($cfg) . '</code> schrijfbaar.';
+    // Dagbestanden erbij: dan zie je meteen of de rotatie loopt en hoeveel er ligt.
+    $daily = glob(dirname($cfg) . '/php_errors_*.log') ?: [];
+    if ($daily !== []) {
+        $bytes = 0;
+        foreach ($daily as $file) { $bytes += (int) @filesize($file); }
+        $detail .= ' Rotatie actief: ' . count($daily) . ' dagbestand(en), samen ' . cma_doc_format_bytes($bytes) . '.';
+    }
+    $legacy = dirname($cfg) . '/php_errors.log';
+    if (is_file($legacy) && @filesize($legacy) > 50 * 1024 * 1024) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => $detail . ' Daarnaast ligt er nog een ongeroteerd <code>php_errors.log</code> van ' . cma_doc_format_bytes((int) @filesize($legacy)) . ' uit de tijd vóór de dagrotatie.',
+            'fix' => 'Dat bestand groeit niet meer; verwijder of archiveer het handmatig.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => $detail, 'fix' => ''];
 }
 
 function cma_doc_check_vendor_in_sync(): array {
@@ -2076,7 +2098,7 @@ function render_doc_logs(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:160px">Naam</th><th style="width:280px">Schrijflocatie</th><th>Inhoud</th></tr></thead>
         <tbody>
-            <tr><td>PHP error log</td><td><code>ini_get('error_log')</code> — typisch <code>logs/php_errors.log</code></td><td>Alle uncaught exceptions, fatal errors, warnings (in dev), en <code>error_log()</code> output. Locatie hangt af van <code>php.ini</code>.</td></tr>
+            <tr><td>PHP error log</td><td><code>.logs/phperrors/php_errors_&lt;datum&gt;.log</code></td><td>Alle uncaught exceptions, fatal errors, warnings (in dev), en <code>error_log()</code>-output. <span class="cma-tool__strong">Eén bestand per dag, 7 dagen bewaard.</span> De opruiming draait bij de eerste fout van een nieuwe dag, niet bij elke schrijfactie, en bepaalt de leeftijd aan de datum in de bestandsnaam — niet aan mtime, want een tool die het bestand opent zou het anders eeuwig levend houden.</td></tr>
             <tr><td>Deploy log</td><td><code>logs/deploy.log</code></td><td>Output van elke deploy-pipeline; banner per run. Override via <code>DEPLOY_LOG_FILE</code>.</td></tr>
             <tr><td>Application log</td><td><code>.logs/app/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
             <tr><td>Performance log</td><td><code>.logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>

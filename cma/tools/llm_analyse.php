@@ -19,6 +19,31 @@
 
 declare(strict_types=1);
 
+
+/**
+ * Actief PHP-errorlog: het dagbestand van vandaag. Valt terug op het nieuwste
+ * aanwezige dagbestand (en daarna op het oude ongedateerde bestand), zodat de
+ * tool ook iets toont op een dag zonder fouten of vlak na een deploy.
+ */
+if (!function_exists('cma_active_php_error_log')) {
+function cma_active_php_error_log(string $siteRoot): string
+{
+    if (class_exists('\\App\\Library\\ErrorHandler') && method_exists('\\App\\Library\\ErrorHandler', 'getErrorLogFile')) {
+        $fromHandler = \App\Library\ErrorHandler::getErrorLogFile();
+        if (is_string($fromHandler) && $fromHandler !== '' && is_file($fromHandler)) {
+            return $fromHandler;
+        }
+    }
+    $dir = $siteRoot . '/.logs/phperrors';
+    $daily = glob($dir . '/php_errors_*.log') ?: [];
+    if ($daily !== []) {
+        rsort($daily);              // bestandsnaam bevat de datum: nieuwste eerst
+        return $daily[0];
+    }
+    return $dir . '/php_errors.log';
+}
+}
+
 use App\Library\Response;
 use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
@@ -106,7 +131,7 @@ $installed = is_dir($modelsDir) ? glob($modelsDir . DIRECTORY_SEPARATOR . '*.ggu
 // errors stay out of view so this surface doesn't become a generic log
 // reader.
 // ---------------------------------------------------------------------------
-$logFile = $siteRoot . '/.logs/phperrors/php_errors.log';
+$logFile = cma_active_php_error_log($siteRoot);
 $recentErrors = [];
 if (is_file($logFile)) {
     $size = filesize($logFile) ?: 0;

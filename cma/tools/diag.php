@@ -19,6 +19,31 @@
 
 declare(strict_types=1);
 
+
+/**
+ * Actief PHP-errorlog: het dagbestand van vandaag. Valt terug op het nieuwste
+ * aanwezige dagbestand (en daarna op het oude ongedateerde bestand), zodat de
+ * tool ook iets toont op een dag zonder fouten of vlak na een deploy.
+ */
+if (!function_exists('cma_active_php_error_log')) {
+function cma_active_php_error_log(string $siteRoot): string
+{
+    if (class_exists('\\App\\Library\\ErrorHandler') && method_exists('\\App\\Library\\ErrorHandler', 'getErrorLogFile')) {
+        $fromHandler = \App\Library\ErrorHandler::getErrorLogFile();
+        if (is_string($fromHandler) && $fromHandler !== '' && is_file($fromHandler)) {
+            return $fromHandler;
+        }
+    }
+    $dir = $siteRoot . '/.logs/phperrors';
+    $daily = glob($dir . '/php_errors_*.log') ?: [];
+    if ($daily !== []) {
+        rsort($daily);              // bestandsnaam bevat de datum: nieuwste eerst
+        return $daily[0];
+    }
+    return $dir . '/php_errors.log';
+}
+}
+
 // =========================================================================
 // Auth — read DEPLOY_SECRET from .env directly so this works even when
 // dotenv loading via cma_platform Bootstrap has failed.
@@ -163,7 +188,7 @@ $paths = [
     '.env.production'      => $siteRoot . '/.env.production',
     '.env.local'           => $siteRoot . '/.env.local',
     'logs/'                => $siteRoot . '/.logs',
-    'logs/php_errors.log'  => $siteRoot . '/.logs/phperrors/php_errors.log',
+    'logs/php_errors.log'  => cma_active_php_error_log($siteRoot),
     'logs/deploy.log'      => $siteRoot . '/.logs/deploy/deploy.log',
     'cache/'               => $siteRoot . '/cache',
     'sessions/'            => $siteRoot . '/sessions',
@@ -256,7 +281,7 @@ foreach ($envKeys as $k) {
 }
 
 $h('LOGS — logs/php_errors.log (last 30 lines)');
-echo $tail($siteRoot . '/.logs/phperrors/php_errors.log', 30) . "\n";
+echo $tail(cma_active_php_error_log($siteRoot), 30) . "\n";
 
 $h('LOGS — logs/deploy.log (last 30 lines)');
 echo $tail($siteRoot . '/.logs/deploy/deploy.log', 30) . "\n";
