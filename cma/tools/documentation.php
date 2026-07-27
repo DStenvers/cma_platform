@@ -925,6 +925,61 @@ function cma_doc_check_url_rewrite_module_active(): array {
 }
 
 /**
+ * The IIS major version this site runs on, from SERVER_SOFTWARE
+ * ("Microsoft-IIS/10.0"). Null when it isn't IIS or the banner is suppressed.
+ * Note this is the version IIS reports to PHP — independent of whether the
+ * Server response header is stripped.
+ */
+function cma_doc_iis_version(): ?float {
+    $software = (string)($_SERVER['SERVER_SOFTWARE'] ?? '');
+    if (preg_match('~Microsoft-IIS/(\d+(?:\.\d+)?)~i', $software, $m)) {
+        return (float)$m[1];
+    }
+    return null;
+}
+
+/**
+ * removeServerHeader="true" only exists from IIS 10.0. On an older IIS the
+ * config schema doesn't know the attribute and IIS rejects the WHOLE
+ * web.config with a 500.19 — the site is down, not just the header showing.
+ * So report what this machine actually is instead of leaving it to the reader.
+ */
+function cma_doc_check_iis_version(): array {
+    $label = 'IIS-versie — ondersteunt <code>removeServerHeader</code>?';
+    $software = (string)($_SERVER['SERVER_SOFTWARE'] ?? '');
+    $version  = cma_doc_iis_version();
+
+    if ($version === null) {
+        return ['label' => $label, 'status' => 'info',
+            'detail' => $software === '' ? 'Serverversie onbekend (geen <code>SERVER_SOFTWARE</code>).' : 'Draait niet op IIS: <code>' . htmlspecialchars($software) . '</code>.',
+            'fix' => ''];
+    }
+    if ($version >= 10) {
+        return ['label' => $label, 'status' => 'pass',
+            'detail' => '<code>' . htmlspecialchars($software) . '</code> — <code>removeServerHeader="true"</code> wordt hier ondersteund.',
+            'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail',
+        'detail' => '<code>' . htmlspecialchars($software) . '</code> — deze IIS kent <code>removeServerHeader</code> <span class="cma-tool__strong">niet</span>. Staat het attribuut in <code>web.config</code>, dan weigert IIS het hele bestand met <code>500.19</code> en is de site onbereikbaar.',
+        'fix' => 'Haal <code>removeServerHeader</code> uit <code>&lt;requestFiltering&gt;</code> en gebruik de outbound rewrite of de registrykey — zie <a href="documentation.php?topic=security">Beveiliging</a>.'];
+}
+
+/**
+ * PHP sets X-Powered-By itself when expose_php=On; the <remove> in web.config
+ * only strips headers IIS adds, so it sails straight through and publishes the
+ * exact PHP version.
+ */
+function cma_doc_check_powered_by(): array {
+    $label = 'X-Powered-By wordt niet verstuurd';
+    if (ini_get('expose_php')) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => '<code>expose_php</code> staat aan — elke response draagt <code>X-Powered-By: PHP/' . htmlspecialchars(PHP_VERSION) . '</code>.',
+            'fix' => 'Zet <code>expose_php = Off</code> in php.ini en recycle de app-pool. Het <code>&lt;remove name="X-Powered-By"/&gt;</code> in <code>web.config</code> haalt deze header niet weg — die komt van PHP, niet van IIS.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>expose_php</code> staat uit.', 'fix' => ''];
+}
+
+/**
  * Does this server actually strip the Server header? Both mechanisms the docs
  * describe are version-dependent, so ask the site instead of assuming:
  *   - removeServerHeader="true" needs IIS 10.0+; older IIS doesn't know the
@@ -2120,7 +2175,9 @@ function render_doc_iis_config(): void
         'cma_doc_check_parent_nosniff',
         'cma_doc_check_parent_frame_options',
         'cma_doc_check_parent_hidden_segments',
+        'cma_doc_check_iis_version',
         'cma_doc_check_server_header',
+        'cma_doc_check_powered_by',
         'cma_doc_check_child_default_content_type',
         'cma_doc_check_child_404_handler',
     ]));
@@ -2217,7 +2274,29 @@ function render_doc_iis_config(): void
     </ul>
 
     <h3>Server-header: werkt niet op elke IIS-versie</h3>
-    <p>De <code>removeServerHeader</code>-optie bestaat pas vanaf <span class="cma-tool__strong">IIS 10.0</span> (Windows Server 2016 / Windows 10). Op oudere IIS-versies kent de configuratie-schema dat attribuut niet, en dan gaat het niet stilletjes mis: IIS weigert de hele <code>web.config</code> met een <code>500.19 — Unrecognized attribute 'removeServerHeader'</code>. De site is dan dus <span class="cma-tool__strong">volledig onbereikbaar</span>, niet alleen de header staat er nog.</p>
+    <?php
+    $iisVersion = cma_doc_iis_version();
+    if ($iisVersion !== null && $iisVersion >= 10):
+    ?>
+        <lib-message type="success">
+            Deze server draait <code><?= htmlspecialchars((string)($_SERVER['SERVER_SOFTWARE'] ?? '')) ?></code>, dus
+            <code>removeServerHeader="true"</code> werkt hier gewoon. Het stuk hieronder gaat over oudere servers —
+            relevant als je deze <code>web.config</code> naar zo'n machine kopieert.
+        </lib-message>
+    <?php elseif ($iisVersion !== null): ?>
+        <lib-message type="error">
+            Deze server draait <code><?= htmlspecialchars((string)($_SERVER['SERVER_SOFTWARE'] ?? '')) ?></code>.
+            Daar bestaat <code>removeServerHeader</code> <span class="cma-tool__strong">niet</span>: staat het in je
+            <code>web.config</code>, dan is de site nu of straks onbereikbaar met een <code>500.19</code>.
+            Gebruik een van de twee alternatieven hieronder.
+        </lib-message>
+    <?php else: ?>
+        <lib-message type="information">
+            Serverversie niet vast te stellen vanuit PHP (<code>SERVER_SOFTWARE</code> ontbreekt of dit is geen IIS).
+            Lees hieronder welke aanpak bij jouw versie hoort.
+        </lib-message>
+    <?php endif; ?>
+    <p>De <code>removeServerHeader</code>-optie bestaat pas vanaf <span class="cma-tool__strong">IIS 10.0</span> (Windows Server 2016 / Windows 10). Op oudere IIS-versies kent het configuratieschema dat attribuut niet, en dan gaat het niet stilletjes mis: IIS weigert de hele <code>web.config</code> met een <code>500.19 — Unrecognized attribute 'removeServerHeader'</code>. De site is dan dus <span class="cma-tool__strong">volledig onbereikbaar</span>, niet alleen de header staat er nog.</p>
     <p>Wat je op een oudere server in plaats daarvan doet — beide werken ook naast elkaar:</p>
     <ul>
         <li><span class="cma-tool__strong">Outbound rewrite</span> (vereist de URL Rewrite Module). Zet <code>rewriteBeforeCache="true"</code> op <code>&lt;outboundRules&gt;</code>, anders mist de regel responses die uit de kernel-cache komen:
@@ -2230,6 +2309,9 @@ function render_doc_iis_config(): void
             Let op: dit raakt alleen responses die door de managed pipeline gaan. Antwoorden die http.sys zelf genereert (sommige 400-fouten, request-filtering afwijzingen) dragen de header alsnog.</li>
         <li><span class="cma-tool__strong">Registry</span>, server-breed en dus wél voor http.sys-antwoorden: <code>HKLM\SYSTEM\CurrentControlSet\Services\HTTP\Parameters</code> → DWORD <code>DisableServerHeader = 1</code>, daarna reboot of <code>net stop http /y &amp;&amp; net start w3svc</code>. Dit is een servergerelateerde ingreep, geen site-instelling — overleg met de beheerder van de machine.</li>
     </ul>
+    <h3>X-Powered-By verdwijnt niet via web.config</h3>
+    <p>In <code>&lt;customHeaders&gt;</code> staat <code>&lt;remove name="X-Powered-By" /&gt;</code>, maar dat haalt alleen weg wat <span class="cma-tool__em">IIS</span> toevoegt. Staat <code>expose_php</code> aan, dan zet PHP zelf een <code>X-Powered-By: PHP/8.4.5</code> op elke response en die glipt er dwars doorheen — je hebt de webserverversie verborgen en de PHP-versie alsnog gepubliceerd. Zet daarom <code>expose_php = Off</code> in <code>php.ini</code> en recycle de app-pool. De check-tabel op <a href="documentation.php?topic=iis_config">IIS-configuratie</a> laat zien of deze site hem nog verstuurt.</p>
+
     <p>Omdat dit per server verschilt, staat er in de check-tabel op <a href="documentation.php?topic=iis_config">IIS-configuratie</a> een live meting: die doet een request op de eigen site en laat zien of er nog een <code>Server</code>-header meekomt. Vertrouw die meting, niet de aanwezigheid van het attribuut in <code>web.config</code>.</p>
 
     <h2>Belt-and-suspenders: default Content-Type</h2>

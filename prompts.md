@@ -6906,3 +6906,14 @@ karaat-data en staat in de karaat-repo.
 > removeServerHeader="true" en outbound-rewrite van het Server-header — beperkt fingerprinting. -> zo staat het in de docu maar hadden we niet vastgesteld dat dat niet altijd werkt, op een oude server niet. Moet gedocumenteerd worden.
 
 > vacatures, vacatures_detail and vacature_org can be removed
+
+> ja haal die xslt references ook maar weg:
+> en wil je dan de person twig template uitvoeren 
+> layout dingetje: de annuleer knop heeft nu een chevron; dit moet een witte variant van url(/images/interface/arrow-purple.svg); worden.   
+>
+> wil je daarna in de ASP code kijken naar pdo_draaiboek? Want het is een raar ding, volgens mij werd alle draaiboek info dynamisch aangemaakt
+
+>
+> Server-header (je andere punt), in dezelfde commit: de docu claimde dat removeServerHeader="true" fingerprinting beperkt. Dat klopt alleen vanaf IIS 10.0. Op oudere IIS kent het configuratieschema het attribuut niet en weigert IIS de héle web.config met een 500.19 — de site is dan plat, niet alleen de header zichtbaar. Dat staat er nu bij, met de twee alternatieven: de outbound rewrite van RESPONSE_Server (met rewriteBeforeCache="true", anders mis je responses uit de kernel-cache — en http.sys-antwoorden blijven sowieso buiten bereik) en de DisableServerHeader-registrykey.
+>
+> ben je in staat te kijken op welke server de site draait? Zo ja dan kun je die tekst slim maken.
