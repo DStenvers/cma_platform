@@ -38,6 +38,15 @@ if (!SecurityHelper::isAdmin()) {
 
 Response::noCache();
 
+// Auto-fix endpoint (POST only — it writes web.config). Sits before the topic
+// registry because it answers in JSON and never renders page chrome. Admin-only
+// is already enforced by the SecurityHelper gate above.
+if (Request::server('REQUEST_METHOD', '') === 'POST' && Request::post('docfix', '') !== '') {
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(cma_doc_apply_fix((string) Request::post('docfix', '')));
+    exit;
+}
+
 // =========================================================================
 // Topic registry — single source of truth for sidebar AND router.
 // Nested 'children' arrays render as cma-tree folders in the sidebar.
@@ -296,6 +305,8 @@ echo '<div id="c" class="documentatie tool-docs">';
 .tool-docs .docs-content .docs-callout--warn { border-left-color: var(--color-warning, #d4a017); background: #fffbe6; }
 .tool-docs .docs-content .docs-callout--danger { border-left-color: var(--color-error, #c0392b); background: #fdedec; }
 .tool-docs .docs-meta { color: var(--text-muted, #6c757d); font-size: var(--font-size-sm); margin: 6px 0 18px; }
+/* "Los op"-knop in de check-tabel: op een eigen regel onder de fix-tekst. */
+.tool-docs .docs-fix-btn { display: inline-block; margin-top: 6px; white-space: nowrap; }
 .tool-docs .docs-content .seealso { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color, #e0e0e0); color: var(--text-muted, #6c757d); font-size: var(--font-size-sm); }
 
 /* Generic copy button — injected on every <pre> block by the script below.
@@ -423,6 +434,56 @@ echo '<div id="c" class="documentatie tool-docs">';
             e.stopPropagation();
             window.cmaDocsNavigate(a.getAttribute('href'));
         }, true);
+    }
+
+    // "Los op"-buttons in a live-check table: POST the fix, then re-render the
+    // topic so the table shows the new state (green instead of red) instead of
+    // the operator having to trust a message. Bound once on document, same
+    // reason as the link router: the content area gets replaced wholesale.
+    if (!window._cmaDocsFixBound) {
+        window._cmaDocsFixBound = true;
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest ? e.target.closest('.docs-fix-btn') : null;
+            if (!btn || btn.disabled) return;
+            e.preventDefault();
+            var check = btn.getAttribute('data-fix');
+            var original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Bezig…';
+            var body = new FormData();
+            body.append('docfix', check);
+            fetch('/cma/tools/documentation.php', { method: 'POST', body: body, credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    // Refresh the topic: the checks re-run server-side, so a
+                    // successful fix flips its own row to OK. Keep the message
+                    // above the (new) table so the operator sees what happened.
+                    var slug = /[?&]topic=([^&#]+)/.exec(window.location.search);
+                    var href = 'documentation.php?topic=' + (slug ? slug[1] : 'iis_config');
+                    var show = function () {
+                        var content = document.querySelector('.tool-docs .docs-content');
+                        if (!content) return;
+                        var msg = document.createElement('lib-message');
+                        msg.setAttribute('type', res.ok ? 'success' : 'error');
+                        msg.setAttribute('closable', '');
+                        msg.innerHTML = res.message || (res.ok ? 'Aangepast.' : 'Mislukt.');
+                        content.insertBefore(msg, content.firstChild);
+                    };
+                    if (res.ok && window.cmaDocsNavigate) {
+                        window.cmaDocsNavigate(href, true);
+                        // cmaDocsNavigate swaps innerHTML asynchronously.
+                        setTimeout(show, 350);
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = original;
+                        show();
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                });
+        });
     }
 
     // Standalone only: Back/Forward re-render the topic from the URL. In the
@@ -1022,11 +1083,17 @@ function cma_doc_run_checks(array $checks): array {
         }
         if (is_array($r) && isset($r['label'], $r['status'], $r['detail'])) {
             if (!isset($r['fix'])) { $r['fix'] = ''; }
+            // Carry the check's own name so the renderer can pair it with a
+            // fixer (see cma_doc_fixers) and draw a "Los op"-button.
+            $r['check'] = $fn;
             $results[] = $r;
         }
     }
     return $results;
 }
+
+require_once __DIR__ . '/documentation_fixes.inc';
+
 
 function cma_doc_render_check_table(string $title, array $results): void {
     // During search indexing we don't want the live-status table in the index —
@@ -1052,17 +1119,65 @@ function cma_doc_render_check_table(string $title, array $results): void {
     <table class="listtable">
         <thead><tr class="listheader"><th>Check</th><th style="width:110px">Status</th><th>Detail</th><th>Fix</th></tr></thead>
         <tbody>
+            <?php $fixers = cma_doc_fixers(); ?>
             <?php foreach ($results as $r): ?>
+                <?php $fixer = ($r['status'] === 'fail' || $r['status'] === 'warn') ? ($fixers[$r['check'] ?? ''] ?? null) : null; ?>
                 <tr>
                     <td><?= $r['label'] ?></td>
                     <td><lib-label type="<?= $labelType[$r['status']] ?? 'information' ?>"><?= $statusText[$r['status']] ?? '?' ?></lib-label></td>
                     <td><?= $r['detail'] ?></td>
-                    <td><?= $r['fix'] !== '' ? $r['fix'] : '—' ?></td>
+                    <td>
+                        <?= $r['fix'] !== '' ? $r['fix'] : '—' ?>
+                        <?php if ($fixer !== null): ?>
+                            <button type="button" class="btn btn-primary docs-fix-btn" data-fix="<?= htmlspecialchars($r['check']) ?>"><?= htmlspecialchars($fixer['label']) ?></button>
+                        <?php endif; ?>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
     <?php
+}
+
+function cma_doc_check_php_version(): array {
+    $label = 'PHP-versie';
+    if (version_compare(PHP_VERSION, '8.4', '>=')) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'PHP ' . PHP_VERSION . '.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'PHP ' . PHP_VERSION . ' — het platform vereist 8.4 of hoger.', 'fix' => 'Upgrade de FastCGI-handler naar PHP 8.4+.'];
+}
+
+/**
+ * The extensions the platform actually calls into. mbstring is hard-required
+ * (App\Library\Str is mb_* end to end); the rest degrade a feature, not the app.
+ */
+function cma_doc_check_php_extensions(): array {
+    $label = 'PHP-extensies';
+    $required = ['mbstring'];
+    $optional = ['gd' => 'beeldbewerking/WebP', 'openssl' => 'encryptie + secrets', 'curl' => 'externe HTTP-calls'];
+
+    $missingRequired = array_values(array_filter($required, fn($e) => !extension_loaded($e)));
+    if ($missingRequired !== []) {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => 'Ontbreekt: <code>' . implode('</code>, <code>', $missingRequired) . '</code>. Zonder <code>mbstring</code> faalt elke <code>App\Library\Str</code>-aanroep met <code>Call to undefined function mb_*</code>.',
+            'fix' => 'Activeer <code>extension=mbstring</code> in php.ini en recycle de app-pool.'];
+    }
+    // Access needs one of the two ODBC drivers, not both.
+    if (!extension_loaded('odbc') && !extension_loaded('pdo_odbc')) {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => 'Geen ODBC-driver: noch <code>odbc</code> noch <code>pdo_odbc</code> is geladen — Access-databases zijn onbereikbaar.',
+            'fix' => 'Activeer <code>extension=odbc</code> (of <code>pdo_odbc</code>) in php.ini.'];
+    }
+    $missingOptional = [];
+    foreach ($optional as $ext => $why) {
+        if (!extension_loaded($ext)) { $missingOptional[] = '<code>' . $ext . '</code> (' . $why . ')'; }
+    }
+    if ($missingOptional !== []) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => 'Verplichte extensies aanwezig; optioneel ontbreekt: ' . implode(', ', $missingOptional) . '.',
+            'fix' => 'Activeer de betreffende <code>extension=</code>-regels in php.ini als je die functionaliteit gebruikt.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'mbstring, ODBC, gd, openssl en curl zijn geladen.', 'fix' => ''];
 }
 
 function cma_doc_check_webp_gd(): array {
@@ -1179,12 +1294,19 @@ function render_doc_installation(): void
     ?>
     <h1>Installatie</h1>
     <p class="docs-meta">Van leeg directory tot werkende CMA op een Windows-IIS-host.</p>
+    <?php
+    cma_doc_render_check_table('Vereisten — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_php_version',
+        'cma_doc_check_php_extensions',
+    ]));
+    ?>
 
     <h2>Vereisten</h2>
     <ul>
         <li>Windows Server (of Windows 10/11) met IIS geïnstalleerd.</li>
         <li><span class="cma-tool__strong">IIS URL Rewrite Module</span> — download van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net</a>. Zonder deze module worden alle friendly-URL rewrites in <code>web.config</code> stilzwijgend genegeerd.</li>
         <li>PHP 8.4+ via FastCGI handler (PHP 8.5 wordt ondersteund maar test consumer-code op nieuwe deprecaties).</li>
+        <li>PHP-extensies: <code>mbstring</code> (verplicht — <code>App\Library\Str</code> draait volledig op <code>mb_*</code>), <code>gd</code> (beeldbewerking/WebP), <code>odbc</code> of <code>pdo_odbc</code> (Access), <code>openssl</code>, <code>curl</code>. Controleer met <code>php -m</code>, of lees de check-tabel bovenaan deze pagina.</li>
         <li>Composer 2.x in het <code>PATH</code> van de IIS app-pool user (anders faalt <code>DEPLOY_COMPOSER_UPDATE</code> stilzwijgend tijdens deploys).</li>
         <li>Git voor pull-deploys.</li>
     </ul>
@@ -1914,6 +2036,34 @@ function render_doc_iis_config(): void
         'cma_doc_check_child_404_handler',
     ]));
     ?>
+
+    <h2>De "Los op"-knoppen</h2>
+    <p>Sinds <lib-label type="success">v1.29.128</lib-label> heeft een deel van de checks hierboven een knop die de wijziging meteen doorvoert in de <span class="cma-tool__strong">site-root</span> <code>web.config</code>. Daarna wordt de pagina ververst, zodat je de regel van rood naar groen ziet gaan in plaats van op een melding te moeten vertrouwen. Dat kan alleen voor dat bestand: het is PROJECT-owned (de Installer schrijft er nooit in), dus het drift, en tot nu toe moest je met de hand XML uit een doc-snippet overtikken.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Wel met een knop</th><th>Niet — en waarom</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Rewrite-regel <code>Skip /cma to child config</code> (wordt bovenaan <code>&lt;rules&gt;</code> gezet — hij moet vóór de eigen friendly-URL-regels van de site staan)</li>
+                        <li>Outbound rule <code>Default Content-Type to text/html</code> + bijbehorende <code>preCondition</code></li>
+                        <li><code>X-Content-Type-Options: nosniff</code> en <code>X-Frame-Options: SAMEORIGIN</code></li>
+                        <li>Ontbrekende <code>hiddenSegments</code> (<code>.env</code>, <code>composer.json</code>, <code>composer.lock</code>, <code>.sessions</code>)</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li><span class="cma-tool__strong">IIS URL Rewrite Module</span> — dat is een MSI-installatie op de server, geen configuratie.</li>
+                        <li><span class="cma-tool__strong">CMA-routes</span> in de parent config — die komen uit <code>composer update</code> / migratie 9.9.0. Hier schrijven zou met de Installer vechten.</li>
+                        <li><span class="cma-tool__strong">Child <code>cma/web.config</code></span> — platform-owned; de Installer overschrijft je wijziging bij de eerstvolgende update. Doe <code>composer update</code>.</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="docs-callout docs-callout--warn">
+        Elke fix maakt eerst een backup naast het bestand (<code>web.config.bak-&lt;datum&gt;-&lt;tijd&gt;</code>), is idempotent (nog eens klikken doet niets), en zet de backup terug als het resultaat geen geldige XML zou zijn. Een bestaande waarde wordt <span class="cma-tool__strong">nooit</span> overschreven — staat er al <code>X-Frame-Options: DENY</code>, dan blijft die staan. Let op: het schrijven van <code>web.config</code> recyclet de app-pool; de eerstvolgende request is daardoor traag. Gedrag is afgedekt door <code>cma/tests/DocFixWebConfigTest.php</code>.
+    </div>
 
     <h2>Vereisten</h2>
     <ul>
@@ -2972,6 +3122,18 @@ npx cypress run                                 # headless (CI)
 npx cypress run --spec 'cypress/e2e/forms/**/*.cy.js'  # selectief
 </code></pre>
     <p>De PHP-runner is custom (<code>cma/tests/TestRunner.php</code>) en heeft géén PHPUnit-dependency — bewust kept zo zodat consumer-sites niets extra hoeven te installeren. Wel ondersteunt de TestCase-base PHPUnit-compatible asserties zodat eventueel naar PHPUnit migreren een grep-and-replace is.</p>
+
+    <h3>Twee soorten testbestanden</h3>
+    <p>Sinds v1.29.128 kent de runner twee vormen, en hij herkent ze zelf:</p>
+    <ul>
+        <li><span class="cma-tool__strong">Class-stijl</span> — <code>class &lt;Naam&gt;Test extends TestCase</code> met <code>test*</code>-methodes. Deze worden allemaal in één proces ingeladen; dat is de normale vorm voor nieuwe tests.</li>
+        <li><span class="cma-tool__strong">Script-stijl</span> — geen <code>Test</code>-klasse, maar asserties op top-level en een <code>exit()</code> aan het eind (<code>PageLevelsTest</code>, <code>QueryBuilderTest</code>, <code>SqlParserTest</code>). Die kúnnen het proces niet delen: ze declareren stub-klassen/-functies die botsen met de echte (<code>PageLevelsTest</code> stubt <code>Cma\SecurityHelper</code>) en hun <code>exit()</code> zou de hele suite afbreken. De runner draait ze daarom elk in een eigen PHP-proces en telt de exit-code als één test.</li>
+    </ul>
+    <p>Vóór v1.29.128 stonden twee script-stijl bestanden hard uitgesloten in de runner en zorgde het derde (<code>PageLevelsTest</code>, toegevoegd na die uitsluiting) voor een fatal — <span class="cma-tool__strong">Cannot declare class Cma\SecurityHelper</span> — die een volledige suite-run blokkeerde. Beide zijn opgelost door de detectie; er is geen uitsluitingslijst meer die je moet bijwerken.</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Vereist: de <code>mbstring</code>-extensie.</span> <code>App\Library\Str</code> draait volledig op <code>mb_*</code>-functies. Zonder de extensie faalt ~150 tests met <code>Call to undefined function App\Library\mb_strlen()</code> — dat is een omgevingsprobleem, geen regressie. Check met <code>php -m | grep mbstring</code>; zie <a href="documentation.php?topic=installation">Installatie</a> voor de volledige extensielijst.
+    </div>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a> (welke laag wat doet), <a href="documentation.php?topic=releasing">Releasen &amp; versies</a> (semver + tagging), <a href="documentation.php?topic=errors">Logging &amp; errors</a> (waar regressies opduiken na deploy).

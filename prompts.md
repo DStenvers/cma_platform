@@ -6881,3 +6881,13 @@ karaat-data en staat in de karaat-repo.
 > form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) {    width: 100% !important;     padding-left: 36px;} , http://172.30.208.1:8090/cma/tools/documentation.php?page=tools%3Ftool%3Ddocumentation -> remove the c.tools , add c.documentatie
 
 > deprecate all above mentioned files
+
+> ja graag die omzetting oppakken.
+
+> implement either dynamic minification through minify or simply implementing general.min.js
+
+> $MINIFY_ACTIVE = $isProduction -> i always want minification, so please skip that variable
+
+> Arr::splitAlways($s, ',') 
+>
+> library/json/JSON.inc , wil je die in de cma_platform todo.md zetten dat die naar library/.deprecated verplaatst moet worden?

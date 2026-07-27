@@ -13,12 +13,30 @@ class TestRunner
     private int $passed = 0;
     private int $failed = 0;
     private int $errors = 0;
+    private int $skipped = 0;
     private array $failures = [];
+    private array $skips = [];
     private float $startTime;
+
+    /**
+     * A test file is "script style" when it does not declare a <Name>Test class:
+     * it runs its assertions at include time and exits. Those cannot share this
+     * process — they declare stub classes/functions that collide with the real
+     * ones another test already loaded (PageLevelsTest stubs Cma\SecurityHelper),
+     * and their exit() would abort the whole suite. They run isolated instead.
+     */
+    public static function isScriptStyle(string $file): bool
+    {
+        $src = (string) file_get_contents($file);
+        return !preg_match('/^\s*(final\s+)?class\s+\w+Test\s/m', $src);
+    }
 
     public function run(array $testFiles, ?string $filter = null): int
     {
         $this->startTime = microtime(true);
+
+        $scriptFiles = array_filter($testFiles, [self::class, 'isScriptStyle']);
+        $testFiles   = array_diff($testFiles, $scriptFiles);
 
         $classesBefore = get_declared_classes();
 
@@ -35,8 +53,35 @@ class TestRunner
             $this->runTestClass($className, $filter);
         }
 
+        foreach ($scriptFiles as $file) {
+            $this->runScriptTest($file);
+        }
+
         $this->printResults();
         return $this->failed + $this->errors > 0 ? 1 : 0;
+    }
+
+    /**
+     * Run a script-style test in its own PHP process; its exit code is the verdict.
+     * Counts as one test — the file prints its own per-assertion detail.
+     */
+    private function runScriptTest(string $file): void
+    {
+        $name = basename($file, '.php');
+        echo "\n{$name} (isolated)\n";
+
+        $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($file) . ' 2>&1';
+        exec($cmd, $lines, $exitCode);
+        $output = trim(implode("\n", $lines));
+
+        if ($exitCode === 0) {
+            $this->passed++;
+            echo "  \033[32m✓\033[0m " . str_replace("\n", "\n    ", $output) . "\n";
+        } else {
+            $this->failed++;
+            $this->failures[] = "{$name}: exit {$exitCode}\n     " . str_replace("\n", "\n     ", $output);
+            echo "  \033[31m✗\033[0m exit {$exitCode}\n    " . str_replace("\n", "\n    ", $output) . "\n";
+        }
     }
 
     private function runTestClass(string $className, ?string $filter): void
@@ -64,6 +109,10 @@ class TestRunner
                 $instance->$name();
                 $this->passed++;
                 echo "  \033[32m✓\033[0m {$name}\n";
+            } catch (TestSkipped $e) {
+                $this->skipped++;
+                $this->skips[] = "{$className}::{$name}: {$e->getMessage()}";
+                echo "  \033[33m↷\033[0m {$name} — overgeslagen: {$e->getMessage()}\n";
             } catch (AssertionError $e) {
                 $this->failed++;
                 $this->failures[] = "{$className}::{$name}: {$e->getMessage()}";
@@ -84,13 +133,21 @@ class TestRunner
     private function printResults(): void
     {
         $elapsed = round(microtime(true) - $this->startTime, 3);
-        $total = $this->passed + $this->failed + $this->errors;
+        $total = $this->passed + $this->failed + $this->errors + $this->skipped;
 
         echo "\n" . str_repeat('-', 60) . "\n";
         echo "Tests: {$total}, Passed: \033[32m{$this->passed}\033[0m";
         if ($this->failed > 0) echo ", Failed: \033[31m{$this->failed}\033[0m";
         if ($this->errors > 0) echo ", Errors: \033[31m{$this->errors}\033[0m";
+        if ($this->skipped > 0) echo ", Skipped: \033[33m{$this->skipped}\033[0m";
         echo " ({$elapsed}s)\n";
+
+        if (!empty($this->skips)) {
+            echo "\nOvergeslagen (niet gedraaid — geen pass):\n";
+            foreach ($this->skips as $i => $msg) {
+                echo "  " . ($i + 1) . ") {$msg}\n";
+            }
+        }
 
         if (!empty($this->failures)) {
             echo "\nFailures:\n";
@@ -102,10 +159,32 @@ class TestRunner
 }
 
 /**
+ * Thrown by TestCase::markTestSkipped(). A skipped test is NOT a pass — it is
+ * counted and printed separately so an environment gap (a missing PHP
+ * extension, say) can never read as green coverage.
+ */
+class TestSkipped extends Exception {}
+
+/**
  * Base test case with assertion methods (PHPUnit-compatible API)
  */
 class TestCase
 {
+    /** Abort this test as "not run here", with the reason shown in the output. */
+    protected function markTestSkipped(string $reason): void
+    {
+        throw new TestSkipped($reason);
+    }
+
+    /** Skip unless every named PHP extension is loaded. */
+    protected function requireExtensions(string ...$extensions): void
+    {
+        $missing = array_values(array_filter($extensions, fn($e) => !extension_loaded($e)));
+        if ($missing !== []) {
+            $this->markTestSkipped('vereist PHP-extensie(s): ' . implode(', ', $missing));
+        }
+    }
+
     protected function assertEquals($expected, $actual, string $message = ''): void
     {
         if ($expected !== $actual) {
@@ -285,8 +364,8 @@ if (php_sapi_name() === 'cli' && realpath($argv[0]) === realpath(__FILE__)) {
         $files = [$file];
     } else {
         $files = glob($testDir . '/*Test.php');
-        // Exclude legacy custom-format tests
-        $files = array_filter($files, fn($f) => !in_array(basename($f), ['SqlParserTest.php', 'QueryBuilderTest.php']));
+        // No exclusions: script-style files (SqlParserTest, QueryBuilderTest,
+        // PageLevelsTest) are detected in run() and executed in their own process.
     }
 
     $runner = new TestRunner();

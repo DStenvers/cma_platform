@@ -139,3 +139,34 @@ Eerst A (in de custom runner `cma/tests/TestRunner.php`), dan B gefaseerd.
 - Let op: `tools.php` staat in het platform; de site-tools staan in de
       consumer-repo. De koppeling moet dus data-gedreven zijn (geen platform-code
       die karaat-bestandsnamen kent).
+
+## `library/json/JSON.inc` naar `library/.deprecated/` verplaatsen
+
+**Context (2026-07-27):** `JSON.inc` is de PHP-wrapper voor de legacy `aspJSON`-class
+uit de ASP-conversie. De class doet zelf niets meer dan `json_decode`/`json_encode`
+aanroepen, dus er is geen reden meer om hem te leveren. In het platform is hij al
+nergens in gebruik (nul verwijzingen buiten het bestand zelf); karaat gebruikt hem
+ook niet. mijnRINO was de enige consumer: ~30 `require_once` + 38 call-sites in 15
+bestanden, en die zijn op 2026-07-27 omgezet naar `json_decode($x, true, 512,
+JSON_THROW_ON_ERROR)` (branch `twig-implementation`, nog niet gecommit/uitgerold).
+
+**Waarom dit nog niet gedaan is:** de *gedeployde* mijnRINO (main) requiret het
+bestand nog. Zodra het pad in `Installer.php::REMOVED_PATHS` staat, wist een
+`composer update` het van de site — dat is een gegarandeerde fatal op elke pagina
+die het nog inlaadt. Dus: pas verplaatsen nadat de mijnRINO-conversie gecommit én
+uitgerold is.
+
+### Work items
+- [ ] Verifieer dat de mijnRINO-conversie live staat: `grep -rn "AspJSON\|JSON.inc"`
+      op de site levert niets meer op (behalve het bestand zelf).
+- [ ] `git mv library/json/JSON.inc library/.deprecated/JSON.inc` (de map bestaat nog
+      niet; mijnRINO gebruikt dezelfde `.deprecated/`-conventie, het platform tot nu
+      toe `*_DEPRECATED.php` — hiermee wordt `.deprecated/` de conventie voor hele
+      mappen).
+- [ ] Voeg `'library/json/JSON.inc'` toe aan `Installer.php::REMOVED_PATHS` met een
+      regel uitleg, anders houden consumer-sites het dode bestand voor altijd.
+- [ ] Let op: de Installer synct heel `library/`, dus na de verplaatsing wordt
+      `library/.deprecated/JSON.inc` alsnog naar sites gekopieerd. Wil je dat niet,
+      sluit `.deprecated/` dan uit in de sync (en documenteer die uitzondering), of
+      verwijder het bestand meteen helemaal in plaats van te verplaatsen.
+- [ ] Bump de versie + tag, en meld in de commit dat de aspJSON-compat weg is.
