@@ -478,9 +478,16 @@ describe('Portal - Error Handling', () => {
         cy.frontendLogin();
     });
 
-    it('should display 404 page for invalid pageaction', () => {
-        visitPage('/?pageaction=404');
-        cy.get('body').should('contain', 'niet worden gevonden');
+    it('should display the 404 page for an unknown URL', () => {
+        // The site's 404 lives at /404.php and is wired through web.config's
+        // <httpErrors> ExecuteURL, so an unknown URL renders it. Do NOT probe a
+        // pageaction: index.php dispatches a fixed list and an unrecognised value
+        // simply renders the page frame, which is not the 404 page.
+        cy.request({ url: `${SITE_URL}/geen-bestaande-pagina-xyz`, failOnStatusCode: false })
+            .then((response) => {
+                expect(response.status).to.eq(404);
+                expect(response.body).to.contain('niet gevonden');
+            });
     });
 
     it('should not crash on non-existent .php files', () => {
