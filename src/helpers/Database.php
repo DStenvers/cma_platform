@@ -1236,6 +1236,32 @@ class Database
      * @param array $params Query parameters (for prepared statements)
      * @return int Number of affected rows, or 0 on error
      */
+    /**
+     * Run a write against a NAMED connection.
+     *
+     * execute() resolves getConnection() without a name, so it always writes to
+     * the default (`data`) connection. Code that touches a table living in
+     * another logical database — tblUsers in `users`, for instance — silently
+     * hit the wrong database and failed with "table not found". There was no
+     * named-connection variant, so this is it.
+     *
+     * @param  string|PDO $connection Logical name ('users', 'rep', …) or a PDO
+     * @return int                    Affected rows, or 0 on failure (see getLastError)
+     */
+    public static function executeOn($connection, string $sql, array $params = []): int
+    {
+        try {
+            $conn = self::getConnection($connection);
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
+            $stmt->execute($params);
+            return $stmt->rowCount();
+        } catch (PDOException $e) {
+            self::$lastError = $e->getMessage();
+            self::logError($sql, $params, $e);
+            return 0;
+        }
+    }
+
     public static function execute(string $sql, array $params = []): int
     {
         try {
@@ -1865,12 +1891,47 @@ class Database
         // (cma/tools/logreader.php) can classify the entry as an error and
         // render it in a red row, and operators can filter on "SQL ERROR".
         error_log(sprintf(
-            "[SQL ERROR] %s\nSQL: %s\nParams: %s\nTrace: %s",
+            "[SQL ERROR] %s%s\nSQL: %s\nParams: %s\nTrace: %s",
             $e->getMessage(),
+            self::diagnoseEmptyOperand($sql),
             $sql,
             json_encode($params),
             $e->getTraceAsString()
         ));
+    }
+
+    /**
+     * Name the empty operand behind a driver's generic syntax complaint.
+     *
+     * Inlining a PHP variable that turns out to be '' leaves a comparison with
+     * nothing on the right ("where fkDocent= AND fkRooster=4920") or an empty list
+     * ("IN ()"). Access answers both with "Syntaxisfout (operator ontbreekt)", which
+     * names neither the column nor the caller, so the reader is left bisecting the
+     * query. This adds the column name to the log line; it does not alter the query
+     * or the exception. Route such values through SQL::postNumber()/postString(),
+     * which emit "null" for an empty value instead of nothing at all.
+     */
+    private static function diagnoseEmptyOperand(string $sql): string
+    {
+        $verdachten = [];
+        // <kolom> = <niets>, waarbij "niets" het eind is, een sluithaakje, of een
+        // volgend sleutelwoord. Vergelijkingen met een waarde matchen dus niet.
+        if (preg_match_all(
+            '/([A-Za-z_][A-Za-z0-9_.\[\]]*)\s*(?:=|<>|!=|<|>|<=|>=)\s*(?=$|\)|,|;|\b(?:AND|OR|ORDER|GROUP|HAVING|WHERE|LIMIT)\b)/i',
+            $sql, $m
+        )) {
+            $verdachten = $m[1];
+        }
+        if (preg_match_all('/([A-Za-z_][A-Za-z0-9_.\[\]]*)\s+IN\s*\(\s*\)/i', $sql, $m)) {
+            $verdachten = array_merge($verdachten, $m[1]);
+        }
+        $verdachten = array_values(array_unique($verdachten));
+        if ($verdachten === []) {
+            return '';
+        }
+        return "\n[LEGE WAARDE] Geen waarde ingevuld bij: " . implode(', ', $verdachten)
+            . '. Een lege PHP-variabele is hier rechtstreeks in de SQL gezet; gebruik'
+            . ' SQL::postNumber()/postString() zodat er "null" komt te staan.';
     }
 
     /**

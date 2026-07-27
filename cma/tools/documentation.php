@@ -1269,9 +1269,22 @@ function cma_doc_check_php_error_log(): array {
     }
     $legacy = dirname($cfg) . '/php_errors.log';
     if (is_file($legacy) && @filesize($legacy) > 50 * 1024 * 1024) {
+        $omvang = cma_doc_format_bytes((int) @filesize($legacy));
+        // Onderscheid het geval waarin dit bestand nog de LEVENDE bestemming is: dan
+        // is de omvang geen restant maar een lopend probleem. Elke notice is een
+        // schrijfactie, dus een pagina die er duizenden per render produceert betaalt
+        // dat in schijf-I/O — dat is een prestatieprobleem, niet alleen rommel.
+        $live = @realpath($cfg) === @realpath($legacy);
+        if ($live) {
+            return ['label' => $label, 'status' => 'warn',
+                'detail' => $detail . ' Dit bestand is ' . $omvang . ' groot en is de actieve bestemming: er is geen dagrotatie, dus het blijft groeien.',
+                'fix' => 'Zet dagrotatie aan (dan schrijft het platform naar <code>php_errors_&lt;datum&gt;.log</code>) en archiveer dit bestand. '
+                    . 'Groeit het snel, kijk dan eerst WAT er in staat: een herhaalde notice (bijvoorbeeld "Undefined property") '
+                    . 'kost bij elke request schijf-I/O en maakt de pagina traag.'];
+        }
         return ['label' => $label, 'status' => 'warn',
-            'detail' => $detail . ' Daarnaast ligt er nog een ongeroteerd <code>php_errors.log</code> van ' . cma_doc_format_bytes((int) @filesize($legacy)) . ' uit de tijd vóór de dagrotatie.',
-            'fix' => 'Dat bestand groeit niet meer; verwijder of archiveer het handmatig.'];
+            'detail' => $detail . ' Daarnaast ligt er nog een ongeroteerd <code>php_errors.log</code> van ' . $omvang . '.',
+            'fix' => 'De rotatie schrijft er niet meer naartoe; verwijder of archiveer het handmatig.'];
     }
     return ['label' => $label, 'status' => 'pass', 'detail' => $detail, 'fix' => ''];
 }
@@ -2156,6 +2169,28 @@ PerformanceLogger::logMemory('after_query');</code></pre>
         <li>Performance log: 7 dagen (<code>PerformanceLogger::cleanup(7)</code>).</li>
         <li>Andere logs (php_errors, deploy, debug, 404): platform doet niks automatisch. Stel een cleanup-job in als de schijf vol loopt.</li>
     </ul>
+    <p>Wijst <code>php.ini</code>'s <code>error_log</code> rechtstreeks naar één vast bestand, dan geldt de dagrotatie hierboven daar
+       niet voor: dat bestand groeit onbeperkt door. De check bovenaan deze pagina meldt dat apart.</p>
+
+    <h2>Een groeiende error-log is een prestatieprobleem</h2>
+    <p>Elke notice is een schrijfactie naar schijf. Een pagina die er per render honderden produceert &mdash; een lus over
+       records waarin één veldnaam niet klopt, bijvoorbeeld &mdash; betaalt dat in I/O, en onder gelijktijdige requests loopt
+       dat op tot time-outs en 500's. De inhoud is dus geen ruis maar de aanwijzing.</p>
+    <table class="listtable">
+        <tr><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr>
+        <tr>
+            <td>Eén pagina is traag of geeft wisselend een 500, terwijl de query's snel zijn</td>
+            <td>Herhaalde <code>Undefined property</code>- of <code>Undefined array key</code>-notices per record. In PHP zijn
+                property-namen en array-sleutels <span class="cma-tool__strong">hoofdlettergevoelig</span> (methodenamen niet),
+                dus <code>$obj-&gt;FooId</code> en <code>$obj-&gt;FooID</code> zijn twee verschillende velden. Uit een
+                case-insensitive taal overgezette code raakt zo stil ontkoppeld: de lezer krijgt <code>null</code> en de
+                bijbehorende functionaliteit valt uit.</td>
+            <td>Meet de groei van de log over één request (<code>filesize</code> ervoor en erna). Staat er dezelfde notice
+                honderden keren in, breng dan schrijver en lezers op één schrijfwijze en declareer de property op de klasse.
+                Let op de cascade: hernoemen breekt lezers die de oude schrijfwijze gebruikten &mdash; controleer de log
+                opnieuw ná de wijziging.</td>
+        </tr>
+    </table>
 
     <h2>Debug-mode aan/uit</h2>
     <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt LibLog's console-output en server-logging-niveau.</p>

@@ -7109,3 +7109,7 @@ karaat-data en staat in de karaat-repo.
 > these are totally different pages , how can they reach the same point?
 
 > ja graag, die veldnamen lijken correct namelijk, is users wel de connectie waarover hij gaat?
+
+> document your learnings of today
+
+> document your learnings of today
