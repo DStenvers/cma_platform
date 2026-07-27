@@ -130,7 +130,11 @@
 .lnr-factory::before { content: "\e67d"; }
 .lnr-factory2::before { content: "\e67e"; }
 .lnr-recycle::before { content: "\e67f"; }
-.lnr-trash::before { content: "\e680"; }
+/* Bewuste afwijking van de Linearicons-set: lnr-trash wijst naar \e681
+   (in de officiele set "trash2"), omdat die prullenbak duidelijker leest.
+   De CMA-stylesheets deden dat al; dit trekt de front-end gelijk. Regenereer
+   je dit bestand ooit uit de vendor-bron, zet deze regel dan terug. */
+.lnr-trash::before { content: "\e681"; }
 .lnr-trash2::before { content: "\e681"; }
 .lnr-trash3::before { content: "\e682"; }
 .lnr-broom::before { content: "\e683"; }

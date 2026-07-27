@@ -7060,3 +7060,22 @@ karaat-data en staat in de karaat-repo.
 > anotyher form: formulier7 is acting up, can you compare the original asp with the current version and try to restore the functionality?
 
 > ja is goed, maar een cma draait altijd net als frpont-end dus ik snap het probleem niet
+
+> the lnr lnr-copy and lnr lnr-trash don't seem to have a n icon anymore; that is regression, can you fix?
+
+> the layout is  screwed, but let's move formulier7 to .deprecated and skip the tests in roles_report
+
+> rol: praktijkopleider
+> pagina: /src/ajax/ajax.php?type=get_praktijkplaatsen
+> HTTP: 500 (FOUT)
+> tijd: 20 ms
+> HTTP 500
+> fatal marker: Call to undefined function Inventarisatie_Getopleidingsplaatsen
+
+> okay, ik wil dat je even diep gaat speuren..
+>
+> een hele hoop endpoits vereisten parameters, deze moeten via de eerder gemaakte gauard worden getest. ën kunnen door de roles_walker dus ook niet worden opgeroepen zonder parameter. Synchrniseer die twee zaken en zorg voor een goede testbare set url's. Want nu is het erg veel werkt voor weinig opbrengst..
+
+> het werkt
+
+> Ik vind de 681 iets duidelijker als trashbin, dus die graag overal toepassen
