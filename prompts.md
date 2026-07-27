@@ -6929,3 +6929,25 @@ karaat-data en staat in de karaat-repo.
 > ja graag een docu-hoofdstuk van maken
 
 > caroline flipse: agenda.php weergave : Gesprekken inplannen wordt getoond mara dat hoeft niet. Daarnaast ontbreekt de optie Rapportage gesprekken en is er een script error.
+
+> okay: IIS-configuratie
+> Hoe het platform IIS gebruikt — URL Rewrite, web.config layering, app-pool recycle.
+>
+> web.config — live check op deze site
+> Live check op deze site — 10 OK 2 fout
+>
+> Check    Status    Detail    Fix
+> Parent web.config: CMA friendly-URL routes    OK    Aanwezig — de CMA-routes (CMA Dashboard e.a.) staan in de parent. /cma/dashboard, /cma/preferences, /cma/tools en de form-routes werken; cma/ hoeft GEEN IIS Application te zijn.    —
+> IIS URL Rewrite Module — extensionless /cma/* paden werken    FOUT    /cma/dashboard geeft HTTP 404 terwijl /cma/dashboard.php (vermoedelijk) wel werkt. URL Rewrite Module is niet actief voor het /cma-pad óf de child cma/web.config wordt niet geapplied.    Stappen, in volgorde: (1) verifieer dat de IIS URL Rewrite Module geïnstalleerd is — Server Manager → Web Server (IIS) → Roles, of download van iis.net/downloads/microsoft/url-rewrite. (2) Recycle de app-pool (touch web.config). (3) Check %windir%\system32\inetsrv\config\applicationHost.config op <section name="rewrite" overrideMode="Allow"/> en geen inheritInChildApplications="false" op een parent <location>.
+> Parent web.config: "Skip /cma to child config" rule    OK    Aanwezig.    —
+> Parent web.config: outbound "Default Content-Type" rule    OK    Aanwezig — mobile Safari download-prompt bij Content-Type-loze responses is afgevangen.    —
+> Parent web.config: X-Content-Type-Options: nosniff    OK    Aanwezig.    —
+> Parent web.config: X-Frame-Options: SAMEORIGIN    OK    Aanwezig.    —
+> Parent web.config: hiddenSegments (.env / composer.json / composer.lock / .sessions)    OK    Alle 4 segmenten zijn verborgen.    —
+> IIS-versie — ondersteunt removeServerHeader?    OK    Microsoft-IIS/10.0 — removeServerHeader="true" wordt hier ondersteund.    —
+> Server-header wordt verwijderd (fingerprinting)    OK    Geen Server-header in het antwoord op /.    —
+> X-Powered-By wordt niet verstuurd    OK    expose_php staat uit.    —
+> Child cma/web.config: outbound "Default Content-Type" rule    FOUT    Regel ontbreekt in kind-config (outbound rules erven niet over).    Standaard aanwezig. composer update stenversonline/platform.
+> Child cma/web.config: 404 handler → /cma/404.php    OK    Geconfigureerd.    —
+> De "Los op"-knoppen
+> Sinds v1.29.128 heeft een deel van de checks hierboven een knop die de wijziging meteen doorvoert in de site-root web.config. D , die heb je net toegevoegd.. Wil je niet meer dat soort historische informatie plaatsen? Anders moeten we een what's new sectie op de homepage zetten met gestructureerde release informatie. Zodat dat niet overal wordt vermeld. Kennelijk heb jij de onbeheersbare behoefte dat ergens te zetten.
