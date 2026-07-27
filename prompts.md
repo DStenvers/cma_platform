@@ -7030,3 +7030,13 @@ karaat-data en staat in de karaat-repo.
 >   at http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=proxy&side=new&role=praktijkopleider&account=903&path=%2Finventarisatie%2Fexcel.php:111
 
 > #cma-error-panel .error-btn .lnr { color:inherit} #cma-error-panel .error-btn .lnr::before { color: inherit }
+
+> yes please convert that
+
+> http://172.30.208.1:8090/index.php?pageaction=deelnemers&deelnameID=3623 (assistent role) -> de Plaats nieuwe toets button is missing and the new php version shows aandachtspunten, the old one does not, it should only show aandachtspunten for a big opleiding, can you check?
+
+> we can set the login type by cookie, it that fails, select persons that have just one role
+
+> 2 is okay
+
+> top, en staat er nog wat in de todo.md?

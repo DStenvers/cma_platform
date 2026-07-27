@@ -85,16 +85,17 @@ unit/Cypress coverage per module as it is extracted, since there is almost none 
 
 ## Test-plan: dekking uitbreiden voor features sinds de laatste test-update
 
-**Context (2026-07-04):** 32 PHPUnit-achtige tests + 116 Cypress-specs. Deze
-sessie voegde veel platform-features toe met weinig/geen tests. Doel: de
-belangrijkste nieuwe logica afdekken, unit-first (deterministisch), dan Cypress.
+**Context:** de PHP-suite dekt de helpers goed af, maar een aantal
+platform-features is met weinig of geen tests geland. Doel: de belangrijkste
+logica afdekken, unit-first (deterministisch), dan Cypress. Draai
+`php cma/tests/TestRunner.php` voor de actuele stand.
 
 ### A. Unit-tests (pure logica — snel, hoge waarde)
 - [ ] `JsonFormService::renderImageCell` — absolute/CDN-URL wordt as-is gebruikt
       (geen `/https%3A%2F%2F…`-mangling); relatieve bestandsnaam krijgt pad +
-      rawurlencode. Regressie van de CloudFront-bug (v1.28.68).
+      rawurlencode. Regressie van de CloudFront-bug.
 - [ ] `JsonFormService::formatNumber` — trailing-zero decimalen strippen
-      (12.5000→12.5, 12.0000→12, 0.0000→0); niet-numeriek/komma/leeg ongemoeid (v1.28.69).
+      (12.5000→12.5, 12.0000→12, 0.0000→0); niet-numeriek/komma/leeg ongemoeid.
 - [ ] MigratieService: `backupAffectedDatabases`-diagnostiek (welke databases.json,
       welke logische namen) + `runPhp`/`runSqlScript`-padresolutie voor extra sources.
       (Aanvulling op MigrationScriptPathTest / DropIndexIdempotentTest / MigrationVersionWarningsTest.)
@@ -121,7 +122,7 @@ Eerst A (in de custom runner `cma/tests/TestRunner.php`), dan B gefaseerd.
 
 ## Site-specifieke tools generiek in tools.php wiren
 
-- [x] **Gedaan (v1.28.84):** `tools_catalog.inc` leest de site-`data/tools.json`
+- [x] **Gedaan:** `tools_catalog.inc` leest de site-`data/tools.json`
       en voegt die groepen toe aan de launcher; items met een absolute href
       (`/tools/…`) openen in een nieuw tabblad (`data-external` in
       `cma-launcher.js`). karaat levert nu `data/tools.json` (groep "Karaat
