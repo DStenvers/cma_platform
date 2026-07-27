@@ -5,9 +5,7 @@
  * De CMA rewrite-rules (Dashboard, Preferences, Tools, Forms) leefden
  * historisch in cma/web.config. Dat werkt op de meeste IIS-installaties
  * niet betrouwbaar omdat URL Rewrite Module's distributed-rule semantics
- * + outbound-rule inheritance regelmatig naar 500.50 of 404 leiden
- * (zie v1.19.9 outbound-conflict en v1.20.10 cma-as-Application
- * issue-trail).
+ * + outbound-rule inheritance regelmatig naar 500.50 of 404 leiden.
  *
  * Deze migration verplaatst de CMA rewrite-rules NAAR het parent
  * web.config van de consumer-site. Daar worden ze ZONDER inheritance-

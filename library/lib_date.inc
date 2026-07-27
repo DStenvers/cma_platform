@@ -2,7 +2,7 @@
 /**
  * Date formatting helpers (Dutch locale, VBScript-era formats).
  *
- * Moved out of lib_general.inc in v1.29.44 - behavior unchanged. Output
+ * Moved out of lib_general.inc - behavior unchanged. Output
  * formats deliberately differ from App\Library\Date (e.g. strMediumDate's
  * dd-mmm-yyyy with Dutch abbreviations), so these are NOT thin wrappers and
  * must not be blind-replaced by Date:: calls.

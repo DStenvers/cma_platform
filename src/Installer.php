@@ -46,29 +46,29 @@ class Installer
      * no-ops once the file isn't there anymore.
      */
     private const REMOVED_PATHS = [
-        // Retired in v1.28.112: the classic-frameset menu-rendering page. It
+        // Retired: the classic-frameset menu-rendering page. It
         // emitted the l/n/f JS arrays into a `parent.window.frames['C']` frameset
         // (glow_tabs / menu_init()) — dead since the CMA moved to the sidebar
         // layout. Nothing loads it; the menu-building helpers it shared live on
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
         'cma/tools/llm_models.php',
-        // Removed in v1.28.134: the standalone "Database health check" tool
+        // Removed: the standalone "Database health check" tool
         // (tools/db_health.php) is dropped from the tools menu and repo. Clean
         // the synced copy off consumer sites so its URL stops resolving.
         'cma/tools/db_health.php',
-        // Removed in v1.28.135: the "Database compacteren" tool was a dead stub —
+        // Removed: the "Database compacteren" tool was a dead stub —
         // Access compaction needs JRO/DAO COM (unavailable in PHP) and can't be
         // done over ODBC at all, so it only ever printed a "do it in Access"
         // notice (with a stale path). Compact manually in Access instead.
         'cma/tools/tools_dbcompact.php',
-        // Removed in v1.28.140: two obsolete developer-only tools. The SQL Server
+        // Removed: two obsolete developer-only tools. The SQL Server
         // migration-prep helper and the repository exporter both targeted the
         // deprecated repository DB / one-off migration path and are no longer used.
         'cma/tools/tools_migrate_prepare.php',
         'cma/tools/tools_export_repository.php',
         'cma/tools/tools_export_repository_cli.php',
-        // Renumbered in v1.28.35: these two migrations were never registered in
+        // Renumbered: these two migrations were never registered in
         // config/migrations.json, so the high-water-mark runner never applied
         // them (leaving tblCMAMarketingUrl / api_call_log missing on sites past
         // 9.13.0). Re-issued as 9.14.0 / 9.15.0 (above target) so they become
@@ -81,24 +81,24 @@ class Installer
         // wizard (cma/wizards/file-browser.php) and imageupload_crop.php.
         'cma/imageupload.php',
         'cma/imageupload_action.php',
-        // Markdown docs retired in v1.16.0 (Phase 1 of the in-CMA
+        // Markdown docs retired (Phase 1 of the in-CMA
         // documentation hub at cma/tools/documentation.php). Their
         // content was inlined into the topics there. See CLAUDE.md
         // "No new .md documentation files" rule.
         'cma/docs/iis-setup.md',
         'cma/docs/logging.md',
-        // Phase 2 retirements (v1.17.0)
+        // Phase 2 retirements
         'cma/docs/architecture_review.md',
         'cma/docs/json.md',
         'cma/docs/forms.md',
         'cma/docs/api-reference.md',
         'cma/docs/menuicons.md',
-        // Moved in v1.28.121: the full Linearicons class reference now lives at
+        // Moved: the full Linearicons class reference now lives at
         // library/css/linearicons.css (the RINO front-end links it there, and the
         // storybook reads it from there). Remove the old cma/docs copy so sites
         // don't keep a stale duplicate.
         'cma/docs/linearicons.css',
-        // Retired in v1.22.0: BOTH the standalone single-file webhook and the
+        // Retired: BOTH the standalone single-file webhook and the
         // framework webhook (cma/tools/deploy_webhook.php → DeployWebhook) are
         // superseded by the one-and-only site-root recovery hatch /deploy.php
         // (ROOT_SYNCED_FILES), which folds in their full feature set. Re-point
@@ -108,7 +108,7 @@ class Installer
         // no REMOVED_PATHS entry.)
         'cma/tools/deploy_webhook_standalone.php',
         'cma/tools/deploy_webhook.php',
-        // Retired in v1.22.3: the /cma/tools/ deploy-status endpoint sat under
+        // Retired: the /cma/tools/ deploy-status endpoint sat under
         // the gitignored /cma/ tree — it 404s during exactly the botched
         // deploy you'd want to inspect. The git-tracked site-root twin
         // /deploy_status.php (ROOT_SYNCED_FILES) is the single status endpoint.
@@ -135,7 +135,7 @@ class Installer
         // (@unlink is best-effort, so a system-attribute file that won't delete is
         // a harmless no-op rather than a new failure.)
         'library/fonts/Linearicons/SVG/desktop.ini',
-        // Retired in v1.28.45: legacy "image/file maintenance" tool family that
+        // Retired: legacy "image/file maintenance" tool family that
         // walked the pre-JSON tblForms/tblControls schema plus on-disk image
         // folders. All superseded by tools_db_consistency.php (the only surfaced
         // one) + its POST target tools_consistency_picture_delete.php. These were
@@ -148,7 +148,7 @@ class Installer
         'cma/tools/tools_picture_analyse.php',
         'cma/tools/tools_picture_analyse_delete.php',
         'cma/tools/tools_contentblocks.php',
-        // Relocated in v1.28.95: the general error handler's assets moved under
+        // Relocated: the general error handler's assets moved under
         // library/assets/ (was library/error-handler.js[.min.js] and
         // library/css/errorhandler.css). New locations: library/assets/js/ and
         // library/assets/css/. Without these removals the old copies linger and,
@@ -157,7 +157,7 @@ class Installer
         'library/error-handler.js',
         'library/error-handler.min.js',
         'library/css/errorhandler.css',
-        // Removed in v1.29.11: dead static CSS bundles. The CMA serves all CSS
+        // Removed: dead static CSS bundles. The CMA serves all CSS
         // through minify.php, which minifies the SOURCE files (cma_css_bundle())
         // on the fly and only ever prefers a pre-built .min.JS — never a .min.CSS.
         // build-minify.sh doesn't generate these either (it only does
@@ -166,7 +166,7 @@ class Installer
         'cma/assets/css/form.min.css',
         'cma/assets/css/style.min.css',
         'cma/assets/css/main.min.css',
-        // Removed in v1.29.38: the assets/js/modules/ ES-module set was an
+        // Removed: the assets/js/modules/ ES-module set was an
         // extract-of-form-controller that was never wired up — nothing loads
         // it (the files use `export` syntax, so a plain <script> tag would
         // throw), no page uses type="module", and no consumer app references
@@ -180,22 +180,22 @@ class Installer
         'cma/assets/js/modules/cma-record-cache.js',
         'cma/assets/js/modules/cma-request-coalescer.js',
         'cma/assets/js/modules/index.js',
-        // Removed in v1.29.39: the stale CMA-local error-handler copy. Every
+        // Removed: the stale CMA-local error-handler copy. Every
         // loader (main.php standalone tag, cma_js_bundle, cma_form_js_bundle,
         // image-editor, file-browser, file_frameset) uses
-        // library/assets/js/error-handler.js; this fork froze at v1.28.106
+        // library/assets/js/error-handler.js; this fork was frozen and stale
         // and silently missed the double-load guard, the resource-error
         // capture handler and later fixes.
         'cma/assets/js/error-handler.js',
         'cma/assets/js/error-handler.min.js',
-        // Removed in v1.29.42: legacy image-based a.tt tooltip styling. Nothing
+        // Removed: legacy image-based a.tt tooltip styling. Nothing
         // links tooltip.css and no a.tt markup exists anywhere; the live systems
         // are the data-tooltip CSS/JS engine (cma-utils.js + style.css) and the
         // lib-tip component. The two gifs were only referenced by tooltip.css.
         'library/tooltip.css',
         'library/images/tooltip.gif',
         'library/images/tooltip_filler.gif',
-        // Removed in v1.29.54: cma/tools/config/ was a RINO-specific config
+        // Removed: cma/tools/config/ was a RINO-specific config
         // snapshot (app/menu/data-sources/databases/control-types/reports)
         // that leaked into the initial package import and shipped to every
         // consumer site since. Nothing reads it — ConfigLoader points at the
@@ -212,7 +212,7 @@ class Installer
         // so it never was), referenced by no code. Front-end 404s are handled by
         // the consumer's own handler now; drop the synced copy off consumer sites.
         'cma/templates/404.inc',
-        // Renamed in v1.29.87: the Vb helper became Cdate (Vb.php → src/library/Cdate.php;
+        // Renamed: the Vb helper became Cdate (Vb.php → src/library/Cdate.php;
         // VbTest → CdateTest). CdateTest.php now ships, but composer's additive sync leaves
         // the old VbTest.php twin behind on existing installs — where it still require's the
         // moved src/helpers/Vb.php, so it's a broken file until removed.

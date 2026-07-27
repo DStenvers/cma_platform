@@ -5,7 +5,7 @@ namespace App\Library;
 /**
  * VBScript runtime-semantics helpers for converted ASP code.
  *
- * Platform-owned since v1.29.57 (formerly a converter-synced app/library copy;
+ * Platform-owned (was a converter-synced app/library copy;
  * that sync chain — converter/templates/library + sync-helpers.sh — no longer
  * exists). Deliberately separate from the clean Date/Str helpers: these
  * functions reproduce VBScript quirks (locale-dependent parsing, Empty

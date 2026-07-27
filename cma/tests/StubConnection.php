@@ -95,7 +95,7 @@ class StubConnection extends \PDO
     /**
      * Push a throwable that the next prepare()->execute() / query() / exec()
      * will raise instead of returning a result. Used to verify production
-     * error-path behaviour (e.g. v1.19.8 always-log).
+     * error-path behaviour (e.g. the always-log contract).
      */
     public function enqueueException(\Throwable $e): void
     {

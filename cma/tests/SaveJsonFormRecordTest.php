@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for Cma\FormDataProvider::saveJsonFormRecord — the v1.20.1
+ * Tests for Cma\FormDataProvider::saveJsonFormRecord — the
  * server-side changelog path in particular, proven end-to-end.
  *
  * Run with: php tests/TestRunner.php SaveJsonFormRecordTest
@@ -12,7 +12,7 @@
  * tests then assert the right shape of calls came through.
  *
  * The single most important assertion: the pre-update SELECT * that
- * v1.20.1 added MUST fire before the UPDATE — without it the server-
+ * pre-update SELECT MUST fire before the UPDATE — without it the server-
  * side changelog fallback has no oldFields and the Notificatie column
  * silently degrades back to the pre-1.20.1 empty state.
  */
@@ -79,7 +79,7 @@ class SaveJsonFormRecordTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // The v1.20.1 contract: SELECT * before UPDATE
+    // The contract: SELECT * before UPDATE
     // ------------------------------------------------------------------
 
     public function testEditFetchesOldRecordBeforeUpdate(): void
@@ -94,7 +94,7 @@ class SaveJsonFormRecordTest extends TestCase
         $this->assertTrue($result['success'] ?? false, 'Save must succeed: ' . ($result['error'] ?? '(no error msg)'));
 
         $calls = $this->conn->getCalls();
-        // Find the SELECT * that v1.20.1 added.
+        // Find the pre-update SELECT *.
         $foundPreUpdateSelect = false;
         foreach ($calls as $call) {
             if (str_contains($call['sql'], 'SELECT *') && str_contains($call['sql'], 'tblTest')) {
@@ -102,7 +102,7 @@ class SaveJsonFormRecordTest extends TestCase
                 break;
             }
         }
-        $this->assertTrue($foundPreUpdateSelect, 'v1.20.1 contract: pre-update SELECT * must fire so oldFields can populate the changelog fallback');
+        $this->assertTrue($foundPreUpdateSelect, 'contract: pre-update SELECT * must fire so oldFields can populate the changelog fallback');
     }
 
     public function testEditExecutesUpdateWithNewValue(): void
@@ -155,7 +155,7 @@ class SaveJsonFormRecordTest extends TestCase
     public function testInsertSkipsPreUpdateSelect(): void
     {
         // For new records there's no old state to fetch. Pre-1.20.1
-        // behaviour was the same — verify v1.20.1 didn't accidentally
+        // behaviour was the same — verify the pre-update SELECT didn't
         // start running a SELECT for new-record inserts.
         // PDO lastInsertId() returns '42' below, so the production code takes the
         // happy path and SKIPS the @@IDENTITY/last_insert_rowid fallback SELECT

@@ -103,8 +103,8 @@
                  *download* (the classic "Download logreader.php?" prompt).
                  This outbound rule fires only when Content-Type is empty
                  and rewrites it to text/html. PHP-set Content-Types are
-                 left untouched. Added in v1.19.9 — see the Deployment /
-                 IIS-config doc topics for the original incident. -->
+                 left untouched. See the Security doc topic for the full
+                 explanation. -->
             <outboundRules>
                 <rule name="Default Content-Type to text/html" preCondition="ContentTypeMissing">
                     <match serverVariable="RESPONSE_Content-Type" pattern=".*" />

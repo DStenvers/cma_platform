@@ -2,7 +2,7 @@
 /**
  * Tests for App\Library\Database::{safeQuery, safeScalar, safeExec}
  * — the null-conn-guard + try/catch + tagged-error_log + typed-
- * default wrappers added in v1.20.6.
+ * default wrappers.
  *
  * Run with: php tests/TestRunner.php DatabaseSafeHelpersTest
  *

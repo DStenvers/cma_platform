@@ -1,7 +1,7 @@
 <?php
 /**
  * Tests for App\Library\Installer::cleanRemovedPaths (extracted from
- * run() in v1.20.4 so it's callable in isolation).
+ * run() so it's callable in isolation).
  *
  * Run with: php tests/TestRunner.php InstallerRemovedPathsTest
  *

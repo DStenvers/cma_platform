@@ -1139,7 +1139,7 @@ class CmaInfiniteScroll {
         // nodata row, future pruning), and overwriting currentCount with it
         // clobbers the honest running count below the real total — freezing
         // "records 1-N van M (laden...)" a few rows short. currentCount is the
-        // single source of truth (accumulated appends); see the v1.28.83 fix
+        // single source of truth (accumulated appends) — never count DOM rows
         // note. The two-scroller double-append this helper once corrected for is
         // now prevented at the source (one scroller per table, see constructor).
         if (this.currentCount !== actualRows) {

@@ -5,7 +5,7 @@
  * Run with: php tests/TestRunner.php FormDataProviderDeleteChangelogTest
  *
  * Counterpart to FormDataProviderChangelogTest (which covers the Edit
- * changelog from v1.20.1). buildDeleteChangelog is called when a record
+ * changelog). buildDeleteChangelog is called when a record
  * is deleted: the entire record gets snapshotted as a two-column
  * "Veld / Verwijderde waarde" HTML table that lands in the
  * tblCMAMonitoring.Notificatie column for audit.

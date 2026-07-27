@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for App\Library\Database error-path logging (v1.19.8 fix).
+ * Tests for App\Library\Database error-path logging.
  *
  * Run with: php tests/TestRunner.php DatabaseErrorPathTest
  *
@@ -8,7 +8,7 @@
  * executeSingleRecord/execute) all called self::logError() in their
  * PDOException catches, but logError() was gated to dev/test
  * environments only — production silently swallowed every DB error.
- * v1.19.8 dropped the env-guard so error_log is always invoked.
+ * There is no env-guard: error_log is always invoked.
  *
  * This test verifies the always-log contract by:
  *  - Sending a StubConnection that throws PDOException on execute
@@ -113,7 +113,7 @@ class DatabaseErrorPathTest extends TestCase
 
     public function testQueryFailureLogsRegardlessOfEnvironment(): void
     {
-        // The v1.19.8 fix: pre-fix this only logged when omgeving was L/O/T
+        // Logging must not depend on omgeving (it once only logged on L/O/T)
         // or Application::get('test') was truthy. Production was silent.
         // Now: log unconditionally. Explicitly set "production-like" state
         // and verify the log still receives the entry.
@@ -127,7 +127,7 @@ class DatabaseErrorPathTest extends TestCase
 
         $log = $this->logContents();
         $this->assertStringContainsString('Connection lost', $log,
-            'v1.19.8 contract: PDOException must be logged even in production (omgeving=P)');
+            'contract: PDOException must be logged even in production (omgeving=P)');
     }
 
     // ------------------------------------------------------------------

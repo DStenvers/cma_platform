@@ -307,7 +307,7 @@ class InfiniteScrollLoopTest extends TestCase
 
     /**
      * One-to-many JOIN: 1827 distinct records, ~1/3 of them emit 2 join rows.
-     * Raw rows exceed 1827; distinct total is 1827. This is the v1.28.119 case
+     * Raw rows exceed 1827; distinct total is 1827. This is the join-duplicate case
      * — but exercised across the FULL loop, not one batch.
      */
     public function testJoinOneToManyConverges(): void

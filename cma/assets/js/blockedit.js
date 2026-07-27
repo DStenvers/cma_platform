@@ -735,9 +735,9 @@ function blockedit_array_add_array_element( elt, template, cTemplateTitle, key, 
 
 	// blockedit_create_htmls() above created the new element's editor
 	// synchronously — the block is open and visible on the "+" path, and
-	// createCKEditor now defers on real visibility and self-heals via its
-	// ready-watchdog, so the v1.20.21 delayed direct-create is no longer
-	// needed. Still drain the deferred queue for editors hidden elsewhere.
+	// createCKEditor defers on real visibility and self-heals via its
+	// ready-watchdog, so no delayed direct-create is needed here.
+	// Still drain the deferred queue for editors hidden elsewhere.
 	blockedit_process_pending_ckeditors();
 
 	if (elt) {
@@ -1193,9 +1193,8 @@ function blockedit_createCKEditor(fieldId) {
 	// async skin/iframe build. If that build ran while the target was hidden,
 	// or the chrome was destroyed afterwards (innerHTML move, removed DOM),
 	// the instance stays registered while the field shows a blank div.
-	// Returning 'exists' for such an instance made every later create attempt
-	// a no-op — the reason the v1.20.18/21 direct-create passes (and any
-	// retry) could never repair a blank editor.
+	// Returning 'exists' for such an instance would make every later create
+	// attempt a no-op, so no retry could ever repair a blank editor.
 	if (CKEDITOR.instances && CKEDITOR.instances[fieldId]) {
 		var existing = CKEDITOR.instances[fieldId];
 		var container = existing.container && existing.container.$;
@@ -1626,8 +1625,7 @@ function blockedit_collect_htmls(  ) {
 		// MUST stay declared: this file is strict mode, and the formerly
 		// undeclared `cSpecifier = ...` assignment below threw a
 		// ReferenceError that killed the entire harvest at the first typed
-		// block — saves then silently persisted the old field value (bug
-		// present since the initial commit; fixed in v1.26.8).
+		// block — saves then silently persisted the old field value.
 		var cSpecifier;
 
 		jQuery(".blockedit").each( function() {

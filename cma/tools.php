@@ -103,7 +103,7 @@ $toolNameMap = [
     'llm' => 'tools/tools_llm.php',
     'llm_management' => 'tools/tools_llm.php',
     'llm_analyzer' => 'tools/tools_llm.php', // legacy alias (was the original name)
-    // Surfaced in the tools menu in v1.28.45 (previously reachable only by URL).
+    // Surfaced in the tools menu.
     // These keys match what resolveNav() derives from the tools/<name>.php href.
     'create_indexes' => 'tools/tools_create_indexes.php',
     'sqlite_repair' => 'tools/tools_sqlite_repair.php',

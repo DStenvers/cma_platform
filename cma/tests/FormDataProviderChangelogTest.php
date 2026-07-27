@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for Cma\FormDataProvider::buildEditChangelog (added in v1.20.1).
+ * Tests for Cma\FormDataProvider::buildEditChangelog.
  *
  * Run with: php tests/TestRunner.php FormDataProviderChangelogTest
  *

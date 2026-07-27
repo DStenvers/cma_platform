@@ -894,7 +894,7 @@ async function confirmDelete() {
             // Group the raw PHP error log into per-error entries (each starts
             // with a "[dd-Mon-yyyy hh:mm:ss ...]" timestamp) so we can classify
             // and colour each entry. Failed SQL is logged by Database::logError
-            // with a leading "[SQL ERROR]" marker (v1.29.63) — those, plus PHP
+            // with a leading "[SQL ERROR]" marker — those, plus PHP
             // Fatal/Parse/Uncaught errors, render as red rows.
             $entries = [];
             $current = '';

@@ -1117,7 +1117,7 @@ class FormDataProvider
                 RecordService::saveCustomRendererValues($formDefObj, $recordId, $data);
             }
 
-            // Server-side changelog fallback for edits (sinds v1.20.1). When the
+            // Server-side changelog fallback for edits. When the
             // client-side JS that builds _changelog erred, the POST arrives
             // without it; pre-1.20.1 the Notificatie ended up empty. Now we
             // diff the pre-update $oldFields vs the saved $data and render a

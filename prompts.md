@@ -6902,3 +6902,7 @@ karaat-data en staat in de karaat-repo.
 > CMA platform v1.29.126 ?
 
 > The 6 entries in data-sources.json without a Twig template, make sure they are not used (double check and if not: remove them from the json)
+
+> removeServerHeader="true" en outbound-rewrite van het Server-header — beperkt fingerprinting. -> zo staat het in de docu maar hadden we niet vastgesteld dat dat niet altijd werkt, op een oude server niet. Moet gedocumenteerd worden.
+
+> vacatures, vacatures_detail and vacature_org can be removed
