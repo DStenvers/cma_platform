@@ -109,6 +109,85 @@ function flatten_topics(array $tree, array &$out = []): array
     }
     return $out;
 }
+
+/**
+ * Split the tree into a CMA and a Front-end branch — but ONLY when the site
+ * actually brings its own chapters. Without site documentation the tree stays
+ * exactly as it was, so nothing changes for sites that don't use this.
+ *
+ * Pure function (no I/O) so it is unit-testable; see DocumentationSiteTopicsTest.
+ */
+function cma_doc_split_tree(array $topics, array $siteTopics): array
+{
+    if (!$siteTopics) {
+        return $topics;
+    }
+    return [
+        'cma' => [
+            'label'    => 'CMA',
+            'icon'     => 'lnr-cog',
+            'children' => $topics,
+        ],
+        'frontend' => [
+            'label'    => 'Front-end',
+            'icon'     => 'lnr-screen',
+            'children' => $siteTopics,
+        ],
+    ];
+}
+
+/**
+ * Drop site topics whose slug is already taken by a platform topic. The slug
+ * namespace is flat for routing, so a collision would silently shadow one of
+ * the two — the platform topic always wins and the site gets a log line.
+ */
+function cma_doc_strip_reserved(array $tree, array $reserved): array
+{
+    foreach ($tree as $slug => $node) {
+        if (isset($node['children'])) {
+            $tree[$slug]['children'] = cma_doc_strip_reserved($node['children'], $reserved);
+            if (!$tree[$slug]['children']) {
+                unset($tree[$slug]);
+            }
+        } elseif (isset($reserved[$slug])) {
+            error_log('[site_doc] hoofdstuk-slug "' . $slug . '" botst met een CMA-topic en is overgeslagen');
+            unset($tree[$slug]);
+        }
+    }
+    return $tree;
+}
+
+// =========================================================================
+// Site-eigen documentatie (optioneel, sinds v1.29.125)
+// -------------------------------------------------------------------------
+// Een consumer-site levert zijn eigen hoofdstukken aan als DATA:
+//   doc/documentation.json  — hoofdstukregistratie (per site verschillend)
+//   doc/chapters/*.html     — de inhoud, als HTML-fragment
+//   src/includes/site_documentation.inc — de lezer die dit platform aanroept
+// Het platform kent die inhoud niet: het vraagt alleen de tree op en routeert
+// ernaartoe. Ontbreekt de lezer, dan blijft deze tool exact zoals hij was.
+// =========================================================================
+$siteDocReader = cma_doc_site_root() . '/src/includes/site_documentation.inc';
+$siteTopics    = [];
+if (is_file($siteDocReader)) {
+    require_once $siteDocReader;
+    if (function_exists('site_doc_tree')) {
+        // Hoofdstukken die de site bewust in een BESTAANDE platform-tak wil
+        // hangen, daar tussen zetten. Die blijven dus onder CMA staan.
+        if (function_exists('site_doc_chapters_for_parent')) {
+            foreach (['admin', 'dev', 'reference'] as $__branch) {
+                $__extra = site_doc_chapters_for_parent($__branch);
+                if ($__extra) {
+                    $topics[$__branch]['children'] = array_merge($topics[$__branch]['children'] ?? [], $__extra);
+                }
+            }
+        }
+        $siteTopics = cma_doc_strip_reserved(site_doc_tree(), flatten_topics($topics));
+    }
+}
+
+$topics = cma_doc_split_tree($topics, $siteTopics);
+
 $flat = flatten_topics($topics);
 
 $selected = strtolower(trim((string)Request::query('topic', 'overview')));
@@ -1056,6 +1135,25 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=llm"><span class="lnr lnr-brain"></span> LLM-configuratie</a></td><td>Engines, env-vars, curated modellenlijst, Anthropic-fallback.</td></tr>
         </tbody>
     </table>
+
+    <h2>Site-eigen documentatie</h2>
+    <p>Sinds v1.29.125 kan een consumer-site zijn eigen hoofdstukken meeleveren. Zijn die
+       aanwezig, dan splitst de boom hierboven in twee takken: <span class="cma-page__strong">CMA</span>
+       (deze documentatie) en <span class="cma-page__strong">Front-end</span> (de site). Zonder
+       site-documentatie blijft de boom ongewijzigd.</p>
+    <p>De site levert het aan als data, niet als code — dit platform kent de inhoud niet:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:280px">Bestand in de site</th><th>Functie</th></tr></thead>
+        <tbody>
+            <tr><td><code>doc/documentation.json</code></td><td>Hoofdstukregistratie: <code>slug</code>, <code>label</code>, <code>icon</code>, <code>parent</code>, <code>file</code>, <code>order</code>. Per site verschillend.</td></tr>
+            <tr><td><code>doc/chapters/*.html</code></td><td>De inhoud, als HTML-<span class="cma-page__em">fragment</span> (geen <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code>). Dezelfde opmaakregels gelden: geen <code>&lt;strong&gt;</code>/<code>&lt;em&gt;</code>, wel <code>cma-page__strong</code> / <code>cma-page__em</code>.</td></tr>
+            <tr><td><code>src/includes/site_documentation.inc</code></td><td>De lezer die dit platform aanroept: <code>site_doc_tree()</code>, <code>site_doc_chapters_for_parent()</code>, <code>site_doc_render()</code>.</td></tr>
+        </tbody>
+    </table>
+    <p>Een hoofdstuk kan met <code>parent</code> ook in een bestaande CMA-tak gehangen
+       worden (<code>admin</code>, <code>dev</code>, <code>reference</code>). De slug-namespace is
+       vlak: botst een site-slug met een CMA-topic, dan wint het CMA-topic en wordt het
+       site-hoofdstuk overgeslagen met een regel in het errorlog.</p>
 
     <h2>Andere bronnen</h2>
     <ul>
