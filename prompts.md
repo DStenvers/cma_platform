@@ -6891,3 +6891,14 @@ karaat-data en staat in de karaat-repo.
 > Arr::splitAlways($s, ',') 
 >
 > library/json/JSON.inc , wil je die in de cma_platform todo.md zetten dat die naar library/.deprecated verplaatst moet worden?
+
+> Arr::splitAlways($s, ',') negeer maar even.
+
+> can you give me a status overview of the twig migration?
+
+> Error
+> Call to undefined function cma_doc_fixers()
+> in C:\repos\adam\mijnrino_php\cma\tools\documentation.php on line 1122
+> CMA platform v1.29.126 ?
+
+> The 6 entries in data-sources.json without a Twig template, make sure they are not used (double check and if not: remove them from the json)

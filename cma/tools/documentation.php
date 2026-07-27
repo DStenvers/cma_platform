@@ -38,11 +38,34 @@ if (!SecurityHelper::isAdmin()) {
 
 Response::noCache();
 
+// Load the auto-fix module BEFORE anything that can render or exit early: the
+// fragment branch and the search-index build below both run topic renderers,
+// and the docfix endpoint answers, long before the bottom of this file is
+// reached. A require further down is simply never executed on those paths.
+//
+// It is a separate file so it can be unit-tested without loading this
+// admin-gated page (see cma/tests/DocFixWebConfigTest.php). That does mean a
+// `composer update` writes TWO files, so a request landing mid-sync can see
+// this page without its fixers — and this is the page an operator opens when
+// a deploy went sideways. Hence: degrade with a visible notice, never fatal.
+if (is_file(__DIR__ . '/documentation_fixes.inc')) {
+    require_once __DIR__ . '/documentation_fixes.inc';
+}
+
+/** False when documentation_fixes.inc is missing or half-written (deploy in flight). */
+function cma_doc_fixers_available(): bool {
+    return function_exists('cma_doc_fixers');
+}
+
 // Auto-fix endpoint (POST only — it writes web.config). Sits before the topic
 // registry because it answers in JSON and never renders page chrome. Admin-only
 // is already enforced by the SecurityHelper gate above.
 if (Request::server('REQUEST_METHOD', '') === 'POST' && Request::post('docfix', '') !== '') {
     header('Content-Type: application/json; charset=UTF-8');
+    if (!function_exists('cma_doc_apply_fix')) {
+        echo json_encode(['ok' => false, 'message' => '<code>documentation_fixes.inc</code> ontbreekt op deze site — draai <code>composer update stenversonline/platform</code> opnieuw.']);
+        exit;
+    }
     echo json_encode(cma_doc_apply_fix((string) Request::post('docfix', '')));
     exit;
 }
@@ -812,7 +835,8 @@ function cma_doc_check_parent_hidden_segments(): array {
     }
     $missing = array_diff($required, $present);
     if (empty($missing)) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Alle drie gehide.', 'fix' => ''];
+        // Count, niet "alle drie" — de lijst is inmiddels vier segmenten lang.
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Alle ' . count($required) . ' segmenten zijn verborgen.', 'fix' => ''];
     }
     return ['label' => $label, 'status' => 'fail', 'detail' => 'Ontbreekt: <code>' . htmlspecialchars(implode('</code>, <code>', $missing)) . '</code> — publiek bereikbaar.', 'fix' => 'Voeg <code>&lt;add segment="…"/&gt;</code> toe in <code>&lt;hiddenSegments&gt;</code>.'];
 }
@@ -1092,8 +1116,6 @@ function cma_doc_run_checks(array $checks): array {
     return $results;
 }
 
-require_once __DIR__ . '/documentation_fixes.inc';
-
 
 function cma_doc_render_check_table(string $title, array $results): void {
     // During search indexing we don't want the live-status table in the index —
@@ -1116,10 +1138,18 @@ function cma_doc_render_check_table(string $title, array $results): void {
         <?php if ($counts['warn'] > 0): ?> <lib-label type="warning"><?= $counts['warn'] ?> waarschuwing</lib-label><?php endif; ?>
         <?php if ($counts['info'] > 0): ?> <lib-label type="information"><?= $counts['info'] ?> info</lib-label><?php endif; ?>
     </p>
+    <?php if (!cma_doc_fixers_available()): ?>
+        <lib-message type="warning">
+            <code>cma/tools/documentation_fixes.inc</code> is niet geladen — de "Los op"-knoppen ontbreken hieronder.
+            Dit betekent dat de platformbestanden op deze site niet bij elkaar horen: draai
+            <code>composer update stenversonline/platform</code> opnieuw en herlaad deze pagina.
+            De checks zelf kloppen wel; je kunt de fixes handmatig doorvoeren.
+        </lib-message>
+    <?php endif; ?>
     <table class="listtable">
         <thead><tr class="listheader"><th>Check</th><th style="width:110px">Status</th><th>Detail</th><th>Fix</th></tr></thead>
         <tbody>
-            <?php $fixers = cma_doc_fixers(); ?>
+            <?php $fixers = cma_doc_fixers_available() ? cma_doc_fixers() : []; ?>
             <?php foreach ($results as $r): ?>
                 <?php $fixer = ($r['status'] === 'fail' || $r['status'] === 'warn') ? ($fixers[$r['check'] ?? ''] ?? null) : null; ?>
                 <tr>

@@ -94,6 +94,47 @@ XML;
         }
     }
 
+    /**
+     * Regression: documentation.php requires documentation_fixes.inc, but the
+     * fragment branch (?fragment=1 — how the sidebar loads every topic) and the
+     * search-index build both render topics and exit long before the bottom of
+     * the file. With the require further down, opening any topic with a check
+     * table fataled on "Call to undefined function cma_doc_fixers()", while a
+     * full-page load of the same topic worked. The require must therefore come
+     * before every early exit.
+     */
+    public function testFixesAreRequiredBeforeAnyEarlyExit(): void
+    {
+        $docs = (string) file_get_contents(dirname(__DIR__) . '/tools/documentation.php');
+
+        $requirePos = strpos($docs, "require_once __DIR__ . '/documentation_fixes.inc'");
+        $this->assertTrue($requirePos !== false, 'documentation.php must require documentation_fixes.inc');
+
+        foreach ([
+            "Request::query('fragment', '') === '1'" => 'the ?fragment=1 early exit',
+            "\$GLOBALS['_docs_indexing'] = true"     => 'the search-index build',
+            "Request::post('docfix', '') !== ''"     => 'the docfix endpoint',
+        ] as $needle => $what) {
+            $pos = strpos($docs, $needle);
+            $this->assertTrue($pos !== false, "expected to find {$what} in documentation.php");
+            $this->assertTrue($requirePos < $pos, "documentation_fixes.inc must be required BEFORE {$what}");
+        }
+    }
+
+    /** The renderer must tolerate a missing fixes module instead of fatalling. */
+    public function testCheckTableDegradesWithoutTheFixesModule(): void
+    {
+        $docs = (string) file_get_contents(dirname(__DIR__) . '/tools/documentation.php');
+        $this->assertTrue(
+            str_contains($docs, 'cma_doc_fixers_available() ? cma_doc_fixers() : []'),
+            'the check table must guard the cma_doc_fixers() call'
+        );
+        $this->assertTrue(
+            str_contains($docs, "is_file(__DIR__ . '/documentation_fixes.inc')"),
+            'the require must be guarded so a half-synced deploy degrades instead of fatalling'
+        );
+    }
+
     public function testUnknownFixIsRejected(): void
     {
         $this->needsXml();
