@@ -33,6 +33,12 @@ class LibTable
         'linkbaseurl' => 'TableLinkBaseURL', 'onclick' => 'TableOnClick',
         'filtered' => 'TableFiltered', 'name' => 'TableName',
         'emptymessage' => 'TableEmptyMessage',
+        // RowClassField: veld waarvan de waarde de CSS-klasse van de RIJ wordt in plaats
+        // van een eigen kolom. Rapporten die hun <tr> zelf schreven markeerden zo de
+        // uitzonderingen ("kanniet", "voorlopig"); zonder dit konden ze niet naar deze
+        // klasse over. FieldFilters: per kolom de waarde van data-filter op de <th>
+        // ('N' = geen filterkeuzelijst, voor icoon-/actiekolommen).
+        'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
     ];
 
     private function _setProp(string $name, $value): void
@@ -72,6 +78,10 @@ class LibTable
     public $TableTRActiveColor;
     public $TableTRHoverColor;
     public $TableRS;
+    /** Veld dat de rij-klasse levert (leeg = uit). Wordt niet als kolom getoond. */
+    public $TableRowClassField = '';
+    /** data-filter per kolomindex, bv. [0 => 'N', 1 => 'N']. */
+    public $TableFieldFilters = [];
     private $TableID;
     private $TableName = '';
     private $TableSQL;
@@ -105,6 +115,43 @@ class LibTable
     * Render
     *
     */
+
+    /**
+     * data-filter voor de kop van kolom $kolom, of '' als er niets is opgegeven.
+     * 'N' zet de filterkeuzelijst uit — op een icoon- of actiekolom valt niets te filteren.
+     */
+    private function _filterAttrib($kolom): string
+    {
+        if (!Arr::isArray($this->TableFieldFilters) || !isset($this->TableFieldFilters[$kolom])) {
+            return '';
+        }
+        return ' data-filter="' . Server::htmlEncode((string)$this->TableFieldFilters[$kolom]) . '"';
+    }
+
+    /**
+     * Extra CSS-klasse voor de huidige rij, uit RowClassField. Leeg als die eigenschap niet
+     * gebruikt wordt. Alleen letters/cijfers/koppeltekens: een gegevenswaarde mag nooit een
+     * attribuut de <TR> in schrijven.
+     */
+    private function _rijKlasse(): string
+    {
+        if ($this->TableRowClassField == '') {
+            return '';
+        }
+        $waarde = trim((string)($this->TableRS->fields[$this->TableRowClassField] ?? ''));
+        if ($waarde == '') {
+            return '';
+        }
+        return ' ' . preg_replace('/[^A-Za-z0-9_\- ]/', '', $waarde);
+    }
+
+    /** Velden die gegevens dragen maar geen eigen kolom zijn (nu alleen RowClassField). */
+    private function _isVerborgenVeld($naam): bool
+    {
+        return $this->TableRowClassField != ''
+            && strtolower((string)$naam) === strtolower((string)$this->TableRowClassField);
+    }
+
     public function Render()
     {
         global $Table_CtrlID;
@@ -156,16 +203,19 @@ class LibTable
                         }
                         if (Arr::isArray($this->TableFieldCaptions) && count($this->TableFieldCaptions) > 0) {
                             for ($x = 0; $x <= (count($this->TableFieldCaptions) - 1); $x++) {
-                                echo '<TH nowrap ' . $this->TableTHAttrib . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
+                                echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($x) . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
                             }
                         } else {
+                            $kopTel = 0;
                             // No explicit captions -> auto-generate headers from the
                             // field names (TableFieldCaptions defaults to [], which is
                             // Arr::isArray()==true but empty, so this fallback was skipped).
                             foreach ($this->TableRS->Fields() as $fld) {
+                                if ($this->_isVerborgenVeld($fld->name())) { continue; }
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $sNiceField = Str::firstUpper(str_replace('_', ' ', $fld->name()));
-                                    echo '<TH nowrap ' . $this->TableTHAttrib . '>' . Server::htmlEncode($sNiceField) . '</TH>';
+                                    echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($kopTel) . '>' . Server::htmlEncode($sNiceField) . '</TH>';
+                                    $kopTel++;
                                 }
                             }
                         }
@@ -192,7 +242,7 @@ class LibTable
                         }
                         if ($blnShow) {
                             $curID = $this->TableRS->Fields[$this->TableIDField];
-                            echo '<TR ID="lt_row_' . $curID . '" class="' . $this->TableTRClass . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
+                            echo '<TR ID="lt_row_' . $curID . '" class="' . $this->TableTRClass . $this->_rijKlasse() . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
                             $fldTel = 0;
                             if ($this->TableDeleteField != '') {
                                 if ($this->TableRS->fields[$this->TableDeleteField]!= '0') {
@@ -201,6 +251,7 @@ class LibTable
                                 echo '<td ' . $curAttrib . ' ><a href="' . $this->TableDeleteAction . $curID . '"><img src="library/images/formbtn_del.gif"></a></td>';
                             }
                             foreach ($this->TableRS->Fields() as $fld) {
+                                if ($this->_isVerborgenVeld($fld->name())) { continue; }
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $raw = (string)$fld;
                                     // <sort:KEY> marker: sets this cell's sort key

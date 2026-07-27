@@ -127,4 +127,55 @@ class LibTableRenderTest extends TestCase
         $this->assertStringContainsString('Jan Jansen', $html);
         $this->assertStringContainsString('Piet Puk', $html);
     }
+
+    /**
+     * RowClassField: rapporten die hun eigen <tr> schreven markeerden uitzonderingen met
+     * een klasse ("kanniet", "voorlopig"). Zonder deze eigenschap konden ze niet naar
+     * LibTable over — dan zou de markering wegvallen of moest de tabel handwerk blijven.
+     */
+    public function testRowClassFieldZetKlasseOpDeRijEnToontGeenKolom(): void
+    {
+        $rows = [
+            ['ID' => 1, 'Deelnemer' => 'Jan',  'rijklasse' => 'kanniet'],
+            ['ID' => 2, 'Deelnemer' => 'Ties', 'rijklasse' => ''],
+        ];
+        $t = new \LibTable();
+        $t->Recordset      = new RecordSet(new \ArrayIterator($rows), false, true);
+        $t->IDField        = 'ID';
+        $t->ShowIDField    = false;
+        $t->RowClassField  = 'rijklasse';
+        $t->RowsPerPage    = 99999;
+        ob_start();
+        $t->Render();
+        $html = ob_get_clean();
+
+        $this->assertStringContainsString('kanniet', $html, 'de rijklasse staat niet op de rij');
+        $this->assertStringNotContainsString('<TH nowrap  data-filter', $html, 'onverwacht filterattribuut');
+        // Het veld is stuurinformatie, geen kolom: het hoort niet in de kop te staan.
+        $this->assertStringNotContainsString('Rijklasse', $html, 'het klasse-veld werd als kolom getoond');
+        // ... en de tweede rij (lege waarde) krijgt geen extra klasse.
+        $this->assertEquals(1, substr_count($html, 'kanniet'), 'de klasse lekte naar een andere rij');
+    }
+
+    /**
+     * FieldFilters: 'N' zet de filterkeuzelijst per kolom uit, zoals de handgeschreven
+     * `<th data-filter=N>` in de rapporten deed voor icoon- en actiekolommen.
+     */
+    public function testFieldFiltersZetDataFilterOpDeKop(): void
+    {
+        $rows = [['ID' => 1, 'Actie' => 'x', 'Naam' => 'Jan']];
+        $t = new \LibTable();
+        $t->Recordset     = new RecordSet(new \ArrayIterator($rows), false, true);
+        $t->IDField       = 'ID';
+        $t->ShowIDField   = false;
+        $t->FieldCaptions = ['Actie', 'Naam'];
+        $t->FieldFilters  = [0 => 'N'];
+        $t->RowsPerPage   = 99999;
+        ob_start();
+        $t->Render();
+        $html = ob_get_clean();
+
+        $this->assertStringContainsString('data-filter="N"', $html, 'data-filter ontbreekt op de eerste kop');
+        $this->assertEquals(1, substr_count($html, 'data-filter'), 'alleen de opgegeven kolom hoort een filter-attribuut te krijgen');
+    }
 }
