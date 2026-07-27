@@ -108,12 +108,51 @@ class Server
      * @return string Physical path
      * @throws \RuntimeException If path is invalid or outside allowed directories
      */
+    /**
+     * True when $path is already a physical path inside an allowed directory,
+     * i.e. the output of a previous mapPath() call. Windows compares
+     * case-insensitively, matching the filesystem.
+     */
+    private static function isMappedPath(string $path): bool
+    {
+        if ($path === '') {
+            return false;
+        }
+        $isWindows = DIRECTORY_SEPARATOR === '\\' || (PHP_OS_FAMILY ?? '') === 'Windows';
+        $needle = $isWindows ? strtolower($path) : $path;
+        foreach (self::$allowedPaths as $allowedPath) {
+            $allowedPath = str_replace('\\', '/', $allowedPath);
+            if ($allowedPath === '') {
+                continue;
+            }
+            $hay = $isWindows ? strtolower($allowedPath) : $allowedPath;
+            // Must be the allowed root itself or a path BELOW it — never a
+            // sibling that merely shares a prefix ("/var/www/site2").
+            if ($needle === rtrim($hay, '/') || strpos($needle, rtrim($hay, '/') . '/') === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function mapPath(string $virtualPath): string
     {
         self::init();
 
         // Replace backslashes with forward slashes for consistency
         $virtualPath = str_replace('\\', '/', $virtualPath);
+
+        // Idempotent: a path that is ALREADY mapped comes back unchanged.
+        // Every File::/Dir:: helper maps internally, so callers that also map
+        // ("File::createFolder(Server::mapPath($p))" — a common shape in the
+        // converted code) would otherwise get the two glued together:
+        // <docroot>/<scriptdir>/C:/<docroot>/uploads/... . That is not even
+        // rejected by the allowed-paths check below, because it still starts
+        // with the document root — it just fails later at mkdir/file_exists,
+        // silently and with a useless error message.
+        if (self::isMappedPath($virtualPath)) {
+            return $virtualPath;
+        }
 
         // Determine base path based on whether virtual path is absolute or relative
         if (strpos($virtualPath, '/') === 0) {

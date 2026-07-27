@@ -208,7 +208,7 @@ class Error
             $errorInfo = $connection->errorInfo();
             if ($errorInfo && $errorInfo[0] !== '00000') {
                 $errorText .= 'Er is een probleem met een SQL:<BR><br>';
-                $errorText .= '<B>' . ($errorInfo[2] ?? 'Unknown error') . '</B><BR>';
+                $errorText .= '<span style="font-weight:600">' . ($errorInfo[2] ?? 'Unknown error') . '</span><BR>';
             }
         }
 
@@ -296,6 +296,36 @@ class Error
      * @param bool $makeSureVisible Whether to force visibility with positioning
      * @return void
      */
+    /**
+     * Copy-to-clipboard control for the error card.
+     *
+     * Self-contained by necessity: the card is echoed into a page that may be
+     * half-rendered, so there is no stylesheet, no jQuery and possibly no
+     * <head> to hook into. Hence an inline handler, an inline SVG icon, and a
+     * textarea+execCommand fallback for the non-secure contexts (plain http on
+     * a dev host) where navigator.clipboard is undefined.
+     */
+    private static function copyButtonHtml(string $title, string $message): string
+    {
+        // The clipboard gets the plain text, not the HTML: strip tags, decode
+        // entities, and collapse the whitespace that the markup introduced.
+        $plain = html_entity_decode(strip_tags(str_replace(['<br>', '<BR>', '<P>', '<p>'], "\n", $title . "\n\n" . $message)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $plain = trim(preg_replace("/[ \t]+/", ' ', $plain));
+        // Escaped once, when the whole handler goes into the attribute below.
+        $js = json_encode($plain, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $onclick = "var t=" . $js . ";var b=this;"
+            . "var done=function(){b.title='Gekopieerd';b.style.opacity='0.55';setTimeout(function(){b.title='Kopieer deze foutmelding';b.style.opacity='1'},1500)};"
+            . "if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done)}"
+            . "else{var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(a)}";
+
+        return '<a href="javascript:void(0)" title="Kopieer deze foutmelding" style="display:inline-block;width:22px;height:22px;line-height:0;cursor:pointer;text-decoration:none" onclick="' . htmlspecialchars($onclick, ENT_QUOTES, 'UTF-8') . '">'
+            . '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            . '<rect x="9" y="9" width="13" height="13" rx="2"></rect>'
+            . '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>'
+            . '</svg></a>';
+    }
+
     private static function renderDialog(string $title, string $message, bool $showBackButton, bool $makeSureVisible): void
     {
         // Prevent duplicate errors
@@ -317,11 +347,14 @@ class Error
             Response::write('</script><div style="display:block; visibility:visible !important; border-radius:8px; position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;box-shadow:0 6px 28px rgba(0,0,0,0.35)">');
         }
 
-        // Error dialog HTML
+        // Error dialog HTML. Everything is inline-styled on purpose: this card
+        // has to render on a page whose stylesheet may never have loaded — that
+        // is precisely when errors show up.
         Response::write('<table cellspacing=0 border=0 cellpadding=1 style="width:380px;background-color:#ffffff;border:1px solid #dddddd;box-shadow:8px 8px 8px rgba(128,128,128,.3); border-radius:8px"><tr>');
         Response::write('<td style="background-color:#E01F3D;min-height:24px;border-top-left-radius:8px;border-top-right-radius:8px"><table width=100% cellspacing=2 cellpadding=0><tr><td align=left><font style="font-family:Trebuchet MS;font-size:15px;line-height:24px;font-weight:100;color:#dddddd">&nbsp;');
-        Response::write(PHP_EOL . $title . '&nbsp;&nbsp;</td></tr></table></td></tr>');
-        Response::write('<tr><td style=padding:10px;line-height:22px>' . $message . '</td></tr>');
+        Response::write(PHP_EOL . $title . '&nbsp;&nbsp;</font></td>');
+        Response::write('<td align=right style="width:34px">' . self::copyButtonHtml($title, $message) . '</td></tr></table></td></tr>');
+        Response::write('<tr><td style="padding:10px;line-height:22px" data-error-body>' . $message . '</td></tr>');
 
         // Back button
         if ($showBackButton) {

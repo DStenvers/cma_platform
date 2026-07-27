@@ -1,6 +1,76 @@
 //   versie 3.0.59 - 26 december 2025
 //
 //
+// =========================================================================
+// libAlert / libConfirm / libPrompt — lui-ladende stubs
+// -------------------------------------------------------------------------
+// Deze drie wonen in webcomponents/lib-dialog.js. Pagina's die dat bestand niet
+// toevallig insluiten kregen "libAlert is not defined" — en juist in een
+// foutafhandeling, waardoor de gebruiker de échte oorzaak nooit zag. Het
+// alternatief (op elke pagina een <script> toevoegen, of overal
+// `if (typeof libAlert !== 'undefined')` schrijven) is niet vol te houden.
+//
+// Daarom: definieer ze hier als stub die lib-dialog bij de EERSTE aanroep laadt
+// en het verzoek daarna doorgeeft. Wie lib-dialog wél zelf insluit, merkt niets:
+// dan bestaat LibDialog al en wordt er niets geladen. lib-dialog brengt zijn eigen
+// styling mee (shadow DOM), dus er hoeft geen CSS mee.
+//
+// De echte functies geven een Promise terug; de stubs dus ook, zodat
+// `await libConfirm(...)` en `.then(...)` blijven werken.
+(function () {
+    // Al aanwezig? Dan is lib-dialog expliciet ingesloten — niets te doen.
+    if (window.LibDialog) { return; }
+
+    // Pad afleiden van ONS eigen script-element: library.js en library.min.js staan
+    // beide in /library/, met lib-dialog in /library/webcomponents/. Laad de variant
+    // die past bij hoe wij zelf geladen zijn (min bij min), zodat de
+    // serve-raw-when-stale-regel van het project intact blijft.
+    var eigenSrc = (document.currentScript && document.currentScript.src) || '';
+    var basis = eigenSrc.replace(/[^\/]*$/, '');
+    var bestand = /\.min\.js(\?|$)/.test(eigenSrc) ? 'lib-dialog.min.js' : 'lib-dialog.js';
+    var url = basis ? (basis + 'webcomponents/' + bestand) : ('/library/webcomponents/' + bestand);
+
+    var bezig = null;   // één laadbelofte, ook als er drie dialogen tegelijk komen
+    function laadDialog() {
+        if (window.LibDialog) { return Promise.resolve(); }
+        if (bezig) { return bezig; }
+        bezig = new Promise(function (klaar, mislukt) {
+            var el = document.createElement('script');
+            el.src = url;
+            el.onload = function () { klaar(); };
+            el.onerror = function () {
+                bezig = null;   // volgende poging mag het opnieuw proberen
+                mislukt(new Error('lib-dialog kon niet geladen worden: ' + url));
+            };
+            (document.head || document.documentElement).appendChild(el);
+        });
+        return bezig;
+    }
+
+    // Valt lib-dialog niet te laden, dan nog steeds iets tonen: een stille fout is
+    // erger dan een lelijke melding, zeker omdat dit meestal een foutmelding IS.
+    function terugval(methode, bericht) {
+        if (methode === 'confirm') { return Promise.resolve(window.confirm(bericht)); }
+        if (methode === 'prompt')  { return Promise.resolve(window.prompt(bericht)); }
+        (window.modal_alert || window.alert)(bericht);
+        return Promise.resolve();
+    }
+
+    function maakStub(methode) {
+        return function (bericht, opties) {
+            return laadDialog().then(function () {
+                return window.LibDialog[methode](bericht, opties);
+            }).catch(function () {
+                return terugval(methode, bericht);
+            });
+        };
+    }
+
+    window.libAlert   = maakStub('alert');
+    window.libConfirm = maakStub('confirm');
+    window.libPrompt  = maakStub('prompt');
+})();
+//
 // Conditional logging helper - delegates to LibLog if available
 // Use libLog instead of console.log for debug-only output
 // LibLog provides: console interception, batching, server-side logging

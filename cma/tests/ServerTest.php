@@ -571,4 +571,33 @@ class ServerTest extends TestCase
             unset($GLOBALS['Application']);
         }
     }
+
+    // ── mapPath is idempotent ────────────────────────────────────────────
+    // Every File:: helper maps internally, so converted code that ALSO maps
+    // ("File::createFolder(Server::mapPath($p))") used to glue the two paths
+    // together into <docroot>/<scriptdir>/<docroot>/... . That passed the
+    // allowed-paths check (it starts with the document root) and only failed
+    // later at mkdir, with a useless message.
+
+    public function testMapPathIsIdempotent(): void
+    {
+        $once  = Server::mapPath('/uploads/vrijstellingen/GZ2024-G');
+        $twice = Server::mapPath($once);
+        $this->assertEquals($once, $twice, 'mapping an already-mapped path must be a no-op');
+        $this->assertEquals($twice, Server::mapPath($twice), 'and must stay stable on a third pass');
+    }
+
+    public function testMapPathStillResolvesVirtualPaths(): void
+    {
+        $mapped = Server::mapPath('/uploads/x.txt');
+        $this->assertTrue(str_ends_with(str_replace('\\', '/', $mapped), '/uploads/x.txt'));
+        $this->assertFalse($mapped === '/uploads/x.txt', 'a virtual path must still be resolved');
+    }
+
+    public function testMapPathStillRejectsTraversal(): void
+    {
+        $threw = false;
+        try { Server::mapPath('/../../etc/passwd'); } catch (\Throwable $e) { $threw = true; }
+        $this->assertTrue($threw, 'traversal outside the allowed roots must still throw');
+    }
 }

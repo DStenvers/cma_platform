@@ -6951,3 +6951,49 @@ karaat-data en staat in de karaat-repo.
 > Child cma/web.config: 404 handler → /cma/404.php    OK    Geconfigureerd.    —
 > De "Los op"-knoppen
 > Sinds v1.29.128 heeft een deel van de checks hierboven een knop die de wijziging meteen doorvoert in de site-root web.config. D , die heb je net toegevoegd.. Wil je niet meer dat soort historische informatie plaatsen? Anders moeten we een what's new sectie op de homepage zetten met gestructureerde release informatie. Zodat dat niet overal wordt vermeld. Kennelijk heb jij de onbeheersbare behoefte dat ergens te zetten.
+
+> body.agenda #calendar div.fc-toolbar button {
+>     border: 0;
+>     height: 20px;
+>     line-height: 17px;
+> }
+
+> /opleiding.php doet niets, mag je weghalen
+
+> Nee ik bedoel in de role-walker: /opleiding.php is in beide gevallen leeg.
+
+> http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=split&role=assistent&account=93&path=%2Fopleiding.php%3Fpageaction%3Diop 
+>
+> is that ever called? IOP has been integrated into the dossioma
+
+> kunnen we in de role tester ook alle pagina's testen zonder login?
+
+> /opleiding.php?pageaction=deelnemers -> wordt deze wel ooit getoond in deze vorm ? Zo ja dan moet de opleidingsselectie ook daadwerkelijk tonen, nu doet hij dat niet. zo nee: zorg dat deze de juiste parameters krijgt, dus voor 1 deelname. Dit zal verschillen per rol.. 
+>
+> Dit is een grotere refactor: veel bestanden worden zonder parameter aangeroepen. Interessant om te testen (guard-test), maar niet representatief. Dat moet echt anders en per rol/persoon moeten er andere parameters worden opgegeven.
+
+> rapportage_zoom schrijft de sql naar het scherm, haal dat weg ajb
+
+> [11:31:36] JS: Uncaught ReferenceError: jQuery is not defined
+>   at http://172.30.208.1:8090/general.min.js:1
+>
+> from http://172.30.208.1:8090/tests/roles_walk_report.php?ajax=split&role=assistent&account=93&path=%2Fdossioma_print.php%3Fpdf%3DY%26opl%3D38
+
+> /src/sync/index.php moet ook voor assistent toegankelijk zijn
+
+> /presentie/index.php moet uit de lijst (deprecated)
+
+> skip login as well, but /nieuws should be rerouted to /?pageaction=nieuws because it is mentioned in the menu
+
+> /src/sync/index.php open to assistenten (option 1)
+
+> Rapportage dispensaties staat niet op de homepage voor docente Dorine van Driel-de Jong, is dat een functioneel verschil?
+
+> deelnemer weergave berichten op homepage: Eerste bericht is ongelezen maar niet bold , de class unread ontbreekt
+
+> bij vrijstellingen : <div style="display:block; visibility:visible !important; border-radius:8px; position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;box-shadow:0 6px 28px rgba(0,0,0,0.35)" class="" lib-error-card=""><table cellspacing="0" border="0" cellpadding="1" style="width:380px;background-color:#ffffff;border:1px solid #dddddd;box-shadow:8px 8px 8px rgba(128,128,128,.3); border-radius:8px"><tbody><tr><td style="background-color:#E01F3D;min-height:24px;border-top-left-radius:8px;border-top-right-radius:8px"><table width="100%" cellspacing="2" cellpadding="0"><tbody><tr><td align="left"><font style="font-family:Trebuchet MS;font-size:15px;line-height:24px;font-weight:100;color:#dddddd">&nbsp;
+> Er is een fout opgetreden&nbsp;&nbsp;</font></td></tr></tbody></table></td></tr><tr><td style="padding:10px;line-height:22px">Kon directory '/uploads/vrijstellingen/GZ2024-G' niet aanmaken</td></tr><tr><td colspan="9" align="center"><a class="button GenButton FormBack" href="javascript:history.go(-1)">Terug</a><br>&nbsp;</td></tr></tbody></table></div>
+
+> /index.php?pageaction=404 -> wordt die nog wel aangeroepen? Anders weg graag
+
+> /index.php?pageaction=zoek -> wordt die nog wel aangeroepen? Anders weg graag, ook uit de walker
