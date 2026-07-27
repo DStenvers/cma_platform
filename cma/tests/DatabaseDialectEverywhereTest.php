@@ -84,7 +84,7 @@ class DatabaseDialectEverywhereTest extends TestCase
     {
         $conn = $this->odbc();
         $conn->enqueueResult([['naam' => 'Corgé']]);
-        Database::safeQuery($conn, "SELECT naam from tblDocenten where guid='" . self::GUID . "'", [], '');
+        Database::safeQuery("SELECT naam from tblDocenten where guid='" . self::GUID . "'", [], '', $conn);
         $this->assertStringContainsString('LIKE', $this->sqlMet($conn));
     }
 
@@ -96,6 +96,10 @@ class DatabaseDialectEverywhereTest extends TestCase
         $conn->enqueueResult([['ID' => '1']]);
         $sql = "SELECT ID from tblEvalDeelname where guid='" . self::GUID . "'";
         Database::getFieldValue($conn, $sql, 'ID');
-        $this->assertEquals($sql, $this->sqlMet($conn), 'buiten Access hoort de SQL onaangeroerd te blijven');
+        // processSQL() normaliseert buiten Access hooguit de witruimte; de vergelijking
+        // zelf hoort een '=' te blijven.
+        $this->assertStringNotContainsString('LIKE', $this->sqlMet($conn),
+            'buiten Access hoort een GUID gewoon met = vergeleken te worden');
+        $this->assertStringContainsString('guid = ', $this->sqlMet($conn));
     }
 }
