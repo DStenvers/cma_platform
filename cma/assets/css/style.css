@@ -792,7 +792,10 @@ ul#glow_tabs li.selected a:link, ul#glow_tabs li.selected a {color: var(--color-
 form#login .loginerror {color:var(--color-error);font-size:var(--font-size);text-align:center }
 @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
 form#login .shake {animation:shake 0.4s ease-in-out}
-form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surface)}
+/* The box carries the width now that the inputs are fluid (width:100%) — without
+   it the shrink-to-fit .kader would collapse to the width of its text. 445px =
+   the previous 363px input + its padding/border + the #loginForm padding. */
+form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surface);width:445px;max-width:100%;box-sizing:border-box}
 form#login .login-header {border-radius:0.5em 0.5em 0 0}
 form#login #loginForm {padding:12px}
 form#login .login-row {position:relative;margin-bottom:12px}
@@ -807,7 +810,7 @@ form#login label.password span::before { content: "\e66b" }
 form#login label.naam span::before { content: "\e71e" }
 form#login label.email span::before { content: "\e695"}
 form#login input:focus {border:0px; background-color:var(--bg-body) !important; box-shadow:none}
-form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;line-height: 26px !important;margin: 0;padding: 0 28px;width:363px !important;color: var(--text-primary)}
+form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;line-height: 26px !important;margin: 0;padding: 0 28px 0 36px;width:100% !important;box-sizing:border-box;color: var(--text-primary)}
 form#login input[type="checkbox"] { display:none}
 form#login input[type="checkbox"] + label {display:block;color: var(--text-primary);background-color:transparent;padding-left:38px;width:450px !important}
 form#login input[type="checkbox"] + label:before { font-family:'Linearicons';margin-left: -38px;background-color: var(--bg-surface);position:absolute;font-size:15px;width:28px;height:28px;text-align:center;color:var(--color-primary); content: "\e99d"}
@@ -831,12 +834,6 @@ form#login span.login_vergeten a {text-decoration:none}
 }
 form#login span.login_vergeten a:hover {background-color:transparent; text-decoration:underline}
 form#login #login_vergeten_form {display:none;padding:12px}
-form#login #login_vergeten_form input#email_id,
-form#login #login_vergeten_form input#email_id.invalid {
-    margin-left: 0px;
-    padding-right: 0px;
-    padding-left: 32px !important
-}
 form#login hr {flex:1;border:none;border-top:1px solid #ccc;}
 
 div.blockedit { margin-top:-4px;padding-top:4px;padding-bottom:4px}

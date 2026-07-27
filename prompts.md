@@ -6877,3 +6877,7 @@ karaat-data en staat in de karaat-repo.
 > you say coverage is 79, so you DO know the other 21%, can you add those to the walker?  i think pageaction=404 should be redirected to the /src/pages/404.php and /planning_opleiding_verwerk_akkoord.php shoud be moved to .deprecated. Please list te unreached urls for me.
 
 > okay, /mailtest.asp may be deprecated, it is in the cma now. pageaction=nieuws (all roles) and pageaction=sollicitaties (all roles) are testable. the /src/sync/index.php as well (assistent only). Pupops with verwijder in the name: skip, they delete records. Bewaar also. /src/ajax/delete_docentplanning_melding.php may be moved to .deprecated. Wat is grant_page? and voortgang_detail is a detail for  voortgang pages, should be testable (all roles, not comparable to an ASP page)
+
+> form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) {    width: 100% !important;     padding-left: 36px;} , http://172.30.208.1:8090/cma/tools/documentation.php?page=tools%3Ftool%3Ddocumentation -> remove the c.tools , add c.documentatie
+
+> deprecate all above mentioned files

@@ -239,19 +239,25 @@ ToolbarHelper::title('Documentatie');
 ToolbarHelper::separator();
 ToolbarHelper::status($flat[$selected]['label']);
 ToolbarHelper::end();
+// The wrapper deliberately does NOT carry the generic `tools` class: the
+// documentation hub is not a tool page and inherited none of #c.tools's
+// chrome (20px padding, h2 spacing) usefully — it brings its own layout.
 // The tool-docs class sits on the #c wrapper (not only on <body>): inside the
 // main.php shell this page is loadPage-injected into #contentArea and the
 // <body> tag (with its classes) is stripped by the HTML parser — every
 // .tool-docs-scoped rule below would silently stop matching there.
-echo '<div id="c" class="tools tool-docs">';
+echo '<div id="c" class="documentatie tool-docs">';
 ?>
 
 <style>
-/* Remove the default #c.tools 20px padding for this topic-router page —
-   the sidebar + content layout below has its own internal spacing and
-   the outer padding pushed everything off-center and added a visible
-   double border. Matches the pattern used by body.tool-serverinfo. */
-#c.tools.tool-docs { padding: 0; }
+/* Own wrapper class instead of the shared `tools` one: no outer padding
+   (the sidebar + content layout below brings its own internal spacing;
+   the 20px of #c.tools pushed everything off-center and added a visible
+   double border), just the scroll container. */
+#c.documentatie, body.contentbody #c.documentatie { padding: 0; overflow: auto; }
+/* .tools lib-message (form.css) no longer applies now that the wrapper has
+   its own class — keep the spacing the callouts had. */
+#c.documentatie lib-message { margin-bottom: 15px; }
 
 /* No fixed height — the layout grows with its content so the page never looks
    misformed (cut off / double scrollbar). Sidebar and content can still scroll
