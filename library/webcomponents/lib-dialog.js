@@ -49,7 +49,14 @@ if (!customElements.get('lib-dialog')) {
  */
 function _getTopBody() {
     try {
-        if (window.self !== window.top && top.document && top.document.body) {
+        if (window.self !== window.top && top.document && top.document.body
+            // Only hoist when the TOP window can actually upgrade a <lib-dialog>.
+            // customElements is per-window: creating the element in a document whose
+            // registry lacks lib-dialog yields a plain unknown element, and the very
+            // next call — dialog.open() — throws "open is not a function". A top
+            // frame that never loaded this component (a bare frameset/wrapper page)
+            // is exactly that case, so render inside our own document instead.
+            && top.customElements && top.customElements.get('lib-dialog')) {
             return top.document.body;
         }
     } catch (e) { /* cross-origin iframe - fall back to current document */ }
