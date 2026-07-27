@@ -7040,3 +7040,23 @@ karaat-data en staat in de karaat-repo.
 > 2 is okay
 
 > top, en staat er nog wat in de todo.md?
+
+> the link to ajax_profiel_popup lacks the port number, can we just use / ?
+>
+> Access to font at 'http://172.30.208.1/library/fonts/Linearicons.woff?v=4.3.0' from origin 'http://172.30.208.1:8090' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains the invalid value 'same-origin'.
+> linearicons.css?v=1:1  GET http://172.30.208.1/library/fonts/Linearicons.woff?v=4.3.0 net::ERR_FAILED
+> roles_walk_report.php?ajax=proxy&side=old&role=assistent&account=93&path=%2Fopleiding.php%3Fpageact…:1 Access to font at 'http://172.30.208.1/library/fonts/Linearicons.ttf?v=4.3.0' from origin 'http://172.30.208.1:8090' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains the invalid value 'same-origin'.
+> linearicons.css?v=1:1  GET http://172.30.208.1/library/fonts/Linearicons.ttf?v=4.3.0 net::ERR_FAILED 206 (Partial Content)
+> roles_walk_report.php?ajax=proxy&side=old&role=assistent&account=93&path=%2Fopleiding.php%3Fpageact…:1 Access to font at 'http://172.30.208.1/library/fonts/Linearicons.woff' from origin 'http://172.30.208.1:8090' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains the invalid value 'same-origin'.
+> library.css?v=1:1  GET http://172.30.208.1/library/fonts/Linearicons.woff net::ERR_FAILED
+> roles_walk_report.php?ajax=proxy&side=old&role=assistent&account=93&path=%2Fopleiding.php%3Fpageact…:1 Access to font at 'http://172.30.208.1/library/fonts/Linearicons.ttf' from origin 'http://172.30.208.1:8090' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains the invalid value 'same-origin'.
+> adam.css?v=1:1  GET http://172.30.208.1/library/fonts/Linearicons.ttf net::ERR_FAILED 206 (Partial Content)
+> general.min.js?v=1785133986:1  GET http://172.30.208.1:8090/tests/bericht.php?type=1423&opleidingid=194 404 (Not Found)
+> lib_OpenWindowCentered @ general.min.js?v=1785133986:1
+> (anonymous) @ VM253:1
+
+> ik zie geen login-spec? wat wil je daar gaan doen?
+
+> anotyher form: formulier7 is acting up, can you compare the original asp with the current version and try to restore the functionality?
+
+> ja is goed, maar een cma draait altijd net als frpont-end dus ik snap het probleem niet

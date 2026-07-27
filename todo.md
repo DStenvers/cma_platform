@@ -113,8 +113,9 @@ logica afdekken, unit-first (deterministisch), dan Cypress. Draai
 - [ ] Contentblocks-form: html + omschrijving verplicht, variabelen optioneel.
 - [ ] Tools-routing/launcher: `tools?tool=<alias>` en `tools?form=<form>` tonen het
       Menu (launcher) — uitbreiding van `routing-variants.cy.js`.
-- [ ] Login-scherm responsive: geen horizontale overflow op mobiele viewport
-      (box ≤ viewport). Zie `cypress/e2e/diag/login-width.cy.js` (diagnostisch).
+- [x] **Gedaan:** `cypress/e2e/auth/login-layout.cy.js` — 8 asserties over desktop-
+      en telefoonbreedte, icoon-vrije padding en het wachtwoord-vergeten-veld. De
+      diagnostische `diag/login-width.cy.js` (die niets assertte) is vervallen.
 - [ ] Externe-afbeelding-thumbnails in de lijst (na de webp-feature).
 
 ### Aanpak

@@ -53,6 +53,11 @@ class Installer
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
         'cma/tools/llm_models.php',
+        // Replaced by cypress/e2e/auth/login-layout.cy.js. The old file only
+        // measured the login box and wrote the numbers to a JSON file — it had
+        // no assertions, so it could never fail. Two specs measuring the same
+        // thing, one of which always passes, is worse than one.
+        'cma/cypress/e2e/diag/login-width.cy.js',
         // Removed: the standalone "Database health check" tool
         // (tools/db_health.php) is dropped from the tools menu and repo. Clean
         // the synced copy off consumer sites so its URL stops resolving.
