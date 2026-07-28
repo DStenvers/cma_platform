@@ -2269,6 +2269,16 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			var baseWidth = 85;
 			var widthReduction = stackDepth * 5;
 			var panelWidth = Math.max(baseWidth - widthReduction, 50); // Minimum 50vw
+			// De width-parameter werd niet gebruikt: elk paneel kreeg 85vw, ook als de
+			// aanroeper een breedte meegaf. Aanroepers geven PIXELS door (800, 600, 400),
+			// dus zo wordt hij ook gelezen. Zonder waarde blijft 85vw de standaard, en
+			// het cascade-effect bij gestapelde panelen geldt alleen voor die standaard —
+			// een expliciet gevraagde breedte hoort niet stiekem te krimpen.
+			var gevraagdeBreedte = parseFloat(width);
+			var heeftBreedte = isFinite(gevraagdeBreedte) && gevraagdeBreedte > 0;
+			var breedteCss = heeftBreedte
+				? 'min(' + Math.round(gevraagdeBreedte) + 'px, calc(100vw - var(--sidebar-width, 260px)))'
+				: 'min(' + panelWidth + 'vw, calc(100vw - var(--sidebar-width, 260px)))';
 
 			// Staggered animation delay based on stack depth
 			var animDelay = stackDepth * 50; // 50ms per panel
@@ -2294,7 +2304,7 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 				: 'calc(var(--header-height) + ' + stackDepth + ' * var(--toolbar-height))';
 			// All sidepanels are right-aligned (no cascade offset)
 			// Width is clamped to available space: min(panelWidth vw, 100vw - sidebar-width) to prevent overlap with sidebar
-			mObj.style.cssText = 'position:fixed;top:' + topOffset + ';right:0;bottom:0;width:min(' + panelWidth + 'vw, calc(100vw - var(--sidebar-width, 260px)));max-width:1400px;z-index:' + zIndex + ';background:' + panelBg + ';box-shadow:-8px 0 30px rgba(0,0,0,0.3),-2px 0 8px rgba(0,0,0,0.15);transform:translateX(100%);transition:transform 0.15s ease ' + animDelay + 'ms;display:flex;flex-direction:column;border-top-left-radius:8px;';
+			mObj.style.cssText = 'position:fixed;top:' + topOffset + ';right:0;bottom:0;width:' + breedteCss + ';max-width:1400px;z-index:' + zIndex + ';background:' + panelBg + ';box-shadow:-8px 0 30px rgba(0,0,0,0.3),-2px 0 8px rgba(0,0,0,0.15);transform:translateX(100%);transition:transform 0.15s ease ' + animDelay + 'ms;display:flex;flex-direction:column;border-top-left-radius:8px;';
 
 			// Panel header - matches cma-header height (50px)
 			// Keep original title casing (Dutch conventions)

@@ -7137,3 +7137,7 @@ karaat-data en staat in de karaat-repo.
 > ik heb een groot beeldscherm dus misschien is dit geen probleem. Maar de lijst met rechten kan nogal varieren, dus kun je alle breedtes op 25% zetten en 4 kolommen maken, naam, navigatie, rechten en status ?
 
 > ja wil je die secret verplaatsen naar .env ? en documenteren in de site-documentatie graag, je mag de .env daarvoor wijzigen
+
+> /tests/roles_walk_report.php : de rapprotages worden nu iedere keer opnieuw opgebouwd. Graag wil ik dat hij de laatste resultaat opslaat zodat hij eerder toont. Ook wil ik dat als ik een item bekijk en de status wijzig dat dit in de oordspronkelijke lijst wordt bijgewerkt. Daarnaast zou ik een alternatieve weergave willen. Te wisselen via een toolbar onder waar nu de rol staat. Dus naast de lijst nu ook een weergave in kolommen: openstaand / Bekijken ? bug / Hertest / Akkoord. Als ik op een blokje in de kolommen klik deze rechts in een sidepanel openen en de details tonen. Zoveel mogelijk gebruik maken van bestaande webcomponenten uit cma en library zoals de toolbar en sidepanel.
+
+> je mag de setting voor 85w manipuleren in de cma_platform, als die instelling er is moet hij het honoreren
