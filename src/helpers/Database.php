@@ -2340,6 +2340,13 @@ class Database
                 return null;
             }
 
+            // Zelfde tekencodering-omzetting als executeQuery(), executeSingleRecord()
+            // en RecordSet: Access levert tekst als Windows-1252, en een losse byte als
+            // 0xE9 ("é") is geen geldige UTF-8 — de browser toont dan een vervangings-
+            // teken. Deze helper sloeg dat als enige leespad over, dus dezelfde kolom
+            // kwam er goed uit via executeQuery en verminkt via getFieldValue.
+            $record = self::convertRowEncoding($conn, $record);
+
             if ($fieldName === null || $fieldName === '') {
                 // Return first field
                 return reset($record);

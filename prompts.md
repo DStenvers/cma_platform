@@ -7117,3 +7117,23 @@ karaat-data en staat in de karaat-repo.
 > such: mijnRINO’s log is still ~387 MB with no rotation on the site’s own volume, and the lib_xmlsnippets.inc undefined-array-key writes plus a DOMDocument cache-serialization error are still the residual log traffic — separate from today’s calendar work.
 >
 > please fix
+
+## 2026-07-28
+
+> heb jij eerder aan de knoppijltjes gewerkt?
+
+> Pijl is nu helemaal weg op Chrome
+
+> ik kan die png's niet zien?
+
+> Pijl is prima zo!
+
+> kun je in de rols_walk_report een radiobuttongroep maken met 3 opties: toon alles / openstaand / hertestemn zodat ik eenvoudig kan kijken wat hertest moet worden?
+
+> /src/ajax/ajax.php?type=postcode graag kijken naar de parameters: hij meldt {"status":"error","error":{"message":"Missing nl_fourpp, nl_sixpp or be_fourpp parameter"},"results":[],"type":"postcode"}
+
+> ik heb een groot beeldscherm dus misschien is dit geen probleem
+
+> ik heb een groot beeldscherm dus misschien is dit geen probleem. Maar de lijst met rechten kan nogal varieren, dus kun je alle breedtes op 25% zetten en 4 kolommen maken, naam, navigatie, rechten en status ?
+
+> ja wil je die secret verplaatsen naar .env ? en documenteren in de site-documentatie graag, je mag de .env daarvoor wijzigen
