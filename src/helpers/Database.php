@@ -2352,7 +2352,22 @@ class Database
                 return reset($record);
             }
 
-            return $record[$fieldName] ?? null;
+            if (array_key_exists($fieldName, $record)) {
+                return $record[$fieldName];
+            }
+
+            // Kolomnaam ongeacht hoofdletters: ADO's Fields("naam") in de ASP-bron is
+            // hoofdletterongevoelig, en de omgezette aanroepen dragen de schrijfwijze van
+            // de ASP mee. Een verschil als 'startDatum' vs de kolom 'Startdatum' gaf hier
+            // stil null terug — in verslag.php bleef daardoor de begindatum van de
+            // verslagperiode leeg en rekende de einddatum vanaf vandaag verder.
+            foreach ($record as $kolom => $waarde) {
+                if (is_string($kolom) && strcasecmp($kolom, $fieldName) === 0) {
+                    return $waarde;
+                }
+            }
+
+            return null;
         } catch (\PDOException $e) {
             self::$lastError = $e->getMessage();
             self::logError($sql, [], $e);
