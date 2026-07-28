@@ -313,7 +313,7 @@ ul.select2-results li.select2-hilighted .select2-result-label span.select2-match
 ul.select2-results .select2-result-label {min-height:23px}
 .select2-no-results {background-color: var(--bg-body, #ffffff); color: var(--text-secondary, #666666); font-size: var(--font-size-xs); font-style: italic;}
 .select2-container-multi .select2-choices .select2-search-field::before {cursor:pointer; border: 1px solid var(--border-dark, #aaa); font-size:var(--font-size-2xl); background-image:url();
-    border-radius: 3px; min-width:20px; min-height:19px; line-height:18px; color: var(--text-muted, #999999); display:inline-block; content:'+'; text-align:center; margin-top:3px; margin-left:6px}
+    border-radius: 3px; min-width:20px; min-height:19px; line-height:15px; color: var(--text-muted, #999999); display:inline-block; content:'+'; text-align:center; margin-top:3px; margin-left:6px}
 
 body .select2-container-multi .select2-choices .select2-search-field:hover::before { color: var(--color-accent, #ff6400)}
 body .select2-container .select2-choice abbr { background-image:url() !important }

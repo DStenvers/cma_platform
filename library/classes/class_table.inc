@@ -2,6 +2,7 @@
 use App\Library\Application;
 use App\Library\Arr;
 use App\Library\Database;
+use App\Library\Date;
 use App\Library\Html;
 use App\Library\Request;
 use App\Library\Server;
@@ -202,6 +203,37 @@ class LibTable
     }
 
     /** Velden die gegevens dragen maar geen eigen kolom zijn: rijklasse en groepsveld. */
+    /**
+     * Een datumcel opmaken zoals de rapportages hem tonen: "3 jul 2026", of alleen de
+     * tijd als het een tijdveld is. Access bewaart een tijd zonder datum als 30-12-1899,
+     * vandaar de jaargrens - dezelfde regel als de ASP-versie hanteerde (fld.type=adDate:
+     * jaar <= 1900 -> lib_time, anders lcase(strMediumDate)).
+     *
+     * Alleen kale databasewaarden (2026-07-03, eventueel met tijd) komen hiervoor in
+     * aanmerking; ingevulde tekst blijft ongemoeid.
+     *
+     * @param string $raw De ruwe celwaarde
+     * @return string|null De opgemaakte datum, of null als dit geen datumwaarde is
+     */
+    private static function _datumWaarde(string $raw): ?string
+    {
+        if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}(:\\d{2})?)?$/', $raw)) {
+            return null;
+        }
+        $ts = strtotime($raw);
+        if ($ts === false) {
+            return null;
+        }
+        if ((int)date('Y', $ts) <= 1900) {
+            return date('H:i', $ts);
+        }
+        $datum = strtolower(Date::mediumDate($raw, false));
+        if (date('H:i', $ts) !== '00:00') {
+            $datum .= ' ' . date('H:i', $ts);
+        }
+        return $datum;
+    }
+
     private function _isVerborgenVeld($naam): bool
     {
         $naam = strtolower((string)$naam);
@@ -620,6 +652,13 @@ class LibTable
                                     if (Arr::isArray($this->TableStyles) && isset($this->TableStyles[$fldTel])) {
                                         echo ' style="' . $this->TableStyles[$fldTel] . chr(34);
                                     }
+                                    // Een kale datumwaarde uit de database krijgt de
+                                    // rapportage-opmaak ("3 jul 2026") en sorteert op de
+                                    // onderliggende datum in plaats van op tekst.
+                                    $datumCel = self::_datumWaarde($raw);
+                                    if ($sortKey === null && $datumCel !== null) {
+                                        $sortKey = substr($raw, 0, 19);
+                                    }
                                     if ($sortKey !== null) {
                                         echo ' data-sort="' . Server::htmlEncode($sortKey) . '"';
                                     }
@@ -631,6 +670,8 @@ class LibTable
                                         // inner content unencoded. Checked on the RAW value so
                                         // fixUnicode can't mangle the marker.
                                         echo substr($raw, 6);
+                                    } elseif ($datumCel !== null) {
+                                        echo Server::htmlEncode($datumCel);
                                     } else {
                                         echo Server::htmlEncode(Lib_FixDateValue(Html::fixUnicode($raw)));
                                     }

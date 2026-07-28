@@ -7141,3 +7141,13 @@ karaat-data en staat in de karaat-repo.
 > /tests/roles_walk_report.php : de rapprotages worden nu iedere keer opnieuw opgebouwd. Graag wil ik dat hij de laatste resultaat opslaat zodat hij eerder toont. Ook wil ik dat als ik een item bekijk en de status wijzig dat dit in de oordspronkelijke lijst wordt bijgewerkt. Daarnaast zou ik een alternatieve weergave willen. Te wisselen via een toolbar onder waar nu de rol staat. Dus naast de lijst nu ook een weergave in kolommen: openstaand / Bekijken ? bug / Hertest / Akkoord. Als ik op een blokje in de kolommen klik deze rechts in een sidepanel openen en de details tonen. Zoveel mogelijk gebruik maken van bestaande webcomponenten uit cma en library zoals de toolbar en sidepanel.
 
 > je mag de setting voor 85w manipuleren in de cma_platform, als die instelling er is moet hij het honoreren
+
+> Het geheugen lijkt niet echt te werken, Misschien na iedere rol opslaan, want een hele run duurt erg lang, mogelijk ben ik te ongeduldig?
+
+> ik ben parallel druk bezig-
+
+> ik wil dat als er resultaten zijn deze worden getoond en dat je per rol een refreshknop hebt om alles opnieuw op te vragen, het is zooo traag dat ik mijn werk niet kan doen nu
+
+> detail?getdata.php now forces login, that is unconvinient for testing, just let it return an array with one item ´not logged in´
+
+> Rapportage teruggetrokken plaatsen geeft geen enkel resultaat, denk in de asp versie ook niet, maar kun je daarnaar kijken, denk dat het een sql ding is
