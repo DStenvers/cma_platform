@@ -7159,3 +7159,5 @@ karaat-data en staat in de karaat-repo.
 > detail_getdata.php heeft een redirect, 2e verzoek; wil je die zo maken dat hij keurig een select option teruggeeft met 'NIet ingelogd' als dat het geval is?
 
 > web.config now redirects all profielimages to the placeholder, even if they exist, i need to have a 404 handler of some sort to only show the placeholder in case of a 404 on the original file
+
+> het onderhoudsscherm is nog steeds niet zichtbaar
