@@ -7151,3 +7151,11 @@ karaat-data en staat in de karaat-repo.
 > detail?getdata.php now forces login, that is unconvinient for testing, just let it return an array with one item ´not logged in´
 
 > Rapportage teruggetrokken plaatsen geeft geen enkel resultaat, denk in de asp versie ook niet, maar kun je daarnaar kijken, denk dat het een sql ding is
+
+> die 22mart 2026 is dynamisch toch?
+
+> ik heb hasvalue niet weggehaald welke edit is dat precies?
+
+> detail_getdata.php heeft een redirect, 2e verzoek; wil je die zo maken dat hij keurig een select option teruggeeft met 'NIet ingelogd' als dat het geval is?
+
+> web.config now redirects all profielimages to the placeholder, even if they exist, i need to have a 404 handler of some sort to only show the placeholder in case of a 404 on the original file

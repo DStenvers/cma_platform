@@ -258,8 +258,13 @@ class LibDatepicker extends HTMLElement {
                     padding-right: 4px;
                     border: none;
                     border-radius: 4px 0 0 4px;
-                    font-size: var(--font-size);
-                    font-family: "Trebuchet MS", Verdana, sans-serif;
+                    /* Erven van :host, zodat een site het lettertype van de datepicker kan
+                       meenemen in zijn eigen huisstijl. Stond hier hard op Trebuchet MS;
+                       een regel buiten de component kwam daar niet langs, want de
+                       shadow-grens laat alleen overerving door. :host houdt dezelfde
+                       standaard, dus zonder site-regel verandert er niets. */
+                    font-size: inherit;
+                    font-family: inherit;
                     width: 90px;
                     box-sizing: border-box;
                     color: var(--text-primary, #333);
