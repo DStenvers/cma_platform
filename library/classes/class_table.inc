@@ -497,7 +497,10 @@ class LibTable
             if ($this->TableRS === null) {
                 throw new \Exception('Database query failed: ' . Database::getLastError());
             }
-            $this->TableRS->MoveNext();
+            // GEEN MoveNext hier. RecordSet staat na openRS() al op de eerste rij (net als
+            // rs.Open in de ASP), dus deze regel sloeg record 1 over: elke tabel die zijn
+            // gegevens via ->SQL kreeg miste stilzwijgend zijn eerste rij. Gemeld op het
+            // rapport deelnemers/praktijkopleiders, maar het gold voor alle SQL-tabellen.
         }
         if ($this->TableRS->eof && $this->TableEmptyMessage != '') {
             echo $this->TableEmptyMessage;
