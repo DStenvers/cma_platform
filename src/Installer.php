@@ -120,6 +120,23 @@ class Installer
         // at the current names; these rows remove what they pointed at before.
         'cma/config/schema/app.schema.json',
         'cma/config/schema/reports.schema.json',
+        // Removed: a second, drifted copy of every schema. A migration once
+        // moved config/schema/ to cma/schema/, but the canonical location is
+        // cma/config/schema/ — so the copy stayed behind and fell out of date
+        // (its form-definition.schema.json predates `hiddenWhen`). Worse, it
+        // kept references that point at the wrong directory resolving, which is
+        // exactly what hides them. Migration 9.21.0 re-points those references
+        // at cma/config/schema/ before these rows take the old files away.
+        'cma/schema/app.schema.json',
+        'cma/schema/contentblocks.schema.json',
+        'cma/schema/control-types.schema.json',
+        'cma/schema/data-sources.schema.json',
+        'cma/schema/databases.schema.json',
+        'cma/schema/form-definition.schema.json',
+        'cma/schema/menu.schema.json',
+        'cma/schema/migrations.schema.json',
+        'cma/schema/modules.schema.json',
+        'cma/schema/reports.schema.json',
         'cma/tools/deploy_webhook.php',
         // Retired: the /cma/tools/ deploy-status endpoint sat under
         // the gitignored /cma/ tree — it 404s during exactly the botched

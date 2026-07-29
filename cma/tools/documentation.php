@@ -1330,7 +1330,7 @@ function cma_doc_check_json_schema_refs(): array {
 
     $broken = [];
     $checked = 0;
-    foreach (['data', 'assets/forms', 'assets/datastores', 'cma/config', 'cma/assets/forms/definitions'] as $relDir) {
+    foreach (['data', 'assets/forms', 'assets/datastores', 'assets/contentblocks', 'cma', 'cma/config', 'cma/assets/forms/definitions', 'cma/assets/contentblocks'] as $relDir) {
         foreach (glob($root . '/' . $relDir . '/*.json') ?: [] as $path) {
             $src = (string)file_get_contents($path);
             if (!preg_match('/"\$schema"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/', $src, $m)) {
@@ -1340,7 +1340,11 @@ function cma_doc_check_json_schema_refs(): array {
                 continue;
             }
             $checked++;
-            if (!is_file(dirname($path) . '/' . $m[1])) {
+            // The reference must land ON a schema, not merely on a file that
+            // happens to exist: a `$schema` pointing at an ordinary JSON
+            // document resolves fine and validates nothing.
+            $target = realpath(dirname($path) . '/' . $m[1]);
+            if ($target === false || dirname($target) !== realpath($schemaDir)) {
                 $broken[] = $relDir . '/' . basename($path);
             }
         }
@@ -1890,10 +1894,13 @@ function render_doc_json_config(): void
         <thead><tr class="listheader"><th>Config staat in</th><th>Correcte <code>$schema</code></th></tr></thead>
         <tbody>
             <tr><td><code>cma/config/</code></td><td><code>./schema/&lt;naam&gt;.schema.json</code></td></tr>
+            <tr><td><code>cma/</code></td><td><code>./config/schema/&lt;naam&gt;.schema.json</code></td></tr>
             <tr><td><code>data/</code></td><td><code>../cma/config/schema/&lt;naam&gt;.schema.json</code></td></tr>
-            <tr><td><code>assets/forms/</code>, <code>assets/datastores/</code></td><td><code>../../cma/config/schema/&lt;naam&gt;.schema.json</code></td></tr>
+            <tr><td><code>assets/forms/</code>, <code>assets/datastores/</code>, <code>assets/contentblocks/</code></td><td><code>../../cma/config/schema/&lt;naam&gt;.schema.json</code></td></tr>
+            <tr><td><code>cma/assets/contentblocks/</code></td><td><code>../../config/schema/&lt;naam&gt;.schema.json</code></td></tr>
         </tbody>
     </table>
+    <p><code>cma/config/schema/</code> is de enige schemamap. Verwijst iets naar een schema elders, of naar een gewoon JSON-bestand dat toevallig bestaat, dan valt de validatie stil weg — de controle hieronder eist daarom dat elke verwijzing in <code>cma/config/schema/</code> uitkomt.</p>
     <p>Genereer je zelf JSON, bereken het pad dan uit de doelmap met <code>App\Library\File::relativePath()</code> in plaats van het in te typen.</p>
     <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_json_schema_refs'])); ?>
 

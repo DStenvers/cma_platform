@@ -39,18 +39,30 @@ if (!is_dir($schemaDir)) {
     return;
 }
 
-/** Schema files that were renamed along with the config that references them. */
+/**
+ * Targets that are no longer the right file to point at.
+ *
+ * The first two were renamed along with the config that references them. The
+ * third is a reference that never named a schema at all: contentblocks.json
+ * pointed at the form DEFINITION of the same name, which exists — so it
+ * resolved, and looked healthy, while giving the editor a document that cannot
+ * validate anything.
+ */
 $renamed = [
     'app.schema.json'     => 'cma_branding.schema.json',
     'reports.schema.json' => 'cma_reports.schema.json',
+    'contentblocks.json'  => 'contentblocks.schema.json',
 ];
 
 $directories = [
     'data',
     'assets/forms',
     'assets/datastores',
+    'assets/contentblocks',
+    'cma',
     'cma/config',
     'cma/assets/forms/definitions',
+    'cma/assets/contentblocks',
 ];
 
 $fixed = 0;

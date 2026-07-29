@@ -98,8 +98,13 @@ class DatabasesService
      */
     private static function writeDefaultConfig(): array
     {
+        // The reference resolves against data/, not against cma/config/ where
+        // the schema lives — so compute it rather than typing './schema/…'.
         $default = [
-            '$schema'     => './schema/databases.schema.json',
+            '$schema'     => \App\Library\File::relativePath(
+                dirname(self::$configPath),
+                __DIR__ . '/../../config/schema/databases.schema.json'
+            ),
             'version'     => '2.0.0',
             'description' => 'Auto-generated default — populate via /cma/preferences.php or migrations.',
             'databases'   => [

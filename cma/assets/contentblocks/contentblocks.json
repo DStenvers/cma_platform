@@ -1,5 +1,5 @@
 {
-    "$schema": "../forms/schema/contentblocks.schema.json",
+    "$schema": "../../config/schema/contentblocks.schema.json",
     "version": "1.0.0",
     "description": "Content block templates for rich content editing",
     "templates": [

@@ -57,8 +57,9 @@ class BackupService
     {
         $indexPath = $this->backupDir . '/' . self::BACKUP_INDEX_FILE;
 
+        // No '$schema' — backups.schema.json has never existed, so the
+        // reference only made editors report a missing file.
         $data = [
-            '$schema' => '../schema/backups.schema.json',
             'lastUpdated' => date('Y-m-d H:i:s'),
             'backups' => $this->backupIndex
         ];

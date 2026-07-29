@@ -1,5 +1,5 @@
 {
-    "$schema": "../cma/schema/control-types.schema.json",
+    "$schema": "./config/schema/control-types.schema.json",
     "controlTypes": [
         {
             "id": 2,
