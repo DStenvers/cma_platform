@@ -42,9 +42,9 @@ if (!is_dir($backupDir)) {
     }
 }
 
-// Load databases configuration with the same precedence as the live runtime
-// (per-site data/databases.json first, then cma/config/databases.json) so the
-// backup tool sees the exact databases the app connects to.
+// Load databases configuration from the same place as the live runtime
+// (data/databases.json, via Bootstrap) so the backup tool sees the exact
+// databases the app connects to.
 $databases = Bootstrap::loadDatabasesConfig();
 
 // databases.json is only the first of three layers the runtime resolves in

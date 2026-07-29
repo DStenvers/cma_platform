@@ -335,7 +335,7 @@ class Database
         }
 
         if (empty($dsn)) {
-            throw new PDOException("Database connection '$name' not configured in databases.json (data/databases.json or cma/config/databases.json — expected an entry named '$name').");
+            throw new PDOException("Database connection '$name' not configured in data/databases.json (expected an entry named '$name').");
         }
 
         // Create and configure the connection. 'rep' is the deprecated

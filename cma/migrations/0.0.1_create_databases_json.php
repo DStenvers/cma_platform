@@ -1,12 +1,16 @@
 <?php
 /**
- * Migration 0.0.1: Create databases.json
+ * Migration 0.0.1: Create data/databases.json
  *
- * Generates config/databases.json from Application globals so that
- * subsequent migrations (1.0.0+) can find database paths for backups.
+ * Generates the site's database config from the legacy Application globals so
+ * that subsequent migrations (1.0.0+) can find database paths for backups.
+ *
+ * Connections are per-site data, so this writes straight to data/ — the only
+ * place Cma\ConfigLoader and the CMA screens look.
  */
 
 use App\Library\Application;
+use App\Library\File;
 
 // Fix path when running as migration
 $basePath = defined('MIGRATION_RUNNING') ? dirname(__DIR__) : __DIR__;
@@ -15,7 +19,7 @@ if (strpos($basePath, 'migrations') !== false) {
 }
 require_once $basePath . '/bootstrap.inc';
 
-$configDir = $basePath . '/config';
+$configDir = dirname($basePath) . '/data';
 $jsonPath = $configDir . '/databases.json';
 
 // If databases.json already exists and has content, skip
@@ -109,9 +113,10 @@ $databases[] = [
     'description' => 'CMA users database (MS Access)'
 ];
 
-// Write databases.json
+// Write databases.json. The $schema reference resolves against data/, not
+// against cma/config/schema/ where the schema lives — so compute it.
 $config = [
-    '$schema' => './schema/databases.schema.json',
+    '$schema' => File::relativePath($configDir, $basePath . '/config/schema/databases.schema.json'),
     'version' => '2.0.0',
     'description' => 'Database connection mappings',
     'databases' => $databases,
@@ -121,6 +126,12 @@ $config = [
 $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 if ($json === false) {
     echo "✗ JSON encoding mislukt: " . json_last_error_msg() . "\n";
+    if (defined('MIGRATION_RUNNING')) return false;
+    exit(1);
+}
+
+if (!is_dir($configDir) && !mkdir($configDir, 0755, true)) {
+    echo "✗ Kan data/ niet aanmaken: $configDir\n";
     if (defined('MIGRATION_RUNNING')) return false;
     exit(1);
 }

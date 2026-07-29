@@ -503,12 +503,10 @@ class MigrationService
             return ['success' => true, 'backups' => [], 'errors' => []];
         }
 
-        // Load database configurations with the SAME precedence the runtime
-        // connections use (per-site data/databases.json first, then the platform
-        // default cma/config/databases.json). Hardcoding cma/config/ here let the
-        // backup config diverge from the live connections — e.g. a host whose
-        // real DSNs live in data/databases.json would back up the stale/empty
-        // cma/config/ entries instead.
+        // Read the SAME config the runtime connections come from
+        // (data/databases.json, via Bootstrap). Hardcoding cma/config/ here let
+        // the backup config diverge from the live connections — a host whose
+        // real DSNs live in data/databases.json would back up stale entries.
         // Key each databases.json entry by its LOGICAL connection name
         // (data/rep/users) using the same canonicalisation the runtime uses
         // (Database::$connectionAliases / Bootstrap). Without this a site that
@@ -536,7 +534,7 @@ class MigrationService
         $configSource = (string)($GLOBALS['_db_config_source'] ?? '');
         if (empty($databaseConfigs)) {
             $this->log[] = "  ⚠ Backup-config leeg: geen bruikbare database-entries gevonden"
-                . ($configSource !== '' ? " in $configSource" : " (data/databases.json noch cma/config/databases.json gelezen)")
+                . ($configSource !== '' ? " in $configSource" : " (geen databases.json gelezen)")
                 . ". Controleer dat het bestand bestaat, geldige JSON is en per entry een 'name' bevat.";
         }
 

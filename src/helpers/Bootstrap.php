@@ -780,12 +780,16 @@ class Bootstrap
     }
 
     /**
-     * Load the databases.json "databases" array — per-site data/databases.json
-     * preferred, falling back to the platform default cma/config/databases.json.
+     * Load the databases.json "databases" array. Connections are per-site data,
+     * so data/databases.json is the file that counts — that is also the only
+     * one Cma\ConfigLoader (and with it every CMA screen) ever reads.
+     *
+     * cma/config/databases.json is still read second, but the package no longer
+     * ships one: it is purely for a site that kept its connections there before
+     * they moved to data/. Nothing writes it, so it will not reappear.
      *
      * Public so backup/restore and other tooling resolve the EXACT same config
-     * the live connections do, instead of hardcoding cma/config/ (which can hold
-     * stale/empty entries that diverge from the per-site data/databases.json).
+     * the live connections do, instead of hardcoding one of the two paths.
      *
      * @return array<int,array<string,mixed>>
      */

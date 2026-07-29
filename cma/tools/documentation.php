@@ -957,6 +957,37 @@ function cma_doc_check_stack(): array {
 }
 
 /**
+ * Which databases.json the runtime actually loaded. A site whose file is
+ * missing, unreadable or invalid JSON degrades to the built-in Access paths
+ * under /db, and the resulting connection error then names a database nobody
+ * configured — so make the loaded source visible before that happens.
+ */
+function cma_doc_check_db_config_source(): array {
+    $label = 'Welke <code>databases.json</code> is geladen?';
+    \App\Library\Bootstrap::loadDatabasesConfig();
+    $source = (string)($GLOBALS['_db_config_source'] ?? '');
+    $root   = rtrim(str_replace('\\', '/', cma_doc_site_root()), '/');
+    $shown  = str_replace('\\', '/', $source);
+    if ($root !== '' && strpos($shown, $root) === 0) {
+        $shown = ltrim(substr($shown, strlen($root)), '/');
+    }
+
+    if ($source === '') {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => 'Geen bruikbare <code>databases.json</code> gevonden. De site draait op de ingebouwde Access-paden <code>db/main.mdb</code> en <code>db/CMAUsers.mdb</code> (of op de legacy <code>conn_*</code>-globals uit <code>app.php</code>). Elke keuzelijst in de CMA is daarmee leeg, want <code>Cma\ConfigLoader</code> leest uitsluitend <code>data/databases.json</code>.',
+            'fix' => 'Maak <code>data/databases.json</code> aan met een entry per connectie (<code>data</code>, <code>users</code>). Staat het bestand er wél, kijk dan in het PHP-errorlog: dat noemt of het onleesbaar was (rechten van de app-pool-identiteit) of geen geldige JSON (UTF-8 BOM, komma te veel).'];
+    }
+    if (strpos($shown, 'cma/config/') !== false) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => '<code>' . htmlspecialchars($shown) . '</code> — een restant van vóór de verhuizing naar <code>data/</code>. De CMA-schermen lezen dit bestand niet, dus configuratie hier is half onzichtbaar.',
+            'fix' => 'Verplaats de entries naar <code>data/databases.json</code> en verwijder <code>cma/config/databases.json</code>.'];
+    }
+    return ['label' => $label, 'status' => 'pass',
+        'detail' => '<code>' . htmlspecialchars($shown) . '</code>',
+        'fix' => ''];
+}
+
+/**
  * Access connections are the thing that pins this site to Windows — there is
  * no supported Access ODBC driver on Linux. Read the same config Bootstrap
  * reads, so the answer matches what the site really connects to.
@@ -1873,19 +1904,19 @@ function render_doc_json_config(): void
     </div>
 
     <h2>De configbestanden</h2>
-    <p>In <code>cma/config/</code> zitten: <code>cma_branding.json</code>, <code>menu.json</code>, <code>cma_reports.json</code>, <code>databases.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
+    <p>In <code>cma/config/</code> zitten: <code>cma_branding.json</code>, <code>menu.json</code>, <code>cma_reports.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th><th>Lezer</th><th>Welke laag wint</th></tr></thead>
         <tbody>
             <tr><td><code>cma_branding.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/cma_branding.json</code> → legacy <code>data/app.json</code> → <code>cma/config/cma_branding.json</code> → legacy <code>cma/config/app.json</code></td></tr>
             <tr><td><code>cma_menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Bij voorkeur <code>data/cma_menu.json</code>, met legacy-terugval naar <code>data/menu.json</code> (géén terugval naar <code>cma/config/</code>)</td></tr>
             <tr><td><code>cma_reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::configPath()</code></td><td>Bij voorkeur <code>data/cma_reports.json</code>, met legacy-terugval naar <code>data/reports.json</code> (géén terugval naar <code>cma/config/</code>)</td></tr>
-            <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> → terugval op <code>cma/config/databases.json</code></td></tr>
+            <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td>alleen <code>data/databases.json</code> — het platform levert geen default-connecties</td></tr>
             <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
             <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>MigrationService</code> + <code>Bootstrap</code> + <code>ConfigLoader</code></td><td><code>/cma/config/migrations.json</code> (systeem-eigen, enige bron; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
         </tbody>
     </table>
-    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>cma_branding.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>cma_menu.json</code> en <code>cma_reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval naar <code>cma/config/</code>. <code>MenuService</code> leest bij voorkeur <code>data/cma_menu.json</code> en valt alleen terug op de legacy <code>data/menu.json</code>. Ontbreken beide, dan is het menu leeg.</p>
+    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>cma_branding.json</code> kent een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>cma_menu.json</code> en <code>cma_reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval naar <code>cma/config/</code>. Voor <code>databases.json</code> is <code>data/</code> in de praktijk ook de enige laag: <code>Cma\ConfigLoader</code> — en dus elk CMA-scherm — leest niets anders, en het platform levert geen <code>cma/config/databases.json</code> meer. <code>Bootstrap</code> leest dat pad nog wél als tweede kandidaat, puur voor een site die zijn connecties daar had staan voordat ze naar <code>data/</code> verhuisden. <code>MenuService</code> leest bij voorkeur <code>data/cma_menu.json</code> en valt alleen terug op de legacy <code>data/menu.json</code>. Ontbreken beide, dan is het menu leeg.</p>
 
     <h2><code>$schema</code>-verwijzingen</h2>
     <p>De JSON Schema's staan in <code>cma/config/schema/</code> en worden met het pakket meegeleverd. Een configbestand verwijst ernaar met een <code>$schema</code>-regel bovenaan; editors gebruiken die voor validatie en IntelliSense.</p>
@@ -1912,9 +1943,10 @@ function render_doc_json_config(): void
         <li><code>[env:NAAM]</code> → waarde uit de omgeving (<code>.env</code>) — zo blijven wachtwoorden buiten het bestand terwijl de <span class="cma-tool__em">definitie</span> in databases.json staat.</li>
     </ul>
     <p>OLEDB-strings voor Access worden automatisch naar een ODBC-DSN omgezet; een kant-en-klare PDO-DSN (<code>sqlite:</code>/<code>odbc:</code>/<code>mysql:</code>/<code>sqlsrv:</code>) wordt ongewijzigd gebruikt.</p>
+    <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_db_config_source'])); ?>
 
     <h3>Welke database staat voorgeselecteerd</h3>
-    <p>Zet <code>"default": true</code> op één entry in <code>data/databases.json</code> en elke databasekeuzelijst in de CMA — SQL uitvoeren, Databasestructuur, de rapportontwerper — start daarop. Let op dat de keuzelijsten via <code>Cma\ConfigLoader</code> lopen en dus <span class="cma-tool__em">alleen</span> <code>data/databases.json</code> lezen; de vlag in <code>cma/config/databases.json</code> zetten doet niets.</p>
+    <p>Zet <code>"default": true</code> op één entry in <code>data/databases.json</code> en elke databasekeuzelijst in de CMA — SQL uitvoeren, Databasestructuur, de rapportontwerper — start daarop. Let op dat de keuzelijsten via <code>Cma\ConfigLoader</code> lopen en dus <span class="cma-tool__em">alleen</span> <code>data/databases.json</code> lezen.</p>
     <pre><code>{ "id": 6, "name": "data", "type": "access", "default": true,
   "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=[data/db/pdodomain.mdb]" }</code></pre>
     <p>Zonder die vlag raadt <code>CmaRepository::getDefaultDatabaseId()</code>: eerst een entry met de naam <code>data</code>, anders een connectionString die <code>main.mdb</code>, <code>webdata.mdb</code>, <code>pdodomain.mdb</code> of <code>pdodomein.mdb</code> bevat, anders gewoon de eerste entry. Heet de hoofddatabase van de site anders, dan valt de keuzelijst dus op de verkeerde database open. Staat de vlag op meerdere entries, dan wint de eerste in bestandsvolgorde.</p>
@@ -2133,7 +2165,7 @@ function render_doc_backups(): void
     <p>Beschrijvingen per backup leven in <code>backup/backups.json</code>; <code>BackupService::syncIndex()</code> reconciliert dat bestand met wat er op schijf staat.</p>
 
     <h2>Welke databases verschijnen in de lijst</h2>
-    <p>De lijst komt uit <code>Bootstrap::loadDatabasesConfig()</code>: eerst <code>data/databases.json</code>, dan terugval op <code>cma/config/databases.json</code>. Daarnaast vult de tool de logische connecties <code>data</code>/<code>users</code>/<code>rep</code> aan die <span class="cma-tool__em">niet</span> in databases.json staan maar wél door de runtime geconfigureerd zijn — via de legacy <code>conn_*</code>-globals of de standaard Access-bestanden (<code>db/main.mdb</code>, <code>db/CMAUsers.mdb</code>). Zo matcht de backuplijst exact de connecties die <code>Bootstrap::initDatabaseConnections()</code> opbouwt.</p>
+    <p>De lijst komt uit <code>Bootstrap::loadDatabasesConfig()</code>, dus uit <code>data/databases.json</code>. Daarnaast vult de tool de logische connecties <code>data</code>/<code>users</code>/<code>rep</code> aan die <span class="cma-tool__em">niet</span> in databases.json staan maar wél door de runtime geconfigureerd zijn — via de legacy <code>conn_*</code>-globals of de standaard Access-bestanden (<code>db/main.mdb</code>, <code>db/CMAUsers.mdb</code>). Zo matcht de backuplijst exact de connecties die <code>Bootstrap::initDatabaseConnections()</code> opbouwt.</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:280px">Symptoom</th><th>Oorzaak &amp; oplossing</th></tr></thead>
         <tbody>
@@ -2891,7 +2923,7 @@ function render_doc_database(): void
     <p class="docs-meta">PDO-laag + ADO-cursor emulatie. Welke API voor welk patroon.</p>
 
     <h2>Connectie-namen</h2>
-    <p>Databases zijn benoemd in <code>data/databases.json</code> (per-site overrides) of <code>cma/config/databases.json</code> (platform-defaults). Standaard-namen:</p>
+    <p>Databases zijn benoemd in <code>data/databases.json</code> — connecties zijn per-site data, het platform levert er geen defaults voor. Standaard-namen:</p>
     <ul>
         <li><code>data</code> — de primaire applicatie-database (default voor <code>Database::getConnection()</code>).</li>
         <li><code>platform</code> — alias / fallback voor <code>data</code> in migration-context.</li>
@@ -3752,7 +3784,7 @@ function render_doc_troubleshooting(): void
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
             <tr><td><code>Database connection 'data' failed</code> met <code>SQLSTATE[HY000] SQLDriverConnect: 63 … Unable to open registry key Temporary (volatile) Ace DSN for process</code> — hele site plat</td><td>De Access-driver legt per proces een tijdelijke DSN aan in het register onder het gebruikersprofiel van de app-pool-identiteit. Heeft die identiteit geen laadbaar profiel (Load User Profile staat op False) of geen schrijfrechten op de ODBC-sleutel, dan mislukt elke verbinding naar de <code>.mdb</code>. Dit is géén config- of cacheprobleem: <code>Bootstrap::loadDatabasesConfig()</code> leest <code>data/databases.json</code> bij elke request opnieuw van schijf, er wordt niets van gecachet.</td><td>IIS Manager → Application Pools → de pool van de site → Advanced Settings → Process Model → <code>Load User Profile</code> op <code>True</code>, daarna de pool recyclen. Blijft het staan: geef <code>IIS APPPOOL\&lt;sitename&gt;</code> modify-rechten op de temp-map van dat profiel (<code>C:\Windows\Temp</code>, en voor 32-bit pools <code>C:\Windows\SysWOW64\config\systemprofile\AppData\Local\Temp</code>) en full control op <code>HKLM\SOFTWARE\ODBC\ODBC.INI</code> (32-bit: ook onder <code>WOW6432Node</code>).</td></tr>
-            <tr><td>DSN in de foutmelding wijst naar <code>&lt;siteroot&gt;\db\main.mdb</code> terwijl <code>data/databases.json</code> een heel ander pad noemt</td><td><code>Bootstrap::loadDatabasesConfig()</code> neemt <code>data/databases.json</code>, en anders <code>cma/config/databases.json</code>. Die platform-default heeft een <span class="cma-tool__strong">lege</span> <code>data</code>-entry, waarna de Access-conventie <code>&lt;siteroot&gt;\db\main.mdb</code> aanslaat. Precies dat pad in de melding betekent dus: het site-bestand is overgeslagen — het ontbreekt, is onleesbaar voor de app-pool-identiteit, of is geen geldige JSON (UTF-8 BOM, komma te veel).</td><td>De regel <code>Config:</code> in de foutmelding (en in de connectietabel van de error-pagina) noemt het bestand dat écht geladen is; staat daar <code>cma/config/databases.json</code>, dan is dit het geval. Het errorlog noemt de reden. Valideer de JSON, controleer NTFS-leesrechten voor <code>IIS APPPOOL\&lt;sitename&gt;</code> op <code>data\</code>, en sla op zonder BOM.</td></tr>
+            <tr><td>DSN in de foutmelding wijst naar <code>&lt;siteroot&gt;\db\main.mdb</code> terwijl <code>data/databases.json</code> een heel ander pad noemt</td><td>Levert <code>databases.json</code> geen <code>data</code>-connectie, dan slaat de Access-conventie <code>&lt;siteroot&gt;\db\main.mdb</code> aan. Precies dat pad in de melding betekent dus: het bestand is overgeslagen — het ontbreekt, is onleesbaar voor de app-pool-identiteit, of is geen geldige JSON (UTF-8 BOM, komma te veel).</td><td>De regel <code>Config:</code> in de foutmelding (en in de connectietabel van de error-pagina) noemt het bestand dat écht geladen is; staat daar <code>no usable databases.json</code>, dan is dit het geval. Het errorlog noemt de reden. Valideer de JSON, controleer NTFS-leesrechten voor <code>IIS APPPOOL\&lt;sitename&gt;</code> op <code>data\</code>, en sla op zonder BOM.</td></tr>
             <tr><td>Migratie stopt met <code>HTTP 500</code> en verder lege melding</td><td>Het PHP-proces zelf viel om (ODBC-driver-crash of time-out), dus er kwam geen JSON-body terug. De migratietool toont de response-body wanneer die er wel is — bij een fatal error staat de PHP-melding erin.</td><td>Los eerst de connectiefout hierboven op. Blijft de body leeg, kijk dan in het PHP-/IIS-errorlog: een lege 500 komt niet uit de migratiecode maar uit de worker.</td></tr>
         </tbody>
     </table>

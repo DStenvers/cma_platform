@@ -7185,3 +7185,9 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > can we add a default database, and have the database select's use that as a default? expand databases.json with a default:true option.
+
+> - In details_getdata.php is de Login::isLoggedIn()-guard verdwenen en staat de $rsCombo->fetch()-ophoging nu binnen de else-tak (regel 65) — precies de vorm waar het commentaar erboven voor waarschuwt bij waarden met een |. Als dat bewust is, prima; anders is het het bekijken waard
+
+> heb je openstaande punten?
+
+> waarom is er een cma/config/databases.json? kan die weg?
