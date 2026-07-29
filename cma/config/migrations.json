@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.20.0",
+    "targetVersion": "9.21.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1194,6 +1194,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.20.0_rename_reports_to_cma_reports.php",
                     "note": "Hernoemt data/reports.json -> data/cma_reports.json (zelfde cma_-prefix). ReportsService/ConfigLoader lezen bij voorkeur data/cma_reports.json en vallen terug op de legacy data/reports.json tot deze migratie is gedraaid. Idempotent (no-op als al hernoemd)."
+                }
+            ]
+        },
+        {
+            "version": "9.21.0",
+            "description": "Kapotte $schema-verwijzingen in JSON-config herstellen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.21.0_fix_json_schema_refs.php",
+                    "note": "Een $schema-verwijzing wordt opgelost t.o.v. de map van het bestand zelf; de formulier-generatoren schreven een vaste literal die alleen op een enkele nestdiepte klopte. Herberekent de verwijzing voor data/, assets/forms/, assets/datastores/, cma/config/ en cma/assets/forms/definitions/, en volgt de hernoemde schema's (app -> cma_branding, reports -> cma_reports). Alleen de waarde wordt vervangen, opmaak blijft intact. Idempotent."
                 }
             ]
         }

@@ -79,6 +79,58 @@ class File {
     }
 
     /**
+     * Express one path relative to another, purely as string arithmetic.
+     *
+     * Used for the `$schema` reference a generated JSON file carries: that
+     * reference resolves against the file's OWN directory, so a literal like
+     * '../schema/form-definition.schema.json' is only correct at one nesting
+     * depth. Generated forms land in two different places (cma/assets/forms/
+     * definitions/ and the site's assets/forms/), so the value has to be
+     * computed from the destination rather than hardcoded.
+     *
+     * Neither path needs to exist; only the strings are compared. Both are
+     * normalised (backslashes, '.', '..', duplicate separators) first. When
+     * the two live on different Windows drives no relative path exists, so
+     * $to is returned unchanged.
+     *
+     * @param string $fromDir Directory the result is relative TO
+     * @param string $to      File or directory the result points AT
+     * @return string Relative path using forward slashes, e.g. '../../cma/config/schema/x.json'
+     */
+    public static function relativePath(string $fromDir, string $to): string {
+        $split = static function (string $path): array {
+            $parts = [];
+            foreach (explode('/', str_replace('\\', '/', $path)) as $part) {
+                if ($part === '' || $part === '.') {
+                    continue;
+                }
+                if ($part === '..' && $parts !== [] && end($parts) !== '..') {
+                    array_pop($parts);
+                    continue;
+                }
+                $parts[] = $part;
+            }
+            return $parts;
+        };
+
+        $from = $split($fromDir);
+        $dest = $split($to);
+
+        // Different roots (C:/ vs D:/, or one absolute and one relative) have
+        // no common ancestor to walk up to.
+        if (($from[0] ?? null) !== ($dest[0] ?? null)) {
+            return str_replace('\\', '/', $to);
+        }
+
+        while ($from !== [] && $dest !== [] && $from[0] === $dest[0]) {
+            array_shift($from);
+            array_shift($dest);
+        }
+
+        return implode('/', array_merge(array_fill(0, count($from), '..'), $dest));
+    }
+
+    /**
      * Copy a file
      *
      * @param string $source Source file path

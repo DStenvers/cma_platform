@@ -112,6 +112,14 @@ class Installer
         // under src/helpers/ lives in vendor/ — composer drops it, so it needs
         // no REMOVED_PATHS entry.)
         'cma/tools/deploy_webhook_standalone.php',
+        // Renamed with the configs they validate: app.json -> cma_branding.json
+        // and reports.json -> cma_reports.json. syncDirectory() only copies, so
+        // the old schema files linger on every existing site and a stale
+        // `$schema` reference keeps resolving to them — hiding the fact that it
+        // points at the wrong file. Migration 9.21.0 re-points those references
+        // at the current names; these rows remove what they pointed at before.
+        'cma/config/schema/app.schema.json',
+        'cma/config/schema/reports.schema.json',
         'cma/tools/deploy_webhook.php',
         // Retired: the /cma/tools/ deploy-status endpoint sat under
         // the gitignored /cma/ tree — it 404s during exactly the botched

@@ -1,5 +1,5 @@
 {
-    "$schema": "./schema/app.schema.json",
+    "$schema": "./schema/cma_branding.schema.json",
     "_doc": "Defaults bundled with cma_platform. Per-site overrides go in /data/app.json (not synced by composer). cma_get_app_logo() reads /data/app.json first, then falls back to this file.",
     "company": {
         "logo": "cma/assets/images/cma_logo.svg",

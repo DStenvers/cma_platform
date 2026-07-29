@@ -1,5 +1,5 @@
 {
-    "$schema": "./schema/reports.schema.json",
+    "$schema": "./schema/cma_reports.schema.json",
     "version": "2.5.0",
     "description": "Report definitions - exported from tblReports with queries",
     "reports": [

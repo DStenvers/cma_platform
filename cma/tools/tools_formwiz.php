@@ -746,9 +746,11 @@ function generateFormDefinition(array $input): array {
         $dbName = $dbConfig['name'];
     }
 
-    // Build definition
+    // Build definition. The $schema reference resolves against the written
+    // file's own directory, so it is computed from the target directory rather
+    // than hardcoded — the two form directories sit at different depths.
     $definition = [
-        '$schema' => '../schema/form-definition.schema.json',
+        '$schema' => \Cma\JsonFormLoader::schemaRef(__DIR__ . '/../assets/forms/definitions'),
         'version' => '1.0.0',
         'name' => $formName,
         'title' => $formTitle,

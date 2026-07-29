@@ -1311,6 +1311,60 @@ function cma_doc_check_vendor_in_sync(): array {
     return ['label' => $label, 'status' => 'pass', 'detail' => 'Versie: <code>' . htmlspecialchars($detected) . '</code> (uit composer.json).', 'fix' => ''];
 }
 
+/**
+ * Every `$schema` reference in the site's JSON config must resolve.
+ *
+ * A JSON `$schema` value is relative to the referencing file's own directory,
+ * so a definition that moves between assets/forms/ and cma/assets/forms/
+ * definitions/ needs a different number of ../ steps. When it is wrong the
+ * editor silently drops validation and IntelliSense — nothing warns, so this
+ * is exactly the kind of drift that only a live check surfaces.
+ */
+function cma_doc_check_json_schema_refs(): array {
+    $label = '$schema-verwijzingen in JSON-config';
+    $root = cma_doc_site_root();
+    $schemaDir = $root . '/cma/config/schema';
+    if (!is_dir($schemaDir)) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => '<code>cma/config/schema/</code> ontbreekt.', 'fix' => 'Draai <code>composer update stenversonline/platform</code>.'];
+    }
+
+    $broken = [];
+    $checked = 0;
+    foreach (['data', 'assets/forms', 'assets/datastores', 'cma/config', 'cma/assets/forms/definitions'] as $relDir) {
+        foreach (glob($root . '/' . $relDir . '/*.json') ?: [] as $path) {
+            $src = (string)file_get_contents($path);
+            if (!preg_match('/"\$schema"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/', $src, $m)) {
+                continue;
+            }
+            if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $m[1])) {
+                continue;
+            }
+            $checked++;
+            if (!is_file(dirname($path) . '/' . $m[1])) {
+                $broken[] = $relDir . '/' . basename($path);
+            }
+        }
+    }
+
+    if ($checked === 0) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Geen JSON-bestanden met een lokale <code>$schema</code> gevonden.', 'fix' => ''];
+    }
+    if ($broken === []) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => $checked . ' verwijzing(en) gecontroleerd, alle oplosbaar.', 'fix' => ''];
+    }
+
+    $sample = array_slice($broken, 0, 5);
+    $rest = count($broken) - count($sample);
+    return [
+        'label' => $label,
+        'status' => 'fail',
+        'detail' => count($broken) . ' van ' . $checked . ' verwijzing(en) wijzen naar een niet-bestaand schema: <code>'
+            . implode('</code>, <code>', array_map('htmlspecialchars', $sample)) . '</code>'
+            . ($rest > 0 ? ' (+' . $rest . ' meer)' : '') . '.',
+        'fix' => 'Draai de openstaande <a href="tools_migrations.php">migraties</a> — die herberekenen elke verwijzing vanuit de map van het bestand zelf.',
+    ];
+}
+
 function cma_doc_check_deploy_log(): array {
     $label = '.logs/deploy/deploy.log';
     $path = cma_doc_site_root() . '/.logs/deploy/deploy.log';
@@ -1815,19 +1869,33 @@ function render_doc_json_config(): void
     </div>
 
     <h2>De configbestanden</h2>
-    <p>In <code>cma/config/</code> zitten: <code>app.json</code>, <code>menu.json</code>, <code>reports.json</code>, <code>databases.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
+    <p>In <code>cma/config/</code> zitten: <code>cma_branding.json</code>, <code>menu.json</code>, <code>cma_reports.json</code>, <code>databases.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th><th>Lezer</th><th>Welke laag wint</th></tr></thead>
         <tbody>
-            <tr><td><code>app.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/app.json</code> → terugval op <code>cma/config/app.json</code></td></tr>
-            <tr><td><code>cma_menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Bij voorkeur <code>data/cma_menu.json</code>, met legacy-terugval naar <code>data/menu.json</code> tot migratie 9.16.0 heeft gedraaid (géén terugval naar <code>cma/config/</code>)</td></tr>
-            <tr><td><code>reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::$configPath</code></td><td>Alleen <code>data/reports.json</code> (géén terugval)</td></tr>
+            <tr><td><code>cma_branding.json</code></td><td>Branding: logo, kleuren, bedrijfs-URL</td><td><code>cma_get_app_logo()</code> (bootstrap.inc)</td><td><code>data/cma_branding.json</code> → legacy <code>data/app.json</code> → <code>cma/config/cma_branding.json</code> → legacy <code>cma/config/app.json</code></td></tr>
+            <tr><td><code>cma_menu.json</code></td><td>Navigatiestructuur, menu-items</td><td><code>MenuService::CONFIG_PATH</code></td><td>Bij voorkeur <code>data/cma_menu.json</code>, met legacy-terugval naar <code>data/menu.json</code> (géén terugval naar <code>cma/config/</code>)</td></tr>
+            <tr><td><code>cma_reports.json</code></td><td>SQL-rapportdefinities</td><td><code>ReportsService::configPath()</code></td><td>Bij voorkeur <code>data/cma_reports.json</code>, met legacy-terugval naar <code>data/reports.json</code> (géén terugval naar <code>cma/config/</code>)</td></tr>
             <tr><td><code>databases.json</code></td><td>DB-connecties (single source of truth)</td><td><code>Bootstrap::initDatabaseConnections()</code> + <code>Cma\ConfigLoader</code></td><td><code>data/databases.json</code> → terugval op <code>cma/config/databases.json</code></td></tr>
             <tr><td><code>control-types.json</code></td><td>Legacy Access-besturingstype-mapping</td><td><code>Cma\ConfigLoader</code> (alias)</td><td><code>/cma/control-types.json</code> (systeem-eigen)</td></tr>
             <tr><td><code>migrations.json</code></td><td>Schema-versie + migratiestappen</td><td><code>MigrationService</code> + <code>Bootstrap</code> + <code>ConfigLoader</code></td><td><code>/cma/config/migrations.json</code> (systeem-eigen, enige bron; <code>targetVersion</code> stuurt de migratiecheck)</td></tr>
         </tbody>
     </table>
-    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>app.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>cma_menu.json</code> en <code>reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval naar <code>cma/config/</code>. <code>MenuService</code> leest bij voorkeur <code>data/cma_menu.json</code> en valt alleen terug op de legacy <code>data/menu.json</code> (tot migratie 9.16.0 heeft gedraaid). Ontbreken beide, dan is het menu leeg.</p>
+    <p><span class="cma-tool__em">Let op de asymmetrie:</span> <code>cma_branding.json</code> en <code>databases.json</code> kennen een terugval van <code>data/</code> naar <code>cma/config/</code>; <code>cma_menu.json</code> en <code>cma_reports.json</code> wijzen rechtstreeks naar <code>data/</code> zonder terugval naar <code>cma/config/</code>. <code>MenuService</code> leest bij voorkeur <code>data/cma_menu.json</code> en valt alleen terug op de legacy <code>data/menu.json</code>. Ontbreken beide, dan is het menu leeg.</p>
+
+    <h2><code>$schema</code>-verwijzingen</h2>
+    <p>De JSON Schema's staan in <code>cma/config/schema/</code> en worden met het pakket meegeleverd. Een configbestand verwijst ernaar met een <code>$schema</code>-regel bovenaan; editors gebruiken die voor validatie en IntelliSense.</p>
+    <p>Die verwijzing is <span class="cma-tool__strong">relatief aan de map van het bestand zelf</span> — dus het aantal <code>../</code>-stappen verschilt per locatie: <code>data/</code> zit één niveau van de site-root, <code>assets/forms/</code> twee. Klopt het pad niet, dan valt de editor stil terug op géén validatie: er komt geen waarschuwing, het bestand ziet er gewoon goed uit. Vandaar de controle hieronder.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Config staat in</th><th>Correcte <code>$schema</code></th></tr></thead>
+        <tbody>
+            <tr><td><code>cma/config/</code></td><td><code>./schema/&lt;naam&gt;.schema.json</code></td></tr>
+            <tr><td><code>data/</code></td><td><code>../cma/config/schema/&lt;naam&gt;.schema.json</code></td></tr>
+            <tr><td><code>assets/forms/</code>, <code>assets/datastores/</code></td><td><code>../../cma/config/schema/&lt;naam&gt;.schema.json</code></td></tr>
+        </tbody>
+    </table>
+    <p>Genereer je zelf JSON, bereken het pad dan uit de doelmap met <code>App\Library\File::relativePath()</code> in plaats van het in te typen.</p>
+    <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_json_schema_refs'])); ?>
 
     <h2>Runtime DB-connecties (single source of truth)</h2>
     <p><code>Bootstrap::initDatabaseConnections()</code> bouwt de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>
@@ -3044,6 +3112,16 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
 
     <h2>Definitie-schema</h2>
     <p>Het volledige schema staat in <code>cma/config/schema/form-definition.schema.json</code> (titel <span class="cma-tool__em">CMA Form Definition</span>). Zet die als <code>$schema</code> bovenaan je definitie zodat editors IntelliSense + validatie geven. Een minimale, schema-geldige definitie:</p>
+
+    <p><span class="cma-tool__em">Let op het aantal <code>../</code>-stappen.</span> Een <code>$schema</code>-verwijzing wordt opgelost ten opzichte van de map van het bestand zélf, en de twee definitie-mappen liggen niet even diep. Klopt het pad niet, dan valt de editor stil terug op géén validatie en géén IntelliSense — er verschijnt geen waarschuwing, de definitie ziet er gewoon goed uit.</p>
+    <table class="listtable">
+        <thead><tr><th>Definitie staat in</th><th>Correcte <code>$schema</code></th></tr></thead>
+        <tbody>
+            <tr><td><code>cma/assets/forms/definitions/</code> (intern)</td><td><code>../../../config/schema/form-definition.schema.json</code></td></tr>
+            <tr><td><code>assets/forms/</code> (app-specifiek)</td><td><code>../../cma/config/schema/form-definition.schema.json</code></td></tr>
+        </tbody>
+    </table>
+    <p>Schrijf je zelf een generator, bereken het pad dan uit de doelmap in plaats van het in te typen: <code>JsonFormLoader::schemaRef($doelmap)</code> doet dat (bovenop <code>App\Library\File::relativePath()</code>). De ingebouwde generatoren — de formulier-wizard en <span class="cma-tool__em">Genereer form definities</span> — gebruiken die al.</p>
     <pre><code>{
     "$schema": "../../../config/schema/form-definition.schema.json",
     "name": "opleidingen",

@@ -1292,6 +1292,25 @@ class JsonFormLoader
     }
 
     /**
+     * The `$schema` value a form definition at $targetPath should carry.
+     *
+     * JSON `$schema` references resolve against the referencing file's own
+     * directory. Form definitions live either in cma/assets/forms/definitions/
+     * or in the site's assets/forms/, which are at different depths relative to
+     * cma/config/schema/ — so the value is computed, never hardcoded.
+     *
+     * @param string $targetDir Directory the .json file is written to
+     * @return string e.g. '../../../config/schema/form-definition.schema.json'
+     */
+    public static function schemaRef(string $targetDir): string
+    {
+        return \App\Library\File::relativePath(
+            $targetDir,
+            __DIR__ . '/../config/schema/form-definition.schema.json'
+        );
+    }
+
+    /**
      * Save a form definition to JSON
      *
      * Internal forms are saved to /cma/assets/forms/definitions/
@@ -1311,6 +1330,11 @@ class JsonFormLoader
         } else {
             $path = self::EXTERNAL_DEFINITIONS_DIR . '/' . $formName . '.json';
         }
+
+        // The $schema reference resolves against the file's own directory, and
+        // the two target directories sit at different depths — so stamp it here,
+        // where the destination is known.
+        $data = ['$schema' => self::schemaRef(dirname($path))] + $data;
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
@@ -1350,9 +1374,9 @@ class JsonFormLoader
         $safeName = $formName ?? self::generateFormName($arrRep[Q_FORMNAME][0] ?? 'form_' . $formId);
         $originalTitle = $arrRep[Q_FORMNAME][0] ?? '';
 
-        // Build JSON structure with schema reference
+        // No '$schema' here — save() stamps it, because the correct relative
+        // reference depends on which directory the definition is written to.
         $json = [
-            '$schema' => '../schema/form-definition.schema.json',
             'name' => $safeName,
             'title' => $originalTitle,
             'table' => $arrRep[Q_SQLTABLENAME][0] ?? '',

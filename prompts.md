@@ -7169,3 +7169,5 @@ karaat-data en staat in de karaat-repo.
 > ik wil dat als je een composer update doet dat overal de onderhoudspagina wordt getoond, behalve in de /cma en achterliggende pagina's
 
 > did you include the correct css fort the cma-tabs, the active tab does not show
+
+> xin data staan json bestanden, de daarbij behorende schema's zijn er niet. Kun je dienog terughelen en her-beoordelen of die niet inde repo vthuishoren

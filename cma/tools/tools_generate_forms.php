@@ -321,9 +321,12 @@ function generateFormJson($formId, $repConn, $controlTypeMap, $dataTypeMap, $par
     $tableName = $sqlStmt['Table'] ?? '';
     $jsonName = formNameToFilename($formName, $parentFormName);
 
-    // Build the JSON structure
+    // Build the JSON structure. The $schema reference resolves against the
+    // written file's own directory, so it is computed from the target path
+    // rather than hardcoded — these land in the site's assets/forms/, which
+    // sits at a different depth than cma/assets/forms/definitions/.
     $json = [
-        '$schema' => '../schema/form-definition.schema.json',
+        '$schema' => \Cma\JsonFormLoader::schemaRef(dirname(__DIR__, 2) . '/assets/forms'),
         'version' => '1.0.0',
         'name' => $jsonName,
         'title' => $formName,
