@@ -7167,3 +7167,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-07-29
 
 > ik wil dat als je een composer update doet dat overal de onderhoudspagina wordt getoond, behalve in de /cma en achterliggende pagina's
+
+> did you include the correct css fort the cma-tabs, the active tab does not show

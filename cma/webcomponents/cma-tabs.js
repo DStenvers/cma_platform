@@ -914,7 +914,7 @@ class CmaTabs extends HTMLElement {
 
             /* Selected tab */
             .tabs-list li.selected a {
-                background-color: var(--bg-disabled);
+                background-color: var(--bg-disabled, #f5f5f5);
                 color: var(--text-primary, #202124);
                 font-weight: normal;
             }
@@ -926,7 +926,7 @@ class CmaTabs extends HTMLElement {
 
             .tabs-list li.selected a::before,
             .tabs-list li.selected a::after {
-                background: var(--bg-disabled);
+                background: var(--bg-disabled, #f5f5f5);
             }
 
             /* Count badge */
