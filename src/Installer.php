@@ -260,11 +260,42 @@ class Installer
     ];
 
     /**
+     * Run BEFORE composer install/update: put the site in maintenance.
+     *
+     * Tijdens een update wordt vendor/ verwisseld en draait de site op half
+     * bijgewerkte code. deploy.php hijst daarvoor zelf een vlag, maar een
+     * `composer update` die iemand in een shell start deed dat niet — dan kregen
+     * bezoekers in dat venster stapels fouten. Deze hook dekt beide gevallen af.
+     *
+     * De vlag is bewust LEEG (geen "manual"-markering): _bootstrap.php laat een
+     * niet-handmatige vlag na 20 minuten vanzelf vallen, zodat een afgebroken of
+     * gekilde composer-run de site niet permanent dichtzet.
+     *
+     * /cma/ blijft bereikbaar — die uitzondering staat in _bootstrap.php, zodat je
+     * tijdens onderhoud nog bij de beheerkant kunt.
+     */
+    public static function preOperation(Event $event): void
+    {
+        $root = self::projectRoot($event);
+        $flag = $root . '/maintenance.flag';
+        // Een handmatig ingeschakelde onderhoudsstand (vanuit de CMA) blijft staan
+        // en wordt straks ook niet door ons opgeheven.
+        if (is_file($flag) && strpos((string) @file_get_contents($flag), '"manual"') !== false) {
+            $event->getIO()->write('<info>Onderhoudsstand stond al handmatig aan — ongemoeid gelaten.</info>');
+            return;
+        }
+        if (@file_put_contents($flag, '') !== false) {
+            $event->getIO()->write('<info>Onderhoudspagina AAN tijdens composer (/cma blijft bereikbaar).</info>');
+        }
+    }
+
+    /**
      * Run after composer install.
      */
     public static function postInstall(Event $event): void
     {
         self::run($event);
+        self::liftMaintenance($event);
     }
 
     /**
@@ -273,6 +304,29 @@ class Installer
     public static function postUpdate(Event $event): void
     {
         self::run($event);
+        self::liftMaintenance($event);
+    }
+
+    /** Onderhoudsstand weer uit — maar nooit een handmatige vlag opheffen. */
+    private static function liftMaintenance(Event $event): void
+    {
+        $flag = self::projectRoot($event) . '/maintenance.flag';
+        if (!is_file($flag)) {
+            return;
+        }
+        if (strpos((string) @file_get_contents($flag), '"manual"') !== false) {
+            $event->getIO()->write('<info>Onderhoudsstand blijft aan (handmatig ingeschakeld).</info>');
+            return;
+        }
+        if (@unlink($flag)) {
+            $event->getIO()->write('<info>Onderhoudspagina UIT.</info>');
+        }
+    }
+
+    /** De projectmap: vendor/ ligt altijd één niveau onder de siteroot. */
+    private static function projectRoot(Event $event): string
+    {
+        return dirname((string) $event->getComposer()->getConfig()->get('vendor-dir'));
     }
 
     /**

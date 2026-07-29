@@ -7161,3 +7161,9 @@ karaat-data en staat in de karaat-repo.
 > web.config now redirects all profielimages to the placeholder, even if they exist, i need to have a 404 handler of some sort to only show the placeholder in case of a 404 on the original file
 
 > het onderhoudsscherm is nog steeds niet zichtbaar
+
+> ik zie ze nu al weer inderdaad
+
+## 2026-07-29
+
+> ik wil dat als je een composer update doet dat overal de onderhoudspagina wordt getoond, behalve in de /cma en achterliggende pagina's
