@@ -7173,3 +7173,13 @@ karaat-data en staat in de karaat-repo.
 > xin data staan json bestanden, de daarbij behorende schema's zijn er niet. Kun je dienog terughelen en her-beoordelen of die niet inde repo vthuishoren
 
 > ✗ Fout bij migratie versie 3.0.0: HTTP 500:
+
+> ik heb de server herstart en toch vind hij weer dat de database /db/main.mdb is, tewrwijl in data/databases.json toch echt data/db/pdodomain.mdb staat, hoe kan dat?
+
+> <task-notification>
+> <task-id>bip59bp9p</task-id>
+> <tool-use-id>toolu_0184woV7eRyxgzsdZpuZPf4d</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/ab294e91-daf4-4e43-b6d3-729aa854aeb9/tasks/bip59bp9p.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Scan every JSON for schema references and verify they resolve" completed (exit code 0)</summary>
+> </task-notification>

@@ -726,6 +726,17 @@ class Bootstrap
             if ($dsns[$key] === '') {
                 $path = self::resolveRootDir() . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . $file;
                 $dsns[$key] = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $path;
+                // The convention only holds when the file is actually there.
+                // Otherwise this is a configuration hole, and every query will
+                // fail against a path the operator never chose — say so once.
+                if (!is_file($path)) {
+                    $source = $GLOBALS['_db_config_source'] ?? '';
+                    error_log(
+                        "No usable '$key' connection in databases.json"
+                        . ($source !== '' ? " (read from $source)" : ' (no databases.json found)')
+                        . "; falling back to $path, which does not exist"
+                    );
+                }
             }
         }
 
@@ -790,11 +801,24 @@ class Bootstrap
             if (!is_file($file)) {
                 continue;
             }
-            $data = json_decode((string) @file_get_contents($file), true);
+            // A file that IS there but can't be used is never skipped quietly:
+            // the next candidate is the platform default, whose 'data' entry is
+            // empty, so the site ends up on the built-in Access path and the
+            // connection error points at a database nobody configured.
+            $raw = @file_get_contents($file);
+            if ($raw === false) {
+                error_log("databases.json unreadable: $file (check read rights for the app pool identity)");
+                continue;
+            }
+            $data = json_decode($raw, true);
             if (is_array($data) && !empty($data['databases']) && is_array($data['databases'])) {
                 $GLOBALS['_db_config_source'] = $file;
                 return $data['databases'];
             }
+            $reason = json_last_error() !== JSON_ERROR_NONE
+                ? json_last_error_msg() . ' (a UTF-8 BOM or trailing comma breaks the parse)'
+                : 'no non-empty "databases" array';
+            error_log("databases.json unusable: $file — $reason");
         }
         return [];
     }

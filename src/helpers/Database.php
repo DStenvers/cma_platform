@@ -546,10 +546,14 @@ class Database
 
         } catch (PDOException $e) {
             self::$lastError = $e->getMessage();
+            $source = $GLOBALS['_db_config_source'] ?? '';
             throw new PDOException(
                 "Database connection '$name' failed.\n" .
                 "Driver: $driver\n" .
                 "DSN: $dsn\n" .
+                "Config: " . ($source !== ''
+                    ? $source
+                    : 'no usable databases.json — built-in Access default') . "\n" .
                 "Error: " . $e->getMessage(),
                 (int)$e->getCode(),
                 $e
