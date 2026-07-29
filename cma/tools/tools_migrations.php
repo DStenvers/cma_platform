@@ -524,11 +524,23 @@ async function applyMigration(version, autoBackup) {
 
         console.log("[migrations] Response status:", response.status, response.statusText);
 
-        // Check if response is OK
+        // Check if response is OK. The body carries the real cause: on a fatal
+        // error the shutdown handler still emits JSON with the PHP message, and
+        // an IIS/FastCGI failure emits an HTML page. Never drop it.
         if (!response.ok) {
             var errorText = await response.text();
             cmaLog.error("[migrations] Error response body:", errorText.substring(0, 500));
-            return { success: false, error: "HTTP " + response.status + ": " + response.statusText };
+            var detail = "";
+            try {
+                var errorJson = JSON.parse(errorText);
+                detail = errorJson.error || errorJson.message || "";
+            } catch (ignored) {
+                detail = errorText.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().substring(0, 300);
+            }
+            if (!detail) {
+                detail = response.statusText || "geen foutmelding in de response";
+            }
+            return { success: false, error: "HTTP " + response.status + ": " + detail };
         }
 
         var text = await response.text();

@@ -7171,3 +7171,5 @@ karaat-data en staat in de karaat-repo.
 > did you include the correct css fort the cma-tabs, the active tab does not show
 
 > xin data staan json bestanden, de daarbij behorende schema's zijn er niet. Kun je dienog terughelen en her-beoordelen of die niet inde repo vthuishoren
+
+> ✗ Fout bij migratie versie 3.0.0: HTTP 500:
