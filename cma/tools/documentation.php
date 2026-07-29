@@ -1912,6 +1912,13 @@ function render_doc_json_config(): void
         <li><code>[env:NAAM]</code> → waarde uit de omgeving (<code>.env</code>) — zo blijven wachtwoorden buiten het bestand terwijl de <span class="cma-tool__em">definitie</span> in databases.json staat.</li>
     </ul>
     <p>OLEDB-strings voor Access worden automatisch naar een ODBC-DSN omgezet; een kant-en-klare PDO-DSN (<code>sqlite:</code>/<code>odbc:</code>/<code>mysql:</code>/<code>sqlsrv:</code>) wordt ongewijzigd gebruikt.</p>
+
+    <h3>Welke database staat voorgeselecteerd</h3>
+    <p>Zet <code>"default": true</code> op één entry in <code>data/databases.json</code> en elke databasekeuzelijst in de CMA — SQL uitvoeren, Databasestructuur, de rapportontwerper — start daarop. Let op dat de keuzelijsten via <code>Cma\ConfigLoader</code> lopen en dus <span class="cma-tool__em">alleen</span> <code>data/databases.json</code> lezen; de vlag in <code>cma/config/databases.json</code> zetten doet niets.</p>
+    <pre><code>{ "id": 6, "name": "data", "type": "access", "default": true,
+  "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=[data/db/pdodomain.mdb]" }</code></pre>
+    <p>Zonder die vlag raadt <code>CmaRepository::getDefaultDatabaseId()</code>: eerst een entry met de naam <code>data</code>, anders een connectionString die <code>main.mdb</code>, <code>webdata.mdb</code>, <code>pdodomain.mdb</code> of <code>pdodomein.mdb</code> bevat, anders gewoon de eerste entry. Heet de hoofddatabase van de site anders, dan valt de keuzelijst dus op de verkeerde database open. Staat de vlag op meerdere entries, dan wint de eerste in bestandsvolgorde.</p>
+    <p>De vlag stuurt alleen de <span class="cma-tool__em">voorselectie</span> in schermen. Welke database de code als <code>data</code>, <code>rep</code> of <code>users</code> opent, blijft de <code>name</code> van de entry bepalen.</p>
     <div class="docs-callout docs-callout--warn">
         <span class="cma-tool__strong">Waarom dit belangrijk is:</span> een <code>global.asa.php</code> die de connecties forkt op <code>omgeving</code> kiest bij een verkeerd gedetecteerde productie-box stilletjes een lege lokale SQLite users-DB → <code>no such table: tblUsers</code> en niemand kan meer inloggen. Eén bron (databases.json) maakt die drift onmogelijk.
     </div>

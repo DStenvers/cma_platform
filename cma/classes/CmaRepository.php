@@ -205,7 +205,7 @@ class CmaRepository
     /**
      * Get list of selectable databases (excludes repository, users database only for developers)
      *
-     * @return array Array of ['id' => int, 'title' => string, 'isData' => bool]
+     * @return array Array of ['id' => int, 'title' => string, 'isData' => bool, 'isDefault' => bool]
      */
     public static function getSelectableDatabases(): array
     {
@@ -238,7 +238,13 @@ class CmaRepository
                 $options[] = [
                     'id' => $db['id'],
                     'title' => $db['name'] ?? ('Database ' . $db['id']),
-                    'isData' => $isDataDb
+                    'isData' => $isDataDb,
+                    // Explicit "default": true in databases.json. Beats the
+                    // filename guesswork above when deciding what a selector
+                    // starts on — a site whose main database isn't called
+                    // main.mdb can now say so instead of hoping the pattern
+                    // list happens to include its filename.
+                    'isDefault' => !empty($db['default'])
                 ];
             }
         }
@@ -255,9 +261,10 @@ class CmaRepository
         // query tool toolbar) the placeholder is enough.
         if (empty($options)) {
             $options[] = [
-                'id'     => 0,
-                'title'  => 'data',
-                'isData' => true,
+                'id'        => 0,
+                'title'     => 'data',
+                'isData'    => true,
+                'isDefault' => true,
             ];
         }
 
@@ -265,13 +272,21 @@ class CmaRepository
     }
 
     /**
-     * Get default database ID (first data database, or first database if no data db)
+     * Get default database ID: the entry flagged "default": true in
+     * databases.json, else the first data database, else the first entry.
      *
      * @return int|null Database ID or null if none available
      */
     public static function getDefaultDatabaseId(): ?int
     {
         $databases = self::getSelectableDatabases();
+
+        // An explicit flag in databases.json outranks every guess below.
+        foreach ($databases as $db) {
+            if (!empty($db['isDefault'])) {
+                return $db['id'];
+            }
+        }
 
         // First try to find a data database
         foreach ($databases as $db) {

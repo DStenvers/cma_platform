@@ -33,6 +33,10 @@
             "type": "string",
             "enum": ["access", "sqlserver", "mysql"],
             "description": "Database type"
+          },
+          "default": {
+            "type": "boolean",
+            "description": "Preselect this database in the CMA database selectors. At most one entry should set it; the first one wins."
           }
         }
       }

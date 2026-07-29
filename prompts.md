@@ -7183,3 +7183,5 @@ karaat-data en staat in de karaat-repo.
 > <status>completed</status>
 > <summary>Background command "Scan every JSON for schema references and verify they resolve" completed (exit code 0)</summary>
 > </task-notification>
+
+> can we add a default database, and have the database select's use that as a default? expand databases.json with a default:true option.

@@ -30,10 +30,10 @@ Profiler::start();
 $CustomSQL = Request::post('query', '') ?: Request::query('sql', '');
 $iDatabase = Request::post('database', '') ?: Request::query('database', '');
 
-// Auto-select first database if none specified
+// Auto-select the default database if none specified
 $databases = CmaRepository::getSelectableDatabases();
 if ($iDatabase === '' && count($databases) >= 1) {
-    $iDatabase = (string)$databases[0]['id'];
+    $iDatabase = (string)(CmaRepository::getDefaultDatabaseId() ?? $databases[0]['id']);
 }
 $strHistory = "";
 $libSQL_KeepOffQuotes = true;
