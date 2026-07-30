@@ -109,4 +109,35 @@ class DatabasesJsonDsnTest extends TestCase
         $this->assertFalse(Database::isODBC('Server=x;DSN=mydb'));
         $this->assertFalse(Database::isODBC('sqlite:/var/db/app.sqlite'));
     }
+
+    // ------------------------------------------------------------------
+    // Database::probeDsn — the pre-save connection check for databases.json
+    // ------------------------------------------------------------------
+
+    public function testProbeReportsAnEmptyConnectionString(): void
+    {
+        $this->assertSame('geen connectionString', Database::probeDsn('  '));
+    }
+
+    public function testProbeNamesTheMissingFileInsteadOfTheDriverError(): void
+    {
+        $missing = sys_get_temp_dir() . '/definitely-not-here-' . bin2hex(random_bytes(4)) . '.mdb';
+        $reason = Database::probeDsn('odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $missing);
+        $this->assertStringContainsString('bestand bestaat niet', (string)$reason);
+        $this->assertStringContainsString(basename($missing), (string)$reason);
+    }
+
+    public function testProbeAcceptsAnOpenableConnection(): void
+    {
+        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+            return; // no sqlite driver here; nothing to assert
+        }
+        $this->assertNull(Database::probeDsn('sqlite::memory:'));
+    }
+
+    public function testProbeReportsADriverThatDoesNotExist(): void
+    {
+        $reason = Database::probeDsn('nosuchdriver:host=localhost');
+        $this->assertNotNull($reason);
+    }
 }

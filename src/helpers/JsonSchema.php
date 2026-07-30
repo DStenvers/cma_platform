@@ -4,7 +4,9 @@
  *
  * Scope is deliberately the keyword set those schemas actually use:
  * $ref (local), oneOf, type, enum, properties, required, additionalProperties
- * (as a schema), items, minimum, maximum, pattern, maxItems, minItems.
+ * (as a schema), items, minimum, maximum, pattern, maxItems, minItems, and
+ * contains with min/maxContains — the only way to say "at most one entry in
+ * this array may look like X", which draft-07 cannot express.
  * Unknown keywords are ignored, which is what the spec prescribes for
  * annotations — so a schema may carry title/description/default freely.
  *
@@ -101,7 +103,8 @@ final class JsonSchema
         // Arrays and objects share the PHP array type, so let the schema decide
         // which shape is being described; a list-shaped value with "properties"
         // is simply an empty object as far as those checks go.
-        if (self::isList($value) && (isset($schema['items']) || isset($schema['maxItems']) || isset($schema['minItems']))) {
+        if (self::isList($value) && (isset($schema['items']) || isset($schema['maxItems'])
+            || isset($schema['minItems']) || isset($schema['contains']))) {
             self::checkList($value, $schema, $path, $root, $errors);
             return;
         }
@@ -117,11 +120,43 @@ final class JsonSchema
         if (isset($schema['maxItems']) && count($value) > $schema['maxItems']) {
             $errors[] = self::at($path) . 'mag maximaal ' . $schema['maxItems'] . ' item(s) hebben, heeft ' . count($value);
         }
+        if (isset($schema['contains']) && is_array($schema['contains'])) {
+            self::checkContains($value, $schema, $path, $root, $errors);
+        }
         if (!isset($schema['items']) || !is_array($schema['items']) || $schema['items'] === []) {
             return; // "items": {} accepts anything
         }
         foreach ($value as $i => $item) {
             self::check($item, $schema['items'], $path . '[' . $i . ']', $root, $errors);
+        }
+    }
+
+    /**
+     * How many items match "contains", against minContains/maxContains. This is
+     * what expresses a cross-item rule such as "exactly one database may be the
+     * default"; the description on the contains schema, when present, names the
+     * rule in the error so the operator does not have to read the schema.
+     */
+    private static function checkContains(array $value, array $schema, string $path, array $root, array &$errors): void
+    {
+        $matched = 0;
+        foreach ($value as $item) {
+            if (self::matches($item, $schema['contains'], $root)) {
+                $matched++;
+            }
+        }
+
+        $rule = isset($schema['contains']['description'])
+            ? ' (' . $schema['contains']['description'] . ')'
+            : '';
+        $min = $schema['minContains'] ?? 1;
+        $max = $schema['maxContains'] ?? null;
+
+        if ($matched < $min) {
+            $errors[] = self::at($path) . 'moet minimaal ' . $min . ' item(s) hebben' . $rule . ', heeft ' . $matched;
+        }
+        if ($max !== null && $matched > $max) {
+            $errors[] = self::at($path) . 'mag maximaal ' . $max . ' item(s) hebben' . $rule . ', heeft ' . $matched;
         }
     }
 

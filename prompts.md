@@ -7238,3 +7238,7 @@ karaat-data en staat in de karaat-repo.
 > leuk! laten we het opstarten!
 
 > ja graag en top zo die testen! Erg blij mee. Kun je ze allemaal tackelen?
+
+> jij zit ook op de main branch toch?
+
+> kun je een schema maken voor cma_tools.json en inderdaad de databases oppakken? Let op de onlangs toegevoegde default waarde, daar mag er maar 1 van zijn. Moet te valideren zij toch?

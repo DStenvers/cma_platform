@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CMA Site Tools",
+  "description": "Site-specific tools surfaced as an extra group in the CMA tools launcher. Read by cma/tools_catalog.inc from data/cma_tools.json (legacy name: data/tools.json).",
+  "type": "object",
+  "required": ["groups"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string",
+      "description": "Free-text note for whoever opens the file"
+    },
+    "groups": {
+      "type": "array",
+      "description": "One folder per group in the launcher. A group whose items all resolve to nothing is skipped.",
+      "items": {
+        "$ref": "#/definitions/group"
+      }
+    }
+  },
+  "definitions": {
+    "group": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "default": "Site",
+          "description": "Folder title"
+        },
+        "icon": {
+          "type": "string",
+          "default": "lnr-layers",
+          "description": "Linearicons class, e.g. lnr-users"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/item"
+          }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Link text. An item without a label is skipped."
+        },
+        "href": {
+          "type": "string",
+          "description": "Target. An absolute href (/tools/x.php, https://...) opens in a new tab; a relative one loads in the CMA shell. An item without an href is skipped."
+        },
+        "icon": {
+          "type": "string",
+          "default": "lnr-cog",
+          "description": "Linearicons class"
+        },
+        "badge": {
+          "type": "string",
+          "enum": ["A", "D"],
+          "description": "Access badge: A = admin, D = developer. A D item is hidden from non-developers; an A item is shown but the tool itself enforces access."
+        }
+      }
+    }
+  }
+}

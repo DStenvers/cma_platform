@@ -386,6 +386,41 @@ class Database
     }
 
     /**
+     * Try to open a DSN and report what went wrong, without touching the
+     * connection pool: deliberately non-persistent, so a probe cannot leave a
+     * half-configured handle behind for the rest of the request.
+     *
+     * @return string|null null when the connection opens, else the reason
+     */
+    public static function probeDsn(string $dsn): ?string
+    {
+        $dsn = trim($dsn);
+        if ($dsn === '') {
+            return 'geen connectionString';
+        }
+
+        // A file-based DSN (Access/SQLite) pointing at a missing file fails
+        // inside the driver with a message that rarely names the path, which is
+        // exactly the case an operator needs to see.
+        if (preg_match('/(?:Dbq|Database)=([^;]+)/i', $dsn, $m) || preg_match('/^sqlite:(.+)$/i', $dsn, $m)) {
+            $path = trim($m[1]);
+            if ($path !== '' && strcasecmp($path, ':memory:') !== 0 && !is_file($path)) {
+                return 'bestand bestaat niet: ' . $path;
+            }
+        }
+
+        try {
+            new PDO($dsn, null, null, [
+                PDO::ATTR_TIMEOUT => self::CONN_TIMEOUT,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            return null;
+        } catch (\Throwable $e) {
+            return self::cleanErrorMessage($e->getMessage());
+        }
+    }
+
+    /**
      * Build a PDO DSN from a databases.json connection entry — the single
      * source of truth for database connections. Handles:
      *   - [env:VAR]          → value from the environment (keeps secrets in .env)

@@ -57,6 +57,7 @@ class ConfigLoader
         'app'     => 'cma_branding',
         'menu'    => 'cma_menu',
         'reports' => 'cma_reports',
+        'tools'   => 'cma_tools',
     ];
 
     private static function resolveFilePath(string $name): string
@@ -213,6 +214,12 @@ class ConfigLoader
             return false;
         }
 
+        $unreachable = self::unreachableChangedConnections($name, $file, $data);
+        if ($unreachable !== []) {
+            self::$lastErrors = $unreachable;
+            return false;
+        }
+
         // Add newline at end of file
         $json .= "\n";
 
@@ -264,6 +271,59 @@ class ConfigLoader
         $known  = is_array($stored) ? JsonSchema::validate($stored, $schema) : [];
 
         return array_values(array_diff($errors, $known));
+    }
+
+    /**
+     * databases.json is the one config whose content can take the whole site
+     * down, and a structurally valid entry can still point at a database that
+     * cannot be opened. So every connection this write CHANGES is opened once
+     * before the file is written.
+     *
+     * Only changed entries: a site whose deprecated 'rep' database has been
+     * unopenable for years must still be able to edit 'data'. Same principle as
+     * the schema check — judge the change, not the history.
+     *
+     * @return string[]
+     */
+    private static function unreachableChangedConnections(string $name, string $file, array $data): array
+    {
+        if (basename(self::$aliases[$name] ?? $name) !== 'databases') {
+            return [];
+        }
+
+        $stored = is_file($file) ? json_decode((string)@file_get_contents($file), true) : null;
+        $before = [];
+        foreach ((array)($stored['databases'] ?? []) as $entry) {
+            if (isset($entry['name'])) {
+                $before[strtolower((string)$entry['name'])] = (string)($entry['connectionString'] ?? '');
+            }
+        }
+
+        $siteRoot = dirname(rtrim(self::getConfigPath(), '/\\'));
+        $errors = [];
+
+        foreach ((array)($data['databases'] ?? []) as $entry) {
+            if (!is_array($entry) || !empty($entry['deprecated'])) {
+                continue;
+            }
+            $label  = (string)($entry['name'] ?? '?');
+            $connStr = (string)($entry['connectionString'] ?? '');
+            if ($connStr === '') {
+                continue; // "not configured" is a legitimate state, not a broken one
+            }
+            if (($before[strtolower($label)] ?? null) === $connStr) {
+                continue; // unchanged
+            }
+
+            $reason = \App\Library\Database::probeDsn(
+                \App\Library\Database::dsnFromConfigEntry($entry, $siteRoot)
+            );
+            if ($reason !== null) {
+                $errors[] = 'Verbinding ' . $label . ' kan niet worden geopend: ' . $reason;
+            }
+        }
+
+        return $errors;
     }
 
     /**

@@ -1,14 +1,37 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "Database Configuration",
+  "description": "The site's database connections — the single source of truth, read by Bootstrap::initDatabaseConnections() from data/databases.json.",
   "type": "object",
   "required": ["databases"],
   "properties": {
     "$schema": {
       "type": "string"
     },
+    "version": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "lastUpdated": {
+      "type": "string"
+    },
     "databases": {
       "type": "array",
+      "description": "One entry per connection. Name them data, rep and users: those are the logical names the runtime resolves.",
+      "contains": {
+        "description": "één entry met \"default\": true",
+        "type": "object",
+        "required": ["default"],
+        "properties": {
+          "default": {
+            "enum": [true]
+          }
+        }
+      },
+      "minContains": 0,
+      "maxContains": 1,
       "items": {
         "type": "object",
         "required": ["id", "name", "connectionString", "type"],
@@ -25,18 +48,34 @@
             "type": "string",
             "description": "Display title for screens"
           },
+          "description": {
+            "type": "string",
+            "description": "Free-text note about what this connection is for"
+          },
           "connectionString": {
             "type": "string",
-            "description": "Database connection string"
+            "description": "A PDO DSN (odbc:/sqlite:/mysql:/sqlsrv:/pgsql:) or an Access OLEDB string, which is converted to ODBC. Supports [relative/path] for a path under the site root and [env:NAME] to keep a secret in .env. Empty means the connection is not configured."
+          },
+          "path": {
+            "type": "string",
+            "description": "Optional explicit path to the database file, relative to the site root or absolute. The backup tool prefers this over parsing the connectionString."
           },
           "type": {
             "type": "string",
-            "enum": ["access", "sqlserver", "mysql"],
-            "description": "Database type"
+            "enum": ["access", "sqlite", "sqlserver", "mysql"],
+            "description": "Database kind. Advisory metadata: the actual driver comes from the connectionString. Only 'sqlite' changes behaviour — it gates the SQLite repair tool into the tools menu."
           },
           "default": {
             "type": "boolean",
-            "description": "Preselect this database in the CMA database selectors. At most one entry should set it; the first one wins."
+            "description": "Preselect this database in the CMA database selectors. At most one entry may set it."
+          },
+          "deprecated": {
+            "type": "boolean",
+            "description": "Keep the entry for reference but treat it as retired: excluded from the portability check and from the SQLite gate."
+          },
+          "deprecatedReason": {
+            "type": "string",
+            "description": "Why this connection was retired"
           }
         }
       }

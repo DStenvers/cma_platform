@@ -137,6 +137,41 @@ class JsonSchemaTest extends TestCase
         $this->assertCount(1, JsonSchema::validate(['n' => 5, 's' => 'x'], $schema));
     }
 
+    /**
+     * The cross-item rule draft-07 cannot express: at most one entry in the
+     * array may carry default:true. This is what guards databases.json.
+     */
+    public function testMaxContainsCapsMatchingItems(): void
+    {
+        $schema = [
+            'type' => 'array',
+            'contains' => [
+                'description' => 'één entry met default:true',
+                'type' => 'object',
+                'required' => ['default'],
+                'properties' => ['default' => ['enum' => [true]]],
+            ],
+            'minContains' => 0,
+            'maxContains' => 1,
+        ];
+        $this->assertSame([], JsonSchema::validate([['a' => 1], ['b' => 2]], $schema), 'none is allowed');
+        $this->assertSame([], JsonSchema::validate([['default' => true], ['b' => 2]], $schema), 'exactly one');
+        $this->assertSame([], JsonSchema::validate([['default' => false], ['default' => true]], $schema), 'false does not count');
+
+        $errors = JsonSchema::validate([['default' => true], ['default' => true]], $schema);
+        $this->assertCount(1, $errors);
+        $this->assertStringContainsString('maximaal 1', $errors[0]);
+        $this->assertStringContainsString('default:true', $errors[0]);
+        $this->assertStringContainsString('heeft 2', $errors[0]);
+    }
+
+    public function testMinContainsDefaultsToOne(): void
+    {
+        $schema = ['type' => 'array', 'contains' => ['type' => 'integer']];
+        $this->assertSame([], JsonSchema::validate([1, 'a'], $schema));
+        $this->assertCount(1, JsonSchema::validate(['a', 'b'], $schema));
+    }
+
     public function testUnknownKeywordsAreIgnored(): void
     {
         $schema = ['type' => 'string', 'title' => 'x', 'description' => 'y', 'default' => 'z', 'contentMediaType' => 'text/plain'];
