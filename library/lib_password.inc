@@ -1,5 +1,12 @@
 <?php
 
+// Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.
+// require_once dekt het gewone geval al — die lost het pad eerst op — maar niet een
+// kale require/include, en niet een pad dat via een junction anders uitkomt. De naam
+// is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
+if (defined('INC_LIB_PASSWORD')) { return; }
+define('INC_LIB_PASSWORD', 1);
+
 // Generate a relatively safe password (or other random name)
 
 // to prevent problems with confusing the 0 with the O and the I with the 1, the digits start with 2

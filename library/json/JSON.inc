@@ -6,6 +6,13 @@
  * Note: If bootstrap.inc is loaded first, it provides AspJSON via class_alias.
  * This file is kept for backward compatibility with files that include it directly.
  */
+
+// Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.
+// require_once dekt het gewone geval al — die lost het pad eerst op — maar niet een
+// kale require/include, en niet een pad dat via een junction anders uitkomt. De naam
+// is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
+if (defined('INC_JSON')) { return; }
+define('INC_JSON', 1);
 use App\Library\Arr;
 
 // Skip if class already exists (e.g., from bootstrap.inc class_alias)

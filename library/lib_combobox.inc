@@ -6,6 +6,13 @@
  * New code should use App\Library\FormControls::combo() directly.
  */
 
+// Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.
+// require_once dekt het gewone geval al — die lost het pad eerst op — maar niet een
+// kale require/include, en niet een pad dat via een junction anders uitkomt. De naam
+// is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
+if (defined('INC_LIB_COMBOBOX')) { return; }
+define('INC_LIB_COMBOBOX', 1);
+
 use App\Library\FormControls;
 
 // Prevent redeclaration if already loaded

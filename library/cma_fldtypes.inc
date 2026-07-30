@@ -1,5 +1,12 @@
 <?php
 
+// Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.
+// require_once dekt het gewone geval al — die lost het pad eerst op — maar niet een
+// kale require/include, en niet een pad dat via een junction anders uitkomt. De naam
+// is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
+if (defined('INC_CMA_FLDTYPES')) { return; }
+define('INC_CMA_FLDTYPES', 1);
+
 // NOTE: : bij wijzigingen even zoeken in de source naar het gebruik en aanvullen in de Forms Wizard
 
 define("CONSTFLDTYPE_COMBOBOX", 2);

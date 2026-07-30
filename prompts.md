@@ -7284,3 +7284,17 @@ karaat-data en staat in de karaat-repo.
 > Method App\Library\Installer::preOperation is not callable, can not call pre-update-cmd script 
 >
 > can you have a look?
+
+> de <lib-table menutrigger en het export menu zijn verschoven tov eerdere versies, kun je kijken wat daar is gebeurd?
+
+> ja graag
+
+> nee de eerste kolom begint nu teveel naar rechts en het exportmenu had ik naar beneden gedaan
+
+> wil je die ook oppakken?
+
+> kunnen we daar een deine voor gebruiken Odat dat geen probleem is, vokgens mij gebruikt de livrary die ook al
+
+> ja graag en je hebt gelijk qua uitvoer, kunnen we het beperken tot alleen functiedefinities ?
+
+> wordt er nog in twig-implementation gewerkt?

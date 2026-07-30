@@ -1,4 +1,11 @@
 <?php
+
+// Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.
+// require_once dekt het gewone geval al — die lost het pad eerst op — maar niet een
+// kale require/include, en niet een pad dat via een junction anders uitkomt. De naam
+// is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
+if (defined('INC_LIB_FORMTEXT')) { return; }
+define('INC_LIB_FORMTEXT', 1);
 // TODO: : Re-organize this stuff:
 // create a generic processor for form generated data (array : name/value) -> lib_FormFieldList 2nd edition!
 // Quick fix until reorganisation is complete!
