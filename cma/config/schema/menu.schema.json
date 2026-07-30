@@ -42,7 +42,8 @@
             "$ref": "#/definitions/accessLevel"
           },
           "items": {
-            "type": "array",
+            "type": ["array", "null"],
+            "description": "Menu items; null on a menu that has none",
             "items": {
               "type": "object",
               "required": ["id", "name"],
@@ -56,15 +57,19 @@
                   "description": "Menu item display name"
                 },
                 "form": {
-                  "type": "string",
-                  "description": "Form reference name"
+                  "type": ["string", "null"],
+                  "description": "Form reference name (legacy key, still read as fallback)"
+                },
+                "formName": {
+                  "type": ["string", "null"],
+                  "description": "Form reference name; preferred over form"
                 },
                 "formId": {
-                  "type": "integer",
-                  "description": "Original form ID reference"
+                  "type": ["integer", "string", "null"],
+                  "description": "Form reference by numeric id. Holds a name on items converted by the formName migration, and null on an item that opens no form."
                 },
                 "href": {
-                  "type": "string",
+                  "type": ["string", "null"],
                   "description": "External URL link"
                 },
                 "target": {

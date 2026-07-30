@@ -7232,3 +7232,9 @@ karaat-data en staat in de karaat-repo.
 > <status>completed</status>
 > <summary>Background command "Find the actual exception text" completed (exit code 0)</summary>
 > </task-notification>
+
+> ja pak die 2 maar op en kijk of response_percentage niet beter de parameter kan gebruiken, ik vermoed van wel namelijk
+
+> leuk! laten we het opstarten!
+
+> ja graag en top zo die testen! Erg blij mee. Kun je ze allemaal tackelen?

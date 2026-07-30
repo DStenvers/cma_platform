@@ -362,7 +362,7 @@ class ConfigFormService
                 if (ConfigLoader::save($configFile, $config)) {
                     return ['success' => true, 'id' => 'single'];
                 }
-                return self::error("Opslaan mislukt");
+                return self::saveFailed("Opslaan mislukt");
             }
 
             // Handle nested array paths like "menus[].items"
@@ -490,7 +490,7 @@ class ConfigFormService
                     return ['success' => true, 'id' => $data['id']];
                 }
 
-                return self::error("Opslaan mislukt");
+                return self::saveFailed("Opslaan mislukt");
             }
 
             // Simple path - direct array access
@@ -574,7 +574,7 @@ class ConfigFormService
                 return ['success' => true, 'id' => $data['id']];
             }
 
-            return self::error("Opslaan mislukt");
+            return self::saveFailed("Opslaan mislukt");
         } catch (\Exception $e) {
             return self::error($e->getMessage());
         }
@@ -846,7 +846,7 @@ class ConfigFormService
                     return ['success' => true];
                 }
 
-                return self::error("Verwijderen mislukt");
+                return self::saveFailed("Verwijderen mislukt");
             }
 
             // Simple path - direct array access
@@ -872,7 +872,7 @@ class ConfigFormService
                 return ['success' => true];
             }
 
-            return self::error("Verwijderen mislukt");
+            return self::saveFailed("Verwijderen mislukt");
         } catch (\Exception $e) {
             return self::error($e->getMessage());
         }
@@ -1062,7 +1062,7 @@ class ConfigFormService
             return ['success' => true, 'id' => $id];
         }
 
-        return self::error("Opslaan mislukt");
+        return self::saveFailed("Opslaan mislukt");
     }
 
     /**
@@ -1342,5 +1342,16 @@ class ConfigFormService
             'success' => false,
             'error' => $message
         ];
+    }
+
+    /**
+     * A refused write is nearly always a schema violation this change would
+     * introduce, and ConfigLoader knows exactly which key. Pass that on — a
+     * bare "Opslaan mislukt" makes the operator guess.
+     */
+    private static function saveFailed(string $what): array
+    {
+        $why = ConfigLoader::lastErrors();
+        return self::error($why === [] ? $what : $what . ': ' . implode(' · ', $why));
     }
 }

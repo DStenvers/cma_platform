@@ -67,7 +67,7 @@
                 },
                 "type": {
                     "type": "string",
-                    "enum": ["text", "longtext", "array", "select", "number", "boolean"]
+                    "enum": ["text", "longtext", "url", "array", "select", "number", "boolean"]
                 },
                 "defaultvalue": {
                     "type": ["string", "number", "boolean"]

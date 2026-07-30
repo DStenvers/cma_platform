@@ -128,9 +128,12 @@ function handleGet(string $configName, $id): void
  */
 function handleSchema(string $configName): void
 {
-    $schemaPath = __DIR__ . '/../config/schema/' . $configName . '.schema.json';
+    // Ask ConfigLoader, which knows the renames: app -> cma_branding.schema.json
+    // and reports -> cma_reports.schema.json. Building the name here meant those
+    // two answered 404 for a schema that does ship.
+    $schemaPath = ConfigLoader::schemaPath($configName);
 
-    if (!file_exists($schemaPath)) {
+    if ($schemaPath === null) {
         Response::json(['error' => 'Schema not found'], 404);
         return;
     }

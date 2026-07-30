@@ -25,7 +25,7 @@
     },
     "database": {
       "type": "string",
-      "enum": ["data", "rep", "users", "json"],
+      "enum": ["", "data", "rep", "users", "json"],
       "default": "data",
       "description": "Database connection name"
     },
@@ -35,7 +35,7 @@
       "description": "Primary key field name"
     },
     "parentForm": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Parent form name (for subforms)"
     },
     "allowAdd": {
@@ -65,19 +65,19 @@
     },
 
     "postHandler": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Custom PHP file for POST handling"
     },
     "afterPostUrl": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "URL to redirect after save"
     },
     "previewUrl": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "URL template for preview button"
     },
     "onLoadJs": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "JavaScript to execute on form load"
     },
 
@@ -93,7 +93,7 @@
       }
     },
     "quickSearchFields": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Comma-separated field names for quick search"
     },
     "protectedRecords": {
@@ -103,7 +103,7 @@
     },
 
     "activeField": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Field name that indicates record active status (1=active/green, 0=inactive/red in tree view)"
     },
 
@@ -169,15 +169,14 @@
           "description": "Column header (English)"
         },
         "width": {
-          "type": "string",
-          "pattern": "^[0-9]+(px|%|em)$",
-          "description": "Column width (e.g., '150px', '20%')"
+          "type": ["string", "integer"],
+          "description": "Column width: a CSS length ('150px', '20%') or a bare pixel count"
         },
         "type": {
           "type": "string",
-          "enum": ["text", "boolean", "date", "datetime", "number"],
+          "enum": ["text", "boolean", "date", "datetime", "number", "lookup", "active"],
           "default": "text",
-          "description": "Data type for formatting"
+          "description": "Data type for formatting. 'lookup' is what a combobox/userlist column becomes; 'active' renders the activeField toggle."
         },
         "align": {
           "type": "string",
@@ -226,21 +225,22 @@
 
     "field": {
       "type": "object",
-      "required": ["name", "type"],
+      "required": ["type"],
       "properties": {
         "name": {
           "type": "string",
-          "description": "Field name (matches database column or starts with _ for virtual)"
+          "description": "Field name (matches database column or starts with _ for virtual). Layout-only entries such as groupseparator carry no name, which is why it is not required."
         },
         "type": {
           "type": "string",
           "enum": [
-            "textbox", "memo", "checkbox", "combobox", "date", "time", "datetime", "dropdown",  
+            "textbox", "memo", "checkbox", "combobox", "date", "time", "datetime", "dropdown",
             "email", "password", "file", "image", "url", "checklist", "checklisttree",
-            "checklistinline", "sortlist", "label", "groupseparator", "readonly",  
-            "radiogroup", "custom", "userlist", "xmlstore", "directory"
+            "checklistinline", "sortlist", "label", "groupseparator", "readonly",
+            "radiogroup", "custom", "userlist", "xmlstore", "directory", "video",
+            "hidden", "ignorefield", "autonumber"
           ],
-          "description": "Control type"
+          "description": "Control type. 'hidden' posts a value without showing it, 'ignorefield' stores without rendering, 'autonumber' is a read-only counter column."
         },
         "caption": {
           "type": "string",

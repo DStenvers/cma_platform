@@ -3,6 +3,7 @@
 namespace Cma;
 
 use App\Library\Arr;
+use App\Library\JsonSchema;
 
 /**
  * ConfigLoader - Central configuration loading from JSON files
@@ -14,6 +15,9 @@ class ConfigLoader
 {
     /** @var array In-memory cache for loaded configs */
     private static array $cache = [];
+
+    /** @var string[] Why the last save() refused, empty after a successful one */
+    private static array $lastErrors = [];
 
     /** @var string Base path to config directory */
     private static ?string $configPath = null;
@@ -148,19 +152,64 @@ class ConfigLoader
     }
 
     /**
+     * The JSON Schema that describes a config, or null when there is none.
+     *
+     * Resolution mirrors resolveFilePath(): aliases are followed, and a config
+     * renamed to a cma_-prefix takes the renamed schema when one exists (app ->
+     * cma_branding.schema.json) but keeps its own when it does not (menu keeps
+     * menu.schema.json). One resolver, so an editor, the save-time check and
+     * the schema endpoint can never disagree.
+     */
+    public static function schemaPath(string $name): ?string
+    {
+        $base = basename(self::$aliases[$name] ?? $name);
+        $dir  = dirname(__DIR__) . '/config/schema/';
+
+        foreach ([self::$renamed[$base] ?? null, $base] as $candidate) {
+            if ($candidate !== null && is_file($dir . $candidate . '.schema.json')) {
+                return $dir . $candidate . '.schema.json';
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Why the last save() returned false. Empty after a successful save.
+     *
+     * @return string[]
+     */
+    public static function lastErrors(): array
+    {
+        return self::$lastErrors;
+    }
+
+    /**
      * Save a configuration file
+     *
+     * Refuses to write a document that breaks the config's schema — but only
+     * for violations THIS write introduces. A file that already violated its
+     * schema stays editable, otherwise switching validation on would lock the
+     * very screens that exist to repair it.
      *
      * @param string $name Config name
      * @param array $data Data to save
-     * @return bool Success
+     * @return bool Success; on false, lastErrors() says why
      */
     public static function save(string $name, array $data): bool
     {
+        self::$lastErrors = [];
         $file = self::resolveFilePath($name);
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         if ($json === false) {
+            self::$lastErrors = ['Kan de configuratie niet als JSON opslaan: ' . json_last_error_msg()];
+            return false;
+        }
+
+        $introduced = self::newSchemaViolations($name, $file, $data);
+        if ($introduced !== []) {
+            self::$lastErrors = $introduced;
             return false;
         }
 
@@ -174,21 +223,73 @@ class ConfigLoader
             @mkdir($dir, 0775, true);
         }
 
-        $result = file_put_contents($file, $json, LOCK_EX);
+        if (!self::writeAtomic($file, $json)) {
+            self::$lastErrors = ['Kan niet schrijven naar ' . basename($file) . ' — controleer de rechten van de app-pool-identiteit.'];
+            return false;
+        }
 
-        if ($result !== false) {
-            // Update cache
-            self::$cache[$name] = $data;
+        // Update cache
+        self::$cache[$name] = $data;
 
-            // Clear dependent service caches
-            if ($name === 'menu') {
-                \Cma\Services\MenuService::clearCache();
-            }
+        // Clear dependent service caches
+        if ($name === 'menu') {
+            \Cma\Services\MenuService::clearCache();
+        }
 
+        return true;
+    }
+
+    /**
+     * Schema violations in $data that the stored file did not already have.
+     *
+     * @return string[]
+     */
+    private static function newSchemaViolations(string $name, string $file, array $data): array
+    {
+        $schemaFile = self::schemaPath($name);
+        if ($schemaFile === null) {
+            return [];
+        }
+        $schema = json_decode((string)@file_get_contents($schemaFile), true);
+        if (!is_array($schema)) {
+            return [];
+        }
+
+        $errors = JsonSchema::validate($data, $schema);
+        if ($errors === []) {
+            return [];
+        }
+
+        $stored = is_file($file) ? json_decode((string)@file_get_contents($file), true) : null;
+        $known  = is_array($stored) ? JsonSchema::validate($stored, $schema) : [];
+
+        return array_values(array_diff($errors, $known));
+    }
+
+    /**
+     * Write via a temp file + rename, so a failing write cannot leave a
+     * truncated config behind, and keep the previous version as .bak. Falls
+     * back to writing in place when the rename is refused (a locked target),
+     * because losing the change is worse than losing atomicity.
+     */
+    private static function writeAtomic(string $file, string $json): bool
+    {
+        $tmp = $file . '.tmp';
+        if (file_put_contents($tmp, $json, LOCK_EX) === false) {
+            return file_put_contents($file, $json, LOCK_EX) !== false;
+        }
+
+        if (is_file($file)) {
+            @copy($file, $file . '.bak');
+        }
+
+        if (@rename($tmp, $file)) {
             return true;
         }
 
-        return false;
+        $ok = file_put_contents($file, $json, LOCK_EX) !== false;
+        @unlink($tmp);
+        return $ok;
     }
 
     /**

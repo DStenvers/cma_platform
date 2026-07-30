@@ -128,7 +128,14 @@ function handleSave(array $config, string $configFile, string $configArrayKey, $
             'id' => $record['id'] ?? $recordId
         ];
     } else {
-        return ['error' => 'Failed to save configuration', 'success' => false];
+        // ConfigLoader knows why it refused — a schema violation this change
+        // introduced, or an unwritable target. "Failed to save" alone sends the
+        // operator hunting.
+        $why = ConfigLoader::lastErrors();
+        return [
+            'error' => $why === [] ? 'Failed to save configuration' : implode(' · ', $why),
+            'success' => false
+        ];
     }
 }
 
@@ -162,7 +169,14 @@ function handleDelete(array $config, string $configFile, string $configArrayKey,
     if (ConfigLoader::save($configFile, $config)) {
         return ['success' => true, 'message' => 'Record deleted'];
     } else {
-        return ['error' => 'Failed to save configuration', 'success' => false];
+        // ConfigLoader knows why it refused — a schema violation this change
+        // introduced, or an unwritable target. "Failed to save" alone sends the
+        // operator hunting.
+        $why = ConfigLoader::lastErrors();
+        return [
+            'error' => $why === [] ? 'Failed to save configuration' : implode(' · ', $why),
+            'success' => false
+        ];
     }
 }
 
