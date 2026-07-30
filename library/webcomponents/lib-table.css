@@ -343,9 +343,19 @@ lib-table div.menutrigger:hover {
     background-repeat: no-repeat;
 }
 
-/* No top and no height here: the base rule centres the trigger vertically and
-   already has this height, so the pressed state only adds the pressed look. */
-lib-table div.menutrigger.open {
+/* The pressed look sits on a pseudo-element, not on the trigger itself: the
+   trigger spans the whole cell (so the menu can open at the cell's bottom edge),
+   and an inset shadow over that full height reads as a stripe instead of a
+   pushed-in button. This keeps the compact 28px button the kebab has always
+   had, centred over the dots. */
+lib-table div.menutrigger.open::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 28px;
     box-shadow: inset 0 2px 3px rgb(0 0 0 / .25);
     border-radius: 3px;
     border: 1px solid #f9f8f8;
