@@ -307,7 +307,10 @@ lib-table th:first-child .menutrigger .clicker {
    rest hangs outside the table, which is where it has always sat visually. */
 lib-table div.menutrigger {
     width: 20px;
-    height: 24px;
+    /* Same height as the .open state below: the box is vertically centred, so a
+       height that changes on click made the three dots jump 2px the moment you
+       pressed them. */
+    height: 28px;
     line-height: 24px;
     position: absolute;
     left: -13px;
@@ -333,12 +336,11 @@ lib-table div.menutrigger:hover {
     background-repeat: no-repeat;
 }
 
-/* No top here: the base rule centres the trigger vertically, and a fixed offset
-   would make the pressed state jump. */
+/* No top and no height here: the base rule centres the trigger vertically and
+   already has this height, so the pressed state only adds the pressed look. */
 lib-table div.menutrigger.open {
     box-shadow: inset 0 2px 3px rgb(0 0 0 / .25);
     border-radius: 3px;
-    height: 28px;
     border: 1px solid #f9f8f8;
 }
 
