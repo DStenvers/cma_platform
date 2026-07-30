@@ -747,7 +747,7 @@ function minify_asset($files): string {
  * which stamp `?v=` with this so a patched bundle isn't served from cache.
  */
 function cma_asset_version(): string {
-    return '20260727d';
+    return '20260730a';
 }
 
 // Legacy aliases for backward compatibility
@@ -2041,7 +2041,7 @@ function WriteSubForms($sFormID, $sParentID, $blnPrint)
                     if (!$blnPrint) {
                         ToolbarHelper::start(false);
                         if ($nCurRights >= SecurityHelper::ACCESS_FULL) {
-                            ToolbarHelper::linearButton('<a id="toolbar_new" data-tooltip=\'' . $lang_tb_add . "' href=\"javascript:w('" . $arrFormDetails[SUBFORM_ID][$tel] . "','','" . $arrFormDetails[SUBFORM_PARENT][$tel] . "','" . $sParentID . "','Toevoegen record bij " . Server::htmlEncode($arrFormDetails[SUBFORM_NAME][$tel]) . "'," . ($arrFormDetails[SUBFORM_FULLWIDTH][$tel] ? 'true' : 'false') . ')">', '<span class="lnr lnr-file-add"></span>', $arrFormDetails[SUBFORM_MENUNEW][$tel], 'Voeg toe');
+                            ToolbarHelper::linearButton('<a id="toolbar_new" data-tooltip=\'' . $lang_tb_add . "' href=\"javascript:w('" . $arrFormDetails[SUBFORM_ID][$tel] . "','','" . $arrFormDetails[SUBFORM_PARENT][$tel] . "','" . $sParentID . "','Toevoegen record bij " . Server::htmlEncode($arrFormDetails[SUBFORM_NAME][$tel]) . "'," . ($arrFormDetails[SUBFORM_FULLWIDTH][$tel] ? 'true' : 'false') . ')">', '<span class="btn-plus" aria-hidden="true">+</span>', $arrFormDetails[SUBFORM_MENUNEW][$tel], 'Voeg toe');
                         }
                         ToolbarHelper::end(false);
                     }

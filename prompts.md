@@ -7242,3 +7242,17 @@ karaat-data en staat in de karaat-repo.
 > jij zit ook op de main branch toch?
 
 > kun je een schema maken voor cma_tools.json en inderdaad de databases oppakken? Let op de onlangs toegevoegde default waarde, daar mag er maar 1 van zijn. Moet te valideren zij toch?
+
+> een andere sessie gaat de merge uitvoeren, dus laten we deze even rusten..
+
+> Eeen onderzoeksvraag: kunnen we formval_nl.js zo wijzigen dat deze niet meer vlaggetjes naast de velden zet maar: 
+>
+> een div.form_errors bovenaan het formulier invoegt waarin de fouten komen (code bestaat al) 
+> de velden die fout zijn op error zet 
+> het vlaggetje niet meer tonen
+>
+> waarom? Dat vlaggetje staat regelmatig op de verkeerde plek en een volledig overzicht van wat er aangepast moet worden is ook beter. 
+>
+> Wil je kijken hoe dat te implementeren? We wachten op code-wijzigingen totdat main volledig is bijgewerkt
+
+> if the <libable has a setting of export=N then the reserved space for the export menu id skipped, moving all table headers too much to the left, can you fix that?

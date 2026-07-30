@@ -6918,6 +6918,9 @@ class CmaFormController {
                     // cmaLog.log('loadList: loadRecord completed');
                     // Highlight the selected item in tree/list
                     this.selectListItem(currentRecordIdForLoad);
+                    // A deep link names the record, so the record wins: if the
+                    // remembered toolbar filter hides it, follow the record.
+                    await this._syncFilterToRecord(currentRecordIdForLoad);
                 } else if (currentRecordIdForLoad && skipRecordLoad) {
                     // cmaLog.log('loadList: skipping loadRecord (skipRecordLoad=true), just selecting item in list');
                     this.selectListItem(currentRecordIdForLoad);
@@ -6965,10 +6968,18 @@ class CmaFormController {
                     }
                 }
                 // Tree mode: load and highlight last selected record
-                // This shows the last viewed record when returning to tree mode
+                // This shows the last viewed record when returning to tree mode —
+                // but only when that record is in the list we just rendered. The
+                // remembered id is per form, not per filter, so after switching a
+                // toolbar filter (or on a list that is now empty) it can point at
+                // a record belonging to a completely different parent. Loading it
+                // anyway put a stranger in the detail panel and rewrote the URL to
+                // its id, while the tree showed nothing or something else.
+                // Deliberately NOT cleared: switching the filter back must restore
+                // it again.
                 else if (!this.isTableMode() && !cmaGetRecordId()) {
                     const lastRecordId = this.loadLastRecordId();
-                    if (lastRecordId) {
+                    if (lastRecordId && this.isRecordInList(lastRecordId)) {
                         // cmaLog.log('Tree mode: loading last selected record:', lastRecordId);
                         // Load the record and highlight it in the list
                         const success = await this.loadRecord(lastRecordId);
@@ -7587,6 +7598,98 @@ class CmaFormController {
         };
         // Use addTrackedListener for proper cleanup when controller is destroyed
         this.addTrackedListener(this.listContent, 'click', this._listItemClickHandler);
+    }
+
+    /**
+     * Point the toolbar filter at the parent of a record the list does not show.
+     *
+     * applyToolbarFilter() already drops the open record when the operator picks
+     * another filter value — the filter wins there. The reverse case is a deep
+     * link: /cma/form/toetsen/124 names the record, so there the record wins and
+     * the filter moves to its parent. Either way the tree and the detail panel
+     * end up describing the same thing.
+     *
+     * One shot per page load, so a record that stays out of the list (paging, or
+     * a value the filter combo does not offer) cannot start a reload loop.
+     *
+     * @returns {Promise<boolean>} true when the filter moved and the list reloaded
+     */
+    async _syncFilterToRecord(recordId) {
+        const filterFieldName = this.config.filterFieldName;
+        if (!filterFieldName || this._filterSyncedToRecord) return false;
+        if (this.isRecordInList(recordId)) return false;
+
+        const value = this._readFormFieldValue(filterFieldName);
+        if (!value) return false;
+
+        const current = (this.searchFilters || {})[filterFieldName] || '';
+        if (String(current) === String(value)) return false; // filter is right; the record just isn't listed
+
+        this._filterSyncedToRecord = true;
+        this.searchFilters = { ...this.searchFilters, [filterFieldName]: String(value) };
+        this.saveToolbarFilter(String(value));
+        await this.loadList(false, true); // skipRecordLoad: the record is already open
+        this._syncToolbarFilter();
+        this.selectListItem(recordId);
+        return true;
+    }
+
+    /**
+     * Read a value from the loaded record's form by field name, case-insensitively
+     * (JSON definitions and database columns disagree on casing often enough).
+     */
+    _readFormFieldValue(fieldName) {
+        if (!this.mainForm || !fieldName) return '';
+
+        let field = this.mainForm.querySelector('[name="' + fieldName + '"]');
+        if (!field) {
+            const wanted = fieldName.toLowerCase();
+            for (const candidate of this.mainForm.querySelectorAll('input, select, textarea, lib-combo')) {
+                const name = candidate.getAttribute('name');
+                if (name && name.toLowerCase() === wanted) {
+                    field = candidate;
+                    break;
+                }
+            }
+        }
+        return field ? String(field.value ?? '') : '';
+    }
+
+    /**
+     * Is this record present in the list as it is rendered right now?
+     *
+     * The detail panel must never show a record the tree/list does not contain:
+     * a form with a required filter (e.g. toetsen filtered on fkOpleiding) would
+     * otherwise show a record belonging to a different parent than the one
+     * selected, which reads as data from nowhere.
+     *
+     * Mirrors the lookup strategies of selectListItem(), so "found" here means
+     * "selectable there".
+     */
+    isRecordInList(id) {
+        if (id === null || id === undefined || id === '') return false;
+        const wanted = String(id);
+
+        if (this._libTableInstance) {
+            return !!this._libTableInstance.shadowRoot?.querySelector(`.lib-table-row[data-id="${wanted}"]`);
+        }
+        if (!this.listContent) return false;
+
+        if (this.listContent.querySelector(`.list-item[data-id="${wanted}"]`)) return true;
+        if (this.listContent.querySelector(`a[data-id="${wanted}"]`)) return true;
+        if (this.listContent.querySelector(`tr.listrow[data-id="${wanted}"]`)) return true;
+
+        // Grouped/legacy trees carry the id in the href instead of data-id.
+        for (const link of this.listContent.querySelectorAll('a[target="R"]')) {
+            const href = link.getAttribute('href') || '';
+            if (href.includes(`loadRecord(${wanted})`)
+                || href.includes(`loadRecord('${wanted}')`)
+                || href.includes(`loadRecord("${wanted}")`)
+                || href === wanted) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -11159,7 +11262,7 @@ class CmaFormController {
         const disabledAttr = data.canAdd ? '' : ' aria-disabled="true"';
         html += '<span class="tb-btn' + disabledClass + '" title="' + addTooltip + '">';
         html += '<a href="#" data-action="subform-add" data-subform-id="' + (data.subformId || '') + '" data-subform-index="' + index + '"' + disabledAttr + '>';
-        html += '<span class="lnr lnr-file-add"></span>';
+        html += '<span class="btn-plus" aria-hidden="true">+</span>';
         html += '<span class="btn-text">Toevoegen</span>';
         html += '</a></span>';
 

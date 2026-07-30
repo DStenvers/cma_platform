@@ -93,7 +93,7 @@ function main()
                 echo '<div class="toolbar">';
                 echo '<span class="tb-btn">';
                 echo '<a href="#" onclick="subformAdd(' . $tab['id'] . ', \'' . $tab['parentField'] . '\', \'' . $parentId . '\', \'' . addslashes($tab['name']) . '\', ' . ($tab['fullWidth'] ? 'true' : 'false') . '); return false;" title="' . htmlspecialchars($lang_tb_add ?? 'Toevoegen') . '">';
-                echo '<span class="lnr lnr-file-add"></span>';
+                echo '<span class="btn-plus" aria-hidden="true">+</span>';
                 echo '<span class="btn-text">Toevoegen</span>';
                 echo '</a>';
                 echo '</span>';

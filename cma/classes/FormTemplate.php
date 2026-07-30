@@ -661,7 +661,7 @@ class FormTemplate
         if ($canAdd) {
             $addTooltip = 'Voeg een ' . Server::htmlEncode(strtolower($formNameSingular)) . ' toe';
             $html .= '<span class="tb-sep table-mode-only"></span>' . PHP_EOL;
-            $html .= '<span class="tb-btn table-mode-only" id="btn_add" title="' . $addTooltip . '"><a href="#" data-action="add"><span class="lnr lnr-file-add"></span></a></span>' . PHP_EOL;
+            $html .= '<span class="tb-btn table-mode-only" id="btn_add" title="' . $addTooltip . '"><a href="#" data-action="add"><span class="btn-plus" aria-hidden="true">+</span></a></span>' . PHP_EOL;
         }
 
         // Readonly indicator (shown when form doesn't allow editing)
@@ -1291,7 +1291,7 @@ class FormTemplate
         $singularLower = strtolower($formNameSingular);
         if ($canAdd) {
             $addTooltip = 'Voeg een ' . Server::htmlEncode($singularLower) . ' toe';
-            $html .= '<span class="tb-btn responsive-btn" data-btn-order="' . $btnIndex++ . '" title="' . $addTooltip . '"><a href="#" data-action="addInline"><span class="lnr lnr-file-add"></span><span class="btn-text">Toevoegen</span></a></span>' . PHP_EOL;
+            $html .= '<span class="tb-btn responsive-btn" data-btn-order="' . $btnIndex++ . '" title="' . $addTooltip . '"><a href="#" data-action="addInline"><span class="btn-plus" aria-hidden="true">+</span><span class="btn-text">Toevoegen</span></a></span>' . PHP_EOL;
         }
 
         // Save button - requires record
@@ -1466,7 +1466,7 @@ class FormTemplate
             // Same data-action="add" contract as the toolbar button, so the
             // controller's action delegation handles it identically.
             $html .= '<button type="button" class="btn btn-primary no-data__add" data-action="add">'
-                   . '<span class="lnr lnr-file-add"></span> ' . Server::htmlEncode($noDataButtonLabel) . '</button>' . PHP_EOL;
+                   . '<span class="btn-plus" aria-hidden="true">+</span> ' . Server::htmlEncode($noDataButtonLabel) . '</button>' . PHP_EOL;
         }
         $html .= '</div>' . PHP_EOL;
         $html .= '</div>' . PHP_EOL;
