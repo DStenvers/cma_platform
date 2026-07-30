@@ -51,6 +51,7 @@ class ConfigLoader
      */
     private static array $renamed = [
         'app'     => 'cma_branding',
+        'menu'    => 'cma_menu',
         'reports' => 'cma_reports',
     ];
 

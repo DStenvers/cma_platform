@@ -1792,12 +1792,57 @@ function render_doc_environment(): void
     <p>Toggle-doel: <code>P</code> → <code>T</code>; alles anders → <code>P</code>. Een bevestigingsdialoog meldt dat de wijziging in <code>.env</code> wordt weggeschreven en geldt voor alle gebruikers van de site.</p>
 
     <h2>Welke env-vars zijn er?</h2>
-    <p>Per onderwerp:</p>
+    <p>Er is geen <code>.env.template</code> en geen centrale lijst in code: elke variabele wordt gelezen op de plek die hem nodig heeft, met een eigen default. Hieronder staat per variabele wat hem leest en wat er gebeurt als je hem weglaat. Alles is optioneel tenzij anders vermeld.</p>
+
+    <h3>Omgeving &amp; foutweergave</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>APP_ENVIRONMENT</code></td><td><code>P</code></td><td><code>Bootstrap</code> — de omgevingscode (<code>O</code>/<code>L</code>/<code>T</code>/<code>A</code>/<code>P</code>) uit de tabel bovenaan. Bepaalt debug-gedrag, niet welk bestand geladen wordt. Een OS-level waarde in de app-pool overrulet het bestand.</td></tr>
+            <tr><td><code>FORCE_DEBUG</code></td><td>uit</td><td><code>Bootstrap</code> — <code>1</code> houdt verbose errors aan, ook op <code>P</code>.</td></tr>
+            <tr><td><code>CMA_DEBUG</code></td><td>uit</td><td><code>cma/bootstrap.inc</code> — <code>1</code> zet de CMA-debugmodus aan (constante <code>CMA_DEBUG_MODE</code>, gebruikt door de front-end-logging). Los van <code>FORCE_DEBUG</code>: dit gaat over de CMA-UI, niet over PHP-errorweergave.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Logging &amp; meten</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>PERF_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Services\SystemSettings</code> — performance-logging. Waarde via <code>FILTER_VALIDATE_BOOLEAN</code>, dus <code>0</code>/<code>off</code>/<code>false</code> werken allemaal.</td></tr>
+            <tr><td><code>CACHE_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de cache-log.</td></tr>
+            <tr><td><code>DEBUG_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de debug-log. Deze drie zijn ook omschakelbaar in de UI; <code>SystemSettings</code> schrijft ze terug naar het actieve env-bestand.</td></tr>
+            <tr><td><code>EMAIL_LOG_ENABLED</code></td><td><code>true</code></td><td><code>cma/bootstrap.inc</code> — hangt de afterSend-logging aan <code>Email</code>. Let op: uitsluitend de exacte string <code>false</code> zet dit uit, <code>0</code> niet.</td></tr>
+            <tr><td><code>SQL_LOG_ENABLED</code></td><td>uit</td><td><code>Database</code> — logt elke query met duur. Zet dit niet standaard aan: het is één schrijfactie per query.</td></tr>
+            <tr><td><code>SQL_LOG_FILE</code></td><td><code>sql_queries.log</code> in de site-root</td><td><code>Database</code> — doelbestand van bovenstaande log. Is het pad niet schrijfbaar, dan meldt <code>Database</code> dat één keer in het PHP-errorlog.</td></tr>
+            <tr><td><code>PROFILER_ENABLED</code></td><td>uit; automatisch aan in <code>L</code>/<code>O</code>/<code>T</code></td><td><code>Profiler</code> — request-profiling naar CSV.</td></tr>
+            <tr><td><code>PROFILER_LOG_FILE</code></td><td><code>profiler.csv</code> in de base path</td><td><code>Profiler</code> — doelbestand.</td></tr>
+            <tr><td><code>PROFILER_THRESHOLD_MS</code></td><td><code>0</code></td><td><code>Profiler</code> — requests sneller dan deze grens worden niet gelogd.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Externe diensten &amp; paden</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>GOOGLE_OAUTH_CLIENT_ID</code><br><code>GOOGLE_OAUTH_CLIENT_SECRET</code></td><td>leeg</td><td><code>GoogleOAuth</code> — zonder deze twee is Google-login uit. De oudere namen <code>GOOGLE_CLIENT_ID</code>/<code>GOOGLE_CLIENT_SECRET</code> werken als terugval, dus beide naamparen kunnen op een site voorkomen.</td></tr>
+            <tr><td><code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code></td><td><code>localhost</code> voor host</td><td><code>Services\BackupService</code> — <span class="cma-tool__em">alleen</span> voor mysqldump/restore van MySQL-databases. De runtime-verbindingen komen uit <a href="documentation.php?topic=json_config">databases.json</a>, niet hieruit.</td></tr>
+            <tr><td><code>REDIS_HOST</code>, <code>REDIS_PORT</code></td><td><code>127.0.0.1</code>, <code>6379</code></td><td><code>tools_clearcache.php</code> — alleen relevant als <code>Cache</code> op de redis-backend staat.</td></tr>
+            <tr><td><code>CACHE_DIRECTORY</code></td><td>de standaard cache-map</td><td><code>tools_clearcache.php</code> — welke map de cache-leegmaker opruimt.</td></tr>
+            <tr><td><code>NODEJS_PATH</code></td><td>leeg</td><td><code>tools_testrunner.php</code> — nodig op IIS, waar de app-pool geen <code>PATH</code> met node erin heeft. Zonder deze var kan de Cypress-runner niet starten.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Elders gedocumenteerd</h3>
     <ul>
         <li><span class="cma-tool__strong">Deploy</span>: <code>DEPLOY_SECRET</code>, <code>DEPLOY_BRANCH</code>, <code>DEPLOY_SITE_ROOT</code>, <code>DEPLOY_PIPELINE</code>, <code>DEPLOY_COMPOSER_UPDATE</code>, <code>DEPLOY_COMPOSER_CLEAR_CACHE</code>, <code>DEPLOY_RUN_TESTS</code>, <code>DEPLOY_RECYCLE_TOUCH</code>, <code>DEPLOY_LOG_FILE</code>, <code>DEPLOY_POST_HOOK</code> — zie <a href="documentation.php?topic=deployment">Deployment</a>.</li>
-        <li><span class="cma-tool__strong">LLM</span>: <code>LLM_PROVIDER</code>, <code>LLM_URL</code>, <code>LLM_MODEL</code>, <code>LLM_KEY</code>, <code>LLM_FALLBACK_MODEL</code>, <code>OCR_VISION_KEY</code>, <code>OCR_VISION_PROVIDER</code>, <code>LLM_MODELS_DIR</code> — zie <a href="documentation.php?topic=deployment">Deployment</a> en de LLM-tools.</li>
-        <li><span class="cma-tool__strong">Logging</span>: <code>EMAIL_LOG_ENABLED</code>, <code>PERF_LOG_ENABLED</code>, <code>CACHE_LOG_ENABLED</code> — zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</li>
-        <li><span class="cma-tool__strong">Mail</span>: <code>mail_server</code>, <code>mail_server_port</code>, <code>mail_username</code>, <code>mail_password</code> via <code>Application::get</code> (uit <code>app.php</code>, niet uit <code>.env</code>).</li>
+        <li><span class="cma-tool__strong">LLM</span>: <code>LLM_PROVIDER</code>, <code>LLM_URL</code>, <code>LLM_MODEL</code>, <code>LLM_KEY</code>, <code>LLM_FALLBACK_MODEL</code>, <code>OCR_VISION_KEY</code>, <code>OCR_VISION_PROVIDER</code>, <code>LLM_MODELS_DIR</code> — zie <a href="documentation.php?topic=llm">LLM-configuratie</a>.</li>
+    </ul>
+
+    <h3>Wat NIET uit .env komt</h3>
+    <p>Twee valkuilen, omdat de naam anders suggereert:</p>
+    <ul>
+        <li><span class="cma-tool__strong">Mail</span>: <code>mail_server</code>, <code>mail_server_port</code>, <code>mail_username</code>, <code>mail_password</code> lopen via <code>Application::get</code> en komen dus uit <code>app.php</code> / <code>global.asa.php</code>.</li>
+        <li><span class="cma-tool__strong">Database-verbindingen</span>: die staan in <code>data/databases.json</code>. Wil je een wachtwoord tóch in <code>.env</code> houden, gebruik dan de <code>[env:NAAM]</code>-placeholder ín de connectionString — zie <a href="documentation.php?topic=json_config">JSON-configuratie</a>. De legacy <code>CONN_USERS_PATH</code>/<code>CONN_USERS_DRIVER</code> worden niet door de bootstrap gelezen; alleen <code>tools/reload_env.php</code> zet ze door naar <code>Application</code>.</li>
     </ul>
 
     <h2>Project-specifieke configs</h2>
@@ -1934,6 +1979,30 @@ function render_doc_json_config(): void
     <p><code>cma/config/schema/</code> is de enige schemamap. Verwijst iets naar een schema elders, of naar een gewoon JSON-bestand dat toevallig bestaat, dan valt de validatie stil weg — de controle hieronder eist daarom dat elke verwijzing in <code>cma/config/schema/</code> uitkomt.</p>
     <p>Genereer je zelf JSON, bereken het pad dan uit de doelmap met <code>App\Library\File::relativePath()</code> in plaats van het in te typen.</p>
     <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_json_schema_refs'])); ?>
+
+    <h2>Welk schema hoort bij welk bestand</h2>
+    <p>Elk schema in <code>cma/config/schema/</code> hoort bij precies één configbestand (of, bij formulierdefinities, bij een hele map). De verplichte top-level keys komen uit het <code>required</code>-veld van het schema zelf:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Configbestand</th><th>Schema</th><th>Verplichte keys</th><th>Te bewerken via</th></tr></thead>
+        <tbody>
+            <tr><td><code>data/databases.json</code></td><td><code>databases.schema.json</code></td><td><code>databases[]</code></td><td>Alleen met de hand (geen onderhoudsformulier)</td></tr>
+            <tr><td><code>data/cma_menu.json</code></td><td><code>menu.schema.json</code></td><td><code>menus[]</code></td><td>CMA-formulieren <code>_menus</code> en <code>_menu_items</code></td></tr>
+            <tr><td><code>data/cma_branding.json</code></td><td><code>cma_branding.schema.json</code></td><td><code>company</code></td><td>Alleen met de hand</td></tr>
+            <tr><td><code>data/cma_reports.json</code></td><td><code>cma_reports.schema.json</code></td><td><code>reports[]</code></td><td>Rapportontwerper</td></tr>
+            <tr><td><code>data/cma_tools.json</code></td><td><span class="cma-tool__em">geen schema</span></td><td>—</td><td>Alleen met de hand. Gelezen door <code>tools_catalog.inc</code>, met legacy-terugval op <code>data/tools.json</code>.</td></tr>
+            <tr><td><code>data/image-profiles.json</code></td><td><span class="cma-tool__em">geen schema</span></td><td>—</td><td>Alleen met de hand. Gelezen door <code>App\Library\ImageProfiles</code>; zie <a href="documentation.php?topic=images">WebP &amp; afbeeldingen</a>.</td></tr>
+            <tr><td><code>cma/control-types.json</code></td><td><code>control-types.schema.json</code></td><td><code>controlTypes[]</code></td><td>Alleen met de hand</td></tr>
+            <tr><td><code>cma/config/migrations.json</code></td><td><code>migrations.schema.json</code></td><td><code>schemaVersion</code>, <code>targetVersion</code>, <code>migrations[]</code></td><td>Alleen met de hand — zie <a href="documentation.php?topic=migrations">Migraties schrijven</a></td></tr>
+            <tr><td><code>assets/datastores/data-sources.json</code></td><td><code>data-sources.schema.json</code></td><td><code>dataSources[]</code></td><td>Alleen met de hand</td></tr>
+            <tr><td><code>cma/assets/contentblocks/contentblocks.json</code></td><td><code>contentblocks.schema.json</code></td><td>geen (<code>templates[]</code> is de inhoud)</td><td>CMA-formulier <code>contentblocks</code></td></tr>
+            <tr><td><code>assets/forms/*.json</code> en <code>cma/assets/forms/definitions/*.json</code></td><td><code>form-definition.schema.json</code></td><td><code>name</code>, <code>table</code>, <code>fields[]</code></td><td>CMA-formulier <code>formdefinitions</code></td></tr>
+        </tbody>
+    </table>
+    <p><code>modules.schema.json</code> hoort bij een <code>modules.json</code> die het platform niet meelevert en die geen migratie aanmaakt. <code>CmaRepository</code> vraagt er nog naar met <code>ConfigLoader::exists('modules')</code> en slaat dat pad over als het bestand er niet is — het schema is dus een overblijfsel, geen contract.</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Een schema valideert niets tijdens runtime.</span> Er zit geen JSON Schema-validator in het platform en geen enkele lezer controleert een configbestand tegen zijn schema. De schema's zijn er voor je editor (validatie + autocomplete) en als documentatie van het contract. Een configbestand dat het schema schendt wordt gewoon ingelezen; wat er misgaat merk je pas bij de eerste lezer die een key mist. Wil je zekerheid vóór deploy, gebruik dan <a href="tools_validate_config.php" target="_top">Config valideren</a> — die controleert per bestand of het geldige JSON is en of de verplichte keys aanwezig zijn.
+    </div>
 
     <h2>Runtime DB-connecties (single source of truth)</h2>
     <p><code>Bootstrap::initDatabaseConnections()</code> bouwt de logische connecties <code>data</code>, <code>rep</code> en <code>users</code> rechtstreeks uit <code>databases.json</code> — er worden géén <code>conn_data</code>/<code>conn_rep</code>/<code>conn_users</code> meer uit <code>app.php</code> of <code>global.asa.php</code> gelezen. Noem de entries <code>data</code>, <code>rep</code> en <code>users</code>; de legacy-namen <code>Database</code>, <code>Repository</code> en <code>CMAUsers</code> worden nog herkend zodat bestaande sites blijven werken.</p>

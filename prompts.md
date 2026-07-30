@@ -7191,3 +7191,44 @@ karaat-data en staat in de karaat-repo.
 > heb je openstaande punten?
 
 > waarom is er een cma/config/databases.json? kan die weg?
+
+## 2026-07-30
+
+> Kun je op zoek naar andere historische artifacts in het platform? Met name configuratie, helpers, classes e.d.
+
+> - cma/tools/tools_clearcache.php - lijkt opgelost
+> - ?ajax=proxyblocked iheel fijn, nu is het niet een representatieve test
+> AccessReportsTest - ja graag toevoegen
+> - eval_resultaten.php?guid=… : zal wel weer een movenext/fetch issues zijn, fijn als je daarnaar kijkt
+> - rapportage_teruggetrokken -> ja heel fijn 
+> - 7 vergelijkingsvormen in de rolwalk blijven onbereikbaar bij gebrek aan probe-tokens (cgo_document.php?guid=, opleiding_cgo_verzoek.php?verzoekid=, e.d.). kun je anders real-time crawlen en echte gevallen achterhalen of wil je dat ik wat doe?
+
+> pro6pp-sleutel: oeps. roteren is gedoe, kunnen we de git niet opschonen?
+
+> Kun je op zoek naar andere historische artifacts in het platform? Met name configuratie, helpers, classes e.d.
+>
+> en vervolgens: de configuratiebestanden (.env en .json), kun je die gedetailleerder  beschrijven en de schema's erbij betrekken? 
+>
+> en een onderzoeks-vraag: als je een schema hebt, is het te doen om json bestanden live te editten? Admin only uiteraard.
+
+> Kun je op zoek naar andere historische artifacts in het platform? Met name configuratie, helpers, classes e.d.
+>
+> en vervolgens: de configuratiebestanden (.env en .json), kun je die gedetailleerder  beschrijven en de schema's erbij betrekken? 
+>
+> en een onderzoeks-vraag: als je een schema hebt, is het te doen om json bestanden live te editten? Admin only uiteraard.
+
+> Kun je op zoek naar andere historische artifacts in het platform? Met name configuratie, helpers, classes e.d.
+>
+> en vervolgens: de configuratiebestanden (.env en .json), kun je die gedetailleerder  beschrijven en de schema's erbij betrekken? 
+>
+> en een onderzoeks-vraag: als je een schema hebt, is het te doen om json bestanden live te editten? Admin only uiteraard.
+
+>  pro6pp-sleutel: oeps. roteren is gedoe, kunnen we de git niet opschonen?
+
+> <task-notification>
+> <task-id>bc8evcf5b</task-id>
+> <tool-use-id>toolu_013FoXAVaPiXZPGReCqBQj9F</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/ab294e91-daf4-4e43-b6d3-729aa854aeb9/tasks/bc8evcf5b.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Find the actual exception text" completed (exit code 0)</summary>
+> </task-notification>

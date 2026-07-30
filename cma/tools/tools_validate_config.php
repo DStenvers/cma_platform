@@ -25,8 +25,9 @@ if (!$isCli) {
 
 echo "=== JSON Configuration Validator ==={$nl}{$nl}";
 
-$configPath = __DIR__ . '/config/';
-$schemaPath = $configPath . 'schema/';
+// The schemas live in cma/config/schema/ — the single schema directory. This
+// file sits in cma/tools/, so it is one level up, not alongside.
+$schemaPath = dirname(__DIR__) . '/config/schema/';
 
 $totalErrors = 0;
 $totalWarnings = 0;
@@ -97,10 +98,12 @@ foreach ($configs as $name => $rules) {
         echo "  Items: " . count($items) . "{$nl}";
     }
 
-    // Check schema reference
+    // Check schema reference. A $schema value resolves against the directory of
+    // the file that carries it, so resolve it from $file — not from a fixed
+    // config dir, which silently reported every reference as missing.
     if (isset($data['$schema'])) {
         $schemaRef = $data['$schema'];
-        $schemaFile = $configPath . ltrim($schemaRef, './');
+        $schemaFile = dirname($file) . '/' . $schemaRef;
         if (!file_exists($schemaFile)) {
             $warnings[] = "Schema file not found: {$schemaRef}";
         }
