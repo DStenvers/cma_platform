@@ -10,9 +10,12 @@
  * Variables the caller may set before including this file — all optional:
  *
  *   $requestedPath    the path that was not found (default: REQUEST_URI)
- *   $kind             'file' for a missing asset, anything else = a missing page.
+ *   $kind             'file' for a missing asset, 'page' for a missing route.
  *                     "De pagina die je zoekt bestaat niet" is wrong for
  *                     /favicon.svg or /handleiding.docx, so the copy follows.
+ *                     Left unset, the extension decides — a site with its own,
+ *                     longer list (mijnRINO's config/file_extensions.php) sets
+ *                     this itself and then that list governs.
  *   $notFoundHomeUrl  where the button goes (default '/')
  *   $notFoundHomeLabel  its label (default 'Terug naar start')
  *
@@ -21,10 +24,29 @@
  * failure modes (and sessions would override cache headers).
  */
 
-$cmaNfKind  = (isset($kind) && $kind === 'file') ? 'file' : 'page';
 $cmaNfPath  = (isset($requestedPath) && is_string($requestedPath) && $requestedPath !== '')
     ? $requestedPath
     : (string) ($_SERVER['REQUEST_URI'] ?? '/');
+
+// Did the visitor miss a page or a file? The caller may decide (and does, when it
+// keeps its own extension list); otherwise classify on the extension here, so a
+// site needs nothing but the include. Anything without a known file extension —
+// including extensionless routes and .php — is a page.
+if (isset($kind) && ($kind === 'file' || $kind === 'page')) {
+    $cmaNfKind = $kind;
+} else {
+    $cmaNfExt = strtolower((string) pathinfo((string) parse_url($cmaNfPath, PHP_URL_PATH), PATHINFO_EXTENSION));
+    $cmaNfKind = in_array($cmaNfExt, [
+        // documents & downloads
+        'doc', 'docx', 'rtf', 'odt', 'txt', 'md', 'xls', 'xlsx', 'csv', 'ppt', 'pptx',
+        'pdf', 'epub', 'zip', 'rar', '7z', 'tar', 'gz',
+        // images, fonts, media
+        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff', 'webp', 'avif', 'svg', 'ico',
+        'woff', 'woff2', 'ttf', 'otf', 'eot', 'mp3', 'mp4', 'm4a', 'wav', 'ogg', 'webm', 'mov', 'avi',
+        // front-end assets
+        'css', 'js', 'map', 'json', 'xml', 'rss', 'atom',
+    ], true) ? 'file' : 'page';
+}
 $cmaNfHome  = (isset($notFoundHomeUrl) && is_string($notFoundHomeUrl) && $notFoundHomeUrl !== '')
     ? $notFoundHomeUrl
     : '/';
