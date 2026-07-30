@@ -331,11 +331,13 @@ lib-table div.menutrigger {
     background-repeat: no-repeat;
 }
 
+/* Hover kleurt de puntjes: zonder die kleurwissel is er geen enkele aanwijzing
+   dat de kolomkop een knop bevat. */
 lib-table div.menutrigger:hover {
     background-image:
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px);
+        radial-gradient(circle at center, #e84f18 2px, transparent 2px),
+        radial-gradient(circle at center, #e84f18 2px, transparent 2px),
+        radial-gradient(circle at center, #e84f18 2px, transparent 2px);
     background-size: 4px 4px;
     background-position: center calc(50% - 6px), center 50%, center calc(50% + 6px);
     background-repeat: no-repeat;
