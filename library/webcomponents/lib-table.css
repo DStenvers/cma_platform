@@ -298,31 +298,36 @@ lib-table th:first-child .menutrigger .clicker {
 /* ==========================================================================
    8. Menutrigger (kebab / 3-dot menu)
    ========================================================================== */
-/* The kebab hangs to the left of the first header cell and is taken OUT of the
-   header's flex flow: whether it is there or not must not move the column label.
-   In flow it did — so a table with export="n" (no trigger) rendered its first
-   header 16px further left than the same table with the export menu, and out of
-   line with its own data cells. th is position:relative, so left is measured
-   from the cell edge; the 20px box then overlaps the cell's 8px padding and the
-   rest hangs outside the table, which is where it has always sat visually. */
+/* Room for the kebab: a table WITH an export menu insets its whole first column
+   — header and data — by the same amount, so the two line up and the three dots
+   sit inside the cell instead of hanging outside the table. Without an export
+   menu nothing is reserved and the column starts at the normal padding. The
+   24px matches the inset the row menu already uses on .listtable, so a list with
+   both keeps one left edge. */
+lib-table:has(.menutrigger) table th:first-child,
+lib-table:has(.menutrigger) table td:first-child {
+    padding-left: 24px;
+}
+
+/* Out of the header's flex flow, so the label position does not depend on the
+   trigger being there, and spanning the full cell height: that makes the dots
+   centre themselves whatever the header height is, gives a click target the
+   size of the cell, and lets the menu below open at exactly the cell's bottom
+   edge (top:100%). */
 lib-table div.menutrigger {
     width: 20px;
-    /* Same height as the .open state below: the box is vertically centred, so a
-       height that changes on click made the three dots jump 2px the moment you
-       pressed them. */
-    height: 28px;
     line-height: 24px;
     position: absolute;
-    left: -13px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 2px;
+    top: 0;
+    bottom: 0;
     cursor: pointer;
     background-image:
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
         radial-gradient(circle at center, #2196F3 2px, transparent 2px);
     background-size: 4px 4px;
-    background-position: center 6px, center 12px, center 18px;
+    background-position: center calc(50% - 6px), center 50%, center calc(50% + 6px);
     background-repeat: no-repeat;
 }
 
@@ -332,7 +337,7 @@ lib-table div.menutrigger:hover {
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
         radial-gradient(circle at center, #2196F3 2px, transparent 2px);
     background-size: 4px 4px;
-    background-position: center 6px, center 12px, center 18px;
+    background-position: center calc(50% - 6px), center 50%, center calc(50% + 6px);
     background-repeat: no-repeat;
 }
 
@@ -342,6 +347,12 @@ lib-table div.menutrigger.open {
     box-shadow: inset 0 2px 3px rgb(0 0 0 / .25);
     border-radius: 3px;
     border: 1px solid #f9f8f8;
+}
+
+/* Open BELOW the header cell, not halfway down it: the trigger spans the cell,
+   so its own bottom edge is the cell's bottom edge. */
+lib-table .menutrigger .cma-context-menu {
+    top: 100%;
 }
 
 lib-table .menutrigger.open .cma-context-menu.export-menu {
