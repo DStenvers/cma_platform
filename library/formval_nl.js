@@ -10,7 +10,9 @@ if (typeof lib_addEvent === 'undefined') {
 //
 // Form level
 // - data-ios-clear
-// - data-show-tooltip	if waarde = N dan geen tooltips 
+// - data-show-tooltip	doet niets meer. Er zijn geen tooltips naast velden; fouten staan
+//			in div.form_errors bovenaan het formulier. Het attribuut staat nog op
+//			veel formulieren (het zette het vlaggetje uit) en wordt genegeerd.
 //
 // field level custimisation
 // - data-validation-type
@@ -27,7 +29,14 @@ if (typeof lib_addEvent === 'undefined') {
 // future, consider using: http://jsfiddle.net/trixta/qTV3g/ 
 //
 var strValidationError = '';
-var fldTooltip= null;	// field the tooltip is shown for
+
+// Naast strValidationError (die blijft, consumers geven hem door) een lijst met het
+// veld erbij. Die is nodig omdat de samenvatting bovenaan het formulier per regel naar
+// het bijbehorende veld moet kunnen springen — uit een aan elkaar geplakte HTML-string
+// valt dat niet terug te halen. Een fout zonder veld (form_valid_add_error(null, ...))
+// staat er ook in, met fld = null, zodat formulier-brede meldingen niet wegvallen.
+var arrValidationErrors = [];
+var form_errors_classname = 'form_errors';
 
 if (window.addEventListener){
 	window.addEventListener("load", form_init_all);
@@ -57,8 +66,9 @@ function form_valid(form) {
 			pSubmit    = 'Verstuur';
 		}		
 		pClassname = 'forgotten';
-		
+
 		strValidationError='';
+		arrValidationErrors=[];
 
 		for (tel=0;tel<form.length;tel++) {
 			
@@ -97,23 +107,8 @@ function form_valid(form) {
 		}
 		
 		if (objFocus) {
-			if (typeof jQuery != 'undefined') {
-				var objActiveTabPanel = null;
-				var cur_elt = objFocus.parentElement;
-				while (cur_elt) {
-					// assumption: jQuery tab has element Role set to tab
-					if (cur_elt.getAttribute("role")=="tabpanel")
-						objActiveTabPanel = cur_elt;
-					cur_elt = cur_elt.parentElement;
-				}
-				if (objActiveTabPanel) {
-					var all_tabs = $('#' + objActiveTabPanel.parentElement.id);
-					all_tabs.tabs('select', objActiveTabPanel.id);
-					tooltip.fade(-1);
-				}
-			}
 			form_field_show_error( objFocus );
-			objFocus.focus();
+			form_field_reveal( objFocus );
 		}
 
 		
@@ -129,6 +124,7 @@ function form_valid(form) {
 
 		// process it
 		if (strValidationError=='') {
+			form_errors_clear( form );
 			if (document.all) {
 				for (tel=0;tel<form.length;tel++) {
 					objfield=form[tel];
@@ -138,7 +134,7 @@ function form_valid(form) {
 			}
 			return true;
 		} else {
-			form_valid_report( strValidationError, pSubmit )
+			form_valid_report( strValidationError, pSubmit, form )
 			return false;
 		}
 	} else {
@@ -149,8 +145,141 @@ function form_valid(form) {
 //
 //	Overridable function to report all errors on form-level
 //
-function form_valid_report( strValidErrors, strSubmitButton) {
+//	Zet de fouten in een div.form_errors bovenaan het formulier zelf, in plaats van in
+//	een dialoog die je moet wegklikken voordat je kunt aanpassen. Elke regel springt naar
+//	zijn veld. Zonder formulier (een oudere aanroeper die het derde argument niet
+//	meegeeft) valt hij terug op de dialoog, zodat de melding nooit verdwijnt.
+//
+function form_valid_report( strValidErrors, strSubmitButton, form) {
+	if (form && form_errors_render( form )) {
+		return;
+	}
 	lib_alertbox('De volgende velden behoeven nog aandacht:<br><br>'+strValidErrors+'<br>Graag aanpassen en opnieuw op <b>'+strSubmitButton+'</b> drukken.', "Het formulier is niet compleet", "form");
+}
+
+//
+//	De bestaande div.form_errors van dit formulier, of null.
+//
+function form_errors_find( form ) {
+	if (!form || !form.getElementsByTagName) return null;
+	var kandidaten = form.getElementsByTagName('div');
+	for (var t=0; t<kandidaten.length; t++) {
+		if ((' '+kandidaten[t].className+' ').indexOf(' '+form_errors_classname+' ')>-1) {
+			return kandidaten[t];
+		}
+	}
+	return null;
+}
+
+//
+//	Haal de samenvatting weg (formulier is in orde).
+//
+function form_errors_clear( form ) {
+	var box = form_errors_find( form );
+	if (box && box.parentNode) {
+		box.parentNode.removeChild( box );
+	}
+}
+
+//
+//	Bouw of verplaats de samenvatting bovenaan het formulier. Geeft de div terug, of
+//	null als er niets te melden is (dan is de div ook weg).
+//
+function form_errors_render( form ) {
+	if (!form) return null;
+
+	// Alleen fouten van DIT formulier. arrValidationErrors is per validatieronde leeg
+	// gemaakt, maar een veld kan inmiddels hersteld zijn zonder dat de ronde opnieuw
+	// liep — daarom telt data-error van het veld, niet wat er ooit in de lijst kwam.
+	var regels = [];
+	for (var t=0; t<arrValidationErrors.length; t++) {
+		var post = arrValidationErrors[t];
+		if (post.fld) {
+			if (post.fld.form !== form) continue;
+			if (!post.fld.getAttribute('data-error')) continue;
+		}
+		regels.push( post );
+	}
+
+	if (!regels.length) {
+		form_errors_clear( form );
+		return null;
+	}
+
+	var box = form_errors_find( form );
+	if (!box) {
+		box = document.createElement('div');
+		box.className = form_errors_classname;
+		// role=alert laat een schermlezer de melding voorlezen zodra hij verschijnt.
+		box.setAttribute('role', 'alert');
+		form.insertBefore( box, form.firstChild );
+	}
+	while (box.firstChild) box.removeChild( box.firstChild );
+
+	var kop = document.createElement('p');
+	kop.className = form_errors_classname + '__intro';
+	kop.appendChild( document.createTextNode('De volgende velden behoeven nog aandacht:') );
+	box.appendChild( kop );
+
+	var lijst = document.createElement('ul');
+	for (var r=0; r<regels.length; r++) {
+		lijst.appendChild( form_errors_regel( regels[r] ) );
+	}
+	box.appendChild( lijst );
+
+	// De div staat bovenaan het formulier; bij een lang formulier of een fout in een
+	// andere tab staat dat buiten beeld. Zonder dit lijkt het of er niets gebeurt.
+	if (box.scrollIntoView) {
+		try { box.scrollIntoView({block: 'nearest'}); } catch(e) { box.scrollIntoView(); }
+	}
+	return box;
+}
+
+//
+//	Eén regel in de samenvatting. De fouttekst is HTML (hij bevat een
+//	libval__strong-span met de veldnaam), dus die gaat als innerHTML naar binnen.
+//
+function form_errors_regel( post ) {
+	var li = document.createElement('li');
+	if (!post.fld) {
+		li.innerHTML = post.html;
+		return li;
+	}
+	var a = document.createElement('a');
+	a.href = '#';
+	a.innerHTML = post.html;
+	lib_addEvent( a, 'click', function( e ) {
+		if (e && e.preventDefault) e.preventDefault();
+		form_field_reveal( post.fld );
+		return false;
+	});
+	li.appendChild( a );
+	return li;
+}
+
+//
+//	Breng een veld in beeld: activeer de tab waar het in zit en zet de focus erop.
+//	Werd alleen door form_valid() gedaan; de regels in de samenvatting hebben het net zo
+//	hard nodig, want die verwijzen vaak naar een veld in een tab die niet vooraan staat.
+//
+function form_field_reveal( fld ) {
+	if (!fld) return;
+	if (typeof jQuery != 'undefined') {
+		var objActiveTabPanel = null;
+		var cur_elt = fld.parentElement;
+		while (cur_elt) {
+			// assumption: jQuery tab has element Role set to tab
+			if (cur_elt.getAttribute("role")=="tabpanel")
+				objActiveTabPanel = cur_elt;
+			cur_elt = cur_elt.parentElement;
+		}
+		if (objActiveTabPanel && objActiveTabPanel.parentElement) {
+			try {
+				$('#' + objActiveTabPanel.parentElement.id).tabs('select', objActiveTabPanel.id);
+			} catch(e) {}
+		}
+	}
+	try { fld.focus(); } catch(e) {}
 }
 
 //
@@ -511,11 +640,19 @@ function form_valid_add_error( fld, cLongError, cShortError) {
 	if (cLongError!="") {
 		if (strValidationError.indexOf( cLongError )==-1) {
 			strValidationError+=(' - ' + cLongError + '<br/>');
+			// Zelfde ontdubbeling als hierboven: dezelfde melding staat er één keer in,
+			// ook als meerdere radio's van dezelfde groep hem opleveren.
+			arrValidationErrors.push({ fld: fld || null, html: cLongError });
 		}
 	}
 	if (fld) {
 		fld.setAttribute( "data-error", cLongError);
 		fld.setAttribute( "data-error-short", cShortError);
+		// aria-invalid maakt de foutstatus ook zonder kleur kenbaar.
+		if (fld.setAttribute) {
+			if (cLongError) { fld.setAttribute("aria-invalid", "true"); }
+			else { fld.removeAttribute("aria-invalid"); }
+		}
 		form_field_show_error( fld );
 	}
 }
@@ -523,63 +660,44 @@ function form_valid_add_error( fld, cLongError, cShortError) {
 //
 //	Overridable function to show a field error
 //
+//	Markeert het veld (klasse invalid, zie library.css). Er wordt GEEN tooltip meer naast
+//	het veld gezet: die werd absoluut gepositioneerd met lib_getAbsoluteOffsetLeft/Top, en
+//	dat gaat mis zodra het veld in een tab, een scrollende container of een element met
+//	offsetWidth 0 zit — dan stond het vlaggetje ergens anders dan bij het veld. Het
+//	overzicht staat nu in div.form_errors bovenaan het formulier, waar het niet kan
+//	verschuiven en waar in één oogopslag álles staat wat nog moet.
+//
 function form_field_show_error( fld ) {
 	if (!fld) return;
 	var cShortError = fld.getAttribute( "data-error-short");
-	var obj_pos = fld;
-
 	form_field_set_valid_classname (fld, !(cShortError));
-	if (fld.type=='checkbox' || fld.type=='radio') {
-		obj_pos = form_find_suitable_parent(obj_pos);
-	} 
-	if (cShortError) {
-		if (fld.form.getAttribute("data-show-tooltip")!="N") {
-			var leftPos = lib_getAbsoluteOffsetLeft(obj_pos);
-			if (leftPos==0 && obj_pos.parentElement) {
-				leftPos = lib_getAbsoluteOffsetLeft(obj_pos.parentElement);
-			}
-			leftPos += obj_pos.offsetWidth
-			if (fld.getAttribute("data-errorypos")) {
-				leftPos = lib_getAbsoluteOffsetLeft(obj_pos) + parseInt( fld.getAttribute("data-errorypos") );
-			}
-			var nTopPos = lib_getAbsoluteOffsetTop(obj_pos);
-			if (nTopPos==0 && obj_pos.parentElement) {
-				nTopPos = lib_getAbsoluteOffsetTop(obj_pos.parentElement);
-			}
-			tooltip.show(cShortError, null, leftPos, nTopPos  );	
-			fldTooltip = fld;
-		}
-	}
 }
 
 //
-//	Default handler for field focus, shows tooltip if needed
+//	Default handler for field focus
+//
+//	Toonde het vlaggetje opnieuw zodra je in een fout veld klikte. Zonder deze handler zou
+//	het vlaggetje via de achterdeur terugkomen; het veld blijft gemarkeerd en de melding
+//	staat in de samenvatting bovenaan.
 //
 function form_field_focus( e ) {
-	var fld = e.target ? e.target : e.srcElement;
-	var cShortError = fld.getAttribute( "data-error-short");
-	if (cShortError) {
-		var obj_pos = fld;
-		if (fld.type=='checkbox' || fld.type=='radio') {
-			obj_pos = form_find_suitable_parent(fld);
-		} 
-		if (fld.form.getAttribute("data-show-tooltip")!="N") {
-			tooltip.show(cShortError, null, lib_getAbsoluteOffsetLeft(obj_pos) + obj_pos.offsetWidth, lib_getAbsoluteOffsetTop(obj_pos) );		
-			fldTooltip = fld;
-		}
-	}
 }
 
 //
-//	Default handler for field focus loss, always hides tooltip
+//	Default handler for field focus loss
+//
+//	Herstelt de gebruiker het veld, dan verdwijnt zijn regel meteen uit de samenvatting.
+//	Anders zou daar een fout blijven staan die al opgelost is, en dat is precies het soort
+//	melding waar niemand meer naar kijkt. Alleen bijwerken als de samenvatting al bestaat:
+//	tijdens het invullen van een leeg formulier hoort er nog niets te verschijnen.
 //
 function form_field_blur( e ) {
 	var fld = e.target ? e.target : e.srcElement;
 	if (form_valid_field( fld ) ) {
 		form_field_set_valid_classname ( fld, true);
-		if (fldTooltip==fld) { 
-			tooltip.fade(-1);
-			fldTooltip = null;
+		if (fld.removeAttribute) { fld.removeAttribute("aria-invalid"); }
+		if (fld.form && form_errors_find( fld.form )) {
+			form_errors_render( fld.form );
 		}
 	}
 }
@@ -590,11 +708,13 @@ function form_field_blur( e ) {
 //
 function form_field_click( evt ) {
 	var elt = document.activeElement ? document.activeElement : evt.currentTarget;
-	// clear error and tooltip
+	// clear error
 	elt.setAttribute( "data-error-short", "");
-	tooltip.fade(-1);
 	// re-evaluate
 	form_valid_field( elt );
+	if (elt.form && form_errors_find( elt.form )) {
+		form_errors_render( elt.form );
+	}
 }
 
 function form_init_all(){

@@ -103,21 +103,36 @@ header('Content-Type: text/html; charset=utf-8');
             min-height: 100vh;
             padding: 20px;
         }
+        /* The 404 itself is the backdrop: as large as the viewport allows and
+           blurred, so it reads as a watermark instead of competing with the
+           message on top of it. Decorative — the heading carries the meaning. */
+        .ghost {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(34vw, 78vh);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -.04em;
+            color: #204496;
+            opacity: .16;
+            filter: blur(16px);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .container {
+            position: relative;
             text-align: center;
             max-width: 500px;
         }
         h1 {
-            font-size: 120px;
-            font-weight: 700;
-            color: #204496;
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-        h2 {
-            font-size: var(--font-size-3xl);
+            font-size: 32px;
             font-weight: 600;
-            color: #555;
+            color: #333;
             margin-bottom: 20px;
         }
         p {
@@ -126,11 +141,11 @@ header('Content-Type: text/html; charset=utf-8');
             line-height: 1.6;
         }
         .path {
-            background: #e9ecef;
+            background: rgba(233, 236, 239, .85);
             padding: 8px 12px;
             border-radius: 4px;
             font-family: monospace;
-            font-size: var(--font-size);
+            font-size: 14px;
             word-break: break-all;
             margin-bottom: 30px;
         }
@@ -149,9 +164,9 @@ header('Content-Type: text/html; charset=utf-8');
     </style>
 </head>
 <body>
+    <div class="ghost" aria-hidden="true"><span>404</span></div>
     <div class="container">
-        <h1>404</h1>
-        <h2>Pagina niet gevonden</h2>
+        <h1>Pagina niet gevonden</h1>
         <p>De pagina die je zoekt bestaat niet of is verplaatst.</p>
         <div class="path"><?= htmlspecialchars($requestedPath) ?></div>
         <a href="/cma/">Terug naar Dashboard</a>

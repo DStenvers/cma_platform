@@ -7256,3 +7256,7 @@ karaat-data en staat in de karaat-repo.
 > Wil je kijken hoe dat te implementeren? We wachten op code-wijzigingen totdat main volledig is bijgewerkt
 
 > if the <libable has a setting of export=N then the reserved space for the export menu id skipped, moving all table headers too much to the left, can you fix that?
+
+> the 404 page, can we have a large 404 that is blurred with filter: blur?
+
+> merge is compleet, kun je dit inbouwen?
