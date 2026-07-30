@@ -669,7 +669,7 @@ class ErrorHandler
             . 'box-sizing:border-box;margin:0;padding:12px 18px;background:#b8892b;color:#fff;'
             . 'font-family:system-ui,-apple-system,\'Segoe UI\',Roboto,sans-serif;font-size:14px;'
             . 'line-height:1.45;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.25)">'
-            . '<strong>Er vindt momenteel onderhoud plaats.</strong> '
+            . '<span style="font-weight:600">Er vindt momenteel onderhoud plaats.</span> '
             . 'Deze foutmelding is daar hoogstwaarschijnlijk het gevolg van &mdash; '
             . 'probeer het over enkele minuten opnieuw.'
             . '</div>';
