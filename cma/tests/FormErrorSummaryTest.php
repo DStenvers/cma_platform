@@ -1,0 +1,171 @@
+<?php
+/**
+ * Tests for the form error summary in library/formval_nl.js
+ *
+ * WHY THIS EXISTS
+ * Field errors used to be shown as a small flag next to the field, positioned with
+ * lib_getAbsoluteOffsetLeft/Top(). Those offsets are wrong whenever the field sits in a
+ * tab, in a scrolling container, or in an element whose offsetWidth is 0 — so the flag
+ * regularly appeared somewhere other than the field it belonged to, and it only ever
+ * showed ONE error at a time. It is replaced by a div.form_errors at the top of the form
+ * listing every error, each line linking to its field.
+ *
+ * Two things are guarded here. First that the flag does not creep back: it was shown from
+ * three different places (validation, focus, and the first-error handler), so removing it
+ * from one is not enough. Second that the minified bundles are rebuilt — the site loads
+ * formval_nl.min.js, so a source change without a rebuild leaves the old behaviour live
+ * while the source says otherwise. That gap is invisible in a diff.
+ *
+ * Run with: php cma/tests/TestRunner.php FormErrorSummaryTest
+ */
+
+require_once __DIR__ . '/TestRunner.php';
+
+class FormErrorSummaryTest extends TestCase
+{
+    private function lib(string $rel): string
+    {
+        $path = dirname(__DIR__, 2) . '/library/' . $rel;
+        $this->assertTrue(is_file($path), "library/$rel is missing");
+        return (string)file_get_contents($path);
+    }
+
+    /** The body of one top-level `function <name>( … ) { … }`, brace-matched. */
+    private function functionBody(string $src, string $name): string
+    {
+        $start = strpos($src, 'function ' . $name . '(');
+        $this->assertTrue($start !== false, "function $name() not found");
+        $open = strpos($src, '{', $start);
+        $this->assertTrue($open !== false, "function $name() has no body");
+        $depth = 0;
+        for ($i = $open; $i < strlen($src); $i++) {
+            if ($src[$i] === '{') { $depth++; }
+            elseif ($src[$i] === '}') {
+                $depth--;
+                if ($depth === 0) {
+                    return substr($src, $open, $i - $open + 1);
+                }
+            }
+        }
+        $this->assertTrue(false, "function $name() is not brace-balanced");
+        return '';
+    }
+
+    // ========================================================================
+    // The flag is gone — from every place it was shown
+    // ========================================================================
+
+    public function testSourceShowsNoTooltipAtAll(): void
+    {
+        $src = $this->lib('formval_nl.js');
+        // Substring match on purpose: any call shape (tooltip.show / .fade / .hide)
+        // means a flag is being positioned next to a field again.
+        $this->assertTrue(strpos($src, 'tooltip.show') === false, 'formval_nl.js calls tooltip.show again');
+        $this->assertTrue(strpos($src, 'tooltip.fade') === false, 'formval_nl.js calls tooltip.fade again');
+    }
+
+    public function testShowErrorOnlyMarksTheFieldAndDoesNotPosition(): void
+    {
+        $body = $this->functionBody($this->lib('formval_nl.js'), 'form_field_show_error');
+        $this->assertTrue(strpos($body, 'form_field_set_valid_classname') !== false,
+            'form_field_show_error no longer marks the field');
+        // Absolute offsets were the whole reason the flag landed in the wrong place.
+        $this->assertTrue(strpos($body, 'lib_getAbsoluteOffset') === false,
+            'form_field_show_error is positioning something again');
+    }
+
+    public function testFocusDoesNotBringTheFlagBack(): void
+    {
+        $body = $this->functionBody($this->lib('formval_nl.js'), 'form_field_focus');
+        $this->assertTrue(strpos($body, 'tooltip') === false, 'focusing a field shows a flag again');
+    }
+
+    // ========================================================================
+    // The summary
+    // ========================================================================
+
+    public function testReportReceivesTheFormAndRendersTheSummary(): void
+    {
+        $src = $this->lib('formval_nl.js');
+        // Without the form there is nothing to insert the summary into.
+        $this->assertTrue(preg_match('/function\s+form_valid_report\s*\([^)]*\bform\b[^)]*\)/', $src) === 1,
+            'form_valid_report() does not take the form');
+        $this->assertTrue(preg_match('/form_valid_report\s*\([^)]*,\s*form\s*\)/', $src) === 1,
+            'form_valid() does not pass the form to form_valid_report()');
+
+        $body = $this->functionBody($src, 'form_valid_report');
+        $this->assertTrue(strpos($body, 'form_errors_render') !== false,
+            'form_valid_report() does not render the summary');
+        // A caller that omits the form must still get a visible message.
+        $this->assertTrue(strpos($body, 'lib_alertbox') !== false,
+            'form_valid_report() lost its fallback for callers without a form');
+    }
+
+    public function testSummaryIsInsertedAtTheTopOfTheFormAndAnnounced(): void
+    {
+        $body = $this->functionBody($this->lib('formval_nl.js'), 'form_errors_render');
+        $this->assertTrue(strpos($body, 'insertBefore') !== false && strpos($body, 'firstChild') !== false,
+            'the summary is not inserted at the top of the form');
+        $this->assertTrue(strpos($body, "'role', 'alert'") !== false || strpos($body, '"role", "alert"') !== false,
+            'the summary is not announced to a screen reader');
+    }
+
+    public function testSummaryDisappearsWhenTheFormIsValid(): void
+    {
+        $src = $this->lib('formval_nl.js');
+        $this->assertTrue(strpos($src, 'function form_errors_clear') !== false, 'form_errors_clear() is missing');
+        // A stale list of errors that are already fixed is worse than none.
+        $this->assertTrue(strpos($this->functionBody($src, 'form_field_blur'), 'form_errors_render') !== false,
+            'repairing a field does not update the summary');
+    }
+
+    public function testSummaryLinesRevealTheirFieldIncludingItsTab(): void
+    {
+        $src = $this->lib('formval_nl.js');
+        $body = $this->functionBody($src, 'form_field_reveal');
+        $this->assertTrue(strpos($body, 'tabpanel') !== false, 'form_field_reveal() no longer activates the tab');
+        $this->assertTrue(strpos($body, 'focus') !== false, 'form_field_reveal() no longer focuses the field');
+        $this->assertTrue(strpos($this->functionBody($src, 'form_errors_regel'), 'form_field_reveal') !== false,
+            'a summary line does not jump to its field');
+    }
+
+    // ========================================================================
+    // Styling
+    // ========================================================================
+
+    public function testSummaryIsStyled(): void
+    {
+        $css = $this->lib('library.css');
+        $this->assertTrue(strpos($css, '.form_errors') !== false, '.form_errors has no styling');
+        // The field marker is the other half of the change and predates it.
+        $this->assertTrue(strpos($css, '.invalid') !== false, '.invalid styling disappeared');
+    }
+
+    // ========================================================================
+    // The bundles the site actually loads
+    // ========================================================================
+
+    public function testMinifiedBundlesAreRebuilt(): void
+    {
+        $root = dirname(__DIR__, 2) . '/library/';
+        foreach ([['formval_nl.js', 'formval_nl.min.js'], ['library.css', 'library.min.css']] as $paar) {
+            [$bron, $min] = $paar;
+            $this->assertTrue(is_file($root . $min), "library/$min is missing");
+            $this->assertTrue(
+                filemtime($root . $min) >= filemtime($root . $bron),
+                "library/$min is older than library/$bron — run `npm run build:minify` in cma/"
+            );
+        }
+    }
+
+    public function testBundlesCarryTheNewBehaviour(): void
+    {
+        // The site loads the .min files. Asserting the source alone would pass while the
+        // flag is still live in production.
+        $min = $this->lib('formval_nl.min.js');
+        $this->assertTrue(strpos($min, 'tooltip.show') === false, 'the bundle still shows the flag');
+        $this->assertTrue(strpos($min, 'form_errors') !== false, 'the bundle has no summary');
+        $this->assertTrue(strpos($this->lib('library.min.css'), 'form_errors') !== false,
+            'the CSS bundle has no .form_errors styling');
+    }
+}

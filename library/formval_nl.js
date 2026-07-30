@@ -696,9 +696,12 @@ function form_field_blur( e ) {
 	if (form_valid_field( fld ) ) {
 		form_field_set_valid_classname ( fld, true);
 		if (fld.removeAttribute) { fld.removeAttribute("aria-invalid"); }
-		if (fld.form && form_errors_find( fld.form )) {
-			form_errors_render( fld.form );
-		}
+	}
+	// Bijwerken of het veld nu goed of fout werd: een fout die tijdens het invullen
+	// ontstaat hoort meteen in de lijst te staan, niet pas bij de volgende submit —
+	// het veld is dan al rood en de lijst zou dat tegenspreken.
+	if (fld.form && form_errors_find( fld.form )) {
+		form_errors_render( fld.form );
 	}
 }
 

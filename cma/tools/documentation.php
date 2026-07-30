@@ -105,6 +105,7 @@ $topics = [
             'database'      => ['label' => 'Database & RecordSet',        'icon' => 'lnr-database',   'render' => 'render_doc_database'],
             'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
             'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
+            'formval'       => ['label' => 'Formuliervalidatie (front-end)', 'icon' => 'lnr-checkmark-circle','render' => 'render_doc_formval'],
             'json_config'   => ['label' => 'JSON-configuratie',           'icon' => 'lnr-papers',     'render' => 'render_doc_json_config'],
             'images'        => ['label' => 'WebP & afbeeldingen',         'icon' => 'lnr-picture',    'render' => 'render_doc_images'],
             'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
@@ -1589,6 +1590,7 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=database"><span class="lnr lnr-database"></span> Database &amp; RecordSet</a></td><td>Database::executeQuery PDO, RecordSet ADO-emulatie, connectie-namen, SQL-helpers.</td></tr>
             <tr><td><a href="documentation.php?topic=migrations"><span class="lnr lnr-arrow-right"></span> Migraties schrijven</a></td><td>Bestandsnaam, MigrationService flow, change-types, idempotente-invariant.</td></tr>
             <tr><td><a href="documentation.php?topic=json_forms"><span class="lnr lnr-text-format"></span> JSON-gedreven formulieren</a></td><td>JsonFormLoader + JsonFormRenderer, schema basics, form.php entry point, extraButtons placeholders.</td></tr>
+            <tr><td><a href="documentation.php?topic=formval"><span class="lnr lnr-checkmark-circle"></span> Formuliervalidatie (front-end)</a></td><td>form_valid(), de foutensamenvatting bovenaan het formulier, data-attributen per veld, de min-bundel die de site laadt.</td></tr>
             <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
             <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>LibLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
             <tr><td><a href="documentation.php?topic=releasing"><span class="lnr lnr-tag"></span> Releasen &amp; versies</a></td><td>composer.json version bump, git tag, semver, REMOVED_PATHS voor retired bestanden.</td></tr>
@@ -3398,6 +3400,61 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=architecture">Architectuur</a> (waar Services in <code>Cma\</code> namespace leven), <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.
+    </div>
+    <?php
+}
+
+function render_doc_formval(): void
+{
+    ?>
+    <h1>Formuliervalidatie (front-end)</h1>
+    <p class="docs-meta">Hoe <code>library/formval_nl.js</code> een formulier valideert, waar de foutmelding terechtkomt, en welke <code>data-</code>attributen een veld sturen.</p>
+
+    <h2>Aanroep</h2>
+    <p>Een formulier hangt de validatie aan zijn eigen submit: <code>onsubmit="return form_valid(this)"</code>. <code>form_valid()</code> initialiseert het formulier als dat nog niet gebeurd is, loopt alle velden langs, en geeft <code>true</code> terug als er niets te melden is. Bij fouten geeft hij <code>false</code> terug en verschijnt de samenvatting.</p>
+
+    <h2>Waar de fout terechtkomt</h2>
+    <p>Bovenaan het formulier, in een <code>div.form_errors</code> die <code>form_errors_render()</code> invoegt als eerste kind van het <code>&lt;form&gt;</code>. Eén regel per fout, elke regel een link naar zijn veld; het veld zelf krijgt de klasse <code>invalid</code> (rode rand plus icoon, gestyled in <code>library/library.css</code>) en <code>aria-invalid</code>.</p>
+    <p><span class="cma-tool__strong">Er staat geen melding naast het veld.</span> Dat was er wel — een klein vlaggetje, gepositioneerd met <code>lib_getAbsoluteOffsetLeft/Top()</code>. Die berekening klopt niet zodra het veld in een tab zit, in een container die scrollt, of in een element waarvan <code>offsetWidth</code> 0 is; het vlaggetje stond dan bij een ander veld. En het toonde er één, terwijl je wilt weten wat er in totaal nog moet.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:230px">Functie</th><th>Doet</th></tr></thead>
+        <tbody>
+            <tr><td><code>form_errors_render(form)</code></td><td>Bouwt of vervangt de samenvatting; geeft <code>null</code> terug en ruimt de div op als er niets te melden is</td></tr>
+            <tr><td><code>form_errors_clear(form)</code></td><td>Haalt de samenvatting weg (formulier is in orde)</td></tr>
+            <tr><td><code>form_field_reveal(fld)</code></td><td>Activeert de tab waarin het veld zit en zet de focus erop — gebruikt door de regels in de samenvatting én door de eerste fout na een submit</td></tr>
+            <tr><td><code>form_field_show_error(fld)</code></td><td>Markeert alleen het veld. Overschrijfbaar.</td></tr>
+            <tr><td><code>form_valid_report(fouten, knop, form)</code></td><td>Rendert de samenvatting. Overschrijfbaar. Zonder <code>form</code> valt hij terug op een dialoog, zodat een oudere aanroeper geen melding verliest.</td></tr>
+        </tbody>
+    </table>
+    <p>Herstelt iemand een veld, dan verdwijnt die regel bij het verlaten van het veld — maar alleen als de samenvatting al zichtbaar is. Tijdens het invullen van een leeg formulier verschijnt er dus niets; de melding komt pas als je op de knop drukt.</p>
+
+    <h2>Attributen op een veld</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:230px">Attribuut</th><th>Betekenis</th></tr></thead>
+        <tbody>
+            <tr><td><code>data-required</code></td><td>Verplicht. <code>N</code>/<code>false</code>/<code>0</code>/<code>no</code> zetten het uit.</td></tr>
+            <tr><td><code>data-label</code></td><td>Naam in de foutmelding. Wordt afgeleid uit de veldnaam als hij ontbreekt.</td></tr>
+            <tr><td><code>data-validation-type</code></td><td>Extra typecontrole op het veld.</td></tr>
+            <tr><td><code>data-length</code>, <code>data-length-max</code></td><td>Minimale en maximale lengte.</td></tr>
+            <tr><td><code>data-disable-checkmark</code></td><td>Geen <code>valid</code>/<code>invalid</code>-klasse op dit veld.</td></tr>
+            <tr><td><code>data-error</code>, <code>data-error-short</code></td><td>Door de validatie zelf gezet; niet met de hand vullen.</td></tr>
+            <tr><td><code>data-show-tooltip</code>, <code>data-errorypos</code></td><td><lib-label type="warning">Zonder werking</lib-label> Ze stuurden het vlaggetje. Ze staan nog op veel formulieren en worden genegeerd.</td></tr>
+        </tbody>
+    </table>
+    <p>Op formulier-niveau bestaan verder <code>data-button-name</code> (de knopnaam in de melding) en <code>data-validation</code>, dat via <code>eval()</code> een eigen controle draait nadat de velden zijn nagelopen.</p>
+
+    <h2>Een eigen weergave</h2>
+    <p>Wil een app de fouten ergens anders kwijt, overschrijf dan <code>form_valid_report()</code> ná het laden van <code>formval_nl.js</code>. Dat is de bedoelde ingang; de rest van de keten hoeft er niet voor open.</p>
+
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">De site laadt <code>formval_nl.min.js</code>, niet de bron.</span> Een wijziging zonder <code>npm run build:minify</code> (in <code>cma/</code>) verandert dus niets aan wat de browser krijgt — en dat is niet te zien in een diff. <code>cma/tests/FormErrorSummaryTest.php</code> controleert daarom of de bundels niet ouder zijn dan hun bron en of het vlaggetje er ook uit is. Let bij het testen op call-sites die de cachebuster hardcoderen (<code>?version=2</code>); die verversen niet mee.
+    </div>
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Er zijn losse copieën van deze logica.</span> Naast <code>library/formval_nl.js</code> dragen de inventarisatie-subapp en de karaat-front-end een eigen ingebakken versie van <code>form_valid_field</code>/<code>form_field_show_error</code> in hun eigen script-bundel. Een wijziging hier verandert die niet.
+    </div>
+
+    <div class="seealso">
+        Zie ook: <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a> (server-side formulierdefinities), <a href="documentation.php?topic=testing">Tests &amp; coverage strategie</a>.
     </div>
     <?php
 }
