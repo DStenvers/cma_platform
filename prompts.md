@@ -7260,3 +7260,22 @@ karaat-data en staat in de karaat-repo.
 > the 404 page, can we have a large 404 that is blurred with filter: blur?
 
 > merge is compleet, kun je dit inbouwen?
+
+> kun je karaat ook bijwerken? LAat inventarisatie maar zitten
+
+> als ik http://172.30.208.1:8090/te bekijk zie ik volgens mij nog de oude, klopt dat?
+
+> 2 , laat maar staan, ze waren toch goed?
+
+> rec en klei: graag
+
+> search as you type fout: js Uncaught TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+> http://172.30.208.1:8090/general.js?v=1785406047:98
+> TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+>     at HTMLInputElement.<anonymous> (http://172.30.208.1:8090/general.js?v=1785406047:98:35)
+>     at HTMLInputElement.dispatch (http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js:4:8549)
+>     at r.handle (http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js:4:5252) , graag in het platform oplossen
+
+> push and commit alles in 1 run
+
+> ok terug naar mijn rino.
