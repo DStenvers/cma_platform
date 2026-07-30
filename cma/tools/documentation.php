@@ -1401,6 +1401,64 @@ function cma_doc_check_json_schema_refs(): array {
     ];
 }
 
+/**
+ * Elke Installer-handler in composer.json moet in de GEÏNSTALLEERDE vendor bestaan.
+ *
+ * De `pre-*-cmd`-scripts draaien vóór de update, dus tegen de code die er nu staat — niet
+ * tegen de versie die de update zou binnenhalen. Verwijst composer.json naar een methode
+ * die de geïnstalleerde versie nog niet kent, dan weigert Composer met "Method … is not
+ * callable, can not call pre-update-cmd script" en kán de update die de methode meebrengt
+ * dus nooit draaien. Zonder deze controle merk je dat pas op het moment dat je wilt
+ * bijwerken.
+ */
+function cma_doc_check_composer_script_handlers(): array {
+    $label = 'composer.json: Installer-handlers bestaan';
+    $root = cma_doc_site_root();
+    $composer = $root . '/composer.json';
+    if (!is_file($composer)) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'composer.json niet gevonden.', 'fix' => ''];
+    }
+    $data = json_decode((string)file_get_contents($composer), true);
+    $scripts = is_array($data) ? ($data['scripts'] ?? []) : [];
+    if (!is_array($scripts) || $scripts === []) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Geen scripts in composer.json.', 'fix' => ''];
+    }
+
+    $ontbreekt = [];
+    $gezien = 0;
+    foreach ($scripts as $hook => $handlers) {
+        foreach ((array)$handlers as $handler) {
+            if (!is_string($handler) || strpos($handler, 'App\\Library\\Installer::') !== 0) {
+                continue;
+            }
+            $gezien++;
+            $methode = substr($handler, strlen('App\\Library\\Installer::'));
+            if (!method_exists('\\App\\Library\\Installer', $methode)) {
+                $ontbreekt[] = $hook . ' → ' . $methode . '()';
+            }
+        }
+    }
+
+    if ($gezien === 0) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'composer.json verwijst niet naar de Installer.', 'fix' => ''];
+    }
+    if ($ontbreekt === []) {
+        return ['label' => $label, 'status' => 'pass',
+            'detail' => $gezien . ' handler(s) gecontroleerd, alle aanwezig in de geïnstalleerde versie ('
+                . htmlspecialchars(\App\Library\Bootstrap::getPlatformVersion()) . ').', 'fix' => ''];
+    }
+    return [
+        'label' => $label,
+        'status' => 'fail',
+        'detail' => 'Onbekend in de geïnstalleerde versie ('
+            . htmlspecialchars(\App\Library\Bootstrap::getPlatformVersion()) . '): <code>'
+            . implode('</code>, <code>', array_map('htmlspecialchars', $ontbreekt)) . '</code>.',
+        'fix' => 'Een <code>pre-*-cmd</code> hiervan blokkeert <code>composer update</code> volledig. '
+            . 'Haal die regel tijdelijk uit <code>composer.json</code>, draai de update, en zet hem terug '
+            . '— daarna kent de vendor de methode wel.',
+    ];
+}
+
 function cma_doc_check_deploy_log(): array {
     $label = '.logs/deploy/deploy.log';
     $path = cma_doc_site_root() . '/.logs/deploy/deploy.log';
@@ -1648,6 +1706,7 @@ function render_doc_installation(): void
     cma_doc_render_check_table('Vereisten — live check op deze site', cma_doc_run_checks([
         'cma_doc_check_php_version',
         'cma_doc_check_php_extensions',
+        'cma_doc_check_composer_script_handlers',
     ]));
     ?>
 
@@ -1679,11 +1738,22 @@ Dit gebeurt wanneer de sectie is vergrendeld op bovenliggend niveau.</code></pre
         "stenversonline/platform": "^1.0"
     },
     "scripts": {
+        "pre-install-cmd":  "App\\Library\\Installer::preOperation",
+        "pre-update-cmd":   "App\\Library\\Installer::preOperation",
         "post-install-cmd": "App\\Library\\Installer::postInstall",
         "post-update-cmd":  "App\\Library\\Installer::postUpdate"
     }
 }</code></pre>
-            De <code>scripts</code> sectie is cruciaal — zonder die hooks draait de Installer niet en blijven <code>cma/</code>, <code>library/</code> bestanden achter in <code>vendor/</code> in plaats van naar de project-root gesynct te worden.
+            De <code>scripts</code> sectie is cruciaal — zonder die hooks draait de Installer niet en blijven <code>cma/</code>, <code>library/</code> bestanden achter in <code>vendor/</code> in plaats van naar de project-root gesynct te worden. De twee <code>pre-</code>hooks zetten de <a href="documentation.php?topic=deploy">onderhoudspagina</a> aan zolang de bestanden verwisseld worden.
+        </li>
+        <li>
+            <div class="docs-callout docs-callout--warn">
+                <span class="cma-tool__strong">Voeg een <code>pre-*-cmd</code> pas toe als de geïnstalleerde versie die methode kent.</span>
+                Een <code>pre-</code>hook draait vóór de update, dus tegen de code die er op dat moment staat — niet tegen de versie die de update zou binnenhalen. Verwijst <code>composer.json</code> naar een methode die de huidige vendor nog niet heeft, dan stopt Composer met:
+                <pre><code>Method App\Library\Installer::preOperation is not callable,
+can not call pre-update-cmd script</code></pre>
+                en kan juist de update die de methode meebrengt niet draaien. Eruit komen: haal die ene regel weg, draai <code>composer update</code>, zet hem terug. De check-tabel bovenaan deze pagina controleert dit vooraf.
+            </div>
         </li>
         <li><code>composer install</code> uitvoeren. De Installer runt automatisch en kopieert <code>library/</code>, <code>cma/</code>, <code>module/</code> naar de project-root, en plaatst eenmalige template-bestanden (<code>_bootstrap.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>) als die nog niet bestaan.</li>
         <li>De Installer kopieert tegelijk eenmalig de template-bestanden uit <code>templates/</code> als ze nog niet bestaan op de site-root: <code>_bootstrap.php</code>, <code>_bootstrap_wrapper.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>, en <code>assets/css/cma.css</code> (uit <code>cma.css.template</code>). <code>_bootstrap_constants.inc</code> wordt apart gekopieerd. Bestaande bestanden worden NOOIT overschreven.</li>
@@ -3903,6 +3973,7 @@ function render_doc_troubleshooting(): void
             <tr><td>Fatal: <code>Class "App\Library\Email" not found</code></td><td>Zelfde oorzaak — vendor refresh ontbrak, Email.php nog niet autoloadable maar bootstrap.inc raakt 'm aan.</td><td>Heeft <code>class_exists</code> guard zodat CMA niet meer crash't; voor permanent: composer update.</td></tr>
             <tr><td>Composer update draait, maar cma/ files niet ververst</td><td><code>composer.json</code> mist de <code>post-install-cmd</code> / <code>post-update-cmd</code> scripts die <code>App\Library\Installer</code> aanroepen.</td><td>Scripts sectie toevoegen aan consumer's composer.json — zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td>Retired bestand blijft op consumer-site na upgrade</td><td>Installer's syncDirectory kopieert alleen forward; verwijderde bestanden propageren niet.</td><td>Voeg het pad toe aan <code>REMOVED_PATHS</code> in <code>src/Installer.php</code>. Bij volgende composer update opgeruimd. Zie <a href="documentation.php?topic=releasing">Releasen &amp; versies</a>.</td></tr>
+            <tr><td><code>Method App\Library\Installer::preOperation is not callable, can not call pre-update-cmd script</code> — en de update start niet</td><td>Een <code>pre-*-cmd</code> draait vóór de update, dus tegen de GEÏNSTALLEERDE vendor. Die versie kent de methode nog niet, dus juist de update die haar zou meebrengen wordt geweigerd. Geldt voor elke handler die nieuwer is dan de vendor op de site.</td><td>Haal die ene regel tijdelijk uit <code>composer.json</code>, draai <code>composer update</code>, zet hem terug. De check-tabel op <a href="documentation.php?topic=installation">Installatie</a> controleert vooraf of elke handler in de geïnstalleerde versie bestaat.</td></tr>
             <tr><td>Fatal na upgrade: <code>require_once(...library/lib_htmleditor.inc): Failed to open stream: No such file or directory</code> (of een ander retired bestand)</td><td>Half-voltooide sync: <code>REMOVED_PATHS</code> verwijdert het retired bestand vóórdat <code>syncDirectory</code> draait, maar één onkopieerbaar bestand (locked/permissions/junk) brak de sync af vóórdat het top-level <code>library.inc</code> — dat de dode <code>require_once</code> nog bevatte — overschreven werd. Resultaat: bestand weg + oude requirer blijft → elke request fataal.</td><td>Breekt één onkopieerbaar bestand de sync niet meer af (<code>syncDirectory</code> verzamelt fouten en gaat door, faalt lúid aan het eind), dus <code>library.inc</code> wordt altijd ververst. Herstel: re-run <code>composer update stenversonline/platform</code> (let op "Nothing to modify" — zie de deployment-tabel), of kopieer eenmalig <code>vendor/stenversonline/platform/library/library.inc</code> over <code>library/library.inc</code>.</td></tr>
         </tbody>
     </table>

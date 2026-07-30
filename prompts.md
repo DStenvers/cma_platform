@@ -7279,3 +7279,8 @@ karaat-data en staat in de karaat-repo.
 > push and commit alles in 1 run
 
 > ok terug naar mijn rino.
+
+> C:\repos\adam\mijnrino_php>composer update
+> Method App\Library\Installer::preOperation is not callable, can not call pre-update-cmd script 
+>
+> can you have a look?
