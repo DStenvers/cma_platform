@@ -45,8 +45,8 @@
     },
     "devDependencies": {
         "cypress": "^15.7.1",
-        "terser": "^5.46.0",
-        "lightningcss": "^1.29.0"
+        "lightningcss": "^1.33.0",
+        "terser": "^5.46.0"
     },
     "keywords": [
         "cypress",

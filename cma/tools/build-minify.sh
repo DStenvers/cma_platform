@@ -16,9 +16,14 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CMA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SITE_DIR="$(cd "$CMA_DIR/.." && pwd)"
 
-# Discover terser binary - PATH may not include npm/nvm bin dirs
+# Discover terser binary. The version pinned in package.json comes FIRST: a
+# terser that happens to be on PATH is usually a different (older) release, and
+# then every bundle it touches differs from the committed one — turning any build
+# into a repo-wide diff and making two machines disagree about the artifacts.
 TERSER=""
-if command -v terser &> /dev/null; then
+if [ -x "$CMA_DIR/node_modules/.bin/terser" ]; then
+    TERSER="$CMA_DIR/node_modules/.bin/terser"
+elif command -v terser &> /dev/null; then
     TERSER="$(command -v terser)"
 else
     # Check known install locations
@@ -97,18 +102,22 @@ for dir in "${JS_DIRS[@]}"; do
         basename=$(basename "$jsfile")
         minfile="${jsfile%.js}.min.js"
 
-        # Skip if .min.js is already newer than source
-        if [ -f "$minfile" ] && [ "$minfile" -nt "$jsfile" ]; then
-            skipped=$((skipped + 1))
-            continue
-        fi
-
-        # Get original size
+        # Always minify, then keep the result only when it differs. mtimes are
+        # not a usable freshness signal: a git checkout stamps every file with
+        # the checkout time in arbitrary order, so an mtime comparison silently
+        # skipped sources whose .min was months out of date.
         orig_size=$(wc -c < "$jsfile")
         total_original=$((total_original + orig_size))
 
         # Run terser
-        if "$TERSER" "$jsfile" --compress --mangle -o "$minfile" 2>/dev/null; then
+        if "$TERSER" "$jsfile" --compress --mangle -o "$minfile.tmp" 2>/dev/null; then
+            if [ -f "$minfile" ] && cmp -s "$minfile.tmp" "$minfile"; then
+                rm -f "$minfile.tmp"
+                total_original=$((total_original - orig_size))
+                skipped=$((skipped + 1))
+                continue
+            fi
+            mv -f "$minfile.tmp" "$minfile"
             min_size=$(wc -c < "$minfile")
             total_minified=$((total_minified + min_size))
             savings=$((orig_size - min_size))
@@ -122,8 +131,9 @@ for dir in "${JS_DIRS[@]}"; do
         else
             echo "  ERROR: $basename"
             errors=$((errors + 1))
-            # Remove failed .min.js if it exists
-            rm -f "$minfile"
+            total_original=$((total_original - orig_size))
+            # Leave the previous .min.js in place; only the failed attempt goes.
+            rm -f "$minfile.tmp"
         fi
     done < <(find "$dir" -maxdepth 1 -name "*.js" ! -name "*.min.js" -print0 | sort -z)
 
@@ -134,20 +144,41 @@ done
 # counterpart of terser). Pure minify (no @import inlining, no downleveling); a
 # sibling .min.css keeps relative url() valid. Skipped entirely if unavailable
 # (JS is still built above).
+# Every directory that ships a .min.css must be listed here. minify.php serves
+# the .min.css whenever it is not OLDER than the source, and the Installer gives
+# both files the same mtime on a consumer site — so a min that never gets rebuilt
+# wins forever and the source edits are invisible on every site. Vendor trees
+# (jcrop, select2) are deliberately absent: their min files are shipped as-is.
+CSS_DIRS=(
+    "$CMA_DIR/webcomponents"
+    "$SITE_DIR/library/webcomponents"
+    "$SITE_DIR/library"
+)
+
 echo "Processing CSS files..."
-for cssfile in "$CMA_DIR"/webcomponents/*.css; do
+for dir in "${CSS_DIRS[@]}"; do
+    [ -d "$dir" ] || continue
+    for cssfile in "$dir"/*.css; do
     [ -f "$cssfile" ] || continue
+    case "$cssfile" in *.min.css) continue;; esac
     [ -z "$CSS_MINIFY_OK" ] && continue
     basename=$(basename "$cssfile")
     minfile="${cssfile%.css}.min.css"
 
-    if [ -f "$minfile" ] && [ "$minfile" -nt "$cssfile" ]; then
+    orig_size=$(wc -c < "$cssfile")
+    "$NODE_BIN" "$CSS_WRAPPER" "$cssfile" "$minfile.tmp" 2>/dev/null
+    if [ ! -s "$minfile.tmp" ]; then
+        echo "  ERROR: $basename"
+        errors=$((errors + 1))
+        rm -f "$minfile.tmp"
+        continue
+    fi
+    if [ -f "$minfile" ] && cmp -s "$minfile.tmp" "$minfile"; then
+        rm -f "$minfile.tmp"
         skipped=$((skipped + 1))
         continue
     fi
-
-    orig_size=$(wc -c < "$cssfile")
-    "$NODE_BIN" "$CSS_WRAPPER" "$cssfile" "$minfile" 2>/dev/null
+    mv -f "$minfile.tmp" "$minfile"
     min_size=$(wc -c < "$minfile")
     savings=$((orig_size - min_size))
     if [ "$orig_size" -gt 0 ]; then
@@ -157,6 +188,7 @@ for cssfile in "$CMA_DIR"/webcomponents/*.css; do
     fi
     printf "  %-40s %6d -> %6d (%d%% saved)\n" "$basename" "$orig_size" "$min_size" "$pct"
     total_files=$((total_files + 1))
+    done
 done
 echo ""
 

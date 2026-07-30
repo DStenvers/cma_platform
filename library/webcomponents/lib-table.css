@@ -298,13 +298,22 @@ lib-table th:first-child .menutrigger .clicker {
 /* ==========================================================================
    8. Menutrigger (kebab / 3-dot menu)
    ========================================================================== */
+/* The kebab hangs to the left of the first header cell and is taken OUT of the
+   header's flex flow: whether it is there or not must not move the column label.
+   In flow it did — so a table with export="n" (no trigger) rendered its first
+   header 16px further left than the same table with the export menu, and out of
+   line with its own data cells. th is position:relative, so left is measured
+   from the cell edge; the 20px box then overlaps the cell's 8px padding and the
+   rest hangs outside the table, which is where it has always sat visually. */
 lib-table div.menutrigger {
     width: 20px;
     height: 24px;
     line-height: 24px;
-    margin-left: -6px;
+    position: absolute;
+    left: -13px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    position: relative;
     background-image:
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
@@ -324,11 +333,12 @@ lib-table div.menutrigger:hover {
     background-repeat: no-repeat;
 }
 
+/* No top here: the base rule centres the trigger vertically, and a fixed offset
+   would make the pressed state jump. */
 lib-table div.menutrigger.open {
     box-shadow: inset 0 2px 3px rgb(0 0 0 / .25);
     border-radius: 3px;
     height: 28px;
-    top: 1px;
     border: 1px solid #f9f8f8;
 }
 
