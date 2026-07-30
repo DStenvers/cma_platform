@@ -82,94 +82,9 @@ if (strpos($requestUri, '/api/') !== false ||
     exit;
 }
 
-// For regular requests, show a simple HTML page
+// For regular requests the platform renders the page — the same one the site's
+// own 404 handler uses, so both look alike and a change lands in one place.
 header('Content-Type: text/html; charset=utf-8');
-?>
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Pagina niet gevonden</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        /* The 404 itself is the backdrop: as large as the viewport allows and
-           blurred, so it reads as a watermark instead of competing with the
-           message on top of it. Decorative — the heading carries the meaning. */
-        .ghost {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: min(34vw, 78vh);
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -.04em;
-            color: #204496;
-            opacity: .16;
-            filter: blur(16px);
-            white-space: nowrap;
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .container {
-            position: relative;
-            text-align: center;
-            max-width: 500px;
-        }
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        p {
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-        .path {
-            background: rgba(233, 236, 239, .85);
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-            word-break: break-all;
-            margin-bottom: 30px;
-        }
-        a {
-            display: inline-block;
-            padding: 12px 24px;
-            background: #204496;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-        a:hover {
-            background: #163070;
-        }
-    </style>
-</head>
-<body>
-    <div class="ghost" aria-hidden="true"><span>404</span></div>
-    <div class="container">
-        <h1>Pagina niet gevonden</h1>
-        <p>De pagina die je zoekt bestaat niet of is verplaatst.</p>
-        <div class="path"><?= htmlspecialchars($requestedPath) ?></div>
-        <a href="/cma/">Terug naar Dashboard</a>
-    </div>
-</body>
-</html>
+$notFoundHomeUrl   = '/cma/';
+$notFoundHomeLabel = 'Terug naar Dashboard';
+require __DIR__ . '/notfound_page.inc';
