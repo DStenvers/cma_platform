@@ -3644,6 +3644,15 @@ npm run build                 # icons + minify
     <p><code>cma/minify.php</code> serveert de geminificeerde bundels in <span class="cma-page__strong">elke</span> omgeving (<code>$MINIFY_ACTIVE</code> staat vast op <code>true</code>). Overal hetzelfde artefact draaien betekent dat een kapotte of verouderde <code>.min</code> al tijdens ontwikkelen opvalt en niet pas in productie. De disk-cache is wél productie-only (<code>$DISK_CACHE_ACTIVE</code>): die is puur snelheid en zou tijdens het ontwikkelen een gecachete bundel teruggeven terwijl je de source nog aan het wijzigen bent.</p>
     <p>Gevolg voor ontwikkelaars: wijzig je een <code>.js</code>/<code>.css</code>, draai dan <code>npm run build:minify</code> (of de cache-clear tool) — anders serveert minify.php de <span class="cma-page__strong">raw source</span>, want een <code>.min</code> die ouder is dan zijn source wordt bewust genegeerd.</p>
 
+    <h3>Bouwen gebeurt vóór de release, niet bij de installatie</h3>
+    <p>Terser en lightningcss staan in <code>cma/node_modules</code> — een dev-dependency die <span class="cma-page__strong">niet in het Composer-pakket zit</span>. Een consumentensite heeft ze dus niet, en een Windows/IIS-server heeft ook geen bash om <code>build-minify.sh</code> mee te draaien. Verkleinen tijdens <code>composer install/update</code> kan daarom niet, en een stap die daar stilletjes niets doet zou erger zijn dan geen stap: die leest als "dit is geregeld".</p>
+    <p>Daarom twee dingen op twee momenten:</p>
+    <ul>
+        <li><code>cma/tests/MinifiedAssetsTest.php</code> faalt zodra een bron in een gebouwde map geen actuele <code>.min</code> heeft. Dat is de poort vóór de tag — een verouderde <code>.min</code> die eenmaal is uitgebracht blijft op élke site staan tot de volgende release, want de site kan hem zelf niet bouwen.</li>
+        <li>De Installer somt na het synchroniseren op wat er onverkleind de deur uit gaat, met bestandsgrootte, in de composer-uitvoer. Dat is meestal de <code>assets/</code> van de site zelf: die bouwt het platform niet, en daar hoort een eigen buildstap in de site-repo.</li>
+    </ul>
+    <p>De mappen die gebouwd worden staan in <code>JS_DIRS</code>/<code>CSS_DIRS</code> in <code>cma/tools/build-minify.sh</code>. Voeg je ergens een map met eigen CSS toe, zet hem daar dan bij én in de <code>DIRS</code> van de test — anders wordt hij nooit gebouwd en merkt niemand het. Vendor-mappen (select2, jcrop, fineuploader) staan er bewust niet in: hun <code>.min</code> komt van de leverancier.</p>
+
     <h2>Storybook-integratie</h2>
     <p>Elk nieuwe component hoort een entry in <code>cma/tools/storybook.php</code>. Sectie-structuur:</p>
     <ul>

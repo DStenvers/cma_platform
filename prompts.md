@@ -7411,3 +7411,7 @@ karaat-data en staat in de karaat-repo.
 >     M src/helpers/SQL.php
 
 > Kun je kijken wat er daadwerkelijk van library/table_functions.js in gebruik is en dat splitsen met de niet-gebruikte functionaliteit, volgens mij kan hij ook pdf's en zips aanmaken en dat gebruik ik helemaal niet
+
+> en budels maken van de js en css om aantal downloads te beperken? en hebben ze wel allemaal de versiebump nodig?
+
+> 2 wil ik tijdens installatie

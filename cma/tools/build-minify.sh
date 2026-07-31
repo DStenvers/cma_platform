@@ -151,8 +151,10 @@ done
 # (jcrop, select2) are deliberately absent: their min files are shipped as-is.
 CSS_DIRS=(
     "$CMA_DIR/webcomponents"
+    "$CMA_DIR/assets/css"
     "$SITE_DIR/library/webcomponents"
     "$SITE_DIR/library"
+    "$SITE_DIR/library/css"
 )
 
 echo "Processing CSS files..."

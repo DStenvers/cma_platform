@@ -513,6 +513,15 @@ class Installer
         // 8. Write manifest for tracking
         self::writeManifest($projectRoot, $platformDir);
 
+        // 8b. Name the assets that will go out unminified. The serving layer falls
+        //     back to the source whenever the .min is missing or older, which is the
+        //     safe choice but a silent one: nothing anywhere says that a site is
+        //     shipping a 137 KB stylesheet where 118 KB would do. This is the moment
+        //     the operator is looking at the deploy, so this is where it belongs.
+        foreach (self::reportUnminifiedAssets($projectRoot) as $line) {
+            $io->write('  - ' . $line);
+        }
+
         // 9. If any file could not be copied, the sync ran to completion (so
         //    the site got as much of the new version as possible) but the
         //    result is a mixed-version state. Fail loudly — an unmissable
@@ -533,6 +542,72 @@ class Installer
         }
 
         $io->write('<info>stenversonline/platform: sync complete</info>');
+    }
+
+    /**
+     * List the CSS/JS that will be served in full because their .min is missing or older.
+     *
+     * Deliberately a report and not a build. Minifying needs terser and lightningcss,
+     * which live in cma/node_modules — a dev dependency that is not part of the Composer
+     * package, so a consumer site does not have them and a Windows/IIS box has no bash to
+     * run the build script with either. A step that silently does nothing there would be
+     * worse than none at all: it would read as "minification is handled".
+     *
+     * So the platform builds its own .min files before it is released (a test guards
+     * that), and this step names what is left — mostly a site's own assets/, which the
+     * platform never builds.
+     *
+     * @return string[] Lines for the composer output; empty when everything is current.
+     */
+    private static function reportUnminifiedAssets(string $projectRoot): array
+    {
+        // The directories the build covers, plus a site's own assets. Vendor trees
+        // (select2, jcrop, fineuploader) are absent on purpose: their .min files are
+        // shipped as-is by the vendor and are not ours to rebuild.
+        $dirs = [
+            'library', 'library/css', 'library/webcomponents',
+            'cma/assets/css', 'cma/assets/js',
+            'assets/css', 'assets/js',
+        ];
+
+        $stale = [];
+        foreach ($dirs as $dir) {
+            $path = $projectRoot . '/' . $dir;
+            if (!is_dir($path)) {
+                continue;
+            }
+            foreach ((array) glob($path . '/*.{css,js}', GLOB_BRACE) as $src) {
+                if (preg_match('/\.min\.(css|js)$/i', $src)) {
+                    continue;
+                }
+                $min = preg_replace('/\.(css|js)$/i', '.min.$1', $src);
+                if (is_file($min) && filemtime($min) >= filemtime($src)) {
+                    continue;
+                }
+                $stale[$dir . '/' . basename($src)] = (int) filesize($src);
+            }
+        }
+
+        if ($stale === []) {
+            return [];
+        }
+
+        arsort($stale);
+        $totaal = array_sum($stale);
+        $lines = [sprintf(
+            '<warning>%d asset(s) worden onverkleind geserveerd (%d KB):</warning>',
+            count($stale),
+            (int) round($totaal / 1024)
+        )];
+        foreach (array_slice($stale, 0, 8, true) as $rel => $bytes) {
+            $lines[] = sprintf('    %6d KB  %s', (int) round($bytes / 1024), $rel);
+        }
+        if (count($stale) > 8) {
+            $lines[] = sprintf('    ... en nog %d', count($stale) - 8);
+        }
+        $lines[] = '    Bouwen: cd cma && npm install && npm run build:minify';
+
+        return $lines;
     }
 
     /**
