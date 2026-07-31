@@ -327,7 +327,7 @@ lib-table div.menutrigger {
         radial-gradient(circle at center, #2196F3 2px, transparent 2px),
         radial-gradient(circle at center, #2196F3 2px, transparent 2px);
     background-size: 4px 4px;
-    background-position: center calc(50% - 6px), center 50%, center calc(50% + 6px);
+    background-position: center calc(50% - 4px), center calc(50% + 2px), center calc(50% + 8px);
     background-repeat: no-repeat;
 }
 
@@ -339,7 +339,7 @@ lib-table div.menutrigger:hover {
         radial-gradient(circle at center, #e84f18 2px, transparent 2px),
         radial-gradient(circle at center, #e84f18 2px, transparent 2px);
     background-size: 4px 4px;
-    background-position: center calc(50% - 6px), center 50%, center calc(50% + 6px);
+    background-position: center calc(50% - 4px), center calc(50% + 2px), center calc(50% + 8px);
     background-repeat: no-repeat;
 }
 
