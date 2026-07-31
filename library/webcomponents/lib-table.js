@@ -1714,7 +1714,10 @@ class LibTable extends HTMLElement {
 
     _initializeFilters() {
         // Skip if filters already initialized (e.g., from PHP-generated table)
-        if (this._table.querySelector('thead .dropdown-filter-dropdown')) return;
+        if (this._table.querySelector('thead .dropdown-filter-dropdown')) {
+            this._markInitialSort();
+            return;
+        }
 
         // Skip columns with data-filter="N" or data-no-filter attribute
         const ths = this._table.querySelectorAll('thead th:not([data-filter="N"]):not([data-no-filter])');
@@ -1725,6 +1728,42 @@ class LibTable extends HTMLElement {
             const filterMenu = this._createFilterMenu(th, column, index);
             this._filterMenus.push(filterMenu);
         });
+
+        this._markInitialSort();
+    }
+
+    /**
+     * Toon op welke kolom de lijst binnenkomt, zonder te hersorteren.
+     *
+     * Een lijst komt al gesorteerd uit de database (de ORDER BY van de query), maar dat
+     * was in de interface nergens te zien: de aanwijzing verscheen pas als de gebruiker
+     * zelf een sorteeroptie aanklikte. Zet <th data-sorted="asc"> (of "desc") op de kolom
+     * waarop de query sorteert, dan staat de aanwijzing er meteen.
+     *
+     * Bewust ALLEEN markeren. Client-side hersorteren zou de rijen opnieuw ordenen terwijl
+     * ze al goed staan, en kan een ándere volgorde opleveren dan SQL koos — collatie,
+     * NULL-volgorde en meerdere sorteersleutels lopen niet gelijk. Wie dat toch forceerde
+     * (bijvoorbeeld door een klik te simuleren op een vaste kolomindex) sorteerde bij een
+     * afwijkende kolomindeling op het verkeerde veld.
+     */
+    _markInitialSort() {
+        const th = this._table.querySelector('thead th[data-sorted]');
+        if (!th || th.hasAttribute('data-no-sort') || th.getAttribute('data-sort') === 'N') {
+            return;
+        }
+        const richting = (th.getAttribute('data-sorted') || 'asc').toLowerCase();
+        const optie = richting === 'desc' || richting === 'z-a' ? 'z---a' : 'a---z';
+
+        const icon = th.querySelector('.dropdown-filter-icon');
+        if (icon) {
+            icon.classList.add('sorted');
+        }
+        // Dezelfde actieve optie als na een echte klik, zodat het menu klopt zodra
+        // de gebruiker het opent.
+        const span = th.querySelector('.dropdown-filter-sort span.' + optie);
+        if (span) {
+            span.classList.add('active');
+        }
     }
 
     _createFilterMenu(th, column, index) {

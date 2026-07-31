@@ -2111,6 +2111,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Schakel filteren uit voor deze kolom</dd>
                     <dt>data-filter="N"</dt>
                     <dd>Alternatief voor data-no-filter</dd>
+                    <dt>data-sorted</dt>
+                    <dd>Deze kolom is de sortering waarop de rijen al binnenkomen: <code>asc</code> of <code>desc</code>. De tabel zet alleen de indicatie in de kop en herschikt de rijen niet — gebruik het dus wanneer de query een <code>ORDER BY</code> heeft, zodat de gebruiker ziet waarop de lijst staat. Zonder dit attribuut toont de kop pas iets nadat er zelf gesorteerd is.</dd>
                 </dl>
                 <h4>Functies</h4>
                 <dl>
