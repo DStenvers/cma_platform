@@ -67,6 +67,18 @@ class LibTableRenderTest extends TestCase
         $this->assertStringNotContainsString('<TFOOT', $html, 'no pagination footer for a 2-row set');
     }
 
+    public function testScriptStaatNaDeTabelZodatDeTabelEenDirecteBroerIs(): void
+    {
+        $html = $this->render(false);
+
+        $sluit  = strpos($html, '</lib-table>');
+        $script = strpos($html, '<script');
+
+        $this->assertTrue($sluit !== false, 'de tabel zit in een <lib-table>-wikkel');
+        $this->assertTrue($script !== false, 'de rij-activatie-JS wordt nog uitgestuurd');
+        $this->assertGreaterThan($sluit, $script, 'het script hoort NA </lib-table>: een <script> ervoor is een broer tussen het vorige element en de tabel, en breekt elke `voorganger + lib-table`-opmaakregel');
+    }
+
     public function testAutoHeadersAndRawHtmlCell(): void
     {
         $rows = [

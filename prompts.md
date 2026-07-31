@@ -7372,3 +7372,15 @@ karaat-data en staat in de karaat-repo.
 > kunnen we voor rino specifiek de css styles overschrijven voor lib-table table thead, .listtable thead { background-color: #f4e9dd } lib-table .dropdown-filter-icon .lnr:before { color: var(--lighter_purple) } en de dire puntjes ook var(--lighter_purple)
 
 > Graag op platformniveau de volgende wijziging: lib-table .dropdown-filter-content div.close:before, lib-table .dropdown-filter-content div.close:after { height:1px }
+
+> jullie =  Ik en Claude code in een ander venster, is er niets te verzinnen waardoor we dit voorkomen?
+
+> ja maar dan kan ik slechts 1 tree testen, ik test nu op de main branch
+
+> ik zie het nog niet
+
+> ik zie de wijzigingen in de styling nog niet
+
+> composer update is gedraaid, sorry maar ik zie het nog niet , kijk zelf maar naar http://172.30.208.1:8090/index.php?pageaction=rapport_dispensaties
+
+> ik zit nu met het volgende issue, een kader is zandkleurig en de tabel eronder ook, dus dat zou wel marge mogen hebben, maar het <script> block van de table staat ertussen waardoor css niet lekker werkt, zou dat script block eronder kunnen worden gezet om vervolgens tussen de 2 elementen 16 a 20px ruimte te creeeren?

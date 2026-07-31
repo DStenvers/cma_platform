@@ -544,18 +544,25 @@ class LibTable
         if ($this->TableRS->eof && $this->TableEmptyMessage != '') {
             echo $this->TableEmptyMessage;
         } else {
+            // De scripts worden hier opgebouwd maar pas ná </lib-table> uitgestuurd. Een
+            // <script> tussen het element boven de tabel en de tabel zelf is een broer in
+            // de DOM, dus het breekt elke `voorganger + lib-table`-regel en dus de marge
+            // die de opmaak daar wil zetten. De functies zelf mogen later staan: ze worden
+            // pas aangeroepen vanuit onclick/onmouseover, dus op gebeurtenis, niet bij het
+            // inlezen van de pagina.
+            $tabelScripts = '';
             if ($Table_CtrlID == 1 && $this->TableSortable) {
                 if ($this->TableShowCaptions) {
-                    echo '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablesort.js"></script>';
+                    $tabelScripts .= '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablesort.js"></script>';
                 }
-                echo '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablescroll.js"></script>';
+                $tabelScripts .= '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablescroll.js"></script>';
             }
-            echo '<script>var intActiveRowID=' . ($this->TableActiveRowID != '' ? $this->TableActiveRowID : '-1') . ';' . PHP_EOL . 'function row_act' . $Table_CtrlID . '(id){' . PHP_EOL . 'if (intActiveRowID!=id){' . PHP_EOL . '
+            $tabelScripts .= '<script>var intActiveRowID=' . ($this->TableActiveRowID != '' ? $this->TableActiveRowID : '-1') . ';' . PHP_EOL . 'function row_act' . $Table_CtrlID . '(id){' . PHP_EOL . 'if (intActiveRowID!=id){' . PHP_EOL . '
             if (intActiveRowID!=-1){' . PHP_EOL . "    var row=document.getElementById('lt_row_' + intActiveRowID.toString());" . PHP_EOL . "
                 if (row) {row.className='" . $this->TableTRClass . "'}" . PHP_EOL . '  }' . PHP_EOL . '}' . PHP_EOL . "row=document.getElementById('lt_row_' + id.toString() );
                 " . PHP_EOL . 'if (row) {' . PHP_EOL . "  row.className='" . $this->TableTRClass . "_active';
                 " . PHP_EOL . '  intActiveRowID=id;' . PHP_EOL . '}' . PHP_EOL . '}' . PHP_EOL;
-                echo 'function row_hover' . $Table_CtrlID . '(id, bOn){' . PHP_EOL . '
+                $tabelScripts .= 'function row_hover' . $Table_CtrlID . '(id, bOn){' . PHP_EOL . '
                 if (id!=intActiveRowID) {' . PHP_EOL . "    var x=document.getElementById('lt_row_'+id.toString());" . PHP_EOL . "
                     if(x){x.className=(bOn?'" . $this->TableTRClass . "_hover':'libTableTR')}" . PHP_EOL . '  }' . PHP_EOL . '}</script>' . PHP_EOL;
                     if (!$this->TableIsChild) {
@@ -710,6 +717,7 @@ class LibTable
                     if (!$this->TableIsChild) {
                         echo '</lib-table>';
                     }
+                    echo $tabelScripts;
                     if ($this->TableDefaultSortCol != -1 && $this->TableSortable) {
                         echo '<script>sortables_initial(' . $this->TableDefaultSortCol . ');</script>' . PHP_EOL;
                     }
