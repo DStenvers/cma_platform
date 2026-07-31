@@ -710,7 +710,7 @@ async function confirmDelete() {
             html += '<tr><th>Foutmelding</th><td style="color: var(--color-error); font-weight: 600;">' + escapeHtml(entry.message) + '</td></tr>';
             html += '<tr><th>Pagina</th><td>' + escapeHtml(entry.source || '-') + '</td></tr>';
             if (entry.stackTrace) {
-                html += '<tr><th>Stack trace</th><td><pre class="log-detail-json" style="font-size: var(--font-size-xs);">' + escapeHtml(entry.stackTrace) + '</pre></td></tr>';
+                html += '<tr><th>Stack trace</th><td><pre class="log-detail-json log-detail-trace">' + escapeHtml(entry.stackTrace) + '</pre></td></tr>';
             }
             if (entry.userAgent) {
                 html += '<tr><th>Browser</th><td style="font-size: var(--font-size-xs);">' + escapeHtml(entry.userAgent) + '</td></tr>';
@@ -1080,6 +1080,22 @@ tr.jserror-row:hover td,
 tr.notfound-row:hover td {
     background: var(--bg-hover);
 }
+/* De detailvensters tonen stacktraces en JSON: op de standaardbreedte van
+   size="large" (640px) breekt elke regel en scroll je jezelf suf. De component
+   biedt --lib-dialog-max-width als haak; 1100px past op elk scherm dat de CMA
+   aankan en laat een stackregel in één keer lezen. */
+#jsErrorDetailDialog {
+    --lib-dialog-max-width: 1100px;
+}
+/* En in de hoogte: het venster mag 90vh worden, dus laat de stacktrace die ruimte
+   ook gebruiken in plaats van in een blok van 300px te scrollen. */
+#jsErrorDetailDialog .log-detail-json {
+    max-height: 60vh;
+}
+.log-detail-trace {
+    font-size: var(--font-size-xs);
+}
+
 .log-detail-table {
     width: 100%;
     border-collapse: collapse;
