@@ -7298,3 +7298,23 @@ karaat-data en staat in de karaat-repo.
 > ja graag en je hebt gelijk qua uitvoer, kunnen we het beperken tot alleen functiedefinities ?
 
 > wordt er nog in twig-implementation gewerkt?
+
+## 2026-07-31
+
+> dioe maar
+
+> ja graag
+
+> ja als je dat zou willen doen, ik run dat commando even
+
+> waarom is dit opeens een probleem, ik werk al meerdere maanden met meerdere processen in dezelfde codebase, altijd op andere vlakken. Hoe krijgen we nu alles weer synchroon zonder dat ik alles kwijtraak
+
+> mijnrino_Php
+
+> dit betreft mijnrino toch? Maar je hebt een andere branch aangemaakt waar die niets an weten!
+
+> niet een hele test-run doen, ik wil even consolideren
+
+> ik wil consolideren, heb jij alles op main staan wat je wilt?
+
+> ik krijg locaal ook geen andere error. maar we parkeren deze even. verder nog openstaande items?
