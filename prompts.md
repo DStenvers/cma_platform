@@ -7396,3 +7396,18 @@ karaat-data en staat in de karaat-repo.
 > sorry, ik heb de sql helper moeten overschrijven bij een composer update, dus die wijzigingen moeten even overnieuw
 
 > ik wil eigenlijk alle <lib-table elementen een border-radius 20px geven, maar dat komt niet door, site-specifiek dus in de cma-override.css
+
+> composer update draait
+
+> hij is klaar
+
+> in een andere thread heb ik gevraagd naar een analyse van de js en css bestanden op front-end, dat zijn er veel en soms ook niet minified.
+>
+> ik wil tijdens een install van het cma platform een cma resources minification laten draaien én alle files in /assets/js en /assets/css laten minifien. dan moet front-end altijd de min versies gebruiken, het liefst in 1 call maar minify.php om meerdere roundtrips te voorkomen.
+>
+> Kijk naar wat mogelijk is en of dat echt een voordeel oplevert
+
+> commit and push all changes to the repo including     M src/helpers/Date.php
+>     M src/helpers/SQL.php
+
+> Kun je kijken wat er daadwerkelijk van library/table_functions.js in gebruik is en dat splitsen met de niet-gebruikte functionaliteit, volgens mij kan hij ook pdf's en zips aanmaken en dat gebruik ik helemaal niet
