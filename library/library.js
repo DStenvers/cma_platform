@@ -820,6 +820,83 @@ function lib_form_valid_email(objFieldToCheck){
 	return true;
 }
 
+//   -			-			-			-			-			DATES
+
+//	Reads a date and says which one it is, or why it is not a date at all.
+//	The browser-side twin of PHP's Date::normalize(); keep the two in step.
+//
+//	Accepts what the applications actually produce: dd-mm-jjjj and dd/mm/jjjj from typed
+//	input, jjjj-mm-dd from <lib-datepicker> (that is the component's value format), with
+//	or without a time part. Which written form it is follows from the leading part — a day
+//	is never four digits.
+//
+//	Refuses what cannot be a date: day 32, month 13, 31 February, a year outside the
+//	window, a two-digit year (too ambiguous to guess at). Refusing is the point: an
+//	unchecked date used to travel on as NULL and make a query match nothing, silently.
+//
+//	Returns { geldig, iso, dag, maand, jaar, reden } — reden is 'leeg', 'formaat',
+//	'dag', 'maand', 'jaar' or 'bestaat niet', so a caller can name what is wrong.
+function lib_datum_ontleed(waarde, minJaar, maxJaar) {
+	minJaar = (typeof minJaar === 'number') ? minJaar : 1900;
+	maxJaar = (typeof maxJaar === 'number') ? maxJaar : 2099;
+
+	var mislukt = function (reden) {
+		return { geldig: false, iso: '', dag: 0, maand: 0, jaar: 0, reden: reden };
+	};
+
+	if (waarde === null || waarde === undefined) return mislukt('leeg');
+	var tekst = lib_trim(String(waarde));
+	if (tekst === '') return mislukt('leeg');
+
+	// Tijdsdeel eraf, hoe het ook vastzit ("2026-04-01 14:03", "2026-04-01T14:03:00Z").
+	tekst = tekst.split(' ')[0].split('T')[0];
+	var delen = tekst.replace(/[\/.]/g, '-').split('-');
+	if (delen.length !== 3) return mislukt('formaat');
+
+	for (var i = 0; i < delen.length; i++) {
+		if (!/^\d+$/.test(delen[i])) return mislukt('formaat');
+	}
+
+	var dag, maand, jaar;
+	if (delen[0].length === 4) {
+		jaar = parseInt(delen[0], 10); maand = parseInt(delen[1], 10); dag = parseInt(delen[2], 10);
+	} else {
+		dag = parseInt(delen[0], 10); maand = parseInt(delen[1], 10); jaar = parseInt(delen[2], 10);
+	}
+
+	if (dag < 1 || dag > 31) return mislukt('dag');
+	if (maand < 1 || maand > 12) return mislukt('maand');
+	if (jaar < minJaar || jaar > maxJaar) return mislukt('jaar');
+
+	// Bestaat de dag in die maand? 31 februari komt hier pas door de mand.
+	var proef = new Date(jaar, maand - 1, dag);
+	if (proef.getFullYear() !== jaar || proef.getMonth() !== maand - 1 || proef.getDate() !== dag) {
+		return mislukt('bestaat niet');
+	}
+
+	var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+	return {
+		geldig: true,
+		iso: jaar + '-' + pad(maand) + '-' + pad(dag),
+		dag: dag, maand: maand, jaar: jaar,
+		reden: ''
+	};
+}
+
+//	The date as jjjj-mm-dd, or '' when it is not a date. Use this wherever a value is
+//	handed on to a server, a comparison or another component.
+function lib_datum_normaliseer(waarde, minJaar, maxJaar) {
+	return lib_datum_ontleed(waarde, minJaar, maxJaar).iso;
+}
+
+//	The date as dd-mm-jjjj, or '' — the notation the forms show and post.
+function lib_datum_nl(waarde, minJaar, maxJaar) {
+	var d = lib_datum_ontleed(waarde, minJaar, maxJaar);
+	if (!d.geldig) return '';
+	var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+	return pad(d.dag) + '-' + pad(d.maand) + '-' + d.jaar;
+}
+
 //   -			-			-			-			-			STRINGS
 
 function lib_trim(s) {

@@ -3513,6 +3513,23 @@ function render_doc_formval(): void
     </table>
     <p>Op formulier-niveau bestaan verder <code>data-button-name</code> (de knopnaam in de melding) en <code>data-validation</code>, dat via <code>eval()</code> een eigen controle draait nadat de velden zijn nagelopen.</p>
 
+    <h2>Datums</h2>
+    <p>Een veld met <code>data-validation-type="datum"</code> laat <code>lib_datum_ontleed()</code> beslissen wat een datum is. Die functie staat in <code>library/library.js</code> en is de browser-helft van <code>App\Library\Date::normalize()</code> — <span class="cma-tool__strong">dezelfde regels aan beide kanten</span>, zodat het formulier niets doorlaat wat op de server alsnog <code>NULL</code> wordt.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:260px">Functie</th><th>Geeft terug</th></tr></thead>
+        <tbody>
+            <tr><td><code>lib_datum_ontleed(waarde[, minJaar, maxJaar])</code></td><td><code>{ geldig, iso, dag, maand, jaar, reden }</code> — <code>reden</code> is <code>leeg</code>, <code>formaat</code>, <code>dag</code>, <code>maand</code>, <code>jaar</code> of <code>bestaat niet</code></td></tr>
+            <tr><td><code>lib_datum_normaliseer(waarde)</code></td><td><code>jjjj-mm-dd</code>, of <code>''</code></td></tr>
+            <tr><td><code>lib_datum_nl(waarde)</code></td><td><code>dd-mm-jjjj</code>, of <code>''</code></td></tr>
+        </tbody>
+    </table>
+    <p>Aanvaard worden <code>dd-mm-jjjj</code> en <code>dd/mm/jjjj</code> uit ingetikte invoer, en <code>jjjj-mm-dd</code> — de waarde die <code>&lt;lib-datepicker&gt;</code> verstuurt. Welke van de twee het is volgt uit het eerste deel: een dag is nooit vier cijfers. Een tijdsdeel wordt genegeerd, niet meegelezen.</p>
+    <p>Geweigerd worden dag 32, maand 13, een dag die in die maand niet bestaat (31 februari), en een jaar buiten <code>1900</code> t/m <code>2099</code>. Het venster is ruim met opzet: een geboortedatum loopt door dezelfde helpers als een rapportfilter, dus een ondergrens in deze eeuw zou elke geboortedatum wegvagen. Een aanroeper die weet dat zijn datum niet historisch kan zijn geeft een strakker venster mee.</p>
+    <p>Kort ingetikte invoer wordt eerst uitgeschreven — <code>01042026</code>, <code>0104</code>, <code>1</code> en <code>01-04-26</code> worden een volledige datum — en pas daarna beoordeeld. Het veld krijgt de datum netjes terug in de notatie waarin hij binnenkwam, zodat een datumkiezer zijn eigen <code>jjjj-mm-dd</code> terugziet. <code>date-minimum</code> en <code>date-maximum</code> worden op dezelfde genormaliseerde waarde vergeleken.</p>
+    <div class="docs-callout docs-callout--warn">
+        <span class="cma-tool__strong">Een datum die niet gelezen wordt, verdwijnt zonder geluid.</span> Op de server komt een onleesbare datum als de letterlijke <code>NULL</code> in de query terecht: <code>datestamp &gt;= NULL</code> matcht niets, dus een rapport toont nul regels zonder fout, en een <code>INSERT</code> schrijft een lege datum weg. Daarom staat dezelfde controle ook vóór <code>SQL::postDateStr()</code>, <code>postDateOnly()</code> en <code>postDateTime()</code>. Test een datumveld altijd mét de datumkiezer — zet je de waarde met de hand op <code>dd-mm-jjjj</code>, dan mis je precies het geval dat stukging.
+    </div>
+
     <h2>Een eigen weergave</h2>
     <p>Wil een app de fouten ergens anders kwijt, overschrijf dan <code>form_valid_report()</code> ná het laden van <code>formval_nl.js</code>. Dat is de bedoelde ingang; de rest van de keten hoeft er niet voor open.</p>
 

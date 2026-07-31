@@ -23,6 +23,17 @@ namespace App\Library;
 class Date
 {
     /**
+     * Year window normalize() accepts by default.
+     *
+     * Wide on purpose. A birth date is a date like any other — tblDeelnemers.GeboorteDatum
+     * runs through the very same helpers as a report filter — so a window that starts at
+     * the current century would turn every one of them into NULL. Callers that know their
+     * date cannot be historical (a planning date, an appointment) pass a tighter window.
+     */
+    public const MIN_YEAR = 1900;
+    public const MAX_YEAR = 2099;
+
+    /**
      * Dutch short month names (1-12)
      */
     private static array $shortMonths = [
@@ -434,6 +445,82 @@ class Date
         }
 
         return checkdate((int)$month, (int)$day, (int)$year);
+    }
+
+    /**
+     * Normalize a date to YYYY-MM-DD, or null when it is not a real date.
+     *
+     * The single gate every date should pass before it reaches a query, an INSERT or a
+     * comparison. It answers one question — is this a date, and which one — so callers
+     * stop guessing at digits. Accepts what the applications actually produce:
+     * DD-MM-YYYY and DD/MM/YYYY from typed input and the legacy pages, YYYY-MM-DD from
+     * <lib-datepicker> (its documented value format), a timestamp, a DateTime. A time
+     * part is ignored, not parsed.
+     *
+     * Which of the two written forms it is follows from the leading part: a day is never
+     * four digits. Rejected are impossible dates (31-02, month 13), two-digit years — too
+     * ambiguous to guess at — and anything outside the year window.
+     *
+     * Silence is the failure mode this guards against: an unparsed date used to reach
+     * SQL::postDate() as day 2026 / year 01, come back as the literal NULL and quietly
+     * make a WHERE match nothing, or store a NULL where a date belonged. Null here is a
+     * refusal the caller must handle, not a date.
+     *
+     * @param mixed $value Date value in any of the accepted forms
+     * @param int $minYear Earliest acceptable year
+     * @param int $maxYear Latest acceptable year
+     * @return string|null YYYY-MM-DD, or null when it is not a real date
+     */
+    public static function normalize(mixed $value, int $minYear = self::MIN_YEAR, int $maxYear = self::MAX_YEAR): ?string
+    {
+        if ($value === null || $value === '' || is_bool($value)) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            $day = (int) $value->format('j');
+            $month = (int) $value->format('n');
+            $year = (int) $value->format('Y');
+        } elseif (is_int($value)) {
+            $day = (int) date('j', $value);
+            $month = (int) date('n', $value);
+            $year = (int) date('Y', $value);
+        } else {
+            $text = trim((string) $value);
+            if ($text === '') {
+                return null;
+            }
+
+            // Drop the time part, whichever way it is attached ("2026-04-01 14:03:00",
+            // "2026-04-01T14:03:00Z"). Slashes and dots are separators like the dash.
+            $text = explode(' ', $text)[0];
+            $text = explode('T', $text)[0];
+            $parts = explode('-', str_replace(['/', '.'], '-', $text));
+
+            if (count($parts) !== 3) {
+                return null;
+            }
+            foreach ($parts as $part) {
+                if ($part === '' || !ctype_digit($part)) {
+                    return null;
+                }
+            }
+
+            if (strlen($parts[0]) === 4) {
+                [$year, $month, $day] = [(int) $parts[0], (int) $parts[1], (int) $parts[2]];
+            } else {
+                [$day, $month, $year] = [(int) $parts[0], (int) $parts[1], (int) $parts[2]];
+            }
+        }
+
+        if (!self::isValid($day, $month, $year)) {
+            return null;
+        }
+        if ($year < $minYear || $year > $maxYear) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $year, $month, $day);
     }
 
     /**

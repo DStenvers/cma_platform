@@ -7390,3 +7390,9 @@ karaat-data en staat in de karaat-repo.
 > kun je die standaardperiode wijzigen in die 2 waarden?
 
 > even een andere css vraag:  als in een kader een tabel direct wordt gevolgt door een a.GenButton, die laatste graag margin-top:8px geven, dat stond in rinoportal.css maar zie ik niet meer terug
+
+> graag alle datums valideren , dagen <=31, maanden <=12, jaren >2000 en <2100 en dan pas wat daarmee doen, op alle plekken, maak anders een js en een php validatie functie die datums normaliseert dit is een major regressie waar ik gewoon ff geen zin in heb
+
+> sorry, ik heb de sql helper moeten overschrijven bij een composer update, dus die wijzigingen moeten even overnieuw
+
+> ik wil eigenlijk alle <lib-table elementen een border-radius 20px geven, maar dat komt niet door, site-specifiek dus in de cma-override.css

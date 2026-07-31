@@ -272,6 +272,14 @@ class SQL
     {
         $isSQLServer = self::isSQLServer($connectionString);
 
+        // strtotime() alone accepts what is merely parseable, not what is a real date:
+        // it happily reads a year 0001 or a value that only looks like a date. Let
+        // Date::normalize() decide first, so an unusable value becomes NULL here rather
+        // than a nonsense literal in the query.
+        if (Date::normalize($dateValue) === null) {
+            return 'NULL';
+        }
+
         if (!is_null($dateValue) && strtotime($dateValue) !== false) {
             if ($isSQLServer) {
                 $strTmp = date('Y', strtotime($dateValue)) . '/' .
@@ -300,6 +308,12 @@ class SQL
      */
     public static function postDateTime($dateValue, ?string $connectionString = null): string
     {
+        // Same gate as postDateOnly(): parseable is not the same as real. The time part
+        // is kept as-is — normalize() only rules on the date.
+        if (Date::normalize($dateValue) === null) {
+            return 'NULL';
+        }
+
         $ts = is_null($dateValue) ? false : strtotime($dateValue);
         if ($ts !== false) {
             // ISO 8601 with seconds — unambiguous (no US m/d guesswork) and
@@ -324,7 +338,11 @@ class SQL
      * day-first, "2026-04-01" became day 2026 / year 01, postDate() could not make a
      * date of that and returned NULL — so the query read `datestamp >= NULL`, which
      * matches nothing. A report would then show zero rows without a single error.
-     * A day is never four digits, so the leading part decides which form it is.
+     *
+     * Date::normalize() decides what a date is: which written form, whether it exists at
+     * all (31-02 does not) and whether the year is plausible. Anything it refuses becomes
+     * the literal NULL here — the same outcome as before for garbage input, but now the
+     * refusal is deliberate instead of an accident of string splitting.
      *
      * @param string $dateStr The date string to parse
      * @param string|null $connectionString Connection string to determine database type
@@ -332,31 +350,14 @@ class SQL
      */
     public static function postDateStr(string $dateStr, ?string $connectionString = null): string
     {
-        if ($dateStr == '') {
+        $iso = Date::normalize($dateStr);
+        if ($iso === null) {
             return 'NULL';
         }
 
-        $dateStr = str_replace('/', '-', $dateStr);
+        [$year, $month, $day] = explode('-', $iso);
 
-        // A time part ("2026-04-01 14:03:00") is not ours to interpret; keep the date.
-        $dateStr = trim(explode(' ', trim($dateStr))[0]);
-
-        $parts = explode('-', $dateStr);
-        if (count($parts) >= 3) {
-            if (strlen($parts[0]) === 4) {
-                $day = $parts[2];
-                $month = $parts[1];
-                $year = $parts[0];
-            } else {
-                $day = $parts[0];
-                $month = $parts[1];
-                $year = substr($parts[2], 0, 4);
-            }
-
-            return self::postDate($day, $month, $year, $connectionString);
-        }
-
-        return 'NULL';
+        return self::postDate($day, $month, $year, $connectionString);
     }
 
     /**

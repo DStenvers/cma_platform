@@ -497,55 +497,51 @@ function form_valid_field( objfield ) {
 					}
 					
 							
-					var re = /^(\d{1,2})-(\d{1,2})-(\d{0,4})$/; 
-					minYear = 1900;
-					maxYear = 2100;
-					
-					if(regs = objfield.value.match(re)) { 
-						if(regs[1] < 1 || regs[1] > 31) { 
-							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige dag ' + regs[1], 'Ongeldig dag'); 
-							bfld_error = true;
-						} else if(regs[2] < 1 || regs[2] > 12) { 
-							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldige maand ' + regs[2], 'Ongeldig maand'); 										
-							bfld_error = true;
-						} else {
-							if (regs[3]<=40) { 
-								regs[3]=parseInt(regs[3])+2000 
-							}
-							if (regs[3]<100) { 
-								regs[3]=parseInt(regs[3])+1900 
-							}
-							if (regs[3]<1000) { 
-								regs[3]=parseInt(regs[3])+1000 
-							}
-							if (regs[3] < minYear || regs[3] > maxYear) { 
-								form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een ongeldig jaar ' + regs[3], 'Ongeldig jaar'); 
-								bfld_error = true;
-							}
+					// Een kort ingetikt jaartal eerst uitschrijven, want dat is invoergemak
+					// en geen datumvraag: "01-04-26" hoort 2026 te worden voordat er iets
+					// over de geldigheid gezegd wordt.
+					var re = /^(\d{1,2})-(\d{1,2})-(\d{1,4})$/;
+					if(regs = objfield.value.match(re)) {
+						var nJaar = parseInt(regs[3],10);
+						if (regs[3].length < 4) {
+							if (nJaar <= 40) { nJaar += 2000 }
+							else if (nJaar < 100) { nJaar += 1900 }
+							else { nJaar += 1000 }
+							objfield.value = regs[1] + "-" + regs[2] + "-" + nJaar.toString();
+						}
+					}
 
-							var chkDate = regs[3] + "/" + regs[2] + "/" + regs[1];
-							if (bfld_error == false && dMinimum != "") { 
-								var minDate = dMinimum.replace(/-/g,'/');
-								if(minDate > chkDate) {
-									form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum in het verleden', 'Datum in verleden'); 
-									bfld_error = true;
-								}
-							} 
-							if (bfld_error == false && dMaximum != "") { 
-								var maxDate = dMaximum.replace(/-/g,'/');
-								if(maxDate < chkDate) {
-									form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum te ver in de toekomst', 'Datum te ver in toekomst'); 
-									bfld_error = true;
-								}
-							} 
-
-						} 
-						// assure date has right format, adding zero's
-						objfield.value = lib_right('0'+regs[1].toString(),2)+"-"+lib_right('0'+regs[2].toString(),2)+"-"+regs[3].toString()
-					} else { 
-						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> is een ongeldig datumformaat (dd-mm-jjjj)', 'Ongeldige datum (dd-mm-jjjj)'); 
+					// Vanaf hier beslist lib_datum_ontleed() wat een datum is — dezelfde
+					// regels als Date::normalize() op de server, zodat het formulier niets
+					// doorlaat wat daar alsnog NULL wordt. Het herkent ook de jjjj-mm-dd
+					// die <lib-datepicker> aflevert; die viel hier vroeger buiten het
+					// patroon en gold dus altijd als "ongeldig datumformaat".
+					var bIsoInvoer = /^\d{4}-/.test(lib_trim(objfield.value));
+					var oDatum = lib_datum_ontleed(objfield.value);
+					if (!oDatum.geldig) {
+						var sReden = {
+							'dag':          'bevat een ongeldige dag',
+							'maand':        'bevat een ongeldige maand',
+							'jaar':         'bevat een ongeldig jaar (1900 t/m 2099)',
+							'bestaat niet': 'bevat een datum die niet bestaat'
+						}[oDatum.reden] || 'is een ongeldig datumformaat (dd-mm-jjjj)';
+						form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> ' + sReden, 'Ongeldige datum');
 						bfld_error = true;
-					} 
+					} else {
+						// Vergelijken op jjjj-mm-dd: dat sorteert als tekst en date-minimum
+						// / date-maximum staan al in die volgorde.
+						if (dMinimum != "" && lib_datum_normaliseer(dMinimum) > oDatum.iso) {
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum in het verleden', 'Datum in verleden');
+							bfld_error = true;
+						}
+						if (bfld_error == false && dMaximum != "" && lib_datum_normaliseer(dMaximum) < oDatum.iso) {
+							form_valid_add_error( objfield, '<span class="libval__strong">' + sNiceField + '</span> bevat een datum te ver in de toekomst', 'Datum te ver in toekomst');
+							bfld_error = true;
+						}
+						// Netjes uitgeschreven terug, in de notatie waarin het veld hem
+						// aanleverde: een datumkiezer verwacht zijn eigen jjjj-mm-dd terug.
+						objfield.value = bIsoInvoer ? oDatum.iso : lib_datum_nl(oDatum.iso);
+					}
 					break;
 					
 				case 'telefoon':
