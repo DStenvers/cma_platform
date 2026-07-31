@@ -3535,6 +3535,19 @@ function render_doc_web_components(): void
     <h1>Web components ontwikkelen</h1>
     <p class="docs-meta">Hoe je een <code>lib-*</code> of <code>cma-*</code> component schrijft, en wat de prefix-conventies betekenen.</p>
 
+    <h2>Een site bijkleuren zonder het platform aan te raken</h2>
+    <p>Zet je overschrijfregels in <code>assets/css/cma-overrides.css</code> op de site-root. Bestaat dat bestand, dan plakt <code>cma_css_bundle()</code> het als <span class="cma-tool__strong">laatste</span> aan de CMA-bundel: het wint dus van alle platformregels, zit in dezelfde request en krijgt dezelfde cache-busting. De Installer raakt het nooit aan, dus een <code>composer update</code> overschrijft je huisstijl niet.</p>
+    <p>Houd het bij kleuren en maatvoering. Gedrag hoort in het platform: een site die functionaliteit overschrijft loopt stil uit de pas en dat merk je pas bij de volgende update.</p>
+    <p>Twee dingen zijn niet met een gewone regel te overschrijven en hebben daarom een variabele:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:280px">Variabele</th><th>Waarvoor</th></tr></thead>
+        <tbody>
+            <tr><td><code>--table-kebab-color</code></td><td>De drie puntjes van het exportmenu in een kolomkop. Ze zijn getekend met <code>radial-gradient</code>, dus een <code>color</code>-regel doet niets. Standaard <code>#2196F3</code>.</td></tr>
+            <tr><td><code>--table-kebab-hover-color</code></td><td>Diezelfde puntjes bij hover. Standaard <code>#e84f18</code>.</td></tr>
+        </tbody>
+    </table>
+    <p>Let bij de kopregel van een lijst op het verloop: <code>lib-table table thead</code> heeft een <code>linear-gradient</code>, en die schildert over elke <code>background-color</code> heen. Wil je een egale kleur, zet er dan ook <code>background-image: none</code> bij.</p>
+
     <h2>Prefix-conventies</h2>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:140px">Prefix</th><th>Locatie</th><th>Bedoeld voor</th></tr></thead>
