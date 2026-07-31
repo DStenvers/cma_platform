@@ -2403,11 +2403,16 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			// Sync browser title with sidepanel title
 			topWindow.document.title = displayTitle + ' - CMA';
 
+			// Verplaatsbaar en van formaat te wijzigen maken, en de vorige stand van
+			// DIT formulier terugzetten. Gebeurt vóór de inschuif-animatie zodat een
+			// hersteld paneel meteen op zijn plek staat.
+			lib_sidepanel_maakVerstelbaar(mObj, lib_sidepanel_sleutel(url, name), top_elt);
+
 			// Animate in after DOM update
 			// libLog.log('[lib_OpenSidePanel] Panel created, starting animation. mObj:', mObj.id, 'current zIndex:', mObj.style.zIndex, 'current transform:', mObj.style.transform);
 			setTimeout(function() {
 				backdrop.style.opacity = '1';
-				mObj.style.transform = 'translateX(0)';
+				mObj.style.transform = mObj.classList.contains('lib_sidepanel_zwevend') ? 'none' : 'translateX(0)';
 				// libLog.log('[lib_OpenSidePanel] Animation triggered. mObj transform:', mObj.style.transform);
 			}, 10);
 
@@ -2417,6 +2422,202 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 		console.error('lib_OpenSidePanel error:', e);
 	}
 	return null;
+}
+
+/**
+ * De sleutel waaronder de stand van een sidepanel wordt onthouden.
+ *
+ * Per FORMULIER, want dat is wat de gebruiker herkent: het deelnemersformulier mag
+ * breed openen en een klein keuzelijstje smal. Valt terug op de naam en anders op
+ * het pad, zodat een paneel zonder form-parameter ook zijn eigen stand houdt.
+ */
+function lib_sidepanel_sleutel(url, name) {
+	try {
+		var pad = String(url || '');
+		var m = pad.match(/[?&]form=([^&#]+)/i);
+		if (m) { return 'form:' + decodeURIComponent(m[1]).toLowerCase(); }
+		m = pad.match(/\/cma\/form\/([^/?#]+)/i);
+		if (m) { return 'form:' + decodeURIComponent(m[1]).toLowerCase(); }
+		if (name) { return 'naam:' + String(name).toLowerCase(); }
+		return 'pad:' + pad.split('?')[0].toLowerCase();
+	} catch (e) {
+		return 'pad:onbekend';
+	}
+}
+
+/** Bewaarde stand lezen; nooit gooien, een kapotte waarde is simpelweg "geen stand". */
+function lib_sidepanel_leesStand(sleutel) {
+	try {
+		var ruw = window.localStorage.getItem('cma_sidepanel_' + sleutel);
+		if (!ruw) { return null; }
+		var s = JSON.parse(ruw);
+		return (s && typeof s === 'object') ? s : null;
+	} catch (e) {
+		return null;
+	}
+}
+
+function lib_sidepanel_bewaarStand(sleutel, stand) {
+	try {
+		if (stand) {
+			window.localStorage.setItem('cma_sidepanel_' + sleutel, JSON.stringify(stand));
+		} else {
+			window.localStorage.removeItem('cma_sidepanel_' + sleutel);
+		}
+	} catch (e) {}
+}
+
+/**
+ * Maakt een sidepanel versleepbaar (aan de kop) en verstelbaar (linkerrand en
+ * linker-onderhoek), en zet de vorige stand van dit formulier terug.
+ *
+ * Standaard blijft het paneel rechts vastgeplakt: dan wordt alleen de breedte
+ * onthouden. Sleep je hem weg, dan wordt hij zwevend en onthoudt hij ook positie en
+ * hoogte. Dubbelklik op de kop zet alles terug naar de standaard — het vangnet voor
+ * een paneel dat buiten beeld is beland.
+ */
+function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
+	if (!panel || !top_elt) { return; }
+	var doc = top_elt;
+	var win = doc.defaultView || window;
+
+	var MIN_B = 320, MIN_H = 200, ZICHTBAAR = 120;
+
+	// --- vorige stand terugzetten -------------------------------------------------
+	var stand = lib_sidepanel_leesStand(sleutel);
+	if (stand && isFinite(stand.b) && stand.b >= MIN_B) {
+		panel.style.width = Math.min(stand.b, win.innerWidth) + 'px';
+		panel.style.maxWidth = 'none';
+	}
+	if (stand && stand.zwevend && isFinite(stand.l) && isFinite(stand.t)) {
+		panel.classList.add('lib_sidepanel_zwevend');
+		panel.style.left = Math.max(0, Math.min(stand.l, win.innerWidth - ZICHTBAAR)) + 'px';
+		panel.style.top = Math.max(0, Math.min(stand.t, win.innerHeight - ZICHTBAAR)) + 'px';
+		panel.style.right = 'auto';
+		panel.style.bottom = 'auto';
+		panel.style.transform = 'none';
+		if (isFinite(stand.h) && stand.h >= MIN_H) {
+			panel.style.height = Math.min(stand.h, win.innerHeight) + 'px';
+		}
+	}
+
+	// --- grepen -------------------------------------------------------------------
+	var randGreep = doc.createElement('div');
+	randGreep.className = 'lib_sidepanel_greep_rand';
+	randGreep.title = 'Sleep om de breedte te wijzigen';
+	panel.appendChild(randGreep);
+
+	var hoekGreep = doc.createElement('div');
+	hoekGreep.className = 'lib_sidepanel_greep_hoek';
+	hoekGreep.title = 'Sleep om breedte en hoogte te wijzigen';
+	panel.appendChild(hoekGreep);
+
+	// Een iframe slikt muisbewegingen op: zonder deze laag stopt het slepen zodra de
+	// muis over de inhoud komt.
+	var laag = null;
+	function laagAan() {
+		if (laag) { return; }
+		laag = doc.createElement('div');
+		laag.className = 'lib_sidepanel_sleeplaag';
+		laag.style.zIndex = String((parseInt(panel.style.zIndex, 10) || 1000) + 1);
+		doc.body.appendChild(laag);
+	}
+	function laagUit() {
+		if (laag && laag.parentNode) { laag.parentNode.removeChild(laag); }
+		laag = null;
+	}
+
+	function huidigeStand() {
+		var r = panel.getBoundingClientRect();
+		return {
+			b: Math.round(r.width),
+			h: Math.round(r.height),
+			l: Math.round(r.left),
+			t: Math.round(r.top),
+			zwevend: panel.classList.contains('lib_sidepanel_zwevend')
+		};
+	}
+
+	function sleep(startEv, opZet) {
+		if (startEv.button !== 0) { return; }
+		startEv.preventDefault();
+		var r = panel.getBoundingClientRect();
+		var start = { x: startEv.clientX, y: startEv.clientY, b: r.width, h: r.height, l: r.left, t: r.top };
+		panel.style.transition = 'none';
+		laagAan();
+
+		function beweeg(ev) { opZet(ev.clientX - start.x, ev.clientY - start.y, start); }
+		function los() {
+			doc.removeEventListener('mousemove', beweeg, true);
+			doc.removeEventListener('mouseup', los, true);
+			laagUit();
+			panel.style.transition = '';
+			lib_sidepanel_bewaarStand(sleutel, huidigeStand());
+		}
+		doc.addEventListener('mousemove', beweeg, true);
+		doc.addEventListener('mouseup', los, true);
+	}
+
+	// Breedte: het paneel plakt rechts, dus naar links slepen maakt hem breder.
+	randGreep.addEventListener('mousedown', function (ev) {
+		sleep(ev, function (dx, dy, start) {
+			var zwevend = panel.classList.contains('lib_sidepanel_zwevend');
+			var breedte = zwevend ? (start.b - dx) : (start.b - dx);
+			breedte = Math.max(MIN_B, Math.min(breedte, win.innerWidth));
+			panel.style.width = Math.round(breedte) + 'px';
+			panel.style.maxWidth = 'none';
+			if (zwevend) { panel.style.left = Math.round(start.l + (start.b - breedte)) + 'px'; }
+		});
+	});
+
+	hoekGreep.addEventListener('mousedown', function (ev) {
+		sleep(ev, function (dx, dy, start) {
+			var zwevend = panel.classList.contains('lib_sidepanel_zwevend');
+			var breedte = Math.max(MIN_B, Math.min(start.b - dx, win.innerWidth));
+			panel.style.width = Math.round(breedte) + 'px';
+			panel.style.maxWidth = 'none';
+			if (zwevend) {
+				panel.style.left = Math.round(start.l + (start.b - breedte)) + 'px';
+				panel.style.height = Math.round(Math.max(MIN_H, Math.min(start.h + dy, win.innerHeight))) + 'px';
+			}
+		});
+	});
+
+	// Slepen aan de kop verplaatst het paneel; de knoppen erin blijven knoppen.
+	var kop = panel.querySelector('.lib_sidepanel_header');
+	if (kop) {
+		kop.classList.add('lib_sidepanel_versleepbaar');
+		kop.addEventListener('mousedown', function (ev) {
+			if (ev.target.closest('button, a, input, select, textarea')) { return; }
+			var r = panel.getBoundingClientRect();
+			if (!panel.classList.contains('lib_sidepanel_zwevend')) {
+				// Van vastgeplakt naar zwevend: bevries de huidige plek in pixels,
+				// anders springt hij bij de eerste beweging naar links.
+				panel.classList.add('lib_sidepanel_zwevend');
+				panel.style.left = Math.round(r.left) + 'px';
+				panel.style.top = Math.round(r.top) + 'px';
+				panel.style.width = Math.round(r.width) + 'px';
+				panel.style.height = Math.round(r.height) + 'px';
+				panel.style.right = 'auto';
+				panel.style.bottom = 'auto';
+				panel.style.maxWidth = 'none';
+				panel.style.transform = 'none';
+			}
+			sleep(ev, function (dx, dy, start) {
+				panel.style.left = Math.round(Math.max(-start.b + ZICHTBAAR, Math.min(start.l + dx, win.innerWidth - ZICHTBAAR))) + 'px';
+				panel.style.top = Math.round(Math.max(0, Math.min(start.t + dy, win.innerHeight - ZICHTBAAR))) + 'px';
+			});
+		});
+		kop.addEventListener('dblclick', function (ev) {
+			if (ev.target.closest('button, a, input, select, textarea')) { return; }
+			panel.classList.remove('lib_sidepanel_zwevend');
+			['left', 'top', 'right', 'bottom', 'width', 'height', 'maxWidth', 'transform'].forEach(function (eig) {
+				panel.style[eig] = '';
+			});
+			panel.style.transform = 'translateX(0)';
+			lib_sidepanel_bewaarStand(sleutel, null);
+		});
+	}
 }
 
 /**

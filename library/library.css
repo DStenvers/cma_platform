@@ -806,6 +806,48 @@ table tr.odd { background-color: #fdfdfd }
 /* NOTE: Modal dialog styles are now in lib-dialog.js web component */
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------ Side Panel --- */
+/* Verstelbaar sidepanel: een greep aan de linkerrand voor de breedte, een greep in
+   de linker-onderhoek voor breedte én hoogte, en de kop als sleepvlak. De grepen zijn
+   onzichtbaar tot je er met de muis komt — het paneel moet er rustig uitzien. */
+.lib_sidepanel_greep_rand {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 2;
+}
+.lib_sidepanel_greep_rand:hover,
+.lib_sidepanel_greep_hoek:hover {
+    background: var(--color-primary, #204496);
+    opacity: .35;
+}
+.lib_sidepanel_greep_hoek {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nesw-resize;
+    z-index: 3;
+}
+.lib_sidepanel_versleepbaar {
+    cursor: move;
+    user-select: none;
+}
+.lib_sidepanel_container.lib_sidepanel_zwevend {
+    border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .35), 0 2px 10px rgba(0, 0, 0, .2);
+}
+/* Vangt de muis tijdens het slepen: zonder deze laag slikt de iframe-inhoud de
+   bewegingen op en stopt het slepen zodra je eroverheen komt. */
+.lib_sidepanel_sleeplaag {
+    position: fixed;
+    inset: 0;
+    cursor: inherit;
+}
+
 .lib_sidepanel_header {
     display: flex;
     align-items: center;
