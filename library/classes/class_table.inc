@@ -50,6 +50,11 @@ class LibTable
         // ('N' = geen filterkeuzelijst, voor icoon-/actiekolommen).
         'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
         'hidefields' => 'TableHideFields',
+        // SortedColumn: de kolom waarop de rijen binnenkomen — de VELDNAAM uit de
+        // recordset, eventueel met richting ('Groep' of 'Groep DESC'). Alleen nodig als
+        // de volgorde niet uit SQL af te lezen is, bijvoorbeeld doordat de rijen na de
+        // query hernoemd of samengesteld zijn.
+        'sortedcolumn' => 'TableSortedColumn',
         // Master-detail: onder elke rij van deze tabel één of meer eigen tabelletjes met
         // de bijbehorende regels. Zie Details hieronder.
         'details' => 'TableDetails',
@@ -100,6 +105,8 @@ class LibTable
     public $TableFieldFilters = [];
     /** ['index'=>int,'direction'=>'asc'|'desc'] van de kolom waarop de query sorteert, of null. */
     private $TableSortKolom = null;
+    /** Expliciet opgegeven sorteerkolom: 'Groep' of 'Groep DESC'. Leeg = uit SQL afleiden. */
+    public $TableSortedColumn = '';
     /** Veldnamen die gegevens dragen maar nooit een kolom worden. */
     public $TableHideFields = [];
 
@@ -216,7 +223,9 @@ class LibTable
      *
      * De volgorde wordt afgelezen uit SQL. Levert de aanroeper zijn eigen recordset aan,
      * dan kan hij daarnaast SQL zetten om te vertellen waarop die rijen staan; laat hij
-     * dat leeg, dan blijft de kop onbeslist.
+     * dat leeg, dan blijft de kop onbeslist. Hernoemt hij de kolommen ná de query — dan
+     * heet de gesorteerde kolom in de lijst anders dan in de ORDER BY — dan noemt hij hem
+     * met SortedColumn.
      *
      * Blijft null zodra er twijfel is over WELKE kolom bedoeld is — een aanwijzing op de
      * verkeerde kop is misleidender dan geen aanwijzing:
@@ -228,8 +237,19 @@ class LibTable
     private function _bepaalSortKolom(): void
     {
         $this->TableSortKolom = null;
-        $sort = SQL::sortedColumn($this->TableSQL);
-        if ($sort === null) {
+        if ($this->TableSortedColumn != '') {
+            $delen = preg_split('/\s+/', trim((string)$this->TableSortedColumn));
+            $richting = strtolower((string)end($delen));
+            if ($richting === 'asc' || $richting === 'desc') {
+                array_pop($delen);
+            } else {
+                $richting = 'asc';
+            }
+            $sort = ['field' => implode(' ', $delen), 'direction' => $richting];
+        } else {
+            $sort = SQL::sortedColumn($this->TableSQL);
+        }
+        if ($sort === null || $sort['field'] === '') {
             return;
         }
         $zichtbaar = $this->_zichtbareVelden();

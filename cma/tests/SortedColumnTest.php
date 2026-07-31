@@ -138,7 +138,7 @@ class SortedColumnTest extends TestCase
     // ------------------------------------------------------------- LibTable::Render()
 
     /** Rendert een tabel met vaste rijen en de opgegeven query/kopteksten. */
-    private function render(string $sql, ?array $captions = null, bool $showId = false): string
+    private function render(string $sql, ?array $captions = null, bool $showId = false, string $sortedColumn = ''): string
     {
         $rows = [
             ['ID' => 1, 'Opleiding' => 'GZ', 'Deadline' => '2026-04-01 00:00:00'],
@@ -153,6 +153,9 @@ class SortedColumnTest extends TestCase
         $t->RowsPerPage  = 99999;
         if ($captions !== null) {
             $t->FieldCaptions = $captions;
+        }
+        if ($sortedColumn !== '') {
+            $t->SortedColumn = $sortedColumn;
         }
         ob_start();
         $t->Render();
@@ -215,6 +218,29 @@ class SortedColumnTest extends TestCase
         // Een kolom die helemaal niet in de lijst staat evenmin.
         $html = $this->render('SELECT ID, Opleiding, Deadline FROM t ORDER BY Aangemaakt');
         $this->assertStringNotContainsString('data-sorted', $html);
+    }
+
+    /**
+     * Een rapportage die zijn rijen na de query hernoemt (ORDER BY tblOpleidingen.code,
+     * getoond als "Groep") kan de kolom niet laten afleiden. Dan noemt hij hem zelf.
+     */
+    public function testAnExplicitlyNamedColumnIsMarked(): void
+    {
+        $koppen = $this->koppen($this->render('SELECT ID, Opleiding, Deadline FROM t', null, false, 'Deadline'));
+        $this->assertEquals(['Opleiding' => null, 'Deadline' => 'asc'], $koppen);
+    }
+
+    public function testAnExplicitColumnCanCarryItsDirection(): void
+    {
+        $koppen = $this->koppen($this->render('SELECT ID, Opleiding, Deadline FROM t', null, false, 'Deadline DESC'));
+        $this->assertEquals('desc', $koppen['Deadline']);
+    }
+
+    /** Ook expliciet blijft gelden: wat niet getoond wordt, wordt niet gemarkeerd. */
+    public function testAnExplicitColumnThatIsNotShownMarksNothing(): void
+    {
+        $this->assertStringNotContainsString('data-sorted',
+            $this->render('SELECT ID, Opleiding, Deadline FROM t', null, false, 'Aangemaakt'));
     }
 
     public function testSaysNothingWithoutAnOrderBy(): void
