@@ -1006,7 +1006,6 @@ div.kader_icon.autos::after { content:"\e84a" }
 /* Show export menu when menutrigger has 'open' class (click-based) */
 .menutrigger.open .cma-context-menu.export-menu {
     display: block;
-    margin-top: 6px;
 }
 
 .menutrigger .cma-context-menu.export-menu ul {

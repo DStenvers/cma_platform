@@ -367,12 +367,16 @@ lib-table .menutrigger .cma-context-menu {
     top: 100%;
 }
 
+/* Het menu sluit strak aan op de onderrand van de kolomkop: geen tussenruimte, geen
+   ronding aan de bovenkant, en twee pixels naar links zodat het op de kebab uitlijnt. */
 lib-table .menutrigger.open .cma-context-menu.export-menu {
-    margin-top: 4px;
+    margin-top: 0px;
 }
 
 .menutrigger.open .cma-context-menu.export-menu {
-    margin-top: 10px;
+    margin-top: 0px;
+    border-radius: 0px;
+    left: -2px;
 }
 
 /* Legacy hover menu (PHP-generated <nav>) */
@@ -391,7 +395,7 @@ lib-table .menutrigger.open .cma-context-menu { display: block }
 lib-table .cma-context-menu ul { list-style: none; margin: 0; padding: 5px 0 }
 lib-table .cma-context-menu li { padding: 4px 15px; margin: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: inherit; font-family: inherit; font-weight: inherit; color: #333 }
 lib-table .cma-context-menu li:hover { background: var(--table-header-bg, #e8ecf0) }
-lib-table .cma-context-menu li .lnr { width: 16px; height: 16px; font-size: var(--font-size-md) }
+lib-table .cma-context-menu li .lnr { width: 16px; height: 16px; margin-top: -6px; font-size: var(--font-size-md) }
 lib-table .cma-context-menu li .lnr::before { width: 16px; height: 16px; line-height: 16px; font-size: var(--font-size-md) }
 
 /* ==========================================================================
@@ -604,7 +608,7 @@ lib-table .dropdown-filter-icon {
     justify-content: center;
     height: 18px;
     line-height: 18px;
-    margin-top: 2px;
+    margin-top: -3px;
     border: 1px solid transparent;
     cursor: pointer;
     margin-left: -4px;
