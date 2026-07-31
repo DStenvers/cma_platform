@@ -53,6 +53,13 @@ class Installer
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
         'cma/tools/llm_models.php',
+        // De image-wizard is nooit in gebruik genomen: geen enkele pagina, tool of
+        // bundel noemt hem, en de bestandsnamen zeiden dat zelf al. Ze werden wel
+        // meegebouwd en meegeleverd, dus elke site droeg ze mee.
+        'cma/assets/css/UNUSED_image-wizard.css',
+        'cma/assets/css/UNUSED_image-wizard.min.css',
+        'cma/assets/js/UNUSED_image-wizard.js',
+        'cma/assets/js/UNUSED_image-wizard.min.js',
         // Replaced by cypress/e2e/auth/login-layout.cy.js. The old file only
         // measured the login box and wrote the numbers to a JSON file — it had
         // no assertions, so it could never fail. Two specs measuring the same

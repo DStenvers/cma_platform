@@ -1271,6 +1271,74 @@ function cma_doc_check_cache_dir(): array {
     return cma_doc_check_dir_writable('cache', 'cache/ — OpCache + form-cache', 'warn');
 }
 
+/**
+ * Gaan er assets onverkleind de deur uit?
+ *
+ * De serveerlaag valt terug op de bron zodra de .min ontbreekt of ouder is. Dat is de
+ * veilige keuze en een stille: niets zegt dat een site een stylesheet van 137 KB
+ * uitserveert waar 118 KB volstaat. Vandaar deze regel in de doc.
+ *
+ * Splitst bewust naar eigenaar. Het platform bouwt zijn eigen mappen vóór een release
+ * (MinifiedAssetsTest bewaakt dat), dus staat daar iets tussen, dan hoort de melding bij
+ * het platform. assets/ is van de site zelf: die bouwt het platform niet en die heeft een
+ * eigen buildstap in zijn eigen repo nodig.
+ */
+function cma_doc_check_assets_minified(): array {
+    $label = 'CSS/JS worden verkleind geserveerd';
+    $root = dirname(__DIR__, 2);
+    $mappen = [
+        'platform' => ['library', 'library/css', 'library/webcomponents', 'cma/assets/css', 'cma/assets/js'],
+        'site'     => ['assets/css', 'assets/js'],
+    ];
+
+    $per = ['platform' => [], 'site' => []];
+    foreach ($mappen as $eigenaar => $lijst) {
+        foreach ($lijst as $dir) {
+            $pad = $root . '/' . $dir;
+            if (!is_dir($pad)) { continue; }
+            foreach ((array) glob($pad . '/*.{css,js}', GLOB_BRACE) as $src) {
+                if (preg_match('/\.min\.(css|js)$/i', $src)) { continue; }
+                $min = preg_replace('/\.(css|js)$/i', '.min.$1', $src);
+                if (is_file($min) && filemtime($min) >= filemtime($src)) { continue; }
+                $per[$eigenaar][$dir . '/' . basename($src)] = (int) filesize($src);
+            }
+        }
+    }
+
+    if ($per['platform'] === [] && $per['site'] === []) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Elke bron heeft een actuele <code>.min</code>.', 'fix' => ''];
+    }
+
+    $noem = static function (array $lijst): string {
+        arsort($lijst);
+        $regels = [];
+        foreach (array_slice($lijst, 0, 5, true) as $rel => $bytes) {
+            $regels[] = '<code>' . htmlspecialchars($rel, ENT_QUOTES, 'UTF-8') . '</code> (' . cma_doc_format_bytes($bytes) . ')';
+        }
+        if (count($lijst) > 5) { $regels[] = 'en nog ' . (count($lijst) - 5); }
+        return implode(', ', $regels);
+    };
+
+    $detail = [];
+    if ($per['platform'] !== []) {
+        $detail[] = '<span class="cma-tool__strong">Platform (' . count($per['platform']) . '):</span> ' . $noem($per['platform'])
+            . ' — dit hoort niet te kunnen; meld het, want de site kan het zelf niet bouwen.';
+    }
+    if ($per['site'] !== []) {
+        $detail[] = '<span class="cma-tool__strong">Site (' . count($per['site']) . ', '
+            . cma_doc_format_bytes(array_sum($per['site'])) . '):</span> ' . $noem($per['site']);
+    }
+
+    return [
+        'label'  => $label,
+        'status' => $per['platform'] !== [] ? 'fail' : 'warn',
+        'detail' => implode('<br>', $detail),
+        'fix'    => 'De site bouwt zijn eigen <code>assets/</code>: voeg een buildstap toe aan de site-repo '
+            . '(<code>terser</code> voor JS, <code>lightningcss</code> voor CSS) en commit de <code>.min</code>-bestanden ernaast. '
+            . 'Bouwen tijdens <code>composer update</code> kan niet — die gereedschappen zitten niet in het pakket.',
+    ];
+}
+
 /** Bytes leesbaar maken voor de check-tabellen. */
 function cma_doc_format_bytes(int $bytes): string {
     $units = ['B', 'KB', 'MB', 'GB'];
@@ -2145,6 +2213,7 @@ function render_doc_deployment(): void
         'cma_doc_check_deploy_secret',
         'cma_doc_check_logs_dir',
         'cma_doc_check_deploy_log',
+        'cma_doc_check_assets_minified',
     ]));
     ?>
 

@@ -7415,3 +7415,9 @@ karaat-data en staat in de karaat-repo.
 > en budels maken van de js en css om aantal downloads te beperken? en hebben ze wel allemaal de versiebump nodig?
 
 > 2 wil ik tijdens installatie
+
+> waarom zou de site m niet zelf kunnen bouwen?
+
+> lun je stap 1 checken in de configratie socumentatie can de cma?
+
+> kun je onderzoeken of het te regelen is dat we de cma table vertellen wat de default sortering van een qiery is zodat hij dat in de interface aan kan geven? op cma playform. én op front-ends, als het lukt in de todo.md van alle consumers zetten
