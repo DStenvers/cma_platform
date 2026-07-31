@@ -926,11 +926,84 @@ class SQL
         // table.field, [table].[field] or a bare column. Anything else — IIf(), a
         // concatenation, "ORDER BY 2" — has no column to point at.
         if (preg_match('/^\[?([\w]+)\]?\.\[?([\w]+)\]?$/', $term, $mv)) {
-            return ['field' => $mv[2], 'direction' => $direction];
+            $field = $mv[2];
+        } elseif (preg_match('/^\[?([A-Za-z_][\w]*)\]?$/', $term, $mv)) {
+            $field = $mv[1];
+        } else {
+            return null;
         }
-        if (preg_match('/^\[?([A-Za-z_][\w]*)\]?$/', $term, $mv)) {
-            return ['field' => $mv[1], 'direction' => $direction];
+
+        // De ORDER BY noemt de bronkolom (tblOpleidingen.code), terwijl de lijst de alias
+        // toont (AS Opleiding) — en onder die naam komt de kolom ook uit de recordset.
+        // Zonder deze vertaling wijst de sortering naar een naam die in de kop niet bestaat.
+        $alias = self::selectAliasFor($sql, $term, $field);
+
+        return ['field' => $alias ?? $field, 'direction' => $direction];
+    }
+
+    /**
+     * De alias waaronder $term in de SELECT-lijst staat, of null als die er niet is.
+     *
+     * @param string $sql   De volledige query
+     * @param string $term  De sorteerterm zoals hij in de ORDER BY staat (evt. met tabelprefix)
+     * @param string $field Diezelfde term zonder tabelprefix en haken
+     */
+    private static function selectAliasFor(string $sql, string $term, string $field): ?string
+    {
+        if (!preg_match('/^\s*SELECT\s+(?:DISTINCTROW\s+|DISTINCT\s+)?(?:TOP\s+\d+\s+(?:PERCENT\s+)?)?/is', $sql, $kop)) {
+            return null;
         }
-        return null;
+        $start = strlen($kop[0]);
+
+        // Tot de FROM van dit SELECT-niveau: een FROM binnen haakjes hoort bij een subquery.
+        $diepte = 0;
+        $einde = null;
+        for ($i = $start, $n = strlen($sql); $i < $n; $i++) {
+            $c = $sql[$i];
+            if ($c === '(') { $diepte++; continue; }
+            if ($c === ')') { $diepte--; continue; }
+            if ($diepte === 0 && ($c === 'f' || $c === 'F') && preg_match('/\GFROM\b/i', $sql, $x, 0, $i)) {
+                $einde = $i;
+                break;
+            }
+        }
+        if ($einde === null) {
+            return null;
+        }
+
+        // Splitsen op komma's buiten haakjes: left(veld, 80) is één kolom, geen twee.
+        $items = [];
+        $huidig = '';
+        $diepte = 0;
+        for ($i = $start; $i < $einde; $i++) {
+            $c = $sql[$i];
+            if ($c === '(') { $diepte++; }
+            if ($c === ')') { $diepte--; }
+            if ($c === ',' && $diepte === 0) { $items[] = $huidig; $huidig = ''; continue; }
+            $huidig .= $c;
+        }
+        $items[] = $huidig;
+
+        $normaliseer = static fn(string $s): string => strtolower(str_replace(['[', ']', ' '], '', trim($s)));
+        $gezochtVol  = $normaliseer($term);
+        $gezochtKaal = $normaliseer($field);
+
+        $treffers = [];
+        foreach ($items as $item) {
+            if (!preg_match('/^(.*?)\s+AS\s+(\[[^\]]+\]|[\w]+)\s*$/is', trim($item), $m)) {
+                continue;
+            }
+            $expressie = $normaliseer($m[1]);
+            $alias = trim($m[2], '[] ');
+            if ($expressie === $gezochtVol) {
+                return $alias;
+            }
+            // Een kale sorteerterm mag alleen een tabelkolom aanwijzen als er precies
+            // één kandidaat is; bij twee tabellen met dezelfde kolomnaam is het gokken.
+            if ($expressie === $gezochtKaal || str_ends_with($expressie, '.' . $gezochtKaal)) {
+                $treffers[] = $alias;
+            }
+        }
+        return count($treffers) === 1 ? $treffers[0] : null;
     }
 }

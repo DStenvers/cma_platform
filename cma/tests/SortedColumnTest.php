@@ -85,6 +85,47 @@ class SortedColumnTest extends TestCase
         $this->assertNull(SQL::sortedColumn(null), 'null-query');
     }
 
+    /**
+     * De rapportages sorteren op de bronkolom maar tonen de alias: ORDER BY
+     * tblOpleidingen.code hoort bij de kop "Opleiding". Zonder die vertaling wijst de
+     * sortering naar een naam die in de lijst niet bestaat en markeert er niets.
+     */
+    public function testResolvesTheSelectAlias(): void
+    {
+        $sql = 'SELECT tblOpleidingen.code AS Opleiding, tblDeelnemers.VolledigeNaam AS Deelnemer'
+             . ' FROM tblOpleidingen INNER JOIN tblDeelnemers ON x = y'
+             . ' ORDER BY tblOpleidingen.code, tblDeelnemers.Achternaam DESC';
+        $this->assertEquals(['field' => 'Opleiding', 'direction' => 'asc'], SQL::sortedColumn($sql));
+    }
+
+    public function testResolvesAnAliasWithSpaces(): void
+    {
+        $this->assertEquals(
+            ['field' => 'Datum aanvraag', 'direction' => 'desc'],
+            SQL::sortedColumn('SELECT a.Datum AS [Datum aanvraag] FROM a ORDER BY a.Datum DESC')
+        );
+    }
+
+    /** Een komma binnen een functieaanroep splitst de SELECT-lijst niet. */
+    public function testAFunctionCallIsOneColumn(): void
+    {
+        $this->assertEquals(
+            ['field' => 'Motivatie', 'direction' => 'asc'],
+            SQL::sortedColumn('SELECT left(t.Toelichting, 80) AS Motivatie, t.ID FROM t ORDER BY Motivatie')
+        );
+    }
+
+    /**
+     * Twee tabellen met dezelfde kolomnaam: welke van de twee de kale sorteerterm bedoelt
+     * is niet te zeggen, dus valt er niets aan te wijzen.
+     */
+    public function testAnAmbiguousBareTermResolvesToNoAlias(): void
+    {
+        $this->assertEquals('code',
+            SQL::sortedColumn('SELECT x.code AS A, y.code AS B FROM x, y ORDER BY code')['field'],
+            'geen gok tussen twee kandidaten; de kale naam bestaat niet als kolom en markeert dus niets');
+    }
+
     /** LIMIT/OFFSET horen niet bij de sorteerterm. */
     public function testStopsAtTheClauseAfterOrderBy(): void
     {
