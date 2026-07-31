@@ -137,6 +137,16 @@ class Installer
         'cma/schema/migrations.schema.json',
         'cma/schema/modules.schema.json',
         'cma/schema/reports.schema.json',
+        // Hernummerd: deze drie versienummers zijn later opnieuw uitgegeven aan een
+        // ANDERE migratie (9.16.0 aan de menu-hernoeming, 9.17.0 aan de tools-hernoeming;
+        // 9.18.0 staat helemaal niet meer in config/migrations.json). De scripts zelf zijn
+        // uit het pakket verdwenen, maar syncDirectory kopieert alleen vooruit — dus op
+        // bestaande sites blijven ze staan als bestanden die de runner nooit aanroept.
+        // Dat is niet alleen rommel: wie de map bekijkt ziet twee scripts op hetzelfde
+        // nummer en kan niet zien welke telt.
+        'cma/migrations/9.16.0_consolidate_cache_to_dot_cache.php',
+        'cma/migrations/9.17.0_move_xslt_to_assets.php',
+        'cma/migrations/9.18.0_fix_xslt_path_constant.php',
         'cma/tools/deploy_webhook.php',
         // Retired: the /cma/tools/ deploy-status endpoint sat under
         // the gitignored /cma/ tree — it 404s during exactly the botched
