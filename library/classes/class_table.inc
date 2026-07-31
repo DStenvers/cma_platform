@@ -51,9 +51,13 @@ class LibTable
         'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
         'hidefields' => 'TableHideFields',
         // SortedColumn: de kolom waarop de rijen binnenkomen — de VELDNAAM uit de
-        // recordset, eventueel met richting ('Groep' of 'Groep DESC'). Alleen nodig als
-        // de volgorde niet uit SQL af te lezen is, bijvoorbeeld doordat de rijen na de
-        // query hernoemd of samengesteld zijn.
+        // recordset, eventueel met richting ('Groep' of 'Groep DESC'). Nodig zodra de
+        // volgorde niet uit één query af te lezen is:
+        //  - de lijst is uit MEERDERE query's samengesteld en in PHP gesorteerd — geen
+        //    enkele ORDER BY reikt over die bronnen heen, dus sorteer daar en noem de
+        //    kolom hier;
+        //  - de rijen zijn na de query hernoemd, zodat de kolom in de lijst anders heet
+        //    dan in de ORDER BY.
         'sortedcolumn' => 'TableSortedColumn',
         // Master-detail: onder elke rij van deze tabel één of meer eigen tabelletjes met
         // de bijbehorende regels. Zie Details hieronder.

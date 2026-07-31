@@ -7427,3 +7427,5 @@ karaat-data en staat in de karaat-repo.
 > laat die ja jog maar even staan
 
 > die js
+
+> de gesimileerde klik was om de verschilllende databronnen op de client te sorteren, iets dat 1 query niet kan, kunnen we daar niet iets op verInnen?
