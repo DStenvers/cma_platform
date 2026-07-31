@@ -145,23 +145,23 @@ $targetVersion = $migrationService->getTargetVersion();
 $history = $migrationService->getMigrationHistory();
 $errors = $migrationService->getErrors();
 
-cma_html_header('Database migraties');
+cma_html_header('Platform updates');
 echo '<body class="contentbody tools migrations">';
-ToolbarHelper::report('Database migraties', false, false, false, false, 'Beheer en voer database migraties uit');
+ToolbarHelper::report('Platform updates', false, false, false, false, 'Stappen die na een update van het platform op deze site worden uitgevoerd');
 echo '<div id="c" class="tools">';
 
 // Show result from action
 if ($result !== null) {
     if ($result['success']) {
         echo '<lib-message type="success" closable>';
-        echo '<span class="cma-tool__strong">Migraties succesvol toegepast!</span>';
+        echo '<span class="cma-tool__strong">Updates succesvol toegepast!</span>';
         if (!empty($result['applied'])) {
             echo '<br>Toegepaste versies: ' . implode(' → ', $result['applied']);
         }
         echo '</lib-message>';
     } else {
         echo '<lib-message type="error" closable>';
-        echo '<span class="cma-tool__strong">Migratie is mislukt</span>';
+        echo '<span class="cma-tool__strong">Update is mislukt</span>';
         echo '</lib-message>';
     }
 
@@ -421,16 +421,16 @@ function updateMigrationButton() {
 
             if (isLastVersion) {
                 // All migrations selected
-                button.textContent = "Alle migraties toepassen";
+                button.textContent = "Alle updates toepassen";
                 if (countSpan) {
                     countSpan.textContent = "";
                 }
             } else {
                 // Partial selection
-                button.textContent = "Migraties toepassen tot versie " + selectedVersion;
+                button.textContent = "Updates toepassen tot versie " + selectedVersion;
                 if (countSpan) {
-                    var migratieWord = (pendingVersions.length === 1) ? "migratie" : "migraties";
-                    countSpan.textContent = count + " van " + pendingVersions.length + " " + migratieWord;
+                    var updateWoord = (pendingVersions.length === 1) ? "update" : "updates";
+                    countSpan.textContent = count + " van " + pendingVersions.length + " " + updateWoord;
                 }
             }
         }
@@ -613,7 +613,7 @@ async function submitMigration(e) {
     var button = document.getElementById("applyButton");
     var countSpan = document.getElementById("migrationCount");
     button.disabled = true;
-    button.textContent = "Bezig met migraties...";
+    button.textContent = "Bezig met updaten...";
 
     // Disable all radio buttons and checkbox
     radios.forEach(function(radio) {
@@ -641,7 +641,7 @@ async function submitMigration(e) {
         console.log("Processing migration " + (i + 1) + "/" + migrationsToApply.length + ": " + version);
 
         // Update progress
-        countSpan.textContent = "Migratie " + (i + 1) + " van " + migrationsToApply.length + "...";
+        countSpan.textContent = "Update " + (i + 1) + " van " + migrationsToApply.length + "...";
 
         // Mark as in progress
         markMigrationInProgress(version);
@@ -664,7 +664,7 @@ async function submitMigration(e) {
             // Store remaining migrations (including failed one) for retry
             remainingMigrations = migrationsToApply.slice(i);
             if (result.error) {
-                allLogs.push("✗ Fout bij migratie versie " + version + ": " + result.error);
+                allLogs.push("✗ Fout bij update " + version + ": " + result.error);
             }
             if (result.sql) {
                 allLogs.push("  SQL: " + result.sql);
@@ -692,7 +692,7 @@ async function submitMigration(e) {
 
     if (failedVersion) {
         resultDiv.setAttribute("type", "error");
-        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " migraties toegepast.";
+        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " updates toegepast.";
         button.textContent = "Opnieuw proberen";
         button.disabled = false;
         // Store remaining migrations for retry
@@ -702,7 +702,7 @@ async function submitMigration(e) {
         fetch("/cma/tools/tools_clearcache.php?silent=1").catch(function() {});
 
         resultDiv.setAttribute("type", "success");
-        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Alle migraties succesvol toegepast!</span><br>" + successCount + " migraties uitgevoerd.<br><span class=\"cma-tool__em\">Caches zijn geleegd.</span>";
+        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Alle updates succesvol toegepast!</span><br>" + successCount + " updates uitgevoerd.<br><span class=\"cma-tool__em\">Caches zijn geleegd.</span>";
         countSpan.textContent = "";
 
         // Update pending versions array
@@ -718,7 +718,7 @@ async function submitMigration(e) {
                 warningDiv.style.display = "none";
             }
         } else {
-            button.textContent = "Alle migraties toepassen";
+            button.textContent = "Alle updates toepassen";
             button.disabled = false;
         }
     }
@@ -761,8 +761,8 @@ async function submitMigration(e) {
 }
 
 async function rerunMigration(version) {
-    var confirmed = await libConfirm("Weet je zeker dat je migratie " + version + " opnieuw wilt uitvoeren?", {
-        title: "Migratie opnieuw uitvoeren",
+    var confirmed = await libConfirm("Weet je zeker dat je update " + version + " opnieuw wilt uitvoeren?", {
+        title: "Update opnieuw uitvoeren",
         confirmText: "Uitvoeren",
         cancelText: "Annuleren"
     });
@@ -810,14 +810,14 @@ async function rerunMigration(version) {
                 statusCell.innerHTML = "<span class=\"badge badge-success\">Toegepast</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "success");
-            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie " + version + " succesvol uitgevoerd!</span>";
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version + " succesvol uitgevoerd!</span>";
         } else {
             if (statusCell) {
                 statusCell.innerHTML = "<span class=\"badge badge-error\">Mislukt</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
             }
             resultDiv.setAttribute("type", "error");
             var errorMsg = result.error || "Onbekende fout, controleer de uitvoeringslog voor details";
-            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Migratie " + version + " mislukt</span><br>" + errorMsg;
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version + " mislukt</span><br>" + errorMsg;
         }
 
         // Show log
@@ -851,7 +851,7 @@ async function rerunMigration(version) {
         if (statusCell) {
             statusCell.innerHTML = originalContent;
         }
-        alert("Fout bij uitvoeren migratie: " + e.message);
+        alert("Fout bij uitvoeren update: " + e.message);
     }
 
     return false;
@@ -933,7 +933,7 @@ echo '<div class="migration-tab-content">';
 // Tab 1: Pending migrations
 echo '<div class="migration-tab-panel" id="tabPending">';
 if (empty($pendingMigrationsList)) {
-    echo '<p style="color:var(--text-muted);padding:15px 0 15px 12px;">Geen openstaande migraties.</p>';
+    echo '<p style="color:var(--text-muted);padding:15px 0 15px 12px;">Geen openstaande updates.</p>';
 
     // Diagnostic panel — when there's nothing to do, show which DBs
     // the runner is actually connected to. Helps confirm you're
@@ -977,7 +977,7 @@ echo '</div>';
 // Tab 2: Completed migrations
 echo '<div class="migration-tab-panel" id="tabCompleted" style="display:none;">';
 if (empty($completedMigrationsList)) {
-    echo '<p style="color:var(--text-muted);padding:15px 0;">Geen voltooide migraties.</p>';
+    echo '<p style="color:var(--text-muted);padding:15px 0;">Geen uitgevoerde updates.</p>';
 } else {
     echo '<table class="lib_table">';
     echo '<thead><tr>';
@@ -1018,12 +1018,12 @@ if ($hasPending) {
         echo '<div style="margin-bottom:15px;">';
         echo '<label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">';
         echo '<input type="checkbox" name="auto_backup" id="autoBackupCheckbox" value="1" checked>';
-        echo '<span>Maak een backup voor de migratie(s)</span>';
+        echo '<span>Maak een backup vóór het bijwerken</span>';
         echo '</label>';
         echo '</div>';
     }
     echo '<button type="submit" class="btn btn-primary" id="applyButton">';
-    echo 'Alle migraties toepassen';
+    echo 'Alle updates toepassen';
     echo '</button>';
     echo '<span id="migrationCount" style="margin-left:15px;color:#666;"></span>';
     echo '</form>';

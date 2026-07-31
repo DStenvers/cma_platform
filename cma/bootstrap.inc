@@ -535,7 +535,7 @@ function cma_html_header($title = '', $extraHead = '', $closeHead = true) {
             if (toolbar && !document.querySelector(".migration-check-error")) {
                 var notice = document.createElement("div");
                 notice.className = "migration-check-error";
-                notice.innerHTML = \'<span class="lnr lnr-warning"></span> Migratie-controle mislukt: \' + ' . $msg . ' + \' &mdash; <a href="tools_migrations.php" target="_top">open de migraties-tool</a> voor details.\';
+                notice.innerHTML = \'<span class="lnr lnr-warning"></span> Controle op platform updates mislukt: \' + ' . $msg . ' + \' &mdash; <a href="tools_migrations.php" target="_top">open Platform updates</a> voor details.\';
                 notice.style.cssText = "background:#f8d7da;border:1px solid #f5c2c7;color:#842029;padding:8px 12px;margin:5px 0;border-radius:4px;font-size:12px;";
                 notice.querySelector("a").style.cssText = "color:#842029;font-weight:600;text-decoration:underline;";
                 toolbar.parentNode.insertBefore(notice, toolbar.nextSibling);

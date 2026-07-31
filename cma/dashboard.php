@@ -1013,12 +1013,12 @@ if ($isAdmin) {
     <div class="dashboard-card warning">
         <div class="dashboard-card-header">
             <span class="lnr lnr-warning"></span>
-            Database update vereist
+            Platform update vereist
         </div>
         <div class="dashboard-card-body">
-            Er <?= $pendingCount === 1 ? 'is' : 'zijn' ?> <?= $pendingCount ?> database <?= $pendingCount === 1 ? 'migratie' : 'migraties' ?> beschikbaar.
+            Er <?= $pendingCount === 1 ? 'staat' : 'staan' ?> <?= $pendingCount ?> <?= $pendingCount === 1 ? 'update' : 'updates' ?> klaar voor deze site.
             <br>
-            <a href="tools.php?tool=migrations" class="migration-link">Bekijk migraties</a>
+            <a href="tools.php?tool=migrations" class="migration-link">Bekijk de updates</a>
         </div>
     </div>
     <?php endif; ?>

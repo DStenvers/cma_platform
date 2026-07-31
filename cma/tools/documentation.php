@@ -103,7 +103,7 @@ $topics = [
             'routing'       => ['label' => 'URL-routing & deep links',    'icon' => 'lnr-link',       'render' => 'render_doc_routing'],
             'new_tool'      => ['label' => 'Een CMA-tool toevoegen',      'icon' => 'lnr-construction','render' => 'render_doc_new_tool'],
             'database'      => ['label' => 'Database & RecordSet',        'icon' => 'lnr-database',   'render' => 'render_doc_database'],
-            'migrations'    => ['label' => 'Migraties schrijven',         'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
+            'migrations'    => ['label' => 'Platform updates schrijven', 'icon' => 'lnr-arrow-right','render' => 'render_doc_migrations'],
             'json_forms'    => ['label' => 'JSON-gedreven formulieren',   'icon' => 'lnr-text-format','render' => 'render_doc_json_forms'],
             'formval'       => ['label' => 'Formuliervalidatie (front-end)', 'icon' => 'lnr-checkmark-circle','render' => 'render_doc_formval'],
             'json_config'   => ['label' => 'JSON-configuratie',           'icon' => 'lnr-papers',     'render' => 'render_doc_json_config'],
@@ -859,7 +859,7 @@ function cma_doc_check_parent_cma_routes(): array {
     if (!empty($hit)) {
         return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig — de CMA-routes (<code>CMA Dashboard</code> e.a.) staan in de parent. <code>/cma/dashboard</code>, <code>/cma/preferences</code>, <code>/cma/tools</code> en de form-routes werken; <code>cma/</code> hoeft GEEN IIS Application te zijn.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'De CMA-routes ontbreken in de parent <code>web.config</code> — extensionless URLs als <code>/cma/dashboard</code> eindigen in 404.', 'fix' => 'Doe <code>composer update stenversonline/platform</code> (past de routes automatisch + fail-safe toe), of draai migratie <code>9.9.0</code> via <a href="documentation.php?topic=migrations">Migraties</a>.'];
+    return ['label' => $label, 'status' => 'fail', 'detail' => 'De CMA-routes ontbreken in de parent <code>web.config</code> — extensionless URLs als <code>/cma/dashboard</code> eindigen in 404.', 'fix' => 'Doe <code>composer update stenversonline/platform</code> (past de routes automatisch + fail-safe toe), of draai update <code>9.9.0</code> via de tool <span class="cma-tool__strong">Platform updates</span>.'];
 }
 
 function cma_doc_check_url_rewrite_module_active(): array {
@@ -1646,7 +1646,7 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=architecture"><span class="lnr lnr-layers"></span> Architectuur</a></td><td>Layer-map, namespace-conventies, boot sequence, legacy ASP-erfenis.</td></tr>
             <tr><td><a href="documentation.php?topic=new_tool"><span class="lnr lnr-construction"></span> Een CMA-tool toevoegen</a></td><td>File-skeleton, registratie in tools.php tile-grid, URL-aliassen, isAdmin/isDeveloper.</td></tr>
             <tr><td><a href="documentation.php?topic=database"><span class="lnr lnr-database"></span> Database &amp; RecordSet</a></td><td>Database::executeQuery PDO, RecordSet ADO-emulatie, connectie-namen, SQL-helpers.</td></tr>
-            <tr><td><a href="documentation.php?topic=migrations"><span class="lnr lnr-arrow-right"></span> Migraties schrijven</a></td><td>Bestandsnaam, MigrationService flow, change-types, idempotente-invariant.</td></tr>
+            <tr><td><a href="documentation.php?topic=migrations"><span class="lnr lnr-arrow-right"></span> Platform updates schrijven</a></td><td>Bestandsnaam, MigrationService flow, change-types, idempotente-invariant.</td></tr>
             <tr><td><a href="documentation.php?topic=json_forms"><span class="lnr lnr-text-format"></span> JSON-gedreven formulieren</a></td><td>JsonFormLoader + JsonFormRenderer, schema basics, form.php entry point, extraButtons placeholders.</td></tr>
             <tr><td><a href="documentation.php?topic=formval"><span class="lnr lnr-checkmark-circle"></span> Formuliervalidatie (front-end)</a></td><td>form_valid(), de foutensamenvatting bovenaan het formulier, data-attributen per veld, de min-bundel die de site laadt.</td></tr>
             <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
@@ -2064,7 +2064,7 @@ function render_doc_json_config(): void
             <tr><td><code>data/cma_tools.json</code></td><td><code>cma_tools.schema.json</code></td><td><code>groups[]</code></td><td>Alleen met de hand. Gelezen door <code>tools_catalog.inc</code>, met legacy-terugval op <code>data/tools.json</code>.</td></tr>
             <tr><td><code>data/image-profiles.json</code></td><td><span class="cma-tool__em">geen schema</span></td><td>—</td><td>Alleen met de hand. Gelezen door <code>App\Library\ImageProfiles</code>; zie <a href="documentation.php?topic=images">WebP &amp; afbeeldingen</a>.</td></tr>
             <tr><td><code>cma/control-types.json</code></td><td><code>control-types.schema.json</code></td><td><code>controlTypes[]</code></td><td>Alleen met de hand</td></tr>
-            <tr><td><code>cma/config/migrations.json</code></td><td><code>migrations.schema.json</code></td><td><code>schemaVersion</code>, <code>targetVersion</code>, <code>migrations[]</code></td><td>Alleen met de hand — zie <a href="documentation.php?topic=migrations">Migraties schrijven</a></td></tr>
+            <tr><td><code>cma/config/migrations.json</code></td><td><code>migrations.schema.json</code></td><td><code>schemaVersion</code>, <code>targetVersion</code>, <code>migrations[]</code></td><td>Alleen met de hand — zie <a href="documentation.php?topic=migrations">Platform updates schrijven</a></td></tr>
             <tr><td><code>assets/datastores/data-sources.json</code></td><td><code>data-sources.schema.json</code></td><td><code>dataSources[]</code></td><td>Alleen met de hand</td></tr>
             <tr><td><code>cma/assets/contentblocks/contentblocks.json</code></td><td><code>contentblocks.schema.json</code></td><td>geen (<code>templates[]</code> is de inhoud)</td><td>CMA-formulier <code>contentblocks</code></td></tr>
             <tr><td><code>assets/forms/*.json</code> en <code>cma/assets/forms/definitions/*.json</code></td><td><code>form-definition.schema.json</code></td><td><code>name</code>, <code>table</code>, <code>fields[]</code></td><td>CMA-formulier <code>formdefinitions</code></td></tr>
@@ -2329,7 +2329,7 @@ function render_doc_backups(): void
 
     <h2>Pre-migration backups</h2>
     <p>Voordat <code>MigrationService</code> een database-wijzigende migration uitvoert, roept hij <code>BackupService::createMigrationBackup()</code> aan met de migration-versie als label. Die backups krijgen een vaste prefix zodat je in <a href="tools.php?tool=backup&tab=manage" target="_top">Backups beheren</a> snel de pre-migration snapshots terugvindt.</p>
-    <p>Auto-backup is toggle-able op de Migraties-pagina; uit-zetten voor migration-runs die geen schema-impact hebben (b.v. data-only export-runs) bespaart schijfruimte op grote DB's.</p>
+    <p>Auto-backup is toggle-able op de pagina <span class="cma-tool__strong">Platform updates</span>; uit-zetten voor migration-runs die geen schema-impact hebben (b.v. data-only export-runs) bespaart schijfruimte op grote DB's.</p>
 
     <h2>Restore</h2>
     <p>Selecteer een backup in de "Backups beheren" tab; de tool valideert dat de file leesbaar is en biedt een restore-knop. SQLite/Access restores zijn file-replacements (DB moet niet in gebruik zijn — IIS app-pool recyclen ervoor). MySQL/PG/MSSQL restores draaien het SQL-bestand via de DB-client.</p>
@@ -2738,7 +2738,7 @@ function render_doc_iis_config(): void
     </div>
 
     <div class="docs-callout docs-callout--danger">
-        <p><span class="cma-tool__strong">CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. De migratie valideert de gepatchte config vóór én na de write — XML well-formedness, duplicate rule-names (het 500.50-symptoom), PCRE-syntax van de eigen patterns, read-back, en tenslotte een live HTTP smoke-test op <code>/cma/dashboard</code>; bij een 5xx rolt hij automatisch terug uit de backup. (De <code>appcmd</code> schema-check is advisory: draait de migratie als de app-pool-identity dan mag appcmd de centrale IIS-config vaak niet lezen — exit 5 "insufficient permissions" — wat géén afkeuring van de patch is en dus NIET terugrolt.) Run via <a href="documentation.php?topic=migrations">Migraties</a>-tool of <code>Tools → Migraties uitvoeren</code>.</p>
+        <p><span class="cma-tool__strong">CMA-routes leven in het parent web.config</span> — niet meer in <code>cma/web.config</code>. Eerdere pogingen om dit via distributed rules in de child-config op te lossen liepen vast op (1) inheritance-issues bij Virtual Directory setup, (2) outbound-rule duplicate-name conflicts (500.50), (3) niet-matchende patterns wanneer <code>cma/</code> geen IIS Application is. De definitieve fix is migration <code>9.9.0_cma_routes_to_parent_webconfig.php</code> die de rewrite-rules direct in de parent zet (waar IIS er altijd bij kan zonder scope-complicaties). Idempotent via marker-comment, backup wordt automatisch gemaakt. De migratie valideert de gepatchte config vóór én na de write — XML well-formedness, duplicate rule-names (het 500.50-symptoom), PCRE-syntax van de eigen patterns, read-back, en tenslotte een live HTTP smoke-test op <code>/cma/dashboard</code>; bij een 5xx rolt hij automatisch terug uit de backup. (De <code>appcmd</code> schema-check is advisory: draait de migratie als de app-pool-identity dan mag appcmd de centrale IIS-config vaak niet lezen — exit 5 "insufficient permissions" — wat géén afkeuring van de patch is en dus NIET terugrolt.) Run via de tool <span class="cma-tool__strong">Platform updates</span> (Alle beheertools → Platform updates).</p>
         <p style="margin:8px 0 0 0;">De Composer <code>Installer</code> past diezelfde routes óók automatisch toe bij elke <code>composer update stenversonline/platform</code> — bestaande sites krijgen de fix dus zonder de migratie handmatig te draaien. De file-level safeguards (simplexml-check, XML well-formedness, duplicate-name, PCRE-regex, backup, atomic write, read-back, rollback) zitten in de gedeelde helper <code>App\Library\WebConfigCmaRoutes</code> die migratie én Installer delen; de <code>appcmd</code>- en live-smoke-test-stappen blijven migration-only (de composer-CLI heeft geen draaiende IIS + HTTP-context). Idempotent via dezelfde marker, dus veilig om elke update te draaien.</p>
     </div>
 
@@ -2912,7 +2912,7 @@ function render_doc_architecture(): void
     <p>Hoger-niveau orkestratie zit in <code>cma/classes/Services/</code>. Belangrijkste:</p>
     <ul>
         <li><code>BackupService</code> — DB-backup workflow, zie <a href="documentation.php?topic=backups">Backups</a>.</li>
-        <li><code>MigrationService</code> — migration runner, zie <a href="documentation.php?topic=migrations">Migraties schrijven</a>.</li>
+        <li><code>MigrationService</code> — migration runner, zie <a href="documentation.php?topic=migrations">Platform updates schrijven</a>.</li>
         <li><code>JsonFormService</code> + <code>JsonFormLoader</code> + <code>JsonFormRenderer</code> — JSON form pipeline, zie <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a>.</li>
         <li><code>ListService</code>, <code>TableService</code>, <code>TreeService</code> — list / detail rendering en navigatie.</li>
         <li><code>Logger</code> + <code>PerformanceLogger</code> — server-side logging, zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</li>
@@ -3172,7 +3172,7 @@ $sql = "SELECT * FROM tblUsers WHERE userName = " . SQL::postString($_POST['user
     </ul>
 
     <div class="seealso">
-        Zie ook: <a href="documentation.php?topic=migrations">Migraties schrijven</a>, <a href="documentation.php?topic=architecture">Architectuur</a>.
+        Zie ook: <a href="documentation.php?topic=migrations">Platform updates schrijven</a>, <a href="documentation.php?topic=architecture">Architectuur</a>.
     </div>
     <?php
 }
