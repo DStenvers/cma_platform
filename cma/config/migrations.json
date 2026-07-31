@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.21.0",
+    "targetVersion": "9.22.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1205,6 +1205,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.21.0_fix_json_schema_refs.php",
                     "note": "Een $schema-verwijzing wordt opgelost t.o.v. de map van het bestand zelf; de formulier-generatoren schreven een vaste literal die alleen op een enkele nestdiepte klopte. Herberekent de verwijzing voor data/, assets/forms/, assets/datastores/, cma/config/ en cma/assets/forms/definitions/, en volgt de hernoemde schema's (app -> cma_branding, reports -> cma_reports). Alleen de waarde wordt vervangen, opmaak blijft intact. Idempotent."
+                }
+            ]
+        },
+        {
+            "version": "9.22.0",
+            "description": "Verweesde config/constants.php verwijderen",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.22.0_remove_orphan_config_constants.php",
+                    "note": "De constanten komen uit library/config/constants.php (gesynct met het pakket). Een site-root config/constants.php is een restant dat door niets wordt geladen en daardoor ongemerkt uiteenloopt \u2014 op de aangetroffen site was het blok twaalf keer herhaald. Verwijdert het bestand alleen als library/config/constants.php bestaat \u00e9n geen enkel PHP-bestand van de site het laadt; anders slaat hij over met een melding. config/ zelf blijft (page_roles.php e.a.). Idempotent."
                 }
             ]
         }

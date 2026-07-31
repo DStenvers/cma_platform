@@ -7318,3 +7318,11 @@ karaat-data en staat in de karaat-repo.
 > ik wil consolideren, heb jij alles op main staan wat je wilt?
 
 > ik krijg locaal ook geen andere error. maar we parkeren deze even. verder nog openstaande items?
+
+> wil je de branch twig-implementation locaal en remote weghalen, ik wil niet dat iemand daar nog in werkt
+
+> . Site: config/constants.php is dood én opgeblazen
+>
+> 371 regels, waarvan het constantenblok 12 keer herhaald, en het bestand wordt runtime niet geladen (_bootstrap.php noemt het nergens). De XSLT_PATH-regels zijn er inmiddels uit, maar de duplicatie zit er nog. Weggooien of terugbrengen tot één blok — beide veilig, want niemand leest het. 
+>
+> graag een stap opnemen om die weg te halen
