@@ -323,9 +323,9 @@ lib-table div.menutrigger {
     bottom: 0;
     cursor: pointer;
     background-image:
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px),
-        radial-gradient(circle at center, #2196F3 2px, transparent 2px);
+        radial-gradient(circle at center, var(--table-kebab-color, #2196F3) 2px, transparent 2px),
+        radial-gradient(circle at center, var(--table-kebab-color, #2196F3) 2px, transparent 2px),
+        radial-gradient(circle at center, var(--table-kebab-color, #2196F3) 2px, transparent 2px);
     background-size: 4px 4px;
     background-position: center calc(50% - 4px), center calc(50% + 2px), center calc(50% + 8px);
     background-repeat: no-repeat;
@@ -335,9 +335,9 @@ lib-table div.menutrigger {
    dat de kolomkop een knop bevat. */
 lib-table div.menutrigger:hover {
     background-image:
-        radial-gradient(circle at center, #e84f18 2px, transparent 2px),
-        radial-gradient(circle at center, #e84f18 2px, transparent 2px),
-        radial-gradient(circle at center, #e84f18 2px, transparent 2px);
+        radial-gradient(circle at center, var(--table-kebab-hover-color, #e84f18) 2px, transparent 2px),
+        radial-gradient(circle at center, var(--table-kebab-hover-color, #e84f18) 2px, transparent 2px),
+        radial-gradient(circle at center, var(--table-kebab-hover-color, #e84f18) 2px, transparent 2px);
     background-size: 4px 4px;
     background-position: center calc(50% - 4px), center calc(50% + 2px), center calc(50% + 8px);
     background-repeat: no-repeat;
@@ -705,13 +705,15 @@ lib-table .dropdown-filter-content div.close::before,
 lib-table .dropdown-filter-content div.close::after {
     content: '';
     position: absolute;
-    height: 2px;
+    height: 1px;
     width: 10px;
     background: #888;
     top: 50%;
     left: 50%;
     margin-left: -5px;
-    margin-top: -1px;
+    /* Halve balkhoogte: houdt het kruisje op top:50% gecentreerd. Blijft die op -1px
+       staan terwijl de balk 1px wordt, dan schuift het kruisje een halve pixel omhoog. */
+    margin-top: -0.5px;
     transition: background 0.15s ease;
 }
 

@@ -7328,3 +7328,47 @@ karaat-data en staat in de karaat-repo.
 > graag een stap opnemen om die weg te halen
 
 > punt 1 : doen!
+
+> vergeet die pro6pp sleutel, die beheer ik niet.
+
+> cma/migrations/migrations.json - kan die niet weg dan?
+
+> Ik wil sidepanels kunnen verplaatsen en qua formaat wijzigen, liefst dat hij per formulier dat ook onthoudt
+
+> [09:46:40] JS: Uncaught ReferenceError: iFrame_Top is not defined
+>   at http://172.30.208.1:8090/.tests/roles_walk_report.php?ajax=proxy&side=new&role=assistent&path=%2Fformulier_dispensatie.php%3Fpagepreview%3DY%26code%3DC75F65A7-9D2A-A024-3BD0-D2E5846392A2:279
+>
+> [09:47:02] JS: Uncaught TypeError: ((jQuery.event.special[handleObj.origType] || {}).handle || handleObj.handler).apply is not a function
+>   at http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.js:4670
+>
+> [09:47:16] JS: Uncaught TypeError: ((jQuery.event.special[handleObj.origType] || {}).handle || handleObj.handler).apply is not a function
+>   at http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.js:4670
+
+> is the bootstrap/cma platform using PFM caching next to the existing OPcache and other layers??
+
+> sorry, it is fpm
+
+> planning: ja mag weg. scorm: JA die is nieuw dus moet zeker blijven. verwijder_mail_docent, verwijder_opl_informatie, verwijder_profiel, verwijder_vervolg_cursus : waar worden die aangeroepen?  KBAStatusOverzicht, KBAAlleHulpteksten, ajax_delegeer_deelnemer : kba herstellen, delegeren vervalt
+
+> ja graag, maar jquery is ‘as-is’
+
+> laat die maar staan volgens mij werrkt de in entarisatie nu en anders intediceren we juist issues
+
+> walker: per pagina Asp/PHP is er een kale link en 1 met ren sleutel, deze links moeten altijd die met sleutel zijn en moeten ‘test standalone’ worden genoemd
+
+> lib-table .dropdown-filter-icon {    margin-top: -3px;
+> } lib-table .menutrigger.open .cma-context-menu.export-menu { remove all existing margin-top-definitions and set margin-top to 0px 
+>
+> .menutrigger.open .cma-context-menu.export-menu {border-radius: 0px;
+>     left: -2px} lib-table .cma-context-menu li .lnr {margin-top: -6px;
+> }
+
+> prima, alleen de trigger voor het exportmenu zou nog 2 px naar beneden mogen
+
+> script.js laten zitten
+
+> nice, ziet er top uit!
+
+> kunnen we voor rino specifiek de css styles overschrijven voor lib-table table thead, .listtable thead { background-color: #f4e9dd } lib-table .dropdown-filter-icon .lnr:before { color: var(--lighter_purple) } en de dire puntjes ook var(--lighter_purple)
+
+> Graag op platformniveau de volgende wijziging: lib-table .dropdown-filter-content div.close:before, lib-table .dropdown-filter-content div.close:after { height:1px }

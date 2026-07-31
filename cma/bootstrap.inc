@@ -599,7 +599,7 @@ function cma_body_end() {
  * Core CSS bundle - used by all CMA pages
  */
 function cma_css_bundle(): array {
-    return [
+    $bundel = [
         '../library/css/lib-variables.css',
         'assets/css/colors.css',
         '../library/library.css',
@@ -612,6 +612,16 @@ function cma_css_bundle(): array {
         'assets/css/inline-edit.css',
         'assets/css/main.css'
     ];
+
+    // Als laatste, en alleen als de site hem heeft: het eigen overschrijfblad. Zo kleurt
+    // een project de CMA bij zonder platformbestanden aan te raken — die worden bij de
+    // volgende composer update overschreven. Blijft in dezelfde bundel, dus geen extra
+    // request en dezelfde cache-busting.
+    if (is_file(dirname(__DIR__) . '/assets/css/cma-overrides.css')) {
+        $bundel[] = '../assets/css/cma-overrides.css';
+    }
+
+    return $bundel;
 }
 
 /**
@@ -747,7 +757,7 @@ function minify_asset($files): string {
  * which stamp `?v=` with this so a patched bundle isn't served from cache.
  */
 function cma_asset_version(): string {
-    return '20260730a';
+    return '20260731a';
 }
 
 // Legacy aliases for backward compatibility
