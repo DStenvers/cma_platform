@@ -7423,3 +7423,7 @@ karaat-data en staat in de karaat-repo.
 > kun je onderzoeken of het te regelen is dat we de cma table vertellen wat de default sortering van een qiery is zodat hij dat in de interface aan kan geven? op cma playform. én op front-ends, als het lukt in de todo.md van alle consumers zetten
 
 > maar bij taken probeert hij wel client-side sortering te foeecerwn, dat moeten we inregelen
+
+> laat die ja jog maar even staan
+
+> die js

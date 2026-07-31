@@ -877,4 +877,60 @@ class SQL
         // No DISTINCT, just add TOP after SELECT
         return preg_replace('/^SELECT\s+/i', "SELECT TOP $limit ", $sql);
     }
+
+    /**
+     * The column a query is sorted on, for showing that sorting in the interface.
+     *
+     * A list arrives in the order its ORDER BY dictates, but a table header cannot know
+     * that by itself — the indicator would only appear once the user sorted manually.
+     * `<th data-sorted="asc|desc">` closes that gap; this method supplies the value.
+     *
+     * Only the FIRST term is returned: that is the one a reader perceives as "the
+     * sorting". Secondary terms merely break ties and marking them would suggest the
+     * list is sorted on something it visibly is not.
+     *
+     * Returns null when there is nothing honest to show: no ORDER BY, a term that is an
+     * expression or a column ordinal rather than a plain column, or a sort that only
+     * exists to make paging deterministic. Callers must treat null as "show nothing" —
+     * a wrong indicator is worse than none.
+     *
+     * @param string|null $sql The query the rows came from
+     * @return array{field:string,direction:string}|null Column name (without table prefix
+     *                                                   or brackets) and 'asc'|'desc'
+     */
+    public static function sortedColumn(?string $sql): ?array
+    {
+        if ($sql === null || $sql === '') {
+            return null;
+        }
+        // Stop at the clauses that may follow ORDER BY, so their contents cannot be read
+        // as sort terms.
+        if (!preg_match('/\bORDER\s+BY\s+(.*?)(?:$|\bLIMIT\b|\bOFFSET\b|\bFOR\s+UPDATE\b|\)\s*$)/is', $sql, $m)) {
+            return null;
+        }
+        // Only the first term; a comma inside brackets (a function call) is not a separator.
+        $parts = preg_split('/,(?![^()]*\))/', trim($m[1]));
+        $term = trim((string)($parts[0] ?? ''));
+        if ($term === '') {
+            return null;
+        }
+
+        $direction = 'asc';
+        if (preg_match('/\bDESC\s*$/i', $term)) {
+            $direction = 'desc';
+            $term = trim((string)preg_replace('/\bDESC\s*$/i', '', $term));
+        } elseif (preg_match('/\bASC\s*$/i', $term)) {
+            $term = trim((string)preg_replace('/\bASC\s*$/i', '', $term));
+        }
+
+        // table.field, [table].[field] or a bare column. Anything else — IIf(), a
+        // concatenation, "ORDER BY 2" — has no column to point at.
+        if (preg_match('/^\[?([\w]+)\]?\.\[?([\w]+)\]?$/', $term, $mv)) {
+            return ['field' => $mv[2], 'direction' => $direction];
+        }
+        if (preg_match('/^\[?([A-Za-z_][\w]*)\]?$/', $term, $mv)) {
+            return ['field' => $mv[1], 'direction' => $direction];
+        }
+        return null;
+    }
 }

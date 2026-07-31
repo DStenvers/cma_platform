@@ -306,7 +306,13 @@ class TableService extends BaseFormService
                     $controlType = $fieldTypes[$col] ?? 0;
                     $dataType = self::getColumnDataType($controlType, $allColumns[$col]['index'] ?? null, $arrRep);
                     $filterAttr = $isFirstCol ? ' data-filter="N"' : '';
-                    $html .= '<th data-field="' . Server::htmlEncode($col) . '" data-type="' . $dataType . '"' . $filterAttr . '>' . Server::htmlEncode($caption) . '</th>';
+                    // De lijst komt binnen op het id-veld (zie de ORDER BY hierboven, waar
+                    // ook de keyset-paginering op meelift). Zonder deze aanwijzing laat de
+                    // kop dat niet zien en lijkt de lijst ongesorteerd.
+                    $sortedAttr = strcasecmp($col, $idField) === 0
+                        ? ' data-sorted="' . (strcasecmp($orderDir, 'DESC') === 0 ? 'desc' : 'asc') . '"'
+                        : '';
+                    $html .= '<th data-field="' . Server::htmlEncode($col) . '" data-type="' . $dataType . '"' . $filterAttr . $sortedAttr . '>' . Server::htmlEncode($caption) . '</th>';
                     $isFirstCol = false;
                 }
                 $html .= '</tr></thead>';

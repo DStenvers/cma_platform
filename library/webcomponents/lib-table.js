@@ -1747,7 +1747,10 @@ class LibTable extends HTMLElement {
      * afwijkende kolomindeling op het verkeerde veld.
      */
     _markInitialSort() {
-        const th = this._table.querySelector('thead th[data-sorted]');
+        // :scope > thead — een master-detailtabel draagt een eigen <thead> IN een cel van
+        // deze tabel; zonder deze afbakening zou de kop van dat kindtabelletje hier de
+        // sortering van de moedertabel bepalen.
+        const th = this._table.querySelector(':scope > thead th[data-sorted]');
         if (!th || th.hasAttribute('data-no-sort') || th.getAttribute('data-sort') === 'N') {
             return;
         }

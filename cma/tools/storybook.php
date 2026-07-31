@@ -2112,7 +2112,7 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>data-filter="N"</dt>
                     <dd>Alternatief voor data-no-filter</dd>
                     <dt>data-sorted</dt>
-                    <dd>Deze kolom is de sortering waarop de rijen al binnenkomen: <code>asc</code> of <code>desc</code>. De tabel zet alleen de indicatie in de kop en herschikt de rijen niet — gebruik het dus wanneer de query een <code>ORDER BY</code> heeft, zodat de gebruiker ziet waarop de lijst staat. Zonder dit attribuut toont de kop pas iets nadat er zelf gesorteerd is.</dd>
+                    <dd>Deze kolom is de sortering waarop de rijen al binnenkomen: <code>asc</code> of <code>desc</code>. De tabel zet alleen de indicatie in de kop en herschikt de rijen niet — gebruik het dus wanneer de query een <code>ORDER BY</code> heeft, zodat de gebruiker ziet waarop de lijst staat. Zonder dit attribuut toont de kop pas iets nadat er zelf gesorteerd is. Tabellen die via de gedeelde PHP-klasse <code>LibTable</code> gerenderd worden krijgen het attribuut vanzelf: die leest de <code>ORDER BY</code> uit de query met <code>SQL::sortedColumn()</code> en markeert de bijbehorende kolom, of laat het weg als die kolom niet getoond wordt.</dd>
                 </dl>
                 <h4>Functies</h4>
                 <dl>

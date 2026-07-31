@@ -13,6 +13,7 @@ use App\Library\Date;
 use App\Library\Html;
 use App\Library\Request;
 use App\Library\Server;
+use App\Library\SQL;
 use App\Library\Str;
 use App\Library\RecordSet;
 
@@ -97,6 +98,8 @@ class LibTable
     public $TableRowClassField = '';
     /** data-filter per kolomindex, bv. [0 => 'N', 1 => 'N']. */
     public $TableFieldFilters = [];
+    /** ['index'=>int,'direction'=>'asc'|'desc'] van de kolom waarop de query sorteert, of null. */
+    private $TableSortKolom = null;
     /** Veldnamen die gegevens dragen maar nooit een kolom worden. */
     public $TableHideFields = [];
 
@@ -190,6 +193,86 @@ class LibTable
             return '';
         }
         return ' data-filter="' . Server::htmlEncode((string)$this->TableFieldFilters[$kolom]) . '"';
+    }
+
+    /**
+     * data-sorted voor de kop van kolom $kolom: de sortering waarop de rijen binnenkomen.
+     * <lib-table> zet daar alleen de aanwijzing op en laat de volgorde met rust.
+     */
+    private function _sortedAttrib($kolom): string
+    {
+        if ($this->TableSortKolom === null || $this->TableSortKolom['index'] !== $kolom) {
+            return '';
+        }
+        return ' data-sorted="' . $this->TableSortKolom['direction'] . '"';
+    }
+
+    /**
+     * Welke kolom draagt de sortering van de query, en in welke richting?
+     *
+     * De rijen komen binnen in de volgorde van de ORDER BY, maar de kop kon dat niet
+     * weten: de aanwijzing verscheen pas als de gebruiker zelf sorteerde. Hier wordt die
+     * kolom één keer bepaald, zodat de kopregel hem kan markeren.
+     *
+     * De volgorde wordt afgelezen uit SQL. Levert de aanroeper zijn eigen recordset aan,
+     * dan kan hij daarnaast SQL zetten om te vertellen waarop die rijen staan; laat hij
+     * dat leeg, dan blijft de kop onbeslist.
+     *
+     * Blijft null zodra er twijfel is over WELKE kolom bedoeld is — een aanwijzing op de
+     * verkeerde kop is misleidender dan geen aanwijzing:
+     *  - sorteert de query op iets dat geen getoonde kolom is, dan valt er niets aan te
+     *    wijzen;
+     *  - zijn er eigen kopteksten opgegeven en wijkt hun aantal af van het aantal
+     *    getoonde velden, dan lopen kop- en veldindex niet gelijk.
+     */
+    private function _bepaalSortKolom(): void
+    {
+        $this->TableSortKolom = null;
+        $sort = SQL::sortedColumn($this->TableSQL);
+        if ($sort === null) {
+            return;
+        }
+        $zichtbaar = $this->_zichtbareVelden();
+        if ($zichtbaar === []) {
+            return;
+        }
+        if (Arr::isArray($this->TableFieldCaptions) && count($this->TableFieldCaptions) > 0
+            && count($this->TableFieldCaptions) !== count($zichtbaar)) {
+            return;
+        }
+        $index = array_search(strtolower($sort['field']), array_map('strtolower', $zichtbaar), true);
+        if ($index === false) {
+            return;
+        }
+        $this->TableSortKolom = ['index' => $index, 'direction' => $sort['direction']];
+    }
+
+    /**
+     * De velden die een eigen kolom krijgen, in de volgorde waarin ze getoond worden.
+     * Zelfde uitsluitingen als de kop- en cel-lussen: wijkt dit af, dan wijst een
+     * kolomindex naar een andere kolom dan de lezer ziet.
+     */
+    private function _zichtbareVelden(): array
+    {
+        $uit = [];
+        foreach ($this->TableRS->Fields() as $fld) {
+            $naam = (string)$fld->name();
+            if ($this->_isVerborgenVeld($naam)) {
+                continue;
+            }
+            $laag = strtolower($naam);
+            if (!$this->TableShowIDField && $laag === strtolower((string)$this->TableIDField)) {
+                continue;
+            }
+            if ($this->TableGroupField != '' && $laag === strtolower((string)$this->TableGroupField)) {
+                continue;
+            }
+            if ($this->TableDeleteField != '' && $laag === strtolower((string)$this->TableDeleteField)) {
+                continue;
+            }
+            $uit[] = $naam;
+        }
+        return $uit;
     }
 
     /**
@@ -570,12 +653,13 @@ class LibTable
                     }
                     echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableIsChild ? '' : ($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :''))) .' onselectstart="return(false)"><THEAD><TR>';
                     if ($this->TableShowCaptions) {
+                        $this->_bepaalSortKolom();
                         if ($this->TableDeleteField != '') {
                             echo '<TH ' . $this->TableTHAttrib . '></TH>';
                         }
                         if (Arr::isArray($this->TableFieldCaptions) && count($this->TableFieldCaptions) > 0) {
                             for ($x = 0; $x <= (count($this->TableFieldCaptions) - 1); $x++) {
-                                echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($x) . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
+                                echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($x) . $this->_sortedAttrib($x) . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
                             }
                         } else {
                             $kopTel = 0;
@@ -586,7 +670,7 @@ class LibTable
                                 if ($this->_isVerborgenVeld($fld->name())) { continue; }
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $sNiceField = Str::firstUpper(str_replace('_', ' ', $fld->name()));
-                                    echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($kopTel) . '>' . Server::htmlEncode($sNiceField) . '</TH>';
+                                    echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($kopTel) . $this->_sortedAttrib($kopTel) . '>' . Server::htmlEncode($sNiceField) . '</TH>';
                                     $kopTel++;
                                 }
                             }
