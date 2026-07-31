@@ -7384,3 +7384,9 @@ karaat-data en staat in de karaat-repo.
 > composer update is gedraaid, sorry maar ik zie het nog niet , kijk zelf maar naar http://172.30.208.1:8090/index.php?pageaction=rapport_dispensaties
 
 > ik zit nu met het volgende issue, een kader is zandkleurig en de tabel eronder ook, dus dat zou wel marge mogen hebben, maar het <script> block van de table staat ertussen waardoor css niet lekker werkt, zou dat script block eronder kunnen worden gezet om vervolgens tussen de 2 elementen 16 a 20px ruimte te creeeren?
+
+> Gemeten op rapport_teruggetrokken: gat = 18px. : hoe dan?? IK krijg daat nog steeds geen data uit.
+
+> kun je die standaardperiode wijzigen in die 2 waarden?
+
+> even een andere css vraag:  als in een kader een tabel direct wordt gevolgt door een a.GenButton, die laatste graag margin-top:8px geven, dat stond in rinoportal.css maar zie ik niet meer terug

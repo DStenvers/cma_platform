@@ -316,7 +316,15 @@ class SQL
 
     /**
      * Parse a date string and format for SQL
-     * Expects format: DD-MM-YYYY or DD/MM/YYYY
+     * Accepts DD-MM-YYYY / DD/MM/YYYY and YYYY-MM-DD.
+     *
+     * The ISO form is not a convenience: <lib-datepicker> submits its value as
+     * YYYY-MM-DD (that is the component's documented value format), while every
+     * converted page hands whatever it posted straight to this method. Parsed as
+     * day-first, "2026-04-01" became day 2026 / year 01, postDate() could not make a
+     * date of that and returned NULL — so the query read `datestamp >= NULL`, which
+     * matches nothing. A report would then show zero rows without a single error.
+     * A day is never four digits, so the leading part decides which form it is.
      *
      * @param string $dateStr The date string to parse
      * @param string|null $connectionString Connection string to determine database type
@@ -330,12 +338,20 @@ class SQL
 
         $dateStr = str_replace('/', '-', $dateStr);
 
-        // Extract day, month, year from DD-MM-YYYY format
+        // A time part ("2026-04-01 14:03:00") is not ours to interpret; keep the date.
+        $dateStr = trim(explode(' ', trim($dateStr))[0]);
+
         $parts = explode('-', $dateStr);
         if (count($parts) >= 3) {
-            $day = $parts[0];
-            $month = $parts[1];
-            $year = substr($parts[2], 0, 4);
+            if (strlen($parts[0]) === 4) {
+                $day = $parts[2];
+                $month = $parts[1];
+                $year = $parts[0];
+            } else {
+                $day = $parts[0];
+                $month = $parts[1];
+                $year = substr($parts[2], 0, 4);
+            }
 
             return self::postDate($day, $month, $year, $connectionString);
         }

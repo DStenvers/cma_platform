@@ -470,6 +470,25 @@ class SQLTest extends TestCase
         $this->assertEquals('NULL', SQL::postDateStr('', $this->access));
     }
 
+    public function testPostDateStrAcceptsIso(): void
+    {
+        // <lib-datepicker> submits YYYY-MM-DD. Read day-first this became day 2026 /
+        // year 01, which is not a date, so the method returned NULL and the query it
+        // landed in ("datestamp >= NULL") matched nothing: a report with zero rows and
+        // no error anywhere. Same day as the DD-MM-YYYY form, so both must agree.
+        $this->assertEquals('#06/07/2026#', SQL::postDateStr('2026-06-07', $this->access));
+        $this->assertEquals(
+            SQL::postDateStr('07-06-2026', $this->access),
+            SQL::postDateStr('2026-06-07', $this->access)
+        );
+    }
+
+    public function testPostDateStrIgnoresTimePart(): void
+    {
+        $this->assertEquals('#06/07/2026#', SQL::postDateStr('2026-06-07 14:30:45', $this->access));
+        $this->assertEquals('#06/07/2026#', SQL::postDateStr('07-06-2026 14:30:45', $this->access));
+    }
+
     // ========================================================================
     // guidEquals — Access ODBC needs LIKE, SQL Server uses =
     // ========================================================================
