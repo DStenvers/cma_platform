@@ -584,21 +584,21 @@ class CmaTabs extends HTMLElement {
                 ${this._getBaseStyles()}
                 ${this._getDefaultTabStyles()}
             </style>
-            <div class="tabs-container">
-                <div class="scroll-arrow left" title="Scroll links"></div>
-                <div class="scroll-arrow right" title="Scroll rechts"></div>
-                <ul class="tabs-list">
+            <div class="tabs-container" part="container">
+                <div class="scroll-arrow left" part="scroll-arrow" title="Scroll links"></div>
+                <div class="scroll-arrow right" part="scroll-arrow" title="Scroll rechts"></div>
+                <ul class="tabs-list" part="list">
                     ${this._tabs.map((tab, i) => tab.hidden ? '' : `
-                        <li class="${i === this._selectedIndex ? 'selected' : ''}" data-index="${i}">
-                            <a href="javascript:void(0)">
-                                <span class="tab-title">${this._escapeHtml(tab.title)}</span>
-                                ${tab.beheer ? '<span class="tab-beheer" title="beheer"></span>' : ''}
-                                <span class="tab-count${tab.count === null || tab.count === '.' ? ' loading' : (tab.count === 0 || tab.count === '0') ? ' empty' : ''}">${tab.count ?? '.'}</span>
+                        <li class="${i === this._selectedIndex ? 'selected' : ''}" part="tab${i === this._selectedIndex ? ' selected' : ''}" data-index="${i}">
+                            <a href="javascript:void(0)" part="link">
+                                <span class="tab-title" part="title">${this._escapeHtml(tab.title)}</span>
+                                ${tab.beheer ? '<span class="tab-beheer" part="beheer" title="beheer"></span>' : ''}
+                                <span part="count" class="tab-count${tab.count === null || tab.count === '.' ? ' loading' : (tab.count === 0 || tab.count === '0') ? ' empty' : ''}">${tab.count ?? '.'}</span>
                             </a>
                         </li>
                     `).join('')}
                 </ul>
-                <select class="tabs-select">
+                <select class="tabs-select" part="select">
                     ${this._tabs.map((tab, i) => tab.hidden ? '' : `
                         <option value="${i}" ${i === this._selectedIndex ? 'selected' : ''}>
                             ${this._escapeHtml(tab.title)}${(tab.count === null || tab.count === undefined || tab.count === '.') ? '' : ` (${tab.count})`}
@@ -606,7 +606,7 @@ class CmaTabs extends HTMLElement {
                     `).join('')}
                 </select>
             </div>
-            <div class="tabs-content">
+            <div class="tabs-content" part="content">
                 ${this._tabs.map((tab, i) => `<slot name="tab-${i}" ${i === this._selectedIndex ? '' : 'style="display:none"'}></slot>`).join('')}
             </div>
         `;
