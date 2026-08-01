@@ -54,7 +54,7 @@ if (!customElements.get('cma-tabs')) {
 
 class CmaTabs extends HTMLElement {
     static get observedAttributes() {
-        return ['selected', 'breakpoint', 'tabs', 'mode'];
+        return ['selected', 'breakpoint', 'tabs', 'mode', 'remember'];
     }
 
     constructor() {
@@ -239,6 +239,7 @@ class CmaTabs extends HTMLElement {
         }));
         this._render();
         this.selectTab(0, false);
+        this._herstelUitHash();
     }
 
     /**
@@ -382,6 +383,36 @@ class CmaTabs extends HTMLElement {
      * @param {number} index - Tab index
      * @param {boolean} emit - Whether to emit event (default: true)
      */
+    /**
+     * Onthoud de gekozen tab in de URL, en herstel hem daaruit bij het laden.
+     *
+     * Opt-in via remember="hash": zonder dat attribuut verandert er niets, want een
+     * formulier in de CMA bewaart zijn actieve subformulier al in een cookie en zou van
+     * een tweede geheugen alleen maar in de knoop raken. Op een front-end wil je juist
+     * de URL, want dan is een link naar het juiste tabblad deelbaar.
+     *
+     * De titel gaat in de hash, niet de index: een index verschuift zodra er een tabblad
+     * bijkomt of wegvalt, en dan opent een oude link ineens iets anders. Titels
+     * verschillen ook per rol, dus een hash die niet past wordt genegeerd.
+     */
+    _onthoudInHash(tab) {
+        if (this.getAttribute('remember') !== 'hash' || !tab || !tab.title) return;
+        const nieuw = '#' + encodeURIComponent(tab.title);
+        if (window.location.hash === nieuw) return;
+        // replaceState, geen toewijzing aan location.hash: dat laatste zet een extra
+        // stap in de geschiedenis, waardoor de terugknop door alle bezochte tabbladen
+        // moet in plaats van terug te gaan naar de vorige pagina.
+        try { history.replaceState(null, '', nieuw); } catch (e) { window.location.hash = nieuw; }
+    }
+
+    _herstelUitHash() {
+        if (this.getAttribute('remember') !== 'hash') return;
+        const gevraagd = decodeURIComponent((window.location.hash || '').replace(/^#/, '')).trim();
+        if (gevraagd === '') return;
+        const i = this._tabs.findIndex(t => t.title === gevraagd);
+        if (i > 0) this.selectTab(i, true);
+    }
+
     selectTab(index, emit = true) {
         if (index < 0 || index >= this._tabs.length) return;
 
@@ -436,6 +467,7 @@ class CmaTabs extends HTMLElement {
         // Emit event
         if (emit) {
             const tab = this._tabs[index];
+            this._onthoudInHash(tab);
             this.dispatchEvent(new CustomEvent('tab-select', {
                 bubbles: true,
                 detail: {

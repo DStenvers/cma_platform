@@ -7468,3 +7468,7 @@ karaat-data en staat in de karaat-repo.
 > ja start maar
 
 > start gewoon, maak nu screendumps en vergelijk na stap 5
+
+> ik zou doorgaan, dan sluiten we daarna de sessie, je context is nu gevuld met relevante info
+
+> de knop Ga naar de draaiboeken, deze mag in een wit kader met de volgende tekst erboven. Draaiboeken zijn beschikbaar in onze Leeromgeving: <nieuwe regel> [knop]
