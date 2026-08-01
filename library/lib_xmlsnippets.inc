@@ -684,14 +684,81 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                         // REDIM arrImagePaths($rs->fields->count) - Create new array
                         $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                         $arrImagePaths = array_fill(0, $new_size, null);
-                        // Kolom-metadata per veld (welke tabel, welke kolom) is hier niet
-                        // te krijgen: RecordSet levert per veld alleen name en value
-                        // (RecordSetField), niet ADO's Field.Properties met BASETABLENAME
-                        // en BASECOLUMNNAME. Zonder die twee valt een veld niet aan een
-                        // tblControls-regel te koppelen, dus blijft de tabel leeg — wat
-                        // downstream betekent "dit veld is geen afbeelding". Wil je dit
-                        // laten werken, dan moet RecordSet eerst kolomtype en herkomst
-                        // per veld beschikbaar maken.
+                        // Elk bestandsveld heeft in tblControls een ImgPath: de map waarin
+                        // het bestand staat. Zonder die map wordt <a href="Studiegids.pdf">
+                        // door de browser opgelost tegen de HUIDIGE pagina en krijg je een
+                        // 404 in plaats van het bestand.
+                        //
+                        // De ASP koppelde veld aan tblControls-regel via de kolom-metadata
+                        // van ADO: Field.Properties("BASETABLENAME") + ("BASECOLUMNNAME").
+                        // RecordSet heeft die niet — per veld is alleen de NAAM bekend.
+                        // De TABEL is er wel, alleen niet per veld: een snippet-store hangt
+                        // aan één SQL-statement, en de hoofdtabel daarvan staat in de FROM.
+                        // Voor een store over één tabel is dat exact wat BASETABLENAME gaf.
+                        // Matchen op veldnaam BINNEN die tabel geeft dus dezelfde koppeling
+                        // als de ASP maakte. (STORE_ROOTTABLE zou hiervoor de aangewezen plek
+                        // zijn, maar die wordt bij het opbouwen van de store leeg gelaten.)
+                        //
+                        // Waar dat NIET zeker is, koppelen we liever niet: levert dezelfde
+                        // veldnaam binnen de store twee verschillende mappen op (een join met
+                        // gelijknamige kolommen in twee tabellen), dan is de herkomst niet te
+                        // bepalen en blijft het veld zonder map — een ontbrekende map is een
+                        // zichtbare 404, een verkeerde map wijst stilletjes naar het verkeerde
+                        // bestand.
+                        $strRootTable = strtolower(trim((string) ($libArrXMLStore[STORE_ROOTTABLE] ?? '')));
+                        // Access schrijft een join als "FROM (tblA INNER JOIN tblB ON …)", dus
+                        // de haakjes moeten mee: zonder dat vindt de regex bij 10 van de 44
+                        // stores helemaal geen tabel. Bij een join is de EERSTE tabel de
+                        // hoofdtabel; velden uit de bijgevoegde tabellen krijgen geen map —
+                        // dat is de veilige kant, want een verkeerde map wijst naar een ander
+                        // bestand terwijl een ontbrekende map meteen opvalt.
+                        if ($strRootTable === '' && preg_match('/\bfrom\s+\(*\s*\[?([a-z0-9_]+)\]?/i', (string) $strXMLSQL, $mTabel)) {
+                            $strRootTable = strtolower($mTabel[1]);
+                        }
+                        $strImgBasePath = (string) Application::get('base_resource_path', '');
+                        if ($strImgBasePath === '') {
+                            $strImgBasePath = (string) Application::get('base_path', '');
+                        }
+                        // De veldnamen komen uit de SLEUTELS van $rs->fields. Dat is geen lijst
+                        // van veld-objecten zoals in ADO, maar een CaseArray van de huidige rij
+                        // (kolomnaam => waarde) in de volgorde van de query — dezelfde
+                        // volgorde die lib_XMLfromRS verderop met $intCurFieldIdx aanhoudt.
+                        // $rs->Fields[$t] met een GETAL geeft daarom null; dat mag hier niet.
+                        $arrVeldNamen = [];
+                        foreach ($rs->fields as $strKolomNaam => $mIgnoreWaarde) {
+                            $arrVeldNamen[] = strtolower(trim((string) $strKolomNaam));
+                        }
+                        if (Arr::isArray($arrImgFields)) {
+                            $intImgRijen = count($arrImgFields);
+                            for ($t = 0; $t <= count($arrVeldNamen) - 1; $t++) {
+                                $strFieldName = $arrVeldNamen[$t];
+                                if ($strFieldName === '') {
+                                    continue;
+                                }
+                                $strGevondenPad = null;
+                                $blnMeerdereMappen = false;
+                                for ($x = 0; $x <= $intImgRijen - 1; $x++) {
+                                    if (strtolower(trim((string) ($arrImgFields[1][$x] ?? ''))) !== $strFieldName) {
+                                        continue;
+                                    }
+                                    // Alleen regels uit de hoofdtabel van deze store. Is die
+                                    // niet ingevuld (of de tabel bij de control niet), dan
+                                    // valt die extra zekerheid weg en telt de veldnaam.
+                                    $strTabel = strtolower(trim((string) ($arrImgFields[2][$x] ?? '')));
+                                    if ($strRootTable !== '' && $strTabel !== '' && $strTabel !== $strRootTable) {
+                                        continue;
+                                    }
+                                    $strPad = (string) ($arrImgFields[0][$x] ?? '');
+                                    if ($strGevondenPad !== null && $strGevondenPad !== $strPad) {
+                                        $blnMeerdereMappen = true;
+                                    }
+                                    $strGevondenPad = $strPad;
+                                }
+                                if ($strGevondenPad !== null && $strGevondenPad !== '' && !$blnMeerdereMappen) {
+                                    $arrImagePaths[$t] = $strImgBasePath . $strGevondenPad;
+                                }
+                            }
+                        }
                         // REDIM arrDateFields($rs->fields->count) - Create new array
                         $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
                         $arrDateFields = array_fill(0, $new_size, null);

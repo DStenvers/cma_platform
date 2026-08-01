@@ -7462,3 +7462,9 @@ karaat-data en staat in de karaat-repo.
 > je wordt slordig, ik weet 100% zeker dat subtabs de actieve opslaan/herstellen of dat recen hebben gedaan
 
 > en zullen we inderdaad cma-tabs doen? maar dan alle andere weg graag
+
+> kun je die code uit general.js weghalen?
+
+> ja start maar
+
+> start gewoon, maak nu screendumps en vergelijk na stap 5
