@@ -7502,3 +7502,9 @@ karaat-data en staat in de karaat-repo.
 > Ik zie nu dat de CMA de aanp[assingen aan de tabel layout heeft overgenomen, kunnen we iets verzinnen waardoor dat niet gebeurd, want die zijn echt allewen voor de front-end
 
 > Voor deelnemers: op het dashboard als deze naar Moodle gaat met introtekst maar zonder witte achtergrond. Voor de overige rollen doe maar in de losse tab
+
+> kun jij die minifu doen en dan checken?
+
+> wil je dat toch checken? want in het menu staat wel ?pageaction=opleidingen toch? Eva moet dan gewoon content hebben
+
+> the roputing is broken, if i click on a form, like blokken i get the url http://172.30.208.1:8090/cma/form/opleidingen/151, but refreshing leads to  a 404, please check all routes and ther validity

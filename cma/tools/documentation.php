@@ -773,16 +773,30 @@ function cma_doc_child_webconfig(): ?\SimpleXMLElement {
 }
 
 function cma_doc_check_parent_skip_cma(): array {
-    $label = 'Parent web.config: "Skip /cma to child config" rule';
-    $xml = cma_doc_parent_webconfig();
-    if ($xml === null) {
+    // Aanwezig zijn is niet hetzelfde als bereikbaar zijn. De CMA-routes staan
+    // in de parent, dus een regel die ervóór staat en de verwerking stopt maakt
+    // ze allemaal dood — ook de rules in cma/web.config, want een
+    // stopProcessing in de parent stopt de hele keten. Aan de rules zelf is dat
+    // niet te zien; alleen aan hun volgorde.
+    $label = 'Parent web.config: volgorde — geen regel blokkeert de CMA-routes';
+    $path = cma_doc_site_root() . '/web.config';
+    if (!is_file($path)) {
         return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden in site-root — site draait niet onder IIS of staat ergens anders.', 'fix' => ''];
     }
-    $hit = $xml->xpath("//rewrite/rules/rule[@name='Skip /cma to child config']");
-    if (!empty($hit)) {
-        return ['label' => $label, 'status' => 'pass', 'detail' => 'Aanwezig.', 'fix' => ''];
+    $blockers = \App\Library\WebConfigCmaRoutes::precedingBlockers((string) file_get_contents($path));
+    if (empty($blockers)) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Geen enkele regel vóór het CMA-blok stopt de verwerking voor een <code>/cma/…</code>-pad.', 'fix' => ''];
     }
-    return ['label' => $label, 'status' => 'fail', 'detail' => 'Regel ontbreekt — <code>/cma/dashboard</code> en andere extension-less URLs eindigen in 404.', 'fix' => 'Kopieer uit <code>templates/web.config.template</code>, plaats bovenaan parent <code>&lt;rules&gt;</code>.'];
+    $regels = [];
+    foreach ($blockers as $blocker) {
+        $regels[] = htmlspecialchars(\App\Library\WebConfigCmaRoutes::blockerMessage($blocker), ENT_QUOTES, 'UTF-8');
+    }
+    return [
+        'label'  => $label,
+        'status' => 'fail',
+        'detail' => implode('<br>', $regels),
+        'fix'    => 'Verplaats die regel(s) in <code>web.config</code> naar ná het CMA-blok. Een regel die alles onder <code>/cma</code> met rust wil laten hoort daar: de specifieke CMA-routes worden dan eerst afgehandeld, en al het andere (assets, <code>*.php</code>, <code>api/</code>) valt daarna alsnog buiten de front-end catch-alls.',
+    ];
 }
 
 function cma_doc_check_parent_default_content_type(): array {
@@ -2849,7 +2863,7 @@ function render_doc_iis_config(): void
             <tr>
                 <td>
                     <ul>
-                        <li>Rewrite-regel <code>Skip /cma to child config</code> (wordt bovenaan <code>&lt;rules&gt;</code> gezet — hij moet vóór de eigen friendly-URL-regels van de site staan)</li>
+                        <li>Een regel die de CMA-routes blokkeert (zoals <code>Skip /cma to child config</code>) verplaatsen naar ná het CMA-blok</li>
                         <li>Outbound rule <code>Default Content-Type to text/html</code> + bijbehorende <code>preCondition</code></li>
                         <li><code>X-Content-Type-Options: nosniff</code> en <code>X-Frame-Options: SAMEORIGIN</code></li>
                         <li>Ontbrekende <code>hiddenSegments</code> (<code>.env</code>, <code>composer.json</code>, <code>composer.lock</code>, <code>.sessions</code>)</li>
@@ -2885,12 +2899,12 @@ function render_doc_iis_config(): void
     <p>IIS evalueert parent-rules eerst. Als een parent-rule met <code>stopProcessing="true"</code> matcht op een URL, krijgt de child <code>web.config</code> niks meer te doen. Dat is precies waar je tegenaan loopt bij sites met catch-all "alle .php door <code>_bootstrap_wrapper.php</code>" rules.</p>
 
     <div class="docs-callout docs-callout--danger">
-        <span class="cma-tool__strong">Skip /cma to child config</span> — deze regel staat standaard in de <code>templates/web.config.template</code> die nieuwe installs krijgen:
+        <span class="cma-tool__strong">De volgorde van de regels is het hele verhaal</span> — een regel die alles onder <code>/cma</code> met rust laat is nuttig, maar alleen op de juiste plek:
         <pre><code>&lt;rule name="Skip /cma to child config" stopProcessing="true"&gt;
     &lt;match url="^cma($|/)" /&gt;
     &lt;action type="None" /&gt;
 &lt;/rule&gt;</code></pre>
-        Voor BESTAANDE installs moet je 'm handmatig toevoegen bovenaan <code>&lt;rules&gt;</code> in de site-root web.config (of NA HTTPS/www redirects, zodat <code>/cma/*</code> nog steeds geforceerd naar HTTPS gaat). Symptoom als de regel ontbreekt: <code>/cma/dashboard</code> geeft 404, maar <code>/cma/dashboard.php</code> wel 200.
+        Hij houdt de catch-all regels van de site weg bij de assets en <code>*.php</code> onder <code>/cma</code>. Maar <code>stopProcessing</code> stopt de <span class="cma-page__strong">hele</span> keten — ook de rules in <code>cma/web.config</code>. Staat hij vóór het CMA-blok, dan bereikt geen enkele schone CMA-URL zijn rewrite en zoekt IIS letterlijk naar een bestand <code>cma/form/opleidingen/151</code>. Symptoom: <code>/cma/dashboard</code>, <code>/cma/tools/…</code> en élke <code>/cma/form/…</code> geven 404, terwijl <code>/cma/dashboard.php</code> gewoon 200 geeft. Plaats hem dus <span class="cma-page__strong">ná</span> het CMA-blok en vóór de eigen friendly-URL-regels van de site. De live-check bovenaan deze pagina meet die volgorde en heeft er een knop bij.
     </div>
 
     <div class="docs-callout docs-callout--danger">
@@ -3000,7 +3014,7 @@ function render_doc_iis_config(): void
         <tbody>
             <tr><td><code>/cma/dashboard</code> → 404, <code>/cma/dashboard.php</code> werkt wél</td><td>De CMA-routes leven in het <span class="cma-tool__strong">parent</span> web.config (zie callout boven). Meest voorkomende oorzaken: (1) <span class="cma-tool__strong">CMA-routes ontbreken in de parent web.config</span> — run <code>composer update stenversonline/platform</code> (past ze automatisch + fail-safe toe) of migratie <code>9.9.0</code>; de live-check "Parent web.config: CMA friendly-URL routes" bovenaan toont dit direct. (2) <span class="cma-tool__strong">URL Rewrite Module is niet meer geïnstalleerd</span> (Windows-update kan het verwijderen) — herinstalleer van <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" rel="noopener">iis.net/downloads/microsoft/url-rewrite</a>. (3) <span class="cma-tool__strong"><code>applicationHost.config</code> heeft <code>&lt;section name="rewrite" overrideMode="Deny"/&gt;</code></span> waardoor web.config-rewrites genegeerd worden — zet om naar <code>Allow</code>. <span class="cma-tool__strong">Niet meer nodig:</span> cma/ als IIS Application inrichten — de parent-routes werken ongeacht of cma/ een Application of Virtual Directory is.</td></tr>
             <tr><td><code>/cma/preferences</code> → 404 (en <code>/cma/dashboard</code> ook)</td><td>Zelfde diagnose als hierboven — alle extensionless URLs in de child-config falen samen.</td></tr>
-            <tr><td><code>/cma/dashboard</code> → 404 op nieuwe install</td><td>"Skip /cma" rule ontbreekt in parent web.config. Zie callout hierboven en <a href="documentation.php?topic=iis_config">live-check</a> bovenaan deze pagina.</td></tr>
+            <tr><td>Alle schone <code>/cma/…</code>-URLs → 404, <code>*.php</code> wel 200</td><td>Een regel met <code>stopProcessing</code> staat vóór het CMA-blok en stopt de keten. Zie callout hierboven en de <a href="documentation.php?topic=iis_config">live-check</a> bovenaan deze pagina.</td></tr>
             <tr><td><code>/cma/dashboard.php</code> → 500 Server Error</td><td>Allowed server variables niet ontgrendeld. Zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td><code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt wel</td><td>URL Rewrite Module ontbreekt of de "CMA Tools Friendly URL" regel staat niet in de site-root web.config.</td></tr>
             <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Dit staat standaard aan — run <code>composer update stenversonline/platform</code>.</td></tr>
@@ -4207,7 +4221,7 @@ function render_doc_troubleshooting(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
-            <tr><td><code>/cma/dashboard</code> → 404, maar <code>/cma/dashboard.php</code> wel 200</td><td>Parent web.config vangt <code>/cma/*</code> op vóór het kind <code>cma/web.config</code>.</td><td>Voeg "Skip /cma to child config" regel bovenaan parent <code>&lt;rules&gt;</code> toe — standaard in <code>templates/web.config.template</code>. Zie <a href="documentation.php?topic=iis_config">IIS-configuratie</a>.</td></tr>
+            <tr><td><code>/cma/dashboard</code> → 404, maar <code>/cma/dashboard.php</code> wel 200</td><td>Een regel in de parent <code>web.config</code> matcht op <code>/cma/…</code>, heeft <code>stopProcessing="true"</code> en staat vóór het CMA-blok. De keten stopt daar, dus geen enkele CMA-route wordt herschreven — en ook <code>cma/web.config</code> komt niet meer aan bod.</td><td>Verplaats die regel naar ná het CMA-blok; de <a href="documentation.php?topic=iis_config">IIS-configuratie</a>-topic meet dit en heeft er een knop bij.</td></tr>
             <tr><td>500 op alle <code>/cma/*</code> requests, parent IIS-error over locked config-sectie</td><td>Allowed server variables nog niet ontgrendeld op server-niveau.</td><td><code>appcmd unlock</code> — zie <a href="documentation.php?topic=installation">Installatie</a>.</td></tr>
             <tr><td>Friendly URL <code>/cma/tools/&lt;naam&gt;</code> → 404 maar <code>?tool=&lt;naam&gt;</code> werkt</td><td>"CMA Tools Friendly URL" regel ontbreekt in site-root web.config, of URL Rewrite Module niet geïnstalleerd.</td><td>Module installeren via iis.net; regel kopiëren uit een werkende consumer-site.</td></tr>
             <tr><td>iOS Safari prompt "Download logreader.php?" bij Log leegmaken</td><td><code>file_put_contents()</code> in delete-handler emitterde PHP-warning, polluatie van response-buffer brak de Location-redirect. Browser kreeg 200 OK met warning-tekst, geen Content-Type → download.</td><td><code>@</code>-suppress op de truncate-call.</td></tr>

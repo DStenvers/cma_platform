@@ -138,9 +138,14 @@ EOT;
             return self::result('error', $messages, null, $errors);
         }
 
-        // Already applied — marker present.
+        // Already applied — marker present. Aanwezig is niet hetzelfde als
+        // bereikbaar: een regel ervóór die de verwerking stopt maakt het hele
+        // blok dood. Dat is niet aan de rules te zien, alleen aan hun volgorde.
         if (strpos($content, self::MARKER) !== false) {
             $msg('Marker al aanwezig — CMA-routes reeds toegepast.');
+            foreach (self::precedingBlockers($content) as $blocker) {
+                $errors[] = self::blockerMessage($blocker);
+            }
             return self::result('noop', $messages, null, $errors);
         }
 
@@ -157,6 +162,9 @@ EOT;
                 return self::result('error', $messages, null, $errors);
             }
             $msg("Rule 'CMA Dashboard' al aanwezig (handmatige patch) — idempotency-marker toegevoegd. Backup: " . $backup);
+            foreach (self::precedingBlockers($content) as $blocker) {
+                $errors[] = self::blockerMessage($blocker);
+            }
             return self::result('patched', $messages, $backup, $errors);
         }
 
@@ -198,6 +206,80 @@ EOT;
         }
         $msg('Parent web.config gepatched met CMA-routes (XML + duplicate-name + regex gevalideerd, atomic write). Backup: ' . $backup);
         return self::result('patched', $messages, $backup, $errors);
+    }
+
+    /**
+     * Rules that stand BEFORE the CMA block, stop the rewrite chain, and match
+     * a CMA URL. Zo'n regel maakt elke schone CMA-URL een 404: de rewrite komt
+     * er nooit aan toe, dus IIS zoekt letterlijk naar een bestand
+     * `cma/form/opleidingen/151`. Een `stopProcessing` in de parent stopt ook
+     * de rules in cma/web.config, dus "we laten het aan de child over" is geen
+     * uitweg — dat is precies hoe deze val ontstaat.
+     *
+     * De volgorde is het enige wat telt; aan de rules zelf is niets te zien.
+     * Daarom test deze controle de patronen tegen echte CMA-paden in plaats van
+     * naar bekende regelnamen te zoeken.
+     *
+     * @return array<int,array{name:string,pattern:string,conditions:bool}>
+     */
+    public static function precedingBlockers(string $content): array
+    {
+        libxml_use_internal_errors(true);
+        $xml = @simplexml_load_string($content);
+        libxml_clear_errors();
+        if ($xml === false) {
+            return [];
+        }
+
+        $rules = $xml->xpath('//rewrite/rules/rule');
+        if (!$rules) {
+            return [];
+        }
+
+        // Paden zoals de rewrite-module ze aanbiedt: zonder leidende slash.
+        $paden = ['cma/dashboard', 'cma/form/opleidingen/151', 'cma/tools/documentation'];
+
+        $blockers = [];
+        foreach ($rules as $rule) {
+            $naam = (string) $rule['name'];
+            // Het CMA-blok zelf: alles daarna staat achter de routes en kan ze
+            // niet meer wegnemen.
+            if (strncmp($naam, 'CMA ', 4) === 0) {
+                break;
+            }
+            if ((string) $rule['stopProcessing'] !== 'true') {
+                continue;
+            }
+            $patroon = isset($rule->match['url']) ? (string) $rule->match['url'] : '';
+            if ($patroon === '') {
+                continue;
+            }
+            $hoofdletterOngevoelig = !isset($rule->match['ignoreCase'])
+                || strtolower((string) $rule->match['ignoreCase']) !== 'false';
+            $pcre = '#' . str_replace('#', '\#', $patroon) . '#' . ($hoofdletterOngevoelig ? 'i' : '');
+            foreach ($paden as $pad) {
+                if (@preg_match($pcre, $pad) === 1) {
+                    $blockers[] = [
+                        'name'       => $naam,
+                        'pattern'    => $patroon,
+                        'conditions' => isset($rule->conditions),
+                    ];
+                    break;
+                }
+            }
+        }
+
+        return $blockers;
+    }
+
+    /** Eén regel uitleg per blokkerende rule, voor installer-output en de docs. */
+    public static function blockerMessage(array $blocker): string
+    {
+        return "rule '" . $blocker['name'] . "' (match " . $blocker['pattern'] . ') staat VOOR het CMA-blok'
+            . ' en heeft stopProcessing="true"'
+            . ($blocker['conditions'] ? ' (met conditions — controleer of die de regel echt laten vallen)' : '')
+            . ': schone CMA-URLs zoals /cma/form/<form>/<id> bereiken de rewrite dan nooit en geven 404.'
+            . ' Verplaats de regel NA het CMA-blok.';
     }
 
     /**

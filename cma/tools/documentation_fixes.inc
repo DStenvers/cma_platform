@@ -33,7 +33,7 @@
 function cma_doc_fixers(): array {
     return [
         'cma_doc_check_parent_skip_cma' => [
-            'label' => 'Regel toevoegen',
+            'label' => 'Regel verplaatsen',
             'apply' => 'cma_doc_fix_skip_cma',
         ],
         'cma_doc_check_parent_default_content_type' => [
@@ -85,27 +85,61 @@ function cma_doc_dom_has(\DOMElement $parent, string $name, string $attr, string
     return false;
 }
 
+/**
+ * Verplaats regels die de CMA-routes onbereikbaar maken naar ná het CMA-blok.
+ *
+ * Een regel die alles onder /cma met rust wil laten (action None,
+ * stopProcessing) is nuttig — hij houdt de catch-all regels van de front-end
+ * weg bij assets en *.php onder /cma. Maar hij stopt de héle rewrite-keten, ook
+ * de rules in cma/web.config. Staat hij vóór het CMA-blok, dan bereikt geen
+ * enkele schone CMA-URL zijn rewrite en zoekt IIS letterlijk naar een bestand
+ * `cma/form/opleidingen/151`: 404 op elke lijst, elk record en elk tabblad.
+ *
+ * Welke regels blokkeren bepaalt WebConfigCmaRoutes — dezelfde bron als de
+ * live-check en de installer-waarschuwing, zodat de drie niet uit elkaar lopen.
+ */
 function cma_doc_fix_skip_cma(\DOMDocument $doc): ?string {
+    $blockers = \App\Library\WebConfigCmaRoutes::precedingBlockers((string) $doc->saveXML());
+    if (empty($blockers)) {
+        return null;
+    }
+    $namen = array_column($blockers, 'name');
+
     $rules = cma_doc_dom_path($doc, 'system.webServer/rewrite/rules');
-    if (cma_doc_dom_has($rules, 'rule', 'name', 'Skip /cma to child config')) {
-        return null; // already there
+    $laatsteCma = null;
+    foreach ($rules->childNodes as $c) {
+        if ($c instanceof \DOMElement && $c->nodeName === 'rule' && strncmp($c->getAttribute('name'), 'CMA ', 4) === 0) {
+            $laatsteCma = $c;
+        }
     }
-    $rule = $doc->createElement('rule');
-    $rule->setAttribute('name', 'Skip /cma to child config');
-    $rule->setAttribute('stopProcessing', 'true');
-    $match = $doc->createElement('match');
-    $match->setAttribute('url', '^cma($|/)');
-    $rule->appendChild($match);
-    $action = $doc->createElement('action');
-    $action->setAttribute('type', 'None');
-    $rule->appendChild($action);
-    // Must win over the site's own friendly-URL rules, so: first child.
-    if ($rules->firstChild !== null) {
-        $rules->insertBefore($rule, $rules->firstChild);
-    } else {
-        $rules->appendChild($rule);
+    if ($laatsteCma === null) {
+        // Geen CMA-blok in dit bestand: dat zet de Installer neer
+        // (WebConfigCmaRoutes), niet deze knop. Verplaatsen heeft dan geen zin.
+        return null;
     }
-    return 'Rewrite-regel "Skip /cma to child config" bovenaan &lt;rules&gt; geplaatst.';
+
+    $anker = $laatsteCma;
+    $verplaatst = [];
+    foreach ($namen as $naam) {
+        foreach ($rules->childNodes as $c) {
+            if ($c instanceof \DOMElement && $c->nodeName === 'rule' && $c->getAttribute('name') === $naam) {
+                $node = $rules->removeChild($c);
+                if ($anker->nextSibling === null) {
+                    $rules->appendChild($node);
+                } else {
+                    $rules->insertBefore($node, $anker->nextSibling);
+                }
+                $anker = $node;
+                $verplaatst[] = $naam;
+                break;
+            }
+        }
+    }
+    if (empty($verplaatst)) {
+        return null;
+    }
+    return 'Regel(s) ' . htmlspecialchars(implode(', ', $verplaatst), ENT_QUOTES, 'UTF-8')
+        . ' verplaatst naar ná het CMA-blok, zodat de schone CMA-URLs hun rewrite weer bereiken.';
 }
 
 function cma_doc_fix_default_content_type(\DOMDocument $doc): ?string {

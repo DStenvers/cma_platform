@@ -142,31 +142,85 @@ XML;
         $this->assertFalse($r['ok']);
     }
 
-    // ── skip /cma rule ───────────────────────────────────────────────────
+    // ── volgorde rond het CMA-blok ───────────────────────────────────────
 
-    public function testSkipCmaRuleIsAddedFirst(): void
+    /**
+     * Een parent-config waarin een /cma-skipregel VOOR het CMA-blok staat: de
+     * stand waarin elke schone CMA-URL 404 geeft, want stopProcessing stopt de
+     * hele keten voordat de rewrite-regels aan bod komen.
+     */
+    private function writeGeblokkeerdeConfig(): string
+    {
+        return $this->writeConfig(<<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="Skip /cma to child config" stopProcessing="true">
+                    <match url="^cma($|/)" />
+                    <action type="None" />
+                </rule>
+                <rule name="CMA Dashboard" stopProcessing="true">
+                    <match url="^cma/dashboard/?$" />
+                    <action type="Rewrite" url="/cma/main.php?page=dashboard.php" />
+                </rule>
+                <rule name="CMA Form with record" stopProcessing="true">
+                    <match url="^cma/form/([^/]+)/([^/]+)/?$" />
+                    <action type="Rewrite" url="/cma/main.php?page=form.php" />
+                </rule>
+                <rule name="Site friendly URL" stopProcessing="true">
+                    <match url="^artikel/(.*)$" />
+                    <action type="Rewrite" url="artikel.php?slug={R:1}" />
+                </rule>
+            </rules>
+        </rewrite>
+    </system.webServer>
+</configuration>
+XML);
+    }
+
+    public function testBlokkerendeRegelWordtNaHetCmaBlokGezet(): void
     {
         $this->needsXml();
-        $path = $this->writeConfig();
+        $path = $this->writeGeblokkeerdeConfig();
         $r = $this->apply('cma_doc_check_parent_skip_cma', $path);
         $this->assertTrue($r['ok'], $r['message']);
 
-        $rules = $this->xml($path)->xpath('//rewrite/rules/rule');
-        $this->assertEquals('Skip /cma to child config', (string)$rules[0]['name'], 'must outrank the site rules');
-        $this->assertEquals('^cma($|/)', (string)$rules[0]->match['url']);
-        $this->assertEquals('None', (string)$rules[0]->action['type']);
-        // the site's own rule survives
-        $this->assertEquals('Site friendly URL', (string)$rules[1]['name']);
+        $namen = array_map(
+            static fn($rule) => (string)$rule['name'],
+            $this->xml($path)->xpath('//rewrite/rules/rule')
+        );
+        $this->assertEquals(
+            ['CMA Dashboard', 'CMA Form with record', 'Skip /cma to child config', 'Site friendly URL'],
+            $namen,
+            'de skipregel hoort ná het CMA-blok, maar vóór de eigen regels van de site'
+        );
     }
 
-    public function testSkipCmaRuleIsIdempotent(): void
+    public function testVerplaatsenIsIdempotent(): void
     {
         $this->needsXml();
+        $path = $this->writeGeblokkeerdeConfig();
+        $this->apply('cma_doc_check_parent_skip_cma', $path);
+        $eerste = file_get_contents($path);
+        $this->apply('cma_doc_check_parent_skip_cma', $path);
+        $this->assertEquals($eerste, file_get_contents($path), 'een tweede keer draaien mag niets meer veranderen');
+        $this->assertEquals(1, count($this->xml($path)->xpath("//rule[@name='Skip /cma to child config']")));
+    }
+
+    public function testZonderCmaBlokWordtErNietsToegevoegd(): void
+    {
+        $this->needsXml();
+        // Alleen de eigen regels van de site: het CMA-blok zet de Installer
+        // neer, niet deze knop. Hier valt niets te verplaatsen.
         $path = $this->writeConfig();
         $this->apply('cma_doc_check_parent_skip_cma', $path);
-        $r = $this->apply('cma_doc_check_parent_skip_cma', $path);
-        $this->assertTrue($r['ok']);
-        $this->assertEquals(1, count($this->xml($path)->xpath("//rule[@name='Skip /cma to child config']")));
+        $namen = array_map(
+            static fn($rule) => (string)$rule['name'],
+            $this->xml($path)->xpath('//rewrite/rules/rule')
+        );
+        $this->assertEquals(['Site friendly URL'], $namen);
     }
 
     // ── outbound Content-Type rule ───────────────────────────────────────

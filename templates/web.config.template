@@ -8,14 +8,19 @@
         <!-- Note: allowedServerVariables (HTTP_X_ORIGINAL_FILE, HTTP_X_TOOL_NAME) are configured at IIS server level -->
         <rewrite>
             <rules>
-                <!-- IMPORTANT: hand /cma/* requests off to cma/web.config without
-                     applying any of the parent's rewrite rules. Without this,
-                     parent-level routers (typical pattern: catch-all `_bootstrap_wrapper.php`)
-                     hijack URLs like /cma/dashboard before the child config can
-                     rewrite them, producing 404s. action=None + stopProcessing=true
-                     means "leave this URL untouched and stop here". If you add
-                     HTTPS / www-subdomain redirects to this file, place them
-                     BEFORE this rule so /cma/* still gets force-redirected. -->
+                <!-- IMPORTANT: leave everything under /cma alone, so the parent's
+                     own routers (typical pattern: catch-all `_bootstrap_wrapper.php`)
+                     don't hijack CMA assets, *.php and api/ requests.
+                     action=None + stopProcessing=true means "leave this URL
+                     untouched and stop here".
+
+                     ORDER MATTERS. stopProcessing halts the ENTIRE chain — the
+                     rules in cma/web.config included. The CMA friendly-URL rules
+                     (CMA Dashboard, CMA Form …, injected at the top of <rules> by
+                     the Installer) must therefore come BEFORE this rule; move it
+                     up and every clean CMA URL 404s while /cma/dashboard.php keeps
+                     working. If you add HTTPS / www-subdomain redirects, place
+                     those before this rule so /cma/* still gets force-redirected. -->
                 <rule name="Skip /cma to child config" stopProcessing="true">
                     <match url="^cma($|/)" />
                     <action type="None" />
