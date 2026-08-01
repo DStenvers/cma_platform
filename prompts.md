@@ -7522,3 +7522,7 @@ karaat-data en staat in de karaat-repo.
 > als je die feature flag op True zet?
 
 > lukt het?
+
+> ja prima!
+
+> laat die testsata nu staan en zoeg dat de rolewalker die toont

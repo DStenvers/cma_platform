@@ -203,6 +203,11 @@ class CmaTabs extends HTMLElement {
         this._setupResponsive();
         this._updateContentPanels();
         this._initialized = true;
+        // Een deep link naar een tabblad moet ook opengaan wanneer de tabs uit
+        // het tabs-attribuut komen; setTabs() deed dit al voor de programmatische
+        // route. Na _initialized, want selectTab() slaat een niet-geïnitialiseerd
+        // component over.
+        this._herstelUitHash();
         // Disconnect observer if it was set up
         if (this._childObserver) {
             this._childObserver.disconnect();

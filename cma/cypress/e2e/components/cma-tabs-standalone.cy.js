@@ -367,6 +367,14 @@ describe('cma-tabs Component (Standalone)', () => {
             cy.get('#tabs-light-wrap > .cma-tabs__ui').should('exist');
         });
 
+        it('opens the tab named in the URL hash on load', () => {
+            // remember="hash" schrijft de titel in de URL; een deep link moet die
+            // ook openen wanneer de tabs uit het tabs-attribuut komen.
+            cy.visit('/cypress/fixtures/components/cma-tabs-test.html#Toetsen');
+            cy.get('#tabs-light .tabs-list li.selected .tab-title').should('contain', 'Toetsen');
+            cy.get('#tabs-light [slot="tab-2"]').should('be.visible');
+        });
+
         it('keeps the selected class in sync with the selection', () => {
             cy.get('#tabs-light .tabs-list li').eq(2).click();
             cy.get('#tabs-light .tabs-list li.selected .tab-title').should('contain', 'Toetsen');
