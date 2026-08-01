@@ -209,6 +209,59 @@ XML);
         $this->assertEquals(1, count($this->xml($path)->xpath("//rule[@name='Skip /cma to child config']")));
     }
 
+    /**
+     * De karaat-variant: het blok staat goed, maar één CMA-route is losgeraakt
+     * en staat NA de skipregel. Die ene URL-vorm geeft dan 404 terwijl de rest
+     * gewoon werkt — en dat is precies het geval dat je met het blote oog mist.
+     */
+    public function testLosgeraakteCmaRegelGaatTerugNaarHetBlok(): void
+    {
+        $this->needsXml();
+        $path = $this->writeConfig(<<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="CMA Dashboard" stopProcessing="true">
+                    <match url="^cma/dashboard/?$" />
+                    <action type="Rewrite" url="/cma/main.php?page=dashboard.php" />
+                </rule>
+                <rule name="CMA Form with record" stopProcessing="true">
+                    <match url="^cma/form/([^/]+)/([^/]+)/?$" />
+                    <action type="Rewrite" url="/cma/main.php?page=form.php" />
+                </rule>
+                <rule name="Skip /cma to child config" stopProcessing="true">
+                    <match url="^cma($|/)" />
+                    <action type="None" />
+                </rule>
+                <rule name="Site friendly URL" stopProcessing="true">
+                    <match url="^artikel/(.*)$" />
+                    <action type="Rewrite" url="artikel.php?slug={R:1}" />
+                </rule>
+                <rule name="CMA Tools Friendly URL" stopProcessing="true">
+                    <match url="^cma/tools/([a-z0-9_-]+)$" />
+                    <action type="Rewrite" url="/_bootstrap_wrapper.php" />
+                </rule>
+            </rules>
+        </rewrite>
+    </system.webServer>
+</configuration>
+XML);
+        $r = $this->apply('cma_doc_check_parent_skip_cma', $path);
+        $this->assertTrue($r['ok'], $r['message']);
+
+        $namen = array_map(
+            static fn($rule) => (string)$rule['name'],
+            $this->xml($path)->xpath('//rewrite/rules/rule')
+        );
+        $this->assertEquals(
+            ['CMA Dashboard', 'CMA Form with record', 'CMA Tools Friendly URL', 'Skip /cma to child config', 'Site friendly URL'],
+            $namen,
+            'de losgeraakte CMA-route hoort terug in het blok, niet de skipregel naar achteren'
+        );
+    }
+
     public function testZonderCmaBlokWordtErNietsToegevoegd(): void
     {
         $this->needsXml();

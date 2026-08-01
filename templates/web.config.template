@@ -8,6 +8,24 @@
         <!-- Note: allowedServerVariables (HTTP_X_ORIGINAL_FILE, HTTP_X_TOOL_NAME) are configured at IIS server level -->
         <rewrite>
             <rules>
+                <!-- Friendly URLs for CMA tools: /cma/tools/[name].
+                     Hoort BOVEN de "Skip /cma"-regel hieronder: die matcht ook
+                     op /cma/tools/... en stopt de keten, dus daaronder wordt
+                     deze rule nooit bereikt. De Installer schuift het CMA-blok
+                     bovenaan <rules>; deze rule sluit daar direct op aan. -->
+                <rule name="CMA Tools Friendly URL" stopProcessing="true">
+                    <match url="^cma/tools/([a-z0-9_-]+)$" ignoreCase="true" />
+                    <conditions>
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                    </conditions>
+                    <serverVariables>
+                        <set name="HTTP_X_ORIGINAL_FILE" value="/cma/tools.php" />
+                        <set name="HTTP_X_TOOL_NAME" value="{R:1}" />
+                    </serverVariables>
+                    <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
+                </rule>
+
                 <!-- IMPORTANT: leave everything under /cma alone, so the parent's
                      own routers (typical pattern: catch-all `_bootstrap_wrapper.php`)
                      don't hijack CMA assets, *.php and api/ requests.
@@ -48,20 +66,6 @@
                     </conditions>
                     <serverVariables>
                         <set name="HTTP_X_ORIGINAL_FILE" value="/{R:1}/index.php" />
-                    </serverVariables>
-                    <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
-                </rule>
-
-                <!-- Friendly URLs for CMA tools: /cma/tools/[name] -->
-                <rule name="CMA Tools Friendly URL" stopProcessing="true">
-                    <match url="^cma/tools/([a-z0-9_-]+)$" ignoreCase="true" />
-                    <conditions>
-                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
-                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
-                    </conditions>
-                    <serverVariables>
-                        <set name="HTTP_X_ORIGINAL_FILE" value="/cma/tools.php" />
-                        <set name="HTTP_X_TOOL_NAME" value="{R:1}" />
                     </serverVariables>
                     <action type="Rewrite" url="/_bootstrap_wrapper.php" appendQueryString="true" />
                 </rule>

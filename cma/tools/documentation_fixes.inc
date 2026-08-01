@@ -103,43 +103,64 @@ function cma_doc_fix_skip_cma(\DOMDocument $doc): ?string {
     if (empty($blockers)) {
         return null;
     }
-    $namen = array_column($blockers, 'name');
-
     $rules = cma_doc_dom_path($doc, 'system.webServer/rewrite/rules');
-    $laatsteCma = null;
-    foreach ($rules->childNodes as $c) {
-        if ($c instanceof \DOMElement && $c->nodeName === 'rule' && strncmp($c->getAttribute('name'), 'CMA ', 4) === 0) {
-            $laatsteCma = $c;
+    $verplaatst = [];
+
+    foreach ($blockers as $blocker) {
+        // De lijst opnieuw opbouwen: een eerdere verplaatsing heeft de volgorde
+        // veranderd.
+        $lijst = [];
+        foreach ($rules->childNodes as $c) {
+            if ($c instanceof \DOMElement && $c->nodeName === 'rule') { $lijst[] = $c; }
         }
-    }
-    if ($laatsteCma === null) {
-        // Geen CMA-blok in dit bestand: dat zet de Installer neer
-        // (WebConfigCmaRoutes), niet deze knop. Verplaatsen heeft dan geen zin.
-        return null;
+        $isCma = static fn(\DOMElement $r): bool => strncmp($r->getAttribute('name'), 'CMA ', 4) === 0;
+
+        if ($blocker['stranded'] !== null) {
+            // Eén losgeraakte CMA-route: die hoort terug in het blok, direct
+            // achter de laatste CMA-regel die nog vóór de blokkade staat.
+            $anker = null;
+            $node  = null;
+            foreach ($lijst as $r) {
+                if ($r->getAttribute('name') === $blocker['name']) { break; }
+                if ($isCma($r)) { $anker = $r; }
+            }
+            foreach ($lijst as $r) {
+                if ($r->getAttribute('name') === $blocker['stranded']) { $node = $r; break; }
+            }
+            if ($node === null || $anker === null) {
+                continue;
+            }
+            $te = $blocker['stranded'];
+        } else {
+            // De blokkade staat vóór het hele blok: hij hoort erachter.
+            $anker = null;
+            foreach ($lijst as $r) {
+                if ($isCma($r)) { $anker = $r; }
+            }
+            $node = null;
+            foreach ($lijst as $r) {
+                if ($r->getAttribute('name') === $blocker['name']) { $node = $r; break; }
+            }
+            if ($node === null || $anker === null) {
+                continue;
+            }
+            $te = $blocker['name'];
+        }
+
+        $node = $rules->removeChild($node);
+        if ($anker->nextSibling === null) {
+            $rules->appendChild($node);
+        } else {
+            $rules->insertBefore($node, $anker->nextSibling);
+        }
+        $verplaatst[$te] = true;
     }
 
-    $anker = $laatsteCma;
-    $verplaatst = [];
-    foreach ($namen as $naam) {
-        foreach ($rules->childNodes as $c) {
-            if ($c instanceof \DOMElement && $c->nodeName === 'rule' && $c->getAttribute('name') === $naam) {
-                $node = $rules->removeChild($c);
-                if ($anker->nextSibling === null) {
-                    $rules->appendChild($node);
-                } else {
-                    $rules->insertBefore($node, $anker->nextSibling);
-                }
-                $anker = $node;
-                $verplaatst[] = $naam;
-                break;
-            }
-        }
-    }
     if (empty($verplaatst)) {
         return null;
     }
-    return 'Regel(s) ' . htmlspecialchars(implode(', ', $verplaatst), ENT_QUOTES, 'UTF-8')
-        . ' verplaatst naar ná het CMA-blok, zodat de schone CMA-URLs hun rewrite weer bereiken.';
+    return 'Regel(s) ' . htmlspecialchars(implode(', ', array_keys($verplaatst)), ENT_QUOTES, 'UTF-8')
+        . ' verplaatst, zodat elke schone CMA-URL zijn eigen route weer als eerste tegenkomt.';
 }
 
 function cma_doc_fix_default_content_type(\DOMDocument $doc): ?string {

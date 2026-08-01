@@ -7508,3 +7508,11 @@ karaat-data en staat in de karaat-repo.
 > wil je dat toch checken? want in het menu staat wel ?pageaction=opleidingen toch? Eva moet dan gewoon content hebben
 
 > the roputing is broken, if i click on a form, like blokken i get the url http://172.30.208.1:8090/cma/form/opleidingen/151, but refreshing leads to  a 404, please check all routes and ther validity
+
+> dus het gemelde probleem is opgelost?
+
+> en we waren deze thread begonnen met omzetten van de tabs , is dat nu gereed?
+
+> ja je mag op karaat kijken
+
+> jawel, als het goed is een gz opleiding gz2026?

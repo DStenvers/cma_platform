@@ -208,19 +208,34 @@ EOT;
         return self::result('patched', $messages, $backup, $errors);
     }
 
+    /** CMA-paden zoals de rewrite-module ze aanbiedt: zonder leidende slash. */
+    private const SAMPLE_PATHS = [
+        'cma/dashboard'            => '/cma/dashboard',
+        'cma/form/opleidingen/151' => '/cma/form/<form>/<id>',
+        'cma/tools/documentation'  => '/cma/tools/<naam>',
+    ];
+
     /**
-     * Rules that stand BEFORE the CMA block, stop the rewrite chain, and match
-     * a CMA URL. Zo'n regel maakt elke schone CMA-URL een 404: de rewrite komt
-     * er nooit aan toe, dus IIS zoekt letterlijk naar een bestand
-     * `cma/form/opleidingen/151`. Een `stopProcessing` in de parent stopt ook
-     * de rules in cma/web.config, dus "we laten het aan de child over" is geen
-     * uitweg — dat is precies hoe deze val ontstaat.
+     * Regels die een CMA-URL wegnemen voordat de bijbehorende CMA-route hem ziet.
+     *
+     * IIS loopt de rules op volgorde af; de eerste die matcht en
+     * `stopProcessing="true"` heeft, wint. Wint daar een andere regel dan de
+     * CMA-route, dan wordt die URL nooit herschreven en zoekt IIS letterlijk
+     * naar een bestand `cma/form/opleidingen/151`: 404. Een `stopProcessing` in
+     * de parent stopt ook de rules in cma/web.config, dus "we laten het aan de
+     * child over" is geen uitweg — dat is precies hoe deze val ontstaat.
+     *
+     * Twee vormen komen voor, en ze vragen een andere reparatie:
+     *  - de blokkerende regel staat voor het hele CMA-blok → verplaats die regel
+     *    naar na het blok;
+     *  - een losgeraakte CMA-route staat na de blokkade (`stranded`) →
+     *    verplaats die route terug naar het blok.
      *
      * De volgorde is het enige wat telt; aan de rules zelf is niets te zien.
      * Daarom test deze controle de patronen tegen echte CMA-paden in plaats van
      * naar bekende regelnamen te zoeken.
      *
-     * @return array<int,array{name:string,pattern:string,conditions:bool}>
+     * @return array<int,array{name:string,pattern:string,conditions:bool,url:string,stranded:?string}>
      */
     public static function precedingBlockers(string $content): array
     {
@@ -236,49 +251,80 @@ EOT;
             return [];
         }
 
-        // Paden zoals de rewrite-module ze aanbiedt: zonder leidende slash.
-        $paden = ['cma/dashboard', 'cma/form/opleidingen/151', 'cma/tools/documentation'];
-
         $blockers = [];
-        foreach ($rules as $rule) {
-            $naam = (string) $rule['name'];
-            // Het CMA-blok zelf: alles daarna staat achter de routes en kan ze
-            // niet meer wegnemen.
-            if (strncmp($naam, 'CMA ', 4) === 0) {
-                break;
-            }
-            if ((string) $rule['stopProcessing'] !== 'true') {
-                continue;
-            }
-            $patroon = isset($rule->match['url']) ? (string) $rule->match['url'] : '';
-            if ($patroon === '') {
-                continue;
-            }
-            $hoofdletterOngevoelig = !isset($rule->match['ignoreCase'])
-                || strtolower((string) $rule->match['ignoreCase']) !== 'false';
-            $pcre = '#' . str_replace('#', '\#', $patroon) . '#' . ($hoofdletterOngevoelig ? 'i' : '');
-            foreach ($paden as $pad) {
-                if (@preg_match($pcre, $pad) === 1) {
-                    $blockers[] = [
-                        'name'       => $naam,
-                        'pattern'    => $patroon,
-                        'conditions' => isset($rule->conditions),
-                    ];
-                    break;
+        foreach (self::SAMPLE_PATHS as $pad => $vorm) {
+            foreach ($rules as $i => $rule) {
+                if (!self::ruleMatches($rule, (string) $pad)) {
+                    continue;
                 }
+                $naam = (string) $rule['name'];
+                if (strncmp($naam, 'CMA ', 4) === 0) {
+                    break;   // de CMA-route pakt hem als eerste: goed
+                }
+                if ((string) $rule['stopProcessing'] !== 'true') {
+                    continue; // matcht wel, maar laat de keten doorlopen
+                }
+                $blockers[] = [
+                    'name'       => $naam,
+                    'pattern'    => (string) $rule->match['url'],
+                    'conditions' => isset($rule->conditions),
+                    'url'        => $vorm,
+                    'stranded'   => self::strandedCmaRule($rules, $i, (string) $pad),
+                ];
+                break;
             }
         }
 
         return $blockers;
     }
 
-    /** Eén regel uitleg per blokkerende rule, voor installer-output en de docs. */
+    /** Matcht deze rule het pad, met de ignoreCase-default van IIS (true)? */
+    private static function ruleMatches(\SimpleXMLElement $rule, string $pad): bool
+    {
+        $patroon = isset($rule->match['url']) ? (string) $rule->match['url'] : '';
+        if ($patroon === '') {
+            return false;
+        }
+        $hoofdletterOngevoelig = !isset($rule->match['ignoreCase'])
+            || strtolower((string) $rule->match['ignoreCase']) !== 'false';
+        $pcre = '#' . str_replace('#', '\#', $patroon) . '#' . ($hoofdletterOngevoelig ? 'i' : '');
+        return @preg_match($pcre, $pad) === 1;
+    }
+
+    /**
+     * De CMA-route die dit pad na de blokkade alsnog zou afhandelen, of null.
+     * Die route is niet fout — hij staat alleen op de verkeerde plek.
+     *
+     * @param array<int,\SimpleXMLElement> $rules
+     */
+    private static function strandedCmaRule(array $rules, int $vanaf, string $pad): ?string
+    {
+        for ($i = $vanaf + 1, $n = count($rules); $i < $n; $i++) {
+            $naam = (string) $rules[$i]['name'];
+            if (strncmp($naam, 'CMA ', 4) === 0 && self::ruleMatches($rules[$i], $pad)) {
+                return $naam;
+            }
+        }
+        return null;
+    }
+
+    /** Een regel uitleg per blokkade, voor installer-output en de docs. */
     public static function blockerMessage(array $blocker): string
     {
+        $twijfel = $blocker['conditions']
+            ? ' (met conditions — controleer of die de regel echt laten vallen)'
+            : '';
+
+        if (($blocker['stranded'] ?? null) !== null) {
+            return "rule '" . $blocker['stranded'] . "' staat NA '" . $blocker['name']
+                . "' (match " . $blocker['pattern'] . ', stopProcessing="true"' . $twijfel . '): '
+                . $blocker['url'] . ' wordt daar al opgeslokt en bereikt zijn route nooit — 404.'
+                . " Verplaats '" . $blocker['stranded'] . "' terug naar het CMA-blok.";
+        }
+
         return "rule '" . $blocker['name'] . "' (match " . $blocker['pattern'] . ') staat VOOR het CMA-blok'
-            . ' en heeft stopProcessing="true"'
-            . ($blocker['conditions'] ? ' (met conditions — controleer of die de regel echt laten vallen)' : '')
-            . ': schone CMA-URLs zoals /cma/form/<form>/<id> bereiken de rewrite dan nooit en geven 404.'
+            . ' en heeft stopProcessing="true"' . $twijfel . ': '
+            . $blocker['url'] . ' bereikt de rewrite dan nooit en geeft 404.'
             . ' Verplaats de regel NA het CMA-blok.';
     }
 
