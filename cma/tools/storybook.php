@@ -3294,6 +3294,10 @@ window.LIBLOG_CONFIG = {
                     <dd>JSON array met tab titels of objecten</dd>
                     <dt>mode</dt>
                     <dd>default | wizard (default: default)</dd>
+                    <dt>remember</dt>
+                    <dd>remember="hash" onthoudt het gekozen tabblad in de URL, op titel</dd>
+                    <dt>light</dt>
+                    <dd>Zet de strook in de gewone pagina in plaats van een shadow root, zodat de stylesheet van de site hem met gewone selectors opmaakt (<code>cma-tabs li.selected .tab-title</code>). Het component brengt dan geen eigen opmaak mee — de site levert alles, tot en met <code>cma-tabs{display:block}</code>. Alleen voor de standaardmodus.</dd>
                 </dl>
                 <h4>Slots</h4>
                 <dl>

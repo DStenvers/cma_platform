@@ -1,5 +1,4 @@
 <?php
-// LibTabs is in global namespace (loaded from library/classes/class_tabs.inc)
 
 require_once __DIR__ . '/bootstrap.inc';
 
@@ -10,7 +9,7 @@ function main()
 {
     echo '<HTML><HEAD> ';
     echo '<STYLE>.tab_elt{background-color:white;padding-left:8px}</STYLE>';
-    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js"></script>';
+    echo '<script src="/cma/minify.php?f=wizards/wizard.js,../library/library.js,../library/colorpicker.js,../library/layoutpicker.js,webcomponents/cma-tabs.js"></script>';
     echo '<script >;
     var selectedTable = window.parent.window.dialogArguments["table"] ;
     var selectedRow   = window.parent.window.dialogArguments["table_row"];
@@ -155,11 +154,11 @@ function main()
     echo '</head>';
     echo '<BODY class=wizardcontent style="margin:8 0 0 0" onload="init();if(window.parent && typeof window.parent.WizardActivatePage===\'function\')window.parent.WizardActivatePage(1)" onkeypress="if(window.parent && typeof window.parent.WizardButtonPressed===\'function\')window.parent.WizardButtonPressed(event.keyCode);return true;">';
     echo '<table height=100% width=100% cellpadding=0 cellspacing=0>';
-    echo '<tr><td style=height:1%;width:100% id=LibTabPlaceHolder></td></tr>';
     echo '<tr valign=top><td style="border-left:1px solid #949C9C;border-right:1px solid #949C9C;border-bottom:1px solid #949C9C;height:99%;width:400px">';
     echo '<DIV ID=page1>';
     echo '<form id=tableForm style=margin:0px>';
-    echo '<div id=form0 style=display:none class=tab_elt>';
+    echo '<cma-tabs tabs=\'["Tabel", "Rij", "Cel"]\'>';
+    echo '<div id=form0 slot=tab-0 class=tab_elt>';
     echo '<table cellspacing=0 cellpadding=0 width=100% >';
     echo '<tr height=35>';
     echo '<td>Achtergrond kleur:&nbsp;</td>';
@@ -191,7 +190,7 @@ function main()
     echo '</tr>';
     echo '</table>';
     echo '</div>';
-    echo '<div id=form1 style=display:none class=tab_elt>';
+    echo '<div id=form1 slot=tab-1 class=tab_elt>';
     echo '<table cellspacing=0 cellpadding=0 width=100% >';
     echo '<tr height=35>';
     echo '<td>Achtergrond kleur:&nbsp;</td>';
@@ -211,7 +210,7 @@ function main()
     echo '</tr>';
     echo '</table>';
     echo '</div>';
-    echo '<div id=form2 style=display:none class=tab_elt>';
+    echo '<div id=form2 slot=tab-2 class=tab_elt>';
     echo '<table cellspacing=0 cellpadding=0 width=100% >';
     echo '<tr height=35>';
     echo '<td>Achtergrond kleur:&nbsp;</td>';
@@ -246,15 +245,10 @@ function main()
     echo '	</tr>';
     echo '</table>';
     echo '</div>';
+    echo '</cma-tabs>';
     echo '</td></tr></table>';
     echo '</form>';
     echo '</div>';
-    $myTabs = new LibTabs();
-    $myTabs->AddTab();
-    $myTabs->AddTab();
-    $myTabs->AddTab();
-    $myTabs->Render();
-    $myTabs = null;
     echo '</body>';
     echo '</html>';
 }

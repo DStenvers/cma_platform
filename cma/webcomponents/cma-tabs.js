@@ -41,9 +41,15 @@
  *   - breakpoint: Viewport width below which select is shown (default: 500)
  *   - tabs: JSON array of tab titles or tab objects [{title, id, count, beheer, completed}]
  *   - mode: "default" | "wizard" - display mode (default: "default")
+ *   - remember="hash": remember the selected tab in the URL hash (by title)
+ *   - light: render the tab strip in the light DOM instead of a shadow root, so
+ *     the page's own stylesheet can style it with ordinary selectors. The
+ *     component then brings no styling of its own — see _maakRoot(). Default
+ *     mode only; the wizard needs its own styles.
  *
  * Slots:
  *   - tab-0, tab-1, etc: Content panels shown when corresponding tab is selected
+ *     (in light mode these stay where they are; only their display is toggled)
  *
  * Events:
  *   - tab-select: Fired when tab changes. Detail: { index, id, title }
@@ -59,11 +65,61 @@ class CmaTabs extends HTMLElement {
 
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
+        // De root komt pas bij het renderen: welke het wordt hangt af van het
+        // light-attribuut, en dat mag je in de constructor nog niet uitlezen.
+        this._root = null;
+        this._licht = false;
         this._tabs = [];
         this._selectedIndex = 0;
         this._initialized = false;
         this._mode = 'default';
+    }
+
+    /**
+     * Bepaal waar de tabstrook terechtkomt: in een shadow root (standaard) of in
+     * de gewone pagina (light).
+     *
+     * Licht bestaat voor sites die de strook zelf willen opmaken. Van buitenaf
+     * kun je een shadow tree alleen via ::part aanspreken, en ::part kent geen
+     * afdaling: "de titel binnen het geselecteerde tabblad" is niet uit te
+     * drukken zolang alleen de <li> zijn toestand meekrijgt. In de light DOM
+     * gelden gewone selectors weer — `cma-tabs li.selected .tab-title` — en kan
+     * een site zijn bestaande strook-CSS met de hand hertalen in plaats van
+     * hem in parts te wringen. De prijs is dat het component dan geen eigen
+     * opmaak meebrengt: de site levert alles, tot en met `cma-tabs{display:block}`.
+     *
+     * De panelen blijven in beide gevallen in de light DOM staan, dus CSS van de
+     * site op de inhoud werkt sowieso al.
+     */
+    _maakRoot() {
+        if (this._root) return;
+        this._licht = this.hasAttribute('light');
+        if (!this._licht) {
+            if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+            this._root = this.shadowRoot;
+            return;
+        }
+        // De strook krijgt een eigen omhulsel vóór de panelen, zodat een
+        // her-render alleen de strook vervangt en de panelen ongemoeid laat.
+        this._ui = document.createElement('div');
+        this._ui.className = 'cma-tabs__ui';
+        this.insertBefore(this._ui, this.firstChild);
+        this._root = this._ui;
+    }
+
+    /**
+     * De inhoudspanelen: slots in de shadow root, of de gewone kinderen met
+     * slot="tab-N" wanneer er geen shadow root is.
+     */
+    _panelen() {
+        return this._licht
+            ? Array.from(this.children).filter(el => (el.getAttribute('slot') || '').startsWith('tab-'))
+            : Array.from(this._root.querySelectorAll('slot[name^="tab-"]'));
+    }
+
+    _paneelIndex(el) {
+        const naam = el.getAttribute(this._licht ? 'slot' : 'name') || '';
+        return parseInt(naam.replace('tab-', ''), 10);
     }
 
     connectedCallback() {
@@ -88,8 +144,10 @@ class CmaTabs extends HTMLElement {
     }
 
     _initializeTabs() {
-        // Adopt shared styles if available
-        if (typeof LibSharedStyles !== 'undefined' && LibSharedStyles.isSupported()) {
+        this._maakRoot();
+
+        // Adopt shared styles if available (light mode has no shadow root to adopt into)
+        if (!this._licht && typeof LibSharedStyles !== 'undefined' && LibSharedStyles.isSupported()) {
             LibSharedStyles.adopt(this.shadowRoot, 'base', 'input', 'animation');
         }
 
@@ -447,7 +505,7 @@ class CmaTabs extends HTMLElement {
             this._updateWizardSteps(previousIndex, index);
         } else {
             // Update tab visual state
-            const tabList = this.shadowRoot.querySelector('.tabs-list');
+            const tabList = this._root.querySelector('.tabs-list');
             if (tabList) {
                 tabList.querySelectorAll('li').forEach((li, i) => {
                     li.classList.toggle('selected', i === index);
@@ -456,7 +514,7 @@ class CmaTabs extends HTMLElement {
         }
 
         // Update select value (both modes)
-        const select = this.shadowRoot.querySelector('select');
+        const select = this._root.querySelector('select');
         if (select) {
             select.value = index;
         }
@@ -500,7 +558,7 @@ class CmaTabs extends HTMLElement {
      * @param {number} currentIndex - Current step index
      */
     _updateWizardSteps(previousIndex, currentIndex) {
-        const steps = this.shadowRoot.querySelectorAll('.wizard-step');
+        const steps = this._root.querySelectorAll('.wizard-step');
         steps.forEach((step, i) => {
             const isCurrent = i === currentIndex;
             const isCompleted = this._tabs[i].completed;
@@ -518,13 +576,16 @@ class CmaTabs extends HTMLElement {
      * @param {boolean} animate - Whether to animate the transition (default: true after first render)
      */
     _updateContentPanels(animate) {
-        const slots = this.shadowRoot.querySelectorAll('slot[name^="tab-"]');
-        const shouldAnimate = animate !== false && this._initialized;
+        const slots = this._panelen();
+        // Licht schakelt altijd direct: de fade-klassen zitten in de gedeelde
+        // shadow-stijlen, dus zonder shadow root start de animatie nooit — en dan
+        // komt het animationend dat het oude paneel verbergt ook nooit.
+        const shouldAnimate = !this._licht && animate !== false && this._initialized;
 
         if (!shouldAnimate) {
             // No animation: instant switch (initial render)
             slots.forEach(slot => {
-                const panelIndex = parseInt(slot.getAttribute('name').replace('tab-', ''), 10);
+                const panelIndex = this._paneelIndex(slot);
                 slot.style.display = panelIndex === this._selectedIndex ? '' : 'none';
                 slot.classList.remove('tab-fade-in', 'tab-fade-out');
             });
@@ -536,7 +597,7 @@ class CmaTabs extends HTMLElement {
         let newSlot = null;
 
         slots.forEach(slot => {
-            const panelIndex = parseInt(slot.getAttribute('name').replace('tab-', ''), 10);
+            const panelIndex = this._paneelIndex(slot);
             if (slot.style.display !== 'none' && panelIndex !== this._selectedIndex) {
                 oldSlot = slot;
             }
@@ -548,7 +609,7 @@ class CmaTabs extends HTMLElement {
         // If there's no old slot visible, just show the new one
         if (!oldSlot || !newSlot) {
             slots.forEach(slot => {
-                const panelIndex = parseInt(slot.getAttribute('name').replace('tab-', ''), 10);
+                const panelIndex = this._paneelIndex(slot);
                 slot.style.display = panelIndex === this._selectedIndex ? '' : 'none';
                 slot.classList.remove('tab-fade-in', 'tab-fade-out');
             });
@@ -599,6 +660,8 @@ class CmaTabs extends HTMLElement {
     }
 
     _render() {
+        this._maakRoot();
+
         // Add single-tab class when there's only one tab (no pointer cursor needed)
         this.classList.toggle('single-tab', this._tabs.length <= 1);
 
@@ -611,11 +674,7 @@ class CmaTabs extends HTMLElement {
     }
 
     _renderDefault() {
-        this.shadowRoot.innerHTML = `
-            <style>
-                ${this._getBaseStyles()}
-                ${this._getDefaultTabStyles()}
-            </style>
+        const strook = `
             <div class="tabs-container" part="container">
                 <div class="scroll-arrow left" part="scroll-arrow" title="Scroll links"></div>
                 <div class="scroll-arrow right" part="scroll-arrow" title="Scroll rechts"></div>
@@ -638,6 +697,16 @@ class CmaTabs extends HTMLElement {
                     `).join('')}
                 </select>
             </div>
+        `;
+
+        // Licht: alleen de strook, want de panelen staan al in de pagina en een
+        // <style> zou de opmaak van de site overschrijven in plaats van aanvullen.
+        this._root.innerHTML = this._licht ? strook : `
+            <style>
+                ${this._getBaseStyles()}
+                ${this._getDefaultTabStyles()}
+            </style>
+            ${strook}
             <div class="tabs-content" part="content">
                 ${this._tabs.map((tab, i) => `<slot name="tab-${i}" ${i === this._selectedIndex ? '' : 'style="display:none"'}></slot>`).join('')}
             </div>
@@ -655,7 +724,7 @@ class CmaTabs extends HTMLElement {
         });
         const totalVisibleSteps = visibleStepNumber;
 
-        this.shadowRoot.innerHTML = `
+        this._root.innerHTML = `
             <style>
                 ${this._getBaseStyles()}
                 ${this._getWizardStyles()}
@@ -1254,7 +1323,7 @@ class CmaTabs extends HTMLElement {
 
     _bindDefaultEvents() {
         // Bind events
-        const tabsList = this.shadowRoot.querySelector('.tabs-list');
+        const tabsList = this._root.querySelector('.tabs-list');
         if (tabsList) {
             tabsList.addEventListener('click', (e) => {
                 const li = e.target.closest('li');
@@ -1265,7 +1334,7 @@ class CmaTabs extends HTMLElement {
             });
         }
 
-        const select = this.shadowRoot.querySelector('.tabs-select');
+        const select = this._root.querySelector('.tabs-select');
         if (select) {
             select.addEventListener('change', (e) => {
                 this.selectTab(parseInt(e.target.value, 10));
@@ -1273,8 +1342,8 @@ class CmaTabs extends HTMLElement {
         }
 
         // Scroll arrow events
-        const leftArrow = this.shadowRoot.querySelector('.scroll-arrow.left');
-        const rightArrow = this.shadowRoot.querySelector('.scroll-arrow.right');
+        const leftArrow = this._root.querySelector('.scroll-arrow.left');
+        const rightArrow = this._root.querySelector('.scroll-arrow.right');
 
         if (leftArrow && tabsList) {
             leftArrow.addEventListener('click', () => {
@@ -1299,7 +1368,7 @@ class CmaTabs extends HTMLElement {
 
     _bindWizardEvents() {
         // Click on wizard steps
-        const steps = this.shadowRoot.querySelectorAll('.wizard-step');
+        const steps = this._root.querySelectorAll('.wizard-step');
         steps.forEach(step => {
             step.addEventListener('click', () => {
                 const index = parseInt(step.dataset.index, 10);
@@ -1308,7 +1377,7 @@ class CmaTabs extends HTMLElement {
         });
 
         // Select dropdown
-        const select = this.shadowRoot.querySelector('.wizard-select');
+        const select = this._root.querySelector('.wizard-select');
         if (select) {
             select.addEventListener('change', (e) => {
                 this.selectTab(parseInt(e.target.value, 10));
@@ -1323,7 +1392,7 @@ class CmaTabs extends HTMLElement {
     _updateStepIndicator(index) {
         if (this._mode !== 'wizard') return;
 
-        const step = this.shadowRoot.querySelector(`.wizard-step[data-index="${index}"]`);
+        const step = this._root.querySelector(`.wizard-step[data-index="${index}"]`);
         if (!step) return;
 
         const tab = this._tabs[index];
@@ -1342,9 +1411,9 @@ class CmaTabs extends HTMLElement {
     }
 
     _updateScrollArrows() {
-        const tabsList = this.shadowRoot.querySelector('.tabs-list');
-        const leftArrow = this.shadowRoot.querySelector('.scroll-arrow.left');
-        const rightArrow = this.shadowRoot.querySelector('.scroll-arrow.right');
+        const tabsList = this._root.querySelector('.tabs-list');
+        const leftArrow = this._root.querySelector('.scroll-arrow.left');
+        const rightArrow = this._root.querySelector('.scroll-arrow.right');
 
         if (!tabsList || !leftArrow || !rightArrow) return;
 
@@ -1390,7 +1459,7 @@ class CmaTabs extends HTMLElement {
     }
 
     _updateCountBadge(index, count) {
-        const li = this.shadowRoot.querySelector(`li[data-index="${index}"]`);
+        const li = this._root.querySelector(`li[data-index="${index}"]`);
         if (li) {
             let badge = li.querySelector('.tab-count');
             if (count !== null) {
@@ -1408,7 +1477,7 @@ class CmaTabs extends HTMLElement {
         }
 
         // Also update select option
-        const option = this.shadowRoot.querySelector(`option[value="${index}"]`);
+        const option = this._root.querySelector(`option[value="${index}"]`);
         if (option) {
             const tab = this._tabs[index];
             option.textContent = tab.title + (count !== null ? ` (${count})` : '');

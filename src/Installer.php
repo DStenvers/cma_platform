@@ -60,6 +60,11 @@ class Installer
         'library/webcomponents/responsive-tabs/index.js',
         'library/webcomponents/responsive-tabs/responsive-tabs.css',
         'library/webcomponents/responsive-tabs/responsive-tabs.js',
+        // LibTabs: de vierde tab-implementatie, en een mislukte conversie — Render()
+        // las lokale variabelen die AddTab() nooit vulde, dus het strookje kwam er
+        // nooit en de panelen bleven verborgen. De enige aanroeper (de
+        // tabeleigenschappen-dialoog van de HTML-editor) gebruikt nu cma-tabs.
+        'library/classes/class_tabs.inc',
         // De image-wizard is nooit in gebruik genomen: geen enkele pagina, tool of
         // bundel noemt hem, en de bestandsnamen zeiden dat zelf al. Ze werden wel
         // meegebouwd en meegeleverd, dus elke site droeg ze mee.

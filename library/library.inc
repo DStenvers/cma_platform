@@ -31,7 +31,6 @@ require_once __DIR__ . '/classes/class_mailer.inc';
 require_once __DIR__ . '/classes/class_marketurl.inc';
 require_once __DIR__ . '/classes/class_stringbuffer.inc';
 require_once __DIR__ . '/classes/class_table.inc';
-require_once __DIR__ . '/classes/class_tabs.inc';
 
 // Forward slashes: these paths are concatenated onto base_path and used on
 // Linux/WSL deployments too, where a literal 'cache\' backslash becomes part

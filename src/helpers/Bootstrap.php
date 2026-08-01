@@ -594,7 +594,7 @@ class Bootstrap
 
     private static function loadLegacyClasses(): void
     {
-        // Legacy converted classes (class_tabs.inc, class_table.inc, etc.)
+        // Legacy converted classes (class_table.inc, class_mailer.inc, etc.)
         // These live in library/web/ in the platform, but are copied to library/ in the project
         $classesDir = self::$rootDir . '/library/classes';
         if (!is_dir($classesDir)) {

@@ -19,6 +19,17 @@
             --color-info: #077ab2;
         }
 
+        /* Light mode: de pagina maakt de strook zelf op, met gewone selectors.
+           Dit is precies wat ::part niet toelaat — de titel binnen het
+           geselecteerde tabblad is hier wel aan te spreken. */
+        cma-tabs[light] { display: block; }
+        cma-tabs[light] .tabs-list { list-style: none; display: flex; gap: 4px; border-bottom: 2px solid #204496; }
+        cma-tabs[light] .tabs-list li { background: #eee; cursor: pointer; }
+        cma-tabs[light] .tabs-list li a { display: block; padding: 6px 14px; text-decoration: none; color: #333; }
+        cma-tabs[light] .tabs-list li.selected { background: #204496; }
+        cma-tabs[light] .tabs-list li.selected .tab-title { color: #fff; font-weight: 600; }
+        cma-tabs[light] .tabs-select { display: none; }
+
         /* Test container styles */
         .test-section {
             margin: 20px;
@@ -251,6 +262,20 @@
         <div class="result" id="result-tabs-prop">Click button to see tabs array</div>
     </div>
 
+    <!-- Test 9: Light DOM -->
+    <div class="test-section" id="test-tabs-light">
+        <h2>Test 9: Light DOM (light)</h2>
+        <p>Strook staat in de gewone pagina; de opmaak komt volledig uit de stylesheet hierboven.</p>
+
+        <cma-tabs id="tabs-light" light tabs='["Draaiboeken", "Betrokkenen", "Toetsen"]'>
+            <div slot="tab-0" class="tab-content">Paneel Draaiboeken</div>
+            <div slot="tab-1" class="tab-content">Paneel Betrokkenen</div>
+            <div slot="tab-2" class="tab-content">Paneel Toetsen</div>
+        </cma-tabs>
+
+        <div class="result" id="result-tabs-light">Klik een tab</div>
+    </div>
+
     <!-- Test Log -->
     <div class="test-section">
         <h2>Test Log</h2>
@@ -444,6 +469,14 @@
                     '<pre>' + JSON.stringify(tabsArr, null, 2) + '</pre>';
                 log.add('Test 8: tabs property returned ' + tabsArr.length + ' tabs');
             };
+
+            // Test 9: light DOM
+            const tabs9 = document.getElementById('tabs-light');
+            tabs9.addEventListener('tab-select', function(e) {
+                document.getElementById('result-tabs-light').textContent =
+                    'Gekozen: ' + e.detail.title + ' (index ' + e.detail.index + ')';
+                log.add('Test 9: light tab-select ' + e.detail.title);
+            });
 
             log.success('All tests initialized');
         }

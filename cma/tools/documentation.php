@@ -3779,6 +3779,18 @@ customElements.define('lib-mything', LibMything);
 // Host page kan dan:
 // lib-sheet::part(panel) { border-radius: 0; }</code></pre>
 
+    <h2>De grens van ::part — en de licht-DOM als uitweg</h2>
+    <p><code>::part()</code> kent <span class="cma-page__strong">geen afdaling in de shadow tree</span>. Je kunt van buiten wel het element mét het part aanspreken, maar niet iets dáárbinnen: <code>cma-tabs::part(tab selected) .tab-title</code> selecteert niets. Elke toestand die een site wil opmaken moet dus als extra token in het part-attribuut van precies dat element staan (<code>part="title selected"</code>). Zolang alleen de buitenste <code>&lt;li&gt;</code> zijn toestand meekrijgt, is de helft van een bestaande stylesheet niet uit te drukken.</p>
+    <p>Wanneer een site het uiterlijk volledig zelf bepaalt — een front-end met een eigen tabstrook, bijvoorbeeld — is de shadow root eerder een blokkade dan een voordeel. Bied dan een attribuut dat het component in de gewone pagina laat renderen. <code>cma-tabs</code> doet dat met <code>light</code>:</p>
+    <pre><code>&lt;cma-tabs light tabs='["Draaiboeken","Betrokkenen"]'&gt;
+    &lt;div slot="tab-0"&gt;…&lt;/div&gt;
+&lt;/cma-tabs&gt;
+
+/* gewone selectors, inclusief afdaling en toestand */
+cma-tabs[light] { display: block; }
+cma-tabs[light] li.selected .tab-title { font-weight: 600; }</code></pre>
+    <p>De afspraak daarbij: in licht-modus brengt het component <span class="cma-page__strong">geen eigen opmaak</span> mee. Het rendert alleen de structuur (in een omhulsel <code>.cma-tabs__ui</code> vóór de panelen) en houdt de klassen bij; de site levert alle CSS, tot en met <code>display:block</code> op het element zelf. Animaties die in de gedeelde shadow-stijlen zitten vervallen — <code>cma-tabs</code> schakelt in licht-modus daarom direct in plaats van te faden, want zonder animatie komt er ook nooit een <code>animationend</code> om het oude paneel mee te verbergen.</p>
+
     <h2>Events</h2>
     <p>Dispatch custom events vanuit het component zodat de host code kan reageren:</p>
     <pre><code>this.dispatchEvent(new CustomEvent('sheet-open', { bubbles: true }));

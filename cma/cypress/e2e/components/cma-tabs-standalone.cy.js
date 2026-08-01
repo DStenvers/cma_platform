@@ -329,6 +329,39 @@ describe('cma-tabs Component (Standalone)', () => {
         });
     });
 
+    describe('Light DOM (light)', () => {
+        it('renders the strip in the page, without a shadow root', () => {
+            cy.get('#tabs-light').then($el => {
+                expect($el[0].shadowRoot).to.be.null;
+            });
+            cy.get('#tabs-light .cma-tabs__ui .tabs-list li').should('have.length', 3);
+        });
+
+        it('lets the page style the selected tab title — what ::part cannot express', () => {
+            cy.get('#tabs-light .tabs-list li.selected .tab-title')
+                .should('have.css', 'color', 'rgb(255, 255, 255)');
+            cy.get('#tabs-light .tabs-list li').not('.selected').first().find('.tab-title')
+                .should('have.css', 'color', 'rgb(51, 51, 51)');
+        });
+
+        it('switches panels on click and leaves them in the light DOM', () => {
+            cy.get('#tabs-light [slot="tab-0"]').should('be.visible');
+            cy.get('#tabs-light [slot="tab-1"]').should('not.be.visible');
+
+            cy.get('#tabs-light .tabs-list li').eq(1).click();
+
+            cy.get('#tabs-light [slot="tab-0"]').should('not.be.visible');
+            cy.get('#tabs-light [slot="tab-1"]').should('be.visible');
+            cy.get('#result-tabs-light').should('contain', 'Betrokkenen');
+        });
+
+        it('keeps the selected class in sync with the selection', () => {
+            cy.get('#tabs-light .tabs-list li').eq(2).click();
+            cy.get('#tabs-light .tabs-list li.selected .tab-title').should('contain', 'Toetsen');
+            cy.get('#tabs-light .tabs-list li.selected').should('have.length', 1);
+        });
+    });
+
     describe('Shadow DOM', () => {
         it('should use Shadow DOM for encapsulation', () => {
             cy.get('#tabs-basic').then($el => {

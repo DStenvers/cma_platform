@@ -7472,3 +7472,25 @@ karaat-data en staat in de karaat-repo.
 > ik zou doorgaan, dan sluiten we daarna de sessie, je context is nu gevuld met relevante info
 
 > de knop Ga naar de draaiboeken, deze mag in een wit kader met de volgende tekst erboven. Draaiboeken zijn beschikbaar in onze Leeromgeving: <nieuwe regel> [knop]
+
+> kun je een briefing maken voor een volgende sessie of is bovenstaande voldoende?
+
+> Bij dossioma hebben de deelnemer regels geen witt achtergrond (zoals bij praktijktoetsen) en ik wil de lijst van deelnemers bij competenties in een cma-table vorm
+
+> dit is de info uit de vorige sessie: 
+> project_tabs_consolidatie — de stand van de migratie: wat af is (v1.29.206/207/210 plus de dode cgotabs-code), wat teruggedraaid is, en vooral waarom. Met de blokkade er expliciet in: ::part kent geen afdaling in de shadow tree, dus eerst part="title selected" en part="link selected" op het component, dán pas de site. Plus wat wél herbruikbaar bleek — de ob_start()-aanpak in de helpers, laden vanaf /cma/webcomponents/, en dat de 18 #tabs_content-regels buiten schot blijven omdat slot-inhoud in de light DOM staat. En de reproduceerbare testpagina met beide rollen en beide schermbreedtes.
+>
+> feedback_meet_voor_je_concludeert — de drie meetfouten van vanavond, elk met de correcte methode: twee keer opvragen voor compressie, content-length in plaats van body-lengte, regelblokken tellen in plaats van substrings. En de terugkerende variant: een afgebroken of te nauw gefilterde grep die niets vindt is geen bewijs dat er niets is.
+>
+> Wat nog aandacht vraagt bij het oppakken, en wat niet in het geheugen past omdat het vluchtig is: de referentie-screenshots staan in de scratchpad van deze sessie en verdwijnen. Ze zijn in twee minuten opnieuw te maken met de URL uit de briefing — dat is beter dan ze bewaren, want dan meet je tegen de dan-actuele site.
+>
+> Verder open, in volgorde van opbrengst:
+>
+> - composer update op mijnRINO — de site draait nog op v1.29.204; alles daarna (responsive-tabs weg, ::part, hash-geheugen) is nog niet gesynct.
+> - jQuery UI staat nog in de header voor 2 formulierpagina's: 62 KB verstuurd, 232 KB parsewerk op élke pagina. Dat blijft de grootste losse post en staat los van de tab-consolidatie.
+> - Het halve tabgeheugen op de front-end: de hash wordt geschreven, niets leest hem. Ofwel meenemen in de migratie, ofwel los repareren.
+> - cma/assets/js/UNUSED_form-helpers.js — laat je staan, staat genoteerd.
+>
+> Eén ding dat ik niet in het geheugen heb gezet omdat het jouw beslissing is: of de tab-consolidatie überhaupt door moet. Na vanavond is mijn eerlijke inschatting dat het meer werk is dan het oplevert zolang de front-end maar twee bestanden met tabs heeft. De 62 KB van jQuery UI ligt er sneller uit dan de strook-CSS goed hertaald i 
+>
+> ik woil graag dat je doorgaat met het vervangen met de 3/4 tab weergave methodes naar 1
