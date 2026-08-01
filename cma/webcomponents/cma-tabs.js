@@ -112,9 +112,16 @@ class CmaTabs extends HTMLElement {
      * slot="tab-N" wanneer er geen shadow root is.
      */
     _panelen() {
-        return this._licht
-            ? Array.from(this.children).filter(el => (el.getAttribute('slot') || '').startsWith('tab-'))
-            : Array.from(this._root.querySelectorAll('slot[name^="tab-"]'));
+        if (!this._licht) {
+            return Array.from(this._root.querySelectorAll('slot[name^="tab-"]'));
+        }
+        // Licht: de panelen hoeven geen directe kinderen te zijn. Een echte slot
+        // projecteert alleen directe kinderen, maar hier is er geen slot — en een
+        // site heeft vaak een omhulsel om zijn panelen dat de eigen stylesheet
+        // aanspreekt. De closest()-test houdt de panelen van een geneste
+        // cma-tabs bij hun eigen component.
+        return Array.from(this.querySelectorAll('[slot^="tab-"]'))
+            .filter(el => el.closest('cma-tabs') === this);
     }
 
     _paneelIndex(el) {

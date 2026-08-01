@@ -7516,3 +7516,9 @@ karaat-data en staat in de karaat-repo.
 > ja je mag op karaat kijken
 
 > jawel, als het goed is een gz opleiding gz2026?
+
+> maak even een fictieve aan dan met wat fakebyekst om te teaten
+
+> als je die feature flag op True zet?
+
+> lukt het?

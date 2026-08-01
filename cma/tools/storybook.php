@@ -46,6 +46,18 @@ if (localStorage.getItem('storybook-darkmode') === '1') {
 
 <style>
 
+/* cma-tabs in licht-modus brengt geen eigen opmaak mee: zonder deze regels
+   staat de strook er kaal bij. Precies wat het voorbeeld moet laten zien —
+   de pagina maakt hem op, met gewone selectors tot in de geselecteerde tab. */
+.storybook__lichte-tabs { display: block; }
+.storybook__lichte-tabs .tabs-list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; border-bottom: 2px solid var(--color-primary); }
+.storybook__lichte-tabs .tabs-list li { background: var(--bg-surface-alt); cursor: pointer; border-radius: 6px 6px 0 0; }
+.storybook__lichte-tabs .tabs-list li a { display: block; padding: 6px 14px; color: var(--text-primary); text-decoration: none; }
+.storybook__lichte-tabs .tabs-list li.selected { background: var(--color-primary); }
+.storybook__lichte-tabs .tabs-list li.selected .tab-title { color: #fff; font-weight: 600; }
+.storybook__lichte-tabs .tabs-select { display: none; }
+.storybook__lichte-tabs [slot^="tab-"] { padding: 12px 2px; }
+
 .nav-sidebar {
     position: fixed;
     width: 180px;
@@ -492,6 +504,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'cma-sortlist', href: '#cma-sortlist', icon: 'lnr-list' },
                 { label: 'cma-combo', href: '#cma-combo', icon: 'lnr-list' },
                 { label: 'cma-tabs', href: '#cma-tabs', icon: 'lnr-layers' },
+                { label: 'cma-tabs light', href: '#cma-tabs-light', icon: 'lnr-layers' },
                 { label: 'cma-toolbar', href: '#cma-toolbar', icon: 'lnr-wrench' },
                 { label: 'cma-tree', href: '#cma-tree', icon: 'lnr-layers' }
             ]
@@ -3302,7 +3315,7 @@ window.LIBLOG_CONFIG = {
                 <h4>Slots</h4>
                 <dl>
                     <dt>tab-0, tab-1, ...</dt>
-                    <dd>Inhoud per tabblad</dd>
+                    <dd>Inhoud per tabblad. In licht-modus hoeven ze geen directe kinderen te zijn: een omhulsel om de panelen mag, zodat bestaande paneel-CSS van de site blijft werken.</dd>
                 </dl>
                 <h4>Methoden</h4>
                 <dl>
@@ -3318,6 +3331,35 @@ window.LIBLOG_CONFIG = {
                     <dt>step-change</dt>
                     <dd>In wizard mode bij stap wijziging</dd>
                 </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-tabs-light">
+        <div class="component-header">
+            <h2>cma-tabs <span class="tag">light</span></h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Tabstrook in de gewone pagina, opgemaakt door de stylesheet van de site</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><cma-tabs light tabs='["Draaiboeken", "Betrokkenen", "Toetsen"]' class="storybook__lichte-tabs">
+    <div slot="tab-0">Inhoud van het eerste tabblad.</div>
+    <div slot="tab-1">Inhoud van het tweede tabblad.</div>
+    <div slot="tab-2">Inhoud van het derde tabblad.</div>
+</cma-tabs></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Waarvoor</h4>
+                <p>Zonder shadow root staat de strook in de gewone pagina, dus gelden er weer gewone selectors — inclusief afdaling en toestand, wat met <code>::part()</code> niet kan:</p>
+                <pre><code>cma-tabs[light] { display: block; }
+cma-tabs[light] li.selected .tab-title { font-weight: 600; }</code></pre>
+                <h4>De afspraak</h4>
+                <p>Het component brengt dan <span class="cma-tool__strong">geen eigen opmaak</span> mee — de site levert alles, tot en met <code>display:block</code> op het element zelf. Wisselen gaat direct in plaats van met een fade, want de fade-klassen zitten in de gedeelde shadow-stijlen. Alleen voor de standaardmodus; de wizard heeft zijn eigen opmaak nodig.</p>
+                <h4>Structuur</h4>
+                <p>De strook komt in <code>&lt;div class="cma-tabs__ui"&gt;</code> vóór de panelen; de panelen blijven staan waar ze stonden en alleen hun <code>display</code> wordt geschakeld. Een omhulsel om de panelen mag.</p>
             </div>
         </div>
     </section>

@@ -276,6 +276,19 @@
         <div class="result" id="result-tabs-light">Klik een tab</div>
     </div>
 
+    <!-- Test 10: Light DOM met omhulsel om de panelen -->
+    <div class="test-section" id="test-tabs-light-wrap">
+        <h2>Test 10: Light DOM met omhulsel</h2>
+        <p>De panelen zitten in een eigen container, zoals een site die zijn eigen paneel-CSS al op een id heeft hangen.</p>
+
+        <cma-tabs id="tabs-light-wrap" light tabs='["Een", "Twee"]'>
+            <div id="paneelhouder">
+                <div slot="tab-0" class="tab-content">Paneel Een</div>
+                <div slot="tab-1" class="tab-content">Paneel Twee</div>
+            </div>
+        </cma-tabs>
+    </div>
+
     <!-- Test Log -->
     <div class="test-section">
         <h2>Test Log</h2>

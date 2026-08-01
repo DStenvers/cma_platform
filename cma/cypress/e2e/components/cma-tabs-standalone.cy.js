@@ -355,6 +355,18 @@ describe('cma-tabs Component (Standalone)', () => {
             cy.get('#result-tabs-light').should('contain', 'Betrokkenen');
         });
 
+        it('finds panels inside a wrapper, so a site can keep its own container', () => {
+            cy.get('#tabs-light-wrap #paneelhouder [slot="tab-0"]').should('be.visible');
+            cy.get('#tabs-light-wrap #paneelhouder [slot="tab-1"]').should('not.be.visible');
+
+            cy.get('#tabs-light-wrap .tabs-list li').eq(1).click();
+
+            cy.get('#tabs-light-wrap #paneelhouder [slot="tab-0"]').should('not.be.visible');
+            cy.get('#tabs-light-wrap #paneelhouder [slot="tab-1"]').should('be.visible');
+            // De strook staat vóór het omhulsel, niet erin.
+            cy.get('#tabs-light-wrap > .cma-tabs__ui').should('exist');
+        });
+
         it('keeps the selected class in sync with the selection', () => {
             cy.get('#tabs-light .tabs-list li').eq(2).click();
             cy.get('#tabs-light .tabs-list li.selected .tab-title').should('contain', 'Toetsen');
