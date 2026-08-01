@@ -53,6 +53,13 @@ class Installer
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
         'cma/tools/llm_models.php',
+        // responsive-tabs: een derde tab-implementatie naast cma-tabs en de
+        // pagetabs van de front-end, en de enige zonder consument — niets in cma/,
+        // library/, module/, templates/ of op een site laadde hem. Drie manieren om
+        // hetzelfde te doen maakt vooral onduidelijk welke je moet kiezen.
+        'library/webcomponents/responsive-tabs/index.js',
+        'library/webcomponents/responsive-tabs/responsive-tabs.css',
+        'library/webcomponents/responsive-tabs/responsive-tabs.js',
         // De image-wizard is nooit in gebruik genomen: geen enkele pagina, tool of
         // bundel noemt hem, en de bestandsnamen zeiden dat zelf al. Ze werden wel
         // meegebouwd en meegeleverd, dus elke site droeg ze mee.
