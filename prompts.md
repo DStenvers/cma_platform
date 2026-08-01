@@ -7494,3 +7494,11 @@ karaat-data en staat in de karaat-repo.
 > Eén ding dat ik niet in het geheugen heb gezet omdat het jouw beslissing is: of de tab-consolidatie überhaupt door moet. Na vanavond is mijn eerlijke inschatting dat het meer werk is dan het oplevert zolang de front-end maar twee bestanden met tabs heeft. De 62 KB van jQuery UI ligt er sneller uit dan de strook-CSS goed hertaald i 
 >
 > ik woil graag dat je doorgaat met het vervangen met de 3/4 tab weergave methodes naar 1
+
+> Ik zie 2 verschijningsvarianten van draaiboeken, als tab en in het dashboard, wat is het verschil en kunnen we het altijd in het dashboard doen? Dan is de box-shadow overigens niet meer nodig
+
+> Ik zie 2 verschijningsvarianten van draaiboeken, als tab en in het dashboard, wat is het verschil en kunnen we het altijd in het dashboard doen? Dan is de box-shadow overigens niet meer nodig
+
+> Ik zie nu dat de CMA de aanp[assingen aan de tabel layout heeft overgenomen, kunnen we iets verzinnen waardoor dat niet gebeurd, want die zijn echt allewen voor de front-end
+
+> Voor deelnemers: op het dashboard als deze naar Moodle gaat met introtekst maar zonder witte achtergrond. Voor de overige rollen doe maar in de losse tab

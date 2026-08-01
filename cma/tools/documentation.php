@@ -3721,6 +3721,18 @@ function render_doc_web_components(): void
     </table>
     <p>Let bij de kopregel van een lijst op het verloop: <code>lib-table table thead</code> heeft een <code>linear-gradient</code>, en die schildert over elke <code>background-color</code> heen. Wil je een egale kleur, zet er dan ook <code>background-image: none</code> bij.</p>
 
+    <h2>Drie banen — welk blad hoort bij welk publiek</h2>
+    <p>Een site met een eigen front-end deelt de webcomponenten met de CMA. Een aanpassing landt daarom in beide, tenzij je hem in het juiste blad zet:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:300px">Blad</th><th style="width:110px">Bereik</th><th>Wanneer</th></tr></thead>
+        <tbody>
+            <tr><td><code>library/webcomponents/lib-table.css</code> (platform)</td><td>iedereen</td><td>Alleen wanneer élke consument de wijziging hoort te krijgen. Het is de standaardopmaak van het component, niet de huisstijl van één site.</td></tr>
+            <tr><td><code>assets/css/cma-overrides.css</code></td><td>alleen CMA</td><td><code>cma_css_bundle()</code> plakt hem als laatste aan de CMA-bundel. Zet hier wat de CMA anders moet doen.</td></tr>
+            <tr><td>Het eigen stylesheet van de front-end</td><td>alleen front-end</td><td>Zet hier wat alleen de front-end anders moet doen. Laadt dat blad ná <code>lib-table.css</code>, dan wint een gewone regel met dezelfde selector vanzelf — <code>!important</code> is niet nodig.</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-page__strong">Link <code>cma-overrides.css</code> nooit in de head van de front-end.</span> Dat is de klassieke manier waarop de twee banen weer aan elkaar geknoopt raken: vanaf dat moment krijgt de front-end elke CMA-regel erbij, en is een front-end-aanpassing alleen nog te maken door het platformblad te wijzigen — waarna de CMA meebeweegt. Heeft de front-end dezelfde huisstijlregels nodig, geef hem dan een eigen kopie in zijn eigen blad. Die overlap is de prijs van gescheiden banen, en precies wat je wilt: een aanpassing aan de één raakt de ander niet.</p>
+
     <h2>Prefix-conventies</h2>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:140px">Prefix</th><th>Locatie</th><th>Bedoeld voor</th></tr></thead>
