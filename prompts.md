@@ -7444,3 +7444,21 @@ karaat-data en staat in de karaat-repo.
 > 3 kun je starttour beide laten invoegen
 > 5 kunnen we iets structureels verzinnen?
 > 6 jauery-ui, wat wordt daarvan gebruikt?
+
+> we hadden toch alle xslts omgezet?
+
+> 2 en 3 is dat wel minified?
+
+> nee kun je kijken of we die kunnen skippen?
+
+> kunnen we niet toch kijken naar weghalen? op termijn wil ik toch ook van jquery af en de cas is prima na te bouwen, heeft iemand dat al niet ooit gedaan?
+
+> reaponsive tabs worden een select op een klein scherm , op het portfolio gebruikt volgens mij
+
+> vacatures mag naar .deprecated
+
+> ja graag
+
+> je wordt slordig, ik weet 100% zeker dat subtabs de actieve opslaan/herstellen of dat recen hebben gedaan
+
+> en zullen we inderdaad cma-tabs doen? maar dan alle andere weg graag

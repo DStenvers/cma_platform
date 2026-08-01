@@ -2052,34 +2052,6 @@ function blockedit_compose_html( cVeldType, aData ) {
 			sRetval += "</ul>"
 			break;	
 			
-		case "vacatures":
-			sRetval = "<div class=\"cardsRelated\">";
-			sRetval += "<div class=\"cardsRelated__cards\" id=\"cardsRelated__allcards\">";
-			for (var t = 0;t<aData.length;t++) {
-				
-				sRetval += "<a href=\"" + aData[t].vacature_link + "\" target=\"_self\" title=\"Bekijk vacature\" class=\"card card--big\">";
-				sRetval += "<span>";
-				sRetval += "<div class=\"card__inner\">";
-				sRetval += "<div class=\"card__text\">";
-				sRetval += "<h2 class=\"card__title\" style=\"margin-top:0px;\">" + aData[t].vacature_titel +"</h2>";
-				sRetval += "<br>";
-				sRetval += "<div class=\"card__text\">";
-				sRetval += "<span class=\"card__body\">" + (aData[t].vacature_afdeling+""!="" 	? "Afdeling : " + aData[t].vacature_afdeling 	: "") + "</span><br>";
-				sRetval += "<span class=\"card__body\">" + (aData[t].vacature_uren+""!="" 		? "Uren : " + aData[t].vacature_uren 			: "") + "</span><br>";
-				sRetval += "<span class=\"card__body\">" + (aData[t].vacature_periode+""!="" 	? "Periode : " + aData[t].vacature_periode 	: "") + "</span><br>" ;
-				
-				sRetval += "<br>";
-				sRetval += "</div>";
-				sRetval += "</div>";
-				sRetval += "<div class=\"bekijkoproep\">&gt; Bekijk vacature</div>";
-				sRetval += "</div>";
-				sRetval += "</span>";
-				sRetval += "</a>";
-				
-			}
-			sRetval += "</div>"
-			sRetval += "</div>"
-			break;
 	}
 	return sRetval;
 }
