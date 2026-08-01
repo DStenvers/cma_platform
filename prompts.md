@@ -7429,3 +7429,18 @@ karaat-data en staat in de karaat-repo.
 > die js
 
 > de gesimileerde klik was om de verschilllende databronnen op de client te sorteren, iets dat 1 query niet kan, kunnen we daar niet iets op verInnen?
+
+## 2026-08-01
+
+> Kun je een analyse doen van de performance op front-end , zijn er nog te optimaliseren zaken die weinig risico vormen voor de functionaliteit
+
+> tabbalk is voorlopig niet nodig
+
+> De templating, kkunnen we daar nog een slag in doen?
+
+> 1 kun je een test in de cmas docu zetten?
+>
+> 2 chart.js: wil je dat doen? 
+> 3 kun je starttour beide laten invoegen
+> 5 kunnen we iets structureels verzinnen?
+> 6 jauery-ui, wat wordt daarvan gebruikt?

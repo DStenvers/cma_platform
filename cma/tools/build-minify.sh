@@ -83,6 +83,7 @@ JS_DIRS=(
     "$SITE_DIR/library/assets/js"
     "$SITE_DIR/library"
     "$SITE_DIR"
+    "$SITE_DIR/assets/js"
 )
 
 echo "=== JS Minification Build ==="
@@ -113,6 +114,11 @@ for dir in "${JS_DIRS[@]}"; do
         if "$TERSER" "$jsfile" --compress --mangle -o "$minfile.tmp" 2>/dev/null; then
             if [ -f "$minfile" ] && cmp -s "$minfile.tmp" "$minfile"; then
                 rm -f "$minfile.tmp"
+                # Inhoud gelijk, maar de mtime moet alsnog kloppen: de serveerlaag
+                # kiest op mtime, niet op inhoud. Een .min die ouder is dan zijn bron
+                # wordt genegeerd, dus zonder deze touch blijft een bestand met een
+                # perfect bruikbare .min voor altijd onverkleind uitgeserveerd.
+                touch -r "$jsfile" "$minfile"
                 total_original=$((total_original - orig_size))
                 skipped=$((skipped + 1))
                 continue
@@ -155,6 +161,7 @@ CSS_DIRS=(
     "$SITE_DIR/library/webcomponents"
     "$SITE_DIR/library"
     "$SITE_DIR/library/css"
+    "$SITE_DIR/assets/css"
 )
 
 echo "Processing CSS files..."
@@ -177,6 +184,7 @@ for dir in "${CSS_DIRS[@]}"; do
     fi
     if [ -f "$minfile" ] && cmp -s "$minfile.tmp" "$minfile"; then
         rm -f "$minfile.tmp"
+        touch -r "$cssfile" "$minfile"   # zie de toelichting bij de JS-lus hierboven
         skipped=$((skipped + 1))
         continue
     fi

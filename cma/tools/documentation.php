@@ -1272,6 +1272,92 @@ function cma_doc_check_cache_dir(): array {
 }
 
 /**
+ * Krijgt een bezoeker zijn CSS en JS gecomprimeerd?
+ *
+ * Zelf-test, want dit is niet aan de PHP-kant af te lezen: <urlCompression> in web.config
+ * zet compressie alleen aan voor de URL-ruimte, terwijl de module die het werk doet een
+ * Windows-onderdeel is dat los geïnstalleerd moet zijn. Staat dat onderdeel er niet, dan
+ * ziet de configuratie er goed uit en gebeurt er niets — een site kan zo jarenlang alles
+ * ongecomprimeerd uitserveren zonder één signaal.
+ *
+ * Vraagt tweemaal hetzelfde bestand op, en dat is geen slordigheid. IIS comprimeert een
+ * statisch bestand pas als het "frequent" wordt opgevraagd (frequentHitThreshold, standaard
+ * 2 hits binnen frequentHitTimePeriod van 10 seconden) en bewaart het resultaat dan in
+ * zijn map met gecomprimeerde bestanden. Eén losse meting komt onder die drempel en geeft
+ * dus altijd "niet gecomprimeerd" terug, ook op een server waar alles goed staat. Het
+ * antwoord op de tweede vraag is het antwoord dat telt.
+ */
+function cma_doc_check_static_compression(): array {
+    $label = 'Statische CSS/JS worden gecomprimeerd verstuurd';
+
+    if (!empty($GLOBALS['_docs_indexing'])) {
+        return ['label' => $label, 'status' => 'info', 'detail' => '', 'fix' => ''];
+    }
+    if (PHP_SAPI === 'cli') {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'CLI-context: zelf-test niet uitvoerbaar.', 'fix' => ''];
+    }
+    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+    if ($host === '' || !function_exists('curl_init')) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Host onbekend of cURL niet geladen, zelf-test overgeslagen.', 'fix' => ''];
+    }
+
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $url    = $scheme . '://' . $host . '/library/css/lib-variables.min.css';
+
+    $vraag = static function (string $url): array {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_NOBODY         => true,
+            CURLOPT_HTTPHEADER     => ['Accept-Encoding: gzip, deflate, br'],
+            CURLOPT_TIMEOUT        => 3,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+        ]);
+        $kop  = (string) curl_exec($ch);
+        return [$kop, (int) curl_getinfo($ch, CURLINFO_HTTP_CODE), (string) curl_error($ch)];
+    };
+    $codering = static function (string $kop): string {
+        return preg_match('/^content-encoding:\s*(\S+)/mi', $kop, $m) ? strtolower(trim($m[1])) : '';
+    };
+
+    [$kop1, $code, $fout] = $vraag($url);
+    if ($kop1 === '' || $code === 0) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Zelf-test mislukte: ' . htmlspecialchars($fout ?: 'geen antwoord', ENT_QUOTES, 'UTF-8'), 'fix' => ''];
+    }
+    if ($code !== 200) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Testbestand gaf HTTP ' . $code . ' — controle niet uitgevoerd.', 'fix' => ''];
+    }
+    $eerste = $codering($kop1);
+    [$kop2] = $vraag($url);
+    $tweede = $codering($kop2);
+
+    if ($tweede !== '') {
+        $detail = 'Ja, als <code>' . htmlspecialchars($tweede, ENT_QUOTES, 'UTF-8') . '</code>.';
+        if ($eerste === '') {
+            $detail .= ' De eerste aanvraag kwam nog onverpakt terug: IIS comprimeert een statisch bestand pas vanaf de tweede hit '
+                . 'binnen tien seconden (<code>frequentHitThreshold</code>). Voor druk bezochte bestanden maakt dat niets uit; '
+                . 'wil je ook de allereerste bezoeker dekken, zet die drempel dan op 1.';
+        }
+        return ['label' => $label, 'status' => 'pass', 'detail' => $detail, 'fix' => ''];
+    }
+
+    return [
+        'label'  => $label,
+        'status' => 'fail',
+        'detail' => 'Nee — <code>' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '</code> komt ook bij een tweede aanvraag zonder '
+            . '<code>Content-Encoding</code> terug, dus CSS en JS gaan onverpakt over de lijn. Dat is ruwweg vier keer zoveel als nodig.',
+        'fix'    => 'Dit is geen instelling in <code>web.config</code>: <code>&lt;urlCompression&gt;</code> zet het alleen aan, de module moet er zijn. '
+            . 'Installeer in Serverbeheer → Webserver (IIS) → Prestaties het onderdeel <span class="cma-tool__strong">Statische inhoudscompressie</span> '
+            . '(en Dynamische inhoudscompressie voor de HTML zelf) en herstart IIS. '
+            . 'Let daarna op de mime-typen: <code>text/css</code> en <code>application/javascript</code> moeten in de <code>staticTypes</code> van '
+            . '<code>httpCompression</code> staan (applicationHost.config).',
+    ];
+}
+
+/**
  * Gaan er assets onverkleind de deur uit?
  *
  * De serveerlaag valt terug op de bron zodra de .min ontbreekt of ouder is. Dat is de
@@ -2214,6 +2300,7 @@ function render_doc_deployment(): void
         'cma_doc_check_logs_dir',
         'cma_doc_check_deploy_log',
         'cma_doc_check_assets_minified',
+        'cma_doc_check_static_compression',
     ]));
     ?>
 
