@@ -758,6 +758,11 @@ function XMLStore_XMLRetrieve($strParamStoreName, $cParam, $dCurrentDate)
                                     $arrImagePaths[$t] = $strImgBasePath . $strGevondenPad;
                                 }
                             }
+                            // Deze koppeling is verder onzichtbaar: gaat hij mis, dan zie je
+                            // alleen een bestandslink zonder map, die op een 404 uitkomt.
+                            Debug::write('XMLSnippets => ImgPath tabel=' . $strRootTable
+                                . ' velden=' . implode(',', $arrVeldNamen)
+                                . ' mappen=' . json_encode(array_filter($arrImagePaths)));
                         }
                         // REDIM arrDateFields($rs->fields->count) - Create new array
                         $new_size = count($rs->fields) + 1; // VBScript arrays are 0-based
