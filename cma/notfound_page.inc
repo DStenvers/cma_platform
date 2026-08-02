@@ -143,7 +143,20 @@ $h = static fn($s): string => htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8')
         <h1><?= $h($cmaNfWhat) ?> niet gevonden</h1>
         <p><?= $h($cmaNfText) ?></p>
         <div class="path"><?= $h($cmaNfPath) ?></div>
-        <a href="<?= $h($cmaNfHome) ?>"><?= $h($cmaNfLabel) ?></a>
+        <a id="nf-home" href="<?= $h($cmaNfHome) ?>"><?= $h($cmaNfLabel) ?></a>
     </div>
+    <script>
+        // Staat deze pagina in een popup, dan helpt "terug naar het dashboard"
+        // niet: dat venster hoort dicht. window.opener is de enige betrouwbare
+        // aanwijzing dat er een opener is; een gesloten opener telt niet mee.
+        if (window.opener && !window.opener.closed) {
+            var nfKnop = document.getElementById('nf-home');
+            if (nfKnop) {
+                nfKnop.textContent = 'Sluit venster';
+                nfKnop.setAttribute('href', 'javascript:void(0)');
+                nfKnop.addEventListener('click', function () { window.close(); });
+            }
+        }
+    </script>
 </body>
 </html>

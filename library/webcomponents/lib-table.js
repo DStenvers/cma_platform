@@ -2562,17 +2562,28 @@ class LibTable extends HTMLElement {
                 trigger.classList.add('open');
             }
 
-            // Flip position if not enough space below
+            // Het menu hangt vast aan het scherm, niet aan de tabel. Absoluut
+            // gepositioneerd werd het namelijk afgeknipt door de eerste ouder met
+            // overflow — bij een lijst met één rij is die container maar een paar
+            // tientallen pixels hoog, en dan zag je alleen de eerste regel van het
+            // menu. Dezelfde aanpak als het filterpaneel van de kolomkop.
             if (trigger.classList.contains('open')) {
                 const menu = trigger.querySelector('.cma-context-menu');
                 if (menu) {
-                    menu.style.bottom = '';
-                    menu.style.top = '';
+                    const anker = trigger.getBoundingClientRect();
+                    menu.style.position = 'fixed';
+                    menu.style.left = anker.left + 'px';
+                    menu.style.top = (anker.bottom + 4) + 'px';
+                    menu.style.bottom = 'auto';
                     requestAnimationFrame(() => {
                         const menuRect = menu.getBoundingClientRect();
+                        // Past hij niet onder de knop, dan erboven.
                         if (menuRect.bottom > window.innerHeight) {
-                            menu.style.top = 'auto';
-                            menu.style.bottom = '100%';
+                            menu.style.top = Math.max(4, anker.top - menuRect.height - 4) + 'px';
+                        }
+                        // En binnen de rechterrand blijven.
+                        if (menuRect.right > window.innerWidth) {
+                            menu.style.left = Math.max(4, window.innerWidth - menuRect.width - 4) + 'px';
                         }
                     });
                 }

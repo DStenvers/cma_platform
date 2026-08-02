@@ -86,5 +86,5 @@ if (strpos($requestUri, '/api/') !== false ||
 // own 404 handler uses, so both look alike and a change lands in one place.
 header('Content-Type: text/html; charset=utf-8');
 $notFoundHomeUrl   = '/cma/';
-$notFoundHomeLabel = 'Terug naar Dashboard';
+$notFoundHomeLabel = 'Naar dashboard';
 require __DIR__ . '/notfound_page.inc';

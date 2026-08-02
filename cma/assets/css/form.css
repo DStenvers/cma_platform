@@ -287,10 +287,10 @@ body.mode-table .tb-sep.table-mode-only { display: inline-block !important; }
     display: inline-block;
     width: 18px;
     text-align: center;
-    font-size: 1.4em;
-    font-weight: 600;
+    font-size: 2em;
+    font-weight: 100;
     line-height: 1;
-    color: inherit;
+    color: #777777;
 }
 
 /* Tree mode button states */
@@ -1629,6 +1629,14 @@ body.inline-editing .toolbar .tb-btn {
 #listContent {
     /* Allow table to fill container and sticky to work */
     height: 100%;
+}
+
+/* De lijst in het linkerpaneel loopt tot aan de rand van het paneel: geen
+   ronde hoeken. Op de <lib-table> zelf, want een site kan er via zijn eigen
+   blad een radius op zetten (huisstijl) — die is hier niet gewenst. Het
+   id-deel van de selector wint van zo'n site-regel. */
+#listContent lib-table {
+    border-radius: 0;
 }
 
 /* Table base styling is in lib-table.css */
@@ -3900,3 +3908,5 @@ span#readonlyIndicator span.lnr::before {
 .restore-form label { display: block; margin-bottom: 5px; }
 .restore-form .form-field { margin-bottom: 15px; }
 .debug-info { font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 5px; }
+
+.btn-primary span.btn-plus { color: #fff!important }

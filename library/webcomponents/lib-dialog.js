@@ -813,9 +813,15 @@ class LibDialog extends HTMLElement {
                     transition: color 0.15s ease, background 0.15s ease;
                 }
 
+                /* Wit icoon op een gevulde knop, net als het kruisje van sluiten.
+                   De vorige stand kleurde de knop lichtgrijs en het icoon
+                   donkergrijs; valt de ene kleur samen met de andere — en dat
+                   gebeurt zodra een site --border-color of --text-primary
+                   bijstelt — dan lijkt het icoon bij hover te verdwijnen. Het
+                   icoon is een masker op currentColor, dus color stuurt hem. */
                 .dialog-maximize:hover {
-                    background: var(--border-color, #ddd);
-                    color: var(--text-primary, #333);
+                    background: var(--popup-maximize-hover, #777777);
+                    color: #ffffff;
                 }
 
                 .dialog-maximize .lnr {
