@@ -5882,6 +5882,18 @@ class CmaFormController {
         if (searchInput) {
             this.searchTerm = searchInput.value.trim();
             cmaLog.log('[handleSearch] displayMode:', this.displayMode, 'isTree:', this.isTreeMode(), 'searchTerm:', this.searchTerm);
+
+            // In boomweergave filtert Enter dezelfde boom als het typen. Een
+            // loadList() met zoekterm levert namelijk een platte lijst terug:
+            // de boom verdwijnt, de weergave springt naar tabelmodus en er gaat
+            // een record open — je raakt precies het overzicht kwijt waarin je
+            // aan het zoeken was.
+            const cmaTree = this.listContent ? this.listContent.querySelector('cma-tree') : null;
+            if (cmaTree && typeof cmaTree.filter === 'function') {
+                cmaTree.filter(this.searchTerm.toLowerCase());
+                return false;
+            }
+
             this.loadList();
         }
         return false;

@@ -24,6 +24,8 @@ class CmaTree extends HTMLElement {
         this._openFolders = new Set();
         this._nodeIndex = [];
         this._hasData = false;
+        // Of de standaard-open wortelmap al gezet is; zie _render().
+        this._wortelStandGezet = false;
         // Bind click handler for event delegation (prevents memory leaks)
         this._handleDelegatedClick = this._handleDelegatedClick.bind(this);
     }
@@ -428,10 +430,15 @@ class CmaTree extends HTMLElement {
         this._nodeIndex = [];
         this._buildIndex(this._data);
 
-        // Open root folder by default
-        if (this._openFolders.size === 0 && this._nodeIndex.length > 0) {
+        // De wortelmap staat standaard open — maar alleen bij de eerste render.
+        // Gold dit bij élke render, dan viel de wortel nooit dicht te klappen:
+        // het sluiten van de laatste open map maakt de verzameling leeg, en de
+        // render die daar direct op volgt zette hem dan meteen weer open.
+        // Openklappen werkte dus wel en dichtklappen niet.
+        if (!this._wortelStandGezet && this._openFolders.size === 0 && this._nodeIndex.length > 0) {
             this._openFolders.add(0);
         }
+        this._wortelStandGezet = true;
 
         // Use exact CSS from complextree
         const styles = `

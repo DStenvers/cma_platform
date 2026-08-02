@@ -7526,3 +7526,26 @@ karaat-data en staat in de karaat-repo.
 > ja prima!
 
 > laat die testsata nu staan en zoeg dat de rolewalker die toont
+
+> can you continue?
+
+## 2026-08-02
+
+>
+> De 404 pagina bevat iconen die niet zichtbaar zijn. Daarnaast is  er een knop Naar de beginpagina, maak daar Naar dashboard van en als het een popup venster betreft deze knop vervangen door Sluit venster
+>
+> Bij de hover op een minimize of maximize knop verdwijnt de icoon, kun je het zo maken dat de icoon wit wordt (via css)
+>
+> .tb-btn .btn-plus {    font-size: 2em;
+>     font-weight: 100;
+>     color: #777777;}
+>
+> #listContent <lib-table} { border-radius 0}
+>
+> <list-table> If there is only one row, the export menu is not shown completely, the 2nd and 3th row are cut off
+>
+> De tree collapsed een item niet meer, expand werkt wel 
+>
+> Zoeken in treeview doet niets , als ik bij docenten werner intyp en op enter druk gebeurt er niets
+>
+> -
