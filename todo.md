@@ -86,8 +86,8 @@ Twee positioneringsalgoritmes, twee stylings, dezelfde taak.
 `cma/bootstrap.inc` en de `Cma\`-namespace wordt niet ge-autoload — het bestand
 draait dus nooit.
 
-- [ ] `cma/classes/LibTable.php` verwijderen + rij in `Installer.php`
-      `REMOVED_PATHS` (anders houden bestaande sites het bestand).
+- [x] **Gedaan:** `cma/classes/LibTable.php` verwijderd + rij in `Installer.php`
+      `REMOVED_PATHS`.
 - [ ] Daarna: overlap tussen `LibTable` (PHP) en `lib-table` (JS) in kaart —
       sorteren, filteren en exporteren zitten in allebei.
 
@@ -114,13 +114,15 @@ naast een eigen ring in `cma-launcher.js:346`
 
 Geen enkele `<script>`-verwijzing, geen aanroepen:
 
-- [ ] `cma/webcomponents/UNUSED_cma-checklist.js` (670 regels)
-- [ ] `cma/webcomponents/UNUSED_cma-rights-matrix.js` (674 regels)
-- [ ] `cma/webcomponents/cma-combo.js` — lege plaatshouder; `lib-combo.js`
-      registreert zelf al `cma-combo`
-- [ ] `cma/assets/js/UNUSED_form-helpers.js` (275 regels)
+- [x] **Gedaan:** `cma/webcomponents/UNUSED_cma-checklist.js` (670 regels)
+- [x] **Gedaan:** `cma/webcomponents/UNUSED_cma-rights-matrix.js` (674 regels)
+- [x] **Gedaan:** `cma/webcomponents/cma-combo.js` — lege plaatshouder;
+      `lib-combo.js` registreert zelf al `cma-combo`
+- [ ] `cma/assets/js/UNUSED_form-helpers.js` (275 regels) — blijft voorlopig
+      staan; in een eerdere sessie is afgesproken hem te laten.
 
-Alle vier ook in `Installer.php` `REMOVED_PATHS`, plus de `.min.js`-tweelingen.
+De verwijderde bestanden staan met hun `.min.js`-tweelingen in `Installer.php`
+`REMOVED_PATHS`, anders houden bestaande sites ze voor altijd.
 
 ### Al samengevoegd (niet opnieuw oppakken)
 

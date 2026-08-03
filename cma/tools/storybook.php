@@ -2879,7 +2879,7 @@ window.LIBLOG_CONFIG = {
 </div>
 <p style="margin-top: 12px; font-size: var(--font-size-sm); color: var(--text-secondary);">
     De API is identiek aan <a href="#lib-combo"><code>lib-combo</code></a> — attributen, methodes, properties en events zijn dezelfde.
-    <code>cma-combo.js</code> is een lege placeholder; <code>lib-combo.js</code> registreert <span class="storybook__em">beide</span> tag-namen.
+    Er is geen apart <code>cma-combo.js</code>: <code>lib-combo.js</code> registreert <span class="storybook__em">beide</span> tag-namen, dus laad dat bestand.
 </p></textarea>
                 </div>
             </div>

@@ -18,7 +18,6 @@ Web components use Shadow DOM for style encapsulation. Without optimization, eac
 └── ...
 
 /cma/webcomponents/
-├── cma-combo.js            # Uses shared styles
 ├── cma-tabs.js             # Uses shared styles
 ├── cma-toolbar.js          # Uses shared styles
 ├── cma-tree.js             # Uses shared styles
