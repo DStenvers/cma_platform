@@ -83,6 +83,11 @@ class Installer
         // bestand deed niets — het stond er alleen om te vertellen dat het niets deed.
         'cma/webcomponents/cma-combo.js',
         'cma/webcomponents/cma-combo.min.js',
+        // lib-menu had geen enkele consument: geen pagina, geen tool, geen site —
+        // alleen een storybook-voorbeeld. Het zat wél in de CMA-bundel, dus elke
+        // pagina haalde het op. Contextmenu's in de CMA zijn .cma-context-menu.
+        'library/webcomponents/lib-menu.js',
+        'library/webcomponents/lib-menu.min.js',
         // Tweede LibTable, in de Cma-namespace. Geen enkele require_once noemt hem en
         // de Cma-namespace wordt niet ge-autoload, dus deze class draaide nooit. De
         // tabelklasse die wél draait is library/classes/class_table.inc.

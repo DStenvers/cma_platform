@@ -1114,6 +1114,11 @@
             if (fldH) fldH.value = '';
         }
 
+        // Een echt browservenster, geen lib_OpenWindowCentered: dit toont het bestand
+        // zelf en niet een pagina van ons. De gebruiker wil er kunnen inzoomen,
+        // opslaan of afdrukken, en dat werkt alleen in een venster van de browser.
+        // Bovendien roept een site dit aan via fViewFile() vanaf een pagina buiten
+        // de CMA, waar library.js niet geladen hoeft te zijn.
         function view(sControl, sSrc) {
             let imageURL = window.document.main[sControl].value;
             if (imageURL !== '') {

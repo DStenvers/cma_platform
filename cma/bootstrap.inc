@@ -659,7 +659,6 @@ function cma_js_bundle(): array {
         '../library/webcomponents/lib-radio-group.js',
         '../library/webcomponents/lib-dialog.js',
         '../library/webcomponents/lib-message.js',
-        '../library/webcomponents/lib-menu.js',
         '../library/webcomponents/lib-toaster.js',
         '../library/webcomponents/lib-search-input.js',
         '../library/webcomponents/lib-datepicker.js',

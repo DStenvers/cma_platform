@@ -466,7 +466,6 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-histogram', href: '#lib-histogram', icon: 'lnr-chart-bars' },
                 { label: 'lib-label', href: '#lib-label', icon: 'lnr-tag' },
                 { label: 'lib-loader', href: '#lib-loader', icon: 'lnr-hourglass' },
-                { label: 'lib-menu', href: '#lib-menu', icon: 'lnr-menu' },
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
                 { label: 'lib-sheet', href: '#lib-sheet', icon: 'lnr-arrow-up' },
@@ -1519,68 +1518,6 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Bij tonen van loader</dd>
                     <dt>hide</dt>
                     <dd>Bij verbergen van loader</dd>
-                </dl>
-            </div>
-        </div>
-    </section>
-
-    <section class="component-section" id="lib-menu">
-        <div class="component-header">
-            <h2>lib-menu</h2>
-            <span class="tag lib">library</span>
-            <p class="component-description">Contextmenu met iconen en acties</p>
-        </div>
-        <div class="component-body">
-            <div class="component-content">
-                <div class="playground">
-                    <textarea><button class="btn btn-primary" id="menuTrigger">
-    <span class="lnr lnr-menu"></span> Open menu
-</button>
-<lib-menu trigger="#menuTrigger">
-    <lib-menu-item icon="lnr-pencil" action="edit">Bewerken</lib-menu-item>
-    <lib-menu-item icon="lnr-copy" action="copy">Kopiëren</lib-menu-item>
-    <lib-menu-item icon="lnr-download" action="download" disabled>Downloaden (disabled)</lib-menu-item>
-    <lib-menu-item separator></lib-menu-item>
-    <lib-menu-item icon="lnr-trash" action="delete" danger>Verwijderen</lib-menu-item>
-</lib-menu></textarea>
-                </div>
-            </div>
-            <div class="component-options">
-                <h4>lib-menu attributen</h4>
-                <dl>
-                    <dt>trigger</dt>
-                    <dd>CSS selector voor trigger element</dd>
-                </dl>
-                <h4>lib-menu-item attributen</h4>
-                <dl>
-                    <dt>icon</dt>
-                    <dd>Icon class (bijv. "lnr-pencil")</dd>
-                    <dt>action</dt>
-                    <dd>Action identifier voor event</dd>
-                    <dt>danger</dt>
-                    <dd>Rode styling voor verwijder-acties</dd>
-                    <dt>disabled</dt>
-                    <dd>Item uitschakelen</dd>
-                    <dt>separator</dt>
-                    <dd>Scheidingslijn maken</dd>
-                </dl>
-                <h4>Methoden</h4>
-                <dl>
-                    <dt>show(x, y)</dt>
-                    <dd>Open menu op positie</dd>
-                    <dt>hide()</dt>
-                    <dd>Sluit menu</dd>
-                    <dt>toggle()</dt>
-                    <dd>Open/sluit menu</dd>
-                </dl>
-                <h4>Events</h4>
-                <dl>
-                    <dt>menu-select</dt>
-                    <dd>Bij selecteren item (detail: action, item)</dd>
-                    <dt>menu-open</dt>
-                    <dd>Bij openen menu</dd>
-                    <dt>menu-close</dt>
-                    <dd>Bij sluiten menu</dd>
                 </dl>
             </div>
         </div>

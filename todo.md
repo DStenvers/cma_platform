@@ -57,22 +57,30 @@ Geen samenvoeging maar een grens. Vastgelegd 2026-08-03:
       uit de pas gelopen (andere maten, andere vensternamen). `library.js` heeft
       trouwens zelf al een terugval naar een echt venster
       (`lib_OpenPopupCentered`), dus het was de derde laag op dezelfde vraag.
-- [ ] `lib_OpenWindowCentered` gebruiken waar nu nog met de hand een dialoog
-      wordt nagebouwd, en andersom: `form-controller.js` opent de kolomkiezer als
-      venster met eigen HTML (`win_content`) terwijl dat eenvoudige werk is —
-      kandidaat voor `lib-dialog`.
-- [ ] `CMA.image.view` (`cma.js:1121`) opent een bestand met een kale
-      `window.open` mét afmetingen. Blijft toegestaan (karaat roept het via
-      `fViewFile` aan vanaf een pagina buiten de CMA), maar hoort in de rij
-      hierboven thuis met een reden erbij.
+- [x] **Gedaan:** de kolomkiezer bouwde de keuze tussen zijpaneel en venster met
+      de hand na; dat is nu één `lib_OpenPanel`. **Niet** naar `lib-dialog`
+      verplaatst, en dat was wel het oorspronkelijke idee: de kolomkiezer volgt de
+      voorkeur zijpaneel/venster van de gebruiker, en `lib-dialog` kent die keuze
+      niet. Naar een dialoog verhuizen zou die instelling stilletjes weghalen.
+- [x] **Gedaan:** `CMA.image.view` heeft zijn reden in de code staan — het toont
+      een bestand en geen pagina van ons, dus zoomen/opslaan/afdrukken hoort in
+      een echt browservenster; bovendien roept karaat het aan via `fViewFile()`
+      vanaf een pagina buiten de CMA.
 
-### 3. Tooltip — component naast een eigen singleton
+### 3. Tooltip — géén duplicaat, dit stond hier ten onrechte
 
-`lib-tip` (`library/webcomponents/lib-tip.js`) naast `cmaTooltip`
-(`cma/assets/js/cma-utils.js:683`, één `div.cma-tooltip` met `data-tooltip`).
-Twee positioneringsalgoritmes, twee stylings, dezelfde taak.
+Bij het uitzoeken bleek `lib-tip` geen tooltip te zijn. Het is een
+rondleiding-systeem: `LibTip.show({target, title, content})` en
+`LibTip.tour(id, stappen)` lichten een element uit en lopen je door een
+uitleg heen, met onthouden dat je hem gezien hebt. `cma-tours.js` gebruikt het
+op zes plekken.
 
-- [ ] Kies `lib-tip`, laat `data-tooltip` erop uitkomen, verwijder de singleton.
+`cmaTooltip` (`cma/assets/js/cma-utils.js:683`) is de zweeftekst op
+`data-tooltip`, gebruikt in de afbeeldingsbewerker (21×), de rapportontwerper
+(12×), het dashboard (8×) en meer.
+
+Twee verschillende dingen die allebei "tip" heten. Niets samen te voegen; de
+overeenkomst zat in de naam, niet in het gedrag.
 
 ### 4. Tabel — drie renderers, waarvan één dood
 
@@ -98,9 +106,11 @@ losse HTML wordt opgebouwd in `lib-table.js:2544`, `inline-edit.js` en
 `form-controller.js`, met styling in vier stylesheets (`lib-table.css`,
 `inline-edit.css`, `form.css`, `style.css`).
 
-- [ ] Het exportmenu en het rijmenu op `lib-menu` zetten, of `lib-menu`
-      verwijderen als `.cma-context-menu` de bedoelde vorm is. Nu betaalt de
-      pagina voor allebei.
+- [x] **Gedaan:** `lib-menu` verwijderd. Het had geen enkele consument — geen
+      pagina, geen tool, geen consumer-site (karaat, rec en klei nagekeken),
+      alleen een storybook-voorbeeld. Het zat wél in de CMA-bundel, dus elke
+      pagina haalde 634 regels op voor een component die nooit verscheen.
+      `.cma-context-menu` is de vorm die de CMA echt gebruikt.
 
 ### 6. Laadindicator
 
@@ -108,7 +118,10 @@ losse HTML wordt opgebouwd in `lib-table.js:2544`, `inline-edit.js` en
 naast een eigen ring in `cma-launcher.js:346`
 (`.cma-launcher__spinner-ring` + `__spinner-text`).
 
-- [ ] `cma-launcher` op `lib-loader` zetten.
+- [x] **Gedaan:** `cma-launcher` gebruikt `lib-loader`; de eigen ring, de eigen
+      keyframes en de eigen tekstregel zijn uit `main.css` verdwenen. Het wachten
+      van 150ms blijft op de laag eronder zitten, zodat ook het dekkende vlak niet
+      flitst bij een snelle tool.
 
 ### 7. Dode componentbestanden opruimen
 

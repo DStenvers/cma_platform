@@ -343,8 +343,9 @@
                 sp.className = 'cma-launcher__iframe-spinner';
                 sp.setAttribute('role', 'status');
                 sp.setAttribute('aria-live', 'polite');
-                sp.innerHTML = '<div class="cma-launcher__spinner-ring"></div>' +
-                    '<div class="cma-launcher__spinner-text">Laden&hellip;</div>';
+                // delay="0": het wachten van 150ms zit al op deze laag, zodat ook
+                // het dekkende vlak eronder niet flitst bij een snelle tool.
+                sp.innerHTML = '<lib-loader active delay="0" size="medium" text="Laden&hellip;"></lib-loader>';
                 sp.style.display = 'none';
                 host.appendChild(sp);
             }

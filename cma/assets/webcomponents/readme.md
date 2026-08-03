@@ -13,7 +13,6 @@ Web components use Shadow DOM for style encapsulation. Without optimization, eac
 ├── lib-shared-styles.js    # Shared stylesheet module
 ├── lib-dialog.js           # Uses shared styles
 ├── lib-datepicker.js       # Uses shared styles
-├── lib-menu.js             # Uses shared styles
 ├── lib-toaster.js          # Uses shared styles
 └── ...
 
@@ -206,17 +205,14 @@ console.log(LibSharedStyles.categories);
 
 | Component | Location | Categories Used |
 |-----------|----------|-----------------|
-| `cma-combo` | /cma/webcomponents/ | base, input, dropdown, animation |
 | `cma-tabs` | /cma/webcomponents/ | base, input, animation |
 | `cma-toolbar` | /cma/webcomponents/ | base, button |
 | `cma-tree` | /cma/webcomponents/ | base, scrollbar |
 | `cma-sortlist` | /cma/webcomponents/ | base, button |
-| `cma-checklist` | /cma/webcomponents/ | base, input |
 | `cma-blockeditor` | /cma/webcomponents/ | base, button, input |
 | `cma-fold` | /cma/webcomponents/ | base |
 | `lib-dialog` | /library/webcomponents/ | base, button, input, animation |
 | `lib-datepicker` | /library/webcomponents/ | base, input, button |
-| `lib-menu` | /library/webcomponents/ | base, dropdown |
 | `lib-toaster` | /library/webcomponents/ | base, animation |
 
 ## Performance Benefits

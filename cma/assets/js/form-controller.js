@@ -4788,15 +4788,9 @@ class CmaFormController {
                 </div>
             `;
 
-            // Use sidepanel or popup based on user preference
-            const useSidepanel = typeof lib_getPopupStylePreference === 'function' &&
-                                lib_getPopupStylePreference() === 'sidepanel';
-
-            if (useSidepanel && typeof lib_OpenSidePanel === 'function') {
-                lib_OpenSidePanel('', 'columnSelector', 400, 'Kolommen kiezen', contentHtml);
-            } else {
-                lib_OpenWindowCentered('', 'columnSelector', 400, 450, 'Kolommen kiezen', contentHtml);
-            }
+            // lib_OpenPanel kiest zelf tussen zijpaneel en venster op basis van de
+            // voorkeur van de gebruiker; dat stond hier met de hand nagebouwd.
+            lib_OpenPanel('', 'columnSelector', 400, 450, 'Kolommen kiezen', contentHtml);
 
             // Initialize drag-drop after popup opens
             setTimeout(() => this.initColumnSelectorDragDrop(), 100);
