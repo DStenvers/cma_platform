@@ -2375,9 +2375,12 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			mObj.id = panelId;
 			mObj.className = 'lib_sidepanel_container';
 			// Stacking top offset: first panel at header height, each subsequent adds toolbar height
+			// --header-height comes from the CMA layout and does not exist on a site
+			// page. Without the fallback the whole top declaration is invalid there,
+			// top falls back to auto and the panel hangs at the bottom of the page.
 			var topOffset = stackDepth === 0
-				? 'var(--header-height)'
-				: 'calc(var(--header-height) + ' + stackDepth + ' * var(--toolbar-height))';
+				? 'var(--header-height, 0px)'
+				: 'calc(var(--header-height, 0px) + ' + stackDepth + ' * var(--toolbar-height))';
 			// All sidepanels are right-aligned (no cascade offset)
 			// Width is clamped to available space: min(panelWidth vw, 100vw - sidebar-width) to prevent overlap with sidebar
 			mObj.style.cssText = 'position:fixed;top:' + topOffset + ';right:0;bottom:0;width:' + breedteCss + ';max-width:1400px;z-index:' + zIndex + ';background:' + panelBg + ';box-shadow:-8px 0 30px rgba(0,0,0,0.3),-2px 0 8px rgba(0,0,0,0.15);transform:translateX(100%);transition:transform 0.15s ease ' + animDelay + 'ms;display:flex;flex-direction:column;border-top-left-radius:8px;';
