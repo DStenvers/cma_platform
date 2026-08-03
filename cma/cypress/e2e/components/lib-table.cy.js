@@ -69,6 +69,14 @@ describe('lib-table Component', () => {
                 doc.body.appendChild(container);
             }
             container.innerHTML = createTestTable(options);
+
+            // The page we inject into (main.php) renders a lib-table of its own.
+            // Left in place it doubles every `cy.get('lib-table …')` in this spec:
+            // row counts come out at 20, and a click lands on whichever table the
+            // selector saw first. Only the injected table is under test here.
+            doc.querySelectorAll('lib-table').forEach(el => {
+                if (!container.contains(el)) el.remove();
+            });
         });
 
         // Wait for component to initialize
@@ -280,7 +288,9 @@ describe('lib-table Component', () => {
                 .and('not.have.class', 'lnr-funnel');
 
             cy.get('lib-table thead th').eq(1).click({ force: true });
-            cy.get('lib-table .dropdown-filter-menu-item.item').first().uncheck({ force: true });
+            // Scope to this th: every column keeps its own dropdown in the DOM
+            cy.get('lib-table thead th').eq(1)
+                .find('.dropdown-filter-menu-item.item').first().uncheck({ force: true });
 
             // Filtered column: funnel, and only that column
             cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
@@ -292,7 +302,8 @@ describe('lib-table Component', () => {
 
         it('should give the chevron back when the filter is cleared', () => {
             cy.get('lib-table thead th').eq(1).click({ force: true });
-            cy.get('lib-table .dropdown-filter-menu-item.item').first().uncheck({ force: true });
+            cy.get('lib-table thead th').eq(1)
+                .find('.dropdown-filter-menu-item.item').first().uncheck({ force: true });
             cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
                 .should('have.class', 'lnr-funnel');
 
