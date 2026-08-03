@@ -273,6 +273,47 @@ describe('lib-table Component', () => {
             cy.get('lib-table tbody tr').should('have.length', 10);
         });
 
+        it('should swap the chevron for a funnel on a filtered column', () => {
+            // Untouched column: chevron
+            cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-chevron-down')
+                .and('not.have.class', 'lnr-funnel');
+
+            cy.get('lib-table thead th').eq(1).click({ force: true });
+            cy.get('lib-table .dropdown-filter-menu-item.item').first().uncheck({ force: true });
+
+            // Filtered column: funnel, and only that column
+            cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-funnel')
+                .and('not.have.class', 'lnr-chevron-down');
+            cy.get('lib-table thead th').first().find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-chevron-down');
+        });
+
+        it('should give the chevron back when the filter is cleared', () => {
+            cy.get('lib-table thead th').eq(1).click({ force: true });
+            cy.get('lib-table .dropdown-filter-menu-item.item').first().uncheck({ force: true });
+            cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-funnel');
+
+            cy.get('lib-table').then($t => $t[0].clearFilters());
+
+            cy.get('lib-table thead th').eq(1).find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-chevron-down')
+                .and('not.have.class', 'lnr-funnel');
+        });
+
+        it('should keep the chevron on a sorted column', () => {
+            cy.get('lib-table thead th').first().click({ force: true });
+            cy.get('lib-table .dropdown-filter-sort span').contains('A - Z').click({ force: true });
+
+            cy.get('lib-table thead th').first().find('.dropdown-filter-icon')
+                .should('have.class', 'sorted');
+            cy.get('lib-table thead th').first().find('.dropdown-filter-icon .lnr')
+                .should('have.class', 'lnr-chevron-down')
+                .and('not.have.class', 'lnr-funnel');
+        });
+
         it('should have search input for filtering options', () => {
             // Click on Naam column
             cy.get('lib-table thead th').first().click({ force: true });

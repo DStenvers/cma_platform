@@ -621,6 +621,10 @@ lib-table .dropdown-filter-icon .lnr::before { font-size: 9px; color: #2196F3; p
 lib-table .dropdown-filter-icon.active .lnr::before { padding-top: 1px }
 lib-table .dropdown-filter-icon.active .lnr::before,
 lib-table .dropdown-filter-icon.sorted .lnr::before { color: var(--color-primary, #077ab2) }
+/* A filtered column shows a funnel in place of the chevron. The trechter reads
+   thinner than the chevron at this scale, so it gets a fraction more size; the
+   padding above is a nudge for the chevron and would push the funnel off centre. */
+lib-table .dropdown-filter-icon.active .lnr-funnel::before { font-size: 11px; padding-left: 2px; padding-top: 0 }
 
 lib-table .dropdown-filter-icon:hover {
     border: 1px solid #999;

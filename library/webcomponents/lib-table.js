@@ -2476,19 +2476,38 @@ class LibTable extends HTMLElement {
         return cell.innerText || cell.textContent || '';
     }
 
+    /**
+     * Does this column currently filter anything away? Covers all five kinds of
+     * filter, not just the checkbox list — a date, time, number or text filter
+     * left the column looking untouched.
+     * @param {Object} menu - Entry from _filterMenus
+     * @returns {boolean}
+     */
+    _isColumnFiltered(menu) {
+        const gevuld = (input) => !!(input && String(input.value).trim() !== '');
+        if (menu.isTextFilterMode) return gevuld(menu.textFilter);
+        if (menu.isDateColumn) return gevuld(menu.dateFromInput) || gevuld(menu.dateToInput);
+        if (menu.isTimeColumn) return gevuld(menu.timeFromInput) || gevuld(menu.timeToInput);
+        if (menu.isNumberColumn) return gevuld(menu.numberFromInput) || gevuld(menu.numberToInput);
+        return !!(menu.selectAllCheckbox && !menu.selectAllCheckbox.checked);
+    }
+
     _updateView() {
         // Note: Even/odd striping now handled by CSS :nth-child selectors
         // No manual class manipulation needed - CSS handles visibility changes natively
 
-        // Update filter icon active state
+        // A filtered column swaps its chevron for a funnel. Sorted and filtered
+        // used the same chevron in the same colour, so the header could not tell
+        // you which of the two was on.
         this._filterMenus.forEach(menu => {
             const icon = menu.th.querySelector('.dropdown-filter-icon');
-            if (icon && menu.selectAllCheckbox) {
-                if (menu.selectAllCheckbox.checked) {
-                    icon.classList.remove('active');
-                } else {
-                    icon.classList.add('active');
-                }
+            if (!icon) return;
+            const gefilterd = this._isColumnFiltered(menu);
+            icon.classList.toggle('active', gefilterd);
+            const glyph = icon.querySelector('.lnr');
+            if (glyph) {
+                glyph.classList.toggle('lnr-funnel', gefilterd);
+                glyph.classList.toggle('lnr-chevron-down', !gefilterd);
             }
         });
 
