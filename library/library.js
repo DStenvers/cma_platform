@@ -935,8 +935,7 @@ function Lib_ToonTopNotificatie( cTekst, bFixed, cColor, cTextColor ) {
 				type = 'warning';
 			}
 		}
-		var duration = bFixed ? 0 : 2500;
-		libToast[type](cTekst, { duration: duration });
+		libToast.show(cTekst, type, bFixed ? 0 : 2500);
 		return;
 	}
 

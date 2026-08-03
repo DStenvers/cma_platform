@@ -2366,6 +2366,8 @@ LibTip.reset();</div>
                 </dl>
                 <h4>Methoden (libToast)</h4>
                 <dl>
+                    <dt>show(msg, type, duration?)</dt>
+                    <dd>Toon een toast waarvan het type een variabele is (een onbekend type wordt info). Gebruik dit in plaats van een eigen <code>libToast[type]</code>-omhulling.</dd>
                     <dt>info(msg, duration?)</dt>
                     <dd>Toon info toast</dd>
                     <dt>success(msg, duration?)</dt>

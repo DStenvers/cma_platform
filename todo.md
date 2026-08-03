@@ -1,5 +1,135 @@
 # TODO
 
+## Dubbele componenten samenvoegen
+
+Inventarisatie 2026-08-03: per UI-taak is geteld hoeveel losse implementaties er
+in `library/` + `cma/` naast elkaar staan. Volgorde hieronder = volgorde van
+aanpakken. Elke stap is los af te ronden (component + call-sites + minify +
+documentatie).
+
+### 1. Melding — vier lagen boven één component
+
+| Laag | Waar | Rol |
+|---|---|---|
+| `lib-toaster` → `window.libToast` | `library/webcomponents/lib-toaster.js:418` | zwevende toast, verdwijnt vanzelf |
+| `lib-message` → `window.libMessage` | `library/webcomponents/lib-message.js:313` | blok in de pagina, blijft staan |
+| `lib-dialog` → `libAlert/libConfirm/libPrompt` | `library/webcomponents/lib-dialog.js:1294` | modaal, vraagt om een klik |
+| `cmaNotification` | `cma/assets/js/form-controller.js:889` | dunne omhulling om `libToast` |
+| `CmaFormController.showNotification` | `cma/assets/js/form-controller.js:5215` | roept `cmaNotification` aan |
+| `CmaInlineEdit.showNotification` | `cma/assets/js/inline-edit.js:2498` | eigen kopie van dezelfde omhulling |
+| `cmaApiError.showError` | `cma/assets/js/form-controller.js:103` | keten `cmaNotification` → `libMessage` → `libAlert` |
+| `imgEditor.toast` | `cma/assets/js/image-editor.js:631` | kale `alert()` |
+
+De drie componenten zijn géén duplicaten van elkaar — toast, blok en modaal zijn
+drie verschillende gesprekken met de gebruiker. Het dubbele zit in de vier
+omhullingen: ze doen alle vier `libToast[type] || libToast.info` met een
+`typeof`-wacht eromheen. Geen enkele consumer-site gebruikt `cmaNotification`
+zelf (nagekeken in karaat, rec, klei, mijnRINO), dus die naam mag weg.
+
+- [ ] `libToast.show(message, type, duration)` toevoegen — het enige punt dat een
+      dynamisch type aanneemt; dat is precies wat elke omhulling zelf nabouwde.
+- [ ] `cmaNotification` verwijderen; de twee aanroepen in `form-controller.js`
+      naar `libToast` laten wijzen.
+- [ ] `CmaInlineEdit.showNotification` laten delegeren (`showSuccess`/`showError`
+      blijven — die voegen echt iets toe: `showError` meldt óók aan
+      `CmaErrorHandler`).
+- [ ] `cmaApiError.showError`: de driedubbele terugvalketen wordt één
+      `libToast.error`.
+- [ ] `imgEditor.toast`: de kale `alert()` eruit.
+- [ ] Storybook + documentatie: één tabel "welke melding kies je wanneer"
+      (toast / blok / modaal), zodat de volgende omhulling niet ontstaat.
+
+### 2. Venster — vijf manieren om iets te openen
+
+| Manier | Waar | Aantal |
+|---|---|---|
+| `lib_OpenWindowCentered` | `library/library.js:1127` | 108 aanroepen |
+| `lib_OpenSidePanel` | `library/library.js` | zijpaneel-variant van hetzelfde |
+| `lib-dialog` | `library/webcomponents/lib-dialog.js` | 27 in de opmaak, 30 via `LibDialog.*` |
+| `lib-sheet` | `library/webcomponents/lib-sheet.js` | 66 verwijzingen |
+| kale `window.open` | 13 bestanden | 28 aanroepen |
+
+`lib_OpenWindowCentered` is geen echt browservenster maar een nagebouwd venster
+in de DOM (`__lib_win<n>`, eigen z-index-beheer, eigen maximaliseren). Het staat
+volledig los van `lib-dialog`, dat hetzelfde probleem met shadow DOM oplost.
+`CMA.utils.openFormPopup` (`cma/assets/js/cma-utils.js:472`) is de enige plek die
+al kiest tussen drie van deze vijf op basis van een gebruikersvoorkeur.
+
+- [ ] Bepaal de bestemming: `lib-dialog` als enig venster, met `lib-sheet` als
+      smalle-schermvariant. `lib_OpenWindowCentered` levert vandaag iets dat
+      `lib-dialog` niet heeft — een iframe met een hele pagina erin — dus dat
+      moet er eerst in.
+- [ ] `lib_OpenWindowCentered`/`lib_OpenSidePanel` achter `openFormPopup` houden
+      en de 108 directe aanroepen daarheen verleggen.
+- [ ] De 28 kale `window.open`-aanroepen langslopen: welke moeten écht een
+      browservenster zijn (afdrukken, export) en welke horen in een dialoog.
+
+### 3. Tooltip — component naast een eigen singleton
+
+`lib-tip` (`library/webcomponents/lib-tip.js`) naast `cmaTooltip`
+(`cma/assets/js/cma-utils.js:683`, één `div.cma-tooltip` met `data-tooltip`).
+Twee positioneringsalgoritmes, twee stylings, dezelfde taak.
+
+- [ ] Kies `lib-tip`, laat `data-tooltip` erop uitkomen, verwijder de singleton.
+
+### 4. Tabel — drie renderers, waarvan één dood
+
+| Implementatie | Waar | Stand |
+|---|---|---|
+| `lib-table` (web component) | `library/webcomponents/lib-table.js` (2920 regels) | in gebruik |
+| `LibTable` (PHP, globaal) | `library/classes/class_table.inc` (47 KB) | in gebruik |
+| `Cma\LibTable` (PHP) | `cma/classes/LibTable.php` (12 KB) | **nergens ge-`require`d** |
+
+`cma/classes/LibTable.php` staat in geen enkele `require_once` in
+`cma/bootstrap.inc` en de `Cma\`-namespace wordt niet ge-autoload — het bestand
+draait dus nooit.
+
+- [ ] `cma/classes/LibTable.php` verwijderen + rij in `Installer.php`
+      `REMOVED_PATHS` (anders houden bestaande sites het bestand).
+- [ ] Daarna: overlap tussen `LibTable` (PHP) en `lib-table` (JS) in kaart —
+      sorteren, filteren en exporteren zitten in allebei.
+
+### 5. Menu — component naast met de hand gebouwde menu's
+
+`lib-menu`/`lib-menu-item` (3 aanroepen) tegenover `.cma-context-menu`, dat als
+losse HTML wordt opgebouwd in `lib-table.js:2544`, `inline-edit.js` en
+`form-controller.js`, met styling in vier stylesheets (`lib-table.css`,
+`inline-edit.css`, `form.css`, `style.css`).
+
+- [ ] Het exportmenu en het rijmenu op `lib-menu` zetten, of `lib-menu`
+      verwijderen als `.cma-context-menu` de bedoelde vorm is. Nu betaalt de
+      pagina voor allebei.
+
+### 6. Laadindicator
+
+`lib-loader` (20 aanroepen, ook netjes gebruikt in `form-controller.js:11656`)
+naast een eigen ring in `cma-launcher.js:346`
+(`.cma-launcher__spinner-ring` + `__spinner-text`).
+
+- [ ] `cma-launcher` op `lib-loader` zetten.
+
+### 7. Dode componentbestanden opruimen
+
+Geen enkele `<script>`-verwijzing, geen aanroepen:
+
+- [ ] `cma/webcomponents/UNUSED_cma-checklist.js` (670 regels)
+- [ ] `cma/webcomponents/UNUSED_cma-rights-matrix.js` (674 regels)
+- [ ] `cma/webcomponents/cma-combo.js` — lege plaatshouder; `lib-combo.js`
+      registreert zelf al `cma-combo`
+- [ ] `cma/assets/js/UNUSED_form-helpers.js` (275 regels)
+
+Alle vier ook in `Installer.php` `REMOVED_PATHS`, plus de `.min.js`-tweelingen.
+
+### Al samengevoegd (niet opnieuw oppakken)
+
+- Tabs: `pagetabs` en `LibTabs` weg, `responsive-tabs` weg, `cma-tabs` is de
+  enige. Rest van de front-end-migratie staat in het geheugen, niet hier.
+- Combo: `lib-combo.js` registreert zowel `lib-combo` als `cma-combo`.
+- Datumkiezer: `library/datepicker.js` is nog maar een `document.write`-omhulling
+  om `lib-datepicker` — één implementatie, twee ingangen.
+- Editor: `cma-htmledit` / `blockedit.js` / `cma-blockeditor` staan hieronder als
+  eigen (geparkeerd) onderwerp.
+
 ## Wire `<cma-blockeditor>` in as a real replacement for the CKEditor-based block editor
 
 > **Status (2026-07-06): PARKED — someday/maybe, not planned.** Decision: keep the

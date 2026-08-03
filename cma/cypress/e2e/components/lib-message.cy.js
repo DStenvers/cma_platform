@@ -614,56 +614,63 @@ describe('lib-message Web Component', () => {
         });
     });
 
+    // Lib_ToonTopNotificatie is the legacy entry point kept for converted pages.
+    // It has one owner (library.js) and lands on libToast, so these tests assert
+    // toast output — a second definition rendering something else is the bug.
     describe('Lib_ToonTopNotificatie', () => {
-        it('should create a fixed top notification', () => {
+        beforeEach(() => {
+            cy.window().then(win => win.libToast.clear());
+        });
+
+        it('maps the colour argument to a toast type', () => {
             cy.window().then(win => {
                 win.Lib_ToonTopNotificatie('Test notification', false, 'success');
             });
 
-            // eslint-disable-next-line cypress/no-unnecessary-waiting
-            cy.wait(100);
-
-            cy.get('#lib-top-notification')
-                .should('exist')
-                .and('have.attr', 'type', 'success');
+            cy.get('lib-toaster')
+                .shadow()
+                .find('.toast.success')
+                .should('be.visible')
+                .and('contain.text', 'Test notification');
         });
 
-        it('should auto-dismiss when not fixed', () => {
+        it('auto-dismisses when not fixed', () => {
             cy.window().then(win => {
                 win.Lib_ToonTopNotificatie('Auto dismiss', false, 'info');
             });
 
-            // eslint-disable-next-line cypress/no-unnecessary-waiting
-            cy.wait(100);
+            cy.get('lib-toaster').shadow().find('.toast.info').should('be.visible');
 
-            cy.get('#lib-top-notification')
-                .should('have.attr', 'auto-dismiss', '3000');
+            // 2500ms dismiss + 200ms removal animation
+            cy.get('lib-toaster', { timeout: 6000 })
+                .shadow()
+                .find('.toast.info')
+                .should('not.exist');
         });
 
-        it('should NOT auto-dismiss when fixed', () => {
+        it('stays put when fixed', () => {
             cy.window().then(win => {
                 win.Lib_ToonTopNotificatie('Fixed notification', true, 'warning');
             });
 
             // eslint-disable-next-line cypress/no-unnecessary-waiting
-            cy.wait(100);
+            cy.wait(3000);
 
-            cy.get('#lib-top-notification')
-                .should('not.have.attr', 'auto-dismiss');
+            cy.get('lib-toaster')
+                .shadow()
+                .find('.toast.warning')
+                .should('be.visible')
+                .and('contain.text', 'Fixed notification');
         });
 
-        it('should replace existing top notification', () => {
+        it('stacks a second notification instead of replacing it', () => {
             cy.window().then(win => {
                 win.Lib_ToonTopNotificatie('First', true, 'info');
                 win.Lib_ToonTopNotificatie('Second', true, 'error');
             });
 
-            // eslint-disable-next-line cypress/no-unnecessary-waiting
-            cy.wait(100);
-
-            cy.get('#lib-top-notification')
-                .should('have.length', 1)
-                .and('have.attr', 'type', 'error');
+            cy.get('lib-toaster').shadow().find('.toast.info').should('contain.text', 'First');
+            cy.get('lib-toaster').shadow().find('.toast.error').should('contain.text', 'Second');
         });
     });
 

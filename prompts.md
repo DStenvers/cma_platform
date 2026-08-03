@@ -7549,3 +7549,15 @@ karaat-data en staat in de karaat-repo.
 > Zoeken in treeview doet niets , als ik bij docenten werner intyp en op enter druk gebeurt er niets
 >
 > -
+
+> graag die info pagina testen, literatuuroverzicht mag naar .deprecated
+
+> Literatuurlijst, kun je die in de todo zetten als check?
+
+> Noteer die dbbele componenten in todo.md en begin met Melding en dan Venster, de rest in todo.md
+
+## 2026-08-03
+
+> you analysed double components, where are we in that process?
+
+> yes please do it again

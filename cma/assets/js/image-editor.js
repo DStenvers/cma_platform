@@ -628,8 +628,7 @@
         },
 
         toast: function (text, isError) {
-            // No global toast on the front-end; surface errors, ignore successes.
-            if (isError) { try { alert(text); } catch (e) { log.error('[ImageEditor]', text); } }
+            libToast.show(text, isError ? 'error' : 'info');
         }
     };
 

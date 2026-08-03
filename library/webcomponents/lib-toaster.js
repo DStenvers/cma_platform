@@ -414,8 +414,15 @@ customElements.define('lib-toaster', LibToaster);
         return _instance;
     }
 
+    const TYPES = ['info', 'success', 'warning', 'error'];
+
     // Global API - available immediately, creates element on first use
     window.libToast = {
+        // Entry point for callers whose type is a variable. A type outside the four
+        // known ones would render an unstyled toast, so it lands on 'info'.
+        show: function(msg, type, duration) {
+            return getInstance().show(msg, TYPES.includes(type) ? type : 'info', duration);
+        },
         info: function(msg, duration) { return getInstance().show(msg, 'info', duration); },
         success: function(msg, duration) { return getInstance().show(msg, 'success', duration); },
         warning: function(msg, duration) { return getInstance().show(msg, 'warning', duration); },

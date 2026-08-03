@@ -105,29 +105,7 @@ if (typeof window.cmaApiError === 'undefined') {
             cmaLog.error(`[API Error] ${context}:`, error.message);
             if (error.debug) cmaLog.error('Debug info:', error.debug);
             if (error.responseText) cmaLog.error('Response text (first 500 chars):', error.responseText.substring(0, 500));
-            let details = '';
-            if (window.CMA?.formConfig?.showDetails) {
-                const detailParts = [];
-                if (context) detailParts.push('Context: ' + context);
-                if (error.errorType) detailParts.push('Type: ' + error.errorType);
-                if (error.statusCode) detailParts.push('HTTP Status: ' + error.statusCode);
-                if (error.debug) {
-                    if (error.debug.file) detailParts.push('File: ' + error.debug.file);
-                    if (error.debug.line) detailParts.push('Line: ' + error.debug.line);
-                    if (error.debug.trace) detailParts.push('Trace:\n' + error.debug.trace);
-                }
-                if (error.responseText) detailParts.push('Response (first 500 chars):\n' + error.responseText.substring(0, 500));
-                details = detailParts.join('\n');
-            }
-            if (typeof cmaNotification !== 'undefined') {
-                cmaNotification.show(formattedMessage, 'error');
-            } else if (typeof libMessage !== 'undefined') {
-                const options = { type: 'error', closable: true };
-                if (details) options.details = details;
-                libMessage.create(formattedMessage, options);
-            } else {
-                libAlert(formattedMessage);
-            }
+            libToast.error(formattedMessage);
             return formattedMessage;
         }
     };
@@ -883,25 +861,6 @@ if (typeof window.cmaRequestCoalescer === 'undefined') {
 })();
 } else {
     var cmaRequestCoalescer = window.cmaRequestCoalescer;
-}
-
-// cmaNotification - Toast notifications using lib-toaster component
-if (typeof window.cmaNotification === 'undefined') {
-    var cmaNotification = {
-        show: function(message, type = 'info') {
-            if (typeof libToast !== 'undefined' && libToast[type]) {
-                libToast[type](message);
-            } else if (typeof libToast !== 'undefined') {
-                libToast.info(message);
-            }
-        },
-        success: function(message) { if (typeof libToast !== 'undefined') libToast.success(message); },
-        error: function(message) { if (typeof libToast !== 'undefined') libToast.error(message); },
-        warning: function(message) { if (typeof libToast !== 'undefined') libToast.warning(message); },
-        info: function(message) { if (typeof libToast !== 'undefined') libToast.info(message); }
-    };
-} else {
-    var cmaNotification = window.cmaNotification;
 }
 
 /**
@@ -5208,12 +5167,12 @@ class CmaFormController {
     }
 
     /**
-     * Show notification message (delegates to global cmaNotification)
+     * Show notification message (a toast via lib-toaster)
      * @param {string} message - Message to display
-     * @param {string} type - Notification type: 'success', 'error', 'info'
+     * @param {string} type - Notification type: 'success', 'error', 'warning', 'info'
      */
     showNotification(message, type = 'info') {
-        cmaNotification.show(message, type);
+        libToast.show(message, type);
     }
 
     /**
@@ -12140,13 +12099,8 @@ class CmaFormController {
      * @param {number} duration - Duration in ms (0 for persistent)
      */
     showTopNotification(message, type = 'info', duration = 3000) {
-        // Use libToast from lib-toaster.js
         // duration=0 means persistent (no auto-dismiss)
-        if (typeof libToast !== 'undefined' && libToast[type]) {
-            libToast[type](message, duration === 0 ? 0 : duration);
-        } else if (typeof libToast !== 'undefined') {
-            libToast.info(message, duration === 0 ? 0 : duration);
-        }
+        libToast.show(message, type, duration);
     }
 
     /**

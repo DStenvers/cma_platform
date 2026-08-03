@@ -3756,6 +3756,19 @@ function render_doc_web_components(): void
         </tbody>
     </table>
 
+    <h2>Meldingen — drie kanalen, één keuze</h2>
+    <p>Drie componenten tonen een melding. Ze zijn geen alternatieven voor elkaar: ze verschillen in hoeveel aandacht ze van de gebruiker eisen.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:190px">Kanaal</th><th style="width:230px">Aanroep</th><th>Wanneer</th></tr></thead>
+        <tbody>
+            <tr><td><code>lib-toaster</code></td><td><code>libToast.success('Opgeslagen')</code></td><td>Bevestiging van iets dat de gebruiker zelf net deed. Zweeft in een hoek en verdwijnt na 4000&nbsp;ms; <code>duration&nbsp;0</code> laat hem staan.</td></tr>
+            <tr><td><code>lib-message</code></td><td><code>libMessage.error(tekst, {container})</code></td><td>Een toestand die blijft gelden zolang de pagina open staat — geen toegang, formulier onvolledig, lege lijst. Staat in de pagina zelf, op de plek waar het over gaat.</td></tr>
+            <tr><td><code>lib-dialog</code></td><td><code>libAlert()</code>, <code>libConfirm()</code>, <code>libPrompt()</code></td><td>Wanneer je een antwoord nodig hebt vóór je verder kunt. Blokkeert en levert een Promise.</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-page__strong">Schrijf er geen omhulling omheen.</span> Is het type een variabele, gebruik dan <code>libToast.show(bericht, type, duration)</code> — dat is precies waarvoor die methode bestaat. Een eigen <code>showNotification()</code> die <code>libToast[type]</code> opzoekt en op <code>info</code> terugvalt voegt niets toe, en er stonden er vier naast elkaar die stilletjes uit elkaar liepen.</p>
+    <p><code>Lib_ToonTopNotificatie(tekst, bFixed, kleur)</code> is de ingang voor geconverteerde pagina's: hij vertaalt de kleurnaam naar een type en komt uit bij <code>libToast</code>. Hij heeft één eigenaar — <code>library/library.js</code>. Op een site die <code>lib-toaster.js</code> niet laadt valt hij terug op een jQuery-banner; laadt die site het component wel, dan krijgt hij toasts. Definieer de functie nergens anders opnieuw: welke definitie wint hangt dan af van scriptvolgorde, en dat merk je pas als een melding onzichtbaar blijft.</p>
+
     <h2>cma-launcher — de doorzoekbare BIG-menu</h2>
     <p><code>cma-launcher</code> is de doorzoekbare, gegroepeerde BIG-menu die zowel het <span class="cma-tool__strong">tools</span>- als het <span class="cma-tool__strong">rapportages</span>-menu aandrijft. Het is één generiek component met twee modi, gestuurd via attributen (<code>catalog-url</code>, <code>nav-mode</code>, <code>target</code>, <code>search-placeholder</code>, <code>aria-label</code>):</p>
     <ul>

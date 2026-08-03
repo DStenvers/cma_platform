@@ -772,7 +772,7 @@
                             jQuery(table).excelTableFilterMarkColumnStale(columnIndex);
                         }
                         // Show confirmation toaster - use libSwitch as dedup key to prevent multiple toasts
-                        if (typeof libToast !== 'undefined' && !libSwitch._toastShown) {
+                        if (!libSwitch._toastShown) {
                             libSwitch._toastShown = true;
                             libToast.success('Opgeslagen');
                             // Reset after a short delay
@@ -2496,11 +2496,7 @@
          * @param {string} details - Optional technical details (currently unused)
          */
         showNotification(message, type, details = '') {
-            if (typeof libToast !== 'undefined' && libToast[type]) {
-                libToast[type](message);
-            } else if (typeof libToast !== 'undefined') {
-                libToast.info(message);
-            }
+            libToast.show(message, type);
         }
 
         /**
@@ -2658,7 +2654,7 @@
                         jQuery(table).excelTableFilterMarkColumnStale(columnIndex);
                     }
                     // Show confirmation toaster - use libSwitch as dedup key to prevent multiple toasts
-                    if (typeof libToast !== 'undefined' && !libSwitch._toastShown) {
+                    if (!libSwitch._toastShown) {
                         libSwitch._toastShown = true;
                         libToast.success('Opgeslagen');
                         // Reset after a short delay
