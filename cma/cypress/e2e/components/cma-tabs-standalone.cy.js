@@ -370,7 +370,7 @@ describe('cma-tabs Component (Standalone)', () => {
         it('opens the tab named in the URL hash on load', () => {
             // remember="hash" schrijft de titel in de URL; een deep link moet die
             // ook openen wanneer de tabs uit het tabs-attribuut komen.
-            cy.visit('/cypress/fixtures/components/cma-tabs-test.html#Toetsen');
+            cy.visit('/cypress/fixtures/components/cma-tabs-test.html?deeplink=1#Toetsen');
             cy.get('#tabs-light .tabs-list li.selected .tab-title').should('contain', 'Toetsen');
             cy.get('#tabs-light [slot="tab-2"]').should('be.visible');
         });

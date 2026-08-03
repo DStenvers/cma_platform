@@ -72,6 +72,21 @@ class Installer
         'cma/assets/css/UNUSED_image-wizard.min.css',
         'cma/assets/js/UNUSED_image-wizard.js',
         'cma/assets/js/UNUSED_image-wizard.min.js',
+        // Twee componenten die nooit zijn aangesloten: hun tags (<cma-checklist>,
+        // <cma-rights-matrix>) komen alleen voor in hun eigen bestand, geen bundel
+        // laadt ze. De naam zei het al.
+        'cma/webcomponents/UNUSED_cma-checklist.js',
+        'cma/webcomponents/UNUSED_cma-checklist.min.js',
+        'cma/webcomponents/UNUSED_cma-rights-matrix.js',
+        'cma/webcomponents/UNUSED_cma-rights-matrix.min.js',
+        // Lege plaatshouder. lib-combo.js registreert <cma-combo> zelf, dus dit
+        // bestand deed niets — het stond er alleen om te vertellen dat het niets deed.
+        'cma/webcomponents/cma-combo.js',
+        'cma/webcomponents/cma-combo.min.js',
+        // Tweede LibTable, in de Cma-namespace. Geen enkele require_once noemt hem en
+        // de Cma-namespace wordt niet ge-autoload, dus deze class draaide nooit. De
+        // tabelklasse die wél draait is library/classes/class_table.inc.
+        'cma/classes/LibTable.php',
         // Replaced by cypress/e2e/auth/login-layout.cy.js. The old file only
         // measured the login box and wrote the numbers to a JSON file — it had
         // no assertions, so it could never fail. Two specs measuring the same

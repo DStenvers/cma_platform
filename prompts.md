@@ -7561,3 +7561,42 @@ karaat-data en staat in de karaat-repo.
 > you analysed double components, where are we in that process?
 
 > yes please do it again
+
+> Het aankomend blokje: 
+>
+> 17 augustus    
+> GZ2025-M IMH 
+> Tijd
+> Docenten
+> Locatie
+> 09:30 - 16:30
+> Gabriëlle Frederiks,
+> RINO amsterdam, Leidseplein 5 Amsterdam
+>
+> De komma achter de docentnaam, kan die weg?
+
+> venster: i see a sidepanel as a different thing. window.open : if there is a sensible reason to do that: okay. lib-dialog are the simple things and lib_Open WindowCentered is the advanced option, can you work with that?
+
+> ul#menu li#me #ico_me {
+>     width: 55px;
+>     height: 55px;
+
+> de css mag in adam.css worden aangepast als je klaar bent met de komma. Geen haast, het lost een layout dingetje op bij hover..
+
+> graag die style naar adam.css verhuizen
+
+> please start the other open issues
+
+> De  tekst Nog geen toets geplaatst voor deze opleiding moet ook in een box-shadow dv , voor consistency
+
+> ben jij een release aan het doen met composer update?
+
+> De knop Plaats nieuwe toets heeft onvoldoende verticale ruimte, kun je die in een div plaatsen die dat wel doet?
+
+> NEVER run a release yourself. We lost work
+
+> no, stay clear now.
+
+> you can change cma_platform, but mijn rino is for now off limits because multiple threads are writing and they collided
+
+> okay, can you remove the class=ling above the .toets-plaatsen, but only if the button is written

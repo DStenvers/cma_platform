@@ -660,9 +660,28 @@ class LibTable
             $tabelScripts = '';
             if ($Table_CtrlID == 1 && $this->TableSortable) {
                 if ($this->TableShowCaptions) {
-                    $tabelScripts .= '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablesort.js"></script>';
+                    // Met een cache-stempel. Zonder ?v= mag de browser het bestand niet lang
+                    // bewaren en haalt hij het bij ELKE paginaweergave opnieuw op.
+                    // lib_AssetUrl() als de site hem heeft (die kiest dan ook de .min zodra
+                    // die actueel is); anders zelf de wijzigingstijd erachter, zodat het
+                    // platform niet op een site-functie leunt.
+                    $sSortPad = 'library/classes/class_tablesort.js';
+                    if (function_exists('lib_AssetUrl')) {
+                        $sSortUrl = lib_AssetUrl($sSortPad);
+                    } else {
+                        $sSortAbs = dirname(__DIR__, 2) . '/' . $sSortPad;
+                        $sSortUrl = Application::get('base_path', '') . $sSortPad
+                                  . (is_file($sSortAbs) ? '?v=' . filemtime($sSortAbs) : '');
+                    }
+                    $tabelScripts .= '<script src="' . $sSortUrl . '"></script>';
                 }
-                $tabelScripts .= '<script src="' . Application::get('base_path', '') . 'library/classes/class_tablescroll.js"></script>';
+                // class_tablescroll.js wordt hier NIET meer geladen. Dat bestand definieert
+                // makeScrollableTable() en onResizeAdjustTable(), en die worden nergens
+                // aangeroepen — niet in het platform, niet in een site, niet in het bestand
+                // zelf; op topniveau declareert het alleen twee variabelen. Het was dus 7 kB
+                // per paginaweergave (en zonder cache-stempel: elke keer opnieuw) die niets
+                // deed. Het bestand blijft bestaan; wie de scrollende tabel weer wil, roept
+                // makeScrollableTable() aan en zet het laden hier terug.
             }
             $tabelScripts .= '<script>var intActiveRowID=' . ($this->TableActiveRowID != '' ? $this->TableActiveRowID : '-1') . ';' . PHP_EOL . 'function row_act' . $Table_CtrlID . '(id){' . PHP_EOL . 'if (intActiveRowID!=id){' . PHP_EOL . '
             if (intActiveRowID!=-1){' . PHP_EOL . "    var row=document.getElementById('lt_row_' + intActiveRowID.toString());" . PHP_EOL . "

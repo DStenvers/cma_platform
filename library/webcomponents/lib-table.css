@@ -142,8 +142,12 @@ lib-table table thead th,
     margin-top: 3px;
 }
 
+/* 0, niet 4: de kolomkoppen kregen anders een strook witruimte boven de sorteerpijl die
+   in de eerste kolom (3px, met position:relative eronder) niet zichtbaar is. Gemeld als
+   een witte lijn boven de koptekst; de regel stond eerder al op 0 maar is bij het
+   herindelen van dit blad (v1.29.222) weer op 4px uitgekomen. */
 .listtable thead th:not(:first-child) .clicker {
-    margin-top: 4px;
+    margin-top: 0px;
 }
 
 /* Number header padding */
