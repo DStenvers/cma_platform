@@ -39,30 +39,32 @@ zelf (nagekeken in karaat, rec, klei, mijnRINO), dus die naam mag weg.
 - [ ] Storybook + documentatie: één tabel "welke melding kies je wanneer"
       (toast / blok / modaal), zodat de volgende omhulling niet ontstaat.
 
-### 2. Venster — vijf manieren om iets te openen
+### 2. Venster — de rolverdeling
 
-| Manier | Waar | Aantal |
-|---|---|---|
-| `lib_OpenWindowCentered` | `library/library.js:1127` | 108 aanroepen |
-| `lib_OpenSidePanel` | `library/library.js` | zijpaneel-variant van hetzelfde |
-| `lib-dialog` | `library/webcomponents/lib-dialog.js` | 27 in de opmaak, 30 via `LibDialog.*` |
-| `lib-sheet` | `library/webcomponents/lib-sheet.js` | 66 verwijzingen |
-| kale `window.open` | 13 bestanden | 28 aanroepen |
+Geen samenvoeging maar een grens. Vastgelegd 2026-08-03:
 
-`lib_OpenWindowCentered` is geen echt browservenster maar een nagebouwd venster
-in de DOM (`__lib_win<n>`, eigen z-index-beheer, eigen maximaliseren). Het staat
-volledig los van `lib-dialog`, dat hetzelfde probleem met shadow DOM oplost.
-`CMA.utils.openFormPopup` (`cma/assets/js/cma-utils.js:472`) is de enige plek die
-al kiest tussen drie van deze vijf op basis van een gebruikersvoorkeur.
+| Manier | Rol |
+|---|---|
+| `lib-dialog` | Het eenvoudige werk: `libAlert`, `libConfirm`, `libPrompt`, en dialogen die je in de opmaak zet. |
+| `lib_OpenWindowCentered` | De uitgebreide variant: een hele pagina in een iframe, verplaatsbaar, maximaliseerbaar, stapelbaar. |
+| `lib_OpenSidePanel` | Een eigen ding, geen dubbeling. `lib_OpenPanel(url, naam, b, h, titel)` kiest hiertussen en het venster op basis van de gebruikersvoorkeur — en doet dat alleen mét titel, want het zijpaneel heeft er een nodig voor zijn kopbalk. |
+| `window.open` | Toegestaan waar een echt tabblad de bedoeling is: downloaden, exporteren, een externe link, een bestand bekijken. |
+| `lib-sheet` | Het actieblad van onderaf, mobile-first. Geen CMA-consument; de receptensite gebruikt het. Ook geen dubbeling. |
 
-- [ ] Bepaal de bestemming: `lib-dialog` als enig venster, met `lib-sheet` als
-      smalle-schermvariant. `lib_OpenWindowCentered` levert vandaag iets dat
-      `lib-dialog` niet heeft — een iframe met een hele pagina erin — dus dat
-      moet er eerst in.
-- [ ] `lib_OpenWindowCentered`/`lib_OpenSidePanel` achter `openFormPopup` houden
-      en de 108 directe aanroepen daarheen verleggen.
-- [ ] De 28 kale `window.open`-aanroepen langslopen: welke moeten écht een
-      browservenster zijn (afdrukken, export) en welke horen in een dialoog.
+- [x] **Gedaan (v1.29.221):** de negen `else { window.open(…) }`-takken onder een
+      `typeof lib_OpenWindowCentered === 'function'`-wacht zijn weg. `library.js`
+      zit in de CMA-bundel, dus die tak draaide nooit — en hij was ondertussen
+      uit de pas gelopen (andere maten, andere vensternamen). `library.js` heeft
+      trouwens zelf al een terugval naar een echt venster
+      (`lib_OpenPopupCentered`), dus het was de derde laag op dezelfde vraag.
+- [ ] `lib_OpenWindowCentered` gebruiken waar nu nog met de hand een dialoog
+      wordt nagebouwd, en andersom: `form-controller.js` opent de kolomkiezer als
+      venster met eigen HTML (`win_content`) terwijl dat eenvoudige werk is —
+      kandidaat voor `lib-dialog`.
+- [ ] `CMA.image.view` (`cma.js:1121`) opent een bestand met een kale
+      `window.open` mét afmetingen. Blijft toegestaan (karaat roept het via
+      `fViewFile` aan vanaf een pagina buiten de CMA), maar hoort in de rij
+      hierboven thuis met een reden erbij.
 
 ### 3. Tooltip — component naast een eigen singleton
 

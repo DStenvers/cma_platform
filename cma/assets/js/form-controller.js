@@ -4004,11 +4004,7 @@ class CmaFormController {
             };
         }
 
-        if (typeof lib_OpenWindowCentered === 'function') {
-            lib_OpenWindowCentered(popupUrl, 'Bestand selecteren', 1100, 700);
-        } else {
-            window.open(popupUrl, 'fileSelect', 'width=1100,height=700');
-        }
+        lib_OpenWindowCentered(popupUrl, 'fileSelect', 1100, 700, 'Bestand selecteren');
     }
 
     /**
@@ -4053,11 +4049,7 @@ class CmaFormController {
         // Mark which field this edit targets; the postMessage handler reads it.
         this._imageEditField = fieldName;
 
-        if (typeof lib_OpenWindowCentered === 'function') {
-            lib_OpenWindowCentered(url, 'Afbeelding bewerken', 1200, 820);
-        } else {
-            window.open(url, 'imageEdit', 'width=1200,height=820');
-        }
+        lib_OpenWindowCentered(url, 'imageEdit', 1200, 820, 'Afbeelding bewerken');
     }
 
     /**
@@ -4339,29 +4331,21 @@ class CmaFormController {
         // Store reference to the field for later refresh
         this._pendingComboRefresh = fieldName;
 
-        // Open using library function (respects user preference for sidepanel/popup)
-        if (typeof lib_OpenPanel === 'function') {
-            // Store callback on form-layout element (NOT global)
-            const formLayout = document.querySelector('.form-layout');
-            if (formLayout) {
-                formLayout._addRelatedCallback = (newRecordId) => {
-                    this.refreshComboOptions(fieldName, newRecordId).catch(error => {
-                        cmaLog.error('[refreshComboOptions] Error:', error);
-                    });
-                    this._pendingComboRefresh = null;
-                    delete formLayout._addRelatedCallback;
-                };
-            }
-
-            // Use lib_OpenPanel which respects user preference
-            lib_OpenPanel(popupUrl, 'addRelated', 800, 600);
-        } else if (typeof lib_OpenWindowCentered === 'function') {
-            // Fallback to centered popup
-            lib_OpenWindowCentered(popupUrl, 'addRelated', 800, 600);
-        } else {
-            // Fallback to regular window.open
-            window.open(popupUrl, 'addRelated', 'width=800,height=600');
+        // Store callback on form-layout element (NOT global)
+        const formLayout = document.querySelector('.form-layout');
+        if (formLayout) {
+            formLayout._addRelatedCallback = (newRecordId) => {
+                this.refreshComboOptions(fieldName, newRecordId).catch(error => {
+                    cmaLog.error('[refreshComboOptions] Error:', error);
+                });
+                this._pendingComboRefresh = null;
+                delete formLayout._addRelatedCallback;
+            };
         }
+
+        // lib_OpenPanel honours the sidepanel/popup preference — but only with a
+        // title, since the sidepanel needs one for its caption bar.
+        lib_OpenPanel(popupUrl, 'addRelated', 800, 600, 'Toevoegen');
     }
 
     /**
@@ -4830,12 +4814,8 @@ class CmaFormController {
      * Close the column selector popup/sidepanel
      */
     closeColumnSelector() {
-        // Close sidepanel or popup based on what's open
-        if (typeof lib_ClosePanel === 'function') {
-            lib_ClosePanel(true); // skipConfirm
-        } else if (typeof lib_OpenWindowCenteredClose === 'function') {
-            lib_OpenWindowCenteredClose();
-        }
+        // Closes the sidepanel or the popup, whichever is open
+        lib_ClosePanel(true); // skipConfirm
     }
 
     /**
@@ -10591,10 +10571,8 @@ class CmaFormController {
         // Open URL in new tab or popup overlay
         if (openInNewWindow) {
             window.open(url, '_blank');
-        } else if (typeof lib_OpenWindowCentered === 'function') {
-            lib_OpenWindowCentered(url, 'extra_action', 900, 700, title || 'Extra');
         } else {
-            window.open(url, '_blank');
+            lib_OpenWindowCentered(url, 'extra_action', 900, 700, title || 'Extra');
         }
     }
 
@@ -12138,30 +12116,10 @@ class CmaFormController {
      * @param {string} title - Window title
      */
     showHtmlResponsePopup(htmlContent, title = 'Resultaat') {
-        // Use lib_OpenWindowCentered if available
-        if (typeof lib_OpenWindowCentered === 'function') {
-            // Create a data URL to show the content
-            const win = lib_OpenWindowCentered('about:blank', 'post_result', 800, 600, title);
-            if (win) {
-                win.document.open();
-                win.document.write(htmlContent);
-                win.document.close();
-            }
-        } else {
-            // Fallback: open new window manually
-            const width = 800;
-            const height = 600;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
-
-            const win = window.open('about:blank', 'post_result',
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-            if (win) {
-                win.document.open();
-                win.document.write(htmlContent);
-                win.document.close();
-            }
-        }
+        // The HTML goes in as window content (6th argument). Writing into the window
+        // afterwards is not possible: lib_OpenWindowCentered builds a div in this
+        // document and returns no handle.
+        lib_OpenWindowCentered('', 'post_result', 800, 600, title, htmlContent);
 
         // Also refresh the list since a post occurred
         this.loadList();

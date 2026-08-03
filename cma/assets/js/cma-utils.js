@@ -550,7 +550,7 @@ CMA.utils.cancelPopupWatch = null;
                     return typeof stack === 'undefined' || stack.length === 0;
                 }, onClose);
             }
-        } else if (typeof lib_OpenWindowCentered === 'function') {
+        } else {
             // Use centered popup
             lib_OpenWindowCentered(url, windowName, width, height, title);
             if (onClose) {
@@ -558,18 +558,6 @@ CMA.utils.cancelPopupWatch = null;
                     // lib_OpenGetTopmostWindow searches __lib_win1..20 in top.document
                     return !(typeof lib_OpenGetTopmostWindow === 'function' && lib_OpenGetTopmostWindow() !== null);
                 }, onClose);
-            }
-        } else {
-            // Fallback to standard window.open
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
-            const popup = window.open(
-                url,
-                windowName,
-                'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes'
-            );
-            if (popup && onClose) {
-                watchClose(function() { return popup.closed; }, onClose);
             }
         }
 

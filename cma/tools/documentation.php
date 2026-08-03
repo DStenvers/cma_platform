@@ -3769,6 +3769,19 @@ function render_doc_web_components(): void
     <p><span class="cma-page__strong">Schrijf er geen omhulling omheen.</span> Is het type een variabele, gebruik dan <code>libToast.show(bericht, type, duration)</code> — dat is precies waarvoor die methode bestaat. Een eigen <code>showNotification()</code> die <code>libToast[type]</code> opzoekt en op <code>info</code> terugvalt voegt niets toe, en er stonden er vier naast elkaar die stilletjes uit elkaar liepen.</p>
     <p><code>Lib_ToonTopNotificatie(tekst, bFixed, kleur)</code> is de ingang voor geconverteerde pagina's: hij vertaalt de kleurnaam naar een type en komt uit bij <code>libToast</code>. Hij heeft één eigenaar — <code>library/library.js</code>. Op een site die <code>lib-toaster.js</code> niet laadt valt hij terug op een jQuery-banner; laadt die site het component wel, dan krijgt hij toasts. Definieer de functie nergens anders opnieuw: welke definitie wint hangt dan af van scriptvolgorde, en dat merk je pas als een melding onzichtbaar blijft.</p>
 
+    <h2>Vensters — wie doet wat</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Manier</th><th>Waarvoor</th></tr></thead>
+        <tbody>
+            <tr><td><code>lib-dialog</code></td><td>Het eenvoudige werk: <code>libAlert()</code>, <code>libConfirm()</code>, <code>libPrompt()</code>, en dialogen die je gewoon in de opmaak zet.</td></tr>
+            <tr><td><code>lib_OpenWindowCentered(url, naam, b, h, titel, inhoud)</code></td><td>De uitgebreide variant: een hele pagina in een iframe, verplaatsbaar, maximaliseerbaar, stapelbaar. Geef HTML mee als zesde argument om zonder iframe te tonen.</td></tr>
+            <tr><td><code>lib_OpenPanel(url, naam, b, h, titel)</code></td><td>Kiest tussen zijpaneel en venster op basis van de voorkeur van de gebruiker. <span class="cma-page__strong">Geef altijd een titel mee</span> — zonder titel valt hij terug op het venster, want het zijpaneel heeft er een nodig voor zijn kopbalk.</td></tr>
+            <tr><td><code>window.open</code></td><td>Alleen waar een echt tabblad de bedoeling is: downloaden, exporteren, een externe link.</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-page__strong"><code>lib_OpenWindowCentered</code> geeft geen vensterobject terug.</span> Het bouwt een div in het huidige document; <code>win.document.write(html)</code> erop doet dus niets en je houdt een leeg venster over. Wil je HTML tonen, geef die dan mee als zesde argument (<code>win_content</code>).</p>
+    <p>Zet er geen eigen <code>typeof … === 'function'</code>-wacht met een <code>window.open</code>-tak omheen. <code>library.js</code> zit in de CMA-bundel, dus die tak draait nooit — en hij loopt ondertussen uit de pas met de echte aanroep. Ontbreekt het document waarin het venster gebouwd moet worden, dan valt <code>library.js</code> zelf al terug op een echt venster.</p>
+
     <h2>cma-launcher — de doorzoekbare BIG-menu</h2>
     <p><code>cma-launcher</code> is de doorzoekbare, gegroepeerde BIG-menu die zowel het <span class="cma-tool__strong">tools</span>- als het <span class="cma-tool__strong">rapportages</span>-menu aandrijft. Het is één generiek component met twee modi, gestuurd via attributen (<code>catalog-url</code>, <code>nav-mode</code>, <code>target</code>, <code>search-placeholder</code>, <code>aria-label</code>):</p>
     <ul>

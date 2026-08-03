@@ -2264,11 +2264,7 @@
                 const width = Math.round(window.innerWidth * 0.85);
                 const height = Math.round(window.innerHeight * 0.85);
 
-                if (typeof lib_OpenWindowCentered === 'function') {
-                    lib_OpenWindowCentered(url, 'extra_action_' + index, width, height, btn.title || 'Extra');
-                } else {
-                    window.open(url, '_blank');
-                }
+                lib_OpenWindowCentered(url, 'extra_action_' + index, width, height, btn.title || 'Extra');
             }
         }
 
@@ -2315,25 +2311,10 @@
          * @param {string} html - HTML content to display
          */
         _showAfterPostPopup(html) {
-            if (typeof lib_OpenWindowCentered === 'function') {
-                const win = lib_OpenWindowCentered('about:blank', 'afterpost_result', 800, 600, 'Nabewerking');
-                if (win) {
-                    win.document.open();
-                    win.document.write(html);
-                    win.document.close();
-                }
-            } else {
-                const width = 800, height = 600;
-                const left = (screen.width - width) / 2;
-                const top = (screen.height - height) / 2;
-                const win = window.open('about:blank', 'afterpost_result',
-                    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-                if (win) {
-                    win.document.open();
-                    win.document.write(html);
-                    win.document.close();
-                }
-            }
+            // The HTML goes in as window content (6th argument). Writing into the
+            // window afterwards is not possible: lib_OpenWindowCentered builds a
+            // div in this document and returns no handle.
+            lib_OpenWindowCentered('', 'afterpost_result', 800, 600, 'Nabewerking', html);
         }
 
         /**
@@ -2374,13 +2355,9 @@
                 };
             }
 
-            if (typeof lib_OpenPanel === 'function') {
-                lib_OpenPanel(popupUrl, 'addRelated', 800, 600);
-            } else if (typeof lib_OpenWindowCentered === 'function') {
-                lib_OpenWindowCentered(popupUrl, 'addRelated', 800, 600);
-            } else {
-                window.open(popupUrl, 'addRelated', 'width=800,height=600');
-            }
+            // lib_OpenPanel honours the sidepanel/popup preference — but only with a
+            // title, since the sidepanel needs one for its caption bar.
+            lib_OpenPanel(popupUrl, 'addRelated', 800, 600, 'Toevoegen');
         }
 
         /**
@@ -2464,28 +2441,7 @@
          */
         showHtmlResponsePopup(htmlContent, title) {
             title = title || 'Resultaat';
-            const width = 800;
-            const height = 600;
-
-            if (typeof lib_OpenWindowCentered === 'function') {
-                const win = lib_OpenWindowCentered('about:blank', 'post_result', width, height, title);
-                if (win) {
-                    win.document.open();
-                    win.document.write(htmlContent);
-                    win.document.close();
-                }
-            } else {
-                const left = (screen.width - width) / 2;
-                const top = (screen.height - height) / 2;
-                const win = window.open('about:blank', 'post_result',
-                    'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes');
-                if (win) {
-                    win.document.open();
-                    win.document.write(htmlContent);
-                    win.document.close();
-                }
-            }
-
+            lib_OpenWindowCentered('', 'post_result', 800, 600, title, htmlContent);
             this.refreshList();
         }
 
