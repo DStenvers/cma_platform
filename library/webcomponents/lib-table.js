@@ -1673,6 +1673,12 @@ class LibTable extends HTMLElement {
         // Update row striping
         this._updateView();
 
+        // The header cells have been rebuilt by now. Anything the page attached to a
+        // th before this point was re-parsed and lost its event listeners, so tell
+        // the page it can (re-)attach — the CMA hangs its column resize handles here.
+        this._ready = true;
+        this.dispatchEvent(new CustomEvent('lib-table-ready', { bubbles: true }));
+
         // Document click handler for closing menus
         this._documentClickHandler = (e) => {
             if (!e.target.closest('.dropdown-filter-content') && !e.target.closest('.dropdown-filter-icon')) {

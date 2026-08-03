@@ -5570,6 +5570,15 @@ class CmaFormController {
             onReset: () => this.loadList(true) // Force refresh on reset
         });
 
+        // lib-table rebuilds the header cells one frame later, which strips the
+        // handles we just attached. Hang them back on once it reports ready.
+        const host = table.closest('lib-table');
+        if (host && !host._ready) {
+            host.addEventListener('lib-table-ready', () => {
+                if (this.columnManager) this.columnManager.initResizeHandles();
+            }, { once: true });
+        }
+
         // Store field info for field chooser
         this._allFields = (data.fields || []).map(f => ({
             name: f.name,

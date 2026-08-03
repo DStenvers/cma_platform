@@ -303,6 +303,12 @@ class CmaTableColumnManager {
      * Initialize column resize handles
      */
     initResizeHandles() {
+        // Drop anything left from an earlier pass. lib-table rebuilds every th
+        // (th.innerHTML is replaced), which re-parses a handle attached before that
+        // point into a dead copy inside .clicker — right shape, no listener. Running
+        // again after lib-table is ready is what puts a working handle back.
+        this.table.querySelectorAll('.column-resize-handle').forEach(el => el.remove());
+
         const headers = this.table.querySelectorAll('thead th[data-field]');
 
         headers.forEach(th => {
