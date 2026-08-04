@@ -1,49 +1,197 @@
 # TODO
 
-## Globals uit de formulier- en vensterlaag
+## Globals: één plan om ze allemaal te vervangen
 
-Doel: geen state die niet weet bij welk formulier of welk venster hij hoort. De
-aanname is dat het eindgetal 0 is; wat hieronder als "verdedigbaar" staat, staat
-er tot iemand het onderuit haalt (dat is met de dedupe al één keer gebeurd).
+Doel: geen gedeelde state die niet weet bij welk formulier, venster of verzoek
+hij hoort. Er is één meetgetal en dat moet omlaag.
 
-**Getest, en dat moet zo blijven.** `cd cma && npm run test:js` draait zonder
-site (jsdom, functies uit de uitgeleverde bron geknipt). Raak je state aan, dan
-hoort daar een test bij — Cypress kan dit niet dekken, want dat heeft een
-draaiende site nodig.
+**Gemeten op 2026-08-04**, 63 eigen JS-bestanden (jQuery, CKEditor, select2,
+fineuploader en fonts uitgesloten — die zijn niet van ons):
 
-**Al opgeruimd (v1.29.229):** de `document.querySelector('.form-layout')`-terugval
-in de vier state-helpers (77 aanroepen, nul gaven een element mee);
-`document.body.is-dirty`; de dubbele controller-pointer `_cmaFormController`;
-en de drie mechanismen achter "staat dit al open" (twee met een klok) vervangen
-door `lib_IsOpenUrl()`, dat het aan de DOM vraagt.
+| | aantal |
+|---|---|
+| namen op topniveau gedeclareerd (`function` / `var` / `let` / `const`) | 363 |
+| daarvan **alleen in het eigen bestand gebruikt** | **294 (81%)** |
+| daarvan echt over bestandsgrenzen gebruikt | 69 |
+| expliciete `window.X = …`-exports | 86 |
+| in twee bestanden gedeclareerd, laatste wint | 1 — `cmaLog` |
 
-### Nog te doen
+Die laatste is geen theorie: `cmaLog` staat in `blockedit.js` én `cma-utils.js`,
+en `minify.php` plakt de bundel tot één script. Alles op topniveau deelt daar één
+scope — daarom kan een lusvariabele `i` of `k` uit het ene bestand het andere
+raken.
 
-- [ ] **Zeven body-classes naar `.form-layout`:** `is-creating`, `has-record`,
-      `has-subform`, `data-loading`, `mode-tree`, `mode-table`, `form-readonly`.
-      Ze beschrijven de toestand van hét formulier in dit venster maar staan op
-      de body. Werkt zolang er één formulier per document is — en dat staat
-      nergens opgeschreven. Omvang: 73 CSS-regels en 61 schrijvers. Puur
-      zichtbaar werk, dus dit wil je kunnen nakijken op een scherm.
-      Let op: `form.css` heeft nu één regel die beide werelden overbrugt
-      (`body:not(.is-creating) .form-layout:not(.is-dirty) #toolbar_cancel`);
-      die kan mee zodra `is-creating` verhuist.
-- [ ] **`CMA.formConfig` één keer lezen en aan de constructor geven.** De
-      controller cachet zijn identiteit eruit, en omdat die bij een
-      AJAX-paginawissel kan verouderen staat er een `verifyIdentity()`-tripwire
-      omheen die bij verschil de DOM laat winnen — inclusief een vergelijking op
-      object-identiteit van `this.config`. Een tripwire is een bekentenis dat de
-      bron niet betrouwbaar is; met één lezing kan hij weg.
-- [ ] **De drie die nu nog verdedigd worden**, elk met de reden erbij zodat ze
-      aanvalbaar blijven:
-      - de doorgeefluiken op `window` (`loadRecord`, `act`, `cmaIsDirty`, de
-        zoek-handlers) bestaan omdat geconverteerde ASP-pagina's inline
-        `onclick="loadRecord(5)"` uitzenden, en inline attributen kunnen alleen
-        bij window-scope. Verdwijnt met die opmaak, niet eerder.
-      - `lib_sidepanel_stack` en `lib_win_counter` in het topvenster: die *zijn*
-        het register van wat er openstaat, over documenten heen.
-      - localStorage-sleutels: voorkeuren die vensters én sessies overleven.
-        Opslag, geen state.
+De 81% is de kern: verreweg de meeste globals zijn geen ontwerpkeuze maar een
+gevolg van klassieke scripts zonder module-scope. Die gaan weg zonder dat er één
+aanroep verandert.
+
+### Het meetinstrument komt eerst
+
+Zonder meting is "alle globals weg" een belofte. Stap 1 is dus een test, geen
+refactor: `cma/tests/js/globalsurface.test.js` naast de bestaande 20.
+
+1. Leeg document, noteer `Object.keys(window)`.
+2. Laad de échte bundel — dezelfde bestandslijst en volgorde als
+   `cma_js_bundle()` in `cma/bootstrap.inc`, als één `<script>`.
+3. Noteer opnieuw en trek af: dat is de globale voetafdruk.
+4. Vergelijk met `cma/tests/js/globals-allowlist.json`. Nieuwe naam = rode test
+   met die naam erin. Verdwenen naam = de lijst mag korter.
+
+Het getal in die lijst is de voortgang, en de test verhindert dat er stilletjes
+eentje bijkomt terwijl wij er een weghalen. **Dit is meteen het bewijs dat het
+kan:** na fase A hoort het getal met ongeveer 294 te dalen zonder aanroepwijziging.
+Zakt het minder, dan klopt de aanname niet en weten we dat vóór er iets uitgaat.
+
+### Fase A — de 81% die gratis is
+
+Elk eigen JS-bestand krijgt een omhulsel:
+
+```js
+(function () {
+    'use strict';
+    … bestaande inhoud, ongewijzigd …
+    window.lib_OpenWindowCentered = lib_OpenWindowCentered;  // alleen wat anderen nodig hebben
+})();
+```
+
+294 namen verdwijnen, de dubbele `cmaLog` kan niet meer stilzwijgend
+overschrijven, en lus- en werkvariabelen (`i`, `k`, `o`, `v`, `w`, `hex`,
+`curId`, `container`) zijn niet meer van iedereen. `'use strict'` legt meteen
+impliciete globals bloot: een toewijzing zonder `var` gooit dan.
+
+Volgorde: eerst één klein, geïsoleerd bestand als proef (`url-manager.js` of
+`perf-logger.js`), meten dat het getal met precies het verwachte aantal daalt,
+dan de rest in blokken. Risico dat getest moet worden: bestanden die tijdens het
+laden op elkaars declaraties leunen — af te vangen door de exports bovenaan het
+omhulsel te zetten, in dezelfde volgorde als nu.
+
+### Fase B — de 69 die er echt overheen gaan
+
+Klein genoeg om met de hand te doen. Drie soorten:
+
+1. **Echte gedeelde helpers** (~45): `lib_OpenWindowCentered`, `lib_OpenPanel`,
+   `lib_OpenSidePanel`, `lib_IsOpenUrl`, `lib_zindex_manager`, `lib_datum_*`,
+   `lib_form_*`, `libAlert`, `libConfirm`, `cmaLog`, `cmaGetRecordId`,
+   `escapeAttr`, `blockedit_init`/`_clear`/`_collect_htmls`, `CreateFKEditor`,
+   `SetFKEditorConfig`, `grp_init`, `form_valid*`. → één dak: `CMA.*` voor
+   CMA-eigen dingen; `lib*` blijft zolang inline-opmaak ze aanroept.
+2. **Valse treffers uit de meting** (~20): `attr`, `css`, `closest`, `height`,
+   `hide`, `show`, `toggle`, `next`, `on`, `position`, `ready`, `trigger`, `val`,
+   `width`. Vrijwel zeker jQuery-plugin-methodes; de meting kan `$(x).attr()` niet
+   onderscheiden van een global `attr`. **Met de hand bevestigen, niet
+   automatisch omzetten.**
+3. **Restjes**: `ie`, `isIE`, `isIE11`, `_getTopBody`, `control_createshim` —
+   nakijken of er nog een aanroeper is, anders weg.
+
+### Fase C — de 86 expliciete exports
+
+Per export één regel: waarom staat hij er. De enige categorie die overblijft is
+de inline-opmaak: geconverteerde ASP-pagina's zenden `onclick="loadRecord(5)"`
+uit, en een inline attribuut kan alleen bij window-scope. Al het andere
+(`cmaPerf`, `cmaLog`, `cmaDebounce`, `escapeHtml`, `cmaComboCache`,
+`cmaRequestTracker`, …) kan onder `CMA.*`.
+
+Twee bevindingen die hier apart aandacht vragen:
+
+- **`perf-logger.js:291` overschrijft `window.fetch`.** Dat raakt élke fetch op de
+  pagina, ook die van componenten en site-eigen code. Nakijken: wat gebeurt er bij
+  een tweede laadbeurt, en blijft `AbortSignal`/streaming heel. Beter meten op de
+  aanroepplek.
+- **`cma.js` parkeert CKEditor-state op het topvenster** (25 plekken:
+  `top.activeEditor`, `window.top.activeEditorBookmark`, `top.selectedAnchor`,
+  `top.selectedImage`, `top.selectedTable`). De dialogen draaien in een eigen
+  venster en geven zo hun keuze terug, dus er is een reden — maar het is
+  ongeschermd: twee editors open betekent dat de laatste wint. **Mogelijk de
+  verklaring voor de geparkeerde CKEditor-melding**; samen bekijken.
+
+### Fase D — `CMA.*`, objectstate en opslag
+
+- **`CMA.util` én `CMA.utils`** zijn hetzelfde object (`cma-utils.js:631` zet de
+  alias). 37 aanroepen via `utils`, 22 via `util`. Twee namen voor één ding, net
+  als de controller-pointer die al is opgeruimd. Eén naam, alias weg.
+- **State op functies en DOM-objecten:** `lib_LoadTableFunctions._queue` en
+  `._loading`, `libSwitch._toastShown`, `table._cmaScroller`,
+  `tree._formClickBound`, `e._cmaInlineEditHandled`,
+  `topWin._debugOverlayInterval` en `._debugOverlayLastValues`,
+  `top._cmaAddRelatedCallback`, `topWin.loadPage`. Op een DOM-element is dat
+  verdedigbaar (per-element state, zoals `_cmaController`); op een functie of op
+  het topvenster niet. Per stuk een besluit.
+- **Opslag:** `cma_v2_table_prefs_<form>`, `form_state_<form>`,
+  `cma_sidepanel_<sleutel>`, `cma_filter_field_*`, `cma_popup_style`,
+  `cma_v2_menu_state`, `cma_v2_menu_collapsed`,
+  `cma_v2_use_web_component_table`, `cma_debug_overlay`, en `sessionStorage:
+  CMA_CustomSQL_History`. Voorkeuren die vensters en sessies overleven — opslag,
+  geen state, maar wel opnemen zodat de lijst compleet is en de sleutelnamen één
+  conventie volgen.
+
+### Fase E — de zeven body-classes
+
+`is-creating`, `has-record`, `has-subform`, `data-loading`, `mode-tree`,
+`mode-table`, `form-readonly` naar `.form-layout`. 73 CSS-regels, 61 schrijvers.
+Puur zichtbaar werk; de enige fase die je op een scherm moet nakijken. `form.css`
+heeft nu één overbruggende regel
+(`body:not(.is-creating) .form-layout:not(.is-dirty) #toolbar_cancel`) die hier
+mee opgeruimd wordt.
+
+### Fase F — de PHP-kant
+
+`$GLOBALS['Application']` gaat al netjes via `Application::get()`/`set()`.
+Daarnáást staan zeven eigen sleutels rechtstreeks in `$GLOBALS`: `_env_file`,
+`_pending_migrations`, `_docs_indexing`, `_app_env`, `_db_config_source`,
+`_migration_check_error`, `_bootstrap_timing`. Request-scoped, dus minder
+gevaarlijk dan de JS-kant, maar dezelfde afspraak: één eigenaar, of een
+expliciete houder. Kleinste fase, laatste in de rij.
+
+### Dekking — elke soort, geteld
+
+| # | Soort | Aantal | Fase |
+|---|---|---|---|
+| 1 | Topniveau, alleen eigen bestand | 294 | A |
+| 2 | Topniveau, kruisbestand | 69 | B |
+| 3 | Expliciete `window.X =` | 86 | C |
+| 4 | `window.fetch` overschreven | 1 | C |
+| 5 | CKEditor-state op topvenster | 25 | C |
+| 6 | `CMA.*`-leden | 19 | D |
+| 7 | State op functie-/DOM-objecten | 12 | D |
+| 8 | Browseropslag | 9 + 1 | D |
+| 9 | `document.body`-classes | 7 | E |
+| 10 | `CMA.formConfig` | 2 leesplekken | zie hieronder |
+| 11 | PHP `$GLOBALS` naast `Application` | 7 soorten | F |
+| 12 | Externe bibliotheken | n.v.t. | **buiten scope** |
+
+Geen ES-modules: de bundel wordt server-side samengevoegd en de opmaak roept
+functies inline aan; `type="module"` breekt allebei. Het omhulsel uit fase A geeft
+dezelfde winst zonder die twee te raken.
+
+### Al opgeruimd (v1.29.229)
+
+De `document.querySelector('.form-layout')`-terugval in de vier state-helpers (77
+aanroepen, nul gaven een element mee); `document.body.is-dirty`; de dubbele
+controller-pointer `_cmaFormController`; en de drie mechanismen achter "staat dit
+al open" (twee met een klok) vervangen door `lib_IsOpenUrl()`, dat het aan de DOM
+vraagt. Getest: `cd cma && npm run test:js` — 20 tests, draait zonder site.
+
+### `CMA.formConfig` — bevinding, nog niet afgerond
+
+`main.js` bewaart hele pagina's. `cacheCurrentPage()` (regel 72-95) haalt de
+wrapper mét `.form-layout` en de controller uit de DOM; de herstelroute (regel
+115-127) hangt hem terug en roept `resume()` aan. Intussen heb je een ander
+formulier bezocht, dus `window.CMA.formConfig` hoort dan bij dát formulier.
+
+`verifyIdentity()` vergeleek `this.config` met die globale en nam bij verschil de
+globale over — een teruggezette pagina kreeg zo de rechten en knoppen van het
+laatst bezochte formulier (`accessLevel`, `canAdd`/`canDelete`/`canCopy`,
+`filterIdName`, `formName`), en schreef ook terug in dat globale object. Een
+tripwire die de drift veroorzaakte die hij moest vangen.
+
+- [ ] **Besluit nodig:** in de werkmap ligt ongecommit
+      `cma/assets/js/form-controller.js` (+16/−33) waarin die globale lezing en
+      beide resyncs uit `verifyIdentity()` zijn gehaald. Meenemen of terugdraaien.
+- [ ] `form-controller.js:3421` leest de editor-instellingen nog uit
+      `CMA.formConfig.editorConfig` in plaats van `this.config.editorConfig`.
+      Zelfde fout; `extraPlugins` bepaalt daar of de literatuur-plugin meekomt.
+- [ ] Broncontrole-test in de stijl van `SchemaHelperTest` en
+      `ClearCacheBootstrapVolgordeTest`, die aantoonbaar faalt op de oude code.
 
 ## Openstaand van 2026-08-03/04
 
