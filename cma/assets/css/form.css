@@ -1495,8 +1495,11 @@ body.is-creating #btn_new {
     cursor: default;
 }
 
-/* Disable cancel button when form is not dirty AND not creating new record */
-body:not(.is-dirty):not(.is-creating) #toolbar_cancel {
+/* Disable cancel button when form is not dirty AND not creating new record.
+   De gewijzigd-toestand staat op het formulier zelf (.form-layout.is-dirty), niet
+   op de body: een class op de body weet niet bij welk formulier hij hoort.
+   is-creating staat nog wel op de body — die verhuist in een aparte stap mee. */
+body:not(.is-creating) .form-layout:not(.is-dirty) #toolbar_cancel {
     opacity: 0.4;
     pointer-events: none;
     cursor: default;

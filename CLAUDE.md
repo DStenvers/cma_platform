@@ -68,6 +68,25 @@ cd cma && php tests/TestRunner.php ArrTest --filter=testFlatten
 
 Tests extend the custom `TestCase` class from `TestRunner.php` which provides PHPUnit-compatible assertion methods. Test files are `cma/tests/*Test.php`.
 
+### JavaScript Unit Tests (jsdom, no running site needed)
+
+```bash
+cd cma && npm run test:js            # alle JS-tests
+cd cma && node tests/js/run.js formstate   # één bestand
+```
+
+Test files are `cma/tests/js/*.test.js`; the runner is `cma/tests/js/run.js`. They build a
+document with jsdom and load the functions under test **straight out of the shipped
+source** — never a copy — so a passing test says something about the code that gets
+deployed.
+
+This is where state contracts get pinned down. Form state (`data-record-id`,
+`data-isdirty`) belongs to one form and one form only: the helpers demand the
+`.form-layout` and throw without it, rather than falling back to "the first form in the
+document". Window state answers "is this already open?" by asking the DOM (open iframes
+and the sidepanel stack), not by remembering timestamps. **When you touch either, add a
+test here** — Cypress cannot cover it, because Cypress needs a running site.
+
 ### Cypress E2E Tests
 
 ```bash

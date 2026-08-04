@@ -481,19 +481,6 @@ CMA.utils.cancelPopupWatch = null;
         const cascadeOffset = options.cascadeOffset !== false;
         const hasRecordId = recordId !== null && recordId !== undefined && recordId !== '';
 
-        // Guard against opening the SAME record popup twice in quick succession
-        // (e.g. a deep link whose controller initialises more than once opened two
-        // identical panels). Dedupe on form+record+parent within a short window;
-        // opening a different record, or the same one later, is unaffected.
-        const dedupeKey = String(formId) + ':' + String(recordId ?? '') + ':' + String(parentId ?? '');
-        const topWin = window.top || window;
-        topWin._cmaOpenPopupAt = topWin._cmaOpenPopupAt || {};
-        const now = Date.now();
-        if (topWin._cmaOpenPopupAt[dedupeKey] && (now - topWin._cmaOpenPopupAt[dedupeKey]) < 1500) {
-            return null;
-        }
-        topWin._cmaOpenPopupAt[dedupeKey] = now;
-
         // Base URL via url-manager (single owner of the form.php query format),
         // then popup-specific extras
         let url = CMA.url.toPageUrl({
@@ -514,6 +501,13 @@ CMA.utils.cancelPopupWatch = null;
         if (options.filterField && options.filterValue) {
             url += '&filterField=' + encodeURIComponent(options.filterField);
             url += '&filterValue=' + encodeURIComponent(options.filterValue);
+        }
+
+        // Staat dit scherm al open, dan is er niets te doen — en dan mag de
+        // browser-URL ook niet meebewegen. De vraag gaat naar de DOM (welke
+        // vensters en panelen staan er open), niet naar een onthouden tijdstip.
+        if (lib_IsOpenUrl(url)) {
+            return null;
         }
 
         // Update the browser URL to include the record id (bookmarking/refresh

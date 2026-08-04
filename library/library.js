@@ -1101,6 +1101,51 @@ function lib_scrolltop() {
 
 //  Old-school popup
 //
+/**
+ * Maakt een adres absoluut, gemeten vanaf het document waarin de vensters staan.
+ * Nodig om te vergelijken: het iframe geeft zijn src altijd absoluut terug,
+ * terwijl aanroepers meestal een relatief adres meegeven.
+ */
+function lib_UrlAbsoluut(url, basis) {
+	try { return new URL(String(url), basis || document.baseURI).href; }
+	catch (e) { return String(url || ''); }
+}
+
+/**
+ * Staat dit adres al open, als venster of als zijpaneel?
+ *
+ * De vraag wordt aan de DOM gesteld en niet aan een geheugen: elk venster zet een
+ * iframe met de url in het topdocument, en elk zijpaneel staat met zijn url op de
+ * stapel. Dat is zelfopruimend — sluit het venster en het antwoord is vanzelf weer
+ * nee. Hiervoor stonden er drie tijdklokjes op deze vraag (600 ms, 1500 ms, en een
+ * vergelijking met alleen het bovenste paneel). Een klok is het verkeerde
+ * gereedschap: binnen die tijd kon je een net gesloten record niet heropenen, en
+ * erbuiten glipte een dubbele opening er alsnog doorheen.
+ *
+ * @param {string} url Het adres dat geopend zou worden
+ * @returns {boolean}
+ */
+function lib_IsOpenUrl(url) {
+	if (!url) { return false; }
+	var top_elt = lib_alertbox_getbody_doc_element();
+	if (!top_elt) { return false; }
+	var topWindow = top_elt.defaultView || top_elt.parentWindow || window;
+	var doel = lib_UrlAbsoluut(url, top_elt.baseURI);
+
+	var stapel = topWindow.lib_sidepanel_stack;
+	if (stapel && stapel.length) {
+		for (var i = 0; i < stapel.length; i++) {
+			if (stapel[i] && lib_UrlAbsoluut(stapel[i].url, top_elt.baseURI) === doel) { return true; }
+		}
+	}
+
+	var frames = top_elt.querySelectorAll('iframe[id^="__lib_win_iframe_"]');
+	for (var j = 0; j < frames.length; j++) {
+		if (frames[j].src && frames[j].src === doel) { return true; }
+	}
+	return false;
+}
+
 function lib_OpenPopupCentered(adres, naam, win_width, win_height, title) {
 	var params = ''
 
@@ -1128,13 +1173,10 @@ function lib_OpenWindowCentered(adres, naam, win_width, win_height, title, win_c
 	// to the same action fire near-instantly, opening the same URL twice. Ignore a
 	// repeat of the same URL within 600ms (a real re-open is a separate, later
 	// action). Only guards URL mode — content popups (win_content) are exempt.
-	if (adres) {
-		var _libOwNow = Date.now();
-		if (lib_OpenWindowCentered._lastUrl === adres && (_libOwNow - (lib_OpenWindowCentered._lastAt || 0)) < 600) {
-			return null;
-		}
-		lib_OpenWindowCentered._lastUrl = adres;
-		lib_OpenWindowCentered._lastAt = _libOwNow;
+	// Staat dit adres al open, dan is er niets te doen. Gevraagd aan de DOM, niet
+	// aan een klok: zie lib_IsOpenUrl.
+	if (adres && lib_IsOpenUrl(adres)) {
+		return null;
 	}
 	var mObj = null;
 	try {
@@ -2308,10 +2350,9 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			// otherwise open the exact same form+record twice, one directly behind
 			// the other. Opening a DIFFERENT url, or re-opening after closing, is
 			// unaffected.
-			var _topStack = topWindow.lib_sidepanel_stack;
-			if (_topStack && _topStack.length > 0 &&
-				_topStack[_topStack.length - 1] && _topStack[_topStack.length - 1].url === url) {
-				// libLog.log('[lib_OpenSidePanel] Skipping duplicate sidepanel for', url);
+			// Zelfde vraag als bij een venster, en nu over de hele stapel in plaats
+			// van alleen het bovenste paneel.
+			if (lib_IsOpenUrl(url)) {
 				return null;
 			}
 

@@ -879,13 +879,36 @@ function toFirstCaps(str) {
 // =============================================================================
 
 /**
+ * Het formulier waar dit element bij hoort.
+ *
+ * Er is bewust GEEN terugval op document.querySelector('.form-layout'). Die
+ * terugval was er wel, en dan pakte elke lees- en schrijfactie het eerste
+ * formulier in het document — met een popup, een subformulier of een tweede
+ * paneel erbij is dat willekeurig het verkeerde. Wie state wil, wijst aan van
+ * welk formulier. Geen element is een programmeerfout, geen stille gok.
+ *
+ * @param {Element} element - Het .form-layout zelf of een element erbinnen
+ * @returns {Element} Het .form-layout
+ * @throws {Error} Als er geen element is meegegeven of het geen formulier is
+ */
+function cmaFormLayoutVan(element) {
+    if (!element || typeof element.closest !== 'function') {
+        throw new Error('cmaFormLayoutVan: geef het formulier mee (.form-layout of een element erbinnen)');
+    }
+    const formLayout = element.closest('.form-layout');
+    if (!formLayout) {
+        throw new Error('cmaFormLayoutVan: dit element zit niet in een .form-layout');
+    }
+    return formLayout;
+}
+
+/**
  * Get current record ID from DOM data attribute
- * @param {Element} [element] - Optional element to scope to nearest .form-layout
+ * @param {Element} element - The .form-layout or an element inside it
  * @returns {string|null} Record ID or null
  */
 function cmaGetRecordId(element) {
-    const formLayout = element ? element.closest('.form-layout') : document.querySelector('.form-layout');
-    return formLayout?.dataset.recordId || null;
+    return cmaFormLayoutVan(element).dataset.recordId || null;
 }
 
 /**
@@ -907,13 +930,11 @@ function cmaStripResize(url) {
  * @param {Element} [element] - Optional element to scope to nearest .form-layout
  */
 function cmaSetRecordId(value, element) {
-    const formLayout = element ? element.closest('.form-layout') : document.querySelector('.form-layout');
-    if (formLayout) {
-        if (value !== null && value !== undefined && value !== '') {
-            formLayout.dataset.recordId = String(value);
-        } else {
-            delete formLayout.dataset.recordId;
-        }
+    const formLayout = cmaFormLayoutVan(element);
+    if (value !== null && value !== undefined && value !== '') {
+        formLayout.dataset.recordId = String(value);
+    } else {
+        delete formLayout.dataset.recordId;
     }
 }
 
@@ -923,8 +944,7 @@ function cmaSetRecordId(value, element) {
  * @returns {boolean} True if form has unsaved changes
  */
 function cmaGetIsDirty(element) {
-    const formLayout = element ? element.closest('.form-layout') : document.querySelector('.form-layout');
-    return formLayout?.dataset.isdirty === 'true';
+    return cmaFormLayoutVan(element).dataset.isdirty === 'true';
 }
 
 /**
@@ -933,12 +953,12 @@ function cmaGetIsDirty(element) {
  * @param {Element} [element] - Optional element to scope to nearest .form-layout
  */
 function cmaSetIsDirty(value, element) {
-    const formLayout = element ? element.closest('.form-layout') : document.querySelector('.form-layout');
-    if (formLayout) {
-        formLayout.dataset.isdirty = value ? 'true' : 'false';
-        formLayout.classList.toggle('is-dirty', !!value);
-    }
-    document.body.classList.toggle('is-dirty', !!value);
+    const formLayout = cmaFormLayoutVan(element);
+    formLayout.dataset.isdirty = value ? 'true' : 'false';
+    formLayout.classList.toggle('is-dirty', !!value);
+    // Geen tweede kopie op document.body. Die was er wel, en werd door
+    // cmaCheckUnsavedChanges als terugval gelezen — een class die niet weet bij
+    // welk formulier hij hoort. De opmaak selecteert nu vanaf .form-layout.
 }
 
 class CmaFormController {
@@ -971,7 +991,10 @@ class CmaFormController {
         }
 
         // Read state from data attributes on form-layout (stateless - no window globals!)
+        // Dit element IS het formulier: alle state-helpers krijgen hem mee, zodat
+        // een tweede formulier op dezelfde pagina nooit de verkeerde raakt.
         const formLayout = document.querySelector('.form-layout');
+        this.formLayout = formLayout;
         this.parentID = formLayout?.dataset.parentId || null;
         this.parentField = formLayout?.dataset.parentField || null;
         this._dataRecordId = formLayout?.dataset.recordId;
@@ -1044,13 +1067,19 @@ class CmaFormController {
         // If element provided, search up from there
         if (element) {
             const layout = element.closest('.form-layout');
-            if (layout && layout._cmaFormController) {
-                return layout._cmaFormController;
+            if (layout && layout._cmaController) {
+                return layout._cmaController;
             }
         }
-        // Fallback: find the first .form-layout in document
-        const layout = document.querySelector('.form-layout');
-        return layout?._cmaFormController || null;
+        // Zonder element: het formulier van dit venster. Elk formulier krijgt zijn
+        // eigen document (popup en zijpaneel zijn iframes), dus normaal is dat er
+        // precies één. Zijn het er meer, dan is "de eerste" een gok — en die
+        // gokken zijn precies wat hier fout ging. Dan liever hard stuklopen.
+        const alle = document.querySelectorAll('.form-layout');
+        if (alle.length > 1) {
+            throw new Error('getController(): ' + alle.length + ' formulieren in dit document — geef het element mee');
+        }
+        return alle[0]?._cmaController || null;
     }
 
     /**
@@ -1202,8 +1231,8 @@ class CmaFormController {
 
     // NOTE: currentRecordId and isDirty have been removed from the class.
     // Use the module-level helper functions instead:
-    // - cmaGetRecordId() / cmaSetRecordId(value) for record ID
-    // - cmaGetIsDirty() / cmaSetIsDirty(value) for dirty state
+    // - cmaGetRecordId(this.formLayout) / cmaSetRecordId(value, this.formLayout) for record ID
+    // - cmaGetIsDirty(this.formLayout) / cmaSetIsDirty(value, this.formLayout) for dirty state
     // These read/write DOM data attributes directly - no class properties needed.
 
     /**
@@ -1331,8 +1360,9 @@ class CmaFormController {
         this.verifyIdentity('init');
 
         if (formLayout) {
-            formLayout._cmaFormController = this;
-            // Also store form name as data attribute for debugging
+            // De controller staat op _cmaController (constructor). Hier stond hij
+            // een tweede keer onder een andere naam, met FormTemplate en main.js op
+            // de ene en getController() op de andere — twee namen voor één object.
             formLayout.dataset.jsonForm = this.jsonForm || '';
         }
 
@@ -1373,10 +1403,10 @@ class CmaFormController {
             const controller = CMA.FormController.getController();
             if (controller) controller.toggleSearchMore();
         };
-        // Legacy alias for isDirty check (reads from DOM data attribute)
-        window.cmaIsDirty = function() {
-            return cmaGetIsDirty();
-        };
+        // Legacy alias for isDirty check (reads from DOM data attribute).
+        // Arrow function: een gewone function() zou `this` op window zetten en dan
+        // is this.formLayout leeg — precies het soort gok dat we net weghalen.
+        window.cmaIsDirty = () => cmaGetIsDirty(this.formLayout);
 
         // Add popup class if we're in a popup context
         // This ensures button texts are always visible in popups
@@ -1567,7 +1597,7 @@ class CmaFormController {
             'data-parent-field': this.parentField,
             '=== CONTROLLER ===': '',
             'jsonForm': this.jsonForm,
-            'currentRecordId': cmaGetRecordId(),
+            'currentRecordId': cmaGetRecordId(this.formLayout),
             'directRecordMode': this.directRecordMode,
             'isCopyMode': this.isCopyMode,
             '=== CONFIG ===': '',
@@ -1831,7 +1861,7 @@ class CmaFormController {
         const comboFields = this.getComboFields();
         let cacheResult = { cached: {}, uncached: comboFields };
         if (typeof cmaComboCache !== 'undefined' && cmaComboCache.getMultiple) {
-            cacheResult = cmaComboCache.getMultiple(this.formId, comboFields, cmaGetRecordId());
+            cacheResult = cmaComboCache.getMultiple(this.formId, comboFields, cmaGetRecordId(this.formLayout));
         }
         const uncachedFields = cacheResult.uncached || [];
 
@@ -1839,7 +1869,7 @@ class CmaFormController {
         const searchComboFields = this.getSearchPanelComboFields();
         let searchCacheResult = { cached: {}, uncached: searchComboFields };
         if (typeof cmaComboCache !== 'undefined' && cmaComboCache.getMultiple) {
-            searchCacheResult = cmaComboCache.getMultiple(this.formId, searchComboFields, cmaGetRecordId());
+            searchCacheResult = cmaComboCache.getMultiple(this.formId, searchComboFields, cmaGetRecordId(this.formLayout));
         }
         const uncachedSearchFields = searchCacheResult.uncached || [];
 
@@ -1861,7 +1891,7 @@ class CmaFormController {
             }
 
             // Add current record if set
-            const recordIdForParams = cmaGetRecordId();
+            const recordIdForParams = cmaGetRecordId(this.formLayout);
             if (recordIdForParams) {
                 params.set('ID', recordIdForParams);
             }
@@ -1956,7 +1986,7 @@ class CmaFormController {
             return;
         }
 
-        const recordId = (data.id !== null && data.id !== undefined && data.id !== '') ? data.id : cmaGetRecordId();
+        const recordId = (data.id !== null && data.id !== undefined && data.id !== '') ? data.id : cmaGetRecordId(this.formLayout);
         // cmaLog.log('applyRecordData: applying record', recordId);
 
         // Hide detail content during population to prevent visible "painting"
@@ -1966,7 +1996,7 @@ class CmaFormController {
             detailContent.style.visibility = 'hidden';
         }
 
-        cmaSetRecordId(recordId);
+        cmaSetRecordId(recordId, this.formLayout);
         this.saveLastRecordId(recordId);  // Remember for tree highlighting on mode switch
 
         // Mark data as loaded early (synchronously) to prevent duplicate loadRecord calls.
@@ -2294,7 +2324,7 @@ class CmaFormController {
     cacheComboResults(combos) {
         for (const [fieldName, result] of Object.entries(combos)) {
             if (result.success && result.options) {
-                cmaComboCache.set(this.formId, fieldName, result.options, cmaGetRecordId());
+                cmaComboCache.set(this.formId, fieldName, result.options, cmaGetRecordId(this.formLayout));
             }
         }
     }
@@ -2306,7 +2336,7 @@ class CmaFormController {
         for (const fieldName of fieldNames) {
             let options = cachedData?.[fieldName];
             if (!options) {
-                options = cmaComboCache.get(this.formId, fieldName, cmaGetRecordId());
+                options = cmaComboCache.get(this.formId, fieldName, cmaGetRecordId(this.formLayout));
             }
             if (options) {
                 this.applyComboOptions(fieldName, options);
@@ -2359,7 +2389,7 @@ class CmaFormController {
     handlePrefetchHover(event) {
         const target = event.currentTarget;
         const recordId = target.dataset.id;
-        if (!recordId || recordId === cmaGetRecordId()) return;
+        if (!recordId || recordId === cmaGetRecordId(this.formLayout)) return;
 
         // Don't prefetch if already in cache or in-flight
         if (this._prefetchCache.has(recordId) || this._prefetchInFlight.has(recordId)) return;
@@ -2579,11 +2609,11 @@ class CmaFormController {
 
         // When switching to table mode, save last record ID and clear current selection
         if (newMode === this.LIST_MODE.DISPLAY_TABLE) {
-            const currentId = cmaGetRecordId();
+            const currentId = cmaGetRecordId(this.formLayout);
             if (currentId) {
                 this.saveLastRecordId(currentId);
             }
-            cmaSetRecordId(null);
+            cmaSetRecordId(null, this.formLayout);
             document.body.classList.remove('has-record');
         }
 
@@ -3068,7 +3098,7 @@ class CmaFormController {
         // cmaLog.log('loadAllComboOptions: loading', fieldNames.length, 'combos for formId:', this.getCacheFormId());
         try {
             const cacheFormId = this.getCacheFormId();
-            const recordId = cmaGetRecordId();
+            const recordId = cmaGetRecordId(this.formLayout);
 
             // Check cache first (include recordId for record-dependent combos)
             const cacheResult = cmaComboCache.getMultiple(cacheFormId, fieldNames, recordId);
@@ -3220,7 +3250,7 @@ class CmaFormController {
     async loadComboOptions(fieldName, selectElement, forceRefresh = false) {
         try {
             const cacheFormId = this.getCacheFormId();
-            const recordId = cmaGetRecordId();
+            const recordId = cmaGetRecordId(this.formLayout);
 
             // Check cache first (unless forcing refresh)
             if (!forceRefresh) {
@@ -3807,7 +3837,7 @@ class CmaFormController {
                 const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
                     || e.target.isContentEditable
                     || e.target.closest('lib-combo, lib-datepicker, lib-timepicker, cma-blockeditor');
-                if (!isEditable && cmaGetRecordId()) {
+                if (!isEditable && cmaGetRecordId(this.formLayout)) {
                     e.preventDefault();
                     this.handleToolbarAction('delete');
                 }
@@ -3816,7 +3846,7 @@ class CmaFormController {
 
         // Prevent accidental navigation when dirty - tracked for cleanup
         this.addTrackedListener(window, 'beforeunload', (e) => {
-            if (cmaGetIsDirty()) {
+            if (cmaGetIsDirty(this.formLayout)) {
                 e.preventDefault();
                 e.returnValue = 'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt verlaten?';
                 return e.returnValue;
@@ -4470,13 +4500,13 @@ class CmaFormController {
      * Handle toolbar button actions
      */
     handleToolbarAction(action, dataset = {}) {
-        // cmaLog.log('handleToolbarAction:', action, 'isTableMode:', this.isTableMode(), 'directRecordMode:', this.directRecordMode, 'currentRecordId:', cmaGetRecordId());
+        // cmaLog.log('handleToolbarAction:', action, 'isTableMode:', this.isTableMode(), 'directRecordMode:', this.directRecordMode, 'currentRecordId:', cmaGetRecordId(this.formLayout));
 
         // In table mode, certain actions are disabled (handled by inline editing)
         // BUT: if we have a currentRecordId (viewing/editing a record), allow these actions
         // ALSO: In directRecordMode (popup/direct link), always allow these actions
         const tableDisabledActions = ['save', 'copy', 'delete', 'cancel'];
-        if (this.isTableMode() && tableDisabledActions.includes(action) && !cmaGetRecordId() && !this.directRecordMode) {
+        if (this.isTableMode() && tableDisabledActions.includes(action) && !cmaGetRecordId(this.formLayout) && !this.directRecordMode) {
             // cmaLog.log('Action blocked - table mode without record');
             return; // Ignore these actions in table mode when no record is loaded
         }
@@ -5200,7 +5230,7 @@ class CmaFormController {
         this.setDisplayModeClass(isTableMode ? 'table' : 'tree');
 
         // In table mode without a record, ensure full-width list display
-        if (isTableMode && !cmaGetRecordId()) {
+        if (isTableMode && !cmaGetRecordId(this.formLayout)) {
             // Remove has-record class to hide detail panel and show full-width list
             document.body.classList.remove('has-record');
             document.body.classList.remove('has-subform');
@@ -6262,7 +6292,7 @@ class CmaFormController {
         if (lazyCombos.length === 0) return;
 
         const cacheFormId = this.getCacheFormId();
-        const recordId = cmaGetRecordId();
+        const recordId = cmaGetRecordId(this.formLayout);
 
         for (const combo of lazyCombos) {
             const fieldName = combo.dataset.field;
@@ -6405,8 +6435,8 @@ class CmaFormController {
         // In tree view a filter switch invalidates the record on the right —
         // it belongs to the previous filter selection. Reset the detail pane
         // to the "Selecteer een record" state instead of leaving it up.
-        if (this.isTreeMode() && cmaGetRecordId()) {
-            cmaSetRecordId(null);
+        if (this.isTreeMode() && cmaGetRecordId(this.formLayout)) {
+            cmaSetRecordId(null, this.formLayout);
             this._activeRecordId = null;
             document.body.classList.remove('has-record', 'is-creating');
             const formLayout = document.querySelector('.form-layout');
@@ -6705,7 +6735,7 @@ class CmaFormController {
                 params.set('_t', Date.now()); // Cache busting timestamp
             }
 
-            const currentRecordIdForParams = cmaGetRecordId();
+            const currentRecordIdForParams = cmaGetRecordId(this.formLayout);
             if (currentRecordIdForParams) {
                 params.set('ID', currentRecordIdForParams);
             }
@@ -6865,7 +6895,7 @@ class CmaFormController {
 
                 // Load record if specified in URL (for popups opened with ID parameter)
                 // Skip if skipRecordLoad is true (e.g., after save - form already has the data)
-                const currentRecordIdForLoad = cmaGetRecordId();
+                const currentRecordIdForLoad = cmaGetRecordId(this.formLayout);
                 if (currentRecordIdForLoad && !skipRecordLoad) {
                     // cmaLog.log('loadList: currentRecordId is set, calling loadRecord:', currentRecordIdForLoad, 'forceRefresh:', forceRefresh);
                     await this.loadRecord(currentRecordIdForLoad, forceRefresh);
@@ -6931,7 +6961,7 @@ class CmaFormController {
                 // its id, while the tree showed nothing or something else.
                 // Deliberately NOT cleared: switching the filter back must restore
                 // it again.
-                else if (!this.isTableMode() && !cmaGetRecordId()) {
+                else if (!this.isTableMode() && !cmaGetRecordId(this.formLayout)) {
                     const lastRecordId = this.loadLastRecordId();
                     if (lastRecordId && this.isRecordInList(lastRecordId)) {
                         // cmaLog.log('Tree mode: loading last selected record:', lastRecordId);
@@ -7289,7 +7319,7 @@ class CmaFormController {
         }
 
         // If row not found anywhere, reload current record to refresh subforms
-        const currentRecordId = cmaGetRecordId();
+        const currentRecordId = cmaGetRecordId(this.formLayout);
         if (currentRecordId) {
             // cmaLog.log('removeRowFromList: row not found, reloading current record to refresh subforms');
             this.loadRecord(currentRecordId);
@@ -7509,7 +7539,7 @@ class CmaFormController {
 
         for (const item of data.items) {
             const id = item._id || item.ID || item.id;
-            const isSelected = String(id) === String(cmaGetRecordId());
+            const isSelected = String(id) === String(cmaGetRecordId(this.formLayout));
 
             // Get display columns (first 2-3 non-ID columns)
             const columns = Object.keys(item).filter(k => !k.startsWith('_') && k.toLowerCase() !== 'id');
@@ -7817,7 +7847,7 @@ class CmaFormController {
      */
     async loadRecord(recordId, forceRefresh = false) {
         this.verifyIdentity('loadRecord');
-        const currentRecordIdCheck = cmaGetRecordId();
+        const currentRecordIdCheck = cmaGetRecordId(this.formLayout);
         const formLayout = document.querySelector('.form-layout');
         const dataLoaded = formLayout?.dataset.dataloaded === 'true';
         // cmaLog.log('loadRecord: [' + this._instanceId + '] called with recordId=', recordId, '(type:', typeof recordId, ') forceRefresh=', forceRefresh, 'currentRecordId=', currentRecordIdCheck, 'dataLoaded=', dataLoaded);
@@ -8063,7 +8093,7 @@ class CmaFormController {
             // cmaLog.log('Record API response for copy:', data);
             if (data.success) {
                 // Clear the record ID - this is a new record
-                cmaSetRecordId(null);
+                cmaSetRecordId(null, this.formLayout);
                 this.copySourceId = sourceRecordId;
 
                 // Populate form with the source data
@@ -8854,7 +8884,7 @@ class CmaFormController {
             }
         }
 
-        cmaSetRecordId(null);
+        cmaSetRecordId(null, this.formLayout);
 
         // Capture filter field value from current record BEFORE clearing the form
         // This allows new records to inherit the filter context from the record being viewed
@@ -9312,12 +9342,12 @@ class CmaFormController {
 
         // Performance tracking
         const perfId = 'saveRecord_' + Date.now();
-        const currentId = cmaGetRecordId();
+        const currentId = cmaGetRecordId(this.formLayout);
         const isNew = currentId === null || currentId === undefined || currentId === '';
         cmaPerf.start(perfId, { formId: this.formId, isNew: isNew });
         cmaPerf.count('saveRecord.calls');
 
-        // cmaLog.log('saveRecord called, mainForm:', this.mainForm, 'currentRecordId:', cmaGetRecordId());
+        // cmaLog.log('saveRecord called, mainForm:', this.mainForm, 'currentRecordId:', cmaGetRecordId(this.formLayout));
 
         if (!this.mainForm) {
             cmaLog.error('saveRecord: mainForm is null');
@@ -9353,7 +9383,7 @@ class CmaFormController {
             const postData = new FormData();
             postData.append('action', 'save');
             postData.append('jsonForm', this.jsonForm);
-            const currentRecordIdForSave = cmaGetRecordId();
+            const currentRecordIdForSave = cmaGetRecordId(this.formLayout);
             if (currentRecordIdForSave) {
                 postData.append('ID', currentRecordIdForSave);
             }
@@ -9368,7 +9398,7 @@ class CmaFormController {
                 }
             }
 
-            // cmaLog.log('saveRecord POST data:', 'formId=', this.formId, 'isJsonForm=', this.isJsonForm, 'currentRecordId=', cmaGetRecordId());
+            // cmaLog.log('saveRecord POST data:', 'formId=', this.formId, 'isJsonForm=', this.isJsonForm, 'currentRecordId=', cmaGetRecordId(this.formLayout));
 
             cmaPerf.mark('saveRecord_fetchStart');
             const response = await fetch(`/cma/form_api.php`, {
@@ -9405,7 +9435,7 @@ class CmaFormController {
                 if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
                     cmaComboCache.clear();
                 }
-                cmaSetRecordId(result.id);
+                cmaSetRecordId(result.id, this.formLayout);
                 this.setDirty(false);
                 // De vergelijkingsbasis moet mee: data-original-value stond nog op de
                 // waarden van vóór het bewerken. Zonder dit meldt het formulier later
@@ -9437,17 +9467,17 @@ class CmaFormController {
                 // Close form if requested (popup mode)
                 if (closeAfter) {
                     // Pass record ID for targeted row refresh in parent
-                    this.closeForm(cmaGetRecordId(), false);
+                    this.closeForm(cmaGetRecordId(this.formLayout), false);
                 } else {
                     // For existing records, refresh just the changed row (more reliable)
                     // For new records, reload entire list to include the new item
                     if (result.isNew) {
                         // cmaLog.log('saveRecord: new record, id=', result.id, ', calling loadList(true, true)');
                         await this.loadList(true, true);
-                        // cmaLog.log('saveRecord: loadList completed, now selecting item with id=', cmaGetRecordId());
+                        // cmaLog.log('saveRecord: loadList completed, now selecting item with id=', cmaGetRecordId(this.formLayout));
                     } else {
                         // cmaLog.log('saveRecord: existing record, calling refreshRow');
-                        await this.refreshRow(cmaGetRecordId());
+                        await this.refreshRow(cmaGetRecordId(this.formLayout));
                     }
                     // cmaLog.log('saveRecord: list refresh completed');
 
@@ -9455,7 +9485,7 @@ class CmaFormController {
                     this.setDirty(false);
 
                     // Ensure row is selected in list
-                    const selectRecordId = cmaGetRecordId();
+                    const selectRecordId = cmaGetRecordId(this.formLayout);
                     // cmaLog.log('saveRecord: selectListItem with id=', selectRecordId);
                     this.selectListItem(selectRecordId);
 
@@ -9471,7 +9501,7 @@ class CmaFormController {
                 const errorMsg = result.error || 'Opslaan mislukt (geen foutmelding van server)';
                 cmaLog.error('SAVE FAILED:', errorMsg, {
                     form: this.jsonForm,
-                    recordId: cmaGetRecordId(),
+                    recordId: cmaGetRecordId(this.formLayout),
                     serverResponse: result,
                     formData: formData
                 });
@@ -9485,7 +9515,7 @@ class CmaFormController {
             // NETWORK/PARSE ERROR - Log prominently
             cmaLog.error('SAVE NETWORK ERROR:', error.message, {
                 form: this.jsonForm,
-                recordId: cmaGetRecordId(),
+                recordId: cmaGetRecordId(this.formLayout),
                 stack: error.stack
             });
 
@@ -9531,12 +9561,12 @@ class CmaFormController {
         }
 
         // Reload the current record to revert changes
-        const currentRecordIdForCancel = cmaGetRecordId();
+        const currentRecordIdForCancel = cmaGetRecordId(this.formLayout);
         if (currentRecordIdForCancel && !isCreating) {
             this.loadRecord(currentRecordIdForCancel);
         } else {
             // Creating new record or no record loaded - return to empty state
-            cmaSetRecordId(null);
+            cmaSetRecordId(null, this.formLayout);
             document.body.classList.remove('is-creating');
             document.body.classList.remove('has-record');
             this.updateFormLayoutState({ isCreating: false, hasRecord: false });
@@ -9810,10 +9840,10 @@ class CmaFormController {
             cmaLog.warn('[buildChangelog] _changelog element not found, exiting');
             return false;
         }
-        // cmaLog.log('[buildChangelog] started, isAdd:', !cmaGetRecordId(), 'form elements:', this.mainForm.elements.length);
+        // cmaLog.log('[buildChangelog] started, isAdd:', !cmaGetRecordId(this.formLayout), 'form elements:', this.mainForm.elements.length);
 
         // Set changelog type
-        const isAdd = !cmaGetRecordId();
+        const isAdd = !cmaGetRecordId(this.formLayout);
         if (frm_changelog_type) {
             frm_changelog_type.value = isAdd ? 'add' : 'edit';
         }
@@ -10313,7 +10343,7 @@ class CmaFormController {
      */
     async deleteRecord() {
         this.verifyIdentity('deleteRecord');
-        if (!cmaGetRecordId()) return;
+        if (!cmaGetRecordId(this.formLayout)) return;
 
         const confirmed = await libConfirm('Wil je dit record verwijderen?', {
             title: 'Verwijderen',
@@ -10329,7 +10359,7 @@ class CmaFormController {
         this.showLoading();
 
         try {
-            const response = await fetch(`/cma/form_api.php?action=delete&${this.getFormParam()}&id=${cmaGetRecordId()}`);
+            const response = await fetch(`/cma/form_api.php?action=delete&${this.getFormParam()}&id=${cmaGetRecordId(this.formLayout)}`);
             if (!response.ok) {
                 throw new Error(`[deleteRecord] HTTP ${response.status} ${response.statusText}`);
             }
@@ -10343,8 +10373,8 @@ class CmaFormController {
                 if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
                     cmaComboCache.clear();
                 }
-                const deletedRecordId = cmaGetRecordId();
-                cmaSetRecordId(null);
+                const deletedRecordId = cmaGetRecordId(this.formLayout);
+                cmaSetRecordId(null, this.formLayout);
                 this.setDirty(false);  // Clear dirty state before closing
 
                 // Clear last record ID to prevent loading deleted record on next list reload
@@ -10357,7 +10387,7 @@ class CmaFormController {
                 }
 
                 // Not in popup - update local UI
-                cmaSetRecordId(null);  // Clear record ID
+                cmaSetRecordId(null, this.formLayout);  // Clear record ID
                 this.clearForm();  // Clear form fields to avoid stale data
                 this.hideDetailPanel();
                 this.updateUrl();  // Remove ID from URL
@@ -10384,10 +10414,10 @@ class CmaFormController {
      */
     copyRecord() {
         this.verifyIdentity('copyRecord');
-        if (!cmaGetRecordId()) return;
+        if (!cmaGetRecordId(this.formLayout)) return;
 
         // Keep data but clear ID - this creates a new record with copied data
-        cmaSetRecordId(null);
+        cmaSetRecordId(null, this.formLayout);
 
         // Clear ID and GUID fields to prevent duplicate key errors
         const fieldsToEmpty = ['ID', 'GUID', 'guid', 'Guid', 'guid2', 'Guid2', 'GUID2', 'UniqueID', 'uniqueid', 'UUID', 'uuid'];
@@ -10408,7 +10438,7 @@ class CmaFormController {
      * Preview record
      */
     previewRecord() {
-        const currentRecordIdForPreview = cmaGetRecordId();
+        const currentRecordIdForPreview = cmaGetRecordId(this.formLayout);
         if (!currentRecordIdForPreview || !this.config.previewUrl) return;
 
         let url = this.config.previewUrl;
@@ -10442,7 +10472,7 @@ class CmaFormController {
 
         // Get values from .form-layout data attributes (data-driven, no globals)
         const formLayout = document.querySelector('.form-layout');
-        const recordId = formLayout?.dataset.recordId || cmaGetRecordId() || '';
+        const recordId = formLayout?.dataset.recordId || cmaGetRecordId(this.formLayout) || '';
         const recordGuid = formLayout?.dataset.recordGuid || '';
         const recordGuid2 = formLayout?.dataset.recordGuid2 || '';
 
@@ -10534,8 +10564,8 @@ class CmaFormController {
         const recordGuid = formLayout ? (formLayout.dataset.recordGuid || '') : '';
         const recordGuid2 = formLayout ? (formLayout.dataset.recordGuid2 || '') : '';
 
-        // Also try cmaGetRecordId() as fallback
-        const fallbackId = (typeof cmaGetRecordId === 'function') ? cmaGetRecordId() : '';
+        // Also try cmaGetRecordId(this.formLayout) as fallback
+        const fallbackId = (typeof cmaGetRecordId === 'function') ? cmaGetRecordId(this.formLayout) : '';
         const id = recordId || fallbackId;
 
         // Try to resolve placeholders using current record data
@@ -10999,7 +11029,7 @@ class CmaFormController {
             listEl.innerHTML = '<div class="list-loading">...</div>';
         }
 
-        const effectiveParentId = parentId != null ? parentId : cmaGetRecordId();
+        const effectiveParentId = parentId != null ? parentId : cmaGetRecordId(this.formLayout);
         const url = `/cma/form_api.php?action=subform&${this.getFormParam()}&ParentID=${effectiveParentId}&SubformIndex=${index}`;
         const requestId = window.CMA?.requestTracker?.start(url, 'GET', 'loadSubformData[' + index + ']') || null;
 
@@ -11108,7 +11138,7 @@ class CmaFormController {
         // Load subform data if requested and not already loaded
         if (loadData) {
             const pane = document.getElementById('subform' + index);
-            if (pane && cmaGetRecordId()) {
+            if (pane && cmaGetRecordId(this.formLayout)) {
                 // Skip loading if data is already loaded (pane has 'loaded' class)
                 if (pane.classList.contains('loaded')) {
                     // cmaLog.log('activateSubformTab: skipping load for tab', index, '- already loaded');
@@ -11268,15 +11298,15 @@ class CmaFormController {
         this.openPopup({
             formId: subformId,
             recordId: null, // null = new record
-            parentId: cmaGetRecordId(),
+            parentId: cmaGetRecordId(this.formLayout),
             parentField: parentField,
             title: title,
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
             onClose: function() {
                 // Reload current record to refresh subforms
-                if (cmaGetRecordId()) {
-                    self.loadRecord(cmaGetRecordId());
+                if (cmaGetRecordId(this.formLayout)) {
+                    self.loadRecord(cmaGetRecordId(this.formLayout));
                 }
             }
         });
@@ -11404,9 +11434,9 @@ class CmaFormController {
         }
 
         const self = this;
-        // Capture the parent record id at init — never re-read cmaGetRecordId()
+        // Capture the parent record id at init — never re-read cmaGetRecordId(this.formLayout)
         // after a delete (it gets nulled), which would refresh the wrong record.
-        const parentRecordId = cmaGetRecordId();
+        const parentRecordId = cmaGetRecordId(this.formLayout);
         const config = {
             tableSelector: '#' + table.id,
             formId: 0,
@@ -11497,12 +11527,12 @@ class CmaFormController {
         // cmaLog.log('openSubformRecord: subformId=', subformId, 'recordId=', recordId, 'parentField=', parentField);
 
         const self = this;
-        // Capture the PARENT record id now. We must NOT rely on cmaGetRecordId()
+        // Capture the PARENT record id now. We must NOT rely on cmaGetRecordId(this.formLayout)
         // inside onClose: after the popup interaction (esp. a delete, which sets
         // the record id to null/the deleted id) the global no longer points at
         // the parent menu, so the subform list was reloaded for the wrong record
         // — or not at all — and the deleted row appeared to "never disappear".
-        const parentRecordId = cmaGetRecordId();
+        const parentRecordId = cmaGetRecordId(this.formLayout);
         this.openPopup({
             formId: subformId,
             recordId: recordId,
@@ -11619,18 +11649,14 @@ class CmaFormController {
      * Set dirty state
      */
     setDirty(dirty) {
-        cmaSetIsDirty(dirty);
-
-        // Update body and form-layout class for CSS-based button state control
-        document.body.classList.toggle('is-dirty', dirty);
-        const formLayout = document.querySelector('.form-layout');
-        if (formLayout) {
-            formLayout.classList.toggle('is-dirty', dirty);
-        }
+        // cmaSetIsDirty zet het attribuut én de class op dít formulier. Hieronder
+        // stond dat nog een keer, plus een kopie op document.body en een
+        // document.querySelector die opnieuw naar "een" formulier zocht.
+        cmaSetIsDirty(dirty, this.formLayout);
 
         // Update save button visual state (grayed out when no changes, but still clickable)
         // Note: We only add 'muted' class for visual feedback, NOT 'disabled' which blocks clicks
-        const saveBtn = document.querySelector('[data-action="save"]');
+        const saveBtn = this.formLayout?.querySelector('[data-action="save"]');
         if (saveBtn) {
             const tbBtn = saveBtn.closest('.tb-btn');
             if (tbBtn) {
@@ -11651,12 +11677,12 @@ class CmaFormController {
      */
     hasUnsavedChanges() {
         // Quick check: if not dirty, no changes
-        if (!cmaGetIsDirty()) return false;
+        if (!cmaGetIsDirty(this.formLayout)) return false;
 
         // If no record is loaded and not in "creating" mode, this is just an empty form
         // - no unsaved changes to worry about
         const isCreating = document.body.classList.contains('is-creating');
-        if (!cmaGetRecordId() && !isCreating) {
+        if (!cmaGetRecordId(this.formLayout) && !isCreating) {
             return false;
         }
 
@@ -11911,7 +11937,7 @@ class CmaFormController {
      * Uses clean URL format: /cma/form/formname/recordId
      */
     updateUrl() {
-        const currentRecordIdForUrl = cmaGetRecordId();
+        const currentRecordIdForUrl = cmaGetRecordId(this.formLayout);
 
         // Determine which window to update (parent if in iframe, current otherwise)
         let targetWindow = window;
@@ -12659,9 +12685,8 @@ class CmaFormController {
         // all read from DOM, so no manual cleanup needed for those.
 
         // Clean up DOM reference to prevent stale controller access
-        const formLayout = document.querySelector('.form-layout');
-        if (formLayout && formLayout._cmaFormController === this) {
-            delete formLayout._cmaFormController;
+        if (this.formLayout && this.formLayout._cmaController === this) {
+            delete this.formLayout._cmaController;
         }
 
         // Remove tracked event listeners (document, window, etc.)
@@ -12756,25 +12781,28 @@ CMA.FormController = CmaFormController;
 // Looks up the active controller via DOM at check time.
 window.cmaCheckUnsavedChanges = () => {
     return new Promise(resolve => {
-        // Use the robust per-controller check (a record must be loaded AND a field
-        // must have actually changed) rather than the raw body.is-dirty class. The
-        // class gets set spuriously — web components (lib-combo/lib-switch) dispatch
-        // 'change' on initial population — so it falsely nagged in list/table view
-        // where no record is even loaded. Fall back to the class only when there's
-        // no active controller.
-        const controller = (window.CMA && CMA.FormController && CMA.FormController.getController)
-            ? CMA.FormController.getController() : null;
-        const dirty = (controller && typeof controller.hasUnsavedChanges === 'function')
-            ? controller.hasUnsavedChanges()
-            : document.body.classList.contains('is-dirty');
+        // Vraag het aan de formulieren zelf. Elk formulier weet of er een record
+        // geladen is én of er echt een veld veranderd is; een losse class weet dat
+        // niet. Die class was hier de terugval en ging vanzelf aan — lib-combo en
+        // lib-switch sturen bij het vullen een change uit — waardoor de vraag ook
+        // kwam in een lijstweergave zonder record.
+        const dirty = Array.from(document.querySelectorAll('.form-layout')).some(fl => {
+            const c = fl._cmaController;
+            return c && typeof c.hasUnsavedChanges === 'function'
+                ? c.hasUnsavedChanges()
+                : fl.dataset.isdirty === 'true';
+        });
         if (!dirty) {
             resolve(true);
             return;
         }
         // Toon wélke velden het betreft. Een waarschuwing zonder die lijst dwingt je
         // te gokken of je iets kwijtraakt; de andere drie dialogen tonen hem al.
-        const changeSummary = (controller && typeof controller.formatChangeSummary === 'function')
-            ? controller.formatChangeSummary()
+        // De opsomming komt van het formulier dat daadwerkelijk wijzigingen heeft.
+        const viesFormulier = Array.from(document.querySelectorAll('.form-layout'))
+            .find(fl => fl._cmaController && fl._cmaController.hasUnsavedChanges());
+        const changeSummary = viesFormulier
+            ? viesFormulier._cmaController.formatChangeSummary()
             : '';
         libConfirm('Er zijn niet-opgeslagen wijzigingen.' + changeSummary, {
             title: 'Niet-opgeslagen wijzigingen',

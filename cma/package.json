@@ -41,12 +41,14 @@
         "test:storybook-icons": "cypress run --spec 'cypress/e2e/tools/storybook-icons.cy.js'",
         "build:icons": "python3 tools/build-icon-font.py",
         "build:minify": "bash tools/build-minify.sh",
-        "build": "npm run build:icons && npm run build:minify"
+        "build": "npm run build:icons && npm run build:minify",
+        "test:js": "node tests/js/run.js"
     },
     "devDependencies": {
         "cypress": "^15.7.1",
         "lightningcss": "^1.33.0",
-        "terser": "^5.46.0"
+        "terser": "^5.46.0",
+        "jsdom": "^30.0.1"
     },
     "keywords": [
         "cypress",
