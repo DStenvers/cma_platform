@@ -995,6 +995,13 @@ class CmaFormController {
         // een tweede formulier op dezelfde pagina nooit de verkeerde raakt.
         const formLayout = document.querySelector('.form-layout');
         this.formLayout = formLayout;
+        if (!formLayout) {
+            // Zonder dit element heeft de controller geen formulier om state op te
+            // bewaren, en dan gooit de eerste de beste state-helper — ergens diep in
+            // een klikafhandeling, waar je het als "de knop doet niets" merkt. Eén
+            // duidelijke melding hier is beter dan tien onvindbare verderop.
+            cmaLog.error('CmaFormController: geen .form-layout gevonden — state-helpers zullen falen');
+        }
         this.parentID = formLayout?.dataset.parentId || null;
         this.parentField = formLayout?.dataset.parentField || null;
         this._dataRecordId = formLayout?.dataset.recordId;
@@ -1094,17 +1101,23 @@ class CmaFormController {
 
     // =========================================================================
     // IDENTITY INTEGRITY CHECK
-    // The .form-layout div is the single source of truth for form identity
-    // (jsonForm, formId, recordId). Instance properties like this.jsonForm /
-    // this.formId are cached at construction time from CMA.formConfig — if
-    // an AJAX page swap replaces the DOM but a stale controller closure or
-    // an old CMA.formConfig outlives it, those caches can drift and a save
-    // could land on the wrong form/record.
+    // Het .form-layout-element is de waarheid over de identiteit van dit
+    // formulier (jsonForm, formId, recordId). this.jsonForm en this.formId zijn
+    // kopieën die bij het bouwen uit de meegegeven config komen; deze controle
+    // zet ze terug op wat het element zegt.
     //
-    // This method is the tripwire. Call it before any action that depends
-    // on identity (saveRecord first and foremost). On mismatch the DOM wins
-    // and instance properties + CMA.formConfig are silently re-synced; the
-    // action then proceeds with the corrected identity.
+    // window.CMA.formConfig wordt hier NIET meer gelezen, en dat is het punt.
+    // main.js bewaart hele pagina's (cacheCurrentPage): een formulier wordt met
+    // element én controller uit de DOM gehaald en later teruggezet. Intussen heb
+    // je een ánder formulier bezocht, dus window.CMA.formConfig hoort dan bij dát
+    // formulier. Deze methode vergeleek this.config met die globale en nam bij
+    // verschil de globale over — waarmee een teruggezette pagina de rechten,
+    // knoppen en filters van het laatst bezochte formulier kreeg. Ze schreef
+    // bovendien in dat globale object terug.
+    //
+    // De config hoort bij het element, niet bij het venster. De controller houdt
+    // de config die hij bij het bouwen kreeg; alleen de identiteit wordt tegen
+    // het element gecontroleerd.
     // =========================================================================
 
     /**
@@ -1133,8 +1146,6 @@ class CmaFormController {
             formId: this.formId != null ? String(this.formId) : null,
             directRecordId: this.directRecordId != null ? String(this.directRecordId) : null,
         };
-        const cfg = (typeof window !== 'undefined' && window.CMA && window.CMA.formConfig) || null;
-
         const mismatches = [];
 
         if (dom.jsonForm && ctrl.jsonForm !== dom.jsonForm) {
@@ -1148,27 +1159,6 @@ class CmaFormController {
             const parsed = parseInt(dom.formId, 10);
             this.formId = Number.isNaN(parsed) ? dom.formId : parsed;
         }
-        if (cfg && dom.jsonForm && cfg.jsonForm && cfg.jsonForm !== dom.jsonForm) {
-            mismatches.push({ field: 'CMA.formConfig.jsonForm', controller: cfg.jsonForm, dom: dom.jsonForm });
-            cfg.jsonForm = dom.jsonForm;
-        }
-        // Object-identity check: this.config is a reference captured at
-        // construction time (FormTemplate.php emits `new CMA.FormController(id,
-        // CMA.formConfig)`). If a page swap re-emits `CMA.formConfig = {...}`,
-        // the variable points to a fresh object while this.config still holds
-        // the previous one. Every per-form field (accessLevel, canAdd/Delete/
-        // Copy, filterIdName, formName, …) reads through this.config — when
-        // it's stale the wrong permissions/buttons/filters are used. Compare
-        // references and resync the whole object on mismatch.
-        if (cfg && this.config && this.config !== cfg) {
-            mismatches.push({
-                field: 'this.config (object identity)',
-                controllerJsonForm: this.config.jsonForm,
-                cfgJsonForm: cfg.jsonForm,
-            });
-            this.config = cfg;
-        }
-
         if (mismatches.length === 0) {
             return true;
         }
@@ -10558,19 +10548,17 @@ class CmaFormController {
     handleExtraButtonClick(url, title, openInNewWindow) {
         if (!url) return;
 
-        // Get record ID from form layout data attribute
-        const formLayout = document.querySelector('.form-layout');
-        const recordId = formLayout ? (formLayout.dataset.recordId || '') : '';
+        // Record, guid en guid2 van dít formulier. Hier stond een tweede lezing als
+        // "fallback" via cmaGetRecordId(), maar die haalt exact hetzelfde attribuut
+        // van hetzelfde element — dubbel werk dat sinds de helper een ontbrekend
+        // element afkeurt ook nog kon gooien. Eén lezing, en die faalt niet stil.
+        const formLayout = this.formLayout || document.querySelector('.form-layout');
+        const id = formLayout ? (formLayout.dataset.recordId || '') : '';
         const recordGuid = formLayout ? (formLayout.dataset.recordGuid || '') : '';
         const recordGuid2 = formLayout ? (formLayout.dataset.recordGuid2 || '') : '';
 
-        // Also try cmaGetRecordId(this.formLayout) as fallback
-        const fallbackId = (typeof cmaGetRecordId === 'function') ? cmaGetRecordId(this.formLayout) : '';
-        const id = recordId || fallbackId;
-
         // Try to resolve placeholders using current record data
         if (/\[(id|guid|guid2)\]/i.test(url)) {
-            // cmaLog.log('handleExtraButtonClick: url=', url, 'recordId=', recordId, 'fallbackId=', fallbackId, 'id=', id);
 
             if (!id) {
                 this.showError('Selecteer eerst een record');
