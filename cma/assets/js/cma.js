@@ -491,11 +491,7 @@
             // Literatuur zoeken is only available for RINO Portal
             const appName = (CMA.formConfig && CMA.formConfig.appName) || '';
             if (appName.toLowerCase().indexOf('rino') === -1) {
-                if (typeof libAlert === 'function') {
-                    libAlert('Deze functie is niet beschikbaar in deze applicatie.', { type: 'info' });
-                } else {
-                    libAlert('Deze functie is niet beschikbaar in deze applicatie.');
-                }
+                libAlert('Deze functie is niet beschikbaar in deze applicatie.', { type: 'info' });
                 return;
             }
 
@@ -794,33 +790,23 @@
             if (!actionElt) actionElt = lib_form_findfield('actie');
             const frm = document.forms.main;
 
-            if (typeof libConfirm === 'function') {
-                libConfirm('Wil je dit record verwijderen?', {
-                    title: 'Verwijderen',
-                    confirmText: 'Ja verwijder',
-                    cancelText: 'Nee laat staan',
-                    type: 'warning'
-                }).then(function(confirmed) {
-                    if (confirmed) {
-                        if (actionElt) actionElt.value = 'delete';
-                        CMA.form.changeLogDelete(frm);
-                        frm.submit();
-                    }
-                });
-            } else {
-                libConfirm('Wil je dit record verwijderen?', {
-                    title: 'Verwijderen',
-                    confirmText: 'Ja verwijder',
-                    cancelText: 'Nee laat staan',
-                    type: 'warning'
-                }).then(function(confirmed) {
-                    if (confirmed) {
-                        if (actionElt) actionElt.value = 'delete';
-                        CMA.form.changeLogDelete(frm);
-                        frm.submit();
-                    }
-                });
-            }
+            // Eén aanroep. Hier stond een wacht op libConfirm met een else-tak die
+            // libConfirm opnieuw aanriep — twee identieke takken, dus de wacht deed
+            // niets behalve de indruk wekken dat er een terugval was. lib-dialog.js
+            // zit in de CMA-bundel; ontbreekt hij, dan hoort dat luid te falen en
+            // niet in een verwijderactie zonder bevestiging te eindigen.
+            libConfirm('Wil je dit record verwijderen?', {
+                title: 'Verwijderen',
+                confirmText: 'Ja verwijder',
+                cancelText: 'Nee laat staan',
+                type: 'warning'
+            }).then(function(confirmed) {
+                if (confirmed) {
+                    if (actionElt) actionElt.value = 'delete';
+                    CMA.form.changeLogDelete(frm);
+                    frm.submit();
+                }
+            });
         }
 
         function doSave(bClose) {

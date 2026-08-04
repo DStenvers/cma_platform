@@ -1714,7 +1714,7 @@ class CmaFormController {
 
             // Also check if we're inside a sidepanel container (lib_sidepanel_container)
             // This catches cases where content is loaded directly without iframe
-            if (typeof lib_IsInSidePanel === 'function' && lib_IsInSidePanel()) {
+            if (lib_IsInSidePanel()) {
                 // cmaLog.log('updateBreadcrumb: skipping - in sidepanel');
                 return;
             }
@@ -1850,7 +1850,7 @@ class CmaFormController {
         // Include recordId in cache key for record-dependent combos
         const comboFields = this.getComboFields();
         let cacheResult = { cached: {}, uncached: comboFields };
-        if (typeof cmaComboCache !== 'undefined' && cmaComboCache.getMultiple) {
+        if (cmaComboCache.getMultiple) {
             cacheResult = cmaComboCache.getMultiple(this.formId, comboFields, cmaGetRecordId(this.formLayout));
         }
         const uncachedFields = cacheResult.uncached || [];
@@ -1858,7 +1858,7 @@ class CmaFormController {
         // Get uncached search panel combos
         const searchComboFields = this.getSearchPanelComboFields();
         let searchCacheResult = { cached: {}, uncached: searchComboFields };
-        if (typeof cmaComboCache !== 'undefined' && cmaComboCache.getMultiple) {
+        if (cmaComboCache.getMultiple) {
             searchCacheResult = cmaComboCache.getMultiple(this.formId, searchComboFields, cmaGetRecordId(this.formLayout));
         }
         const uncachedSearchFields = searchCacheResult.uncached || [];
@@ -2013,7 +2013,7 @@ class CmaFormController {
         this.initHtmlEditorsOnce();
         this.setDirty(false);
         // Initialize formval_nl input masking (digits-only for numbers, time formatting, etc.)
-        if (typeof form_init_container === 'function') {
+        if (form_init_container) {
             form_init_container(this.mainForm);
         }
         this.captureOriginalValues(); // Capture form values after population for change tracking
@@ -3722,9 +3722,7 @@ class CmaFormController {
         if (this.mainForm) {
             this.mainForm.addEventListener('change', () => this.setDirty(true));
             // Debounce input events to avoid excessive setDirty calls on every keystroke
-            const debouncedSetDirty = (typeof cmaDebounce === 'function')
-                ? cmaDebounce(() => this.setDirty(true), 150)
-                : () => this.setDirty(true);
+            const debouncedSetDirty = cmaDebounce(() => this.setDirty(true), 150);
             this.mainForm.addEventListener('input', debouncedSetDirty);
 
             // lib-combo change events bubble, but listen explicitly for clarity
@@ -4046,9 +4044,7 @@ class CmaFormController {
         // an external reference the editor can't resolve on our filesystem.
         const currentValue = field.value || '';
         if (!currentValue || this.isAbsoluteUrl(currentValue)) {
-            if (typeof libAlert === 'function') {
-                libAlert('Er is nog geen (lokale) afbeelding om te bewerken.');
-            }
+            libAlert('Er is nog geen (lokale) afbeelding om te bewerken.');
             return;
         }
 
@@ -8141,7 +8137,7 @@ class CmaFormController {
                 }
                 this.updateStatus('Toevoegen (kopie van ' + sourceRecordId + ')');
                 // Initialize formval_nl input masking for copied record form
-                if (typeof form_init_container === 'function') {
+                if (form_init_container) {
                     form_init_container(this.mainForm);
                 }
                 this.setDirty(true); // Mark as dirty since we have data to save
@@ -8897,7 +8893,7 @@ class CmaFormController {
         this.initHtmlEditorsOnce();
         this.setDirty(false);
         // Initialize formval_nl input masking for new record form
-        if (typeof form_init_container === 'function') {
+        if (form_init_container) {
             form_init_container(this.mainForm);
         }
         this.captureOriginalValues(); // Capture default values as original for change tracking
@@ -9422,7 +9418,7 @@ class CmaFormController {
                 // added/changed a value that other forms' combos depend on.
                 // 5-min TTL was masking this; explicit clear ensures combos
                 // refetch on next render.
-                if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
+                if (typeof cmaComboCache.clear === 'function') {
                     cmaComboCache.clear();
                 }
                 cmaSetRecordId(result.id, this.formLayout);
@@ -10360,7 +10356,7 @@ class CmaFormController {
                 // Invalidate combo caches — a deleted row may have been an
                 // option in some other form's combo. See saveRecord for the
                 // matching call.
-                if (typeof cmaComboCache !== 'undefined' && typeof cmaComboCache.clear === 'function') {
+                if (typeof cmaComboCache.clear === 'function') {
                     cmaComboCache.clear();
                 }
                 const deletedRecordId = cmaGetRecordId(this.formLayout);
@@ -12160,7 +12156,7 @@ class CmaFormController {
         }
         // Check for sidepanel
         try {
-            if (typeof lib_IsInSidePanel === 'function' && lib_IsInSidePanel()) {
+            if (lib_IsInSidePanel()) {
                 return true;
             }
         } catch (e) {
@@ -12265,7 +12261,7 @@ class CmaFormController {
 
         // Handle sidepanel
         try {
-            if (typeof lib_IsInSidePanel === 'function' && lib_IsInSidePanel()) {
+            if (lib_IsInSidePanel()) {
                 cmaLog.log('[closeForm] in sidepanel, updateValuesField=', updateValuesField, 'recordId=', recordId, 'deleted=', deleted);
                 if (updateValuesField && recordId && !deleted) {
                     cmaLog.log('[closeForm] calling refreshParentCombobox');

@@ -529,11 +529,9 @@ CMA.utils.cancelPopupWatch = null;
         }
 
         // Check user preference for popup style
-        const prefAvailable = typeof lib_getPopupStylePreference === 'function';
-        const pref = prefAvailable ? lib_getPopupStylePreference() : 'popup';
-        const useSidepanel = pref === 'sidepanel';
+        const useSidepanel = lib_getPopupStylePreference() === 'sidepanel';
 
-        if (useSidepanel && typeof lib_OpenSidePanel === 'function') {
+        if (useSidepanel) {
             // Use sidepanel - opens from the right side
             lib_OpenSidePanel(url, windowName, width, title);
             if (onClose) {
