@@ -557,7 +557,7 @@ if ($backend === 'none' || !$cacheEnabled) {
     $caches['App Cache'] = [
         'available' => true,
         'result' => true,
-        'detail' => $_preAppCacheCount . ' bestanden',
+        'detail' => cache_aantal($_preAppCacheCount, 'bestand', 'bestanden'),
         'count' => $_preAppCacheCount,
         'files' => $_clearedFiles['app_cache']
     ];
@@ -569,7 +569,7 @@ if ($backend === 'none' || !$cacheEnabled) {
 $caches['File Cache'] = [
     'available' => true,
     'result' => true,
-    'detail' => $_preFileCacheCount . ' bestanden' . ($_preFileCacheDirs > 0 ? ", {$_preFileCacheDirs} mappen" : ''),
+    'detail' => cache_aantal($_preFileCacheCount, 'bestand', 'bestanden') . ($_preFileCacheDirs > 0 ? ', ' . cache_aantal($_preFileCacheDirs, 'map', 'mappen') : ''),
     'count' => $_preFileCacheCount,
     'files' => $_clearedFiles['file_cache']
 ];
@@ -578,7 +578,7 @@ $caches['File Cache'] = [
 $caches['Minify'] = [
     'available' => true,
     'result' => true,
-    'detail' => $_preMinifyCount . ' bestanden',
+    'detail' => cache_aantal($_preMinifyCount, 'bestand', 'bestanden'),
     'count' => $_preMinifyCount,
     'files' => $_clearedFiles['minify']
 ];
@@ -589,7 +589,7 @@ if (is_dir($_twigCacheDir) || $_preTwigCount > 0) {
     $caches['Twig'] = [
         'available' => true,
         'result' => true,
-        'detail' => $_preTwigCount . ' bestanden' . ($_preTwigDirs > 0 ? ", {$_preTwigDirs} mappen" : ''),
+        'detail' => cache_aantal($_preTwigCount, 'bestand', 'bestanden') . ($_preTwigDirs > 0 ? ', ' . cache_aantal($_preTwigDirs, 'map', 'mappen') : ''),
         'count' => $_preTwigCount,
         'files' => $_clearedFiles['twig']
     ];
@@ -599,7 +599,7 @@ if (is_dir($_twigCacheDir) || $_preTwigCount > 0) {
 $caches['Form HTML'] = [
     'available' => true,
     'result' => true,
-    'detail' => $_preFormCount . ' bestanden',
+    'detail' => cache_aantal($_preFormCount, 'bestand', 'bestanden'),
     'count' => $_preFormCount,
     'files' => $_clearedFiles['form_html']
 ];
@@ -655,7 +655,7 @@ $caches['Groups'] = [
 $caches['Sessions'] = [
     'available' => is_dir($_sessionDir) && is_writable($_sessionDir),
     'result' => true,
-    'detail' => $_preSessionCount . ' bestanden',
+    'detail' => cache_aantal($_preSessionCount, 'bestand', 'bestanden'),
     'count' => $_preSessionCount,
     'files' => $_clearedFiles['sessions'],
     'extra' => $_preSessionCount > 0 ? [
@@ -678,7 +678,7 @@ if (is_dir($_tempDir)) {
 $caches['Temp'] = [
     'available' => $_tempAvailable,
     'result' => true,
-    'detail' => $_preTempCount . ' bestanden',
+    'detail' => cache_aantal($_preTempCount, 'bestand', 'bestanden'),
     'count' => $_preTempCount,
     'files' => $_clearedFiles['temp'],
     'extra' => $_preTempCount > 0 ? [
@@ -829,7 +829,7 @@ if ($_terserAvailable) {
 $caches['JS Minify'] = [
     'available' => $_terserAvailable,
     'result' => $_jsMinifyResult,
-    'detail' => $_jsMinifyCount . ' bestanden',
+    'detail' => cache_aantal($_jsMinifyCount, 'bestand', 'bestanden'),
     'count' => $_jsMinifyCount,
     'files' => $_clearedFiles['js_minify'],
     'extra' => $_jsMinifyCount > 0 ? array_merge([
@@ -918,7 +918,7 @@ if ($_cssAvailable) {
 $caches['CSS Minify'] = [
     'available' => $_cssAvailable,
     'result'    => $_cssMinifyResult,
-    'detail'    => $_cssMinifyCount . ' bestanden',
+    'detail'    => cache_aantal($_cssMinifyCount, 'bestand', 'bestanden'),
     'count'     => $_cssMinifyCount,
     'files'     => $_clearedFiles['css_minify'],
     'extra'     => $_cssMinifyCount > 0
@@ -942,6 +942,15 @@ foreach ($caches as $name => $info) {
         $anyWarn = true;
         $warnCaches[] = $name;
     }
+}
+
+/**
+ * Aantal met het juiste woord erachter: "1 bestand", "3 bestanden".
+ * Stond overal als '... bestanden' hardgecodeerd, dus ook bij precies één.
+ */
+function cache_aantal(int $aantal, string $enkelvoud, string $meervoud): string
+{
+    return $aantal . ' ' . ($aantal === 1 ? $enkelvoud : $meervoud);
 }
 
 // Helper function to format file size
@@ -1292,7 +1301,7 @@ if ($hasDetails) {
     echo '<a href="#" id="toggleDetails" onclick="toggleDetails(); return false;" style="color:var(--link-color,#077ab2);text-decoration:underline;">';
     echo '<span class="lnr lnr-list" style="margin-right:5px;"></span>Toon details</a>';
     if (count($allClearedFiles) > 0) {
-        echo ' <span style="color:var(--text-muted,#888);">(' . count($allClearedFiles) . ' bestanden, ' . formatSize($totalSize) . ' totaal)</span>';
+        echo ' <span style="color:var(--text-muted,#888);">(' . cache_aantal(count($allClearedFiles), 'bestand', 'bestanden') . ', ' . formatSize($totalSize) . ' totaal)</span>';
     }
     echo '</p>';
 

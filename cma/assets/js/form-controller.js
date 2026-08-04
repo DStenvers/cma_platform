@@ -9407,6 +9407,13 @@ class CmaFormController {
                 }
                 cmaSetRecordId(result.id);
                 this.setDirty(false);
+                // De vergelijkingsbasis moet mee: data-original-value stond nog op de
+                // waarden van vóór het bewerken. Zonder dit meldt het formulier later
+                // opnieuw "niet-opgeslagen wijzigingen" en somt het precies de velden
+                // op die je zojuist hebt bewaard — de vlag gaat namelijk vanzelf weer
+                // aan zodra lib-combo of lib-switch bij het verversen een change
+                // uitstuurt, en dan wordt er tegen die oude waarden vergeleken.
+                this.captureOriginalValues();
                 this.updateStatus(result.message);
 
                 // Update URL first
@@ -12764,11 +12771,17 @@ window.cmaCheckUnsavedChanges = () => {
             resolve(true);
             return;
         }
-        libConfirm('Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je wilt navigeren?', {
+        // Toon wélke velden het betreft. Een waarschuwing zonder die lijst dwingt je
+        // te gokken of je iets kwijtraakt; de andere drie dialogen tonen hem al.
+        const changeSummary = (controller && typeof controller.formatChangeSummary === 'function')
+            ? controller.formatChangeSummary()
+            : '';
+        libConfirm('Er zijn niet-opgeslagen wijzigingen.' + changeSummary, {
             title: 'Niet-opgeslagen wijzigingen',
             confirmText: 'Verlaat pagina',
             cancelText: 'Blijven',
-            type: 'warning'
+            type: 'warning',
+            html: true
         }).then(function(leave) {
             resolve(leave);
         });
