@@ -98,12 +98,32 @@ if (isset($_GET['api']) && $_GET['api'] === '1') {
     exit;
 }
 
-// Immediate visual feedback: everything below (the pre-bootstrap file clears
-// AND the bootstrap itself) runs BEFORE the results page renders, which on a
-// large cache takes seconds of blank tab. Flush a busy indicator first; its
-// styling comes from the regular bundle (style.css .cma-tool__busy — no
-// inline CSS), linked here explicitly because the page <head> only renders
-// after the work is done. The indicator is removed again by the results page.
+// De bootstrap MOET vóór de eerste uitvoer geladen zijn.
+//
+// Hieronder wordt bewust alles wat in een buffer staat weggeschreven, zodat de
+// gebruiker meteen "even geduld" ziet. Daarmee zijn de headers verstuurd. Stond
+// het laden van de bootstrap daarná (dat was zo), dan kwam het sessieblok in
+// _bootstrap.php aan de beurt met de headers al weg: vier waarschuwingen op een
+// rij (session_save_path, session_set_cookie_params, session_cache_limiter,
+// session_start), en de sessie van dit verzoek belandde op het standaardpad in
+// plaats van de map van de site.
+//
+// Bijwerking, en dat is de prijs: de tellingen hieronder bevatten nu ook wat de
+// bootstrap zelf net heeft aangemaakt. Dat is een paar regels op een cache die
+// zo wordt geleegd; vier waarschuwingen per keer legen is de slechtere ruil.
+require_once __DIR__ . '/../bootstrap.inc';
+
+// Pas nu klopt session.save_path: de bootstrap wijst hem naar de sessiemap van
+// de site. Hierboven las ini_get() nog het standaardpad, dus dan telde en
+// ruimde de tool de verkeerde map op.
+$_sessionDir = ini_get('session.save_path') ?: sys_get_temp_dir();
+
+// Immediate visual feedback: everything below (the file clears AND the results
+// page) runs BEFORE the results page renders, which on a large cache takes
+// seconds of blank tab. Flush a busy indicator first; its styling comes from the
+// regular bundle (style.css .cma-tool__busy — no inline CSS), linked here
+// explicitly because the page <head> only renders after the work is done. The
+// indicator is removed again by the results page.
 echo '<link rel="stylesheet" href="/cma/minify.php?f=assets/css/style.css&v=busy">' . "\n";
 echo '<div id="clearcacheBusy" class="cma-tool__busy">Caches worden geleegd, even geduld&hellip;</div>' . "\n";
 while (ob_get_level() > 0) { @ob_end_flush(); }
@@ -429,7 +449,7 @@ if ($_preOpcacheResult === false) {
 }
 
 // ============================================================================
-// PHASE 2: Load bootstrap (this may create new cache entries)
+// PHASE 2: Bootstrap is al geladen (bovenaan, vóór de eerste uitvoer)
 // ============================================================================
 
 use App\Library\Application;
@@ -437,8 +457,6 @@ use App\Library\Cache;
 use App\Library\Response;
 use Cma\Services\BaseFormService;
 use Cma\ToolbarHelper;
-
-require_once __DIR__ . '/../bootstrap.inc';
 
 Response::noCache();
 

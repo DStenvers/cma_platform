@@ -52,12 +52,13 @@ door `lib_IsOpenUrl()`, dat het aan de DOM vraagt.
 - [ ] **CKEditor toont geel en geen knoppenbalk** in een formulier. Geparkeerd op
       verzoek. Nodig om verder te komen: welk formulier, en of het op een
       bestaand of een nieuw record misgaat.
-- [ ] **Session-warnings op de testsite** (`session_save_path()` en drie andere,
-      "headers already sent", `_bootstrap.php` rond regel 172). De wrapper opent
-      bewust een output-buffer vóór de bootstrap, dus dit kan alleen als die
-      buffer al weg is (`_bootstrap_error_output()` gooit hem leeg) of als de
-      bootstrap buiten de wrapper draait. Nodig: wat er in de paginabron bóven
-      die eerste Warning staat — dat is de uitvoer die de headers verstuurde.
+- [x] **Gedaan (v1.29.231): session-warnings bij Cache leegmaken.** De tool
+      sloot élke output-buffer om de "even geduld"-melding meteen te tonen, en
+      laadde de bootstrap pas daarna — dus draaide het sessieblok met de headers
+      al verstuurd. De sessie belandde daardoor ook op het standaardpad in plaats
+      van de sessiemap van de site, waardoor de tool de verkeerde map telde en
+      opruimde. Bootstrap gaat nu vóór de eerste uitvoer;
+      `ClearCacheBootstrapVolgordeTest` bewaakt de volgorde.
 
 ### Geleverd maar door niemand bekeken
 
