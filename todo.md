@@ -1,5 +1,91 @@
 # TODO
 
+## Globals uit de formulier- en vensterlaag
+
+Doel: geen state die niet weet bij welk formulier of welk venster hij hoort. De
+aanname is dat het eindgetal 0 is; wat hieronder als "verdedigbaar" staat, staat
+er tot iemand het onderuit haalt (dat is met de dedupe al één keer gebeurd).
+
+**Getest, en dat moet zo blijven.** `cd cma && npm run test:js` draait zonder
+site (jsdom, functies uit de uitgeleverde bron geknipt). Raak je state aan, dan
+hoort daar een test bij — Cypress kan dit niet dekken, want dat heeft een
+draaiende site nodig.
+
+**Al opgeruimd (v1.29.229):** de `document.querySelector('.form-layout')`-terugval
+in de vier state-helpers (77 aanroepen, nul gaven een element mee);
+`document.body.is-dirty`; de dubbele controller-pointer `_cmaFormController`;
+en de drie mechanismen achter "staat dit al open" (twee met een klok) vervangen
+door `lib_IsOpenUrl()`, dat het aan de DOM vraagt.
+
+### Nog te doen
+
+- [ ] **Zeven body-classes naar `.form-layout`:** `is-creating`, `has-record`,
+      `has-subform`, `data-loading`, `mode-tree`, `mode-table`, `form-readonly`.
+      Ze beschrijven de toestand van hét formulier in dit venster maar staan op
+      de body. Werkt zolang er één formulier per document is — en dat staat
+      nergens opgeschreven. Omvang: 73 CSS-regels en 61 schrijvers. Puur
+      zichtbaar werk, dus dit wil je kunnen nakijken op een scherm.
+      Let op: `form.css` heeft nu één regel die beide werelden overbrugt
+      (`body:not(.is-creating) .form-layout:not(.is-dirty) #toolbar_cancel`);
+      die kan mee zodra `is-creating` verhuist.
+- [ ] **`CMA.formConfig` één keer lezen en aan de constructor geven.** De
+      controller cachet zijn identiteit eruit, en omdat die bij een
+      AJAX-paginawissel kan verouderen staat er een `verifyIdentity()`-tripwire
+      omheen die bij verschil de DOM laat winnen — inclusief een vergelijking op
+      object-identiteit van `this.config`. Een tripwire is een bekentenis dat de
+      bron niet betrouwbaar is; met één lezing kan hij weg.
+- [ ] **De drie die nu nog verdedigd worden**, elk met de reden erbij zodat ze
+      aanvalbaar blijven:
+      - de doorgeefluiken op `window` (`loadRecord`, `act`, `cmaIsDirty`, de
+        zoek-handlers) bestaan omdat geconverteerde ASP-pagina's inline
+        `onclick="loadRecord(5)"` uitzenden, en inline attributen kunnen alleen
+        bij window-scope. Verdwijnt met die opmaak, niet eerder.
+      - `lib_sidepanel_stack` en `lib_win_counter` in het topvenster: die *zijn*
+        het register van wat er openstaat, over documenten heen.
+      - localStorage-sleutels: voorkeuren die vensters én sessies overleven.
+        Opslag, geen state.
+
+## Openstaand van 2026-08-03/04
+
+### Wacht op informatie
+
+- [ ] **CKEditor toont geel en geen knoppenbalk** in een formulier. Geparkeerd op
+      verzoek. Nodig om verder te komen: welk formulier, en of het op een
+      bestaand of een nieuw record misgaat.
+- [ ] **Session-warnings op de testsite** (`session_save_path()` en drie andere,
+      "headers already sent", `_bootstrap.php` rond regel 172). De wrapper opent
+      bewust een output-buffer vóór de bootstrap, dus dit kan alleen als die
+      buffer al weg is (`_bootstrap_error_output()` gooit hem leeg) of als de
+      bootstrap buiten de wrapper draait. Nodig: wat er in de paginabron bóven
+      die eerste Warning staat — dat is de uitvoer die de headers verstuurde.
+
+### Geleverd maar door niemand bekeken
+
+Alles hieronder heeft een test of een meting, maar niemand heeft het op een
+scherm gezien. Waar het misgaat, gaat het zichtbaar mis.
+
+- [ ] Trechter op een gefilterde kolom (v1.29.222, glyph pas compleet in .226).
+- [ ] Versleepbare kolombreedte (v1.29.223) — greep zat als dode kopie in
+      `.clicker`.
+- [ ] Gemaximaliseerd zijpaneel (v1.29.224) — was 1280px breed op x=-15 in een
+      venster van 1265.
+- [ ] Laadindicator van `cma-launcher` op `lib-loader` (v1.29.227): 32px waar het
+      eerst 36px was.
+- [ ] Bewaar- en verlaatstroom (v1.29.228): na opslaan hoort er géén waarschuwing
+      meer te komen, en bij een echte wijziging hoort "Toon 1 wijziging" te
+      verschijnen met veld, oude en nieuwe waarde.
+
+### Sitewerk (mijnRINO, niet dit repo)
+
+- [ ] **De deprecatie van `literatuuroverzicht` is halverwege.** De verplaatsing
+      naar `.deprecated/` is teruggedraaid om de site overeind te krijgen. Wie
+      hem afmaakt: eerst de aanroep van `OpleidingWriteLiteratuuroverzicht()` in
+      `src/opleiding/opleiding_draaiboek_digitaal.inc:169` opruimen, dán pas het
+      `require_once` uit `index.php`. Andersom valt de draaiboekpagina om.
+- [ ] **Verloren `index.php`-werk.** Twee takken waren eruit gehaald en zijn niet
+      hersteld: `evaluatie_zalencentrum` → `EvaluatieRapportZalencentrum()` en
+      `evaluatie_bnsmanrapdoc` → `EvaluatieBNSManRapDoc()`.
+
 ## Dubbele componenten samenvoegen
 
 Inventarisatie 2026-08-03: per UI-taak is geteld hoeveel losse implementaties er
