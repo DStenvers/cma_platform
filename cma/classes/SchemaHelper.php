@@ -284,7 +284,26 @@ class SchemaHelper
                         @odbc_free_result($colResult);
                     }
                     @odbc_close($odbc);
-                } else {
+                }
+
+                // Terugval op PDO zodra de ODBC-weg NIETS heeft opgeleverd, niet alleen
+                // wanneer er geen ODBC-handle is.
+                //
+                // WAAROM: odbc_columns() kan keurig een resultaat teruggeven en er tóch geen
+                // enkele rij in stoppen. Gemeten op een mijnRINO-site (Access via PDO_ODBC,
+                // extensie geladen, handle open): tblUsers heeft 16 kolommen en 17 rijen, maar
+                // odbc_columns() gaf 0 rijen - ook met ('',''), ('%','%','%') en (null,null,'%')
+                // als argumenten. getColumns() gaf daardoor een LEGE lijst terug en hasColumn()
+                // was voor elke kolom false.
+                //
+                // Dat is niet onschuldig: cma/login.php kiest met hasColumn('userLevel') tussen
+                // de moderne en de legacy adminkolom. Met een lege schemalijst viel hij altijd
+                // in de legacy-tak en probeerde te schrijven naar userAdministrator - een kolom
+                // die op zo'n site niet bestaat. Elke paginaload leverde twee stacktraces op
+                // (~80 logregels per dag).
+                //
+                // De PDO-weg werkt daar wel: SELECT TOP 1 * geeft alle 16 kolommen.
+                if (!$columns) {
                     // Fallback: PDO getColumnMeta
                     $stmt = $pdo->prepare("SELECT TOP 1 * FROM [{$tableName}]");
                     $stmt->execute();

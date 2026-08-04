@@ -22,6 +22,46 @@ use Cma\SqlHelper;
 
 class SchemaHelperTest extends TestCase
 {
+    // ---- getColumns(): de Access-terugval ---------------------------------
+
+    /**
+     * De PDO-terugval in de Access-tak van getColumns() moet afhangen van het RESULTAAT,
+     * niet van de vraag of er een ODBC-handle is.
+     *
+     * Waarom dit een BRONcontrole is en geen gewone unittest: getColumns() heeft een levende
+     * verbinding nodig, en dit bestand laat die methodes bewust aan integratiedekking over
+     * (zie de kop). Het gedrag dat hier misging is puur besturingslogica, en dat is op deze
+     * manier wel vast te leggen.
+     *
+     * Wat er misging: odbc_columns() kan een geldig resultaat teruggeven en er tóch geen enkele
+     * rij in stoppen. Gemeten op een mijnRINO-site (Access via PDO_ODBC, extensie geladen,
+     * handle open): tblUsers heeft 16 kolommen en 17 rijen, odbc_columns() gaf 0 rijen - ook
+     * met ('',''), ('%','%','%') en (null,null,'%'). Omdat de terugval in een `else` stond die
+     * alleen bij een ONTBREKENDE handle liep, gaf getColumns() een lege lijst en was
+     * hasColumn() voor elke kolom false.
+     *
+     * Gevolg in de praktijk: cma/login.php kiest met hasColumn('userLevel') tussen de moderne
+     * en de legacy adminkolom, viel daardoor altijd in de legacy-tak, en probeerde te schrijven
+     * naar userAdministrator - een kolom die op zo'n site niet bestaat. Twee stacktraces per
+     * paginaload, ~80 logregels per dag.
+     */
+    public function testAccessKolommenVallenTerugOpPdoBijEenLeegOdbcResultaat(): void
+    {
+        $bron = file_get_contents(__DIR__ . '/../classes/SchemaHelper.php');
+
+        $this->assertStringContainsString(
+            'if (!$columns) {',
+            $bron,
+            'de PDO-terugval in getColumns() hangt niet meer af van het resultaat'
+        );
+
+        // En de terugval moet NA de odbc-tak staan, niet ervoor.
+        $posOdbc = strpos($bron, 'odbc_columns($odbc');
+        $this->assertTrue($posOdbc !== false, 'de odbc-tak van getColumns() is verdwenen');
+        $posVal = strpos($bron, 'if (!$columns) {', (int)$posOdbc);
+        $this->assertTrue($posVal !== false, 'er staat geen terugval na de odbc-tak van getColumns()');
+    }
+
     // ---- categorizeType(): integer ODBC/ADO type codes -------------------
 
     public function testCategorizeDateTypes(): void
