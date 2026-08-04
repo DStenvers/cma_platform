@@ -26,18 +26,17 @@ omhullingen: ze doen alle vier `libToast[type] || libToast.info` met een
 `typeof`-wacht eromheen. Geen enkele consumer-site gebruikt `cmaNotification`
 zelf (nagekeken in karaat, rec, klei, mijnRINO), dus die naam mag weg.
 
-- [ ] `libToast.show(message, type, duration)` toevoegen — het enige punt dat een
-      dynamisch type aanneemt; dat is precies wat elke omhulling zelf nabouwde.
-- [ ] `cmaNotification` verwijderen; de twee aanroepen in `form-controller.js`
-      naar `libToast` laten wijzen.
-- [ ] `CmaInlineEdit.showNotification` laten delegeren (`showSuccess`/`showError`
-      blijven — die voegen echt iets toe: `showError` meldt óók aan
-      `CmaErrorHandler`).
-- [ ] `cmaApiError.showError`: de driedubbele terugvalketen wordt één
-      `libToast.error`.
-- [ ] `imgEditor.toast`: de kale `alert()` eruit.
-- [ ] Storybook + documentatie: één tabel "welke melding kies je wanneer"
-      (toast / blok / modaal), zodat de volgende omhulling niet ontstaat.
+**Gedaan in v1.29.220.** `libToast.show(message, type, duration)` is het enige
+punt dat een dynamisch type aanneemt; `cmaNotification` is weg; beide
+`showNotification`-kopieën delegeren; de driedubbele terugvalketen in
+`cmaApiError.showError` is één `libToast.error`; de kale `alert()` uit de
+afbeeldingsbewerker is weg; storybook en documentatie hebben de tabel "welke
+melding kies je wanneer".
+
+Twee bugs kwamen daarbij boven en zijn mee opgelost: `Lib_ToonTopNotificatie`
+stond twee keer gedefinieerd (scriptvolgorde bepaalde de winnaar), en hij gaf
+libToast een object mee waar een getal hoort — waardoor geen enkele melding nog
+vanzelf verdween.
 
 ### 2. Venster — de rolverdeling
 
