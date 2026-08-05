@@ -3423,10 +3423,15 @@ class CmaFormController {
             // });
         });
 
-        // Ensure editor config is set from CMA.formConfig (JSON form templates
-        // don't call SetFKEditorConfig — the config is in CMA.formConfig.editorConfig)
-        if (CMA.formConfig?.editorConfig && typeof CMA.editor?.setConfig === 'function') {
-            CMA.editor.setConfig(CMA.formConfig.editorConfig);
+        // De editor-instellingen komen uit de config van DIT formulier, niet uit
+        // window.CMA.formConfig. main.js bewaart hele pagina's (cacheCurrentPage) en
+        // zet ze later terug; die globale hoort dan bij het formulier dat je intussen
+        // bezocht. Voor de editor gaat dat over allowBR, customCSS en extraPlugins —
+        // en die laatste bepaalt of de literatuur-plugin meekomt, wat per klant
+        // verschilt. JSON-formulieren roepen SetFKEditorConfig niet aan; de config
+        // zit in this.config.editorConfig.
+        if (this.config?.editorConfig && typeof CMA.editor?.setConfig === 'function') {
+            CMA.editor.setConfig(this.config.editorConfig);
         }
 
         // Check if CKEDITOR and CreateFKEditor function are available

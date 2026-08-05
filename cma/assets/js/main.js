@@ -687,7 +687,7 @@
         }
 
         setActiveMenuItem(page);
-        if (typeof cmaPerf !== 'undefined') cmaPerf.count('loadPage.iframe');
+        cmaPerf.count('loadPage.iframe');
     }
 
     window.loadPage = async function(page, updateHistory) {
@@ -713,9 +713,7 @@
 
         // cmaLog.log('[loadPage] Loading:', page);
 
-        if (typeof cmaPerf !== 'undefined') {
-            cmaPerf.mark('loadPage_start');
-        }
+        cmaPerf.mark('loadPage_start');
 
         const contentArea = document.getElementById('contentArea');
         if (!contentArea) {
@@ -725,7 +723,7 @@
 
         // ── DOM Page Cache: check for cached version ──
         if (_pageCache.has(page)) {
-            if (typeof cmaPerf !== 'undefined') cmaPerf.count('loadPage.cacheHit');
+            cmaPerf.count('loadPage.cacheHit');
 
             // Cache the current page before restoring the target
             if (currentPage && shouldCachePage(currentPage)) {
@@ -770,16 +768,14 @@
                 document.title = titleText + ' | CMA';
             }
 
-            if (typeof cmaPerf !== 'undefined') {
-                cmaPerf.mark('loadPage_end');
-                cmaPerf.measure('loadPage.total', 'loadPage_start', 'loadPage_end');
-            }
+            cmaPerf.mark('loadPage_end');
+            cmaPerf.measure('loadPage.total', 'loadPage_start', 'loadPage_end');
             return;
         }
 
         // ── Cache MISS: proceed with server fetch ──
         // Cache miss — fetch from server
-        if (typeof cmaPerf !== 'undefined') cmaPerf.count('loadPage.cacheMiss');
+        cmaPerf.count('loadPage.cacheMiss');
 
         // Cache the current page before destroying it (if cacheable)
         if (currentPage && shouldCachePage(currentPage)) {
@@ -812,16 +808,14 @@
         const url = '/cma/main.php?nomenu&page=' + encodeURIComponent(page);
         // cmaLog.log('[loadPage] Fetching URL:', url);
 
-        if (typeof cmaPerf !== 'undefined') cmaPerf.mark('loadPage_fetchStart');
+        cmaPerf.mark('loadPage_fetchStart');
 
         fetch(url, {
             credentials: 'same-origin' // Explicitly include cookies for same-origin
         })
             .then(response => {
-                if (typeof cmaPerf !== 'undefined') {
-                    cmaPerf.mark('loadPage_fetchEnd');
-                    cmaPerf.measure('loadPage.network', 'loadPage_fetchStart', 'loadPage_fetchEnd');
-                }
+                cmaPerf.mark('loadPage_fetchEnd');
+                cmaPerf.measure('loadPage.network', 'loadPage_fetchStart', 'loadPage_fetchEnd');
                 if (!response.ok) {
                     cmaLog.warn('[loadPage] HTTP Error:', response.status, response.statusText);
 
@@ -865,9 +859,7 @@
                 return response.text();
             })
             .then(html => {
-                if (typeof cmaPerf !== 'undefined') {
-                    cmaPerf.mark('loadPage_renderStart');
-                }
+                cmaPerf.mark('loadPage_renderStart');
 
                 // Destroy previous form controller IF it wasn't already cached/suspended
                 // cacheCurrentPage() detaches the DOM, so querySelector won't find it if cached
@@ -910,10 +902,8 @@
                 const staging = getStagingContainer();
                 staging.innerHTML = html;
 
-                if (typeof cmaPerf !== 'undefined') {
-                    cmaPerf.mark('loadPage_renderEnd');
-                    cmaPerf.measure('loadPage.domInsert', 'loadPage_renderStart', 'loadPage_renderEnd');
-                }
+                cmaPerf.mark('loadPage_renderEnd');
+                cmaPerf.measure('loadPage.domInsert', 'loadPage_renderStart', 'loadPage_renderEnd');
 
                 // Extract title and update breadcrumb
                 let pageTitle = '';
@@ -980,7 +970,7 @@
                     history.pushState({ page: page }, '', newUrl);
                 }
 
-                if (typeof cmaPerf !== 'undefined') cmaPerf.mark('loadPage_scriptsStart');
+                cmaPerf.mark('loadPage_scriptsStart');
 
                 // Check if page needs form-controller.js (contains CmaFormController references)
                 const needsFormController = html.includes('CmaFormController') || html.includes('initForm');
@@ -989,10 +979,8 @@
                     // Execute scripts in staging container (off-screen)
                     executeScripts(staging);
 
-                    if (typeof cmaPerf !== 'undefined') {
-                        cmaPerf.mark('loadPage_scriptsEnd');
-                        cmaPerf.measure('loadPage.scripts', 'loadPage_scriptsStart', 'loadPage_scriptsEnd');
-                    }
+                    cmaPerf.mark('loadPage_scriptsEnd');
+                    cmaPerf.measure('loadPage.scripts', 'loadPage_scriptsStart', 'loadPage_scriptsEnd');
 
                     // PERFORMANCE FIX: Use requestAnimationFrame to batch the DOM swap
                     // This ensures browser has finished processing scripts before showing
@@ -1009,11 +997,9 @@
                         clearLoadingState(contentArea);
                         setActiveMenuItem(page);
 
-                        if (typeof cmaPerf !== 'undefined') {
-                            cmaPerf.mark('loadPage_end');
-                            cmaPerf.measure('loadPage.total', 'loadPage_start', 'loadPage_end');
-                            cmaPerf.count('loadPage.success');
-                        }
+                        cmaPerf.mark('loadPage_end');
+                        cmaPerf.measure('loadPage.total', 'loadPage_start', 'loadPage_end');
+                        cmaPerf.count('loadPage.success');
                     });
                 };
 
@@ -1039,9 +1025,7 @@
                 }
             })
             .catch(error => {
-                if (typeof cmaPerf !== 'undefined') {
-                    cmaPerf.count('loadPage.errors');
-                }
+                cmaPerf.count('loadPage.errors');
 
                 // Report to dev error panel
                 if (typeof CmaErrorHandler !== 'undefined') {
