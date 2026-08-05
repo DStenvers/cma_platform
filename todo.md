@@ -99,10 +99,16 @@ Twee bevindingen die hier apart aandacht vragen:
   aanroepplek.
 - **`cma.js` parkeert CKEditor-state op het topvenster** (25 plekken:
   `top.activeEditor`, `window.top.activeEditorBookmark`, `top.selectedAnchor`,
-  `top.selectedImage`, `top.selectedTable`). De dialogen draaien in een eigen
-  venster en geven zo hun keuze terug, dus er is een reden — maar het is
-  ongeschermd: twee editors open betekent dat de laatste wint. **Mogelijk de
-  verklaring voor de geparkeerde CKEditor-melding**; samen bekijken.
+  `top.selectedImage`, `top.selectedTable`). Nagekeken op 2026-08-05: dit is een
+  overdracht naar een dialoogvenster. `insertLink()` en `insertImage()` zetten de
+  editor en de cursorpositie klaar en openen dan een dialoog in een eigen
+  document; die roept `applyLink(data)` terug, dat de editor weer ophaalt. Echt
+  kruisdocument dus, met een reden. De fout die erin zit is smal: staat er een
+  dialoog open en opent een tweede editor er ook een, dan overschrijft de tweede
+  de eerste en landt de eerste invoeging in de verkeerde editor.
+  **Correctie:** ik heb eerder genoteerd dat dit de gele editor zonder
+  knoppenbalk zou verklaren. Dat klopt niet — deze state gaat over invoegen, niet
+  over hoe de editor tekent. Die melding heeft een eigen oorzaak; zie hieronder.
 
 ### Fase D — `CMA.*`, objectstate en opslag
 
@@ -197,9 +203,18 @@ tripwire die de drift veroorzaakte die hij moest vangen.
 
 ### Wacht op informatie
 
-- [ ] **CKEditor toont geel en geen knoppenbalk** in een formulier. Geparkeerd op
-      verzoek. Nodig om verder te komen: welk formulier, en of het op een
-      bestaand of een nieuw record misgaat.
+- [ ] **CKEditor toont geel en geen knoppenbalk** in een formulier. Een editor
+      die er onopgemaakt uitziet betekent bijna altijd dat zijn skin-CSS niet
+      laadt. Wat daarbij opvalt: `cma.js:97` vraagt om skin
+      `office2013_modified`, maar `cma/ckeditor/skins/office2013_modified/skin.js`
+      zet `CKEDITOR.skin.name="office2013"` — een andere naam dan de map. Die map
+      mist ook de browservarianten die `moono` wél heeft (`editor_gecko.css`,
+      `editor_ie*.css`). Nog niet bewezen dat dít het is, want de map
+      `office2013` bestaat óók en zou dan gewoon geladen worden.
+      Om het af te maken is één ding uit de browser nodig, en dan is het klaar:
+      open het formulier, F12 → tabblad Netwerk, filter op CSS, en kijk welk
+      bestand onder `/cma/ckeditor/skins/` een 404 geeft — of welke fout er in de
+      console staat.
 - [x] **Gedaan (v1.29.231): session-warnings bij Cache leegmaken.** De tool
       sloot élke output-buffer om de "even geduld"-melding meteen te tonen, en
       laadde de bootstrap pas daarna — dus draaide het sessieblok met de headers
