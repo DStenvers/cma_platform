@@ -1228,7 +1228,14 @@ function blockedit_createCKEditor(fieldId) {
 
 	try {
 		// Get contentsCss from global config if available
-		var contentsCss = '/cma.css';
+		// /assets/css/cma.css en niet /cma.css: dat laatste is de OUDE locatie. De
+		// Installer zet dit bestand tegenwoordig in assets/css/ (cma.css.template ->
+		// assets/css/cma.css), en cma.js, CKEditor/config.js en cma-htmledit.js wijzen
+		// daar alle drie al naartoe. Alleen deze regel bleef achter, waardoor elke site
+		// een kopie in de wortel moest laten staan om het bewerkvenster zijn opmaak te
+		// geven. Ontbreekt hij, dan is er geen foutmelding: de editor werkt gewoon, maar
+		// je inhoud ziet er tijdens het bewerken anders uit dan op de site.
+		var contentsCss = '/assets/css/cma.css';
 		if (typeof CMA !== 'undefined' && CMA.formConfig && CMA.formConfig.editorConfig && CMA.formConfig.editorConfig.customCSS) {
 			contentsCss = CMA.formConfig.editorConfig.customCSS;
 		}

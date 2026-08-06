@@ -844,10 +844,17 @@ class Database
             self::$sqlLogEnabled = $env !== false && $env !== null && filter_var($env, FILTER_VALIDATE_BOOLEAN);
             if (self::$sqlLogEnabled) {
                 $file = $_ENV['SQL_LOG_FILE'] ?? getenv('SQL_LOG_FILE');
+                $siteRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__ . '/../..', '/');
                 if ($file && $file !== '') {
-                    self::$sqlLogFile = $file;
+                    // Relatief pad = vanaf de siteroot, niet vanaf de werkmap van het script.
+                    // Zie de toelichting bij Profiler::init(): met de kale waarde in fopen()
+                    // landde "logs/sql_queries.log" ergens anders zodra het verzoek uit /cma/
+                    // kwam, en moest je wel een machine-specifiek absoluut pad opgeven.
+                    self::$sqlLogFile = self::isAbsoluutPad($file)
+                        ? $file
+                        : $siteRoot . '/' . ltrim($file, '/\\');
                 } else {
-                    self::$sqlLogFile = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__ . '/../..', '/') . '/sql_queries.log';
+                    self::$sqlLogFile = $siteRoot . '/sql_queries.log';
                 }
             }
         }
@@ -3221,5 +3228,16 @@ class Database
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Absoluut pad? Windows ("C:\\...", "\\\\server\\share") en Unix ("/var/...").
+     */
+    private static function isAbsoluutPad(string $pad): bool
+    {
+        return $pad !== '' && (
+            $pad[0] === '/' || $pad[0] === '\\'
+            || (strlen($pad) > 2 && ctype_alpha($pad[0]) && $pad[1] === ':')
+        );
     }
 }

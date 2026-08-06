@@ -7687,3 +7687,70 @@ karaat-data en staat in de karaat-repo.
 > editing the cma_menu.json gives _menus as title, can we change that? Quite ugly
 
 > Kunnen we de deployer automatisch migraties laten uitvoeren?
+
+> als ik een git pull doe op mijn rino php versie: 
+>
+> D:\wwwroot\test-mijn.rino.nl>git pull
+> remote: Enumerating objects: 532, done.
+> remote: Counting objects: 100% (532/532), done.
+> remote: Compressing objects: 100% (46/46), done.
+> remote: Total 288 (delta 236), reused 288 (delta 236), pack-reused 0 (from 0)
+> Receiving objects: 100% (288/288), 377.38 KiB | 13.01 MiB/s, done.
+> Resolving deltas: 100% (236/236), completed with 230 local objects.
+> From https://github.com/DStenvers/cma2
+>    e766c095..7c0e2d03  main       -> origin/main
+> Updating e766c095..7c0e2d03
+> error: Your local changes to the following files would be overwritten by merge:
+>         .platform-manifest.json
+>         cma/api/dashboard_stats.php
+>         cma/assets/css/form.css
+>         cma/assets/css/main.css
+>         cma/assets/css/style.css
+>         cma/assets/css/style.min.css
+>         cma/assets/forms/definitions/cmamonitoring.json
+>         cma/assets/js/cma-utils.js
+>         cma/assets/js/form-controller.js
+>         cma/assets/js/form-controller.min.js
+>         cma/assets/js/inline-edit.js
+>         cma/assets/js/inline-edit.min.js
+>         cma/assets/js/main.js
+>         cma/assets/js/main.min.js
+>         cma/assets/webcomponents/readme.md
+>         cma/bootstrap.inc
+>         cma/classes/SchemaHelper.php
+>         cma/classes/Services/BackupService.php
+>         cma/config/migrations.json
+>         cma/login.php
+>         cma/preferences.php
+>         cma/tests/ClearCacheBootstrapVolgordeTest.php
+>         cma/tests/DateTest.php
+>         cma/tests/SchemaHelperTest.php
+>         cma/tests/js/formstate.test.js
+>         cma/tests/js/run.js
+>         cma/tests/js/vensterstate.test.js
+>         cma/tools/documentation.php
+>         cma/tools/storybook.php
+>         cma/tools/tools_backup.php
+>         cma/tools/tools_clearcache.php
+>         cma/tools/tools_deploy_setup.php
+>         cma/webcomponents/cma-launcher.js
+>         composer.lock
+>         config/tests_toegang.php
+>         data/cma_menu.json
+>         data/page_roles.json
+>         data/rolwalk_handmatig.json
+>         deploy.php
+>         library/library.js
+>         library/webcomponents/README.md
+> Please commit your changes or stash them before you merge.
+> error: The following untracked working tree files would be overwritten by merge:
+>         cma/migrate.php
+>         cma/migrations/9.23.0_move_backup_to_data.php
+>         cma/tests/BackupNaarDataMigratieTest.php
+>         cma/tests/DeployMigratieStapTest.php
+>         cma/tests/FormConfigPerFormulierTest.php
+>         cma/tests/MonitoringFormTitelTest.php
+>         cma/tests/SchemaLookupJuisteDatabaseTest.php
+>         cma/tests/js/subformlijst.test.js
+> Please move or remove them before you merge.
+> Aborting

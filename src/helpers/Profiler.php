@@ -77,11 +77,20 @@ class Profiler
 
         // Set log file path from .env or default
         $logPath = $_ENV['PROFILER_LOG_FILE'] ?? getenv('PROFILER_LOG_FILE');
+        $basePath = Application::get('base_path', '/');
+        $siteRoot = rtrim(($_SERVER['DOCUMENT_ROOT'] ?? '') . $basePath, '/');
         if ($logPath !== false && $logPath !== null && !empty($logPath)) {
-            self::$logFile = $logPath;
+            // Een RELATIEF pad hangt aan de siteroot, niet aan de werkmap van het script.
+            // Dat laatste was het stille gedrag: deze waarde ging rechtstreeks naar fopen(),
+            // dus "logs/profiler.csv" landde ergens anders zodra het verzoek uit /cma/ kwam.
+            // Wie zijn logs uit de siteroot wil houden moest daardoor een ABSOLUUT pad
+            // opgeven, en dat verschilt per machine — dus stond het nergens ingevuld en
+            // bleef profiler.csv in de wortel verschijnen.
+            self::$logFile = self::isAbsoluutPad($logPath)
+                ? $logPath
+                : $siteRoot . '/' . ltrim($logPath, '/\\');
         } else {
-            $basePath = Application::get('base_path', '/');
-            self::$logFile = rtrim($_SERVER['DOCUMENT_ROOT'] . $basePath, '/') . '/profiler.csv';
+            self::$logFile = $siteRoot . '/profiler.csv';
         }
 
         // Set threshold from .env or default
@@ -337,5 +346,16 @@ class Profiler
     {
         self::init();
         return (microtime(true) - self::$start) * 1000;
+    }
+
+    /**
+     * Absoluut pad? Windows ("C:\\...", "\\\\server\\share") en Unix ("/var/...").
+     */
+    private static function isAbsoluutPad(string $pad): bool
+    {
+        return $pad !== '' && (
+            $pad[0] === '/' || $pad[0] === '\\'
+            || (strlen($pad) > 2 && ctype_alpha($pad[0]) && $pad[1] === ':')
+        );
     }
 }

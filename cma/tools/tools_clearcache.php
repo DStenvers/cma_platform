@@ -805,6 +805,15 @@ if ($_terserAvailable) {
             // Skip .min.js files
             if (substr($jsFile, -7) === '.min.js') continue;
 
+            // Gereedschapsconfiguratie is GEEN webasset. De siteroot staat ook in $_jsDirs,
+            // en daar liggen bestanden als playwright.config.js die nooit naar een browser
+            // gaan. Die werden toch geminificeerd, met een playwright.config.min.js in de
+            // wortel als resultaat: bestanden die niemand laadt, die bij elke cache-clear
+            // terugkomen, en die de opruiming van zo'n root telkens ongedaan maken.
+            // *.config.js is de conventie voor dit soort bestanden (playwright, jest,
+            // eslint, vite), dus daar kan op geselecteerd worden.
+            if (substr(basename($jsFile), -10) === '.config.js') continue;
+
             $minFile = substr($jsFile, 0, -3) . '.min.js';
             $basename = basename($jsFile);
 
