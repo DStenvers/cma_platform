@@ -1261,6 +1261,46 @@ function cma_doc_check_deploy_secret(): array {
     return ['label' => $label, 'status' => 'warn', 'detail' => 'Gezet, ' . $len . ' chars — niet hex of korter dan 32. Webhook werkt maar entropie is laag.', 'fix' => 'Roteer met <code>openssl rand -hex 32</code> + zelfde waarde in GitHub-webhook.'];
 }
 
+/**
+ * Draait de deploy de migraties, en staat er nog werk open? Een site die op
+ * DEPLOY_MIGRATE=0 staat én openstaande migraties heeft, draait nieuwe code op
+ * een oud schema — dat is het geval dat je hier wilt zien staan.
+ */
+function cma_doc_check_deploy_migrations(): array {
+    $label = 'Migraties bij deploy';
+    $runner = cma_doc_site_root() . '/cma/migrate.php';
+    if (!is_file($runner)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => '<code>cma/migrate.php</code> ontbreekt — de deploy kan geen migraties draaien.', 'fix' => 'Draai een <code>composer update stenversonline/platform</code>; de Installer zet het bestand terug.'];
+    }
+
+    $setting = (string)(getenv('DEPLOY_MIGRATE') ?: ($_ENV['DEPLOY_MIGRATE'] ?? ''));
+    $uit = ($setting === '0' || $setting === '-');
+
+    $openstaand = null;
+    try {
+        $service = new \Cma\Services\MigrationService(false);
+        $openstaand = count($service->getPendingMigrations());
+    } catch (\Throwable $e) {
+        $openstaand = null;
+    }
+
+    if ($uit) {
+        $detail = 'Uitgeschakeld (<code>DEPLOY_MIGRATE=' . htmlspecialchars($setting) . '</code>) — migraties draai je zelf.';
+        if ($openstaand !== null && $openstaand > 0) {
+            return ['label' => $label, 'status' => 'fail', 'detail' => $detail . ' Er staan nu <span class="cma-tool__strong">' . $openstaand . '</span> migratie(s) open.', 'fix' => 'Draai ze via <a href="tools.php?tool=migrations" target="_top">Migraties</a> of <code>php cma/migrate.php</code>.'];
+        }
+        return ['label' => $label, 'status' => 'warn', 'detail' => $detail . ' Op dit moment staat er niets open.', 'fix' => 'Zet <code>DEPLOY_MIGRATE=1</code> om ze door de deploy te laten toepassen.'];
+    }
+
+    if ($openstaand === null) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Aan (standaard), maar de openstaande migraties zijn niet op te vragen — database niet bereikbaar?', 'fix' => 'Controleer de <code>data</code>-verbinding.'];
+    }
+    if ($openstaand > 0) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Aan, maar er staan <span class="cma-tool__strong">' . $openstaand . '</span> migratie(s) open — de laatste deploy heeft ze niet toegepast.', 'fix' => 'Bekijk de <a href="logreader.php?log=deploy">deploy-log</a>: draaide de stap, en met welke exitcode?'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan; niets openstaand.', 'fix' => ''];
+}
+
 function cma_doc_check_dir_writable(string $relPath, string $description, string $severityIfMissing = 'fail'): array {
     $label = $description;
     $path = cma_doc_site_root() . '/' . $relPath;
@@ -2074,7 +2114,7 @@ function render_doc_environment(): void
 
     <h3>Elders gedocumenteerd</h3>
     <ul>
-        <li><span class="cma-tool__strong">Deploy</span>: <code>DEPLOY_SECRET</code>, <code>DEPLOY_BRANCH</code>, <code>DEPLOY_SITE_ROOT</code>, <code>DEPLOY_PIPELINE</code>, <code>DEPLOY_COMPOSER_UPDATE</code>, <code>DEPLOY_COMPOSER_CLEAR_CACHE</code>, <code>DEPLOY_RUN_TESTS</code>, <code>DEPLOY_RECYCLE_TOUCH</code>, <code>DEPLOY_LOG_FILE</code>, <code>DEPLOY_POST_HOOK</code> — zie <a href="documentation.php?topic=deployment">Deployment</a>.</li>
+        <li><span class="cma-tool__strong">Deploy</span>: <code>DEPLOY_SECRET</code>, <code>DEPLOY_BRANCH</code>, <code>DEPLOY_SITE_ROOT</code>, <code>DEPLOY_PIPELINE</code>, <code>DEPLOY_COMPOSER_UPDATE</code>, <code>DEPLOY_COMPOSER_CLEAR_CACHE</code>, <code>DEPLOY_RUN_TESTS</code>, <code>DEPLOY_MIGRATE</code>, <code>DEPLOY_MIGRATE_BACKUP</code>, <code>DEPLOY_RECYCLE_TOUCH</code>, <code>DEPLOY_LOG_FILE</code>, <code>DEPLOY_POST_HOOK</code> — zie <a href="documentation.php?topic=deployment">Deployment</a>.</li>
         <li><span class="cma-tool__strong">LLM</span>: <code>LLM_PROVIDER</code>, <code>LLM_URL</code>, <code>LLM_MODEL</code>, <code>LLM_KEY</code>, <code>LLM_FALLBACK_MODEL</code>, <code>OCR_VISION_KEY</code>, <code>OCR_VISION_PROVIDER</code>, <code>LLM_MODELS_DIR</code> — zie <a href="documentation.php?topic=llm">LLM-configuratie</a>.</li>
     </ul>
 
@@ -2311,6 +2351,7 @@ function render_doc_deployment(): void
     <?php
     cma_doc_render_check_table('Deployment — live check op deze site', cma_doc_run_checks([
         'cma_doc_check_deploy_secret',
+        'cma_doc_check_deploy_migrations',
         'cma_doc_check_logs_dir',
         'cma_doc_check_deploy_log',
         'cma_doc_check_assets_minified',
@@ -2330,6 +2371,7 @@ function render_doc_deployment(): void
         <li><span class="cma-tool__strong">Reset + pipeline</span> — <code>git checkout -- .</code> (tenzij <code>DEPLOY_NO_RESET=1</code>) gevolgd door de <code>;</code>-gescheiden <code>DEPLOY_PIPELINE</code> (default: <code>git pull --ff-only origin {branch}</code>; <code>{branch}</code> wordt ingevuld).</li>
         <li><span class="cma-tool__strong">Composer update</span> — <code>composer update &lt;DEPLOY_COMPOSER_UPDATE&gt; --no-dev --optimize-autoloader</code> zodat het platform-package mee-loopt. Composer-binary wordt over meerdere bekende paden geprobeerd (app-pool-identity heeft het zelden op PATH). Als <code>DEPLOY_COMPOSER_CLEAR_CACHE=1</code> staat (of de deploy-URL <code>?forcerefresh=Y</code> bevat) draait er eerst een <code>composer clear-cache</code>, zodat een net-gepushte platform-tag niet wordt gemist door een stale VCS-clone-cache. Andersom: een deploy die alleen consumer-/front-end-bestanden raakt (geen platform-update nodig) kan de héle composer-stap overslaan met <code>?nocomposer=Y</code> op de deploy-URL — git pull, test-gate, asset-build en recycle draaien gewoon door, dus zo'n deploy is in seconden klaar i.p.v. wachten op <code>composer update</code>.</li>
         <li><span class="cma-tool__strong">Test-gate</span> — als <code>DEPLOY_RUN_TESTS</code> gezet is draait dat NA pull/composer en VÓÓR recycle. Non-zero exit → deploy <code>FAILED</code>, geen recycle, geen post-hook: productie blijft op de oude code.</li>
+        <li><span class="cma-tool__strong">Migraties</span> — daarna draait <code>php cma/migrate.php</code> en past openstaande migraties toe (aan/uit met <code>DEPLOY_MIGRATE</code>, standaard aan; back-up vooraf met <code>DEPLOY_MIGRATE_BACKUP</code>, standaard aan). Ná composer, want de nieuwe migratiescripts moeten op schijf staan; vóór de recycle, zodat het schema klaar is als de pool de nieuwe code gaat serveren. Mislukt een migratie, dan faalt de deploy: geen recycle, dus productie blijft draaien op de code die bij de huidige database hoort. Een eigen proces (niet in <code>deploy.php</code> zelf) omdat dat een schone exitcode geeft én het net geïnstalleerde platform laadt — dit lopende verzoek draait nog op de oude code. Draait de app-pool-identity zonder <code>php</code> op PATH, dan zoekt de deployer hem naast de FastCGI-binary (<code>PHP_BINDIR</code>); vindt hij niets, dan faalt de deploy in plaats van de migraties stil over te slaan.</li>
         <li><span class="cma-tool__strong">Recycle</span> — touch op <code>DEPLOY_RECYCLE_TOUCH</code> (default <code>web.config</code>) om de IIS app-pool te recyclen.</li>
         <li><span class="cma-tool__strong">Health-check + post-hook</span> — best-effort <code>/cma/</code>-sync-check (<code>DeployHealth</code>) en het project-side <code>deploy_post.php</code> (cache-flushes, migraties) — alleen bij succes en alleen als <code>vendor/autoload.php</code> bestaat, zodat de hatch zelfstandig blijft.</li>
         <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
@@ -2417,10 +2459,12 @@ function render_doc_deployment(): void
             <tr><td><code>DEPLOY_COMPOSER_UPDATE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>stenversonline/platform</code></td><td>Pakketten om na de pipeline te updaten. Comma-separated. Set <code>-</code> om over te slaan.</td></tr>
             <tr><td><code>DEPLOY_COMPOSER_CLEAR_CACHE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>(uit)</code></td><td><code>1</code> = draai <code>composer clear-cache</code> VÓÓR de update. Nodig wanneer een net-gepushte platform-tag niet wordt opgepikt omdat Composer's VCS-clone-cache een oude ref vasthoudt (&ldquo;Nothing to modify&rdquo;). Uit by default (re-clone is trager); zet aan als een deploy een gloednieuwe release moet trekken. Best-effort: een falende clear-cache breekt de deploy niet af. <span class="cma-tool__strong">Eenmalig zonder <code>.env</code> te wijzigen</span>: voeg <code>?forcerefresh=Y</code> toe aan de deploy-URL (bijv. de GitHub-webhook Payload URL) — dezelfde cache-clear, gegate door dezelfde HMAC + branch-check.</td></tr>
             <tr><td><code>DEPLOY_RUN_TESTS</code></td><td><lib-label type="information">nee</lib-label></td><td><code>(leeg)</code></td><td>Commando dat NA <code>composer update</code> en VÓÓR recycle draait. Non-zero exit → deploy FAILED, geen recycle, geen post-hook (productie blijft op oude code). Voorbeeld: <code>php cma/tests/TestRunner.php</code>. Leeg / <code>-</code> = geen gate.</td></tr>
+            <tr><td><code>DEPLOY_MIGRATE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>1</code> (aan)</td><td>Draait <code>php cma/migrate.php</code> NA de test-gate en VÓÓR de recycle, en past openstaande migraties toe. Mislukt er één → deploy FAILED, geen recycle: productie blijft op de code die bij de huidige database hoort. <code>0</code> of <code>-</code> = niet migreren (dan zelf via <a href="tools.php?tool=migrations" target="_top">Migraties</a>).</td></tr>
+            <tr><td><code>DEPLOY_MIGRATE_BACKUP</code></td><td><lib-label type="information">nee</lib-label></td><td><code>1</code> (aan)</td><td>Back-up van de databases vóór het migreren. <code>0</code> slaat de back-up over — sneller, geen vangnet.</td></tr>
             <tr><td><code>DEPLOY_RECYCLE_TOUCH</code></td><td><lib-label type="information">nee</lib-label></td><td><code>web.config</code></td><td>Bestand om te touch'en na succes (IIS app-pool recycle). Set <code>-</code> om over te slaan.</td></tr>
             <tr><td><code>DEPLOY_NO_MAINTENANCE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>(uit)</code></td><td><code>1</code> = zet géén onderhoudsscherm tijdens de deploy. Default aan: <code>deploy.php</code> zet een <code>maintenance.flag</code> in de site-root voor de muterende stappen; <code>_bootstrap.php</code> serveert dan een <code>503</code> "even onderhoud" tot de deploy klaar is (of de vlag ouder is dan 20 min). De pagina (<code>cma/maintenance_page.inc</code>) leest logo/naam/contact uit <code>data/maintenance.json</code> of <code>data/app.json</code> → sectie <code>maintenance</code>.</td></tr>
             <tr><td><code>DEPLOY_LOG_FILE</code></td><td><lib-label type="information">nee</lib-label></td><td><code>logs/deploy.log</code></td><td>Locatie van de deploy-log voor de webhook-writer. <span class="cma-tool__strong">Let op</span>: <code>deploy_status.php</code> leest alleen het default pad <code>logs/deploy.log</code> — een override hier wordt door de reader genegeerd.</td></tr>
-            <tr><td><code>DEPLOY_POST_HOOK</code></td><td><lib-label type="information">nee</lib-label></td><td><code>deploy_post.php</code></td><td>Project-side PHP-script NA recycle. Cache-flushes, schema-migraties, image-profile backfills. Set <code>-</code> om over te slaan.</td></tr>
+            <tr><td><code>DEPLOY_POST_HOOK</code></td><td><lib-label type="information">nee</lib-label></td><td><code>deploy_post.php</code></td><td>Project-side PHP-script NA recycle. Cache-flushes, image-profile backfills, en wat verder site-eigen is. Schema-migraties horen hier niet meer thuis: die draait <code>DEPLOY_MIGRATE</code> al, vóór de recycle. Set <code>-</code> om over te slaan.</td></tr>
         </tbody>
     </table>
     <p>Actief env-bestand op deze site: <code><?= htmlspecialchars((string)($GLOBALS['_env_file'] ?? '.env')) ?></code>.</p>
@@ -3440,8 +3484,17 @@ if (!MigrationService::columnExists('tblOrders', 'discountCode', $connString)) {
         <li>Schrijf de migratie + registreer in <code>migrations.json</code>.</li>
         <li>Run op je dev-omgeving via <a href="tools.php?tool=migrations" target="_top">Tools → Migraties</a>. Auto-backup aan voor dev-safety.</li>
         <li>Voer Rerun uit om idempotentie te valideren — moet "geen wijzigingen" rapporteren.</li>
-        <li>Commit + push. Productie-deploy draait de migratie automatisch als <code>deploy_post.php</code> dat triggert; anders handmatig na de deploy via de Migraties-tool.</li>
+        <li>Commit + push. De deploy past openstaande migraties zelf toe (zie hieronder); zet je <code>DEPLOY_MIGRATE=0</code>, dan doe je het na de deploy met de Migraties-tool.</li>
     </ol>
+
+    <h2>Vanaf de opdrachtregel</h2>
+    <p><code>cma/migrate.php</code> is dezelfde <code>MigrationService</code> zonder scherm: één proces, één exitcode. Dit is wat de deployer aanroept, en wat je zelf draait als je geen browser bij de hand hebt.</p>
+    <pre><code>php cma/migrate.php              # openstaande migraties toepassen (met back-up)
+php cma/migrate.php --check      # alleen tonen; exit 1 als er werk openstaat
+php cma/migrate.php --no-backup  # zonder back-up vooraf
+</code></pre>
+    <p>Exitcodes: <code>0</code> = niets te doen of alles toegepast, <code>1</code> = mislukt, <code>2</code> = verkeerd aangeroepen. Alleen CLI — via de webserver geeft het script een <code>404</code>, want het kent geen inlog en zou anders een ongeauthenticeerde schrijfactie op de database zijn; de browserroute is de <a href="tools.php?tool=migrations" target="_top">Migraties-tool</a>.</p>
+    <p>Twee dingen die stille mislukkingen voorkomen, en waarom ze er staan: de loper zet <code>REQUEST_URI</code> op <code>/cma/migrate.php</code> vóór de bootstrap (het onderhoudsscherm van <code>_bootstrap.php</code> laat <code>/cma/</code> door en zou het script anders midden in het onderhoudsvenster van de deploy met een 503 afbreken — precies wanneer het moet draaien), en een shutdown-wachter maakt van een bootstrap die halverwege stopt een exit&nbsp;1. Zonder die twee eindigt zo'n afbreking met exitcode 0 en leest de deployer dat als "migraties gedaan".</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=database">Database &amp; RecordSet</a>, <a href="documentation.php?topic=backups">Backups</a>, <a href="documentation.php?topic=deployment">Deployment</a> (deploy_post.php).

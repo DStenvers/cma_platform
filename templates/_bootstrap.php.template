@@ -22,6 +22,13 @@ if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
 // using only native PHP — with a clean 503 so visitors see a "back shortly"
 // page instead of a stack of errors. Keep this block dependency-free.
 (static function (): void {
+    // The command line has no visitors to protect. A maintenance screen here
+    // would stop exactly the work the flag is raised FOR: deploy.php puts the
+    // site in maintenance and then runs `php cma/migrate.php` inside that
+    // window.
+    if (PHP_SAPI === 'cli') {
+        return;
+    }
     $flag = __DIR__ . '/maintenance.flag';
     if (!is_file($flag)) {
         return;

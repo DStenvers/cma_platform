@@ -52,6 +52,14 @@
  *                            Non-zero exit => deploy FAILED, recycle + post-hook
  *                            skipped (production stays on the old code).
  *                            Default: "" (no gate). e.g. php cma/tests/TestRunner.php
+ *   DEPLOY_MIGRATE           1 (default) = apply pending database migrations via
+ *                            `php cma/migrate.php`, after the test gate and before
+ *                            the recycle. A failed migration FAILS the deploy, so
+ *                            the pool is never recycled onto a schema that isn't
+ *                            there yet. 0 or "-" runs no migrations (then apply
+ *                            them by hand in Beheer -> Migraties).
+ *   DEPLOY_MIGRATE_BACKUP    1 (default) = back up the databases before migrating.
+ *                            0 skips the backup (faster, no safety net).
  *   DEPLOY_RECYCLE_TOUCH     file to touch on success (IIS app-pool recycle).
  *                            Default: <root>/web.config. "-" to skip.
  *   DEPLOY_POST_HOOK         PHP file required after a successful deploy.
@@ -374,9 +382,10 @@ if (!$failed && !$noComposer && $composerPkgs !== '-' && $composerPkgs !== '') {
             // fallback, unwritable composer home), NOT a broken tree. Fall back
             // to `composer install`, which restores a consistent vendor/ from
             // the existing lock (keeps the locked platform version, no network
-            // fetch of the new one) so the rest of the deploy still runs —
-            // migrations, asset build and cache flush in deploy_post. Only a
-            // failing install (genuinely broken vendor) aborts the deploy.
+            // fetch of the new one) so the rest of the deploy still runs — the
+            // migration step below, plus whatever asset build and cache flush
+            // deploy_post does. Only a failing install (genuinely broken
+            // vendor) aborts the deploy.
             $log('WARN: composer update failed — falling back to composer install (keeps the locked platform version, lets deploy_post run)');
             if ($run($composer . ' install --no-dev --optimize-autoloader --no-interaction') !== 0) {
                 $failed     = true;
@@ -404,6 +413,53 @@ if (!$failed && $runTests !== '' && $runTests !== '-') {
         $failed     = true;
         $failReason = "test gate failed: $runTests";
         $log('FAIL: tests failed — skipping recycle + post-hook (production stays on old code)');
+    }
+}
+
+// 4e·. Database migrations — AFTER composer (the new migration scripts have to be
+//      on disk) and BEFORE the recycle, so the schema is ready by the time the
+//      pool serves the new code. A failure here fails the deploy: no recycle, so
+//      production keeps running the old code against the database it matches.
+//
+//      Runs as a separate CLI process (cma/migrate.php) on purpose — that gives a
+//      clean exit code and loads the freshly installed platform, which this
+//      already-running request cannot.
+$migrate = $envRead('DEPLOY_MIGRATE', '1');
+if (!$failed && $migrate !== '0' && $migrate !== '-' && $migrate !== '') {
+    $runner = $ROOT . '/cma/migrate.php';
+    if (!is_file($runner)) {
+        $log('migrations skipped: cma/migrate.php not present (platform older than the runner)');
+    } else {
+        // The app-pool identity rarely has php on PATH, and PHP_BINARY is the
+        // FastCGI binary — php.exe usually sits next to it in PHP_BINDIR.
+        $php = null;
+        foreach (['php', '"' . PHP_BINDIR . DIRECTORY_SEPARATOR . 'php' . ($isWin ? '.exe' : '') . '"', '"' . PHP_BINARY . '"'] as $candidate) {
+            $probe = [];
+            $pexit = 0;
+            if ($isWin) {
+                @exec('cmd /c "' . $candidate . ' -v" 2>&1', $probe, $pexit);
+            } else {
+                @exec($candidate . ' -v 2>&1', $probe, $pexit);
+            }
+            if ($pexit === 0) {
+                $php = $candidate;
+                break;
+            }
+        }
+        if ($php === null) {
+            // Silently skipping would let new code meet an old schema — the
+            // failure mode this step exists to prevent.
+            $failed     = true;
+            $failReason = 'migrations enabled but no php binary found (PATH / ' . PHP_BINDIR . ')';
+            $log('FAIL: ' . $failReason);
+        } else {
+            $noBackup = $envRead('DEPLOY_MIGRATE_BACKUP', '1') === '0' ? ' --no-backup' : '';
+            if ($run($php . ' cma/migrate.php' . $noBackup) !== 0) {
+                $failed     = true;
+                $failReason = 'database migration failed — see the migration output above';
+                $log('FAIL: migrations failed — skipping recycle + post-hook (production stays on old code)');
+            }
+        }
     }
 }
 

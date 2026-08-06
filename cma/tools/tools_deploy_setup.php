@@ -76,7 +76,7 @@ if (Request::post('action', '') === 'save') {
         // DEPLOY_SECRET only written when a non-empty value is supplied (empty
         // = keep the current secret). The other keys: empty clears nothing,
         // it just skips — use a literal "-" to set an explicit empty/disable.
-        foreach (['DEPLOY_SECRET', 'DEPLOY_BRANCH', 'DEPLOY_ALERT_EMAIL', 'DEPLOY_RUN_TESTS'] as $key) {
+        foreach (['DEPLOY_SECRET', 'DEPLOY_BRANCH', 'DEPLOY_ALERT_EMAIL', 'DEPLOY_RUN_TESTS', 'DEPLOY_MIGRATE'] as $key) {
             $val = trim((string)Request::post($key, ''));
             if ($val === '') { continue; }
             if ($writeKey($targetPath, $key, $val)) { $written[] = $key; }
@@ -97,6 +97,7 @@ $secretSet = !empty($env['DEPLOY_SECRET']);
 $branch    = $env['DEPLOY_BRANCH'] ?? '';
 $alert     = $env['DEPLOY_ALERT_EMAIL'] ?? '';
 $runTests  = $env['DEPLOY_RUN_TESTS'] ?? '';
+$migrate   = $env['DEPLOY_MIGRATE'] ?? '';
 
 $logsDir       = $siteRoot . '/.logs/deploy';
 $logsWritable  = is_dir($logsDir) ? is_writable($logsDir) : is_writable($siteRoot);
@@ -165,6 +166,8 @@ echo '<tr><td><code>DEPLOY_BRANCH</code></td><td><input type="text" name="DEPLOY
 echo '<tr><td><code>DEPLOY_ALERT_EMAIL</code></td><td><input type="text" name="DEPLOY_ALERT_EMAIL" value="' . htmlspecialchars($alert) . '" placeholder="ops@example.com" size="40"><div class="cma-tool__hint">Optioneel — best-effort <code>mail()</code> bij een FAILED deploy.</div></td></tr>';
 
 echo '<tr><td><code>DEPLOY_RUN_TESTS</code></td><td><input type="text" name="DEPLOY_RUN_TESTS" value="' . htmlspecialchars($runTests) . '" placeholder="php cma/tests/TestRunner.php" size="40"><div class="cma-tool__hint">Optioneel — test-gate vóór recycle; non-zero exit blokkeert de deploy.</div></td></tr>';
+
+echo '<tr><td><code>DEPLOY_MIGRATE</code></td><td>' . '<select name="DEPLOY_MIGRATE">' . '<option value="1"' . ($migrate === '0' ? '' : ' selected') . '>Ja — migraties draaien bij elke deploy</option>' . '<option value="0"' . ($migrate === '0' ? ' selected' : '') . '>Nee — zelf toepassen in Beheer &rarr; Migraties</option>' . '</select>' . '<div class="cma-tool__hint">Draait <code>php cma/migrate.php</code> na de test-gate en vóór de recycle. Een mislukte migratie laat de deploy falen, zodat de pool niet omschakelt naar code die een schema verwacht dat er niet is.</div>' . '</td></tr>';
 
 echo '</tbody></table>';
 echo '<button type="submit" class="btn btn-primary">Opslaan in ' . htmlspecialchars($targetEnv) . '</button>';
