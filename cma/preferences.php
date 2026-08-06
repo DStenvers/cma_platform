@@ -323,9 +323,12 @@ if (!$isNomenuMode) {
     echo '<body class="contentbody">';
 }
 
-// Toolbar - just save button, title goes to breadcrumb via loadPage
+// Toolbar - autosave status instead of a save button, title goes to breadcrumb via loadPage
 ToolbarHelper::start();
-ToolbarHelper::button('javascript:savePreferences()', 'lnr-save', true, $language === 'UK' ? 'Save' : 'Opslaan', $language === 'UK' ? 'Save preferences' : 'Voorkeuren opslaan', 'toolbar_save');
+echo '<span class="cma-page__autosave" id="autosaveStatus">' . PHP_EOL;
+echo '  <span class="cma-page__autosave-text">' . ($language === 'UK' ? 'Changes are saved immediately' : 'Wijzigingen worden meteen opgeslagen') . '</span>' . PHP_EOL;
+echo '  <lib-loader id="autosaveSpinner" size="small" delay="0" class="cma-page__autosave-spinner"></lib-loader>' . PHP_EOL;
+echo '</span>' . PHP_EOL;
 ToolbarHelper::end();
 ?>
 <title><?= Server::htmlEncode($pageTitle) ?></title>
@@ -481,21 +484,21 @@ ToolbarHelper::end();
 </div>
 
 <script>
-var prefsDirty = false;
+// Autosave state: every change saves itself, so there is no dirty flag and no
+// save button. A change during an in-flight save queues one follow-up save.
+var prefsSaveTimer = null;
+var prefsSaveInFlight = false;
+var prefsSaveQueued = false;
 
-function setDirty(dirty) {
-    prefsDirty = dirty;
-    var saveBtn = document.getElementById('toolbar_save');
-    if (saveBtn) {
-        var tbBtn = saveBtn.closest('.tb-btn');
-        if (tbBtn) {
-            tbBtn.classList.toggle('disabled', !dirty);
-        }
-        if (dirty) {
-            saveBtn.classList.add('dirty');
-        } else {
-            saveBtn.classList.remove('dirty');
-        }
+function setPrefsSaving(saving) {
+    var spinner = document.getElementById('autosaveSpinner');
+    if (!spinner) return;
+    // Toggle the attribute rather than calling show()/hide(): this also works
+    // before the custom element has upgraded.
+    if (saving) {
+        spinner.setAttribute('active', '');
+    } else {
+        spinner.removeAttribute('active');
     }
 }
 
@@ -505,8 +508,19 @@ function clearLocalStorage() {
     libToast.success('<?= $language === 'UK' ? 'localStorage cleared' : 'localStorage gewist' ?> (' + count + ' <?= $language === 'UK' ? 'items' : 'items' ?>)');
 }
 
+// Collect rapid changes (e.g. toggling a switch twice) into one request
+function schedulePreferencesSave() {
+    clearTimeout(prefsSaveTimer);
+    prefsSaveTimer = setTimeout(savePreferences, 300);
+}
+
 function savePreferences() {
-    if (!prefsDirty) return;
+    if (prefsSaveInFlight) {
+        prefsSaveQueued = true;
+        return;
+    }
+    prefsSaveInFlight = true;
+    setPrefsSaving(true);
 
     var form = document.getElementById('preferencesForm');
     var formData = new FormData(form);
@@ -556,29 +570,29 @@ function savePreferences() {
     <?php endif; ?>
 
     // Wait for all saves to complete
+    var reloading = false;
     Promise.all(savePromises)
     .then(function(results) {
         var userResult = results[0];
         var allSuccess = results.every(function(r) { return r.success; });
 
         if (allSuccess) {
-            libToast.success(userResult.message);
-            setDirty(false);
-
             // Update LibLog runtime config from cookie (debug mode preference may have changed)
             if (typeof LibLog !== 'undefined' && LibLog.refreshFromCookie) {
                 LibLog.refreshFromCookie();
             }
 
             if (userResult.needsRefresh) {
+                // A new theme only takes effect on a fresh render of the shell
+                reloading = true;
+                libToast.info('<?= $language === 'UK' ? 'Refreshing...' : 'Pagina wordt ververst...' ?>');
                 setTimeout(function() {
-                    libToast.info('<?= $language === 'UK' ? 'Refreshing...' : 'Pagina wordt ververst...' ?>');
                     if (userResult.menuStyleChanged) {
                         window.top.location.href = 'default.php';
                     } else {
                         window.location.reload();
                     }
-                }, 1000);
+                }, 600);
             }
         } else {
             var failedResults = results.filter(function(r) { return !r.success; });
@@ -587,42 +601,21 @@ function savePreferences() {
     })
     .catch(function(error) {
         libToast.error('<?= $language === 'UK' ? 'Error saving preferences' : 'Fout bij opslaan voorkeuren' ?>: ' + error.message);
+    })
+    .then(function() {
+        prefsSaveInFlight = false;
+        if (reloading) return;
+        setPrefsSaving(false);
+        if (prefsSaveQueued) {
+            prefsSaveQueued = false;
+            savePreferences();
+        }
     });
 }
 
-// Check for unsaved changes before navigating away
-function checkPreferencesUnsaved() {
-    return prefsDirty;
-}
-
-// Warn message for unsaved changes
-var unsavedWarning = '<?= $language === 'UK' ? 'You have unsaved changes. Are you sure you want to leave?' : 'Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je wilt verlaten?' ?>';
-
-// Browser navigation/refresh warning
-window.addEventListener('beforeunload', function(e) {
-    if (prefsDirty) {
-        e.preventDefault();
-        e.returnValue = unsavedWarning;
-        return unsavedWarning;
-    }
-});
-
-// Export check function for CMA navigation system
-window.cmaCheckUnsavedChanges = function() {
-    if (prefsDirty) {
-        return libConfirm(unsavedWarning, {
-            title: '<?= $language === 'UK' ? 'Unsaved Changes' : 'Niet-opgeslagen wijzigingen' ?>',
-            type: 'warning',
-            confirmText: '<?= $language === 'UK' ? 'Leave' : 'Verlaten' ?>',
-            cancelText: '<?= $language === 'UK' ? 'Stay' : 'Blijven' ?>'
-        });
-    }
-    return Promise.resolve(true);
-};
-
-// Initialize dirty tracking - run immediately since page may be loaded via AJAX
+// Initialize autosave - run immediately since page may be loaded via AJAX
 (function() {
-    function initDirtyTracking() {
+    function initAutosave() {
         var form = document.getElementById('preferencesForm');
         if (!form) return;
 
@@ -642,50 +635,32 @@ window.cmaCheckUnsavedChanges = function() {
             } catch(e) {}
         }
 
-        // Start with save button disabled
-        setDirty(false);
-
-        // Track changes on form inputs (select, input, etc.)
+        // Every change saves itself. lib-switch fires a bubbling 'change' too,
+        // so selects and switches both arrive here.
         form.addEventListener('change', function(e) {
-            setDirty(true);
-
-            // Also sync popup style to localStorage immediately for preview
+            // Sync popup style to localStorage immediately for preview
             if (e.target.id === 'popupStyle') {
                 try {
                     localStorage.setItem('cma_popup_style', e.target.value);
                 } catch(ex) {}
             }
-        });
 
-        // Sync debug overlay to localStorage on lib-switch change
-        var debugSwitch = document.getElementById('showDebugOverlay');
-        if (debugSwitch) {
-            debugSwitch.addEventListener('change', function() {
+            // Sync debug overlay to localStorage
+            if (e.target.id === 'showDebugOverlay') {
                 try {
-                    localStorage.setItem('cma_debug_overlay', debugSwitch.checked ? 'J' : 'N');
+                    localStorage.setItem('cma_debug_overlay', e.target.checked ? 'J' : 'N');
                 } catch(ex) {}
-            });
-        }
+            }
 
-        // Track input events too (for text fields)
-        form.addEventListener('input', function(e) {
-            setDirty(true);
-        });
-
-        // Also track lib-switch changes via click
-        var switches = form.querySelectorAll('lib-switch');
-        switches.forEach(function(sw) {
-            sw.addEventListener('click', function() {
-                setTimeout(function() { setDirty(true); }, 10);
-            });
+            schedulePreferencesSave();
         });
     }
 
     // Run immediately if DOM is ready, otherwise wait
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initDirtyTracking);
+        document.addEventListener('DOMContentLoaded', initAutosave);
     } else {
-        initDirtyTracking();
+        initAutosave();
     }
 })();
 </script>

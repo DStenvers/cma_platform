@@ -676,7 +676,7 @@
                             if (table) table.querySelectorAll('tbody tr.active').forEach(r => r.classList.remove('active'));
                             row.classList.add('active');
                         }
-                        self.openFormPopup(rowId, false);
+                        self.openRecord(rowId);
                         break;
                     case 'copy':
                         // Set active class on row
@@ -839,7 +839,7 @@
                     if (typeof self.options.onRowSelect === 'function') {
                         self.options.onRowSelect(rowId);
                     }
-                    self.openFormPopup(rowId, false);
+                    self.openRecord(rowId);
                 };
                 this.addTrackedListener(the_table, 'click', rowClickHandler);
 
@@ -2076,6 +2076,23 @@
         /**
          * Open form.php in a popup window
          */
+        /**
+         * Open a record from this list.
+         *
+         * A subform table hands this to the form that owns it (onRowClick), which
+         * opens the popup WITH the parent record context. Without that context the
+         * popup can't tell the parent which subform list to refresh after a save,
+         * and the changed row keeps showing its old values. The main list sets no
+         * onRowClick and lands on the default below.
+         */
+        openRecord(rowId) {
+            if (typeof this.options.onRowClick === 'function') {
+                this.options.onRowClick(rowId);
+                return;
+            }
+            this.openFormPopup(rowId, false);
+        }
+
         openFormPopup(recordId, copy = false) {
             // CRITICAL FIX: Read jsonForm from table's data-attribute, NOT from closure
             const table = document.querySelector(this.options.tableSelector);

@@ -303,27 +303,19 @@ describe('CMA Integration Test', () => {
       cy.get('lib-switch').should('exist');
     });
 
-    it('should save preferences via toolbar button', () => {
+    it('should autosave preferences on change', () => {
       cy.visit('/main.php?page=preferences.php');
       cy.get('#contentArea', { timeout: 15000 }).should('not.contain', 'Laden...');
-      // The save button in preferences is in the toolbar with id toolbar_save
-      cy.get('#toolbar_save, .toolbar .lnr-save').first().click({ force: true });
-      // Wait for AJAX response - lib-toaster is lazy-loaded
-      cy.wait(2000);
-      // Just verify the page didn't crash - preferences save may show toaster or refresh
-      cy.get('#contentArea').should('exist');
-      // The save should have completed successfully if page is still showing preferences form
-      cy.get('body').then($body => {
-        // Check if toaster exists (it's lazy-loaded)
-        const hasToaster = $body.find('lib-toaster').length > 0;
-        if (hasToaster) {
-          cy.log('Toaster found - preferences saved');
-        } else {
-          cy.log('No toaster - checking form still exists');
-        }
-        // Verify the form is still visible (save didn't break the page)
-        cy.get('form').should('exist');
-      });
+      // No save button: changing a value posts by itself
+      cy.get('#toolbar_save').should('not.exist');
+      cy.get('#autosaveStatus').should('be.visible');
+
+      cy.intercept('POST', '**/preferences.php*').as('autosave');
+      cy.get('#sqlThreshold').select('100', { force: true });
+      cy.wait('@autosave');
+
+      // Verify the save didn't break the page
+      cy.get('form').should('exist');
     });
   });
 

@@ -185,13 +185,10 @@ describe('User Menu', () => {
             cy.get('body').then($body => {
                 const $sqlThreshold = $body.find('select[name="sqlThreshold"]');
                 if ($sqlThreshold.length > 0) {
+                    cy.intercept('POST', '**/preferences.php*').as('autosaveSql');
+                    // Changing the value autosaves - there is no save button
                     cy.wrap($sqlThreshold).select('100', { force: true });
-                    // Click save button
-                    cy.get('#toolbar_save, button:contains("Opslaan")')
-                        .first()
-                        .click({ force: true });
-                    cy.wait(1000);
-                    // Check toast or success message
+                    cy.wait('@autosaveSql');
                     cy.get('body').should('exist');
                 } else {
                     cy.log('SQL threshold dropdown not found');

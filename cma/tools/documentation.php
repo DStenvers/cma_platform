@@ -2631,7 +2631,7 @@ PerformanceLogger::logMemory('after_query');</code></pre>
     </table>
 
     <h2>Debug-mode aan/uit</h2>
-    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt LibLog's console-output en server-logging-niveau.</p>
+    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt LibLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (deploy.log specifiek), <a href="documentation.php?topic=backups">Backups</a> (backup-failures landen in php_errors.log).
@@ -3588,6 +3588,10 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
 ]
 </code></pre>
     <p>Keys: <code>form</code> (naam van de te embedden definitie) of <code>file</code>, <code>parentField</code> (FK in het kind dat naar de parent wijst), <code>linkField</code> (veld in de parent, default de <code>idField</code>), <code>title</code>/<code>titleEnglish</code> en <code>order</code>. De URL <code>form.php?form=opleidingen/&lt;ID&gt;/modules</code> rendert dan de modules-list onder het opleiding-detail.</p>
+
+    <h3>Verversen na een wijziging</h3>
+    <p>Een record uit een subform-lijst opent <span class="cma-tool__strong">met de parent-context erbij</span>: <code>parentID</code>/<code>parentField</code> in de popup-URL, en als <code>data-parent-id</code> op de <code>.form-layout</code>. Daar hangt het verversen aan. Na een save vraagt het venster waarin je bewerkt aan het bovenliggende formulier om precies dát tabblad opnieuw op te halen — <code>refreshSubformList('&lt;form-id&gt;')</code>, één <code>action=subform</code>-call, geen herlaad van het hele parent-record (dat zou de openstaande detailvelden erboven overschrijven). Het tabblad wordt op form-id gezocht, niet op positie.</p>
+    <p>De rij-klik in een subform-tabel loopt daarom via de eigenaar van de tabel (<code>onRowClick</code> in de <code>CmaInlineEdit</code>-config, afgehandeld door <code>openSubformRecord()</code>). De hoofdlijst laat die callback weg en gebruikt de eigen popup van <code>CmaInlineEdit</code>. Verdwijnt die callback, dan opent de rij zonder parent-context, en verversen raakt de <span class="cma-tool__strong">hoofdlijst</span> van de parent in plaats van het subformulier — zichtbaar als "ik sla op, maar de lijst blijft de oude waarde tonen".</p>
 
     <h2>form.php entry point</h2>
     <p>Alle form-views lopen door <code>cma/form.php</code>. Belangrijke URL-parameters:</p>

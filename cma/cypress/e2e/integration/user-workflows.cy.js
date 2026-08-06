@@ -604,9 +604,9 @@ describe('CMA User Workflows', () => {
       });
     });
 
-    it('should have save button in toolbar', () => {
-      cy.get('#toolbar_save, .toolbar .lnr-save, [data-action="save"]')
-        .should('exist');
+    it('should have autosave status in toolbar instead of a save button', () => {
+      cy.get('#toolbar_save').should('not.exist');
+      cy.get('#autosaveStatus').should('contain', 'meteen opgeslagen');
     });
   });
 

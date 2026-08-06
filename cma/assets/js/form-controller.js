@@ -9460,6 +9460,10 @@ class CmaFormController {
                     // Pass record ID for targeted row refresh in parent
                     this.closeForm(cmaGetRecordId(this.formLayout), false);
                 } else {
+                    // Opened from a subform list: refresh that list now, so the
+                    // change shows up without having to close this popup first.
+                    this.refreshParentSubformList();
+
                     // For existing records, refresh just the changed row (more reliable)
                     // For new records, reload entire list to include the new item
                     if (result.isNew) {
@@ -11092,6 +11096,36 @@ class CmaFormController {
     }
 
     /**
+     * Tab position of a subform, by form id. Returns -1 when this form has no
+     * such subform. Reads the tab-item elements rather than the component's
+     * tabs getter so it also answers before cma-tabs has upgraded.
+     */
+    findSubformIndex(subformFormId) {
+        const id = String(subformFormId || '');
+        if (id === '') return -1;
+        const tabsComponent = document.getElementById('subformTabs');
+        if (!tabsComponent) return -1;
+        const items = Array.from(tabsComponent.querySelectorAll('tab-item'));
+        return items.findIndex(item => String(item.dataset.id || '') === id);
+    }
+
+    /**
+     * Reload one subform tab's list from the server — the lazy refresh after a
+     * record in that subform was added, changed or deleted. A record saved in a
+     * subform popup lives in THIS form's subform list, not in its own list, so
+     * the popup asks its opener for this (see refreshParentSubformList).
+     *
+     * @param {string} subformFormId - Form id of the subform (the tab's data-id)
+     * @returns {boolean} true when a matching tab was found and reloaded
+     */
+    refreshSubformList(subformFormId) {
+        const index = this.findSubformIndex(subformFormId);
+        if (index < 0) return false;
+        this.loadSubformData(index);
+        return true;
+    }
+
+    /**
      * Activate a subform tab
      * @param {number} index - Tab index
      * @param {boolean} loadData - Whether to load data (default: true)
@@ -11284,18 +11318,21 @@ class CmaFormController {
         const title = CMA.utils.formActionTitle(formName, { recordId: null }); // new record
 
         const self = this;
+        const parentRecordId = cmaGetRecordId(this.formLayout);
         this.openPopup({
             formId: subformId,
             recordId: null, // null = new record
-            parentId: cmaGetRecordId(this.formLayout),
+            parentId: parentRecordId,
             parentField: parentField,
             title: title,
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
             onClose: function() {
-                // Reload current record to refresh subforms
-                if (cmaGetRecordId(this.formLayout)) {
-                    self.loadRecord(cmaGetRecordId(this.formLayout));
+                // Refresh just this subform's list. Capture the parent record id
+                // outside the callback: `this` is not the controller here, and the
+                // global record id may have moved on by the time the popup closes.
+                if (!self.refreshSubformList(subformId) && parentRecordId) {
+                    self.loadRecord(parentRecordId);
                 }
             }
         });
@@ -11531,8 +11568,9 @@ class CmaFormController {
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
             onClose: function() {
-                // Reload the parent record (captured above) to refresh subforms.
-                if (parentRecordId) {
+                // Refresh just this subform's list; reloading the whole parent
+                // record would also throw away edits in the detail form above it.
+                if (!self.refreshSubformList(subformId) && parentRecordId) {
                     self.loadRecord(parentRecordId);
                 }
             }
@@ -12234,6 +12272,11 @@ class CmaFormController {
                         openerCmaForm.refreshComboOptions(updateValuesField, recordId);
                         // cmaLog.log('Refreshed combobox in opener:', updateValuesField, 'with new ID:', recordId);
                     }
+                } else if (this.parentID && openerCmaForm &&
+                    typeof openerCmaForm.refreshSubformList === 'function' &&
+                    openerCmaForm.refreshSubformList(this.jsonForm || this.formId)) {
+                    // Subform record: its list is a subform tab in the opener,
+                    // not the opener's own list
                 } else if (openerCmaForm) {
                     if (deleted && recordId && typeof openerCmaForm.removeRowFromList === 'function') {
                         // Delete: remove row immediately (sync)
@@ -12353,6 +12396,88 @@ class CmaFormController {
     }
 
     /**
+     * Find the controller of the form that opened this popup/sidepanel.
+     * Handles the page structures the CMA opens forms in: the opener/parent
+     * document itself, a details_iframe, or any other iframe inside it.
+     * @returns {Object|null} The opener's controller, or null when not found
+     */
+    findParentController() {
+        const host = window.opener || parent;
+        if (!host || host === window) {
+            return null;
+        }
+
+        // Structure 1: controller on the host's .form-layout element (sidebar layout)
+        const hostFormLayout = host.document.querySelector('.form-layout');
+        if (hostFormLayout && hostFormLayout._cmaController &&
+            typeof hostFormLayout._cmaController.loadList === 'function') {
+            return hostFormLayout._cmaController;
+        }
+
+        // Structure 2: host has cmaForm directly (legacy/global reference)
+        if (host.cmaForm && typeof host.cmaForm.loadList === 'function') {
+            return host.cmaForm;
+        }
+
+        // Structure 3: details_iframe containing form.php with a controller
+        const detailsIframe = host.document.getElementById('details_iframe');
+        if (detailsIframe && detailsIframe.contentWindow) {
+            const iframeFormLayout = detailsIframe.contentWindow.document.querySelector('.form-layout');
+            if (iframeFormLayout && iframeFormLayout._cmaController &&
+                typeof iframeFormLayout._cmaController.loadList === 'function') {
+                return iframeFormLayout._cmaController;
+            }
+            if (detailsIframe.contentWindow.cmaForm &&
+                typeof detailsIframe.contentWindow.cmaForm.loadList === 'function') {
+                return detailsIframe.contentWindow.cmaForm;
+            }
+        }
+
+        // Structure 4: any other iframe in the host document
+        const iframes = host.document.getElementsByTagName('iframe');
+        for (let i = 0; i < iframes.length; i++) {
+            try {
+                const iframeFormLayout = iframes[i].contentWindow?.document?.querySelector('.form-layout');
+                if (iframeFormLayout && iframeFormLayout._cmaController &&
+                    typeof iframeFormLayout._cmaController.loadList === 'function') {
+                    return iframeFormLayout._cmaController;
+                }
+                if (iframes[i].contentWindow &&
+                    iframes[i].contentWindow.cmaForm &&
+                    typeof iframes[i].contentWindow.cmaForm.loadList === 'function') {
+                    return iframes[i].contentWindow.cmaForm;
+                }
+            } catch (e) {
+                // Cross-origin iframe - skip
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A record edited in a subform popup is shown in a list that belongs to the
+     * parent form, not to this one. Ask that form to reload the subform tab so
+     * the change is visible right away, without waiting for the popup to close.
+     * @returns {boolean} true when the parent refreshed a subform list
+     */
+    refreshParentSubformList() {
+        if (!this.parentID) {
+            return false;
+        }
+        try {
+            const parentCmaForm = this.findParentController();
+            if (!parentCmaForm || typeof parentCmaForm.refreshSubformList !== 'function') {
+                return false;
+            }
+            return parentCmaForm.refreshSubformList(this.jsonForm || this.formId);
+        } catch (e) {
+            cmaLog.warn('refreshParentSubformList error:', e);
+            return false;
+        }
+    }
+
+    /**
      * Refresh the parent page's list after save/delete in popup
      * Handles various page structures (form.php, frameset, etc.)
      * @param {string|null} recordId - If provided, try to update just this row
@@ -12361,62 +12486,15 @@ class CmaFormController {
     refreshParentList(recordId = null, deleted = false) {
         try {
             // Find the parent's cmaForm instance
-            let parentCmaForm = null;
+            const parentCmaForm = this.findParentController();
 
-            // Structure 1: Look for controller on parent's .form-layout element (sidebar layout)
-            const parentFormLayout = parent.document.querySelector('.form-layout');
-            if (parentFormLayout && parentFormLayout._cmaController &&
-                typeof parentFormLayout._cmaController.loadList === 'function') {
-                parentCmaForm = parentFormLayout._cmaController;
-                // cmaLog.log('refreshParentList: Found _cmaController on parent .form-layout');
-            }
-
-            // Structure 2: Parent has cmaForm directly (legacy/global reference)
-            if (!parentCmaForm && parent.cmaForm && typeof parent.cmaForm.loadList === 'function') {
-                parentCmaForm = parent.cmaForm;
-                // cmaLog.log('refreshParentList: Found cmaForm on parent');
-            }
-
-            // Structure 3: Parent has details_iframe containing form.php with controller
-            if (!parentCmaForm) {
-                const detailsIframe = parent.document.getElementById('details_iframe');
-                if (detailsIframe && detailsIframe.contentWindow) {
-                    const iframeFormLayout = detailsIframe.contentWindow.document.querySelector('.form-layout');
-                    if (iframeFormLayout && iframeFormLayout._cmaController &&
-                        typeof iframeFormLayout._cmaController.loadList === 'function') {
-                        parentCmaForm = iframeFormLayout._cmaController;
-                        // cmaLog.log('refreshParentList: Found _cmaController in details_iframe');
-                    } else if (detailsIframe.contentWindow.cmaForm &&
-                        typeof detailsIframe.contentWindow.cmaForm.loadList === 'function') {
-                        parentCmaForm = detailsIframe.contentWindow.cmaForm;
-                        // cmaLog.log('refreshParentList: Found cmaForm in details_iframe');
-                    }
-                }
-            }
-
-            // Structure 4: Look for controller in any iframe
-            if (!parentCmaForm) {
-                const iframes = parent.document.getElementsByTagName('iframe');
-                for (let i = 0; i < iframes.length; i++) {
-                    try {
-                        const iframeFormLayout = iframes[i].contentWindow?.document?.querySelector('.form-layout');
-                        if (iframeFormLayout && iframeFormLayout._cmaController &&
-                            typeof iframeFormLayout._cmaController.loadList === 'function') {
-                            parentCmaForm = iframeFormLayout._cmaController;
-                            // cmaLog.log('refreshParentList: Found _cmaController in iframe', iframes[i].id);
-                            break;
-                        }
-                        if (iframes[i].contentWindow &&
-                            iframes[i].contentWindow.cmaForm &&
-                            typeof iframes[i].contentWindow.cmaForm.loadList === 'function') {
-                            parentCmaForm = iframes[i].contentWindow.cmaForm;
-                            // cmaLog.log('refreshParentList: Found cmaForm in iframe', iframes[i].id);
-                            break;
-                        }
-                    } catch (e) {
-                        // cmaLog.log('[refreshParentList] Cross-origin iframe skipped:', e.message);
-                    }
-                }
+            // A subform record lives in a subform tab of the parent, not in the
+            // parent's own list — refreshRow() there would look up an id from a
+            // different table, and the changed row would stay as it was.
+            if (this.parentID && parentCmaForm &&
+                typeof parentCmaForm.refreshSubformList === 'function' &&
+                parentCmaForm.refreshSubformList(this.jsonForm || this.formId)) {
+                return;
             }
 
             // If we found cmaForm, refresh the list
@@ -12443,7 +12521,7 @@ class CmaFormController {
                 return;
             }
 
-            // Structure 4: No cmaForm found - try to reload details_iframe or parent
+            // No cmaForm found - try to reload details_iframe or parent
             const detailsIframe = parent.document.getElementById('details_iframe');
             if (detailsIframe && detailsIframe.contentWindow) {
                 // cmaLog.log('refreshParentList: Reloading details_iframe');

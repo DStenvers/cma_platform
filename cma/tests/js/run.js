@@ -42,6 +42,13 @@ global.assert = {
                 'verwacht ' + JSON.stringify(verwacht) + ', kreeg ' + JSON.stringify(werkelijk));
         }
     },
+    diepgelijk(werkelijk, verwacht, bericht) {
+        const a = JSON.stringify(werkelijk);
+        const b = JSON.stringify(verwacht);
+        if (a !== b) {
+            throw new Error((bericht ? bericht + ': ' : '') + 'verwacht ' + b + ', kreeg ' + a);
+        }
+    },
     waar(waarde, bericht) {
         if (waarde !== true) {
             throw new Error((bericht || 'verwacht true') + ', kreeg ' + JSON.stringify(waarde));
