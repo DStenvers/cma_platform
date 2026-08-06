@@ -34,6 +34,25 @@ class Date
     public const MAX_YEAR = 2099;
 
     /**
+     * De spatie BINNEN een geschreven datum: U+00A0, geen gewone spatie.
+     *
+     * "6 aug 2026" brak op elke smalle plek af — in tabelcellen, kaarten en koppen stond de
+     * dag onderaan de ene regel en het jaar bovenaan de volgende. Dat is nergens gewenst:
+     * een datum is één ding.
+     *
+     * Het ECHTE teken, niet de entiteit `&nbsp;`. Deze helpers leveren tekst, geen HTML, en
+     * die tekst gaat ook naar plekken waar opmaak niet thuishoort:
+     *  - Twig escapet de uitvoer, dus `&nbsp;` wordt `&amp;nbsp;` en staat letterlijk op het
+     *    scherm (sites registreren longDate als filter);
+     *  - mailONDERWERPEN zijn geen HTML; daar zou de entiteit rauw in de subject staan.
+     * U+00A0 gaat door al die paden gewoon mee: het is een spatie, alleen eentje waar de
+     * regelafbreking niet mag vallen.
+     *
+     * Alleen in de vormen met een geschreven maand. shortDate() is 06-08-2026 en breekt niet.
+     */
+    public const NBSP = "\u{00A0}";
+
+    /**
      * Dutch short month names (1-12)
      */
     private static array $shortMonths = [
@@ -301,7 +320,7 @@ class Date
             return $relativeName;
         }
 
-        return sprintf('%d %s %d',
+        return sprintf('%d' . self::NBSP . '%s' . self::NBSP . '%d',
             date('j', $ts),
             self::shortMonth((int)date('n', $ts)),
             date('Y', $ts)
@@ -332,7 +351,7 @@ class Date
             return $relativeName;
         }
 
-        return sprintf('%d %s %d',
+        return sprintf('%d' . self::NBSP . '%s' . self::NBSP . '%d',
             date('j', $ts),
             strtolower(self::longMonth((int)date('n', $ts))),
             date('Y', $ts)
@@ -363,7 +382,10 @@ class Date
             return $relativeName;
         }
 
-        return sprintf('%s %d %s %d',
+        // Na de weekdag een GEWONE spatie: "Vrijdag 15 maart 2024" in één onbreekbaar blok is
+        // ruim twintig tekens en duwt juist smalle kolommen uit elkaar. De datum zelf blijft
+        // heel, de weekdag mag eraf breken.
+        return sprintf('%s %d' . self::NBSP . '%s' . self::NBSP . '%d',
             self::longWeekday($ts),
             date('j', $ts),
             self::longMonth((int)date('n', $ts)),

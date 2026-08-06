@@ -198,12 +198,12 @@ class DateTest extends TestCase
 
     public function testMediumDateNoRelative(): void
     {
-        $this->assertEquals('15 Mrt 2024', Date::mediumDate('2024-03-15', false));
+        $this->assertEquals('15' . Date::NBSP . 'Mrt' . Date::NBSP . '2024', Date::mediumDate('2024-03-15', false));
     }
 
     public function testMediumDateJanuary(): void
     {
-        $this->assertEquals('1 Jan 2024', Date::mediumDate('2024-01-01', false));
+        $this->assertEquals('1' . Date::NBSP . 'Jan' . Date::NBSP . '2024', Date::mediumDate('2024-01-01', false));
     }
 
     public function testMediumDateEmpty(): void
@@ -217,7 +217,7 @@ class DateTest extends TestCase
 
     public function testLongDateNoRelative(): void
     {
-        $this->assertEquals('15 maart 2024', Date::longDate('2024-03-15', false));
+        $this->assertEquals('15' . Date::NBSP . 'maart' . Date::NBSP . '2024', Date::longDate('2024-03-15', false));
     }
 
     public function testLongDateEmpty(): void
@@ -231,12 +231,51 @@ class DateTest extends TestCase
 
     public function testFullDateNoRelative(): void
     {
-        $this->assertEquals('Vrijdag 15 Maart 2024', Date::fullDate('2024-03-15', false));
+        $this->assertEquals('Vrijdag 15' . Date::NBSP . 'Maart' . Date::NBSP . '2024', Date::fullDate('2024-03-15', false));
     }
 
     public function testFullDateEmpty(): void
     {
         $this->assertEquals('', Date::fullDate('', false));
+    }
+
+    // ========================================================================
+    // De spatie binnen een geschreven datum is HARD (U+00A0)
+    //
+    // "6 aug 2026" brak op smalle plekken af: dag onderaan de ene regel, jaar bovenaan de
+    // volgende. Sites plakten er daarom met de hand str_replace(' ', '&nbsp;') overheen, en
+    // dat is precies de verkeerde plek: Twig escapet die entiteit tot &amp;nbsp; en in een
+    // mailonderwerp staat hij rauw in de subject. Vandaar het echte teken, in de bron.
+    // ========================================================================
+
+    public function testGeschrevenDatumsBrekenNietAf(): void
+    {
+        foreach ([
+            'mediumDate' => Date::mediumDate('2024-03-15', false),
+            'longDate'   => Date::longDate('2024-03-15', false),
+        ] as $vorm => $uitkomst) {
+            $this->assertStringNotContainsString(' ', $uitkomst,
+                "$vorm() heeft weer een gewone spatie: daar breekt de datum af");
+            $this->assertEquals(2, substr_count($uitkomst, Date::NBSP),
+                "$vorm() hoort twee harde spaties te hebben (dag-maand-jaar)");
+        }
+    }
+
+    public function testHardeSpatieIsHetTekenEnNietDeEntiteit(): void
+    {
+        // Met &nbsp; in de tekst zou dit de assertie halen die op afbreken controleert, maar
+        // op het scherm eindigen als "&amp;nbsp;" zodra Twig hem escapet.
+        $this->assertStringNotContainsString('&nbsp;', Date::longDate('2024-03-15', false));
+        $this->assertSame("\u{00A0}", Date::NBSP);
+    }
+
+    public function testFullDateLaatDeWeekdagWelAfbreken(): void
+    {
+        // Anders is "Vrijdag 15 Maart 2024" één blok van ruim twintig tekens en duwt het
+        // smalle kolommen juist uit elkaar.
+        $uit = Date::fullDate('2024-03-15', false);
+        $this->assertStringContainsString('Vrijdag ', $uit, 'na de weekdag hoort een gewone spatie te staan');
+        $this->assertEquals(2, substr_count($uit, Date::NBSP), 'de datum zelf blijft wel heel');
     }
 
     // ========================================================================
