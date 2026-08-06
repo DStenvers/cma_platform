@@ -91,6 +91,13 @@ class Database
     private static array $namedConnectionDsns = [];
 
     /**
+     * DSN waarmee een poolsleutel daadwerkelijk is geopend (sleutel = poolnaam,
+     * inclusief de gehashte `oledb_*`-sleutels). Gevuld door createPDOConnection.
+     * @var array<string, string>
+     */
+    private static array $openedDsns = [];
+
+    /**
      * Last database error message
      * @var string
      */
@@ -547,6 +554,12 @@ class Database
             $dsn = str_replace('/', '\\', $dsn);
         }
 
+        // Onthoud met welke DSN deze poolsleutel is geopend. Nodig voor
+        // dsnForConnection(): een OLEDB-string komt in de pool onder een
+        // gehashte sleutel te staan en is daarna nergens meer te herleiden,
+        // terwijl native odbc_*-uitvragen die DSN wél nodig hebben.
+        self::$openedDsns[strtolower($name)] = $dsn;
+
         try {
             // Use persistent connections to avoid ODBC connection overhead on each request
             $conn = new PDO($dsn, null, null, [
@@ -617,6 +630,104 @@ class Database
     public static function getNamedConnection($connection)
     {
         return self::getConnection($connection);
+    }
+
+    /**
+     * De omgekeerde weg van getConnection(): bij welke logische naam hoort deze
+     * al geopende PDO? Null als hij niet uit de pool komt.
+     *
+     * Nodig omdat een PDO-handle zelf niet vertelt uit welke database hij komt.
+     * Wie alleen het object heeft (SchemaHelper krijgt dat van veel aanroepers)
+     * kan zonder deze weg de bijbehorende DSN niet vinden, en gokken op 'data'
+     * levert het schema van de VERKEERDE database — met de query even later op
+     * de juiste. Zie SchemaHelper::getNativeOdbc().
+     *
+     * Opent niets en verandert niets aan de pool: alleen identiteitsvergelijking
+     * op wat al open is.
+     *
+     * @param PDO|resource|string|null $conn
+     * @return string|null Logische naam (data/users/rep/...), of null
+     */
+    public static function nameForConnection($conn): ?string
+    {
+        if (is_string($conn)) {
+            $name = strtolower(trim($conn));
+            return $name === '' ? null : (self::$connectionAliases[$name] ?? $name);
+        }
+        if (!($conn instanceof PDO)) {
+            return null;
+        }
+        foreach (self::$namedConnections as $name => $pooled) {
+            if ($pooled === $conn) {
+                return (string)$name;
+            }
+        }
+        // Legacy statics: 'data' en 'rep' worden ook buiten de pool bijgehouden.
+        if (self::$connData !== null && self::$connData === $conn) {
+            return 'data';
+        }
+        if (self::$connRep !== null && self::$connRep === $conn) {
+            return 'rep';
+        }
+        return null;
+    }
+
+    /**
+     * De DSN die bij deze verbinding hoort — voor code die náást PDO een eigen
+     * kanaal opent, zoals de native odbc_tables()/odbc_columns()-uitvragen van
+     * SchemaHelper. '' betekent: niet vast te stellen.
+     *
+     * Dat lege antwoord is het punt van deze methode. Wie de DSN niet kan
+     * herleiden en dan maar 'data' pakt, leest het schema van een ANDERE
+     * database dan waar de query op draait. Precies dat gebeurde: het schema
+     * kwam uit pdodomain.mdb, de query ging naar CMAusers.mdb, en de
+     * kolomcontrole in cma/login.php antwoordde over de verkeerde tabel.
+     *
+     * Herkent drie vormen:
+     *  - een logische naam uit databases.json (data/users/rep, incl. aliassen);
+     *  - een al geopende verbinding (ook een OLEDB-string, die onder een
+     *    gehashte poolsleutel staat — vandaar $openedDsns);
+     *  - een rauwe connectiestring: OLEDB wordt omgezet, een PDO-DSN gaat
+     *    er ongewijzigd doorheen. De CMA-tools geven dit door via
+     *    CmaRepository::getResolvedConnectionString().
+     *
+     * @param PDO|string|null $connection
+     */
+    public static function dsnForConnection($connection): string
+    {
+        if ($connection instanceof PDO) {
+            $name = self::nameForConnection($connection);
+            if ($name === null) {
+                return '';
+            }
+            return self::$openedDsns[strtolower($name)] ?? self::getDsn($name);
+        }
+
+        if (!is_string($connection) || trim($connection) === '') {
+            return '';
+        }
+        $connection = trim($connection);
+
+        // Logische naam? Dan wint databases.json.
+        $dsn = self::getDsn($connection);
+        if ($dsn !== '') {
+            return $dsn;
+        }
+
+        if (self::isOleDbConnectionString($connection)) {
+            $dataSource = self::oleDbDataSource($connection);
+            return $dataSource === ''
+                ? ''
+                : 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=' . $dataSource;
+        }
+
+        // Al een PDO-DSN. Bewust een vaste lijst voorvoegsels: een kaal
+        // Windows-pad ("C:\db\x.mdb") ziet er met /^\w+:/ ook uit als een DSN.
+        if (preg_match('/^(odbc|sqlite|mysql|sqlsrv|pgsql|dblib|mssql):/i', $connection)) {
+            return $connection;
+        }
+
+        return '';
     }
 
     /**
@@ -1818,6 +1929,9 @@ class Database
         self::$connData = null;
         self::$connRep = null;
         self::$namedConnections = [];
+        // De onthouden DSN's horen bij die pool; laat ze niet achter voor
+        // sleutels die straks opnieuw (en anders) geopend worden.
+        self::$openedDsns = [];
 
         // Close native ODBC connections
         foreach (self::$nativeOdbcConnections as $conn) {
@@ -2692,6 +2806,22 @@ class Database
      * @param string $str String to check
      * @return bool True if it's an OLEDB connection string
      */
+    /**
+     * Het `Data Source=`-pad uit een OLEDB-string, met genormaliseerde scheidingstekens.
+     * '' als er geen in staat. Losgemaakt uit createConnectionFromOleDb zodat
+     * dsnForConnection() dezelfde omzetting kan doen zonder te verbinden.
+     */
+    private static function oleDbDataSource(string $oleDbString): string
+    {
+        foreach (explode(';', $oleDbString) as $part) {
+            $part = trim($part);
+            if (stripos($part, 'data source=') === 0) {
+                return str_replace('\\', '/', substr($part, strlen('data source=')));
+            }
+        }
+        return '';
+    }
+
     private static function isOleDbConnectionString(string $str): bool
     {
         $lower = strtolower($str);
@@ -2716,24 +2846,11 @@ class Database
      */
     private static function createConnectionFromOleDb(string $oleDbString): PDO
     {
-        // Parse the OLEDB string to extract data source
-        $dataSource = null;
-        $parts = explode(';', $oleDbString);
+        $dataSource = self::oleDbDataSource($oleDbString);
 
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (stripos($part, 'data source=') === 0) {
-                $dataSource = substr($part, strlen('data source='));
-                break;
-            }
-        }
-
-        if (empty($dataSource)) {
+        if ($dataSource === '') {
             throw new PDOException("Could not extract data source from OLEDB string: $oleDbString");
         }
-
-        // Normalize path separators
-        $dataSource = str_replace('\\', '/', $dataSource);
 
         // Create cache key from the data source path
         $cacheKey = 'oledb_' . md5($dataSource);

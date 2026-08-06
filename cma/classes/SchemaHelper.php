@@ -52,21 +52,39 @@ class SchemaHelper
 
     /**
      * Get native ODBC handle for Access databases (needed for odbc_tables/odbc_columns)
+     *
+     * Nooit terugvallen op 'data' als de verbinding niet te benoemen is. Dat was
+     * hier de fout, en hij was stil én ernstig:
+     *
+     * Aanroepers geven vaak een PDO-object door in plaats van een naam
+     * (cma/login.php deed dat met de `users`-verbinding). `is_string()` gaf dan
+     * null, waarna deze methode de DSN van 'data' opende. Gevolg: odbc_columns()
+     * las het schema van pdodomain.mdb terwijl de query er even later via
+     * Database::getFieldValue('users', ...) op CMAusers.mdb werd losgelaten —
+     * schema uit database A, query op database B.
+     *
+     * Zichtbaar werd dat in de adminbootstrap van login.php: hasColumn('userLevel')
+     * antwoordde over de verkeerde tblUsers, de code koos de legacy-tak en vroeg
+     * naar userAdministrator, een kolom die in CMAusers.mdb allang was vervangen.
+     * De PDO-terugval in getColumns() sprong niet bij, want die loopt alleen bij
+     * een LEGE kolomlijst en de verkeerde database leverde keurig kolommen.
+     *
+     * Een naamloze verbinding levert daarom null: geen handle betekent dat de
+     * aanroeper de PDO-weg neemt, en die zit per definitie op de juiste database.
      */
     private static function getNativeOdbc($connection)
     {
         if (!function_exists('odbc_connect')) return null;
 
-        $connName = is_string($connection) ? $connection : null;
-        $dsn = \App\Library\Database::getDsn($connName ?? 'data');
-        if (empty($dsn)) {
-            $dsn = \App\Library\Database::getDsn('data');
-        }
-        if (empty($dsn)) return null;
+        // Geen DSN te herleiden? Dan géén native handle. De aanroeper valt terug
+        // op de PDO-weg, en die zit per definitie op de juiste database.
+        $dsn = Database::dsnForConnection($connection);
+        if ($dsn === '') return null;
 
         $nativeDsn = preg_replace('/^odbc:/i', '', $dsn);
         return @odbc_connect($nativeDsn, '', '', SQL_CUR_USE_ODBC) ?: null;
     }
+
 
     /**
      * Get list of tables from database

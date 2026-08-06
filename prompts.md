@@ -7600,3 +7600,82 @@ karaat-data en staat in de karaat-repo.
 > you can change cma_platform, but mijn rino is for now off limits because multiple threads are writing and they collided
 
 > okay, can you remove the class=ling above the .toets-plaatsen, but only if the button is written
+
+> laat maar even zitten
+
+> what do you need?
+
+> Op het dashboard staat nu zowel dashboard als taken als actief, komt waarschijnlijk door de plek waarop Taken als actief wordt gezet
+
+>  Cma\LibTable : please remove
+
+> er zit script in taken.inc vermoed ik
+
+> 2
+
+> heb jij nog openstaande items
+
+> ❯ heb jij nog openstaande items?
+
+> kun je de upload.php oppakken? testdata gewoon laten staan.  pdo_competenties_praktopl.twig graag gelijktrekken. Ik heb geen testbestanden gemaakt, vraag me ook af wat het toevoegt dat je naar mij verwijst, maar wil je het wel oplossen? 5: beiden mogen van je lijst af, vergeet ze
+
+> ja bump maar
+
+## 2026-08-04
+
+> push maar naar de repo
+
+> Error in in D:\wwwroot\test-mijn.rino.nl\index.php on line 42
+> Failed opening required 'D:\wwwroot\test-mijn.rino.nl/src/opleiding/opleiding_literatuuroverzicht.inc' (include_path='.;C:\php\pear')
+
+> Er zijn niet-opgeslagen wijzigingen. Weet je zeker dat je wilt verlaten? : die moet wijzigingen laten zien, de melding is overigens onterecht want ik had de wijziging al bewaard
+
+> alweer van die globals die slecht worden bijgehouden. Ik wil dat je een deep scan daarop doet, mij een lijst geeft met waardes en BEWIJST! dat ze goed worden bijgehouden. Als je dat niet kan graag de hele global opruimen en een andere aanpak kiezen. Dit is al de zoveelste bug terwijl ik al heb aangegeven geen globals te willen. Je kunt prima op vensterniveau dit bijhouden, dan was dit nooit gebeurd.
+
+> het maakt me niet uit, maar dit is het soort uitglijders waar ik echt misselijk van wordt. Ik zie enorm veel globals en die zijn met goede engineering niet nodig. Wat je nodig hebt gebruik het, maar los het op. Jij hebt dit veroorzaakt, ik gebruik nooit dit soort methodieken.
+
+> Toch jammer dat je focust op het bewijzen. Ik ga het omdraaien. Wil je mij - per global state item - overtuigen van het feit dat dat de enige werkende oplossing is? Dus per item uitleggen waarom het een global is en niet een state-variabele die aan het geopende window is gekoppeld
+
+> Hoezo: topWin._cmaOpenPopupAt. Twee verschillende documenten moeten het eens zijn over "deze popup staat al open". Gedeelde state tussen vensters is per definitie niet in één venster te houden.
+> Want je kunt url's vergelijken
+
+> Ik wil je niet overvragen, laten we eerst de items waar we het over eens zijn aanpakken. Kun je dat doen? Dan kijken we later naar de overgebleven items. Ik ben er namelijk van overtuigd dat het uiteindelijke getal gewoon 0 zal zijn.
+
+> wat staat er nu open
+
+> wat is de status?
+
+> laat die ckeditor even zitten
+
+> noteer even de openstaande punten in todo.md. even consolideren
+
+> Warning: session_save_path(): Session save path cannot be changed after headers have already been sent in D:\wwwroot\test-mijn.rino.nl\_bootstrap.php on line 172
+>
+> Warning: session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\wwwroot\test-mijn.rino.nl\_bootstrap.php on line 182
+>
+> Warning: session_cache_limiter(): Session cache limiter cannot be changed after headers have already been sent in D:\wwwroot\test-mijn.rino.nl\_bootstrap.php on line 191
+>
+> Warning: session_start(): Session cannot be started after headers have already been sent in D:\wwwroot\test-mijn.rino.nl\_bootstrap.php on line 195
+> Bij Cache leegmaken
+>  
+> Kunnen we daar wel aandacht aan besteden? Ik heb dit eerder gemeld maar geen terugkoppeling gekregen
+
+> geen werk meer over?
+
+> in the cma the login als is no longer active, it does nothing in the context menu, please fix
+
+> ja graag, dat klinkt als een goed plan, voor library en cma.
+
+> Nog open items?
+
+## 2026-08-05
+
+> kun je deze zaken oppakken: 
+>
+> Direct restant van vandaag:
+> - form-controller.js:3428 leest de editor-instellingen nog uit CMA.formConfig.editorConfig in plaats van this.config.editorConfig — dezelfde fout die ik in verifyIdentity net heb weggehaald.
+> - De broncontrole-test die zou bewaken dat de controller die globale niet leest, is er nog niet.
+> - 15 cmaPerf-wachten in main.js (telemetrie, dus geen echte fout).
+>
+>
+> CKEditor — geparkeerd op jouw verzoek, maar er is een nieuw spoor: cma.js parkeert de editor-toestand op het topvenster (top.activeEditor, selectedAnchor, selectedImage, selectedTable, 25 plekken). Twee editors open betekent dat de laatste wint. Dat past bij "geel, geen knoppenbalk".

@@ -163,7 +163,7 @@ function main()
                     Cookie::delete(SecurityHelper::COOKIE_USERGUID);
                 }
             }
-            // Bootstrap een beheerder als er nog geen is. Twee dingen gaan hier
+            // Bootstrap een beheerder als er nog geen is. Drie dingen gaan hier
             // makkelijk mis, en gingen dat ook:
             //  - De adminvlag heet op moderne sites `userLevel`; `userAdministrator`
             //    is de legacy-kolom (zie SecurityHelper::getUserLevel, dat beide
@@ -173,15 +173,25 @@ function main()
             //    tblUsers leeft in `users`, dus de INSERT landde in de verkeerde
             //    database en faalde met "kan de uitvoertabel niet vinden". Elke
             //    paginaload schreef zo twee stacktraces naar het errorlog.
-            $usersConn = Database::getConnection('users');
-            $adminColumn = SchemaHelper::hasColumn($usersConn, 'tblUsers', 'userLevel')
-                ? 'userLevel >= 1'
-                : 'userAdministrator = true';
-            if (Database::getFieldValue('users', 'select count(*) as Aantal from tblUsers where (' . $adminColumn . ')', '') < '1') {
-                $adminInsert = SchemaHelper::hasColumn($usersConn, 'tblUsers', 'userLevel')
-                    ? "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userLevel) VALUES ('Admin', 'Administrator', 'Admin', 1)"
-                    : "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userAdministrator) VALUES ('Admin', 'Administrator', 'Admin', True)";
-                Database::executeOn('users', $adminInsert);
+            //  - "Geen userLevel" betekende hier automatisch "dan legacy". Dat is
+            //    een gok: er is een derde toestand, namelijk dat het schema niet
+            //    is vast te stellen. Die eindigde gegarandeerd in een query op een
+            //    kolom die niet bestaat. Vraag daarom naar BEIDE kolommen en doe
+            //    niets als geen van beide er is — een beheerder aanmaken in een
+            //    database die je niet kunt lezen is toch kansloos.
+            // De verbinding gaat als NAAM mee, niet als PDO-object: SchemaHelper
+            // kan alleen aan een naam zien om welke database het gaat.
+            $heeftUserLevel = SchemaHelper::hasColumn('users', 'tblUsers', 'userLevel');
+            $heeftLegacyVlag = !$heeftUserLevel
+                && SchemaHelper::hasColumn('users', 'tblUsers', 'userAdministrator');
+            if ($heeftUserLevel || $heeftLegacyVlag) {
+                $adminColumn = $heeftUserLevel ? 'userLevel >= 1' : 'userAdministrator = true';
+                if (Database::getFieldValue('users', 'select count(*) as Aantal from tblUsers where (' . $adminColumn . ')', '') < '1') {
+                    $adminInsert = $heeftUserLevel
+                        ? "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userLevel) VALUES ('Admin', 'Administrator', 'Admin', 1)"
+                        : "INSERT INTO tblUsers (userLogin, userFullName, userPassword, userAdministrator) VALUES ('Admin', 'Administrator', 'Admin', True)";
+                    Database::executeOn('users', $adminInsert);
+                }
             }
             if (Database::getFieldValue('users', 'select count(*) as Aantal from tblGroups where (ID=0)', '') < '1') {
                 Database::executeOn('users', "INSERT INTO tblGroups (ID, grpName) VALUES (0, 'Iedereen')");
