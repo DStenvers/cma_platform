@@ -487,6 +487,75 @@ function getUserActivityStats(): array
 }
 
 /**
+ * Form definitions by name, plus a title => name map for reverse lookups.
+ * Read once per request and shared by every caller here.
+ *
+ * Internal forms (a leading underscore: _menus, _menu_items) are included on
+ * purpose. The monitoring table stores the form handle, and a reader who just
+ * edited the menu should see "Menu's", not "_menus".
+ *
+ * @return array{0: array<string,array>, 1: array<string,string>}
+ */
+function loadFormDefinitionCache(): array
+{
+    static $formDefCache = null;
+    static $titleToNameMap = null;
+    if ($formDefCache !== null) {
+        return [$formDefCache, $titleToNameMap];
+    }
+
+    $formDefCache = [];
+    $titleToNameMap = [];
+    $formDirs = [
+        __DIR__ . '/../../assets/forms/',
+        __DIR__ . '/../assets/forms/definitions/',
+    ];
+    foreach ($formDirs as $definitionsDir) {
+        if (!is_dir($definitionsDir)) continue;
+        $files = glob($definitionsDir . '*.json');
+        foreach ($files as $file) {
+            $formName = basename($file, '.json');
+            $formJson = @file_get_contents($file);
+            $formDef = $formJson ? @json_decode($formJson, true) : null;
+            if ($formDef) {
+                // Cache the full definition by name
+                $formDefCache[$formName] = $formDef;
+                if (!empty($formDef['title'])) {
+                    // Map title (lowercased) to form name
+                    $titleToNameMap[strtolower($formDef['title'])] = $formName;
+                }
+            }
+        }
+    }
+
+    return [$formDefCache, $titleToNameMap];
+}
+
+/**
+ * Human title for a monitoring row. Both columns are written: Form holds the
+ * handle ("_menus"), Formname the title as it was at write time ("Menu's").
+ * The title is what a reader can place, so that wins; the definition's current
+ * title is the next best, and only then the bare handle.
+ */
+function monitoringFormTitle(string $handle, string $storedTitle): string
+{
+    $storedTitle = trim($storedTitle);
+    if ($storedTitle !== '' && $storedTitle !== $handle) {
+        return $storedTitle;
+    }
+
+    $handle = trim($handle);
+    if ($handle === '') {
+        return $storedTitle !== '' ? $storedTitle : '-';
+    }
+
+    [$formDefCache, ] = loadFormDefinitionCache();
+    $title = $formDefCache[$handle]['title'] ?? '';
+
+    return $title !== '' ? $title : $handle;
+}
+
+/**
  * Get most used forms statistics (last 7 days)
  */
 function getMostUsedFormsStats(): array
@@ -496,35 +565,7 @@ function getMostUsedFormsStats(): array
         'total' => 0,
     ];
 
-    // Build form definitions cache and title-to-name mapping (single pass, reused across calls)
-    static $formDefCache = null;
-    static $titleToNameMap = null;
-    if ($formDefCache === null) {
-        $formDefCache = [];
-        $titleToNameMap = [];
-        $formDirs = [
-            __DIR__ . '/../../assets/forms/',
-            __DIR__ . '/../assets/forms/definitions/',
-        ];
-        foreach ($formDirs as $definitionsDir) {
-            if (!is_dir($definitionsDir)) continue;
-            $files = glob($definitionsDir . '*.json');
-            foreach ($files as $file) {
-                $formName = basename($file, '.json');
-                if (str_starts_with($formName, '_')) continue;
-                $formJson = @file_get_contents($file);
-                $formDef = $formJson ? @json_decode($formJson, true) : null;
-                if ($formDef) {
-                    // Cache the full definition by name
-                    $formDefCache[$formName] = $formDef;
-                    if (!empty($formDef['title'])) {
-                        // Map title (lowercased) to form name
-                        $titleToNameMap[strtolower($formDef['title'])] = $formName;
-                    }
-                }
-            }
-        }
-    }
+    [$formDefCache, $titleToNameMap] = loadFormDefinitionCache();
 
     try {
         $conn = Database::getConnection('data');
@@ -596,12 +637,13 @@ function getRecentActivityStats(): array
     try {
         $conn = Database::getConnection('data');
 
-        // Use Form (handle) preferentially, fallback to Formname for legacy records.
+        // Both form columns come along: the row is shown with its human title
+        // (monitoringFormTitle), not with the raw handle a reader can't place.
         // NB: [timestamp] is bracketed — JET treats the bare word as a reserved
         // identifier in the alias position and the prepare step throws
         // "De instructie SELECT bevat een gereserveerd woord". Brackets stop that.
         $sql = "SELECT TOP 10 ID, Format(datestamp, 'dd-mm hh:nn') AS [timestamp],
-                       Username, Actie, IIf(Form Is Null Or Form='', Formname, Form) AS FormHandle, RecordID
+                       Username, Actie, Form, Formname, RecordID
                 FROM tblCMAMonitoring
                 ORDER BY datestamp DESC";
 
@@ -613,7 +655,10 @@ function getRecentActivityStats(): array
                     'time' => $rs->fields['timestamp'],
                     'user' => $rs->fields['Username'] ?: 'Onbekend',
                     'action' => $rs->fields['Actie'] ?: '-',
-                    'form' => $rs->fields['FormHandle'] ?: '-',
+                    'form' => monitoringFormTitle(
+                        (string)($rs->fields['Form'] ?? ''),
+                        (string)($rs->fields['Formname'] ?? '')
+                    ),
                     'record' => $rs->fields['RecordID'] ? (int)$rs->fields['RecordID'] : null,
                 ];
                 $rs->MoveNext();

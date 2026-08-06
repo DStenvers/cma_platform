@@ -2728,7 +2728,8 @@ function render_doc_security(): void
     </ul>
 
     <h2>Audit-trail</h2>
-    <p>Mutations door beheerders (formulier-saves, deletes) loggen naar <code>tblCMAMonitoring</code> via <code>CmaMonitoringLogger</code>. Zichtbaar in <a href="form.php?form=cmamonitoring" target="_top">CMA Monitoring</a> rapport — wie deed wat wanneer.</p>
+    <p>Mutaties door beheerders (formulier-saves, deletes) loggen naar <code>tblCMAMonitoring</code> via <code>FormDataProvider::logMonitoring()</code>, alleen als <code>cma_monitoring</code> aanstaat. Zichtbaar in het <a href="form.php?form=cmamonitoring" target="_top">CMA Monitoring</a>-formulier en in "Recente activiteit" op het dashboard — wie deed wat wanneer.</p>
+    <p>Elke regel bewaart het formulier twee keer: <code>Form</code> is de handle waarmee het wordt aangeroepen (<code>_menus</code>), <code>Formname</code> de titel zoals die bij het schrijven gold (<code>Menu's</code>). <span class="cma-tool__strong">Toon de titel</span>, niet de handle — die laatste komt nergens in de interface voor en zegt een lezer niets. Het dashboard doet dat via <code>monitoringFormTitle()</code> in <code>cma/api/dashboard_stats.php</code> (opgeslagen titel &rarr; titel uit de definitie &rarr; handle); de lijstkolom "Formulier" van het monitoring-formulier staat om dezelfde reden op <code>Formname</code>.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=installation">Installatie</a> (file-rechten), <a href="documentation.php?topic=environment">Omgeving &amp; .env</a> (waar secrets leven), <a href="documentation.php?topic=iis_config">IIS-configuratie</a> (hiddenSegments + securityheaders).

@@ -7683,3 +7683,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-06
 
 > de user preferences, kun je het zo maken dat die meteen worden opgeslagen en er geen Opslaan meer nodig is? En dat er een tekstje komt : wijzigingen worden meteen opgeslagen met een spinner die zichtbaar is wanneer er daadwerkelijk iets wordt opgeslagen?
+
+> editing the cma_menu.json gives _menus as title, can we change that? Quite ugly

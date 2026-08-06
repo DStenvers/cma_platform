@@ -20,7 +20,7 @@
                         "type": "text"
                 },
                 {
-                        "field": "Form",
+                        "field": "Formname",
                         "title": "Formulier",
                         "type": "text"
                 },
