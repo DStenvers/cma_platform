@@ -24,7 +24,13 @@ class BackupService
     public function __construct(?string $backupDir = null)
     {
         $this->siteRoot = dirname(__DIR__, 3);
-        $this->backupDir = $backupDir ?? $this->siteRoot . '/.backup';
+        // data/.backup, niet .backup in de siteroot. De kopieën zijn databasebestanden en
+        // horen bij de rest van de gegevens; een losse verborgen map in de root is een plek
+        // waar niemand ze zoekt. Migratie 9.23.0 verhuist een bestaande .backup/ hierheen, en
+        // de terugval hieronder vangt de tussenstand op: staat er nog een oude map met inhoud
+        // en is de nieuwe er nog niet, dan blijft die oude gewoon in gebruik. Zo verliest een
+        // site die de migratie nog niet heeft gedraaid geen enkele back-up.
+        $this->backupDir = $backupDir ?? self::bepaalBackupDir($this->siteRoot);
 
         // Ensure backup directory exists
         if (!is_dir($this->backupDir)) {
@@ -32,6 +38,27 @@ class BackupService
         }
 
         $this->loadBackupIndex();
+    }
+
+    /**
+     * Waar staan de back-ups: data/.backup, of nog de oude .backup in de siteroot?
+     *
+     * Nieuw is data/.backup. De oude plek wordt alleen gekozen als daar echt iets staat én
+     * de nieuwe map er nog niet is — dat is precies het venster tussen een platform-update en
+     * het draaien van migratie 9.23.0. Zonder die terugval zou de tool in dat venster naar een
+     * lege map kijken en lijken de back-ups verdwenen.
+     */
+    public static function bepaalBackupDir(string $siteRoot): string
+    {
+        $nieuw = $siteRoot . '/data/.backup';
+        $oud   = $siteRoot . '/.backup';
+        if (!is_dir($nieuw) && is_dir($oud)) {
+            $inhoud = glob($oud . '/*') ?: [];
+            if ($inhoud !== []) {
+                return $oud;
+            }
+        }
+        return $nieuw;
     }
 
     /**

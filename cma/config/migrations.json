@@ -1,7 +1,7 @@
 {
     "$schema": "./schema/migrations.schema.json",
     "schemaVersion": "1.0",
-    "targetVersion": "9.22.0",
+    "targetVersion": "9.23.0",
     "migrations": [
         {
             "version": "0.0.1",
@@ -1216,6 +1216,17 @@
                     "type": "runPhp",
                     "script": "migrations/9.22.0_remove_orphan_config_constants.php",
                     "note": "De constanten komen uit library/config/constants.php (gesynct met het pakket). Een site-root config/constants.php is een restant dat door niets wordt geladen en daardoor ongemerkt uiteenloopt \u2014 op de aangetroffen site was het blok twaalf keer herhaald. Verwijdert het bestand alleen als library/config/constants.php bestaat \u00e9n geen enkel PHP-bestand van de site het laadt; anders slaat hij over met een melding. config/ zelf blijft (page_roles.php e.a.). Idempotent."
+                }
+            ]
+        },
+        {
+            "version": "9.23.0",
+            "description": ".backup/ verhuist naar data/.backup/",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.23.0_move_backup_to_data.php",
+                    "note": "De back-uptool schreef zijn databasekopieen naar een verborgen map in de siteroot; het zijn gegevens en ze horen onder data/. BackupService::bepaalBackupDir() kiest sinds deze versie data/.backup en valt alleen terug op de oude plek zolang die nog inhoud heeft en de nieuwe er niet is - dit script maakt aan dat venster een eind. Verhuist de map in een rename als data/.backup nog niet bestaat, anders bestand voor bestand; overschrijft NOOIT een bestaand bestand en gooit niets weg, maar meldt wat er bleef staan. Ruimt de oude map alleen op als die daarna leeg is. Idempotent."
                 }
             ]
         }

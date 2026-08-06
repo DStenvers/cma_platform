@@ -31,7 +31,11 @@ Response::noCache();
 
 // Get site root and backup directory
 $siteRoot = dirname(__DIR__, 2);
-$backupDir = $siteRoot . '/.backup';
+// data/.backup — zie BackupService::bepaalBackupDir(): die kiest de nieuwe plek, en valt
+// alleen terug op de oude .backup in de siteroot zolang migratie 9.23.0 nog niet is gedraaid
+// en daar nog kopieën staan. Eén bepaler voor de tool en de service, anders kijken ze straks
+// in verschillende mappen.
+$backupDir = BackupService::bepaalBackupDir($siteRoot);
 $dbDir = $siteRoot . '/db';
 
 // Ensure backup directory exists
