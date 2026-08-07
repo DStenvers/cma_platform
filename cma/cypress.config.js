@@ -5,7 +5,11 @@ module.exports = defineConfig({
         // Base configuration
         baseUrl: 'http://172.30.208.1:8090/cma',
         supportFile: 'cypress/support/e2e.js',
-        specPattern: 'cypress/e2e/**/*.cy.js',
+        // Twee bronnen: de specs van het platform (hier) en die van de site
+        // (../cypress/e2e/). Dat tweede pad is er omdat cma/ door de Installer
+        // wordt overschreven en in de consumer-repo genegeerd hoort te zijn —
+        // een site-eigen spec die hier zou staan, is bij de volgende deploy weg.
+        specPattern: ['cypress/e2e/**/*.cy.js', '../cypress/e2e/**/*.cy.js'],
 
         // Viewport settings
         viewportWidth: 1280,
