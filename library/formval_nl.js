@@ -239,21 +239,30 @@ function form_errors_render( form ) {
 //	Eén regel in de samenvatting. De fouttekst is HTML (hij bevat een
 //	libval__strong-span met de veldnaam), dus die gaat als innerHTML naar binnen.
 //
+//	Een knop, geen link: de regel navigeert niet, hij brengt een veld in beeld.
+//	Een schermlezer kondigt dit aan als knop (de box heeft role=alert, dus een
+//	rij "links" die nergens heen gaan is precies wat je niet wilt horen), en er
+//	komt geen '#' in de URL wanneer de handler onverhoopt niet aan bod komt —
+//	deze applicatie bewaart state in de URL, dus dat is geen onschuldige ruis.
+//	type='button' is verplicht: de samenvatting staat BINNEN het formulier en
+//	een knop zonder type verstuurt het.
+//
 function form_errors_regel( post ) {
 	var li = document.createElement('li');
 	if (!post.fld) {
 		li.innerHTML = post.html;
 		return li;
 	}
-	var a = document.createElement('a');
-	a.href = '#';
-	a.innerHTML = post.html;
-	lib_addEvent( a, 'click', function( e ) {
+	var knop = document.createElement('button');
+	knop.type = 'button';
+	knop.className = form_errors_classname + '__veld';
+	knop.innerHTML = post.html;
+	lib_addEvent( knop, 'click', function( e ) {
 		if (e && e.preventDefault) e.preventDefault();
 		form_field_reveal( post.fld );
 		return false;
 	});
-	li.appendChild( a );
+	li.appendChild( knop );
 	return li;
 }
 

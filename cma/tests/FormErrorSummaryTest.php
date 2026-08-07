@@ -130,6 +130,30 @@ class FormErrorSummaryTest extends TestCase
     }
 
     // ========================================================================
+    // A summary line is a button, not a link
+    // ========================================================================
+
+    /**
+     * The line does not navigate — it opens the tab the field sits in and focuses it.
+     * As an <a href="#"> that was announced as a link going nowhere (the box carries
+     * role=alert, so a screen reader reads the whole list), and any path that misses
+     * preventDefault() writes a '#' into the URL — which this app uses for state.
+     * type=button is required as well: the summary sits INSIDE the form, and a button
+     * without a type submits it.
+     */
+    public function testSummaryLineIsAButtonAndNotAnAnchor(): void
+    {
+        $body = $this->functionBody($this->lib('formval_nl.js'), 'form_errors_regel');
+
+        $this->assertTrue(strpos($body, "createElement('button')") !== false,
+            'a summary line is not a button');
+        $this->assertTrue(strpos($body, "type = 'button'") !== false,
+            "the button has no type='button' — clicking an error would submit the form");
+        $this->assertTrue(strpos($body, "href") === false,
+            'the anchor is back; a summary line navigates nowhere and must not carry an href');
+    }
+
+    // ========================================================================
     // Styling
     // ========================================================================
 
@@ -139,6 +163,10 @@ class FormErrorSummaryTest extends TestCase
         $this->assertTrue(strpos($css, '.form_errors') !== false, '.form_errors has no styling');
         // The field marker is the other half of the change and predates it.
         $this->assertTrue(strpos($css, '.invalid') !== false, '.invalid styling disappeared');
+        // A bare <button> inherits the browser's own look; without this it stops
+        // reading as a line of text in the list.
+        $this->assertTrue(strpos($css, '.form_errors__veld') !== false,
+            '.form_errors__veld has no styling — the button keeps its browser chrome');
     }
 
     // ========================================================================

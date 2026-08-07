@@ -7756,3 +7756,13 @@ karaat-data en staat in de karaat-repo.
 > Aborting
 
 > ja graag
+
+## 2026-08-07
+
+> De onderhoudspagina heeft nu weer de oude inhoud, kun je die herstellen?  Die was juist wel erg fraai
+
+> Geen agenda-items in deze periode voor de gekozen groep(en). Blader naar een andere periode of kies hierboven een andere groep. -> haal hierboven weg
+
+> In de nieuwe validatie moethode wordt er in een div formErrors een lijst gemaakt van velden waar de validatie faalt. Wat ik niet begrijp is waarom dat links zijn met als href #, wat is daar de rationale achter?
+
+> ja graag.
