@@ -7788,3 +7788,23 @@ karaat-data en staat in de karaat-repo.
 > er zin in class_login nu een blnhoofdopleider, kijk of die op andere plekken ook zinnig is
 
 > en? staat het al? In principe moet hij ook verder kunnen nesten (/form/deelnemers/837/deelnemers_neemt_deel_aan/1108/aanwezigheid/132132 (voorbeeldje)
+
+> create a totally new project: Find a house in Spain! 
+>
+> The project entails crawling websites, remembering the unique urls and storing all information in a database. Then a process of requesting the new houses for each site in a frequently process to update the database and see if houses in the database have been sold. 
+>
+> create a database with :
+> - dubbele bewoning jn
+> - tuin met bomen en planten?
+> - open keuken
+> - zwembad en het formaat ervan
+> - zoveel mogelijk kenmerken in zoekbare criteria
+> - automatisch een foto van het huis voorop
+>
+> een frontend die lijkt op een huizensite maar die meer opties heeft, fotogallerij, kaart inzoombaar met foto’s 
+> Bijkomend: indicatie van de hoogte tov de zeespiegel, huizen in de bergen zijn veel koeler..
+>
+> Favorieten met opmerking kunnen plaatsen
+>
+> why?
+> The idealista website had very limited search options.

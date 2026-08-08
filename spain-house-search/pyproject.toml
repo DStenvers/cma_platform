@@ -1,0 +1,12 @@
+[project]
+name = "casa-en-espana"
+version = "0.1.0"
+description = "A house-hunting crawler and search engine for Spain — richer search than the big portals."
+requires-python = ">=3.8"
+dependencies = []  # standard library only, by design
+
+[project.scripts]
+casa = "casa.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["casa*"]
