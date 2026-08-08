@@ -7814,3 +7814,6 @@ karaat-data en staat in de karaat-repo.
 > repo an access done
 
 > yes remove it from cma platform and commit and push all to main, we will be working on main from now on
+
+> and anothe bigger ask, can you create a table with town names and distance to the sea (vogelvlucht), and distance to the neearest town with groceryshops etc? 
+> idealy a table of actual travel distance , can openstreetmaps provede that?
