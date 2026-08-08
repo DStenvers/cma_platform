@@ -2270,7 +2270,7 @@ function lib_sidepanel_syncUrl(topWindow) {
 		if (!topWindow || !topWindow.CMA || !topWindow.CMA.url) return;
 
 		var stack = topWindow.lib_sidepanel_stack || [];
-		if (stack.length === 0 || stack.length > 3) return;
+		if (stack.length === 0) return;
 
 		// Read the panel that was just opened; a panel without an iframe (plain
 		// htmlContent) carries no record and must not rewrite the URL.
@@ -2287,7 +2287,33 @@ function lib_sidepanel_syncUrl(topWindow) {
 
 		var state = topWindow.CMA.url.parse() || {};
 
-		if (stack.length === 1) {
+		// Het niveau volgt de OUDERKETEN, niet de hoogte van de panelenstapel.
+		// Die twee lopen uiteen zodra het bovenliggende record niet zelf in een
+		// paneel staat: open je vanuit /form/deelnemers/837 een deelname, dan is
+		// dat het eerste paneel terwijl het record er al één niveau onder hangt.
+		// Op de stapelhoogte afgaan schreef dan /form/deelnemers_neemt_deel_aan/1108
+		// — de ouder kwijt, en een verversing laadde het verkeerde scherm. Het
+		// sluiten kijkt al naar parentID; het openen doet dat nu ook.
+		var niveau;
+		if (!parentId) {
+			niveau = stack.length;
+		} else if (String(state.recordId || '') === String(parentId)) {
+			niveau = 2;
+		} else if (String(state.subformId || '') === String(parentId)) {
+			niveau = 3;
+		} else {
+			// De ouder staat niet in de URL: dieper dan drie niveaus, of een
+			// scherm dat buiten deze keten is geopend. Er is dan geen plek om dit
+			// adres te schrijven, en een adres dat de verkeerde ouder noemt is
+			// erger dan geen bijgewerkt adres — verversen geeft dan een ander
+			// scherm terug dan waar je naar kijkt.
+			return;
+		}
+		// buildUrl (url-manager.js) kent drie niveaus; dieper laten we de URL
+		// liever ongemoeid dan er een vorm in te zetten die niet terug te lezen is.
+		if (niveau > 3) return;
+
+		if (niveau === 1) {
 			topWindow.CMA.url.update({
 				form: form,
 				recordId: id,
@@ -2295,7 +2321,7 @@ function lib_sidepanel_syncUrl(topWindow) {
 				subform: null, subformId: null, isSubformNew: false,
 				subsubform: null, subsubformId: null, isSubsubformNew: false
 			}, false);
-		} else if (stack.length === 2) {
+		} else if (niveau === 2) {
 			// Keep the parent visible: its form comes from the URL we are already
 			// on, its id from parentID when the subform passed one.
 			topWindow.CMA.url.update({

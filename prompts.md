@@ -7784,3 +7784,7 @@ karaat-data en staat in de karaat-repo.
 > graag gewoon alles committen en pushen
 
 > 1 bij opleidingen, dat scherm bevat veel velden
+
+> er zin in class_login nu een blnhoofdopleider, kijk of die op andere plekken ook zinnig is
+
+> en? staat het al? In principe moet hij ook verder kunnen nesten (/form/deelnemers/837/deelnemers_neemt_deel_aan/1108/aanwezigheid/132132 (voorbeeldje)
