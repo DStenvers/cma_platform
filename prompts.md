@@ -7833,3 +7833,5 @@ karaat-data en staat in de karaat-repo.
 
 > thhis is the base url : https://www.idealista.com/nl/multi/venta-viviendas/a5Z,a5i,a7b,a8U,a92,a9u,asw,atH,au6,bUl,bVc,bbm,biw,bkO,bkj,btP,bum,c9i,cK6,cMF,cQK,cgF,d71,dET,dTc,dYJ,dat,der,dkQ,do1,dsK,dtU,duG,dwj/con-precio-hasta_450000,metros-cuadrados-mas-de_200,chalets-independientes,casas-de-pueblo,dos-banos,tres-banos-o-mas,piscina,aireacondicionado,jardin,sin-inquilinos/
 > it should be a separate site like any consumer and not live within the cma folder
+
+> i already created the repo
