@@ -7817,3 +7817,13 @@ karaat-data en staat in de karaat-repo.
 
 > and anothe bigger ask, can you create a table with town names and distance to the sea (vogelvlucht), and distance to the neearest town with groceryshops etc? 
 > idealy a table of actual travel distance , can openstreetmaps provede that?
+
+> so 2 actual tracel time distances as well
+> okay, can we include cma is latform and create site specific tools to populate that data? i will install it on a web server.
+>
+> did you create a mobile feiendely front-end ? if not can you do that?
+> oh you are building a town view? where i can see all town related data? Great!
+> can you have the crawler or have it crawl an existing search of mine?
+> you decided to go for Python, wpuld moving to the full cma platform (php) be a great issue?
+
+> are you deliberately ignoring my questions?
