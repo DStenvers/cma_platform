@@ -7766,3 +7766,11 @@ karaat-data en staat in de karaat-repo.
 > In de nieuwe validatie moethode wordt er in een div formErrors een lijst gemaakt van velden waar de validatie faalt. Wat ik niet begrijp is waarom dat links zijn met als href #, wat is daar de rationale achter?
 
 > ja graag.
+
+> agenda.php: weergave_opties toont 'Toon mij: en daaronder een select box die er makkelijk naast past, kun je dat aanpassen?
+
+> ik zie het nog niet , als er 2 lijstjes zijn (opleidingen en toon-filter) staat Toon Mij er gewoon nog boven.
+
+## 2026-08-08
+
+> ik test locaal, niet op een test-site

@@ -169,6 +169,36 @@ class FormErrorSummaryTest extends TestCase
             '.form_errors__veld has no styling — the button keeps its browser chrome');
     }
 
+    /**
+     * No underline at rest, underline on hover/focus.
+     *
+     * A summary with five errors is five lines in a list; underlining them all turns the
+     * block into noise. Colour and position already say they are clickable. On hover the
+     * underline comes back, because that is what tells you which line you are on — and
+     * focus gets it too, otherwise keyboard users lose that cue entirely.
+     */
+    public function testSummaryLinksUnderlineOnlyOnHover(): void
+    {
+        $css = $this->lib('library.css');
+        // The rule at rest: both the link and the field button, together on one line.
+        $rust = '.form_errors a, .form_errors__veld {';
+        $pos  = strpos($css, $rust);
+        $this->assertTrue($pos !== false, 'the rest state of .form_errors a is gone');
+        $regel = substr($css, $pos, strpos($css, '}', $pos) - $pos);
+        $this->assertTrue(strpos($regel, 'text-decoration:none') !== false,
+            'the links in the error summary are underlined at rest: ' . trim($regel));
+
+        // And the hover/focus rule, which must carry the underline.
+        $hoverPos = strpos($css, '.form_errors a:hover');
+        $this->assertTrue($hoverPos !== false, 'the hover state of .form_errors a is gone');
+        $hover = substr($css, $hoverPos, strpos($css, '}', $hoverPos) - $hoverPos);
+        $this->assertTrue(strpos($hover, 'text-decoration:underline') !== false,
+            'hovering an error line gives no underline: ' . trim($hover));
+        // Keyboard users see the same thing.
+        $this->assertTrue(strpos($hover, ':focus') !== false,
+            'only :hover is styled — a focused error line shows nothing');
+    }
+
     // ========================================================================
     // The bundles the site actually loads
     // ========================================================================
