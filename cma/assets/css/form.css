@@ -276,17 +276,19 @@ body.mode-table .tb-sep.table-mode-only { display: inline-block !important; }
 }
 
 /* "Toevoegen" is a plain + rather than a document-with-plus glyph: the action is
-   "add a record", not "add a file". Drawn as text so it scales with the label —
-   the 1.4em lifts the plus's stroke height to the cap height of the T next to
-   it — inside the same 18px box the icons use, so button widths stay put. */
+   "add a record", not "add a file". Drawn as text, sized so the plus's stroke
+   height reaches the cap height of the T next to it, inside the same 18px box
+   the icons use so button widths stay put. The negative margin lifts it onto
+   the label's baseline. */
 .tb-btn .btn-plus {
-    display: inline-block;
-    width: 18px;
     text-align: center;
-    font-size: 2em;
+    color: #777;
+    width: 18px;
+    font-size: 31px;
     font-weight: 100;
     line-height: 1;
-    color: #777777;
+    display: inline-block;
+    margin-top: -2px;
 }
 
 /* Tree mode button states */

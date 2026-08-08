@@ -7782,3 +7782,5 @@ karaat-data en staat in de karaat-repo.
 > Is dit al ergens te zien? Ik zie op de locale mijn rino de fold niet meer, maar de detail-scherm heeft nog niet 100% hoogte
 
 > graag gewoon alles committen en pushen
+
+> 1 bij opleidingen, dat scherm bevat veel velden

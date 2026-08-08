@@ -818,7 +818,13 @@ table tr.odd { background-color: #fdfdfd }
 /* Verstelbaar sidepanel: een greep aan de linkerrand voor de breedte, een greep in
    de linker-onderhoek voor breedte én hoogte, en de kop als sleepvlak. De grepen zijn
    onzichtbaar tot je er met de muis komt — het paneel moet er rustig uitzien. */
-.lib_sidepanel_greep_rand {
+/* De grepen liggen OVER het paneel, ze zijn er geen rij in. Dat het paneel een
+   flex-kolom is maakt dat kwetsbaar: valt de absolute positionering weg, dan
+   worden ze gewone kinderen en snoepen ze onderaan hoogte van de iframe af — een
+   strook paneelachtergrond onder elk scherm. De selector noemt daarom de
+   container, want de grepen dragen een title die als [data-tooltip] terugkomt,
+   en die tooltipregel zet position:relative met hetzelfde gewicht. */
+.lib_sidepanel_container > .lib_sidepanel_greep_rand {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -832,7 +838,7 @@ table tr.odd { background-color: #fdfdfd }
     background: var(--color-primary, #204496);
     opacity: .35;
 }
-.lib_sidepanel_greep_hoek {
+.lib_sidepanel_container > .lib_sidepanel_greep_hoek {
     position: absolute;
     left: 0;
     bottom: 0;

@@ -550,6 +550,20 @@ class CmaFold extends HTMLElement {
     _loadState() {
         if (!this.storageKey || !this._target) return;
 
+        // Een balk die zelf niet te zien is, heeft niets te verdelen. Bij een
+        // nieuw record is dat het geval: er is nog geen id, dus het onderliggende
+        // subformulier is verborgen en de balk erboven ook. De bewaarde maat toch
+        // toepassen zet het formulier op een fractie van het paneel vast — een
+        // inline height plus flex:0 0 — en daaronder blijft een lege band staan.
+        // De bewaarde stand blijft in localStorage staan voor als de balk er weer
+        // wel is; alleen het toepassen slaan we over.
+        if (getComputedStyle(this).display === 'none') {
+            this._target.style.width = '';
+            this._target.style.height = '';
+            this._target.style.flex = '';
+            return;
+        }
+
         try {
             const stored = localStorage.getItem('cma_fold_' + this.storageKey);
             if (stored) {
