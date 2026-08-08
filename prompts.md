@@ -7839,3 +7839,5 @@ karaat-data en staat in de karaat-repo.
 > we created it just 30 minutes ago
 
 > ci yes
+
+> crawler: did you write it?  if you put 2 swconds between each crawl
