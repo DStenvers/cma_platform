@@ -10147,7 +10147,11 @@ class CmaFormController {
 
     /**
      * Expand groupboxes that contain empty required fields.
-     * Called in add mode to ensure all required fields are immediately visible.
+     *
+     * Called in add mode so every field that still needs attention is visible in
+     * one glance, whatever the user last collapsed. The opening is deliberately
+     * not persisted: it is a property of this empty record, not a preference, so
+     * the stored open/closed state survives untouched for the next record.
      */
     expandGroupboxesWithRequiredFields() {
         if (!this.mainForm) return;
@@ -10173,7 +10177,7 @@ class CmaFormController {
             // Find the groupbox and open it if collapsed
             const groupbox = document.querySelector(`cma-groupbox[group-id="${groupId}"]`);
             if (groupbox && !groupbox.isOpen) {
-                groupbox.open();
+                groupbox.open(false);
                 expandedGroups.add(groupId);
             }
         });

@@ -23,7 +23,7 @@
  *
  * Methods:
  *   - toggle(): Toggle open/closed
- *   - open(): Open the group
+ *   - open(persist): Open the group; open(false) leaves the stored preference alone
  *   - close(): Close the group
  *
  * Events:
@@ -53,10 +53,18 @@ class CmaGroupbox extends HTMLElement {
     get caption() { return this._caption; }
 
     get isOpen() { return this._isOpen; }
-    set isOpen(value) {
-        this._isOpen = !!value;
+    set isOpen(value) { this._setOpen(value, true); }
+
+    /**
+     * @param {boolean} open
+     * @param {boolean} persist Write the new state to localStorage. False makes
+     *   the change hold for this page view only, leaving the user's stored
+     *   open/closed preference for this group exactly as it was.
+     */
+    _setOpen(open, persist) {
+        this._isOpen = !!open;
         this._applyState();
-        this._saveState();
+        if (persist) this._saveState();
         this.dispatchEvent(new CustomEvent('groupbox-toggle', { detail: { open: this._isOpen }, bubbles: true }));
     }
 
@@ -108,9 +116,10 @@ class CmaGroupbox extends HTMLElement {
         }
     }
 
-    toggle() { this.isOpen = !this._isOpen; }
-    open() { this.isOpen = true; }
-    close() { this.isOpen = false; }
+    toggle() { this._setOpen(!this._isOpen, true); }
+    /** @param {boolean} [persist=true] Pass false to open without storing the preference. */
+    open(persist = true) { this._setOpen(true, persist); }
+    close() { this._setOpen(false, true); }
 
     _render() {
         var countHtml = '';

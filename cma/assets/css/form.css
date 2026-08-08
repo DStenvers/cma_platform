@@ -375,9 +375,11 @@ body.mode-detail.mode-table main.detail-panel { display: block; }
     display: none; /* Hidden by default - shown when subforms exist */
 }
 
-/* Show foldH when subforms are defined (reserves space) or loaded */
-body.has-subforms-defined .fold-horizontal,
-body.has-subform .fold-horizontal {
+/* Show foldH when subforms are defined (reserves space) or loaded.
+   Not while creating: there is no record id yet, so there is nothing below the
+   fold to resize — the same :not() guard the .subform-section rules carry. */
+body.has-subforms-defined:not(.is-creating) .fold-horizontal,
+body.has-subform:not(.is-creating) .fold-horizontal {
     display: flex;
 }
 

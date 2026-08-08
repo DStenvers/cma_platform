@@ -175,9 +175,19 @@ for dir in "${CSS_DIRS[@]}"; do
     minfile="${cssfile%.css}.min.css"
 
     orig_size=$(wc -c < "$cssfile")
-    "$NODE_BIN" "$CSS_WRAPPER" "$cssfile" "$minfile.tmp" 2>/dev/null
-    if [ ! -s "$minfile.tmp" ]; then
-        echo "  ERROR: $basename"
+    # In een `if` en MET de melding erbij, net als de terser-lus hierboven. Kaal aanroepen
+    # met 2>/dev/null was dodelijk: dit script draait onder `set -e`, dus een wrapper die
+    # afbreekt nam het hele bouwproces mee vóórdat de ERROR-tak eronder kon melden waarom.
+    # Waargenomen op een site waar lightningcss wél in node_modules stond maar zonder zijn
+    # native binding (lightningcss.linux-x64-gnu.node, een optionele dependency die bij een
+    # install op een ander platform overgeslagen wordt): `npm run build:minify` stopte na
+    # "Processing CSS files..." met exit 3, zonder één regel uitleg, en elke .min.css bleef
+    # maanden verouderd achter — onzichtbaar, want de serveerlaag valt dan netjes terug op
+    # de bron.
+    css_fout=""
+    if ! css_fout=$("$NODE_BIN" "$CSS_WRAPPER" "$cssfile" "$minfile.tmp" 2>&1) \
+       || [ ! -s "$minfile.tmp" ]; then
+        echo "  ERROR: $basename${css_fout:+ — ${css_fout%%$'\n'*}}"
         errors=$((errors + 1))
         rm -f "$minfile.tmp"
         continue
