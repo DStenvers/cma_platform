@@ -7837,3 +7837,5 @@ karaat-data en staat in de karaat-repo.
 > i already created the repo
 
 > we created it just 30 minutes ago
+
+> ci yes
