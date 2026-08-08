@@ -1496,7 +1496,13 @@ class CmaFormController {
             // combos have their values, so a field with a default stays out of it.
             this.directRecordMode = true;
             this.setDisplayModeClass('detail');
-            this.formInit().then(() => this.expandGroupboxesWithRequiredFields());
+            this.formInit().then(async () => {
+                // Opened with parent context (a subform's add button): the new
+                // record must carry the link to its parent. That field is
+                // normally required, so without this the save is refused.
+                await this.setParentFieldValue();
+                this.expandGroupboxesWithRequiredFields();
+            });
         } else {
             // cmaLog.log('init: no data-record-id, calling formInit without record');
             this.directRecordMode = false;
@@ -11107,6 +11113,12 @@ class CmaFormController {
      * Tab position of a subform, by form id. Returns -1 when this form has no
      * such subform. Reads the tab-item elements rather than the component's
      * tabs getter so it also answers before cma-tabs has upgraded.
+     *
+     * Two id spaces name the same subform. The tab's data-id is what the parent
+     * form knows — a number for a database subform, the form name for a JSON
+     * one — while the subform list API and a saving popup both report the JSON
+     * form name. Matching only data-id therefore finds nothing for exactly the
+     * database subforms, and the refresh after a save goes silently missing.
      */
     findSubformIndex(subformFormId) {
         const id = String(subformFormId || '');
@@ -11114,7 +11126,9 @@ class CmaFormController {
         const tabsComponent = document.getElementById('subformTabs');
         if (!tabsComponent) return -1;
         const items = Array.from(tabsComponent.querySelectorAll('tab-item'));
-        return items.findIndex(item => String(item.dataset.id || '') === id);
+        return items.findIndex(item =>
+            String(item.dataset.id || '') === id ||
+            String(item.dataset.jsonForm || '') === id);
     }
 
     /**

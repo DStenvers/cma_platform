@@ -45,16 +45,25 @@ function haalMethodeUitBron(bestand, naam) {
     throw new Error('Einde van ' + naam + ' niet gevonden');
 }
 
-/** Document met een subformulier-tabblad per opgegeven form-id. */
-function maakPaginaMetTabs(formIds) {
+/**
+ * Document met een subformulier-tabblad per opgegeven subformulier.
+ *
+ * Een tabblad mag als string ('_menu_items' — dan is data-id de naam) of als
+ * object ({id, jsonForm}) worden opgegeven. Dat tweede is wat een database-
+ * subformulier oplevert: data-id is het nummer, data-json-form de naam.
+ */
+function maakPaginaMetTabs(subformulieren) {
     const dom = new JSDOM('<!doctype html><html><body></body></html>',
         { runScripts: 'dangerously', url: 'http://localhost/cma/form.php' });
     const doc = dom.window.document;
     const tabs = doc.createElement('cma-tabs');
     tabs.id = 'subformTabs';
-    formIds.forEach((id, i) => {
+    subformulieren.forEach((sub, i) => {
         const item = doc.createElement('tab-item');
-        item.dataset.id = id;
+        item.dataset.id = String(typeof sub === 'string' ? sub : sub.id);
+        if (typeof sub === 'object' && sub.jsonForm) {
+            item.dataset.jsonForm = sub.jsonForm;
+        }
         item.dataset.index = String(i);
         doc.body.appendChild(tabs);
         tabs.appendChild(item);
@@ -129,6 +138,42 @@ test('een formulier zonder dat subformulier vraagt niets op en meldt dat', () =>
     const controller = maakController(dom);
 
     assert.onwaar(controller.refreshSubformList('_menu_items'), 'niets ververst');
+    assert.diepgelijk(dom.window.__geladen, []);
+});
+
+// Een database-subformulier draagt twee namen: het tabblad kent het nummer dat
+// het bovenliggende formulier gebruikt, terwijl de lijst-API en het opslaande
+// venster de JSON-formuliernaam terugmelden. Wie alleen op data-id zoekt, vindt
+// precies bij die subformulieren niets — en dan blijft de lijst na een save de
+// oude tonen. Beide namen moeten dus hetzelfde tabblad opleveren.
+const DB_TABS = [
+    { id: '80', jsonForm: 'deelnemers_login' },
+    { id: '77', jsonForm: 'deelnemers_neemt_deel_aan' },
+    { id: '93', jsonForm: 'deelnemers_laatste_100_berichten' }
+];
+
+test('de JSON-formuliernaam vindt hetzelfde tabblad als het nummer', () => {
+    const controller = maakController(maakPaginaMetTabs(DB_TABS));
+
+    assert.gelijk(controller.findSubformIndex('deelnemers_neemt_deel_aan'), 1);
+    assert.gelijk(controller.findSubformIndex('77'), 1);
+    assert.gelijk(controller.findSubformIndex(77), 1, 'ook als getal');
+    assert.gelijk(controller.findSubformIndex('deelnemers_laatste_100_berichten'), 2);
+});
+
+test('verversen op de naam die het opslaande venster meldt, ververst die lijst', () => {
+    const dom = maakPaginaMetTabs(DB_TABS);
+    const controller = maakController(dom);
+
+    assert.waar(controller.refreshSubformList('deelnemers_laatste_100_berichten'), 'ververst gemeld');
+    assert.diepgelijk(dom.window.__geladen, [2]);
+});
+
+test('een naam die bij geen enkel tabblad hoort, ververst nog steeds niets', () => {
+    const dom = maakPaginaMetTabs(DB_TABS);
+    const controller = maakController(dom);
+
+    assert.onwaar(controller.refreshSubformList('opleidingen_modules'), 'niets ververst');
     assert.diepgelijk(dom.window.__geladen, []);
 });
 

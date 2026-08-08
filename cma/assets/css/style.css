@@ -670,7 +670,7 @@ table.group_open, table.group_closed { display: none; }
 .c2_g { padding:6px 6px 3px 1px;BORDER-right:var(--border-color) 1px solid;WIDTH:89%}
 tr.hover:hover {background-color:var(--bg-hover) !important;outline:1px solid var(--color-info);outline-offset:-1px;}
 
-div.label {min-height:26px;float:left;padding-top:3px; padding-left:12px; display: inline-block;min-width:110px; line-height: 19px;}
+div.label {min-height:26px;float:left;padding-top:3px; padding-left:8px; display: inline-block;min-width:110px; line-height: 19px;}
 div.label.nomargin { padding-left:0px}
 
 /* postcaption */

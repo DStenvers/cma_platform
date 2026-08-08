@@ -197,10 +197,6 @@ html, body {
     color: var(--text-primary);
 }
 
-body.cma-form div.label {
-    padding-left: 10px;
-}
-
 .form-layout {
     display: flex;
     flex: 1;

@@ -2070,10 +2070,18 @@ class FormTemplate
         foreach ($visibleSubforms as $i) {
             $subformId = $this->arrSubForms[\SUBFORM_ID][$i] ?? '';
             $subformName = $this->arrSubForms[\SUBFORM_NAME][$i] ?? '';
+            $jsonFormName = (string)($this->arrSubForms[\SUBFORM_JSONFORM][$i] ?? '');
             $isBeheer = (bool)($this->arrSubForms[\SUBFORM_BEHEER][$i] ?? false);
 
+            // Two id spaces name the same subform: SUBFORM_ID (numeric for
+            // database subforms, the form name for JSON ones) and the JSON form
+            // name. The list API and a saving popup both report the latter, so
+            // the tab carries both — see findSubformIndex.
             $html .= '<tab-item title="' . Server::htmlEncode($subformName) . '" ';
             $html .= 'data-id="' . $subformId . '" ';
+            if ($jsonFormName !== '') {
+                $html .= 'data-json-form="' . Server::htmlEncode($jsonFormName) . '" ';
+            }
             $html .= 'data-index="' . $i . '" ';
             $html .= 'data-count="."';  // Show placeholder until count is loaded
             if ($isBeheer) {
