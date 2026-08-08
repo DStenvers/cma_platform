@@ -7776,3 +7776,9 @@ karaat-data en staat in de karaat-repo.
 > ik test locaal, niet op een test-site
 
 > als ik een nieuw record toevoeg in een sidepanel staat het subform erin met de cma-fold. Die moeten beide verborden worden en het formulier moet de hele hoogte nemen. Er is op dat moment nog geen ID dus het is onzinnig om de subformulieren te proberen te tonen
+
+> De gesprekken inplannen moet evenveel marge boven als onder hebben, dus in adam.css: .kader_inplannen { margin-top:24px}
+
+> Is dit al ergens te zien? Ik zie op de locale mijn rino de fold niet meer, maar de detail-scherm heeft nog niet 100% hoogte
+
+> graag gewoon alles committen en pushen
