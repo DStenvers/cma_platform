@@ -7841,3 +7841,6 @@ karaat-data en staat in de karaat-repo.
 > ci yes
 
 > crawler: did you write it?  if you put 2 swconds between each crawl
+
+> can we implement a language swtich for es/nl/en/de?
+> can we use their api?
