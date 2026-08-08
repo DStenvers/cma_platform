@@ -7835,3 +7835,5 @@ karaat-data en staat in de karaat-repo.
 > it should be a separate site like any consumer and not live within the cma folder
 
 > i already created the repo
+
+> we created it just 30 minutes ago
