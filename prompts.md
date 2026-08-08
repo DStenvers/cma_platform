@@ -7774,3 +7774,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-08
 
 > ik test locaal, niet op een test-site
+
+> als ik een nieuw record toevoeg in een sidepanel staat het subform erin met de cma-fold. Die moeten beide verborden worden en het formulier moet de hele hoogte nemen. Er is op dat moment nog geen ID dus het is onzinnig om de subformulieren te proberen te tonen

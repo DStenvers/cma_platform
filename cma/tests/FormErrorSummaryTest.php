@@ -169,6 +169,17 @@ class FormErrorSummaryTest extends TestCase
             '.form_errors__veld has no styling — the button keeps its browser chrome');
     }
 
+    /** The intro line above the list is not bold — the red frame already carries the alarm. */
+    public function testSummaryIntroIsNotBold(): void
+    {
+        $css = $this->lib('library.css');
+        $pos = strpos($css, '.form_errors__intro {');
+        $this->assertTrue($pos !== false, '.form_errors__intro has no styling');
+        $regel = substr($css, $pos, strpos($css, '}', $pos) - $pos);
+        $this->assertTrue(strpos($regel, 'font-weight:normal') !== false,
+            'the intro line of the error summary is bold again: ' . trim($regel));
+    }
+
     /**
      * No underline at rest, underline on hover/focus.
      *
