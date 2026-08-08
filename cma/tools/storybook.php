@@ -3047,8 +3047,8 @@ window.LIBLOG_CONFIG = {
                 <dl>
                     <dt>toggle()</dt>
                     <dd>Wissel open/dicht</dd>
-                    <dt>open()</dt>
-                    <dd>Open de groep</dd>
+                    <dt>open(persist)</dt>
+                    <dd>Open de groep. <code>open(false)</code> klapt alleen nu open en laat de bewaarde stand in localStorage staan — voor het geval dat de groep om de inhoud open moet, niet omdat de gebruiker dat wil.</dd>
                     <dt>close()</dt>
                     <dd>Sluit de groep</dd>
                 </dl>

@@ -1,32 +1,25 @@
-describe('diag: waarom klapt de groep niet open', () => {
+describe('diag: waar strandt newRecord()', () => {
     it('probe', () => {
         cy.loginAsAdmin();
         cy.visit('/form.php?form=opleidingen&New=Y', {
             onBeforeLoad(win) {
                 win.__fouten = [];
-                win.addEventListener('error', e => win.__fouten.push(String(e.message)));
-                win.addEventListener('unhandledrejection', e => win.__fouten.push('rejection: ' + e.reason));
-                win.localStorage.setItem('cma_grp_0_2', 'closed');
+                win.addEventListener('unhandledrejection', e =>
+                    win.__fouten.push('rejection: ' + (e.reason && e.reason.stack || e.reason)));
+                win.addEventListener('error', e => win.__fouten.push('error: ' + e.message));
             }
         });
-        cy.get('cma-groupbox[group-id="2"]', { timeout: 20000 }).should('exist');
+        cy.get('#mainForm', { timeout: 20000 }).should('exist');
         cy.wait(3000);
         cy.window().then(win => {
-            const gb = win.document.querySelector('cma-groupbox[group-id="2"]');
+            const doc = win.document;
             cy.task('log', JSON.stringify({
                 fouten: win.__fouten,
-                heeftCmaForm: typeof win.cmaForm,
-                gedefinieerd: !!win.customElements.get('cma-groupbox'),
-                isOpen: gb.isOpen,
-                heeftOpen: typeof gb.open,
-                opslag: win.localStorage.getItem('cma_grp_0_2')
+                listContent: !!doc.getElementById('listContent'),
+                mainForm: !!doc.getElementById('mainForm'),
+                actief: doc.activeElement ? (doc.activeElement.name || doc.activeElement.tagName) : null,
+                status: (doc.getElementById('statusText') || {}).textContent
             }, null, 2));
-            // Handmatig aanroepen: werkt de logica als de timing goed is?
-            if (win.cmaForm && win.cmaForm.expandGroupboxesWithRequiredFields) {
-                win.cmaForm.expandGroupboxesWithRequiredFields();
-                cy.task('log', 'na handmatige aanroep: isOpen=' + gb.isOpen +
-                    ' opslag=' + win.localStorage.getItem('cma_grp_0_2'));
-            }
         });
     });
 });

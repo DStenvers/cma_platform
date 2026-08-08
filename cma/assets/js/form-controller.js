@@ -1489,10 +1489,14 @@ class CmaFormController {
                 })();
             }
         } else if (document.body.classList.contains('is-creating')) {
-            // New record mode (New=Y or add related) — show detail form only
+            // New record mode (New=Y or add related) — show detail form only.
+            // The empty form is server-rendered here, so newRecord() never runs;
+            // the one thing it does that this path also needs is putting every
+            // still-empty required field in view. Waiting for formInit means the
+            // combos have their values, so a field with a default stays out of it.
             this.directRecordMode = true;
             this.setDisplayModeClass('detail');
-            this.formInit();
+            this.formInit().then(() => this.expandGroupboxesWithRequiredFields());
         } else {
             // cmaLog.log('init: no data-record-id, calling formInit without record');
             this.directRecordMode = false;
