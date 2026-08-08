@@ -7812,3 +7812,5 @@ karaat-data en staat in de karaat-repo.
 > yes sure, create a closed repo please
 
 > repo an access done
+
+> yes remove it from cma platform and commit and push all to main, we will be working on main from now on
