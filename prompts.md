@@ -7875,3 +7875,6 @@ karaat-data en staat in de karaat-repo.
 
 > can we think of a criteria weighting system? 
 > so a dialog where all criteria can be sorted on importance and a sorting option on weighted criteria?
+
+> Now, given your knowledge on housing websites, takee alook at what we have got and determine functional holes
+> is the entire catalig cached and  loaded like karaat?
