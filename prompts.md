@@ -7870,3 +7870,5 @@ karaat-data en staat in de karaat-repo.
 > can you add drive time to the airport please?
 
 > can you. create a show all button in the town page? so the default is to follow filter rules
+
+> show all on main search page is weird
