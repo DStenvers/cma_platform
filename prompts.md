@@ -7890,3 +7890,6 @@ karaat-data en staat in de karaat-repo.
 > Another is to auto select a different main inage, Realtors seem to like aeimming pools a lot bit i want to see the house first, perhaps download the images and let a lical llm decide what the best image is?
 > is the llm only avalable in recepten?
 > look at the platform installer for rino and karaat to get inspiration for pre en post install scripts
+
+> Another is to auto select a different main inage, Realtors seem to like aeimming pools a lot bit i want to see the house first, perhaps download the images and let a lical llm decide what the best image is?
+> is the llm only avalable in recepten?
