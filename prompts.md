@@ -7978,3 +7978,7 @@ karaat-data en staat in de karaat-repo.
 > navigation on mobile takes up too much space, can we create a hamburger menu and include language in it?
 
 > the link to plaats, create a popup for it, also the popup voor meeteaarden is not a platform popup, which has a close and does not require the close button inside the popup
+
+> the name should become Stenvertjes naar Spanje!
+> did you commit and push? just curious if the deploye works
+> the popup mist be larger and contain the same info as before!! so map and houses
