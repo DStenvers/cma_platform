@@ -7953,3 +7953,15 @@ karaat-data en staat in de karaat-repo.
 > ; FFI API restriction. Possible values:
 > ; preload - enabled in CLI scripts and preloaded files (default)
 > ;)
+
+> Slow but working. 
+> C:\wwwroot\casa.toolsonline.nl>php bin/casa geo --online
+> [geo] 18 plaatsen gebouwd met vogelvlucht-afstand tot zee
+> [geo] Alicante: zee 0.8 km, boodschappen 0.2 km
+> [geo] Altea: zee 0.4 km, boodschappen 0.2 km
+> [geo] CÃ³mpeta: zee 14.3 km, boodschappen n/a â€” Overpass: HTTP 429 â€” te veel
+>  verzoeken, wacht of gebruik een eigen endpoint
+> [geo] DÃ©nia: zee 0.9 km, boodschappen n/a â€” Overpass: HTTP 429 â€” te veel ve
+> rzoeken, wacht of gebruik een eigen endpoint
+> [geo] Estepona: zee 1 km, boodschappen n/a â€” Overpass: HTTP 429 â€” te veel ve
+> rzoeken, wacht of gebruik een eigen endpoint
