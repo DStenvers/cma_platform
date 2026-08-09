@@ -7911,3 +7911,25 @@ karaat-data en staat in de karaat-repo.
 > php bin/casa seed                  # offline demo catalogue — proves the stack end to end
 > php bin/casa crawl idealista-api   # the real thing; needs the API key/secret in .env
 > php bin/casa geo --online          # towns, sea distance, groceries, drive times, airports
+
+> Overpass: C:\wwwroot\casa.toolsonline.nl> php bin/casa geo --online
+> [geo] 18 plaatsen gebouwd met vogelvlucht-afstand tot zee
+> [geo] Alicante: zee 0.8 km, boodschappen n/a
+> [geo] Altea: zee 0.4 km, boodschappen n/a
+> [geo] C├│mpeta: zee 14.3 km, boodschappen n/a
+> [geo] D├®nia: zee 0.9 km, boodschappen n/a
+> [geo] Estepona: zee 1 km, boodschappen n/a
+> [geo] Frigiliana: zee 6.9 km, boodschappen n/a
+> [geo] Girona: zee 28.8 km, boodschappen n/a
+> [geo] Granada: zee 51.3 km, boodschappen n/a
+> [geo] Marbella: zee 2.2 km, boodschappen n/a
+> [geo] Mijas: zee 6.1 km, boodschappen n/a
+> [geo] Morella: zee 50 km, boodschappen n/a
+> [geo] Nerja: zee 2.2 km, boodschappen n/a
+> [geo] Ronda: zee 37.6 km, boodschappen n/a
+> [geo] Sitges: zee 1.4 km, boodschappen n/a
+> [geo] Tarifa: zee 2.1 km, boodschappen n/a
+> [geo] Valencia: zee 4.2 km, boodschappen n/a
+> [geo] X├ábia: zee 2.3 km, boodschappen n/a
+> [geo] ├ôrgiva: zee 23.7 km, boodschappen n/a
+> [geo] 0/18 plaatsen verrijkt met boodschappen
