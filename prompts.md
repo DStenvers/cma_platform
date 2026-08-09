@@ -7905,3 +7905,5 @@ karaat-data en staat in de karaat-repo.
 > I am planning to install the site on a server, what branch is the latest
 
 > stop complaining about the lvie site, i want all work to be done on main
+
+> for casa, what are the installation steps, i have run composer install and it works, now i suspect i have to create a database
