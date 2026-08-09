@@ -8009,3 +8009,5 @@ karaat-data en staat in de karaat-repo.
 > how can i reset that?
 
 > 1 done, 2 as soon as i have access
+
+> can you release the platform?
