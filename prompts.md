@@ -7968,3 +7968,5 @@ karaat-data en staat in de karaat-repo.
 
 > Community fees are nice. But they belong in the town info on the left. The Kenmerken is now not clear to view. Move Zwembad, Arco, Tuin below.  And think of way to group this data more together.
 > * ✈ Vliegveld: Granada-Jaén (F.G. Lorca) · 45 km · 🚗 108 min · geen directe vluchten naar Nederland
+
+> one principle: if data is unknown, DO list is as unknown. That could be a valid question then.
