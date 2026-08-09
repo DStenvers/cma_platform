@@ -7856,3 +7856,5 @@ karaat-data en staat in de karaat-repo.
 > both
 
 > yes
+
+> active filter sync next
