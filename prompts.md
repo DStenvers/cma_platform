@@ -7984,3 +7984,5 @@ karaat-data en staat in de karaat-repo.
 > the popup mist be larger and contain the same info as before!! so map and houses
 
 > favourites icon: heart and hide: trashbin
+
+> bum platform please
