@@ -2604,11 +2604,19 @@ function render_doc_deployment(): void
     <ol>
         <li>GitHub repo → Settings → Webhooks → Add webhook.</li>
         <li>Payload URL: <code>https://&lt;host&gt;/deploy.php</code></li>
-        <li>Content type: <code>application/json</code></li>
+        <li>Content type: <code>application/json</code> — <code>deploy.php</code> accepteert ook
+            <code>application/x-www-form-urlencoded</code>, maar kies JSON: de form-variant stuurt
+            het bericht als <code>payload=&lt;urlencoded json&gt;</code>.</li>
         <li>Secret: zelfde waarde als <code>DEPLOY_SECRET</code> in <code>.env</code>.</li>
         <li>Events: alleen "Push" events.</li>
     </ol>
     <p class="docs-meta">Response-codes van <code>/deploy.php</code>: <code>202</code> = geaccepteerd (async) — een push op een andere branch geeft óók <code>202</code> (Skipped, met reden in de log). <code>403</code> = ongeldige HMAC-signature (<code>DEPLOY_SECRET</code> mismatch met GitHub). <code>405</code> = geen POST. <code>503</code> = <code>DEPLOY_SECRET</code> niet geconfigureerd in de <code>.env</code>.</p>
+
+    <p class="docs-meta"><span class="cma-tool__strong">Log toont steeds <code>SKIP:  != refs/heads/main</code> met een lege ref?</span>
+    Dan staat de webhook op <code>application/x-www-form-urlencoded</code>. De HMAC wordt over de rúwe body
+    berekend, dus de handtekening klopt en het verzoek komt langs de poort — waarna de body niet als JSON
+    parset en de branch leeg blijft. <code>deploy.php</code> vangt dat tegenwoordig op en logt een NOTE,
+    maar zet de webhook op <code>application/json</code>: dat is één instelling minder om te onthouden.</p>
 
     <h2>Eerste deploy</h2>
     <ol>

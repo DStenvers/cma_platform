@@ -185,7 +185,7 @@ echo '<table class="listtable"><thead><tr class="listheader"><th>Veld in GitHub<
 echo '<tr><td>Payload URL</td><td><code>' . htmlspecialchars('https://' . $host . '/deploy.php') . '</code></td>'
    . '<td>Het endpoint dat de deploy uitvoert. Staat bewust in de site-root (niet onder <code>/cma/</code>) zodat het blijft werken als <code>/cma/</code> stuk is.</td></tr>';
 echo '<tr><td>Content type</td><td><code>application/json</code></td>'
-   . '<td><code>deploy.php</code> leest de push-payload als JSON (branch + commit-sha).</td></tr>';
+   . '<td><code>deploy.php</code> leest de push-payload als JSON (branch + commit-sha). De form-variant wordt ook geaccepteerd, maar stuurt het bericht als <code>payload=&lt;urlencoded json&gt;</code> — kies JSON.</td></tr>';
 echo '<tr><td>Secret</td><td>dezelfde waarde als <code>DEPLOY_SECRET</code> hierboven</td>'
    . '<td>GitHub ondertekent elk bericht hiermee (HMAC-SHA256). <code>deploy.php</code> weigert alles met een verkeerde of ontbrekende handtekening, zodat niemand anders een deploy kan triggeren.</td></tr>';
 echo '<tr><td>SSL verification</td><td><span class="cma-tool__strong">Enable SSL verification</span></td>'
