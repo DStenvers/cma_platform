@@ -7893,3 +7893,5 @@ karaat-data en staat in de karaat-repo.
 
 > Another is to auto select a different main inage, Realtors seem to like aeimming pools a lot bit i want to see the house first, perhaps download the images and let a lical llm decide what the best image is?
 > is the llm only avalable in recepten?
+
+> search the consumer sites for App\Library\Llm::anthropicFallbackKey(),
