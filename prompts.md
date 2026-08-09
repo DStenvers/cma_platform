@@ -7872,3 +7872,6 @@ karaat-data en staat in de karaat-repo.
 > can you. create a show all button in the town page? so the default is to follow filter rules
 
 > show all on main search page is weird
+
+> can we think of a criteria weighting system? 
+> so a dialog where all criteria can be sorted on importance and a sorting option on weighted criteria?
