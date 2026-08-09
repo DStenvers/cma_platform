@@ -7907,3 +7907,7 @@ karaat-data en staat in de karaat-repo.
 > stop complaining about the lvie site, i want all work to be done on main
 
 > for casa, what are the installation steps, i have run composer install and it works, now i suspect i have to create a database
+
+> php bin/casa seed                  # offline demo catalogue — proves the stack end to end
+> php bin/casa crawl idealista-api   # the real thing; needs the API key/secret in .env
+> php bin/casa geo --online          # towns, sea distance, groceries, drive times, airports
