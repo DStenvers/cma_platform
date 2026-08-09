@@ -7982,3 +7982,5 @@ karaat-data en staat in de karaat-repo.
 > the name should become Stenvertjes naar Spanje!
 > did you commit and push? just curious if the deploye works
 > the popup mist be larger and contain the same info as before!! so map and houses
+
+> favourites icon: heart and hide: trashbin
