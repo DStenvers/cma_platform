@@ -7935,3 +7935,21 @@ karaat-data en staat in de karaat-repo.
 > [geo] 0/18 plaatsen verrijkt met boodschappen
 
 > errno=60, http=0
+
+> [geo] ├ôrgiva: zee 23.7 km, boodschappen n/a ÔÇö Overpass: geen verbinding (erro
+> r adding trust anchors from file: C:\Program Files\PHP\v8.5.6\extras\ssl\cacert.
+> pem
+>
+> [ffi]
+> ; FFI API restriction. Possible values:
+> ; preload - enabled in CLI scripts and preloaded files (default)
+> ;)
+> [geo] 0/18 plaatsen verrijkt met boodschappen
+> [geo] geen enkele plaats verrijkt; dit is geen data-probleem maar een verbinding
+> sprobleem: Overpass: geen verbinding (error adding trust anchors from file: C:\P
+> rogram Files\PHP\v8.5.6\extras\ssl\cacert.pem
+>
+> [ffi]
+> ; FFI API restriction. Possible values:
+> ; preload - enabled in CLI scripts and preloaded files (default)
+> ;)
