@@ -8011,3 +8011,6 @@ karaat-data en staat in de karaat-repo.
 > 1 done, 2 as soon as i have access
 
 > can you release the platform?
+
+> can you retest mibile access? i found the pictures quite small
+> and about crawling, is there anything we can do? there must be a way? there always is
