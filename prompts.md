@@ -7974,3 +7974,5 @@ karaat-data en staat in de karaat-repo.
 > Another criterium: the size of the garage/magazin/Storage space
 
 > I implemented the git webhook, can you do a small update and push?
+
+> navigation on mobile takes up too much space, can we create a hamburger menu and include language in it?
