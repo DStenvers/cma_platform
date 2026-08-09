@@ -7933,3 +7933,5 @@ karaat-data en staat in de karaat-repo.
 > [geo] X├ábia: zee 2.3 km, boodschappen n/a
 > [geo] ├ôrgiva: zee 23.7 km, boodschappen n/a
 > [geo] 0/18 plaatsen verrijkt met boodschappen
+
+> errno=60, http=0
