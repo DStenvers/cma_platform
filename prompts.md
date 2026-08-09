@@ -7886,3 +7886,7 @@ karaat-data en staat in de karaat-repo.
 > use the platform please
 
 > One functionality I like is to completely hide a house because i did not like it, perhaps we can make it smarter by asking ehy not and make a prompt for a lical llm to hide other houses in the set that match that criterium, get the local llm settings from the platform
+
+> Another is to auto select a different main inage, Realtors seem to like aeimming pools a lot bit i want to see the house first, perhaps download the images and let a lical llm decide what the best image is?
+> is the llm only avalable in recepten?
+> look at the platform installer for rino and karaat to get inspiration for pre en post install scripts
