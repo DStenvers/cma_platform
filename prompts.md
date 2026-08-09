@@ -7858,3 +7858,7 @@ karaat-data en staat in de karaat-repo.
 > yes
 
 > active filter sync next
+
+> how can i request access to the api?
+> can the toen detail page show the houses nearby below the info?
+> can you add distance to the nearest airport and if that airport has flights to the Netherlands
