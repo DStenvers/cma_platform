@@ -7862,3 +7862,6 @@ karaat-data en staat in de karaat-repo.
 > how can i request access to the api?
 > can the toen detail page show the houses nearby below the info?
 > can you add distance to the nearest airport and if that airport has flights to the Netherlands
+
+> the filter page is now a bit basic, can you implement sliders for rooms, bathrooms etc? And do you have the amount of parking places in the database?
+> move to the per town detail page
