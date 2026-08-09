@@ -7986,3 +7986,14 @@ karaat-data en staat in de karaat-repo.
 > favourites icon: heart and hide: trashbin
 
 > bum platform please
+
+> C:\wwwroot\casa.toolsonline.nl>git remote set-url origin https://x-access-token:
+> github_pat_11ABKK4PQ0fSNvS3WcIHiu_UjSA11hz3QBSXxmrASdj3vkygV91vrrmxrj7yUS3jhvQ5V
+> MGKPGegtC7wKc@github.com/DStenvers/casa-en-espana.git
+>
+> C:\wwwroot\casa.toolsonline.nl>git pull origin main
+> remote: Write access to repository not granted.
+> fatal: unable to access 'https://github.com/DStenvers/casa-en-espana.git/': The
+> requested URL returned error: 403
+>
+> C:\wwwroot\casa.toolsonline.nl>
