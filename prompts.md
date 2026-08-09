@@ -7850,3 +7850,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-09
 
 > another thing about these sites, the m2 of garages is counted as well
+
+> what is the status on mobile display and has the map view been made already?
