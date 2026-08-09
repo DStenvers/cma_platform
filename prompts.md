@@ -8001,3 +8001,9 @@ karaat-data en staat in de karaat-repo.
 > ```
 > {"ok":false,"platform_version":"1.29.252","log_tail":"[2026-08-09 15:51:03] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=absent\n[2026-08-09 15:51:03] REJECT: DEPLOY_SECRET not configured (looked in C:\\wwwroot\\casa.toolsonline.nl\/.env)\n[2026-08-09 15:57:26] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=present\n[2026-08-09 15:57:26] SKIP:  != refs\/heads\/main\n[2026-08-09 16:00:15] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=present\n[2026-08-09 16:00:15] SKIP:  != refs\/heads\/main\n[2026-08-09 16:06:10] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=present\n[2026-08-09 16:06:10] SKIP:  != refs\/heads\/main\n[2026-08-09 16:09:31] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=present\n[2026-08-09 16:09:31] SKIP:  != refs\/heads\/main\n[2026-08-09 16:11:45] config: env-file=C:\\wwwroot\\casa.toolsonline.nl\/.env, DEPLOY_SECRET=present\n[2026-08-09 16:11:45] SKIP:  != refs\/heads\/main\n","error":"no completed deploy in log"}
 > ```
+
+> C:\wwwroot\casa.toolsonline.nl>git pull
+> remote: Write access to repository not granted.
+> fatal: unable to access 'https://github.com/DStenvers/casa-en-espana.git/': The
+> requested URL returned error: 403
+> how can i reset that?
