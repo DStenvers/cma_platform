@@ -7884,3 +7884,5 @@ karaat-data en staat in de karaat-repo.
 > 1 yes please!
 
 > use the platform please
+
+> One functionality I like is to completely hide a house because i did not like it, perhaps we can make it smarter by asking ehy not and make a prompt for a lical llm to hide other houses in the set that match that criterium, get the local llm settings from the platform
