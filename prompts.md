@@ -8020,3 +8020,6 @@ karaat-data en staat in de karaat-repo.
 > the xml agent feed, is that a viable option?
 > api is requested, will take time
 > Agents feeds: can we explore that?
+
+> i want the crwaler to download files and put them in a /downloaded/images folder
+> and i want to explore agents xmls
