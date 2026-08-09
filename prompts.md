@@ -7846,3 +7846,7 @@ karaat-data en staat in de karaat-repo.
 > can we use their api?
 
 > can you implement the api?
+
+## 2026-08-09
+
+> another thing about these sites, the m2 of garages is counted as well
