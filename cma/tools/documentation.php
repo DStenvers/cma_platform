@@ -1817,6 +1817,48 @@ function cma_doc_check_cwebp(): array {
 
 // =========================================================================
 /**
+ * Can the deploy reach the repository without a human at the keyboard?
+ *
+ * Reports the remote's authentication style rather than pretending to test it —
+ * probing would mean a network call on a documentation page. An https remote
+ * with no credential in it is the configuration that hangs: git asks, nobody
+ * answers, the app pool blocks until the FastCGI timeout.
+ */
+function cma_doc_check_git_noninteractive(): array
+{
+    $root = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 2);
+    $config = $root . '/.git/config';
+    if (!is_file($config)) {
+        return ['label' => 'Git-remote', 'status' => 'info',
+            'detail' => 'Geen .git/config gevonden onder ' . $root . ' — deze site wordt niet via git uitgerold.',
+            'fix' => ''];
+    }
+    $text = (string) @file_get_contents($config);
+    if (!preg_match('~url\s*=\s*(\S+)~i', $text, $m)) {
+        return ['label' => 'Git-remote', 'status' => 'warn',
+            'detail' => 'Geen remote-URL in .git/config.',
+            'fix' => 'git remote add origin <url>'];
+    }
+    $url = $m[1];
+    if (str_starts_with($url, 'git@') || str_starts_with($url, 'ssh://')) {
+        $key = trim((string) (getenv('GIT_SSH_COMMAND') ?: ''));
+        return ['label' => 'Git-remote', 'status' => 'pass',
+            'detail' => 'SSH-remote (deploy key). GIT_SSH_COMMAND: '
+                . ($key !== '' ? 'ingesteld.' : 'niet ingesteld — deploy.php zet zelf BatchMode.'),
+            'fix' => ''];
+    }
+    if (preg_match('~^https?://[^/@]+@~i', $url)) {
+        return ['label' => 'Git-remote', 'status' => 'pass',
+            'detail' => 'HTTPS-remote met een credential in de URL — de deploy hoeft niets te vragen.',
+            'fix' => ''];
+    }
+    return ['label' => 'Git-remote', 'status' => 'warn',
+        'detail' => 'HTTPS-remote zonder credential. Is de repo privé, dan wil git een wachtwoord '
+            . 'vragen; deploy.php weigert dat en de deploy faalt met "could not read Username".',
+        'fix' => 'Zet een fine-grained PAT in de remote-URL of stap over op een deploy key — zie hierboven.'];
+}
+
+/**
  * Is the shared LLM helper present? Consumer sites call App\Library\Llm for
  * every model call; without it each site grows its own client and they drift.
  */
@@ -2439,6 +2481,37 @@ function render_doc_deployment(): void
     <p class="docs-meta">
         Pad op de schijf: <code><?= htmlspecialchars($logFile) ?></code> (override via <code>DEPLOY_LOG_FILE</code>). Elke run heeft een banner met branch + commit; <code>OK: deploy &lt;sha&gt;</code> betekent succes, <code>FAILED: deploy &lt;sha&gt;</code> betekent een breek in de pipeline.
     </p>
+
+    <h2>Git-authenticatie: de deploy heeft geen toetsenbord</h2>
+    <p>Een private repository over HTTPS vraagt om een gebruikersnaam en wachtwoord. In een terminal typ je die; in een deploy is er niemand. Git probeert het dan tóch — op stdin, of door een credential-manager-venster te openen op een desktop die niet bestaat — en het verzoek blijft hangen tot de FastCGI-timeout, met de app-pool erbij. <code>deploy.php</code> zet daarom <code>GIT_TERMINAL_PROMPT=0</code>, <code>GIT_ASKPASS</code> en <code>SSH_ASKPASS</code> vóór het eerste commando: git weigert dan te vragen en faalt meteen met <code>could not read Username</code> in het deploy-log. Dat is geen oplossing van het auth-probleem — het maakt het alleen zichtbaar in plaats van dodelijk. De credential zelf regel je op één van deze twee manieren.</p>
+
+    <h3>Optie 1 — fine-grained PAT in de remote-URL (eenvoudigst op IIS)</h3>
+    <p>De app-pool-identity heeft zelden een bruikbaar gebruikersprofiel, dus een credential-helper die in <code>%USERPROFILE%</code> schrijft werkt vaak niet. Een token ín de remote-URL heeft dat probleem niet.</p>
+    <ol>
+        <li>GitHub → <span class="cma-tool__strong">Settings → Developer settings → Personal access tokens → Fine-grained tokens</span> → <span class="cma-tool__strong">Generate new token</span>.</li>
+        <li>Beperk hem: <span class="cma-tool__strong">Only select repositories</span> → alleen deze repo. Permissions: <span class="cma-tool__strong">Contents: Read-only</span>. Meer heeft een deploy niet nodig — dit token kan niets pushen en niets verwijderen.</li>
+        <li>Zet een verloopdatum die je haalt, en noteer hem: bij verlopen faalt de deploy met een 403 in het log.</li>
+        <li>Zet de remote om, als de gebruiker die de app-pool draait:
+            <pre><code>git remote set-url origin https://x-access-token:&lt;TOKEN&gt;@github.com/&lt;owner&gt;/&lt;repo&gt;.git</code></pre>
+            <code>x-access-token</code> is een vaste plaatshouder; het token is het wachtwoord.</li>
+        <li>Controleer zonder webhook: <code>git -c credential.helper= fetch --dry-run origin</code>.</li>
+    </ol>
+    <p>Het token staat nu in <code>.git/config</code> — leesbaar voor wie op de server kan komen, maar niet in git-history en niet publiek. <code>deploy.php</code> en <code>deploy_status.php</code> maskeren <code>ghp_…</code>/<code>github_pat_…</code> en <code>user:pass@host</code>-URL's in het log, dus een <code>git remote -v</code> in je pipeline lekt hem niet.</p>
+
+    <h3>Optie 2 — deploy key over SSH (repo-gebonden, read-only)</h3>
+    <p>Een deploy key hoort bij één repository in plaats van bij jouw account, dus het lek-oppervlak is kleiner. Prijs: je moet een sleutel op de juiste plek krijgen voor een service-account.</p>
+    <ol>
+        <li>Genereer een sleutel zónder passphrase (er is niemand om hem in te typen):
+            <pre><code>ssh-keygen -t ed25519 -f C:\deploykeys\casa_deploy -N "" -C "casa deploy"</code></pre></li>
+        <li>Plak de inhoud van <code>casa_deploy.pub</code> in GitHub → repo → <span class="cma-tool__strong">Settings → Deploy keys → Add deploy key</span>. <span class="cma-tool__strong">Laat "Allow write access" uit.</span></li>
+        <li>Geef de app-pool-identity leesrecht op de private key en verder niemand (<code>icacls C:\deploykeys\casa_deploy /inheritance:r /grant "IIS AppPool\&lt;pool&gt;:R"</code>). OpenSSH weigert een sleutel die te ruim staat.</li>
+        <li>Wijs git de sleutel aan met <code>GIT_SSH_COMMAND</code> in <code>.env</code>:
+            <pre><code>GIT_SSH_COMMAND=ssh -i C:/deploykeys/casa_deploy -o BatchMode=yes -o StrictHostKeyChecking=accept-new</code></pre>
+            Staat die variabele niet, dan zet <code>deploy.php</code> zelf een variant zonder <code>-i</code>, zodat een ontbrekende host-key of passphrase alsnog meteen faalt in plaats van te blijven wachten.</li>
+        <li>Zet de remote om: <code>git remote set-url origin git@github.com:&lt;owner&gt;/&lt;repo&gt;.git</code>.</li>
+    </ol>
+
+    <?= cma_doc_render_check_table('Git-authenticatie op deze site', cma_doc_run_checks(['cma_doc_check_git_noninteractive'])) ?>
 
     <h2>Remote deploy-status check</h2>
     <p>Publiek read-only endpoint dat de laatste run uit <code>logs/deploy.log</code> als JSON teruggeeft. Geen auth — status / commit-SHA / branch / timestamp zijn niet gevoelig (commit-SHAs staan al in de public git history, branch-namen ook). Credentials die een <code>DEPLOY_PIPELINE</code> kan echoën (een PAT in een <code>git remote set-url https://user:TOKEN@host</code>-stap, of een kale <code>github_pat_…</code>/<code>ghp_…</code>-token) zowel bij het schrijven (<code>deploy.php</code>) als bij het serveren (<code>deploy_status.php</code>) gemaskeerd — vertrouw dus niet meer op "de pipeline echoot toevallig geen secret". Volledig standalone: geen Composer autoload, geen platform-bootstrap, geen <code>.env</code>-reader — werkt dus ook als <code>vendor/</code> of <code>.env</code> stuk is.</p>

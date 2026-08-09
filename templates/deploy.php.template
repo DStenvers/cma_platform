@@ -258,6 +258,22 @@ $logRaw("\n" . $bannerLine
 // ---------------------------------------------------------------------------
 // 4. Command runner. Each command runs in $ROOT; no chdir() side effects.
 // ---------------------------------------------------------------------------
+
+// A deploy has no terminal. If git cannot authenticate it will otherwise ask —
+// on stdin, or by launching a credential-manager window nobody will ever see —
+// and the request blocks until the FastCGI timeout, taking the app pool with it.
+// Refusing to prompt turns that hang into an immediate, readable failure in the
+// deploy log ("could not read Username"), which is what the operator needs in
+// order to go and fix the credential. Set before any command runs, so it also
+// covers a DEPLOY_PIPELINE that calls git itself.
+putenv('GIT_TERMINAL_PROMPT=0');
+putenv('GIT_ASKPASS=echo');
+putenv('SSH_ASKPASS=echo');
+if (getenv('GIT_SSH_COMMAND') === false) {
+    // Same idea for a deploy key: never sit on a host-key or passphrase prompt.
+    putenv('GIT_SSH_COMMAND=ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new');
+}
+
 $run = static function (string $cmd) use ($ROOT, $isWin, $log): int {
     $log("RUN: $cmd");
     $output = [];

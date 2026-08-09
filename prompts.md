@@ -7970,3 +7970,5 @@ karaat-data en staat in de karaat-repo.
 > * ✈ Vliegveld: Granada-Jaén (F.G. Lorca) · 45 km · 🚗 108 min · geen directe vluchten naar Nederland
 
 > one principle: if data is unknown, DO list is as unknown. That could be a valid question then.
+
+> Another criterium: the size of the garage/magazin/Storage space
