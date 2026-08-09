@@ -7965,3 +7965,6 @@ karaat-data en staat in de karaat-repo.
 > rzoeken, wacht of gebruik een eigen endpoint
 > [geo] Estepona: zee 1 km, boodschappen n/a â€” Overpass: HTTP 429 â€” te veel ve
 > rzoeken, wacht of gebruik een eigen endpoint
+
+> Community fees are nice. But they belong in the town info on the left. The Kenmerken is now not clear to view. Move Zwembad, Arco, Tuin below.  And think of way to group this data more together.
+> * ✈ Vliegveld: Granada-Jaén (F.G. Lorca) · 45 km · 🚗 108 min · geen directe vluchten naar Nederland
