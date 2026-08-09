@@ -7878,3 +7878,5 @@ karaat-data en staat in de karaat-repo.
 
 > Now, given your knowledge on housing websites, takee alook at what we have got and determine functional holes
 > is the entire catalig cached and  loaded like karaat?
+
+> yes please!
