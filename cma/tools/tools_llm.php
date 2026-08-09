@@ -386,20 +386,13 @@ function llm_probe_once(string $url, float $timeout, array $headers, bool $verif
 }
 
 /**
- * Resolve a usable Anthropic API key — mirrors App\Llm::anthropicFallbackKey.
- * Prefers LLM_KEY, falls back to OCR_VISION_KEY when OCR_VISION_PROVIDER
- * is "anthropic" (or unset, which defaults to anthropic).
+ * Resolve a usable Anthropic API key. The logic lives in the platform helper
+ * (App\Library\Llm) so the tool and the LLM client can never disagree about
+ * which key is in play; this wrapper keeps the local call sites unchanged.
  */
 function llm_anthropic_key(): string
 {
-    $k = trim((string)($_ENV['LLM_KEY'] ?? (getenv('LLM_KEY') ?: '')));
-    if ($k !== '') { return $k; }
-    $ocrKey      = trim((string)($_ENV['OCR_VISION_KEY']      ?? (getenv('OCR_VISION_KEY') ?: '')));
-    $ocrProvider = strtolower(trim((string)($_ENV['OCR_VISION_PROVIDER'] ?? (getenv('OCR_VISION_PROVIDER') ?: 'anthropic'))));
-    if ($ocrKey !== '' && $ocrProvider === 'anthropic') {
-        return $ocrKey;
-    }
-    return '';
+    return \App\Library\Llm::anthropicFallbackKey();
 }
 
 /**

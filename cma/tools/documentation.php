@@ -1816,6 +1816,59 @@ function cma_doc_check_cwebp(): array {
 }
 
 // =========================================================================
+/**
+ * Is the shared LLM helper present? Consumer sites call App\Library\Llm for
+ * every model call; without it each site grows its own client and they drift.
+ */
+function cma_doc_check_llm_class(): array {
+    $label = 'LLM-helper (App\Library\Llm)';
+    if (class_exists(\App\Library\Llm::class)) {
+        return ['label' => $label, 'status' => 'pass',
+                'detail' => 'Aanwezig — alle sites gebruiken dezelfde client.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'fail',
+            'detail' => 'Niet gevonden.',
+            'fix' => 'Werk het platform bij (composer update stenversonline/platform).'];
+}
+
+/** Is er een LLM geconfigureerd, en welke provider volgt daaruit? */
+function cma_doc_check_llm_configured(): array {
+    $label = 'LLM geconfigureerd';
+    if (!class_exists(\App\Library\Llm::class)) {
+        return ['label' => $label, 'status' => 'warn',
+                'detail' => 'Kan niet bepaald worden zonder de LLM-helper.', 'fix' => ''];
+    }
+    if (\App\Library\Llm::isConfigured()) {
+        // The configured name, not resolveModel(): a doc check must stay
+        // read-only and fast, and resolving probes the engine over HTTP.
+        $model = trim((string)($_ENV['LLM_MODEL'] ?? (getenv('LLM_MODEL') ?: '')));
+        if ($model === '') { $model = \App\Library\Llm::defaultModel(); }
+        return ['label' => $label, 'status' => 'pass',
+                'detail' => 'Provider <code>' . htmlspecialchars(\App\Library\Llm::provider())
+                    . '</code>' . ($model !== '' ? ', model <code>' . htmlspecialchars($model) . '</code>' : '')
+                    . '.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'info',
+            'detail' => 'Geen LLM ingesteld — functies die een model gebruiken slaan zichzelf over.',
+            'fix' => 'Zet <code>LLM_URL</code> (lokale engine) of <code>LLM_KEY</code> (Anthropic) in .env.'];
+}
+
+/** Is de Anthropic-fallback bruikbaar? Dat is puur een sleutelvraag. */
+function cma_doc_check_llm_fallback_key(): array {
+    $label = 'Anthropic-fallback sleutel';
+    if (!class_exists(\App\Library\Llm::class)) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Kan niet bepaald worden.', 'fix' => ''];
+    }
+    $key = \App\Library\Llm::anthropicFallbackKey();
+    if ($key !== '') {
+        return ['label' => $label, 'status' => 'pass',
+                'detail' => 'Sleutel gevonden (' . htmlspecialchars(substr($key, 0, 10)) . '…).', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'info',
+            'detail' => 'Geen sleutel — valt een lokale engine weg, dan is er geen terugval.',
+            'fix' => 'Zet <code>LLM_KEY</code>, of <code>OCR_VISION_KEY</code> met <code>OCR_VISION_PROVIDER=anthropic</code>.'];
+}
+
 // === TOPIC RENDERERS ====================================================
 // One render_doc_<slug>() function per leaf topic. Output goes into the
 // right pane. Use the standard tools-page classes (cma-tool__strong,
@@ -4517,6 +4570,42 @@ function render_doc_llm(): void
     ?>
     <h1>LLM-configuratie</h1>
     <p class="docs-meta">Engines, env-vars, en de curated modellenlijst die <code>tools_llm.php</code> en <code>llm_analyse.php</code> beide voeden.</p>
+
+    <?php
+    cma_doc_render_check_table('LLM — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_llm_class',
+        'cma_doc_check_llm_configured',
+        'cma_doc_check_llm_fallback_key',
+    ]));
+    ?>
+
+    <h2>De gedeelde client: <code>App\Library\Llm</code></h2>
+    <p>Elke site praat via dezelfde helper met een model, zodat er niet per site een
+    eigen client ontstaat die anders omgaat met providers, sleutels of time-outs.
+    Drie providers achter één interface: <code>ollama</code> (ook llama.cpp en
+    LM&nbsp;Studio), <code>anthropic</code> en <code>openai</code>.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Methode</th><th>Doel</th></tr></thead>
+        <tbody>
+            <tr><td><code>isConfigured()</code></td><td>Is er überhaupt een model beschikbaar? Sla je functie over als dit <code>false</code> is.</td></tr>
+            <tr><td><code>provider()</code> / <code>defaultModel()</code></td><td>Welke engine en welk model er nu gelden.</td></tr>
+            <tr><td><code>resolveModel()</code></td><td>Kiest een geïnstalleerd model als <code>LLM_MODEL</code> leeg is.</td></tr>
+            <tr><td><code>generate($system, $user, $schema, $maxTokens, $model, $userLabel)</code></td><td>Tekst in, tekst (of JSON volgens schema) uit.</td></tr>
+            <tr><td><code>vision($system, $user, $imagePaths)</code></td><td>Vraag over afbeeldingen. Ollama krijgt base64, OpenAI/Anthropic data-URI's.</td></tr>
+            <tr><td><code>anthropicFallbackKey()</code></td><td>De sleutel-resolver hieronder; <code>tools_llm.php</code> gebruikt dezelfde.</td></tr>
+        </tbody>
+    </table>
+    <p><code>$userLabel</code> is optioneel: geef je het mee, dan wordt de gebruikerstekst
+    met dat kopje geprefixt (bijvoorbeeld <code>--- RECEPT-TEKST ---</code>). Laat je het
+    weg, dan stuurt de helper de tekst kaal door — de platformlaag gaat niet uit van
+    een domein.</p>
+    <p>Een vision-model is meestal een ander model dan je tekstmodel; zet daarvoor
+    <code>LLM_VISION_MODEL</code>. Is die leeg, dan wordt <code>LLM_MODEL</code> gebruikt
+    (goed voor multimodale modellen als gemma3, qwen2-vl of llava).</p>
+    <p>Twee dingen leent de helper van de consumer-app <span class="cma-tool__strong">als ze bestaan</span>:
+    <code>App\Models\ApiCallLog</code> (elke call wordt gelogd) en <code>App\Auth</code>
+    (welke gebruiker de call deed). Bestaan ze niet, dan draait alles gewoon door
+    zonder logregel.</p>
 
     <h2>Engines die het platform kent</h2>
     <p><code>tools_llm.php</code> definieert vier engine-entries:</p>
