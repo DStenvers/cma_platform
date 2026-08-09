@@ -7976,3 +7976,5 @@ karaat-data en staat in de karaat-repo.
 > I implemented the git webhook, can you do a small update and push?
 
 > navigation on mobile takes up too much space, can we create a hamburger menu and include language in it?
+
+> the link to plaats, create a popup for it, also the popup voor meeteaarden is not a platform popup, which has a close and does not require the close button inside the popup
