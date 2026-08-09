@@ -7854,3 +7854,5 @@ karaat-data en staat in de karaat-repo.
 > what is the status on mobile display and has the map view been made already?
 
 > both
+
+> yes
