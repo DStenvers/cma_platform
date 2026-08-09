@@ -8016,3 +8016,7 @@ karaat-data en staat in de karaat-repo.
 > and about crawling, is there anything we can do? there must be a way? there always is
 
 > can we use the built in system for responsive webp images?
+
+> the xml agent feed, is that a viable option?
+> api is requested, will take time
+> Agents feeds: can we explore that?
