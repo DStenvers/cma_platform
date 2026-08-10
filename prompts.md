@@ -8279,3 +8279,5 @@ karaat-data en staat in de karaat-repo.
 > any info we need to add to the database?
 
 > a feed should be xml?
+
+> help me: how do you expect me to get the feed urls?
