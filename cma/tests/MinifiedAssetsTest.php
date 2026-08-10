@@ -7,16 +7,13 @@
  * The serving layer (minify.php, rino_serve_minified_head) falls back to the full source
  * whenever the .min is missing or older. That is the safe choice, and a silent one: a
  * stylesheet that quietly stopped being minified looks exactly like one that never was.
- * Consumer sites cannot repair this themselves — terser and lightningcss live in
- * cma/node_modules, which is a dev dependency and not part of the Composer package — so a
- * stale .min shipped in a release stays stale on every site until the next release.
- *
- * Hence a gate here rather than a check at install time: this must fail before the tag.
- * Fix by running: cd cma && npm install && npm run build:minify
+ * A stale .min shipped in a release stays stale on every site until someone runs the
+ * build there, and nobody watches for that — so the gate belongs here, before the tag,
+ * not at install time. Fix by running: cd cma && npm install && npm run build:minify
  *
  * Vendor trees (select2, jcrop, fineuploader) are deliberately absent: their .min files
  * are shipped by the vendor and are not ours to rebuild. The list below must stay in step
- * with JS_DIRS/CSS_DIRS in cma/tools/build-minify.sh.
+ * with JS_DIRS/CSS_DIRS in cma/tools/build-minify.js.
  */
 
 require_once __DIR__ . '/TestRunner.php';
@@ -84,40 +81,43 @@ class MinifiedAssetsTest extends TestCase
     }
 
     /**
-     * Een CSS-bestand dat niet te verkleinen is, mag het bouwscript niet stilletjes doden.
+     * Een bestand dat niet te verkleinen is, mag de rest van de build niet meenemen.
      *
-     * build-minify.sh draait onder `set -e`. De CSS-lus riep de node-wrapper KAAL aan, met
-     * 2>/dev/null erachter: brak die af (lightningcss aanwezig maar zonder zijn native
-     * binding — een optionele dependency die bij een install op een ander platform wordt
-     * overgeslagen), dan stierf het hele script op die eerste regel. Geen melding, geen
-     * samenvatting, exit 3, en elke .min.css bleef achter zoals hij was. Op de site waar dat
-     * gebeurde bleven de bundels maanden verouderd zonder dat iemand het zag: de
-     * serveerlaag valt bij een oude .min netjes terug op de bron.
-     *
-     * De JS-lus deed het al goed (`if "$TERSER" …; then`). Deze test bewaakt dat de CSS-lus
-     * dat ook doet, en dat de reden van de mislukking in beeld komt.
+     * Een minifier faalt op één bestand om redenen die niets met de andere te maken
+     * hebben — lightningcss dat wel in node_modules staat maar zonder zijn native
+     * binding (een optionele dependency die bij een install op een ander platform wordt
+     * overgeslagen), of een bron met een syntaxfout. Breekt de build daar af, dan blijft
+     * elke .min erachter staan zoals hij was, en dat is onzichtbaar: de serveerlaag valt
+     * bij een oude .min netjes terug op de bron. Het bouwscript moet dus per bestand
+     * falen, met de reden erbij, en doorlopen.
      */
-    public function testCssLusOverleeftEenMislukteMinify(): void
+    public function testEenMisluktBestandStoptDeBuildNiet(): void
     {
-        $script = $this->platformRoot() . '/cma/tools/build-minify.sh';
-        $this->assertTrue(is_file($script), 'cma/tools/build-minify.sh is weg');
-        $sh = (string) file_get_contents($script);
+        $script = $this->platformRoot() . '/cma/tools/build-minify.js';
+        $this->assertTrue(is_file($script), 'cma/tools/build-minify.js is weg');
+        $js = (string) file_get_contents($script);
 
-        $this->assertTrue(strpos($sh, 'set -e') !== false,
-            'set -e is weg — dan meet deze test iets anders dan waarvoor hij bedoeld is');
-
-        // De aanroep van de CSS-wrapper moet in een voorwaarde staan, niet kaal.
+        // Beide minifiers staan in een try/catch, niet kaal.
+        foreach (['terser.minify', 'lightningcss.transform'] as $call) {
+            $this->assertTrue(
+                (bool) preg_match('/try\s*\{[^}]*' . preg_quote($call, '/') . '/s', $js),
+                "$call wordt buiten een try/catch aangeroepen; dan neemt één mislukt "
+                . 'bestand de hele build mee'
+            );
+        }
+        // De reden komt in beeld — zonder e.message staat er alleen "ERROR: x.css".
         $this->assertTrue(
-            (bool) preg_match('/if\s*!\s*css_fout=\$\("\$NODE_BIN"\s*"\$CSS_WRAPPER"/', $sh),
-            'de CSS-wrapper wordt kaal aangeroepen; onder set -e neemt één mislukt bestand '
-            . 'het hele bouwproces mee vóórdat de ERROR-tak iets kan melden'
+            substr_count($js, "' — ' + e.message") >= 2,
+            'de ERROR-regel toont de reden van de mislukking niet'
         );
-        // En de reden moet zichtbaar zijn: 2>/dev/null gooit precies de regel weg die
-        // vertelt wat er moet gebeuren ("cd cma && npm install").
-        $this->assertTrue(strpos($sh, '"$CSS_WRAPPER" "$cssfile" "$minfile.tmp" 2>/dev/null') === false,
-            'de fout van de CSS-wrapper gaat naar /dev/null — dan staat er alleen "ERROR: x.css"');
-        $this->assertTrue(strpos($sh, 'ERROR: $basename${css_fout') !== false,
-            'de ERROR-regel toont de reden van de mislukking niet');
+        // En de lus gaat verder in plaats van te stoppen.
+        $this->assertTrue(
+            substr_count($js, 'stats.errors++') >= 2 && substr_count($js, 'continue;') >= 2,
+            'na een fout stopt de build in plaats van door te lopen met de rest'
+        );
+        // Het aantal fouten is de exitcode, zodat een buildstap erop kan reageren.
+        $this->assertTrue(strpos($js, 'process.exit(stats.errors)') !== false,
+            'de exitcode telt de fouten niet, dus een kapotte build lijkt geslaagd');
     }
 
     public function testDeGecontroleerdeMappenBestaan(): void

@@ -2,7 +2,7 @@
  * minify-css.js — minify one CSS file with the lightningcss LIBRARY.
  *
  * Invoked like terser (node <script> <in> <out>) by the cache-clear tool
- * (tools_clearcache.php) and build-minify.sh. Using the library + this wrapper
+ * (tools_clearcache.php). Using the library + this wrapper
  * instead of `lightningcss-cli` avoids the CLI's fragile native-binary
  * postinstall ("Failed to move binary into place") on Windows — the library
  * loads its napi binding directly, no move step.

@@ -1,0 +1,13 @@
+{
+    "name": "cma-assets",
+    "private": true,
+    "description": "Asset build for the CMA platform on a consumer site: cd cma && npm install && npm run build:minify",
+    "scripts": {
+        "build:minify": "node tools/build-minify.js",
+        "build": "npm run build:minify"
+    },
+    "devDependencies": {
+        "lightningcss": "^1.33.0",
+        "terser": "^5.46.0"
+    }
+}

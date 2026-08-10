@@ -40,7 +40,7 @@
         "test:all": "cypress run",
         "test:storybook-icons": "cypress run --spec 'cypress/e2e/tools/storybook-icons.cy.js'",
         "build:icons": "python3 tools/build-icon-font.py",
-        "build:minify": "bash tools/build-minify.sh",
+        "build:minify": "node tools/build-minify.js",
         "build": "npm run build:icons && npm run build:minify",
         "test:js": "node tests/js/run.js"
     },

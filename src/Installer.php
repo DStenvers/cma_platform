@@ -207,6 +207,11 @@ class Installer
         // and cma/webcomponents/cma-htmledit.js. Its require in library.inc was
         // dropped; this removes the synced copy from consumer sites.
         'library/lib_htmleditor.inc',
+        // Replaced by tools/build-minify.js. The shell script could not run on
+        // the Windows/IIS boxes that need the build most — no bash — so a site
+        // that followed the instruction got "command not found" and kept
+        // serving every asset in full. Node runs everywhere the platform does.
+        'cma/tools/build-minify.sh',
         // Windows junk file accidentally committed under the Linearicons font dir.
         // It was synced to consumers and its system/hidden/readonly attributes made
         // copy() fail ("Permission denied"), aborting the whole post-update sync.
@@ -239,7 +244,7 @@ class Installer
         // Removed: dead static CSS bundles. The CMA serves all CSS
         // through minify.php, which minifies the SOURCE files (cma_css_bundle())
         // on the fly and only ever prefers a pre-built .min.JS — never a .min.CSS.
-        // build-minify.sh doesn't generate these either (it only does
+        // build-minify.js doesn't generate these either (it only does
         // webcomponents/*.css). So these three were orphaned artifacts referenced
         // by nothing; drop the synced copies off consumer sites.
         'cma/assets/css/form.min.css',
@@ -311,11 +316,21 @@ class Installer
      * them current on every `composer update`. See DeployHealth + the
      * templates/deploy*.php.template headers.
      *
+     * cma/package.json is the manifest for the asset build. It cannot be the
+     * one in the platform checkout: that one carries Cypress and jsdom, which
+     * .gitattributes keeps off a consumer's production server on purpose. This
+     * template is the build half of it — terser and lightningcss, nothing else
+     * — so `cd cma && npm install && npm run build:minify` works on a site
+     * without dragging a test runner onto it. Always overwritten, like the
+     * deploy hatch: a site that wants its own scripts has its own package.json
+     * at the root, and this file is the platform's to keep current.
+     *
      * Map of: <template under templates/> => <target relative to site root>.
      */
     private const ROOT_SYNCED_FILES = [
         'deploy.php.template'        => 'deploy.php',
         'deploy_status.php.template' => 'deploy_status.php',
+        'cma-package.json.template'  => 'cma/package.json',
     ];
 
     /**
@@ -471,14 +486,15 @@ class Installer
                 }
             }
 
-            // 5a. Root-synced ops files — ALWAYS overwritten so platform
-            //     fixes to the deploy recovery hatch reach every consumer.
+            // 5a. Always-synced files — overwritten on every update so platform
+            //     fixes to the deploy recovery hatch and to the asset-build
+            //     manifest reach every consumer.
             foreach (self::ROOT_SYNCED_FILES as $template => $target) {
                 $src  = $templatesDir . '/' . $template;
                 $dest = $projectRoot . '/' . $target;
                 if (file_exists($src)) {
                     self::copyFile($src, $dest);
-                    $io->write("  - synced $target (root ops file)");
+                    $io->write("  - synced $target");
                 }
             }
         }
@@ -586,15 +602,16 @@ class Installer
     /**
      * List the CSS/JS that will be served in full because their .min is missing or older.
      *
-     * Deliberately a report and not a build. Minifying needs terser and lightningcss,
-     * which live in cma/node_modules — a dev dependency that is not part of the Composer
-     * package, so a consumer site does not have them and a Windows/IIS box has no bash to
-     * run the build script with either. A step that silently does nothing there would be
-     * worse than none at all: it would read as "minification is handled".
+     * Deliberately a report and not a build. Minifying needs terser and lightningcss
+     * from cma/node_modules, and only `npm install` puts them there — which composer
+     * cannot do for the operator. A step that silently did nothing would be worse than
+     * none at all: it would read as "minification is handled".
      *
      * So the platform builds its own .min files before it is released (a test guards
      * that), and this step names what is left — mostly a site's own assets/, which the
-     * platform never builds.
+     * platform never builds. The site can build those itself: it gets cma/package.json
+     * (ROOT_SYNCED_FILES) and tools/build-minify.js, so the command this prints works
+     * on a consumer site, Windows/IIS included.
      *
      * @return string[] Lines for the composer output; empty when everything is current.
      */
