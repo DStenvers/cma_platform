@@ -12920,3 +12920,7 @@ karaat-data en staat in de karaat-repo.
 > requested URL returned error: 403
 >
 > C:\wwwroot\casa.toolsonline.nl>
+
+> i implemented the token in deploy.php, can you test? please skip the red location pin icon in list and detail view
+
+> okay, this cloud model is too limited, help me to understand the steps to a local dev repo
