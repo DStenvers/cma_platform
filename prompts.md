@@ -12910,3 +12910,13 @@ karaat-data en staat in de karaat-repo.
 > afgeronde opleidingen hoeven NIET te worden getoond
 
 > the url of that page is https://www.grupotorresol.com/es/venta-chalets-adosados~casas~chalets_independientes
+
+> help me fix this one: php bin/casa mobilia-check https://www.grupotorresol.com/es/venta
+> CASA_MOBILIA="https://www.grupotorresol.com/es/venta"
+> php bin/casa crawl mobilia
+> C:\wwwroot\casa.toolsonline.nl>git pull
+> remote: Write access to repository not granted.
+> fatal: unable to access 'https://github.com/DStenvers/casa-en-espana.git/': The
+> requested URL returned error: 403
+>
+> C:\wwwroot\casa.toolsonline.nl>
