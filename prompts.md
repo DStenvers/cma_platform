@@ -12926,3 +12926,5 @@ karaat-data en staat in de karaat-repo.
 > okay, this cloud model is too limited, help me to understand the steps to a local dev repo
 
 > git pull on server worked now. so i think deploy will also
+
+> i started claue code locally but claude.md is missing?
