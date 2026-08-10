@@ -8275,3 +8275,5 @@ karaat-data en staat in de karaat-repo.
 > </root>
 > <!-- Mandatory, MUST be the last line of the feed -->
 > <!-- End XML specification -->
+
+> any info we need to add to the database?
