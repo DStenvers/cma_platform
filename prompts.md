@@ -12928,3 +12928,7 @@ karaat-data en staat in de karaat-repo.
 > git pull on server worked now. so i think deploy will also
 
 > i started claue code locally but claude.md is missing?
+
+> the buttons for favorite and hide are too large, the icons are okay, the whitespace is just too big, can you resize them to 20px?
+
+> isn't it easier to  just add prompts.md to the git?
