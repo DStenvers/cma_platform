@@ -12932,3 +12932,7 @@ karaat-data en staat in de karaat-repo.
 > the buttons for favorite and hide are too large, the icons are okay, the whitespace is just too big, can you resize them to 20px?
 
 > isn't it easier to  just add prompts.md to the git?
+
+> geen punt
+
+> jij hebt geen openstaande punten?
