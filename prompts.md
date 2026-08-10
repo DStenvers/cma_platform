@@ -8277,3 +8277,5 @@ karaat-data en staat in de karaat-repo.
 > <!-- End XML specification -->
 
 > any info we need to add to the database?
+
+> a feed should be xml?
