@@ -978,6 +978,7 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Type: <code>info</code>, <code>warning</code>, <code>danger</code>, <code>success</code> (default: geen)</dd>
                     <dt>size</dt>
                     <dd>Grootte: <code>small</code>, <code>medium</code>, <code>large</code>, <code>xlarge</code>, <code>auto</code>, <code>fullscreen</code> (default: <code>"medium"</code>). <code>xlarge</code> is een vaste 80vw bij 90vh met behoud van de footer — voor inhoud die je bekijkt in plaats van leest (een kaart, een galerij, een brede tabel). <code>fullscreen</code> gaat verder (95vw bij 95vh) maar verbergt de footer.</dd>
+                    <dd><code>width</code> / <code>height</code>: een expliciete maat in elke CSS-lengte (<code>80%</code>, <code>900px</code>, <code>80vh</code>). Gaat vóór <code>size</code>, dat alleen een naam voor een voorinstelling is. Een <code>height</code> is een maat om te vullen, geen plafond — inhoud die zich naar zijn container schaalt (een kaart) heeft anders niets om zich naar te richten.</dd>
                     <dt>closable</dt>
                     <dd>Toon sluitknop. Stel in op <code>"false"</code> om te verbergen (default: <code>true</code>)</dd>
                     <dt>no-maximize</dt>

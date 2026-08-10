@@ -31,6 +31,10 @@
  * Attributes:
  *   - heading: Dialog header title (preferred; 'title' also works for backward compat but causes browser tooltip)
  *   - type: "info" | "warning" | "danger" | "success" (affects icon and button colors)
+ *   - width / height: an explicit box in any CSS length ("80%", "900px", "80vh").
+ *           Overrides `size`, which is only a named preset. A height is a box to
+ *           fill, not a ceiling, so content that sizes itself to its container
+ *           (a map) has something to size against.
  *   - size: "small" | "medium" | "large" | "xlarge" | "auto" | "fullscreen" (default: medium)
  *           xlarge is for content that has to be looked at rather than read — a
  *           map, a gallery, a wide table. It takes a fixed 80vw x 90vh and keeps
@@ -68,7 +72,7 @@ function _getTopBody() {
 
 class LibDialog extends HTMLElement {
     static get observedAttributes() {
-        return ['heading', 'title', 'type', 'size', 'maximizable', 'no-maximize', 'maximized']; // 'heading' preferred, 'title' for backward compat
+        return ['heading', 'title', 'type', 'size', 'width', 'height', 'maximizable', 'no-maximize', 'maximized']; // 'heading' preferred, 'title' for backward compat
     }
 
     constructor() {
@@ -89,7 +93,36 @@ class LibDialog extends HTMLElement {
         }
 
         this.render();
+        this._applyBox();
         this._bindEvents();
+    }
+
+    /**
+     * The width / height attributes: an explicit box, in any CSS length the
+     * browser understands ("80%", "900px", "80vh"). Percentages resolve against
+     * the backdrop, which is fixed to the viewport.
+     *
+     * They are written as custom properties on the host rather than onto the
+     * content element, because that element lives in the shadow root where a
+     * consumer cannot reach it — the same properties a stylesheet may already
+     * be setting, so one mechanism covers both and the attribute wins by being
+     * inline. Absent attributes clear only what this method set; a value coming
+     * from a stylesheet stays.
+     */
+    _applyBox() {
+        const box = { '--lib-dialog-max-width': this.getAttribute('width') };
+        const height = this.getAttribute('height');
+        // A height is a box to fill, not just a ceiling: content that sizes
+        // itself to its container needs something to size against.
+        box['--lib-dialog-height'] = height;
+        box['--lib-dialog-max-height'] = height;
+        for (const [prop, value] of Object.entries(box)) {
+            if (value) {
+                this.style.setProperty(prop, value);
+            } else {
+                this.style.removeProperty(prop);
+            }
+        }
     }
 
     disconnectedCallback() {
@@ -111,6 +144,8 @@ class LibDialog extends HTMLElement {
                 }
             } else if (name === 'type') {
                 this._updateType(newValue);
+            } else if (name === 'width' || name === 'height') {
+                this._applyBox();
             }
         }
     }
@@ -444,7 +479,8 @@ class LibDialog extends HTMLElement {
                     border-radius: 8px;
                     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                     width: 100%;
-                    max-height: 90vh;
+                    max-height: var(--lib-dialog-max-height, 90vh);
+                    height: var(--lib-dialog-height, auto);
                     display: flex;
                     flex-direction: column;
                     animation: dialogSlideIn 0.2s ease;
@@ -462,7 +498,7 @@ class LibDialog extends HTMLElement {
                 :host([size="xlarge"]) .dialog-content {
                     max-width: var(--lib-dialog-max-width, 80vw);
                     max-height: var(--lib-dialog-max-height, 90vh);
-                    height: var(--lib-dialog-max-height, 90vh);
+                    height: var(--lib-dialog-height, 90vh);
                 }
                 :host([size="auto"]) .dialog-content { max-width: 90vw; width: fit-content; min-width: 280px; }
                 :host([size="fullscreen"]) .dialog-content { max-width: 95vw; min-width: 800px; height: 95vh; }
