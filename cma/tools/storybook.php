@@ -977,7 +977,7 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>type</dt>
                     <dd>Type: <code>info</code>, <code>warning</code>, <code>danger</code>, <code>success</code> (default: geen)</dd>
                     <dt>size</dt>
-                    <dd>Grootte: <code>small</code>, <code>medium</code>, <code>large</code>, <code>auto</code>, <code>fullscreen</code> (default: <code>"medium"</code>)</dd>
+                    <dd>Grootte: <code>small</code>, <code>medium</code>, <code>large</code>, <code>xlarge</code>, <code>auto</code>, <code>fullscreen</code> (default: <code>"medium"</code>). <code>xlarge</code> is een vaste 80vw bij 90vh met behoud van de footer — voor inhoud die je bekijkt in plaats van leest (een kaart, een galerij, een brede tabel). <code>fullscreen</code> gaat verder (95vw bij 95vh) maar verbergt de footer.</dd>
                     <dt>closable</dt>
                     <dd>Toon sluitknop. Stel in op <code>"false"</code> om te verbergen (default: <code>true</code>)</dd>
                     <dt>no-maximize</dt>

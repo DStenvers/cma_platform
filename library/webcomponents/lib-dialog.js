@@ -31,7 +31,10 @@
  * Attributes:
  *   - heading: Dialog header title (preferred; 'title' also works for backward compat but causes browser tooltip)
  *   - type: "info" | "warning" | "danger" | "success" (affects icon and button colors)
- *   - size: "small" | "medium" | "large" (default: medium)
+ *   - size: "small" | "medium" | "large" | "xlarge" | "auto" | "fullscreen" (default: medium)
+ *           xlarge is for content that has to be looked at rather than read — a
+ *           map, a gallery, a wide table. It takes a fixed 80vw x 90vh and keeps
+ *           its footer, which is what separates it from fullscreen.
  *   - closable: If "false", hides close button AND disables Escape/backdrop close (default: true)
  *
  * Events:
@@ -453,6 +456,14 @@ class LibDialog extends HTMLElement {
                 :host([size="medium"]) .dialog-content,
                 .dialog-content { max-width: var(--lib-dialog-max-width, 420px); }
                 :host([size="large"]) .dialog-content { max-width: var(--lib-dialog-max-width, 640px); }
+                /* A fixed box, not a cap: content that sizes itself to its
+                   container (a map) needs to know how tall it may be, and a
+                   max-height alone leaves it collapsing to nothing. */
+                :host([size="xlarge"]) .dialog-content {
+                    max-width: var(--lib-dialog-max-width, 80vw);
+                    max-height: var(--lib-dialog-max-height, 90vh);
+                    height: var(--lib-dialog-max-height, 90vh);
+                }
                 :host([size="auto"]) .dialog-content { max-width: 90vw; width: fit-content; min-width: 280px; }
                 :host([size="fullscreen"]) .dialog-content { max-width: 95vw; min-width: 800px; height: 95vh; }
                 :host([size="fullscreen"]) .dialog-body { padding: 0; flex: 1; overflow: hidden; border-radius: 0 0 8px 8px; }
