@@ -8281,6 +8281,4626 @@ karaat-data en staat in de karaat-repo.
 > a feed should be xml?
 
 > help me: how do you expect me to get the feed urls?
+
+> as an example, can you work with this: 
+> <!DOCTYPE HTML>
+>
+> <html lang="es" xml:lang="es" xmlns="http://www.w3.org/1999/xhtml">
+> <head id="ctl00_Head1"><title>
+> 	Adosados, Casas, Chalets Independientes en venta (77 encontrados)
+> </title>
+> <link rel='stylesheet' rel='preload' href='/Portals/inmogrupotorresol/css/bootstrap/css/bootstrap.min.css' media='screen' />
+> <script src='/app_support/js/jquery-1.11.1.min.js'></script>
+>
+> <meta name="format-detection" content="telephone=no" />
+> <meta name="title" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <meta http-equiv="content-language" content="es" /><link rel="stylesheet" href="/app_support/pdcc/1.5.4/pdcc.gdpr.es_pdcc.min.css">
+> <script src="/app_support/pdcc/1.5.4/pdcc.gdpr.es_pdcc.min.js"></script>
+> <script type="text/javascript">
+> 	PDCookieConsent.config({
+> 		"brand": {
+> 			"dev" : false,
+> 			"name": "",
+> 			"url" : ""
+> 		},
+> 		"cookiePolicyLink": "",
+> 		"passList" : [],
+> 		"showBadges" : true,
+> 		"styles": {
+> 			"primaryButton": {
+> 			},
+> 			"secondaryButton": {
+> 			}
+> 		}
+> 	});
+> </script>
+>
+>
+> <script src='/app_support/js/jquery.isotope.pkgd.min.js' ></script>
+> <script src='/app_support/js/jquery.easing.1.3.js'></script>
+> <script src='/app_support/js/jssor/js/jssor.slider.mini.js'></script>
+> <script src='/app_support/js/bootstrap-select.js'></script>
+>
+> <script src='/app_support/js/jquery.simplePagination.js'></script>
+>
+> <!-- Meta -->   
+> <meta charset='UTF-8' />
+> <meta name='apple-mobile-web-app-capable' content='yes'>
+> <meta name='viewport' content='user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0' />
+> <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+> <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+> <link href="//static.mobiliagestion.es/app_support/css/animate.css" rel="stylesheet">
+> <link href="//static.mobiliagestion.es/app_support/mobilia_font/mobilia.css" rel="stylesheet">
+>
+> <link rel="stylesheet" href="//static.mobiliagestion.es/app_support/css/glyphicons_1.9.2/css/glyphicons.css" type="text/css" media="screen" />
+>
+> <link rel="preconnect" href="https://fonts.googleapis.com">
+> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+> <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,300&display=swap" rel="stylesheet">
+> <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+> <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+> <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+> <link rel="stylesheet" href="/Design/Themes/grupotorresol/zen.css" type="text/css"/>
+>
+> <link rel="shortcut icon" type="image/x-icon" href="/favicons/inmogrupotorresol/favicon.ico"/>
+>
+>             <meta name='mobile-web-app-capable' content='yes'>
+>             <meta name='viewport' content='user-scalable=no, width=device-width, initial-scale=1.0,maximum-scale=1.0' /><link rel="stylesheet" type="text/css" media="screen" href="/app_support/js/selectpicker-1.12.4/css/bootstrap-select.min.css" /><link rel="stylesheet" type="text/css" media="screen" href="/design/themes/InmoBS3/bootstrap/css/bootstrap-datetimepicker.min.css" /><link id="ctl00_openlayer_5" rel="stylesheet" type="text/css" media="screen" href="//static.mobiliagestion.es/app_support/openlayers5/ol.css" /><link id="ctl00_DataTables_1_10_4" rel="stylesheet" type="text/css" media="screen" href="//static.mobiliagestion.es/app_support/js/DataTables-1.10.4/media/css/jquery.dataTables.min.css" /><link id="ctl00_owl_2_3_4" rel="stylesheet" type="text/css" media="screen" href="//static.mobiliagestion.es/app_support/owl_2.3.4/assets/owl.carousel.min.css" />
+> <!-- Metas del Contexto -->
+> <meta property="og:title" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <meta property="og:type" content="website" />
+> <meta property="og:url" content="https://www.grupotorresol.com/es/venta-chalets-adosados~casas~chalets_independientes" />
+> <meta property="twitter:title" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <meta property="og:image" content="https://www.grupotorresol.com/Portals/inmogrupotorresol/Images/logos/logoOg.jpg" />
+> <meta name="description" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <meta property="og:description" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <meta property="twitter:card" content="summary_large_image" />
+> <meta property="twitter:description" content="Adosados, Casas, Chalets Independientes en venta (77 encontrados)" />
+> <!-- Fin Metas del Contexto -->
+> </head>
+> <body id="ctl00_body1">
+>     
+>     <form method="post" action="/es/venta-chalets-adosados~casas~chalets_independientes" id="aspnetForm">
+> <div class="aspNetHidden">
+> <input type="hidden" name="ctl00_radScriptManager1_TSM" id="ctl00_radScriptManager1_TSM" value="" />
+> <input type="hidden" name="ctl00_ctl01_TSSM" id="ctl00_ctl01_TSSM" value="" />
+> <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+> <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+> <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="3XSMP6tTDySFWt4yBNa7vCWbTskGt0fOVnte+0q+souqkw5xEqVa00iAbzSf22cS0bM91dqhIkK9gBHTzBKh98MtmOwiUefLtzJApe1ybVDMZi09iQi3MWlfSY7LVDyEQUE21cXKjGqbtXFHQP/JrE1SSNwNnpryukEparoUnwpJfIehKA2oAebGn2G1C1IlNvj6M2pjQ/HrA7GeXbpT11sVV6EgsYV43tqA0xICNutLKs7ujnBTnWVZRfxlDC+U57fU4z0Uj2yMYW3M+OXdFP0UGEH25gMe2jy1GhQG4R7YVb63/4KbB5PLVHfgIHSh1dA+wW3TASgrBPvy46aeYo2zIyAzylYkjCuT6igVB89c1e+ELhm+9oMjXx2vPoX6JKSwnc17Ah5GrDBuE7cKn2FXXiNTIYM6qhLYjOPRMCrgA4H4U1aCXZG/FO9zSvK0cz7IIsrgGK9zwEGdAtt4tI0t65tJrbgvjduLWn/5OrcVhOTA0yYTC7f1IXZrJMMysk0v3VWltbF+A9qZ5xAoKEWuybRG1GrTI/jfs5WpEIgwI6sRsO521EMkJjrkgElCqJkGDMmLq/k/rDDaBXyxLcTic67NK5QmglCS1MYtxMqQB+2F+LSdtK3e1EiHIWjxf5CXBRybEXvMDE756uJJ23cF96vANg7eVPMBb0y+3BIhUtibYFKlkFDxB1/1XlTgg/AbitJDSjo5S0Zoj2zdVneQqn8D5fRh4VGYHplIC8vSEXs4z0W7WS1/izc3uqVFTIIfYzKpcnMwTNDw/qNFyfvdNGPeCwFDLo4qNzTg3uQ5ESyKdgbf6KNwLc8zVOhIXZpKxyi631+X1bAR3DcvJtAcuCypt5DOmFJ2rcuzBx7ZyzTpgSZEC+9I179b3Lu3xR0IzU97RuVIKkQ05eRfzv/YlwpORXi7uouUaagJpqPsAFTvKoiQkMfzhGJXQ4lz0AD4KUfFUKxD3r0Jk3ELQ5onk/YzQN+A29/ECfk7xsMOxpKtrV0VpLMP96zzshjtnETrA+2pdoH/49WXkyZnlod1lvYmfLWbiMlOCtvshxh7UQcavMkCBIAC2N8nSjX/noIB+TGCW5WkYioRn7snfyKvcJfgt2E3uTl0R0ImRbkCyI6jtgaJdcsNBVSGv9h9HEhLgPWpN6IcOk0Uqf4AFioAAn9dDCVTgEQycsKFTv7uFEDSafi9y0JY3ngOn6BoJGi+7b/6bQ/mAhqzImsJmA==" />
+> </div>
+>
+> <script type="text/javascript">
+> //<![CDATA[
+> var theForm = document.forms['aspnetForm'];
+> function __doPostBack(eventTarget, eventArgument) {
+>     if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+>         theForm.__EVENTTARGET.value = eventTarget;
+>         theForm.__EVENTARGUMENT.value = eventArgument;
+>         theForm.submit();
+>     }
+> }
+> //]]>
+> </script>
+>
+>
+> <script src="/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZBUkK9DoikTbB4obHvb_Ivw6DWzaqMa7QmOBkcfnOtKeUU2u0o88jonFr5y1jztliSIPWr3znUQbJDAC_ysjL-r2iEkjqHXROACWKiqBStHm0&amp;t=638901608248157332" type="text/javascript"></script>
+>
+>
+> <script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=ctl00_radScriptManager1_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d4.0.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aes%3aa8328cc8-0a99-4e41-8fe3-b58afac64e45%3aea597d4b%3ab25378d2%3bTelerik.Web.UI%2c+Version%3d2026.2.708.462%2c+Culture%3dneutral%2c+PublicKeyToken%3d121fae78165ba3d4%3aes%3a03a52e94-03ab-4ac2-b277-a6e3154784ef%3a16e4e7cd%3aed16cbdc" type="text/javascript"></script>
+> <div class="aspNetHidden">
+>
+> 	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+> 	<input type="hidden" name="__SCROLLPOSITIONX" id="__SCROLLPOSITIONX" value="0" />
+> 	<input type="hidden" name="__SCROLLPOSITIONY" id="__SCROLLPOSITIONY" value="0" />
+> </div>
+>     <script type="text/javascript">
+> //<![CDATA[
+> Sys.WebForms.PageRequestManager._initialize('ctl00$radScriptManager1', 'aspnetForm', ['tctl00$ctl02SU',''], ['ctl00$radScriptManager1',''], [], 90, 'ctl00');
+> //]]>
+> </script>
+> <input type="hidden" name="ctl00$radScriptManager1" id="ctl00_radScriptManager1" />
+> <script type="text/javascript">
+> //<![CDATA[
+> Sys.Application.setServerId("ctl00_radScriptManager1", "ctl00$radScriptManager1");
+> Sys.Application._enableHistoryInScriptManager();
+> //]]>
+> </script>
+> <!-- 2026.2.708.462 --><div id="ctl00_ctl02SU">
+> 	<span id="ctl00_ctl02" style="display:none;"></span>
+> </div>
+>     
+>     <div id="Chrome" class="Chrome150 Chrome150.0 lang-es">
+>     <div id="pID114282">
+>     
+>     <div id="ctl00_pSMasterContent_ctl00_ZenContentHeader" class="HeaderPane">
+> 	<div id="mID186039" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap ">
+>
+>
+> <style>
+>     .navbar-default {
+>         background-color: transparent;
+>         border-color: transparent;
+>     }
+> </style>
+>
+>
+>
+> <style>
+>
+>
+>
+> </style>
+>
+> <div class="cabeceraContainer bg_cabecera">
+>     <div class="cabecera_titulosm visible-sm visible-xs"></div>
+>     
+>     <div class="cabeceraPagina">
+>         <div class="container-fluid AnchoControlado">
+>             <div class="row">
+>                 <div class="col-xs-12 col-md-6 col-lg-6  menu-datosCabecera text-left hidden-xs hidden-sm visible-md visible-lg">
+>                 </div>
+>                 <div class="col-xs-12 col-md-6 col-lg-6 datosCabecera text-right">
+>                     <div style="" class="dropdown  pull-right hidden-xs hidden-sm visible-md visible-lg datosCabeceraIdiomas">
+>                         <button class="btn-lang btn-default-lang dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+>                             <img src="//static.mobiliagestion.es/images/Flags/es_24x24.png" />
+>                             <span class="caret"></span>
+>                         </button>
+>                         <ul class="dropdown-menu pull-right" style="min-width: auto;">
+>                             <li><a href="/es" class="nounderline">
+>                                 <img src="//static.mobiliagestion.es/images/Flags/es_24x24.png" /></a></li>
+>                             <li><a href="/ca" class="nounderline">
+>                                 <img src="//static.mobiliagestion.es/images/Flags/ca_24x24.png" /></a></li>
+>                             <li><a href="/en" class="nounderline">
+>                                 <img src="//static.mobiliagestion.es/images/Flags/en_24x24.png" /></a></li>
+>                             
+>                         </ul>
+>                     </div>
+>                     <span class="pull-right datosCabeceraTelefono">
+>                         <a style="" href="tel:977130112">977 130 112</a>
+>                         <span> - </span>
+>                         <a style="" href="tel:665510565">665 510 565</a>
+>                     </span>
+>                     <span class="pull-right datosCabeceraRedes">
+>                         <a style="" href="https://www.instagram.com/grupotorresol_inmobiliaria" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+>                         <a style="" href="https://www.facebook.com/grupotorresol?locale=es_ES" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+>                         <a style="display:none !important;" href="" target="_blank"><i class="mob mob-x" aria-hidden="true"></i></a>
+>                         <a style="" href="https://studio.youtube.com/channel/UC6Tb8B0EROER9VLITWEESHw/videos/upload?filter=%5B%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D" target="_blank"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
+>                         <a style="display:none !important;" href="" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+>                         <a style="display:none !important;" href="" target="_blank"><i class="mob mob-tik-tok" aria-hidden="true"></i></a>
+>                         <a style="" href="https://share.google/JttA7EqZNFUCXtbNH" target="_blank"><i class="fa fa-google" aria-hidden="true"></i></a>
+>                     </span>
+>
+>                 </div>
+>             </div>
+>         </div>
+>     </div>
+>     
+>
+>     <div class="cabeceraMenu anim" data-spy="affix">
+>         <div class="container-fluid AnchoControlado">
+>             <div class="row">
+>                 <div class="col-xs-12">
+>
+>                     <nav class="navbar navbar-default" role="navigation">
+>                         <div class="container-fluid">
+>                             <div class="row">
+>                                 <div class="cabeceraLogo">
+>                                     <a href="/">
+>                                         <img  title='Inmobiliaria en Torredembarra' alt='Inmobiliaria en Torredembarra' src="/Portals//inmogrupotorresol/Images/logo.png"></a>
+>                                 </div>
+>                                 <div class="cabeceraLogo_affix ">
+>                                     <a href="/">
+>                                         <img  title='Inmobiliaria en Torredembarra' alt='Inmobiliaria en Torredembarra' src="/Portals//inmogrupotorresol/Images/logo.png"></a>
+>                                 </div>
+>                                 <div class="telefono pull-left hidden"><span><i class="fa fa-volume-control-phone"></i><a href="tel:977130112" class="nounderline">977 130 112</a></span></div>
+>                                 <div class="navbar-header">
+>                                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-collapse-1">
+>                                         <span class="sr-only">Toggle navigation</span>
+>                                         <span class="icon-bar"></span>
+>                                         <span class="icon-bar"></span>
+>                                         <span class="icon-bar"></span>
+>                                     </button>
+>                                 </div>
+>
+>                                 <div class="navbar-collapse collapse" id="bs-collapse-1">
+>                                     <div class="row">
+>                                         <ul class="nav navbar-nav anim">
+>                                             <li class='menuInicio '><a href="/" class="hvr-underline-from-center anim">Inicio</a></li>
+>                                             <li class='menuComprar dropdown active' style='display: block'><a href='/es/venta' class="hvr-underline-from-center anim">Comprar</a></li>
+>                                             <li class='menuAlquilar dropdown ' style='display: block'><a href='/es/alquiler' class="hvr-underline-from-center anim">Alquilar</a></li>
+>                                             <li class='menuTraspaso dropdown ' style='display: none !important'><a href='/es/traspaso' class="hvr-underline-from-center anim">Traspaso</a></li>
+>
+>                                             <!--SECCIONES DE MENÚ AUTO-->
+>                                             <li class='menuAutomaticoPromociones'><a href='/es/promociones' class='anim'>Promociones</a></li><li class='menuAutomaticoVendaSuInmueble'><a href='/es/vende-tu-inmueble' class='anim'>Vende tu inmueble</a></li><li class='menuAutomaticoServicios'><a href='/es/servicios' class='anim'>Servicios</a></li><li class='menuAutomaticoValoraTuVivienda'><a href='/es/valora-tu-vivienda' class='anim'>Valora tu vivienda</a></li><li class='menuAutomaticoContacto'><a href='/es/contacto' class='anim'>Contacto</a></li>
+>
+>                                             <!--LÍNEA SEPARADORA SÓLO EN MÓVIL-->
+>                                             <li class="show-xs show-sm show-md hidden-lg lineaSeparadoraMovilMenu"></li>
+>
+>                                             <!--TELÉFONOS MÓVIL-->
+>                                             <li class="show-xs show-sm show-md hidden-lg">
+>                                                 <div class="telefonosMovil">
+>                                                     <a style="" href="tel:977130112">977 130 112</a>
+>                                                     <a style="" href="tel:665510565">665 510 565</a>
+>                                                 </div>
+>                                             </li>
+>
+>                                             <!--REDES SOCIALES-->
+>                                             <li class="show-xs show-sm show-md hidden-lg">
+>                                                 <div class="redes-small">
+>                                                     <a style="" href="https://www.instagram.com/grupotorresol_inmobiliaria" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+>                                                     <a style="" href="https://www.facebook.com/grupotorresol?locale=es_ES" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+>                                                     <a style="display:none !important;" href="" target="_blank"><i class="mob mob-x" aria-hidden="true"></i></a>
+>                                                     <a style="" href="https://studio.youtube.com/channel/UC6Tb8B0EROER9VLITWEESHw/videos/upload?filter=%5B%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D" target="_blank"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
+>                                                     <a style="display:none !important;" href="" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+>                                                     <a style="display:none !important;" href="" target="_blank"><i class="mob mob-tik-tok" aria-hidden="true"></i></a>
+>
+>                                                 </div>
+>                                             </li>
+>
+>                                             <!--IDIOMAS MÓVIL-->
+>                                             <li style="" class="show-xs show-sm show-md hidden-lg menuCabeceraIdiomas">
+>                                                 <div class="idiomas-small">
+>                                                     
+>                                                     <a href="/es" class="nounderline">
+>                                                         <img src="//static.mobiliagestion.es/images/Flags/es_24x24.png" /></a>&nbsp;
+> 											
+>                                                     <a href="/ca" class="nounderline">
+>                                                         <img src="//static.mobiliagestion.es/images/Flags/ca_24x24.png" /></a>&nbsp;
+> 											
+>                                                     <a href="/en" class="nounderline">
+>                                                         <img src="//static.mobiliagestion.es/images/Flags/en_24x24.png" /></a>&nbsp;
+> 											</div>
+>
+>                                             </li>
+>                                         </ul>
+>                                     </div>
+>                                 </div>
+>                             </div>
+>                         </div>
+>                     </nav>
+>                 </div>
+>             </div>
+>         </div>
+>         <div class="cabecera_titulolg hidden-xs"></div>
+>     </div>
+>
+>     <div class="cabecera_backgund-color"></div>
+>
+> </div>
+>
+>
+> <script type="text/javascript">
+>     $('#bs-collapse-1').on('show.bs.collapse', function () {
+>         $('.nav-justified').addClass('nav-stacked');
+>     });
+>
+>     //Unstack menu when not collapsed
+>     $('#bs-collapse-1').on('hide.bs.collapse', function () {
+>         $('.nav-justified').removeClass('nav-stacked');
+>     });
+> </script>
+>
+> <script type="text/javascript">
+>     /*
+>      *	SCRIPT PARA CONFIGURAR AFFIX DEL MENU SUPERIOR
+>      */
+>     $(document).ready(function () {
+>         setAffixMenu();
+>     });
+>
+>     $(window).resize(setAffixMenu);
+>
+>     function setAffixMenu() {
+>         var cabeceraHeight = $('.cabeceraPagina').height() + $('.cabeceraMenu').height();
+>         $('.cabeceraContainer').css('min-height', cabeceraHeight + 'px');
+>
+>         $('.cabeceraMenu').affix({
+>             offset: {
+>                 top: function () {
+>                     return (this.top = $('.cabeceraPagina').outerHeight(true))
+>                 }
+>             }
+>         })
+>     }
+> </script>
+>
+> <style type="text/css">
+>     .whatsapp-float{
+>     padding: 9px 0px;
+> 	position:fixed;
+> 	width:60px;
+> 	height:60px;
+> 	bottom:20px;
+> 	right:20px;
+> 	background-color:#25d366;
+> 	color:#FFF!important;
+> 	border-radius:50px;
+> 	text-align:center;
+>     font-size:30px;
+> 	box-shadow: 2px 2px 3px #999;
+>     z-index:100;
+> }
+> </style>
+> <a href="https://api.whatsapp.com/send?phone=34665510565&text=Hola! Quisiera más información sobre https%3a%2f%2fwww.grupotorresol.com%2fes%2fventa-chalets-adosados%7ecasas%7echalets_independientes" class="whatsapp-float" target="_blank">
+> <i class="mob mob-whatsapp my-float"></i>
+> </a>
+>
+>
+> </div><div id="mID186050" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap top-listado">
+>
+>
+> <style>
+>     .bannerTop {
+>         width: 100%;
+>         height: 270px;
+>         overflow: hidden;
+>     }
+>
+>     .bannerTopContainer {
+>         height: 270px;
+>     }
+>
+>     .bannerTopImage {
+>         display: block;
+>         object-fit: cover;
+>         height: 100%;
+>         width: 100%;
+>         object-position: bottom center;
+>     }
+>
+>     .bannerTopContent {
+>         position: absolute;
+>         top: 37%;
+>         left: 0px;
+>         padding: 0px 45%;
+>     }
+>
+>     .bannerTopTitle {
+>         text-align: center;
+>         font-size: 20px;
+>         padding: 10px;
+>         color: #fff;
+>     }
+> </style>
+>
+>
+> <div class="bloqueBannersSliderHome">
+>     
+>             <div class="btn btn-banners" style="display: none">
+>                 <a class="bgBtnBanner" title='Pulsa aquí para editar banner' href=""><span class="fa fa-cog fa-lg btnConfigurarWidget"></span>&nbsp;Editar</a>
+>             </div>
+>             <div class="bannerTop" style="display:block">
+>                 <a href="">
+>                     <div class="bannerTopContainer">
+>                         <img src="/Portals/inmogrupotorresol/Images/banner/16599/16599.jpg" class="bannerTopImage" />
+>                         <div class="bannerTopContent">
+>                             <div class="bannerTopTitle">Ofrecemos la propiedad que estás buscando</div>
+>                             <div class="bannerTopResumen"></div>
+>                         </div>
+>                     </div>
+>                 </a>
+>             </div>
+>
+>         
+> </div>
+>
+>
+> </div><div id="mID186051" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap ">
+>
+>
+> <div class="buscadorPagina collapse bg-primary" id="collapseBuscador">
+>     <div class="container">
+>         <div class="row">
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorReferencia">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Ref</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <input name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$txtReferencia" type="text" maxlength="12" id="txtReferencia" tabindex="1" class="form-control" />
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorTipoOperacion">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Busco</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlTiposOperacion" id="ddlTiposOperacion" tabindex="2" class="form-control selectpicker">
+> 		<option selected="selected" value="venta" data-operacion="venta">Compra</option>
+> 		<option value="alquiler" data-operacion="alquiler">Alquiler</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorTipoInmueble">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Tipo</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select size="4" name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlFamiliasTiposInmueble" multiple="multiple" id="ddlFamiliasTiposInmueble" tabindex="3" class="form-control selectpicker" data-size="12" title="Elegir tipos">
+> 		<option value="pisos-apartamentos" OptionGroup="Pisos">Apartamentos</option>
+> 		<option value="pisos-aticos" OptionGroup="Pisos">&#193;ticos</option>
+> 		<option value="pisos-duplex" OptionGroup="Pisos">D&#250;plex</option>
+> 		<option value="pisos-pisos" OptionGroup="Pisos">Pisos</option>
+> 		<option value="chalets-adosados" OptionGroup="Chalets">Adosados</option>
+> 		<option value="chalets-adosados_en_esquina" OptionGroup="Chalets">Adosados en esquina</option>
+> 		<option value="chalets-casas" OptionGroup="Chalets">Casas</option>
+> 		<option value="chalets-chalets_independientes" OptionGroup="Chalets">Chalets Independientes</option>
+> 		<option value="chalets-pareados" OptionGroup="Chalets">Pareados</option>
+> 		<option value="locales-locales_comerciales" OptionGroup="Locales">Locales Comerciales</option>
+> 		<option value="oficinas-oficinas" OptionGroup="Oficinas">Oficinas</option>
+> 		<option value="garajes-garajes" OptionGroup="Garajes">Garajes</option>
+> 		<option value="naves-naves_industriales" OptionGroup="Naves">Naves Industriales</option>
+> 		<option value="parcela-parcelas" OptionGroup="Parcelas">Parcelas</option>
+> 		<option value="parcela-parcelas_rusticas" OptionGroup="Parcelas">Parcelas r&#250;sticas</option>
+> 		<option value="parcela-parcelas_urbanas" OptionGroup="Parcelas">Parcelas urbanas</option>
+> 		<option value="edificios_singulares-edificios_singulares" OptionGroup="Edificios Singulares">Edificios Singulares</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-3 campoBuscador buscadorPoblacion">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">En</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select size="4" name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlPoblacionesProvincias" multiple="multiple" id="ddlPoblacionesProvincias" tabindex="4" class="form-control selectpicker" data-size="12" title="Elegir ubicaciones">
+> 		<option value="alicante" class="nodoPadre" disabled="disabled">Alicante</option>
+> 		<option value="alicante-catral" class="nodoHijo">Catral</option>
+> 		<option value="alicante-dolores" class="nodoHijo">Dolores</option>
+> 		<option value="alicante-elcheelx" class="nodoHijo">Elche/Elx</option>
+> 		<option value="alicante-monforte_del_cid" class="nodoHijo">Monforte Del Cid</option>
+> 		<option value="alicante-san_vicent_del_raspeig" class="nodoHijo">San Vicent del Raspeig</option>
+> 		<option value="alicante-santa_pola" class="nodoHijo">Santa Pola</option>
+> 		<option value="barcelona" class="nodoPadre" disabled="disabled">Barcelona</option>
+> 		<option value="barcelona-barcelona" class="nodoHijo">Barcelona</option>
+> 		<option value="barcelona-castelldefels" class="nodoHijo">Castelldefels</option>
+> 		<option value="barcelona-castellet_i_la_gornal" class="nodoHijo">Castellet I La Gornal</option>
+> 		<option value="barcelona-cubelles" class="nodoHijo">Cubelles</option>
+> 		<option value="barcelona-masquefa" class="nodoHijo">Masquefa</option>
+> 		<option value="barcelona-palafolls" class="nodoHijo">Palafolls</option>
+> 		<option value="barcelona-piera" class="nodoHijo">Piera</option>
+> 		<option value="barcelona-sant_llorenc_dhortons" class="nodoHijo">Sant Lloren&#231; D&#39;Hortons</option>
+> 		<option value="barcelona-sant_sadurni_danoia" class="nodoHijo">Sant Sadurni D&#39;Anoia</option>
+> 		<option value="barcelona-sitges" class="nodoHijo">Sitges</option>
+> 		<option value="barcelona-vilanova_i_la_geltru" class="nodoHijo">Vilanova I La Geltru</option>
+> 		<option value="girona" class="nodoPadre" disabled="disabled">Girona</option>
+> 		<option value="girona-caldes_de_malavella" class="nodoHijo">Caldes de Malavella</option>
+> 		<option value="tarragona" class="nodoPadre" disabled="disabled">Tarragona</option>
+> 		<option value="tarragona-albinyana" class="nodoHijo">Albinyana</option>
+> 		<option value="tarragona-altafulla" class="nodoHijo">Altafulla</option>
+> 		<option value="tarragona-arboc_l" class="nodoHijo">Arbo&#231;, L&#39;</option>
+> 		<option value="tarragona-banyeres_del_penedes" class="nodoHijo">Banyeres Del Penedes</option>
+> 		<option value="tarragona-bellvei" class="nodoHijo">Bellvei</option>
+> 		<option value="tarragona-calafell" class="nodoHijo">Calafell</option>
+> 		<option value="tarragona-cambrils" class="nodoHijo">Cambrils</option>
+> 		<option value="tarragona-castellvell_del_camp" class="nodoHijo">Castellvell del Camp</option>
+> 		<option value="tarragona-coma_ruga" class="nodoHijo">Coma-Ruga</option>
+> 		<option value="tarragona-creixell" class="nodoHijo">Creixell</option>
+> 		<option value="tarragona-cunit" class="nodoHijo">Cunit</option>
+> 		<option value="tarragona-el_montmell" class="nodoHijo">El Montmell</option>
+> 		<option value="tarragona-el_morell" class="nodoHijo">El Morell</option>
+> 		<option value="tarragona-el_vendrell" class="nodoHijo">El Vendrell</option>
+> 		<option value="tarragona-la_bisbal_del_penedes" class="nodoHijo">La Bisbal del Penedes</option>
+> 		<option value="tarragona-la_pobla_de_montornes" class="nodoHijo">La Pobla de Montornes</option>
+> 		<option value="tarragona-masllorenc" class="nodoHijo">Maslloren&#231;</option>
+> 		<option value="tarragona-montferri" class="nodoHijo">Montferri</option>
+> 		<option value="tarragona-mont_roig_del_camp" class="nodoHijo">Mont-Roig Del Camp</option>
+> 		<option value="tarragona-roda_de_bara" class="nodoHijo">Roda De Bara</option>
+> 		<option value="tarragona-salomo" class="nodoHijo">Salomo</option>
+> 		<option value="tarragona-sant_jaume_dels_domenys" class="nodoHijo">Sant Jaume Dels Domenys</option>
+> 		<option value="tarragona-santa_oliva" class="nodoHijo">Santa Oliva</option>
+> 		<option value="tarragona-segur_de_calafell" class="nodoHijo">Segur De Calafell</option>
+> 		<option value="tarragona-tarragona" class="nodoHijo">Tarragona</option>
+> 		<option value="tarragona-torredembarra" class="nodoHijo">Torredembarra</option>
+> 		<option value="tarragona-valls" class="nodoHijo">Valls</option>
+> 		<option value="tarragona-vespella" class="nodoHijo">Vespella</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-3 campoBuscador buscadorZona">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Zona</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select size="4" name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlGruposZonasZonas" multiple="multiple" id="ddlGruposZonasZonas" tabindex="5" class="form-control selectpicker" data-size="12" title="Elegir zonas">
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorHabitaciones">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Habitaciones</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlHabitacionesMin" id="ddlHabitacionesMin" tabindex="6" class="form-control selectpicker" data-size="12">
+> 		<option value="">Elegir habitaciones</option>
+> 		<option value="1">1 o m&#225;s</option>
+> 		<option value="2">2 o m&#225;s</option>
+> 		<option value="3">3 o m&#225;s</option>
+> 		<option value="4">4 o m&#225;s</option>
+> 		<option value="5">5 o m&#225;s</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorBanos">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Baños</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlBanosMin" id="ddlBanosMin" tabindex="7" class="form-control selectpicker" data-size="12">
+> 		<option value="">Elegir ba&#241;os</option>
+> 		<option value="1">1 o m&#225;s</option>
+> 		<option value="2">2 o m&#225;s</option>
+> 		<option value="3">3 o m&#225;s</option>
+> 		<option value="4">4 o m&#225;s</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-2 campoBuscador buscadorCaracteristicas">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Características</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <select name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$ddlCaracteristicas" id="ddlCaracteristicas" tabindex="8" class="form-control selectpicker" multiple="" data-size="12" Title="Elegir las características">
+> 		<option value="adaptado">Adaptado</option>
+> 		<option value="admite-mascotas">Admite Mascotas</option>
+> 		<option value="aire-acondicionado">Aire Acondicionado</option>
+> 		<option value="alarma-interior">Alarma Interior
+> </option>
+> 		<option value="amueblado">Amueblado
+> </option>
+> 		<option value="ascensor">Ascensor
+> </option>
+> 		<option value="calefaccion">Calefacci&#243;n</option>
+> 		<option value="cocina-amueblada">Cocina Amueblada</option>
+> 		<option value="garaje">Garaje</option>
+> 		<option value="gimnasio">Gimnasio</option>
+> 		<option value="piscina">Piscina</option>
+> 		<option value="pista-padel">Pista de P&#225;del
+> </option>
+> 		<option value="planta-baja">Planta Baja</option>
+>
+> 	</select>
+>                     </div>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-4 col-md-3 campoBuscador buscadorPrecio">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 col-sm-12">Precio</div>
+>                     <div class="col-xs-12 col-sm-12">
+>                         <div class="input-group">
+>                             <input name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$txtPrecioMin" type="text" id="txtPrecioMin" tabindex="9" class="form-control currencyFormat" placeholder="Desde" />
+>                             <span class="input-group-addon">€</span>
+>                             <input name="ctl00$pSMasterContent$ctl00$ZenContentHeader$_Mid186051$ctl01$txtPrecioMax" type="text" id="txtPrecioMax" tabindex="10" class="form-control currencyFormat" placeholder="Hasta" />
+>                         </div>
+>                     </div>
+>                 </div>
+>             </div>
+> 			
+>             <div class="col-xs-12 col-sm-12 col-md-3 campoBuscador buscadorEnviar">
+>                 <div class="row">
+>                     <div class="nombreCampo col-xs-12 hidden-xs">&nbsp;</div>
+>                     <div class="col-xs-12 text-right text-center-sm">
+>                         <button id="btnBuscar" class="btn btn-success btn-block" onclick="hazBusqueda();return false"><span class="glyphicon glyphicon-search"></span> <span class="">Buscar</span></button>
+>                     </div>
+>                 </div>
+>             </div>
+>         </div>
+>     </div>
+> </div>
+>
+> <div class="container visible-xs">
+> 	<div class="row">
+> 		<div class="col-xs-12 bg-primary" style="height:6px"></div>
+> 		<div class="col-xs-12 text-center">
+> 			<a href="#collapseBuscador" class="btn btn-primary" data-toggle="collapse" id="collapseBuscadorButton"><span class="visible-inline-xs">Buscador </span><i class="fa fa-chevron-down"></i></a>
+> 		</div>
+> 	</div>
+> </div>
+>
+> <script type="text/javascript">
+>     // Variables globales recibidas por Url
+>     var lang = "es";
+>     var referenciaUrl = "";
+>     var operacionUrl = "venta";
+>     var familiaUrl = "chalets";
+>     var tipoUrl = "adosados~casas~chalets_independientes";
+>     var provinciaUrl = "";
+>     var poblacionUrl = "";
+>     var zonaUrl = "";
+>     var subzonaUrl = "";
+>     var habitacionesMin = "";
+> 	var habitacionesMax = "";
+> 	var banosMin = "";
+>     var banosMax = "";
+>     var pMin = "";
+>     var pMax = "";
+>     var precioMin = 0;
+>     var precioMax = 0;
+>
+>     if (pMin != "")
+>     {
+>         precioMin = parseInt(pMin);
+>     }
+>     if (pMax != "") {
+>         precioMax = parseInt(pMax);
+>     }
+>
+>     var caracteristicasInmueble = [''];
+>
+>     // Funcion que recoge los datos del buscador y establece la URL para realizar la búsqueda
+> 	function hazBusqueda() {
+> 		// Eliminamos la informacion de la visualizacion del datatable
+> 		localStorage.removeItem("datatables_mobilia");
+>
+>     	var referencia = $("#txtReferencia").val();
+>     	// Quitamos los posibles 0
+>     	var startIndex = 0;
+>     	while (referencia[startIndex] === '0') {
+>     		startIndex++;
+>     	}
+>     	referencia = referencia.substr(startIndex);
+>
+>         var tipoOperacion = $("#ddlTiposOperacion option:selected").val();
+>         var tiposInmueble = $("#ddlFamiliasTiposInmueble").val();
+>         var provincias = $("#ddlPoblacionesProvincias").val();
+>         var zonas = $("#ddlGruposZonasZonas").val();
+>         var habitacionesMin = $("#ddlHabitacionesMin").val();
+>         var banosMin = $("#ddlBanosMin").val();
+>         var precioMin = $("#txtPrecioMin").val();
+>         var precioMax = $("#txtPrecioMax").val();
+>         var caracteristicasInmueble = $("#ddlCaracteristicas").val();
+>
+>         //Se cargan como valores tanto el texto seo del campo como su id, separados por #
+>         //Utilizaremos el id para la petición ajax de los valores relacionados y el texto seo como parte de la url de búsqueda
+>         if (tipoOperacion.indexOf('#') > 0)
+>             tipoOperacion = tipoOperacion[1];
+>
+>         //La URL del listado será:
+>         //->  /tipoOperacion_tipoInmueble_subtipoInmueble/en-provincia_localidad_zona_subzona/con-caracteristica1,caracteristica2,...
+>         var tipoUrlListado = "/" + lang;
+>         //Tipo de operación
+>         if (typeof tipoOperacion !== "undefined" && tipoOperacion != "")
+>             tipoUrlListado += "/" + tipoOperacion;
+>
+>     	// Innmueble Familia_Tipo
+>         if (typeof tiposInmueble !== "undefined" && tiposInmueble != null) {
+>         	var tipoInmueble = [];
+>         	var familiaInmueble = [];
+>
+>         	$.each(tiposInmueble, function (i, item) {
+>         		if ($.inArray(item.split('-')[0], tipoInmueble) == -1)
+>         			tipoInmueble.push(item.split('-')[0]);
+>         		if ($.inArray(item.split('-')[1], familiaInmueble) == -1)
+>         			familiaInmueble.push(item.split('-')[1]);
+>         	});
+>
+>         	tipoUrlListado += "-" + tipoInmueble.join("~");
+>         	tipoUrlListado += "-" + familiaInmueble.join("~");
+>         }
+>         
+>
+>         if (typeof provincias !== "undefined" && provincias != null) {
+>         	tipoUrlListado += "/en";
+>         	var provinciaInmueble = [];
+>         	var poblacionInmueble = [];
+>
+>         	$.each(provincias, function (i, item) {
+>         		if ($.inArray(item.split('-')[0], provinciaInmueble) == -1)
+>         			provinciaInmueble.push(item.split('-')[0]);
+>         		if ($.inArray(item.split('-')[1], poblacionInmueble) == -1)
+>         			poblacionInmueble.push(item.split('-')[1]);
+>         	});
+>
+>         	tipoUrlListado += "-" + provinciaInmueble.join("~");
+>         	tipoUrlListado += "-" + poblacionInmueble.join("~");
+>         }
+>
+>     	if (typeof zonas !== 'undefined' && zonas != null) {
+>     		var zonaInmueble = [];
+>     		var subzonaInmueble = [];
+>
+>     		$.each(zonas, function (i, item) {
+>     			if ($.inArray(item.split('-')[0], zonaInmueble) == -1)
+>     				zonaInmueble.push(item.split('-')[0]);
+>     			if (typeof item.split('-')[1] !== 'undefined' && $.inArray(item.split('-')[1], subzonaInmueble) == -1)
+>     				subzonaInmueble.push(item.split('-')[1]);
+>     		});
+>
+>     		tipoUrlListado += "-" + zonaInmueble.join("~");
+> 			if (subzonaInmueble.length > 0)
+>     			tipoUrlListado += "-" + subzonaInmueble.join("~");
+>     	}
+>
+>         // Caracteristicas
+>         var caracteristicas = [];
+>         if (habitacionesMin != "") {
+>             caracteristicas.push(habitacionesMin + "_habitaciones_min");
+>         }
+>         if (banosMin != "") {
+>             caracteristicas.push(banosMin + "_banos_min");
+>         }
+>         if (precioMin != "")
+>             caracteristicas.push(precioMin.toString().replace(/\./g, '','').replace(',','') + "_precio_min");
+>         if (precioMax != "")    
+>             caracteristicas.push(precioMax.toString().replace(/\./g, '', '').replace(',', '') + "_precio_max");
+>
+>         // Caracteristicas Inmueble
+>         if (caracteristicasInmueble != null && caracteristicasInmueble.length > 0) {
+>             $.each(caracteristicasInmueble, function(i, item) {
+>                 caracteristicas.push(item);
+>             });
+>         }
+>
+>         if (caracteristicas.length > 0) {
+>         	tipoUrlListado += "/con-";
+>             tipoUrlListado += caracteristicas.join(",");
+>         }
+>
+>         //Referencia
+> 	    if (typeof referencia !== "undefined" && referencia != "")
+> 	        tipoUrlListado = "/es/ref-" + referencia;
+>         
+>         window.location.href = tipoUrlListado;
+>     }
+>
+>     // Rellenamos el formulario con los datos de la URL
+>     function fillForm() {
+>         if (operacionUrl != "") {
+>             $("#ddlTiposOperacion option[value='" + operacionUrl + "']").prop("selected", "selected");
+>             $("#ddlTiposOperacion").selectpicker('refresh');
+>         }
+>
+>         if (familiaUrl != "") {
+>             if (tipoUrl != "") {
+>             	$.each(tipoUrl.split("~"), function (i, item) {
+>             		$("#ddlFamiliasTiposInmueble option[value$='" + item + "']").prop("selected", "selected");
+>             	});
+>             } else {
+>             	$.each(familiaUrl.split("~"), function (i, item) {
+>             		$("#ddlFamiliasTiposInmueble option[value^='" + item + "']").prop("selected", "selected");
+>             	});
+>             }
+>             $("#ddlFamiliasTiposInmueble").selectpicker('refresh');
+>         }
+>
+>         if (provinciaUrl != "") {
+>         	if (poblacionUrl != "") {
+>         		$.each(poblacionUrl.split("~"), function (i, item) {
+>         			$("#ddlPoblacionesProvincias option[value$='-" + item + "']").prop("selected", "selected");
+>         		});
+>
+>                 loadGruposZonasZonas();
+>         	} else {
+>         		$.each(provinciaUrl.split("~"), function (i, item) {
+>         			$("#ddlPoblacionesProvincias option[value^='" + item + "']").prop("selected", "selected");
+>         		});
+>         	}
+>         	$("#ddlPoblacionesProvincias option[disabled='disabled']").prop("selected", false);
+>         	$("#ddlPoblacionesProvincias").selectpicker('refresh');
+>         }
+>
+>         if (zonaUrl != "") {
+> 			$.each(zonaUrl.split("~"), function (i, item) {
+> 				$("#ddlGruposZonasZonas option[value^='" + item + "']").prop("selected", "selected");
+>             });	
+>             $("#ddlGruposZonasZonas").selectpicker('refresh');
+>         }
+> 		/*
+> 		if (subzonaUrl != "") {
+>     		$.each(subzonaUrl.split("~"), function (i, item) {
+>     			$("#ddlGruposZonasZonas option[value$='-" + item + "']").prop("selected", "selected");
+>     		});
+>     		$("#ddlGruposZonasZonas").selectpicker('refresh');
+> 		}
+> 		*/
+>
+>         if (habitacionesMin != "") {
+>             $("#ddlHabitacionesMin").val(habitacionesMin);
+>             $("#ddlHabitacionesMin").selectpicker('refresh');
+>         }
+>
+>         if (banosMin != "") {
+>             $("#ddlBanosMin").val(banosMin);
+>             $("#ddlBanosMin").selectpicker('refresh');
+>         }
+>
+>         if (precioMin != 0) {
+>             $("#txtPrecioMin").val(precioMin);
+>         }
+>         if (precioMax != 0) {
+>             $("#txtPrecioMax").val(precioMax);
+>         }
+>
+>         if (caracteristicasInmueble.length > 0) {
+>             $.each(caracteristicasInmueble, function (i, item) {
+>                 $("#ddlCaracteristicas option[value='" + item + "']").prop("selected", "selected");
+>             });
+>             $("#ddlCaracteristicas").selectpicker('refresh');
+>         }
+>     }
+>
+>     // Cargamos las zonas y las subzonas de la poblacion cuando se cambia la poblacion
+>     function loadGruposZonasZonas() {
+>     	$('#ddlGruposZonasZonas option').remove();
+>     	$("#ddlGruposZonasZonas").selectpicker('refresh');
+>
+>     	var poblacion = $('#ddlPoblacionesProvincias').val();
+>     	poblaciones = [];
+>     	if (poblacion == null || poblacion.length == 0)
+>     		return;
+>
+>     	$.each(poblacion, function (index, item) {
+>     		if (item.indexOf('-') > 0)
+>     			poblaciones.push(item.split('-')[1]);
+>     	});
+>
+>         $.ajax({
+>             type: 'GET',
+>             url: window.location.protocol + '//' + window.location.hostname + '/desktopmodules/inmobs3/WebRequest.ashx?type=GetGruposZonas&poblaciones=' + JSON.stringify(poblaciones),
+>             async: false,
+>             success: function (data) {
+>             	var Poblacion = '';
+>                 if (data != null) {
+>                     if (data.length > 0) {
+>                         for (i = 0; i < data.length; i++) {
+>                         	if (data[i].Poblacion != Poblacion) {
+>                         		$("#ddlGruposZonasZonas").append('<option value="" class="nodoPadre" disabled="disabled">' + data[i].Poblacion + '</option>');
+>                                 Poblacion = data[i].Poblacion;
+>                             }
+>                             if (data[i].GrupoZonaSeo != null)
+>                             	$("#ddlGruposZonasZonas").append('<option value="' + data[i].GrupoZonaSeo + '" class="nodoHijo">' + data[i].GrupoZona + '</option>');
+>                         }
+>                     }
+>                 }
+>                 $("#ddlGruposZonasZonas").selectpicker('refresh');
+>                 $("#ddlGruposZonasZonas").selectpicker('refresh');
+>             }
+>         });
+>     }
+>
+>     /* EVENTOS */
+>     //Obtenemos las zonas a partir de la población seleccionada por el usuario
+>     $("#ddlPoblacionesProvincias").change(function () {
+>         loadGruposZonasZonas();
+>     });
+>
+>     // DOM READY
+>     $(document).ready(function () {
+>         // Rellenamos el formulario
+>         fillForm();
+>
+>         // Creamos el selectpicker        
+>         $('.selectpicker').selectpicker({
+>             maxOptionsText: function (numAll, numGroup) {
+>                 var arr = [];
+>                 arr[0] = (numAll == 1) ? 'Límite alcanzado ({n} elementos max)' : 'Límite alcanzado ({n} elementos max)';
+>                 arr[1] = (numGroup == 1) ? 'Group limit reached ({n} item max)' : 'Group limit reached ({n} items max)';
+>                 return arr;
+>             }
+>         });
+>
+>         // Creamos el AutoNumeric
+>         $('.currencyFormat').autoNumeric('init', { aSep: '.', aDec: ',', mDec: 0, vMin: -99999999, vMax: 99999999 });
+>
+>     	// Cambiamos el icono del collapse del buscador
+>         $('#collapseBuscadorButton').on('click', function() {
+>         	$(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');
+>         });
+>     });
+> </script>
+>
+>
+> </div>
+> </div>
+> <div class="ThreePanes">
+>     <div id="ctl00_pSMasterContent_ctl00_ContentPane" class="ContentPane">
+> 	<div id="mID186052" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap Grid-listado">
+>
+>
+> <style>
+>     .popover {
+>         max-width: 500px;
+>     }
+> </style>
+> <div class="container">
+>     <div class="row">
+>         <div class="col-xs-12 tituloSeccion">
+>             <h1>
+>                 Adosados, Casas, Chalets Independientes en venta <small>(77 encontrados)</small></h1>
+>         </div>
+>     </div>
+>
+>     
+>
+>     <div class='row Botonera-top-container'>
+>         <div id="ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divSwitchGrid" class="col-xs-12 col-sm-6 text-left" style="margin-bottom: 15px">
+>             <div class="btn-group">
+>                 <button type="button" class="btn btn-primary btn-Lista cambiarVisualizacion_Mid186052" data-visualization="list"><i class="mob mob-list"></i>Lista</button>
+>                 <button type="button" class="btn btn-primary btn-Grid cambiarVisualizacion_Mid186052" data-visualization="grid"><i class="mob mob-otros"></i>Grid</button>
+>                 <button type="button" class="btn btn-primary btn-Mapa cambiarVisualizacion_Mid186052" data-visualization="map"><span class="fa fa-map-marker"></span>Mapa</button>
+>             </div>
+>         </div>
+>         <div id="divOrdenIsotope" class="col-xs-12 col-sm-6 pull-right text-right" style="margin-bottom: 15px">
+>             <span class="hidden-xs">Ordenar por </span>
+>             <div class="btn-group">
+>                 <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" id="dropdown_sorter__Mid186052">--- <span class="caret"></span></button>
+>                 <ul class="dropdown-menu pull-right" role="menu" id="sorter_Mid186052">
+>                     <li data-sort="1" data-direction="desc"><a href="#">Últimos modificados</a></li>
+>                     <li data-sort="5" data-direction="asc"><a href="#">Precio ascendente</a></li>
+>                     <li data-sort="5" data-direction="desc"><a href="#">Precio descendente</a></li>
+>                     <li data-sort="6" data-direction="asc"><a href="#">Superficie ascendente</a></li>
+>                     <li data-sort="6" data-direction="desc"><a href="#">Superficie descendente</a></li>
+>                     <li data-sort="7" data-direction="asc"><a href="#">Dormitorios ascendente</a></li>
+>                     <li data-sort="7" data-direction="desc"><a href="#">Dormitorios descendente</a></li>
+>                     <li data-sort="8" data-direction="asc"><a href="#">Baños ascendente</a></li>
+>                     <li data-sort="8" data-direction="desc"><a href="#">Baños descendente</a></li>
+>                 </ul>
+>             </div>
+>         </div>
+>     </div>
+> </div>
+>
+> <div id="ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divResults" class="container inmuebles-container">
+>     <div class="row" id="isotope_Mid186052" style="display: none; margin-left: -7px; margin-right: -7px;"></div>
+>     <div class="row" id="mapa_Mid186052" style="display: none; margin-left: 2px; margin-right: 2px;">
+>         <div class="gmap3" id="mapa_Mid186052_map" style="height: 500px"></div>
+>         <div id="avisoMapa"></div>
+>         <div id="popup" class="ol-popup">
+>             <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+>             <div id="popup-content" style="white-space: nowrap; width: auto"></div>
+>         </div>
+>     </div>
+>     <div class="row table-responsive" id="table_Mid186052" style="display: none">
+>         <div class="col-xs-12">
+>             <table id="infoListado" class="table table-condensed table-striped">
+>                 <thead>
+>                     <tr>
+>                         <td></td>
+>                         <td>Fecha</td>
+>                         <td class="text-center">Ref</td>
+>                         <td>Tipo</td>
+>                         <td>Zona</td>
+>                         <td class="text-center">Precio</td>
+>                         <td class="text-center">Sup<span class='hidden-xs hidden-sm'>erficie</span></td>
+>                         <td class="text-center">Dorm<span class='hidden-xs hidden-sm'>itorios</span></td>
+>                         <td class="text-center">Baños</td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                         <td></td>
+>                     </tr>
+>                 </thead>
+>                 <tbody>
+>                     
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7420'><img alt='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 7420. Grupo Torresol' title='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 7420. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/7420/23210204-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202605281258</td>
+>                                 <td data-info="referencia" class="text-center">7420_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7420'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7420'><span data-info="localizacion">La Pobla de Montornes</span> <span>(a del Castell - La Pobla de Montornès)</span></a></td>
+>                                 <td data-info="precio" data-order="340000" class="text-right">
+>                                     <span data-info="precioVenta">340.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="179,00" class="text-center">179 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">7</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">La Pobla de Montornes</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en La Pobla de Montornes, con 179 m<sup>2</sup>, 7 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Trastero, Amueblado, Aire acondicionado y Calefacción Bomba de calor. Placas solares.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1851480</span><span data-info="longitud">1.40235101</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">7420_1898</td>
+>                                 <td data-info="tituloInmueble">PRECIOSO CHALET CON PISCINA</td>
+>                                 <td data-info="idInmueble">1509445</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-7420</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7484'><img alt='Adosado en venta Torredembarra, Tarragona. Ref: 7484. Grupo Torresol' title='Adosado en venta Torredembarra, Tarragona. Ref: 7484. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/7484/23212141-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202604231020</td>
+>                                 <td data-info="referencia" class="text-center">7484_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7484'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7484'><span data-info="localizacion">Torredembarra</span> <span>(Marítima Norte)</span></a></td>
+>                                 <td data-info="precio" data-order="260000" class="text-right">
+>                                     <span data-info="precioVenta">260.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="192,00" class="text-center">192 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Torredembarra</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en Torredembarra, con 192 m<sup>2</sup>, 5 habitaciones y 3 baños, Garaje, Trastero, Aire acondicionado.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">7484_1898</td>
+>                                 <td data-info="tituloInmueble">PRECIOSA CASA ADOSADA EN  MARITIMA RESIDENCIAL</td>
+>                                 <td data-info="idInmueble">1509509</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-7484</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7532'><img alt='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 7532. Grupo Torresol' title='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 7532. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/7532/23212811-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202606181329</td>
+>                                 <td data-info="referencia" class="text-center">7532_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7532'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-7532'><span data-info="localizacion">La Pobla de Montornes</span> <span>(La Pobla de Montornés)</span></a></td>
+>                                 <td data-info="precio" data-order="320000" class="text-right">
+>                                     <span data-info="precioVenta">320.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="226,00" class="text-center">226 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">La Pobla de Montornes</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en La Pobla de Montornes, con 208 m<sup>2</sup>, 5 habitaciones y 2 baños, Piscina, Garaje, Trastero y Amueblado.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">7532_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet independiente en La Pobla de Montornes</td>
+>                                 <td data-info="idInmueble">1509557</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-7532</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-8699'><img alt='Adosado en venta Torredembarra, Tarragona. Ref: 8699. Grupo Torresol' title='Adosado en venta Torredembarra, Tarragona. Ref: 8699. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/8699/23237385-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607251353</td>
+>                                 <td data-info="referencia" class="text-center">8699_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-8699'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-8699'><span data-info="localizacion">Torredembarra</span> <span>(*CENTRE)</span></a></td>
+>                                 <td data-info="precio" data-order="325000" class="text-right">
+>                                     <span data-info="precioVenta">325.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="245,00" class="text-center">245 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">24 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Torredembarra</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en Torredembarra, con 245 m<sup>2</sup>, 4 habitaciones y 4 baños, 2 plazas de Garaje, Trastero, Aire acondicionado y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">8699_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Torredembarra - *CENTRE</td>
+>                                 <td data-info="idInmueble">1510726</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-8699</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10510'><img alt='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 10510. Grupo Torresol' title='Chalet Independiente en venta La Pobla de Montornes, Tarragona. Ref: 10510. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10510/23275049-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202604281137</td>
+>                                 <td data-info="referencia" class="text-center">10510_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10510'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10510'><span data-info="localizacion">La Pobla de Montornes</span> <span>(Castell de montornès)</span></a></td>
+>                                 <td data-info="precio" data-order="249000" class="text-right">
+>                                     <span data-info="precioVenta">249.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="188,00" class="text-center">188 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">40 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">La Pobla de Montornes</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en La Pobla de Montornes, con 188 m<sup>2</sup>, 5 habitaciones y 2 baños, Piscina, 2 plazas de Garaje, Trastero y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1904478</span><span data-info="longitud">1.41383877</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10510_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en La Pobla de Montornes - Castell de montornès</td>
+>                                 <td data-info="idInmueble">1512539</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10510</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10522'><img alt='Casa en venta Sant Sadurni D'Anoia, Barcelona. Ref: 10522. Grupo Torresol' title='Casa en venta Sant Sadurni D'Anoia, Barcelona. Ref: 10522. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10522/23275887-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607101700</td>
+>                                 <td data-info="referencia" class="text-center">10522_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10522'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10522'><span data-info="localizacion">Sant Sadurni D'Anoia</span> <span>(Centre)</span></a></td>
+>                                 <td data-info="precio" data-order="275000" class="text-right">
+>                                     <span data-info="precioVenta">275.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="663,00" class="text-center">663 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">6</td>
+>                                 <td data-info="banos" data-order="" class="text-center">5</td>
+>                                 <td data-info="garajes">5</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Sant Sadurni D'Anoia</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Sant Sadurni D'Anoia, con 663 m<sup>2</sup>, 6 habitaciones y 5 baños, 5 plazas de Garaje, Trastero y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.4231954</span><span data-info="longitud">1.78445239</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10522_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en venta en Sant Sadurni D'Anoia - Centre</td>
+>                                 <td data-info="idInmueble">1512551</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10522</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10542'><img alt='Casa en venta Sitges, Barcelona. Ref: 10542. Grupo Torresol' title='Casa en venta Sitges, Barcelona. Ref: 10542. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10542/23276775-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202603271922</td>
+>                                 <td data-info="referencia" class="text-center">10542_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10542'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10542'><span data-info="localizacion">Sitges</span> <span>(Poble Sec/Observatori)</span></a></td>
+>                                 <td data-info="precio" data-order="1100000" class="text-right">
+>                                     <span data-info="precioVenta">1.100.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="156,00" class="text-center">156 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">2</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">15 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Sitges</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Casa en venta en Sitges, con 156 m<sup>2</sup>, 2 habitaciones y 2 baños, Trastero, Aire acondicionado y Calefacción Suelo Radiante.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2351401</span><span data-info="longitud">1.81079297</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10542_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en venta en Sitges - Poble Sec/Observatori</td>
+>                                 <td data-info="idInmueble">1512571</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10542</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10545'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 10545. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 10545. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10545/23276766-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202604281135</td>
+>                                 <td data-info="referencia" class="text-center">10545_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10545'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10545'><span data-info="localizacion">Calafell</span> <span>(Ciutat Jardi Bonanova)</span></a></td>
+>                                 <td data-info="precio" data-order="495000" class="text-right">
+>                                     <span data-info="precioVenta">495.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="211,00" class="text-center">211 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">3</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Calafell, con 211 m<sup>2</sup>, 4 habitaciones y 4 baños, Piscina, 3 plazas de Garaje, Trastero, Aire acondicionado y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1897730</span><span data-info="longitud">1.56718313</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10545_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Calafell - Ciutat Jardi Bonanova</td>
+>                                 <td data-info="idInmueble">1512574</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10545</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10548'><img alt='Chalet Independiente en venta Creixell, Tarragona. Ref: 10548. Grupo Torresol' title='Chalet Independiente en venta Creixell, Tarragona. Ref: 10548. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10548/23276778-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202604301209</td>
+>                                 <td data-info="referencia" class="text-center">10548_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10548'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10548'><span data-info="localizacion">Creixell</span> <span>(Port Romà)</span></a></td>
+>                                 <td data-info="precio" data-order="465000" class="text-right">
+>                                     <span data-info="precioVenta">465.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="200,00" class="text-center">200 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">12 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Creixell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Creixell, con 200 m<sup>2</sup>, 3 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Trastero, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1675688</span><span data-info="longitud">1.44196671</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10548_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Creixell - Port Romà</td>
+>                                 <td data-info="idInmueble">1512577</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10548</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10551'><img alt='Chalet Independiente en venta Banyeres Del Penedes, Tarragona. Ref: 10551. Grupo Torresol' title='Chalet Independiente en venta Banyeres Del Penedes, Tarragona. Ref: 10551. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10551/23276769-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202604281136</td>
+>                                 <td data-info="referencia" class="text-center">10551_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10551'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10551'><span data-info="localizacion">Banyeres Del Penedes</span> <span>(Cataluña)</span></a></td>
+>                                 <td data-info="precio" data-order="520000" class="text-right">
+>                                     <span data-info="precioVenta">520.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="353,00" class="text-center">353 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">60 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Banyeres Del Penedes</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Banyeres Del Penedes, con 353 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina, Trastero y Calefacción Electrica.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2574286</span><span data-info="longitud">1.54322361</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10551_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Banyeres Del Penedes - Cataluña</td>
+>                                 <td data-info="idInmueble">1512580</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10551</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10581'><img alt='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 10581. Grupo Torresol' title='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 10581. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10581/23277555-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202512160832</td>
+>                                 <td data-info="referencia" class="text-center">10581_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10581'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10581'><span data-info="localizacion">Segur De Calafell</span> <span>(Centro)</span></a></td>
+>                                 <td data-info="precio" data-order="475000" class="text-right">
+>                                     <span data-info="precioVenta">475.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="261,00" class="text-center">261 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">36 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Segur De Calafell, con 261 m<sup>2</sup>, 5 habitaciones y 2 baños, Piscina, 2 plazas de Garaje, Trastero y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2113476</span><span data-info="longitud">1.60906155</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10581_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Segur De Calafell - Centro</td>
+>                                 <td data-info="idInmueble">1512610</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10581</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10652'><img alt='Chalet Independiente en venta Roda De Bara, Tarragona. Ref: 10652. Grupo Torresol' title='Chalet Independiente en venta Roda De Bara, Tarragona. Ref: 10652. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10652/23608620-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141009</td>
+>                                 <td data-info="referencia" class="text-center">10652_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10652'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10652'><span data-info="localizacion">Roda De Bara</span> </a></td>
+>                                 <td data-info="precio" data-order="690000" class="text-right">
+>                                     <span data-info="precioVenta">690.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="207,00" class="text-center">207 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Roda De Bara</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Roda De Bara, con 207 m<sup>2</sup>, 5 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Amueblado y Calefacción Geotermia.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1842809</span><span data-info="longitud">1.47341112</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10652_1898</td>
+>                                 <td data-info="tituloInmueble">🏡 Encantador Chalet en Berà Mar - El Francaset (Roda de Barà)</td>
+>                                 <td data-info="idInmueble">1534073</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10652</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10653'><img alt='Casa en venta Masllorenç, Tarragona. Ref: 10653. Grupo Torresol' title='Casa en venta Masllorenç, Tarragona. Ref: 10653. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10653/23616045-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607251133</td>
+>                                 <td data-info="referencia" class="text-center">10653_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10653'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10653'><span data-info="localizacion">Masllorenç</span> </a></td>
+>                                 <td data-info="precio" data-order="195500" class="text-right">
+>                                     <span data-info="precioVenta">195.500&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="180,00" class="text-center">180 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Masllorenç</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Casa en venta en Masllorenç, con 180 m<sup>2</sup>, 5 habitaciones y 3 baños y Garaje.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2693261</span><span data-info="longitud">1.41610421</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10653_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en el centro de Masllorenç</td>
+>                                 <td data-info="idInmueble">1534110</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10653</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10655'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 10655. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 10655. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10655/23632724-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081105</td>
+>                                 <td data-info="referencia" class="text-center">10655_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10655'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10655'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="795000" class="text-right">
+>                                     <span data-info="precioVenta">795.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="247,31" class="text-center">247,31 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">3</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Calafell, con 247 m<sup>2</sup>, 5 habitaciones y 4 baños, Piscina, 3 plazas de Garaje, Aire acondicionado y Calefacción Central.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.1992825</span><span data-info="longitud">1.55904414</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10655_1898</td>
+>                                 <td data-info="tituloInmueble">Espectacular chalet de nueva construcción en Calafell</td>
+>                                 <td data-info="idInmueble">1534204</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10655</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10699'><img alt='Adosado en venta Cunit, Tarragona. Ref: 10699. Grupo Torresol' title='Adosado en venta Cunit, Tarragona. Ref: 10699. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10699/23715981-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">10699_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10699'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10699'><span data-info="localizacion">Cunit</span> </a></td>
+>                                 <td data-info="precio" data-order="260000" class="text-right">
+>                                     <span data-info="precioVenta">260.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="124,00" class="text-center">124 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Cunit</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Cunit, con 124 m<sup>2</sup>, 4 habitaciones y 2 baños, Garaje, Aire acondicionado y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2039315</span><span data-info="longitud">1.62402690</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10699_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Pareado en Cunit Residencial</td>
+>                                 <td data-info="idInmueble">1537694</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10699</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10735'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10735. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10735. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10735/23780602-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141007</td>
+>                                 <td data-info="referencia" class="text-center">10735_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10735'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10735'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="498000" class="text-right">
+>                                     <span data-info="precioVenta">498.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="433,00" class="text-center">433 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">25 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en El Vendrell, con 433 m<sup>2</sup>, 3 habitaciones y 1 baños, Trastero y Amueblado.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10735_1898</td>
+>                                 <td data-info="tituloInmueble">¡Una joya única en el mercado!</td>
+>                                 <td data-info="idInmueble">1541510</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10735</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10740'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10740. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10740. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10740/23784892-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071022</td>
+>                                 <td data-info="referencia" class="text-center">10740_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10740'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10740'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="550000" class="text-right">
+>                                     <span data-info="precioVenta">550.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="353,00" class="text-center">353 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en El Vendrell, con 353 m<sup>2</sup>, 5 habitaciones y 4 baños, Piscina, 2 plazas de Garaje, Trastero y Calefacción Radiadores.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10740_1898</td>
+>                                 <td data-info="tituloInmueble">🌟 Impresionante casa unifamiliar de cuatro vientos con jardín y piscina privada</td>
+>                                 <td data-info="idInmueble">1541667</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10740</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10750'><img alt='Casa en venta Santa Oliva, Tarragona. Ref: 10750. Grupo Torresol' title='Casa en venta Santa Oliva, Tarragona. Ref: 10750. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10750/23865236-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071808</td>
+>                                 <td data-info="referencia" class="text-center">10750_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10750'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10750'><span data-info="localizacion">Santa Oliva</span> </a></td>
+>                                 <td data-info="precio" data-order="110000" class="text-right">
+>                                     <span data-info="precioVenta">110.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="92,00" class="text-center">92 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Santa Oliva</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Casa de pueblo a reformar, reformala a tu gusto, situada en zona tranquila entre El Vendrell y las pederes de Santa Oliva, ahora solo queda que le des rienda a tu imaginacion, la visitamos??, llamanos!!</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10750_1898</td>
+>                                 <td data-info="tituloInmueble">CASA DE PUEBLO A REFORMAR</td>
+>                                 <td data-info="idInmueble">1545429</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10750</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10755'><img alt='Casa en venta Santa Oliva, Tarragona. Ref: 10755. Grupo Torresol' title='Casa en venta Santa Oliva, Tarragona. Ref: 10755. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10755/23873410-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071808</td>
+>                                 <td data-info="referencia" class="text-center">10755_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10755'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10755'><span data-info="localizacion">Santa Oliva</span> </a></td>
+>                                 <td data-info="precio" data-order="157500" class="text-right">
+>                                     <span data-info="precioVenta">157.500&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="92,00" class="text-center">92 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Santa Oliva</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>Casa de pueblo a reformar, mas parcela de 118m2, actualmente cerradada con puerta, dos fincas registrales independientes, se podrian hacer dos casas, subir planta, situada en zona tranquila entre El Vendrell y la pederes de Santa Oliva, ideal dos familias, ahora solo queda que le des rienda a tu imaginacion, la visitamos??, llamanos!!</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10755_1898</td>
+>                                 <td data-info="tituloInmueble">CASA DE PUEBLO A REFORMAR MAS PARCELA</td>
+>                                 <td data-info="idInmueble">1545798</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10755</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10756'><img alt='Casa en venta Masllorenç, Tarragona. Ref: 10756. Grupo Torresol' title='Casa en venta Masllorenç, Tarragona. Ref: 10756. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10756/23873827-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141010</td>
+>                                 <td data-info="referencia" class="text-center">10756_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10756'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10756'><span data-info="localizacion">Masllorenç</span> </a></td>
+>                                 <td data-info="precio" data-order="190000" class="text-right">
+>                                     <span data-info="precioVenta">190.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="105,00" class="text-center">105 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Masllorenç</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Masllorenç, con 105 m<sup>2</sup>, 4 habitaciones y 2 baños y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10756_1898</td>
+>                                 <td data-info="tituloInmueble">Encantadora Casa en Venta en Masllorenç</td>
+>                                 <td data-info="idInmueble">1545823</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10756</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10775'><img alt='Casa en venta Albinyana, Tarragona. Ref: 10775. Grupo Torresol' title='Casa en venta Albinyana, Tarragona. Ref: 10775. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10775/23904709-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607171401</td>
+>                                 <td data-info="referencia" class="text-center">10775_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10775'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10775'><span data-info="localizacion">Albinyana</span> </a></td>
+>                                 <td data-info="precio" data-order="120000" class="text-right">
+>                                     <span data-info="precioVenta">120.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="212,00" class="text-center">212 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">6</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Albinyana</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Albinyana, con 212 m<sup>2</sup> y 6 habitaciones y 2 baños.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10775_1898</td>
+>                                 <td data-info="tituloInmueble">Oportunidad de inversión: estructura de vivienda unifamiliar en construcción</td>
+>                                 <td data-info="idInmueble">1547125</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10775</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10777'><img alt='Casa en venta El Montmell, Tarragona. Ref: 10777. Grupo Torresol' title='Casa en venta El Montmell, Tarragona. Ref: 10777. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10777/23905528-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141010</td>
+>                                 <td data-info="referencia" class="text-center">10777_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10777'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10777'><span data-info="localizacion">El Montmell</span> </a></td>
+>                                 <td data-info="precio" data-order="320000" class="text-right">
+>                                     <span data-info="precioVenta">320.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="84,00" class="text-center">84 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Montmell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en El Montmell, con 84 m<sup>2</sup>, 3 habitaciones y 1 baños y Piscina.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10777_1898</td>
+>                                 <td data-info="tituloInmueble">Encantadora Casa en Mas Mateu con Piscina y Licencia Turística</td>
+>                                 <td data-info="idInmueble">1547181</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10777</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10857'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 10857. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 10857. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10857/24121317-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141008</td>
+>                                 <td data-info="referencia" class="text-center">10857_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10857'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10857'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="550000" class="text-right">
+>                                     <span data-info="precioVenta">550.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="328,00" class="text-center">328 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Calafell, con 328 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Trastero y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10857_1898</td>
+>                                 <td data-info="tituloInmueble">MAGNIFICO CHALET CON 1.051 M2 DE PARCELA.</td>
+>                                 <td data-info="idInmueble">1556643</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10857</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10859'><img alt='Casa en venta El Vendrell, Tarragona. Ref: 10859. Grupo Torresol' title='Casa en venta El Vendrell, Tarragona. Ref: 10859. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10859/24605427-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608041024</td>
+>                                 <td data-info="referencia" class="text-center">10859_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10859'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10859'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="215000" class="text-right">
+>                                     <span data-info="precioVenta">215.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="128,00" class="text-center">128 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">22 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Casa en venta en El Vendrell, con 128 m<sup>2</sup>, 3 habitaciones y 2 baños y Calefacción Electrica.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10859_1898</td>
+>                                 <td data-info="tituloInmueble">Casa de pueblo totalmente reformada con gran terraza en el corazón de El Vendrell</td>
+>                                 <td data-info="idInmueble">1557016</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10859</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10872'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 10872. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 10872. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10872/24188860-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071406</td>
+>                                 <td data-info="referencia" class="text-center">10872_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10872'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10872'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="460000" class="text-right">
+>                                     <span data-info="precioVenta">460.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="150,00" class="text-center">150 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">FASE 1 100% VENDIDA, Gracias a ese exito ponemos en venta la nueva promoción de 18 viviendas, 6 viviendas independientes y 12 adosadas, en una de las mejores zonas residenciales de Calafell, a 5 min. de sus increibles playas, en plena naturaleza y cerca de todos los servicios. Desde Merkapiso queremos ayudarte a cumplir tus sueños, te esperamos.
+> <div>
+> </div><div>
+> </div><div>Desde 435.000€ a 460.000€</div></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10872_1898</td>
+>                                 <td data-info="tituloInmueble">SEGUNDA FASE A LA VENTA DE 18 VIVENDIAS INDIVIDUALES Y ADOSADAS</td>
+>                                 <td data-info="idInmueble">1559640</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10872</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10928'><img alt='Chalet Independiente en venta Cunit, Tarragona. Ref: 10928. Grupo Torresol' title='Chalet Independiente en venta Cunit, Tarragona. Ref: 10928. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10928/27609939-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607201308</td>
+>                                 <td data-info="referencia" class="text-center">10928_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10928'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10928'><span data-info="localizacion">Cunit</span> </a></td>
+>                                 <td data-info="precio" data-order="399000" class="text-right">
+>                                     <span data-info="precioVenta">399.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="245,00" class="text-center">245 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Cunit</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Cunit, con 245 m<sup>2</sup>, 5 habitaciones y 2 baños y un Aseo. Piscina y Garaje, AMPLIA COCINA, CHIMENEA, a cinco minutos de Un Supermercado, a tan solo diez doce minutos andando a la playa,</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10928_1898</td>
+>                                 <td data-info="tituloInmueble">VENTA DE CHALET INDEPENDIENTE DE 5 HABITACIONES EN CUNIT!!!</td>
+>                                 <td data-info="idInmueble">1578630</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10928</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10930'><img alt='Adosado en venta Segur De Calafell, Tarragona. Ref: 10930. Grupo Torresol' title='Adosado en venta Segur De Calafell, Tarragona. Ref: 10930. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10930/24522493-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141008</td>
+>                                 <td data-info="referencia" class="text-center">10930_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10930'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10930'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="342000" class="text-right">
+>                                     <span data-info="precioVenta">342.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="204,00" class="text-center">204 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Segur De Calafell, con 204 m<sup>2</sup>, 4 habitaciones y 3 baños, Garaje y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10930_1898</td>
+>                                 <td data-info="tituloInmueble">VENTA DE BONITA CASA PAREADA EN SEGUR DE CALAFELL</td>
+>                                 <td data-info="idInmueble">1578672</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10930</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10942'><img alt='Adosado en venta Coma-Ruga, Tarragona. Ref: 10942. Grupo Torresol' title='Adosado en venta Coma-Ruga, Tarragona. Ref: 10942. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10942/24607660-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071406</td>
+>                                 <td data-info="referencia" class="text-center">10942_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10942'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10942'><span data-info="localizacion">Coma-Ruga</span> </a></td>
+>                                 <td data-info="precio" data-order="315000" class="text-right">
+>                                     <span data-info="precioVenta">315.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="203,00" class="text-center">203 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Coma-Ruga</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Adosado en zona de playa, en muy buen estado, con cuatro habitaciones, dos baños y un aseo. La vivienda se distribuye en tres plantas.</p><p><br></p><p>En la planta principal encontramos un amplio salón, cocina, aseo y una habitación.</p><p>La segunda planta dispone de tres habitaciones y un baño completo.</p><p>En la buhardilla se ha habilitado una habitación adicional con baño propio.</p><p><br></p><p>Ubicado en una de las zonas más tranquilas de Comarruga, cerca de todos los servicios y, por supuesto, a un paso del mar y del paseo marítimo.</p><p><br></p><p>✨ ¡No dudes en visitarlo! ✨</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10942_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado Comarruga San Salvador !!!</td>
+>                                 <td data-info="idInmueble">1583407</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10942</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10944'><img alt='Adosado en venta Roda De Bara, Tarragona. Ref: 10944. Grupo Torresol' title='Adosado en venta Roda De Bara, Tarragona. Ref: 10944. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10944/27449321-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051049</td>
+>                                 <td data-info="referencia" class="text-center">10944_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10944'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10944'><span data-info="localizacion">Roda De Bara</span> </a></td>
+>                                 <td data-info="precio" data-order="240000" class="text-right">
+>                                     <span data-info="precioVenta">240.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="150,00" class="text-center">150 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza">15 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Roda De Bara</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Roda De Bara, con 150 m<sup>2</sup>, 4 habitaciones y 2 baños, Piscina, Amueblado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">10944_1898</td>
+>                                 <td data-info="tituloInmueble">ADOSADO EN VENTA EL ROC DE SANT GAIETÀ</td>
+>                                 <td data-info="idInmueble">1583744</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10944</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10966'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10966. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 10966. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/10966/24750527-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081105</td>
+>                                 <td data-info="referencia" class="text-center">10966_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10966'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-10966'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="630000" class="text-right">
+>                                     <span data-info="precioVenta">630.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="213,73" class="text-center">213,73 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>Casa independiente a estrenar, de dos plantas.&nbsp;</p><p>4 habitaciones tipo suite con 4 baños, lavadero, cocina equipada y salón con acceso directo al jardín. </p><p>Piscina con sistema de clorador salino.&nbsp;</p><p>Aerotermia, luces led y alarma.&nbsp;</p><p>Parcela de 400 m².&nbsp;</p><p>Vivienda muy luminosa y con vistas despejadas.&nbsp;&nbsp;&nbsp;</p><p>A pocos metros del mar y del campo de golf.&nbsp;</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.208628</span><span data-info="longitud">1.547251</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">10966_1898</td>
+>                                 <td data-info="tituloInmueble">Espectacular casa a estrenar en Eden Park, El Vendrell</td>
+>                                 <td data-info="idInmueble">1589576</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-10966</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11027'><img alt='Adosado en venta Cunit, Tarragona. Ref: 11027. Grupo Torresol' title='Adosado en venta Cunit, Tarragona. Ref: 11027. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11027/25004820-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607081855</td>
+>                                 <td data-info="referencia" class="text-center">11027_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11027'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11027'><span data-info="localizacion">Cunit</span> <span>(CAN TONI)</span></a></td>
+>                                 <td data-info="precio" data-order="339000" class="text-right">
+>                                     <span data-info="precioVenta">339.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="140,00" class="text-center">140 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Cunit</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Cunit, con 140 m<sup>2</sup>, 3 habitaciones y 2 baños, Garaje, Trastero, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11027_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Cunit - CAN TONI</td>
+>                                 <td data-info="idInmueble">1601030</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11027</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11045'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11045. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11045. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11045/26219716-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051314</td>
+>                                 <td data-info="referencia" class="text-center">11045_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11045'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11045'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="430000" class="text-right">
+>                                     <span data-info="precioVenta">430.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="210,00" class="text-center">210 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">40 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>Vivienda independiente, cuidada al detalle y en impecable estado de conservación, situada en una de las zonas residenciales más tranquilas y valoradas de Els Masos de Comarruga.</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.189566</span><span data-info="longitud">1.510167</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11045_1898</td>
+>                                 <td data-info="tituloInmueble">✨ Exclusiva vivienda con piscina privada y vistas al mar en Els Masos de Comarruga ✨</td>
+>                                 <td data-info="idInmueble">1603906</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11045</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11048'><img alt='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 11048. Grupo Torresol' title='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 11048. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11048/25088751-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607251133</td>
+>                                 <td data-info="referencia" class="text-center">11048_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11048'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11048'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="450000" class="text-right">
+>                                     <span data-info="precioVenta">450.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="307,00" class="text-center">307 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">6</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">25 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>Espectacular casa de 308 m² en Segur de Calafell con parcela de 656 m², piscina 8x4 y dos viviendas independientes con 6 habitaciones y 2 baños, salón de 45 m² con chimenea, mientras que la planta baja incluye garaje para dos coches, bodega, trastero y comedor de verano, carpintería Climalit y puertas de roble, cerca de la entrada a autopista.&nbsp;</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11048_1898</td>
+>                                 <td data-info="tituloInmueble">Amplia casa individual</td>
+>                                 <td data-info="idInmueble">1604746</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11048</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11052'><img alt='Adosado en venta Calafell, Tarragona. Ref: 11052. Grupo Torresol' title='Adosado en venta Calafell, Tarragona. Ref: 11052. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11052/25111764-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607281408</td>
+>                                 <td data-info="referencia" class="text-center">11052_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11052'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11052'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="498800" class="text-right">
+>                                     <span data-info="precioVenta">498.800&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="401,00" class="text-center">401 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Calafell, 3 habitaciones y 3 baños, Piscina, Garaje, Aire acondicionado y Calefacción Gas natural, casa diseñada para vivir una vida tranquila y cerca de todo.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11052_1898</td>
+>                                 <td data-info="tituloInmueble">Bonita casa en Urbanización Alorda Park  en Calafell</td>
+>                                 <td data-info="idInmueble">1609150</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11052</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11081'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11081. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11081. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11081/25316410-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141010</td>
+>                                 <td data-info="referencia" class="text-center">11081_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11081'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11081'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="329000" class="text-right">
+>                                     <span data-info="precioVenta">329.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="206,00" class="text-center">206 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet en venta en El Vendrell, con 206 m<sup>2</sup>, 4 habitaciones y 2 baños y Trastero.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.2261959</span><span data-info="longitud">1.53201232</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11081_1898</td>
+>                                 <td data-info="tituloInmueble">COMODIDAD Y NATURALEZA AL ALCANCE DE TU MANO!!!</td>
+>                                 <td data-info="idInmueble">1622844</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11081</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11083'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 11083. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 11083. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11083/25352668-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202606031213</td>
+>                                 <td data-info="referencia" class="text-center">11083_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11083'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11083'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="699000" class="text-right">
+>                                     <span data-info="precioVenta">699.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="429,00" class="text-center">429 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">6</td>
+>                                 <td data-info="banos" data-order="" class="text-center">4</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Calafell, con 429 m<sup>2</sup>, 6 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Trastero, Aire acondicionado y Calefacción Placas Solares.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11083_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Calafell</td>
+>                                 <td data-info="idInmueble">1624765</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11083</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11091'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 11091. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 11091. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11091/25402520-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071808</td>
+>                                 <td data-info="referencia" class="text-center">11091_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11091'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11091'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="520000" class="text-right">
+>                                     <span data-info="precioVenta">520.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="255,00" class="text-center">255 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Vive el sueño mediterráneo en Bellamar. Esta espectacular casa te ofrece vistas al mar y la comodidad de caminar a la playa. Cuenta con 5 habitaciones, 3 baños, parking y piscina privada en una parcela de 450 m². El refugio perfecto que combina amplitud, sol y brisa marina en una ubicación inmejorable. ¡Tu oasis te espera!</p><p><br></p><p><br></p><p><br></p><p>
+> </p><p>
+> </p><p>
+> </p><p>
+> </p><p>
+> </p><p>
+> </p><p>
+> </p><p>
+> </p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11091_1898</td>
+>                                 <td data-info="tituloInmueble">CASA CON PISCINA CINCO HABITACIONES EN BELLAMAR CALAFELL</td>
+>                                 <td data-info="idInmueble">1626911</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11091</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11092'><img alt='Adosado en venta Segur De Calafell, Tarragona. Ref: 11092. Grupo Torresol' title='Adosado en venta Segur De Calafell, Tarragona. Ref: 11092. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11092/25421733-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">11092_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11092'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11092'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="325000" class="text-right">
+>                                     <span data-info="precioVenta">325.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="226,00" class="text-center">226 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Chalet adosado en el centro de Segur de Calafell, con garaje, patio, terrazas y acceso a piscina comunitaria. Luminoso, bien distribuido y a un paso de todos los servicios.</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.202199</span><span data-info="longitud">1.60657</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11092_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet adosado en Segur de Calafell – Zona Centro, con piscina comunitaria ☀️</td>
+>                                 <td data-info="idInmueble">1627770</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11092</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11110'><img alt='Chalet Independiente en venta Bellvei, Tarragona. Ref: 11110. Grupo Torresol' title='Chalet Independiente en venta Bellvei, Tarragona. Ref: 11110. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11110/25728479-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202606221918</td>
+>                                 <td data-info="referencia" class="text-center">11110_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11110'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11110'><span data-info="localizacion">Bellvei</span> </a></td>
+>                                 <td data-info="precio" data-order="335000" class="text-right">
+>                                     <span data-info="precioVenta">335.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="162,00" class="text-center">162 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">25 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Bellvei</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Bellvei, con 162 m<sup>2</sup>, 3 habitaciones y 2 baños, Piscina, Garaje, Trastero y Calefacción Electrica.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11110_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Bellvei</td>
+>                                 <td data-info="idInmueble">1647755</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11110</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11111'><img alt='Casa en venta Segur De Calafell, Tarragona. Ref: 11111. Grupo Torresol' title='Casa en venta Segur De Calafell, Tarragona. Ref: 11111. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11111/25740013-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071406</td>
+>                                 <td data-info="referencia" class="text-center">11111_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11111'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11111'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="449000" class="text-right">
+>                                     <span data-info="precioVenta">449.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="268,00" class="text-center">268 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Segur De Calafell, con 268 m<sup>2</sup>, 4 habitaciones y 2 baños, Piscina, Garaje, Aire acondicionado y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11111_1898</td>
+>                                 <td data-info="tituloInmueble">CASA INDEPENDIENTE VALLDEMAR</td>
+>                                 <td data-info="idInmueble">1648219</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11111</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11119'><img alt='Adosado en venta Catral, Alicante. Ref: 11119. Grupo Torresol' title='Adosado en venta Catral, Alicante. Ref: 11119. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11119/25790005-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608061506</td>
+>                                 <td data-info="referencia" class="text-center">11119_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11119'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11119'><span data-info="localizacion">Catral</span> </a></td>
+>                                 <td data-info="precio" data-order="189000" class="text-right">
+>                                     <span data-info="precioVenta">189.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="216,00" class="text-center">216 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Catral</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en venta en Catral, con 216 m<sup>2</sup>, 3 habitaciones y 2 baños, 2 plazas de Garaje, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11119_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Catral</td>
+>                                 <td data-info="idInmueble">1650204</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11119</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11120'><img alt='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 11120. Grupo Torresol' title='Chalet Independiente en venta Segur De Calafell, Tarragona. Ref: 11120. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11120/25788981-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">11120_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11120'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11120'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="375000" class="text-right">
+>                                     <span data-info="precioVenta">375.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="133,00" class="text-center">133 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Chalet independiente con vistas al mar en Segur de Calafell, 3 habitaciones, terraza, garaje y amplia parcela. Excelente ubicación CHT0415801001</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.206325</span><span data-info="longitud">1.611703</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11120_1898</td>
+>                                 <td data-info="tituloInmueble">CHALET INDEPENDIENTE CON VISTAS AL MAR EN SEGUR DE CALAFELL</td>
+>                                 <td data-info="idInmueble">1650208</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11120</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11145'><img alt='Chalet Independiente en venta Castellet I La Gornal, Barcelona. Ref: 11145. Grupo Torresol' title='Chalet Independiente en venta Castellet I La Gornal, Barcelona. Ref: 11145. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11145/25996004-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">11145_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11145'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11145'><span data-info="localizacion">Castellet I La Gornal</span> </a></td>
+>                                 <td data-info="precio" data-order="362000" class="text-right">
+>                                     <span data-info="precioVenta">362.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="192,00" class="text-center">192 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Castellet I La Gornal</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Castellet I La Gornal, con 192 m<sup>2</sup>, 4 habitaciones y 2 baños, Piscina, 2 plazas de Garaje, Trastero, semi-amueblado y Calefacción No tiene calefacción. CHB02717226001</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11145_1898</td>
+>                                 <td data-info="tituloInmueble">CHALET INDPENDIENTE CON PANORÁMICAS VISTAS EN URB. LOS JARDINES DE CASTELLET</td>
+>                                 <td data-info="idInmueble">1659063</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11145</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11147'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 11147. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 11147. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11147/26037826-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">11147_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11147'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11147'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="510000" class="text-right">
+>                                     <span data-info="precioVenta">510.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="193,00" class="text-center">193 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>La vivienda se asienta sobre una parcela de 453 m² y cuenta con una superficie construida de 193 m², distribuidos en dos cómodas plantas que ofrecen amplitud, funcionalidad y múltiples posibilidades. CHT00210126001</p><p>
+> </p><p>
+> </p><p>
+> </p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.193027</span><span data-info="longitud">1.59035</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11147_1898</td>
+>                                 <td data-info="tituloInmueble">CHALET INDEPENDIENTE EN EL MAS MEL DE CALAFELL - A TAN SOLO 450 METROS DEL MAR</td>
+>                                 <td data-info="idInmueble">1661053</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11147</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11149'><img alt='Adosado en venta Calafell, Tarragona. Ref: 11149. Grupo Torresol' title='Adosado en venta Calafell, Tarragona. Ref: 11149. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11149/26067692-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202605081124</td>
+>                                 <td data-info="referencia" class="text-center">11149_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11149'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11149'><span data-info="localizacion">Calafell</span> <span>(Calafell Poble)</span></a></td>
+>                                 <td data-info="precio" data-order="371000" class="text-right">
+>                                     <span data-info="precioVenta">371.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="209,00" class="text-center">209 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en venta en Calafell, con 209 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina y 2 plazas de Garaje.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11149_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Calafell - Calafell Poble</td>
+>                                 <td data-info="idInmueble">1662109</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11149</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11150'><img alt='Adosado en venta Creixell, Tarragona. Ref: 11150. Grupo Torresol' title='Adosado en venta Creixell, Tarragona. Ref: 11150. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11150/26066589-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202605071322</td>
+>                                 <td data-info="referencia" class="text-center">11150_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11150'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11150'><span data-info="localizacion">Creixell</span> </a></td>
+>                                 <td data-info="precio" data-order="180000" class="text-right">
+>                                     <span data-info="precioVenta">180.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="120,00" class="text-center">120 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">2</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Creixell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en venta en Creixell, con 120 m<sup>2</sup>, 2 habitaciones y 1 baños, Garaje y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11150_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Creixell</td>
+>                                 <td data-info="idInmueble">1662188</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11150</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11154'><img alt='Adosado en venta Calafell, Tarragona. Ref: 11154. Grupo Torresol' title='Adosado en venta Calafell, Tarragona. Ref: 11154. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11154/26093431-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202606052106</td>
+>                                 <td data-info="referencia" class="text-center">11154_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11154'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11154'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="310000" class="text-right">
+>                                     <span data-info="precioVenta">310.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="191,00" class="text-center">191 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Calafell, con 191 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina, Garaje, Trastero y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11154_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Calafell</td>
+>                                 <td data-info="idInmueble">1663496</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11154</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11156'><img alt='Adosado en venta Arboç, L', Tarragona. Ref: 11156. Grupo Torresol' title='Adosado en venta Arboç, L', Tarragona. Ref: 11156. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11156/26104678-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141010</td>
+>                                 <td data-info="referencia" class="text-center">11156_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11156'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11156'><span data-info="localizacion">Arboç, L'</span> </a></td>
+>                                 <td data-info="precio" data-order="300000" class="text-right">
+>                                     <span data-info="precioVenta">300.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="238,00" class="text-center">238 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Arboç, L'</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Magnífica vivienda unifamiliar distribuida en varias plantas, diseñada para ofrecer amplitud, comodidad y múltiples posibilidades de uso para toda la familia.</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11156_1898</td>
+>                                 <td data-info="tituloInmueble">Magnífica vivienda unifamiliar distribuida en varias plantas, diseñada para  ofrecer amplitud, comodidad a toda la familia</td>
+>                                 <td data-info="idInmueble">1663943</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11156</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11166'><img alt='Chalet Independiente en venta Dolores, Alicante. Ref: 11166. Grupo Torresol' title='Chalet Independiente en venta Dolores, Alicante. Ref: 11166. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11166/26188307-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202605142125</td>
+>                                 <td data-info="referencia" class="text-center">11166_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11166'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11166'><span data-info="localizacion">Dolores</span> </a></td>
+>                                 <td data-info="precio" data-order="445000" class="text-right">
+>                                     <span data-info="precioVenta">445.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="239,00" class="text-center">239 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">80 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Dolores</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Dolores, con 239 m<sup>2</sup>, 3 habitaciones y 2 baños, Piscina, Garaje, Trastero, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11166_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Dolores</td>
+>                                 <td data-info="idInmueble">1680268</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11166</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11179'><img alt='Adosado en venta Catral, Alicante. Ref: 11179. Grupo Torresol' title='Adosado en venta Catral, Alicante. Ref: 11179. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11179/26410923-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608061505</td>
+>                                 <td data-info="referencia" class="text-center">11179_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11179'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11179'><span data-info="localizacion">Catral</span> </a></td>
+>                                 <td data-info="precio" data-order="187900" class="text-right">
+>                                     <span data-info="precioVenta">187.900&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="120,00" class="text-center">120 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">0</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">10 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Catral</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en esquina en venta en Catral, con 89 m<sup>2</sup>, 3 habitaciones y 2 baños, Amueblado y Aire acondicionado.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11179_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Catral</td>
+>                                 <td data-info="idInmueble">1688929</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11179</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11190'><img alt='Casa en venta Masllorenç, Tarragona. Ref: 11190. Grupo Torresol' title='Casa en venta Masllorenç, Tarragona. Ref: 11190. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11190/26459579-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607221221</td>
+>                                 <td data-info="referencia" class="text-center">11190_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11190'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11190'><span data-info="localizacion">Masllorenç</span> </a></td>
+>                                 <td data-info="precio" data-order="120000" class="text-right">
+>                                     <span data-info="precioVenta">120.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="358,00" class="text-center">358 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">0</td>
+>                                 <td data-info="banos" data-order="" class="text-center">0</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">10 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Masllorenç</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Masllorenç, con 358 m2 completamente a reformar, para hacer una casa o un bloque de pisos de planta baja + 2 pisos</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11190_1898</td>
+>                                 <td data-info="tituloInmueble">Casa de pueblo completamente a reformar en Masllorenç</td>
+>                                 <td data-info="idInmueble">1690793</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11190</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11222'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11222. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11222. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11222/26630130-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071808</td>
+>                                 <td data-info="referencia" class="text-center">11222_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11222'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11222'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="499000" class="text-right">
+>                                     <span data-info="precioVenta">499.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="266,00" class="text-center">266 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">50 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>¡El espacio ya no será un problema! 🏡 Esta joyaza luminosa en Bonavista cuenta con cuatro habitaciones dobles, dos baños y un aseo. ¿Fuera? Más de 400 m² de parcela con piscina privada y barbacoa 🏊‍♂️🔥 Lo mejor: ¡está al lado de la playa! 🏖️ El combo perfecto para ser el anfitrión del año. ¡A vivir la vida!</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11222_1898</td>
+>                                 <td data-info="tituloInmueble">CASA INDEPENDIENTE CON PISCINA EN BONAVISTA</td>
+>                                 <td data-info="idInmueble">1698522</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11222</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11234'><img alt='Chalet Independiente en venta Salomo, Tarragona. Ref: 11234. Grupo Torresol' title='Chalet Independiente en venta Salomo, Tarragona. Ref: 11234. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11234/26793556-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607171550</td>
+>                                 <td data-info="referencia" class="text-center">11234_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11234'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11234'><span data-info="localizacion">Salomo</span> <span>(Centro)</span></a></td>
+>                                 <td data-info="precio" data-order="350000" class="text-right">
+>                                     <span data-info="precioVenta">350.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="493,00" class="text-center">493 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">8</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">60 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Salomo</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en Salomo, con 493 m<sup>2</sup>, 4 habitaciones y 2 baños, 8 plazas de Garaje, Trastero y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11234_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Salomo - Centro</td>
+>                                 <td data-info="idInmueble">1706236</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11234</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11235'><img alt='Adosado en venta Segur De Calafell, Tarragona. Ref: 11235. Grupo Torresol' title='Adosado en venta Segur De Calafell, Tarragona. Ref: 11235. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11235/26801558-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071406</td>
+>                                 <td data-info="referencia" class="text-center">11235_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11235'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11235'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="318150" class="text-right">
+>                                     <span data-info="precioVenta">318.150&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="96,00" class="text-center">96 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">40 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado esquinero en venta en Segur De Calafell, con 96 m<sup>2</sup>, 3 habitaciones y 2 baños, 2 plazas de Garaje, Amueblado, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11235_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado En Venta en Segur De Calafell Centro !!!</td>
+>                                 <td data-info="idInmueble">1712174</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11235</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11243'><img alt='Casa en venta Calafell, Tarragona. Ref: 11243. Grupo Torresol' title='Casa en venta Calafell, Tarragona. Ref: 11243. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11243/27024809-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607311959</td>
+>                                 <td data-info="referencia" class="text-center">11243_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11243'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11243'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="255000" class="text-right">
+>                                     <span data-info="precioVenta">255.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="156,00" class="text-center">156 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">15 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Calafell, con 156 m<sup>2</sup>, 4 habitaciones y 2 baños, Piscina, Garaje, Trastero y Calefacción No tiene calefacción.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11243_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en venta en Calafell</td>
+>                                 <td data-info="idInmueble">1727458</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11243</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11254'><img alt='Casa en venta Segur De Calafell, Tarragona. Ref: 11254. Grupo Torresol' title='Casa en venta Segur De Calafell, Tarragona. Ref: 11254. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11254/27099205-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608071406</td>
+>                                 <td data-info="referencia" class="text-center">11254_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11254'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11254'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="293552" class="text-right">
+>                                     <span data-info="precioVenta">293.552&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="96,00" class="text-center">96 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en Castellet I La Gornal, con 96 m<sup>2</sup>, 4 habitaciones y 1 baños, Amueblado, Aire acondicionado y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11254_1898</td>
+>                                 <td data-info="tituloInmueble">CASA INDEPENDIENTE EN VALLDEMAR</td>
+>                                 <td data-info="idInmueble">1730882</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11254</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11255'><img alt='Chalet Independiente en venta Calafell, Tarragona. Ref: 11255. Grupo Torresol' title='Chalet Independiente en venta Calafell, Tarragona. Ref: 11255. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11255/27101165-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081028</td>
+>                                 <td data-info="referencia" class="text-center">11255_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11255'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11255'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="289000" class="text-right">
+>                                     <span data-info="precioVenta">289.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="164,00" class="text-center">164 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Chalet independiente de dos plantas en Mas Romeu, Calafell, con 4 habitaciones, 2 baños, cocina independiente y parcela de 709 m². Disfruta de bonitas vistas, tranquilidad y una ubicación privilegiada a solo 10 minutos de la playa.</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11255_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet independiente con vistas en Mas Romeu (Calafell)</td>
+>                                 <td data-info="idInmueble">1730953</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11255</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11266'><img alt='Adosado en venta Bellvei, Tarragona. Ref: 11266. Grupo Torresol' title='Adosado en venta Bellvei, Tarragona. Ref: 11266. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11266/27251331-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051055</td>
+>                                 <td data-info="referencia" class="text-center">11266_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11266'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11266'><span data-info="localizacion">Bellvei</span> </a></td>
+>                                 <td data-info="precio" data-order="305000" class="text-right">
+>                                     <span data-info="precioVenta">305.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="191,00" class="text-center">191 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Bellvei</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Adosado en venta en Bellvei, con 191 m<sup>2</sup>, 4 habitaciones y 2 baños, Garaje y Calefacción Pre-instalación Gas Natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.238677</span><span data-info="longitud">1.573327</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11266_1898</td>
+>                                 <td data-info="tituloInmueble">ADOSADA</td>
+>                                 <td data-info="idInmueble">1737350</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11266</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11269'><img alt='Chalet Independiente en venta Albinyana, Tarragona. Ref: 11269. Grupo Torresol' title='Chalet Independiente en venta Albinyana, Tarragona. Ref: 11269. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11269/27254629-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607210934</td>
+>                                 <td data-info="referencia" class="text-center">11269_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11269'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11269'><span data-info="localizacion">Albinyana</span> </a></td>
+>                                 <td data-info="precio" data-order="279000" class="text-right">
+>                                     <span data-info="precioVenta">279.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="230,00" class="text-center">230 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">10 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Albinyana</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Albinyana, con 230 m<sup>2</sup>, 4 habitaciones y 2 baños, Garaje, Aire acondicionado y Calefacción Gas natural.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11269_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Albinyana</td>
+>                                 <td data-info="idInmueble">1737861</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11269</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11271'><img alt='Adosado en venta El Vendrell, Tarragona. Ref: 11271. Grupo Torresol' title='Adosado en venta El Vendrell, Tarragona. Ref: 11271. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11271/27264430-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051055</td>
+>                                 <td data-info="referencia" class="text-center">11271_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11271'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11271'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="355000" class="text-right">
+>                                     <span data-info="precioVenta">355.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="163,00" class="text-center">163 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en El Vendrell y con 163 m<sup>2</sup>.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11271_1898</td>
+>                                 <td data-info="tituloInmueble">ADOSADA</td>
+>                                 <td data-info="idInmueble">1738294</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11271</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11282'><img alt='Casa en venta Calafell, Tarragona. Ref: 11282. Grupo Torresol' title='Casa en venta Calafell, Tarragona. Ref: 11282. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11282/27325567-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081105</td>
+>                                 <td data-info="referencia" class="text-center">11282_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11282'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11282'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="625000" class="text-right">
+>                                     <span data-info="precioVenta">625.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="298,00" class="text-center">298 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Características:&nbsp;</p><p><br></p><p>Cocina Amueblada</p><p>3 Habitaciones estándar</p><p>1 Suite con baño propio y vestidor&nbsp;</p><p>2 baños comunes</p><p>Amplió jardín&nbsp;&nbsp;</p><p>Buenas vistas al mar</p><p>Amplió sótano con bodega</p><p>1 Plaza de garaje&nbsp;</p><p>Amplió estudio&nbsp;</p><p><br></p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11282_1898</td>
+>                                 <td data-info="tituloInmueble">Magnifica casa junto al mar</td>
+>                                 <td data-info="idInmueble">1740808</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11282</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11285'><img alt='Casa en venta El Montmell, Tarragona. Ref: 11285. Grupo Torresol' title='Casa en venta El Montmell, Tarragona. Ref: 11285. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11285/27328316-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607141010</td>
+>                                 <td data-info="referencia" class="text-center">11285_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11285'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11285'><span data-info="localizacion">El Montmell</span> </a></td>
+>                                 <td data-info="precio" data-order="180000" class="text-right">
+>                                     <span data-info="precioVenta">180.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="41,00" class="text-center">41 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">2</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Montmell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Casa en venta en El Montmell, con 41 m<sup>2</sup> y 2 habitaciones y 1 baños.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11285_1898</td>
+>                                 <td data-info="tituloInmueble">Vivienda con amplia parcela de 755 m² rodeada de naturaleza</td>
+>                                 <td data-info="idInmueble">1740887</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11285</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11290'><img alt='Chalet Independiente en venta Catral, Alicante. Ref: 11290. Grupo Torresol' title='Chalet Independiente en venta Catral, Alicante. Ref: 11290. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11290/27364449-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607071629</td>
+>                                 <td data-info="referencia" class="text-center">11290_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11290'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11290'><span data-info="localizacion">Catral</span> </a></td>
+>                                 <td data-info="precio" data-order="630000" class="text-right">
+>                                     <span data-info="precioVenta">630.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="377,00" class="text-center">377 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">5</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">50 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Catral</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">DOS CHALETS INDEPENDIENTES EN UNA MISMA FINCA.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11290_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Catral</td>
+>                                 <td data-info="idInmueble">1742411</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11290</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11292'><img alt='Adosado en venta Calafell, Tarragona. Ref: 11292. Grupo Torresol' title='Adosado en venta Calafell, Tarragona. Ref: 11292. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11292/27377452-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081105</td>
+>                                 <td data-info="referencia" class="text-center">11292_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11292'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11292'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="435000" class="text-right">
+>                                     <span data-info="precioVenta">435.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="147,00" class="text-center">147 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Características:&nbsp;</p><p>- 4 habitaciones&nbsp;</p><p>- Cocina totalmente equipada&nbsp;</p><p>- 147 m² construidos&nbsp;</p><p>- 3 Baños&nbsp;</p><p>A 600 metros de la playa de Calafell&nbsp;&nbsp;</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11292_1898</td>
+>                                 <td data-info="tituloInmueble">Casa unifamiliar</td>
+>                                 <td data-info="idInmueble">1742926</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11292</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11298'><img alt='Adosado en venta Creixell, Tarragona. Ref: 11298. Grupo Torresol' title='Adosado en venta Creixell, Tarragona. Ref: 11298. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11298/27410692-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607281454</td>
+>                                 <td data-info="referencia" class="text-center">11298_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11298'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11298'><span data-info="localizacion">Creixell</span> </a></td>
+>                                 <td data-info="precio" data-order="298000" class="text-right">
+>                                     <span data-info="precioVenta">298.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="110,00" class="text-center">110 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">True</td>
+>                                 <td data-info="terraza">78 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Creixell</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Adosado en venta en Creixell, con 110 m<sup>2</sup>, 3 habitaciones y 2 baños, Piscina, Garaje, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11298_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en Creixell</td>
+>                                 <td data-info="idInmueble">1744269</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11298</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11300'><img alt='Casa en venta Segur De Calafell, Tarragona. Ref: 11300. Grupo Torresol' title='Casa en venta Segur De Calafell, Tarragona. Ref: 11300. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11300/27430048-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081243</td>
+>                                 <td data-info="referencia" class="text-center">11300_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11300'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11300'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="263000" class="text-right">
+>                                     <span data-info="precioVenta">263.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="71,00" class="text-center">71 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">2</td>
+>                                 <td data-info="banos" data-order="" class="text-center">1</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Características:&nbsp;</p><p>- Casa con amplio terreno de múltiples funcionalidades</p><p>- 2 habitaciones</p><p>- 1 baño&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</p><p>- Cocina equipada independiente&nbsp;</p><p>- 70 m²&nbsp;</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11300_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en venta en Segur De Calafell</td>
+>                                 <td data-info="idInmueble">1745087</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11300</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11309'><img alt='Adosado en venta Segur De Calafell, Tarragona. Ref: 11309. Grupo Torresol' title='Adosado en venta Segur De Calafell, Tarragona. Ref: 11309. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11309/27602210-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607171542</td>
+>                                 <td data-info="referencia" class="text-center">11309_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11309'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11309'><span data-info="localizacion">Segur De Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="490000" class="text-right">
+>                                     <span data-info="precioVenta">490.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="155,00" class="text-center">155 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Segur De Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">CASA en venta en Segur De Calafell, con 155 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina, Aire acondicionado y Calefacción Aerotermia.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11309_1898</td>
+>                                 <td data-info="tituloInmueble">PROMOCION EN VENTA DE CASA/CHALET PAREADA DE OBRA NUEVA EN SEGUR DE CALAFELL - PRECIO DESDE 490.000€</td>
+>                                 <td data-info="idInmueble">1752894</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11309</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11310'><img alt='Chalet Independiente en venta Roda De Bara, Tarragona. Ref: 11310. Grupo Torresol' title='Chalet Independiente en venta Roda De Bara, Tarragona. Ref: 11310. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11310/27609858-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607302157</td>
+>                                 <td data-info="referencia" class="text-center">11310_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11310'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11310'><span data-info="localizacion">Roda De Bara</span> </a></td>
+>                                 <td data-info="precio" data-order="499000" class="text-right">
+>                                     <span data-info="precioVenta">499.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="219,00" class="text-center">219 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Roda De Bara</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta con 219 m<sup>2</sup>, 4 habitaciones y 3 baños, Piscina, 2 plazas de Garaje, Trastero, Aire acondicionado y Calefacción Gasoil.</td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.191418</span><span data-info="longitud">1.467416</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11310_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet independiente de obra vista con vistas panorámicas al mar en Roda de Berà</td>
+>                                 <td data-info="idInmueble">1753124</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11310</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11311'><img alt='Chalet Independiente en venta La Bisbal del Penedes, Tarragona. Ref: 11311. Grupo Torresol' title='Chalet Independiente en venta La Bisbal del Penedes, Tarragona. Ref: 11311. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11311/27613307-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607231201</td>
+>                                 <td data-info="referencia" class="text-center">11311_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11311'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11311'><span data-info="localizacion">La Bisbal del Penedes</span> </a></td>
+>                                 <td data-info="precio" data-order="289000" class="text-right">
+>                                     <span data-info="precioVenta">289.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="152,00" class="text-center">152 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">La Bisbal del Penedes</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en La Bisbal del Penedes, con 175 m<sup>2</sup>, 4 habitaciones y 2 baños y Calefacción Pellets.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11311_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet en venta en La Bisbal del Penedes</td>
+>                                 <td data-info="idInmueble">1753213</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11311</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11314'><img alt='Adosado en venta El Vendrell, Tarragona. Ref: 11314. Grupo Torresol' title='Adosado en venta El Vendrell, Tarragona. Ref: 11314. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11314/27761455-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608031058</td>
+>                                 <td data-info="referencia" class="text-center">11314_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11314'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11314'><span data-info="localizacion">El Vendrell</span> </a></td>
+>                                 <td data-info="precio" data-order="347000" class="text-right">
+>                                     <span data-info="precioVenta">347.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="206,00" class="text-center">206 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">40 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Si busca una vivienda donde cada espacio haya sido pensado para disfrutar del confort y la calidad de vida, esta magnífica casa adosada le conquistará desde el primer momento.
+> </p><p>Ubicada en la tranquila urbanización de Bonavista Tenis, destaca por sus excelentes vistas despejadas, su extraordinaria luminosidad y el esmero con el que ha sido cuidada, ofreciendo un hogar acogedor, funcional y en perfecto estado de conservación.</p><p>
+> </p></td>
+>                                 <td data-info="posicion"><span data-info="latitud">41.190238</span><span data-info="longitud">1.557715</span><span data-info="MostrarDireccionExacta">3</span></td>
+>                                 <td data-info="referenciaInt">11314_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado en venta en El Vendrell</td>
+>                                 <td data-info="idInmueble">1753606</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11314</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11320'><img alt='Adosado en venta Roda De Bara, Tarragona. Ref: 11320. Grupo Torresol' title='Adosado en venta Roda De Bara, Tarragona. Ref: 11320. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11320/27682710-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607231705</td>
+>                                 <td data-info="referencia" class="text-center">11320_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11320'><span data-info="tipo">Adosado</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11320'><span data-info="localizacion">Roda De Bara</span> </a></td>
+>                                 <td data-info="precio" data-order="298000" class="text-right">
+>                                     <span data-info="precioVenta">298.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="176,00" class="text-center">176 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Roda De Bara</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p><b>Adosado con vistas al mar, piscina privada y un entorno privilegiado en Roda de Berà</b></p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11320_1898</td>
+>                                 <td data-info="tituloInmueble">Adosado con vistas al mar, piscina privada y un entorno privilegiado en Roda de Berà</td>
+>                                 <td data-info="idInmueble">1757551</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11320</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11324'><img alt='Chalet Independiente en venta Valls, Tarragona. Ref: 11324. Grupo Torresol' title='Chalet Independiente en venta Valls, Tarragona. Ref: 11324. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11324/27713462-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607241048</td>
+>                                 <td data-info="referencia" class="text-center">11324_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11324'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11324'><span data-info="localizacion">Valls</span> </a></td>
+>                                 <td data-info="precio" data-order="365000" class="text-right">
+>                                     <span data-info="precioVenta">365.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="84,00" class="text-center">84 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">0</td>
+>                                 <td data-info="banos" data-order="" class="text-center">0</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Valls</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><b>Excepcional Finca Rústica y Agraria de 6,27 Hectáreas en Valls</b></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11324_1898</td>
+>                                 <td data-info="tituloInmueble">Excepcional Finca Rústica y Agraria de 6,27 Hectáreas en Valls</td>
+>                                 <td data-info="idInmueble">1761820</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11324</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11329'><img alt='Chalet Independiente en venta Creixell, Tarragona. Ref: 11329. Grupo Torresol' title='Chalet Independiente en venta Creixell, Tarragona. Ref: 11329. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11329/27789679-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607291059</td>
+>                                 <td data-info="referencia" class="text-center">11329_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11329'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11329'><span data-info="localizacion">Creixell</span> </a></td>
+>                                 <td data-info="precio" data-order="315000" class="text-right">
+>                                     <span data-info="precioVenta">315.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="130,00" class="text-center">130 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">3</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">20 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Creixell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen">Chalet Independiente en venta en Creixell, con 130 m<sup>2</sup>, 3 habitaciones y 2 baños, Garaje, Trastero, Aire acondicionado y Calefacción Bomba de calor.</td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11329_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Creixell</td>
+>                                 <td data-info="idInmueble">1763482</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11329</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11331'><img alt='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11331. Grupo Torresol' title='Chalet Independiente en venta El Vendrell, Tarragona. Ref: 11331. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11331/27801529-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202607291357</td>
+>                                 <td data-info="referencia" class="text-center">11331_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11331'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11331'><span data-info="localizacion">El Vendrell</span> <span>(COMA-RUGA)</span></a></td>
+>                                 <td data-info="precio" data-order="465000" class="text-right">
+>                                     <span data-info="precioVenta">465.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="227,00" class="text-center">227 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">7</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">12 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">El Vendrell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p><b>Chalet independiente reformado con dos viviendas, placas solares y vistas al mar en Coma-ruga</b></p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11331_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet independiente reformado con dos viviendas, placas solares y vistas al mar en Coma-ruga</td>
+>                                 <td data-info="idInmueble">1764012</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11331</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11339'><img alt='Casa en venta Calafell, Tarragona. Ref: 11339. Grupo Torresol' title='Casa en venta Calafell, Tarragona. Ref: 11339. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11339/27858521-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608081105</td>
+>                                 <td data-info="referencia" class="text-center">11339_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11339'><span data-info="tipo">Casa</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11339'><span data-info="localizacion">Calafell</span> </a></td>
+>                                 <td data-info="precio" data-order="295000" class="text-right">
+>                                     <span data-info="precioVenta">295.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="97,00" class="text-center">97 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">2</td>
+>                                 <td data-info="banos" data-order="" class="text-center">2</td>
+>                                 <td data-info="garajes"></td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Calafell</td>
+>                                 <td data-info="destacado">False</td>
+>                                 <td data-info="resumen"><p>Características:&nbsp;</p><p>Cocina amueblada / Salón / comedor</p><p>2 habitaciones</p><p>2 baños&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p><p>A 140 metros de la playa&nbsp;</p><p>Patio trasero&nbsp;</p><p>Orientación Sur</p><p>74 m2m útiles&nbsp;</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11339_1898</td>
+>                                 <td data-info="tituloInmueble">Casa en venta en Calafell</td>
+>                                 <td data-info="idInmueble">1766419</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11339</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11340'><img alt='Chalet Independiente en venta Piera, Barcelona. Ref: 11340. Grupo Torresol' title='Chalet Independiente en venta Piera, Barcelona. Ref: 11340. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11340/27862809-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051224</td>
+>                                 <td data-info="referencia" class="text-center">11340_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11340'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11340'><span data-info="localizacion">Piera</span> </a></td>
+>                                 <td data-info="precio" data-order="360000" class="text-right">
+>                                     <span data-info="precioVenta">360.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="221,00" class="text-center">221 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">4</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">2</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza"></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Piera</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p>Casa con piscina privada para disfrutar en familia.</p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11340_1898</td>
+>                                 <td data-info="tituloInmueble">Exclusiva casa con piscina privada, amplitud y calidad de vida en Piera</td>
+>                                 <td data-info="idInmueble">1766596</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11340</td>
+>                                
+>                             </tr>
+>                         
+>                             <tr>
+>                                 <td data-info="foto" class="foto">
+>                                     
+>                                     <div>
+>                                         <a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11341'><img alt='Chalet Independiente en venta Masquefa, Barcelona. Ref: 11341. Grupo Torresol' title='Chalet Independiente en venta Masquefa, Barcelona. Ref: 11341. Grupo Torresol' data-src='https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/11341/27865101-large.jpg' src='' style='width:100px' /></a>
+>                                     </div>
+>                                 </td>
+>                                
+> 								<td data-info="fecha">202608051209</td>
+>                                 <td data-info="referencia" class="text-center">11341_1898</td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11341'><span data-info="tipo">Chalet Independiente</span></a></td>
+>                                 <td><a href='/es/venta-chalets-adosados~casas~chalets_independientes/ref-11341'><span data-info="localizacion">Masquefa</span> </a></td>
+>                                 <td data-info="precio" data-order="370000" class="text-right">
+>                                     <span data-info="precioVenta">370.000&nbsp;€</span><br />
+>                                     <br />
+>                                     <br />
+>                                     <br />
+>                                 </td>
+>                                 <td data-info="superficie" data-order="257,00" class="text-center">257 m<sup>2</sup></td>
+>                                 <td data-info="dormitorios" data-order="" class="text-center">7</td>
+>                                 <td data-info="banos" data-order="" class="text-center">3</td>
+>                                 <td data-info="garajes">1</td>
+>                                 <td data-info="piscinas">False</td>
+>                                 <td data-info="terraza">30 m<sup>2</sup></td>
+>                                 <td data-info="zona"></td>
+>                                 <td data-info="poblacion">Masquefa</td>
+>                                 <td data-info="destacado">True</td>
+>                                 <td data-info="resumen"><p><b>Fantástico chalet independiente a cuatro vientos en la urbanización El Maset (Masquefa)</b></p></td>
+>                                 <td data-info="posicion"><span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span></td>
+>                                 <td data-info="referenciaInt">11341_1898</td>
+>                                 <td data-info="tituloInmueble">Chalet Independiente en venta en Masquefa</td>
+>                                 <td data-info="idInmueble">1766636</td>
+>                                 <td>/es/venta-chalets-adosados~casas~chalets_independientes/ref-11341</td>
+>                                
+>                             </tr>
+>                         
+>                 </tbody>
+>             </table>
+>         </div>
+>     </div>
+> </div>
+>
+> <div id="ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divDataTableControles" class="container ControlesPaginado">
+>     <div class="row">
+>         <div class="col-xs-12 col-sm-3 text-left" style="margin: 20px 0;">
+>             <div class="input-group">
+>                 <span class="input-group-addon">Mostrar </span>
+>                 <select id="itemsPorPagina" class="selectpicker">
+>                     <option value="12" selected='selected'>12</option>
+>                     <option value="24" >24</option>
+>                     <option value="48" >48</option>
+>                     <option value="96" >96</option>
+>                 </select>
+>                 <span class="input-group-addon">inmuebles.</span>
+>             </div>
+>         </div>
+>         <div class="col-xs-12 col-sm-9 text-right">
+>             <ul id="paginacion" class="pagination"></ul>
+>         </div>
+>     </div>
+> </div>
+>
+> <script type="text/javascript">
+>     var customConfig = {};
+>     var visualizacion = "";
+>     var $isotope = $('#isotope_Mid186052');
+>
+>     $(document).ready(function () {
+>         // Obtenemos la configuracion
+>         getCustomConfig();
+>
+>         // Obtenemos la Visualizacion por defecto
+>         if (typeof customConfig.visualizacion == 'undefined')
+>             visualizacion = "grid";
+>         else
+>             visualizacion = customConfig.visualizacion;
+>
+>         // Creamos el DATATABLE
+>         $('#infoListado').DataTable({
+>             pageLength: 12,
+>             lengthMenu: [12, 24, 48, 96],
+>             dom: '<"top">rt<"bottom"><"clear">',
+>             columns: [
+>                 { name: "foto", visible: true, searchable: false, orderable: false },
+>                 { name: "fecha", visible: false, searchable: false, orderable: true },
+>                 { name: "referencia", visible: true, searchable: false, orderable: false },
+>                 { name: "tipo", visible: true, searchable: false, orderable: true },
+>                 { name: "localizacion", visible: true, searchable: false, orderable: true },
+>                 { name: "precio", visible: true, searchable: false, orderable: true },
+>                 { name: "superficie", visible: true, searchable: false, orderable: true },
+>                 { name: "dormitorios", visible: true, searchable: false, orderable: true },
+>                 { name: "banos", visible: true, searchable: false, orderable: true },
+>                 { name: "garajes", visible: false, searchable: false, orderable: false },
+>                 { name: "piscinas", visible: false, searchable: false, orderable: false },
+>                 { name: "terraza", visible: false, searchable: false, orderable: false },
+>                 { name: "zona", visible: false, searchable: false, orderable: false },
+>                 { name: "poblacion", visible: false, searchable: false, orderable: false },
+>                 { name: "destacado", visible: false, searchable: false, orderable: false },
+>                 { name: "resumen", visible: false, searchable: false, orderable: false },
+>                 { name: "posicion", visible: false, searchable: false, orderable: false },
+>                 { name: "referenciaInt", visible: false, searchable: false, orderable: false },
+>                 { name: "tituloInmueble", visible: false, searchable: false, orderable: false },
+>                 { name: "idInmueble", visible: false, searchable: false, orderable: false },
+>                 { name: "link", visible: false, searchable: false, orderable: false },
+>                 
+>             ],
+>             autoWidth: false,
+>             order: [[1, 'desc']],
+>             stateSave: true,
+>             stateSaveCallback: function (settings, data) {
+>                 data.url = window.location.pathname;
+>                 try {
+>                     localStorage.setItem("datatables_mobilia", JSON.stringify(data));
+>                 } catch (err) {
+>                     console.log("No se pueden almacenar las preferencias por usar navegación privada.");
+>                 }
+>                 return false;
+>             },
+>             stateLoadCallback: function (settings) {
+>                 try {
+>                     var config = JSON.parse(localStorage.getItem("datatables_mobilia"));
+>                     if (config != null && config.url != window.location.pathname)
+>                         config = {};
+>
+>                     // Establecemos el selector
+>                     if (config != null && config['length'] != null) {
+>                         $('#itemsPorPagina option').prop('selected', false);
+>                         $('#itemsPorPagina option[value="' + config['length'] + '"]').prop('selected', true);
+>                         $('#itemsPorPagina').selectpicker('refresh');
+>                     }
+>
+>                     return config;
+>                 } catch (err) {
+>                     console.log("No se pueden almacenar las preferencias por usar navegación privada.");
+>                 }
+>             },
+>             initComplete: function (settings, json) {
+>                 getImages();
+>                 // Guardamos en una cookie el listado de inmuebles en orden
+>                 var referenciasInmuebles = $('#infoListado').DataTable().columns('referenciaInt:name').data();
+>                 var tExpDate = new Date();
+>                 tExpDate.setTime(tExpDate.getTime() + (30 * 60 * 1000));
+>                 document.cookie = "ReferenciasInmueblesAux=" + JSON.stringify(referenciasInmuebles[0]) + ";expires=" + tExpDate.toGMTString() + ";path=/";
+>
+>                 // Si la columna "posicion" está vacia, quitamos el boton de mapa
+>                 var arrAux = [];
+>                 arrAux = $('#infoListado').DataTable().column("posicion:name").data().filter(function (n) { return n !== '<span data-info="latitud"></span><span data-info="longitud"></span><span data-info="MostrarDireccionExacta">1</span>' });
+>                 arrAux = arrAux.filter(function (n) { return n != 0 });
+>                 if (arrAux.length == 0) {
+>                     $(document).find('[data-visualization="map"]').remove();
+>                     if (visualizacion == "map") {
+>                         visualizacion = "grid";
+>                         switchView();
+>                     }
+>                 }
+>             }
+>         });
+>
+>         /*
+>         * Evento que se lanza cada vez que DataTable redibuja la tabla.
+>         */
+>         $('#infoListado').on('draw.dt', function (e, settings) {
+>             // Establecemos las fotos de los inmuebles que se están viendo
+>             getImages();
+>
+>             // Guardamos en una cookie el listado de inmuebles en orden
+>             var referenciasInmuebles = $('#infoListado').DataTable().columns('referenciaInt:name').data();
+>             var tExpDate = new Date();
+>             tExpDate.setTime(tExpDate.getTime() + (30 * 60 * 1000));
+>             document.cookie = "ReferenciasInmueblesAux=" + JSON.stringify(referenciasInmuebles[0]) + ";expires=" + tExpDate.toGMTString() + ";path=/";
+>
+>             if (visualizacion == 'grid')
+>                 generateGrid();
+>         });
+>
+>         /*
+>         * Evento que se lanza cuando se modifican los elementos por pagina
+>         * Actualiza el paginador de elementos con los nuevos datos.
+>         */
+>         $('#infoListado').on('length.dt', function (e, settings, len) {
+>             $('#paginacion').pagination('updateItemsOnPage', len);
+>         });
+>
+>         /*
+>         * Evento que se lanza cuando modificamos los elementos por pagina del desplegable
+>         * Actualiza los elementos en el DataTable.
+>         */
+>         $(document).on('change', '#itemsPorPagina', function () {
+>             $('#infoListado').DataTable().page.len($(this).val()).draw();
+>         });
+>
+>         $('#infoListado').on('order.dt', function () {
+>             $('#paginacion').pagination('drawPage', $('#infoListado').DataTable().page() + 1);
+>
+>         });
+>
+>         /*
+>         * Generamos el paginador con los datos de DataTable
+>         */
+>         if ($('#infoListado').DataTable().column(0).length > 0) {
+>             $('#paginacion').pagination({
+>                 items: $('#infoListado').DataTable().column(0).data().length,
+>                 itemsOnPage: $('#infoListado').DataTable().page.len(),
+>                 prevText: 'Prev',
+>                 nextText: 'Sig',
+>                 currentPage: $('#infoListado').DataTable().page.info().page + 1,
+>                 onPageClick: function (pageNumber, event) {
+>                     $('#infoListado').DataTable().page(pageNumber - 1).draw(false);
+>                     $("html, body").animate({ scrollTop: 0 }, '500', 'swing');
+>                 }
+>             });
+>         }
+>
+>         /*
+>         * Evento que se lanza cuado clickamos en el desplegable de la visualización
+>         * Hay que asignar el valor elegido a la variable 'visualizacion'
+>         */
+>         $('.cambiarVisualizacion_Mid186052').on('click', function () {
+>             $(".cambiarVisualizacion_Mid186052").removeClass("active");
+>             $(this).addClass("active");
+>             visualizacion = $(this).data('visualization');
+>             switchView();
+>             return false;
+>         });
+>
+>         /*
+>         * Evento que se lanza cuando clickamos en el desplegable de la ordenación en GridMode
+>         * Hay que reordenar el DataTable
+>         */
+>         $('#sorter_Mid186052 li').click(function () {
+>             $('#sorter_Mid186052').find("li.active").removeClass("active");
+>             $(this).addClass("active");
+>             $("#dropdown_sorter__Mid186052").dropdown('toggle');
+>
+>             // Reordenamos el grid
+>             $('#infoListado').DataTable().order([$(this).data('sort'), $(this).data('direction')]).draw();
+>
+>             // Cambiamos el text del dropdown
+>             $("#dropdown_sorter__Mid186052").html($(this).find('a').html() + ' <span class="caret"></span>');
+>             return false;
+>         });
+>
+>         // Lanzamos la visualizacion que tenemos almacenada
+>         switchView();
+>     });
+>
+>     // Establecemos src de las imagenes que se estan visualizando, asi evitamos peticiones al servidor
+>     function getImages() {
+>         var referenciasInmueblesView = $('#infoListado').DataTable().columns('foto:name', { page: 'current' }).nodes();
+>         $.each(referenciasInmueblesView[0], function (index, item) {
+>             if (typeof $(item).find('img').attr('src') == 'undefined' || $(item).find('img').attr('src') == '')
+>                 $(item).find('img').attr('src', $(item).find('img').data('src'));
+>         });
+>     }
+>
+>     // Obtenemos la configuracion
+>     function getCustomConfig() {
+>         try {
+>             customConfig = JSON.parse(localStorage.getItem("custom_mobilia"));
+>             if (customConfig == null)
+>                 customConfig = {};
+>         } catch (err) {
+>             console.log("No se pueden almacenar las preferencias por usar navegación privada.");
+>         }
+>     }
+>
+>     // Guardamos la configuracion
+>     function saveCustomConfig() {
+>         try {
+>             localStorage.setItem("custom_mobilia", JSON.stringify(customConfig));
+>         } catch (err) {
+>             console.log("No se pueden almacenar las preferencias por usar navegación privada.");
+>         }
+>     }
+>
+>     function switchView() {
+>         // Guardamos la visualizacion en LocalStorage
+>         customConfig.visualizacion = visualizacion;
+>         saveCustomConfig();
+>
+>         // Cambiamos el text del dropdown
+>         $(".cambiarVisualizacion_Mid186052[data-visualization='" + visualizacion + "']").addClass('active');
+>
+>         if (visualizacion == "list") {
+>             $('#table_Mid186052').show();
+>             $('#isotope_Mid186052').hide();
+>             $('#mapa_Mid186052').hide();
+>             $('#ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divDataTableControles').show();
+>             $('#divOrdenIsotope').hide();
+>         } else if (visualizacion == "grid") {
+>             $('#table_Mid186052').hide();
+>             $('#isotope_Mid186052').show();
+>             $('#mapa_Mid186052').hide();
+>             $('#ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divDataTableControles').show();
+>             generateGrid();
+>             $('#divOrdenIsotope').show();
+>         } else if (visualizacion == "map") {
+>             $('#table_Mid186052').hide();
+>             $('#isotope_Mid186052').hide();
+>             $('#mapa_Mid186052').show();
+>             $('#ctl00_pSMasterContent_ctl00_ContentPane__Mid186052_ctl01_divDataTableControles').hide();
+>             generateMap();
+>             $('#divOrdenIsotope').hide();
+>         }
+>         $('#infoListado').DataTable().state.save();
+>     }
+>
+>     // Establecemos el dropdown de la ordenacion
+>     function setOrdenacion() {
+>         // Obtenemos la ordenacion del datable
+>         var columna = $('#infoListado').DataTable().order()[0][0];
+>         var direccion = $('#infoListado').DataTable().order()[0][1];
+>
+>         $("#sorter_Mid186052 li").removeClass('active');
+>
+>         var order = $("#sorter_Mid186052 li[data-sort='" + columna + "'][data-direction='" + direccion + "']");
+>
+>         if (order.length > 0) {
+>             order.addClass('active');
+>             $("#dropdown_sorter__Mid186052").html($("#sorter_Mid186052 .active").find('a').html() + ' <span class="caret"></span>');
+>         } else {
+>             $("#dropdown_sorter__Mid186052").html('--- <span class="caret"></span>');
+>         }
+>     }
+>
+>     // GENERAMOS LA INFORMACION
+>     function generateGrid() {
+>         $isotope.html("");
+>
+>         // Establecemos la ordenación actual en el seleccionable
+>         setOrdenacion();
+>
+>         $.each($('#infoListado').DataTable().rows({ page: 'current' })[0], function (i, item) {
+>             foto = $($('#infoListado').DataTable().row(item).node()).find("[data-info='foto'] img").attr("src");
+>             tag = $($('#infoListado').DataTable().row(item).node()).find(".tag");
+>             fecha = $($('#infoListado').DataTable().row(item).node()).find("[data-info='fecha']").html();
+>             tipo = $($('#infoListado').DataTable().row(item).node()).find("[data-info='tipo']").html();
+>             localizacion = $($('#infoListado').DataTable().row(item).node()).find("[data-info='localizacion']").html();
+>             idInmueble = $('#infoListado').DataTable().cell(item, 'idInmueble:name').data();
+>             referencia = $($('#infoListado').DataTable().row(item).node()).find("[data-info='referencia']").html();
+>             referenciaAux = referencia;
+>             while (referenciaAux.charAt(0) === '0')
+>                 referenciaAux = referenciaAux.substr(1);
+>
+>             var refSinAgencia = referenciaAux.split('_')[0];
+>
+>             precioVenta = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioVenta']").html();
+>             precioAlquiler = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioAlquiler']").html();
+>             precioTraspaso = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioTraspaso']").html();
+>             precioRenta = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioRenta']").html();
+>
+>             superficie = $($('#infoListado').DataTable().row(item).node()).find("[data-info='superficie']").html();
+>             dormitorios = $($('#infoListado').DataTable().row(item).node()).find("[data-info='dormitorios']").html();
+>             banos = $($('#infoListado').DataTable().row(item).node()).find("[data-info='banos']").html();
+>             garajes = $('#infoListado').DataTable().cell(item, 'garajes:name').data();
+>             piscinas = $('#infoListado').DataTable().cell(item, 'piscinas:name').data();
+>             terraza = $('#infoListado').DataTable().cell(item, 'terraza:name').data();
+>             zona = $('#infoListado').DataTable().cell(item, 'zona:name').data();
+>             poblacion = $('#infoListado').DataTable().cell(item, 'poblacion:name').data();
+>             destacado = $('#infoListado').DataTable().cell(item, 'destacado:name').data();
+>             resumen = $('#infoListado').DataTable().cell(item, 'resumen:name').data();
+>             titulo = $('#infoListado').DataTable().cell(item, 'tituloInmueble:name').data();
+>             link = $('#infoListado').DataTable().cell(item, 'link:name').data();
+>
+>             html = "";
+>             html += "<div class='DLFicha col-xs-12 col-md-6 col-lg-4'>";
+>             html += "   <div class='DLFichaParent'>";
+>
+>             if (fecha !== undefined)
+>                 html += "       <div class='DLFichaFecha hidden'>" + fecha + "</div>";
+>             if (foto !== undefined) {
+>                 html += "       <div class='DLFichaImagen '>";
+>                 if (tag.length > 0)
+>                     html += '       <div>' + tag[0].outerHTML + '</div>';
+>                 html += '           <div class="container_image">';
+>                 html += '               <div class="carousel-images owl-carousel">';
+>                 html += '                   <img class="anim" src="' + foto + '" />';
+>                 html += '               </div>';
+>                 html += '               <div class="controles" data-loaded="false" data-idinmueble="' + idInmueble + '" data-referencia="' + refSinAgencia + '">';
+>                 html += '                   <a href="#" class="control anterior anim" data-direccion="anterior"><i class="fa fa-angle-left"></i></a>';
+>                 html += '                   <a href="' + link + '" class="gotoInmueble">&nbsp;</a>';
+>                 html += '                   <a href="#" class="control siguiente anim" data-direccion="siguiente"><i class="fa fa-angle-right"></i></a>';
+>                 html += '               </div>'
+>                 html += '           </div>';
+>
+>                 
+>                 html += "</div>";
+>             }
+>
+>
+>             html += "   <div class='containerInfo'>";
+>
+>             html += "           <div class='DLFichaPrecio col-xs-12'>";
+>             if (precioAlquiler !== undefined) {
+>                 html += "              <div class='DLFichaPrecioAlquiler'>" + ((precioAlquiler !== undefined) ? precioAlquiler : "") + "</div>";
+>             }
+>
+>             if (precioVenta !== undefined) {
+>                 html += "               <div class='DLFichaPrecioVenta'>" + ((precioVenta !== undefined) ? precioVenta : "") + "</div>";
+>             }
+>
+>             if (precioRenta !== undefined) {
+>                 html += "               <div class='DLFichaPrecioRenta'>" + ((precioRenta !== undefined) ? precioRenta : "") + "</div>";
+>             }
+>
+>             if (precioTraspaso !== undefined) {
+>                 html += "               <div class='DLFichaPrecioTraspaso'>" + ((precioTraspaso !== undefined) ? precioTraspaso : "") + "</div>";
+>             }
+>             html += "   </div>";
+>
+>
+>
+>
+>             html += "   <div class='iconos'>";
+>
+>             html += "<span class='ListadoRef'> Ref.  " + refSinAgencia + "</span>";
+>             if (typeof superficie !== 'undefined' && superficie != '' && superficie != '0 m<sup>2</sup>')
+>                 html += "   <span><i class='mob mob-measure'></i><span>&nbsp;&nbsp;" + superficie + "</span></span>";
+>             if (typeof dormitorios !== 'undefined' && dormitorios > 0)
+>                 html += "   <span><i class='mob mob-bed'></i><span>&nbsp;" + dormitorios + "</span></span>";
+>             if (typeof banos !== 'undefined' && banos > 0)
+>                 html += "   <span><i class='mob mob-bathtub'></i><span>&nbsp;" + banos + "</span></span>";
+>             html += "   </div>";
+>
+>             // Establecemos el titulo del inmueble
+>             html += "           <div class='DLFichaTitulo col-xs-12'>" +
+>                 "               <a href='" + link + "'>" + titulo + "</a>" +
+>                 "           </div>" +
+>                 "           <div class='DLFichaResumen col-xs-12'>" + resumen + "</div>";
+>
+>
+>             html += "</div>";
+>
+>
+>
+>             html +=    "       </div>" +
+>                 "</div>";
+>             $isotope.append(html);
+>         });
+>
+>         $(".DLFichaResumen").dotdotdot();
+>
+>         $('.carousel-images').owlCarousel({
+>             items: 1,
+>             autoHeight: false,
+>             nav: false,
+>             dots: false,
+>             loop: true,
+>             mouseDrag: false,
+>             touchDrag: true
+>         });
+>
+>         $(document).off('click', '.control');
+>         $(document).on('click', '.control', function (e) {
+>             e.preventDefault();
+>             var obj = $(this);
+>             var owl = obj.parents('.container_image').find('.owl-carousel');
+>             var controles = obj.parents('.controles');
+>             var idInmueble = controles.data('idinmueble');
+>             var referencia = controles.data('referencia');
+>             var direccion = obj.data('direccion');
+>
+>             if (controles.data('loaded') == true) {
+>                 if (direccion == 'anterior')
+>                     owl.trigger('prev.owl.carousel', [300]);
+>                 else
+>                     owl.trigger('next.owl.carousel', [300]);
+>                 return;
+>             }
+>             controles.data('loaded', true);
+>
+>             $.ajax({
+>                 type: 'GET',
+>                 url: window.location.protocol + '//' + window.location.hostname + '/desktopmodules/inmobs3/WebRequest.ashx?type=GetImagesInmueble&idInmueble=' + idInmueble,
+>                 async: false,
+>                 success: function (data) {
+>                     if (data != null && data.length > 0) {
+>                         $.each(data, function (i, item) {
+>                             if (i == 0)
+>                                 return;
+>
+>                             var row = '<img class="anim" src="https://media.mobiliagestion.es/Portals/inmogrupotorresol/Images/' + referencia + '/' + item + '-large.jpg" />';
+>                             owl.trigger('add.owl.carousel', [$(row)]);
+>                         });
+>
+>                         owl.trigger('refresh.owl.carousel', [300]);
+>
+>                         if (direccion == 'anterior')
+>                             owl.trigger('prev.owl.carousel', [300]);
+>                         else
+>                             owl.trigger('next.owl.carousel', [300]);
+>                     }
+>                 }
+>             });
+>         });
+>     }
+>
+>     
+>     /**
+>      * GEOPOSICIONAMOS MEDIANTE OPENLAYERS
+>      */
+>     var map = null;
+>     var hayInmueblesSinMostrar = false;
+>     function generateMap() {
+>         if (map != null)
+>             return;
+>
+>         /**
+>          * DEFINIMOS EL MAPA
+>          */
+>         var view = new ol.View({});
+>         map = new ol.Map({
+>             layers: [
+>                 new ol.layer.Tile({
+>                     source: new ol.source.OSM()
+>                 }),
+>             ],
+>             target: 'mapa_Mid186052_map',
+>                 view: view,
+>             });
+>
+>             /**
+>              * DEFINIMOS LOS MARCADORES
+>              */
+>             markers = new Array();
+>             $.each($('#infoListado').DataTable().rows({ page: 'all' })[0], function (i, item) {
+>                 foto = $($('#infoListado').DataTable().row(item).node()).find("[data-info='foto']").find('a').parent('div').html();
+>                 tipo = $($('#infoListado').DataTable().row(item).node()).find("[data-info='tipo']").html();
+>                 referencia = $($('#infoListado').DataTable().row(item).node()).find("[data-info='referencia']").html();
+>                 referenciaAux = referencia;
+>                 while (referenciaAux.charAt(0) === '0')
+>                     referenciaAux = referenciaAux.substr(1);
+>
+>                 precioVentaAux = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioVenta']").html();
+>                 precioVenta = (typeof precioVentaAux == 'undefined') ? '' : precioVentaAux;
+>
+>                 precioAlquilerAux = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioAlquiler']").html();
+>                 precioAlquiler = (typeof precioAlquilerAux == 'undefined') ? '' : precioAlquilerAux;
+>
+>                 precioTraspasoAux = $($('#infoListado').DataTable().row(item).node()).find("[data-info='precioTraspaso']").html();
+>                 precioTraspaso = (typeof precioTraspasoAux == 'undefined') ? '' : precioTraspasoAux;
+>
+>                 resumen = $('#infoListado').DataTable().cell(item, 'resumen:name').data();
+>                 titulo = $('#infoListado').DataTable().cell(item, 'tituloInmueble:name').data();
+>                 latitud = $($('#infoListado').DataTable().cell(item, 'posicion:name').node()).find("[data-info='latitud']").text();
+>                 longitud = $($('#infoListado').DataTable().cell(item, 'posicion:name').node()).find("[data-info='longitud']").text();
+>                 mostrarDireccionExacta = $($('#infoListado').DataTable().cell(item, 'posicion:name').node()).find("[data-info='MostrarDireccionExacta']").text();
+>
+>                 if (latitud != "" && longitud != "" && mostrarDireccionExacta != '1') {
+>                     var marker = new ol.Feature({
+>                         geometry: new ol.geom.Point(ol.proj.transform([parseFloat(longitud), parseFloat(latitud)], 'EPSG:4326', 'EPSG:3857')),
+>                         name: titulo
+>                     });
+>
+>                     marker.set("foto", foto);
+>                     marker.set("tipo", tipo);
+>                     marker.set("referencia", referencia);
+>                     marker.set("referenciaAux", referenciaAux);
+>                     marker.set("precioVenta", precioVenta);
+>                     marker.set("precioAlquiler", precioAlquiler);
+>                     marker.set("precioTraspaso", precioTraspaso);
+>                     marker.set("resumen", resumen);
+>                     marker.set("titulo", titulo);
+>
+>                     if (mostrarDireccionExacta == "3")
+>                         marker.set('aviso', '<div class="alert alert-warning text-center" style="padding:5px;">Dirección aproximada</div>');
+>                     else
+>                         marker.set('aviso', '');
+>
+>                     markers.push(marker);
+>                 } else {
+>                     hayInmueblesSinMostrar = true;
+>                 }
+>             });
+>
+>             /**
+>              * AÑADIMOS LOS MARKERS AL MAPA
+>              */
+>             var markersSource = new ol.source.Vector({ features: markers });
+>
+>             /**
+>              * CREAMOS EL CLUSTER
+>              */
+>             var clusterSource = new ol.source.Cluster({ distance: 100, source: markersSource });
+>             var styleCache = {};
+>             var clusters = new ol.layer.Vector({
+>                 source: clusterSource,
+>                 style: function (feature) {
+>                     var size = feature.get('features').length;
+>                     var style = styleCache[size];
+>                     if (!style) {
+>                         if (size > 1) {
+>                             style = new ol.style.Style({
+>                                 image: new ol.style.Icon(({
+>                                     anchor: [22, 21.5], anchorOrigin: 'bottom-left', anchorXUnits: 'pixels', anchorYUnits: 'pixels', opacity: 1, src: window.location.protocol + "//" + window.location.host + '/DesktopModules/InmoBS3/Images/map-pointer_cluster.png'
+>                                 })),
+>                                 text: new ol.style.Text({
+>                                     text: size.toString(),
+>                                     fill: new ol.style.Fill({ color: '#fff' })
+>                                 })
+>                             });
+>                         } else {
+>                             style = new ol.style.Style({
+>                                 image: new ol.style.Icon(({
+>                                     anchor: [22, 0], anchorOrigin: 'bottom-left', anchorXUnits: 'pixels', anchorYUnits: 'pixels', opacity: 1, src: window.location.protocol + "//" + window.location.host + '/DesktopModules/InmoBS3/Images/map-pointer.png'
+>                                 })),
+>                                 text: ''
+>                             });
+>                         }
+>                         styleCache[size] = style;
+>                     }
+>                     return style;
+>                 }
+>             });
+>             map.addLayer(clusters);
+>
+>             /**
+>              * CENTRAMOS Y ACERCAMOS EL MAPA CON LOS  markers
+>              */
+>             map.getView().fit(markersSource.getExtent(), map.getSize());
+>
+>             /**
+>              * INFOWINDOW
+>              */
+>             var popup = new ol.Overlay({
+>                 element: document.getElementById('popup')
+>             });
+>             map.addOverlay(popup);
+>
+>             map.on('click', function (evt) {
+>                 var element = popup.getElement();
+>                 var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+>                     return feature;
+>                 });
+>
+>                 if (!feature) {
+>                     $(element).popover('destroy');
+>                     return;
+>                 } else if (feature.get('features').length > 1) {
+>                     // Acercamos el mapa al cluster
+>                     view.animate({
+>                         center: evt.coordinate,
+>                         zoom: map.getView().getZoom() + 1,
+>                         duration: 500
+>                     });
+>                     return;
+>                 }
+>
+>                 var info = feature.get('features')[0];
+>                 var coordinate = info.getGeometry().getCoordinates();
+>
+>                 // Centramos el mapa en el inmueble seleccionado
+>                 view.animate({
+>                     center: evt.coordinate,
+>                     duration: 500
+>                 });
+>
+>                 // Establecemos la foto
+>                 $foto = $(info.get('foto'));
+>                 if (typeof $foto.find('img').attr('src') == 'undefined' || $foto.find('img').attr('src') == '') {
+>                     $foto.find('img').attr('src', $foto.find('img').data('src'));
+>                 }
+>                 foto = $foto.prop('outerHTML');
+>
+>                 $(element).popover('destroy');
+>                 popup.setPosition(coordinate);
+>                 $(element).popover({
+>                     sanitize: false,
+>                     placement: 'top',
+>                     animation: false,
+>                     html: true,
+>                     content: info.get('aviso') + '<table class="tablaMapa"><tr><td rowspan="2" class="foto precio">' + foto + '<div>' + info.get('precioVenta') + '</div>' + '<div>' + info.get('precioAlquiler') + '<div>' + info.get('precioTraspaso') + '</div></td><td colspan="2" class="tipo">' + info.get('titulo') + '</td></tr><tr><td colspan="2" class="resumen" style="height: 100%;"><div style="max-height: 150px;">' + info.get('resumen') + '</div></td></tr></table>',
+>                 });
+>                 $(element).popover('show');
+>                 $(".tablaMapa .resumen > div").dotdotdot();
+>
+>
+>             });
+>
+>             if (hayInmueblesSinMostrar)
+>                 $('#mapa_Mid186052 #avisoMapa').html('<div style="padding-top: 20px; font-weight: bold; font-size: 16px; text-align: center;">El mapa no contiene todos los inmuebles listados, sólo aquellos en los que se puede mostrar su ubicación.</div>');
+>     }
+>         
+> </script>
+>
+> <script type="text/javascript">
+>     /*
+>      * Plugin que igual el alto de todas las fichas
+>      * */
+>     this.EqualHeight = (function () {
+>         function EqualHeight() {
+>             this.item = $('.DLFichaParent');
+>
+>             this.bindEvents();
+>         }
+>
+>         EqualHeight.prototype.equalHeight = function () {
+>             var self, highestBox;
+>             self = this;
+>
+>             highestBox = 0;
+>             self.item.each(function (index, item) {
+>                 if ($(item).height() > highestBox) {
+>                     highestBox = $(item).height();
+>                 }
+>             });
+>             self.item.height(highestBox);
+>         };
+>
+>         EqualHeight.prototype.bindEvents = function () {
+>             var self;
+>             self = this;
+>
+>             self.equalHeight();
+>         };
+>
+>         return EqualHeight;
+>     })();
+>
+>     $(document).ready(function () {
+>         equalHeight = new EqualHeight();
+>     });
+> </script>
+>
+>
+> </div><div id="mID186053" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap ">
+> <div id="ctl00_pSMasterContent_ctl00_ContentPane__Mid186053_ctl01_divLinksInteres" class="container">
+>     <div class="row ">
+>         <div class="col-xs-12 containerLinksInteres tituloSeccion">
+>             <h2>Te puede interesar</h2>
+>             <ul class='list-inline'>
+>             
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-adosados/en-alicante' class='text-muted'>Adosados en venta en Alicante</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-adosados/en-tarragona' class='text-muted'>Adosados en venta en Tarragona</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-casas/en-barcelona' class='text-muted'>Casas en venta en Barcelona</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-casas/en-tarragona' class='text-muted'>Casas en venta en Tarragona</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-chalets_independientes/en-alicante' class='text-muted'>Chalets Independientes en venta en Alicante</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-chalets_independientes/en-barcelona' class='text-muted'>Chalets Independientes en venta en Barcelona</a></li>
+>                 
+>                     <li class='col-xs-12 col-sm-6 col-lg-4'><a href='/es/venta-chalets-chalets_independientes/en-tarragona' class='text-muted'>Chalets Independientes en venta en Tarragona</a></li>
+>                 
+>             </ul>
+>         </div>
+>     </div>
+> </div>
+>
+>
+> </div>
+> </div>
+>     
+> </div>
+>
+> <div id="pie">
+>     <div id="ContenedorFijoPie">
+>         <div id="ctl00_pSMasterContent_ctl00_ZenContent12" class="FooterPane">
+> 	<div id="mID186049" class="desktopmodules_inmobs3_inmomodule_ascx ModuleWrap ">
+>
+> <div class="pie">
+>     <div class="container">
+>         <div class="row" style="">
+>             <div class="col-xs-12 col-sm-4 col-md-4 logopie">
+>                 <a href="/">
+>                     <img  title='Inmobiliaria en Torredembarra' alt='Inmobiliaria en Torredembarra' src="/Portals//inmogrupotorresol/Images/logo.png"></a><br>
+>
+>                 
+>
+>
+>                 <ul class="list-inline redes">
+>                     <li style=""><a href="https://www.instagram.com/grupotorresol_inmobiliaria" target="_blank"><i class="fa fa-instagram icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style=""><a href="https://www.facebook.com/grupotorresol?locale=es_ES" target="_blank"><i class="fa fa-facebook icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style="display:none !important;"><a href="" target="_blank"><i class="mob mob-x icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style=""><a href="https://studio.youtube.com/channel/UC6Tb8B0EROER9VLITWEESHw/videos/upload?filter=%5B%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D" target="_blank"><i class="fa fa-youtube-play icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style="display:none !important;"><a href="" target="_blank"><i class="fa fa-linkedin icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style="display:none !important;"><a href="" target="_blank"><i class="mob mob-tik-tok icon-circle" aria-hidden="true"></i></a></li>
+>                     <li style=""><a href="https://share.google/JttA7EqZNFUCXtbNH" target="_blank"><i class="fa fa-google icon-circle" aria-hidden="true"></i></a></li>
+>
+>                 </ul>
+>
+>                 <span class='numColegiado'>AICAT nº 4358</span>
+>                 <br>
+>             </div>
+>             <div class="col-xs-12 col-sm-5 col-md-5 ">
+>                 <h2 class="subtituloPie">MENÚ</h2>
+>                 <div class="MenuPie">
+>                     <ul>
+>                         <li class="menuInicio"><a href="/es">Inicio</a></li>
+>                         <li class="menuComprar" style='display: block'><a href="/es/venta">Comprar</a></li>
+>                         <li class="menuAlquilar" style='display: block'><a href="/es/alquiler">Alquilar</a></li>
+>                         <li class="menuTraspaso" style='display: none !important'><a href="/es/traspaso">Traspaso</a></li>
+>                         
+>                         <!--SECCIONES DE MENÚ AUTO-->
+>                         <li class='menuAutomaticoPromociones'><a href='/es/promociones' class='anim'>Promociones</a></li><li class='menuAutomaticoVendaSuInmueble'><a href='/es/vende-tu-inmueble' class='anim'>Vende tu inmueble</a></li><li class='menuAutomaticoServicios'><a href='/es/servicios' class='anim'>Servicios</a></li><li class='menuAutomaticoValoraTuVivienda'><a href='/es/valora-tu-vivienda' class='anim'>Valora tu vivienda</a></li><li class='menuAutomaticoContacto'><a href='/es/contacto' class='anim'>Contacto</a></li>
+>                     </ul>
+>
+>                 </div>
+>             </div>
+>             <div class="col-xs-12 col-sm-3 col-md-3 ">
+>                 <h2 class="subtituloPie">CONTÁCTANOS</h2>
+>                 <address class="direccionPie">
+>                     <div>
+>                         C/ Antoni Roig 93<br>
+>                         43830 Torredembarra
+>                     </div>
+>                     <div style=""><a href="tel://977 130 112">977 130 112</a></div>
+>                     <div style=""><a href="tel://665 510 565">665 510 565</a></div>
+>                 </address>
+>             </div>
+>
+>         </div>
+>
+>     </div>
+> </div>
+> <div class="subpie">
+>     <div class="container">
+>         <div class="row" style="">
+>             <div class="col-xs-12 links copyright">
+>                 <p>
+>                     <a href="/aviso-legal">Aviso legal</a> | <a href="/proteccion-de-datos">Protección de datos</a> | <a href="/cookies">Cookies</a> | <a href="http://www.mobiliagestion.es" title='Mobilia - CRM inmobiliario y software para inmobiliaria' alt='Enlace a Mobilia: CRM inmobiliario y software para inmobiliaria' target="_blank">Creado con Mobilia</a>
+>                     <!--|<a href="/login"><i class="fa fa-lock" aria-hidden="true"></i></a>-->
+>                 </p>
+>             </div>
+>         </div>
+>     </div>
+> </div>
+>
+>
+> </div>
+> </div>
+>     </div>
+> </div>
+>
+>
+>     </div>
+>     </div>
+>     
+> <script src='/Portals/inmogrupotorresol/css/bootstrap/js/bootstrap.min.js'></script>
+> <script src='/app_support/js/bootbox.min.js'></script>
+>
+> <script type="text/javascript">
+> //<![CDATA[
+> window.__TsmHiddenField = $get('ctl00_radScriptManager1_TSM');//]]>
+> </script>
+> <script type='text/javascript' src='/app_support/js/selectpicker-1.12.4/js/bootstrap-select.min.js'></script><script type='text/javascript' src='/app_support/js/autoNumeric-1.9.8/autoNumeric.js'></script><script type='text/javascript' src='/design/themes/InmoBS3/bootstrap/js/moment-with-langs.js'></script><script type='text/javascript' src='/design/themes/InmoBS3/bootstrap/js/bootstrap-datetimepicker.min.js'></script><script type='text/javascript' src='/design/themes/InmoBS3/bootstrap/js/bootstrap-datetimepicker.es.js'></script><script type='text/javascript' src='/app_support/openlayers5/ol.js'></script><script type='text/javascript' src='//static.mobiliagestion.es/app_support/js/markerclusterer_compiled.js'></script><script type='text/javascript' src='//static.mobiliagestion.es/app_support/js/DataTables-1.10.4/media/js/jquery.dataTables.min.js'></script><script src='//static.mobiliagestion.es/app_support/js/jquery.simplePagination.js'></script><script src='//static.mobiliagestion.es/app_support/js/jquery.isotope.pkgd.min.js'></script><script src='//static.mobiliagestion.es/app_support/js/jquery.easing.1.3.js'></script><script src='//static.mobiliagestion.es/app_support/js/dotdotdot-1.8.1/jquery.dotdotdot.min.js'></script><script type='text/javascript' src='//static.mobiliagestion.es/app_support/owl_2.3.4/owl.carousel.min.js'></script>
+> <script type="text/javascript">
+> //<![CDATA[
+>
+> theForm.oldSubmit = theForm.submit;
+> theForm.submit = WebForm_SaveScrollPositionSubmit;
+>
+> theForm.oldOnSubmit = theForm.onsubmit;
+> theForm.onsubmit = WebForm_SaveScrollPositionOnSubmit;
+> Sys.Application.add_init(function() {
+>     $create(Telerik.Web.UI.RadAjaxManager, {"_updatePanels":"","ajaxSettings":[],"clientEvents":{OnRequestStart:"",OnResponseEnd:""},"defaultLoadingPanelID":"","enableAJAX":true,"enableHistory":false,"links":[],"styles":[],"uniqueID":"ctl00$ctl02","updatePanelsRenderMode":0}, null, null, $get("ctl00_ctl02"));
+> });
+> //]]>
+> </script>
+> </form>
+>     </body>
+> </html>
+
 ## 2026-08-10
 
 > bumo, commit and push all
@@ -8288,3 +12908,5 @@ karaat-data en staat in de karaat-repo.
 > /login
 
 > afgeronde opleidingen hoeven NIET te worden getoond
+
+> the url of that page is https://www.grupotorresol.com/es/venta-chalets-adosados~casas~chalets_independientes
