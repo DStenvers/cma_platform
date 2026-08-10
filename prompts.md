@@ -8281,3 +8281,10 @@ karaat-data en staat in de karaat-repo.
 > a feed should be xml?
 
 > help me: how do you expect me to get the feed urls?
+## 2026-08-10
+
+> bumo, commit and push all
+
+> /login
+
+> afgeronde opleidingen hoeven NIET te worden getoond
