@@ -12924,3 +12924,5 @@ karaat-data en staat in de karaat-repo.
 > i implemented the token in deploy.php, can you test? please skip the red location pin icon in list and detail view
 
 > okay, this cloud model is too limited, help me to understand the steps to a local dev repo
+
+> git pull on server worked now. so i think deploy will also
