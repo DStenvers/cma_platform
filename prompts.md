@@ -12936,3 +12936,9 @@ karaat-data en staat in de karaat-repo.
 > geen punt
 
 > jij hebt geen openstaande punten?
+
+## 2026-08-11
+
+> kun je de onderhoudspagina herstellen?
+
+> i have a lot of 404 messages on mijn rino for /assets/css/cma-overrides.css, why?

@@ -283,7 +283,11 @@ if ($selectedLog === 'jserrors') {
         $dataConn = \App\Library\Database::getConnection('data');
 
         // Filter to past 7 days by default
-        $sql = "SELECT TOP " . (int)$lines . " ID, error_message, error_stack, page_url, user_agent, datestamp
+        // error_url/error_line/error_column worden wél weggeschreven (zie de
+        // insert in form_api.php) maar werden hier niet opgehaald — juist de
+        // plek waar de fout zit stond dus niet in het detailvenster.
+        $sql = "SELECT TOP " . (int)$lines . " ID, error_message, error_stack, error_url, error_line,
+                       error_column, page_url, user_agent, datestamp
                 FROM tblCMAJavascriptErrors
                 WHERE datestamp >= DateAdd('d', -7, Now())
                 ORDER BY datestamp DESC";
@@ -304,6 +308,9 @@ if ($selectedLog === 'jserrors') {
                 'user' => '',  // Not stored in this table
                 'stackTrace' => $rs->fields['error_stack'] ?? '',
                 'userAgent' => $rs->fields['user_agent'] ?? '',
+                'file' => $rs->fields['error_url'] ?? '',
+                'line' => $rs->fields['error_line'] ?? '',
+                'column' => $rs->fields['error_column'] ?? '',
             ];
             $rs->MoveNext();
         }
@@ -589,6 +596,64 @@ async function confirmDelete() {
         window.location.href = '<?= $deleteUrl ?>';
     }
 }
+
+/**
+ * Waarde in een detailvenster met een kopieerknop ernaast.
+ *
+ * Wat je uit een log meeneemt is bijna nooit de hele regel: het is één pad, één
+ * foutmelding, één bestand:regel — iets om in een zoekbalk of een editor te
+ * plakken. Met de hand selecteren gaat mis bij lange, afgebroken waarden, dus
+ * krijgt elk veld dat je daadwerkelijk ergens anders nodig hebt zijn eigen knop.
+ *
+ * @param {string} waarde     wat er komt te staan
+ * @param {string} [kopieer]  wat er wordt gekopieerd, als dat iets ANDERS is dan
+ *                            wat er staat (het relatieve pad bij een volledige URL)
+ * @param {string} [klasse]   extra klasse op de tekst, voor kleur/opmaak
+ */
+function logDetailWaarde(waarde, kopieer, klasse) {
+    var tekst = (waarde === null || waarde === undefined || waarde === '') ? '-' : String(waarde);
+    var teKopieren = (kopieer === undefined || kopieer === null || kopieer === '') ? tekst : String(kopieer);
+    if (tekst === '-') {
+        return '-';
+    }
+    return '<span class="log-detail-value">' +
+        '<span class="log-detail-value__text' + (klasse ? ' ' + klasse : '') + '">' + escapeHtml(tekst) + '</span>' +
+        '<button type="button" class="log-detail-copy" data-kopieer="' + escapeHtml(teKopieren) +
+        '" title="Kopieer naar klembord"><span class="lnr lnr-copy"></span></button>' +
+        '</span>';
+}
+
+/**
+ * Het pad zonder schema en host, want dat is waarmee je verder werkt: ermee
+ * zoeken in de broncode, of kijken of het bestand op de schijf staat. Wat al
+ * relatief is, blijft zoals het is; wat geen leesbare URL is ook.
+ */
+function logDetailRelatiefPad(url) {
+    if (!url) return '';
+    try {
+        return new URL(url, window.location.origin).pathname;
+    } catch (e) {
+        return String(url);
+    }
+}
+
+// Eén luisteraar voor alle detailvensters: ze delen dezelfde knop, dus ook
+// dezelfde afhandeling. De knop meldt zelf of het gelukt is — een kopieeractie
+// zonder zichtbaar gevolg laat je twijfelen of je wel geklikt hebt.
+document.addEventListener('click', function(e) {
+    var knop = e.target.closest ? e.target.closest('.log-detail-copy') : null;
+    if (!knop) return;
+    e.preventDefault();
+    e.stopPropagation();
+    cmaCopyToClipboard(knop.dataset.kopieer).then(function() {
+        knop.classList.add('is-copied');
+        knop.innerHTML = '<span class="lnr lnr-checkmark-circle"></span>';
+        setTimeout(function() {
+            knop.classList.remove('is-copied');
+            knop.innerHTML = '<span class="lnr lnr-copy"></span>';
+        }, 1500);
+    });
+});
 </script>
 <?php if (!empty($flashMessage)): ?>
 <lib-message type="success" style="margin: 20px 20px 0;"><?= Server::htmlEncode($flashMessage) ?></lib-message>
@@ -707,10 +772,21 @@ async function confirmDelete() {
 
             var html = '<table class="log-detail-table">';
             html += '<tr><th>Datum/tijd</th><td>' + escapeHtml(entry.datestamp) + '</td></tr>';
-            html += '<tr><th>Foutmelding</th><td style="color: var(--color-error); font-weight: 600;">' + escapeHtml(entry.message) + '</td></tr>';
-            html += '<tr><th>Pagina</th><td>' + escapeHtml(entry.source || '-') + '</td></tr>';
+            // De foutmelding is wat je in de broncode of een zoekmachine plakt.
+            html += '<tr><th>Foutmelding</th><td>' + logDetailWaarde(entry.message, null, 'log-detail-fout') + '</td></tr>';
+            html += '<tr><th>Pagina</th><td>' + logDetailWaarde(entry.source, logDetailRelatiefPad(entry.source)) + '</td></tr>';
+            // Bestand + regelnummer als één brok: zo staat je cursor na plakken
+            // in de editor meteen op de juiste regel.
+            if (entry.file) {
+                var plek = logDetailRelatiefPad(entry.file) + (entry.line ? ':' + entry.line : '');
+                html += '<tr><th>Bestand</th><td>' + logDetailWaarde(plek, plek, 'log-detail-mono') + '</td></tr>';
+            }
             if (entry.stackTrace) {
-                html += '<tr><th>Stack trace</th><td><pre class="log-detail-json log-detail-trace">' + escapeHtml(entry.stackTrace) + '</pre></td></tr>';
+                html += '<tr><th>Stack trace</th><td>' +
+                    '<div class="log-detail-value">' +
+                    '<pre class="log-detail-json log-detail-trace log-detail-value__text">' + escapeHtml(entry.stackTrace) + '</pre>' +
+                    '<button type="button" class="log-detail-copy" data-kopieer="' + escapeHtml(entry.stackTrace) + '" title="Kopieer naar klembord"><span class="lnr lnr-copy"></span></button>' +
+                    '</div></td></tr>';
             }
             if (entry.userAgent) {
                 html += '<tr><th>Browser</th><td style="font-size: var(--font-size-xs);">' + escapeHtml(entry.userAgent) + '</td></tr>';
@@ -818,12 +894,17 @@ async function confirmDelete() {
             var html = '<table class="log-detail-table">';
             html += '<tr><th>Datum/tijd</th><td>' + escapeHtml(entry.ts || '-') + '</td></tr>';
             html += '<tr><th>Type</th><td>' + (entry.type === 'icon_redirect' ? '<span style="color: var(--color-success);">Redirect naar juiste locatie</span>' : '<span style="color: var(--color-error);">Niet gevonden (404)</span>') + '</td></tr>';
-            html += '<tr><th>URL</th><td style="font-family: monospace; word-break: break-all;">' + escapeHtml(entry.url || '-') + '</td></tr>';
+            // Het pad is waarmee je verder werkt: ermee zoeken in de broncode of
+            // kijken of het bestand bestaat. De knop kopieert dus het pad, ook
+            // als er een volledige URL staat.
+            html += '<tr><th>URL</th><td>' + logDetailWaarde(entry.url, logDetailRelatiefPad(entry.url), 'log-detail-mono') + '</td></tr>';
             if (entry.redirect) {
-                html += '<tr><th>Redirect naar</th><td style="font-family: monospace; word-break: break-all; color: var(--color-success);">' + escapeHtml(entry.redirect) + '</td></tr>';
+                html += '<tr><th>Redirect naar</th><td>' + logDetailWaarde(entry.redirect, logDetailRelatiefPad(entry.redirect), 'log-detail-mono log-detail-ok') + '</td></tr>';
             }
             if (entry.referer) {
-                html += '<tr><th>Referer</th><td style="word-break: break-all;">' + escapeHtml(entry.referer) + '</td></tr>';
+                // De verwijzende pagina kopieer je juist compleet: die plak je
+                // in de adresbalk om te zien waar het misgaat.
+                html += '<tr><th>Referer</th><td>' + logDetailWaarde(entry.referer) + '</td></tr>';
             }
             html += '<tr><th>Methode</th><td>' + escapeHtml(entry.method || 'GET') + '</td></tr>';
             html += '<tr><th>IP</th><td>' + escapeHtml(entry.ip || '-') + '</td></tr>';
@@ -963,10 +1044,17 @@ async function confirmDelete() {
         var html = '<table class="log-detail-table">';
         html += '<tr><th>Datum/tijd</th><td>' + escapeHtml(selectedDate + ' ' + (entry.ts || '-')) + '</td></tr>';
         html += '<tr><th>Type</th><td><code>' + escapeHtml(entry.type || '-') + '</code></td></tr>';
-        html += '<tr><th>Naam</th><td>' + escapeHtml(entry.name || '-') + '</td></tr>';
+        // De naam is bij een trage query de query zelf — precies wat je in een
+        // editor of query-tool plakt om hem na te lopen.
+        html += '<tr><th>Naam</th><td>' + logDetailWaarde(entry.name) + '</td></tr>';
         html += '<tr><th>ms</th><td>' + (entry.ms !== undefined ? entry.ms.toFixed(1) : '-') + '</td></tr>';
         if (entry.ctx) {
-            html += '<tr><th>Context</th><td><pre class="log-detail-json">' + escapeHtml(JSON.stringify(entry.ctx, null, 2)) + '</pre></td></tr>';
+            var ctxJson = JSON.stringify(entry.ctx, null, 2);
+            html += '<tr><th>Context</th><td>' +
+                '<div class="log-detail-value">' +
+                '<pre class="log-detail-json log-detail-value__text">' + escapeHtml(ctxJson) + '</pre>' +
+                '<button type="button" class="log-detail-copy" data-kopieer="' + escapeHtml(ctxJson) + '" title="Kopieer naar klembord"><span class="lnr lnr-copy"></span></button>' +
+                '</div></td></tr>';
         }
         html += '</table>';
 
@@ -1122,6 +1210,51 @@ tr.notfound-row:hover td {
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
+}
+
+/* Kopieerknop bij een detailregel. Hij staat rechts van de waarde en pas als de
+   regel de volle breedte heeft, zodat een lange URL niet om de knop heen hoeft
+   te breken. De knop blijft altijd zichtbaar: verschijnen-bij-hover kost een
+   ontdekking die deze knop juist moet besparen. */
+.log-detail-value {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    justify-content: space-between;
+}
+.log-detail-value__text {
+    min-width: 0;
+    word-break: break-all;
+}
+.log-detail-copy {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    background: var(--bg-surface, #f5f5f5);
+    color: var(--text-muted, #777);
+    font-size: var(--font-size-xs);
+    line-height: 1.6;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.log-detail-copy:hover {
+    color: var(--text-primary, #222);
+    border-color: var(--text-muted, #777);
+}
+.log-detail-copy.is-copied {
+    color: var(--color-success, #2e7d32);
+    border-color: var(--color-success, #2e7d32);
+}
+.log-detail-mono {
+    font-family: monospace;
+}
+.log-detail-ok {
+    color: var(--color-success, #2e7d32);
+}
+.log-detail-fout {
+    color: var(--color-error, #c62828);
+    font-weight: 600;
 }
 .empty-value {
     color: var(--text-muted, #999);
