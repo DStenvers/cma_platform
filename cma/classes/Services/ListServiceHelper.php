@@ -452,4 +452,94 @@ class ListServiceHelper
 
         return $names[$controlType] ?? 'unknown(' . $controlType . ')';
     }
+
+    /**
+     * Maak een mislukte lijstquery leesbaar.
+     *
+     * Access meldt een onbekende kolomnaam niet als onbekende kolom. Het ziet er
+     * een parameter in en zegt "Er zijn te weinig parameters. Het verwachte
+     * aantal is: 3" — een getal, zonder één naam erbij. Wie dat leest weet dat er
+     * drie namen fout zijn, maar niet wélke, en gaat de query met de hand naast
+     * de tabel leggen. Dat is precies het werk dat de code zelf kan doen: de
+     * kolommen uit de SELECT vergelijken met de kolommen die de tabel heeft.
+     *
+     * Levert de oorspronkelijke melding plus, als het lukt, de namen die niet
+     * bestaan. Lukt het opzoeken niet, dan blijft de oorspronkelijke melding
+     * staan — een diagnose die zelf omvalt helpt niemand.
+     *
+     * @param string $melding  wat de driver zei
+     * @param string $sql      de query die faalde
+     * @param string $tabel    tabel waar de kolommen vandaan moeten komen
+     * @param mixed  $conn     verbinding waarop de query liep
+     */
+    public static function verklaarQueryFout(string $melding, string $sql, string $tabel, $conn): string
+    {
+        $uitleg = $melding . "\n" . $sql;
+
+        // Alleen de Access-parameterfout is op deze manier te duiden.
+        if (stripos($melding, 'te weinig parameters') === false
+            && stripos($melding, 'Too few parameters') === false) {
+            return $uitleg;
+        }
+        if ($tabel === '') {
+            return $uitleg;
+        }
+
+        try {
+            $bestaand = [];
+            foreach (\Cma\SchemaHelper::getColumns($conn, $tabel, true) as $kolom) {
+                $naam = (string)($kolom['name'] ?? '');
+                if ($naam !== '') {
+                    $bestaand[] = $naam;
+                }
+            }
+            $diagnose = self::benoemOntbrekendeKolommen($sql, $tabel, $bestaand);
+            return $diagnose === null ? $uitleg : $diagnose . "\n" . $melding . "\n" . $sql;
+        } catch (\Throwable $e) {
+            return $uitleg;
+        }
+    }
+
+    /**
+     * Welke kolommen uit de SELECT komen niet voor in de tabel.
+     *
+     * Los van de database gehouden, zodat het te testen is: de vergelijking is
+     * waar de fout in kan sluipen, niet het ophalen van de kolomlijst.
+     *
+     * @param string   $sql        de query die faalde
+     * @param string   $tabel      tabelnaam, voor in de melding
+     * @param string[] $bestaand   kolommen die de tabel wél heeft
+     * @return string|null de diagnose, of null als er niets te melden valt
+     */
+    public static function benoemOntbrekendeKolommen(string $sql, string $tabel, array $bestaand): ?string
+    {
+        if ($bestaand === []) {
+            return null;
+        }
+        $bekend = [];
+        foreach ($bestaand as $naam) {
+            $bekend[strtolower((string)$naam)] = true;
+        }
+
+        // Alleen de namen tussen blokhaken in de SELECT: zo schrijft de
+        // querybouwer ze, en zo blijven functies en literals buiten schot.
+        if (!preg_match('/\bSELECT\b(.*?)\bFROM\b/is', $sql, $m)) {
+            return null;
+        }
+        preg_match_all('/\[([^\]]+)\]/', $m[1], $treffers);
+
+        $ontbreekt = [];
+        foreach ($treffers[1] as $naam) {
+            if (!isset($bekend[strtolower($naam)]) && !in_array($naam, $ontbreekt, true)) {
+                $ontbreekt[] = $naam;
+            }
+        }
+        if ($ontbreekt === []) {
+            return null;
+        }
+
+        return 'Kolommen bestaan niet in [' . $tabel . ']: ' . implode(', ', $ontbreekt)
+            . '. Staan ze wel als veld in de formulierdefinitie, haal ze daar weg of'
+            . ' hernoem ze naar de kolomnaam in de tabel.';
+    }
 }

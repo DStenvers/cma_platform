@@ -284,11 +284,11 @@ body.mode-table .tb-sep.table-mode-only { display: inline-block !important; }
     text-align: center;
     color: #777;
     width: 18px;
-    font-size: 31px;
+    font-size: 2.5em;
     font-weight: 100;
     line-height: 1;
     display: inline-block;
-    margin-top: -2px;
+    margin-top: -3px;
 }
 
 /* Tree mode button states */

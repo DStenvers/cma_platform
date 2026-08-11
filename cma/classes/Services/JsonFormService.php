@@ -448,7 +448,8 @@ class JsonFormService extends BaseFormService
             // Execute query
             $rs = Database::openRS($sql, $conn);
             if ($rs === null) {
-                return self::error('Query uitvoering mislukt: ' . Database::getLastError() . "\n" . $sql);
+                return self::error('Query uitvoering mislukt: ' . ListServiceHelper::verklaarQueryFout(
+                    Database::getLastError(), $sql, (string)$tableName, $conn));
             }
 
             // Build table HTML

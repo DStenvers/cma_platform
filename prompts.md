@@ -12942,3 +12942,5 @@ karaat-data en staat in de karaat-repo.
 > kun je de onderhoudspagina herstellen?
 
 > i have a lot of 404 messages on mijn rino for /assets/css/cma-overrides.css, why?
+
+> /cma/form.php?form=competenties&id=1349&parentID=17&parentField=fkDeelname does not show anything. But worse: a silent crash?? Review the entire flow and see how this can happen. Add debugging info on all places where it is not provided

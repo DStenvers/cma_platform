@@ -1926,7 +1926,13 @@ class CmaFormController {
                 this.processListData(data.list);
                 listLoaded = true;
             } else if (data.list && data.list.error) {
+                // Een lijst die niet laadt is geen achtergrondweetje. Alleen in de
+                // console loggen levert een leeg scherm zonder uitleg op: het
+                // formulier staat er, de lijst blijft leeg, en niets vertelt dat
+                // er iets is misgegaan. De fout hoort op het scherm.
                 cmaLog.error('[Init] List load failed:', data.list.error);
+                this._listLoadFailed = true;
+                this.showListError(data.list.error);
             }
 
             // Cache combos from response
@@ -11107,6 +11113,31 @@ class CmaFormController {
             pane.classList.remove('loading');
             pane.classList.add('loaded');
         }
+    }
+
+    /**
+     * Toon dat de lijst niet geladen is, met de melding van de server erbij.
+     *
+     * De meldingen die hier binnenkomen zijn diagnoses, geen ruis: welke
+     * kolommen niet bestaan, welke query faalde. Ze horen dus zichtbaar te zijn
+     * voor wie het kan oplossen, en niet alleen in een console die niemand
+     * openheeft staan.
+     */
+    showListError(melding) {
+        const doel = this.listContent || document.getElementById('listContent');
+        if (!doel) return;
+        const tekst = String(melding || 'Onbekende fout');
+        // Eerste regel is de diagnose, de rest (query, driver-melding) staat
+        // eronder in het kleiner gezette blok — beschikbaar zonder te schreeuwen.
+        const knip = tekst.indexOf('\n');
+        const kop = knip === -1 ? tekst : tekst.slice(0, knip);
+        const rest = knip === -1 ? '' : tekst.slice(knip + 1);
+        let html = '<div class="list-error">Lijst kon niet worden geladen: ' + this.escapeHtml(kop);
+        if (rest.trim() !== '') {
+            html += '<span class="error-debug">' + this.escapeHtml(rest) + '</span>';
+        }
+        html += '</div>';
+        doel.innerHTML = html;
     }
 
     /**
