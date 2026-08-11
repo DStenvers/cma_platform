@@ -6,9 +6,11 @@
 /* lib-table component - display as block (custom elements default to inline) */
 lib-table { display: block; }
 
-/* Layout variables for subform sizing */
+/* De hoogte van de subform-sectie staat NIET hier. Een vaste waarde in een
+   variabele is een tweede eigenaar naast de sleepbalk, en twee eigenaren van
+   dezelfde maat lopen uiteen. De balk zet de hoogte inline op de sectie; staat
+   er geen balk, dan is er geen sectie. */
 :root {
-    --subform-height: 250px;
     --fold-h-height: 6px;
 }
 
@@ -300,14 +302,13 @@ body.mode-tree #btn_tableview { opacity: 1; pointer-events: auto; }
 #detailContent, .detail-content { display: none; }
 /* noDataMessage: no display override here - parent flex container handles centering */
 
-/* When creating a new record: show form, hide message. The fold and
-   subform-section are hidden in this state, so the form is the only child —
-   let it take the full panel height. Both height and flex are needed: in
-   mode-detail over table mode the panel is display:block (flex:1 is inert
-   there, height:100% sizes it), in tree mode the panel is a flex column
-   (flex:1 sizes it). */
+/* Bij een nieuw record: toon het formulier, verberg de melding. De balk en de
+   subform-sectie zijn in deze toestand verborgen, dus het formulier is het enige
+   kind en vult het paneel vanzelf — .detail-content heeft flex:1 en min-height:0,
+   dat is genoeg. Hier een hoogte opleggen maakt van .detail-content een tweede
+   gerekende maat, en dat is precies wat we niet willen. */
 body.is-creating #detailContent,
-body.is-creating .detail-content { display: block; height: 100%; flex: 1; }
+body.is-creating .detail-content { display: block; }
 body.is-creating #noDataMessage { display: none; }
 
 /* When a record is loaded: show form, hide message */
@@ -512,16 +513,18 @@ form#mainForm {
     color: var(--text-muted);
 }
 
-/* Subform section - fixed height at bottom of detail panel */
-/* Default: hidden. Shown by has-subforms-defined class (reserves space) */
+/* De subform-sectie onderaan het detailpaneel.
+   Zij is de enige met een eigen maat: de sleepbalk zet er een hoogte op
+   (inline, plus flex:0 0). Zonder die balk — een nieuw record, of een formulier
+   waarvan de stand nog niet bewaard is — is er niets om te tonen, en dan hoort
+   ze er ook niet te zijn. Vandaar géén flex-grow en géén min-height: alles wat
+   groeit vecht met .detail-content, en dat is precies waar de hoogte zoek raakte.
+   Het formulier erboven krijgt wat overblijft. */
 .subform-section {
     display: none; /* Hidden by default */
     border-top: 1px solid var(--border-color);
     background: var(--bg-surface);
-    height: 250px; /* Fallback */
-    height: var(--subform-height);
-    flex: 1 0 auto; /* Grow to fill space when detail-content is resized by fold */
-    min-height: 150px;
+    flex: 0 0 auto;
     overflow: visible; /* Changed from hidden to allow filter dropdowns */
     flex-direction: column;
 }

@@ -12990,12 +12990,10 @@ function saveFormState() {
         state.listWidth = leftList.style.width || leftList.offsetWidth + 'px';
     }
 
-    // Save subform height (horizontal fold position)
-    const subformHeight = getComputedStyle(document.querySelector('.form-layout') || document.documentElement).getPropertyValue('--subform-height');
-    // cmaLog.log('[FormState] subformHeight from CSS var=', subformHeight);
-    if (subformHeight && subformHeight.trim()) {
-        state.subformHeight = subformHeight.trim();
-    }
+    // De hoogte van de subform-sectie staat hier NIET. Die hoort bij de sleepbalk
+    // en wordt door cma-fold zelf bewaard (cma_fold_form_foldH). Hem hier ook
+    // opschrijven levert twee opslagplekken voor dezelfde maat op, die uiteen
+    // gaan lopen zodra je er aan sleept.
 
     // cmaLog.log('[FormState] saving state=', state);
     try {
@@ -13007,68 +13005,6 @@ function saveFormState() {
 }
 
 /**
- * Calculate dynamic default subform height based on main form field count.
- * Forms with fewer fields get more space for subforms.
- * Rule: ~40px per visible field, remaining space goes to subforms.
- */
-function calculateDynamicSubformHeight() {
-    const subformSection = document.getElementById('subformSection');
-    if (!subformSection) {
-        return null; // No subforms, no need to calculate
-    }
-
-    const mainTable = document.getElementById('maintable');
-    if (!mainTable) {
-        return 250; // Default fallback
-    }
-
-    // Count visible field rows (exclude hidden rows, groupbox-end, etc.)
-    const rows = mainTable.querySelectorAll('tr');
-    let visibleFieldCount = 0;
-    rows.forEach(function(row) {
-        // Skip hidden rows (groupbox-hidden = row inside a collapsed groupbox)
-        if (row.style.display === 'none' || row.classList.contains('groupbox-hidden') || row.classList.contains('groupbox-end')) {
-            return;
-        }
-        // Count as a field row
-        visibleFieldCount++;
-    });
-
-    // cmaLog.log('[FormState] visible field count:', visibleFieldCount);
-
-    // Calculate main form estimated height (40px per field)
-    const estimatedMainFormHeight = visibleFieldCount * 40;
-
-    // Get available height (detail panel minus toolbar and padding)
-    const detailPanel = document.querySelector('.detail-panel');
-    const detailContent = document.getElementById('detailContent');
-    if (!detailPanel || !detailContent) {
-        return 250; // Default fallback
-    }
-
-    // Total available height in detail area
-    const detailPanelHeight = detailPanel.offsetHeight;
-    const toolbarHeight = 45; // Approximate toolbar height
-    const foldBarHeight = 12; // Horizontal fold bar
-    const padding = 20; // Margins/padding
-
-    // Available for subforms = total - mainForm - toolbar - foldBar - padding
-    const availableForSubforms = detailPanelHeight - estimatedMainFormHeight - toolbarHeight - foldBarHeight - padding;
-
-    // Ensure minimum and maximum bounds
-    const minHeight = 150;
-    const maxHeight = 500;
-    const calculatedHeight = Math.max(minHeight, Math.min(maxHeight, availableForSubforms));
-
-    // cmaLog.log('[FormState] dynamic subform height: fields=', visibleFieldCount,
-    //     'mainFormHeight=', estimatedMainFormHeight,
-    //     'panelHeight=', detailPanelHeight,
-    //     'calculated=', calculatedHeight);
-
-    return calculatedHeight;
-}
-
-/**
  * Restore form layout state from localStorage
  */
 function restoreFormState() {
@@ -13076,7 +13012,6 @@ function restoreFormState() {
     // cmaLog.log('[FormState] restoreFormState called, formKey=', formKey);
     if (!formKey) return;
 
-    let hasUserSubformHeight = false;
 
     try {
         const saved = localStorage.getItem(formKey);
@@ -13096,25 +13031,11 @@ function restoreFormState() {
                 }, 50);
             }
 
-            // Restore subform height (horizontal fold position)
-            if (state.subformHeight) {
-                // cmaLog.log('[FormState] setting --subform-height to user saved:', state.subformHeight);
-                (document.querySelector('.form-layout') || document.documentElement).style.setProperty('--subform-height', state.subformHeight);
-                hasUserSubformHeight = true;
-            }
         }
     } catch (e) {
         cmaLog.error('[FormState] restoreFormState error', e.message);
     }
 
-    // If no user preference, calculate dynamic default based on field count
-    if (!hasUserSubformHeight) {
-        const dynamicHeight = calculateDynamicSubformHeight();
-        if (dynamicHeight !== null) {
-            // cmaLog.log('[FormState] setting --subform-height to dynamic default:', dynamicHeight + 'px');
-            (document.querySelector('.form-layout') || document.documentElement).style.setProperty('--subform-height', dynamicHeight + 'px');
-        }
-    }
 }
 
 /**

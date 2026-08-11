@@ -12944,3 +12944,5 @@ karaat-data en staat in de karaat-repo.
 > i have a lot of 404 messages on mijn rino for /assets/css/cma-overrides.css, why?
 
 > /cma/form.php?form=competenties&id=1349&parentID=17&parentField=fkDeelname does not show anything. But worse: a silent crash?? Review the entire flow and see how this can happen. Add debugging info on all places where it is not provided
+
+> There is a real issue with the calculations of subforms etc. This is more than a visual issue. It blocks data. Higest priority. class="subform-section" does not have the available hieght while it's parent does. I think we should skip     --subform-height: 500px; and always calculate the height. If the parent is a new record: the height is 0, otherwise it is derived from the cma-fold stored position. Please do a thorough sweep, because this is oimportant

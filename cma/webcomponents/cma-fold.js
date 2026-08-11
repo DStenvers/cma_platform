@@ -67,6 +67,18 @@ class CmaFold extends HTMLElement {
         return parseInt(this.getAttribute('collapsed-size') || '0', 10);
     }
 
+    /**
+     * Maat voor wie nog nooit aan de balk gesleept heeft. Zonder deze waarde
+     * krijgt het doel helemaal geen hoogte en valt het terug op zijn inhoud —
+     * een subformulier met twintig rijen duwt het formulier erboven dan van het
+     * scherm. Ontbreekt het attribuut, dan is er geen startmaat en blijft het
+     * gedrag zoals het was: de CSS beslist.
+     */
+    get defaultSize() {
+        const waarde = parseInt(this.getAttribute('default-size') || '', 10);
+        return isNaN(waarde) ? null : waarde;
+    }
+
     get storageKey() {
         return this.getAttribute('storage-key') || '';
     }
@@ -566,32 +578,35 @@ class CmaFold extends HTMLElement {
 
         try {
             const stored = localStorage.getItem('cma_fold_' + this.storageKey);
-            if (stored) {
+            if (!stored) {
+                // Nog nooit aan gesleept: geef het doel de startmaat, zodat het
+                // een hoogte HEEFT. Zonder maat valt het terug op zijn inhoud en
+                // bepaalt het aantal rijen in het subformulier hoeveel er van het
+                // formulier erboven overblijft.
+                this._pasMaatToe(this.defaultSize);
+                return;
+            }
+            {
                 const state = JSON.parse(stored);
                 this._collapsed = state.collapsed || false;
                 this._savedSize = state.savedSize || null;
 
-                if (this._collapsed) {
-                    if (this.isVertical) {
-                        this._target.style.width = this.collapsedSize + 'px';
-                        this._target.style.flex = '0 0 ' + this.collapsedSize + 'px';
-                    } else {
-                        this._target.style.height = this.collapsedSize + 'px';
-                        this._target.style.flex = '0 0 ' + this.collapsedSize + 'px';
-                    }
-                } else if (state.size) {
-                    if (this.isVertical) {
-                        this._target.style.width = state.size + 'px';
-                        this._target.style.flex = '0 0 ' + state.size + 'px';
-                    } else {
-                        this._target.style.height = state.size + 'px';
-                        this._target.style.flex = '0 0 ' + state.size + 'px';
-                    }
-                }
+                this._pasMaatToe(this._collapsed ? this.collapsedSize : (state.size || this.defaultSize));
             }
         } catch (e) {
             // Ignore localStorage errors
         }
+    }
+
+    /** Zet één maat op het doel, in de richting van deze balk. */
+    _pasMaatToe(maat) {
+        if (!this._target || maat === null || maat === undefined) return;
+        if (this.isVertical) {
+            this._target.style.width = maat + 'px';
+        } else {
+            this._target.style.height = maat + 'px';
+        }
+        this._target.style.flex = '0 0 ' + maat + 'px';
     }
 
     // Public API
