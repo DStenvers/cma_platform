@@ -58,6 +58,53 @@ class EmailTest extends TestCase
     }
 
     // ========================================================================
+    // Mailheaders zijn platte tekst
+    // ========================================================================
+
+    /**
+     * appname/company mogen opmaak bevatten (de CMA-header toont "mijn
+     * <font class=green>&bull;</font> RINO"), maar een onderwerp en een
+     * afzendernaam zijn platte tekst — een mailclient rendert daar geen HTML en
+     * zet de markup dus letterlijk in beeld.
+     */
+    public function testHeaderTekstVerliestOpmaakEnEntiteiten(): void
+    {
+        $r = new ReflectionMethod(Email::class, 'cleanHeaderText');
+        $r->setAccessible(true);
+        $e = new Email();
+
+        $this->assertEquals('mijn • RINO', $r->invoke($e, 'mijn <font class=green>&bull;</font> RINO'));
+        $this->assertEquals('Blok & tekst', $r->invoke($e, 'Blok &amp; tekst'));
+        $this->assertEquals('Gewoon onderwerp', $r->invoke($e, "Gewoon\n  onderwerp "));
+    }
+
+    /**
+     * Buiten productie worden de echte geadresseerden vervangen door de
+     * beheerder. Die hoort in To: een bericht zonder To-header wordt door
+     * spamfilters geweigerd, en dan komt de opgevangen mail nergens aan.
+     */
+    public function testOpgevangenTestmailZetDeBeheerderInTo(): void
+    {
+        $GLOBALS['Application']['test'] = true;
+        $GLOBALS['Application']['app_beheerder_email'] = 'beheer@example.com';
+
+        $e = new Email();
+        $e->addRecipient('deelnemer@example.com');
+
+        $r = new ReflectionMethod(Email::class, 'wrapTestEnvironmentWarning');
+        $r->setAccessible(true);
+        $r->invoke($e, '<p>inhoud</p>');
+
+        $m = $this->mailer($e);
+        $to = array_map(fn($a) => $a[0], $m->getToAddresses());
+        $bcc = array_map(fn($a) => $a[0], $m->getBccAddresses());
+
+        $this->assertTrue(in_array('beheer@example.com', $to, true), 'beheerder staat niet in To');
+        $this->assertTrue(!in_array('deelnemer@example.com', $to, true), 'echte geadresseerde staat er nog in');
+        $this->assertTrue(!in_array('beheer@example.com', $bcc, true), 'beheerder staat (ook) in BCC');
+    }
+
+    // ========================================================================
     // Constructor + defaults
     // ========================================================================
 

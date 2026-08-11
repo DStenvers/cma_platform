@@ -548,16 +548,18 @@ class Email
         $this->ensureValidFromAddress();
 
         try {
-            // Configure PHPMailer
-            $this->mailer->Subject = $this->subject;
+            // Configure PHPMailer.
+            // Onderwerp op dezelfde manier schoonmaken as de afzendernaam hieronder:
+            // een site die appname/company met opmaak vult ("mijn <font
+            // class=green>&bull;</font> RINO") kreeg die markup letterlijk in de
+            // onderwerpregel, want een mailclient rendert daar geen HTML.
+            $this->mailer->Subject = $this->cleanHeaderText($this->subject);
             $this->mailer->Body = $finalBody;
             $this->mailer->AltBody = strip_tags($finalBody);
             $this->mailer->isHTML(true);
 
             // Set from (sanitize name: strip HTML tags and decode entities like &bull; to •)
-            $cleanFromName = html_entity_decode(strip_tags($this->fromName), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $cleanFromName = preg_replace('/\s+/', ' ', trim($cleanFromName));
-            $this->mailer->setFrom($this->fromEmail, $cleanFromName);
+            $this->mailer->setFrom($this->fromEmail, $this->cleanHeaderText($this->fromName));
 
             // Set reply-to if provided
             if (!empty($this->replyTo)) {
@@ -707,6 +709,18 @@ class Email
      * @param string $body
      * @return string
      */
+    /**
+     * Tekst voor een mailheader (onderwerp, afzendernaam): HTML eruit, entiteiten
+     * terug naar tekens, witruimte samengevouwen. Een header is platte tekst — een
+     * mailclient rendert er geen markup, dus "&bull;" of een <font>-tag komt er
+     * letterlijk in te staan.
+     */
+    private function cleanHeaderText(string $text): string
+    {
+        $schoon = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return (string) preg_replace('/\s+/', ' ', trim($schoon));
+    }
+
     private function wrapTestEnvironmentWarning(string $body): string
     {
         $to = [];
@@ -736,9 +750,12 @@ class Email
         $this->mailer->clearCCs();
         $this->mailer->clearBCCs();
 
+        // De beheerder komt in To, niet in BCC: een bericht zónder To-header wordt
+        // door spamfilters geweigerd, dus buiten productie kwam de opgevangen mail
+        // regelmatig helemaal niet aan — en dan lijkt het of er niets verstuurd is.
         $adminEmail = Application::get('app_beheerder_email', '');
         if (!empty($adminEmail)) {
-            $this->mailer->addBCC($adminEmail);
+            $this->mailer->addAddress($adminEmail);
         }
 
         return $warning . $body;

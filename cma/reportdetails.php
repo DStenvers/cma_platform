@@ -262,7 +262,12 @@ function main()
         $sql = SQL::addWhere($sql, '[' . $rsRep->fields['IDField'] . ']=' . $srecID);
     }
     if ($sFilterID != '') {
-        $sql = SQL::addWhere($sql, $rsRep->fields['FilterIDField'] . '=' . ((is_null($rsRep->fields['FilterIDField'] . '') ? "" : strtoupper($rsRep->fields['FilterIDField'] . '')) == 'ID' ? $sFilterID : "'" . $sFilterID . "'"));
+        // Niet quoten op de NAAM van het veld (alleen een veld dat letterlijk "ID"
+        // heet bleef ongequote), maar op de WAARDE: elk numeriek filterveld met een
+        // andere naam kreeg zijn waarde tussen quotes en dat geeft in Access
+        // "Data type mismatch in criteria expression" — het rapport valt dan om.
+        $sFilterWaarde = is_numeric($sFilterID) ? $sFilterID : "'" . $sFilterID . "'";
+        $sql = SQL::addWhere($sql, $rsRep->fields['FilterIDField'] . '=' . $sFilterWaarde);
     }
     // stuff new sort order
     // assumes: the ORDER BY is always the last clause in an SQL

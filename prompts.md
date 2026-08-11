@@ -12961,3 +12961,15 @@ karaat-data en staat in de karaat-repo.
 > cma zit nu op.256
 
 > https://test-mijn.rino.nl/cma/form/opleidingen/20/opleidingen_deelnemers/228 -> the site is now on version .258, but the subform is not forced below the fold, it is a large detail page but the subforms should always be at leas a little bit shown (except when editing a new record)
+
+> cma_kopieer.php?id=5 , should be guared by cma user, not front-end user. because now the cma user gets a no access error
+
+> on the asp version of mijn rino there have been 6 small updates, can you check if they need to be implemented in the current php repo as well?
+
+> the commits have just been performed , can you chack the latest commits to the staging branch?
+
+> en https://test-mijn.rino.nl/cma/form/opleidingen/5/opleidingen_deelnemers/87, gaat dat nu wel werken? Daarbij viel me of dat na de eerste sidepanel het volgende formulier als een dialoog opent en geen sidepanel, is dat bewust?
+
+> Kun je kijken wanneer de code in php van conversie naar handmatig is overgegaan? Dat is het moment geweest dat de asp versie is 'verlaten', alles daarna moet worden beoordeeld
+
+> can you continue implementing it until you actually reach a question?
