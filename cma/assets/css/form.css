@@ -199,9 +199,16 @@ html, body {
     color: var(--text-primary);
 }
 
+/* min-height:0 is hier geen detail. Een flex-kind heeft standaard
+   min-height:auto en weigert dan kleiner te worden dan zijn inhoud. Bij een lang
+   formulier groeit .form-layout daardoor buiten het venster, en wat onderaan
+   staat — de sleepbalk en de subform-sectie — valt onder de vouw. Het paneel en
+   de inhoud eronder hebben hun 0 al; zonder deze ontbrak de eerste schakel en
+   hielp die van hen niets. */
 .form-layout {
     display: flex;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -418,6 +425,7 @@ body.has-subform:not(.is-creating) .fold-horizontal {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* zie .form-layout: elke schakel moet kunnen krimpen */
     overflow: hidden;
     height: 100%;
     position: relative; /* For overlays */

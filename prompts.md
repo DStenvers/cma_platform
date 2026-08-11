@@ -12957,3 +12957,7 @@ karaat-data en staat in de karaat-repo.
 >     background-color: transparent;
 >     color:  var(--popup-close-hover, #e01f3d); !important;
 > }
+
+> cma zit nu op.256
+
+> https://test-mijn.rino.nl/cma/form/opleidingen/20/opleidingen_deelnemers/228 -> the site is now on version .258, but the subform is not forced below the fold, it is a large detail page but the subforms should always be at leas a little bit shown (except when editing a new record)

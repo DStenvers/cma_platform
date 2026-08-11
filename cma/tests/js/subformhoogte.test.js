@@ -124,6 +124,21 @@ test('de subform-sectie groeit niet mee', () => {
     assert.gelijk(regels.indexOf('min-height'), -1, 'geen min-height die met flex vecht');
 });
 
+/**
+ * De keten van flex-ouders moet helemaal kunnen krimpen. Eén schakel met de
+ * standaard min-height:auto weigert kleiner te worden dan zijn inhoud; bij een
+ * lang formulier groeit die schakel buiten het venster en valt de subform-sectie
+ * onder de vouw. Dat de schakels eronder wél een 0 hebben, helpt dan niets.
+ */
+test('elke flex-ouder boven de subform-sectie kan krimpen', () => {
+    const css = fs.readFileSync(FORM_CSS, 'utf8');
+    ['\\.form-layout', '\\.detail-panel', '\\.detail-content'].forEach(sel => {
+        const match = new RegExp('^' + sel + ' \\{([^}]*)\\}', 'm').exec(css);
+        assert.waar(!!match, 'basisblok ' + sel + ' gevonden');
+        assert.waar(/min-height:\s*0/.test(match[1]), sel + ' heeft min-height: 0');
+    });
+});
+
 test('de controller bewaart de hoogte niet nog eens apart', () => {
     const js = fs.readFileSync(CONTROLLER, 'utf8');
     assert.gelijk(js.indexOf('subform-height'), -1, 'geen CSS-variabele meer gezet');
