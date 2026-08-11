@@ -12948,3 +12948,12 @@ karaat-data en staat in de karaat-repo.
 > There is a real issue with the calculations of subforms etc. This is more than a visual issue. It blocks data. Higest priority. class="subform-section" does not have the available hieght while it's parent does. I think we should skip     --subform-height: 500px; and always calculate the height. If the parent is a new record: the height is 0, otherwise it is derived from the cma-fold stored position. Please do a thorough sweep, because this is oimportant
 
 > okay, so it should be solved?
+
+> can you check if cma monitoring is still active? I changed something and don't see the change in the cma form
+
+> .lib-message__actions button.lib-message__close:hover {
+>     /* background-color: var(--popup-close-hover, #e01f3d); */
+>     border-color: var(--popup-close-hover, #e01f3d);
+>     background-color: transparent;
+>     color:  var(--popup-close-hover, #e01f3d); !important;
+> }

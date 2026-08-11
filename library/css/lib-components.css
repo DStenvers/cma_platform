@@ -506,13 +506,18 @@ lib-message[hidden] {
     opacity: 1;
 }
 
+/* Sluiten kleurt bij hover alleen zijn rand en zijn kruisje rood; de knop zelf
+   blijft leeg. Een dichtgelopen rood vlak trekt in een melding meer aandacht dan
+   de melding zelf, terwijl sluiten juist de minst belangrijke handeling is. */
 .lib-message__actions button.lib-message__close:hover {
-    background-color: var(--popup-close-hover, #E01F3D);
+    background-color: transparent;
     border-color: var(--popup-close-hover, #E01F3D);
+    color: var(--popup-close-hover, #E01F3D);
 }
 
+/* Mee met de tekstkleur: op de lege achtergrond zou een wit kruisje verdwijnen. */
 .lib-message__actions button.lib-message__close:hover span.lnr.lnr-cross::before {
-    color: var(--text-inverse, #fff);
+    color: var(--popup-close-hover, #E01F3D);
 }
 
 /* Icon colors by type - match lib-toaster base colors */
