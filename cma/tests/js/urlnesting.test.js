@@ -127,3 +127,31 @@ test('een paneel zonder iframe schrijft niets', () => {
     dom.window.__sync(dom.window);
     assert.gelijk(dom.window.location.pathname, '/cma/form/deelnemers/837');
 });
+
+/**
+ * Het adres wordt bij het laden vastgelegd voordat er iets aan gesleuteld kan
+ * worden. Zonder die momentopname wist het openen van het eerste paneel de
+ * geneste segmenten (lib_sidepanel_syncUrl ziet dan één paneel zonder ouder en
+ * schrijft niveau 1), en las de herstelfunctie een halve seconde later een adres
+ * waar het subformulier al uit weg was. Gemeten: /form/opleidingen/137/
+ * opleidingen_deelnemers/<id> werd /cma/form/opleidingen/137.
+ */
+suite('Deep link: het adres wordt vastgelegd voor het gewist kan worden');
+
+const MAIN_JS = path.join(__dirname, '..', '..', 'assets', 'js', 'main.js');
+
+test('de momentopname wordt genomen voordat de pagina laadt', () => {
+    const src = fs.readFileSync(MAIN_JS, 'utf8');
+    const opname = src.indexOf('const geplandeToestand');
+    const laden = src.indexOf('loadPage(page, false)');
+    assert.waar(opname !== -1, 'er wordt een momentopname genomen');
+    assert.waar(opname < laden, 'en wel vóór het laden van de pagina');
+});
+
+test('de herstelfunctie krijgt die momentopname mee', () => {
+    const src = fs.readFileSync(MAIN_JS, 'utf8');
+    assert.waar(src.indexOf('checkForPendingSidepanel(geplandeToestand)') !== -1,
+        'de vastgelegde toestand wordt doorgegeven');
+    assert.waar(src.indexOf('vastgelegdeToestand || window.CMA.url.parse()') !== -1,
+        'en gaat voor op het huidige adres');
+});

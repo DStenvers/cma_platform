@@ -12973,3 +12973,5 @@ karaat-data en staat in de karaat-repo.
 > Kun je kijken wanneer de code in php van conversie naar handmatig is overgegaan? Dat is het moment geweest dat de asp versie is 'verlaten', alles daarna moet worden beoordeeld
 
 > can you continue implementing it until you actually reach a question?
+
+> graag alles oppakken

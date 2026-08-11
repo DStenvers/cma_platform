@@ -1557,23 +1557,35 @@
             }
         }
 
+        // Het adres NU vastleggen, voordat er iets aan gesleuteld kan worden.
+        // Het openen van een paneel schrijft het adres bij (lib_sidepanel_syncUrl),
+        // en dat gebeurt binnen die halve seconde: opent het hoofdrecord als
+        // paneel, dan ziet die functie één paneel zonder ouder, concludeert
+        // niveau 1 en schrijft /form/<vorm>/<id> — precies de segmenten weg die
+        // hieronder nog gelezen moeten worden. De lezer werkt daarom met deze
+        // momentopname en niet met wat er dan in de balk staat.
+        const geplandeToestand = (window.CMA && window.CMA.url) ? window.CMA.url.parse() : null;
+
         if (page && page !== 'about:blank') {
             loadPage(page, false);
         }
 
         // After initial page load, check for sidepanel state to auto-open
         // Use setTimeout to ensure page is fully loaded first
-        setTimeout(checkForPendingSidepanel, 500);
+        setTimeout(function() { checkForPendingSidepanel(geplandeToestand); }, 500);
     };
 
     /**
      * Check URL for sidepanel state and auto-open sidepanel(s) if present
      * Supports clean URL format (/form/xxx/123/subform/456) and legacy query params
      */
-    function checkForPendingSidepanel() {
+    function checkForPendingSidepanel(vastgelegdeToestand) {
         // Check clean URL format first
         if (window.CMA && window.CMA.url) {
-            const urlState = window.CMA.url.parse();
+            // De momentopname van bij het laden wint: die kent de geneste
+            // segmenten nog. Zonder meegegeven toestand (andere aanroepers)
+            // valt hij terug op het huidige adres.
+            const urlState = vastgelegdeToestand || window.CMA.url.parse();
 
             // Main record is loaded in the detail panel (tree + record mode) by loadInitialPage.
             // Only open sidepanels for subforms/subsubforms if present in the URL.
