@@ -292,10 +292,9 @@ window.escapeHtml = CMA.utils.escapeHtml;
 /**
  * Format the toolbar record-count indicator text. Single source of truth for
  * the "records 1-N van M" string shared by FormController.updateRecordCount
- * and CmaInfiniteScroll.updateRecordCountDisplay (each keeps its own
- * visibility gating; only the text formatting lives here so the two can't
- * drift). Returns null when the indicator should be hidden (all records shown,
- * or nothing loaded).
+ * and CmaInfiniteScroll.updateRecordCountDisplay, so the two can't drift.
+ * Returns null when there is nothing to report (all records shown, or nothing
+ * loaded) — pass that straight to setRecordCount().
  * @param {number} loaded   Records loaded so far
  * @param {number|null} total  Total in dataset (null/undefined if unknown)
  * @param {boolean} hasMore Still loading — appends the " (laden...)" suffix
@@ -304,11 +303,32 @@ window.escapeHtml = CMA.utils.escapeHtml;
 CMA.utils.formatRecordCount = function(loaded, total, hasMore) {
     if (total !== null && total !== undefined && total > 0) {
         const endRecord = Math.min(loaded, total);
-        if (endRecord >= total) return null; // all records shown -> hide
+        if (endRecord >= total) return null; // all records shown -> nothing to report
         return `records 1-${endRecord} van ${total}${hasMore ? ' (laden...)' : ''}`;
     }
     if (loaded > 0) return `${loaded} records`;
     return null;
+};
+
+/**
+ * Write the toolbar record-count indicator. Every caller goes through here.
+ *
+ * The indicator carries .table-mode-only, and that class is styled !important
+ * in BOTH directions (hidden outside table mode, shown inside it). An inline
+ * style.display written from JS therefore never lands: the stylesheet owns
+ * whether the element is displayed, per mode. What JS owns is the TEXT — and
+ * empty text is what "nothing to report" looks like, since the span has no box
+ * of its own. Steering style.display instead left the previous batch's string
+ * frozen on screen ("records 1-1600 van 1625 (laden...)" while all 1625 rows
+ * had in fact loaded), because the hide branch was the one branch that never
+ * rewrote the text.
+ *
+ * @param {string|null} text Text to show; null/'' clears the indicator
+ */
+CMA.utils.setRecordCount = function(text) {
+    const countEl = document.getElementById('recordCount');
+    if (!countEl) return;
+    countEl.textContent = text || '';
 };
 
 /**

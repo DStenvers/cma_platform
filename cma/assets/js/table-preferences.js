@@ -1165,16 +1165,10 @@ class CmaInfiniteScroll {
         if (this.destroyed) return;
         if (this.table && this.table._cmaScroller && this.table._cmaScroller !== this) return;
 
-        const countEl = document.getElementById('recordCount');
-        if (!countEl) return;
-
-        // Check if container is scrollable - only show count if content overflows
-        if (this.container) {
-            const isScrollable = this.container.scrollHeight > this.container.clientHeight;
-            if (!isScrollable) {
-                countEl.style.display = 'none';
-                return;
-            }
+        // A list that fits on screen has nothing to count down.
+        if (this.container && this.container.scrollHeight <= this.container.clientHeight) {
+            CMA.utils.setRecordCount(null);
+            return;
         }
 
         // Loaded = this.currentCount (total rows appended by THIS scroller). We
@@ -1186,14 +1180,11 @@ class CmaInfiniteScroll {
         const loaded = this.currentCount;
 
         // Shared formatter (cma-utils) — same string as FormController's
-        // non-scroll path; here hasMore drives the "(laden...)" suffix.
-        const text = CMA.utils.formatRecordCount(loaded, this.totalCount, this.hasMore);
-        if (text === null) {
-            countEl.style.display = 'none';
-        } else {
-            countEl.textContent = text;
-            countEl.style.display = '';
-        }
+        // non-scroll path; here hasMore drives the "(laden...)" suffix. Writing
+        // it on EVERY render (including the "nothing to report" case, which
+        // clears it) is what keeps the last batch's "(laden...)" from staying
+        // behind once loading has finished.
+        CMA.utils.setRecordCount(CMA.utils.formatRecordCount(loaded, this.totalCount, this.hasMore));
     }
 
     /**

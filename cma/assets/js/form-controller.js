@@ -5619,6 +5619,27 @@ class CmaFormController {
     }
 
     /**
+     * The element that actually scrolls the list, found by asking the DOM which
+     * ancestor has a scrolling overflow — not by counting steps up from
+     * #listContent. Two things depend on the answer (the scroll listener that
+     * fetches the next batch, and the "does this list overflow at all?" gate on
+     * the record counter), and picking by DOM position gives them a different
+     * answer the moment a wrapper is added or the list is rendered in another
+     * layout: a listener on a container that never scrolls receives no scroll
+     * event, so the list stops loading at the last prefetched batch.
+     * @returns {HTMLElement|null} The scrolling ancestor, or null if none scrolls
+     */
+    getListScrollContainer() {
+        let el = this.listContent || document.getElementById('listContent');
+        while (el && el !== document.body) {
+            const overflowY = getComputedStyle(el).overflowY;
+            if (overflowY === 'auto' || overflowY === 'scroll') return el;
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    /**
      * Initialize infinite scroll for table view
      * @param {Object} data Response data with pagination info
      */
@@ -5634,11 +5655,7 @@ class CmaFormController {
             return;
         }
 
-        // IMPORTANT: The scrolling container is #c.listcontent (the parent of #listContent)
-        // #listContent is just a wrapper div without overflow, so we need the parent element
-        // HTML structure: <div id="c" class="listcontent"> → <div id="listContent"> → <table>
-        const listContentEl = this.listContent || document.getElementById('listContent');
-        const scrollContainer = listContentEl ? listContentEl.parentElement : null;
+        const scrollContainer = this.getListScrollContainer();
         const table = document.getElementById('listTable');
 
         if (!scrollContainer || !table) {
@@ -5956,20 +5973,16 @@ class CmaFormController {
         // Update pagination count to reflect visible rows after client-side filtering
         if (tableRows.length > 0) {
             const visibleCount = Array.from(tableRows).filter(r => r.style.display !== 'none').length;
-            const countEl = document.getElementById('recordCount');
-            if (countEl) {
-                if (trimmedValue === '') {
-                    // Search cleared - restore original count from server
-                    const totalCount = this._tableData?.totalCount;
-                    this.updateRecordCount(tableRows.length, totalCount);
-                } else if (visibleCount === 0) {
-                    // No matches - hide the counter instead of showing "0 van N"
-                    countEl.style.display = 'none';
-                } else {
-                    // Show filtered count
-                    countEl.textContent = `${visibleCount} van ${tableRows.length} records`;
-                    countEl.style.display = '';
-                }
+            if (trimmedValue === '') {
+                // Search cleared - restore original count from server
+                const totalCount = this._tableData?.totalCount;
+                this.updateRecordCount(tableRows.length, totalCount);
+            } else if (visibleCount === 0) {
+                // No matches - say nothing rather than "0 van N"
+                CMA.utils.setRecordCount(null);
+            } else {
+                // Show filtered count
+                CMA.utils.setRecordCount(`${visibleCount} van ${tableRows.length} records`);
             }
         }
 
@@ -6091,45 +6104,34 @@ class CmaFormController {
     /**
      * Update record count display in toolbar
      * Shows "records 1-X van Y" format when total count is available
-     * Only shows when the list content is scrollable (has overflow)
+     * Only shows when the list is scrollable (has overflow)
      * @param {number} currentCount Current number of loaded records
      * @param {number|null} totalCount Total records in dataset (null if unknown)
      */
     updateRecordCount(currentCount, totalCount) {
-        const countEl = document.getElementById('recordCount');
-        if (!countEl) return;
-
-        // Only show for table mode
+        // Only report in table mode
         if (!this.isTableMode()) {
-            countEl.style.display = 'none';
+            CMA.utils.setRecordCount(null);
             return;
         }
 
-        // Hide when search panel filters are active
+        // Nothing to report while search panel filters are active
         if (this.searchFilters && Object.keys(this.searchFilters).length > 0) {
-            countEl.style.display = 'none';
+            CMA.utils.setRecordCount(null);
             return;
         }
 
-        // Check if list content is scrollable - only show count if content overflows
-        const listContent = this.listContent || document.getElementById('listContent');
-        if (listContent) {
-            const isScrollable = listContent.scrollHeight > listContent.clientHeight;
-            if (!isScrollable) {
-                countEl.style.display = 'none';
-                return;
-            }
+        // A list that fits on screen has nothing to count down. Measure the
+        // element that really scrolls — the same one the scroller listens on.
+        const scrollContainer = this.getListScrollContainer();
+        if (scrollContainer && scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
+            CMA.utils.setRecordCount(null);
+            return;
         }
 
         // Shared formatter (cma-utils) — no "(laden...)" here; this path is the
         // non-scroll / final render, the infinite-scroll path passes hasMore.
-        const text = CMA.utils.formatRecordCount(currentCount, totalCount, false);
-        if (text === null) {
-            countEl.style.display = 'none';
-        } else {
-            countEl.textContent = text;
-            countEl.style.display = '';
-        }
+        CMA.utils.setRecordCount(CMA.utils.formatRecordCount(currentCount, totalCount, false));
     }
 
     /**
@@ -6672,13 +6674,11 @@ class CmaFormController {
             resetBtn.style.display = hasFilters ? '' : 'none';
         }
 
-        // Hide record count when search filters are active
-        const countEl = document.getElementById('recordCount');
-        if (countEl) {
-            if (hasFilters) {
-                countEl.style.display = 'none';
-            }
-            // When filters are cleared, updateRecordCount() will restore visibility on next list load
+        // A count over the full list says nothing while filters narrow it down.
+        // When filters are cleared, updateRecordCount() writes it again on the
+        // next list load.
+        if (hasFilters) {
+            CMA.utils.setRecordCount(null);
         }
     }
 
@@ -7101,15 +7101,13 @@ class CmaFormController {
                     const table = self._libTableInstance.querySelector('table.listtable') || self._libTableInstance;
                     const allRows = table.querySelectorAll('tbody tr.listrow');
                     const visibleRows = Array.from(allRows).filter(r => r.style.display !== 'none');
-                    const countEl = document.getElementById('recordCount');
-                    if (countEl && allRows.length > 0) {
+                    if (allRows.length > 0) {
                         const hasFilters = e.detail?.filters && Object.keys(e.detail.filters).length > 0;
                         if (hasFilters && visibleRows.length === 0) {
-                            // No matches - hide the counter instead of showing "0 van N"
-                            countEl.style.display = 'none';
+                            // No matches - say nothing rather than "0 van N"
+                            CMA.utils.setRecordCount(null);
                         } else if (hasFilters) {
-                            countEl.textContent = `${visibleRows.length} van ${allRows.length} records`;
-                            countEl.style.display = '';
+                            CMA.utils.setRecordCount(`${visibleRows.length} van ${allRows.length} records`);
                         } else {
                             const totalCount = self._tableData?.totalCount;
                             self.updateRecordCount(allRows.length, totalCount);
@@ -7123,19 +7121,15 @@ class CmaFormController {
 
                 // Update record count when excelTableFilter column filters change
                 this._libTableInstance.addEventListener('column-filter-change', (e) => {
-                    const countEl = document.getElementById('recordCount');
-                    if (countEl) {
-                        const { visibleCount, totalCount } = e.detail;
-                        if (visibleCount === 0) {
-                            // No matches - hide the counter instead of showing "0 van N"
-                            countEl.style.display = 'none';
-                        } else if (visibleCount < totalCount) {
-                            countEl.textContent = `${visibleCount} van ${totalCount} records`;
-                            countEl.style.display = '';
-                        } else {
-                            const serverTotal = self._tableData?.totalCount;
-                            self.updateRecordCount(totalCount, serverTotal);
-                        }
+                    const { visibleCount, totalCount } = e.detail;
+                    if (visibleCount === 0) {
+                        // No matches - say nothing rather than "0 van N"
+                        CMA.utils.setRecordCount(null);
+                    } else if (visibleCount < totalCount) {
+                        CMA.utils.setRecordCount(`${visibleCount} van ${totalCount} records`);
+                    } else {
+                        const serverTotal = self._tableData?.totalCount;
+                        self.updateRecordCount(totalCount, serverTotal);
                     }
                 });
 
@@ -7343,24 +7337,15 @@ class CmaFormController {
      */
     adjustRecordCountByDelta(delta) {
         const countEl = document.getElementById('recordCount');
-        if (countEl) {
-            const currentText = countEl.textContent;
-            // Match the "records 1-X van Y" format
-            const match = currentText.match(/records 1-(\d+) van (\d+)/);
-            if (match) {
-                const currentEnd = parseInt(match[1], 10);
-                const total = parseInt(match[2], 10);
-                const newEnd = Math.max(0, currentEnd + delta);
-                const newTotal = Math.max(0, total + delta);
-                if (newEnd >= newTotal) {
-                    // All records shown - hide the count
-                    countEl.style.display = 'none';
-                } else {
-                    countEl.textContent = `records 1-${newEnd} van ${newTotal}`;
-                    countEl.style.display = '';
-                }
-            }
-        }
+        if (!countEl) return;
+
+        // Match the "records 1-X van Y" format
+        const match = countEl.textContent.match(/records 1-(\d+) van (\d+)/);
+        if (!match) return;
+
+        const newEnd = Math.max(0, parseInt(match[1], 10) + delta);
+        const newTotal = Math.max(0, parseInt(match[2], 10) + delta);
+        CMA.utils.setRecordCount(CMA.utils.formatRecordCount(newEnd, newTotal, false));
     }
 
     /**

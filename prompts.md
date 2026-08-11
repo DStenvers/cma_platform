@@ -12992,3 +12992,5 @@ karaat-data en staat in de karaat-repo.
 > profiel-app: ja die moeten meegenomen worden, juist!
 
 > okay, dus je gaat niets eraan doen, wat is de route naar een oplossing want dit is echt super-stom
+
+> Draai cypress/e2e/forms/oneindig-scrollen.cy.js, bisect tegen v1.29.257, en repareer de containerkeuze op form-controller.js:5641
