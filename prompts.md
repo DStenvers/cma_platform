@@ -13015,3 +13015,5 @@ karaat-data en staat in de karaat-repo.
 > next url: https://www.villasfincas.com/property/
 
 > {"namespace":"habigrid\/v1","routes":{"\/habigrid\/v1":{"namespace":"habigrid\/v1","methods":["GET"],"endpoints":[{"methods":["GET"],"args":{"namespace":{"default":"habigrid\/v1","required":false},"context":{"default":"view","required":false}}}],"_links":{"self":[{"href":"https:\/\/abracasabra-realestate.com\/wp-json\/habigrid\/v1"}]}},"\/habigrid\/v1\/inquiry":{"namespace":"habigrid\/v1","methods":["POST"],"endpoints":[{"methods":["POST"],"args":[]}],"_links":{"self":[{"href":"https:\/\/abracasabra-realestate.com\/wp-json\/habigrid\/v1\/inquiry"}]}}},"_links":{"up":[{"href":"https:\/\/abracasabra-realestate.com\/wp-json\/"}]}}
+
+> the raa won’t open, can you create your own diacovery tool an then run it on the site?
