@@ -13020,3 +13020,5 @@ karaat-data en staat in de karaat-repo.
 
 > this is tedious pricess, create aoftware to emilate these steps and automate it
 > this whole process and steps can be programmed right?
+
+> stop working from the sandbox, you should program this , you have a decision tree
