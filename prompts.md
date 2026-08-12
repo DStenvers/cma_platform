@@ -12996,3 +12996,7 @@ karaat-data en staat in de karaat-repo.
 > Draai cypress/e2e/forms/oneindig-scrollen.cy.js, bisect tegen v1.29.257, en repareer de containerkeuze op form-controller.js:5641
 
 > hoeveel heb je gerekend voor de verhuizing?
+
+## 2026-08-12
+
+> can you also index https://abracasabra-realestate.com/property-search/?location%5B%5D=&search_location_1=&list_price_min=&list_price_max=450000&bedrooms_min=&bedrooms_max=&ref_no=&bathrooms_min=2&bathrooms_max=&build_size_min=&terrace_size_min=&plot_size_min=&fbclid=IwVERDUATplu5wZG9mBWZkaWQWUMVM3Z0CKrig8HUZEFxdaZBT3XwMYGV4dG4DYWVtAjExAHNydGMGYXBwX2lkCjY2Mjg1NjgzNzkAAR4SUelOSjR2OyqdmLOq1PWUXrFo7AsVZfnL9QgegjcfeJQVgYbFSZ8eNlO5uQ_aem_RpJUxiPS45PR8iLIF3SKEg
