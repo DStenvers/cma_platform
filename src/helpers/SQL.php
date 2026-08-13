@@ -754,18 +754,480 @@ class SQL
     }
 
     /**
+     * The character ranges of every string literal in $sql, as [start, endExclusive].
+     *
+     * Used to keep the function scanner out of quoted text: a report that stores the
+     * word "format(" in a label is data, not a call.
+     *
+     * @return array<int, array{0:int,1:int}>
+     */
+    private static function literalSpans(string $sql): array
+    {
+        $spans = [];
+        $len = strlen($sql);
+        for ($i = 0; $i < $len; $i++) {
+            if ($sql[$i] !== "'") {
+                continue;
+            }
+            $j = $i + 1;
+            while ($j < $len) {
+                if ($sql[$j] === "'") {
+                    if ($j + 1 < $len && $sql[$j + 1] === "'") {
+                        $j += 2;
+                        continue;
+                    }
+                    break;
+                }
+                $j++;
+            }
+            $spans[] = [$i, min($j + 1, $len)];
+            $i = $j;
+        }
+        return $spans;
+    }
+
+    /**
+     * Split the argument list of a call whose `(` sits at $openPos.
+     *
+     * A regular expression cannot do this part: arguments nest (`DateAdd('d', -1,
+     * Now())`), and both parentheses and commas occur inside string literals. So the
+     * arguments are scanned with a depth counter that skips literals — which is also
+     * what makes `Format([Datum], 'dd, mmm')` come out as two arguments and not three.
+     *
+     * @param  int|null $endPos  Set to the index just past the closing `)`.
+     * @return string[]|null     Trimmed arguments, or null when the call is unbalanced.
+     */
+    private static function splitCallArgs(string $sql, int $openPos, ?int &$endPos): ?array
+    {
+        $args = [];
+        $buf = '';
+        $depth = 0;
+        $len = strlen($sql);
+
+        for ($i = $openPos; $i < $len; $i++) {
+            $ch = $sql[$i];
+
+            if ($ch === "'") {
+                $j = $i + 1;
+                while ($j < $len) {
+                    if ($sql[$j] === "'") {
+                        if ($j + 1 < $len && $sql[$j + 1] === "'") {
+                            $j += 2;
+                            continue;
+                        }
+                        break;
+                    }
+                    $j++;
+                }
+                if ($j >= $len) {
+                    return null;                     // unterminated literal
+                }
+                $buf .= substr($sql, $i, $j - $i + 1);
+                $i = $j;
+                continue;
+            }
+
+            if ($ch === '(') {
+                $depth++;
+                if ($depth > 1) {
+                    $buf .= $ch;
+                }
+                continue;
+            }
+
+            if ($ch === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    $args[] = trim($buf);
+                    $endPos = $i + 1;
+                    return $args;
+                }
+                $buf .= $ch;
+                continue;
+            }
+
+            if ($ch === ',' && $depth === 1) {
+                $args[] = trim($buf);
+                $buf = '';
+                continue;
+            }
+
+            $buf .= $ch;
+        }
+
+        return null;                                 // unbalanced parentheses
+    }
+
+    /**
+     * Replace every call to $name whose arguments $fn can translate.
+     *
+     * $fn receives the argument strings and returns the replacement SQL, or null to
+     * leave that call untouched. Calls are rewritten right-to-left so a nested call
+     * is handled before the one that wraps it, and so earlier offsets stay valid.
+     */
+    private static function rewriteCalls(string $sql, string $name, callable $fn): string
+    {
+        $pattern = '/(?<![\w.])' . preg_quote($name, '/') . '\s*\(/i';
+        if (!preg_match_all($pattern, $sql, $matches, PREG_OFFSET_CAPTURE)) {
+            return $sql;
+        }
+        $spans = self::literalSpans($sql);
+
+        foreach (array_reverse($matches[0]) as [$match, $offset]) {
+            foreach ($spans as [$start, $end]) {
+                if ($offset >= $start && $offset < $end) {
+                    continue 2;                      // the name sits inside a literal
+                }
+            }
+            $endPos = null;
+            $args = self::splitCallArgs($sql, $offset + strlen($match) - 1, $endPos);
+            if ($args === null) {
+                continue;
+            }
+            $replacement = $fn($args);
+            if ($replacement === null) {
+                continue;
+            }
+            $sql = substr($sql, 0, $offset) . $replacement . substr($sql, $endPos);
+        }
+
+        return $sql;
+    }
+
+    /**
+     * The text of $arg when it is one plain string literal, else null.
+     *
+     * A translator that cannot see the interval or format string has nothing to
+     * translate, and must leave the call alone rather than guess.
+     */
+    private static function literalValue(string $arg): ?string
+    {
+        if (!preg_match("/^'((?:[^']|'')*)'$/", trim($arg), $m)) {
+            return null;
+        }
+        return str_replace("''", "'", $m[1]);
+    }
+
+    /**
+     * Access DateAdd intervals: which SQLite modifier, and by what factor.
+     *
+     * Note `m` is months and `n` is minutes — the opposite of what a reader who knows
+     * strftime expects, and getting them the wrong way round is the kind of mistake
+     * that produces plausible dates. `y` is Access' day-of-year, which adds days.
+     *
+     * @var array<string, array{0:string,1:int}>
+     */
+    private const SQLITE_DATEADD_UNITS = [
+        'yyyy' => ['years', 1],
+        'q'    => ['months', 3],
+        'm'    => ['months', 1],
+        'y'    => ['days', 1],
+        'd'    => ['days', 1],
+        'w'    => ['days', 1],
+        'ww'   => ['days', 7],
+        'h'    => ['hours', 1],
+        'n'    => ['minutes', 1],
+        's'    => ['seconds', 1],
+    ];
+
+    /**
+     * `DateAdd('d', -30, Now())` -> `datetime(Now(), (-30) || ' days')`.
+     *
+     * The count stays an expression: SQLite takes its modifier as a string, and
+     * building that string with `||` means a column or a bound parameter works just
+     * as well as a literal.
+     *
+     * @param string[] $args
+     */
+    private static function sqliteDateAdd(array $args): ?string
+    {
+        if (count($args) !== 3) {
+            return null;
+        }
+        $interval = self::literalValue($args[0]);
+        if ($interval === null || !isset(self::SQLITE_DATEADD_UNITS[strtolower($interval)])) {
+            return null;                             // unknown interval: leave it, "no such function: dateadd" is clear
+        }
+        [$unit, $factor] = self::SQLITE_DATEADD_UNITS[strtolower($interval)];
+        $count = $factor === 1 ? '(' . $args[1] . ')' : '((' . $args[1] . ') * ' . $factor . ')';
+
+        return 'datetime(' . $args[2] . ', ' . $count . " || ' " . $unit . "')";
+    }
+
+    /**
+     * `DateDiff('d', a, b)` -> the number of unit boundaries between a and b.
+     *
+     * Boundaries, not elapsed time — that is what Access counts, and the difference
+     * is not academic: from 09:50 to 10:10 Access' DateDiff("h") is 1 while the
+     * elapsed time is 0. Hence the truncation of both operands to the unit before
+     * subtracting, rather than a plain julianday difference.
+     *
+     * @param string[] $args
+     */
+    private static function sqliteDateDiff(array $args): ?string
+    {
+        if (count($args) !== 3) {
+            return null;
+        }
+        $interval = self::literalValue($args[0]);
+        if ($interval === null) {
+            return null;
+        }
+        [, $a, $b] = $args;
+
+        $year = static fn(string $x): string => "CAST(strftime('%Y', $x) AS INTEGER)";
+        $month = static fn(string $x): string => "CAST(strftime('%m', $x) AS INTEGER)";
+
+        switch (strtolower($interval)) {
+            case 'yyyy':
+                return '(' . $year($b) . ' - ' . $year($a) . ')';
+            case 'q':
+                // Quarter boundaries: whole quarters since year 0, subtracted.
+                return '((' . $year($b) . ' * 4 + (' . $month($b) . ' - 1) / 3)'
+                     . ' - (' . $year($a) . ' * 4 + (' . $month($a) . ' - 1) / 3))';
+            case 'm':
+                return '((' . $year($b) . ' - ' . $year($a) . ') * 12'
+                     . ' + (' . $month($b) . ' - ' . $month($a) . '))';
+            case 'd':
+            case 'y':
+                return "CAST(ROUND(julianday(date($b)) - julianday(date($a))) AS INTEGER)";
+            case 'w':
+                // Access' `w` counts whole weeks (same weekday to same weekday).
+                // `ww` counts calendar-week boundaries and is deliberately absent:
+                // that needs a first-day-of-week rule this has no way of knowing.
+                return "CAST((julianday(date($b)) - julianday(date($a))) / 7 AS INTEGER)";
+            case 'h':
+            case 'n':
+            case 's':
+                $truncate = ['h' => '%Y-%m-%d %H:00:00', 'n' => '%Y-%m-%d %H:%M:00', 's' => '%Y-%m-%d %H:%M:%S'];
+                $perDay   = ['h' => 24, 'n' => 1440, 's' => 86400];
+                $fmt = $truncate[strtolower($interval)];
+                $per = $perDay[strtolower($interval)];
+                return "CAST(ROUND((julianday(strftime('$fmt', $b)) - julianday(strftime('$fmt', $a))) * $per) AS INTEGER)";
+        }
+
+        return null;
+    }
+
+    /**
+     * Dutch month and weekday names, for the Access format tokens that spell them out.
+     *
+     * Access' Format() takes these from the system locale; SQLite has no such thing
+     * and no month names at all, so they are a table here. Dutch because that is the
+     * locale every consumer site runs on (the Access connection strings say
+     * `Locale Identifier=1043`). A site in another language needs this list changed,
+     * which is exactly the kind of thing that should be one edit in one place.
+     */
+    private const SQLITE_MONTHS_SHORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+    private const SQLITE_MONTHS_LONG  = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    private const SQLITE_DAYS_SHORT   = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+    private const SQLITE_DAYS_LONG    = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+
+    /** Access' named formats, as the token string they stand for. */
+    private const SQLITE_NAMED_FORMATS = [
+        'general date' => 'dd-mm-yyyy hh:nn:ss',
+        'long date'    => 'dddd d mmmm yyyy',
+        'medium date'  => 'dd-mmm-yy',
+        'short date'   => 'dd-mm-yyyy',
+        'long time'    => 'hh:nn:ss',
+        'medium time'  => 'hh:nn',
+        'short time'   => 'hh:nn',
+    ];
+
+    /**
+     * `Format([Datum], 'dd mmm yyyy')` -> a strftime expression (plus a CASE for the
+     * month name, which SQLite cannot produce by itself).
+     *
+     * This one MUST translate or fail loudly, and never be left alone: SQLite has its
+     * own `format()` — an alias of printf since 3.38 — so an untranslated Access call
+     * does not raise "no such function". It quietly returns the format string itself
+     * for every row. A format this cannot read therefore becomes a call to a function
+     * that does not exist, so the query stops instead of lying.
+     *
+     * @param string[] $args
+     */
+    private static function sqliteFormat(array $args): ?string
+    {
+        if (count($args) !== 2) {
+            return null;                             // not Access' Format(value, format)
+        }
+        $value = $args[0];
+        $format = self::literalValue($args[1]);
+        if ($format === null) {
+            // The format string is what tells the two apart: Access puts it second,
+            // SQLite's own format(fmt, …) puts it first. Without a readable literal
+            // in the second position this is not a call to claim — and a site that
+            // deliberately wrote SQLite's format() keeps working.
+            return null;
+        }
+        $format = self::SQLITE_NAMED_FORMATS[strtolower(trim($format))] ?? $format;
+
+        // Plain numeric formats: 0, 0.00, 0.000 …
+        if (preg_match('/^0(\.(0+))?$/', $format, $m)) {
+            return isset($m[2])
+                ? "printf('%." . strlen($m[2]) . "f', $value)"
+                : "CAST(ROUND($value) AS INTEGER)";
+        }
+
+        $tokens = self::parseAccessDateFormat($format);
+        if ($tokens === null) {
+            // A readable format this cannot express. Leaving it would run as SQLite's
+            // printf and return the format string itself for every row, so the call
+            // becomes one that does not exist and the query stops. The format is
+            // re-quoted rather than passed through, so the marker itself is valid SQL
+            // and the error names the format that needs attention.
+            return 'access_format_niet_vertaald(' . $value . ", '" . str_replace("'", "''", $format) . "')";
+        }
+        return self::buildSqliteDateFormat($tokens, $value);
+    }
+
+    /**
+     * Split an Access date-format string into tokens, or null when it holds something
+     * this does not understand.
+     *
+     * The awkward part is `m`, which means month everywhere EXCEPT directly after an
+     * hour token or directly before a seconds token, where Access reads it as minutes.
+     * `'dd mmm yyyy HH:mm'` — the single most common format on these sites — depends
+     * entirely on that rule: without it the time would read as a month.
+     *
+     * @return array<int, array{type:string, text:string}>|null
+     */
+    private static function parseAccessDateFormat(string $format): ?array
+    {
+        $map = [
+            'yyyy' => 'year4', 'yy' => 'year2',
+            'mmmm' => 'monthLong', 'mmm' => 'monthShort', 'mm' => 'month2', 'm' => 'month1',
+            'dddd' => 'dayLong', 'ddd' => 'dayShort', 'dd' => 'day2', 'd' => 'day1',
+            'hh' => 'hour2', 'h' => 'hour1',
+            'nn' => 'minute2', 'n' => 'minute1',
+            'ss' => 'second2', 's' => 'second1',
+        ];
+
+        $tokens = [];
+        $len = strlen($format);
+        for ($i = 0; $i < $len;) {
+            $matched = false;
+            foreach ($map as $token => $type) {       // longest first, see $map order
+                if (strncasecmp(substr($format, $i, strlen($token)), $token, strlen($token)) === 0) {
+                    $tokens[] = ['type' => $type, 'text' => substr($format, $i, strlen($token))];
+                    $i += strlen($token);
+                    $matched = true;
+                    break;
+                }
+            }
+            if ($matched) {
+                continue;
+            }
+            // A letter that is not a token is something this does not know (Access'
+            // `w`, `q`, `AM/PM`, …). Refuse the whole format rather than pass the
+            // letter through as if it were punctuation.
+            if (ctype_alpha($format[$i])) {
+                return null;
+            }
+            $tokens[] = ['type' => 'literal', 'text' => $format[$i]];
+            $i++;
+        }
+
+        // Access' month-versus-minute rule.
+        $significant = static fn(array $t): bool => $t['type'] !== 'literal';
+        foreach ($tokens as $index => $token) {
+            if ($token['type'] !== 'month2' && $token['type'] !== 'month1') {
+                continue;
+            }
+            $before = null;
+            for ($j = $index - 1; $j >= 0; $j--) {
+                if ($significant($tokens[$j])) { $before = $tokens[$j]['type']; break; }
+            }
+            $after = null;
+            for ($j = $index + 1; $j < count($tokens); $j++) {
+                if ($significant($tokens[$j])) { $after = $tokens[$j]['type']; break; }
+            }
+            $isMinute = in_array($before, ['hour1', 'hour2'], true)
+                || in_array($after, ['second1', 'second2'], true);
+            if ($isMinute) {
+                $tokens[$index]['type'] = $token['type'] === 'month2' ? 'minute2' : 'minute1';
+            }
+        }
+
+        return $tokens;
+    }
+
+    /**
+     * Turn parsed format tokens into one SQLite expression.
+     *
+     * Runs of tokens that strftime can do itself are merged into a single call; only
+     * the names and the unpadded numbers need their own part. So `'dd-mm-yyyy'` comes
+     * out as one strftime and not as five concatenated pieces.
+     *
+     * @param array<int, array{type:string, text:string}> $tokens
+     */
+    private static function buildSqliteDateFormat(array $tokens, string $value): string
+    {
+        $direct = [
+            'year4' => '%Y', 'year2' => '%y', 'month2' => '%m', 'day2' => '%d',
+            'hour2' => '%H', 'minute2' => '%M', 'second2' => '%S',
+        ];
+        $unpadded = [
+            'month1' => '%m', 'day1' => '%d', 'hour1' => '%H',
+            'minute1' => '%M', 'second1' => '%S',
+        ];
+        $names = [
+            'monthShort' => ['%m', self::SQLITE_MONTHS_SHORT, 1],
+            'monthLong'  => ['%m', self::SQLITE_MONTHS_LONG, 1],
+            'dayShort'   => ['%w', self::SQLITE_DAYS_SHORT, 0],
+            'dayLong'    => ['%w', self::SQLITE_DAYS_LONG, 0],
+        ];
+
+        $parts = [];
+        $buffer = '';
+        $flush = static function () use (&$parts, &$buffer, $value): void {
+            if ($buffer === '') {
+                return;
+            }
+            $parts[] = strpos($buffer, '%') === false
+                ? "'" . str_replace("'", "''", $buffer) . "'"
+                : "strftime('" . str_replace("'", "''", $buffer) . "', $value)";
+            $buffer = '';
+        };
+
+        foreach ($tokens as $token) {
+            $type = $token['type'];
+            if (isset($direct[$type])) {
+                $buffer .= $direct[$type];
+                continue;
+            }
+            if ($type === 'literal') {
+                // strftime treats % as an escape, so a literal % must be doubled.
+                $buffer .= $token['text'] === '%' ? '%%' : $token['text'];
+                continue;
+            }
+            $flush();
+            if (isset($unpadded[$type])) {
+                $parts[] = "CAST(strftime('" . $unpadded[$type] . "', $value) AS INTEGER)";
+                continue;
+            }
+            [$specifier, $labels, $offset] = $names[$type];
+            $case = "CASE CAST(strftime('$specifier', $value) AS INTEGER)";
+            foreach ($labels as $index => $label) {
+                $case .= ' WHEN ' . ($index + $offset) . " THEN '" . str_replace("'", "''", $label) . "'";
+            }
+            $parts[] = $case . ' END';
+        }
+        $flush();
+
+        if ($parts === []) {
+            return "''";
+        }
+        return count($parts) === 1 ? $parts[0] : '(' . implode(' || ', $parts) . ')';
+    }
+
+    /**
      * Translate the platform's Access-dialect SQL to SQLite.
      *
      * The platform's queries are written in the dialect it was converted from, so
      * SQLite support is a translation, not a mode. What is handled here is what the
      * platform itself emits (SQL::post*, SQL::addTop, the CMA's query builders) plus
      * the Access idioms that hand-written site queries use.
-     *
-     * Deliberately NOT translated: `DateAdd`/`DateDiff` and `Format`, whose argument
-     * shapes differ too much to rewrite safely with a regular expression. SQLite
-     * answers those with "no such function", which is a visible failure — far better
-     * than a half-rewritten expression that runs and returns the wrong rows. Use
-     * SQLite's own `date(x, '+1 day')` in site SQL that must run on both.
      *
      * `IIF(a,b,c)` is left alone: SQLite has had iif() since 3.32.
      */
@@ -795,6 +1257,14 @@ class SQL
                 return "'" . date($hasTime ? 'Y-m-d H:i:s' : 'Y-m-d', $ts) . "'";
             }, $s) ?? $s;
         });
+
+        // The three Access date functions. These take a format/interval string as an
+        // argument, so they cannot be rewritten inside mapOutsideLiterals() — that
+        // splits exactly the literal they need. They walk the SQL themselves instead,
+        // with their own literal- and bracket-aware scanner.
+        $sql = self::rewriteCalls($sql, 'DateAdd', [self::class, 'sqliteDateAdd']);
+        $sql = self::rewriteCalls($sql, 'DateDiff', [self::class, 'sqliteDateDiff']);
+        $sql = self::rewriteCalls($sql, 'Format', [self::class, 'sqliteFormat']);
 
         $sql = self::mapOutsideLiterals($sql, static function (string $s): string {
             // TOP n -> LIMIT n. Only the outermost SELECT: a TOP in a subquery would

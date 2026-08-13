@@ -195,6 +195,132 @@ class SqliteDialectTest extends TestCase
         $this->assertEquals([['a' => 'AB', 'b' => 'cd', 'c' => 'bcd', 'd' => 4, 'e' => 'x']], $rij);
     }
 
+    // ---- De drie Access-datumfuncties ----------------------------------------
+
+    /** Draai $sql vertaald op een SQLite-geheugendatabase en geef de eerste kolom. */
+    private function eersteWaarde(string $sql)
+    {
+        $conn = $this->sqlite();
+        $conn->exec('CREATE TABLE t (d TEXT)');
+        $conn->exec("INSERT INTO t VALUES ('2026-03-09 14:05:07')");
+        return $conn->query(SQL::processSQL($conn, $sql))->fetchColumn();
+    }
+
+    public function testDateAddPerInterval(): void
+    {
+        $this->assertEquals('2026-02-07 00:00:00', $this->eersteWaarde("SELECT DateAdd('d', -30, #2026-03-09#)"));
+        $this->assertEquals('2026-05-09 14:05:07', $this->eersteWaarde("SELECT DateAdd('m', 2, d) FROM t"));
+        $this->assertEquals('2027-03-09 14:05:07', $this->eersteWaarde("SELECT DateAdd('yyyy', 1, d) FROM t"));
+        // ww telt weken, q kwartalen — allebei een veelvoud van een SQLite-eenheid.
+        $this->assertEquals('2026-03-16 14:05:07', $this->eersteWaarde("SELECT DateAdd('ww', 1, d) FROM t"));
+        $this->assertEquals('2026-06-09 14:05:07', $this->eersteWaarde("SELECT DateAdd('q', 1, d) FROM t"));
+        $this->assertEquals('2026-03-09 16:05:07', $this->eersteWaarde("SELECT DateAdd('h', 2, d) FROM t"));
+        // 'n' is minuten en 'm' maanden — omgekeerd aan wat strftime doet.
+        $this->assertEquals('2026-03-09 14:35:07', $this->eersteWaarde("SELECT DateAdd('n', 30, d) FROM t"));
+    }
+
+    public function testDateAddNeemtEenExpressieAlsAantal(): void
+    {
+        // Het aantal hoeft geen constante te zijn; SQLite krijgt zijn modifier als
+        // een string die met || opgebouwd wordt.
+        $this->assertEquals('2026-03-11 14:05:07',
+            $this->eersteWaarde("SELECT DateAdd('d', (SELECT 2), d) FROM t"));
+    }
+
+    public function testDateDiffTeltGrenzenZoalsAccess(): void
+    {
+        $this->assertEquals(67, (int) $this->eersteWaarde("SELECT DateDiff('d','2026-01-01','2026-03-09')"));
+        // Access telt maandgrenzen, geen hele maanden: 31 jan -> 1 mrt is 2.
+        $this->assertEquals(2, (int) $this->eersteWaarde("SELECT DateDiff('m','2026-01-31','2026-03-01')"));
+        $this->assertEquals(6, (int) $this->eersteWaarde("SELECT DateDiff('yyyy','2020-12-31','2026-01-01')"));
+        // En uurgrenzen, geen verstreken uren: 09:50 -> 10:10 is 1, niet 0.
+        $this->assertEquals(1, (int) $this->eersteWaarde("SELECT DateDiff('h','2026-01-01 09:50','2026-01-01 10:10')"));
+        $this->assertEquals(20, (int) $this->eersteWaarde("SELECT DateDiff('n','2026-01-01 09:50','2026-01-01 10:10')"));
+        $this->assertEquals(-5, (int) $this->eersteWaarde("SELECT DateDiff('d','2026-03-09','2026-03-04')"));
+    }
+
+    public function testFormatDatums(): void
+    {
+        $this->assertEquals('09 mrt 2026', $this->eersteWaarde("SELECT Format([d],'dd mmm yyyy') FROM t"));
+        $this->assertEquals('2026-03-09', $this->eersteWaarde("SELECT Format(d,'yyyy-mm-dd') FROM t"));
+        $this->assertEquals('maandag 9 maart 2026', $this->eersteWaarde("SELECT Format(d,'dddd d mmmm yyyy') FROM t"));
+        $this->assertEquals('09-03-2026', $this->eersteWaarde("SELECT Format(d,'Short Date') FROM t"));
+        $this->assertEquals('14:05:07', $this->eersteWaarde("SELECT Format(d,'hh:nn:ss') FROM t"));
+        // Enkelvoudige tokens zijn zonder voorloopnul.
+        $this->assertEquals('9-3-2026', $this->eersteWaarde("SELECT Format(d,'d-m-yyyy') FROM t"));
+    }
+
+    /**
+     * De valkuil van het hele formaat: in Access is `m` maand, BEHALVE direct na een
+     * uur-token. 'dd mmm yyyy HH:mm' — verreweg het meest gebruikte formaat in de
+     * rapportqueries — staat of valt daarmee; zonder die regel leest de tijd als maand.
+     */
+    public function testMinuutVersusMaandInEenFormaat(): void
+    {
+        $this->assertEquals('09 mrt 2026 14:05', $this->eersteWaarde("SELECT format( d, \"dd mmm yyyy HH:mm\") FROM t"));
+        $this->assertEquals('14:05:07', $this->eersteWaarde("SELECT Format(d,'hh:mm:ss') FROM t"));
+        // Zónder uur ervoor blijft mm gewoon de maand.
+        $this->assertEquals('03', $this->eersteWaarde("SELECT Format(d,'mm') FROM t"));
+    }
+
+    public function testFormatGetallen(): void
+    {
+        $this->assertEquals('1234.57', $this->eersteWaarde("SELECT Format(1234.5678,'0.00')"));
+        $this->assertEquals(1235, (int) $this->eersteWaarde("SELECT Format(1234.5678,'0')"));
+    }
+
+    public function testGenesteEnGeciteerdeAanroepen(): void
+    {
+        $this->assertEquals('10-03-2026', $this->eersteWaarde("SELECT Format(DateAdd('d',1,d),'dd-mm-yyyy') FROM t"));
+        // Een functienaam in een stringliteral is gegevens, geen aanroep.
+        $this->assertEquals('Format(x)', $this->eersteWaarde("SELECT 'Format(x)'"));
+        // Een komma binnen het formaat splitst de argumenten niet.
+        $this->assertEquals('09, mrt', $this->eersteWaarde("SELECT Format(d,'dd, mmm') FROM t"));
+    }
+
+    /**
+     * Een onvertaalbaar formaat moet de query stoppen, niet stilletjes iets teruggeven.
+     * SQLite heeft namelijk een eigen format() — een alias van printf sinds 3.38 — dus
+     * een onaangeraakte Access-aanroep geeft geen fout maar bij elke rij letterlijk de
+     * formaatstring terug.
+     */
+    public function testOnvertaalbaarFormaatStoptDeQuery(): void
+    {
+        $conn = $this->sqlite();
+        $vertaald = SQL::processSQL($conn, "SELECT Format('2026-03-09','q')");
+        $this->assertStringContainsString('access_format_niet_vertaald', $vertaald);
+        $this->assertStringContainsString("'q'", $vertaald, 'de melding hoort het formaat te noemen');
+
+        $mislukt = false;
+        try {
+            $conn->query($vertaald);
+        } catch (\Throwable $e) {
+            $mislukt = str_contains($e->getMessage(), 'access_format_niet_vertaald');
+        }
+        $this->assertTrue($mislukt, 'een onvertaalbaar formaat hoort luid te falen');
+    }
+
+    /** SQLite's eigen format(formaat, …) heeft de formaatstring vóóraan en blijft. */
+    public function testSqliteEigenFormatBlijftWerken(): void
+    {
+        $this->assertEquals('42', $this->eersteWaarde("SELECT format('%d', 42)"));
+        $this->assertEquals('3.1', $this->eersteWaarde("SELECT printf('%.1f', 3.14159)"));
+    }
+
+    /** Een onbekend interval blijft staan; "no such function: dateadd" is duidelijk genoeg. */
+    public function testOnbekendIntervalBlijftStaan(): void
+    {
+        $conn = $this->sqlite();
+        $this->assertStringContainsString('DateAdd', SQL::processSQL($conn, "SELECT DateAdd('zz', 1, d) FROM t"));
+    }
+
+    public function testAccessKrijgtZijnDatumfunctiesOngewijzigd(): void
+    {
+        $sql = "SELECT Format([Datum],'dd mmm yyyy'), DateAdd('d',-30,Now()) FROM t";
+        $this->assertStringContainsString('Format(', SQL::processSQL($this->odbc(), $sql));
+        $this->assertStringContainsString('DateAdd(', SQL::processSQL($this->odbc(), $sql));
+    }
+
     public function testPostStringEscapesLandenOpSqlite(): void
     {
         // postString() bouwt "' & chr(39) & '" voor een apostrof — Access-syntax die
