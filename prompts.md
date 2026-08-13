@@ -13022,3 +13022,7 @@ karaat-data en staat in de karaat-repo.
 > this whole process and steps can be programmed right?
 
 > stop working from the sandbox, you should program this , you have a decision tree
+
+## 2026-08-13
+
+> only command line?
