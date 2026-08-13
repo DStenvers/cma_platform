@@ -279,33 +279,10 @@ class MigrationService
      */
     private function versionTableExists(\PDO $conn, string $tableName = self::VERSION_TABLE): bool
     {
-        try {
-            $driver = $conn->getAttribute(\PDO::ATTR_DRIVER_NAME);
-
-            if ($driver === 'sqlite') {
-                // SQLite - check sqlite_master.  Table name embedded as a
-                // literal because $tableName is service-controlled (never
-                // user input); same reasoning for the other branches.
-                $sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='" . $tableName . "'";
-                $stmt = $conn->query($sql);
-                return $stmt->fetch() !== false;
-            } elseif ($driver === 'odbc') {
-                // Access — try to read the table; thrown exception means absent.
-                try {
-                    $conn->query("SELECT TOP 1 version FROM " . $tableName);
-                    return true;
-                } catch (\Throwable $e) {
-                    return false;
-                }
-            } else {
-                // SQL Server / others
-                $sql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" . $tableName . "'";
-                $stmt = $conn->query($sql);
-                return (int)$stmt->fetchColumn() > 0;
-            }
-        } catch (\Throwable $e) {
-            return false;
-        }
+        // Per-driver catalogue lookups live in Database::tableExistsPDO(); a second
+        // copy here is a second thing to keep right. $tableName is service-controlled
+        // (never user input), which is what makes the literal interpolation there safe.
+        return Database::tableExistsPDO($conn, $tableName);
     }
 
     /**
@@ -856,32 +833,15 @@ class MigrationService
                 return ['success' => true, 'error' => null, 'message' => 'Tabel bestaat al'];
             }
 
-            $driver = $conn->getAttribute(\PDO::ATTR_DRIVER_NAME);
-
-            if ($driver === 'sqlite') {
-                $sql = "CREATE TABLE " . $tableName . " (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    version TEXT NOT NULL,
-                    applied_at TEXT,
-                    description TEXT
-                )";
-            } elseif ($driver === 'odbc') {
-                $sql = "CREATE TABLE " . $tableName . " (
-                    id AUTOINCREMENT PRIMARY KEY,
-                    version VARCHAR($versionWidth) NOT NULL,
-                    applied_at DATETIME,
-                    description VARCHAR(255)
-                )";
-            } else {
-                $sql = "CREATE TABLE " . $tableName . " (
-                    id INT IDENTITY(1,1) PRIMARY KEY,
-                    version VARCHAR($versionWidth) NOT NULL,
-                    applied_at DATETIME NOT NULL DEFAULT GETDATE(),
-                    description NVARCHAR(255)
-                )";
-            }
-
-            $conn->exec($sql);
+            // One statement in the platform's Access dialect; Database::executeDdl()
+            // makes it whatever this backend accepts. Three hand-maintained variants
+            // is how they drift — the SQLite one had already lost the version width.
+            Database::executeDdl($conn, "CREATE TABLE " . $tableName . " (
+                id AUTOINCREMENT PRIMARY KEY,
+                version VARCHAR($versionWidth) NOT NULL,
+                applied_at DATETIME,
+                description VARCHAR(255)
+            )");
 
             return ['success' => true, 'error' => null, 'message' => 'Tabel aangemaakt'];
         } catch (\Throwable $e) {
@@ -1239,7 +1199,9 @@ class MigrationService
                 if ($cleaned === '') {
                     continue;
                 }
-                $conn->exec($cleaned);
+                // Script statements are DDL by convention, so they go through the
+                // same dialect translation as a declarative schema change.
+                Database::executeDdl($conn, $cleaned);
                 $executed++;
             }
 
@@ -1758,11 +1720,7 @@ class MigrationService
                 return false;
             }
 
-            // Try to select the column - will fail if it doesn't exist
-            $sql = "SELECT TOP 1 [{$column}] FROM [{$table}]";
-            $conn->query($sql);
-
-            self::$columnExistsCache[$cacheKey] = true;
+            self::$columnExistsCache[$cacheKey] = Database::columnExistsPDO($conn, $table, $column);
         } catch (\Throwable $e) {
             self::$columnExistsCache[$cacheKey] = false;
         }

@@ -26,6 +26,11 @@ $original_file = ltrim($original_file, '/');
 
 if ($original_file && file_exists(__DIR__ . '/' . $original_file)) {
     include __DIR__ . '/' . $original_file;
+} elseif (is_file(__DIR__ . '/404.php')) {
+    // The site's own 404 handler — the same one IIS routes missing static files
+    // to (web.config httpErrors). Routing both through one file is what keeps a
+    // missing route and a missing file from looking like different products.
+    require __DIR__ . '/404.php';
 } else {
     http_response_code(404);
     echo 'File not found: ' . htmlspecialchars($original_file);

@@ -96,10 +96,9 @@ class DatabaseDialectEverywhereTest extends TestCase
         $conn->enqueueResult([['ID' => '1']]);
         $sql = "SELECT ID from tblEvalDeelname where guid='" . self::GUID . "'";
         Database::getFieldValue($conn, $sql, 'ID');
-        // processSQL() normaliseert buiten Access hooguit de witruimte; de vergelijking
-        // zelf hoort een '=' te blijven.
+        // De vergelijking zelf hoort een '=' te blijven.
         $this->assertStringNotContainsString('LIKE', $this->sqlMet($conn),
             'buiten Access hoort een GUID gewoon met = vergeleken te worden');
-        $this->assertStringContainsString('guid = ', $this->sqlMet($conn));
+        $this->assertStringContainsString("guid='" . self::GUID . "'", $this->sqlMet($conn));
     }
 }

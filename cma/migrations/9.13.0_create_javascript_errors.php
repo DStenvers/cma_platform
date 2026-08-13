@@ -32,15 +32,7 @@ try {
         exit(1);
     }
 
-    $tableExists = false;
-    try {
-        $conn->query("SELECT TOP 1 [id] FROM [tblCMAJavascriptErrors]");
-        $tableExists = true;
-    } catch (\Exception $e) {
-        // Table doesn't exist
-    }
-
-    if ($tableExists) {
+    if (Database::tableExistsPDO($conn, 'tblCMAJavascriptErrors')) {
         echo "✓ tblCMAJavascriptErrors bestaat al\n";
         if (defined('MIGRATION_RUNNING')) return true;
         exit(0);
@@ -62,10 +54,10 @@ try {
         [extra_info]    MEMO
     )";
 
-    $conn->exec($sql);
+    Database::executeDdl($conn, $sql);
 
     try {
-        $conn->exec("CREATE INDEX [ix_jserror_datestamp] ON [tblCMAJavascriptErrors] ([datestamp])");
+        Database::executeDdl($conn, "CREATE INDEX [ix_jserror_datestamp] ON [tblCMAJavascriptErrors] ([datestamp])");
     } catch (\Exception $e) {
         echo "  ⚠ Index ix_jserror_datestamp niet aangemaakt: " . $e->getMessage() . "\n";
     }

@@ -35,24 +35,7 @@ try {
         exit(1);
     }
 
-    // Probe for the table. IMPORTANT: the PDO ODBC Access driver often does NOT
-    // raise "table does not exist" at query() time — it surfaces the error only
-    // when you fetch. A bare query()+assume-exists therefore FALSE-POSITIVES on a
-    // missing table (reports "bestaat al" and never creates it, while the form,
-    // which does fetch, errors "cannot find the input table"). So force a fetch,
-    // and treat a non-throwing false return as "missing" too.
-    $tableExists = false;
-    try {
-        $stmt = $conn->query("SELECT TOP 1 ID FROM tblCMAMarketingUrl");
-        if ($stmt !== false) {
-            $stmt->fetchColumn();   // forces the driver to actually touch the table
-            $tableExists = true;
-        }
-    } catch (\Exception $e) {
-        // Table doesn't exist — the fetch (or query) surfaced it here.
-    }
-
-    if ($tableExists) {
+    if (Database::tableExistsPDO($conn, 'tblCMAMarketingUrl')) {
         echo "✓ tblCMAMarketingUrl bestaat al\n";
         if (defined('MIGRATION_RUNNING')) return true;
         exit(0);
@@ -67,10 +50,10 @@ try {
         DATESTAMP DATETIME
     )";
 
-    $conn->exec($sql);
+    Database::executeDdl($conn, $sql);
 
     try {
-        $conn->exec("CREATE UNIQUE INDEX tblCMAMarketingUrl_dir ON tblCMAMarketingUrl (Dir)");
+        Database::executeDdl($conn, "CREATE UNIQUE INDEX tblCMAMarketingUrl_dir ON tblCMAMarketingUrl (Dir)");
     } catch (\Exception $e) {
         echo "  ⚠ Index tblCMAMarketingUrl_dir niet aangemaakt: " . $e->getMessage() . "\n";
     }

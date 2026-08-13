@@ -23,22 +23,13 @@ try {
         exit(1);
     }
 
-    // Check if table already exists
-    $tableExists = false;
-    try {
-        $conn->query("SELECT TOP 1 ID FROM tblEmailLog");
-        $tableExists = true;
-    } catch (\Exception $e) {
-        // Table doesn't exist
-    }
-
-    if ($tableExists) {
+    if (Database::tableExistsPDO($conn, 'tblEmailLog')) {
         echo "✓ tblEmailLog bestaat al\n";
         if (defined('MIGRATION_RUNNING')) return true;
         exit(0);
     }
 
-    // Create the table (Access syntax)
+    // Access syntax; Database::executeDdl() translates it for the backend in use.
     $sql = "CREATE TABLE tblEmailLog (
         ID AUTOINCREMENT PRIMARY KEY,
         datestamp DATETIME,
@@ -56,18 +47,18 @@ try {
         mail_user VARCHAR(100)
     )";
 
-    $conn->exec($sql);
+    Database::executeDdl($conn, $sql);
 
     // Create index on datestamp for cleanup queries and sorting
     try {
-        $conn->exec("CREATE INDEX idx_EmailLog_datestamp ON tblEmailLog (datestamp)");
+        Database::executeDdl($conn, "CREATE INDEX idx_EmailLog_datestamp ON tblEmailLog (datestamp)");
     } catch (\Exception $e) {
         echo "  ⚠ Index idx_EmailLog_datestamp niet aangemaakt: " . $e->getMessage() . "\n";
     }
 
     // Create index on mail_status for filtering
     try {
-        $conn->exec("CREATE INDEX idx_EmailLog_status ON tblEmailLog (mail_status)");
+        Database::executeDdl($conn, "CREATE INDEX idx_EmailLog_status ON tblEmailLog (mail_status)");
     } catch (\Exception $e) {
         echo "  ⚠ Index idx_EmailLog_status niet aangemaakt: " . $e->getMessage() . "\n";
     }

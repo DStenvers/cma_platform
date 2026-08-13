@@ -23,22 +23,15 @@ try {
         exit(1);
     }
 
-    // Check if table already exists
-    $tableExists = false;
-    try {
-        $conn->query("SELECT TOP 1 ID FROM tblCMAMonitoring");
-        $tableExists = true;
-    } catch (\Exception $e) {
-        // Table doesn't exist
-    }
-
-    if ($tableExists) {
+    if (Database::tableExistsPDO($conn, 'tblCMAMonitoring')) {
         echo "✓ tblCMAMonitoring bestaat al\n";
         if (defined('MIGRATION_RUNNING')) return true;
         exit(0);
     }
 
-    // Create the table (Access syntax)
+    // Written in the platform's Access dialect; Database::executeDdl() turns it
+    // into what the connected backend accepts (SQLite spells the counter column
+    // "INTEGER PRIMARY KEY AUTOINCREMENT", and has no MEMO or LONG at all).
     $sql = "CREATE TABLE tblCMAMonitoring (
         ID AUTOINCREMENT PRIMARY KEY,
         datestamp DATETIME,
@@ -50,13 +43,13 @@ try {
         Notificatie MEMO
     )";
 
-    $conn->exec($sql);
+    Database::executeDdl($conn, $sql);
 
-    // Create index on Formid (will be replaced by Form in migration 5.6.0+)
+    // Index on Formid. Optional: without it the monitoring list is slower, not
+    // wrong, so a driver that refuses the index must not fail the migration.
     try {
-        $conn->exec("CREATE INDEX tblCMAMonitoring_formid ON tblCMAMonitoring (Formid)");
+        Database::executeDdl($conn, "CREATE INDEX tblCMAMonitoring_formid ON tblCMAMonitoring (Formid)");
     } catch (\Exception $e) {
-        // Index creation is optional
         echo "  ⚠ Index tblCMAMonitoring_formid niet aangemaakt: " . $e->getMessage() . "\n";
     }
 

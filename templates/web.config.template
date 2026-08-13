@@ -183,6 +183,14 @@
             <remove fileExtension=".webp" />
             <mimeMap fileExtension=".webp" mimeType="image/webp" />
         </staticContent>
+
+        <!-- Custom 404 page routed to /404.php (created by the Installer when the
+             site does not have one). existingResponse="Auto" prevents the redirect
+             loop that occurs when 404.php itself answers with a 404 status. -->
+        <httpErrors existingResponse="Auto" errorMode="Custom">
+            <remove statusCode="404" subStatusCode="-1" />
+            <error statusCode="404" path="/404.php" responseMode="ExecuteURL" />
+        </httpErrors>
     </system.webServer>
 
     <!-- Cache fonts for 1 year (fonts rarely change) -->

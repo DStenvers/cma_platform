@@ -13026,3 +13026,14 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-13
 
 > only command line?
+## 2026-08-13
+
+> De maintenance pagina en de 404 pagina dienen bij een release te worden gecreeeerd als ze nog niet bestaan.
+> Kijk naar de verschillende consumers die we nu al hebben en kijk of een lege installatie zoals casa nog meer default bestanden nodig heeft. 
+> Denk aan cma_menu.json, cma_reports.json en dergelijke. Mogen in dat geval leeg worden aangemaakt. 
+>
+> Migraties werken nu niet bij een sqllite database: 
+> ✗ Versie 1.0.1 MISLUKT: PHP script gaf false terug: migrations/1.0.1_create_cmamonitoring.php
+> ✗ Fout: SQLSTATE[HY000]: General error: 1 near "AUTOINCREMENT": syntax error
+> Graag zo oplossen dat het in het database object gebeurd en niet in de migraties, zoveel mogelijk intelligentie in die class en niet in de aanroepende partij.
+> Graag alle sql's in de migraties nalopen of er nog meer zaken zijn die sqllite niet aankan of waarvan de syntax anders is.

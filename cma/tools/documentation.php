@@ -1610,6 +1610,57 @@ function cma_doc_check_json_schema_refs(): array {
 }
 
 /**
+ * Staan de per-site configs in data/ er, en de pagina's die het platform bij een
+ * release neerzet?
+ *
+ * De Installer maakt ze aan als ze ontbreken, dus een gat hier betekent dat er sinds
+ * die release geen `composer update` meer gedraaid heeft — of dat de map niet
+ * beschrijfbaar is. Een legacy-naam telt mee: op een site die nog `data/menu.json`
+ * gebruikt hoort er géén lege `data/cma_menu.json` naast te staan, want die zou het
+ * echte menu overschaduwen.
+ */
+function cma_doc_check_site_defaults(): array {
+    $label = 'Standaardbestanden van een installatie';
+    $root  = cma_doc_site_root();
+
+    // config => legacy-naam die net zo goed is (null = geen)
+    $configs = [
+        'cma_menu.json'       => 'menu.json',
+        'cma_reports.json'    => 'reports.json',
+        'cma_tools.json'      => 'tools.json',
+        'cma_branding.json'   => 'app.json',
+        'databases.json'      => null,
+        'image-profiles.json' => null,
+    ];
+
+    $missing = [];
+    foreach ($configs as $naam => $legacy) {
+        if (is_file($root . '/data/' . $naam)) {
+            continue;
+        }
+        if ($legacy !== null && is_file($root . '/data/' . $legacy)) {
+            continue;
+        }
+        $missing[] = 'data/' . $naam;
+    }
+    foreach (['404.php', 'src/pages/maintenance.php'] as $pagina) {
+        if (!is_file($root . '/' . $pagina)) {
+            $missing[] = $pagina;
+        }
+    }
+
+    if ($missing === []) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Alle per-site configs en de onderhouds-/404-pagina staan er.', 'fix' => ''];
+    }
+    return [
+        'label'  => $label,
+        'status' => 'warn',
+        'detail' => 'Ontbreekt: <code>' . implode('</code>, <code>', array_map('htmlspecialchars', $missing)) . '</code>.',
+        'fix'    => 'Draai <code>composer update stenversonline/platform</code> — de Installer maakt ontbrekende bestanden aan (en raakt bestaande nooit aan). Blijft er iets ontbreken, controleer dan de schrijfrechten op <code>data/</code> en de site-root.',
+    ];
+}
+
+/**
  * Elke Installer-handler in composer.json moet in de GEÏNSTALLEERDE vendor bestaan.
  *
  * De `pre-*-cmd`-scripts draaien vóór de update, dus tegen de code die er nu staat — niet
@@ -2058,14 +2109,20 @@ can not call pre-update-cmd script</code></pre>
                 en kan juist de update die de methode meebrengt niet draaien. Eruit komen: haal die ene regel weg, draai <code>composer update</code>, zet hem terug. De check-tabel bovenaan deze pagina controleert dit vooraf.
             </div>
         </li>
-        <li><code>composer install</code> uitvoeren. De Installer runt automatisch en kopieert <code>library/</code>, <code>cma/</code>, <code>module/</code> naar de project-root, en plaatst eenmalige template-bestanden (<code>_bootstrap.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>) als die nog niet bestaan.</li>
-        <li>De Installer kopieert tegelijk eenmalig de template-bestanden uit <code>templates/</code> als ze nog niet bestaan op de site-root: <code>_bootstrap.php</code>, <code>_bootstrap_wrapper.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code>, en <code>assets/css/cma.css</code> (uit <code>cma.css.template</code>). <code>_bootstrap_constants.inc</code> wordt apart gekopieerd. Bestaande bestanden worden NOOIT overschreven.</li>
+        <li><code>composer install</code> uitvoeren. De Installer runt automatisch en kopieert <code>library/</code>, <code>cma/</code> en <code>module/</code> naar de project-root.</li>
+        <li>Diezelfde run zet de site-eigen bestanden neer die er nog niet zijn — bestaande worden <span class="cma-tool__strong">nooit</span> overschreven, dus dit gebeurt bij elke release opnieuw en raakt alleen wat ontbreekt:
+            <ul>
+                <li>Uit <code>templates/</code>: <code>_bootstrap.php</code>, <code>_bootstrap_wrapper.php</code>, <code>web.config</code>, <code>app.php</code>, <code>global.asa.php</code>, <code>.env.example</code> en <code>assets/css/cma.css</code>. <code>_bootstrap_constants.inc</code> wordt apart gekopieerd.</li>
+                <li><code>404.php</code> en <code>src/pages/maintenance.php</code> — de twee pagina's die een bezoeker te zien krijgt als er iets mis is. Beide zijn een dun scriptje op de site-root dat de opmaak uit het platform haalt (<code>cma/notfound_page.inc</code> en <code>cma/maintenance_page.inc</code>), met een ingebouwde terugval voor het moment dat <code>cma/</code> er nog niet staat. Ze zijn van jou om aan te passen: site-eigen gedrag (vanity-URL's, een ander logpad) hoort daar, de vormgeving in het platform. Het routeren van 404's naar <code>/404.php</code> staat in <code>web.config</code> (<code>httpErrors</code>); <code>_bootstrap_wrapper.php</code> gebruikt hetzelfde bestand voor een route die nergens op uitkomt.</li>
+                <li>De per-site configs in <code>data/</code> — zie <a href="documentation.php?topic=json_config">JSON-configuratie</a> voor welke, en waarom een legacy-naam met rust gelaten wordt.</li>
+            </ul>
+        </li>
         <li><code>.env</code> aanmaken op basis van <code>.env.example</code> met minimaal:
             <pre><code>APP_ENVIRONMENT=T
 DEPLOY_SECRET=&lt;64-char hex via openssl rand -hex 32&gt;</code></pre>
             Project-specifiek aanvullen met SMTP, DB-paden, LLM-config, etc.
         </li>
-        <li>Project-specifieke configs zet je in <code>data/</code> op de site-root: <code>data/app.json</code>, <code>data/databases.json</code>, <code>data/menu.json</code>, <code>data/reports.json</code>. Het platform leest deze EERST en valt terug op de defaults in <code>cma/config/&lt;naam&gt;.json</code> (die laatste worden door composer update overschreven — niet bewerken).</li>
+        <li>De configs in <code>data/</code> vullen: minimaal <code>data/databases.json</code> (zonder werkende connectie komt de CMA niet verder). Het platform leest <code>data/</code> EERST en valt terug op de defaults in <code>cma/config/&lt;naam&gt;.json</code> — die laatste worden door composer update overschreven, dus niet bewerken.</li>
     </ol>
 
     <h2>File-rechten checklist</h2>
@@ -2373,6 +2430,12 @@ function render_doc_json_config(): void
             <tr><td><code>assets/forms/*.json</code> en <code>cma/assets/forms/definitions/*.json</code></td><td><code>form-definition.schema.json</code></td><td><code>name</code>, <code>table</code>, <code>fields[]</code></td><td>CMA-formulier <code>formdefinitions</code></td></tr>
         </tbody>
     </table>
+    <h3>Wat een verse installatie zelf krijgt</h3>
+    <p>De Installer maakt bij elke <code>composer install/update</code> de per-site configs aan die er nog niet zijn: <code>cma_menu.json</code>, <code>cma_reports.json</code>, <code>cma_tools.json</code>, <code>databases.json</code> en <code>image-profiles.json</code> — leeg, met de juiste <code>$schema</code>-verwijzing erin. Voor elk van die vijf betekent "leeg" precies hetzelfde als "afwezig" voor de lezer, dus er verandert niets aan een draaiende site; wat je wint is een bestand om te bewerken in plaats van een map die er niet is. <code>cma_branding.json</code> is de uitzondering en wordt gevuld met de meegeleverde standaarden, omdat <code>cma_get_app_logo()</code> het eerste bestand pakt dat bestaat en een leeg bestand het CMA-logo dus zou verbergen.</p>
+    <div class="docs-callout docs-callout--warn"><span class="cma-tool__strong">Een legacy-naam wordt nooit overschaduwd.</span> Gebruikt de site nog <code>data/menu.json</code>, <code>reports.json</code>, <code>tools.json</code> of <code>app.json</code>, dan maakt de Installer de <code>cma_</code>-tweeling níet aan. De lezers pakken namelijk het <code>cma_</code>-bestand als het bestaat en vallen alleen anders terug op de oude naam — een lege <code>cma_menu.json</code> ernaast zou dus geen standaard toevoegen maar het echte menu wegdrukken, en dat merk je pas als de zijbalk leeg blijft.</div>
+    <p>Bestaande bestanden worden nooit aangeraakt; het geldt alleen voor wat ontbreekt. Naast de configs zet dezelfde stap ook <code>404.php</code> en <code>src/pages/maintenance.php</code> neer als de site die nog niet heeft — zie <a href="documentation.php?topic=installation">Installatie</a>.</p>
+    <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_site_defaults'])); ?>
+
     <p><code>modules.schema.json</code> hoort bij een <code>modules.json</code> die het platform niet meelevert en die geen migratie aanmaakt. <code>CmaRepository</code> vraagt er nog naar met <code>ConfigLoader::exists('modules')</code> en slaat dat pad over als het bestand er niet is — het schema is dus een overblijfsel, geen contract.</p>
 
     <div class="docs-callout docs-callout--warn">
@@ -3493,6 +3556,17 @@ $sql = "SELECT * FROM tblUsers WHERE userName = " . SQL::postString($_POST['user
 </code></pre>
     <p>Helpers per type: <code>postString</code>, <code>postNumber</code>, <code>postDate</code>, <code>postBool</code>. De "post" prefix komt uit het ASP-tijdperk ("form post variable"). <span class="cma-tool__strong">Nieuw werk gebruikt prepared statements</span>; SQL-helpers blijven voor de tienduizenden legacy-regels die er al zijn.</p>
 
+    <h2>Dialecten: Access, SQL Server, SQLite</h2>
+    <p>Het platform is uit Classic ASP omgezet en zijn SQL is dus in het <span class="cma-page__strong">Access-dialect</span> geschreven. Draaien op een ander backend is daarom een vertaling, geen modus — en die vertaling zit in de klasse, zodat een aanroeper niets over de driver hoeft te weten.</p>
+    <pre><code>use App\Library\SQL;
+
+SQL::dialect($conn);              // 'access' | 'sqlserver' | 'sqlite'
+SQL::processSQL($conn, $sql);     // queries — draait al vanuit élke Database-ingang
+SQL::processDdl($conn, $sql);     // schema-statements
+</code></pre>
+    <p><code>processSQL()</code> hoef je niet zelf aan te roepen: <code>query()</code>, <code>fetchOne()</code>, <code>fetchAll()</code>, <code>execute()</code>, <code>executeOn()</code>, <code>openRS()</code>, <code>getFieldValue()</code>, <code>getIds()</code> en de <code>safe*</code>-helpers doen dat allemaal. Voor schema-wijzigingen is <code>Database::executeDdl($conn, $sql)</code> de ingang. Wat er per dialect vertaald wordt (en wat bewust níet), staat in <a href="documentation.php?topic=migrations">Platform updates schrijven</a>.</p>
+    <p>MySQL en PostgreSQL vallen op dit moment terug op het Access-pad: er wordt voor die twee niets vertaald. Dat is expliciet zo gelaten — doen alsof ze eigen behandeling krijgen zou de verrassing alleen verplaatsen.</p>
+
     <h2>ODBC-modes</h2>
     <p>De Database-class ondersteunt twee ODBC-backends:</p>
     <ul>
@@ -3572,20 +3646,49 @@ function render_doc_migrations(): void
         </tbody>
     </table>
 
+    <h2>Eén dialect schrijven, alle backends bedienen</h2>
+    <p>Schrijf de SQL in een migratie in het <span class="cma-page__strong">Access-dialect</span> waarin het platform is geschreven, en voer hem uit via de <code>Database</code>-klasse. Die vertaalt naar wat de aangesloten backend accepteert. Een migratie die zelf op de driver vertakt, of die rechtstreeks <code>$conn-&gt;exec()</code> aanroept, draagt zijn eigen dialect mee en werkt dan per definitie maar op één soort database.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:300px">Gebruik</th><th>Waarvoor</th></tr></thead>
+        <tbody>
+            <tr><td><code>Database::executeDdl($conn, $sql)</code></td><td>Elke <code>CREATE TABLE</code>, <code>ALTER TABLE</code>, <code>CREATE/DROP INDEX</code>. Gooit bij een fout, net als de <code>PDO::exec()</code> die het vervangt.</td></tr>
+            <tr><td><code>Database::executeOn($conn, $sql)</code></td><td><code>UPDATE</code>/<code>DELETE</code>/<code>INSERT</code>. Ook <code>query()</code>, <code>fetchAll()</code>, <code>openRS()</code> en de <code>safe*</code>-helpers vertalen mee.</td></tr>
+            <tr><td><code>Database::tableExistsPDO($conn, $tabel)</code><br><code>Database::columnExistsPDO($conn, $tabel, $kolom)</code></td><td>Bestaanschecks. Zelf een <code>SELECT TOP 1</code> afvuren werkt niet op SQLite, en de Access-driver meldt een ontbrekende tabel pas bij het ophalen van de rijen — beide zitten hierin verwerkt.</td></tr>
+        </tbody>
+    </table>
+    <p>Wat de vertaling doet, per dialect:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Access schrijft</th><th style="width:220px">SQLite krijgt</th><th>SQL Server krijgt</th></tr></thead>
+        <tbody>
+            <tr><td><code>ID AUTOINCREMENT PRIMARY KEY</code></td><td><code>ID INTEGER PRIMARY KEY AUTOINCREMENT</code></td><td><code>ID INT IDENTITY(1,1) PRIMARY KEY</code></td></tr>
+            <tr><td><code>MEMO</code></td><td><code>TEXT</code></td><td><code>NVARCHAR(MAX)</code></td></tr>
+            <tr><td><code>LONG</code> / <code>YESNO</code></td><td><code>INTEGER</code></td><td><code>INT</code> / <code>BIT</code></td></tr>
+            <tr><td><code>SELECT TOP 1 …</code></td><td><code>SELECT … LIMIT 1</code></td><td>ongewijzigd</td></tr>
+            <tr><td><code>WHERE actief = True</code></td><td><code>WHERE actief = 1</code></td><td><code>WHERE actief =1</code></td></tr>
+            <tr><td><code>DROP INDEX ix ON tbl</code></td><td><code>DROP INDEX ix</code></td><td>ongewijzigd</td></tr>
+            <tr><td><code>#2026-08-13#</code></td><td><code>'2026-08-13'</code></td><td><code>CAST('…' AS DATETIME)</code></td></tr>
+            <tr><td><code>a &amp; b</code>, <code>ucase()</code>, <code>mid()</code>, <code>nz()</code></td><td><code>a || b</code>, <code>upper()</code>, <code>substr()</code>, <code>ifnull()</code></td><td><code>a + b</code>, <code>upper()</code>, <code>SUBSTRING()</code></td></tr>
+        </tbody>
+    </table>
+    <p>Alleen buiten stringliterals: <code>'Jansen &amp; Zn'</code> blijft staan zoals het er staat. <code>VARCHAR(n)</code>, <code>INTEGER</code> en <code>DATETIME</code> betekenen overal hetzelfde en gaan ongewijzigd door.</p>
+    <div class="docs-callout"><span class="cma-tool__strong">Niet vertaald:</span> <code>DateAdd</code>, <code>DateDiff</code> en <code>Format</code>. Hun argumenten verschillen te veel per dialect om met een patroon te herschrijven, en een half-herschreven expressie die wél draait en de verkeerde rijen teruggeeft is erger dan een foutmelding. SQLite antwoordt met "no such function" — schrijf daar <code>date(x, '+1 day')</code>. <code>IIF(a,b,c)</code> blijft staan; SQLite kent dat sinds 3.32.</div>
+
     <h2>Idempotent &amp; rerunnable</h2>
-    <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is. Let op de exact-signatures: <code>Database::tableExists</code> neemt de connection-string eerst, <code>MigrationService::columnExists</code> neemt de tabel eerst:</p>
+    <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is:</p>
     <pre><code>// In je migration PHP:
-$connString = 'data';   // of welke databases.json-entry je ook target
+$conn = Database::getConnection('data');   // of welke databases.json-entry je ook target
 
-if (!Database::tableExists($connString, 'tblNewThing')) {
-    Database::execute('CREATE TABLE tblNewThing (...)');
+if (!Database::tableExistsPDO($conn, 'tblNewThing')) {
+    Database::executeDdl($conn, 'CREATE TABLE tblNewThing (
+        ID AUTOINCREMENT PRIMARY KEY,
+        Notitie MEMO
+    )');
 }
 
-if (!MigrationService::columnExists('tblOrders', 'discountCode', $connString)) {
-    Database::execute('ALTER TABLE tblOrders ADD COLUMN discountCode VARCHAR(50)');
-}
+// addColumnPDO checkt zelf of de kolom er al is en vertaalt het type mee.
+Database::addColumnPDO($conn, 'tblOrders', 'discountCode', 'VARCHAR(50)');
 </code></pre>
-    <p>Voor PDO-handles in plaats van connection-strings: <code>Database::tableExistsPDO(PDO $conn, string $table)</code>.</p>
+    <p>Met een connection-string in plaats van een PDO-handle: <code>Database::tableExists($connString, $tabel)</code> (connection eerst) en <code>MigrationService::columnExists($tabel, $kolom, $connString)</code> (tabel eerst).</p>
     <p>De if-check voorkomt dat een rerun een fout geeft op "tabel bestaat al" / "kolom bestaat al". Voor data-migrations: check eerst of de target-rows al de gewenste staat hebben en sla over.</p>
 
     <h2>MIGRATION_RUNNING constant</h2>
@@ -4463,6 +4566,17 @@ function render_doc_troubleshooting(): void
             <tr><td><code>Database connection 'data' failed</code> met <code>SQLSTATE[HY000] SQLDriverConnect: 63 … Unable to open registry key Temporary (volatile) Ace DSN for process</code> — hele site plat</td><td>De Access-driver legt per proces een tijdelijke DSN aan in het register onder het gebruikersprofiel van de app-pool-identiteit. Heeft die identiteit geen laadbaar profiel (Load User Profile staat op False) of geen schrijfrechten op de ODBC-sleutel, dan mislukt elke verbinding naar de <code>.mdb</code>. Dit is géén config- of cacheprobleem: <code>Bootstrap::loadDatabasesConfig()</code> leest <code>data/databases.json</code> bij elke request opnieuw van schijf, er wordt niets van gecachet.</td><td>IIS Manager → Application Pools → de pool van de site → Advanced Settings → Process Model → <code>Load User Profile</code> op <code>True</code>, daarna de pool recyclen. Blijft het staan: geef <code>IIS APPPOOL\&lt;sitename&gt;</code> modify-rechten op de temp-map van dat profiel (<code>C:\Windows\Temp</code>, en voor 32-bit pools <code>C:\Windows\SysWOW64\config\systemprofile\AppData\Local\Temp</code>) en full control op <code>HKLM\SOFTWARE\ODBC\ODBC.INI</code> (32-bit: ook onder <code>WOW6432Node</code>).</td></tr>
             <tr><td>DSN in de foutmelding wijst naar <code>&lt;siteroot&gt;\db\main.mdb</code> terwijl <code>data/databases.json</code> een heel ander pad noemt</td><td>Levert <code>databases.json</code> geen <code>data</code>-connectie, dan slaat de Access-conventie <code>&lt;siteroot&gt;\db\main.mdb</code> aan. Precies dat pad in de melding betekent dus: het bestand is overgeslagen — het ontbreekt, is onleesbaar voor de app-pool-identiteit, of is geen geldige JSON (UTF-8 BOM, komma te veel).</td><td>De regel <code>Config:</code> in de foutmelding (en in de connectietabel van de error-pagina) noemt het bestand dat écht geladen is; staat daar <code>no usable databases.json</code>, dan is dit het geval. Het errorlog noemt de reden. Valideer de JSON, controleer NTFS-leesrechten voor <code>IIS APPPOOL\&lt;sitename&gt;</code> op <code>data\</code>, en sla op zonder BOM.</td></tr>
             <tr><td>Migratie stopt met <code>HTTP 500</code> en verder lege melding</td><td>Het PHP-proces zelf viel om (ODBC-driver-crash of time-out), dus er kwam geen JSON-body terug. De migratietool toont de response-body wanneer die er wel is — bij een fatal error staat de PHP-melding erin.</td><td>Los eerst de connectiefout hierboven op. Blijft de body leeg, kijk dan in het PHP-/IIS-errorlog: een lege 500 komt niet uit de migratiecode maar uit de worker.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Migraties &amp; SQL-dialect</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td><code>SQLSTATE[HY000]: General error: 1 near "AUTOINCREMENT": syntax error</code> — migratie mislukt op een SQLite-site</td><td>Schema-SQL die rechtstreeks naar de driver ging in plaats van via <code>Database::executeDdl()</code>. Het platform schrijft zijn DDL in het Access-dialect; SQLite spelt de tellerkolom <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> en kent <code>MEMO</code>, <code>LONG</code> en <code>YESNO</code> niet.</td><td>Vervang <code>$conn-&gt;exec($sql)</code> door <code>Database::executeDdl($conn, $sql)</code> — één statement, elk backend. Zie <a href="documentation.php?topic=migrations">Platform updates schrijven</a>.</td></tr>
+            <tr><td>Migratie meldt succes op SQLite maar wijzigt nul rijen</td><td>Een <code>WHERE … = True</code>: Access bewaart True als <code>-1</code> en SQLite als <code>1</code>, dus de onvertaalde vergelijking matcht niets. Geen fout, alleen een lege uitkomst.</td><td>Voer de <code>UPDATE</code> uit via <code>Database::executeOn($conn, $sql)</code> in plaats van <code>$conn-&gt;exec()</code>; die vertaalt de booleans mee.</td></tr>
+            <tr><td><code>near "TOP": syntax error</code> op SQLite</td><td>Een <code>SELECT TOP n</code> die niet langs de <code>Database</code>-klasse ging, of een <code>TOP</code> in een subquery — alleen de buitenste <code>SELECT</code> wordt naar <code>LIMIT</code> vertaald, omdat raden waar de haakjes van een subquery eindigen precies zo een verkeerde uitkomst oplevert.</td><td>Roep de query aan via <code>Database::query()</code> / <code>fetchAll()</code> / <code>openRS()</code>. Zit de <code>TOP</code> in een subquery, schrijf daar zelf <code>LIMIT</code>.</td></tr>
+            <tr><td><code>no such function: dateadd</code> (of <code>datediff</code>, <code>format</code>) op SQLite</td><td>Deze Access-functies worden bewust niet vertaald: hun argumentvormen verschillen te veel om met een patroon te herschrijven, en een half-herschreven expressie die wél draait en de verkeerde rijen teruggeeft is erger dan deze foutmelding.</td><td>Schrijf de expressie in SQLite-vorm: <code>date(x, '+1 day')</code>, <code>julianday(a) - julianday(b)</code>, <code>strftime()</code>.</td></tr>
         </tbody>
     </table>
 

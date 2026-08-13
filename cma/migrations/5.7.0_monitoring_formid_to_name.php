@@ -46,15 +46,7 @@ try {
     exit(1);
 }
 
-// Check if Form column exists
-$hasFormColumn = false;
-try {
-    $stmt = $conn->query("SELECT TOP 1 Form FROM tblCMAMonitoring");
-    $hasFormColumn = true;
-} catch (\Exception $e) {
-    // Column doesn't exist yet
-    $hasFormColumn = false;
-}
+$hasFormColumn = Database::columnExistsPDO($conn, 'tblCMAMonitoring', 'Form');
 
 if (!$hasFormColumn) {
     // The Form column was never added by an earlier migration: the create
@@ -75,15 +67,7 @@ if (!$hasFormColumn) {
     $hasFormColumn = true;
 }
 
-// Check if Formid column exists
-$hasFormidColumn = false;
-try {
-    $stmt = $conn->query("SELECT TOP 1 Formid FROM tblCMAMonitoring");
-    $hasFormidColumn = true;
-} catch (\Exception $e) {
-    // Column doesn't exist
-    $hasFormidColumn = false;
-}
+$hasFormidColumn = Database::columnExistsPDO($conn, 'tblCMAMonitoring', 'Formid');
 
 if (!$hasFormidColumn) {
     echo '✓ De Formid kolom bestaat niet in tblCMAMonitoring. Migratie niet nodig.';

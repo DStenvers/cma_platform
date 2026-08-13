@@ -2969,6 +2969,33 @@ class Database
     // =========================================================================
 
     /**
+     * Run a schema statement, translated to the dialect this connection speaks.
+     *
+     * Migrations write ONE statement, in the platform's Access dialect, and this
+     * turns it into whatever the target actually accepts (SQL::processDdl). That
+     * split is the point: a migration describes the schema change, the Database
+     * class knows the backends. The alternative — each migration branching on the
+     * driver — is how migration 1.0.1 came to hand `AUTOINCREMENT PRIMARY KEY` to
+     * SQLite and fail the whole run on a fresh site.
+     *
+     * Throws on failure, exactly like the PDO::exec() it replaces, so the calling
+     * migration's existing try/catch keeps working unchanged.
+     *
+     * @param PDO    $conn PDO connection
+     * @param string $sql  CREATE TABLE / ALTER TABLE / CREATE INDEX / DROP INDEX
+     * @return int         Rows affected, as PDO::exec() reports it (0 for DDL)
+     */
+    public static function executeDdl(PDO $conn, string $sql): int
+    {
+        $translated = SQL::processDdl($conn, $sql);
+        if ($translated !== $sql) {
+            self::debugSQL('DDL TRANSLATED', "Before: " . $sql . "\n\nAfter: " . $translated);
+        }
+        self::$lastSQL = $translated;
+        return (int) $conn->exec($translated);
+    }
+
+    /**
      * Check if a table exists using a PDO connection
      *
      * @param PDO $conn PDO connection
@@ -2984,18 +3011,40 @@ class Database
                 $stmt = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='$table'");
                 return $stmt->fetch() !== false;
             } elseif ($driver === 'odbc') {
-                // Access - try to select from the table
-                try {
-                    $conn->query("SELECT TOP 1 * FROM [$table]");
-                    return true;
-                } catch (\Exception $e) {
+                // Access - try to select from the table. The fetch is not optional:
+                // the PDO ODBC Access driver often surfaces "table does not exist"
+                // only when the rows are actually touched, so a bare query() that
+                // returns a statement is not proof the table is there.
+                $stmt = $conn->query("SELECT TOP 1 * FROM [$table]");
+                if ($stmt === false) {
                     return false;
                 }
+                $stmt->fetchColumn();
+                return true;
             } else {
                 $stmt = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '$table'");
                 return (int)$stmt->fetchColumn() > 0;
             }
         } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Does this column exist? Answered by asking for it — the one probe that needs
+     * no per-driver catalogue query, because SQL::processSQL() turns `TOP 1` into
+     * whatever the connection uses to limit a row.
+     *
+     * @param PDO $conn PDO connection
+     * @param string $table Table name
+     * @param string $column Column name
+     */
+    public static function columnExistsPDO(PDO $conn, string $table, string $column): bool
+    {
+        try {
+            $conn->query(SQL::processSQL($conn, "SELECT TOP 1 [$column] FROM [$table]"));
+            return true;
+        } catch (\Throwable $e) {
             return false;
         }
     }
@@ -3015,18 +3064,8 @@ class Database
         try {
             $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-            // Check if column already exists
-            try {
-                if ($driver === 'odbc') {
-                    $conn->query("SELECT TOP 1 [$column] FROM [$table]");
-                } elseif ($driver === 'sqlite') {
-                    $conn->query("SELECT [$column] FROM [$table] LIMIT 1");
-                } else {
-                    $conn->query("SELECT TOP 1 [$column] FROM [$table]");
-                }
+            if (self::columnExistsPDO($conn, $table, $column)) {
                 return ['success' => true, 'error' => null, 'message' => 'Kolom bestaat al', 'sql' => ''];
-            } catch (\Exception $e) {
-                // Column doesn't exist - continue to add it
             }
 
             // Access ODBC does not support DEFAULT in ALTER TABLE ADD COLUMN
@@ -3061,7 +3100,10 @@ class Database
                 $sql = "ALTER TABLE [$table] ADD [$column] $dataType$defaultClause";
             }
 
-            $conn->exec($sql);
+            // Through executeDdl(), so the Access type names the migrations use
+            // (MEMO, YESNO, LONG) arrive as whatever this backend calls them.
+            self::executeDdl($conn, $sql);
+            $sql = self::getLastSQL();   // report what actually ran, not what we built
 
             // For Access: set default value via UPDATE on existing rows
             if ($needsDefaultUpdate) {
@@ -3086,28 +3128,12 @@ class Database
     public static function dropColumnPDO(PDO $conn, string $table, string $column): array
     {
         try {
-            // Check if column exists first
-            $columnExists = false;
-            try {
-                $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-                if ($driver === 'odbc') {
-                    $conn->query("SELECT TOP 1 [$column] FROM [$table]");
-                } elseif ($driver === 'sqlite') {
-                    $conn->query("SELECT [$column] FROM [$table] LIMIT 1");
-                } else {
-                    $conn->query("SELECT TOP 1 [$column] FROM [$table]");
-                }
-                $columnExists = true;
-            } catch (\Exception $e) {
-                // Column doesn't exist
-            }
-
-            if (!$columnExists) {
+            if (!self::columnExistsPDO($conn, $table, $column)) {
                 return ['success' => true, 'error' => null, 'message' => 'Kolom bestaat niet (al verwijderd)'];
             }
 
             $sql = "ALTER TABLE [$table] DROP COLUMN [$column]";
-            $conn->exec($sql);
+            self::executeDdl($conn, $sql);
 
             return ['success' => true, 'error' => null];
         } catch (\Exception $e) {
@@ -3131,9 +3157,9 @@ class Database
             $columnList = implode(', ', array_map(fn($c) => "[$c]", $columns));
             $sql = "CREATE INDEX [$indexName] ON [$table] ($columnList)";
 
-            $conn->exec($sql);
+            self::executeDdl($conn, $sql);
 
-            return ['success' => true, 'error' => null, 'sql' => $sql];
+            return ['success' => true, 'error' => null, 'sql' => self::getLastSQL()];
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             // If index already exists, treat as success
@@ -3156,21 +3182,11 @@ class Database
     public static function dropIndexPDO(PDO $conn, string $table, string $indexName): array
     {
         try {
-            $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+            // Access and SQL Server name the table, SQLite does not — processDdl()
+            // drops the ON clause where it doesn't belong.
+            self::executeDdl($conn, "DROP INDEX [$indexName] ON [$table]");
 
-            if ($driver === 'odbc') {
-                // Access syntax
-                $sql = "DROP INDEX [$indexName] ON [$table]";
-            } elseif ($driver === 'sqlite') {
-                $sql = "DROP INDEX IF EXISTS [$indexName]";
-            } else {
-                // SQL Server
-                $sql = "DROP INDEX [$indexName] ON [$table]";
-            }
-
-            $conn->exec($sql);
-
-            return ['success' => true, 'error' => null, 'sql' => $sql];
+            return ['success' => true, 'error' => null, 'sql' => self::getLastSQL()];
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             // If index doesn't exist, treat as success (idempotent re-run).
@@ -3189,7 +3205,7 @@ class Database
                     return ['success' => true, 'error' => null, 'message' => 'Index bestaat niet (al verwijderd)'];
                 }
             }
-            return ['success' => false, 'error' => $msg, 'sql' => $sql ?? ''];
+            return ['success' => false, 'error' => $msg, 'sql' => self::getLastSQL()];
         }
     }
 

@@ -34,23 +34,36 @@ try {
     // Migrate existing data: convert old boolean columns to new access type
     echo "\nMigrating existing data to new column format...\n";
 
-    // Update secAccessType based on old columns
+    // Update secAccessType based on old columns. Through executeOn() rather than
+    // PDO::exec(), so the Access boolean literals are translated: Access stores
+    // True as -1 and SQLite as 1, and `= True` sent verbatim to SQLite matches no
+    // row at all — a migration that reports success and changes nothing.
     $updateSql = "
         UPDATE tblGroupRights SET
         secAccessType = IIF(secCanUpdate = True OR secCanInsert = True OR secCanDelete = True, 30,
                        IIF(secCanRead = True, 10, 0))
         WHERE secAccessType IS NULL OR secAccessType = 0
     ";
-    $conn->exec($updateSql);
-    echo "  Updated secAccessType values.\n";
+    \App\Library\Database::clearLastError();
+    \App\Library\Database::executeOn($conn, $updateSql);
+    $err = \App\Library\Database::getLastError();
+    // The old boolean columns are gone on a database that was migrated before.
+    // That is a normal state here, not a failure — say so and carry on.
+    echo $err === ''
+        ? "  Updated secAccessType values.\n"
+        : "  Overgeslagen (oude kolommen bestaan niet meer): $err\n";
 
     // Set secObjectType to 10 (menu) for all existing rows (default assumption)
     $updateTypeSql = "
         UPDATE tblGroupRights SET secObjectType = 10
         WHERE secObjectType IS NULL
     ";
-    $conn->exec($updateTypeSql);
-    echo "  Set default secObjectType values.\n";
+    \App\Library\Database::clearLastError();
+    \App\Library\Database::executeOn($conn, $updateTypeSql);
+    $err = \App\Library\Database::getLastError();
+    echo $err === ''
+        ? "  Set default secObjectType values.\n"
+        : "  Overgeslagen: $err\n";
 
     echo "\n=== Migration Complete ===\n";
 

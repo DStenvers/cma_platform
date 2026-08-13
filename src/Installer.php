@@ -341,12 +341,110 @@ class Installer
         '_bootstrap.php.template'         => '_bootstrap.php',
         '_bootstrap_wrapper.php.template' => '_bootstrap_wrapper.php',
         'src/pages/maintenance.php.template' => 'src/pages/maintenance.php',
+        '404.php.template'                => '404.php',
         'web.config.template'             => 'web.config',
         'app.php.template'                => 'app.php',
         'global.asa.php.template'         => 'global.asa.php',
         '.env.example'                    => '.env.example',
         'cma.css.template'                => 'assets/css/cma.css',
     ];
+
+    /**
+     * The per-site JSON configs under data/, and what an empty one looks like.
+     *
+     * A fresh install (casa is the bare case) has no data/ at all, so every
+     * screen that edits one of these had to cope with a file that isn't there
+     * — and the CMA's own config editors have nothing to open. Creating them
+     * empty at install time removes that state: the operator gets a file with
+     * its `$schema` already pointing at the right place, and every reader sees
+     * exactly what it saw before, because for each of these an empty document
+     * is what the reader falls back to when the file is missing.
+     *
+     * `legacy` is the pre-rename file name. It is the reason this can't be a
+     * plain "create if absent": MenuService, ReportsService, the tools catalog
+     * and cma_get_app_logo() all prefer the cma_-prefixed name and only fall
+     * back to the legacy one. Writing an empty data/cma_menu.json onto a site
+     * that still has data/menu.json would not add a default — it would shadow
+     * the site's real menu with an empty one. So a config is only created when
+     * NEITHER name is present.
+     *
+     * cma_branding.json is the one that is not written empty: cma_get_app_logo()
+     * takes the first file that exists, so an empty one would shadow the bundled
+     * cma/config/cma_branding.json and leave the CMA header without a logo. It is
+     * seeded with those bundled defaults instead, which renders identically and
+     * is then the operator's to change.
+     *
+     * @return array<string, array{legacy: ?string, content: array}>
+     */
+    private static function siteConfigDefaults(string $platformDir): array
+    {
+        $schema = static fn(string $name): string => '../cma/config/schema/' . $name . '.schema.json';
+
+        $branding = ['$schema' => $schema('cma_branding'), 'company' => []];
+        $bundled = @file_get_contents($platformDir . '/cma/config/cma_branding.json');
+        $decoded = $bundled === false ? null : json_decode($bundled, true);
+        if (is_array($decoded) && isset($decoded['company'])) {
+            $branding = ['$schema' => $schema('cma_branding'), 'company' => $decoded['company']];
+        }
+
+        return [
+            'cma_menu.json' => [
+                'legacy'  => 'menu.json',
+                'content' => ['$schema' => $schema('menu'), 'version' => '1.0.0', 'menus' => []],
+            ],
+            'cma_reports.json' => [
+                'legacy'  => 'reports.json',
+                'content' => ['$schema' => $schema('cma_reports'), 'version' => '1.0.0', 'reports' => []],
+            ],
+            'cma_tools.json' => [
+                'legacy'  => 'tools.json',
+                'content' => ['$schema' => $schema('cma_tools'), 'groups' => []],
+            ],
+            'cma_branding.json' => [
+                'legacy'  => 'app.json',
+                'content' => $branding,
+            ],
+            'databases.json' => [
+                'legacy'  => null,
+                'content' => ['$schema' => $schema('databases'), 'version' => '2.0.0', 'databases' => []],
+            ],
+            'image-profiles.json' => [
+                'legacy'  => null,
+                'content' => ['profiles' => (object) [], 'managed_paths' => []],
+            ],
+        ];
+    }
+
+    /**
+     * Create the per-site configs under data/ that this site does not have yet.
+     *
+     * Never touches an existing file — not the new name, not the legacy one.
+     * Public for testability; run() is composer-bound, this isn't.
+     *
+     * @return string[] Log lines, one per file created (empty when nothing was missing).
+     */
+    public static function ensureSiteConfigs(string $projectRoot, string $platformDir): array
+    {
+        $dir = $projectRoot . '/data';
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            return ['<warning>kon data/ niet aanmaken — per-site configs overgeslagen</warning>'];
+        }
+
+        $created = [];
+        foreach (self::siteConfigDefaults($platformDir) as $name => $spec) {
+            if (is_file($dir . '/' . $name)) {
+                continue;
+            }
+            if ($spec['legacy'] !== null && is_file($dir . '/' . $spec['legacy'])) {
+                continue;
+            }
+            $json = json_encode($spec['content'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if (@file_put_contents($dir . '/' . $name, $json . "\n") !== false) {
+                $created[] = 'created data/' . $name;
+            }
+        }
+        return $created;
+    }
 
     /**
      * Run BEFORE composer install/update: put the site in maintenance.
@@ -497,6 +595,14 @@ class Installer
                     $io->write("  - synced $target");
                 }
             }
+        }
+
+        // 5aa. Create the per-site configs under data/ that this site is missing.
+        //      Copy-if-absent like the templates above, but data/ is never synced
+        //      so it needs its own step. See siteConfigDefaults() for why an empty
+        //      file is safe here and why the legacy names are checked too.
+        foreach (self::ensureSiteConfigs($projectRoot, $platformDir) as $line) {
+            $io->write('  - ' . $line);
         }
 
         // 5b. Ensure the parent web.config carries the CMA friendly-URL

@@ -176,15 +176,14 @@ class SQL
      */
     public static function guidEquals(string $column, string $guid, ?string $connectionString = null): string
     {
-        $isSQLServer = self::isSQLServer($connectionString);
         $cleanGuid = str_replace('}', '', str_replace('{', '', $guid));
 
-        if ($isSQLServer) {
-            return $column . " = '" . $cleanGuid . "'";
-        } else {
-            // Access ODBC: = doesn't work for Replication ID columns, LIKE with % wildcards does
+        // Only Access needs the LIKE: it is a workaround for the Jet/ACE ODBC driver,
+        // and everywhere else it costs a full table scan for a comparison '=' handles.
+        if (self::dialect($connectionString) === self::DIALECT_ACCESS) {
             return $column . " LIKE '%" . $cleanGuid . "%'";
         }
+        return $column . " = '" . $cleanGuid . "'";
     }
 
     /**
@@ -430,6 +429,52 @@ class SQL
         }
     }
 
+    /** The dialect an unrecognised connection is assumed to speak. */
+    public const DIALECT_ACCESS = 'access';
+    public const DIALECT_SQLSERVER = 'sqlserver';
+    public const DIALECT_SQLITE = 'sqlite';
+
+    /**
+     * Which SQL dialect a connection speaks.
+     *
+     * The platform writes its SQL in the Access dialect it was converted from, and
+     * every other backend is reached by translating that. Naming the dialect in one
+     * place is what keeps the translation honest: the old boolean "SQL Server, or
+     * else Access" put SQLite in the Access branch, where `DELETE FROM` was rewritten
+     * to `DELETE * FROM` and `= True` to `= -1` — statements SQLite either rejects or,
+     * worse, accepts while matching nothing.
+     *
+     * MySQL and PostgreSQL still resolve to `access`: nothing translates for them yet,
+     * and pretending otherwise here would only move the surprise.
+     *
+     * @param \PDO|string|null $connection PDO instance, connection string, or null for the default.
+     */
+    public static function dialect($connection = null): string
+    {
+        if ($connection instanceof \PDO) {
+            try {
+                $driver = strtolower((string) $connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
+            } catch (\Throwable $e) {
+                return self::DIALECT_ACCESS;
+            }
+            if ($driver === 'sqlite') {
+                return self::DIALECT_SQLITE;
+            }
+            if ($driver === 'sqlsrv' || $driver === 'mssql' || $driver === 'dblib') {
+                return self::DIALECT_SQLSERVER;
+            }
+            // ODBC is Access here; a SQL Server reached over ODBC is configured
+            // with a DSN= string and is caught by the string branch below.
+            return self::DIALECT_ACCESS;
+        }
+
+        $connectionString = is_string($connection) ? $connection : Database::getConfiguredDsn('data');
+        if (stripos($connectionString, 'sqlite:') === 0) {
+            return self::DIALECT_SQLITE;
+        }
+        return Database::isSQLServer($connectionString) ? self::DIALECT_SQLSERVER : self::DIALECT_ACCESS;
+    }
+
     /**
      * Process SQL for database compatibility
      *
@@ -461,7 +506,8 @@ class SQL
             $connectionString = null;
         }
 
-        $isSQLServer = Database::isSQLServer($connectionString);
+        $dialect = self::dialect($connection);
+        $isSQLServer = $dialect === self::DIALECT_SQLSERVER;
 
         // Access ODBC only: Replication-ID (GUID) columns return NO rows when
         // compared with '=' through the Jet/ACE ODBC driver — rewrite
@@ -470,7 +516,8 @@ class SQL
         // logins) on converted sites. Access-only: LIKE on a full GUID would
         // table-scan on SQL Server, and '=' works fine on SQLite/MySQL. See
         // SQL::guidEquals() for the query-builder side of the same quirk.
-        if (!$isSQLServer && ($connectionString === 'ACCESS_VIA_ODBC' || Database::isODBC($connectionString))) {
+        if ($dialect === self::DIALECT_ACCESS
+            && ($connectionString === 'ACCESS_VIA_ODBC' || Database::isODBC($connectionString))) {
             $sql = self::guidEqualsToLike($sql);
             // Access is case-insensitive, so `Field AS FIELD` (alias == the field
             // name) is a self-referential/circular alias and Jet rejects it
@@ -532,6 +579,8 @@ class SQL
             // Convert IIF to CASE WHEN
             $sql = preg_replace('/iif\(([^,]+),([^,]+),([^\)]+)\)/i', 'CASE WHEN $1 THEN $2 ELSE $3 END', $sql);
 
+        } elseif ($dialect === self::DIALECT_SQLITE) {
+            $sql = self::toSqlite($sql);
         } else {
             // Access/ODBC: Convert double quotes to single quotes for string literals
             // Access uses single quotes for strings, double quotes cause "too few parameters" error
@@ -597,6 +646,201 @@ class SQL
             // ODBC ambiguous column fix disabled - we renamed tblForms.Name to tblForms.FormName
             // to avoid the ambiguity issue at the database level
         }
+
+        return $sql;
+    }
+
+    /**
+     * Access column types, and what each one is called in the other dialects.
+     *
+     * Types absent from a map are passed through: VARCHAR(n), DATETIME and INTEGER
+     * mean the same thing everywhere the platform runs. SQLite accepts any type name
+     * at all, which is exactly why it needs this map — MEMO and YESNO would be taken
+     * without complaint and given NUMERIC affinity, so a note would sort as if it
+     * were a number.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private const DDL_TYPE_MAP = [
+        self::DIALECT_SQLITE => [
+            'MEMO' => 'TEXT', 'LONGTEXT' => 'TEXT', 'NTEXT' => 'TEXT', 'GUID' => 'TEXT',
+            'UNIQUEIDENTIFIER' => 'TEXT',
+            'LONG' => 'INTEGER', 'BYTE' => 'INTEGER', 'YESNO' => 'INTEGER', 'BIT' => 'INTEGER',
+            'CURRENCY' => 'REAL', 'DOUBLE' => 'REAL', 'SINGLE' => 'REAL',
+        ],
+        self::DIALECT_SQLSERVER => [
+            'MEMO' => 'NVARCHAR(MAX)', 'GUID' => 'UNIQUEIDENTIFIER',
+            'LONG' => 'INT', 'INTEGER' => 'INT', 'BYTE' => 'TINYINT', 'YESNO' => 'BIT',
+            'CURRENCY' => 'MONEY', 'DOUBLE' => 'FLOAT', 'SINGLE' => 'REAL',
+        ],
+    ];
+
+    /**
+     * Translate a DDL statement (CREATE TABLE, ALTER TABLE, CREATE/DROP INDEX)
+     * from the platform's Access dialect to the dialect the connection speaks.
+     *
+     * Schema statements are the one place where the dialects differ in a way no
+     * amount of query rewriting reaches: `ID AUTOINCREMENT PRIMARY KEY` is a syntax
+     * error on SQLite, which wants `ID INTEGER PRIMARY KEY AUTOINCREMENT` — that is
+     * the whole reason a fresh site could not run migration 1.0.1. Keeping it here
+     * means a migration writes ONE portable statement and every backend gets a
+     * correct one.
+     *
+     * @param \PDO|string|null $connection
+     */
+    public static function processDdl($connection, string $sql): string
+    {
+        $dialect = self::dialect($connection);
+        if ($dialect === self::DIALECT_ACCESS) {
+            return $sql;   // the dialect the platform's DDL is already written in
+        }
+
+        $types = self::DDL_TYPE_MAP[$dialect] ?? [];
+        $identity = $dialect === self::DIALECT_SQLITE
+            ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
+            : 'INT IDENTITY(1,1) PRIMARY KEY';
+
+        return self::mapOutsideLiterals($sql, static function (string $s) use ($dialect, $types, $identity): string {
+            // The counter column. Access writes the type first and the constraint
+            // after it; SQLite demands the exact phrase "INTEGER PRIMARY KEY
+            // AUTOINCREMENT", in that order. A bare AUTOINCREMENT (Access' COUNTER)
+            // becomes a primary key too — SQLite has no other form of it.
+            $s = preg_replace('/\bAUTOINCREMENT\b(\s+PRIMARY\s+KEY)?/i', $identity, $s) ?? $s;
+
+            // Column types. Anchored on "<column name> <TYPE>" so a column that is
+            // itself called memo or long keeps its name and only its type changes.
+            foreach ($types as $from => $to) {
+                $s = preg_replace(
+                    '/(\[?\w+\]?\s+)\b' . preg_quote($from, '/') . '\b/i',
+                    '$1' . $to,
+                    $s
+                ) ?? $s;
+            }
+
+            // SQLite indexes live in one namespace per database, so they are dropped
+            // by name alone; naming the table is a syntax error there.
+            if ($dialect === self::DIALECT_SQLITE) {
+                $s = preg_replace('/\b(DROP\s+INDEX\s+\[?\w+\]?)\s+ON\s+\[?\w+\]?/i', '$1', $s) ?? $s;
+            }
+
+            return $s;
+        });
+    }
+
+    /**
+     * Apply $fn to every part of $sql that is NOT inside a string literal.
+     *
+     * Every rewrite below — `&` to `||`, `date()` to `date('now')`, the boolean
+     * literals — is a rewrite of SQL syntax, and none of it may reach the data.
+     * A report that stores '<sort:naam>' or 'Jansen & Zn' in a WHERE clause would
+     * otherwise come out corrupted, and that corruption is silent: the query still
+     * runs, it just stops matching.
+     *
+     * Literals are single-quoted by the time this runs (convertDoubleQuotesToSingle
+     * goes first), with '' as the embedded quote.
+     */
+    private static function mapOutsideLiterals(string $sql, callable $fn): string
+    {
+        $parts = preg_split("/('(?:[^']|'')*')/", $sql, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($parts === false) {
+            return $fn($sql);
+        }
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 0) {
+                $parts[$i] = $fn($part);
+            }
+        }
+        return implode('', $parts);
+    }
+
+    /**
+     * Translate the platform's Access-dialect SQL to SQLite.
+     *
+     * The platform's queries are written in the dialect it was converted from, so
+     * SQLite support is a translation, not a mode. What is handled here is what the
+     * platform itself emits (SQL::post*, SQL::addTop, the CMA's query builders) plus
+     * the Access idioms that hand-written site queries use.
+     *
+     * Deliberately NOT translated: `DateAdd`/`DateDiff` and `Format`, whose argument
+     * shapes differ too much to rewrite safely with a regular expression. SQLite
+     * answers those with "no such function", which is a visible failure — far better
+     * than a half-rewritten expression that runs and returns the wrong rows. Use
+     * SQLite's own `date(x, '+1 day')` in site SQL that must run on both.
+     *
+     * `IIF(a,b,c)` is left alone: SQLite has had iif() since 3.32.
+     */
+    private static function toSqlite(string $sql): string
+    {
+        // SQLite reads "x" as an IDENTIFIER first and only falls back to a string
+        // when no such column exists — so a double-quoted value silently becomes a
+        // column reference. The platform means them as strings.
+        $sql = self::convertDoubleQuotesToSingle($sql);
+
+        // Access date/time literals (#...#) — emitted by SQL::postDate*, postTimeStr
+        // and by hand-written Access SQL. SQLite has no date literal syntax; it
+        // compares ISO strings. Doing it here rather than in each post* helper keeps
+        // one rule for both generated and hand-written SQL.
+        $sql = self::mapOutsideLiterals($sql, static function (string $s): string {
+            return preg_replace_callback('/#([^#]+)#/', static function ($m) {
+                $raw = trim($m[1]);
+                // Time-only (#HH:MM#): keep it a time, a date would be invented.
+                if (preg_match('/^\d{1,2}:\d{2}(:\d{2})?$/', $raw)) {
+                    return "'" . (strlen($raw) === 5 ? $raw . ':00' : $raw) . "'";
+                }
+                $ts = strtotime($raw);
+                if ($ts === false) {
+                    return $m[0];
+                }
+                $hasTime = (bool) preg_match('/\d:\d/', $raw);
+                return "'" . date($hasTime ? 'Y-m-d H:i:s' : 'Y-m-d', $ts) . "'";
+            }, $s) ?? $s;
+        });
+
+        $sql = self::mapOutsideLiterals($sql, static function (string $s): string {
+            // TOP n -> LIMIT n. Only the outermost SELECT: a TOP in a subquery would
+            // need its LIMIT inside that subquery's parentheses, and guessing where
+            // those end is how a rewrite starts returning the wrong rows. One that is
+            // left behind fails loudly on the next run.
+            if (preg_match('/^(\s*SELECT\s+(?:DISTINCT\s+)?)TOP\s+(\d+)\s+/i', $s, $m)) {
+                $s = $m[1] . substr($s, strlen($m[0]));
+                if (!preg_match('/\bLIMIT\s+\d+/i', $s)) {
+                    $s = rtrim(rtrim($s), ';') . ' LIMIT ' . $m[2];
+                }
+            }
+
+            // Access' DELETE * FROM — the star is Access-only syntax.
+            $s = preg_replace('/\bDELETE\s+\*\s+FROM\b/i', 'DELETE FROM', $s) ?? $s;
+
+            // Booleans. Access stores True as -1; SQLite stores 1, so `= -1` matches
+            // nothing at all there — the silent kind of wrong.
+            $s = preg_replace('/=\s*-1\b/', '= 1', $s) ?? $s;
+            $s = preg_replace('/=\s*True\b/i', '= 1', $s) ?? $s;
+            $s = preg_replace('/=\s*False\b/i', '= 0', $s) ?? $s;
+
+            // Current date/time.
+            $s = preg_replace('/\bnow\s*\(\s*\)/i', "datetime('now','localtime')", $s) ?? $s;
+            $s = preg_replace('/\bgetdate\s*\(\s*\)/i', "datetime('now','localtime')", $s) ?? $s;
+            $s = preg_replace('/\bdate\s*\(\s*\)/i', "date('now','localtime')", $s) ?? $s;
+            $s = str_ireplace('CURRENT_TIMESTAMP', "datetime('now','localtime')", $s);
+
+            // String functions.
+            $s = str_ireplace('ucase(', 'upper(', $s);
+            $s = str_ireplace('lcase(', 'lower(', $s);
+            $s = str_ireplace('dbo.instr(', 'instr(', $s);
+            $s = str_ireplace('SUBSTRING(', 'substr(', $s);
+            $s = str_ireplace('mid(', 'substr(', $s);
+            $s = preg_replace('/\blen\s*\(/i', 'length(', $s) ?? $s;
+            $s = preg_replace('/\bnz\s*\(/i', 'ifnull(', $s) ?? $s;
+            $s = preg_replace('/\bchr\s*\(/i', 'char(', $s) ?? $s;
+
+            // Domain aggregates (Access) map straight onto the plain aggregates.
+            $s = preg_replace('/\bD(Avg|Sum|Count|Max|Min)\s*\(/i', '$1(', $s) ?? $s;
+            $s = str_ireplace(' distinctrow ', ' DISTINCT ', $s);
+
+            // Concatenation: Access uses &, SQLite uses ||. This is also what makes
+            // SQL::postString()'s "' & chr(39) & '" escaping land correctly.
+            return str_replace('&', '||', $s);
+        });
 
         return $sql;
     }

@@ -38,21 +38,7 @@ try {
         exit(1);
     }
 
-    // Force a fetch: the PDO ODBC Access driver often surfaces "table does not
-    // exist" only at fetch time, so a bare query()+assume-exists false-positives
-    // on a missing table. Treat a non-throwing false return as missing too.
-    $tableExists = false;
-    try {
-        $stmt = $conn->query("SELECT TOP 1 [id] FROM [api_call_log]");
-        if ($stmt !== false) {
-            $stmt->fetchColumn();   // forces the driver to actually touch the table
-            $tableExists = true;
-        }
-    } catch (\Exception $e) {
-        // Table doesn't exist — the fetch (or query) surfaced it here.
-    }
-
-    if ($tableExists) {
+    if (Database::tableExistsPDO($conn, 'api_call_log')) {
         echo "✓ api_call_log bestaat al\n";
         if (defined('MIGRATION_RUNNING')) return true;
         exit(0);
@@ -77,20 +63,20 @@ try {
         [called_at]      DATETIME NOT NULL
     )";
 
-    $conn->exec($sql);
+    Database::executeDdl($conn, $sql);
 
     try {
-        $conn->exec("CREATE INDEX [ix_apicall_called_at] ON [api_call_log] ([called_at])");
+        Database::executeDdl($conn, "CREATE INDEX [ix_apicall_called_at] ON [api_call_log] ([called_at])");
     } catch (\Exception $e) {
         echo "  ⚠ Index ix_apicall_called_at niet aangemaakt: " . $e->getMessage() . "\n";
     }
     try {
-        $conn->exec("CREATE INDEX [ix_apicall_provider] ON [api_call_log] ([provider], [called_at])");
+        Database::executeDdl($conn, "CREATE INDEX [ix_apicall_provider] ON [api_call_log] ([provider], [called_at])");
     } catch (\Exception $e) {
         echo "  ⚠ Index ix_apicall_provider niet aangemaakt: " . $e->getMessage() . "\n";
     }
     try {
-        $conn->exec("CREATE INDEX [ix_apicall_user] ON [api_call_log] ([user_id], [called_at])");
+        Database::executeDdl($conn, "CREATE INDEX [ix_apicall_user] ON [api_call_log] ([user_id], [called_at])");
     } catch (\Exception $e) {
         echo "  ⚠ Index ix_apicall_user niet aangemaakt: " . $e->getMessage() . "\n";
     }
