@@ -271,7 +271,43 @@ $logSources = [
     ]
 ];
 
-$currentLog = $logSources[$selectedLog] ?? $logSources['perf'];
+require_once __DIR__ . '/logreader_bronnen.inc';
+
+// Een onbekende ?log= valt terug op de standaardbron.
+if (!isset($logSources[$selectedLog])) {
+    $selectedLog = 'perf';
+}
+
+$logDatums = ['perf' => $perfLogDates, 'debug' => $debugLogDates, '404' => $notFoundLogDates];
+// De JS-fouten komen uit een tabel die migratie 9.13.0 aanmaakt; op een site die
+// nog niet zo ver is bestaat hij niet.
+$logTabelCheck = static function (): bool {
+    try {
+        $conn = \App\Library\Database::getConnection('data');
+        return $conn !== null
+            && \App\Library\Database::tableExistsPDO($conn, 'tblCMAJavascriptErrors');
+    } catch (\Throwable $e) {
+        return false;
+    }
+};
+
+// Alleen tonen wat er is. Een keuze die gegarandeerd "Log bestand niet gevonden"
+// oplevert leest als iets dat stuk is, terwijl er niets aan de hand is.
+$beschikbareLogs = cma_logreader_beschikbare_bronnen($logSources, '', $logDatums, $logTabelCheck);
+
+// Kwam de bezoeker binnen zonder ?log=, dan is 'perf' een default en geen keuze —
+// open dan de eerste bron die er wél is in plaats van een leeg scherm.
+if (!$logExplicit && !isset($beschikbareLogs[$selectedLog]) && $beschikbareLogs !== []) {
+    $selectedLog = (string) array_key_first($beschikbareLogs);
+}
+
+// Een expliciet gekozen bron blijft in de lijst staan, ook als het bestand er niet
+// (meer) is — anders wijst de keuzelijst iets anders aan dan wat eronder staat.
+$logSources = isset($beschikbareLogs[$selectedLog])
+    ? $beschikbareLogs
+    : cma_logreader_beschikbare_bronnen($logSources, $selectedLog, $logDatums, $logTabelCheck);
+
+$currentLog = $logSources[$selectedLog];
 $logContent = [];
 $jsErrorsData = [];
 $error = null;
@@ -526,6 +562,13 @@ ToolbarHelper::title('Logbestanden lezen');
             // we have one stored AND it's different from the current
             // default ('perf'), otherwise the page is already showing it.
             var last = localStorage.getItem(KEY);
+            // Alleen naar een log dat er nu ook is: een onthouden keuze die
+            // inmiddels verdwenen is zou je op een leeg scherm zetten.
+            var beschikbaar = <?= json_encode(array_keys($logSources)) ?>;
+            if (last && beschikbaar.indexOf(last) === -1) {
+                localStorage.removeItem(KEY);
+                last = null;
+            }
             if (last && /^[a-z0-9_-]+$/i.test(last) && last !== current) {
                 // Navigate on the SAME URL we were loaded from (may be
                 // tools/logreader.php OR tools.php?tool=logs) — only swap ?log=.
