@@ -728,6 +728,49 @@ class SQL
     }
 
     /**
+     * `SELECT TOP n …` -> `SELECT … LIMIT n`.
+     *
+     * Dit is een bewerking op het HELE statement en mag daarom niet door
+     * mapOutsideLiterals(): die knipt de SQL op bij elke stringliteral, en dan komt
+     * `LIMIT n` aan het einde van het stuk vóór de eerste literal te staan in plaats
+     * van aan het einde van de query. Dat leverde onzin op zodra er ook maar één
+     * literal in stond — `WHERE soort = LIMIT 5'fout'` — en dus bij vrijwel elke
+     * echte query.
+     *
+     * Alleen de buitenste SELECT: een TOP in een subquery heeft zijn LIMIT bínnen
+     * die haakjes nodig, en raden waar die eindigen is hoe een vertaling stilletjes
+     * de verkeerde rijen gaat opleveren. Een TOP die blijft staan valt hard op.
+     */
+    private static function topToLimit(string $sql): string
+    {
+        if (!preg_match('/^(\s*SELECT\s+(?:DISTINCT\s+)?)TOP\s+(\d+)\s+/i', $sql, $m)) {
+            return $sql;
+        }
+        $aantal = $m[2];
+        $sql = $m[1] . substr($sql, strlen($m[0]));
+
+        // Een LIMIT die al in de query stond telt; een die toevallig in een
+        // stringliteral staat niet.
+        if (preg_match('/\bLIMIT\s+\d+/i', self::maskLiterals($sql))) {
+            return $sql;
+        }
+        return rtrim(rtrim($sql), ';') . ' LIMIT ' . $aantal;
+    }
+
+    /**
+     * $sql met de inhoud van elke stringliteral vervangen door spaties, zodat een
+     * patroon op de SQL-structuur getoetst kan worden zonder dat gegevens meetellen.
+     * Even lang als het origineel, dus posities blijven kloppen.
+     */
+    private static function maskLiterals(string $sql): string
+    {
+        foreach (self::literalSpans($sql) as [$start, $end]) {
+            $sql = substr_replace($sql, str_repeat(' ', $end - $start), $start, $end - $start);
+        }
+        return $sql;
+    }
+
+    /**
      * Apply $fn to every part of $sql that is NOT inside a string literal.
      *
      * Every rewrite below — `&` to `||`, `date()` to `date('now')`, the boolean
@@ -1266,18 +1309,12 @@ class SQL
         $sql = self::rewriteCalls($sql, 'DateDiff', [self::class, 'sqliteDateDiff']);
         $sql = self::rewriteCalls($sql, 'Format', [self::class, 'sqliteFormat']);
 
-        $sql = self::mapOutsideLiterals($sql, static function (string $s): string {
-            // TOP n -> LIMIT n. Only the outermost SELECT: a TOP in a subquery would
-            // need its LIMIT inside that subquery's parentheses, and guessing where
-            // those end is how a rewrite starts returning the wrong rows. One that is
-            // left behind fails loudly on the next run.
-            if (preg_match('/^(\s*SELECT\s+(?:DISTINCT\s+)?)TOP\s+(\d+)\s+/i', $s, $m)) {
-                $s = $m[1] . substr($s, strlen($m[0]));
-                if (!preg_match('/\bLIMIT\s+\d+/i', $s)) {
-                    $s = rtrim(rtrim($s), ';') . ' LIMIT ' . $m[2];
-                }
-            }
+        // TOP hoort ná de datumfuncties (die maken zelf literals aan) en buiten
+        // mapOutsideLiterals, want LIMIT gaat aan het einde van het hele statement
+        // staan — niet aan het einde van een stukje ertussen.
+        $sql = self::topToLimit($sql);
 
+        $sql = self::mapOutsideLiterals($sql, static function (string $s): string {
             // Access' DELETE * FROM — the star is Access-only syntax.
             $s = preg_replace('/\bDELETE\s+\*\s+FROM\b/i', 'DELETE FROM', $s) ?? $s;
 

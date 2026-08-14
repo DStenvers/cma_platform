@@ -143,15 +143,74 @@ class SqliteDialectTest extends TestCase
 
     // ---- Queries --------------------------------------------------------------
 
-    public function testTopWordtLimit(): void
+    /** Tabel met twee rijen: 'een' en 'twee'. */
+    private function tweeRijen(): \PDO
     {
         $conn = $this->sqlite();
         Database::executeDdl($conn, 'CREATE TABLE t (ID AUTOINCREMENT PRIMARY KEY, naam VARCHAR(20))');
         $conn->exec("INSERT INTO t (naam) VALUES ('een')");
         $conn->exec("INSERT INTO t (naam) VALUES ('twee')");
+        return $conn;
+    }
 
-        $rijen = Database::fetchAll('SELECT TOP 1 naam FROM t ORDER BY ID', [], $conn);
+    public function testTopWordtLimit(): void
+    {
+        $rijen = Database::fetchAll('SELECT TOP 1 naam FROM t ORDER BY ID', [], $this->tweeRijen());
         $this->assertEquals([['naam' => 'een']], $rijen);
+    }
+
+    /**
+     * LIMIT hoort aan het einde van het HELE statement.
+     *
+     * De vertaling van TOP liep eerst mee in de pas die de SQL bij elke
+     * stringliteral opknipt, dus belandde `LIMIT n` aan het einde van het stuk
+     * vóór de eerste literal in plaats van aan het einde van de query:
+     *
+     *   SELECT naam FROM t WHERE soort = LIMIT 5'fout' ORDER BY ID
+     *
+     * Daarmee was élke TOP-query met ook maar één literal erin stuk. Dat bleef
+     * onopgemerkt omdat de test hierboven geen enkele literal bevat.
+     */
+    public function testTopMetEenLiteralInDeQuery(): void
+    {
+        $rijen = Database::fetchAll("SELECT TOP 1 naam FROM t WHERE naam <> 'twee' ORDER BY ID", [], $this->tweeRijen());
+        $this->assertEquals([['naam' => 'een']], $rijen);
+    }
+
+    public function testTopNaastEenDatumfunctie(): void
+    {
+        // De vorm uit de logreader: TOP samen met DateAdd, dat zelf een literal
+        // aanmaakt (' days'). Precies het geval dat in productie omviel.
+        $conn = $this->sqlite();
+        Database::executeDdl($conn, 'CREATE TABLE fouten (ID AUTOINCREMENT PRIMARY KEY, melding MEMO, datestamp DATETIME)');
+        $conn->exec("INSERT INTO fouten (melding, datestamp) VALUES ('vers', datetime('now','localtime'))");
+        $conn->exec("INSERT INTO fouten (melding, datestamp) VALUES ('oud', '2020-01-01 00:00:00')");
+
+        $rijen = Database::fetchAll(
+            "SELECT TOP 500 ID, melding FROM fouten WHERE datestamp >= DateAdd('d', -7, Now()) ORDER BY datestamp DESC",
+            [], $conn);
+        $this->assertEquals([['ID' => 1, 'melding' => 'vers']], $rijen);
+    }
+
+    public function testDistinctTopMetLiteral(): void
+    {
+        $rijen = Database::fetchAll("SELECT DISTINCT TOP 2 naam FROM t WHERE naam <> 'x' ORDER BY ID", [], $this->tweeRijen());
+        $this->assertCount(2, $rijen);
+    }
+
+    public function testEenLimitInEenLiteralTeltNietMee(): void
+    {
+        // Anders zou de tekst 'LIMIT 9' in een zoekterm de echte begrenzing wegnemen.
+        $conn = $this->tweeRijen();
+        $vertaald = SQL::processSQL($conn, "SELECT TOP 1 naam FROM t WHERE naam = 'met LIMIT 9 erin'");
+        $this->assertStringContainsString("'met LIMIT 9 erin' LIMIT 1", $vertaald);
+        $this->assertEquals([], $conn->query($vertaald)->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    public function testEenEchteLimitBlijftStaan(): void
+    {
+        $vertaald = SQL::processSQL($this->tweeRijen(), 'SELECT TOP 5 naam FROM t ORDER BY ID LIMIT 1');
+        $this->assertEquals(1, preg_match_all('/\bLIMIT\b/i', $vertaald), 'er hoort er maar één te staan');
     }
 
     public function testDeleteBehoudtZijnVorm(): void

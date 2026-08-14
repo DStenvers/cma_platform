@@ -13056,3 +13056,14 @@ karaat-data en staat in de karaat-repo.
 > committed and pushed?
 
 > Platform updates, de status heeft nu een label met daaronder opnieuw. Ik wil opnieuw graag naast het label en met een icoon die qua grootte bij het label past en een refresh icoon heeft (of een redo)
+
+> #2 {main}
+> #1 C:\wwwroot\casa.toolsonline.nl\cma\tools\logreader.php(294): App\Library\Database::openRS()
+> Trace: #0 C:\wwwroot\casa.toolsonline.nl\vendor\stenversonline\platform\src\helpers\Database.php(1241): PDO->prepare()
+> Params: []
+>                 ORDER BY datestamp DESC
+>                 WHERE datestamp >= datetime(datetime('now','localtime'), (-7) || LIMIT 500' days')
+>                 FROM tblCMAJavascriptErrors
+>                        error_column, page_url, user_agent, datestamp
+> SQL: SELECT ID, error_message, error_stack, error_url, error_line,
+> [14-Aug-2026 08:37:33 UTC] [SQL ERROR] SQLSTATE[HY000]: General error: 1 near "LIMIT": syntax error
