@@ -69,11 +69,25 @@ function exportDatabasesToJson(): array
     $configPath = dirname(__DIR__, 2) . '/data/databases.json';
 
     try {
-        // Check if file exists and has same version
+        // A databases.json that is already there wins, whatever its version.
+        //
+        // This is a ONE-TIME export: it lifts the connections out of the legacy
+        // Access tblDatabases for a site that has no JSON yet. Once the file
+        // exists it IS the source of truth — Bootstrap reads it, the Installer
+        // lists it as a protected config, and operators edit it by hand.
+        //
+        // Matching on `version === '1.0.0'` meant a NEWER file counted as "not
+        // up to date" and was rebuilt into the older 1.0.0 shape, throwing away
+        // the fields that shape does not carry (`type`, `path`, `default`) and
+        // replacing hand-configured connections with whatever the Access table
+        // still held. A migration that silently downgrades live configuration
+        // is worse than one that does nothing.
         if (file_exists($configPath)) {
-            $existing = json_decode(file_get_contents($configPath), true);
-            if ($existing && ($existing['version'] ?? '') === $version) {
-                return ['success' => true, 'message' => 'databases.json is al up-to-date (versie ' . $version . ')'];
+            $existing = json_decode((string) file_get_contents($configPath), true);
+            if (is_array($existing) && !empty($existing['databases']) && is_array($existing['databases'])) {
+                return ['success' => true, 'message' => 'databases.json bestaat al (versie '
+                    . ($existing['version'] ?? 'onbekend') . ', ' . count($existing['databases'])
+                    . ' connecties) — ongemoeid gelaten'];
             }
         }
 

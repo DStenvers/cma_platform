@@ -664,6 +664,33 @@ class MigrationService
     }
 
     /**
+     * Can this connection actually be opened on this machine?
+     *
+     * Opening is the only honest test — a DSN says what someone intended, not
+     * what is installed. The result is remembered per request so a migration
+     * run with several changes against the same database does not pay for the
+     * same failing connect over and over (a missing ODBC driver is slow to
+     * fail).
+     */
+    private function databaseIsReachable(string $name): bool
+    {
+        static $seen = [];
+        $key = strtolower($name);
+        if (array_key_exists($key, $seen)) {
+            return $seen[$key];
+        }
+        try {
+            $seen[$key] = \App\Library\Database::getConnection($name) !== null;
+        } catch (\Throwable $e) {
+            // A driver that is not loaded throws, a file that is not there
+            // throws, a server that refuses throws. All of them mean the same
+            // thing to a migration: not here.
+            $seen[$key] = false;
+        }
+        return $seen[$key];
+    }
+
+    /**
      * Describe a change for logging
      */
     private function describeChange(array $change): string
@@ -733,6 +760,20 @@ class MigrationService
                 return [
                     'success' => true,
                     'message' => "Overgeslagen: database '$db' is niet geconfigureerd"
+                ];
+            }
+            // Configured is not the same as available. A connection can name a
+            // database that is not there: an Access file that was never copied
+            // to this box, a driver that is not installed, a server that is
+            // down. The change would then run against nothing and fail deep
+            // inside a script — which is how a missing repository.mdb turned
+            // into an HTTP 500 on the migrations screen instead of a line of
+            // text. Ask once, here, and skip the same way.
+            if (!$this->databaseIsReachable($db)) {
+                return [
+                    'success' => true,
+                    'message' => "Overgeslagen: database '$db' is geconfigureerd maar niet "
+                        . "bereikbaar op deze machine"
                 ];
             }
         }
