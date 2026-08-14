@@ -13047,3 +13047,8 @@ karaat-data en staat in de karaat-repo.
 > kun je de documentatie naast de afgelopen prompts.md houden en zien of die nog synchroon loopt?
 
 > ja graag
+
+> Migrations: ie 8.0.0: Form definities repareren - database normalisatie en parentField toevoegen
+>   1 wijziging(en) uit te voeren...
+> ✗ Versie 8.0.0 MISLUKT: PHP script uitvoering mislukt (migrations/8.0.0_fix_subform_definitions.php): Call to undefined function findParentFieldInTable()
+> ✗ Fout bij update 8.0.0: PHP script uitvoering mislukt (migrations/8.0.0_fix_subform_definitions.php): Call to undefined function findParentFieldInTable()

@@ -6,7 +6,7 @@
  * 2. Add missing parentField to subforms by querying database table schema
  */
 
-use App\Library\Database;
+use Cma\SchemaHelper;
 
 $basePath = defined('MIGRATION_RUNNING') ? dirname(__DIR__) : __DIR__;
 if (strpos($basePath, 'migrations') !== false) {
@@ -86,7 +86,7 @@ foreach ($files as $file) {
             $lookupDb = $dbMap[$subformDb] ?? $subformDb;
 
             // Find FK field in subform table that references parent
-            $parentField = findParentFieldInTable($lookupDb, $subformTable, $parentTable);
+            $parentField = SchemaHelper::findForeignKeyTo($lookupDb, $subformTable, $parentTable);
 
             if ($parentField) {
                 $subform['parentField'] = $parentField;
@@ -125,50 +125,3 @@ if (!empty($changes)) {
 }
 
 return ['success' => true, 'message' => "Updated {$stats['updated']} files"];
-
-/**
- * Find FK field in table that references parent table.
- *
- * Wrapped in function_exists guard because 8.1.0_check_subform_parentfield.php
- * defines a function with the same name. The CLI migration runner includes
- * both files in one PHP process; without the guard, PHP errors on
- * redeclaration when the second file is included.
- */
-if (!function_exists('findParentFieldInTable')) {
-    function findParentFieldInTable(string $dbId, string $table, string $parentTable): ?string
-    {
-        try {
-            $conn = Database::getConnection($dbId);
-            if (!$conn) return null;
-
-            // Get columns from table schema
-            $columns = Database::getTableSchema($conn, $table);
-            if (!$columns || $columns->EOF) return null;
-
-            // Build FK name variations from parent table
-            $baseName = preg_replace('/^tbl/i', '', $parentTable);
-            $variations = [
-                strtolower('fk' . $baseName),
-                strtolower('fk' . rtrim($baseName, 's')),
-                strtolower('fk' . preg_replace('/en$/i', '', $baseName)),
-            ];
-
-            // Check each column
-            while (!$columns->EOF) {
-                $colName = $columns->fields['COLUMN_NAME'] ?? '';
-                $lowerCol = strtolower($colName);
-
-                foreach ($variations as $v) {
-                    if ($lowerCol === $v) {
-                        return $colName;
-                    }
-                }
-                $columns->MoveNext();
-            }
-        } catch (\Exception $e) {
-            // Silent fail
-        }
-
-        return null;
-    }
-}

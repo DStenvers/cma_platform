@@ -6,7 +6,7 @@
  * Also tries to detect the correct field and offers fixes.
  */
 
-use App\Library\Database;
+use Cma\SchemaHelper;
 
 $basePath = defined('MIGRATION_RUNNING') ? dirname(__DIR__) : __DIR__;
 if (strpos($basePath, 'migrations') !== false) {
@@ -106,7 +106,7 @@ foreach ($files as $file) {
         $lookupDb = $dbMap[$subformDb] ?? $subformDb;
 
         // Try to find FK field
-        $parentField = findParentFieldInTable($lookupDb, $subformTable, $parentTable);
+        $parentField = SchemaHelper::findForeignKeyTo($lookupDb, $subformTable, $parentTable);
 
         if ($parentField) {
             // Auto-fix: add the parentField
@@ -116,7 +116,7 @@ foreach ($files as $file) {
             echo "  FIXED: {$formName} -> {$subformTitle}: parentField='{$parentField}'\n";
         } else {
             // Report missing with diagnostic info
-            $columns = getTableColumns($lookupDb, $subformTable);
+            $columns = array_column(SchemaHelper::getColumns($lookupDb, $subformTable, true), 'name');
             $issues[] = [
                 'parent' => $formName,
                 'subform' => $subformName,
@@ -170,84 +170,3 @@ if (!empty($issues)) {
 }
 
 return ['success' => true, 'message' => "Fixed {$fixed}, " . count($issues) . " issues remaining"];
-
-/**
- * Find FK field in table that references parent table.
- *
- * Wrapped in function_exists guard because 8.0.0_fix_subform_definitions.php
- * also defines this. The CLI migration runner includes both in one PHP
- * process; without the guard, PHP errors on redeclaration. When 8.0.0 has
- * already run in the same process its (slightly less complete) variant wins;
- * acceptable for greenfield installs where neither runs against real data.
- */
-if (!function_exists('findParentFieldInTable')) {
-    function findParentFieldInTable(string $dbId, string $table, string $parentTable): ?string
-    {
-        try {
-            $conn = Database::getConnection($dbId);
-            if (!$conn) return null;
-
-            // Get columns from table schema
-            $columns = Database::getTableSchema($conn, $table);
-            if (!$columns || $columns->EOF) return null;
-
-            // Build FK name variations from parent table
-            // tblDeelnemers -> fkDeelnemer, fkDeelnemers, Deelnemers_ID, etc.
-            $baseName = preg_replace('/^tbl/i', '', $parentTable);
-            $variations = [
-                strtolower('fk' . $baseName),               // fkDeelnemers
-                strtolower('fk' . rtrim($baseName, 's')),   // fkDeelnemer
-                strtolower('fk' . preg_replace('/en$/i', '', $baseName)), // fkDeelnem (Dutch plural -en)
-                strtolower($baseName . '_id'),              // Deelnemers_ID
-                strtolower($baseName . 'id'),               // DeelnemersID
-                strtolower('fk_' . $baseName),              // fk_Deelnemers
-            ];
-
-            // Also try ID of parent
-            $variations[] = strtolower('fk' . $parentTable);
-            $variations[] = strtolower($parentTable . '_id');
-
-            // Check each column
-            while (!$columns->EOF) {
-                $colName = $columns->fields['COLUMN_NAME'] ?? '';
-                $lowerCol = strtolower($colName);
-
-                foreach ($variations as $v) {
-                    if ($lowerCol === $v) {
-                        return $colName;
-                    }
-                }
-                $columns->MoveNext();
-            }
-        } catch (\Exception $e) {
-            // Silent fail
-        }
-
-        return null;
-    }
-}
-
-/**
- * Get all column names from a table
- */
-if (!function_exists('getTableColumns')) {
-    function getTableColumns(string $dbId, string $table): array
-    {
-        $cols = [];
-        try {
-            $conn = Database::getConnection($dbId);
-            if (!$conn) return $cols;
-
-            $columns = Database::getTableSchema($conn, $table);
-            if (!$columns || $columns->EOF) return $cols;
-
-            while (!$columns->EOF) {
-                $cols[] = $columns->fields['COLUMN_NAME'] ?? '';
-                $columns->MoveNext();
-            }
-        } catch (\Exception $e) {
-            // Silent fail
-        }
-        return $cols;
-    }
-}

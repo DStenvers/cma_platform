@@ -204,6 +204,70 @@ class SchemaHelper
         return false;
     }
 
+    /**
+     * Which column in $tableName is the foreign key back to $parentTable?
+     *
+     * There is no metadata to ask: the converted Access databases carry no
+     * declared relationships, so the link between a subform and its parent has to
+     * be read off the naming. This is the list of shapes those databases actually
+     * use, and it lives here rather than in the migrations that need it — two
+     * copies of this list had already drifted apart (one knew three spellings,
+     * the other eight), and the copy that won depended on which migration ran
+     * first in the same process.
+     *
+     * The spellings are tried in order, so the answer does not depend on the
+     * order the columns happen to come back in: `fkDeelnemer` beats
+     * `Deelnemers_ID` because it is the more specific match, not because it sits
+     * earlier in the table.
+     *
+     * @param  mixed  $connection  PDO, connection name, or connection string.
+     * @param  string $tableName   The child table, whose columns are searched.
+     * @param  string $parentTable The table being referenced.
+     * @return string|null         The column name as the database spells it, or null.
+     */
+    public static function findForeignKeyTo($connection, string $tableName, string $parentTable): ?string
+    {
+        if ($tableName === '' || $parentTable === '') {
+            return null;
+        }
+
+        // tblDeelnemers -> Deelnemers. Dutch plurals lose -s or -en.
+        $base = (string) preg_replace('/^tbl/i', '', $parentTable);
+        $candidates = [
+            'fk' . $base,
+            'fk' . rtrim($base, 's'),
+            'fk' . preg_replace('/en$/i', '', $base),
+            'fk_' . $base,
+            'fk' . $parentTable,
+            $base . '_id',
+            $base . 'id',
+            $parentTable . '_id',
+        ];
+
+        try {
+            $columns = [];
+            foreach (self::getColumns($connection, $tableName, true) as $column) {
+                $name = (string) ($column['name'] ?? '');
+                if ($name !== '') {
+                    $columns[strtolower($name)] = $name;
+                }
+            }
+
+            foreach ($candidates as $candidate) {
+                $key = strtolower((string) $candidate);
+                if (isset($columns[$key])) {
+                    return $columns[$key];
+                }
+            }
+        } catch (\Throwable $e) {
+            // A table this connection cannot describe simply has no answer. The
+            // callers treat null as "leave the definition alone".
+            return null;
+        }
+
+        return null;
+    }
+
     public static function getColumns($connection, string $tableName, bool $includeHidden = false): array
     {
         $columns = [];
