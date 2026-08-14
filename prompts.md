@@ -13039,3 +13039,11 @@ karaat-data en staat in de karaat-repo.
 > Graag alle sql's in de migraties nalopen of er nog meer zaken zijn die sqllite niet aankan of waarvan de syntax anders is.
 
 > DateAdd/DateDiff/Format -> Dat moet met een regexp toch wel lukken? 1 voor 1 ?
+
+## 2026-08-14
+
+> is alles gecommit and pushed?
+
+> kun je de documentatie naast de afgelopen prompts.md houden en zien of die nog synchroon loopt?
+
+> ja graag
