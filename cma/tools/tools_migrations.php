@@ -760,6 +760,22 @@ async function submitMigration(e) {
     return false;
 }
 
+/**
+ * De statuscel van een uitgevoerde update: het label met de opnieuw-actie ernaast.
+ * Eén functie, omdat dezelfde cel op drie plekken opgebouwd werd (hier tweemaal
+ * na een herhaling, en in PHP bij het opbouwen van de tabel) en die kopieen uit
+ * elkaar lopen zodra er iets aan verandert.
+ */
+function migrationStatusCell(state, version) {
+    var badge = state === "success"
+        ? "<span class=\"badge badge-success\">Toegepast</span>"
+        : "<span class=\"badge badge-error\">Mislukt</span>";
+    return "<span class=\"cma-tool__status\">" + badge
+        + "<a href=\"#\" class=\"cma-tool__rerun\" title=\"Deze update opnieuw uitvoeren\""
+        + " onclick=\"return rerunMigration(\'" + version + "\')\">"
+        + "<span class=\"lnr lnr-sync\"></span>opnieuw</a></span>";
+}
+
 async function rerunMigration(version) {
     var confirmed = await libConfirm("Weet je zeker dat je update " + version + " opnieuw wilt uitvoeren?", {
         title: "Update opnieuw uitvoeren",
@@ -807,13 +823,13 @@ async function rerunMigration(version) {
 
         if (result.success) {
             if (statusCell) {
-                statusCell.innerHTML = "<span class=\"badge badge-success\">Toegepast</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
+                statusCell.innerHTML = migrationStatusCell("success", version);
             }
             resultDiv.setAttribute("type", "success");
             resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version + " succesvol uitgevoerd!</span>";
         } else {
             if (statusCell) {
-                statusCell.innerHTML = "<span class=\"badge badge-error\">Mislukt</span><br><a href=\"#\" onclick=\"return rerunMigration(\'" + version + "\')\" style=\"font-size:var(--font-size-xs);color:#666;\">opnieuw</a>";
+                statusCell.innerHTML = migrationStatusCell("error", version);
             }
             resultDiv.setAttribute("type", "error");
             var errorMsg = result.error || "Onbekende fout, controleer de uitvoeringslog voor details";
@@ -981,15 +997,19 @@ if (empty($completedMigrationsList)) {
 } else {
     echo '<table class="lib_table">';
     echo '<thead><tr>';
-    echo '<th style="width:80px">Versie</th><th>Beschrijving</th><th style="width:100px">Status</th></tr></thead>';
+    echo '<th style="width:80px">Versie</th><th>Beschrijving</th><th style="width:170px">Status</th></tr></thead>';
     echo '<tbody id="completedMigrations">';
     foreach ($completedMigrationsList as $migration) {
         echo '<tr data-version="' . htmlspecialchars($migration['version']) . '">';
         echo '<td><span class="cma-tool__strong">' . htmlspecialchars($migration['version']) . '</span></td>';
         echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
         echo '<td>';
+        echo '<span class="cma-tool__status">';
         echo '<span class="badge badge-success">Toegepast</span>';
-        echo '<br><a href="#" onclick="return rerunMigration(\'' . htmlspecialchars($migration['version']) . '\')" style="font-size:var(--font-size-xs);color:#666;">opnieuw</a>';
+        echo '<a href="#" class="cma-tool__rerun" title="Deze update opnieuw uitvoeren"'
+            . ' onclick="return rerunMigration(\'' . htmlspecialchars($migration['version']) . '\')">'
+            . '<span class="lnr lnr-sync"></span>opnieuw</a>';
+        echo '</span>';
         echo '</td>';
         echo '</tr>';
     }

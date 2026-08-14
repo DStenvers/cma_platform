@@ -2042,3 +2042,38 @@ body.backup #c.tools {
 @keyframes cma-tool-busy-spin {
     to { transform: rotate(360deg); }
 }
+
+/* Statuskolom van de updatelijst: het label en de opnieuw-actie naast elkaar.
+   Onder elkaar las de actie als een losse regel tekst onder een label, terwijl
+   ze bij dat label hoort. nowrap houdt ze op één regel als de kolom krap wordt. */
+.cma-tool__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+/* Een hulpactie naast het label, geen knop — dus klein gehouden, net iets groter
+   dan de badge ernaast zodat het leesbaar blijft zonder de aandacht te trekken. */
+.cma-tool__rerun {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.cma-tool__rerun:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* De basisregel geeft elke .lnr een vaste doos van 24x24; in een tekstregel moet
+   het glyph met de tekst meeschalen in plaats van er een blok naast te zijn. */
+.cma-tool__rerun .lnr {
+    width: auto;
+    height: auto;
+    font-size: 1em;
+    line-height: 1;
+}

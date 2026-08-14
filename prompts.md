@@ -13052,3 +13052,7 @@ karaat-data en staat in de karaat-repo.
 >   1 wijziging(en) uit te voeren...
 > ✗ Versie 8.0.0 MISLUKT: PHP script uitvoering mislukt (migrations/8.0.0_fix_subform_definitions.php): Call to undefined function findParentFieldInTable()
 > ✗ Fout bij update 8.0.0: PHP script uitvoering mislukt (migrations/8.0.0_fix_subform_definitions.php): Call to undefined function findParentFieldInTable()
+
+> committed and pushed?
+
+> Platform updates, de status heeft nu een label met daaronder opnieuw. Ik wil opnieuw graag naast het label en met een icoon die qua grootte bij het label past en een refresh icoon heeft (of een redo)
