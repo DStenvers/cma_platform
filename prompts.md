@@ -13075,3 +13075,5 @@ karaat-data en staat in de karaat-repo.
 > can you make it idenpotent, it remembers where it stopped and continues? then make an agent that requests to the files to ensure after acouple of hours all is indexed?
 
 > the agent should repeat every 10 minutes
+
+> regression, now the crawl page itself is not working!!
