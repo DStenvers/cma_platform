@@ -13106,3 +13106,7 @@ karaat-data en staat in de karaat-repo.
 > the icons on the list display are too small, make them equal to the detail page and on the detail page i only see one icon , please check
 > Take a good look at all crawlers and try to get more properties of. a house
 > https://casa.toolsonline.nl/listing.php?id=29 has literally a picture of a jacuzzi, can inage recognition help?
+
+> vanuit de detailpagina graag zo maken dat je naar de volgende en vorige woning kan door pijltjes bij de naam, overigens gens staat de prijs per m2 nu onder de prijs (op mobiel)
+>
+> in de lijstweergave kunnen bladeren door de foro’s van een wonig; lazy-loaded en on-demand
