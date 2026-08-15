@@ -13092,3 +13092,5 @@ karaat-data en staat in de karaat-repo.
 > and dif you start crawling?
 
 > the link to https://casaspalmeras.com is always rtbe same and images from this site are missing
+
+> for now, can you add the domain name below the inage? I want all inages of an add not just the primary one
