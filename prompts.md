@@ -13117,3 +13117,7 @@ karaat-data en staat in de karaat-repo.
 > if anything changes inn the listing, clear the cache
 > select a suitable image format so you can use background-image : fit instead of jimping images
 > the readme on github is really outdated
+
+> no i meant the hide and favourite button differ on list and detail
+> can we make it so each release clears the cache?
+> titles of houses still in Spaniish
