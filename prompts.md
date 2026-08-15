@@ -13141,3 +13141,6 @@ karaat-data en staat in de karaat-repo.
 > alle filter riteria in gehele fetallen. met name m2
 
 > if a filterccritwrium is unknown always include it in the list
+
+> make sure the entire content of the filter has property selectable=false
+> not true: what i still see : WOONOPPERVLAK 31.133 M² – 184.310 M²
