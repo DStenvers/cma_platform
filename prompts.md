@@ -13090,3 +13090,5 @@ karaat-data en staat in de karaat-repo.
 > still if i open https://casa.toolsonline.nl/tools/crawl.php?g in a browser it asks dto download crawl.php 
 >
 > and dif you start crawling?
+
+> the link to https://casaspalmeras.com is always rtbe same and images from this site are missing
