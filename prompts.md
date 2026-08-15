@@ -13121,3 +13121,5 @@ karaat-data en staat in de karaat-repo.
 > no i meant the hide and favourite button differ on list and detail
 > can we make it so each release clears the cache?
 > titles of houses still in Spaniish
+
+> de beschrijving heeft nu zichtbare <br elementen
