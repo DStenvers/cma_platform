@@ -13099,3 +13099,10 @@ karaat-data en staat in de karaat-repo.
 > and that hoes for all crawl types, not just this one
 > too much data is missing, the m2 is crucial but missing in 95% of the houses
 > woning verbergen, knop verbergen lijkt niet te werken
+
+> add an agent that calls the cron every 15 minutes
+> can you add a refresh button that recrawls a specific house?
+>
+> the icons on the list display are too small, make them equal to the detail page and on the detail page i only see one icon , please check
+> Take a good look at all crawlers and try to get more properties of. a house
+> https://casa.toolsonline.nl/listing.php?id=29 has literally a picture of a jacuzzi, can inage recognition help?

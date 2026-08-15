@@ -825,6 +825,35 @@ function cma_doc_check_parent_nosniff(): array {
     return ['label' => $label, 'status' => 'warn', 'detail' => 'Header niet gezet — MIME-sniffing aanvallen mogelijk.', 'fix' => 'Voeg toe in <code>&lt;httpProtocol&gt;&lt;customHeaders&gt;</code>.'];
 }
 
+function cma_doc_check_parent_webfont_mime(): array {
+    $label = 'Parent web.config: MIME-types voor webfonts';
+    $xml = cma_doc_parent_webconfig();
+    if ($xml === null) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Parent <code>web.config</code> niet gevonden.', 'fix' => ''];
+    }
+    $missing = [];
+    foreach (['.woff', '.woff2', '.ttf'] as $ext) {
+        if (empty($xml->xpath("//staticContent/mimeMap[@fileExtension='" . $ext . "']"))) {
+            $missing[] = $ext;
+        }
+    }
+    if (!$missing) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'Alle drie geregistreerd — het iconenfont wordt uitgeserveerd.', 'fix' => ''];
+    }
+    return [
+        'label' => $label,
+        'status' => 'fail',
+        'detail' => 'Ontbreekt: <code>' . implode('</code>, <code>', $missing) . '</code>. IIS antwoordt met 404 op een extensie die '
+            . 'het niet kent, dus het font komt nooit aan en elk icoon dat een glyph is blijft leeg. Dat ziet eruit als een '
+            . 'stylingfout, niet als een ontbrekend bestand — controleer het netwerktabblad op een 404 voor het <code>.woff</code>.',
+        'fix' => 'Voeg in <code>&lt;system.webServer&gt;&lt;staticContent&gt;</code> per extensie een <code>&lt;remove&gt;</code> plus '
+            . '<code>&lt;mimeMap&gt;</code> toe (<code>font/woff</code>, <code>font/woff2</code>, <code>font/ttf</code>). '
+            . 'De <code>&lt;remove&gt;</code> ervoor is nodig omdat IIS een dubbele registratie als fout afkeurt en dan de hele site '
+            . 'op 500 zet. Staat standaard in <code>templates/web.config.template</code>, maar de Installer overschrijft een bestaande '
+            . '<code>web.config</code> nooit.',
+    ];
+}
+
 function cma_doc_check_parent_frame_options(): array {
     $label = 'Parent web.config: X-Frame-Options: SAMEORIGIN';
     $xml = cma_doc_parent_webconfig();
@@ -3090,6 +3119,7 @@ function render_doc_iis_config(): void
         'cma_doc_check_parent_nosniff',
         'cma_doc_check_parent_frame_options',
         'cma_doc_check_parent_hidden_segments',
+        'cma_doc_check_parent_webfont_mime',
         'cma_doc_check_iis_version',
         'cma_doc_check_server_header',
         'cma_doc_check_powered_by',
@@ -3263,6 +3293,7 @@ function render_doc_iis_config(): void
             <tr><td><code>/cma/tools?tool=X</code> verliest de <code>?tool=X</code></td><td>De Tools Directory rewrite-rule in <code>cma/web.config</code> mist <code>appendQueryString="true"</code>. Dit staat standaard aan — run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Site geeft IIS default 404, niet cma/404.php</td><td><code>cma/404.php</code> bestaat niet op disk (Installer-sync incompleet). Run <code>composer update stenversonline/platform</code>.</td></tr>
             <tr><td>Mobile Safari prompts "Download logreader.php?"</td><td>Gefixed via @-suppress op file_put_contents in delete-handler zodat warnings niet de Location-redirect breken.</td></tr>
+            <tr><td>Alle iconen zijn onzichtbaar — de tekst ernaast staat er wel, alleen het symbooltje ontbreekt</td><td>IIS antwoordt met <span class="cma-tool__strong">404</span> op elke extensie die niet in <code>&lt;staticContent&gt;</code> staat, en <code>.woff</code>, <code>.woff2</code> en <code>.ttf</code> staan er van huis uit niet bij. Het iconenfont komt dan nooit aan, de <code>::before</code>-glyphs vallen terug op niets, en dat leest als een stylingfout terwijl er gewoon een bestand ontbreekt. <span class="cma-tool__strong">Herkennen:</span> netwerktabblad van de browser → een 404 op het <code>.woff</code>; of <code>document.fonts.check('16px &lt;fontnaam&gt;')</code> in de console, die geeft dan <code>false</code>. <span class="cma-tool__strong">Fix:</span> registreer de drie extensies in <code>&lt;system.webServer&gt;&lt;staticContent&gt;</code>, elk met een <code>&lt;remove&gt;</code> ervóór — zonder die remove weigert IIS een dubbele registratie en zet de hele site op <code>500.19</code>. De live-check "MIME-types voor webfonts" bovenaan deze pagina meet het. Nieuwe installaties krijgen het uit <code>templates/web.config.template</code>, maar een bestaande <code>web.config</code> wordt door de Installer nooit overschreven, dus daar voeg je het met de hand toe.</td></tr>
             <tr><td>Een endpoint dat JSON teruggeeft (<code>deploy_status.php</code>, een eigen cron-URL) wordt in de browser als <span class="cma-tool__strong">download</span> aangeboden</td><td>Derde variant van dezelfde familie, en deze is zelf-toegebracht: <code>Content-Type: application/json</code> sámen met onze <code>X-Content-Type-Options: nosniff</code> laat Safari — de geïnstalleerde PWA op iOS voorop — weigeren te raden, dus biedt hij het antwoord aan als bestand. Vervelend precies wanneer het pijn doet: zo'n endpoint open je met een browser omdat de site stuk is. <span class="cma-tool__strong">Fix:</span> antwoord in de vorm waar om gevraagd is — <code>text/html</code> in <code>Accept</code> (een browser die navigeert) krijgt een pagina met dezelfde inhoud erin, al het andere (expliciete <code>application/json</code>, <code>*/*</code> van curl, helemaal geen <code>Accept</code>, of <code>?format=json</code>) krijgt JSON. <code>deploy_status.php</code> doet dat.</td></tr>
             <tr><td>Een pagina die lang werk doet (crawl, import, batch) biedt zichzelf aan als <span class="cma-tool__strong">download</span> zodra je hem start</td><td>Zelfde eindsymptoom, andere oorzaak: niet een ontbrekende header maar een <span class="cma-tool__strong">afgekapt antwoord</span>. IIS kent FastCGI twee limieten toe — <code>activityTimeout</code> (standaard 30 s zónder uitvoer) en <code>requestTimeout</code> (standaard 90 s tótaal, hoeveel er ook gestuurd wordt). Loopt het verzoek daaroverheen, dan breekt IIS het af; de browser houdt een half antwoord over zonder bruikbare <code>Content-Type</code>, en met <code>nosniff</code> erbij weigert hij te raden en biedt het bestand aan om te bewaren. Progressieve uitvoer (<code>flush()</code> per stap) helpt tegen <code>activityTimeout</code> maar niet tegen <code>requestTimeout</code>. <span class="cma-tool__strong">Fix:</span> laat zo'n pagina het werk niet zélf doen maar inplannen — een vlag of een klok zetten die een geplande taak oppakt. Timeouts ophogen verplaatst de grens alleen; een taak die minuten duurt hoort niet in een webverzoek.</td></tr>
             <tr><td>Vier <code>session_*</code>-waarschuwingen ("headers have already been sent", <code>_bootstrap.php</code> regel 172 t/m 195) boven aan het scherm <span class="cma-tool__strong">Cache leegmaken</span></td><td>De tool schrijft eerst een "even geduld"-melding weg en sluit daarvoor élke output-buffer (<code>ob_end_flush</code> + <code>flush</code>), zodat je meteen iets ziet bij een grote cache. Vanaf dat moment zijn de headers verstuurd. Werd de bootstrap dáárna pas geladen, dan kwam het sessieblok in <code>_bootstrap.php</code> aan de beurt terwijl dat niet meer kon: vier waarschuwingen op een rij, en — vervelender dan de melding — de sessie van dat verzoek belandde op het standaardpad in plaats van de sessiemap van de site, waardoor de tool ook de verkeerde map telde en opruimde. De bootstrap wordt nu vóór de eerste uitvoer geladen. <code>ClearCacheBootstrapVolgordeTest</code> bewaakt die volgorde. Zie je dit tóch nog: kijk of er iets ánders vóór de bootstrap uitvoer doet — de eerste regels van de paginabron wijzen de bron aan.</td></tr>

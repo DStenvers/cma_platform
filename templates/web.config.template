@@ -182,6 +182,16 @@
             <!-- WebP image support (remove first to avoid duplicate error) -->
             <remove fileExtension=".webp" />
             <mimeMap fileExtension=".webp" mimeType="image/webp" />
+            <!-- Web fonts. IIS answers 404 for an extension it does not know, so
+                 without these the icon font never arrives and every glyph-based
+                 icon on the site renders as nothing — which looks like a styling
+                 bug rather than a missing file. -->
+            <remove fileExtension=".woff" />
+            <mimeMap fileExtension=".woff" mimeType="font/woff" />
+            <remove fileExtension=".woff2" />
+            <mimeMap fileExtension=".woff2" mimeType="font/woff2" />
+            <remove fileExtension=".ttf" />
+            <mimeMap fileExtension=".ttf" mimeType="font/ttf" />
         </staticContent>
 
         <!-- Custom 404 page routed to /404.php (created by the Installer when the
