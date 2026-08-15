@@ -13137,3 +13137,5 @@ karaat-data en staat in de karaat-repo.
 > it was https://casa.toolsonline.nl/town.php?name=Masllorenç&province=Tarragona
 
 > icons for hide and fsvourite , next and previous please 2x larger
+
+> alle filter riteria in gehele fetallen. met name m2
