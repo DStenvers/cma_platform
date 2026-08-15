@@ -13073,3 +13073,5 @@ karaat-data en staat in de karaat-repo.
 > pressing starten on https://casa.toolsonline.nl/tools/crawl.php leads to a download question of the script, can you check and solve? first pull the source from GIT
 
 > can you make it idenpotent, it remembers where it stopped and continues? then make an agent that requests to the files to ensure after acouple of hours all is indexed?
+
+> the agent should repeat every 10 minutes
