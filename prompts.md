@@ -13084,3 +13084,5 @@ karaat-data en staat in de karaat-repo.
 > i have no access, allow keyless access for now and start crawling
 
 > yes i know, the risk is minimal and i takenit
+
+> it again says to download? was the release succesfull?
