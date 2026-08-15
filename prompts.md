@@ -13129,3 +13129,6 @@ karaat-data en staat in de karaat-repo.
 > nieuwe eigenschap: automatische irrigatie
 
 > de teksten wirden nu niet goedcgeezen: airconditioningsystemen staat in de tekst en airo eigenschap staat onbekke d, graag voor alle eigenschappe n opkissen
+
+> a town page is no longer a popup? and https://casa.toolsonline.nl/town.php?name=Masllorenç&province=Tarragona does not show a matker on the map, encoding?
+> let the lical llm interpret the text and add propeeties if found, give it a dynamic list of properties to look for
