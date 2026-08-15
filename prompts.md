@@ -13110,3 +13110,10 @@ karaat-data en staat in de karaat-repo.
 > vanuit de detailpagina graag zo maken dat je naar de volgende en vorige woning kan door pijltjes bij de naam, overigens gens staat de prijs per m2 nu onder de prijs (op mobiel)
 >
 > in de lijstweergave kunnen bladeren door de foro’s van een wonig; lazy-loaded en on-demand
+
+> woff is fine,
+> did you commit and push? i see the old icons
+> features-icons are not left aligned
+> if anything changes inn the listing, clear the cache
+> select a suitable image format so you can use background-image : fit instead of jimping images
+> the readme on github is really outdated
