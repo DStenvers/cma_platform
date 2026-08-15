@@ -13132,3 +13132,6 @@ karaat-data en staat in de karaat-repo.
 
 > a town page is no longer a popup? and https://casa.toolsonline.nl/town.php?name=Masllorenç&province=Tarragona does not show a matker on the map, encoding?
 > let the lical llm interpret the text and add propeeties if found, give it a dynamic list of properties to look for
+
+> zonnepanelen kennen ook andere termen zoals klimaatneutraal en dergelijke
+> it was https://casa.toolsonline.nl/town.php?name=Masllorenç&province=Tarragona
