@@ -13127,3 +13127,5 @@ karaat-data en staat in de karaat-repo.
 > <br><br>De onderste verdieping bestaat uit een grote kelder met ruime opslagruimte, evenals een aparte wasruimte. <br><br>De woning heeft in totaal drie slaapkamers en twee badkamers: één badkamer met douche op de slaapverdieping en het gastentoilet op de begane grond. Een van de slaapkamers op de bovenste verdieping heeft directe toegang tot twee aparte terrassen, waarvan
 
 > nieuwe eigenschap: automatische irrigatie
+
+> de teksten wirden nu niet goedcgeezen: airconditioningsystemen staat in de tekst en airo eigenschap staat onbekke d, graag voor alle eigenschappe n opkissen
