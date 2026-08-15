@@ -13094,3 +13094,8 @@ karaat-data en staat in de karaat-repo.
 > the link to https://casaspalmeras.com is always rtbe same and images from this site are missing
 
 > for now, can you add the domain name below the inage? I want all inages of an add not just the primary one
+
+> no please make a migration for that, manual is hell..
+> and that hoes for all crawl types, not just this one
+> too much data is missing, the m2 is crucial but missing in 95% of the houses
+> woning verbergen, knop verbergen lijkt niet te werken
