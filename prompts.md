@@ -13077,3 +13077,6 @@ karaat-data en staat in de karaat-repo.
 > the agent should repeat every 10 minutes
 
 > regression, now the crawl page itself is not working!!
+
+> not again server commands!!! make urls and let you agent call them
+> and the idempotent should be default behaviour and not need extra flags
