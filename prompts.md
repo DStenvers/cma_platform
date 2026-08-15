@@ -13067,3 +13067,7 @@ karaat-data en staat in de karaat-repo.
 >                        error_column, page_url, user_agent, datestamp
 > SQL: SELECT ID, error_message, error_stack, error_url, error_line,
 > [14-Aug-2026 08:37:33 UTC] [SQL ERROR] SQLSTATE[HY000]: General error: 1 near "LIMIT": syntax error
+
+## 2026-08-15
+
+> pressing starten on https://casa.toolsonline.nl/tools/crawl.php leads to a download question of the script, can you check and solve? first pull the source from GIT
