@@ -956,6 +956,64 @@ class LibDialog extends HTMLElement {
                         color: var(--text-secondary, #cccccc);
                     }
                 }
+
+                /* Op een telefoon.
+                 *
+                 * Twee dingen gaan hier mis die op een bureaublad niet bestaan.
+                 *
+                 * "vh" is op een mobiele browser niet de zichtbare hoogte maar
+                 * de hoogte zónder adresbalk. Een venster van 95vh steekt er dus
+                 * onderuit, en wat er onderuit steekt is precies de voettekst
+                 * met de knoppen — de dialoog ziet er goed uit en is
+                 * onbedienbaar. "dvh" is wél wat je ziet; de regel ervoor blijft
+                 * staan voor browsers die dat niet kennen.
+                 *
+                 * En "gemaximaliseerd" betekent op een telefoon niet 95% van het
+                 * scherm met een marge eromheen, want die marge is dan een derde
+                 * van de breedte kwijt aan niets. Van rand tot rand dus, en de
+                 * kop en de voet krimpen niet mee als de inhoud te groot is:
+                 * die scrollt, en de knoppen blijven staan.
+                 */
+                @media (max-width: 640px) {
+                    .dialog-content {
+                        max-width: 100vw;
+                        max-height: 90vh;
+                        max-height: 100dvh;
+                    }
+                    :host([maximized]) .dialog-content,
+                    :host([size="fullscreen"]) .dialog-content {
+                        max-width: 100vw !important;
+                        width: 100vw;
+                        /* fullscreen staat op 800px minimum: op 360 px breed is
+                           dat een pagina die horizontaal scrollt. */
+                        min-width: 0;
+                        height: 95vh;
+                        height: 100dvh;
+                        max-height: 100dvh;
+                        border-radius: 0;
+                    }
+                    :host([size="xlarge"]) .dialog-content {
+                        max-width: 100vw;
+                        height: auto;
+                        max-height: 100dvh;
+                    }
+                    :host([size="auto"]) .dialog-content { max-width: 100vw; min-width: 0; }
+                    /* De inhoud scrollt; kop en voet zijn geen rekbare ruimte. */
+                    .dialog-header, .dialog-footer { flex: 0 0 auto; }
+                    /* Drie knoppen naast elkaar passen niet op 360 px, en dan
+                       valt de laatste buiten beeld. Onderaan zit bovendien de
+                       systeembalk van de telefoon. */
+                    .dialog-footer {
+                        flex-wrap: wrap;
+                        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+                    }
+                    .dialog-footer ::slotted(button),
+                    .dialog-footer ::slotted(a),
+                    .dialog-footer .dialog-btn { flex: 1 1 auto; }
+                    /* Een fullscreen-dialoog verbergt zijn voet; op een telefoon
+                       is dat de enige plek waar de knoppen konden staan. */
+                    :host([size="fullscreen"]) .dialog-footer:not(:empty) { display: flex; }
+                }
             </style>
             <div class="dialog-backdrop">
                 <div class="dialog-content${type ? ' dialog-' + type : ''}">
