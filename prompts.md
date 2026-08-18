@@ -13157,3 +13157,7 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-18
 
 > pull the code en kijk naar https://casa.toolsonline.nl/listing.php?id=2091 daar gaat veel mis, o a de oppervlakte, geen tekst
+
+> and fix the parser please
+> ?
+> and i asked for a run to select the best inage showing the house from the outside, i do not see that run anywhere and the sample has the house at 19/31 instead of the first. Also videoicon is quite small, make it larger please. on a map the hide button on a house 50%smaller please
