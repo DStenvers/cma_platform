@@ -14,6 +14,7 @@ This directory contains reusable web components for the application.
 - **lib-toaster** - Toast notification component
 - **lib-datepicker** - Date picker component
 - **lib-table** - Table component
+- **lib-statusbars** - Horizontal stacked status bars (one row per category, coloured segments per state); JSON `data` attribute/property + `.update(data)`, deduplicated legend, used by site-injected dashboard cards
 
 ### CSS-only Components
 

@@ -665,6 +665,7 @@ function cma_js_bundle(): array {
         '../library/webcomponents/lib-timepicker.js',
         '../library/webcomponents/lib-histogram.js',
         '../library/webcomponents/lib-gauge.js',
+        '../library/webcomponents/lib-statusbars.js',
         '../library/webcomponents/lib-combo.js',
         // CMA Web Components - ALL must be included
         'webcomponents/shared-icons.js',  // Must be first - provides icon definitions for other components

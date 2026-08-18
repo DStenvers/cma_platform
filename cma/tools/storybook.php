@@ -469,6 +469,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
                 { label: 'lib-sheet', href: '#lib-sheet', icon: 'lnr-arrow-up' },
+                { label: 'lib-statusbars', href: '#lib-statusbars', icon: 'lnr-chart-bars' },
                 { label: 'lib-switch', href: '#lib-switch', icon: 'lnr-sync' },
                 { label: 'lib-radio-group', href: '#lib-radio-group', icon: 'lnr-list' },
                 { label: 'lib-field', href: '#lib-field', icon: 'lnr-pencil' },
@@ -1389,6 +1390,84 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Geeft statistieken (excl. nvt-waarden)</dd>
                     <dt>calculateStats(values)</dt>
                     <dd>Bereken: <code>{count, mean, deviation, modus, modusCount, min, max}</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="lib-statusbars">
+        <div class="component-header">
+            <h2>lib-statusbars</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Gestapelde horizontale statusbalken: één rij per categorie, gekleurde segmenten per toestand — de grafiek achter site-eigen dashboardkaarten</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <span class="demo-label">Declaratief (data-attribuut):</span>
+</div>
+<div style="max-width:560px;">
+    <lib-statusbars title="Casa pijplijn" data='{
+        "rows": [
+            { "label": "Huizen", "segments": [
+                { "label": "actief", "value": 348, "kind": "success" },
+                { "label": "verkocht", "value": 15, "kind": "info" },
+                { "label": "verborgen", "value": 3130, "kind": "muted" } ] },
+            { "label": "Foto&apos;s", "segments": [
+                { "label": "lokaal", "value": 3200, "kind": "success" },
+                { "label": "te doen", "value": 640, "kind": "warning" },
+                { "label": "dood", "value": 12, "kind": "error" } ] },
+            { "label": "Vertalingen", "segments": [
+                { "label": "vertaald", "value": 2100, "kind": "success" },
+                { "label": "te doen", "value": 1400, "kind": "warning" } ] }
+        ],
+        "legend": true
+    }'></lib-statusbars>
+</div>
+
+<p><span class="storybook__strong">Methodes</span></p>
+<div class="demo-row">
+    <span class="demo-label">update() demo:</span>
+</div>
+<div style="max-width:560px;">
+    <lib-statusbars id="statusbarsMethods" data='{"rows":[{"label":"Wachtrij","segments":[{"label":"te doen","value":100,"kind":"warning"}]}]}'></lib-statusbars>
+</div>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#statusbarsMethods').update({rows:[{label:'Wachtrij',segments:[{label:'klaar',value:80,kind:'success'},{label:'te doen',value:20,kind:'warning'}]}]})">update() — 80 klaar</button>
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#statusbarsMethods').update({rows:[{label:'Wachtrij',segments:[{label:'klaar',value:100,kind:'success'}]}]})">update() — alles klaar</button>
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#statusbarsMethods').update({rows:[]})">update() — leeg</button>
+</div></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>data</dt>
+                    <dd>JSON: <code>{rows:[{label, link?, segments:[{label, value, kind}]}], legend?}</code></dd>
+                    <dt>bar-height</dt>
+                    <dd>Balkhoogte in px (default: 18)</dd>
+                    <dt>show-legend</dt>
+                    <dd>Toon de gededupliceerde legenda (default: true; <code>data.legend</code> wint)</dd>
+                    <dt>show-totals</dt>
+                    <dd>Toon het rijtotaal rechts (default: true)</dd>
+                    <dt>title</dt>
+                    <dd>Titel boven de rijen (optioneel)</dd>
+                </dl>
+                <h4>Properties</h4>
+                <dl>
+                    <dt>data</dt>
+                    <dd>get/set van het data-object — de programmatische route, zonder JSON-escaping in attributen</dd>
+                </dl>
+                <h4>Methoden</h4>
+                <dl>
+                    <dt>update(data)</dt>
+                    <dd>Vervang het data-object en render opnieuw</dd>
+                </dl>
+                <h4>Kinds</h4>
+                <dl>
+                    <dt>success | info | warning | error | muted</dt>
+                    <dd>→ <code>var(--color-*)</code>; onbekende kind valt terug op muted. Onbekende sleutels in de payload worden genegeerd — dat is het compatibiliteitscontract.</dd>
                 </dl>
             </div>
         </div>

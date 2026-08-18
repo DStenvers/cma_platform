@@ -112,6 +112,7 @@ $topics = [
             'errors'        => ['label' => 'Logging & errors (dev)',      'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
             'testing'       => ['label' => 'Tests & coverage strategie',  'icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
             'releasing'     => ['label' => 'Releasen & versies',          'icon' => 'lnr-tag',        'render' => 'render_doc_releasing'],
+            'dashboard_cards' => ['label' => 'Dashboard-kaarten per site', 'icon' => 'lnr-chart-bars', 'render' => 'render_doc_dashboard_cards'],
         ],
     ],
     'reference' => [
@@ -2035,6 +2036,7 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
             <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>LibLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
             <tr><td><a href="documentation.php?topic=releasing"><span class="lnr lnr-tag"></span> Releasen &amp; versies</a></td><td>composer.json version bump, git tag, semver, REMOVED_PATHS voor retired bestanden.</td></tr>
+            <tr><td><a href="documentation.php?topic=dashboard_cards"><span class="lnr lnr-chart-bars"></span> Dashboard-kaarten per site</a></td><td>Een site injecteert een statuskaart in het dashboard: dashboard_cards_extra, payloadcontract, lib-statusbars.</td></tr>
         </tbody>
     </table>
 
@@ -4941,6 +4943,142 @@ function render_doc_llm(): void
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=environment">Omgeving &amp; .env</a> (waar LLM_* leeft), <a href="documentation.php?topic=troubleshooting">Troubleshooting</a> (LLM-sectie).
+    </div>
+    <?php
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard-kaarten per site
+// ---------------------------------------------------------------------------
+
+function cma_doc_check_dashboard_cards(): array {
+    // De registratie door dezelfde validator halen als het dashboard zelf:
+    // wat hier groen is, staat er straks echt. Entries die de validator laat
+    // vallen zijn onzichtbaar op het dashboard — precies het soort stilte dat
+    // een operator wil zien uitgelegd.
+    $label = 'dashboard_cards_extra: registratie van deze site';
+    $config = \App\Library\Application::get('dashboard_cards_extra', []);
+    if (!is_array($config) || $config === []) {
+        return ['label' => $label, 'status' => 'info',
+            'detail' => 'Geen kaarten geregistreerd — deze site injecteert niets in het dashboard. Dat is een keuze, geen fout.',
+            'fix' => ''];
+    }
+    if (!function_exists('cma_dashboard_site_cards')) {
+        // De validator woont in dashboard.php; hier los inladen zou de pagina
+        // renderen. Zelfde extractie als de test gebruikt.
+        $src = (string) file_get_contents(__DIR__ . '/../dashboard.php');
+        $start = strpos($src, 'function cma_dashboard_site_cards(');
+        $end = $start === false ? false : strpos($src, "\n}", $start);
+        if ($start === false || $end === false) {
+            return ['label' => $label, 'status' => 'fail',
+                'detail' => 'De validator (cma_dashboard_site_cards) is niet te vinden in dashboard.php.',
+                'fix' => 'Platform bijwerken: dit hoort bij versie 1.34.0 of nieuwer.'];
+        }
+        eval(substr($src, $start, $end - $start + 2));
+    }
+    $goedgekeurd = cma_dashboard_site_cards($config, true, true);
+    $regels = [];
+    $status = 'pass';
+    foreach ($goedgekeurd as $card) {
+        $pad = cma_doc_site_root() . $card['endpoint'];
+        if (is_file($pad)) {
+            $regels[] = htmlspecialchars($card['title']) . ' → <code>'
+                . htmlspecialchars($card['endpoint']) . '</code> (bestand aanwezig)';
+        } else {
+            $status = 'warn';
+            $regels[] = htmlspecialchars($card['title']) . ' → <code>'
+                . htmlspecialchars($card['endpoint']) . '</code> — geen bestand op dat pad;'
+                . ' de kaart zal "Kan status niet laden" tonen.';
+        }
+    }
+    $afgekeurd = count($config) - count($goedgekeurd);
+    if ($afgekeurd > 0) {
+        $status = 'fail';
+        $regels[] = $afgekeurd . ' registratie(s) door de validator afgekeurd (titel of endpoint'
+            . ' ontbreekt, of het endpoint is niet same-origin) — die verschijnen stilzwijgend niet.';
+    }
+    return ['label' => $label, 'status' => $status, 'detail' => implode('<br>', $regels),
+        'fix' => $status === 'pass' ? '' : 'Controleer de registratie in app.php tegen het contract hieronder.'];
+}
+
+function render_doc_dashboard_cards(): void
+{
+    ?>
+    <h1>Dashboard-kaarten per site</h1>
+    <p class="docs-meta">Hoe een site zijn eigen statuskaart in het CMA-dashboard zet: registratie in app.php, een JSON-endpoint op de eigen origin, en het lib-statusbars-component dat de payload tekent.</p>
+
+    <?php cma_doc_render_check_table('Live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_dashboard_cards',
+    ])); ?>
+
+    <h2>Het mechanisme</h2>
+    <p>Het dashboard leest <code>Application::get('dashboard_cards_extra', [])</code> — hetzelfde
+    patroon als <a href="documentation.php?topic=migrations">migration_sources_extra</a>. Per
+    geldige registratie rendert het een <code>.stats-card</code> in het statsraster, haalt de
+    payload bij het opgegeven endpoint en geeft die als property aan
+    <code>&lt;lib-statusbars&gt;</code> (zie het <a href="storybook.php#lib-statusbars">storybook</a>).
+    Elke kaart haalt onafhankelijk: één site-endpoint dat hapert toont
+    <span class="cma-page__strong">Kan status niet laden</span> in die ene kaart en raakt de rest
+    van het dashboard niet.</p>
+
+    <h2>Registratie (app.php van de site)</h2>
+    <pre><code>$GLOBALS['Application']['dashboard_cards_extra'] = [[
+    'title'    =&gt; 'Casa pijplijn',               // verplicht
+    'endpoint' =&gt; '/tools/dashboard_status.php',  // verplicht; same-origin, begint met '/'
+    'icon'     =&gt; 'lnr-chart-bars',               // optioneel (default lnr-chart-bars)
+    'link'     =&gt; '/tools/stats.php',             // optioneel: header-actie naar een detailpagina
+    'roles'    =&gt; 'all',                          // all | admin (default all)
+]];</code></pre>
+    <p>De validatie is defensief: geen array is geen kaart, een entry zonder titel of endpoint
+    vervalt stil, en een endpoint of link die niet met één enkele <code>/</code> begint (dus ook
+    geen <code>//host</code> of <code>https://…</code>) vervalt — het dashboard haalt uitsluitend
+    van de eigen origin. De regels zijn vastgepind in
+    <code>cma/tests/DashboardSiteCardsTest.php</code>.</p>
+
+    <h2>Het payloadcontract</h2>
+    <pre><code>{
+  "rows": [
+    { "label": "Huizen", "link": "/tools/stats.php",
+      "segments": [
+        { "label": "actief",    "value": 812, "kind": "success" },
+        { "label": "verkocht",  "value": 15,  "kind": "info" },
+        { "label": "verborgen", "value": 310, "kind": "muted" } ] }
+  ],
+  "legend": true,
+  "updated": "2026-08-18T10:00:00+02:00"
+}</code></pre>
+    <table class="listtable">
+        <thead><tr><th>Veld</th><th>Betekenis</th></tr></thead>
+        <tbody>
+            <tr><td><code>rows[].label</code></td><td>Categorienaam links van de balk.</td></tr>
+            <tr><td><code>rows[].link</code></td><td>Optioneel: maakt het label een link (same-origin).</td></tr>
+            <tr><td><code>segments[].kind</code></td><td><code>success | info | warning | error | muted</code> → <code>var(--color-*)</code>; onbekende kind valt terug op muted.</td></tr>
+            <tr><td><code>error</code></td><td>Foutpad: <code>{"error":"…"}</code> (of een non-200) toont "Kan status niet laden".</td></tr>
+        </tbody>
+    </table>
+    <p><span class="cma-page__strong">Compatibiliteit is tolerantie, geen versienummer</span>:
+    onbekende sleutels worden overal genegeerd. Een site mag dus velden toevoegen voordat het
+    platform ze kent, en het platform mag velden toevoegen zonder sites te breken.</p>
+
+    <h2>Beveiligingseis aan het endpoint</h2>
+    <p>Het endpoint is van de síte en draait dus buiten de CMA-router om. Het
+    <span class="cma-page__strong">moet</span> zelf gaten op ingelogd-zijn met
+    <code>Cma\SecurityHelper::isLoggedIn()</code>, en bij een anonieme aanroep
+    <span class="cma-page__strong">JSON met status 401</span> teruggeven — géén redirect naar de
+    loginpagina, want de aanroeper is een <code>fetch()</code> en een redirect levert HTML op waar
+    JSON verwacht wordt.</p>
+    <pre><code>if (PHP_SAPI !== 'cli' &amp;&amp; !\Cma\SecurityHelper::isLoggedIn()) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['error' =&gt; 'Niet ingelogd']);
+    exit;
+}</code></pre>
+
+    <div class="seealso">
+        Zie ook: <a href="storybook.php#lib-statusbars">Storybook — lib-statusbars</a>,
+        <a href="documentation.php?topic=migrations">Platform updates schrijven</a> (het
+        migration_sources_extra-patroon waar dit op voortbouwt),
+        <a href="documentation.php?topic=web_components">Web components ontwikkelen</a>.
     </div>
     <?php
 }

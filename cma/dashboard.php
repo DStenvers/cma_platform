@@ -34,6 +34,58 @@ $userLevelName = SecurityHelper::getUserLevelName($userLevel);
 $isAdmin = SecurityHelper::isAdmin();
 $isDeveloper = SecurityHelper::isDeveloper();
 
+/**
+ * De dashboardkaarten die de síte aandraagt, gevalideerd en op rol gefilterd.
+ *
+ * Een site registreert kaarten in app.php onder `dashboard_cards_extra` —
+ * hetzelfde patroon als `migration_sources_extra` — met per kaart een titel en
+ * een JSON-endpoint op de eigen origin; het dashboard rendert de schil en het
+ * lib-statusbars-component tekent de payload. Zie documentation.php, onderwerp
+ * "Dashboard-kaarten per site", voor het volledige contract.
+ *
+ * PUUR en defensief zoals MigrationService::loadSources(): geen array is geen
+ * kaart, een entry zonder titel of endpoint vervalt stil, en een endpoint dat
+ * niet met één enkele '/' begint (dus ook geen '//host' of 'http://…') vervalt
+ * — het dashboard haalt uitsluitend van de eigen origin.
+ */
+function cma_dashboard_site_cards(mixed $config, bool $isAdmin, bool $isDeveloper): array
+{
+    if (!is_array($config)) {
+        return [];
+    }
+    $cards = [];
+    foreach ($config as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $title = isset($entry['title']) && is_string($entry['title']) ? trim($entry['title']) : '';
+        $endpoint = isset($entry['endpoint']) && is_string($entry['endpoint']) ? trim($entry['endpoint']) : '';
+        if ($title === '' || $endpoint === ''
+            || !str_starts_with($endpoint, '/') || str_starts_with($endpoint, '//')) {
+            continue;
+        }
+        $roles = isset($entry['roles']) && is_string($entry['roles']) ? $entry['roles'] : 'all';
+        if ($roles === 'admin' && !($isAdmin || $isDeveloper)) {
+            continue;
+        }
+        $link = isset($entry['link']) && is_string($entry['link']) ? trim($entry['link']) : '';
+        if ($link !== '' && (!str_starts_with($link, '/') || str_starts_with($link, '//'))) {
+            $link = '';
+        }
+        $cards[] = [
+            'title' => $title,
+            'endpoint' => $endpoint,
+            'icon' => isset($entry['icon']) && is_string($entry['icon']) && $entry['icon'] !== ''
+                ? $entry['icon'] : 'lnr-chart-bars',
+            'link' => $link,
+        ];
+    }
+    return $cards;
+}
+
+$siteCards = cma_dashboard_site_cards(
+    \App\Library\Application::get('dashboard_cards_extra', []), $isAdmin, $isDeveloper);
+
 // Load menu data
 $arrMenu = loadMenuData();
 
@@ -999,6 +1051,7 @@ if ($isAdmin) {
     <?php cma_script('../library/webcomponents/lib-dialog.js'); ?>
     <?php cma_script('../library/webcomponents/lib-histogram.js'); ?>
     <?php cma_script('../library/webcomponents/lib-tip.js'); ?>
+    <?php if ($siteCards !== []) { cma_script('../library/webcomponents/lib-statusbars.js'); } ?>
     <?php cma_script('assets/js/cma-tours.js'); ?>
 </head>
 <body data-user-level="<?php echo $isDeveloper ? 'D' : ($isAdmin ? 'A' : ''); ?>">
@@ -1119,6 +1172,31 @@ if ($isAdmin) {
             </div>
         </div>
     </div>
+
+    <?php if ($siteCards !== []): ?>
+    <!-- Site-eigen statuskaarten: de site registreert ze in app.php
+         (dashboard_cards_extra); de rolfiltering is al gebeurd in
+         cma_dashboard_site_cards(). Elke kaart haalt zijn eigen JSON en één
+         kapot endpoint raakt de rest van het dashboard niet. -->
+    <div class="stats-grid">
+        <?php foreach ($siteCards as $siteCard): ?>
+        <div class="stats-card">
+            <div class="stats-card-header">
+                <span class="lnr <?= htmlspecialchars($siteCard['icon']) ?>"></span>
+                <?= htmlspecialchars($siteCard['title']) ?>
+                <?php if ($siteCard['link'] !== ''): ?>
+                <a href="<?= htmlspecialchars($siteCard['link']) ?>" class="header-action" data-tooltip="Details bekijken">
+                    <span class="lnr lnr-list"></span>
+                </a>
+                <?php endif; ?>
+            </div>
+            <div class="stats-card-body" data-site-card-endpoint="<?= htmlspecialchars($siteCard['endpoint']) ?>">
+                <div class="stats-loading">Laden...</div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
 
     <?php if ($isAdmin || $isDeveloper): ?>
     <!-- Health & Cache Stats for admins/developers - Row 1 -->
@@ -1392,6 +1470,32 @@ if ($isAdmin) {
         if (frequentForms) {
             loadFrequentForms();
         }
+
+        // Site-eigen statuskaarten (dashboard_cards_extra): elke kaart haalt
+        // onafhankelijk zijn eigen JSON — één site-endpoint dat hapert mag de
+        // platformkaarten niet raken, dus geen Promise.all en geen throw naar
+        // buiten. De payload gaat als property naar lib-statusbars; zie het
+        // contract in documentation.php ("Dashboard-kaarten per site").
+        document.querySelectorAll('[data-site-card-endpoint]').forEach(function (body) {
+            fetch(body.getAttribute('data-site-card-endpoint'), {
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function (payload) {
+                    if (!payload || payload.error) {
+                        throw new Error(payload && payload.error ? payload.error : 'lege payload');
+                    }
+                    var chart = document.createElement('lib-statusbars');
+                    chart.data = payload;
+                    body.replaceChildren(chart);
+                })
+                .catch(function () {
+                    body.innerHTML = '<div class="stats-error">Kan status niet laden</div>';
+                });
+        });
 
         // Load recent activity for all users
         var recentActivity = document.getElementById('recentActivity');
