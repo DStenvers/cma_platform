@@ -536,8 +536,8 @@ class LibCombo extends HTMLElement {
 
                 .combo-clear {
                     position: absolute;
-                    right: 22px;
-                    top: 46%;
+                    right: 13px;
+                    top: 48%;
                     transform: translateY(-50%);
                     cursor: pointer;
                     color: var(--text-muted, #999);
