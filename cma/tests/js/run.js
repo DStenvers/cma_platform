@@ -23,15 +23,33 @@ const gefaald = [];
 
 global.suite = (naam) => { huidigeSuite = naam; console.log('\n  ' + naam); };
 
+// Een test mag een Promise teruggeven. Dat is nodig zodra het te bewijzen gedrag pas na een
+// timer of een microtask klaar is - een web component bouwt zijn inhoud bijvoorbeeld niet in
+// dezelfde tik als waarin het document wordt opgebouwd. Zulke tests worden afgewacht voordat
+// de samenvatting wordt getrokken; hun regel verschijnt dus later in de uitvoer.
+const lopend = [];
+function noteerGeslaagd(naam) {
+    geslaagd++;
+    console.log('    \u001b[32m\u2713\u001b[39m ' + naam);
+}
+function noteerFout(suite, naam, e) {
+    gefaald.push({ suite: suite, naam: naam, fout: e });
+    console.log('    \u001b[31m\u2717\u001b[39m ' + naam);
+    console.log('      ' + String(e && e.message ? e.message : e).split('\n')[0]);
+}
+
 global.test = (naam, fn) => {
+    const suiteNu = huidigeSuite;
     try {
-        fn();
-        geslaagd++;
-        console.log('    [32m✓[39m ' + naam);
+        const uitkomst = fn();
+        if (uitkomst && typeof uitkomst.then === 'function') {
+            lopend.push(uitkomst.then(function () { noteerGeslaagd(naam); },
+                                      function (e) { noteerFout(suiteNu, naam, e); }));
+            return;
+        }
+        noteerGeslaagd(naam);
     } catch (e) {
-        gefaald.push({ suite: huidigeSuite, naam, fout: e });
-        console.log('    [31m✗[39m ' + naam);
-        console.log('      ' + e.message.split('\n')[0]);
+        noteerFout(suiteNu, naam, e);
     }
 };
 
@@ -80,6 +98,9 @@ for (const bestand of bestanden) {
     require(path.join(TEST_DIR, bestand));
 }
 
+Promise.all(lopend).then(samenvatting);
+
+function samenvatting() {
 console.log('\n' + '-'.repeat(60));
 if (gefaald.length === 0) {
     console.log('Tests: ' + geslaagd + ', [32mallemaal geslaagd[39m');
@@ -92,3 +113,4 @@ for (const f of gefaald) {
     console.log('  ' + f.fout.stack.split('\n').slice(0, 3).join('\n  '));
 }
 process.exit(1);
+}

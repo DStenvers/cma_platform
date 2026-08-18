@@ -1851,12 +1851,31 @@ class LibTable extends HTMLElement {
                 const numberRange = this._createNumberRangeFilter(column, index, menu);
                 content.appendChild(numberRange);
             } else {
-                // Check if table is in continuous scrolling mode
+                // Twee heel verschillende redenen om de waarden NIET op te sommen, en ze
+                // verdienden niet hetzelfde antwoord.
+                //
+                // 1. Continue modus: de server bepaalt welke rijen er zijn. Wat hier in de DOM
+                //    staat is een venster op de lijst, dus een keuzelijst uit die rijen zou
+                //    liegen. Daar hoort (nog) geen client-side filter.
+                // 2. Meer dan MAX_FILTER_LENGTH rijen: alle rijen staan er wél, maar ze
+                //    opsommen is duur en het keuzelijstje wordt onbruikbaar lang.
+                //
+                // Geval 2 viel tot nu toe samen met geval 1, en dan bleef het filtermenu
+                // HELEMAAL leeg: geen keuzelijst en ook geen zoekveld. Zichtbaar op het rapport
+                // "ontbrekende presentie" (1182 regels) - daar had elke kolom een leeg filter en
+                // was er dus niets te filteren. Terwijl er al een antwoord voor bestaat: hetzelfde
+                // vrije-tekstveld dat een kolom met meer dan 30 verschillende waarden krijgt.
                 const isContinuousMode = this._table.hasAttribute('data-continuous') ||
-                                        this._table.dataset.continuous === 'true' ||
-                                        tds.length > MAX_FILTER_LENGTH;
+                                        this._table.dataset.continuous === 'true';
+                const teVeelRijenOmOpTeSommen = tds.length > MAX_FILTER_LENGTH;
 
-                if (!isContinuousMode) {
+                if (!isContinuousMode && teVeelRijenOmOpTeSommen) {
+                    menu.isTextFilterMode = true;
+                    if (!noSearch) {
+                        const search = this._createTextFilterInput(column, index, menu);
+                        content.appendChild(search);
+                    }
+                } else if (!isContinuousMode) {
                     // Get unique values (trimmed for consistency)
                     const values = [...new Set(tds.map(td => this._getCellValue(td).trim()))].sort((a, b) => {
                         const A = a.toLowerCase();
@@ -1901,7 +1920,7 @@ class LibTable extends HTMLElement {
                         content.appendChild(container);
                     }
                 }
-                // In continuous mode, the checkbox-container is left blank (no filter values listed)
+                // In continue modus blijft het menu leeg: de server gaat over de rijen.
             }
         }
 
