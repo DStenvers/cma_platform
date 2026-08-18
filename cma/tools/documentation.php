@@ -5024,7 +5024,7 @@ function render_doc_dashboard_cards(): void
     <h2>Registratie (app.php van de site)</h2>
     <pre><code>$GLOBALS['Application']['dashboard_cards_extra'] = [[
     'title'    =&gt; 'Casa pijplijn',               // verplicht
-    'endpoint' =&gt; '/tools/dashboard_status.php',  // verplicht; same-origin, begint met '/'
+    'endpoint' =&gt; '/tools/dashboard_status_api.php', // verplicht; same-origin, begint met '/'
     'icon'     =&gt; 'lnr-chart-bars',               // optioneel (default lnr-chart-bars)
     'link'     =&gt; '/tools/stats.php',             // optioneel: header-actie naar een detailpagina
     'roles'    =&gt; 'all',                          // all | admin (default all)
@@ -5061,6 +5061,9 @@ function render_doc_dashboard_cards(): void
     platform ze kent, en het platform mag velden toevoegen zonder sites te breken.</p>
 
     <h2>Beveiligingseis aan het endpoint</h2>
+    <p>Geef het endpoint een naam die op <code>_api.php</code> eindigt (of leg het onder
+    <code>/api/</code>): de platform-bootstrap herkent zulke paden als API en beantwoordt een
+    anonieme aanroep dan zélf al met JSON en status 401 in plaats van de login-redirectpagina.</p>
     <p>Het endpoint is van de síte en draait dus buiten de CMA-router om. Het
     <span class="cma-page__strong">moet</span> zelf gaten op ingelogd-zijn met
     <code>Cma\SecurityHelper::isLoggedIn()</code>, en bij een anonieme aanroep
