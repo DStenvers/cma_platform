@@ -196,20 +196,34 @@ function fu_ValidEmail($strEmail)
 {
     return lib_FormValidEmail($strEmail);
 }
-// This function will return an error string whether a string is a valid date (hard-coded format dd/mm/jjjj)
+// Keurt een ingevoerde datum en geeft de foutmelding terug ('' = goed).
 /**
-* Lib Formvaliddate
+* Lib Formvaliddate — accepteert elk scheidingsteken dat de site zelf oplevert.
 *
+* Deze controle eiste letterlijk dd/mm/jjjj: tien tekens met een schuine streep op plek 3 en 6.
+* De datumkiezer van de site (lib-datepicker) TOONT dd-mm-jjjj en POST jjjj-mm-dd, en allebei
+* vielen buiten die eis. Een gebruiker die netjes op de kalender klikte kreeg dus "Ongeldige
+* datum opgegeven" te zien over een datum die hij niet eens zelf had getypt.
+*
+* Date::normalize() weet al welke vormen er in deze applicatie voorkomen (streepje, schuine
+* streep, punt, met of zonder tijd, dd-mm-jjjj én jjjj-mm-dd) en is de plek waar SQL::postDateStr
+* dezelfde waarde straks óók doorheen haalt. Door hem hier te gebruiken keurt het formulier
+* precies af wat de database later niet zou kunnen opslaan - niet meer en niet minder.
+*
+* Leeg blijft een fout: aanroepers gebruiken deze functie ook om een niet-ingevuld verplicht
+* datumveld te betrappen.
+*
+* @param string|null $sTheDate
+* @return string lege string als de datum goed is, anders de melding
 */
 function lib_FormValidDate($sTheDate)
 {
-    $sRetval = '';
-    if (!is_null($sTheDate)) {
-        if (!(strtotime($sTheDate) !== false) || (is_null($sTheDate) ? 0 : strlen($sTheDate)) != 10 || substr($sTheDate, max(0, 3 - 1), 1) != '/' || substr($sTheDate, max(0, 6 - 1), 1) != '/') {
-            $sRetval = 'Ongeldige datum opgegeven: gebruik het formaat dd/mm/jjjj.';
-        }
+    if (is_null($sTheDate)) {
+        return '';
     }
-    return $sRetval;
+    return \App\Library\Date::normalize($sTheDate) === null
+        ? 'Ongeldige datum opgegeven: gebruik het formaat dd-mm-jjjj.'
+        : '';
 }
 // Validates a Dutch BurgerServiceNummer
 /**
