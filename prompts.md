@@ -13161,3 +13161,7 @@ karaat-data en staat in de karaat-repo.
 > and fix the parser please
 > ?
 > and i asked for a run to select the best inage showing the house from the outside, i do not see that run anywhere and the sample has the house at 19/31 instead of the first. Also videoicon is quite small, make it larger please. on a map the hide button on a house 50%smaller please
+
+## 2026-08-19
+
+> small optimalisation: all crawl should ignore  hidden houses. Only optimize and translate visible houses.
