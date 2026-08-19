@@ -13165,3 +13165,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-19
 
 > small optimalisation: all crawl should ignore  hidden houses. Only optimize and translate visible houses.
+
+> asd status = active please
