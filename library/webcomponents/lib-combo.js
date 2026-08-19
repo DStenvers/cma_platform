@@ -534,6 +534,14 @@ class LibCombo extends HTMLElement {
                     to { transform: rotate(360deg); }
                 }
 
+                /* Met een wiskruisje erin is de 32px rechts te krap: de gekozen waarde liep
+                   eronder door. Het kruisje staat er alleen als er iets gekozen IS (zie
+                   _updateDisplay), dus :has() zet de extra ruimte precies dan neer en niet
+                   op een leeg veld. */
+                .combo-display:has(.combo-clear) {
+                    padding-right: 38px;
+                }
+
                 .combo-clear {
                     position: absolute;
                     right: 13px;

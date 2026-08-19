@@ -1381,13 +1381,20 @@ class FormDataProvider
                     // Find the table name containing the idField (usually the first or primary table)
                     // The SQL has format: SELECT ... FROM table1 INNER JOIN table2 ... WHERE ...
                     // We need to add a WHERE clause for the primary table's ID
-                    $lookupSql = SQL::addWhere($baseSql, self::quoteIdentifier($sourceTable . '.' . $idField, $isSqlite) . " = " . is_numeric($lookupId) ? SQL::postNumber($lookupId) : SQL::postString($lookupId));
+                    // HAAKJES om de ?: — zonder die haakjes bindt de puntoperator sterker, en
+                    // dan leest PHP dit als ("... = " . is_numeric($id)) ? getal : tekst. Die
+                    // voorwaarde is een niet-lege string en dus altijd waar, waarna alleen de
+                    // WAARDE overblijft: de WHERE werd "WHERE 218" in plaats van
+                    // "WHERE tbl.ID = 218". Zo'n voorwaarde levert geen rij op, dus de combo
+                    // vond geen omschrijving en toonde het kale ID (gemeld op rooster 530: "218"
+                    // in plaats van de bloknaam).
+                    $lookupSql = SQL::addWhere($baseSql, self::quoteIdentifier($sourceTable . '.' . $idField, $isSqlite) . " = " . (is_numeric($lookupId) ? SQL::postNumber($lookupId) : SQL::postString($lookupId)));
                     $lookupSql = SQL::addTop($lookupSql, 1);
                 } elseif (!empty($sourceTable) && !empty($displayField)) {
                     // Simple case: sourceTable with displayField column
                     $lookupSql = "SELECT " . self::quoteIdentifier($idField, $isSqlite) . ", " . self::quoteIdentifier($displayField, $isSqlite) .
                                  " FROM " . self::quoteIdentifier($sourceTable, $isSqlite) .
-                                 " WHERE " . self::quoteIdentifier($idField, $isSqlite) . " = " . is_numeric($lookupId) ? SQL::postNumber($lookupId) : SQL::postString($lookupId);
+                                 " WHERE " . self::quoteIdentifier($idField, $isSqlite) . " = " . (is_numeric($lookupId) ? SQL::postNumber($lookupId) : SQL::postString($lookupId));
                 } else {
                     // No lookup SQL available
                     return [
