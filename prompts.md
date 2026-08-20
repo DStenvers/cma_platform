@@ -13184,3 +13184,5 @@ karaat-data en staat in de karaat-repo.
 > kun je met content-disposition werken en in een nieuw venster openen?
 
 > haal de wordskipempty weg uit het schema en de json bestanden
+
+> kunnen we die nog oplossen?

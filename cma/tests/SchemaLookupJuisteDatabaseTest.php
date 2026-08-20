@@ -31,8 +31,11 @@ use Cma\SchemaHelper;
 
 class SchemaLookupJuisteDatabaseTest extends TestCase
 {
-    private const DSN_DATA  = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=/site/db/pdodomain.mdb';
-    private const DSN_USERS = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=/site/db/CMAusers.mdb';
+    // Windows-paden met backslashes: op Windows normaliseert Database elke ODBC-DSN
+    // daarnaartoe (de Access-driver eist het), dus een fixture met slashes komt daar
+    // anders terug dan hij erin ging en de test zou alleen op Linux slagen.
+    private const DSN_DATA  = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=C:\site\db\pdodomain.mdb';
+    private const DSN_USERS = 'odbc:Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=C:\site\db\CMAusers.mdb';
 
     /** @var \PDO */
     private $usersPdo;
