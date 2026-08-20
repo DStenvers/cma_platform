@@ -818,7 +818,7 @@ form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surfa
 form#login .login-header {border-radius:0.5em 0.5em 0 0}
 form#login #loginForm {padding:20px}
 form#login .login-row {position:relative;margin-bottom:12px}
-form#login .login-row.login-actions {margin-bottom:0}
+form#login .login-row.login-actions {margin-bottom:0;margin-top:32px}
 form#login a.sso-button { width:65%; padding:8px} 
 form#login label { display:block; background-color: var(--bg-surface);height: 28px;position: absolute;width: 28px;overflow: hidden;line-height: 28px}
 form#login label > input.invalid { border:1px solid var(--color-error) }
