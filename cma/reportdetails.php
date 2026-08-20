@@ -345,8 +345,13 @@ function main()
     }
     // TODO: : block Excel when not rsSubs.eof?
     ToolbarHelper::report($strTitle, $rsRep->fields['GroupField1']!= '', $strOrderBy == '', !$rsRep->fields['FilterIDField']!= '' && $sFilterID == '');
-    flush();
-    ob_flush();
+    // Flushing sends the page shell and commits the response headers. An export
+    // still has to set Content-Disposition, so it keeps everything buffered and
+    // throws the shell away when the download starts.
+    if (!$blnExcel && !$blnWord) {
+        flush();
+        ob_flush();
+    }
     if ($rs->EOF) {
         echo (Application::get('CMA_LANGUAGE', '') == 'UK' ? 'No records to display...' : '<div class="no-data">Geen gegevens om weer te geven...</div>');
     } else {

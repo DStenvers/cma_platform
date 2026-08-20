@@ -284,15 +284,27 @@ echo '<style>
     .action-dropdb { color: #dc3545; }
 </style>';
 
-// Get all forms
-$forms = JsonFormLoader::listForms();
+// Get all forms — hoofdformulieren EN deelformulieren.
+//
+// listForms() slaat elke naam met een underscore over, want dat is hoe een deelformulier
+// heet (rooster_docenten). Voor de formulierkeuze klopt dat, maar hier niet: een
+// deelformulier schrijft net zo goed naar een tabel, en die kolommen werden dus door
+// niemand gecontroleerd. Op mijnRINO ging het om 85 van de 134 definities.
+//
+// listAllForms() levert ze allemaal; getSubforms() zou niet volstaan, want dat vindt alleen
+// kinderen van een HOOFDformulier en mist een naam als contactpersonen_inventarisatie_login,
+// waar het middenstuk zelf al een deelformulier is.
+$forms = JsonFormLoader::listAllForms();
+$hoofdformulieren = array_flip(JsonFormLoader::listForms());
 $formsWithTables = [];
 
 foreach ($forms as $formName) {
     $formDef = JsonFormLoader::loadRaw($formName);
     if ($formDef && !empty($formDef['table'])) {
+        $isDeel = !isset($hoofdformulieren[$formName]);
         $formsWithTables[$formName] = [
-            'title' => $formDef['title'] ?? $formName,
+            'title' => ($formDef['title'] ?? $formName) . ($isDeel ? " \u{2014} deelformulier" : ''),
+            'isSubform' => $isDeel,
             'table' => $formDef['table'],
             'database' => $formDef['database'] ?? 'data',
             'fields' => $formDef['fields'] ?? []
@@ -300,8 +312,14 @@ foreach ($forms as $formName) {
     }
 }
 
-// Sort by title
-uasort($formsWithTables, fn($a, $b) => strcasecmp($a['title'], $b['title']));
+// Sorteren op titel, met de deelformulieren onderaan: die zijn er met veel meer, en wie
+// deze lijst opent kijkt eerst naar de hoofdformulieren.
+uasort($formsWithTables, function ($a, $b) {
+    if ($a['isSubform'] !== $b['isSubform']) {
+        return $a['isSubform'] ? 1 : -1;
+    }
+    return strcasecmp($a['title'], $b['title']);
+});
 
 // Global statistics
 $totalForms = count($formsWithTables);

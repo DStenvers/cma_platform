@@ -125,8 +125,9 @@ class ToolbarHelper
      * @param string $title Tooltip title
      * @param string $id Optional element ID
      * @param string $dataAction Optional data-action attribute
+     * @param bool $newWindow Open in a new window (downloads keep the page intact)
      */
-    public static function button(string $href, string $icon, bool $enabled, string $text = '', string $title = '', string $id = '', string $dataAction = ''): void
+    public static function button(string $href, string $icon, bool $enabled, string $text = '', string $title = '', string $id = '', string $dataAction = '', bool $newWindow = false): void
     {
         // Legacy compatibility: detect old-style HTML parameters
         if (strpos($href, '<a ') !== false || strpos($href, '<a>') !== false) {
@@ -189,7 +190,7 @@ class ToolbarHelper
         $idAttr = $id !== '' ? ' id="' . htmlspecialchars($id) . '"' : '';
         $dataAttr = $dataAction !== '' ? ' data-action="' . htmlspecialchars($dataAction) . '"' : '';
         $target = '';
-        if (stripos($href, 'http:') !== false || stripos($href, 'https:') !== false) {
+        if ($newWindow || stripos($href, 'http:') !== false || stripos($href, 'https:') !== false) {
             $target = ' target="_blank"';
         }
 
@@ -464,10 +465,13 @@ class ToolbarHelper
             // All three export buttons hit the same server route the export menu
             // uses (reportdetails.php ?export=excel|csv|word) so they stay in lock-step.
             self::separator();
-            self::button(Request::addToURL('', 'export', 'excel'), 'filetype_xls', true, 'Excel', 'Excel export');
-            self::button(Request::addToURL('', 'export', 'csv'), 'lnr-list', true, 'CSV', 'CSV export');
+            // Exports answer with Content-Disposition: attachment, so the new
+            // window never paints — the browser hands the file to Excel/Word and
+            // the report stays open behind it.
+            self::button(Request::addToURL('', 'export', 'excel'), 'filetype_xls', true, 'Excel', 'Excel export', '', '', true);
+            self::button(Request::addToURL('', 'export', 'csv'), 'lnr-list', true, 'CSV', 'CSV export', '', '', true);
             self::separator();
-            self::button(Request::addToURL('', 'export', 'word'), 'filetype_doc', true, 'Word', 'Word export');
+            self::button(Request::addToURL('', 'export', 'word'), 'filetype_doc', true, 'Word', 'Word export', '', '', true);
         }
 
         self::startRight();

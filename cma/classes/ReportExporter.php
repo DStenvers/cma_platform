@@ -242,6 +242,21 @@ class ReportExporter
     }
 
     /**
+     * Drop whatever the page already wrote into an output buffer.
+     *
+     * A download replaces the page. A caller may have emitted the CMA shell
+     * before it knew an export was asked for; that markup would otherwise end
+     * up inside the downloaded file and — worse — commit the response, so the
+     * Content-Disposition header below would never reach the browser.
+     */
+    private static function discardPendingOutput(): void
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+    }
+
+    /**
      * Send CSV download to browser
      *
      * @param array $data Array of associative arrays (rows)
@@ -254,6 +269,7 @@ class ReportExporter
         self::validateExportContent($content, 'CSV');
         $safeFilename = self::sanitizeFilename($filename);
 
+        self::discardPendingOutput();
         Response::noCache();
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $safeFilename . '.csv"');
@@ -276,6 +292,7 @@ class ReportExporter
         self::validateExportContent($content, 'Excel');
         $safeFilename = self::sanitizeFilename($filename);
 
+        self::discardPendingOutput();
         Response::noCache();
         // Use CSV with Excel MIME type - Excel will open it correctly
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
@@ -300,6 +317,7 @@ class ReportExporter
         self::validateExportContent($content, 'HTML');
         $safeFilename = self::sanitizeFilename($filename);
 
+        self::discardPendingOutput();
         Response::noCache();
         header('Content-Type: application/msword; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $safeFilename . '.doc"');
@@ -322,6 +340,7 @@ class ReportExporter
         self::validateExportContent($content, 'JSON');
         $safeFilename = self::sanitizeFilename($filename);
 
+        self::discardPendingOutput();
         Response::noCache();
         header('Content-Type: application/json; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $safeFilename . '.json"');

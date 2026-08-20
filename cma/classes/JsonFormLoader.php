@@ -727,6 +727,34 @@ class JsonFormLoader
     }
 
     /**
+     * Elke formulierdefinitie die er is, deelformulieren inbegrepen.
+     *
+     * listForms() hierboven laat elke naam met een underscore weg, want dat is hoe een
+     * deelformulier heet (rooster_docenten) en in een formulierkeuze hoort het niet thuis.
+     * Wie de definities zelf wil nalopen - de db-sync-tool bijvoorbeeld, die formuliervelden
+     * naast de echte kolommen legt - heeft ze juist allemaal nodig; een deelformulier schrijft
+     * net zo goed naar een tabel. getSubforms() volstaat daar niet voor, want dat vindt alleen
+     * kinderen van een HOOFDformulier en mist dus een naam als
+     * contactpersonen_inventarisatie_login, waar het middenstuk zelf al een deelformulier is.
+     *
+     * @return array<int,string> namen zonder .json, in de volgorde van de mappen
+     */
+    public static function listAllForms(): array
+    {
+        $forms = [];
+        foreach ([self::INTERNAL_DEFINITIONS_DIR, self::APP_DEFINITIONS_DIR, self::EXTERNAL_DEFINITIONS_DIR] as $dir) {
+            foreach (self::getJsonFilesInDir($dir) as $file) {
+                $name = basename($file, '.json');
+                if (!in_array($name, $forms, true)) {
+                    $forms[] = $name;
+                }
+            }
+        }
+        sort($forms, SORT_NATURAL | SORT_FLAG_CASE);
+        return $forms;
+    }
+
+    /**
      * Get subforms for a main form
      *
      * @param string $mainFormName Main form name

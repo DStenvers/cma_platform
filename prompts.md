@@ -13180,3 +13180,5 @@ karaat-data en staat in de karaat-repo.
 >     form#login div.kader { shoudl be centered [perhaps by removing it because > 600 is centered and i don't see the value in this css declaration
 
 > are you sure you removed the entire 600px condition? Because i still see a left alignment for <600px
+
+> kun je met content-disposition werken en in een nieuw venster openen?
