@@ -814,6 +814,10 @@ form#login .shake {animation:shake 0.4s ease-in-out}
 /* The box carries the width now that the inputs are fluid (width:100%) — without
    it the shrink-to-fit .kader would collapse to the width of its text. 445px =
    the previous 363px input + its padding/border + the #loginForm padding. */
+/* The flex item around the form must be allowed to shrink below its min-content
+   width, otherwise the 445px box keeps that width on a narrow phone and hangs
+   over both edges. */
+body.login-page > div {min-width:0;max-width:100%}
 form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surface);width:445px;max-width:100%;box-sizing:border-box}
 form#login .login-header {border-radius:0.5em 0.5em 0 0}
 form#login #loginForm {padding:20px}
@@ -831,25 +835,12 @@ form#login label.email span::before { content: "\e695"}
 form#login input:focus {border:0px; background-color:var(--bg-body) !important; box-shadow:none}
 form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;line-height: 26px !important;margin: 0;padding: 0 28px 0 36px;width:100% !important;box-sizing:border-box;color: var(--text-primary)}
 form#login input[type="checkbox"] { display:none}
-form#login input[type="checkbox"] + label {display:block;color: var(--text-primary);background-color:transparent;padding-left:38px;width:450px !important}
+form#login input[type="checkbox"] + label {display:block;color: var(--text-primary);background-color:transparent;padding-left:38px}
 form#login input[type="checkbox"] + label:before { font-family:'Linearicons';margin-left: -38px;background-color: var(--bg-surface);position:absolute;font-size:15px;width:28px;height:28px;text-align:center;color:var(--color-primary); content: "\e99d"}
 form#login input[type="checkbox"]:checked + label:before { content: "\e959";font-size: 16px;line-height: 27px;padding-left: 1px}
 form#login span.note {display:block;margin-left:6px;color:var(--text-secondary)}
 form#login span.login_vergeten {float:right;padding-top:8px; color:var(--text-secondary)}
 form#login span.login_vergeten a {text-decoration:none}
-/* Mobile: the login form is now div-based (no table that expands to content),
-   so it just needs no horizontal overflow + everything capped to the viewport. */
-@media (max-width: 600px) {
-    html, body.login-page { overflow-x: hidden !important; max-width: 100vw !important; }
-    body.login-page > div { max-width: 100vw !important; width: 100% !important; box-sizing: border-box !important; }
-    form#login { max-width: 100vw !important; box-sizing: border-box !important; }
-    form#login .login-header { max-width: 100% !important; box-sizing: border-box !important; overflow: hidden; }
-    form#login .login-header img { max-width: 100% !important; height: auto !important; }
-    form#login #loginForm, form#login #login_vergeten_form { max-width: 100% !important; box-sizing: border-box !important; }
-    form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { max-width: 100% !important; box-sizing: border-box !important; }
-    form#login input[type="checkbox"] + label { width: auto !important; max-width: 100% !important; }
-    form#login a.sso-button { max-width: 100% !important; box-sizing: border-box; }
-}
 form#login span.login_vergeten a:hover {background-color:transparent; text-decoration:underline}
 form#login #login_vergeten_form {display:none;padding:12px}
 form#login hr {flex:1;border:none;border-top:1px solid #ccc;}
