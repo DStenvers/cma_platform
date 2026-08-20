@@ -8,7 +8,6 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\SQL;
 use App\Library\Server;
-use App\Library\StringBuffer;
 use Cma\CmaRepository;
 use Cma\ReportExporter;
 use Cma\SecurityHelper;
@@ -115,8 +114,6 @@ $sRepID = null;
 $sRecID = null;
 $strOrderBy = "";
 $rsSubs = null;
-$rsSubData = null;
-$connSub = null;
 $rsRep = null;
 
 /**
@@ -392,35 +389,6 @@ function main()
     }
     Profiler::end();
 }
-// This function will open a specific subreport (prepared in rsSubData)
-// TODO: Todo: support grouping, editing etc
-/**
-* Opensubreport
-*
-*/
-function OpenSubReport($rs, $rsRepDef)
-{
-    global $rsSubData;
-    // base query
-    $sql = $rsRepDef->fields['Query'];
-    // parent key matching
-    $sql = SQL::addWhere($sql, '[' . $rsRepDef->fields['parentField'] . ']=' . $rs->fields[$rsRepDef->fields['IDField']]);
-    $rsSubData = Database::openRS($sql, $rs->activeconnection, adOpenForwardOnly);
-    if ($rsSubData === null) {
-        throw new \Exception(Database::getLastError());
-    }
-    // Note: RecordSet constructor already loads first row, no MoveNext needed here
-}
-// Closes the subreport data connection
-/**
-* Closesubreport
-*
-*/
-function CloseSubReport()
-{
-    // connSub.Close
-}
-
 /**
  * PERFORMANCE FIX: Pre-fetch all sub-report data for all parent IDs in batch
  * Instead of N queries (one per parent record), execute M queries (one per sub-report definition)
@@ -801,185 +769,50 @@ if ($useLibTable) {
         echo '</tbody></TABLE></div>';
     }
 }
-// Export tot Word function (actually uses HTML format)
-// Idea : Steal the xls and rename it to .doc?
+// Export to Word: an HTML document served as application/msword, which Word
+// opens as a formatted document. Same data path as the Excel/CSV export.
 /**
 * Wordexportrs
 *
 */
 function WordExportRS($rs, $rsSubs, $strTitle)
 {
-    $strFileName = "";
-    $oContent = null;
-    $fld = null;
-    $a = null;
-    $intColumns = 0;
-    $blnVertical = $rs->Fields->count > 6;
-    // more than 12 fields will give problems for MS Word, vertical orientation is better
-    $fso = null;
-    $f = null;
-    $blnUseTable = null;
-    $blnSkipEmpty = null;
-    $intPerc = 0;
-    $strGroupField1 = "";
-    $strGroupField2 = "";
-    $strGroupField3 = "";
-    $strGroupValue1 = '';
-    $strGroupValue2 = '';
-    $strGroupValue3 = '';
-    // create a text file in the /cache directory
-    $strFileName = Application::get('base_path', '') . 'cache/WORDreport_' . datePart('yyyy', date("Y-m-d H:i:s")) . '_' . datePart('m', date("Y-m-d H:i:s")) . '_' . datePart('d', date("Y-m-d H:i:s")) . '-' . datePart('h', date("Y-m-d H:i:s")) . '_' . datePart('n', date("Y-m-d H:i:s")) . '_' . datePart('s', date("Y-m-d H:i:s")) . '.doc';
-    $blnVertical = true;
-    $blnUseTable = false;
-    $blnSkipEmpty = $rsRep->fields['blnWordSkipEmpty'] == true;
-    // TODO: Title
-    // create the titles for the file
-    $intColumns = 0;
-    $oContent = new StringBuffer();
-    $oContent->AppendLine('<html><head><style>body{font-family:verdana;font-size:var(--font-size-2xs)}H1{font-size:var(--font-size-lg)};div,span{display:inline !important}</style></head><h1>' . $strTitle . '</H1>');
-    if ($blnVertical) {
-        $intColumns = 2;
-    } else {
-        if (!$blnUseTable) {
-            $oContent->AppendLine('<table><tr valign=top>');
-            foreach ($rs->fields() as $fld) {
-                if ((is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($rsRep->fields['IDField']) ? "" : strtolower($rsRep->fields['IDField']))) {
-                    $oContent->AppendLine('<TH>' . $fld->name . '</TH>');
-                    $intColumns = $intColumns + 1;
+    global $rsRep;
+
+    try {
+        // Determine which fields to skip
+        $skipFields = array_filter(array_map('trim', explode(',', ($rsRep->fields['IDField'] ?? '') . ',' . ($rsRep->fields['FilterIDField'] ?? '') . ',' . ($rsRep->fields['FilterDisplayField'] ?? ''))));
+
+        // Convert recordset to array data
+        $data = [];
+        $headers = [];
+        $headersSet = false;
+
+        while (!$rs->EOF) {
+            $row = [];
+            foreach ($rs->fields as $key => $value) {
+                if (is_numeric($key)) continue; // Skip numeric indices
+                if (in_array($key, $skipFields)) continue;
+                if (!$headersSet) {
+                    $headers[] = $key;
                 }
+                $row[$key] = $value;
             }
-            $oContent->AppendLine('</tr>' . PHP_EOL);
+            $headersSet = true;
+            $data[] = $row;
+            $rs->MoveNext();
         }
+
+        if (empty($data)) {
+            echo 'Geen gegevens gevonden om te exporteren.';
+            return;
+        }
+
+        ReportExporter::downloadHTML($data, $headers, 'rapport', $strTitle);
+    } catch (\Throwable $e) {
+        error_log('[reportdetails.php] WordExportRS failed: ' . $e->getMessage());
+        echo '<lib-message type="error">Fout bij exporteren: ' . htmlspecialchars($e->getMessage()) . '</lib-message>';
     }
-    $strGroupField1 = $rsRep->fields['GroupField1'] . '';
-    $strGroupField2 = $rsRep->fields['GroupField2'] . '';
-    $strGroupField3 = $rsRep->fields['GroupField3'] . '';
-    // create the contents of the file
-    while (!$rs->EOF) {
-        $rs_current_row = $rs->fields;
-        if (!$blnVertical) {
-            if ($strGroupField1 != '') {
-                if ($strGroupValue1 != Arr::field($rs_current_row, $strGroupField1)) {
-                    $oContent->AppendLine('<TR><TH align=left><br/>' . Server::htmlEncode(Html::fixUnicode(Arr::field($rs_current_row, $strGroupField1))) . '</TH></TR>' . PHP_EOL);
-                    $strGroupValue1 = Arr::field($rs_current_row, $strGroupField1);
-                }
-            }
-            if ($strGroupField2 != '') {
-                if ($strGroupValue2 != Arr::field($rs_current_row, $strGroupField2)) {
-                    $oContent->AppendLine('<TR><TH align=left>' . Server::htmlEncode(Html::fixUnicode(Arr::field($rs_current_row, $strGroupField2))) . '</TH></TR>' . PHP_EOL);
-                    $strGroupValue2 = Arr::field($rs_current_row, $strGroupField2);
-                }
-            }
-            if ($strGroupField3 != '') {
-                if ($strGroupValue3 != Arr::field($rs_current_row, $strGroupField3)) {
-                    $oContent->AppendLine('<TR><TH align=left>' . Server::htmlEncode(Html::fixUnicode(Arr::field($rs_current_row, $strGroupField2))) . '</TH></TR>' . PHP_EOL);
-                    $strGroupValue3 = Arr::field($rs_current_row, $strGroupField3);
-                }
-            }
-            if ($blnUseTable) {
-                $oContent->AppendLine('<TABLE>');
-            }
-            foreach ($rs->fields() as $fld) {
-                if ((is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($rsRep->fields['IDField']) ? "" : strtolower($rsRep->fields['IDField'])) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField1) ? "" : strtolower($strGroupField1)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField2) ? "" : strtolower($strGroupField2)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField3) ? "" : strtolower($strGroupField3))) {
-                    if (!$blnSkipEmpty && $fld == '' || is_null($fld)) {
-                        if ($blnUseTable) {
-                            $oContent->AppendLine('<TR valign=top><TD>');
-                        }
-                        $oContent->AppendLine('<B>' . $fld->Name . '</B>');
-                        if ($blnUseTable) {
-                            $oContent->AppendLine('</TD><TD>');
-                        } else {
-                            $oContent->AppendLine('<BR>');
-                        }
-                        $oContent->AppendLine(Html::fixUnicode(Lib_dbNiceFieldValue($fld, '', $blnVertical)));
-                        if ($blnUseTable) {
-                            $oContent->AppendLine('</TD></TR>');
-                        } else {
-                            $oContent->AppendLine('<BR><BR>');
-                        }
-                    }
-                }
-            }
-        } else {
-            if ($blnUseTable) {
-                $oContent->AppendLine('<tr valign=top><td>');
-            }
-            foreach ($rs->fields() as $fld) {
-                if (!$blnSkipEmpty && $fld == '' || is_null($fld)) {
-                    if ((is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($rsRep->fields['IDField']) ? "" : strtolower($rsRep->fields['IDField'])) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField1) ? "" : strtolower($strGroupField1)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField2) ? "" : strtolower($strGroupField2)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($strGroupField3) ? "" : strtolower($strGroupField3))) {
-                        $oContent->AppendLine('</div></span></div><b>' . $fld->Name . '</b><br>' . Html::fixUnicode(str_ireplace('<TD nowrap>', '', str_ireplace('</TD>', '', str_ireplace('<TD>', '', Lib_dbNiceFieldValue($fld, '', $blnVertical))))) . '<br>');
-                    }
-                }
-            }
-            if ($blnUseTable) {
-                $oContent->AppendLine('</td></tr>' . PHP_EOL);
-            }
-        }
-        if (!$rsSubs->EOF) {
-            while (!$rsSubs->EOF) {
-                OpenSubReport($rs, $rsSubs);
-                if (!$rsSubData->EOF) {
-                    if ($blnUseTable) {
-                        $oContent->AppendLine('<TR valign=top>');
-                        if ($blnVertical) {
-                            $oContent->AppendLine('<td><b>' . $rsSubs->fields['title'] . '</b></td>');
-                        }
-                        $oContent->AppendLine('<TD colspan=' . $intColumns . '><TABLE width=100% cellpadding=1 cellspacing=1>');
-                    } else {
-                        $oContent->AppendLine('<b>' . $rsSubs->fields['title'] . '</b><br>');
-                    }
-                    while (!$rsSubData->EOF) {
-                        if ($blnUseTable) {
-                            $oContent->AppendLine('<TR valign=top>');
-                            if (!$blnVertical) {
-                                $oContent->AppendLine('<TD width=1% >&nbsp;</TD>');
-                            }
-                        }
-                        // Handle both associative arrays and ADO-style collections
-                        $subFields = Arr::isArray($rsSubData->fields) ? $rsSubData->fields : [];
-                        if (!Arr::isArray($rsSubData->fields)) {
-                            for ($a = 0; $a < $rsSubData->fields->count; $a++) {
-                                $subFields[$a] = $rsSubData->fields[$a];
-                            }
-                        }
-                        $subDataFieldCount = count($subFields);
-                        $parentFieldName = $rsSubs->fields['parentField'] ?? '';
-                        foreach ($subFields as $fieldKey => $fieldValue) {
-                            // skip Parent Field
-                            $fieldNameLower = is_string($fieldKey) ? strtolower($fieldKey) : '';
-                            if ($fieldNameLower !== strtolower($parentFieldName)) {
-                                if ($subDataFieldCount == 1) {
-                                    $intPerc = 100;
-                                } else {
-                                    $intPerc = floor(99 / $subDataFieldCount - 1);
-                                }
-                                $oContent->AppendLine(Lib_dbNiceFieldValue($fieldValue, $intPerc . '%', false));
-                            }
-                        }
-                        if ($blnUseTable) {
-                            $oContent->AppendLine('</TR>');
-                        } else {
-                            $oContent->AppendLine('<BR/>');
-                        }
-                    }
-                    if ($blnUseTable) {
-                        $oContent->AppendLine('</TABLE></TD></TR>' . PHP_EOL);
-                    }
-                }
-                CloseSubReport();
-            }
-        }
-        if ($blnUseTable) {
-            echo '</table>';
-        }
-        if ($blnVertical) {
-            $oContent->AppendLine("<br clear=all style='page-break-before:always'>");
-        }
-        $rs->MoveNext();
-    }
-    $oContent->AppendLine('</html>');
-    $oContent->SaveToFile(Server::mapPath($strFileName));
-    echo '<script>window.location=\'' . $strFileName . '\';</script>';
 }
 // Export tot Excel function (actually uses CSV format)
 /**
