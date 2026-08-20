@@ -194,12 +194,6 @@ function reexportReportsWithQueries(): array
             if (!empty($row['FilterCaption'])) {
                 $report['filterCaption'] = $row['FilterCaption'];
             }
-            if ($row['blnWordTextOnly'] ?? false) {
-                $report['wordTextOnly'] = true;
-            }
-            if ($row['blnWordSkipEmpty'] ?? false) {
-                $report['wordSkipEmpty'] = true;
-            }
 
             $reports[] = $report;
             $rs->MoveNext();

@@ -239,8 +239,6 @@ function main()
         'FilterIDField' => $reportData['filterIdField'] ?? '',
         'FilterDisplayField' => $reportData['filterDisplayField'] ?? '',
         'filterCaption' => $reportData['filterCaption'] ?? '',
-        'blnWordTextOnly' => $reportData['wordTextOnly'] ?? false,
-        'blnWordSkipEmpty' => $reportData['wordSkipEmpty'] ?? false,
     ];
 
     // Haal database connection string op via DatabasesService

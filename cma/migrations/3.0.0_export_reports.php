@@ -90,7 +90,7 @@ function exportReportsToJson(): array
         // Query all reports with module info and database - use [Name] as it's a reserved word in Access
         // Available columns: ID, fkModule, fkParentReport, ParentField, Title, Query, IDField,
         // GroupField1, GroupField2, GroupField3, EditURL, EditForm, FilterIDField, FilterDisplayField,
-        // FilterCaption, blnWordTextOnly, blnWordSkipEmpty, Visible
+        // FilterCaption, Visible
         $sql = "SELECT tblReports.*, tblModules.[Name] as ModuleName, tblModules.fkDatabase as DatabaseId " .
                "FROM tblReports LEFT JOIN tblModules ON tblReports.fkModule = tblModules.ID " .
                "ORDER BY tblModules.[Name], tblReports.Title";
@@ -165,12 +165,6 @@ function exportReportsToJson(): array
             }
             if (!empty($row['FilterCaption'])) {
                 $report['filterCaption'] = $row['FilterCaption'];
-            }
-            if ($row['blnWordTextOnly'] ?? false) {
-                $report['wordTextOnly'] = true;
-            }
-            if ($row['blnWordSkipEmpty'] ?? false) {
-                $report['wordSkipEmpty'] = true;
             }
 
             $reports[] = $report;
