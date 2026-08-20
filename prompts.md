@@ -13167,3 +13167,7 @@ karaat-data en staat in de karaat-repo.
 > small optimalisation: all crawl should ignore  hidden houses. Only optimize and translate visible houses.
 
 > asd status = active please
+
+## 2026-08-20
+
+> wil je kijken of je darkmode kunt ondersteunen? lliefst met een toggle in het menu
