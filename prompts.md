@@ -13171,3 +13171,7 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-20
 
 > wil je kijken of je darkmode kunt ondersteunen? lliefst met een toggle in het menu
+
+> polease change the padding in the css to : form#login #loginForm {
+>     padding: 20px;
+> }

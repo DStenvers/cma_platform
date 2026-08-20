@@ -816,7 +816,7 @@ form#login .shake {animation:shake 0.4s ease-in-out}
    the previous 363px input + its padding/border + the #loginForm padding. */
 form#login div.kader {padding:0;overflow:hidden;background-color: var(--bg-surface);width:445px;max-width:100%;box-sizing:border-box}
 form#login .login-header {border-radius:0.5em 0.5em 0 0}
-form#login #loginForm {padding:12px}
+form#login #loginForm {padding:20px}
 form#login .login-row {position:relative;margin-bottom:12px}
 form#login .login-row.login-actions {margin-bottom:0}
 form#login a.sso-button { width:65%; padding:8px} 
