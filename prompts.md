@@ -13175,3 +13175,6 @@ karaat-data en staat in de karaat-repo.
 > polease change the padding in the css to : form#login #loginForm {
 >     padding: 20px;
 > }
+
+> and @media (width <= 600px) {
+>     form#login div.kader { shoudl be centered [perhaps by removing it because > 600 is centered and i don't see the value in this css declaration

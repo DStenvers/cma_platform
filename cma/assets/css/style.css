@@ -843,7 +843,6 @@ form#login span.login_vergeten a {text-decoration:none}
     html, body.login-page { overflow-x: hidden !important; max-width: 100vw !important; }
     body.login-page > div { max-width: 100vw !important; width: 100% !important; box-sizing: border-box !important; }
     form#login { max-width: 100vw !important; box-sizing: border-box !important; }
-    form#login div.kader { width: auto !important; max-width: calc(100vw - 20px) !important; box-sizing: border-box !important; }
     form#login .login-header { max-width: 100% !important; box-sizing: border-box !important; overflow: hidden; }
     form#login .login-header img { max-width: 100% !important; height: auto !important; }
     form#login #loginForm, form#login #login_vergeten_form { max-width: 100% !important; box-sizing: border-box !important; }
