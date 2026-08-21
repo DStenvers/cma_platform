@@ -408,7 +408,7 @@ select option:checked {
 input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="hidden"]):not([type="color"]):not([type="range"]):not([type="image"]):read-only,
 textarea:read-only {
     background-color: var(--input-bg-readonly);
-    border-color: transparent;
+    border-color: transparent !important;
     color: var(--text-secondary);
 }
 
