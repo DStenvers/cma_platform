@@ -37,6 +37,13 @@
  *   DEPLOY_COMPOSER_UPDATE   comma-separated packages to `composer update`
  *                            after the pipeline. Default: stenversonline/platform.
  *                            "-" skips the composer step entirely.
+ *                            "install" runs `composer install` instead: vendor/ volgt
+ *                            dan exact de composer.lock uit git en de server SCHRIJFT
+ *                            die lock niet. Dat is de stand voor een site die zijn lock
+ *                            meecommit — `composer update` herschrijft hem hier namelijk
+ *                            elke deploy, en de volgende `git pull` (ook een handmatige)
+ *                            struikelt dan over "Your local changes to the following
+ *                            files would be overwritten by merge: composer.lock".
  *   DEPLOY_COMPOSER_CLEAR_CACHE 1 = run `composer clear-cache` BEFORE the update,
  *                            so a freshly-pushed platform tag isn't missed because
  *                            Composer's VCS clone cache pinned an old ref ("Nothing
@@ -343,7 +350,36 @@ if ($isWin
 }
 
 // 4b. Optional pre-pull reset so composer.lock churn can't block an ff-only pull.
+//
+// `composer update` (stap 4d) HERSCHRIJFT composer.lock op de server. Bij een dev-branch
+// verandert de referentie zelfs elke keer. De volgende pull vindt dan een gewijzigd
+// bestand en stopt met "Your local changes to the following files would be overwritten
+// by merge" — de hele deploy staat stil, en een handmatige `git pull` net zo goed.
+//
+// `git checkout -- .` haalt de werkkopie terug uit de INDEX; staat het bestand daar ook
+// al in (iemand deed `git add`), dan blijft het verschil staan en loopt de pull alsnog
+// vast. Voor de bestanden die de deploy zelf weer aanmaakt halen we ze daarom expliciet
+// uit HEAD. Wat er is teruggezet komt in de log: zo blijft zichtbaar dat hier iets is
+// weggegooid, in plaats van dat het stilletjes gebeurt.
 if ($envRead('DEPLOY_NO_RESET', '') !== '1') {
+    $vies = [];
+    if ($isWin) {
+        @exec('cmd /c "cd /d "' . $ROOT . '" && git status --porcelain 2>&1"', $vies);
+    } else {
+        @exec('cd ' . escapeshellarg($ROOT) . ' && git status --porcelain 2>&1', $vies);
+    }
+    $viesLijst = array_values(array_filter(array_map('trim', $vies)));
+    if ($viesLijst) {
+        $log('pre-pull reset — deze bestanden waren lokaal gewijzigd en gaan terug naar HEAD:'
+            . "\n  " . implode("\n  ", $viesLijst));
+    }
+    foreach (['composer.lock', 'composer.json'] as $herstelbaar) {
+        if (is_file($ROOT . '/' . $herstelbaar)) {
+            // Geen escapeshellarg: dit zijn vaste namen zonder spaties, en onder Windows
+            // loopt de aanhalingstekens-in-aanhalingstekens van cmd /c er juist op stuk.
+            $run('git checkout HEAD -- ' . $herstelbaar);
+        }
+    }
     $run('git checkout -- .');
 }
 
@@ -364,6 +400,7 @@ $composerPkgs = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
 if ($noComposer) {
     $log('composer step skipped (?nocomposer=Y) — git pull + recycle only, no platform package update');
 }
+$composerInstallOnly = strcasecmp(trim($composerPkgs), 'install') === 0;
 if (!$failed && !$noComposer && $composerPkgs !== '-' && $composerPkgs !== '') {
     $composer = null;
     foreach ([
@@ -406,7 +443,16 @@ if (!$failed && !$noComposer && $composerPkgs !== '-' && $composerPkgs !== '') {
             'escapeshellarg',
             preg_split('/\s*,\s*/', $composerPkgs, -1, PREG_SPLIT_NO_EMPTY) ?: []
         ));
-        if ($run($composer . ' update ' . $pkgArgs . ' --no-dev --optimize-autoloader --no-interaction') !== 0) {
+        // install-only: vendor/ volgt de composer.lock uit git, en de server laat die lock
+        // met rust. Geen update betekent ook: geen nieuwe platformversie zonder dat iemand
+        // hem hier eerst heeft vastgelegd - precies de bedoeling bij een meegecommitte lock.
+        if ($composerInstallOnly) {
+            $log('composer install (DEPLOY_COMPOSER_UPDATE=install) — vendor/ volgt de vastgelegde composer.lock');
+            if ($run($composer . ' install --no-dev --optimize-autoloader --no-interaction') !== 0) {
+                $failed     = true;
+                $failReason = 'composer install failed';
+            }
+        } elseif ($run($composer . ' update ' . $pkgArgs . ' --no-dev --optimize-autoloader --no-interaction') !== 0) {
             // `composer update` failed — most often the private platform repo
             // is briefly unreachable / unauthenticated (missing token, SSH
             // fallback, unwritable composer home), NOT a broken tree. Fall back
