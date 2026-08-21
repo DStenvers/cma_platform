@@ -74,6 +74,28 @@ class DeployComposerLockTest extends TestCase
             'de kop van het bestand legt uit wanneer je dat wilt');
     }
 
+    public function testGitMagInDeWerkkopieWerken(): void
+    {
+        // IIS draait de deploy als de app-pool-identiteit; die is niet de eigenaar van de
+        // werkkopie, en git weigert dat sinds CVE-2022-24765 ("detected dubious ownership").
+        // Elk git-commando eindigt dan op 128 en de deploy valt stil vóór hij iets doet.
+        $bron = $this->bron();
+        $this->assertTrue(strpos($bron, "GIT_CONFIG_KEY_0=safe.directory") !== false,
+            'de deploy zet safe.directory voor zijn eigen git-processen');
+        $this->assertTrue(strpos($bron, "GIT_CONFIG_VALUE_0=") !== false,
+            'en vult daar het pad van deze werkkopie in');
+
+        // Vóór de reset én de pull, anders is het te laat.
+        $posSafe  = strpos($bron, 'GIT_CONFIG_KEY_0');
+        $posReset = strpos($bron, "git checkout HEAD -- ");
+        $this->assertTrue($posSafe !== false && $posReset !== false && $posSafe < $posReset,
+            'dat gebeurt vóór het eerste git-commando');
+
+        // Alleen als de omgeving het niet al zelf regelt.
+        $this->assertTrue(strpos($bron, "getenv('GIT_CONFIG_COUNT')") !== false,
+            'een bestaande GIT_CONFIG_COUNT wordt niet overschreven');
+    }
+
     public function testDeResetNogSteedsUitTeZettenIs(): void
     {
         // Een site die zijn eigen wijzigingen op de server bewaart, moet dit kunnen weigeren.

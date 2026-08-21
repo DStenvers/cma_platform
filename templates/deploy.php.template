@@ -349,6 +349,29 @@ if ($isWin
     $log('RECYCLE (pre-pull): touched ' . $recycleFile);
 }
 
+// 4a-bis. Git mag in DEZE map werken, ook als hij van iemand anders is.
+//
+// Op IIS draait de deploy als de app-pool-identiteit (IIS APPPOOL\<site>), terwijl de
+// werkkopie meestal van een gewoon account is. Git weigert dat sinds CVE-2022-24765:
+//
+//   fatal: detected dubious ownership in repository at 'D:/wwwroot/<site>'
+//
+// Elk git-commando eindigt dan op exit 128 — de reset hieronder, de pull, alles. De deploy
+// valt stil vóór hij iets doet, en omdat er geen enkele stap slaagt zag je alleen een
+// onderhoudspagina die bleef staan. Precies zo gemeten op test-mijn.rino.nl.
+//
+// GIT_CONFIG_COUNT/_KEY_0/_VALUE_0 geeft ALLEEN dit pad vrij, en alleen voor de git-processen
+// die deze deploy start. Er verandert niets aan de globale of systeem-config van de server, en
+// een andere map blijft dus even goed beschermd. Wie het liever één keer permanent regelt:
+// `git config --system --add safe.directory <pad>` in een administrator-shell.
+$gitSafeRoot = str_replace('\\', '/', $ROOT);
+if ((string) getenv('GIT_CONFIG_COUNT') === '') {
+    putenv('GIT_CONFIG_COUNT=1');
+    putenv('GIT_CONFIG_KEY_0=safe.directory');
+    putenv('GIT_CONFIG_VALUE_0=' . $gitSafeRoot);
+    $log('git safe.directory = ' . $gitSafeRoot . ' (alleen voor deze deploy)');
+}
+
 // 4b. Optional pre-pull reset so composer.lock churn can't block an ff-only pull.
 //
 // `composer update` (stap 4d) HERSCHRIJFT composer.lock op de server. Bij een dev-branch
