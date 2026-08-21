@@ -13201,3 +13201,6 @@ karaat-data en staat in de karaat-repo.
 >  
 >
 > tevens kan hij de parent key niet vinden (fkopleiding), de combo is leeg en de console geeft ook geen error
+
+> .timepicker-input {
+>     padding-left: 8px;

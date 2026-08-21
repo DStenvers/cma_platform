@@ -241,7 +241,7 @@ class LibTimepicker extends HTMLElement {
                 }
 
                 .timepicker-input {
-                    padding-left: 12px;
+                    padding-left: 8px;
                     padding-right: 4px;
                     border: none;
                     border-radius: 4px 0 0 4px;
