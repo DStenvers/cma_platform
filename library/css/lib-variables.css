@@ -409,6 +409,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type=
 textarea:read-only {
     background-color: var(--input-bg-readonly);
     border-color: transparent !important;
+    border-left-width: 0;
     color: var(--text-secondary);
 }
 
