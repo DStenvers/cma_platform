@@ -74,10 +74,18 @@ if (!isset($message) || !is_string($message) || trim($message) === '') {
     }
 }
 
+// "cma" is de placeholder-bedrijfsnaam van een kaal platform, geen sitenaam.
+// Zonder deze uitzondering stond er "cma" op de onderhoudspagina van een site
+// die zijn eigen naam niet opgaf; nu valt hij door naar de domeinnaam, die
+// altijd klopt en herkenbaar is.
+$cmaMaintCompanyName = trim((string) ($cmaMaintCompany['name'] ?? ''));
+if (strcasecmp($cmaMaintCompanyName, 'cma') === 0) {
+    $cmaMaintCompanyName = '';
+}
 $cmaMaintName = $cmaMaintFirst(
     $cmaMaintJson['name'] ?? '',
     $cmaMaintBlock['name'] ?? '',
-    $cmaMaintCompany['name'] ?? '',
+    $cmaMaintCompanyName,
     $_SERVER['HTTP_HOST'] ?? ''
 );
 $message = $cmaMaintFirst(
