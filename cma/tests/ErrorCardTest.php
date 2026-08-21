@@ -48,6 +48,55 @@ class ErrorCardTest extends TestCase
         $this->assertFalse(str_contains($html, '.css'), 'must not depend on a stylesheet');
     }
 
+    public function testCopyTakesTheMessageOnlyNotTheTitleOrTheButton(): void
+    {
+        // Gemeld: "er is een kopieer-knop, maar die kopieert alles, de titel en
+        // knop mogen daar weg". De wandeling liep over de hele kaart, dus
+        // "Er is een fout opgetreden" en "Terug" kwamen mee op het klembord.
+        $html = $this->render('scope ' . __FUNCTION__);
+        $this->assertTrue(
+            str_contains($html, 'class="lib-error-copy"'),
+            'de meldingscel moet de haak dragen waar de kopieerknop op loopt'
+        );
+        $this->assertTrue(
+            str_contains($html, "querySelector('.lib-error-copy')"),
+            'de kopieerknop moet naar die haak zoeken in plaats van de hele kaart te nemen'
+        );
+        // De haak zit op de cel met de melding — niet op de kop en niet op de
+        // rij met de Terug-knop.
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML('<div>' . $html . '</div>');
+        libxml_clear_errors();
+        $xp = new DOMXPath($doc);
+        $cellen = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " lib-error-copy ")]');
+        $this->assertEquals(1, $cellen->length, 'precies één kopieergebied');
+        $tekst = trim($cellen->item(0)->textContent);
+        $this->assertTrue(str_contains($tekst, 'scope ' . __FUNCTION__), 'de melding zit erin');
+        $this->assertFalse(str_contains($tekst, 'Er is een fout opgetreden'), 'de titel hoort er niet in');
+        $this->assertFalse(str_contains($tekst, 'Terug'), 'de knop hoort er niet in');
+    }
+
+    public function testCardCarriesItsOwnFont(): void
+    {
+        // Error::show() schrijft geen <head> en geen stylesheet: zonder eigen
+        // font-family op de KAART kreeg je een Verdana-kop met een Times-melding.
+        $html = $this->render('font ' . __FUNCTION__);
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML('<div>' . $html . '</div>');
+        libxml_clear_errors();
+        $xp = new DOMXPath($doc);
+        $kaart = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " lib-error-card ")]')->item(0);
+        $this->assertTrue($kaart !== null, 'de kaart staat er');
+        $stijl = $kaart->getAttribute('style');
+        $this->assertTrue(
+            str_contains($stijl, 'font-family:Verdana'),
+            'de kaart zelf moet het lettertype zetten, anders erft de melding de schreefletter van de browser'
+        );
+        $this->assertTrue(str_contains($stijl, 'font-size:13px'), 'en de tekstgrootte ook');
+    }
+
     public function testMessageIsShownAndCleanedUp(): void
     {
         $html = $this->render('De Microsoft Jet-database-engine kan de invoertabel of -query tblX niet vinden.');

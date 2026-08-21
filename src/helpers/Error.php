@@ -314,6 +314,12 @@ class Error
      * string baked at render time. That way the operator always copies exactly
      * what they are looking at.
      *
+     * Het loopgebied is .lib-error-copy (de cel met de melding), niet de hele
+     * kaart. Op de hele kaart lopen leverde "Er is een fout opgetreden" en
+     * "Terug" mee in het plakresultaat — de kop en de knop zijn scherm, geen
+     * foutmelding. Ontbreekt die haak (een oudere kaart in de pagina), dan valt
+     * hij terug op de kaart zelf, zodat er altijd íets gekopieerd wordt.
+     *
      * Self-contained by necessity: this card shows up on pages whose stylesheet
      * and scripts may never have loaded. Hence the inline handler, inline SVG,
      * and a textarea+execCommand fallback for non-secure contexts (plain http on
@@ -332,6 +338,7 @@ class Error
             . "var c=b.closest?b.closest('.lib-error-card'):null;"
             . "if(!c){var p=b.parentNode;while(p){if(p.className&&(' '+p.className+' ').indexOf(' lib-error-card ')>-1){c=p;break;}p=p.parentNode;}}"
             . 'if(!c)return;'
+            . "var s=c.querySelector?c.querySelector('.lib-error-copy'):null;if(s){c=s;}"
             . "var skip=function(n){var p=n.parentNode;while(p&&p!==c){var nm=p.nodeName;if(nm==='SCRIPT'||nm==='STYLE'||nm==='NOSCRIPT')return 2;p=p.parentNode;}return 1;};"
             . "var t='',w=document.createTreeWalker(c,132,skip,false),n;"
             . "while(n=w.nextNode()){if(n.nodeType===8)t+='\\n'+n.nodeValue+'\\n';else t+=n.nodeValue;}"
@@ -371,10 +378,18 @@ class Error
             ? 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;'
             : 'position:relative;margin:auto;';
 
-        Response::write('</script><div class="lib-error-card" style="display:block;visibility:visible !important;border-radius:8px;max-width:800px;width:calc(100% - 32px);' . $position . 'box-shadow:0 6px 28px rgba(0,0,0,0.35);background-color:#ffffff;border:1px solid #dddddd">');
-        Response::write('<h3 style="position:relative;margin:0;font-family:Verdana;font-size:18px;line-height:1.2;text-transform:initial;border-top-left-radius:8px;border-top-right-radius:8px;background-color:#E01F3D;color:#ffffff;display:block;padding:8px 48px 8px 24px">' . $title . self::copyButtonHtml() . '</h3>');
+        // Het lettertype hoort op de KAART, niet alleen op de kop. Error::show()
+        // schrijft geen <head> en geen stylesheet — de kaart landt vaak op een
+        // pagina die nog niets had geladen — dus alles zonder eigen font-family
+        // viel terug op de schreefletter van de browser: een Verdana-kop met een
+        // Times-melding en een Times-knop eronder. Erven vanaf de kaart geeft
+        // alle drie dezelfde letter, ook als er wél een stylesheet staat.
+        $font = 'font-family:Verdana,Geneva,Arial,sans-serif;font-size:13px;color:#333333;';
+        Response::write('</script><div class="lib-error-card" style="display:block;visibility:visible !important;border-radius:8px;max-width:800px;width:calc(100% - 32px);' . $position . $font . 'box-shadow:0 6px 28px rgba(0,0,0,0.35);background-color:#ffffff;border:1px solid #dddddd">');
+        Response::write('<h3 style="position:relative;margin:0;font-family:inherit;font-size:18px;line-height:1.2;text-transform:initial;border-top-left-radius:8px;border-top-right-radius:8px;background-color:#E01F3D;color:#ffffff;display:block;padding:8px 48px 8px 24px">' . $title . self::copyButtonHtml() . '</h3>');
         Response::write('<div style="padding:24px">');
-        Response::write('<table cellpadding=0 cellspacing=0 style="border-collapse:collapse;width:100%"><tr><td style="line-height:22px">' . $message . '</td></tr>');
+        // class="lib-error-copy": dit is het enige dat de kopieerknop meeneemt.
+        Response::write('<table cellpadding=0 cellspacing=0 style="border-collapse:collapse;width:100%"><tr><td class="lib-error-copy" style="line-height:22px">' . $message . '</td></tr>');
 
         // Back button
         if ($showBackButton) {
