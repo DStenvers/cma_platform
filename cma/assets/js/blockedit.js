@@ -1803,13 +1803,20 @@ function blockedit_collect_htmls(  ) {
 			// console.log( "Totale html "+ cDataEltName + " : " + cTotalHTML );
 			if (cTotalHTML!="") {
 				if (CKEDITOR.instances[cDataField]) {
-					CKEDITOR.instances[cDataField].setData(cTotalHTML);
-					// Also write the textarea directly: a native form post reads
-					// the textarea, setData is not guaranteed synchronous, and the
-					// editor's own submit-flush (updateElement) may already have
-					// run with stale data before this harvest.
+					// Write the textarea first: a native form post reads the textarea,
+					// setData is not guaranteed synchronous, and the editor's own
+					// submit-flush (updateElement) may already have run with stale
+					// data before this harvest. setData itself can throw on an editor
+					// that is not ready yet (its undo snapshot reads the editor
+					// window), and that must never cost us the save.
 					var taMain = jQuery('textarea[name="' + cDataField + '"]');
 					if (taMain.length) taMain.val(cTotalHTML);
+					try {
+						CKEDITOR.instances[cDataField].setData(cTotalHTML);
+					} catch (e) {
+						cmaLog.error('[BlockEdit] save: CKEditor setData failed for field "' +
+							cDataField + '":', e.message);
+					}
 				} else {
 					// Fallback: write directly to textarea (e.g. in storybook context)
 					var ta = jQuery('textarea[name="' + cDataField + '"]');

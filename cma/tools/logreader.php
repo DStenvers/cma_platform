@@ -1234,7 +1234,7 @@ tr.notfound-row:hover td {
 .log-detail-table th {
     text-align: left;
     vertical-align: top;
-    padding: 8px 12px;
+    padding: 8px 12px 8px 0;
     width: 80px;
     background: var(--bg-surface, #f5f5f5);
     border-bottom: 1px solid var(--border-color, #ddd);

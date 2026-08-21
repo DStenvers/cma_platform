@@ -13186,3 +13186,18 @@ karaat-data en staat in de karaat-repo.
 > haal de wordskipempty weg uit het schema en de json bestanden
 
 > kunnen we die nog oplossen?
+
+## 2026-08-21
+
+> top!
+
+> okay, in de mijn rino cma hebben we weer daat hij comboboxes waardes niet kan vinden, in het rooster scherm krijg ik nu : installHook.js:1 [lib-combo name="fkOpleidingsBlok"] Value(s) not found in options: "53" 
+> Object
+> overrideMethod    @    installHook.js:1
+>
+> installHook.js:1 [lib-combo name="VisibleState"] Value(s) not found in options: "1" 
+> Object
+> ﻿
+>  
+>
+> tevens kan hij de parent key niet vinden (fkopleiding), de combo is leeg en de console geeft ook geen error

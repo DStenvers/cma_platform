@@ -8517,8 +8517,26 @@ class CmaFormController {
                         if (isHtmlField && typeof CKEDITOR !== 'undefined') {
                             const editorInstance = CKEDITOR.instances[name];
                             if (editorInstance) {
-                                // cmaLog.log('[populateForm] Setting CKEditor data for', name, 'editor ready=', editorInstance.status === 'ready');
-                                editorInstance.setData(value || '');
+                                // setData() takes an undo snapshot, and that reads the
+                                // selection from the editor's own window. Before
+                                // instanceReady there is no such window and CKEditor
+                                // throws "Cannot read properties of undefined (reading
+                                // 'getSelection')" — which would abort the record load
+                                // and leave every field after this one empty. The value
+                                // is already in the textarea, so hand it to the editor
+                                // once it exists, and never let the editor break the load.
+                                const applyEditorData = () => {
+                                    try {
+                                        editorInstance.setData(value || '');
+                                    } catch (e) {
+                                        cmaLog.error('[populateForm] CKEditor setData failed for', name, ':', e.message);
+                                    }
+                                };
+                                if (editorInstance.status === 'ready') {
+                                    applyEditorData();
+                                } else {
+                                    editorInstance.once('instanceReady', applyEditorData);
+                                }
                             } else {
                                 // cmaLog.log('[populateForm] CKEditor instance not found for', name, 'available instances=', Object.keys(CKEDITOR.instances));
                             }
