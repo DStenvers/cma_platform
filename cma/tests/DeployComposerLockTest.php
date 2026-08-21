@@ -18,7 +18,9 @@
  *
  * TWEE DINGEN LOSSEN HET OP, en ze staan allebei in de template:
  *
- *   1. De pre-pull reset haalt composer.lock uit HEAD terug. `git checkout -- .` alleen
+ *   1. De pre-pull reset haalt composer.lock uit HEAD terug — net als de andere bestanden die
+ *      zowel in git staan als door composer of de Installer worden herschreven: composer.json,
+ *      deploy.php, deploy_status.php en cma/package.json (ROOT_SYNCED_FILES). `git checkout -- .` alleen
  *      volstaat niet: dat herstelt uit de INDEX, dus een bestand dat ook al ge-add was
  *      blijft afwijken. Wat er wordt teruggezet gaat naar de log, zodat weggooien zichtbaar
  *      blijft.
@@ -45,8 +47,10 @@ class DeployComposerLockTest extends TestCase
         $bron = $this->bron();
         $this->assertTrue(strpos($bron, "git checkout HEAD -- ' . \$herstelbaar") !== false,
             'de herstelbare bestanden worden uit HEAD teruggezet, niet uit de index');
-        $this->assertTrue(strpos($bron, "'composer.lock', 'composer.json'") !== false,
-            'composer.lock (en composer.json) staan in dat rijtje');
+        foreach (['composer.lock', 'composer.json', 'deploy.php', 'deploy_status.php', 'cma/package.json'] as $bestand) {
+            $this->assertTrue(strpos($bron, "'" . $bestand . "'") !== false,
+                $bestand . ' staat in het rijtje dat vóór de pull uit HEAD terugkomt');
+        }
 
         // De volgorde telt: eerst terugzetten, dan pas de pipeline met de pull.
         $posReset = strpos($bron, "git checkout HEAD -- ");

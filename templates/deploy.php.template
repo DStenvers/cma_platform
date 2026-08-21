@@ -396,7 +396,13 @@ if ($envRead('DEPLOY_NO_RESET', '') !== '1') {
         $log('pre-pull reset — deze bestanden waren lokaal gewijzigd en gaan terug naar HEAD:'
             . "\n  " . implode("\n  ", $viesLijst));
     }
-    foreach (['composer.lock', 'composer.json'] as $herstelbaar) {
+    // composer.lock/composer.json worden door composer herschreven; deploy.php,
+    // deploy_status.php en cma/package.json door de Installer van het platform (die staan in
+    // ROOT_SYNCED_FILES en worden bij ELKE composer update overschreven). Alle vijf staan óók
+    // in git. Zolang de geïnstalleerde platformversie achterloopt op wat er in de repository
+    // ligt, verschilt zo'n bestand dus van HEAD en blokkeert het de volgende pull — precies
+    // zoals composer.lock dat deed, en daarna deploy.php zelf.
+    foreach (['composer.lock', 'composer.json', 'deploy.php', 'deploy_status.php', 'cma/package.json'] as $herstelbaar) {
         if (is_file($ROOT . '/' . $herstelbaar)) {
             // Geen escapeshellarg: dit zijn vaste namen zonder spaties, en onder Windows
             // loopt de aanhalingstekens-in-aanhalingstekens van cmd /c er juist op stuk.
