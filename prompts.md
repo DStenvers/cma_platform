@@ -13204,3 +13204,5 @@ karaat-data en staat in de karaat-repo.
 
 > .timepicker-input {
 >     padding-left: 8px;
+
+> Heel vreemd: https://test-mijn.rino.nl/cma/form/kbt_templates/1 toont geen subformulieren, maar https://test-mijn.rino.nl/cma/form/kbt_templates/2 wel?

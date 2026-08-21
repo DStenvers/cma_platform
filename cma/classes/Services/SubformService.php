@@ -639,6 +639,34 @@ class SubformService extends BaseFormService
                         $fieldPaths[$key] = $info['path'] ?? '';
                     }
                 }
+
+                // Nothing survived the filters — the query selects only the id, or
+                // every column names the parent entity. Rows would then be written
+                // as <tr> without a single <td>: invisible records, no error, no
+                // clue. Fall back to everything the query returned so the operator
+                // sees the rows and can fix the listQuery.
+                if (empty($columns)) {
+                    Logger::warning('Subform has no displayable columns — falling back to the raw query columns', [
+                        'parentFormId' => $formId,
+                        'subformName' => $subformName,
+                        'jsonFormName' => $jsonFormName ?? null,
+                        'parentField' => $parentField,
+                        'sql' => $sqlOriginal,
+                    ]);
+                    foreach ($rs->fields as $key => $value) {
+                        if (is_int($key)) {
+                            continue;
+                        }
+                        $keyLower = strtolower($key);
+                        $columns[] = $key;
+                        $info = $formFieldInfo[$keyLower] ?? null;
+                        $fieldCaptions[$key] = $info['caption'] ?? $key;
+                        $fieldTypes[$key] = $info['controlType'] ?? 0;
+                        $fieldIsDate[$key] = $info['isDate'] ?? false;
+                        $fieldInlineEdit[$key] = $info['inlineEdit'] ?? false;
+                        $fieldPaths[$key] = $info['path'] ?? '';
+                    }
+                }
             }
 
             // Build table HTML

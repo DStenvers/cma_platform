@@ -319,6 +319,17 @@ class SQLTest extends TestCase
         $this->assertEquals("'O'+char(39)+'Brien'", SQL::postString("O'Brien", $this->sqlserver));
     }
 
+    public function testPostStringVerwijdertNulBytes(): void
+    {
+        // Een NUL-byte beëindigt de C-string die de ODBC-driver aan de database
+        // geeft: alles erna verdwijnt en het literal blijft open staan, waarna de
+        // hele opdracht struikelt ("syntax error ... in query expression"). Tekst
+        // die uit Word of een PDF geplakt is bevat er soms een.
+        $out = SQL::postString("regel een\0regel twee", $this->access);
+        $this->assertEquals("'regel eenregel twee'", $out);
+        $this->assertStringNotContainsString("\0", $out);
+    }
+
     public function testPostStringNeutralisesInjectionAttemptAccess(): void
     {
         // A classic breakout payload: the leading quote is concatenated away,
