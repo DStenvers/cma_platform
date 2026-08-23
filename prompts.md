@@ -13209,3 +13209,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-23
 
 > kun je luminous-doodling-petal.md uitvoeren?
+
+> green-acres — nog geen bron. Leest prima (geen blokkade), maar zonder JSON-LD en met een JS-gerenderde titel heeft hij een eigen spider nodig. Wil je dat bouwen?
