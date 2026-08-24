@@ -156,6 +156,38 @@ textarea[data-required="true"] + .cke.has-content {
     border-left: 3px solid var(--border-color) !important;
 }
 
+/* ============================================
+   WHILE A RECORD IS LOADING (body.data-loading)
+   The form stays visible and its fields update in place (see the
+   .detail-content note further down), so a required field is briefly empty
+   before its value arrives — and an empty required field is :invalid, which
+   paints the left border red. That red is a validation signal about what the
+   user must still do; during load it says nothing (the value is on its way),
+   so it reads as a false alarm that flips to neutral the moment data lands.
+   Neutralise the left border for the whole load window. Only the colour is
+   overridden, never the 3px width, so nothing shifts when the real state
+   takes over. Add mode (body.is-creating) never carries data-loading, so a
+   genuinely new empty form keeps its required indicators from the first paint.
+   ============================================ */
+body.data-loading input[data-required="true"],
+body.data-loading select[data-required="true"],
+body.data-loading textarea[data-required="true"],
+body.data-loading .c2 [data-required="true"] input,
+body.data-loading .c2 [data-required="true"] select,
+body.data-loading .c2 [data-required="true"] textarea,
+body.data-loading select[data-required="true"] + .select2-container .select2-selection,
+body.data-loading .c2 select[data-required="true"] + .select2-container .select2-selection,
+body.data-loading lib-combo[data-required="true"] .select2-selection,
+body.data-loading cma-combo[data-required="true"] .select2-selection,
+body.data-loading .radiocontrolgroup[data-required="true"],
+body.data-loading div[data-type="radiogroup"][data-required="true"],
+body.data-loading .checkboxcontrolgroup[data-required="true"],
+body.data-loading lib-switch[data-required="true"],
+body.data-loading .c2:has(textarea[data-required="true"]) .cke,
+body.data-loading textarea[data-required="true"] + .cke {
+    border-left-color: var(--border-color) !important;
+}
+
 /* Fallback when CKEditor fails to load (see FormController.recoverStalledEditors):
    the rich editor never built, so the plain textarea is restored for raw-HTML
    editing. Monospace + a warm border signal that this is source-editing mode. */
