@@ -636,18 +636,14 @@ cma-groupbox:hover .groupbox-chevron::before,
     font-size: var(--font-size-sm);
 }
 
-/* Autosave status in the preferences toolbar: a permanent line of text with a
-   spinner that only appears while a save is actually in flight. */
+/* Autosave status in the preferences toolbar: a spinner that only appears while a
+   save is actually in flight. */
 .cma-page__autosave {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 0 4px;
     min-height: 26px;
-}
-.cma-page__autosave-text {
-    color: var(--text-secondary, #666);
-    font-size: var(--font-size-sm);
 }
 /* The host's own padding/min-height would make the toolbar row jump */
 .cma-page__autosave-spinner {

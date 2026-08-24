@@ -606,7 +606,9 @@ describe('CMA User Workflows', () => {
 
     it('should have autosave status in toolbar instead of a save button', () => {
       cy.get('#toolbar_save').should('not.exist');
-      cy.get('#autosaveStatus').should('contain', 'meteen opgeslagen');
+      // The status is the spinner only - no standing line of text.
+      cy.get('#autosaveStatus').should('exist').find('#autosaveSpinner').should('exist');
+      cy.get('#autosaveStatus').should('not.contain', 'meteen opgeslagen');
     });
   });
 

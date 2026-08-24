@@ -629,4 +629,57 @@ describe('Subforms', () => {
             });
         });
     });
+    // ═══════════════════════════════════════════════════════════════
+    // COLUMN ALIGNMENT
+    // ═══════════════════════════════════════════════════════════════
+
+    describe('Column alignment', () => {
+        // The subform table used to fake its layout: display:flex on the table, a
+        // scrolling tbody, and every tr its own display:table. Each row then worked
+        // out its columns on whatever width it happened to get, so a scrollbar that
+        // takes up space (Windows) made every body row narrower than the header and
+        // the columns drifted - up to 14px on the eighth column. One real table
+        // makes that impossible; this measures it in the browser rather than
+        // trusting the stylesheet.
+        it('should line the body cells up with the header cells', () => {
+            cy.openFormTree('opleidingen');
+            cy.get('#listContent a, #simpletree a', { timeout: 10000 }).first().click();
+            cy.get('.detail-panel', { timeout: 10000 }).should('be.visible');
+
+            cy.get('body').then($body => {
+                const tabel = $body.find('table.subform-table')
+                    .filter((i, el) => Cypress.$(el).find('tbody tr').length > 0)[0];
+                if (!tabel) {
+                    cy.log('no filled subform table on this record - nothing to measure');
+                    return;
+                }
+                const $t = Cypress.$(tabel);
+                const koppen = $t.find('thead th').toArray()
+                    .map(el => el.getBoundingClientRect().left);
+                const cellen = $t.find('tbody tr').first().find('td').toArray()
+                    .map(el => el.getBoundingClientRect().left);
+                expect(cellen.length, 'a cell per header').to.equal(koppen.length);
+                koppen.forEach((links, i) => {
+                    expect(Math.abs(cellen[i] - links), `column ${i + 1} is out of line`)
+                        .to.be.lessThan(1);
+                });
+            });
+        });
+
+        it('should keep the header in place while the list scrolls', () => {
+            cy.openFormTree('opleidingen');
+            cy.get('#listContent a, #simpletree a', { timeout: 10000 }).first().click();
+            cy.get('.detail-panel', { timeout: 10000 }).should('be.visible');
+
+            cy.get('body').then($body => {
+                const th = $body.find('table.subform-table thead th')[0];
+                if (!th) { cy.log('no subform table on this record'); return; }
+                // Sticky only holds up with an opaque background - otherwise the rows
+                // show through the header as they pass underneath.
+                const bg = window.getComputedStyle(th).backgroundColor;
+                expect(window.getComputedStyle(th).position, 'the header must stick').to.equal('sticky');
+                expect(bg, 'the header needs an opaque background').to.not.match(/transparent|rgba\(0, 0, 0, 0\)/);
+            });
+        });
+    });
 });

@@ -2899,27 +2899,31 @@ body.mode-table #btn_columns {
     font-style: italic;
 }
 
+/* Kop en rijen delen ÉÉN kolommodel.
+
+   Dit was een nagebootste tabel: de table stond op display:flex met een eigen
+   scrollende tbody, en elke tr was zijn eigen display:table. Elke rij rekende zijn
+   kolommen dus apart uit, over de breedte die hij toevallig kreeg. Zodra de tbody
+   een scrollbalk toonde die ruimte inneemt (Windows; op een overlay-scrollbalk valt
+   het niet op) werd elke rij 15px smaller dan de kop en liepen de kolommen scheef -
+   oplopend tot 14px op de achtste kolom, nagemeten in de browser.
+
+   Nu is het weer een gewone tabel, dus de kolommen kunnen per definitie niet
+   uiteenlopen. De kop blijft staan met position:sticky en het scrollen doet
+   .subform-content, dat daar toch al op stond. table-layout:fixed houdt de
+   gelijke kolombreedtes die de nabootsing ook gaf. */
 .subform-table {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.subform-table thead {
-    flex-shrink: 0;
-}
-
-.subform-table tbody {
-    flex: 1;
-    overflow-y: auto;
-    display: block;
-}
-
-.subform-table thead tr,
-.subform-table tbody tr {
-    display: table;
     width: 100%;
     table-layout: fixed;
+}
+
+/* Sticky vraagt om een eigen dekkende achtergrond: anders schuiven de rijen
+   zichtbaar onder de kop door. */
+.subform-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--table-header-bg);
 }
 
 /* Icon buttons for image/file controls */

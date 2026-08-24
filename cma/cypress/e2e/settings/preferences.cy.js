@@ -105,12 +105,16 @@ describe('Preferences Page', () => {
     });
 
     describe('Autosave', () => {
-        it('should show the autosave notice instead of a save button', () => {
+        it('should show the autosave status instead of a save button', () => {
             cy.visit('/preferences');
 
             cy.get('#preferencesForm', { timeout: 10000 }).should('exist');
             cy.get('#toolbar_save').should('not.exist');
-            cy.get('#autosaveStatus').should('contain', 'Wijzigingen worden meteen opgeslagen');
+            // Only the spinner is left: the standing "Wijzigingen worden meteen
+            // opgeslagen" line said the same thing on every visit and was dropped.
+            cy.get('#autosaveStatus').should('exist').find('#autosaveSpinner').should('exist');
+            cy.get('#autosaveStatus').should('not.contain', 'meteen opgeslagen');
+            cy.get('#autosaveStatus').invoke('text').invoke('trim').should('eq', '');
         });
 
         it('should keep the spinner hidden until a save is in flight', () => {

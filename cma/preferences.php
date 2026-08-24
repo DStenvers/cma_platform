@@ -323,10 +323,12 @@ if (!$isNomenuMode) {
     echo '<body class="contentbody">';
 }
 
-// Toolbar - autosave status instead of a save button, title goes to breadcrumb via loadPage
+// Toolbar - autosave status instead of a save button, title goes to breadcrumb via loadPage.
+// Geen begeleidende tekst: het scherm heeft geen opslaan-knop, dus er valt niets te
+// verwarren, en een regel die op elk bezoek hetzelfde zegt is na de eerste keer ruis. Wat
+// er WEL toe doet - er wordt op dit moment iets bewaard - laat de spinner zien.
 ToolbarHelper::start();
 echo '<span class="cma-page__autosave" id="autosaveStatus">' . PHP_EOL;
-echo '  <span class="cma-page__autosave-text">' . ($language === 'UK' ? 'Changes are saved immediately' : 'Wijzigingen worden meteen opgeslagen') . '</span>' . PHP_EOL;
 echo '  <lib-loader id="autosaveSpinner" size="small" delay="0" class="cma-page__autosave-spinner"></lib-loader>' . PHP_EOL;
 echo '</span>' . PHP_EOL;
 ToolbarHelper::end();
