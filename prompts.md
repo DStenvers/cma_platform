@@ -13219,3 +13219,16 @@ karaat-data en staat in de karaat-repo.
 > in subformulieren scrollen de buttons en de header kolom mee weg. Ik wil alleen de tbody scrollable hebben zodat de headers blijven staan
 
 > opslaan cgo template : Kan niet opslaan: Syntax error or access violation: Syntax error (missing operator) in query expression '' : kunnen we ergends de html achterhalen?
+> noeuwe url: caaana.nl
+
+> Continue from where you left off.
+
+> please continue
+
+> Try again
+
+> Try again
+
+> Try again
+
+> Continue from where you left off.
