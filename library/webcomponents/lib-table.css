@@ -19,7 +19,7 @@ lib-table {
     min-width: 100%;
     border-collapse: collapse;
     font-size: var(--font-size-sm);
-    margin-top: -4px;
+    margin-top: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -605,9 +605,9 @@ lib-table .dropdown-filter-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 18px;
+    height: 17px;
     line-height: 18px;
-    margin-top: -3px;
+    margin-top: -1px;
     border: 1px solid transparent;
     cursor: pointer;
     margin-left: -4px;

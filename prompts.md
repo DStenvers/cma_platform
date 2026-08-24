@@ -13240,3 +13240,5 @@ karaat-data en staat in de karaat-repo.
 > ik zie dat tandwiel/de instellingen niet, heb je de daadwerkelijk gebruikte engelstalige termen voor me?
 
 > i think i found it, can you re-test?
+
+> lib-table .dropdown-filter-icon { height: 17px; margin-top: -1px;
