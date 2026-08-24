@@ -188,9 +188,19 @@ class LibTimepicker extends HTMLElement {
                     font-style: normal;
                 }
 
+                /* De rand van het veld zit op de HOST, niet op de wrapper
+                   binnenin. De host is wat de pagina kan aanspreken: de
+                   validatie zet daar .invalid op, en een documentregel op het
+                   element wint van :host — dus .invalid { border-color } kleurt
+                   precies deze lijn rood, zoals bij een gewone input. Met de
+                   rand op de wrapper bleef de grijze lijn gewoon staan en
+                   verscheen het rood er als tweede rand omheen. */
                 :host {
                     display: inline-block;
                     position: relative;
+                    border: 1px solid var(--input-border, #ddd);
+                    border-radius: 4px;
+                    background: var(--input-bg, #fff);
                     font-family: "Trebuchet MS", Verdana, sans-serif;
                     font-size: var(--font-size);
                 }
@@ -220,9 +230,9 @@ class LibTimepicker extends HTMLElement {
                     position: relative;
                     display: inline-flex;
                     align-items: stretch;
-                    border: 1px solid var(--input-border, #ddd);
+                    border: none;
                     border-radius: 4px;
-                    background: var(--input-bg, #fff);
+                    background: transparent;
                 }
 
                 /* Required indicator - red left border when empty */

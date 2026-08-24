@@ -10604,6 +10604,17 @@ class CmaFormController {
         // (e.g. a dev site on :8090). On ports 80/443 host === hostname.
         url = url.replace(/\[domein\]/gi, window.location.host);
 
+        // A variable that never got a value must not travel: while adding a
+        // record the CSS already disables these buttons, but pointer-events is
+        // no guarantee (keyboard, programmatic click), and opening
+        // "…?email=[Email]" hands a literal placeholder to the target page.
+        // (javascript:-knoppen niet: daar is [x] gewoon arraysyntax.)
+        const onopgelost = url.startsWith('javascript:') ? null : url.match(/\[[a-z_][a-z0-9_]*\]/i);
+        if (onopgelost) {
+            this.showError('Deze knop gebruikt ' + onopgelost[0] + ' en werkt pas als het record is opgeslagen');
+            return;
+        }
+
         // Match protocol to current page (avoid https on localhost/IP)
         if (window.location.protocol === 'http:') {
             url = url.replace(/^https:\/\//i, 'http://');

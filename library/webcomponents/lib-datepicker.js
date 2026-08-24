@@ -181,9 +181,19 @@ class LibDatepicker extends HTMLElement {
                     font-style: normal;
                 }
 
+                /* De rand van het veld zit op de HOST, niet op de wrapper
+                   binnenin. De host is wat de pagina kan aanspreken: de
+                   validatie zet daar .invalid op, en een documentregel op het
+                   element wint van :host — dus .invalid { border-color } kleurt
+                   precies deze lijn rood, zoals bij een gewone input. Met de
+                   rand op de wrapper bleef de grijze lijn gewoon staan en
+                   verscheen het rood er als tweede rand omheen. */
                 :host {
                     display: inline-block;
                     position: relative;
+                    border: 1px solid var(--input-border, #ddd);
+                    border-radius: 4px;
+                    background: var(--input-bg, #fff);
                     font-family: "Trebuchet MS", Verdana, sans-serif;
                     font-size: var(--font-size);
                 }
@@ -233,9 +243,9 @@ class LibDatepicker extends HTMLElement {
                     position: relative;
                     display: inline-flex;
                     align-items: stretch;
-                    border: 1px solid var(--input-border, #ddd);
+                    border: none;
                     border-radius: 4px;
-                    background: var(--input-bg, #fff);
+                    background: transparent;
                 }
 
                 /* Required indicator - red left border when empty */
@@ -477,7 +487,10 @@ class LibDatepicker extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    border: none;
+                    /* Transparant, niet none: de hover kleurt hem alleen in.
+                       Een rand die erbíj komt maakt de cel 2px groter en laat
+                       elk cijfer verspringen onder de muis. */
+                    border: 1px solid transparent;
                     background: none;
                     cursor: pointer;
                     border-radius: 6px;
@@ -488,7 +501,7 @@ class LibDatepicker extends HTMLElement {
 
                 .datepicker-day:hover:not(.disabled):not(.selected) {
                     background: var(--bg-hover, #e8f0fe);
-                    border: 1px solid var(--color-primary, #204496);
+                    border-color: var(--color-primary, #204496);
                 }
 
                 .datepicker-day.other-month {
@@ -544,6 +557,7 @@ class LibDatepicker extends HTMLElement {
             <div class="datepicker-wrapper">
                 <input type="text"
                        class="datepicker-input"
+                       autocomplete="off"
                        placeholder="${placeholder}"
                        ${disabled ? 'disabled' : ''}
                        ${readonly ? 'readonly' : ''}
@@ -665,8 +679,11 @@ class LibDatepicker extends HTMLElement {
     _positionCalendar(calendar) {
         // Use the visible wrapper element for positioning (not the host,
         // which may have different dimensions depending on layout context)
-        const wrapper = this.shadowRoot.querySelector('.datepicker-wrapper');
-        const wrapperRect = wrapper.getBoundingClientRect();
+        // De host is de zichtbare doos: díe draagt de rand van het veld. De
+        // kalender schuift 1px omhoog, zodat zijn bovenrand over de onderrand
+        // van het veld valt — twee losse lijnen met een naad lezen als "er
+        // hangt iets ónder", één gedeelde lijn als "dit hoort bij het veld".
+        const wrapperRect = this.getBoundingClientRect();
 
         // Reset position to origin to measure the containing block offset.
         // Transforms on ancestors shift the fixed-positioning origin away
@@ -682,12 +699,12 @@ class LibDatepicker extends HTMLElement {
         const calendarWidth = calendar.offsetWidth || 280;
 
         // Position: left-aligned with the input field, directly below it
-        let top = wrapperRect.bottom - offsetY;
+        let top = wrapperRect.bottom - offsetY - 1;
         let left = wrapperRect.left - offsetX;
 
         // Flip above if it would overflow the viewport bottom
         if (wrapperRect.bottom + calendarHeight > window.innerHeight) {
-            top = wrapperRect.top - calendarHeight - offsetY;
+            top = wrapperRect.top - calendarHeight - offsetY + 1;
             calendar.style.borderRadius = '8px 8px 0 0';
         } else {
             calendar.style.borderRadius = '0 8px 8px 8px';

@@ -1265,6 +1265,45 @@ function cma_doc_check_app_environment_match(): array {
     return ['label' => $label, 'status' => 'info', 'detail' => '<code>APP_ENVIRONMENT=' . htmlspecialchars($appEnv) . '</code> — ' . $bron . ' → non-prod, verbose errors AAN.', 'fix' => ''];
 }
 
+/**
+ * Sluit het onderhoudsscherm de beheerkant af tijdens een deploy?
+ *
+ * _bootstrap.php is copy-if-absent: een site houdt de versie van zijn eerste
+ * installatie, dus een verbeterde gate komt daar nooit vanzelf aan. Vandaar
+ * deze controle: hij leest het bestand op de site-root en herkent aan de
+ * broncode welke generatie gate er staat. Oudere generaties lieten /cma/
+ * ALTIJD door — ook achter een deploy-vlag, terwijl cma/ dan zelf half
+ * verwisseld is en de beheerkant fatale fouten toont in plaats van "even
+ * geduld".
+ */
+function cma_doc_check_bootstrap_maintenance_gate(): array {
+    $label = 'Onderhoudsscherm dekt ook /cma/';
+    $pad = cma_doc_site_root() . '/_bootstrap.php';
+    if (!is_file($pad)) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => '<code>_bootstrap.php</code> niet gevonden op de site-root.',
+            'fix' => 'Ongebruikelijke opzet — het onderhoudsscherm werkt hier mogelijk helemaal niet. Vergelijk met <code>templates/_bootstrap.php.template</code>.'];
+    }
+    $bron = (string) @file_get_contents($pad);
+    if (strpos($bron, "\$manual && strpos(\$uri, '/cma/')") !== false) {
+        return ['label' => $label, 'status' => 'pass',
+            'detail' => 'Alleen een handmatige vlag laat <code>/cma/</code> door; tijdens een deploy toont ook de beheerkant het onderhoudsscherm.', 'fix' => ''];
+    }
+    if (strpos($bron, "strpos(\$uri, '/cma/') === 0") !== false) {
+        return ['label' => $label, 'status' => 'warn',
+            'detail' => 'Dit <code>_bootstrap.php</code> laat <code>/cma/</code> altijd door — ook tijdens een deploy, terwijl <code>cma/</code> dan half verwisseld is en de beheerkant fatale fouten toont.',
+            'fix' => 'Neem het onderhoudsblok over uit <code>vendor/stenversonline/platform/templates/_bootstrap.php.template</code> (het bestand wordt bewust nooit overschreven).'];
+    }
+    if (strpos($bron, 'maintenance.flag') === false) {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => 'Dit <code>_bootstrap.php</code> kent geen onderhoudsvlag: bezoekers zien tijdens een update stapels fouten in plaats van "even geduld".',
+            'fix' => 'Neem het onderhoudsblok over uit <code>templates/_bootstrap.php.template</code>.'];
+    }
+    return ['label' => $label, 'status' => 'info',
+        'detail' => 'Er staat een onderhoudsblok, maar niet in een vorm die deze controle herkent — waarschijnlijk site-eigen aangepast.',
+        'fix' => 'Vergelijk zelf met <code>templates/_bootstrap.php.template</code>: laat een deploy-vlag <code>/cma/</code> afsluiten en een handmatige vlag niet.'];
+}
+
 function cma_doc_check_deploy_secret(): array {
     // Read DEPLOY_SECRET length WITHOUT echoing the value. Privacy.
     $label = 'DEPLOY_SECRET';
@@ -2540,6 +2579,7 @@ function render_doc_deployment(): void
     <?php
     cma_doc_render_check_table('Deployment — live check op deze site', cma_doc_run_checks([
         'cma_doc_check_deploy_secret',
+        'cma_doc_check_bootstrap_maintenance_gate',
         'cma_doc_check_deploy_migrations',
         'cma_doc_check_logs_dir',
         'cma_doc_check_deploy_log',
@@ -2555,7 +2595,7 @@ function render_doc_deployment(): void
     <ol>
         <li><span class="cma-tool__strong">Verificatie</span> — HMAC-SHA256 signature (<code>X-Hub-Signature-256</code>) getoetst tegen <code>DEPLOY_SECRET</code>; alleen POST; alleen de geconfigureerde <code>DEPLOY_BRANCH</code>.</li>
         <li><span class="cma-tool__strong">Vroege response</span> — 202 Accepted en de verbinding losgekoppeld (<code>fastcgi_finish_request</code>); de rest draait async.</li>
-        <li><span class="cma-tool__strong">Onderhoudsscherm aan</span> — vóór de muterende stappen zet de deploy een <code>maintenance.flag</code> in de site-root. <code>_bootstrap.php</code> (auto-prepend, draait vóór de Composer-autoloader) serveert dan voor élke bezoeker een schone <code>503</code> "even onderhoud" i.p.v. de fatale fouten die je krijgt terwijl <code>vendor/</code> en de platform-tree half verwisseld zijn. <code>deploy.php</code> / <code>deploy_status.php</code> blijven bereikbaar. De vlag wordt aan het eind via een shutdown-hook weer weggehaald (dus ook bij een crash/abort), en <code>_bootstrap.php</code> negeert een vlag ouder dan 20 min als laatste vangnet tegen een vastgelopen deploy. De pagina zelf komt uit het platform: <code>cma/maintenance_page.inc</code>, een dependency-vrij scriptje (géén autoload — de platform-tree wisselt immers om). De site-eigen pagina (<code>maintenance.php</code> in de site-root, of <code>src/pages/maintenance.php</code>) is een include van dat bestand, met een ingebouwde terugval voor het moment dat <code>cma/</code> er nog niet staat. Branding leest hij — op volgorde — uit <code>data/maintenance.json</code> (een apart, alleen-branding bestand; veilig voor sites zónder <code>data/app.json</code>, want <code>ConfigLoader</code> vervangt i.p.v. merget), dan <code>data/app.json</code> → <code>maintenance</code>, dan de <code>company</code>-blok van <code>data/cma_branding.json</code> of de legacy <code>data/app.json</code>. Velden: <code>{ logo, name, message, whatsapp, email, accent }</code>. Een logo uit <code>maintenance</code> staat op de lichte kaart (zo is het getekend); valt hij terug op <code>company.logo</code>, dan komt die op een balk in <code>backgroundColor</code> — precies zoals de CMA-header, want een wit logo is op een lichte achtergrond onzichtbaar. Ship je <code>assets/images/maintenance.svg</code>, dan staat die illustratie boven de tekst. Het logo wordt per URL geladen; IIS serveert statische bestanden buiten de auto-prepend om, dus dat werkt terwijl de app plat ligt. Ontbreekt <code>maintenance.php</code>, dan valt <code>_bootstrap.php</code> terug op een ingebouwde standaardpagina. <span class="cma-tool__strong">Handmatig aan/uit</span>: <a href="tools.php?tool=maintenance" target="_top">Alle beheertools → Onderhoudsscherm</a> zet de vlag zelf met een <code>"manual"</code>-markering (verdwijnt niet na 20 min én blijft staan als er ondertussen een deploy draait — die raakt alleen z'n eigen vlag aan) en een optioneel bericht op maat (in de vlag-JSON, overschrijft de config-tekst). De gate laat <code>/cma/</code> altijd door, zodat je jezelf nooit buitensluit. Uitschakelen tijdens deploy: <code>DEPLOY_NO_MAINTENANCE=1</code>.</li>
+        <li><span class="cma-tool__strong">Onderhoudsscherm aan</span> — vóór de muterende stappen zet de deploy een <code>maintenance.flag</code> in de site-root. <code>_bootstrap.php</code> (auto-prepend, draait vóór de Composer-autoloader) serveert dan voor élke bezoeker een schone <code>503</code> "even onderhoud" i.p.v. de fatale fouten die je krijgt terwijl <code>vendor/</code> en de platform-tree half verwisseld zijn. <code>deploy.php</code> / <code>deploy_status.php</code> blijven bereikbaar. De vlag wordt aan het eind via een shutdown-hook weer weggehaald (dus ook bij een crash/abort), en <code>_bootstrap.php</code> negeert een vlag ouder dan 20 min als laatste vangnet tegen een vastgelopen deploy. De pagina zelf komt uit het platform: <code>cma/maintenance_page.inc</code>, een dependency-vrij scriptje (géén autoload — de platform-tree wisselt immers om). De site-eigen pagina (<code>maintenance.php</code> in de site-root, of <code>src/pages/maintenance.php</code>) is een include van dat bestand, met een ingebouwde terugval voor het moment dat <code>cma/</code> er nog niet staat. Branding leest hij — op volgorde — uit <code>data/maintenance.json</code> (een apart, alleen-branding bestand; veilig voor sites zónder <code>data/app.json</code>, want <code>ConfigLoader</code> vervangt i.p.v. merget), dan <code>data/app.json</code> → <code>maintenance</code>, dan de <code>company</code>-blok van <code>data/cma_branding.json</code> of de legacy <code>data/app.json</code>. Velden: <code>{ logo, name, message, whatsapp, email, accent }</code>. Een logo uit <code>maintenance</code> staat op de lichte kaart (zo is het getekend); valt hij terug op <code>company.logo</code>, dan komt die op een balk in <code>backgroundColor</code> — precies zoals de CMA-header, want een wit logo is op een lichte achtergrond onzichtbaar. Ship je <code>assets/images/maintenance.svg</code>, dan staat die illustratie boven de tekst. Het logo wordt per URL geladen; IIS serveert statische bestanden buiten de auto-prepend om, dus dat werkt terwijl de app plat ligt. Ontbreekt <code>maintenance.php</code>, dan valt <code>_bootstrap.php</code> terug op een ingebouwde standaardpagina. <span class="cma-tool__strong">Handmatig aan/uit</span>: <a href="tools.php?tool=maintenance" target="_top">Alle beheertools → Onderhoudsscherm</a> zet de vlag zelf met een <code>"manual"</code>-markering (verdwijnt niet na 20 min én blijft staan als er ondertussen een deploy draait — die raakt alleen z'n eigen vlag aan) en een optioneel bericht op maat (in de vlag-JSON, overschrijft de config-tekst). De gate laat <code>/cma/</code> alleen bij een <span class="cma-tool__strong">handmatige</span> vlag door — daar staat de uitknop, dus daar kun je jezelf nooit buitensluiten. Achter een deploy-vlag toont óók de beheerkant het onderhoudsscherm: tijdens de update wordt <code>cma/</code> zelf verwisseld en is de beheerkant precies zo stuk als de voorkant. De deploy heeft daar geen last van — de migratieloper is CLI (en CLI slaat de gate over), en <code>deploy.php</code>/<code>deploy_status.php</code> hebben hun eigen uitzondering. Uitschakelen tijdens deploy: <code>DEPLOY_NO_MAINTENANCE=1</code>.</li>
         <li><span class="cma-tool__strong">Pre-pull recycle</span> — (Windows) touch op het recycle-bestand zodat de app-pool z'n file-locks op <code>vendor/</code> / bootstrap loslaat vóór git/composer draaien. Skip met <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code>.</li>
         <li><span class="cma-tool__strong">Reset + pipeline</span> — <code>git checkout -- .</code> (tenzij <code>DEPLOY_NO_RESET=1</code>) gevolgd door de <code>;</code>-gescheiden <code>DEPLOY_PIPELINE</code> (default: <code>git pull --ff-only origin {branch}</code>; <code>{branch}</code> wordt ingevuld).</li>
         <li><span class="cma-tool__strong">Composer update</span> — <code>composer update &lt;DEPLOY_COMPOSER_UPDATE&gt; --no-dev --optimize-autoloader</code> zodat het platform-package mee-loopt. Composer-binary wordt over meerdere bekende paden geprobeerd (app-pool-identity heeft het zelden op PATH). Als <code>DEPLOY_COMPOSER_CLEAR_CACHE=1</code> staat (of de deploy-URL <code>?forcerefresh=Y</code> bevat) draait er eerst een <code>composer clear-cache</code>, zodat een net-gepushte platform-tag niet wordt gemist door een stale VCS-clone-cache. Andersom: een deploy die alleen consumer-/front-end-bestanden raakt (geen platform-update nodig) kan de héle composer-stap overslaan met <code>?nocomposer=Y</code> op de deploy-URL — git pull, test-gate, asset-build en recycle draaien gewoon door, dus zo'n deploy is in seconden klaar i.p.v. wachten op <code>composer update</code>.</li>
@@ -3787,7 +3827,7 @@ php cma/migrate.php --check      # alleen tonen; exit 1 als er werk openstaat
 php cma/migrate.php --no-backup  # zonder back-up vooraf
 </code></pre>
     <p>Exitcodes: <code>0</code> = niets te doen of alles toegepast, <code>1</code> = mislukt, <code>2</code> = verkeerd aangeroepen. Alleen CLI — via de webserver geeft het script een <code>404</code>, want het kent geen inlog en zou anders een ongeauthenticeerde schrijfactie op de database zijn; de browserroute is de <a href="tools.php?tool=migrations" target="_top">Migraties-tool</a>.</p>
-    <p>Twee dingen die stille mislukkingen voorkomen, en waarom ze er staan: de loper zet <code>REQUEST_URI</code> op <code>/cma/migrate.php</code> vóór de bootstrap (het onderhoudsscherm van <code>_bootstrap.php</code> laat <code>/cma/</code> door en zou het script anders midden in het onderhoudsvenster van de deploy met een 503 afbreken — precies wanneer het moet draaien), en een shutdown-wachter maakt van een bootstrap die halverwege stopt een exit&nbsp;1. Zonder die twee eindigt zo'n afbreking met exitcode 0 en leest de deployer dat als "migraties gedaan".</p>
+    <p>Twee dingen die stille mislukkingen voorkomen, en waarom ze er staan: de loper zet <code>REQUEST_URI</code> op <code>/cma/migrate.php</code> vóór de bootstrap (het onderhoudsscherm van <code>_bootstrap.php</code> slaat CLI over, maar een ouder <code>_bootstrap.php</code> kent die uitzondering niet en kijkt alleen naar het pad — zonder deze regel brak het script daar midden in het onderhoudsvenster van de deploy met een 503 af, precies wanneer het moet draaien), en een shutdown-wachter maakt van een bootstrap die halverwege stopt een exit&nbsp;1. Zonder die twee eindigt zo'n afbreking met exitcode 0 en leest de deployer dat als "migraties gedaan".</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=database">Database &amp; RecordSet</a>, <a href="documentation.php?topic=backups">Backups</a>, <a href="documentation.php?topic=deployment">Deployment</a> (deploy_post.php).

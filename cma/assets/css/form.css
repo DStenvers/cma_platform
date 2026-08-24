@@ -333,6 +333,12 @@ body.mode-table .tb-sep.table-mode-only { display: inline-block !important; }
     display: inline-block;
 }
 
+/* An extra button whose URL reads form-field values ([Email], [slug], …) has
+   nothing to read while ADDING a record: the fields are empty or unsaved, and
+   the link would open with the variables blanked out. Same treatment as the
+   tree-mode buttons: visibly present, plainly not available. */
+body.is-creating .extra-button.needs-record-values { opacity: 0.4; pointer-events: none; }
+
 /* Tree mode button states */
 body.mode-tree #btn_treeview { opacity: 0.4; pointer-events: none; }
 body.mode-tree #btn_tableview { opacity: 1; pointer-events: auto; }

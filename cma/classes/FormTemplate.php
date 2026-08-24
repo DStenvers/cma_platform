@@ -1373,10 +1373,19 @@ class FormTemplate
             $title = $this->arrRep[$icon['title']][0] ?? '';
 
             if ($url !== '' || $res !== '') {
-                // Check if URL contains placeholders or JS references that need a record ID
-                $hasPlaceholder = preg_match('/\[(id|guid|guid2)\]/i', $url)
+                // Which variables does this URL carry? [domein] resolves always
+                // (it is the current host); [id]/[guid]/[guid2] need a loaded
+                // record; anything else ([Email], [slug], …) is read from a form
+                // FIELD value. That last group has no value while ADDING a
+                // record either — the fields are empty or unsaved — so those
+                // buttons are switched off in add mode via .needs-record-values
+                // (see form.css). requires-record keeps hiding buttons when no
+                // record is selected at all.
+                $hasPlaceholder = preg_match('/\[(?!domein\])[a-z_][a-z0-9_]*\]/i', $url)
                     || preg_match('/\brecordId\b/', $url);
-                $extraClass = $hasPlaceholder ? ' requires-record' : '';
+                $needsFieldValues = (bool) preg_match('/\[(?!domein\]|id\]|guid\]|guid2\])[a-z_][a-z0-9_]*\]/i', $url);
+                $extraClass = ($hasPlaceholder ? ' requires-record' : '')
+                            . ($needsFieldValues ? ' needs-record-values' : '');
                 $openNewWindow = !empty($jsonExtraButtons[$index]['openInNewWindow']);
                 $openNewWindowAttr = $openNewWindow ? ' data-open-new-window="true"' : '';
                 // Use same structure as standard toolbar buttons: responsive-btn class and data-btn-order

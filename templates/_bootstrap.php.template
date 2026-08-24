@@ -46,14 +46,24 @@ if (basename($_SERVER['PHP_SELF']) === '_bootstrap.php') {
         @unlink($flag);
         return;
     }
-    // deploy.php / deploy_status.php + the admin app (/cma/) must stay reachable
-    // during maintenance. Match on REQUEST_URI, NOT SCRIPT_NAME: with the
-    // _bootstrap_wrapper.php auto-prepend SCRIPT_NAME is the wrapper, so a
-    // SCRIPT_NAME check gated deploy.php itself and wedged the site behind its
-    // own maintenance flag (it could never clear it).
+    // deploy.php / deploy_status.php must stay reachable during maintenance --
+    // they are what finishes the deploy and lifts the flag. Match on
+    // REQUEST_URI, NOT SCRIPT_NAME: with the _bootstrap_wrapper.php
+    // auto-prepend SCRIPT_NAME is the wrapper, so a SCRIPT_NAME check gated
+    // deploy.php itself and wedged the site behind its own maintenance flag
+    // (it could never clear it).
     $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
-    if (strpos($uri, '/cma/') === 0
-        || preg_match('#(^|/)(deploy|deploy_status)\\.php(\\?|$)#', $uri)) {
+    if (preg_match('#(^|/)(deploy|deploy_status)\\.php(\\?|$)#', $uri)) {
+        return;
+    }
+    // /cma/ stays reachable ONLY behind a manual flag: that is where the
+    // off-switch lives, and gating it would lock the admin out of it. A
+    // deploy flag is the opposite case -- cma/ itself is mid-swap and exactly
+    // as broken as the front of the site, so the admin app shows the same 503
+    // instead of half-updated code fataling. Deploy work needs no exception
+    // here: the migration runner is CLI (exempt above) and the deploy
+    // endpoints are matched above.
+    if ($manual && strpos($uri, '/cma/') === 0) {
         return;
     }
     http_response_code(503);

@@ -458,8 +458,9 @@ class Installer
      * niet-handmatige vlag na 20 minuten vanzelf vallen, zodat een afgebroken of
      * gekilde composer-run de site niet permanent dichtzet.
      *
-     * /cma/ blijft bereikbaar — die uitzondering staat in _bootstrap.php, zodat je
-     * tijdens onderhoud nog bij de beheerkant kunt.
+     * Ook /cma/ zit achter deze vlag: tijdens de update wordt de cma-tree zelf
+     * verwisseld, dus de beheerkant is precies zo stuk als de voorkant. Alleen
+     * een hándmatige vlag laat /cma/ door — daar staat de uitknop.
      */
     public static function preOperation(Event $event): void
     {
@@ -472,7 +473,7 @@ class Installer
             return;
         }
         if (@file_put_contents($flag, '') !== false) {
-            $event->getIO()->write('<info>Onderhoudspagina AAN tijdens composer (/cma blijft bereikbaar).</info>');
+            $event->getIO()->write('<info>Onderhoudspagina AAN tijdens composer (site én /cma).</info>');
         }
     }
 
