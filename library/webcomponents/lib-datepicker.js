@@ -253,6 +253,18 @@ class LibDatepicker extends HTMLElement {
                     border-left: none;
                 }
 
+                /* The wrapper draws the required indicator; the input inside
+                   must not draw a second one. It carries the native required
+                   attribute, and Firefox rings a touched empty required input
+                   in red on its own (:user-invalid) — inside a wrapper whose
+                   left edge is already red, that reads as an extra border
+                   around the field. Chrome paints nothing here, so this only
+                   switches off the double, never the indicator itself. */
+                .datepicker-input:invalid {
+                    box-shadow: none;
+                    outline: none;
+                }
+
                 .datepicker-input {
                     padding-left: 8px;
                     padding-right: 4px;

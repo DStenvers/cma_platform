@@ -150,7 +150,7 @@ class FormRenderer
 
         // DateTime fields get date picker + separate time input
         if ($isDateTime) {
-            $requiredAttr = $required ? ' required' : '';
+            $requiredAttr = $required ? ' required data-required="true"' : '';
 
             // For readonly datetime fields, show plain text date + readonly timepicker
             if ($readonly) {
@@ -182,7 +182,7 @@ class FormRenderer
 
         // Date-only fields get date picker with calendar button
         if ($isDate) {
-            $requiredAttr = $required ? ' required' : '';
+            $requiredAttr = $required ? ' required data-required="true"' : '';
 
             // For readonly date fields, show plain text field instead of datepicker
             if ($readonly) {
@@ -313,7 +313,7 @@ class FormRenderer
 
         // DateTime fields get date + time side by side
         if ($isDateTime) {
-            $requiredAttr = $required ? ' required' : '';
+            $requiredAttr = $required ? ' required data-required="true"' : '';
 
             if ($readonly) {
                 return sprintf(

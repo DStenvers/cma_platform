@@ -240,6 +240,14 @@ class LibTimepicker extends HTMLElement {
                     border-left: none;
                 }
 
+                /* Same rule as lib-datepicker: the wrapper is the indicator,
+                   and Firefox's own red ring on an empty required input would
+                   double it. */
+                .timepicker-input:invalid {
+                    box-shadow: none;
+                    outline: none;
+                }
+
                 .timepicker-input {
                     padding-left: 8px;
                     padding-right: 4px;
