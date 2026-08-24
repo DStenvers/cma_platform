@@ -637,10 +637,6 @@ tabs-container {
     opacity: 1;
 }
 
-.subform-list {
-    margin-top: 3px;
-}
-
 /* Loading overlay - positioned below toolbar */
 /* NOTE: display:none !important overrides JS inline styles in showLoading() */
 .loading-overlay {
@@ -2892,7 +2888,6 @@ body.mode-table #btn_columns {
    De filterlijstjes in de kop worden hier niet door afgeknipt: .dropdown-filter-content
    staat op position:fixed (lib-table.css), en dat trekt zich niets aan van overflow. */
 .subform-list {
-    margin-top: 3px;
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;

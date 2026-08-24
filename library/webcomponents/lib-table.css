@@ -129,7 +129,7 @@ lib-table table thead th,
 .listtable thead th {
     background-color: transparent;
     padding-left: 8px;
-    padding-top: 2px;
+    padding-top: 0;
     padding-bottom: 0;
 }
 
