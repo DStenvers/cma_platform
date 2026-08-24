@@ -13244,3 +13244,4 @@ karaat-data en staat in de karaat-repo.
 > lib-table .dropdown-filter-icon { height: 17px; margin-top: -1px;
 
 >     --input-border-focus-dashed: 1px dashed var(--border-dark); -> make color the color-accent
+> weird phenomenon: the save button is disabled in the toolbar, at least the look is disabled , but i can press it and it reports 'record opgeslagen', but that should not happen. And the save has a red indication, meaning the record is dirty, but I did not change anythingh, so either the record is dirty, the button is enabled and can be saved, or the record is not dirty and saving is disabled. It feels like a state confusion or 2 code paths to the same functionality or worse a different codepath with different outcome

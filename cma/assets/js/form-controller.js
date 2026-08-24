@@ -11742,11 +11742,19 @@ class CmaFormController {
 
         // Update save button visual state (grayed out when no changes, but still clickable)
         // Note: We only add 'muted' class for visual feedback, NOT 'disabled' which blocks clicks
+        //
+        // Both looks come from this one hand: 'muted' when clean, 'dirty' (the red
+        // save-pulse) when not. They are two halves of the same state, and painted
+        // from two places they drift apart — a half-transparent button pulsing red
+        // reads as "disabled yet unsaved", which is a contradiction on screen.
+        // cma.js still paints 'dirty' itself on legacy toolbars (tb_DoSave pages);
+        // on a page with this controller it delegates here instead.
         const saveBtn = this.formLayout?.querySelector('[data-action="save"]');
         if (saveBtn) {
             const tbBtn = saveBtn.closest('.tb-btn');
             if (tbBtn) {
                 tbBtn.classList.toggle('muted', !dirty);
+                tbBtn.classList.toggle('dirty', dirty);
             }
         }
 

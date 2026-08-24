@@ -707,7 +707,18 @@
             return blnRetval;
         }
 
+        // Het formulier van de moderne controller, als dat er is. Op zo'n pagina
+        // is de controller de enige die de bewaarknop kleurt: hij zet 'muted'
+        // (schoon) en 'dirty' (rood) als één toestand. Zou dit script er zelf
+        // 'dirty' naast schilderen, dan kan de knop half doorzichtig staan te
+        // pulseren — "uitgeschakeld maar niet opgeslagen" tegelijk.
+        function modernFormController() {
+            const fl = document.querySelector('.form-layout');
+            return fl && fl._cmaController ? fl._cmaController : null;
+        }
+
         function checkIfDirty(form) {
+            if (modernFormController()) return;   // de controller volgt zijn eigen velden
             if (!dirtySet) {
                 if (isDirty(form, true)) {
                     dirtySet = true;
@@ -755,6 +766,11 @@
         }
 
         function setDirty() {
+            const ctrl = modernFormController();
+            if (ctrl) {
+                ctrl.setDirty(true);
+                return;
+            }
             if (!dirtySet) {
                 dirtySet = true;
                 jQuery('#toolbar_save,#toolbar_saveclose').addClass('dirty');

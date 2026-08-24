@@ -317,18 +317,19 @@ body.mode-table .tb-sep.table-mode-only { display: inline-block !important; }
 }
 
 /* "Toevoegen" is a plain + rather than a document-with-plus glyph: the action is
-   "add a record", not "add a file". Drawn as text, but in the same 24px box and
-   at the same optical size as the .lnr icons beside it — a bigger font-size in a
-   narrower box made it read as a different, taller and thinner symbol. The light
-   weight matches the thin strokes of the icon font. */
+   "add a record", not "add a file". Drawn as text, but in the same 18px box as
+   the .lnr icons beside it (see .tb-btn .lnr above) — a 24px box in an 18px row
+   made the whole button taller and hung the plus above its neighbours. The
+   font-size runs a little past the box so the plus carries the same optical
+   weight as the icons; the light weight matches their thin strokes. */
 .tb-btn .btn-plus {
     text-align: center;
     color: #777;
-    width: 24px;
-    height: 24px;
-    font-size: 24px;
+    width: 18px;
+    height: 18px;
+    font-size: 21px;
     font-weight: 300;
-    line-height: 24px;
+    line-height: 17px;
     display: inline-block;
 }
 
