@@ -105,12 +105,13 @@ class SQL
         $isSQLServer = self::isSQLServer($connectionString);
         $strRetval = trim($value . '');
 
-        // A NUL byte ends the C string that the ODBC driver hands to the database:
-        // everything after it is dropped and the literal is left unterminated, so the
-        // whole statement fails with a syntax error that points at the text where the
-        // NUL sits. Text pasted from Word or a PDF carries one now and then, and no
-        // supported database can store it in a text column anyway.
-        $strRetval = str_replace("\0", '', $strRetval);
+        // Strip C0 control characters (tab, CR and LF excepted). A NUL is the
+        // dangerous one: it ends the C string that the ODBC driver hands to the
+        // database, so everything after it is dropped and the literal is left
+        // unterminated — the whole statement then fails with a syntax error that
+        // points at the text where the NUL sits. The others are equally meaningless
+        // in a text column. Text pasted from Word or a PDF carries them now and then.
+        $strRetval = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $strRetval);
 
         if ($strRetval != '') {
             if ($isSQLServer) {

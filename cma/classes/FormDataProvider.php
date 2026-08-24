@@ -1005,12 +1005,26 @@ class FormDataProvider
                     $errorMsg = "Kan niet opslaan: " . ($dbError !== '' ? $dbError : "onbekende databasefout (zie logs voor tabel '$tableName').");
                 }
 
+                // A failed save is the one moment the operator needs the value itself:
+                // "syntax error in query expression ''" says nothing about which field
+                // carried the offending text. Log the whole statement plus, per field,
+                // its length and any control characters, and name the suspect field in
+                // the message so the text can be recovered from the log.
+                $suspects = self::controlCharDiagnostics($data);
                 Logger::error("SAVE: Database error", [
                     'form' => $formName,
                     'table' => $tableName,
                     'missing_columns' => $missingColumns,
-                    'sql' => $sql
+                    'sql' => $sql,
+                    'field_lengths' => self::fieldLengths($data),
+                    'suspect_fields' => $suspects,
+                    'values' => self::loggableValues($data),
                 ]);
+
+                if (!empty($suspects)) {
+                    $errorMsg .= ' Let op: ' . implode('; ', $suspects)
+                        . '. De volledige tekst staat in het logboek.';
+                }
 
                 return self::error($errorMsg);
             }
@@ -1820,6 +1834,66 @@ class FormDataProvider
             return null;
         }
         return strpos($n, '.') === false ? (int)$n : (float)$n;
+    }
+
+    /**
+     * Per-field character length of everything the client posted.
+     */
+    private static function fieldLengths(array $data): array
+    {
+        $out = [];
+        foreach ($data as $field => $value) {
+            if (is_scalar($value) || $value === null) {
+                $out[$field] = strlen((string)$value);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Name the fields that carry a control character, and where it sits.
+     *
+     * Text pasted from Word or a PDF can hold a NUL or another C0 character. A NUL
+     * ends the C string the ODBC driver hands to the database, so the statement is
+     * cut off mid-value and the database reports a syntax error that points at
+     * innocent-looking text — or at nothing at all when the NUL sits up front.
+     */
+    private static function controlCharDiagnostics(array $data): array
+    {
+        $out = [];
+        foreach ($data as $field => $value) {
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+            if (preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', $value, $m, PREG_OFFSET_CAPTURE)) {
+                $out[] = sprintf(
+                    "veld '%s' bevat stuurteken 0x%02X op positie %d (lengte %d)",
+                    $field,
+                    ord($m[0][0]),
+                    $m[0][1],
+                    strlen($value)
+                );
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The posted values, capped per field so one memo can't flood the log.
+     */
+    private static function loggableValues(array $data, int $maxPerField = 4000): array
+    {
+        $out = [];
+        foreach ($data as $field => $value) {
+            if (!is_scalar($value) && $value !== null) {
+                continue;
+            }
+            $text = (string)$value;
+            $out[$field] = strlen($text) > $maxPerField
+                ? substr($text, 0, $maxPerField) . '… [' . strlen($text) . ' tekens]'
+                : $text;
+        }
+        return $out;
     }
 
     private static function formatValueForSql($value): string

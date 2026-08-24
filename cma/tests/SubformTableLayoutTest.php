@@ -64,15 +64,23 @@ class SubformTableLayoutTest extends TestCase
     {
         $css = (string) file_get_contents(__DIR__ . '/../assets/css/form.css');
         $this->assertTrue(
-            (bool) preg_match('/\.subform-table thead th\s*\{([^}]*)\}/s', $css, $m),
+            (bool) preg_match('/(\.subform-table thead th[^{]*)\{([^}]*)\}/s', $css, $m),
             'there must be a rule for the sticky header cells'
         );
-        $regel = $m[1];
+        $selector = $m[1];
+        $regel = $m[2];
         $this->assertTrue(str_contains($regel, 'position: sticky'), 'the header stays in view');
         $this->assertTrue(str_contains($regel, 'top: 0'), 'and sticks to the top of the scrollport');
         $this->assertTrue(
             str_contains($regel, 'background-color'),
             'without its own background the rows show through the header'
+        );
+        // lib-table.css puts the first header cell on position:relative (it anchors
+        // the kebab and the sort arrow). That selector outweighs a bare `thead th`,
+        // so the first column has to be named here or it scrolls away on its own.
+        $this->assertTrue(
+            str_contains($selector, ':first-child'),
+            'the first header cell needs the sticky rule too — lib-table.css puts it on position:relative'
         );
     }
 

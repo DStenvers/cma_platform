@@ -2940,8 +2940,15 @@ body.mode-table #btn_columns {
 }
 
 /* Sticky vraagt om een eigen dekkende achtergrond: anders schuiven de rijen
-   zichtbaar onder de kop door. */
-.subform-table thead th {
+   zichtbaar onder de kop door.
+
+   De eerste kolom staat er apart bij omdat lib-table.css hem op position:relative
+   zet (ruimte voor de kebab en de sorteerpijl, die absoluut gepositioneerd zijn).
+   Die selector telt zwaarder dan een kale `thead th`, dus zonder deze regel bleef
+   juist de eerste kolomkop meescrollen terwijl de rest bleef staan. Sticky is zelf
+   ook een gepositioneerde context, dus de kebab houdt zijn ankerpunt. */
+.subform-table thead th,
+.subform-table thead th:first-child {
     position: sticky;
     top: 0;
     z-index: 2;

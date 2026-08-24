@@ -330,6 +330,14 @@ class SQLTest extends TestCase
         $this->assertStringNotContainsString("\0", $out);
     }
 
+    public function testPostStringHoudtTabEnRegeleindeMaarWeertAndereStuurtekens(): void
+    {
+        // Tab, CR en LF horen bij gewone tekst en blijven staan; de overige
+        // C0-stuurtekens zeggen niets in een tekstkolom en gaan eruit.
+        $out = SQL::postString("een\tregel\r\ntwee\x0Bdrie\x1Fvier", $this->access);
+        $this->assertEquals("'een\tregel\r\ntweedrievier'", $out);
+    }
+
     public function testPostStringNeutralisesInjectionAttemptAccess(): void
     {
         // A classic breakout payload: the leading quote is concatenated away,
