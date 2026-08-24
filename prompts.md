@@ -13236,3 +13236,7 @@ karaat-data en staat in de karaat-repo.
 > Maar de crawler zou zlef wel moeten kunnen kijken of toegang te regelen is, is dar proces gestart?
 
 > geef even kort weer wat ik moet doen om de clous access te verruimen
+
+> ik zie dat tandwiel/de instellingen niet, heb je de daadwerkelijk gebruikte engelstalige termen voor me?
+
+> i think i found it, can you re-test?
