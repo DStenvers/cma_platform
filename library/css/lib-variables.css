@@ -121,7 +121,7 @@
 
     /* Form colors */
     --input-border: #dddddd;            /* Input border */
-    --input-border-focus-dashed: 1px dashed var(--border-dark);  /* Dashed focus border for inputs/groups */
+    --input-border-focus-dashed: 1px dashed var(--color-accent);  /* Dashed focus border for inputs/groups */
     --input-bg: #ffffff;                /* Input background */
     --input-bg-readonly: transparent;   /* Readonly input */
     --input-ico-hover-bg: #e5e5e5;      /* Input icon hover background */
@@ -296,7 +296,7 @@ html.dark-mode {
     --table-border: #444444;
 
     --input-border: #444444;
-    --input-border-focus-dashed: 1px dashed var(--border-dark);
+    --input-border-focus-dashed: 1px dashed var(--color-accent);
     --input-bg: #333333;
     --input-bg-readonly: transparent;
 

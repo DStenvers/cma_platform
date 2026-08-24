@@ -13242,3 +13242,5 @@ karaat-data en staat in de karaat-repo.
 > i think i found it, can you re-test?
 
 > lib-table .dropdown-filter-icon { height: 17px; margin-top: -1px;
+
+>     --input-border-focus-dashed: 1px dashed var(--border-dark); -> make color the color-accent
