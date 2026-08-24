@@ -75,12 +75,13 @@ class SubformTableLayoutTest extends TestCase
             str_contains($regel, 'background-color'),
             'without its own background the rows show through the header'
         );
-        // lib-table.css puts the first header cell on position:relative (it anchors
-        // the kebab and the sort arrow). That selector outweighs a bare `thead th`,
-        // so the first column has to be named here or it scrolls away on its own.
-        $this->assertTrue(
-            str_contains($selector, ':first-child'),
-            'the first header cell needs the sticky rule too — lib-table.css puts it on position:relative'
+        // Every header cell, the first one included. A more specific rule elsewhere
+        // that puts one cell back on position:relative takes it out of the sticky
+        // header and it scrolls away on its own — that is what this guards against.
+        $this->assertStringNotContainsString(
+            ':first-child',
+            $selector,
+            'the sticky rule must cover every header cell, not carve out the first'
         );
     }
 

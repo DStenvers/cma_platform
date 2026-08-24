@@ -133,11 +133,6 @@ lib-table table thead th,
     padding-bottom: 0;
 }
 
-/* First column positioning */
-.listtable thead th:first-child {
-    position: relative;
-}
-
 .listtable thead th:first-child .clicker {
     margin-top: 3px;
 }
