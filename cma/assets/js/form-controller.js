@@ -11211,7 +11211,10 @@ class CmaFormController {
         // Show corresponding pane, hide others
         document.querySelectorAll('#subformContent > .tab-pane').forEach(pane => {
             const paneIndex = parseInt(pane.id.replace('subform', ''));
-            pane.style.display = paneIndex === index ? 'block' : 'none';
+            // 'flex', niet 'block': de tab is een kolom van knoppenbalk + scrollende
+            // lijst (zie .subform-list in form.css). Een inline display:block zou die
+            // kolom overschrijven en dan scrollt de knoppenbalk weer mee weg.
+            pane.style.display = paneIndex === index ? 'flex' : 'none';
         });
 
         // Load subform data if requested and not already loaded

@@ -10,8 +10,11 @@
  * 2px on the second column running up to 14px on the eighth.
  *
  * One real table cannot do that: header and rows share a single column model.
- * The header stays put with position:sticky, and .subform-content does the
- * scrolling - it already had overflow-y:auto.
+ * The scrolling moved one level out, to .subform-list, and the header stays in view
+ * with position:sticky. That keeps what the tbody-scroll was there for in the first
+ * place - the toolbar above the list and the table header must not scroll away -
+ * while header and rows now sit in the SAME scroll box, so their widths cannot
+ * diverge.
  *
  * Cypress measures the actual geometry (cypress/e2e/forms/subforms.cy.js,
  * "Column alignment") but needs a running CMA; this holds the stylesheet to the
@@ -73,14 +76,34 @@ class SubformTableLayoutTest extends TestCase
         );
     }
 
-    public function testTheScrollingAncestorIsStillThere(): void
+    public function testTheListIsTheScrollBoxAndTheToolbarStaysPut(): void
     {
-        // Taking the scroll off the tbody only works because .subform-content
-        // already scrolls; without it the list would just grow and push the form.
+        // The scroll has to sit on .subform-list: one level higher (.subform-content)
+        // would take the toolbar along, which is exactly what the tbody-scroll was
+        // introduced to prevent.
         $css = (string) file_get_contents(__DIR__ . '/../assets/css/form.css');
         $this->assertTrue(
-            (bool) preg_match('/\.subform-content\s*\{[^}]*overflow-y:\s*auto/s', $css),
-            '.subform-content must keep overflow-y:auto - it is the scroll box now'
+            (bool) preg_match('/\.subform-list\s*\{[^}]*overflow-y:\s*auto/s', $css),
+            '.subform-list must be the scroll box'
+        );
+        $this->assertTrue(
+            (bool) preg_match('/#subformContent > \.tab-pane\s*\{[^}]*flex-direction:\s*column/s', $css),
+            'the pane must be a column: toolbar on top, list underneath'
+        );
+        $this->assertTrue(
+            (bool) preg_match('/#subformContent > \.tab-pane > \.toolbar\s*\{[^}]*flex:\s*0 0 auto/s', $css),
+            'the toolbar must not shrink or scroll along'
+        );
+    }
+
+    public function testThePaneIsShownAsAFlexColumn(): void
+    {
+        // An inline display:block from the tab switch would beat the stylesheet and
+        // the toolbar would scroll away again.
+        $js = (string) file_get_contents(__DIR__ . '/../assets/js/form-controller.js');
+        $this->assertTrue(
+            str_contains($js, "paneIndex === index ? 'flex' : 'none'"),
+            'the active subform pane must be shown as flex, not block'
         );
     }
 }

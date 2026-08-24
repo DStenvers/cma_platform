@@ -666,7 +666,7 @@ describe('Subforms', () => {
             });
         });
 
-        it('should keep the header in place while the list scrolls', () => {
+        it('should keep the toolbar and the header in place while the list scrolls', () => {
             cy.openFormTree('opleidingen');
             cy.get('#listContent a, #simpletree a', { timeout: 10000 }).first().click();
             cy.get('.detail-panel', { timeout: 10000 }).should('be.visible');
@@ -679,6 +679,23 @@ describe('Subforms', () => {
                 const bg = window.getComputedStyle(th).backgroundColor;
                 expect(window.getComputedStyle(th).position, 'the header must stick').to.equal('sticky');
                 expect(bg, 'the header needs an opaque background').to.not.match(/transparent|rgba\(0, 0, 0, 0\)/);
+
+                // The scroll must sit on the list, not on the pane: one level up and
+                // the toolbar with the buttons scrolls away with it.
+                const lijst = th.closest('.subform-list');
+                expect(lijst, 'the table must live inside .subform-list').to.not.be.null;
+                expect(window.getComputedStyle(lijst).overflowY, '.subform-list is the scroll box')
+                    .to.be.oneOf(['auto', 'scroll']);
+
+                const balk = lijst.parentElement.querySelector('.toolbar');
+                if (balk && lijst.scrollHeight > lijst.clientHeight) {
+                    const voorBalk = balk.getBoundingClientRect().top;
+                    const voorKop = th.getBoundingClientRect().top;
+                    lijst.scrollTop = 120;
+                    expect(balk.getBoundingClientRect().top, 'the toolbar scrolled away').to.equal(voorBalk);
+                    expect(th.getBoundingClientRect().top, 'the header scrolled away').to.equal(voorKop);
+                    lijst.scrollTop = 0;
+                }
             });
         });
     });

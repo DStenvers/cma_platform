@@ -2880,11 +2880,33 @@ body.mode-table #btn_columns {
     display: inline-flex;
 }
 
-/* Subform list container - must be overflow:visible for filter dropdowns */
+/* Alleen de LIJST scrollt. De knoppenbalk erboven blijft staan, en de kop van de
+   tabel blijft staan via position:sticky (zie .subform-table hieronder) - want die
+   kop scrollt nu mee IN dezelfde scrollbox, dus hij kan niet meer uit de pas lopen
+   met de rijen.
+
+   Het scrollen zat eerder op de tbody van de tabel. Dat hield de knoppenbalk en de
+   kop wel op hun plek, maar gaf de tbody een eigen breedte: met een scrollbalk die
+   ruimte inneemt werd elke rij smaller dan de kop en liepen de kolommen scheef.
+
+   De filterlijstjes in de kop worden hier niet door afgeknipt: .dropdown-filter-content
+   staat op position:fixed (lib-table.css), en dat trekt zich niets aan van overflow. */
 .subform-list {
     margin-top: 3px;
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+#subformContent > .tab-pane {
+    flex-direction: column;
     height: 100%;
+    min-height: 0;
+}
+
+/* De knoppenbalk krimpt niet mee en scrollt niet weg. */
+#subformContent > .tab-pane > .toolbar {
+    flex: 0 0 auto;
 }
 
 /* Subform no-data message - center both horizontally and vertically */
