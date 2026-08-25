@@ -13247,3 +13247,7 @@ karaat-data en staat in de karaat-repo.
 > weird phenomenon: the save button is disabled in the toolbar, at least the look is disabled , but i can press it and it reports 'record opgeslagen', but that should not happen. And the save has a red indication, meaning the record is dirty, but I did not change anythingh, so either the record is dirty, the button is enabled and can be saved, or the record is not dirty and saving is disabled. It feels like a state confusion or 2 code paths to the same functionality or worse a different codepath with different outcome
 
 > Now the cma bootstrap does not check the maintenance flag, but in the process of updating the cma is also not functional, so please also show the maintenance screen there as well.
+
+## 2026-08-25
+
+> had je de css van cma-context-menu export-menu al aangepast= Ik zie het nog niet namelijk, wat is je laatste versie=
