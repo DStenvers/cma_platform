@@ -1769,21 +1769,25 @@ if ($isAdmin) {
                 return;
             }
 
-            // Elke tegel is klikbaar: met recente fouten opent de popup met
-            // de regels zelf, anders de errorlog in de logreader.
-            var phpKlik = lastErrors.length > 0 ? 'showErrorPopup()'
-                : "window.location.href='tools.php?tool=logs&log=php'";
-            var phpTegel = function(waardeHtml, label) {
-                return '<div class="stat-item clickable" onclick="' + phpKlik + '" title="Bekijk de foutregels">' +
+            // Elke tegel springt naar zijn eigen niveau in de logviewer. Het
+            // filter gebruikt dezelfde woorden waarop dashboard_stats de
+            // regels verdeelt ('Fatal error' / 'Warning' / 'Notice'), dus wat
+            // je te zien krijgt is precies wat deze tegel telde. "Overig" is
+            // alles wat niet matcht en heeft dus geen filter.
+            var phpTegel = function(waardeHtml, label, filter) {
+                var href = 'tools.php?tool=logs&log=php'
+                    + (filter ? '&filter=' + encodeURIComponent(filter) : '');
+                return '<div class="stat-item clickable" onclick="cmaDashboardGaNaar(\'' + href + '\')"' +
+                    ' title="Open deze regels in de logviewer">' +
                     waardeHtml + '<div class="stat-label">' + label + '</div></div>';
             };
             healthStats.innerHTML =
                 '<div class="bar-chart">' + barsHtml + '</div>' +
                 '<div class="stats-row">' +
-                    phpTegel('<div class="stat-value error">' + (weekTypes.error || 0) + '</div>', 'Fouten') +
-                    phpTegel('<div class="stat-value warning">' + (weekTypes.warning || 0) + '</div>', 'Waarschuwingen') +
-                    phpTegel('<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (weekTypes.notice || 0) + '</div>', 'Meldingen') +
-                    phpTegel('<div class="stat-value" style="color:var(--text-muted, #999);">' + (weekTypes.other || 0) + '</div>', 'Overig') +
+                    phpTegel('<div class="stat-value error">' + (weekTypes.error || 0) + '</div>', 'Fouten', 'Fatal error') +
+                    phpTegel('<div class="stat-value warning">' + (weekTypes.warning || 0) + '</div>', 'Waarschuwingen', 'Warning') +
+                    phpTegel('<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (weekTypes.notice || 0) + '</div>', 'Meldingen', 'Notice') +
+                    phpTegel('<div class="stat-value" style="color:var(--text-muted, #999);">' + (weekTypes.other || 0) + '</div>', 'Overig', '') +
                 '</div>';
         }
 
@@ -1956,6 +1960,18 @@ if ($isAdmin) {
             return true;
         }
 
+        // Navigatie vanaf een tegel: binnen de CMA-schil via loadPage (dan
+        // bewegen menu en adresbalk mee), en anders een gewone navigatie —
+        // zelfde afweging als navigateToLog hieronder.
+        function gaNaar(href) {
+            if (typeof window.loadPage === 'function') {
+                window.loadPage(href);
+            } else {
+                window.location.href = href;
+            }
+        }
+        window.cmaDashboardGaNaar = gaNaar;
+
         // Expose functions to global scope for onclick handlers
         window.showErrorPopup = showErrorPopup;
         window.navigateToLog = navigateToLog;
@@ -2093,7 +2109,7 @@ if ($isAdmin) {
             }).join('');
 
             var nfLog = function(extra) {
-                return "window.location.href='tools.php?tool=logs&log=404" + (extra || '') + "'";
+                return "cmaDashboardGaNaar('tools.php?tool=logs&log=404" + (extra || '') + "')";
             };
             notFoundStats.innerHTML =
                 '<div class="bar-chart">' + barsHtml + '</div>' +
@@ -2281,10 +2297,10 @@ if ($isAdmin) {
 
             var errorClass = jslog.week.error > 10 ? 'error' : (jslog.week.error > 0 ? 'warning' : 'success');
 
-            var jsKlik = lastJSErrors.length > 0 ? 'showJSLogsPopup()'
-                : "window.location.href='tools.php?tool=logs&log=jserrors'";
             var jsTegel = function(waardeHtml, label) {
-                return '<div class="stat-item clickable" onclick="' + jsKlik + '" title="Bekijk de foutregels">' +
+                return '<div class="stat-item clickable"' +
+                    ' onclick="cmaDashboardGaNaar(\'tools.php?tool=logs&log=jserrors\')"' +
+                    ' title="Open de JavaScript-log in de logviewer">' +
                     waardeHtml + '<div class="stat-label">' + label + '</div></div>';
             };
             jslogStats.innerHTML =

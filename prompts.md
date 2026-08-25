@@ -13257,3 +13257,5 @@ karaat-data en staat in de karaat-repo.
 > raar hoor, nu is hij 1px teveel naar links en 5 pixels te hoog..
 
 > endpointer tester: 	/cma/migrate.php
+
+> dashboard: er is niets stuk, maar ik wil die interactiever, als je op Errors klikt dat je naar dat specifieke gedeelte in de logviewer gaat
