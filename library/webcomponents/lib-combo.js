@@ -371,7 +371,7 @@ class LibCombo extends HTMLElement {
                        used inside a dialog isn't clipped behind it. Stays below the
                        top alert/notification/error layers (99999+). */
                     z-index: 99998;
-                    margin-top: -14px;
+                    margin-top: -17px;
                     border-top-left-radius: 0;
                     border-top-right-radius: 0;
                     animation: fadeIn var(--transition-base, 0.15s ease);

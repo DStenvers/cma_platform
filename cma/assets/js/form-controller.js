@@ -2811,35 +2811,51 @@ class CmaFormController {
      * This ensures the new record gets the current filter context (e.g., same opleiding)
      */
     setFilterFieldValue(capturedValue = null) {
+        if (!this.mainForm) {
+            return;
+        }
+
+        // Welke filters mogen een leeg veld invullen? Voorop het eigen
+        // toolbarfilter van dit formulier (het bestaande gedrag, inclusief de
+        // waarde die van het vorige record is meegenomen), en daarna ELK
+        // filter dat de opener via de URL meegaf en waarvan de naam een veld
+        // op dit formulier is. Dat tweede is het geval "blok toevoegen terwijl
+        // het opleidingsfilter aanstaat": het blok-formulier heeft zelf geen
+        // filter met die naam, maar draagt wél een fkOpleiding-veld — en een
+        // nieuw blok binnen een gefilterde lijst hoort bij díe opleiding.
+        const kandidaten = [];
         const filterFieldName = this.config.filterFieldName;
-        if (!filterFieldName || !this.mainForm) {
-            return;
+        if (filterFieldName) {
+            const eigen = this.searchFilters?.[filterFieldName] || capturedValue;
+            if (eigen) {
+                kandidaten.push([filterFieldName, eigen]);
+            }
         }
-
-        // Priority: 1) searchFilters (from URL or toolbar), 2) capturedValue (from previous record), 3) nothing
-        const filterValue = this.searchFilters?.[filterFieldName] || capturedValue;
-        if (!filterValue) {
-            return;
-        }
-
-        // Find the field by name (case-insensitive)
-        const filterFieldLower = filterFieldName.toLowerCase();
-        let field = this.mainForm.querySelector('[name="' + filterFieldName + '"]');
-
-        // If not found, try case-insensitive search (include lib-combo)
-        if (!field) {
-            const allFields = this.mainForm.querySelectorAll('input, select, textarea, lib-combo');
-            for (const f of allFields) {
-                const fname = f.getAttribute('name');
-                if (fname && fname.toLowerCase() === filterFieldLower) {
-                    field = f;
-                    break;
-                }
+        for (const [naam, waarde] of Object.entries(this.searchFilters || {})) {
+            if (waarde && naam !== filterFieldName) {
+                kandidaten.push([naam, waarde]);
             }
         }
 
-        if (field) {
-            field.value = filterValue;
+        for (const [naam, waarde] of kandidaten) {
+            // Find the field by name (case-insensitive)
+            const naamLower = naam.toLowerCase();
+            let field = this.mainForm.querySelector('[name="' + naam + '"]');
+            if (!field) {
+                const allFields = this.mainForm.querySelectorAll('input, select, textarea, lib-combo');
+                for (const f of allFields) {
+                    const fname = f.getAttribute('name');
+                    if (fname && fname.toLowerCase() === naamLower) {
+                        field = f;
+                        break;
+                    }
+                }
+            }
+            // Een veld dat al een waarde draagt — de gekozen parent voorop —
+            // wint altijd van het filter: het filter vult alleen stilte in.
+            if (field && !field.value) {
+                field.value = waarde;
+            }
         }
     }
 
