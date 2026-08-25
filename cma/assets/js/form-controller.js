@@ -5686,7 +5686,13 @@ class CmaFormController {
             container: scrollContainer,
             table: table,
             formId: this.jsonForm,
-            pageSize: data.pageSize || 500,
+            // De eerste pagina is klein (200, gezet in form_api) zodat het
+            // scherm snel staat; de vervolgstappen mogen fors zijn — de lijst
+            // is er dan al en de achtergrond-prefetch haalt gewoon minder vaak
+            // een grotere hap. Niet data.pageSize overnemen: dat is die eerste
+            // 200, en dan sjokte de prefetch met stapjes van 200 door een
+            // tabel van tienduizenden regels.
+            pageSize: 1000,
             loadMore: async (lastId, pageSize) => {
                 return await self.loadMoreRows(lastId, pageSize);
             }
