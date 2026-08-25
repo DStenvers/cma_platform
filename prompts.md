@@ -13259,3 +13259,5 @@ karaat-data en staat in de karaat-repo.
 > endpointer tester: 	/cma/migrate.php
 
 > dashboard: er is niets stuk, maar ik wil die interactiever, als je op Errors klikt dat je naar dat specifieke gedeelte in de logviewer gaat
+
+> css tweak: .c1 {padding-top:0px; vertical-algin:middle}

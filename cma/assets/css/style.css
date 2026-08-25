@@ -661,7 +661,9 @@ cma-groupbox:hover .groupbox-chevron::before,
 table.group_open, table.group_closed { display: none; }
 .c1, .c1_g {width:var(--label-column-width, 150px);min-width:var(--label-column-width, 150px);color: var(--text-secondary)}
 .c1_g {PADDING-right:6px;PADDING-left:9px;PADDING-bottom:3px;MARGIN-left:2px;vertical-align:top;BORDER-left:var(--border-color) 1px solid;PADDING-top:9px;white-space:normal;max-width:360px;word-wrap:break-word}
-.c1 {padding:9px 6px 3px 4px;vertical-align:top;white-space:normal;max-width:360px;word-wrap:break-word}
+/* Labels staan gecentreerd naast hun veld; de 9px bovenop was de optische
+   correctie voor vertical-align:top en gaat dus mee weg. */
+.c1 {padding:0 6px 3px 4px;vertical-align:middle;white-space:normal;max-width:360px;word-wrap:break-word}
 .c2 {padding:4px 6px 3px 4px;vertical-align:top;WIDTH:89%}
 .c2_g { padding:6px 6px 3px 1px;BORDER-right:var(--border-color) 1px solid;WIDTH:89%}
 tr.hover:hover {background-color:var(--bg-hover) !important;outline:1px solid var(--color-info);outline-offset:-1px;}
