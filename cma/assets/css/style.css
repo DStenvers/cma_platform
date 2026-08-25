@@ -682,7 +682,7 @@ div.label {min-height:26px;float:left;padding-top:3px; padding-left:8px; display
 div.label.nomargin { padding-left:0px}
 /* In een .c2_g-cel staat het label strakker tegen de scheidingslijn aan dan elders; daar mag
    het er 12px vanaf staan in plaats van de 8px hierboven. */
-.c2_g div.label { padding-left:12px }
+.c2_g div.label { padding-left:10px }
 
 /* postcaption */
 .small {FONT-FAMILY:inherit;COLOR:var(--heading-color);FONT-SIZE:11px;line-height:14px;display:inline-block}

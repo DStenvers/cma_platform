@@ -13282,3 +13282,5 @@ karaat-data en staat in de karaat-repo.
 > [2026-08-25 09:41:23] ErrorException: Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in D:\wwwroot\test-mijn.rino.nl\vendor\stenversonline\platform\src\helpers\RecordSet.php:124 (URL: /cma/api/form_list.php?formName=cmamonitoring, Referer: https://test-mijn.rino.nl/cma/tools/tools_endpoint_tester.php?page=tools%3Ftool%3Dendpoint_tester)
 > [25-Aug-2026 09:41:23 Europe/Amsterdam] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in D:\wwwroot\test-mijn.rino.nl\vendor\stenversonline\platform\src\helpers\RecordSet.php on line 124
 > [25-Aug-2026 09:41:13 Europe/Amsterdam] [SQL ERROR] SQLSTATE[42S02]: Base table or view not found: -1305 [Microsoft][ODBC Microsoft Access Driver] The Microsoft Access database engine cannot find the input table or query 'audit_log'. Make sure it exists and that its name is spelled correctly. (SQLExecute[-1305] at ext\pdo_odbc\odbc_stmt.c:263)
+
+> de login formulier (en ik zag ook het blokken formulier) laden nog steeds in een popup, had je daar al naar gek\eken?

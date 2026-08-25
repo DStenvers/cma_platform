@@ -494,15 +494,21 @@ function cma_html_header($title = '', $extraHead = '', $closeHead = true) {
     }
 
     // Sync popup style preference from cookie to localStorage
-    // This allows library.js to read the preference without server-side rendering
-    $popupStylePref = Cookie::get('cma_popup_style', 'sidepanel');
-    echo '<script>
+    // (library.js leest localStorage). Alleen als er ook écht een cookie
+    // staat: die wordt gezet wanneer de voorkeur wordt opgeslagen. Zonder
+    // cookie is er geen keuze bekend, en dan moet deze regel niet elke
+    // paginaweergave het standaardwoord over een expliciet bewaarde
+    // localStorage-waarde heen schrijven.
+    $popupStylePref = Cookie::get('cma_popup_style', '');
+    if ($popupStylePref !== '') {
+        echo '<script>
     (function() {
         try {
             localStorage.setItem("cma_popup_style", ' . json_encode($popupStylePref) . ');
         } catch(e) {}
     })();
     </script>' . PHP_EOL;
+    }
 
     // Add migration notification script if pending migrations
     if (!empty($GLOBALS['_pending_migrations'])) {
