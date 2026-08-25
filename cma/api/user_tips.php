@@ -156,19 +156,25 @@ function ensureSkipTipsColumn($conn) {
     $checked = true;
 
     try {
-        // Check if column exists by querying PRAGMA
-        $stmt = $conn->query("PRAGMA table_info(tblUsers)");
-        $columns = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        // SchemaHelper kent de dialecten; hier stond een kale
+        // "PRAGMA table_info" en dat is SQLite-taal — op de Access-sites (de
+        // hoofddriver van dit platform) is dat een "Invalid SQL statement" in
+        // de log bij elke eerste tips-aanroep van een proces.
         $hasColumn = false;
-        foreach ($columns as $col) {
-            if (strcasecmp($col['name'], 'SkipTips') === 0) {
+        foreach (\Cma\SchemaHelper::getColumns($conn, 'tblUsers') as $col) {
+            $naam = is_array($col) ? (string) ($col['name'] ?? '') : (string) $col;
+            if (strcasecmp($naam, 'SkipTips') === 0) {
                 $hasColumn = true;
                 break;
             }
         }
 
         if (!$hasColumn) {
-            $conn->exec("ALTER TABLE tblUsers ADD COLUMN SkipTips TEXT DEFAULT ''");
+            // Access kent geen DEFAULT in DDL en geen TEXT-zonder-lengte;
+            // MEMO is daar de onbegrensde tekstkolom. De lezers behandelen
+            // NULL al als "geen lijst", dus een default is niet nodig.
+            $type = Database::getDatabaseType($conn) === 'access' ? 'MEMO' : 'TEXT';
+            $conn->exec("ALTER TABLE tblUsers ADD COLUMN SkipTips $type");
         }
     } catch (\PDOException $e) {
         // Column may already exist or other issue - log but don't fail

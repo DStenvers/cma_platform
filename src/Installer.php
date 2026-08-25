@@ -52,6 +52,11 @@ class Installer
         // layout. Nothing loads it; the menu-building helpers it shared live on
         // in menurep.inc, which main.php/dashboard.php still require.
         'cma/menurep.php',
+        // Retired: a one-off inspection script from the tblSubForms->JSON
+        // migration. It queried tblSubForms unconditionally, and on sites
+        // where that table is long gone the endpoint tester turned it into
+        // three SQL errors per probe run.
+        'cma/tools/temp_get_subform_order.php',
         'cma/tools/llm_models.php',
         // responsive-tabs: een derde tab-implementatie naast cma-tabs en de
         // pagetabs van de front-end, en de enige zonder consument — niets in cma/,

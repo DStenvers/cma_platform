@@ -1540,29 +1540,41 @@ class JsonFormService extends BaseFormService
                 $sql .= " ORDER BY $qualifiedOrder $orderDir";
             }
 
-            // Execute query
+            // Execute query. Er wordt gestreamd en alleen het gevraagde venster
+            // bewaard: hiervoor stond hier "alles inladen en er met array_slice
+            // één pagina uitknippen", en op een monitoringtabel van een paar
+            // honderdduizend regels is dat de volledige memory_limit — de
+            // endpoint-tester haalde er een site mee onderuit
+            // (form_list.php?formName=cmamonitoring, 128MB op). De teller telt
+            // wél alle rijen: de paginering heeft het totaal nodig, en tellen
+            // kost geen geheugen. Meer dan een kwart miljoen regels tellen we
+            // niet uit — boven die grens is "meer dan N" voor een lijstscherm
+            // net zo bruikbaar als het exacte getal, en het scheelt de rest
+            // van de scan.
+            $page = max(1, (int)($options['page'] ?? 1));
+            $pageSize = min(100, max(10, (int)($options['pageSize'] ?? 50)));
+            $offset = ($page - 1) * $pageSize;
+            $maxTelling = 250000;
+
             $rs = Database::openRS($sql, $conn);
-            $items = [];
+            $pagedItems = [];
+            $total = 0;
 
             if ($rs) {
-                while (!$rs->EOF) {
-                    $item = [];
-                    foreach ($rs->fields as $key => $value) {
-                        if (!is_numeric($key)) {
-                            $item[$key] = $value;
+                while (!$rs->EOF && $total < $maxTelling) {
+                    if ($total >= $offset && count($pagedItems) < $pageSize) {
+                        $item = [];
+                        foreach ($rs->fields as $key => $value) {
+                            if (!is_numeric($key)) {
+                                $item[$key] = $value;
+                            }
                         }
+                        $pagedItems[] = $item;
                     }
-                    $items[] = $item;
+                    $total++;
                     $rs->MoveNext();
                 }
             }
-
-            // Apply pagination
-            $page = max(1, (int)($options['page'] ?? 1));
-            $pageSize = min(100, max(10, (int)($options['pageSize'] ?? 50)));
-            $total = count($items);
-            $offset = ($page - 1) * $pageSize;
-            $pagedItems = array_slice($items, $offset, $pageSize);
 
             return [
                 'success' => true,
