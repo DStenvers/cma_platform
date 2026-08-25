@@ -683,6 +683,13 @@ div.label.nomargin { padding-left:0px}
 /* In een .c2_g-cel staat het label strakker tegen de scheidingslijn aan dan elders; daar mag
    het er 12px vanaf staan in plaats van de 8px hierboven. */
 .c2_g div.label { padding-left:10px }
+/* Uitgeschakelde en alleen-lezen velden zijn hier randloze tekst (de rand gaat
+   eraf in lib-variables.css); zonder eigen inspringing begint die tekst op de
+   veldrand en valt hij uit de lijn van de labels hierboven. Zelfde 10px. */
+.c2_g input:disabled,
+.c2_g input:read-only:not([type="checkbox"]):not([type="radio"]),
+.c2_g textarea:disabled,
+.c2_g textarea:read-only { padding-left:10px }
 
 /* postcaption */
 .small {FONT-FAMILY:inherit;COLOR:var(--heading-color);FONT-SIZE:11px;line-height:14px;display:inline-block}

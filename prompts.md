@@ -13284,3 +13284,6 @@ karaat-data en staat in de karaat-repo.
 > [25-Aug-2026 09:41:13 Europe/Amsterdam] [SQL ERROR] SQLSTATE[42S02]: Base table or view not found: -1305 [Microsoft][ODBC Microsoft Access Driver] The Microsoft Access database engine cannot find the input table or query 'audit_log'. Make sure it exists and that its name is spelled correctly. (SQLExecute[-1305] at ext\pdo_odbc\odbc_stmt.c:263)
 
 > de login formulier (en ik zag ook het blokken formulier) laden nog steeds in een popup, had je daar al naar gek\eken?
+
+> .c2_g div.label {padding-left: 10px;
+> } and the same for disabled input fields
