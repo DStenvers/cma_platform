@@ -198,6 +198,10 @@ $skipRootFiles = [
     'details_getdata', // Requires formId + recordId
     'form_api',      // Tested separately via Combo/Legacy API sections
     'task',          // Daily batch job (sends e-mail, flushes cache) — must not be GET-probed
+    'migrate',       // CLI-only migration runner: answers ANY web request with a
+                     // deliberate 404 (no login, would otherwise be an
+                     // unauthenticated write route). That 404 is correctness,
+                     // not an error to flag.
     'imageupload_crop_upload_handler', // POST/multipart upload handler; rejects bare GET by design
     'html_edit_cell',  // CKEditor plugin (requires parameters)
     'html_edit_image', // CKEditor plugin (requires parameters)
