@@ -89,7 +89,15 @@ class RecordSet implements \ArrayAccess, \IteratorAggregate {
                 $this->current_row = $this->all_rows[0];
             }
         } elseif ($scrollable) {
-            $this->all_rows = array_map([$this, 'convertRowEncoding'], $this->stmt->fetchAll(PDO::FETCH_BOTH));
+            // FETCH_ASSOC, niet FETCH_BOTH: BOTH bewaart élke waarde twee keer
+            // (numerieke én naamsleutel) en dit pad haalt de complete uitkomst
+            // in het geheugen — op een grote tabel is dat het verschil tussen
+            // passen en een memory-fatal halverwege convertRowEncoding().
+            // Forward-only (de gewone route) leest al jaren ASSOC, dus rijen
+            // zonder numerieke sleutels zijn het bestaande contract; de losse
+            // plekken die $rs->fields[0] als laatste redmiddel proberen lopen
+            // via CaseArray, die numeriek nu zelf naar de n-de kolom vertaalt.
+            $this->all_rows = array_map([$this, 'convertRowEncoding'], $this->stmt->fetchAll(PDO::FETCH_ASSOC));
             $this->eof = (count($this->all_rows) == 0);
             if (!$this->eof) {
                 $this->position = 0;
@@ -519,11 +527,24 @@ class CaseArray extends \ArrayObject
         if (parent::offsetExists($offset)) {
             return parent::offsetGet($offset);
         }
+        // ADO stond $rs->Fields(0) toe; rijen dragen alleen naamsleutels (ASSOC),
+        // dus een numerieke index betekent hier "de n-de kolom". Dit gold al
+        // voor forward-only recordsets en geldt nu overal, in plaats van alleen
+        // op scrollbare sets die er FETCH_BOTH — en dus dubbel geheugen — voor
+        // over hadden.
+        if (is_int($offset) || (is_string($offset) && ctype_digit($offset))) {
+            $values = array_values($this->getArrayCopy());
+            return $values[(int) $offset] ?? null;
+        }
         $real = $this->lowerMap[strtolower($offset)] ?? null;
         return $real !== null ? parent::offsetGet($real) : null;
     }
 
     public function offsetExists(mixed $offset): bool {
-        return parent::offsetExists($offset) || isset($this->lowerMap[strtolower($offset)]);
+        if (parent::offsetExists($offset) || isset($this->lowerMap[strtolower($offset)])) {
+            return true;
+        }
+        return (is_int($offset) || (is_string($offset) && ctype_digit($offset)))
+            && (int) $offset < count($this->getArrayCopy());
     }
 }

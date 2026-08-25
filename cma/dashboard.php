@@ -575,6 +575,20 @@ if ($isAdmin) {
             text-decoration: underline;
         }
         /* Performance API links */
+        /* Cijfertegels en staafjes die ergens heen leiden: dit dashboard was
+           een muur van getallen waar je nergens op kon klikken — elke fout
+           wees je alleen op zijn bestaan, niet op zijn logregel. Alles wat
+           klikbaar is zegt dat nu ook met de cursor en een hover. */
+        .stat-item.clickable { cursor: pointer; border-radius: 6px; }
+        .stat-item.clickable:hover { background: var(--bg-hover, #eef4fa); }
+        .stat-item.clickable:hover .stat-value { text-decoration: underline; }
+        .hbar-label[href] { color: inherit; }
+        .hbar-label[href]:hover { color: var(--color-primary, #204496); text-decoration: underline; }
+        .error-popup-row { padding: 8px 0; border-bottom: 1px solid var(--border-color, #e0e0e0); }
+        .error-popup-row a.error-zoek { font-size: var(--font-size-xs); color: var(--color-primary, #204496);
+            text-decoration: none; white-space: nowrap; margin-left: 8px; }
+        .error-popup-row a.error-zoek:hover { text-decoration: underline; }
+
         .perf-api-link {
             color: var(--text-primary, #333);
             cursor: pointer;
@@ -1755,25 +1769,21 @@ if ($isAdmin) {
                 return;
             }
 
+            // Elke tegel is klikbaar: met recente fouten opent de popup met
+            // de regels zelf, anders de errorlog in de logreader.
+            var phpKlik = lastErrors.length > 0 ? 'showErrorPopup()'
+                : "window.location.href='tools.php?tool=logs&log=php'";
+            var phpTegel = function(waardeHtml, label) {
+                return '<div class="stat-item clickable" onclick="' + phpKlik + '" title="Bekijk de foutregels">' +
+                    waardeHtml + '<div class="stat-label">' + label + '</div></div>';
+            };
             healthStats.innerHTML =
                 '<div class="bar-chart">' + barsHtml + '</div>' +
                 '<div class="stats-row">' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value error">' + (weekTypes.error || 0) + '</div>' +
-                        '<div class="stat-label">Fouten</div>' +
-                    '</div>' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value warning">' + (weekTypes.warning || 0) + '</div>' +
-                        '<div class="stat-label">Waarschuwingen</div>' +
-                    '</div>' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (weekTypes.notice || 0) + '</div>' +
-                        '<div class="stat-label">Meldingen</div>' +
-                    '</div>' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value" style="color:var(--text-muted, #999);">' + (weekTypes.other || 0) + '</div>' +
-                        '<div class="stat-label">Overig</div>' +
-                    '</div>' +
+                    phpTegel('<div class="stat-value error">' + (weekTypes.error || 0) + '</div>', 'Fouten') +
+                    phpTegel('<div class="stat-value warning">' + (weekTypes.warning || 0) + '</div>', 'Waarschuwingen') +
+                    phpTegel('<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (weekTypes.notice || 0) + '</div>', 'Meldingen') +
+                    phpTegel('<div class="stat-value" style="color:var(--text-muted, #999);">' + (weekTypes.other || 0) + '</div>', 'Overig') +
                 '</div>';
         }
 
@@ -1783,8 +1793,15 @@ if ($isAdmin) {
             }
 
             var errorsHtml = lastErrors.map(function(e) {
-                return '<div style="padding: 8px 0; border-bottom: 1px solid var(--border-color, #e0e0e0);">' +
-                    '<div style="font-weight: 600; color: var(--text-muted, #666); font-size: var(--font-size-xs);">' + e.time + '</div>' +
+                // Het filter is een kaal stuk van de melding: zonder opmaak, en
+                // kort genoeg dat pad- en regelverschillen niet meefilteren.
+                var kaal = String(e.message || '').replace(/<[^>]*>/g, '');
+                var zoek = 'tools.php?tool=logs&log=php&filter=' + encodeURIComponent(kaal.slice(0, 60));
+                return '<div class="error-popup-row">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:baseline;">' +
+                        '<span style="font-weight: 600; color: var(--text-muted, #666); font-size: var(--font-size-xs);">' + e.time + '</span>' +
+                        '<a class="error-zoek" href="' + zoek + '">zoek in log →</a>' +
+                    '</div>' +
                     '<div style="font-family: monospace; font-size: var(--font-size-xs); word-break: break-word;">' + e.message + '</div>' +
                 '</div>';
             }).join('');
@@ -2075,11 +2092,14 @@ if ($isAdmin) {
                 return '<div class="bar" style="height:' + height + '%; background: var(--color-warning, #e0a800);" data-count="' + d.date + ': ' + d.count + '"></div>';
             }).join('');
 
+            var nfLog = function(extra) {
+                return "window.location.href='tools.php?tool=logs&log=404" + (extra || '') + "'";
+            };
             notFoundStats.innerHTML =
                 '<div class="bar-chart">' + barsHtml + '</div>' +
                 '<div class="stats-row">' +
-                    '<div class="stat-item"><div class="stat-value">' + nf.today + '</div><div class="stat-label">Vandaag</div></div>' +
-                    '<div class="stat-item"><div class="stat-value">' + nf.total + '</div><div class="stat-label">14 dagen</div></div>' +
+                    '<div class="stat-item clickable" onclick="' + nfLog() + '" title="Open de 404-log van vandaag"><div class="stat-value">' + nf.today + '</div><div class="stat-label">Vandaag</div></div>' +
+                    '<div class="stat-item clickable" onclick="' + nfLog() + '" title="Open de 404-log"><div class="stat-value">' + nf.total + '</div><div class="stat-label">14 dagen</div></div>' +
                 '</div>';
 
             // Most-missed URLs (reuses the .hbar-* list from the forms widget).
@@ -2093,8 +2113,11 @@ if ($isAdmin) {
                     notFoundTop.innerHTML = '<div class="hbar-chart">' + top.map(function(t) {
                         var pct = Math.round((t.count / maxTop) * 100);
                         var shortPath = t.path.length > 46 ? '…' + t.path.slice(-45) : t.path;
+                        // Elke gemiste URL linkt naar zijn eigen regels in de
+                        // logreader: het filter is de pure padtekst.
+                        var nfHref = 'tools.php?tool=logs&log=404&filter=' + encodeURIComponent(t.path);
                         return '<div class="hbar-item">' +
-                            '<span class="hbar-label" title="' + escapeHtml(t.path) + '">' + escapeHtml(shortPath) + '</span>' +
+                            '<a class="hbar-label" href="' + nfHref + '" title="' + escapeHtml(t.path) + '">' + escapeHtml(shortPath) + '</a>' +
                             '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%"></div></div>' +
                             '<span class="hbar-value">' + t.count + '</span>' +
                         '</div>';
@@ -2258,20 +2281,17 @@ if ($isAdmin) {
 
             var errorClass = jslog.week.error > 10 ? 'error' : (jslog.week.error > 0 ? 'warning' : 'success');
 
+            var jsKlik = lastJSErrors.length > 0 ? 'showJSLogsPopup()'
+                : "window.location.href='tools.php?tool=logs&log=jserrors'";
+            var jsTegel = function(waardeHtml, label) {
+                return '<div class="stat-item clickable" onclick="' + jsKlik + '" title="Bekijk de foutregels">' +
+                    waardeHtml + '<div class="stat-label">' + label + '</div></div>';
+            };
             jslogStats.innerHTML =
                 '<div class="stats-row" style="margin-top: 0; padding-top: 0; border-top: none;">' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value error">' + (jslog.week.error || 0) + '</div>' +
-                        '<div class="stat-label">Errors</div>' +
-                    '</div>' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value warning">' + (jslog.week.warning || 0) + '</div>' +
-                        '<div class="stat-label">Warnings</div>' +
-                    '</div>' +
-                    '<div class="stat-item">' +
-                        '<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (jslog.week.info || 0) + '</div>' +
-                        '<div class="stat-label">Info</div>' +
-                    '</div>' +
+                    jsTegel('<div class="stat-value error">' + (jslog.week.error || 0) + '</div>', 'Errors') +
+                    jsTegel('<div class="stat-value warning">' + (jslog.week.warning || 0) + '</div>', 'Warnings') +
+                    jsTegel('<div class="stat-value" style="color:var(--color-info, #077ab2);">' + (jslog.week.info || 0) + '</div>', 'Info') +
                 '</div>';
         }
 
@@ -2281,10 +2301,13 @@ if ($isAdmin) {
             }
 
             var errorsHtml = lastJSErrors.map(function(e) {
-                return '<div style="padding: 8px 0; border-bottom: 1px solid var(--border-color, #e0e0e0);">' +
-                    '<div style="display: flex; justify-content: space-between;">' +
+                var zoek = 'tools.php?tool=logs&log=jserrors&filter='
+                    + encodeURIComponent(String(e.message || e.source || '').slice(0, 60));
+                return '<div class="error-popup-row">' +
+                    '<div style="display: flex; justify-content: space-between; align-items: baseline;">' +
                         '<span style="font-weight: 600; color: var(--color-primary, #204496); font-size: var(--font-size-xs);">' + escapeHtml(e.source || 'unknown') + '</span>' +
-                        '<span style="color: var(--text-muted, #666); font-size: var(--font-size-xs);">' + e.time + '</span>' +
+                        '<span style="color: var(--text-muted, #666); font-size: var(--font-size-xs);">' + e.time +
+                        ' <a class="error-zoek" href="' + zoek + '">zoek in log →</a></span>' +
                     '</div>' +
                     '<div style="font-family: monospace; font-size: var(--font-size-xs); word-break: break-word; margin-top: 4px;">' + escapeHtml(e.message || '') + '</div>' +
                 '</div>';

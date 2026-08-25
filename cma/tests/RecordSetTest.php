@@ -570,6 +570,44 @@ class RecordSetTest extends TestCase
         $this->assertEquals(['a' => 1, 'b' => 2], $collected);
     }
 
+    /**
+     * Een numerieke index is "de n-de kolom". ADO stond dat toe en een paar
+     * plekken gebruiken $rs->fields[0] als laatste redmiddel; de rijen zelf
+     * dragen alleen naamsleutels (ASSOC — élke waarde één keer in geheugen,
+     * wat op een grote scrollbare set het verschil is met een memory-fatal),
+     * dus de vertaling gebeurt hier.
+     */
+    public function testCaseArrayNumericIndexIsNthColumn(): void
+    {
+        $ca = new CaseArray(['Naam' => 'Alice', 'Prijs' => 450000]);
+        $this->assertEquals('Alice', $ca[0]);
+        $this->assertEquals(450000, $ca[1]);
+        $this->assertNull($ca[2]);
+        $this->assertTrue(isset($ca[1]));
+        $this->assertFalse(isset($ca[5]));
+    }
+
+    /**
+     * Een scrollbare set draagt zijn rijen als ASSOC: geen numerieke
+     * dubbelgangers. Fields() geeft dus élke kolom precies één keer — met
+     * FETCH_BOTH kwam elke kolom er twee keer uit, en telde het geheugen
+     * voor de hele set dubbel.
+     */
+    public function testScrollableRowsCarryEachColumnOnce(): void
+    {
+        $rs = $this->scrollableRs($this->sampleRows());
+        $fields = $rs->Fields();
+        $names = array_map(static fn($f) => $f->name(), $fields);
+        $this->assertEquals(count(array_unique($names)), count($names));
+        foreach ($names as $name) {
+            $this->assertFalse(is_int($name) || ctype_digit((string) $name),
+                'rij bevat numerieke sleutel: ' . var_export($name, true));
+        }
+        // En de numerieke toegang loopt via de kolomvolgorde, niet via de rij.
+        $eerste = array_values($rs->fetchAll()[0])[0];
+        $this->assertEquals($eerste, $rs->fields[0]);
+    }
+
     // ---- lib_openRS helper ---------------------------------------------
 
     public function testLibOpenRsBuildsForwardOnlyRecordSet(): void
