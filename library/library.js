@@ -2459,6 +2459,8 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			var displayTitle = (title || '').trim();
 			var header = '<div class="lib_sidepanel_header">' +
 				'<div class="lib_sidepanel_title">' + displayTitle + '</div>' +
+				'<button class="lib_sidepanel_dock" title="Vastzetten aan de rechterkant (of dubbelklik op de kop)">' +
+				'<span class="lnr lnr-pushpin"></span></button>' +
 				'<button class="lib_sidepanel_maximize" onclick="lib_ToggleSidePanelMaximize(this)" title="Maximaliseren venstergrootte">' +
 				'<span class="lnr lnr-frame-expand"></span></button>' +
 				'<button class="lib_sidepanel_close" onclick="lib_CloseSidePanel()" title="Sluiten">' +
@@ -2754,15 +2756,29 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 				panel.style.top = Math.round(Math.max(0, Math.min(start.t + dy, win.innerHeight - ZICHTBAAR))) + 'px';
 			});
 		});
-		kop.addEventListener('dblclick', function (ev) {
-			if (ev.target.closest('button, a, input, select, textarea')) { return; }
+		// Terug naar vastgeplakt: één handeling, bereikbaar op twee manieren.
+		// De dubbelklik bestond al maar is onvindbare magie; een zwevend paneel
+		// leest als een eigen venster ("waarom krijg ik een popup terwijl mijn
+		// voorkeur zijpaneel is?") en verdient dus een zichtbare knop. De knop
+		// staat er altijd in de kop maar is via CSS alleen zichtbaar zolang het
+		// paneel zweeft.
+		function zetVast() {
 			panel.classList.remove('lib_sidepanel_zwevend');
 			['left', 'top', 'right', 'bottom', 'width', 'height', 'maxWidth', 'transform'].forEach(function (eig) {
 				panel.style[eig] = '';
 			});
 			panel.style.transform = 'translateX(0)';
 			lib_sidepanel_bewaarStand(sleutel, null);
+		}
+		kop.addEventListener('dblclick', function (ev) {
+			if (ev.target.closest('button, a, input, select, textarea')) { return; }
+			zetVast();
 		});
+		var dockKnop = kop.querySelector('.lib_sidepanel_dock');
+		if (dockKnop) {
+			dockKnop.addEventListener('click', zetVast);
+		}
+		kop.title = 'Sleep om het paneel los te maken \u00b7 dubbelklik om vast te zetten';
 	}
 }
 

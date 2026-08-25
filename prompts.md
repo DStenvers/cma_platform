@@ -13289,3 +13289,5 @@ karaat-data en staat in de karaat-repo.
 > } and the same for disabled input fields
 
 > De url https://test-mijn.rino.nl/cma/form/logins/2 geeft hetzelfde resultaat, een popup (eigen venster) terwijl https://test-mijn.rino.nl/cma/form/docenten/4256 een sidepanel geeft
+
+> '0 venster / 4 paneel'
