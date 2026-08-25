@@ -2616,8 +2616,16 @@ class LibTable extends HTMLElement {
                 if (menu) {
                     const anker = trigger.getBoundingClientRect();
                     menu.style.position = 'fixed';
-                    menu.style.left = anker.left + 'px';
-                    menu.style.top = (anker.bottom + 4) + 'px';
+                    // Dezelfde -3/-5 als de stylesheetregel voor dit menu
+                    // (.menutrigger .cma-context-menu.export-menu in style.css):
+                    // het paneel schuift tegen de kolomrand en de koplijn aan.
+                    // Deze inline waarden WINNEN van die regel — dat is hier ook
+                    // de bedoeling (fixed ontsnapt aan de overflow-clipping die
+                    // het absolute pad afknipt) — dus wie een van beide plekken
+                    // aanpast, past de andere mee aan. Vier pixels lucht onder
+                    // de knop las als "los ding zweeft onder de tabel".
+                    menu.style.left = (anker.left - 3) + 'px';
+                    menu.style.top = (anker.bottom - 5) + 'px';
                     menu.style.bottom = 'auto';
                     requestAnimationFrame(() => {
                         const menuRect = menu.getBoundingClientRect();

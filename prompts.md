@@ -13251,3 +13251,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-25
 
 > had je de css van cma-context-menu export-menu al aangepast= Ik zie het nog niet namelijk, wat is je laatste versie=
+
+> ik zie dat er inine css is gebruikt, waarschijnlijk door javascript dat de css overruled. Kun je daarnaar kijken?

@@ -1002,7 +1002,10 @@ div.kader_icon.autos::after { content:"\e84a" }
     /* The trigger spans the full header cell, so 100% is the cell's bottom
        edge — but the header keeps padding under its text, and the trigger sits
        2px in from the column edge. The panel hugs the header line and the
-       column edge instead of floating below-right of both. */
+       column edge instead of floating below-right of both.
+       lib-table.js positions its copy of this menu INLINE (position:fixed, to
+       escape overflow clipping) with these same -5/-3 — change one, change
+       both, or the two menus drift apart again. */
     top: calc(100% - 5px);
     left: -3px;
     z-index: 10000;
