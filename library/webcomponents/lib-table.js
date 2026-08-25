@@ -2614,18 +2614,21 @@ class LibTable extends HTMLElement {
             if (trigger.classList.contains('open')) {
                 const menu = trigger.querySelector('.cma-context-menu');
                 if (menu) {
-                    const anker = trigger.getBoundingClientRect();
+                    // Het oog lijnt het paneel uit op de KOLOMKOP, niet op het
+                    // knopje: links gelijk met de kolomrand, bovenrand over de
+                    // koplijn heen (één gedeelde lijn leest als "hoort bij de
+                    // kop", een naad als "zweeft eronder"). Anker dus op de th
+                    // — de trigger staat een paar pixels bínnen die kop, en op
+                    // de trigger ankeren bakte precies die pixels als fout in.
+                    // Deze inline waarden winnen van de stylesheetregel voor
+                    // dit menu in style.css (die bedient het absolute pad van
+                    // form-controller, met zijn eigen anker); fixed is hier
+                    // nodig om aan overflow-clipping te ontsnappen.
+                    const kop = trigger.closest('th');
+                    const anker = (kop || trigger).getBoundingClientRect();
                     menu.style.position = 'fixed';
-                    // Dezelfde -3/-5 als de stylesheetregel voor dit menu
-                    // (.menutrigger .cma-context-menu.export-menu in style.css):
-                    // het paneel schuift tegen de kolomrand en de koplijn aan.
-                    // Deze inline waarden WINNEN van die regel — dat is hier ook
-                    // de bedoeling (fixed ontsnapt aan de overflow-clipping die
-                    // het absolute pad afknipt) — dus wie een van beide plekken
-                    // aanpast, past de andere mee aan. Vier pixels lucht onder
-                    // de knop las als "los ding zweeft onder de tabel".
-                    menu.style.left = (anker.left - 3) + 'px';
-                    menu.style.top = (anker.bottom - 5) + 'px';
+                    menu.style.left = anker.left + 'px';
+                    menu.style.top = (anker.bottom - 1) + 'px';
                     menu.style.bottom = 'auto';
                     requestAnimationFrame(() => {
                         const menuRect = menu.getBoundingClientRect();
