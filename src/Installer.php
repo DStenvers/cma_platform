@@ -337,6 +337,48 @@ class Installer
      * Template files that are copied to the project root only if they don't exist.
      * These are one-time setup files.
      */
+    /**
+     * De verouderde onderhoudspoort in een bestaand _bootstrap.php vervangen —
+     * uitsluitend wanneer daar het ongewijzigde platformblok van een vorige
+     * generatie staat.
+     *
+     * _bootstrap.php is met opzet copy-if-absent: het is site-eigen terrein.
+     * Maar dit ene blok is platformlogica die daar toevallig woont, en de oude
+     * generatie liet /cma/ ALTIJD door — ook achter een deploy-vlag, terwijl
+     * cma/ dan zelf half verwisseld is. Geen enkele site kreeg de reparatie
+     * ooit binnen, want niets overschrijft het bestand. Vandaar deze middenweg:
+     * staat het oude blok er byte-voor-byte in (dus onaangepast), dan mag het
+     * mee naar de huidige vorm; is er ook maar iets aan veranderd, dan blijven
+     * we eraf en wijst de live check in de documentatie de beheerder de weg.
+     *
+     * PUUR: broncode erin, nieuwe broncode eruit — of null wanneer er niets
+     * (veilig) te vervangen valt.
+     */
+    public static function upgradeMaintenanceGate(string $source): ?string
+    {
+        $oud = "    \$uri = (string) (\$_SERVER['REQUEST_URI'] ?? '');\n"
+             . "    if (strpos(\$uri, '/cma/') === 0\n"
+             . "        || preg_match('#(^|/)(deploy|deploy_status)\\\\.php(\\\\?|\$)#', \$uri)) {\n"
+             . "        return;\n"
+             . "    }\n";
+        if (strpos($source, $oud) === false) {
+            return null;
+        }
+        $nieuw = "    \$uri = (string) (\$_SERVER['REQUEST_URI'] ?? '');\n"
+              . "    if (preg_match('#(^|/)(deploy|deploy_status)\\\\.php(\\\\?|\$)#', \$uri)) {\n"
+              . "        return;\n"
+              . "    }\n"
+              . "    // /cma/ alleen bij een HANDMATIGE vlag: daar staat de uitknop, dus daar\n"
+              . "    // mag je jezelf niet kunnen buitensluiten. Een deploy-vlag betekent dat\n"
+              . "    // cma/ zelf half verwisseld is — dan toont ook de beheerkant de 503 in\n"
+              . "    // plaats van halve code met fatale fouten. De deploy heeft hier niets\n"
+              . "    // nodig: de migratieloper is CLI en de deploy-endpoints staan hierboven.\n"
+              . "    if (\$manual && strpos(\$uri, '/cma/') === 0) {\n"
+              . "        return;\n"
+              . "    }\n";
+        return str_replace($oud, $nieuw, $source);
+    }
+
     private const TEMPLATE_FILES = [
         '_bootstrap.php.template'         => '_bootstrap.php',
         '_bootstrap_wrapper.php.template' => '_bootstrap_wrapper.php',
@@ -582,6 +624,17 @@ class Installer
                 if (file_exists($src) && !file_exists($dest)) {
                     self::copyFile($src, $dest);
                     $io->write("  - created $target (from template)");
+                }
+            }
+
+            // Bestond _bootstrap.php al, kijk dan of de verouderde
+            // onderhoudspoort erin staat — ongewijzigd — en werk die bij.
+            $bootstrapPad = $projectRoot . '/_bootstrap.php';
+            if (is_file($bootstrapPad)) {
+                $huidig = (string) @file_get_contents($bootstrapPad);
+                $bijgewerkt = self::upgradeMaintenanceGate($huidig);
+                if ($bijgewerkt !== null && @file_put_contents($bootstrapPad, $bijgewerkt) !== false) {
+                    $io->write('  - _bootstrap.php: onderhoudspoort bijgewerkt (deploy-vlag sluit nu ook /cma/ af)');
                 }
             }
 

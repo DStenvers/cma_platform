@@ -1292,7 +1292,7 @@ function cma_doc_check_bootstrap_maintenance_gate(): array {
     if (strpos($bron, "strpos(\$uri, '/cma/') === 0") !== false) {
         return ['label' => $label, 'status' => 'warn',
             'detail' => 'Dit <code>_bootstrap.php</code> laat <code>/cma/</code> altijd door — ook tijdens een deploy, terwijl <code>cma/</code> dan half verwisseld is en de beheerkant fatale fouten toont.',
-            'fix' => 'Neem het onderhoudsblok over uit <code>vendor/stenversonline/platform/templates/_bootstrap.php.template</code> (het bestand wordt bewust nooit overschreven).'];
+            'fix' => 'Draai <code>composer update stenversonline/platform</code>: staat het oude blok er ongewijzigd in, dan werkt de Installer het vanzelf bij. Blijft deze melding staan, dan is het blok site-eigen aangepast — neem het dan met de hand over uit <code>templates/_bootstrap.php.template</code>.'];
     }
     if (strpos($bron, 'maintenance.flag') === false) {
         return ['label' => $label, 'status' => 'fail',
