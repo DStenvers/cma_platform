@@ -4912,6 +4912,16 @@ function render_doc_llm(): void
     <p>Een vision-model is meestal een ander model dan je tekstmodel; zet daarvoor
     <code>LLM_VISION_MODEL</code>. Is die leeg, dan wordt <code>LLM_MODEL</code> gebruikt
     (goed voor multimodale modellen als gemma3, qwen2-vl of llava).</p>
+    <p>Bij een lokale engine (ollama, llama.cpp, LM&nbsp;Studio) is de modelnaam
+    alleen niet genoeg: een multimodaal model <span class="cma-tool__strong">ziet
+    pas afbeeldingen als de engine ook de vision-projector heeft geladen</span> —
+    het aparte <code>mmproj-*.gguf</code>-bestand, bij llama.cpp via
+    <code>--mmproj</code> (Ollama bundelt hem in de multimodale tag). Ontbreekt die,
+    dan slaagt de probe en is <code>isConfigured()</code> waar, maar negeert het
+    model de meegestuurde beelden en antwoordt het puur op tekst. Beeldtaken lijken
+    dan stil te mislukken: het model geeft een leeg of onbruikbaar oordeel terug in
+    plaats van een foutmelding. Levert een vision-functie stelselmatig niets op
+    terwijl de tekstkant werkt, controleer dan eerst of de projector geladen is.</p>
     <p>Twee dingen leent de helper van de consumer-app <span class="cma-tool__strong">als ze bestaan</span>:
     <code>App\Models\ApiCallLog</code> (elke call wordt gelogd) en <code>App\Auth</code>
     (welke gebruiker de call deed). Bestaan ze niet, dan draait alles gewoon door
