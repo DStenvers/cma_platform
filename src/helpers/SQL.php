@@ -1428,6 +1428,87 @@ class SQL
      * @param string $alias       Optional alias to cut at instead of FROM.
      * @return string The label expression, or '' if it cannot be determined.
      */
+    /**
+     * Access-SQL met dubbele aanhalingstekens omzetten naar enkele.
+     *
+     * Jet accepteert `"KBA"` als tekst, dus via ADO (de ASP-site) werkt zo'n query gewoon.
+     * De ODBC-driver leest datzelfde `"KBA"` als een VELDNAAM en antwoordt met
+     * "Too few parameters. Expected 1" — een melding die niets zegt over wat er mis is, bij
+     * SQL die op staging en productie prima loopt. Wie een INSERT uit Access plakt, plakt
+     * dubbele quotes.
+     *
+     * Alleen voor Access. Op SQL Server is `"` juist een IDENTIFIER-begrenzer (met
+     * QUOTED_IDENTIFIER aan), dus daar zou deze omzetting werkende SQL slopen.
+     *
+     * Wat er gebeurt:
+     *   - `"tekst"` buiten een enkel-gequote literal wordt `'tekst'`;
+     *   - een enkele quote in de inhoud wordt verdubbeld, anders breekt de nieuwe literal
+     *     (`"it's"` -> `'it''s'`);
+     *   - `""` binnen de inhoud is in Access een letterlijke `"` en blijft dat;
+     *   - een `"` binnen `'...'` blijft onaangeroerd — daar is het gewoon een teken.
+     * Een niet-afgesloten `"` laat de rest met rust: dan is het geen literal en gokken we
+     * niet.
+     */
+    public static function accessDoubleQuotesToSingle(string $sql): string
+    {
+        $uit = '';
+        $len = strlen($sql);
+        for ($i = 0; $i < $len; $i++) {
+            $teken = $sql[$i];
+
+            // Binnen een enkel-gequote literal niets aanraken.
+            if ($teken === "'") {
+                $j = $i + 1;
+                while ($j < $len) {
+                    if ($sql[$j] === "'") {
+                        if ($j + 1 < $len && $sql[$j + 1] === "'") {
+                            $j += 2;
+                            continue;
+                        }
+                        break;
+                    }
+                    $j++;
+                }
+                $eind = min($j + 1, $len);
+                $uit .= substr($sql, $i, $eind - $i);
+                $i = $eind - 1;
+                continue;
+            }
+
+            if ($teken !== '"') {
+                $uit .= $teken;
+                continue;
+            }
+
+            // Inhoud van de dubbel-gequote literal verzamelen.
+            $inhoud = '';
+            $j = $i + 1;
+            $gesloten = false;
+            while ($j < $len) {
+                if ($sql[$j] === '"') {
+                    if ($j + 1 < $len && $sql[$j + 1] === '"') {
+                        $inhoud .= '"';
+                        $j += 2;
+                        continue;
+                    }
+                    $gesloten = true;
+                    break;
+                }
+                $inhoud .= $sql[$j];
+                $j++;
+            }
+            if (!$gesloten) {
+                // Geen afsluitende quote: laat staan wat er staat.
+                $uit .= substr($sql, $i);
+                return $uit;
+            }
+
+            $uit .= "'" . str_replace("'", "''", $inhoud) . "'";
+            $i = $j;
+        }
+        return $uit;
+    }
+
     public static function labelColumn(string $listSql, string $idField, string $sourceTable = '', string $alias = ''): string
     {
         $eind = false;

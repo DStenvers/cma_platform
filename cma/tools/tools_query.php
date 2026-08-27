@@ -543,6 +543,7 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
         if ($conn === null) {
             throw new \RuntimeException('Geen databaseverbinding beschikbaar voor database ' . htmlspecialchars((string)$iDatabase));
         }
+        $isAccess = Database::getDatabaseType($conn) === 'access';
         // Drop full-line SQL comments (lines whose first non-whitespace is "--") so
         // operators can annotate their queries. Done before splitting on ";" so a
         // ";" inside a comment line can't accidentally break the query into pieces.
@@ -554,6 +555,15 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
         for ($tel = 0; $tel <= (count($arrQueries) - 1); $tel++) {
             $tempSQL = Str::trim($arrQueries[$tel]);
             if ($tempSQL === '') continue;
+            // Access-SQL uit de hand geplakt heeft dubbele aanhalingstekens om zijn tekst
+            // ("KBA"). Jet slikt dat, dus via ADO — de ASP-site — loopt zo'n query gewoon;
+            // de ODBC-driver hier leest datzelfde als een VELDNAAM en antwoordt met
+            // "Too few parameters. Expected 1". Voor wie de query op staging en productie
+            // ziet werken is dat een raadsel. Alleen op Access omzetten: op SQL Server is
+            // " juist een identifier-begrenzer.
+            if ($isAccess) {
+                $tempSQL = SQL::accessDoubleQuotesToSingle($tempSQL);
+            }
             echo '<h3>Resultaat:</h3>';
             try {
                 $sqlStart = strtolower(substr($tempSQL, 0, 6));

@@ -692,4 +692,64 @@ class SQLTest extends TestCase
         $this->assertTrue(str_contains($src, 'catch (\Throwable $e)'),
             'a guess that does not run must leave the list unfiltered, not throw');
     }
+    // ── accessDoubleQuotesToSingle: geplakte Access-SQL ─────────────────────────
+
+    public function testDoubleQuotedTextBecomesSingleQuoted(): void
+    {
+        // De gemelde query. Werkt via ADO (staging/productie), maar de ODBC-driver leest
+        // "KBA" als veldnaam: "Too few parameters. Expected 1".
+        $this->assertEquals(
+            "insert into t (id,Naam) values (4, 'KBA')",
+            SQL::accessDoubleQuotesToSingle('insert into t (id,Naam) values (4, "KBA")')
+        );
+    }
+
+    public function testASingleQuoteInsideIsDoubled(): void
+    {
+        // Anders sluit de nieuwe literal midden in de tekst af.
+        $this->assertEquals(
+            "values ('it''s')",
+            SQL::accessDoubleQuotesToSingle('values ("it\'s")')
+        );
+    }
+
+    public function testDoubledDoubleQuotesStayALiteralQuote(): void
+    {
+        // In Access is "" binnen een tekst één aanhalingsteken.
+        $this->assertEquals(
+            "values ('zeg \"hoi\"')",
+            SQL::accessDoubleQuotesToSingle('values ("zeg ""hoi""")')
+        );
+    }
+
+    public function testQuotesInsideASingleQuotedLiteralAreLeftAlone(): void
+    {
+        // Daar is " gewoon een teken in de gegevens, geen begrenzer.
+        $sql = 'values (\'hij zei "hoi"\')';
+        $this->assertEquals($sql, SQL::accessDoubleQuotesToSingle($sql));
+    }
+
+    public function testAnUnterminatedQuoteIsLeftAlone(): void
+    {
+        // Geen literal, dus niets om te vertalen - en gokken maakt het alleen erger.
+        $sql = 'select * from t where a = "kapot';
+        $this->assertEquals($sql, SQL::accessDoubleQuotesToSingle($sql));
+    }
+
+    public function testSqlWithoutDoubleQuotesIsUntouched(): void
+    {
+        $sql = "select * from [tbl] where naam = 'x' and n = 3";
+        $this->assertEquals($sql, SQL::accessDoubleQuotesToSingle($sql));
+    }
+
+    public function testTheQueryToolOnlyDoesThisOnAccess(): void
+    {
+        // Op SQL Server is " een identifier-begrenzer; daar zou omzetten werkende SQL
+        // slopen. De aanroep hoort dus achter een Access-controle te staan.
+        $src = (string) file_get_contents(__DIR__ . '/../tools/tools_query.php');
+        $this->assertTrue(str_contains($src, 'SQL::accessDoubleQuotesToSingle('),
+            'de queryeditor moet geplakte Access-SQL omzetten');
+        $this->assertTrue(str_contains($src, "Database::getDatabaseType(\$conn) === 'access'"),
+            'en dat alleen doen op een Access-database');
+    }
 }
