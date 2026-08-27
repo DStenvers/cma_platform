@@ -11,7 +11,11 @@ use Cma\SchemaHelper;
 use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/../bootstrap.inc';
+use App\Library\SQL;
+
 Response::noCache();
+
+require_once __DIR__ . '/dbsummary_helpers.php';
 
 $intDatabase = Request::post('Database', Request::query('Database', ''));
 $bJSON = Request::query('JSON', '') !== '';
@@ -108,6 +112,71 @@ if ($exportFormat !== '' && $intDatabase !== '') {
     exit;
 }
 
+// AJAX request - de eerste 10 records van EEN tabel, alle kolommen.
+//
+// De structuurweergave vertelt hoe een tabel eruitziet, niet wat erin staat. Bij het
+// uitzoeken van een melding is dat net het stuk dat je mist: is die kolom eigenlijk wel
+// gevuld, staat er "0" of NULL, hoe ziet een datum er echt uit. Vandaar een uitklapper
+// per tabel in plaats van een tweede tool.
+if ($isAjax && $intDatabase !== '' && Request::query('sample', '') !== '') {
+    header('Content-Type: text/html; charset=utf-8');
+
+    $sampleTable = Request::query('sample', '');
+    $dbConfig = \Cma\ConfigLoader::getDatabase((int)$intDatabase);
+    $connName = $dbConfig['name'] ?? null;
+
+    try {
+        $schemaConn = $connName ?: CmaRepository::getResolvedConnectionString((int)$intDatabase);
+
+        // De tabelnaam komt uit de URL en gaat zo de query in. Hij moet daarom letterlijk
+        // voorkomen in de lijst die SchemaHelper zelf teruggeeft - niet "geschoond", want
+        // dan zou een naam die er nét naast zit alsnog uitgevoerd worden.
+        $bekend = array_column(SchemaHelper::getTables($schemaConn), 'name');
+        if (!in_array($sampleTable, $bekend, true)) {
+            echo '<lib-message type="error">Onbekende tabel.</lib-message>';
+            exit;
+        }
+
+        $sql = SQL::processSQL($schemaConn, 'SELECT TOP ' . DBSUMMARY_SAMPLE_ROWS . ' * FROM [' . $sampleTable . ']');
+        $rs = Database::openRS($sql, $schemaConn, adOpenForwardOnly);
+        $rijen = [];
+        if ($rs !== null) {
+            while (count($rijen) < DBSUMMARY_SAMPLE_ROWS) {
+                $rij = $rs->fetch(PDO::FETCH_ASSOC);
+                if ($rij === false || $rij === null) {
+                    break;
+                }
+                $rijen[] = $rij;
+            }
+        }
+
+        if (empty($rijen)) {
+            echo '<div class="db-sample-empty">Geen records.</div>';
+            exit;
+        }
+
+        // Alle kolommen, dus dit wordt breed. De omhullende div scrollt horizontaal zodat
+        // de structuurtabel eronder niet meeschuift.
+        $uit = '<div class="db-sample"><table cellpadding="4" cellspacing="0" class="db-summary-table db-sample-table"><tr>';
+        foreach (array_keys($rijen[0]) as $kolom) {
+            $uit .= '<th>' . htmlspecialchars((string)$kolom) . '</th>';
+        }
+        $uit .= '</tr>';
+        foreach ($rijen as $rij) {
+            $uit .= '<tr>';
+            foreach ($rij as $waarde) {
+                $uit .= '<td>' . dbsummary_sample_cell($waarde) . '</td>';
+            }
+            $uit .= '</tr>';
+        }
+        $uit .= '</table></div>';
+        echo $uit;
+    } catch (\Throwable $e) {
+        echo '<lib-message type="error">' . htmlspecialchars($e->getMessage()) . '</lib-message>';
+    }
+    exit;
+}
+
 // AJAX request - return just the data
 if ($isAjax && $intDatabase !== '') {
     header('Content-Type: text/html; charset=utf-8');
@@ -156,7 +225,21 @@ if ($isAjax && $intDatabase !== '') {
                 // Get record count
                 $count = Database::getFieldValue($conn, 'SELECT COUNT(*) AS cnt FROM [' . $tableName . ']', 'cnt') ?? 0;
 
-                $output .= '<tr><th colspan="' . $colCount . '" style="background:#e8e8e8;padding:4px;">' . htmlspecialchars($tableName) . ' | ' . $count . ' record(s)</th></tr>';
+                // De kop van elke tabel krijgt een uitklapper naar de eerste records. De
+                // rij eronder blijft leeg tot er geklikt wordt: alle tabellen vooraf
+                // uitlezen zou de pagina onbruikbaar traag maken.
+                $veilig = htmlspecialchars($tableName, ENT_QUOTES);
+                $output .= '<tr><th colspan="' . $colCount . '" style="background:#e8e8e8;padding:4px;">'
+                    . htmlspecialchars($tableName) . ' | ' . $count . ' record(s)';
+                if ($count > 0) {
+                    $output .= ' | <a href="#" class="db-sample-link" data-table="' . $veilig
+                        . '" onclick="return dbsToonRecords(this)">eerste '
+                        . DBSUMMARY_SAMPLE_ROWS . ' records</a>';
+                }
+                $output .= '</th></tr>';
+                if ($count > 0) {
+                    $output .= '<tr class="db-sample-row" hidden><td colspan="' . $colCount . '"></td></tr>';
+                }
 
                 if ($isAccess && $nativeOdbc) {
                     // Enhanced Access view with native ODBC
@@ -269,7 +352,20 @@ if (!$bJSON) {
         $toolbarTitle = 'Database structuur | ' . $dbName;
     }
 
-    cma_html_header('Database structuur', '', false);
+    // Eigen opmaak in de pagina en niet in de gebundelde stylesheet: het gaat om een paar
+    // regels die alleen deze tool gebruikt, en zo hoeft er geen bundelversie omhoog.
+    $stijl = '<style>'
+        . '.db-sample-row[hidden]{display:none}'
+        // Alle kolommen betekent breed. Binnen zijn eigen kader schuiven, zodat de
+        // structuurtabel eronder blijft staan waar hij staat.
+        . '.db-sample{overflow-x:auto;max-width:100%;padding:4px 0}'
+        . '.db-sample-table{font-size:var(--font-size-xs);white-space:nowrap}'
+        . '.db-sample-table th{background:var(--table-header-bg,#f2f2f2);text-align:left}'
+        . '.db-sample-null{color:var(--text-muted,#999);font-style:italic}'
+        . '.db-sample-empty{color:var(--text-muted,#999);font-style:italic;padding:6px}'
+        . '.db-sample-link{font-weight:normal}'
+        . '</style>';
+    cma_html_header('Database structuur', $stijl, false);
     ToolbarHelper::writeJS();
     echo '</HEAD><BODY class="contentbody tools tool-dbsummary">';
     ToolbarHelper::start(true);
@@ -299,6 +395,34 @@ if ($intDatabase === '') {
     echo '<lib-loader id="loading-spinner" delay="0" size="large" text="Database structuur laden..." active></lib-loader>';
     echo '<div id="db-content"></div>';
     echo '<script>
+        // Uitklapper per tabel. Deze functie staat in de PAGINA en niet in het AJAX-antwoord:
+        // HTML die via innerHTML binnenkomt voert zijn eigen <script> niet uit.
+        window.dbsToonRecords = function(link) {
+            var rij = link.closest("tr").nextElementSibling;
+            if (!rij || !rij.classList.contains("db-sample-row")) { return false; }
+            var cel = rij.firstElementChild;
+            if (!rij.hidden) {
+                rij.hidden = true;
+                link.textContent = "eerste ' . DBSUMMARY_SAMPLE_ROWS . ' records";
+                return false;
+            }
+            rij.hidden = false;
+            link.textContent = "verberg records";
+            if (cel.dataset.geladen) { return false; }
+            cel.dataset.geladen = "1";
+            cel.innerHTML = "<em>Laden&hellip;</em>";
+            fetch("tools_dbsummary.php?ajax=1&Database=' . urlencode($intDatabase) . '&sample="
+                    + encodeURIComponent(link.dataset.table))
+                .then(function(r) { return r.text(); })
+                .then(function(html) { cel.innerHTML = html; })
+                .catch(function(e) {
+                    // Opnieuw kunnen proberen: een mislukte poging mag niet blijven plakken.
+                    cel.dataset.geladen = "";
+                    cel.innerHTML = "<lib-message type=\"error\">Kon de records niet laden: " + e.message + "</lib-message>";
+                });
+            return false;
+        };
+
         (function() {
             fetch("tools_dbsummary.php?ajax=1&Database=' . urlencode($intDatabase) . '")
                 .then(response => response.text())
