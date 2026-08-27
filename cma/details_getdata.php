@@ -48,29 +48,46 @@ if ($parFormID != '') {
                     $comboSQL = str_replace('[ProdID]', $parID, $comboSQL);
                 }
                 if ($parQuery != '') {
-                    if ((($pos = stripos($comboSQL, ' as ' . $arrRep[Q_FOREIGNIDFIELD][$intRec], max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
-                        if ($arrRep[Q_DATABASEID][$intRec]) {
-                        } else {
-                            $sFieldSpec = trim(str_ireplace('SELECT ', '', substr($comboSQL, 0, max(0, min((($pos = stripos($comboSQL, ' as ' . $arrRep[Q_FOREIGNIDFIELD][$intRec], max(0, 1 - 1))) !== false ? $pos + 1 : 0), strlen($comboSQL))))));
-                            $sFieldSpec = str_ireplace('[' . $arrRep[Q_SOURCETABLE][$intRec] . '].[' . $arrRep[Q_CTRLIDFIELD][$intRec] . '],', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace('[' . $arrRep[Q_SOURCETABLE][$intRec] . '].[' . $arrRep[Q_CTRLIDFIELD][$intRec] . '] ,', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace($arrRep[Q_SOURCETABLE][$intRec] . '.' . $arrRep[Q_CTRLIDFIELD][$intRec] . ',', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace($arrRep[Q_SOURCETABLE][$intRec] . '.' . $arrRep[Q_CTRLIDFIELD][$intRec] . ' ,', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace($arrRep[Q_CTRLIDFIELD][$intRec] . ',', '', $sFieldSpec);
-                            $sFieldSpec = str_ireplace($arrRep[Q_CTRLIDFIELD][$intRec] . ' ,', '', $sFieldSpec);
-                            $testSQL = SQL::addWhere($comboSQL, $sFieldSpec . " LIKE '%" . $parQuery . "%'");
-                            $testSQL = SQL::processSQL($Myconn, $testSQL);
+                    // What does the user search in? The column they SEE - the label column
+                    // from the SqlList. That was only half-implemented: the label was only
+                    // extracted when the SqlList aliased it as "as <fieldname>". Without an
+                    // alias the code fell back on the control's own FIELD NAME, which is a
+                    // column of the PARENT table, not of the source table. Access answers
+                    // that with "No value given for one or more required parameters", so the
+                    // user got an error card and an alert mail instead of a filtered list.
+                    // Seen on form 245, control fkVADocument: its SqlList reads
+                    // "SELECT ID, Naam FROM tblVADocument ..." - no alias - so typing "der"
+                    // produced "fkVADocument LIKE '%der%'".
+                    //
+                    // The label column now comes out of the SELECT list either way: up to
+                    // " as <fieldname>" when that alias is there, up to FROM otherwise. The
+                    // ID column is stripped off; what is left is what the user searches in.
+                    $sFieldSpec = '';
+                    if (!$arrRep[Q_DATABASEID][$intRec]
+                        || stripos($comboSQL, ' as ' . $arrRep[Q_FOREIGNIDFIELD][$intRec]) === false) {
+                        $sFieldSpec = SQL::labelColumn(
+                            $comboSQL,
+                            $arrRep[Q_CTRLIDFIELD][$intRec],
+                            $arrRep[Q_SOURCETABLE][$intRec],
+                            $arrRep[Q_FOREIGNIDFIELD][$intRec]
+                        );
+                    }
+                    if ($sFieldSpec !== '') {
+                        $testSQL = SQL::addWhere($comboSQL, $sFieldSpec . " LIKE '%" . $parQuery . "%'");
+                        $testSQL = SQL::processSQL($Myconn, $testSQL);
+                        // The trial run is the safety net, and it is the reason this does not
+                        // rethrow: if the guess does not run, the filter simply stays out and
+                        // the list shows everything. That beats an error card plus an alert
+                        // mail for what is only a type-ahead.
+                        try {
                             $testRS = Database::openRS($testSQL, $Myconn, adOpenForwardOnly);
-                            if ($testRS === null) {
-                                throw new \Exception('Database query failed: ' . Database::getLastError());
+                            if ($testRS !== null) {
+                                $comboSQL = $testSQL;
                             }
-                            // openRS() above throws on failure, so reaching here
-                            // means the test query succeeded — use it as the filter.
-                            $comboSQL = $testSQL;
                             $testRS = null;
+                        } catch (\Throwable $e) {
+                            // Guess did not hold - carry on unfiltered.
                         }
-                    } else {
-                        $comboSQL = SQL::addWhere($comboSQL, $arrRep[Q_FOREIGNIDFIELD][$intRec] . " LIKE '%" . $parQuery . "%'");
                     }
                 }
                 GetData_WriteRecords($Myconn, $comboSQL, $parQuery, $arrRep[Q_FOREIGNIDFIELD][$intRec], $arrRep[Q_CTRLIDFIELD][$intRec], $arrRep[Q_ISREQUIRED][$intRec]);

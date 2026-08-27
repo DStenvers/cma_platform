@@ -627,4 +627,69 @@ class SQLTest extends TestCase
             SQL::processSQL('ACCESS_VIA_ODBC', 'SELECT Field as FIELD FROM t')
         );
     }
+    // ── labelColumn: welke kolom doorzoekt een type-ahead? ───────────────────────
+
+    public function testLabelColumnTakesTheSecondColumnWhenThereIsNoAlias(): void
+    {
+        // The reported case: form 245, control fkVADocument. Its list query has no
+        // alias, so the caller used to search in "fkVADocument" - a column of the
+        // parent table, not of tblVADocument - and Access answered "No value given
+        // for one or more required parameters".
+        $sql = 'SELECT ID, Naam FROM tblVADocument WHERE fkCGOTemplateType=1 AND bActief=True ORDER BY Naam';
+        $this->assertEquals(
+            'Naam',
+            SQL::labelColumn($sql, 'ID', 'tblVADocument', 'fkVADocument')
+        );
+    }
+
+    public function testLabelColumnCutsAtTheAliasWhenThereIsOne(): void
+    {
+        $sql = 'SELECT ID, Voornaam & " " & Achternaam as fkPersoon FROM tblPersonen';
+        $this->assertEquals(
+            'Voornaam & " " & Achternaam',
+            SQL::labelColumn($sql, 'ID', 'tblPersonen', 'fkPersoon')
+        );
+    }
+
+    public function testLabelColumnStripsQualifiedIdColumns(): void
+    {
+        foreach ([
+            'SELECT tblX.ID, tblX.Naam FROM tblX'     => 'tblX.Naam',
+            'SELECT [tblX].[ID], [tblX].[Naam] FROM tblX' => '[tblX].[Naam]',
+        ] as $sql => $verwacht) {
+            $this->assertEquals($verwacht, SQL::labelColumn($sql, 'ID', 'tblX', 'fkX'));
+        }
+    }
+
+    public function testLabelColumnGivesUpRatherThanGuessWildly(): void
+    {
+        // No FROM and no alias: nothing to cut at. '' means "do not filter" - the list
+        // shows everything, which beats a query that cannot run.
+        $this->assertEquals('', SQL::labelColumn('SELECT ID, Naam', 'ID', 'tblX', 'fkX'));
+    }
+
+    public function testLabelColumnNeverFallsBackOnTheControlName(): void
+    {
+        // The whole point: whatever comes out, it is taken from the list query - never
+        // the field name of the control that triggered the search.
+        $sql = 'SELECT ID, Omschrijving FROM tblIets ORDER BY Omschrijving';
+        $this->assertFalse(
+            str_contains(SQL::labelColumn($sql, 'ID', 'tblIets', 'fkIets'), 'fkIets'),
+            'the control field name must not end up in the search clause'
+        );
+    }
+
+    public function testDetailsGetdataUsesTheLabelColumn(): void
+    {
+        // Guards the call site: falling back on the control name is what broke.
+        $src = (string) file_get_contents(__DIR__ . '/../details_getdata.php');
+        $this->assertTrue(str_contains($src, 'SQL::labelColumn('),
+            'details_getdata must derive the search column from the list query');
+        $this->assertFalse(
+            (bool) preg_match('/Q_FOREIGNIDFIELD\]\[\$intRec\]\s*\.\s*" LIKE/', $src),
+            'the control field name must not be used as a search column again'
+        );
+        $this->assertTrue(str_contains($src, 'catch (\Throwable $e)'),
+            'a guess that does not run must leave the list unfiltered, not throw');
+    }
 }

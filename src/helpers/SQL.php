@@ -1408,6 +1408,54 @@ class SQL
      * @param string $whereClause WHERE clause to add (without WHERE keyword)
      * @return string SQL with WHERE clause added
      */
+    /**
+     * The label column of a combo's list query — the column the user actually reads,
+     * and therefore the column a type-ahead must search in.
+     *
+     * A combo list query is written as "SELECT <id>, <label> FROM ...", sometimes with
+     * the label aliased ("... AS fkSomething"). Callers used to fall back on the
+     * control's own field name when there was no alias; that name belongs to the PARENT
+     * table, so the resulting WHERE hit a column the source table does not have and the
+     * query failed outright.
+     *
+     * This is deliberately crude — it assumes "id first, label second" — so treat the
+     * result as a guess and run it before showing it to anyone. Returns '' when there is
+     * nothing sensible to extract, which callers should read as "do not filter".
+     *
+     * @param string $listSql     The combo's list query.
+     * @param string $idField     Name of the id column, stripped from the select list.
+     * @param string $sourceTable Table name, so qualified forms are stripped too.
+     * @param string $alias       Optional alias to cut at instead of FROM.
+     * @return string The label expression, or '' if it cannot be determined.
+     */
+    public static function labelColumn(string $listSql, string $idField, string $sourceTable = '', string $alias = ''): string
+    {
+        $eind = false;
+        if ($alias !== '') {
+            $eind = stripos($listSql, ' as ' . $alias);
+        }
+        if ($eind === false) {
+            $eind = stripos($listSql, ' from ');
+        }
+        if ($eind === false) {
+            return '';
+        }
+
+        $spec = trim(str_ireplace('SELECT ', '', substr($listSql, 0, $eind + 1)));
+        foreach ([
+            '[' . $sourceTable . '].[' . $idField . '],',
+            '[' . $sourceTable . '].[' . $idField . '] ,',
+            $sourceTable . '.' . $idField . ',',
+            $sourceTable . '.' . $idField . ' ,',
+            $idField . ',',
+            $idField . ' ,',
+        ] as $patroon) {
+            $spec = str_ireplace($patroon, '', $spec);
+        }
+
+        return trim($spec);
+    }
+
     public static function addWhere(?string $sql, ?string $whereClause): string
     {
         $sql = $sql ?? '';
