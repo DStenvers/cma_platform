@@ -231,7 +231,9 @@
                 var items = g.items.map(function (it) {
                     var nav = self._resolveNav(it);
                     var ext = nav && nav.external;
-                    var badge = it.badge ? '<span class="cma-launcher__badge" title="Toegangsniveau">' + self._esc(it.badge) + '</span>' : '';
+                    // data-tooltip, niet title: dat is de tooltip die de rest van de CMA ook
+                    // gebruikt (style.css), dus dezelfde vorm en geen browser-vertraging.
+                    var badge = it.badge ? '<span class="cma-launcher__badge" data-tooltip="Toegangsniveau">' + self._esc(it.badge) + '</span>' : '';
                     var icon = it.icon ? '<span class="cma-launcher__item-icon lnr ' + self._esc(it.icon) + '"></span>' : '';
                     var linkHref = ext ? (nav.url || it.href || '#')
                         : (nav && nav.iframe ? (nav.url || nav.src || '#')

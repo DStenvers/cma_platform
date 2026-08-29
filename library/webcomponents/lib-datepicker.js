@@ -322,7 +322,22 @@ class LibDatepicker extends HTMLElement {
                     font-style: italic;
                 }
 
-                /* Readonly mode: hide icon and remove wrapper styling */
+                /* Readonly mode: hide icon and remove wrapper styling.
+
+                   Ook de HOST zelf: die tekent het kader en de achtergrond (zie :host
+                   hierboven), en zonder deze regel bleef dat vakje staan terwijl de
+                   binnenkant al kaal was. Gemeld op een readonly datum/tijd-veld: de datum
+                   was keurig ontdaan van lijntjes, de tijd ernaast niet.
+
+                   border-color en niet border:none, zodat het veld precies even groot
+                   blijft als in de bewerkbare stand - anders verspringt de regel zodra een
+                   formulier van lezen naar wijzigen gaat. Dat is ook wat een readonly
+                   <input> in de CMA doet: een doorzichtige rand, geen weggehaalde. */
+                :host([readonly]) {
+                    border-color: transparent;
+                    background: transparent;
+                }
+
                 :host([readonly]) .datepicker-wrapper {
                     border: none;
                     background: transparent;

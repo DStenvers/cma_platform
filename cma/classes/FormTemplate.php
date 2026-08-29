@@ -1667,7 +1667,13 @@ class FormTemplate
                 // For template rendering, recordId is not available yet - render placeholder
                 $controlHtml = '<div class="custom-renderer" data-renderer="' . htmlspecialchars($renderer) . '" '
                     . 'data-field="' . htmlspecialchars($fieldName) . '">'
-                    . '<div class="loading-placeholder"><span class="lnr lnr-sync spin-animation"></span> Laden...</div>'
+                    // lib-loader en niet een draaiend lnr-sync: die glyph is 160x128
+                    // groot - een ellips, geen cirkel - en zijn inkt staat bovendien
+                    // helemaal boven de basislijn. Rondddraaien om het midden van het
+                    // vakje levert dus een wiebelende ellips op. lib-loader is een echte
+                    // cirkel (border-radius:50% op een vierkant) en heeft een CSS-only
+                    // terugval voor het moment dat zijn script nog niet geladen is.
+                    . '<div class="loading-placeholder"><lib-loader size="small" delay="0" active></lib-loader> Laden...</div>'
                     . '</div>';
             } else {
                 // Render standard control

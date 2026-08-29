@@ -1490,10 +1490,10 @@ class CmaFormController {
             }
         } else if (document.body.classList.contains('is-creating')) {
             // New record mode (New=Y or add related) — show detail form only.
-            // The empty form is server-rendered here, so newRecord() never runs;
-            // the one thing it does that this path also needs is putting every
-            // still-empty required field in view. Waiting for formInit means the
-            // combos have their values, so a field with a default stays out of it.
+            // De lege vorm wordt hier door de server gerenderd, dus newRecord() draait
+            // niet. Wat die functie doet en deze weg óók nodig heeft, moet hier dus
+            // opnieuw staan. Waiting for formInit means the combos have their values,
+            // so a field with a default stays out of it.
             this.directRecordMode = true;
             this.setDisplayModeClass('detail');
             this.formInit().then(async () => {
@@ -1501,6 +1501,24 @@ class CmaFormController {
                 // record must carry the link to its parent. That field is
                 // normally required, so without this the save is refused.
                 await this.setParentFieldValue();
+
+                // Velden met een eigen renderer krijgen in de sjabloon alleen een
+                // plaatshouder ("Laden..."), want bij het renderen is er nog geen
+                // record-ID. Die plaatshouder wordt hier ingevuld. Gebeurde dat niet,
+                // dan bleef er een draaiend molentje staan waar nooit iets komt —
+                // gemeld op /cma/form/groups/new, dat er drie heeft
+                // (group_menu_rights, group_report_rights, group_members) en dus met
+                // drie molentjes bleef staan. Een bestaand record ging goed, want daar
+                // loopt de weg via loadRecord().
+                //
+                // Leeg record-ID: de renderer krijgt niets te tonen maar wel de lege
+                // besturing, en dat is precies wat een nieuw record nodig heeft. Zonder
+                // die besturing kan collectFormData() de rechten ook niet meesturen bij
+                // het opslaan.
+                this.loadCustomRenderers('').catch(error => {
+                    cmaLog.error('loadCustomRenderers error (nieuw record, directe URL):', error);
+                });
+
                 this.expandGroupboxesWithRequiredFields();
             });
         } else {

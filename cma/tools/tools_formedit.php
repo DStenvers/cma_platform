@@ -2157,7 +2157,9 @@ ToolbarHelper::button('javascript:void(0)', 'lnr-save', true, 'Opslaan', 'Formul
 ToolbarHelper::separator();
 ToolbarHelper::button('javascript:void(0)', 'lnr-code', false, 'JSON', 'JSON bekijken', 'jsonBtn');
 ToolbarHelper::startRight();
-echo '<span id="formLoadSpinner" style="display:none; color: var(--border-hover, #077ab2);"><span class="lnr lnr-sync spin-animation" data-tooltip="Laden..."></span></span>';
+// lib-loader in plaats van een draaiende lnr-sync: die glyph is een ellips (160x128),
+// dus draaien ziet er scheef uit. Zie FormTemplate voor dezelfde afweging.
+echo '<span id="formLoadSpinner" style="display:none; color: var(--border-hover, #077ab2);" data-tooltip="Laden..."><lib-loader size="small" delay="0" active></lib-loader></span>';
 ToolbarHelper::end(false);
 
 echo '<lib-message id="fe-save-notice" type="info" hidden></lib-message>';
