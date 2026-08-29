@@ -271,6 +271,37 @@ if (function_exists('fastcgi_finish_request')) {
 ignore_user_abort(true);
 @set_time_limit(600);
 
+// Welke platformversie staat er NU in vendor/? Puur uit bestanden, geen autoloader:
+// deze hatch moet ook werken als vendor/ half stuk is. Wordt vóór én na de composer-stap
+// gelogd en gaat in de footer mee, zodat het deploy-log altijd antwoord geeft op "welk
+// platform draait hier eigenlijk" - ook wanneer de composer-stap is overgeslagen. Precies
+// dat was niet te zien: een deploy die het platform liet staan eindigde net zo groen als
+// een die hem bijwerkte.
+$platformVersion = static function () use ($ROOT): string {
+    $json = $ROOT . '/vendor/stenversonline/platform/composer.json';
+    if (!is_file($json)) {
+        return '(niet geinstalleerd)';
+    }
+    $pj = json_decode((string) @file_get_contents($json), true);
+    $versie = is_array($pj) ? ($pj['version'] ?? '(onbekend)') : '(onleesbaar)';
+
+    // De commit erbij: met "dev-main" als constraint zegt het versienummer alleen wat
+    // er in composer.json van het platform stond, niet welke commit het is geworden.
+    $ref = '';
+    $inst = $ROOT . '/vendor/composer/installed.json';
+    if (is_file($inst)) {
+        $ij = json_decode((string) @file_get_contents($inst), true);
+        $pakketten = is_array($ij) && isset($ij['packages']) ? $ij['packages'] : (is_array($ij) ? $ij : []);
+        foreach ((array) $pakketten as $pak) {
+            if (($pak['name'] ?? '') === 'stenversonline/platform') {
+                $ref = substr((string) (($pak['source']['reference'] ?? '') ?: ($pak['dist']['reference'] ?? '')), 0, 7);
+                break;
+            }
+        }
+    }
+    return $versie . ($ref !== '' ? ' (' . $ref . ')' : '');
+};
+
 $bannerLine = str_repeat('-', 60) . "\n";
 $logRaw("\n" . $bannerLine
     . 'deploy started: ' . date('Y-m-d H:i:s') . ' ' . $branch
@@ -425,6 +456,8 @@ foreach (array_filter(array_map('trim', explode(';', $pipeline))) as $step) {
 
 // 4d. Composer update (pull the latest platform + deps). Resolve a usable
 //     composer binary first — the app-pool identity rarely has it on PATH.
+$platformVoor = $platformVersion();
+$log('platform vooraf: ' . $platformVoor);
 $composerPkgs = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
 if ($noComposer) {
     $log('composer step skipped (?nocomposer=Y) — git pull + recycle only, no platform package update');
@@ -502,11 +535,9 @@ if (!$failed && !$noComposer && $composerPkgs !== '-' && $composerPkgs !== '') {
         // shows exactly which platform release is installed. A missing git tag
         // silently keeps the previous release (composer installs by tag), and
         // this line makes that visible instead of leaving you guessing.
-        $platJson = $ROOT . '/vendor/stenversonline/platform/composer.json';
-        if (is_file($platJson)) {
-            $pj = json_decode((string) @file_get_contents($platJson), true);
-            $log('platform installed version: ' . ($pj['version'] ?? '(unknown)'));
-        }
+        $platformNa = $platformVersion();
+        $log('platform na:     ' . $platformNa
+            . ($platformNa === $platformVoor ? '  (ONGEWIJZIGD)' : '  (bijgewerkt vanaf ' . $platformVoor . ')'));
     }
 }
 
@@ -604,6 +635,10 @@ if (!$failed) {
     if (class_exists(\App\Library\DeployHealth::class)) {
         try {
             \App\Library\DeployHealth::cmaSyncCheck($ROOT, ['log_file' => $LOG_FILE]);
+            // Volgt vendor/ nog wel de composer.lock? Zo niet, dan heeft de composer-stap
+            // niet gedaan wat hierboven werd aangenomen en draait de site door op oude
+            // platformcode - met een groen deploy-log erbij.
+            \App\Library\DeployHealth::platformVersionCheck($ROOT, ['log_file' => $LOG_FILE]);
         } catch (\Throwable $e) {
             $log('WARN: DeployHealth threw ' . $e->getMessage());
         }
@@ -628,7 +663,8 @@ $status = $failed ? 'FAILED' : 'OK';
 $log("$status: deploy $commit");
 $logRaw($bannerLine
     . 'deploy ended:   ' . date('Y-m-d H:i:s') . ' ' . $branch
-    . " (commit $commit, $status)\n" . $bannerLine . "\n");
+    . " (commit $commit, $status)\n"
+    . 'platform:       ' . $platformVersion() . "\n" . $bannerLine . "\n");
 
 if ($failed) {
     $scream("deploy $commit on $branch FAILED — $failReason. See $LOG_FILE.");
