@@ -13291,3 +13291,7 @@ karaat-data en staat in de karaat-repo.
 > De url https://test-mijn.rino.nl/cma/form/logins/2 geeft hetzelfde resultaat, een popup (eigen venster) terwijl https://test-mijn.rino.nl/cma/form/docenten/4256 een sidepanel geeft
 
 > '0 venster / 4 paneel'
+
+## 2026-08-30
+
+> i was looking af my favourites and there uses to be more, can uou always show all with a Verkocht label on it?
