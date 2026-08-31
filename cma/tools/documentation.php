@@ -3042,6 +3042,7 @@ function render_doc_security(): void
 
     <h2>Audit-trail</h2>
     <p>Mutaties door beheerders (formulier-saves, deletes) loggen naar <code>tblCMAMonitoring</code> via <code>FormDataProvider::logMonitoring()</code>, alleen als <code>cma_monitoring</code> aanstaat. Zichtbaar in het <a href="form.php?form=cmamonitoring" target="_top">CMA Monitoring</a>-formulier en in "Recente activiteit" op het dashboard — wie deed wat wanneer.</p>
+    <p>Onder de changelog zet <code>logMonitoring()</code> een <code>&lt;div&gt;</code> met een deep link naar het record zelf, in de schone vorm die de CMA vandaag routeert: <code>&lt;domein&gt;&lt;base_path&gt;cma/form/&lt;form&gt;/&lt;id&gt;</code>. Bij een <code>delete</code> blijft de link weg &mdash; er valt niets meer te openen. Zie <a href="documentation.php?topic=routing">URL-routing</a> voor het contract en voor wat er met oudere links in bestaande regels gebeurt.</p>
     <p>Elke regel bewaart het formulier twee keer: <code>Form</code> is de handle waarmee het wordt aangeroepen (<code>_menus</code>), <code>Formname</code> de titel zoals die bij het schrijven gold (<code>Menu's</code>). <span class="cma-tool__strong">Toon de titel</span>, niet de handle — die laatste komt nergens in de interface voor en zegt een lezer niets. Het dashboard doet dat via <code>monitoringFormTitle()</code> in <code>cma/api/dashboard_stats.php</code> (opgeslagen titel &rarr; titel uit de definitie &rarr; handle); de lijstkolom "Formulier" van het monitoring-formulier staat om dezelfde reden op <code>Formname</code>.</p>
 
     <div class="seealso">
@@ -3440,6 +3441,14 @@ function render_doc_routing(): void
 
     <h2>De root-cause die dit oploste</h2>
     <p>De rewrite-rules stuurden de record-id als <code>formID</code>, maar <code>form.php</code> las een record-id alleen uit <code>id</code>/<code>ID</code> — en <code>formID</code> alléén binnen de popup-tak (als parent-id). Een top-level deep link <code>/cma/form/&lt;form&gt;/&lt;id&gt;</code> liet daardoor wél de lijst zien maar opende het record nooit; het werkte alleen toevallig als de client de URL eerst herschreef. Door <code>FormRoute</code> <code>formID</code> als eersteklas record-id te laten lezen, opent de deep link nu server-side — ongeacht welke JS-bundle een consumer-site draait.</p>
+
+    <h2>Legacy deep links</h2>
+    <p>Aan de oude vorm <code>/cma/default.asp?FormID=&lt;n&gt;&amp;ID=&lt;x&gt;</code> (en de <code>.php</code>-variant) hangen bestaande CMA-monitoring-regels, verstuurde mails en bookmarks. Die blijven werken, langs twee kanten die elkaar niet nodig hebben:</p>
+    <ul>
+        <li><code>cma/web.config</code> heeft naast de <code>details.php</code>-regel een rule <span class="cma-page__strong">Legacy default to form</span>: <code>^default\.(asp|php)$</code> mét een <code>FormID</code> in de querystring wordt herschreven naar <code>main.php?page=form.php&amp;&lt;querystring&gt;</code>.</li>
+        <li><code>cma/default.php</code> kijkt zelf ook naar <code>FormID</code>/<code>ID</code> en stuurt door naar diezelfde shell-URL. Dat vangt de site waar een parent-<code>web.config</code> alle <code>.asp</code>-verzoeken al naar <code>.php</code> herschrijft (de child-rule komt dan niet aan bod) &eacute;n de site zonder URL Rewrite Module.</li>
+    </ul>
+    <p>In beide gevallen lost <code>FormRoute</code> het numerieke <code>FormID</code> op naar de JSON-formnaam via <code>JsonFormLoader::getFormNameBySourceId()</code>. Een formulier zonder <code>sourceFormId</code> is langs deze weg niet bereikbaar &mdash; dat is geen legacy-formulier.</p>
 
     <h2>Actieve view, geen geforceerde tree</h2>
     <p><code>toPageUrl()</code> forceert bewust <span class="cma-page__strong">geen</span> <code>view=tree</code> meer. Zonder expliciete <code>?view=</code> kiest <code>form.php</code> de persisted lijst-modus (cookie <code>cma_listMode_&lt;form&gt;</code>, fallback <code>cma_lastViewMode</code>) — dus de deep link opent de lijst in de view die de gebruiker laatst gebruikte.</p>

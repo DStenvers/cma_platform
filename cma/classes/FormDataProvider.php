@@ -2433,6 +2433,17 @@ class FormDataProvider
             if (!empty($detailedChangelog)) {
                 $notification .= "<br><br>" . $detailedChangelog;
             }
+
+            // Deep link to the record itself, in the clean-URL form the CMA
+            // routes today: <base>/cma/form/<form>/<id>. A deleted record has
+            // nothing left to open, so the link is omitted for that action.
+            if ($action !== 'delete' && (string)($recordId ?? '') !== '') {
+                $detailsUrl = Request::currentDomain()
+                    . Application::get('base_path', '/')
+                    . 'cma/form/' . rawurlencode(strtolower($formName))
+                    . '/' . rawurlencode((string)$recordId);
+                $notification .= '<div>Voor details: <a href="' . $detailsUrl . '">' . $detailsUrl . '</a></div>';
+            }
             Logger::debug('logMonitoring: notification_length=' . strlen($notification));
 
             // Get data connection for tblCMAMonitoring

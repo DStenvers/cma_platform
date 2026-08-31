@@ -13295,3 +13295,10 @@ karaat-data en staat in de karaat-repo.
 ## 2026-08-30
 
 > i was looking af my favourites and there uses to be more, can uou always show all with a Verkocht label on it?
+
+## 2026-08-31
+
+> the cma monitoring adds a link in the old format: 
+> Voor details: https://staging-mijn.rino.nl/cma/default.asp?FormID=183&ID=224. 
+>
+> can we add that link so it works in the current version / paths? And put it in between <div> and </div>
