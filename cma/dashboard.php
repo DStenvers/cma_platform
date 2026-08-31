@@ -617,8 +617,8 @@ if ($isAdmin) {
             font-weight: 600;
         }
         .api-detail-context {
-            background: var(--bg-secondary, #f5f5f5);
-            color: var(--text-api-detail-context, #ffffff);
+            background: var(--bg-surface-alt);
+            color: var(--text-primary);
             padding: 10px;
             border-radius: 4px;
             font-family: "Consolas", "Monaco", monospace;
@@ -629,7 +629,7 @@ if ($isAdmin) {
         /* API Re-test results - used inside lib-dialog */
         .api-retest-results {
             margin-top: 12px;
-            background: var(--bg-secondary, #f5f5f5);
+            background: var(--bg-surface-alt);
             border-radius: 4px;
             padding: 12px;
             max-height: 200px;
@@ -793,7 +793,7 @@ if ($isAdmin) {
         .log-settings-panel {
             border-top: 1px solid var(--border-color, #ddd);
             padding: 12px 16px;
-            background: var(--bg-secondary, #f8f9fa);
+            background: var(--bg-surface-alt);
             font-size: var(--font-size-sm);
         }
         .log-settings-panel .log-setting-row {

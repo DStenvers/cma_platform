@@ -13302,3 +13302,7 @@ karaat-data en staat in de karaat-repo.
 > Voor details: https://staging-mijn.rino.nl/cma/default.asp?FormID=183&ID=224. 
 >
 > can we add that link so it works in the current version / paths? And put it in between <div> and </div>
+
+> ik dacht dat er in het systeem menu een algemene audit log formulier was opgenomen, of zit dat elders (met name in mijn rino relevant
+
+> api-detail-context in light mode is white on lightgray, please change it to a readable form

@@ -97,7 +97,6 @@
     --text-link: #204496;               /* Link color */
     --text-link-hover: #077ab2;         /* Link hover */
     --color-text: #333333;              /* Alias for text-primary */
-    --text-api-detail-context: #ffffff; /* API detail context text */
 
     /* Border colors */
     --border-color: #dddddd;            /* Default borders */
