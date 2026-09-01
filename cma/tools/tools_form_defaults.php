@@ -167,6 +167,9 @@ foreach ($perForm as $formId => $perVeld) {
         // niets veranderen.
         $origineel = (string) file_get_contents($pad);
         $json = json_encode($uit['definitie'], StartwaardeMigratie::schrijfvlaggen($origineel));
+        if ($json !== false) {
+            $json = StartwaardeMigratie::herindenteer($json, $origineel);
+        }
         if ($json === false || file_put_contents($pad, $json . "\n") === false) {
             $fouten[] = 'Kon ' . basename($pad) . ' niet schrijven';
         } else {

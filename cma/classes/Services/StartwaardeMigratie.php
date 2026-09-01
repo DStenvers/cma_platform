@@ -168,6 +168,45 @@ class StartwaardeMigratie
         return $vlaggen;
     }
 
+    /**
+     * De inspringing van het bestand terugzetten in het opnieuw gecodeerde JSON.
+     *
+     * json_encode springt altijd met vier spaties in. De definities doen dat niet
+     * allemaal: 113 bestanden gebruiken acht spaties, 17 gebruiken er vier. Zonder
+     * deze stap herschrijft de migratie elk bestand van de eerste tot de laatste
+     * regel, en gaat de ene toegevoegde regel die er echt toe doet kopje-onder in
+     * vijfduizend regels ruis.
+     *
+     * @param string $json      De uitvoer van json_encode (vier spaties per niveau).
+     * @param string $origineel Het bestand zoals het er nu staat.
+     */
+    public static function herindenteer(string $json, string $origineel): string
+    {
+        $eenheid = self::inspringing($origineel);
+        if ($eenheid === '    ') {
+            return $json;
+        }
+        return preg_replace_callback(
+            '/^( +)/m',
+            static function ($m) use ($eenheid) {
+                $niveau = intdiv(strlen($m[1]), 4);
+                return str_repeat($eenheid, $niveau);
+            },
+            $json
+        );
+    }
+
+    /**
+     * Waarmee springt dit bestand in? Valt terug op vier spaties.
+     */
+    public static function inspringing(string $origineel): string
+    {
+        if (preg_match('/\n(\t+|[ ]+)"/', $origineel, $m) === 1) {
+            return $m[1];
+        }
+        return '    ';
+    }
+
     private static function overnemen($waarde, string $soort): array
     {
         return ['besluit' => self::OVERNEMEN, 'waarde' => $waarde, 'soort' => $soort, 'reden' => ''];

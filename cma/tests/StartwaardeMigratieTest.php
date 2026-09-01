@@ -224,4 +224,43 @@ class StartwaardeMigratieTest extends TestCase
             $this->assertTrue(($vlaggen & JSON_UNESCAPED_UNICODE) !== 0, 'accenten blijven leesbaar');
         }
     }
+
+    public function testDeInspringingVanHetBestandWordtHerkend(): void
+    {
+        $achtSpaties = "{\n        \"a\": 1\n}";
+        $vierSpaties = "{\n    \"a\": 1\n}";
+        $tabs        = "{\n\t\"a\": 1\n}";
+
+        $this->assertEquals(8, strlen(M::inspringing($achtSpaties)));
+        $this->assertEquals(4, strlen(M::inspringing($vierSpaties)));
+        $this->assertEquals("\t", M::inspringing($tabs));
+        $this->assertEquals('    ', M::inspringing('{}'), 'niets te zien: vier spaties');
+    }
+
+    public function testHetOpnieuwGecodeerdeJsonKrijgtDeOudeInspringingTerug(): void
+    {
+        // json_encode springt altijd met vier spaties in; 113 van de 130 definities
+        // gebruiken er acht. Zonder deze stap verandert elke regel van het bestand.
+        $origineel = "{\n        \"a\": 1,\n        \"b\": {\n                \"c\": 2\n        }\n}";
+        $json = json_encode(['a' => 1, 'b' => ['c' => 2]], JSON_PRETTY_PRINT);
+
+        $this->assertEquals($origineel, M::herindenteer($json, $origineel));
+    }
+
+    public function testEenBestandDatAlVierSpatiesGebruiktBlijftOngemoeid(): void
+    {
+        $json = json_encode(['a' => 1], JSON_PRETTY_PRINT);
+        $this->assertEquals($json, M::herindenteer($json, "{\n    \"a\": 1\n}"));
+    }
+
+    public function testDeInhoudVanTekstenVerandertNietDoorHetHerindenteren(): void
+    {
+        // Een SQL-query met eigen inspringing staat in een string en mag niet meebewegen.
+        $def = ['listQuery' => "SELECT 1\n    FROM t", 'n' => 1];
+        $origineel = "{\n        \"n\": 1\n}";
+        $uit = M::herindenteer(json_encode($def, JSON_PRETTY_PRINT), $origineel);
+
+        $terug = json_decode($uit, true);
+        $this->assertEquals("SELECT 1\n    FROM t", $terug['listQuery'], 'de query zelf blijft letterlijk');
+    }
 }
