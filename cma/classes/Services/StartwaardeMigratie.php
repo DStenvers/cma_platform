@@ -117,6 +117,15 @@ class StartwaardeMigratie
                 $overgeslagen[$naam] = 'het formulier legt de startwaarde zelf al vast';
                 continue;
             }
+            // Waar/onwaar hoort op een schakelaar. Staat er in de JSON een tekstvak
+            // (dat komt voor: een Ja/Nee-kolom die als textbox is omgezet), dan zou
+            // de gebruiker letterlijk een "1" in het invoervak krijgen. Liever
+            // niets dan dat, mét vermelding — het veld zelf klopt dan namelijk niet.
+            if (is_bool($perVeld[$naam]) && ($veld['type'] ?? '') !== 'checkbox') {
+                $overgeslagen[$naam] = 'de repository zegt vinkje, de definitie zegt '
+                    . ($veld['type'] ?? '(geen type)');
+                continue;
+            }
             // Achter 'caption' invoegen leest het prettigst; staat die er niet,
             // dan achteraan.
             $nieuw = [];

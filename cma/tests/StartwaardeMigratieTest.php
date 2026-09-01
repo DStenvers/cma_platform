@@ -178,4 +178,25 @@ class StartwaardeMigratieTest extends TestCase
         $this->assertEquals([], $uit['gezet']);
         $this->assertEquals([], $uit['definitie']['fields']);
     }
+
+    public function testEenWaarOnwaarLandtAlleenOpEenVinkje(): void
+    {
+        // Komt echt voor: een Ja/Nee-kolom die bij de omzetting een tekstvak werd.
+        // Daar "1" in zetten geeft de gebruiker een 1 in het invoervak te zien.
+        $def = ['fields' => [
+            ['name' => 'emailMessageNotificaties', 'type' => 'textbox', 'caption' => 'Notificaties', 'maxLength' => 1],
+        ]];
+        $uit = M::toepassen($def, ['emailmessagenotificaties' => true]);
+
+        $this->assertTrue(!isset($uit['definitie']['fields'][0]['defaultValue']));
+        $this->assertEquals([], $uit['gezet']);
+        $this->assertTrue(isset($uit['overgeslagen']['emailmessagenotificaties']), 'met vermelding, want het veld zelf klopt niet');
+    }
+
+    public function testEenTekstOfGetalMagWelOpEenTekstvak(): void
+    {
+        $def = ['fields' => [['name' => 'mv', 'type' => 'textbox', 'caption' => 'M/V']]];
+        $uit = M::toepassen($def, ['mv' => 'V']);
+        $this->assertEquals('V', $uit['definitie']['fields'][0]['defaultValue']);
+    }
 }

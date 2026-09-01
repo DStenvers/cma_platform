@@ -162,7 +162,9 @@ foreach ($perForm as $formId => $perVeld) {
     ];
 
     if ($doorvoeren && $uit['gezet'] !== []) {
-        $json = json_encode($uit['definitie'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // Zonder JSON_UNESCAPED_SLASHES, want zo staan de bestanden er nu in:
+        // anders herschrijft elke migratie honderden regels die niets veranderen.
+        $json = json_encode($uit['definitie'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         if ($json === false || file_put_contents($pad, $json . "\n") === false) {
             $fouten[] = 'Kon ' . basename($pad) . ' niet schrijven';
         } else {
