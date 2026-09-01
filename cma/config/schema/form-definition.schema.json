@@ -4,7 +4,11 @@
   "title": "CMA Form Definition",
   "description": "Schema for CMA form definitions that configure data entry forms",
   "type": "object",
-  "required": ["name", "table", "fields"],
+  "required": [
+    "name",
+    "table",
+    "fields"
+  ],
   "properties": {
     "name": {
       "type": "string",
@@ -25,7 +29,13 @@
     },
     "database": {
       "type": "string",
-      "enum": ["", "data", "rep", "users", "json"],
+      "enum": [
+        "",
+        "data",
+        "rep",
+        "users",
+        "json"
+      ],
       "default": "data",
       "description": "Database connection name"
     },
@@ -35,7 +45,10 @@
       "description": "Primary key field name"
     },
     "parentForm": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Parent form name (for subforms)"
     },
     "allowAdd": {
@@ -63,24 +76,34 @@
       "default": false,
       "description": "Track last modified timestamp"
     },
-
     "postHandler": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Custom PHP file for POST handling"
     },
     "afterPostUrl": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "URL to redirect after save"
     },
     "previewUrl": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "URL template for preview button"
     },
     "onLoadJs": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "JavaScript to execute on form load"
     },
-
     "listQuery": {
       "type": "string",
       "description": "SQL query for list/tree display"
@@ -93,30 +116,44 @@
       }
     },
     "quickSearchFields": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Comma-separated field names for quick search"
     },
     "protectedRecords": {
       "type": "array",
-      "items": {"type": ["integer", "string"]},
+      "items": {
+        "type": [
+          "integer",
+          "string"
+        ]
+      },
       "description": "Record IDs that cannot be deleted"
     },
-
     "activeField": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Field name that indicates record active status (1=active/green, 0=inactive/red in tree view)"
     },
-
     "filter": {
       "type": "object",
       "description": "Filter dropdown configuration",
       "properties": {
-        "field": {"type": "string"},
-        "description": {"type": "string"},
-        "sql": {"type": "string"}
+        "field": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "sql": {
+          "type": "string"
+        }
       }
     },
-
     "extraButtons": {
       "type": "array",
       "maxItems": 5,
@@ -125,7 +162,6 @@
         "$ref": "#/definitions/extraButton"
       }
     },
-
     "fields": {
       "type": "array",
       "description": "Form field definitions",
@@ -133,7 +169,6 @@
         "$ref": "#/definitions/field"
       }
     },
-
     "subforms": {
       "type": "array",
       "description": "Embedded subform definitions",
@@ -141,7 +176,6 @@
         "$ref": "#/definitions/subform"
       }
     },
-
     "tips": {
       "type": "array",
       "description": "Help tips displayed in sidebar",
@@ -150,11 +184,12 @@
       }
     }
   },
-
   "definitions": {
     "listColumn": {
       "type": "object",
-      "required": ["field"],
+      "required": [
+        "field"
+      ],
       "properties": {
         "field": {
           "type": "string",
@@ -169,26 +204,44 @@
           "description": "Column header (English)"
         },
         "width": {
-          "type": ["string", "integer"],
+          "type": [
+            "string",
+            "integer"
+          ],
           "description": "Column width: a CSS length ('150px', '20%') or a bare pixel count"
         },
         "type": {
           "type": "string",
-          "enum": ["text", "boolean", "date", "datetime", "number", "lookup", "active"],
+          "enum": [
+            "text",
+            "boolean",
+            "date",
+            "datetime",
+            "number",
+            "lookup",
+            "active"
+          ],
           "default": "text",
           "description": "Data type for formatting. 'lookup' is what a combobox/userlist column becomes; 'active' renders the activeField toggle."
         },
         "align": {
           "type": "string",
-          "enum": ["left", "center", "right"],
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
           "default": "left"
         }
       }
     },
-
     "extraButton": {
       "type": "object",
-      "required": ["icon", "title", "url"],
+      "required": [
+        "icon",
+        "title",
+        "url"
+      ],
       "properties": {
         "icon": {
           "type": "string",
@@ -208,7 +261,12 @@
         },
         "target": {
           "type": "string",
-          "enum": ["_self", "_blank", "_parent", "_top"],
+          "enum": [
+            "_self",
+            "_blank",
+            "_parent",
+            "_top"
+          ],
           "default": "_self"
         },
         "openInNewWindow": {
@@ -222,10 +280,11 @@
         }
       }
     },
-
     "field": {
       "type": "object",
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -234,11 +293,35 @@
         "type": {
           "type": "string",
           "enum": [
-            "textbox", "memo", "checkbox", "combobox", "date", "time", "datetime", "dropdown",
-            "email", "password", "file", "image", "url", "checklist", "checklisttree",
-            "checklistinline", "sortlist", "label", "groupseparator", "readonly",
-            "radiogroup", "custom", "userlist", "xmlstore", "directory", "video",
-            "hidden", "ignorefield", "autonumber"
+            "textbox",
+            "memo",
+            "checkbox",
+            "combobox",
+            "date",
+            "time",
+            "datetime",
+            "dropdown",
+            "email",
+            "password",
+            "file",
+            "image",
+            "url",
+            "checklist",
+            "checklisttree",
+            "checklistinline",
+            "sortlist",
+            "label",
+            "groupseparator",
+            "readonly",
+            "radiogroup",
+            "custom",
+            "userlist",
+            "xmlstore",
+            "directory",
+            "video",
+            "hidden",
+            "ignorefield",
+            "autonumber"
           ],
           "description": "Control type. 'hidden' posts a value without showing it, 'ignorefield' stores without rendering, 'autonumber' is a read-only counter column."
         },
@@ -268,6 +351,14 @@
           "default": false,
           "description": "Field is read-only"
         },
+        "defaultValue": {
+          "description": "Startwaarde voor een NIEUW record. Komt als data-default op het besturingselement; de client vult hem alleen bij \"nieuw\" in, een bestaand record blijft ongemoeid. Bij een checkbox telt true/1/-1/\"checked\"/\"ja\" als aan, al het overige als uit.",
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
         "maxLength": {
           "type": "integer",
           "minimum": 1,
@@ -283,21 +374,29 @@
           "default": true,
           "description": "For memo fields with allowHtml: set to false to disable blockedit interface"
         },
-
         "validation": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "description": "Validation rules (e.g., 'email', 'ip-address-list')"
         },
-
         "source": {
           "type": "object",
           "description": "Data source for combo/checklist fields",
           "properties": {
-            "table": {"type": "string"},
-            "valueField": {"type": "string"},
-            "displayField": {"type": "string"},
-            "filter": {"type": "string"}
+            "table": {
+              "type": "string"
+            },
+            "valueField": {
+              "type": "string"
+            },
+            "displayField": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            }
           }
         },
         "sql": {
@@ -312,7 +411,6 @@
           "type": "string",
           "description": "Filter combo options by another field's value. Source table must have a column matching this field name. Combo reloads when referenced field changes."
         },
-
         "renderer": {
           "type": "string",
           "description": "Custom renderer name for special field types"
@@ -328,10 +426,16 @@
               "description": "Static options for radiogroup/select fields",
               "items": {
                 "type": "object",
-                "required": ["value", "text"],
+                "required": [
+                  "value",
+                  "text"
+                ],
                 "properties": {
                   "value": {
-                    "type": ["string", "integer"],
+                    "type": [
+                      "string",
+                      "integer"
+                    ],
                     "description": "Option value to store"
                   },
                   "text": {
@@ -346,57 +450,83 @@
         },
         "format": {
           "type": "string",
-          "enum": ["date", "datetime", "currency", "percentage"],
+          "enum": [
+            "date",
+            "datetime",
+            "currency",
+            "percentage"
+          ],
           "description": "Display format for readonly fields"
         },
-
         "dependencies": {
           "type": "array",
-          "items": {"$ref": "#/definitions/dependency"},
+          "items": {
+            "$ref": "#/definitions/dependency"
+          },
           "description": "Show/hide based on other field values"
         },
-
         "image": {
           "type": "object",
           "description": "Image field configuration",
           "properties": {
-            "path": {"type": "string", "description": "Upload path"},
+            "path": {
+              "type": "string",
+              "description": "Upload path"
+            },
             "resizeType": {
               "type": "string",
-              "enum": ["none", "maximum", "crop", "stretch"]
+              "enum": [
+                "none",
+                "maximum",
+                "crop",
+                "stretch"
+              ]
             },
-            "maxWidth": {"type": "integer"},
-            "maxHeight": {"type": "integer"},
-            "widthField": {"type": "string"},
-            "heightField": {"type": "string"}
+            "maxWidth": {
+              "type": "integer"
+            },
+            "maxHeight": {
+              "type": "integer"
+            },
+            "widthField": {
+              "type": "string"
+            },
+            "heightField": {
+              "type": "string"
+            }
           }
         },
-
         "file": {
           "type": "object",
           "description": "File upload configuration",
           "properties": {
-            "path": {"type": "string"},
-            "randomize": {"type": "boolean", "default": false}
+            "path": {
+              "type": "string"
+            },
+            "randomize": {
+              "type": "boolean",
+              "default": false
+            }
           }
         },
-
         "beheer": {
           "type": "boolean",
           "default": false,
           "description": "Field only visible to beheer (admin) users"
         },
-
         "hiddenWhen": {
           "type": "string",
           "description": "Safe expression — when it evaluates to true, the field is omitted entirely (not rendered, not saved). Grammar: literals (strings 'x', numbers, true/false/null), operators ==, !=, &&, ||, !, parentheses, identifiers of the form app.<key> (mapped to Application::get). Example: \"app.cma_sso_enabled == 'true'\". See Cma\\FormExpressionEvaluator. NOTE: form definitions are cached per formId — toggling a referenced Application value at runtime requires busting the form-def cache."
         }
       }
     },
-
     "dependency": {
       "type": "object",
-      "required": ["field", "condition", "value"],
+      "required": [
+        "field",
+        "condition",
+        "value"
+      ],
       "properties": {
         "field": {
           "type": "string",
@@ -404,7 +534,17 @@
         },
         "condition": {
           "type": "string",
-          "enum": ["=", "!=", ">", "<", ">=", "<=", "contains", "empty", "notEmpty"],
+          "enum": [
+            "=",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "contains",
+            "empty",
+            "notEmpty"
+          ],
           "description": "Comparison operator"
         },
         "value": {
@@ -412,18 +552,20 @@
         }
       }
     },
-
     "condition": {
       "type": "object",
       "properties": {
-        "field": {"type": "string"},
+        "field": {
+          "type": "string"
+        },
         "value": {}
       }
     },
-
     "subform": {
       "type": "object",
-      "required": ["title"],
+      "required": [
+        "title"
+      ],
       "properties": {
         "title": {
           "type": "string",
@@ -458,10 +600,12 @@
         }
       }
     },
-
     "tip": {
       "type": "object",
-      "required": ["id", "content"],
+      "required": [
+        "id",
+        "content"
+      ],
       "properties": {
         "id": {
           "type": "string",

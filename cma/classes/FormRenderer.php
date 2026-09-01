@@ -487,6 +487,27 @@ class FormRenderer
     }
 
     /**
+     * De startwaarde van een schakelaar als 'True' of 'False'.
+     *
+     * Een formulierdefinitie mag die op verschillende manieren opschrijven: JSON
+     * kent true/false, de database levert -1/0 of "Ja", en oudere definities zetten
+     * er de tekst "checked" neer. De client kent maar één vraag — staat hij aan? —
+     * dus die verscheidenheid wordt hier platgeslagen. Niets ingevuld betekent Uit.
+     *
+     * @param mixed $waarde Wat er in de definitie staat.
+     * @return string 'True' of 'False'
+     */
+    private static function schakelaarDefault($waarde): string
+    {
+        if (is_bool($waarde)) {
+            return $waarde ? 'True' : 'False';
+        }
+        $tekst = strtolower(trim((string) ($waarde ?? '')));
+        $aan = ['true', '1', '-1', 'checked', 'ja', 'yes', 'aan', 'on'];
+        return in_array($tekst, $aan, true) ? 'True' : 'False';
+    }
+
+    /**
      * Render a checkbox (iOS-style toggle)
      * Uses lib-switch web component
      */
@@ -496,7 +517,7 @@ class FormRenderer
         $readonly = $config['readonly'] ?? false;
         $newChangableOnly = $config['newChangableOnly'] ?? false;
         $yesNo = $config['yesNo'] ?? true;
-        $defaultValue = $config['defaultValue'] ?? 'False';
+        $defaultValue = self::schakelaarDefault($config['defaultValue'] ?? null);
         $caption = $config['caption'] ?? '';
 
         $dataAttrs = self::buildDataAttributes($name, 'checkbox', $required, $readonly, [

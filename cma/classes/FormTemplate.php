@@ -1765,6 +1765,19 @@ class FormTemplate
             'postCaption' => $this->arrRep[\Q_POSTCAPTION][$index] ?? '',
             // Include dataType for all controls - used for boolean formatting in labels (dataType 11 = Yes/No)
             'dataType' => $this->arrRep[\Q_SCHEMA_DATATYPE][$index] ?? '',
+            // De startwaarde van een NIEUW record (JSON: "defaultValue").
+            //
+            // WAAROM HIER EN NIET PER TYPE. Dit stond alleen in de radiogroup-tak
+            // hieronder. Een formulier kon dus keurig "defaultValue": true op een
+            // veld hebben staan, de loader zette dat in Q_SCHEMA_DEFAULT, en daarna
+            // werd het voor elk ander besturingselement weggegooid: het schakelaartje
+            // Actief van tblLogins kwam bij "nieuw" uit op Uit, terwijl er Aan hoorde
+            // te staan. Zonder foutmelding — de waarde was er gewoon niet.
+            //
+            // De renderer geeft het door als data-default; de client zet het pas bij
+            // een nieuw record (applyDefaultValues), dus een bestaand record dat leeg
+            // of anders is blijft ongemoeid.
+            'defaultValue' => $this->arrRep[\Q_SCHEMA_DEFAULT][$index] ?? '',
         ];
 
         // Control type specific config
@@ -1912,7 +1925,6 @@ class FormTemplate
                 if ($optionsJson) {
                     $config['options'] = json_decode($optionsJson, true) ?? [];
                 }
-                $config['defaultValue'] = $this->arrRep[\Q_SCHEMA_DEFAULT][$index] ?? '';
                 break;
         }
 

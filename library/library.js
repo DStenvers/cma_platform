@@ -138,6 +138,35 @@ var lib_zindex_manager = (function() {
      * have their own topWindow reference. For code that already has topWindow,
      * use topWindow.lib_zindex_manager directly instead (see note above).
      */
+    /**
+     * Regels weghalen waarvan het element niet meer bestaat.
+     *
+     * Een venster en een zijpaneel staan als element in de DOM, met precies het id dat
+     * hier in de stapel staat. Verdwijnt zo'n element buiten pop() om — de
+     * foutafhandeling van lib_screen_fade haalt met $("#__lib_win"+i).remove() ALLE
+     * vensters weg zonder deze boekhouding aan te raken — dan bleef zijn regel hier
+     * staan. Gevolg: de stapel telt te hoog, en elk volgend venster kreeg een z-index
+     * die verder doorklom dan nodig.
+     *
+     * Alleen 'window' en 'sidepanel' worden nagekeken; een dialoog of datumkiezer meldt
+     * zich met een verzonnen id (lib-dialog-<tijd>) dat niet in de DOM voorkomt.
+     *
+     * Veilig vlak vóór een push: het element wordt daar in dezelfde synchrone gang
+     * aangemaakt, dus tussen die push en het aanmaken komt er geen andere aanroep
+     * tussendoor die de verse regel zou kunnen opruimen.
+     */
+    function opschonen() {
+        for (var i = stack.length - 1; i >= 0; i--) {
+            var regel = stack[i];
+            if (regel.type !== 'window' && regel.type !== 'sidepanel') { continue; }
+            try {
+                if (!document.getElementById(regel.id)) { stack.splice(i, 1); }
+            } catch (e) {
+                // Geen document: laat de regel staan.
+            }
+        }
+    }
+
     function getTopManager() {
         try {
             // If we're in an iframe and the top window has a z-index manager, use it
@@ -162,6 +191,7 @@ var lib_zindex_manager = (function() {
             if (topManager) {
                 return topManager.push(id, type);
             }
+            opschonen();
             var zIndex = baseZIndex + (stack.length * 10);
             stack.push({ id: id, type: type, zIndex: zIndex });
             return zIndex;
@@ -211,6 +241,7 @@ var lib_zindex_manager = (function() {
             if (topManager) {
                 return topManager.getTop();
             }
+            opschonen();
             if (stack.length === 0) return baseZIndex;
             return stack[stack.length - 1].zIndex;
         },
@@ -224,6 +255,7 @@ var lib_zindex_manager = (function() {
             if (topManager) {
                 return topManager.count();
             }
+            opschonen();
             return stack.length;
         },
 
@@ -1125,6 +1157,39 @@ function lib_UrlAbsoluut(url, basis) {
  * @param {string} url Het adres dat geopend zou worden
  * @returns {boolean}
  */
+/**
+ * De panelenstapel, in lijn gebracht met wat er op het scherm staat.
+ *
+ * Elk paneel staat in de stapel én als element in de DOM, met hetzelfde id. Dat zijn
+ * twee waarheden, en ze lopen uiteen zodra een paneel buiten lib_CloseSidePanel om
+ * verdwijnt: een pagina die opnieuw laadt, een element dat elders wordt weggehaald.
+ * Daarna beweert de stapel dat er een paneel open staat terwijl het scherm leeg is —
+ * en daar hangen drie besluiten aan: paneel of venster sluiten (lib_ClosePanel), is dit
+ * adres al open (lib_IsOpenUrl), en welk adres in de balk komt (lib_sidepanel_syncUrl).
+ *
+ * Vandaar: vóór elk van die besluiten de regels weggooien waarvan het element weg is.
+ * lib_CloseSidePanel zoekt het te sluiten paneel al rechtstreeks in de DOM; dit trekt
+ * de rest van de boekhouding daarnaartoe.
+ *
+ * @param {Window} topWindow Het venster waar de stapel op staat.
+ * @returns {Array} Dezelfde stapel, zonder de regels van verdwenen panelen.
+ */
+function lib_sidepanel_stapel(topWindow) {
+	var stapel = (topWindow && topWindow.lib_sidepanel_stack) || [];
+	try {
+		var doc = topWindow.document;
+		for (var i = stapel.length - 1; i >= 0; i--) {
+			var regel = stapel[i];
+			if (regel && regel.id && !doc.getElementById(regel.id)) {
+				stapel.splice(i, 1);
+			}
+		}
+	} catch (e) {
+		// Geen toegang tot het document: laat de stapel zoals hij is.
+	}
+	return stapel;
+}
+
 function lib_IsOpenUrl(url) {
 	if (!url) { return false; }
 	var top_elt = lib_alertbox_getbody_doc_element();
@@ -1132,7 +1197,7 @@ function lib_IsOpenUrl(url) {
 	var topWindow = top_elt.defaultView || top_elt.parentWindow || window;
 	var doel = lib_UrlAbsoluut(url, top_elt.baseURI);
 
-	var stapel = topWindow.lib_sidepanel_stack;
+	var stapel = lib_sidepanel_stapel(topWindow);
 	if (stapel && stapel.length) {
 		for (var i = 0; i < stapel.length; i++) {
 			if (stapel[i] && lib_UrlAbsoluut(stapel[i].url, top_elt.baseURI) === doel) { return true; }
@@ -2303,7 +2368,7 @@ function lib_sidepanel_syncUrl(topWindow) {
 	try {
 		if (!topWindow || !topWindow.CMA || !topWindow.CMA.url) return;
 
-		var stack = topWindow.lib_sidepanel_stack || [];
+		var stack = lib_sidepanel_stapel(topWindow);
 		if (stack.length === 0) return;
 
 		// Read the panel that was just opened; a panel without an iframe (plain
@@ -3068,7 +3133,7 @@ async function lib_ClosePanel(skipConfirm) {
 	// Try sidepanel first (check top window's stack)
 	var top_elt = lib_alertbox_getbody_doc_element();
 	var topWindow = top_elt.defaultView || top_elt.parentWindow || window;
-	var stack = topWindow.lib_sidepanel_stack;
+	var stack = lib_sidepanel_stapel(topWindow);
 	if (stack && stack.length > 0) {
 		return lib_CloseSidePanel(skipConfirm);
 	}

@@ -570,7 +570,35 @@ CMA.utils.cancelPopupWatch = null;
         }
 
         // Check user preference for popup style
-        const useSidepanel = lib_getPopupStylePreference() === 'sidepanel';
+        const voorkeur = (typeof lib_getPopupStylePreference === 'function')
+            ? lib_getPopupStylePreference()
+            : '(functie ontbreekt)';
+        const useSidepanel = voorkeur === 'sidepanel';
+
+        // WAAROM DEZE REGEL. "Waarom opent dit scherm als venster terwijl ik het
+        // zijpaneel heb ingesteld?" was niet te beantwoorden: de keuze viel in stilte.
+        // Nu vertelt hij zichzelf — welke waarde er in het cookie stond, welke in
+        // localStorage, wat daar samen uit kwam, en wat er vervolgens geopend werd.
+        // Lopen cookie en localStorage uiteen, dan wijst dat regelrecht de oorzaak aan.
+        // Zichtbaar met debugmodus aan (cmaLog + de serverlog van _cmaDebugLog);
+        // zonder debugmodus kost het niets.
+        const keuzeUitleg = {
+            formulier: formId,
+            cookie: (typeof lib_leesCookie === 'function' ? lib_leesCookie('cma_popup_style') : '(onbekend)') || '(niet gezet)',
+            localStorage: (function () {
+                try { return localStorage.getItem('cma_popup_style') || '(niet gezet)'; }
+                catch (e) { return '(niet leesbaar)'; }
+            })(),
+            voorkeur: voorkeur,
+            opent: useSidepanel ? 'zijpaneel' : 'venster',
+            venster: (window === window.top ? 'hoofdvenster' : 'iframe')
+        };
+        if (window.cmaLog && typeof window.cmaLog.log === 'function') {
+            window.cmaLog.log('[openFormPopup] paneelkeuze', keuzeUitleg);
+        }
+        if (typeof window._cmaDebugLog === 'function') {
+            window._cmaDebugLog('openFormPopup:paneelkeuze', keuzeUitleg);
+        }
 
         if (useSidepanel) {
             // Use sidepanel - opens from the right side
