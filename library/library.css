@@ -867,7 +867,7 @@ table tr.odd { background-color: #fdfdfd }
     display: flex;
     align-items: center;
     height: var(--toolbar-height, 37px);
-    padding: 0 16px;
+    padding-left: 12px;
     background: var(--popup-caption-bg, #eef6ff);
     border-bottom: 1px solid var(--border-color, #ddd);
     flex-shrink: 0;

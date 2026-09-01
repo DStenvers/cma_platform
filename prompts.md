@@ -13371,3 +13371,7 @@ karaat-data en staat in de karaat-repo.
 >     background-image: none; op lib-table th .dropdown-filter-content
 
 > daarnaast lib-table .dropdown-filter-dropdown ->     margin-top: -4px;
+
+> The question Weet je zeker dat je alle aangevinkte berichten wilt verwijderen? should have more descriptive buttons and if no item is checked it should say 'Selecteer de berichten die u wilt verwijderen'
+
+> ja graag rood
