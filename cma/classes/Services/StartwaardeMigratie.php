@@ -148,6 +148,26 @@ class StartwaardeMigratie
         return ['definitie' => $definitie, 'gezet' => $gezet, 'overgeslagen' => $overgeslagen];
     }
 
+    /**
+     * De json_encode-vlaggen die de schrijfwijze van dit bestand aanhouden.
+     *
+     * De formulierdefinities zijn niet in één stijl geschreven: 14 bestanden slaan
+     * schuine strepen geescaped op ("..\/.."), de overige 116 niet. Wie er één stijl
+     * overheen legt, herschrijft duizenden regels die niets veranderen — en dan is in
+     * de wijziging niet meer te zien wát er nu eigenlijk anders is. Dus: kijk hoe het
+     * bestand het zelf doet en houd dat aan.
+     *
+     * @param string $origineel De inhoud van het bestand zoals het er nu staat.
+     */
+    public static function schrijfvlaggen(string $origineel): int
+    {
+        $vlaggen = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE;
+        if (strpos($origineel, '\\/') === false) {
+            $vlaggen |= JSON_UNESCAPED_SLASHES;
+        }
+        return $vlaggen;
+    }
+
     private static function overnemen($waarde, string $soort): array
     {
         return ['besluit' => self::OVERNEMEN, 'waarde' => $waarde, 'soort' => $soort, 'reden' => ''];

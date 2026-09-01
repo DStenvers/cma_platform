@@ -199,4 +199,29 @@ class StartwaardeMigratieTest extends TestCase
         $uit = M::toepassen($def, ['mv' => 'V']);
         $this->assertEquals('V', $uit['definitie']['fields'][0]['defaultValue']);
     }
+
+    // ------------------------------------------------------------------
+    // De schrijfwijze van het bestand
+    // ------------------------------------------------------------------
+
+    public function testEenBestandMetGeescapeteStrepenBlijftZo(): void
+    {
+        $vlaggen = M::schrijfvlaggen('{"url":"..\\/..\\/cma"}');
+        $this->assertEquals(0, $vlaggen & JSON_UNESCAPED_SLASHES, 'anders herschrijft de migratie het hele bestand');
+    }
+
+    public function testEenBestandMetKaleStrepenBlijftOokZo(): void
+    {
+        $vlaggen = M::schrijfvlaggen('{"url":"../../cma"}');
+        $this->assertTrue(($vlaggen & JSON_UNESCAPED_SLASHES) !== 0);
+    }
+
+    public function testDeStijlkeuzeVerandertAlleenDeStrepen(): void
+    {
+        foreach (['{"a":"b/c"}', '{"a":"b\\/c"}'] as $origineel) {
+            $vlaggen = M::schrijfvlaggen($origineel);
+            $this->assertTrue(($vlaggen & JSON_PRETTY_PRINT) !== 0, 'inspringen blijft');
+            $this->assertTrue(($vlaggen & JSON_UNESCAPED_UNICODE) !== 0, 'accenten blijven leesbaar');
+        }
+    }
 }

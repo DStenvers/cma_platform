@@ -162,9 +162,11 @@ foreach ($perForm as $formId => $perVeld) {
     ];
 
     if ($doorvoeren && $uit['gezet'] !== []) {
-        // Zonder JSON_UNESCAPED_SLASHES, want zo staan de bestanden er nu in:
-        // anders herschrijft elke migratie honderden regels die niets veranderen.
-        $json = json_encode($uit['definitie'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        // In de schrijfwijze van het bestand zelf: de definities staan niet allemaal
+        // in dezelfde stijl, en één stijl erover herschrijft duizenden regels die
+        // niets veranderen.
+        $origineel = (string) file_get_contents($pad);
+        $json = json_encode($uit['definitie'], StartwaardeMigratie::schrijfvlaggen($origineel));
         if ($json === false || file_put_contents($pad, $json . "\n") === false) {
             $fouten[] = 'Kon ' . basename($pad) . ' niet schrijven';
         } else {
