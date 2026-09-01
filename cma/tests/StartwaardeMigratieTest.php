@@ -201,66 +201,122 @@ class StartwaardeMigratieTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // De schrijfwijze van het bestand
+    // De startwaarde als losse regel in de bestandstekst
     // ------------------------------------------------------------------
 
-    public function testEenBestandMetGeescapeteStrepenBlijftZo(): void
+    private function definitieTekst(): string
     {
-        $vlaggen = M::schrijfvlaggen('{"url":"..\\/..\\/cma"}');
-        $this->assertEquals(0, $vlaggen & JSON_UNESCAPED_SLASHES, 'anders herschrijft de migratie het hele bestand');
+        // Acht spaties inspringen en geescapete strepen: zoals de echte bestanden.
+        return <<<JSON
+{
+        "name": "logins",
+        "table": "tblLogins",
+        "listColumns": [
+                {
+                        "name": "actief"
+                }
+        ],
+        "fields": [
+                {
+                        "name": "actief",
+                        "type": "checkbox",
+                        "caption": "Login actief?",
+                        "dataType": "boolean"
+                },
+                {
+                        "name": "roepnaam",
+                        "type": "textbox"
+                }
+        ]
+}
+JSON;
     }
 
-    public function testEenBestandMetKaleStrepenBlijftOokZo(): void
+    public function testDeStartwaardeKomtAchterDeCaptionInDeTekst(): void
     {
-        $vlaggen = M::schrijfvlaggen('{"url":"../../cma"}');
-        $this->assertTrue(($vlaggen & JSON_UNESCAPED_SLASHES) !== 0);
-    }
+        $uit = M::invoegen($this->definitieTekst(), [], ['actief' => true]);
+        $regels = explode("\n", $uit['tekst']);
 
-    public function testDeStijlkeuzeVerandertAlleenDeStrepen(): void
-    {
-        foreach (['{"a":"b/c"}', '{"a":"b\\/c"}'] as $origineel) {
-            $vlaggen = M::schrijfvlaggen($origineel);
-            $this->assertTrue(($vlaggen & JSON_PRETTY_PRINT) !== 0, 'inspringen blijft');
-            $this->assertTrue(($vlaggen & JSON_UNESCAPED_UNICODE) !== 0, 'accenten blijven leesbaar');
+        $i = null;
+        foreach ($regels as $n => $regel) {
+            if (strpos($regel, '"defaultValue"') !== false) { $i = $n; break; }
         }
+        $this->assertTrue($i !== null, 'de regel moet er staan');
+        $this->assertStringContainsString('"caption": "Login actief?"', $regels[$i - 1]);
+        $this->assertEquals('                        "defaultValue": true,', $regels[$i], 'zelfde inspringing als de buren');
     }
 
-    public function testDeInspringingVanHetBestandWordtHerkend(): void
+    public function testAlleenDeToegevoegdeRegelVerandert(): void
     {
-        $achtSpaties = "{\n        \"a\": 1\n}";
-        $vierSpaties = "{\n    \"a\": 1\n}";
-        $tabs        = "{\n\t\"a\": 1\n}";
+        $origineel = $this->definitieTekst();
+        $uit = M::invoegen($origineel, [], ['actief' => true]);
 
-        $this->assertEquals(8, strlen(M::inspringing($achtSpaties)));
-        $this->assertEquals(4, strlen(M::inspringing($vierSpaties)));
-        $this->assertEquals("\t", M::inspringing($tabs));
-        $this->assertEquals('    ', M::inspringing('{}'), 'niets te zien: vier spaties');
+        $oud = explode("\n", $origineel);
+        $nieuw = array_values(array_filter(explode("\n", $uit['tekst']), fn($r) => strpos($r, '"defaultValue"') === false));
+
+        $this->assertEquals($oud, $nieuw, 'haal de nieuwe regel weg en het bestand is weer letterlijk het oude');
     }
 
-    public function testHetOpnieuwGecodeerdeJsonKrijgtDeOudeInspringingTerug(): void
+    public function testDeUitkomstIsNogSteedsLeesbareJson(): void
     {
-        // json_encode springt altijd met vier spaties in; 113 van de 130 definities
-        // gebruiken er acht. Zonder deze stap verandert elke regel van het bestand.
-        $origineel = "{\n        \"a\": 1,\n        \"b\": {\n                \"c\": 2\n        }\n}";
-        $json = json_encode(['a' => 1, 'b' => ['c' => 2]], JSON_PRETTY_PRINT);
+        $uit = M::invoegen($this->definitieTekst(), [], ['actief' => true, 'roepnaam' => 'Jan']);
+        $terug = json_decode($uit['tekst'], true);
 
-        $this->assertEquals($origineel, M::herindenteer($json, $origineel));
+        $this->assertTrue($terug !== null, 'leesbaar gebleven');
+        $this->assertTrue($terug['fields'][0]['defaultValue'] === true);
+        $this->assertEquals('Jan', $terug['fields'][1]['defaultValue']);
     }
 
-    public function testEenBestandDatAlVierSpatiesGebruiktBlijftOngemoeid(): void
+    public function testEenVeldZonderCaptionKrijgtDeRegelAchterZijnNaam(): void
     {
-        $json = json_encode(['a' => 1], JSON_PRETTY_PRINT);
-        $this->assertEquals($json, M::herindenteer($json, "{\n    \"a\": 1\n}"));
+        $uit = M::invoegen($this->definitieTekst(), [], ['roepnaam' => 'Jan']);
+        $terug = json_decode($uit['tekst'], true);
+
+        $this->assertEquals('Jan', $terug['fields'][1]['defaultValue']);
+        $this->assertEquals('textbox', $terug['fields'][1]['type'], 'de rest van het veld blijft heel');
     }
 
-    public function testDeInhoudVanTekstenVerandertNietDoorHetHerindenteren(): void
+    public function testEenAnkerregelZonderKommaKrijgtErEen(): void
     {
-        // Een SQL-query met eigen inspringing staat in een string en mag niet meebewegen.
-        $def = ['listQuery' => "SELECT 1\n    FROM t", 'n' => 1];
-        $origineel = "{\n        \"n\": 1\n}";
-        $uit = M::herindenteer(json_encode($def, JSON_PRETTY_PRINT), $origineel);
+        // "type": "textbox" is de laatste regel van het blok; de nieuwe regel komt
+        // erachter en mag dan zelf geen komma hebben.
+        $uit = M::invoegen($this->definitieTekst(), [], ['roepnaam' => 'Jan']);
+        $this->assertTrue(json_decode($uit['tekst'], true) !== null, 'anders staat er een komma te veel of te weinig');
+        $this->assertStringContainsString('"name": "roepnaam",', $uit['tekst']);
+    }
 
-        $terug = json_decode($uit, true);
-        $this->assertEquals("SELECT 1\n    FROM t", $terug['listQuery'], 'de query zelf blijft letterlijk');
+    public function testEenNaamBuitenDeVeldenlijstWordtGenegeerd(): void
+    {
+        // "actief" staat ook in listColumns; daar hoort geen startwaarde.
+        $uit = M::invoegen($this->definitieTekst(), [], ['actief' => true]);
+        $this->assertEquals(1, substr_count($uit['tekst'], '"defaultValue"'));
+
+        $terug = json_decode($uit['tekst'], true);
+        $this->assertTrue(!isset($terug['listColumns'][0]['defaultValue']));
+    }
+
+    public function testEenVeldDatAlEenStartwaardeHeeftKrijgtErGeenTweede(): void
+    {
+        $eerst = M::invoegen($this->definitieTekst(), [], ['actief' => true]);
+        $nogmaals = M::invoegen($eerst['tekst'], [], ['actief' => false]);
+
+        $this->assertEquals(1, substr_count($nogmaals['tekst'], '"defaultValue"'), 'de migratie mag twee keer draaien');
+        $this->assertEquals(['actief'], $nogmaals['mislukt']);
+        $this->assertTrue(json_decode($nogmaals['tekst'], true)['fields'][0]['defaultValue'] === true);
+    }
+
+    public function testEenVeldDatNietInDeTekstStaatWordtGemeld(): void
+    {
+        $uit = M::invoegen($this->definitieTekst(), [], ['bestaatniet' => true]);
+        $this->assertEquals([], $uit['gezet']);
+        $this->assertEquals(['bestaatniet'], $uit['mislukt']);
+        $this->assertEquals($this->definitieTekst(), $uit['tekst'], 'en het bestand blijft ongemoeid');
+    }
+
+    public function testEenDefinitieZonderVeldenlijstBlijftOngemoeid(): void
+    {
+        $uit = M::invoegen('{"name":"x"}', [], ['actief' => true]);
+        $this->assertEquals('{"name":"x"}', $uit['tekst']);
+        $this->assertEquals(['actief'], $uit['mislukt']);
     }
 }

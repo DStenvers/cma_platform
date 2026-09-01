@@ -166,14 +166,22 @@ foreach ($perForm as $formId => $perVeld) {
         // in dezelfde stijl, en één stijl erover herschrijft duizenden regels die
         // niets veranderen.
         $origineel = (string) file_get_contents($pad);
-        $json = json_encode($uit['definitie'], StartwaardeMigratie::schrijfvlaggen($origineel));
-        if ($json !== false) {
-            $json = StartwaardeMigratie::herindenteer($json, $origineel);
-        }
-        if ($json === false || file_put_contents($pad, $json . "\n") === false) {
+        $ingevoegd = StartwaardeMigratie::invoegen($origineel, $perVeld, $uit['gezet']);
+
+        // Wat erin ging moet er ook weer uit te lezen zijn: één kapotte definitie
+        // legt het hele formulier stil, dus liever niets schrijven dan dat.
+        if (json_decode($ingevoegd['tekst'], true) === null) {
+            $fouten[] = basename($pad) . ' zou onleesbaar worden — overgeslagen';
+        } elseif ($ingevoegd['gezet'] === []) {
+            $fouten[] = basename($pad) . ': de velden zijn in de tekst niet teruggevonden';
+        } elseif (file_put_contents($pad, $ingevoegd['tekst']) === false) {
             $fouten[] = 'Kon ' . basename($pad) . ' niet schrijven';
         } else {
             $geschreven++;
+            if ($ingevoegd['mislukt']) {
+                $fouten[] = basename($pad) . ': niet teruggevonden in de tekst — '
+                    . implode(', ', $ingevoegd['mislukt']);
+            }
         }
     }
 }

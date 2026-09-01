@@ -148,63 +148,132 @@ class StartwaardeMigratie
         return ['definitie' => $definitie, 'gezet' => $gezet, 'overgeslagen' => $overgeslagen];
     }
 
+
+
+
     /**
-     * De json_encode-vlaggen die de schrijfwijze van dit bestand aanhouden.
+     * De startwaarden als losse regels in de bestandstekst zetten.
      *
-     * De formulierdefinities zijn niet in één stijl geschreven: 14 bestanden slaan
-     * schuine strepen geescaped op ("..\/.."), de overige 116 niet. Wie er één stijl
-     * overheen legt, herschrijft duizenden regels die niets veranderen — en dan is in
-     * de wijziging niet meer te zien wát er nu eigenlijk anders is. Dus: kijk hoe het
-     * bestand het zelf doet en houd dat aan.
+     * WAAROM NIET GEWOON OPNIEUW CODEREN. Dat is wat er eerst gebeurde, en het
+     * herschreef elk bestand van de eerste tot de laatste regel: json_encode springt
+     * met vier spaties in terwijl de meeste definities er acht gebruiken, en over de
+     * schuine strepen zijn de bestanden het onderling niet eens — acht ervan zijn het
+     * zelfs met zichzelf oneens. Het gevolg is dat de ene regel die er werkelijk toe
+     * doet verdwijnt in duizenden regels die niets veranderen, en dan is een wijziging
+     * niet meer na te kijken.
      *
-     * @param string $origineel De inhoud van het bestand zoals het er nu staat.
+     * Dus: de tekst blijft zoals hij is, op één toegevoegde regel per veld na. De
+     * regel komt achter "caption" (of achter "name" als er geen caption is), met de
+     * inspringing van zijn buren. Staat de ankerregel als laatste in het blok, dan
+     * krijgt die alsnog zijn komma en de nieuwe regel niet.
+     *
+     * Er wordt alleen gekeken binnen "fields": een veldnaam kan ook in listColumns of
+     * in een subformulier voorkomen, en daar hoort geen startwaarde.
+     *
+     * @param string $origineel De inhoud van het bestand.
+     * @param array  $perVeld   veldnaam (kleine letters) => waarde
+     * @param array  $gezet     De velden die volgens toepassen() gezet mogen worden.
+     * @return array{tekst:string, gezet:array, mislukt:array}
      */
-    public static function schrijfvlaggen(string $origineel): int
+    public static function invoegen(string $origineel, array $perVeld, array $gezet): array
     {
-        $vlaggen = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE;
-        if (strpos($origineel, '\\/') === false) {
-            $vlaggen |= JSON_UNESCAPED_SLASHES;
+        $regels = preg_split('/\r\n|\n|\r/', $origineel);
+        $eindeRegel = strpos($origineel, "\r\n") !== false ? "\r\n" : "\n";
+
+        [$van, $tot] = self::veldenBereik($regels);
+        if ($van === null) {
+            return ['tekst' => $origineel, 'gezet' => [], 'mislukt' => array_keys($gezet)];
         }
-        return $vlaggen;
+
+        $klaar = [];
+        $mislukt = [];
+
+        foreach ($gezet as $naam => $waarde) {
+            $anker = self::ankerRegel($regels, $van, $tot, $naam);
+            if ($anker === null) {
+                $mislukt[] = $naam;
+                continue;
+            }
+
+            preg_match('/^(\s*)/', $regels[$anker], $m);
+            $inspring = $m[1];
+            $heeftKomma = substr(rtrim($regels[$anker]), -1) === ',';
+            $nieuw = $inspring . '"defaultValue": ' . json_encode($waarde) . ($heeftKomma ? ',' : '');
+            if (!$heeftKomma) {
+                $regels[$anker] = rtrim($regels[$anker]) . ',';
+            }
+
+            array_splice($regels, $anker + 1, 0, [$nieuw]);
+            $tot++;
+            $klaar[$naam] = $waarde;
+        }
+
+        return ['tekst' => implode($eindeRegel, $regels), 'gezet' => $klaar, 'mislukt' => $mislukt];
     }
 
     /**
-     * De inspringing van het bestand terugzetten in het opnieuw gecodeerde JSON.
+     * De regelnummers waartussen de "fields"-lijst staat, op haakjesdiepte geteld.
      *
-     * json_encode springt altijd met vier spaties in. De definities doen dat niet
-     * allemaal: 113 bestanden gebruiken acht spaties, 17 gebruiken er vier. Zonder
-     * deze stap herschrijft de migratie elk bestand van de eerste tot de laatste
-     * regel, en gaat de ene toegevoegde regel die er echt toe doet kopje-onder in
-     * vijfduizend regels ruis.
-     *
-     * @param string $json      De uitvoer van json_encode (vier spaties per niveau).
-     * @param string $origineel Het bestand zoals het er nu staat.
+     * @return array{0:?int,1:?int}
      */
-    public static function herindenteer(string $json, string $origineel): string
+    private static function veldenBereik(array $regels): array
     {
-        $eenheid = self::inspringing($origineel);
-        if ($eenheid === '    ') {
-            return $json;
+        $van = null;
+        foreach ($regels as $i => $regel) {
+            if (preg_match('/^\s*"fields"\s*:\s*\[/', $regel) === 1) {
+                $van = $i;
+                break;
+            }
         }
-        return preg_replace_callback(
-            '/^( +)/m',
-            static function ($m) use ($eenheid) {
-                $niveau = intdiv(strlen($m[1]), 4);
-                return str_repeat($eenheid, $niveau);
-            },
-            $json
-        );
+        if ($van === null) {
+            return [null, null];
+        }
+
+        $diepte = 0;
+        for ($i = $van; $i < count($regels); $i++) {
+            $diepte += substr_count($regels[$i], '[') - substr_count($regels[$i], ']');
+            if ($i > $van && $diepte <= 0) {
+                return [$van, $i];
+            }
+        }
+        return [$van, count($regels) - 1];
     }
 
     /**
-     * Waarmee springt dit bestand in? Valt terug op vier spaties.
+     * De regel waarachter de startwaarde van dit veld hoort: zijn caption, anders
+     * zijn naam. Null als het veld er niet staat, of al een defaultValue heeft.
      */
-    public static function inspringing(string $origineel): string
+    private static function ankerRegel(array $regels, int $van, int $tot, string $naam): ?int
     {
-        if (preg_match('/\n(\t+|[ ]+)"/', $origineel, $m) === 1) {
-            return $m[1];
+        for ($i = $van; $i <= $tot; $i++) {
+            if (preg_match('/^\s*"name"\s*:\s*"(.*)"\s*,?\s*$/', $regels[$i], $m) !== 1) {
+                continue;
+            }
+            if (strcasecmp($m[1], $naam) !== 0) {
+                continue;
+            }
+
+            // Binnen dit veldblok: tot de volgende "name" of het einde van de lijst.
+            $eind = $tot;
+            for ($j = $i + 1; $j <= $tot; $j++) {
+                if (preg_match('/^\s*"name"\s*:/', $regels[$j]) === 1) {
+                    $eind = $j - 1;
+                    break;
+                }
+            }
+
+            $anker = $i;
+            for ($j = $i + 1; $j <= $eind; $j++) {
+                if (preg_match('/^\s*"defaultValue"\s*:/', $regels[$j]) === 1) {
+                    return null;
+                }
+                if (preg_match('/^\s*"caption"\s*:/', $regels[$j]) === 1) {
+                    $anker = $j;
+                }
+            }
+            return $anker;
         }
-        return '    ';
+        return null;
     }
 
     private static function overnemen($waarde, string $soort): array
