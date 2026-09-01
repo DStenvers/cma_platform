@@ -10675,11 +10675,13 @@ class CmaFormController {
             return;
         }
 
-        // Open URL in new tab or popup overlay
+        // Open URL in new tab, or in the panel/window the user prefers. Hier stond
+        // lib_OpenWindowCentered: dat is altijd een venster, ook voor wie in zijn
+        // voorkeuren het zijpaneel heeft gekozen. lib_OpenPanel kiest tussen die twee.
         if (openInNewWindow) {
             window.open(url, '_blank');
         } else {
-            lib_OpenWindowCentered(url, 'extra_action', 900, 700, title || 'Extra');
+            lib_OpenPanel(url, 'extra_action', 900, 700, title || 'Extra');
         }
     }
 

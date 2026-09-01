@@ -13306,3 +13306,68 @@ karaat-data en staat in de karaat-repo.
 > ik dacht dat er in het systeem menu een algemene audit log formulier was opgenomen, of zit dat elders (met name in mijn rino relevant
 
 > api-detail-context in light mode is white on lightgray, please change it to a readable form
+
+> wil je overstappen naar de mijn rino asp repo?
+
+> Ik krijg steeds Wrong number of arguments or invalid property assignment: 'GetDay(...).AddActivity'
+>
+> Veroorzaakt door /opleiding_draaiboek_digitaal.inc, line 1930
+>
+> https://mijn.rino.nl/ajax_get_draaiboek.asp?Opl=11
+> Description: Wrong number of arguments or invalid property assignment: 'GetDay(...).AddActivity' 
+> ASP Description: 
+> ASP Code: 
+> Number: -2146827838 (0x800A01C2) 
+> Source: 
+> Category: Microsoft VBScript runtime 
+> File: /opleiding_draaiboek_digitaal.inc 
+> Line: 1930 
+> Column: -1 
+> Page: https://mijn.rino.nl/ajax_get_draaiboek.asp?Opl=11 
+> Method: GET 
+> QueryString: Opl=11 
+> Request
+> Page    /ajax_get_draaiboek.asp
+> Method    GET
+> QueryString    Opl=11
+> Referer    https://mijn.rino.nl/?pageaction=opleidingen&opleidingID=11
+>
+> Timestamp    31-8-2026 12:04:29
+>
+>   
+>  op de productie-server, wil je daarnaar kijken=
+
+> global.asa moet untracked zijn. Wil je kijken of de php versie eenzelfde bug heeft?
+
+> de volgende error treedt nu op: 
+> https://mijn.rino.nl/ajax_get_draaiboek.asp?Opl=11
+> Description: Type mismatch: 'condition' 
+> ASP Description: 
+> ASP Code: 
+> Number: -2146828275 (0x800A000D) 
+> Source: 
+> Category: Microsoft VBScript runtime 
+> File: /library/lib_general.inc 
+> Line: 10 
+> Column: -1 
+> Page: https://mijn.rino.nl/ajax_get_draaiboek.asp?Opl=11 
+> Method: GET 
+> QueryString: Opl=11 
+> Request
+> Page    /ajax_get_draaiboek.asp
+> Method    GET
+> QueryString    Opl=11
+> Referer    https://mijn.rino.nl/?pageaction=opleidingen&opleidingID=11
+>
+> Timestamp    31-8-2026 15:24:14
+
+> welke file heb je gewijzigd en kun je een full release doen?
+
+## 2026-09-01
+
+> terug naar mijn rino php versie
+
+> in adam.css graag de stijl voor lib-Table override ->     background-color: var(--sand);
+>     background-image: none; op lib-table th .dropdown-filter-content
+
+> daarnaast lib-table .dropdown-filter-dropdown ->     margin-top: -4px;

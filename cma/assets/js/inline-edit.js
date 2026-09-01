@@ -2281,7 +2281,9 @@
                 const width = Math.round(window.innerWidth * 0.85);
                 const height = Math.round(window.innerHeight * 0.85);
 
-                lib_OpenWindowCentered(url, 'extra_action_' + index, width, height, btn.title || 'Extra');
+                // Zelfde als in form-controller: het zijpaneel of het venster, wat de
+                // gebruiker heeft ingesteld.
+                lib_OpenPanel(url, 'extra_action_' + index, width, height, btn.title || 'Extra');
             }
         }
 

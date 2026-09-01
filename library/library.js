@@ -2223,9 +2223,23 @@ var lib_sidepanel_stack = [];
 
 /**
  * Get user preference for popup style
+ *
+ * De KEUZE VAN DE GEBRUIKER staat in tblUsers (Voorkeuren) en wordt bij het opslaan
+ * naar het cookie cma_popup_style geschreven. localStorage is daar een kopie van, en
+ * die werd alleen bijgewerkt op het moment dat je de voorkeurenpagina opende. Wie zijn
+ * keuze op een andere machine had gezet, of ooit "popup" koos en daarna "zijpaneel",
+ * hield in deze browser de oude waarde — en zag zijn instelling genegeerd worden.
+ *
+ * Het cookie gaat daarom voor: dat is wat er is opgeslagen. localStorage blijft als
+ * terugval staan voor het geval het cookie er (nog) niet is.
+ *
  * @returns {string} 'sidepanel' or 'popup'
  */
 function lib_getPopupStylePreference() {
+	var uitCookie = lib_leesCookie('cma_popup_style');
+	if (uitCookie === 'popup' || uitCookie === 'sidepanel') {
+		return uitCookie;
+	}
 	try {
 		return localStorage.getItem('cma_popup_style') || 'sidepanel';
 	} catch (e) {
@@ -2233,8 +2247,22 @@ function lib_getPopupStylePreference() {
 	}
 }
 
+/** Eén cookie uit document.cookie, of '' als hij er niet staat. */
+function lib_leesCookie(naam) {
+	try {
+		var delen = ('; ' + document.cookie).split('; ' + naam + '=');
+		return delen.length === 2 ? decodeURIComponent(delen.pop().split(';').shift()) : '';
+	} catch (e) {
+		return '';
+	}
+}
+
 /**
  * Set user preference for popup style
+ *
+ * Schrijft naar allebei: het cookie is wat lib_getPopupStylePreference() leest, en
+ * localStorage blijft de terugval. Het opslaan in tblUsers doet preferences.php.
+ *
  * @param {string} style 'sidepanel' or 'popup'
  */
 function lib_setPopupStylePreference(style) {
@@ -2242,6 +2270,12 @@ function lib_setPopupStylePreference(style) {
 		localStorage.setItem('cma_popup_style', style);
 	} catch (e) {
 		// localStorage not available
+	}
+	try {
+		document.cookie = 'cma_popup_style=' + encodeURIComponent(style)
+			+ '; path=/; max-age=' + (365 * 24 * 60 * 60) + '; samesite=lax';
+	} catch (e) {
+		// cookies niet beschikbaar
 	}
 }
 
