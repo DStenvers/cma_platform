@@ -344,6 +344,27 @@ CMA.utils.setRecordCount = function(text) {
  * @param {boolean} opts.isCopy   true (and not new) => "kopiëren"
  * @returns {string}
  */
+/**
+ * Staat dit vinkje aan?
+ *
+ * Access levert een ja/nee-veld als -1 of 0, en of dat als GETAL of als TEKST bij de
+ * browser aankomt hangt van de driver af. De twee plekken die dit beoordeelden hadden
+ * elk hun eigen lijstje, en die liepen uiteen: de tabelweergave kende '-1' wel, het
+ * formulier niet. Gevolg: in de lijst stond de schakelaar aan en in het formulier
+ * eronder uit, voor precies hetzelfde record.
+ *
+ * @param {*} waarde
+ * @returns {boolean}
+ */
+CMA.utils.isAangevinkt = function(waarde) {
+    if (waarde === true) { return true; }
+    if (waarde === 1 || waarde === -1) { return true; }
+    if (typeof waarde !== 'string') { return false; }
+    const w = waarde.trim().toLowerCase();
+    return w === 'true' || w === '1' || w === '-1' || w === 'j' || w === 'ja'
+        || w === 'y' || w === 'yes' || w === 'on';
+};
+
 CMA.utils.formActionTitle = function(name, opts) {
     opts = opts || {};
     const rid = opts.recordId;

@@ -8308,7 +8308,8 @@ class CmaFormController {
 
             switch (type) {
                 case 'checkbox':
-                    const isChecked = value === true || value === 'true' || value === '1' || value === 'True' || value === -1;
+                    // Eén waarheid, gedeeld met de tabelweergave: zie CMA.utils.isAangevinkt.
+                    const isChecked = CMA.utils.isAangevinkt(value);
                     // Handle lib-switch web component
                     if (field.tagName === 'LIB-SWITCH') {
                         field.checked = isChecked;

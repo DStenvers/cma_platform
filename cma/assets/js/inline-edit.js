@@ -1909,10 +1909,8 @@
                         ' class="inline-input">';
 
                 case 'checkbox':
-                    // Handle various truthy values for booleans
-                    const isChecked = value === true || value === 'True' || value === 'true' ||
-                                      value === 1 || value === '1' || value === -1 || value === '-1' ||
-                                      value === 'J' || value === 'Ja' || value === 'Yes' || value === 'Y';
+                    // Eén waarheid, gedeeld met het formulier: zie CMA.utils.isAangevinkt.
+                    const isChecked = CMA.utils.isAangevinkt(value);
                     return '<lib-switch name="' + fieldName + '"' + (isChecked ? ' checked' : '') + '></lib-switch>';
 
                 case 'combobox':
