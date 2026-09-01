@@ -24,14 +24,19 @@ if (typeof window.CMA_DEBUG === 'undefined') {
  */
 window.CMA_DEBUG = (function() {
     const hostname = window.location.hostname.toLowerCase();
-    // O and T environments: localhost, dev, test, or hostname starting with o/t
+    // O- en T-omgevingen: localhost, het lokale netwerk, of een naam waarin
+    // "dev"/"test"/"acceptatie" als eigen woord voorkomt.
+    //
+    // WAAROM ALS WOORD EN NIET ALS STUKJE TEKST. Dit keek op '.test' en '-t.', en
+    // liet daarmee test-mijn.rino.nl buiten de deur: op de testomgeving stond de
+    // debugmodus dus uit, precies waar hij nodig is. Een losse zoektocht naar
+    // "test" is te ruim (contest.nl), vandaar de woordgrens: het label moet
+    // beginnen of eindigen met dev/test/acc, of ze los bevatten.
+    const woord = /(^|[.\-])(dev|test|tst|acc|acceptatie|staging|o|t)([.\-]|$)/;
     return hostname === 'localhost' ||
            hostname === '127.0.0.1' ||
-           hostname.indexOf('172.') === 0 ||  // Local network (dev)
-           hostname.indexOf('.dev') !== -1 ||
-           hostname.indexOf('.test') !== -1 ||
-           hostname.indexOf('-o.') !== -1 ||  // -o. subdomain pattern
-           hostname.indexOf('-t.') !== -1;    // -t. subdomain pattern
+           hostname.indexOf('172.') === 0 ||  // lokaal netwerk (ontwikkeling)
+           woord.test(hostname);
 })();
 
 /**
