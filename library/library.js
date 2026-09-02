@@ -2809,18 +2809,47 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		};
 	}
 
-	function sleep(startEv, opZet) {
+	// Een klik is geen sleep. Pas voorbij deze afstand telt het als slepen.
+	//
+	// WAAROM DIT ER IS. Het losmaken gebeurde op mousedown, nog vóór enige beweging,
+	// en de stand werd bij elke mouseup bewaard. Eén per ongeluk aangeraakte
+	// paneelkop maakte het paneel dus zwevend, en omdat de stand per formulier in
+	// localStorage staat, kwam dat formulier daarna élke keer als los venster terug
+	// — terwijl alle andere formulieren netjes rechts vastgeplakt bleven. Dat leest
+	// als "dit ene scherm negeert mijn voorkeur", en er is niets aan te zien: de
+	// voorkeur staat gewoon op zijpaneel en er wordt ook echt een zijpaneel geopend.
+	var SLEEPDREMPEL = 4;
+
+	/**
+	 * Slepen aan een greep of aan de kop.
+	 *
+	 * @param {MouseEvent} startEv   De mousedown.
+	 * @param {Function}   opZet     Wordt aangeroepen bij elke beweging voorbij de drempel.
+	 * @param {Function=}  opLosmaken Eenmalig, op het moment dat de drempel wordt gehaald.
+	 */
+	function sleep(startEv, opZet, opLosmaken) {
 		if (startEv.button !== 0) { return; }
 		startEv.preventDefault();
 		var r = panel.getBoundingClientRect();
 		var start = { x: startEv.clientX, y: startEv.clientY, b: r.width, h: r.height, l: r.left, t: r.top };
-		panel.style.transition = 'none';
-		laagAan();
+		var bewogen = false;
 
-		function beweeg(ev) { opZet(ev.clientX - start.x, ev.clientY - start.y, start); }
+		function beweeg(ev) {
+			var dx = ev.clientX - start.x;
+			var dy = ev.clientY - start.y;
+			if (!bewogen) {
+				if (Math.abs(dx) < SLEEPDREMPEL && Math.abs(dy) < SLEEPDREMPEL) { return; }
+				bewogen = true;
+				panel.style.transition = 'none';
+				laagAan();
+				if (opLosmaken) { opLosmaken(start); }
+			}
+			opZet(dx, dy, start);
+		}
 		function los() {
 			doc.removeEventListener('mousemove', beweeg, true);
 			doc.removeEventListener('mouseup', los, true);
+			if (!bewogen) { return; }   // een klik verandert niets, en bewaart dus ook niets
 			laagUit();
 			panel.style.transition = '';
 			lib_sidepanel_bewaarStand(sleutel, huidigeStand());
@@ -2860,23 +2889,22 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		kop.classList.add('lib_sidepanel_versleepbaar');
 		kop.addEventListener('mousedown', function (ev) {
 			if (ev.target.closest('button, a, input, select, textarea')) { return; }
-			var r = panel.getBoundingClientRect();
-			if (!panel.classList.contains('lib_sidepanel_zwevend')) {
-				// Van vastgeplakt naar zwevend: bevries de huidige plek in pixels,
-				// anders springt hij bij de eerste beweging naar links.
+			sleep(ev, function (dx, dy, start) {
+				panel.style.left = Math.round(Math.max(-start.b + ZICHTBAAR, Math.min(start.l + dx, win.innerWidth - ZICHTBAAR))) + 'px';
+				panel.style.top = Math.round(Math.max(0, Math.min(start.t + dy, win.innerHeight - ZICHTBAAR))) + 'px';
+			}, function (start) {
+				if (panel.classList.contains('lib_sidepanel_zwevend')) { return; }
+				// Van vastgeplakt naar zwevend: bevries de plek van vóór de sleep in
+				// pixels, anders springt hij bij de eerste beweging naar links.
 				panel.classList.add('lib_sidepanel_zwevend');
-				panel.style.left = Math.round(r.left) + 'px';
-				panel.style.top = Math.round(r.top) + 'px';
-				panel.style.width = Math.round(r.width) + 'px';
-				panel.style.height = Math.round(r.height) + 'px';
+				panel.style.left = Math.round(start.l) + 'px';
+				panel.style.top = Math.round(start.t) + 'px';
+				panel.style.width = Math.round(start.b) + 'px';
+				panel.style.height = Math.round(start.h) + 'px';
 				panel.style.right = 'auto';
 				panel.style.bottom = 'auto';
 				panel.style.maxWidth = 'none';
 				panel.style.transform = 'none';
-			}
-			sleep(ev, function (dx, dy, start) {
-				panel.style.left = Math.round(Math.max(-start.b + ZICHTBAAR, Math.min(start.l + dx, win.innerWidth - ZICHTBAAR))) + 'px';
-				panel.style.top = Math.round(Math.max(0, Math.min(start.t + dy, win.innerHeight - ZICHTBAAR))) + 'px';
 			});
 		});
 		// Terug naar vastgeplakt: één handeling, bereikbaar op twee manieren.
