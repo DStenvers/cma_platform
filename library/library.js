@@ -1243,6 +1243,27 @@ function lib_OpenWindowCentered(adres, naam, win_width, win_height, title, win_c
 	if (adres && lib_IsOpenUrl(adres)) {
 		return null;
 	}
+
+	// WAAROM DEZE REGEL. "Waarom is dit een venster en geen zijpaneel?" bleef
+	// onbeantwoordbaar: de paneelkeuze in openFormPopup meldde keurig "zijpaneel",
+	// en tóch stond er een venster op het scherm. Er is dus nog een aanroeper. Wie
+	// dat is staat in de aanroepstapel, dus die wordt hier meegegeven. Alleen met
+	// debugmodus aan; verder kost het niets.
+	if (window.cmaLog && typeof window.cmaLog.log === 'function') {
+		var herkomst = '';
+		try {
+			herkomst = (new Error()).stack || '';
+		} catch (e) {
+			herkomst = '(geen aanroepstapel)';
+		}
+		window.cmaLog.log('[lib_OpenWindowCentered] venster geopend', {
+			adres: adres || '(eigen inhoud)',
+			naam: naam,
+			titel: title,
+			aanroeper: herkomst
+		});
+	}
+
 	var mObj = null;
 	try {
 		// Fix relative URLs when using clean URLs
@@ -2478,6 +2499,9 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			// Zelfde vraag als bij een venster, en nu over de hele stapel in plaats
 			// van alleen het bovenste paneel.
 			if (lib_IsOpenUrl(url)) {
+				if (window.cmaLog && typeof window.cmaLog.log === 'function') {
+					window.cmaLog.log('[lib_OpenSidePanel] stond al open, niets gedaan', url);
+				}
 				return null;
 			}
 

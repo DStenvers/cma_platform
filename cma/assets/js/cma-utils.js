@@ -627,6 +627,26 @@ CMA.utils.cancelPopupWatch = null;
             }
         }
 
+        // En wat er even later daadwerkelijk op het scherm staat. De keuze hierboven
+        // zegt wat we vroegen; dit zegt wat het werd. Staat er een venster terwijl
+        // hier "zijpaneel" is gekozen, dan is er nog een aanroeper — en die meldt
+        // zich in lib_OpenWindowCentered met zijn aanroepstapel.
+        if (window.cmaLog && typeof window.cmaLog.log === 'function') {
+            setTimeout(function () {
+                try {
+                    var doc = (window.top || window).document;
+                    window.cmaLog.log('[openFormPopup] op het scherm', {
+                        formulier: formId,
+                        gekozen: keuzeUitleg.opent,
+                        zijpanelen: doc.querySelectorAll('.lib_sidepanel_container').length,
+                        vensters: doc.querySelectorAll('[id^="__lib_win"]').length
+                    });
+                } catch (e) {
+                    window.cmaLog.log('[openFormPopup] op het scherm: niet te bekijken', e.message);
+                }
+            }, 400);
+        }
+
         return url;
     };
 
