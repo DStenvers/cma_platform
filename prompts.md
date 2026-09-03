@@ -13375,3 +13375,7 @@ karaat-data en staat in de karaat-repo.
 > The question Weet je zeker dat je alle aangevinkte berichten wilt verwijderen? should have more descriptive buttons and if no item is checked it should say 'Selecteer de berichten die u wilt verwijderen'
 
 > ja graag rood
+
+## 2026-09-03
+
+> login is now a sidepanel, but the default value of actief is still false?! Do i need to do anything?

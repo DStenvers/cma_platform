@@ -460,12 +460,19 @@ use Cma\ToolbarHelper;
 
 Response::noCache();
 
-// Capture how many files bootstrap loaded (for informational display)
-$_bootstrapOpcacheCount = 0;
-if (function_exists('opcache_get_status')) {
-    $_bootstrapStats = @opcache_get_status(false);
-    $_bootstrapOpcacheCount = $_bootstrapStats['opcache_statistics']['num_cached_scripts'] ?? 0;
-}
+// Hoeveel PHP-bestanden compileert DIT verzoek zelf? Dat is de bodem van de
+// OPcache-telling, en de verklaring voor "waarom staat er na het legen weer 132".
+//
+// WAAROM DIT ER STOND EN WAT ER MIS WAS. Hier stond "Bootstrap scripts", maar het
+// las opnieuw opcache_get_status() — dus de globale teller van de hele app-pool,
+// niet wat de bootstrap laadde. En omdat OPcache uitgesteld flusht, kwam daar
+// hetzelfde getal uit als vóór het legen. Een label dat iets anders beloofde dan
+// het toonde, precies bij het getal waar iedereen naar kijkt.
+//
+// get_included_files() telt wél dit verzoek. Na de herstart compileert het volgende
+// verzoek deze bestanden opnieuw, dus daar begint de teller weer — nul is bij een
+// PHP-pagina die zichzelf toont onbereikbaar.
+$_ditVerzoekBestanden = count(get_included_files());
 
 // ============================================================================
 // PHASE 3: Clear memory-based caches and collect results
@@ -500,7 +507,8 @@ if (function_exists('opcache_reset')) {
             'Herstart gepland' => ($_postOpcacheRestartPending === null ? 'onbekend'
                 : ($_postOpcacheRestartPending ? 'ja — SHM wordt geleegd bij het volgende request (uitgestelde flush; daarom blijft de telling nu staan)' : 'nee')),
             'Telling direct na reset' => ($_postOpcacheScripts === null ? 'onbekend' : $_postOpcacheScripts . ' — blijft gelijk aan vóór, óók bij succes: OPcache flusht uitgesteld, niet in dit request'),
-            'Bootstrap scripts' => $_bootstrapOpcacheCount . ' (normaal na refresh)',
+            'Dit verzoek compileert zelf' => $_ditVerzoekBestanden . ' bestanden — de bodem van de telling: '
+                . 'na de herstart compileert het volgende verzoek deze opnieuw, dus daar begint de teller weer',
             'Cache hits' => number_format($_preOpcacheStats['opcache_statistics']['hits'] ?? 0),
             'Cache misses' => number_format($_preOpcacheStats['opcache_statistics']['misses'] ?? 0),
         ] : null
@@ -1260,7 +1268,10 @@ echo '</table>';
 echo '<lib-message type="info" style="margin-top:12px;" closable="false">';
 echo '<span class="cma-tool__strong">Waarom deze aantallen nooit 0 worden.</span> ';
 echo 'Het zijn standen vlak vóór het legen; het framework vult de caches bij elk request meteen weer (auto-prepend van <code>_bootstrap.php</code>). ';
-echo '<span class="cma-tool__strong">APCu</span> leegt direct (<span class="cma-tool__em">Direct na legen</span> = 0); <span class="cma-tool__strong">OPcache</span> flusht uitgesteld — pas bij het volgende request — dus de scripttelling blijft nu staan, óók bij een geslaagde reset (kijk naar <span class="cma-tool__em">Reset uitgevoerd = ja</span>).';
+echo '<span class="cma-tool__strong">APCu</span> leegt direct (<span class="cma-tool__em">Direct na legen</span> = 0); <span class="cma-tool__strong">OPcache</span> flusht uitgesteld — pas bij het volgende request — dus de scripttelling blijft nu staan, óók bij een geslaagde reset (kijk naar <span class="cma-tool__em">Reset uitgevoerd = ja</span>). ';
+echo 'En er is een bodem: deze pagina compileert zelf <span class="cma-tool__strong">' . $_ditVerzoekBestanden . '</span> PHP-bestanden. ';
+echo 'Die staan na de herstart meteen weer in OPcache, want er is een verzoek nodig om het je te laten zien. ';
+echo 'Een OPcache-telling van rond de ' . $_ditVerzoekBestanden . ' is dus niet een restant dat blijft hangen, maar deze pagina zelf — lager kan niet.';
 echo '</lib-message>';
 
 // ==================== TERSER SETUP INSTRUCTIONS ====================

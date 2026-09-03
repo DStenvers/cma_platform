@@ -733,11 +733,14 @@ class Installer
         // 8. Write manifest for tracking
         self::writeManifest($projectRoot, $platformDir);
 
-        // 8b. Name the assets that will go out unminified. The serving layer falls
-        //     back to the source whenever the .min is missing or older, which is the
-        //     safe choice but a silent one: nothing anywhere says that a site is
-        //     shipping a 137 KB stylesheet where 118 KB would do. This is the moment
-        //     the operator is looking at the deploy, so this is where it belongs.
+        // 8b. De .min-bestanden bouwen, en daarna melden wat er alsnog onverkleind
+        //     uitgaat. De serveerlaag valt terug op de bron zodra de .min ontbreekt of
+        //     ouder is — de veilige keuze, maar een stille: nergens staat dat een site
+        //     een stylesheet van 137 KB serveert waar 118 KB volstaat. Dit is het
+        //     moment dat de beheerder naar de deploy kijkt, dus hier hoort het.
+        foreach (self::buildMinifiedAssets($projectRoot) as $line) {
+            $io->write('  - ' . $line);
+        }
         foreach (self::reportUnminifiedAssets($projectRoot) as $line) {
             $io->write('  - ' . $line);
         }
@@ -765,18 +768,111 @@ class Installer
     }
 
     /**
+     * Kan er hier verkleind worden, en zo nee: waarom niet?
+     *
+     * Losgetrokken van het draaien zelf zodat de afweging te testen is zonder een
+     * proces te starten. Twee dingen moeten er staan: het bouwscript (dat synct mee
+     * met het platform) en cma/node_modules met terser erin — die zet alleen
+     * `npm install` daar neer, en dat kan composer niet voor de beheerder doen.
+     *
+     * @return array{kan:bool, script:string, reden:string}
+     */
+    public static function minifyBouwplan(string $projectRoot): array
+    {
+        $script = $projectRoot . '/cma/tools/build-minify.js';
+        if (!is_file($script)) {
+            return ['kan' => false, 'script' => $script, 'reden' => 'cma/tools/build-minify.js ontbreekt'];
+        }
+        if (!is_dir($projectRoot . '/cma/node_modules/terser')) {
+            return [
+                'kan' => false,
+                'script' => $script,
+                'reden' => 'cma/node_modules ontbreekt — eenmalig "cd cma && npm install"',
+            ];
+        }
+        return ['kan' => true, 'script' => $script, 'reden' => ''];
+    }
+
+    /**
+     * De .min-bestanden bouwen, als dat hier kan.
+     *
+     * WAAROM DIT ER IS. Hiervoor werd alleen gemeld wát er onverkleind zou uitgaan,
+     * met de opdracht erbij om het zelf te doen. Dat werkt alleen als iemand de
+     * composer-uitvoer leest én de opdracht daarna ook echt uitvoert; in de praktijk
+     * ging een site maandenlang de bron serveren zonder dat iemand het merkte, want
+     * onverkleind serveren is correct — alleen groter.
+     *
+     * Er wordt `node cma/tools/build-minify.js` gedraaid, niet `npm run`: het script
+     * bepaalt zijn paden uit __dirname, dus de werkmap doet er niet toe, en het roept
+     * terser en lightningcss als bibliotheek aan. Zo is npm zelf niet nodig — alleen
+     * node.
+     *
+     * Deze stap laat een update NOOIT mislukken. Ontbreekt node of node_modules, dan
+     * is dat een mededeling en geen fout: onverkleind serveren werkt gewoon. Wat er
+     * daarna nog openstaat, meldt reportUnminifiedAssets() alsnog.
+     *
+     * @return string[] Regels voor de composer-uitvoer.
+     */
+    private static function buildMinifiedAssets(string $projectRoot): array
+    {
+        $plan = self::minifyBouwplan($projectRoot);
+        if (!$plan['kan']) {
+            return ['Verkleinen overgeslagen: ' . $plan['reden']];
+        }
+
+        $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+        $pipes = [];
+        $proces = @proc_open(['node', $plan['script']], $descriptors, $pipes, $projectRoot);
+        if (!is_resource($proces)) {
+            return ['Verkleinen overgeslagen: node is hier niet te starten'];
+        }
+
+        $uit = (string) stream_get_contents($pipes[1]);
+        $fout = (string) stream_get_contents($pipes[2]);
+        foreach ($pipes as $pipe) {
+            if (is_resource($pipe)) {
+                fclose($pipe);
+            }
+        }
+        $code = proc_close($proces);
+
+        // Het script telt zijn mislukkingen in de afsluitcode. Een nul is klaar.
+        $samenvatting = '';
+        foreach (array_reverse(preg_split('/\r\n|\n|\r/', trim($uit)) ?: []) as $regel) {
+            if (stripos($regel, 'minified') !== false || stripos($regel, 'skipped') !== false) {
+                $samenvatting = trim($regel);
+                break;
+            }
+        }
+
+        if ($code !== 0) {
+            $melding = trim($fout) !== '' ? trim($fout) : ('afsluitcode ' . $code);
+            return ['<warning>Verkleinen gaf ' . $code . ' fout(en): '
+                . self::eersteRegel($melding) . '</warning>'];
+        }
+
+        return ['Verkleind' . ($samenvatting !== '' ? ' (' . $samenvatting . ')' : '')];
+    }
+
+    /** De eerste regel van een melding, zodat de composer-uitvoer leesbaar blijft. */
+    private static function eersteRegel(string $tekst): string
+    {
+        $regels = preg_split('/\r\n|\n|\r/', trim($tekst)) ?: [];
+        return $regels[0] ?? '';
+    }
+
+    /**
      * List the CSS/JS that will be served in full because their .min is missing or older.
      *
-     * Deliberately a report and not a build. Minifying needs terser and lightningcss
-     * from cma/node_modules, and only `npm install` puts them there — which composer
-     * cannot do for the operator. A step that silently did nothing would be worse than
-     * none at all: it would read as "minification is handled".
+     * Draait NA buildMinifiedAssets(), en meldt dus alleen wat er dan nog openstaat:
+     * een site zonder node of zonder cma/node_modules, of een bestand waar het bouwen
+     * op stukliep. Stond hier eerst alleen dit rapport, met de opdracht om het zelf te
+     * doen — maar dat werkt alleen als iemand de composer-uitvoer leest én de opdracht
+     * daarna ook uitvoert, en onverkleind serveren is correct, alleen groter. Zoiets
+     * valt dus nooit vanzelf op.
      *
-     * So the platform builds its own .min files before it is released (a test guards
-     * that), and this step names what is left — mostly a site's own assets/, which the
-     * platform never builds. The site can build those itself: it gets cma/package.json
-     * (ROOT_SYNCED_FILES) and tools/build-minify.js, so the command this prints works
-     * on a consumer site, Windows/IIS included.
+     * Het platform bouwt zijn eigen .min-bestanden al vóór een release (een test bewaakt
+     * dat); wat hier meestal overblijft is de eigen assets/ van een site.
      *
      * @return string[] Lines for the composer output; empty when everything is current.
      */
