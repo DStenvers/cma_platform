@@ -1497,6 +1497,14 @@ class CmaFormController {
             this.directRecordMode = true;
             this.setDisplayModeClass('detail');
             this.formInit().then(async () => {
+                // Startwaarden uit de definitie (data-default). newRecord() doet dit
+                // meteen na clearForm(); langs deze weg werd het overgeslagen, en dan
+                // opende /cma/form/<form>/new met een schakelaar op uit terwijl de
+                // definitie "defaultValue": true zegt. Dat gaat vóór de parent- en
+                // filterwaarden hieronder, zodat die een startwaarde kunnen overschrijven
+                // en niet andersom — dezelfde volgorde als in newRecord().
+                this.applyDefaultValues();
+
                 // Opened with parent context (a subform's add button): the new
                 // record must carry the link to its parent. That field is
                 // normally required, so without this the save is refused.
