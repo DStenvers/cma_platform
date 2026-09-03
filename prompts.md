@@ -13379,3 +13379,11 @@ karaat-data en staat in de karaat-repo.
 ## 2026-09-03
 
 > login is now a sidepanel, but the default value of actief is still false?! Do i need to do anything?
+
+> default waarde nu ook goed, is dat nu generiek opgelostof alleen voor het login scherm?
+
+> \in inline edit modus of a table, the first column does not have the blue border
+
+> nee ik doel op de tr van de tabel, nietr zozeer de border om het invoerveld, daar snap ik dat het geen focus heeft.
+
+> subforms don't use all available space and create a scrollbar which is totally unneccesary

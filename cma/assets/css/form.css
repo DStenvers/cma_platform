@@ -2258,6 +2258,17 @@ lib-table .subform-section table thead {
     background: #fffde7 !important;
 }
 
+/* Behalve de eerste cel. De rij tekent zijn omlijning als een outline op de <tr>
+   (lib-table.css, .listrow:hover), en de eerste cel staat op position:relative omdat
+   het rijmenu erin hangt. Een geplaatste cel schildert over de outline van zijn
+   voorouder heen — zolang die cel doorzichtig is merk je daar niets van, maar met de
+   dekkende bewerkkleur hierboven verdwijnt de omlijning precies over de eerste kolom
+   en lijkt de rij links open te staan. De <tr> draagt diezelfde kleur al, dus de cel
+   doorzichtig laten geeft hetzelfde gele vlak mét een sluitende omlijning. */
+.listtable tr.editing td:first-child {
+    background: transparent !important;
+}
+
 /* Hide row menu trigger when editing */
 .listtable tr.editing .row-menu-trigger {
     display: none !important;
