@@ -639,7 +639,11 @@ CMA.utils.cancelPopupWatch = null;
                         formulier: formId,
                         gekozen: keuzeUitleg.opent,
                         zijpanelen: doc.querySelectorAll('.lib_sidepanel_container').length,
-                        vensters: doc.querySelectorAll('[id^="__lib_win"]').length
+                        vensters: doc.querySelectorAll('[id^="__lib_win"]').length,
+                        // Hier zat de hele verwarring: een zijpaneel dat zweeft is van
+                        // een venster niet te onderscheiden. Zonder deze telling lijkt
+                        // "1 zijpaneel, 0 vensters" te bewijzen dat alles klopt.
+                        zwevend: doc.querySelectorAll('.lib_sidepanel_zwevend').length
                     });
                 } catch (e) {
                     window.cmaLog.log('[openFormPopup] op het scherm: niet te bekijken', e.message);

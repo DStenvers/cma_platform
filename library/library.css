@@ -903,8 +903,7 @@ table tr.odd { background-color: #fdfdfd }
     white-space: nowrap;
 }
 
-.lib_sidepanel_maximize,
-.lib_sidepanel_zwevend .lib_sidepanel_dock {
+.lib_sidepanel_maximize {
     width: 25px;
     height: 25px;
     background: transparent;
@@ -921,20 +920,13 @@ table tr.odd { background-color: #fdfdfd }
     border-radius: 4px;
 }
 
-.lib_sidepanel_maximize .lnr,
-.lib_sidepanel_dock .lnr {
+.lib_sidepanel_maximize .lnr {
     font-size: 14px;
 }
 
 /* Single-arrow maximize/restore icons (inline SVG mask): expand keeps only the
    top-right arrow, contract only the bottom-left. Scoped to the sidepanel header so
    the shared lnr-frame-* glyphs elsewhere stay untouched. */
-/* De vastzetknop hoort alleen bij een zwevend paneel: vastgeplakt is er niets
-   vast te zetten, en dan is hij alleen maar een derde knopje naast de twee die
-   er al zijn. */
-.lib_sidepanel_dock { display: none; }
-.lib_sidepanel_zwevend .lib_sidepanel_dock { display: flex; }
-
 .lib_sidepanel_header .lnr-frame-expand::before,
 .lib_sidepanel_header .lnr-frame-contract::before {
     content: "";
@@ -974,8 +966,7 @@ table tr.odd { background-color: #fdfdfd }
     border-top-left-radius: 0 !important;
 }
 
-.lib_sidepanel_maximize:hover,
-.lib_sidepanel_dock:hover {
+.lib_sidepanel_maximize:hover {
     background: var(--border-color, #ddd);
     color: var(--text-primary, #333);
 }

@@ -2582,8 +2582,6 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 			var displayTitle = (title || '').trim();
 			var header = '<div class="lib_sidepanel_header">' +
 				'<div class="lib_sidepanel_title">' + displayTitle + '</div>' +
-				'<button class="lib_sidepanel_dock" title="Vastzetten aan de rechterkant (of dubbelklik op de kop)">' +
-				'<span class="lnr lnr-pushpin"></span></button>' +
 				'<button class="lib_sidepanel_maximize" onclick="lib_ToggleSidePanelMaximize(this)" title="Maximaliseren venstergrootte">' +
 				'<span class="lnr lnr-frame-expand"></span></button>' +
 				'<button class="lib_sidepanel_close" onclick="lib_CloseSidePanel()" title="Sluiten">' +
@@ -2716,6 +2714,47 @@ function lib_sidepanel_sleutel(url, name) {
 	}
 }
 
+/**
+ * De bewaarde paneelstanden één keer opruimen.
+ *
+ * WAAROM DIT ER IS. Een zijpaneel raakte los bij een gewone klik op de kop — er
+ * hoefde niet gesleept te worden — en die stand werd meteen bewaard, per formulier.
+ * Wie ooit per ongeluk de titelbalk van één formulier aanraakte, kreeg dat formulier
+ * daarna élke keer als zwevend paneel terug, niet te onderscheiden van een popup,
+ * terwijl alle andere formulieren netjes rechts vastgeplakt bleven.
+ *
+ * De sleepdrempel in sleep() voorkomt nieuwe gevallen, maar repareert de standen niet
+ * die er al staan: die leven in de browser van de gebruiker en zijn daar met geen
+ * enkele wijziging aan de code te bereiken. Ze zijn bovendien niet te vertrouwen —
+ * niemand weet meer welke bewust zijn weggesleept en welke uit een misklik komen.
+ *
+ * Dus: één keer alles weg, en dat afvinken. Panelen komen daarna vastgeplakt terug;
+ * wie er daarna bewust één losmaakt, houdt die stand gewoon. De vlag maakt het
+ * eenmalig — anders zou het opruimen elke sessie de bewuste keuze van de gebruiker
+ * ongedaan maken.
+ */
+function lib_sidepanel_opschonenEenmalig() {
+	var VLAG = 'cma_sidepanel_opgeschoond';
+	var RONDE = '2026-09-losgeklikte-panelen';
+	try {
+		if (window.localStorage.getItem(VLAG) === RONDE) { return 0; }
+
+		var weg = [];
+		for (var i = 0; i < window.localStorage.length; i++) {
+			var sleutel = window.localStorage.key(i);
+			if (sleutel && sleutel.indexOf('cma_sidepanel_') === 0 && sleutel !== VLAG) {
+				weg.push(sleutel);
+			}
+		}
+		weg.forEach(function (sleutel) { window.localStorage.removeItem(sleutel); });
+		window.localStorage.setItem(VLAG, RONDE);
+		return weg.length;
+	} catch (e) {
+		// Geen localStorage: dan is er ook niets te vergeten.
+		return 0;
+	}
+}
+
 /** Bewaarde stand lezen; nooit gooien, een kapotte waarde is simpelweg "geen stand". */
 function lib_sidepanel_leesStand(sleutel) {
 	try {
@@ -2755,6 +2794,7 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 	var MIN_B = 320, MIN_H = 200, ZICHTBAAR = 120;
 
 	// --- vorige stand terugzetten -------------------------------------------------
+	lib_sidepanel_opschonenEenmalig();
 	var stand = lib_sidepanel_leesStand(sleutel);
 	if (stand && isFinite(stand.b) && stand.b >= MIN_B) {
 		panel.style.width = Math.min(stand.b, win.innerWidth) + 'px';
@@ -2907,12 +2947,15 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 				panel.style.transform = 'none';
 			});
 		});
-		// Terug naar vastgeplakt: één handeling, bereikbaar op twee manieren.
-		// De dubbelklik bestond al maar is onvindbare magie; een zwevend paneel
-		// leest als een eigen venster ("waarom krijg ik een popup terwijl mijn
-		// voorkeur zijpaneel is?") en verdient dus een zichtbare knop. De knop
-		// staat er altijd in de kop maar is via CSS alleen zichtbaar zolang het
-		// paneel zweeft.
+		// Terug naar vastgeplakt: dubbelklik op de kop. Dat staat ook in de
+		// tooltip van de kop, want anders is het onvindbaar.
+		//
+		// Hier stond een tijdlang ook een punaiseknop. Die was er gekomen omdat een
+		// zwevend paneel als een eigen venster leest ("waarom krijg ik een popup
+		// terwijl mijn voorkeur zijpaneel is?") — maar dat was een deurtje naast het
+		// lek: panelen raakten los bij een gewone klik op de kop, zonder te slepen.
+		// Sinds de sleepdrempel in sleep() gebeurt dat niet meer, en dan is een derde
+		// knopje in de kop overbodig.
 		function zetVast() {
 			panel.classList.remove('lib_sidepanel_zwevend');
 			['left', 'top', 'right', 'bottom', 'width', 'height', 'maxWidth', 'transform'].forEach(function (eig) {
@@ -2925,10 +2968,6 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 			if (ev.target.closest('button, a, input, select, textarea')) { return; }
 			zetVast();
 		});
-		var dockKnop = kop.querySelector('.lib_sidepanel_dock');
-		if (dockKnop) {
-			dockKnop.addEventListener('click', zetVast);
-		}
 		kop.title = 'Sleep om het paneel los te maken \u00b7 dubbelklik om vast te zetten';
 	}
 }
