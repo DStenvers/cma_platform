@@ -551,7 +551,20 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
             preg_split('/\r\n|\r|\n/', $CustomSQL),
             function ($line) { return strncmp(ltrim($line), '--', 2) !== 0; }
         ));
-        $arrQueries = Arr::splitAlways($sqlToRun, ';');
+        // Splitsen op ;; als dat erin staat, anders op ; zoals altijd.
+        //
+        // WAAROM. Een enkele ; komt volop VOOR IN de gegevens: &nbsp; en &#39; in HTML,
+        // een style-attribuut met CSS. Splitsen op ; hakt zo'n opdracht middenin een
+        // tekstwaarde doormidden, en dan regent het "Invalid SQL statement; expected
+        // DELETE, INSERT, ..." — één geplakte dump van tblAlgemeneInfo leverde tientallen
+        // van die meldingen op, terwijl er niets mis was met de SQL.
+        //
+        // Twee puntkomma's achter elkaar komen in de gegevens niet voor (en een generator
+        // die ze als scheiding gebruikt hoort ze in de inhoud open te breken). Staan ze in
+        // de invoer, dan is dat dus een bewuste scheiding en telt die. Zo niet, dan
+        // verandert er niets voor wie gewoon één query plakt.
+        $scheiding = strpos($sqlToRun, ';;') !== false ? ';;' : ';';
+        $arrQueries = Arr::splitAlways($sqlToRun, $scheiding);
         for ($tel = 0; $tel <= (count($arrQueries) - 1); $tel++) {
             $tempSQL = Str::trim($arrQueries[$tel]);
             if ($tempSQL === '') continue;
@@ -561,7 +574,14 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
             // "Too few parameters. Expected 1". Voor wie de query op staging en productie
             // ziet werken is dat een raadsel. Alleen op Access omzetten: op SQL Server is
             // " juist een identifier-begrenzer.
-            if ($isAccess) {
+            // Niet omzetten wanneer de invoer met ;; is gescheiden: dat is
+            // machinaal opgemaakte SQL waarin " gewoon inhoud kan zijn. De omzetting is
+            // bedoeld voor met de hand geplakte Access-SQL ("KBA" als tekst), en die
+            // schrijft niemand met ;; ertussen. Zonder deze uitzondering werden bij een
+            // dump álle begrenzers " naar ' herschreven, waarna elke apostrof IN de
+            // inhoud (video's, KBS'en) ineens een string afsloot — vandaar de reeks
+            // "Syntax error in string in query expression".
+            if ($isAccess && $scheiding !== ';;') {
                 $tempSQL = SQL::accessDoubleQuotesToSingle($tempSQL);
             }
             echo '<h3>Resultaat:</h3>';

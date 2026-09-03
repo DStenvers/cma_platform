@@ -13389,3 +13389,6 @@ karaat-data en staat in de karaat-repo.
 > subforms don't use all available space and create a scrollbar which is totally unneccesary
 
 > https://test-mijn.rino.nl/cma/form/deelnemers/6 -> the dropdown-filter-item of opleiding has consistently a stringe first character: ⋮MG.EMV.2521- EMDR Volwassenen Modulair (GZ) | g...
+
+> Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel VAVraag.
+> Deze melding verschijnt als je een tblVADocument weg wilt halen, kun je de sql aanleveren om cascaded delete op de relatie aan te zetten, nadat de relatie eerst is weggehaald?
