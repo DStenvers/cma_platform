@@ -807,6 +807,12 @@ class Installer
      * terser en lightningcss als bibliotheek aan. Zo is npm zelf niet nodig — alleen
      * node.
      *
+     * LET OP bij het wijzigen van deze klasse: een nieuwe installer-stap draait niet op
+     * de update die hem bezorgt. Composer laadt Installer al in pre-update-cmd, dus in
+     * post-update-cmd draait nog de klasse van vóór de update; de nieuwe code komt pas
+     * bij de volgende update aan bod. Wil je hem meteen zien: `composer run-script
+     * post-update-cmd` — dat is een vers proces en laadt de nieuwe klasse wel.
+     *
      * Deze stap laat een update NOOIT mislukken. Ontbreekt node of node_modules, dan
      * is dat een mededeling en geen fout: onverkleind serveren werkt gewoon. Wat er
      * daarna nog openstaat, meldt reportUnminifiedAssets() alsnog.
