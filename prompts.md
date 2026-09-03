@@ -13387,3 +13387,5 @@ karaat-data en staat in de karaat-repo.
 > nee ik doel op de tr van de tabel, nietr zozeer de border om het invoerveld, daar snap ik dat het geen focus heeft.
 
 > subforms don't use all available space and create a scrollbar which is totally unneccesary
+
+> https://test-mijn.rino.nl/cma/form/deelnemers/6 -> the dropdown-filter-item of opleiding has consistently a stringe first character: ⋮MG.EMV.2521- EMDR Volwassenen Modulair (GZ) | g...

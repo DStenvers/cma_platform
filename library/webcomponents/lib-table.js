@@ -2497,8 +2497,34 @@ class LibTable extends HTMLElement {
         if (input) {
             return input.value || '';
         }
-        // Finally use text content
-        return cell.innerText || cell.textContent || '';
+        // Finally use text content. innerText geeft alleen de zichtbare tekst, maar
+        // levert een lege string zodra de cel niet gerenderd wordt — een tabblad dat
+        // nog niet gekozen is, een dichtgeklapt paneel. Dan valt hij terug op
+        // textContent, en die telt ook tekst mee van elementen die bediening zijn en
+        // geen inhoud: het rijmenu (⋮) staat in de eerste cel van elke rij, dus élke
+        // filterwaarde en élke sorteersleutel van die kolom begon met dat teken.
+        // Die elementen gaan er hier expliciet af, zodat het niet uitmaakt of de
+        // tabel op dat moment zichtbaar is.
+        return this._tekstZonderBediening(cell);
+    }
+
+    /**
+     * De tekst van een cel zonder de elementen die er alleen zitten om te bedienen.
+     * Loopt de directe kinderen langs in plaats van de cel te klonen: dit draait per
+     * cel over de hele tabel, en een kloon per cel is bij duizenden rijen merkbaar.
+     */
+    _tekstZonderBediening(cell) {
+        let tekst = '';
+        for (const knoop of cell.childNodes) {
+            if (knoop.nodeType === 1 && knoop.classList
+                && (knoop.classList.contains('row-menu-trigger')
+                    || knoop.classList.contains('menutrigger')
+                    || knoop.classList.contains('dropdown-filter-dropdown'))) {
+                continue;
+            }
+            tekst += knoop.textContent || '';
+        }
+        return tekst;
     }
 
     /**
