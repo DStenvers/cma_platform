@@ -39,6 +39,23 @@ $GLOBALS['Application']['name'] = $GLOBALS['Application']['company'];
 $GLOBALS['Application']['cma_language'] = 'NL';
 $GLOBALS['Application']['mod_language'] = 'NL';
 
+// MIGRATIES VAN DEZE SITE
+// Het platform brengt zijn eigen databasemigraties mee (cma/config/migrations.json,
+// versies 1.0.0 en hoger). Schemawijzigingen aan de tabellen van DEZE site horen in
+// data/migrations/project_migrations.json, met de scripts ernaast - buiten de
+// platform-gesyncte cma/-boom, dus een composer update raakt ze niet. Eigen
+// versietabel, eigen versiereeks (0.x.x); een migratie heet "bron:versie", dus de
+// twee reeksen raken elkaar nooit. De deploy draait ze via cma/migrate.php; met de
+// hand via Beheer > Migraties. De Installer zet een leeg manifest neer.
+$GLOBALS['Application']['migration_sources_extra'] = [
+    [
+        'name'          => 'site',
+        'file'          => __DIR__ . '/data/migrations/project_migrations.json',
+        'trackingDb'    => 'data',
+        'trackingTable' => '_cma_site_version',
+    ],
+];
+
 // RUNTIME
 $GLOBALS['Application']['start'] = new DateTime();
 $GLOBALS['Application']['local'] = ($GLOBALS['Application']['omgeving'] === 'O');

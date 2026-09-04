@@ -40,6 +40,10 @@ class InstallerSiteConfigsTest extends TestCase
 
     public function tearDown(): void
     {
+        foreach ((array) glob($this->tmpRoot . '/data/migrations/*') as $f) {
+            @unlink($f);
+        }
+        @rmdir($this->tmpRoot . '/data/migrations');
         foreach ((array) glob($this->tmpRoot . '/data/*') as $f) {
             @unlink($f);
         }
@@ -59,7 +63,7 @@ class InstallerSiteConfigsTest extends TestCase
     public function testKaleSiteKrijgtAlleConfigs(): void
     {
         $log = Installer::ensureSiteConfigs($this->tmpRoot, $this->platformDir);
-        $this->assertCount(6, $log, 'elke aangemaakte config hoort één regel op te leveren');
+        $this->assertCount(7, $log, 'elke aangemaakte config hoort één regel op te leveren');
 
         $this->assertEquals([], $this->lees('cma_menu.json')['menus']);
         $this->assertEquals([], $this->lees('cma_reports.json')['reports']);
@@ -70,6 +74,24 @@ class InstallerSiteConfigsTest extends TestCase
         // Branding is de uitzondering: cma_get_app_logo() pakt het eerste bestand
         // dat bestaat, dus een leeg bestand hier zou het gebundelde logo verbergen.
         $this->assertNotEmpty($this->lees('cma_branding.json')['company']['logo']);
+    }
+
+    public function testKaleSiteKrijgtEenLegeEigenMigratiebron(): void
+    {
+        // Elke site krijgt haar eigen migratiebron: een leeg manifest in data/migrations/,
+        // dat app.php.template registreert. Zo bestaat er vanaf dag één een plek voor
+        // schemawijzigingen van de site, met een eigen versiereeks naast die van het platform.
+        Installer::ensureSiteConfigs($this->tmpRoot, $this->platformDir);
+        $m = $this->lees('migrations/project_migrations.json');
+        $this->assertEquals([], $m['migrations']);
+        $this->assertEquals('1.0', $m['schemaVersion'] ?? null, 'schemaVersion is verplicht volgens het schema');
+        $this->assertEquals('0.0.0', $m['targetVersion'] ?? null, 'targetVersion ook; de site begint bij 0');
+        $this->assertEquals('../../cma/config/schema/migrations.schema.json', $m['$schema'] ?? null, 'het schema, vanuit de submap');
+        $this->assertTrue(is_file($this->platformDir . '/cma/config/schema/migrations.schema.json'));
+
+        $template = (string) file_get_contents($this->platformDir . '/templates/app.php.template');
+        $this->assertStringContainsString("['migration_sources_extra']", $template, 'app.php.template registreert de bron');
+        $this->assertStringContainsString("/data/migrations/project_migrations.json'", $template, 'en wijst naar het manifest dat hier is aangemaakt');
     }
 
     public function testAangemaakteConfigsVerwijzenNaarHunSchema(): void

@@ -459,6 +459,20 @@ class Installer
                 'legacy'  => null,
                 'content' => ['profiles' => (object) [], 'managed_paths' => []],
             ],
+            // De site-eigen migratiebron, leeg. app.php.template registreert dit manifest
+            // als extra bron (migration_sources_extra); zo heeft elke site vanaf dag één
+            // een plek voor haar eigen schemawijzigingen, naast die van het platform, met
+            // een eigen versietabel en een eigen versiereeks (0.x.x). Een leeg manifest
+            // is precies wat MigrationService ziet als het bestand ontbreekt.
+            'migrations/project_migrations.json' => [
+                'legacy'  => null,
+                'content' => [
+                    '$schema'       => '../../cma/config/schema/migrations.schema.json',
+                    'schemaVersion' => '1.0',
+                    'targetVersion' => '0.0.0',
+                    'migrations'    => [],
+                ],
+            ],
         ];
     }
 
@@ -483,6 +497,11 @@ class Installer
                 continue;
             }
             if ($spec['legacy'] !== null && is_file($dir . '/' . $spec['legacy'])) {
+                continue;
+            }
+            // Een config in een submap (data/migrations/): de map eerst.
+            $sub = dirname($dir . '/' . $name);
+            if (!is_dir($sub) && !@mkdir($sub, 0755, true) && !is_dir($sub)) {
                 continue;
             }
             $json = json_encode($spec['content'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

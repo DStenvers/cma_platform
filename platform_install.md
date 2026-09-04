@@ -83,6 +83,29 @@ Dit doet automatisch:
 3. **Bewerk `global.asa.php`** — configureer database connections per omgeving
 4. **Maak database bestanden aan** in `db/`
 
+### 5a. Eigen databasemigraties
+
+Het platform brengt zijn eigen migraties mee (`cma/config/migrations.json`, versies
+1.0.0 en hoger). Schemawijzigingen aan de tabellen van **jouw** site zet je in
+`data/migrations/project_migrations.json` — de Installer maakt dat manifest leeg aan, en
+`app.php` (uit de template) registreert het als extra bron:
+
+```php
+$GLOBALS['Application']['migration_sources_extra'] = [
+    ['name' => 'site', 'file' => __DIR__ . '/data/migrations/project_migrations.json',
+     'trackingDb' => 'data', 'trackingTable' => '_cma_site_version'],
+];
+```
+
+- Eigen versiereeks: **0.x.x** (1.0.0 en hoger is van het platform). Een migratie heet
+  `bron:versie` (`site:0.1.0`, `platform:9.23.0`), dus de twee reeksen worden nooit
+  met elkaar vergeleken; elke bron heeft haar eigen versietabel.
+- Scripts (`runPhp`, `runSqlScript`) staan naast het manifest en worden daar gezocht.
+- Draaien: `php cma/migrate.php` (de deploy doet dit na `composer update`; `--check`
+  toont wat openstaat), of via Beheer → Migraties in de CMA.
+- Meer bronnen mag (bijv. een module): elk eigen `name`, eigen tabel; de volgorde van
+  registreren is de uitvoervolgorde na het platform.
+
 ### 6. IIS configureren
 
 - Maak een IIS Website aan die naar je project root wijst
