@@ -160,6 +160,11 @@ class MigrationService
                 // changes can carry their script next to the manifest (a
                 // site-owned migration lives outside the platform-synced cma/).
                 $migration['_sourceDir'] = dirname($source['file']);
+                // De identiteit van een migratie is bron + versie, niet het versienummer
+                // alleen: het platform staat op 9.x, een site-migratie op 0.x, en die twee
+                // reeksen zijn niet met elkaar te vergelijken. Alles wat een migratie
+                // aanwijst (toepassen, opnieuw uitvoeren, het scherm) gebruikt dit id.
+                $migration['_id'] = self::migrationId($name, (string)($migration['version'] ?? ''));
                 $this->migrations[] = $migration;
             }
         }
@@ -384,17 +389,9 @@ class MigrationService
      */
     public function applyUpToVersion(?string $targetVersion): array
     {
-        $pending = $this->getPendingMigrations();
+        $pending = $this->selectPendingUpTo($this->getPendingMigrations(), $targetVersion);
         $applied = [];
         $errors = [];
-
-        // Filter pending migrations if target version specified
-        if ($targetVersion !== null) {
-            $pending = array_filter($pending, function($migration) use ($targetVersion) {
-                return version_compare($migration['version'], $targetVersion, '<=');
-            });
-            $pending = array_values($pending); // Re-index array
-        }
 
         if (empty($pending)) {
             $this->log[] = "Geen openstaande migraties gevonden.";
@@ -1524,19 +1521,145 @@ class MigrationService
     }
 
     /**
-     * Get a specific migration by version
+     * Het id van een migratie: "<bron>:<versie>", bijv. "platform:9.23.0" of
+     * "mijnrino:0.1.0". Versienummers zijn alleen BINNEN een bron te vergelijken.
+     */
+    public static function migrationId(string $source, string $version): string
+    {
+        return $source . ':' . $version;
+    }
+
+    /**
+     * Zoek een migratie op id ("bron:versie") of op kaal versienummer.
      *
-     * @param string $version The version to find
-     * @return array|null The migration definition or null if not found
+     * Een kaal nummer is er voor oude aanroepers en oude links; het wordt alleen
+     * aanvaard als precies EEN bron die versie kent. Kennen twee bronnen hem (het
+     * scherm waarschuwt daar al voor), dan is de aanwijzing dubbelzinnig en komt er
+     * null terug - liever niets doen dan de verkeerde migratie draaien.
+     */
+    public function findMigration(string $ref): ?array
+    {
+        $ref = trim($ref);
+        if ($ref === '') {
+            return null;
+        }
+        if (strpos($ref, ':') !== false) {
+            foreach ($this->migrations as $migration) {
+                if (($migration['_id'] ?? '') === $ref) {
+                    return $migration;
+                }
+            }
+            return null;
+        }
+        $gevonden = [];
+        foreach ($this->migrations as $migration) {
+            if ((string)($migration['version'] ?? '') === $ref) {
+                $gevonden[] = $migration;
+            }
+        }
+        return count($gevonden) === 1 ? $gevonden[0] : null;
+    }
+
+    /**
+     * Get a specific migration by version (or by id, see findMigration()).
+     *
+     * @param string $version The version (or "source:version") to find
+     * @return array|null The migration definition or null if not found / ambiguous
      */
     public function getMigrationByVersion(string $version): ?array
     {
-        foreach ($this->migrations as $migration) {
-            if ($migration['version'] === $version) {
-                return $migration;
+        return $this->findMigration($version);
+    }
+
+    /**
+     * Het deel van de openstaande lijst dat "tot en met" $target loopt.
+     *
+     * Op POSITIE in de lijst, niet op versievergelijking: de lijst is per bron
+     * gesorteerd (platform eerst, dan de site), en "toepassen tot hier" betekent alles
+     * boven en inclusief die regel. Een vergelijking op versienummer over bronnen heen
+     * gaf onzin - een site-migratie 0.1.0 viel dan wel of niet binnen "tot 9.24.0" al
+     * naar gelang hoe je het bekeek. Zonder target: alles. Een target dat niet in de
+     * lijst staat (al toegepast, verkeerd id): lege selectie, dus niets toepassen.
+     *
+     * @param array<int, array> $pending de openstaande migraties, in uitvoervolgorde
+     */
+    public function selectPendingUpTo(array $pending, ?string $target): array
+    {
+        if ($target === null || trim($target) === '') {
+            return array_values($pending);
+        }
+        $doel = $this->findMigration($target);
+        $doelId = $doel['_id'] ?? null;
+        // Een kaal versienummer dat findMigration niet uniek kon plaatsen: kijk of het
+        // in de openstaande lijst zelf wel uniek is (alleen daar telt het).
+        if ($doelId === null && strpos($target, ':') === false) {
+            $treffers = array_values(array_filter($pending, static fn($m) => (string)($m['version'] ?? '') === trim($target)));
+            if (count($treffers) === 1) {
+                $doelId = $treffers[0]['_id'] ?? null;
             }
         }
-        return null;
+        if ($doelId === null) {
+            return [];
+        }
+        $selectie = [];
+        foreach ($pending as $migration) {
+            $selectie[] = $migration;
+            if (($migration['_id'] ?? '') === $doelId) {
+                return $selectie;
+            }
+        }
+        return [];
+    }
+
+    /**
+     * De doelversie per bron: wat het manifest van die bron als targetVersion opgeeft,
+     * anders de hoogste versie erin. Het platform en een site hebben elk hun eigen
+     * reeks; een enkel getal voor allebei bestaat niet.
+     *
+     * @return array<string, string> bronnaam => versie
+     */
+    public function getTargetVersions(): array
+    {
+        $doelen = [];
+        foreach ($this->sources as $name => $source) {
+            $doel = '0.0.0';
+            if (is_file($source['file'])) {
+                $data = json_decode((string)file_get_contents($source['file']), true);
+                $doel = (string)($data['targetVersion'] ?? '');
+                if ($doel === '') {
+                    foreach ($data['migrations'] ?? [] as $m) {
+                        $v = (string)($m['version'] ?? '');
+                        if ($v !== '' && version_compare($v, $doel === '' ? '0.0.0' : $doel, '>')) {
+                            $doel = $v;
+                        }
+                    }
+                    $doel = $doel === '' ? '0.0.0' : $doel;
+                }
+            }
+            $doelen[$name] = $doel;
+        }
+        return $doelen;
+    }
+
+    /**
+     * De versietabel van een bron, ook zonder een MigrationService te bouwen: het
+     * platform heeft `_cma_version`, een geregistreerde site-bron wat haar registratie
+     * zegt (standaard `_cma_<naam>_version`).
+     */
+    public static function trackingTableFor(string $source): string
+    {
+        if ($source === '' || $source === 'platform') {
+            return self::VERSION_TABLE;
+        }
+        $extra = \App\Library\Application::get('migration_sources_extra', []);
+        if (is_array($extra)) {
+            foreach ($extra as $src) {
+                if (is_array($src) && (string)($src['name'] ?? '') === $source) {
+                    return (string)($src['trackingTable'] ?? ('_cma_' . $source . '_version'));
+                }
+            }
+        }
+        return '_cma_' . $source . '_version';
     }
 
     /**
@@ -1607,11 +1730,12 @@ class MigrationService
             ];
         }
 
-        // Check if this migration is actually pending
+        // Check if this migration is actually pending - op id, want hetzelfde
+        // versienummer kan bij een andere bron wel/niet openstaan.
         $pending = $this->getPendingMigrations();
-        $pendingVersions = array_column($pending, 'version');
+        $pendingIds = array_column($pending, '_id');
 
-        if (!in_array($version, $pendingVersions)) {
+        if (!in_array($migration['_id'] ?? '', $pendingIds, true)) {
             return [
                 'success' => true,
                 'log' => ["Migratie $version is al toegepast"],
@@ -1709,9 +1833,14 @@ class MigrationService
      * @param string $database Database to check (default: 'data')
      * @return bool True if migration has been applied
      */
-    public static function isMigrationApplied(string $version, string $database = 'data'): bool
+    public static function isMigrationApplied(string $version, string $database = 'data', string $source = 'platform'): bool
     {
-        $cacheKey = "{$database}:{$version}";
+        // Een "bron:versie"-id mag ook; dan wint de bron uit het id.
+        if (strpos($version, ':') !== false) {
+            [$source, $version] = explode(':', $version, 2);
+        }
+        $table = self::trackingTableFor($source);
+        $cacheKey = "{$database}:{$table}:{$version}";
 
         if (isset(self::$migrationStatusCache[$cacheKey])) {
             return self::$migrationStatusCache[$cacheKey];
@@ -1723,8 +1852,8 @@ class MigrationService
                 return false;
             }
 
-            // Check if version table exists
-            $sql = "SELECT version FROM _cma_version WHERE version = ?";
+            // De versietabel van DEZE bron; het platform en een site houden elk hun eigen.
+            $sql = "SELECT version FROM " . $table . " WHERE version = ?";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$version]);
             $result = $stmt->fetch();

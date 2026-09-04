@@ -139,9 +139,24 @@ $migrationService = new MigrationService(); // Reload to get fresh state
 $pendingMigrations = $migrationService->getPendingMigrations();
 $allMigrations = $migrationService->getAllMigrations();
 
-// Sort migrations descending by version (newest first)
-usort($allMigrations, fn($a, $b) => version_compare($b['version'], $a['version']));
+// Per bron (platform eerst, dan de site), en binnen een bron de nieuwste bovenaan.
+// Niet alle bronnen op versie door elkaar: 0.1.0 van de site en 9.23.0 van het platform
+// zijn geen punten op één lijn.
+$bronVolgorde = array_keys($migrationService->getSources());
+usort($allMigrations, function ($a, $b) use ($bronVolgorde) {
+    $sa = (int)array_search($a['_source'] ?? 'platform', $bronVolgorde, true);
+    $sb = (int)array_search($b['_source'] ?? 'platform', $bronVolgorde, true);
+    if ($sa !== $sb) { return $sa <=> $sb; }
+    return version_compare($b['version'], $a['version']);
+});
 $targetVersion = $migrationService->getTargetVersion();
+$meerdereBronnen = count($bronVolgorde) > 1;
+/** De versie zoals het scherm hem toont: met de bron ervoor zodra er meer dan één is. */
+$toonVersie = static function (array $m) use ($meerdereBronnen): string {
+    $v = htmlspecialchars((string)($m['version'] ?? ''));
+    if (!$meerdereBronnen) { return $v; }
+    return '<span style="opacity:.65;font-weight:normal">' . htmlspecialchars((string)($m['_source'] ?? 'platform')) . '</span> ' . $v;
+};
 $history = $migrationService->getMigrationHistory();
 $errors = $migrationService->getErrors();
 
@@ -378,17 +393,18 @@ echo '</div>';
 */
 
 // Migrations Section - single table with checkbox to show completed
-$pendingVersions = array_column($pendingMigrations, 'version');
+// Alles hier op id ("bron:versie"): het versienummer alleen wijst geen migratie aan.
+$pendingIds = array_column($pendingMigrations, '_id');
 $completedCount = count($allMigrations) - count($pendingMigrations);
 $hasPending = !empty($pendingMigrations);
 
 // Success message is shown by JavaScript after AJAX migration completes (not on initial load)
 
-// Build pending versions array for JavaScript - output script early so onchange handlers work
+// De openstaande lijst in de volgorde waarin de loper ze uitvoert (per bron, oplopend).
+// "Toepassen tot hier" is een positie in die lijst, geen versievergelijking.
 $sortedPending = $pendingMigrations;
-usort($sortedPending, fn($a, $b) => version_compare($a['version'], $b['version']));
-$lastPendingVersion = !empty($sortedPending) ? end($sortedPending)['version'] : '';
-$pendingVersionsJs = json_encode(array_column($sortedPending, 'version'));
+$lastPendingId = !empty($sortedPending) ? end($sortedPending)['_id'] : '';
+$pendingVersionsJs = json_encode(array_column($sortedPending, '_id'));
 
 echo '<script>
 var pendingVersions = ' . $pendingVersionsJs . ';
@@ -411,13 +427,8 @@ function updateMigrationButton() {
         var isLastVersion = (selectedVersion === lastVersion);
 
         if (button) {
-            // Count how many migrations will be applied
-            var count = 0;
-            for (var i = 0; i < pendingVersions.length; i++) {
-                if (compareVersions(pendingVersions[i], selectedVersion) <= 0) {
-                    count++;
-                }
-            }
+            // Alles tot en met de gekozen regel: positie in de lijst, niet versievergelijking.
+            var count = pendingVersions.indexOf(selectedVersion) + 1;
 
             if (isLastVersion) {
                 // All migrations selected
@@ -427,7 +438,7 @@ function updateMigrationButton() {
                 }
             } else {
                 // Partial selection
-                button.textContent = "Updates toepassen tot versie " + selectedVersion;
+                button.textContent = "Updates toepassen tot " + selectedVersion.replace(":", " ");
                 if (countSpan) {
                     var updateWoord = (pendingVersions.length === 1) ? "update" : "updates";
                     countSpan.textContent = count + " van " + pendingVersions.length + " " + updateWoord;
@@ -437,18 +448,8 @@ function updateMigrationButton() {
     }
 }
 
-function compareVersions(a, b) {
-    var pa = a.split(".").map(Number);
-    var pb = b.split(".").map(Number);
-    for (var i = 0; i < 3; i++) {
-        if (pa[i] > pb[i]) return 1;
-        if (pa[i] < pb[i]) return -1;
-    }
-    return 0;
-}
-
 function markMigrationComplete(version) {
-    var row = document.querySelector("tr[data-version=\"" + version + "\"]");
+    var row = document.querySelector("tr[data-migration=\"" + version + "\"]");
     if (row) {
         // Replace radio button with checkmark
         var radioCell = row.querySelector("td:first-child");
@@ -466,7 +467,7 @@ function markMigrationComplete(version) {
 }
 
 function markMigrationFailed(version, error) {
-    var row = document.querySelector("tr[data-version=\"" + version + "\"]");
+    var row = document.querySelector("tr[data-migration=\"" + version + "\"]");
     if (row) {
         // Replace radio button with X
         var radioCell = row.querySelector("td:first-child");
@@ -484,7 +485,7 @@ function markMigrationFailed(version, error) {
 }
 
 function markMigrationInProgress(version) {
-    var row = document.querySelector("tr[data-version=\"" + version + "\"]");
+    var row = document.querySelector("tr[data-migration=\"" + version + "\"]");
     if (row) {
         // Replace radio button with spinner
         var radioCell = row.querySelector("td:first-child");
@@ -591,12 +592,9 @@ async function submitMigration(e) {
             return false;
         }
 
-        // Get migrations to apply (up to selected version)
-        for (var i = 0; i < pendingVersions.length; i++) {
-            if (compareVersions(pendingVersions[i], selectedVersion) <= 0) {
-                migrationsToApply.push(pendingVersions[i]);
-            }
-        }
+        // Alles tot en met de gekozen regel (de lijst staat in uitvoervolgorde).
+        var tot = pendingVersions.indexOf(selectedVersion);
+        migrationsToApply = tot >= 0 ? pendingVersions.slice(0, tot + 1) : [];
     }
 
     if (migrationsToApply.length === 0) {
@@ -692,7 +690,7 @@ async function submitMigration(e) {
 
     if (failedVersion) {
         resultDiv.setAttribute("type", "error");
-        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update mislukt bij versie " + failedVersion + "</span><br>" + successCount + " van " + migrationsToApply.length + " updates toegepast.";
+        resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update mislukt bij " + failedVersion.replace(":", " ") + "</span><br>" + successCount + " van " + migrationsToApply.length + " updates toegepast.";
         button.textContent = "Opnieuw proberen";
         button.disabled = false;
         // Store remaining migrations for retry
@@ -777,7 +775,7 @@ function migrationStatusCell(state, version) {
 }
 
 async function rerunMigration(version) {
-    var confirmed = await libConfirm("Weet je zeker dat je update " + version + " opnieuw wilt uitvoeren?", {
+    var confirmed = await libConfirm("Weet je zeker dat je update " + version.replace(":", " ") + " opnieuw wilt uitvoeren?", {
         title: "Update opnieuw uitvoeren",
         confirmText: "Uitvoeren",
         cancelText: "Annuleren"
@@ -787,7 +785,7 @@ async function rerunMigration(version) {
     }
 
     // Find the row and update it
-    var row = document.querySelector("tr[data-version=\"" + version + "\"]");
+    var row = document.querySelector("tr[data-migration=\"" + version + "\"]");
     var statusCell = row ? row.querySelector("td:last-child") : null;
     var originalContent = statusCell ? statusCell.innerHTML : "";
 
@@ -826,14 +824,14 @@ async function rerunMigration(version) {
                 statusCell.innerHTML = migrationStatusCell("success", version);
             }
             resultDiv.setAttribute("type", "success");
-            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version + " succesvol uitgevoerd!</span>";
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version.replace(":", " ") + " succesvol uitgevoerd!</span>";
         } else {
             if (statusCell) {
                 statusCell.innerHTML = migrationStatusCell("error", version);
             }
             resultDiv.setAttribute("type", "error");
             var errorMsg = result.error || "Onbekende fout, controleer de uitvoeringslog voor details";
-            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version + " mislukt</span><br>" + errorMsg;
+            resultDiv.innerHTML = "<span class=\"cma-tool__strong\">Update " + version.replace(":", " ") + " mislukt</span><br>" + errorMsg;
         }
 
         // Show log
@@ -912,7 +910,7 @@ echo '</form>';
 $pendingMigrationsList = [];
 $completedMigrationsList = [];
 foreach ($allMigrations as $migration) {
-    if (in_array($migration['version'], $pendingVersions)) {
+    if (in_array($migration['_id'] ?? '', $pendingIds, true)) {
         $pendingMigrationsList[] = $migration;
     } else {
         $completedMigrationsList[] = $migration;
@@ -972,16 +970,19 @@ if (empty($pendingMigrationsList)) {
     echo '<table class="lib_table">';
     echo '<thead><tr>';
     echo '<th style="width:40px">Doel</th>';
-    echo '<th style="width:80px">Versie</th><th>Beschrijving</th><th style="width:100px">Status</th></tr></thead>';
+    echo '<th style="width:' . ($meerdereBronnen ? 150 : 80) . 'px">Versie</th><th>Beschrijving</th><th style="width:100px">Status</th></tr></thead>';
     echo '<tbody id="pendingMigrations">';
-    foreach ($pendingMigrationsList as $migration) {
-        echo '<tr data-version="' . htmlspecialchars($migration['version']) . '" style="background:#fff8e6;">';
+    // In uitvoervolgorde (per bron, oplopend), zodat "tot hier" op het scherm hetzelfde
+    // betekent als in de loper.
+    foreach ($sortedPending as $migration) {
+        $id = (string)($migration['_id'] ?? '');
+        echo '<tr data-migration="' . htmlspecialchars($id) . '" style="background:#fff8e6;">';
         echo '<td style="text-align:center;">';
-        $isLast = ($migration['version'] === $lastPendingVersion);
+        $isLast = ($id === $lastPendingId);
         $checked = $isLast ? ' checked' : '';
-        echo '<input type="radio" name="target_version" value="' . htmlspecialchars($migration['version']) . '" form="migrationForm"' . $checked . ' onchange="updateMigrationButton()">';
+        echo '<input type="radio" name="target_version" value="' . htmlspecialchars($id) . '" form="migrationForm"' . $checked . ' onchange="updateMigrationButton()">';
         echo '</td>';
-        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($migration['version']) . '</span></td>';
+        echo '<td><span class="cma-tool__strong">' . $toonVersie($migration) . '</span></td>';
         echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
         echo '<td><span class="badge badge-warning">Openstaand</span></td>';
         echo '</tr>';
@@ -997,17 +998,18 @@ if (empty($completedMigrationsList)) {
 } else {
     echo '<table class="lib_table">';
     echo '<thead><tr>';
-    echo '<th style="width:80px">Versie</th><th>Beschrijving</th><th style="width:170px">Status</th></tr></thead>';
+    echo '<th style="width:' . ($meerdereBronnen ? 150 : 80) . 'px">Versie</th><th>Beschrijving</th><th style="width:170px">Status</th></tr></thead>';
     echo '<tbody id="completedMigrations">';
     foreach ($completedMigrationsList as $migration) {
-        echo '<tr data-version="' . htmlspecialchars($migration['version']) . '">';
-        echo '<td><span class="cma-tool__strong">' . htmlspecialchars($migration['version']) . '</span></td>';
+        $id = (string)($migration['_id'] ?? '');
+        echo '<tr data-migration="' . htmlspecialchars($id) . '">';
+        echo '<td><span class="cma-tool__strong">' . $toonVersie($migration) . '</span></td>';
         echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
         echo '<td>';
         echo '<span class="cma-tool__status">';
         echo '<span class="badge badge-success">Toegepast</span>';
         echo '<a href="#" class="cma-tool__rerun" title="Deze update opnieuw uitvoeren"'
-            . ' onclick="return rerunMigration(\'' . htmlspecialchars($migration['version']) . '\')">'
+            . ' onclick="return rerunMigration(\'' . htmlspecialchars($id) . '\')">'
             . '<span class="lnr lnr-sync"></span>opnieuw</a>';
         echo '</span>';
         echo '</td>';
