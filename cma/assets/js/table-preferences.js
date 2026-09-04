@@ -578,7 +578,21 @@ class CmaTableColumnManager {
  * Handles lazy loading of table rows as user scrolls
  */
 class CmaInfiniteScroll {
+    /**
+     * Staat op true zodra de pagina verlaten wordt (pagehide/beforeunload). Een
+     * fetch die daardoor afbreekt is geen kapotte paginering; zie load().
+     */
+    static pageLeaving = false;
+    static _watchPageLeaving() {
+        if (CmaInfiniteScroll._watchingPageLeaving || typeof window === 'undefined') return;
+        CmaInfiniteScroll._watchingPageLeaving = true;
+        const markeer = () => { CmaInfiniteScroll.pageLeaving = true; };
+        window.addEventListener('pagehide', markeer);
+        window.addEventListener('beforeunload', markeer);
+    }
+
     constructor(options) {
+        CmaInfiniteScroll._watchPageLeaving();
         this.container = options.container;
         this.table = options.table;
         this.loadMore = options.loadMore; // Callback function to load more data
@@ -877,8 +891,19 @@ class CmaInfiniteScroll {
                 // the load() that flips hasMore false (later calls early-return on
                 // !hasMore), so it throws once, at the transition. totalCount===null
                 // means the total is unknown, so incompleteness can't be asserted.
+                //
+                // NIET als het laden is ONDERBROKEN in plaats van mislukt. Gemeld:
+                // "[Infinite Scroll] Pagination stopped at 601/2304" na een klik die
+                // de lijst wegnavigeerde. De fetch die dan afbreekt is een gewone
+                // retriable failure; na een paar keer geeft de lus op, hasMore gaat
+                // op false, en deze regel meldde dat als een paginerings-bug. Dat is
+                // het niet: (a) de pagina wordt verlaten (pagehide/beforeunload), of
+                // (b) onze tabel staat niet meer in de DOM omdat de lijst opnieuw is
+                // opgebouwd — het succes-pad trok zich daar al stil op terug
+                // (_retireIfStale), de faalpaden nog niet.
                 if (!this.hasMore && this.totalCount !== null &&
-                    this.currentCount < this.totalCount) {
+                    this.currentCount < this.totalCount &&
+                    !CmaInfiniteScroll.pageLeaving && !this._retireIfStale()) {
                     throw new Error('[Infinite Scroll] Pagination stopped at ' +
                         this.currentCount + '/' + this.totalCount + ' — ' +
                         (this.totalCount - this.currentCount) + ' record(s) not loaded ' +

@@ -124,6 +124,40 @@ class ErrorCardTest extends TestCase
         $this->assertEquals(0, count($fatal), 'the card must parse — it is injected into broken pages');
     }
 
+    public function testDetailsAreCollapsedButCopied(): void
+    {
+        // Gemeld bij "toets plaatsen": de databasemelding stond in het zicht en de SQL
+        // ontbrak. Details horen achter "Toon details" (dicht) én mee met de kopieerknop.
+        ob_start();
+        Error::show('details ' . __FUNCTION__, "Data type mismatch\n\nSQL: INSERT INTO tblToetsen (a) VALUES ('x<y')");
+        $html = (string) ob_get_clean();
+        $this->assertTrue(str_contains($html, '>Toon details</a>'), 'er staat een schakelaar');
+        $this->assertTrue(str_contains($html, "'Verberg details'"), 'die de andere kant op ook werkt');
+        $this->assertFalse(str_contains($html, '.js'), 'zonder script van buiten — de kaart staat op zichzelf');
+
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML('<div>' . $html . '</div>');
+        libxml_clear_errors();
+        $xp = new DOMXPath($doc);
+        $blok = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " lib-error-details ")]')->item(0);
+        $this->assertTrue($blok !== null, 'het detailblok staat er');
+        $this->assertTrue(str_contains($blok->getAttribute('style'), 'display:none'), 'en staat dicht');
+        $this->assertTrue(str_contains($blok->textContent, "VALUES ('x<y')"), 'de SQL staat erin, letterlijk');
+        $this->assertTrue(str_contains($html, '&#039;x&lt;y&#039;'), 'maar wel ontsnapt: SQL is tekst, geen opmaak');
+
+        $cel = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " lib-error-copy ")]')->item(0);
+        $this->assertTrue(str_contains($cel->textContent, 'Data type mismatch'), 'de kopieerknop neemt de details mee');
+        $this->assertFalse(str_contains($cel->textContent, 'Toon details'), 'maar niet de schakelaar zelf');
+    }
+
+    public function testWithoutDetailsThereIsNoToggle(): void
+    {
+        $html = $this->render('kaal ' . __FUNCTION__);
+        $this->assertFalse(str_contains($html, 'Toon details'), 'geen details, geen schakelaar');
+        $this->assertFalse(str_contains($html, 'lib-error-details'), 'en geen leeg blok');
+    }
+
     public function testRepeatOfTheSameMessageIsSuppressed(): void
     {
         $msg = 'dubbel ' . __FUNCTION__;

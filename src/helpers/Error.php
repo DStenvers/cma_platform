@@ -156,11 +156,13 @@ class Error
      * Maps VBScript lib_Error()
      *
      * @param string $message Error message
+     * @param string $details Technische toelichting (databasemelding, SQL) — staat achter
+     *                        "Toon details" en gaat mee met de kopieerknop
      * @return void
      */
-    public static function show(string $message): void
+    public static function show(string $message, string $details = ''): void
     {
-        self::renderDialog('Er is een fout opgetreden', $message, true, true);
+        self::renderDialog('Er is een fout opgetreden', $message, true, true, $details);
     }
 
     /**
@@ -270,9 +272,10 @@ class Error
      * Maps VBScript lib_FormError()
      *
      * @param string $message Validation error message
+     * @param string $details Technische toelichting achter "Toon details" (zie show())
      * @return void
      */
-    public static function form(string $message): void
+    public static function form(string $message, string $details = ''): void
     {
         $language = Application::get('mod_language', '');
 
@@ -282,7 +285,7 @@ class Error
             $title = 'Het formulier is niet volledig of niet correct ingevuld:';
         }
 
-        self::renderDialog($title, $message, true, true);
+        self::renderDialog($title, $message, true, true, $details);
     }
 
     /**
@@ -351,7 +354,7 @@ class Error
         return $html;
     }
 
-    private static function renderDialog(string $title, string $message, bool $showBackButton, bool $makeSureVisible): void
+    private static function renderDialog(string $title, string $message, bool $showBackButton, bool $makeSureVisible, string $details = ''): void
     {
         // Prevent duplicate errors
         if (self::$lastError === $message) {
@@ -389,7 +392,23 @@ class Error
         Response::write('<h3 style="position:relative;margin:0;font-family:inherit;font-size:18px;line-height:1.2;text-transform:initial;border-top-left-radius:8px;border-top-right-radius:8px;background-color:#E01F3D;color:#ffffff;display:block;padding:8px 48px 8px 24px">' . $title . self::copyButtonHtml() . '</h3>');
         Response::write('<div style="padding:24px">');
         // class="lib-error-copy": dit is het enige dat de kopieerknop meeneemt.
-        Response::write('<table cellpadding=0 cellspacing=0 style="border-collapse:collapse;width:100%"><tr><td class="lib-error-copy" style="line-height:22px">' . $message . '</td></tr>');
+        // De technische toelichting (databasemelding, SQL) staat IN de kopieercel, maar
+        // dichtgeklapt: de gebruiker ziet alleen de melding, en wie hem doorgeeft aan de
+        // beheerder heeft met de kopieerknop de details toch mee — de wandeling van die
+        // knop kijkt niet naar display:none. De schakelaar zelf staat buiten de cel, anders
+        // kwam "Toon details" op het klembord. Net als de rest van de kaart zonder
+        // stylesheet of jQuery: een inline handler.
+        $details = trim($details);
+        $detailsHtml = '';
+        if ($details !== '') {
+            $detailsHtml = '<div class="lib-error-details" style="display:none;margin-top:12px;padding:10px 12px;border:1px solid #dddddd;border-radius:6px;background-color:#f7f7f7;font-family:Consolas,Menlo,monospace;font-size:11px;line-height:16px;white-space:pre-wrap;word-break:break-word;color:#555555">'
+                . htmlspecialchars($details, ENT_QUOTES, 'UTF-8') . '</div>';
+        }
+        Response::write('<table cellpadding=0 cellspacing=0 style="border-collapse:collapse;width:100%"><tr><td class="lib-error-copy" style="line-height:22px">' . $message . $detailsHtml . '</td></tr>');
+        if ($details !== '') {
+            Response::write('<tr><td style="padding-top:8px"><a href="#" class="lib-error-details-toggle" style="font-size:12px;color:#555555" '
+                . "onclick=\"var d=this.parentNode.parentNode.parentNode.querySelector('.lib-error-details');var open=d.style.display==='none';d.style.display=open?'block':'none';this.textContent=open?'Verberg details':'Toon details';return false;\">Toon details</a></td></tr>");
+        }
 
         // Back button
         if ($showBackButton) {
