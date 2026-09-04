@@ -13392,6 +13392,7 @@ karaat-data en staat in de karaat-repo.
 
 > Het record kan niet worden verwijderd omdat er gerelateerde gegevens staan in de tabel VAVraag.
 > Deze melding verschijnt als je een tblVADocument weg wilt halen, kun je de sql aanleveren om cascaded delete op de relatie aan te zetten, nadat de relatie eerst is weggehaald?
+
 ## 2026-09-04
 
 > kun je deze site toevoehen? https://abracasabra-realestate.com/country-properties/
