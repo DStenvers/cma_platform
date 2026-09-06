@@ -13396,3 +13396,7 @@ karaat-data en staat in de karaat-repo.
 ## 2026-09-04
 
 > kun je deze site toevoehen? https://abracasabra-realestate.com/country-properties/
+
+## 2026-09-06
+
+> had je kyero al geprobeerd uit te lezen?
