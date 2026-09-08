@@ -1,18 +1,17 @@
 /**
  * Een onderbroken lijst is geen kapotte lijst.
  *
- * load() van CmaInfiniteScroll gooit met opzet een fout als de paginering stopt
- * vóór het bekende totaal: een lijst die stil bij 1500 van 1827 blijft staan is
- * een bug die je wilt zien. Maar gemeld werd precies die fout ná een klik:
- * "[Infinite Scroll] Pagination stopped at 601/2304 — 1703 record(s) not
- * loaded". De klik navigeerde de lijst weg; de fetch die daardoor afbrak werd
- * een retriable failure, de lus gaf na een paar keer op, hasMore ging op false
- * en de melding volgde. Twee onderbrekingen mogen dus niet als bug gelden:
+ * load() van CmaInfiniteScroll gooide een Error als de paginering stopte vóór
+ * het bekende totaal. Gemeld: "[Infinite Scroll] Pagination stopped at
+ * 2144/2304 — 160 record(s) not loaded (last id 2392, form logins)" — en dat
+ * is geen fout: de teller toont eerlijk "1-2144 van 2304" en de lijst is
+ * bruikbaar. Een stop onder het totaal is daarom een waarschuwing in de
+ * console (cmaLog.warn), geen Error die het foutpaneel en het serverrapport
+ * haalt. Twee onderbrekingen krijgen zelfs geen waarschuwing, want dan zegt de
+ * tellerstand niets:
  *   (a) de pagina wordt verlaten (pagehide / beforeunload);
  *   (b) de tabel van deze scroller staat niet meer in de DOM (lijst opnieuw
- *       opgebouwd) — het succes-pad trok zich daar al stil op terug, de
- *       faalpaden niet.
- * En de echte stop — tabel aanwezig, pagina in leven — blijft luid.
+ *       opgebouwd) — de scroller trekt zich stil terug.
  *
  * Run: node tests/js/run.js infinitescroll
  */
@@ -30,7 +29,8 @@ function maakPagina() {
         '<table id="listTable"><tbody><tr data-id="1"><td>a</td></tr></tbody></table>' +
         '</div>' +
         '<script>' +
-        'window.cmaLog = { log(){}, warn(){}, error(){} };' +
+        'window.cmaLog = { log(){}, warn(m){ window.gewaarschuwd.push(String(m)); }, error(){} };' +
+        'window.gewaarschuwd = [];' +
         'window.CMA = { utils: { setRecordCount(){}, formatRecordCount(){ return ""; } } };' +
         fs.readFileSync(BRON, 'utf8') +
         '</script></body></html>',
@@ -63,12 +63,25 @@ async function laadTotStop(scroller) {
 
 suite('Infinite scroll: onderbroken laden meldt geen bug');
 
-test('een echte stop blijft luid: tabel staat er, pagina leeft, batch mislukt', async () => {
+test('een stop onder het totaal is een waarschuwing, geen fout', async () => {
     const win = maakPagina();
     const scroller = maakScroller(win, async () => ({ success: false }));
     const fout = await laadTotStop(scroller);
-    assert.waar(fout !== null, 'zonder onderbreking hoort load() te gooien');
-    assert.waar(/Pagination stopped at 1\/10/.test(fout.message), 'met de tellerstand erin: ' + fout.message);
+    assert.gelijk(fout, null, 'load() gooit niet meer bij een stop onder het totaal');
+    assert.onwaar(scroller.hasMore, 'de lus is wel gestopt');
+    const melding = win.gewaarschuwd.find(m => /Pagination stopped/.test(m)) || '';
+    assert.waar(/Pagination stopped at 1\/10 — 9 record\(s\) not loaded/.test(melding),
+        'de console krijgt de tellerstand als waarschuwing: ' + JSON.stringify(win.gewaarschuwd));
+});
+
+test('een stop op het totaal waarschuwt niet', async () => {
+    const win = maakPagina();
+    const scroller = maakScroller(win, async () => ({ success: false }));
+    scroller.updateFromResponse({ hasMore: true, lastId: 1, count: 1, totalCount: 1 });
+    scroller.currentCount = 1;
+    await laadTotStop(scroller);
+    assert.onwaar(win.gewaarschuwd.some(m => /Pagination stopped/.test(m)),
+        'compleet geladen is niets om over te waarschuwen');
 });
 
 test('de pagina wordt verlaten: de afgebroken fetch is geen paginerings-bug', async () => {
@@ -81,6 +94,7 @@ test('de pagina wordt verlaten: de afgebroken fetch is geen paginerings-bug', as
     const fout = await laadTotStop(scroller);
     assert.gelijk(fout, null, 'geen melding bij het verlaten van de pagina');
     assert.onwaar(scroller.hasMore, 'de lus is wel gestopt');
+    assert.onwaar(win.gewaarschuwd.some(m => /Pagination stopped/.test(m)), 'ook geen waarschuwing');
 });
 
 test('de lijst is opnieuw opgebouwd: de oude scroller trekt zich stil terug', async () => {
@@ -93,6 +107,7 @@ test('de lijst is opnieuw opgebouwd: de oude scroller trekt zich stil terug', as
     const fout = await laadTotStop(scroller);
     assert.gelijk(fout, null, 'geen melding voor een tabel die er niet meer is');
     assert.waar(scroller.destroyed, 'de scroller is netjes afgevoerd');
+    assert.onwaar(win.gewaarschuwd.some(m => /Pagination stopped/.test(m)), 'ook geen waarschuwing');
 });
 
 test('de vlag wordt maar één keer aan het venster gehangen', () => {

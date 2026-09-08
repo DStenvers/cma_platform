@@ -880,31 +880,26 @@ class CmaInfiniteScroll {
                 // "(laden...)" suffix sticks forever even though loading has stopped.
                 this.updateRecordCountDisplay();
 
-                // Loud failure instead of a silent short stop. If pagination has
-                // ENDED (hasMore=false) yet we never reached the known total, the
-                // tail was dropped — a failed/slow last batch that gave up, a
-                // keyset that couldn't advance, an all-duplicate batch, or a
-                // two-scroller race. Rendering "records 1-1500 van 1827" as if it
-                // were complete hides a real bug. Throw so it reaches the global
-                // error handler (window 'error'/'unhandledrejection' -> panel +
-                // server report) instead of falling back silently. Only fires on
-                // the load() that flips hasMore false (later calls early-return on
-                // !hasMore), so it throws once, at the transition. totalCount===null
-                // means the total is unknown, so incompleteness can't be asserted.
-                //
-                // NIET als het laden is ONDERBROKEN in plaats van mislukt. Gemeld:
-                // "[Infinite Scroll] Pagination stopped at 601/2304" na een klik die
-                // de lijst wegnavigeerde. De fetch die dan afbreekt is een gewone
-                // retriable failure; na een paar keer geeft de lus op, hasMore gaat
-                // op false, en deze regel meldde dat als een paginerings-bug. Dat is
-                // het niet: (a) de pagina wordt verlaten (pagehide/beforeunload), of
-                // (b) onze tabel staat niet meer in de DOM omdat de lijst opnieuw is
-                // opgebouwd — het succes-pad trok zich daar al stil op terug
-                // (_retireIfStale), de faalpaden nog niet.
+                // Een stop onder het bekende totaal is GEEN fout. Als de paginering
+                // is geëindigd (hasMore=false) terwijl currentCount onder totalCount
+                // ligt, dan ontbreekt een staart: een laatste batch die na een paar
+                // pogingen opgaf, een cursor die niet verder kon, een batch die
+                // volledig wegdedupte. Dit gooide een Error, zodat hij via de globale
+                // handler (unhandledrejection -> paneel + serverrapport) zichtbaar
+                // werd. Gemeld als "[Infinite Scroll] Pagination stopped at 2144/2304
+                // — 160 record(s) not loaded (last id 2392, form logins)" met de
+                // opmerking dat dit geen fout is: de teller toont eerlijk
+                // "1-2144 van 2304" en de gebruiker kan gewoon verder. Daarom nu een
+                // waarschuwing in de console in plaats van een Error; wie de
+                // oorzaak zoekt vindt de tellerstand nog steeds. Vuurt één keer, op
+                // de load() die hasMore omzet (latere aanroepen keren vroeg terug).
+                // Zwijgt als de pagina wordt verlaten (pagehide/beforeunload) of als
+                // de eigen tabel niet meer in de DOM staat (_retireIfStale): dan is
+                // het laden onderbroken en zegt de tellerstand niets.
                 if (!this.hasMore && this.totalCount !== null &&
                     this.currentCount < this.totalCount &&
                     !CmaInfiniteScroll.pageLeaving && !this._retireIfStale()) {
-                    throw new Error('[Infinite Scroll] Pagination stopped at ' +
+                    cmaLog.warn('[Infinite Scroll] Pagination stopped at ' +
                         this.currentCount + '/' + this.totalCount + ' — ' +
                         (this.totalCount - this.currentCount) + ' record(s) not loaded ' +
                         '(last id ' + this.lastId + ', form ' + this.formId + ').');
