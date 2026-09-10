@@ -673,6 +673,18 @@ function cma_js_bundle(): array {
         '../library/webcomponents/lib-gauge.js',
         '../library/webcomponents/lib-statusbars.js',
         '../library/webcomponents/lib-combo.js',
+        // Deze vier ontbraken, terwijl de storybook (en de documentatie) ze als
+        // werkend presenteert: customElements.get('lib-sheet') was leeg en de demo-
+        // knop viel om met "open is not a function". Elk bestand heeft een guard
+        // tegen dubbele registratie, dus een pagina die er één los bijlaadt
+        // (imageupload_crop.php: lib-fileuploader) blijft gewoon werken.
+        // lib-log.js hoort hier bewust NIET bij: dat is geen custom element maar een
+        // logger die bij het laden console.log/warn/error overneemt; documentation.php
+        // laadt hem los, met zijn configuratie ervóór.
+        '../library/webcomponents/lib-sheet.js',
+        '../library/webcomponents/lib-field.js',
+        '../library/webcomponents/lib-arrowsteps.js',
+        '../library/webcomponents/lib-fileuploader.js',
         // CMA Web Components - ALL must be included
         'webcomponents/shared-icons.js',  // Must be first - provides icon definitions for other components
         'webcomponents/cma-blockeditor.js',
@@ -763,7 +775,7 @@ function minify_asset($files): string {
  * which stamp `?v=` with this so a patched bundle isn't served from cache.
  */
 function cma_asset_version(): string {
-    return '20260908a';
+    return '20260910a';
 }
 
 // Legacy aliases for backward compatibility

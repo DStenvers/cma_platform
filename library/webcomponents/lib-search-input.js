@@ -15,6 +15,9 @@
  *   - placeholder: Placeholder text
  *   - value: Initial value
  *   - disabled: Prevent interaction
+ *   - readonly: Show the value but don't allow editing: the input is readonly, the
+ *               clear button stays hidden, Escape and clear() leave the value alone.
+ *               The search event still fires on Enter (searching a fixed term is fine).
  *   - autofocus: Focus on connect
  *   - icon: Icon position - "left" (default), "right", or "none"
  *   - autocomplete: Autocomplete attribute (default: "off")
@@ -35,7 +38,7 @@ if (!customElements.get('lib-search-input')) {
 
 class LibSearchInput extends HTMLElement {
     static get observedAttributes() {
-        return ['value', 'placeholder', 'disabled', 'name', 'icon', 'autocomplete'];
+        return ['value', 'placeholder', 'disabled', 'readonly', 'name', 'icon', 'autocomplete'];
     }
 
     constructor() {
@@ -75,6 +78,12 @@ class LibSearchInput extends HTMLElement {
         } else if (name === 'disabled') {
             const input = this.querySelector('input');
             if (input) input.disabled = newValue !== null;
+        } else if (name === 'readonly') {
+            const input = this.querySelector('input');
+            if (input) input.readOnly = newValue !== null;
+            const container = this.querySelector('.lib-search-input');
+            if (container) container.classList.toggle('readonly', newValue !== null);
+            this._updateClearButton();
         } else if (this._rendered) {
             this.render();
         }
@@ -113,7 +122,17 @@ class LibSearchInput extends HTMLElement {
         if (input) input.select();
     }
 
+    get readOnly() {
+        return this.hasAttribute('readonly');
+    }
+
+    set readOnly(val) {
+        if (val) { this.setAttribute('readonly', ''); } else { this.removeAttribute('readonly'); }
+    }
+
     clear() {
+        // A readonly field keeps its value: no clear button, no Escape, no clear().
+        if (this.readOnly) return;
         const previousValue = this.value;
         this.value = '';
         this._dispatchEvent('clear', { previousValue });
@@ -126,6 +145,7 @@ class LibSearchInput extends HTMLElement {
         const id = this.getAttribute('id') || '';
         const placeholder = this.getAttribute('placeholder') || 'Zoeken...';
         const disabled = this.hasAttribute('disabled');
+        const readonly = this.hasAttribute('readonly');
         const iconPos = this.getAttribute('icon') || 'left';
         const autocomplete = this.getAttribute('autocomplete') || 'off';
         const value = this.getAttribute('value') || this._value || '';
@@ -136,6 +156,7 @@ class LibSearchInput extends HTMLElement {
         if (iconPos === 'right') containerClasses.push('icon-right');
         if (iconPos === 'none') containerClasses.push('no-icon');
         if (disabled) containerClasses.push('disabled');
+        if (readonly) containerClasses.push('readonly');
 
         this.innerHTML = `
             <div class="${containerClasses.join(' ')}">
@@ -146,7 +167,8 @@ class LibSearchInput extends HTMLElement {
                     placeholder="${this._escapeAttr(placeholder)}"
                     autocomplete="${autocomplete}"
                     value="${this._escapeAttr(value)}"
-                    ${disabled ? 'disabled' : ''}>
+                    ${disabled ? 'disabled' : ''}
+                    ${readonly ? 'readonly' : ''}>
                 <button type="button" class="clear-btn" title="Wissen" tabindex="-1">
                     <span class="lnr lnr-cross"></span>
                 </button>
@@ -208,7 +230,7 @@ class LibSearchInput extends HTMLElement {
         const clearBtn = this.querySelector('.clear-btn');
         const input = this.querySelector('input');
         if (clearBtn && input) {
-            clearBtn.classList.toggle('visible', !!input.value);
+            clearBtn.classList.toggle('visible', !!input.value && !this.readOnly);
         }
         this._updateSearchIcon();
     }

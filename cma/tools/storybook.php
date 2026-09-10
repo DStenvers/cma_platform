@@ -1730,6 +1730,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Huidige waarde</dd>
                     <dt>disabled</dt>
                     <dd>Schakel interactie uit (default: <code>false</code>)</dd>
+                    <dt>readonly</dt>
+                    <dd>Toon de waarde zonder bewerken: geen wisknop, Escape en <code>clear()</code> laten de waarde staan; Enter geeft nog wel <code>search</code></dd>
                     <dt>icon</dt>
                     <dd><code>"left"</code>, <code>"right"</code>, of <code>"none"</code> (default: <code>"left"</code>)</dd>
                 </dl>

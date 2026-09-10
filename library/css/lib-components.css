@@ -938,6 +938,16 @@ lib-search-input {
     cursor: not-allowed;
 }
 
+/* Readonly: same tint as a readonly lib-field, value stays legible, no clear button. */
+.lib-search-input input[readonly] {
+    background: var(--lib-field-readonly-bg, #f7f5ee);
+    color: var(--lib-field-readonly-color, #5a5e66);
+    cursor: default;
+}
+.lib-search-input.readonly .clear-btn {
+    display: none;
+}
+
 /* Icon positioning */
 .lib-search-input .search-icon {
     position: absolute;
