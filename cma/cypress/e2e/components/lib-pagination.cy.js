@@ -28,7 +28,7 @@ describe('lib-pagination Web Component', () => {
     });
 
     it('de client-side demo vuurt page-change en zet page zelf', () => {
-        cy.get('#pagerEvent').shadow().find('[data-page="2"]').click();
+        cy.get('#pagerEvent').shadow().find('[data-page="2"][aria-label="Pagina 2"]').click();   // niet "volgende", die wijst ook naar 2
         cy.get('#pagerEvent').should('have.attr', 'page', '2');
         cy.get('#pagerEventUit').should('contain', 'pagina 2');
         cy.get('#lib-pagination .playground-preview button').contains('page = 5').click();
