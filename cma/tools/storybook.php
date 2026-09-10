@@ -28,6 +28,12 @@ cma_html_header('Component Storybook');
 ToolbarHelper::start(true);
 ToolbarHelper::title('Component Storybook');
 ToolbarHelper::end();
+// lib-log.js zit bewust niet in de bundel (het neemt console.* over); de sectie "libLog"
+// hieronder demonstreert precies dat, dus hier hoort het wél te laden. Zonder dit script
+// viel de sectie terug op de kale libLog uit library.js en gaven flush(), getRequestId()
+// en isDebug() "is not a function".
+// Absoluut pad: deze pagina staat in /cma/tools/, dus '../library/…' zou naar /cma/library/ wijzen (404).
+cma_script('/library/webcomponents/lib-log.js');
 ?>
 <div style="position: fixed; top: 6px; right: 32px; z-index: 1000;">
     <button class="btn btn-secondary" id="darkModeToggle" onclick="document.documentElement.classList.toggle('dark-mode'); this.querySelector('.lnr').className = document.documentElement.classList.contains('dark-mode') ? 'lnr lnr-sun' : 'lnr lnr-moon'; localStorage.setItem('storybook-darkmode', document.documentElement.classList.contains('dark-mode') ? '1' : '0');" style="height: 18px; line-height: 18px; padding: 0 8px; font-size: var(--font-size-xs);">
