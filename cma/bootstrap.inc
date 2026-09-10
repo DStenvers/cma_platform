@@ -685,6 +685,7 @@ function cma_js_bundle(): array {
         '../library/webcomponents/lib-field.js',
         '../library/webcomponents/lib-arrowsteps.js',
         '../library/webcomponents/lib-fileuploader.js',
+        '../library/webcomponents/lib-pagination.js',
         // CMA Web Components - ALL must be included
         'webcomponents/shared-icons.js',  // Must be first - provides icon definitions for other components
         'webcomponents/cma-blockeditor.js',

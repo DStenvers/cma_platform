@@ -473,6 +473,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'lib-label', href: '#lib-label', icon: 'lnr-tag' },
                 { label: 'lib-loader', href: '#lib-loader', icon: 'lnr-hourglass' },
                 { label: 'lib-message', href: '#lib-message', icon: 'lnr-bubble' },
+                { label: 'lib-pagination', href: '#lib-pagination', icon: 'lnr-chevron-right-circle' },
                 { label: 'lib-search-input', href: '#lib-search-input', icon: 'lnr-magnifier' },
                 { label: 'lib-sheet', href: '#lib-sheet', icon: 'lnr-arrow-up' },
                 { label: 'lib-statusbars', href: '#lib-statusbars', icon: 'lnr-chart-bars' },
@@ -1678,6 +1679,111 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Creëer succes bericht</dd>
                     <dt>libMessage.error(msg)</dt>
                     <dd>Creëer fout bericht</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="lib-pagination">
+        <div class="component-header">
+            <h2>lib-pagination</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Bladerknoppen voor een gepagineerde lijst: eerste, vorige, een venster van nummers, volgende, laatste. Links (server-side) of een event (client-side)</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div class="demo-row">
+    <span class="demo-label">Met links (href):</span>
+    <lib-pagination page="3" pages="16" href="#lib-pagination?p={page}"></lib-pagination>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Uit total/page-size:</span>
+    <lib-pagination page="1" total="3085" page-size="200" href="#lib-pagination?p={page}"></lib-pagination>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Zonder eerste/laatste, venster 2:</span>
+    <lib-pagination page="8" pages="16" window="2" no-ends href="#lib-pagination?p={page}"></lib-pagination>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Eén pagina (rendert niets):</span>
+    <lib-pagination page="1" pages="1" href="#p={page}"></lib-pagination><em style="color:var(--text-muted)">(leeg)</em>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Eigen kleur:</span>
+    <lib-pagination page="2" pages="5" href="#lib-pagination?p={page}" style="--lib-pagination-accent: #5e2d79; --lib-pagination-radius: 12px;"></lib-pagination>
+</div>
+
+<p><span class="storybook__strong">Client-side: event in plaats van links</span></p>
+<div class="demo-row">
+    <lib-pagination id="pagerEvent" page="1" pages="9"></lib-pagination>
+    <span id="pagerEventUit" style="margin-left: 12px; color: var(--text-muted)">pagina 1</span>
+</div>
+<script>
+    (function () {
+        var el = document.getElementById('pagerEvent');
+        if (el) { el.addEventListener('page-change', function (e) {
+            document.getElementById('pagerEventUit').textContent = 'pagina ' + e.detail.page + ' (page-change)';
+        }); }
+    })();
+</script>
+<div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#pagerEvent').page = 5">page = 5</button>
+    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#pagerEvent').pages = 20">pages = 20</button>
+    <button class="btn btn-cancel" onclick="var p=this.closest('.playground-preview').querySelector('#pagerEvent'); libAlert('page: ' + p.page + ' van ' + p.pages)">page / pages</button>
+</div></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>page</dt>
+                    <dd>Huidige pagina, 1-gebaseerd (default: <code>1</code>)</dd>
+                    <dt>pages</dt>
+                    <dd>Aantal pagina's; óf <code>total</code> + <code>page-size</code></dd>
+                    <dt>total</dt>
+                    <dd>Aantal records; pages = ceil(total / page-size)</dd>
+                    <dt>page-size</dt>
+                    <dd>Records per pagina (default: <code>50</code>)</dd>
+                    <dt>href</dt>
+                    <dd>Sjabloon voor de link per pagina, <code>{page}</code> wordt vervangen. Zonder href zijn de knoppen client-side en vuurt <code>page-change</code></dd>
+                    <dt>window</dt>
+                    <dd>Aantal nummers links en rechts van de huidige (default: <code>3</code>)</dd>
+                    <dt>no-ends</dt>
+                    <dd>Laat de knoppen eerste/laatste weg</dd>
+                </dl>
+                <h4>Properties</h4>
+                <dl>
+                    <dt>page, pages, total, pageSize</dt>
+                    <dd>Lezen en zetten; zetten rendert opnieuw</dd>
+                    <dt>hrefFor(page)</dt>
+                    <dd>De link voor een pagina, of <code>null</code> zonder href</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>page-change</dt>
+                    <dd>detail: <code>{ page, href }</code>. Met href annuleerbaar: <code>preventDefault()</code> houdt de navigatie tegen</dd>
+                </dl>
+                <h4>CSS variabelen</h4>
+                <dl>
+                    <dt>--lib-pagination-accent</dt>
+                    <dd>Kleur van de huidige pagina en hover (default: <code>--color-accent</code>)</dd>
+                    <dt>--lib-pagination-color</dt>
+                    <dd>Tekstkleur van de knoppen (default: de accentkleur)</dd>
+                    <dt>--lib-pagination-border, -radius, -gap, -min-width, -font-size</dt>
+                    <dd>Rand, hoekradius, tussenruimte, minimale knopbreedte, lettergrootte</dd>
+                </dl>
+                <h4>Shadow parts</h4>
+                <dl>
+                    <dt>nav, button, current, disabled</dt>
+                    <dd>Aangrijpingspunten voor <code>::part()</code></dd>
+                </dl>
+                <h4>Gedrag</h4>
+                <dl>
+                    <dt>Eén pagina</dt>
+                    <dd>Bij <code>pages &lt;= 1</code> rendert het component niets</dd>
+                    <dt>Toegankelijkheid</dt>
+                    <dd><code>&lt;nav aria-label="Paginering"&gt;</code>, <code>aria-current="page"</code> op de huidige, <code>aria-disabled</code> op eerste/vorige aan het begin en volgende/laatste aan het eind</dd>
                 </dl>
             </div>
         </div>
