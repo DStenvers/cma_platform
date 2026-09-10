@@ -71,16 +71,17 @@
     window.libPrompt  = maakStub('prompt');
 })();
 //
-// Conditional logging helper - delegates to LibLog if available
+// Conditional logging helper - delegates to the logger in lib-log.js if available
 // Use libLog instead of console.log for debug-only output
-// LibLog provides: console interception, batching, server-side logging
+// lib-log.js provides: console interception, batching, server-side logging
 var libLog = (function() {
-    // Check if LibLog is loaded (from lib-log.js). Probe a method, not just the
-    // identifier: an element with id="LibLog" also makes window.LibLog truthy.
-    if (window.LibLog && typeof window.LibLog.log === 'function') {
-        return window.LibLog;
+    // Check if lib-log.js is loaded (it exports window.libLog; LibLog is the old
+    // name, a thin wrapper). Probe a method, not just the identifier: an element
+    // with id="libLog" also makes window.libLog truthy.
+    if (window.libLog && typeof window.libLog.log === 'function') {
+        return window.libLog;
     }
-    // Fallback if LibLog not loaded - simple conditional logging
+    // Fallback if lib-log.js is not loaded - simple conditional logging
     // Use CMA_CONSOLE_LOGGING (from cookie preference) instead of CMA_DEBUG (hostname-based)
     return {
         log: function() { if (window.CMA_CONSOLE_LOGGING) console.log.apply(console, arguments); },

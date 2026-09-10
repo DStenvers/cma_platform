@@ -1,16 +1,20 @@
 /**
- * LibLog - Unified Logging System
+ * libLog - Unified Logging System (was LibLog; that name stays as a thin wrapper)
  *
  * A centralized logging system that:
- * - Intercepts console.* calls and routes through LibLog
+ * - Intercepts console.* calls and routes through libLog
  * - Sends logs to server for database storage
  * - Respects debug mode (CMA_DEBUG) for console output
  * - Works across library.js and CMA contexts
  *
  * Usage:
- *   LibLog.info('User logged in', { userId: 123 });
- *   LibLog.warning('Slow query detected', { ms: 500 });
- *   LibLog.error('Failed to save', { error: err.message });
+ *   libLog.info('User logged in', { userId: 123 });
+ *   libLog.warning('Slow query detected', { ms: 500 });
+ *   libLog.error('Failed to save', { error: err.message });
+ *
+ * Naming: libLog, like libToast / libAlert / libConfirm. The old capitalised
+ * LibLog is still exported as a small wrapper that forwards every call, so
+ * existing callers keep working; new code uses libLog.
  *
  * Configuration:
  *   window.LIBLOG_CONFIG = {
@@ -129,7 +133,8 @@
             for (var i = 2; i < lines.length; i++) {
                 var line = lines[i];
                 if (line.indexOf('lib-log.js') === -1 &&
-                    line.indexOf('LibLog') === -1) {
+                    line.indexOf('LibLog') === -1 &&
+                    line.indexOf('libLog') === -1) {
                     // Extract file:line from stack
                     var match = line.match(/(?:at\s+)?(?:.*?\s+\()?(.+?):(\d+)(?::\d+)?\)?$/);
                     if (match) {
@@ -331,9 +336,9 @@
     }
 
     /**
-     * LibLog public API
+     * libLog public API
      */
-    var LibLog = {
+    var libLog = {
         // Version
         version: '1.0.0',
 
@@ -431,13 +436,26 @@
         });
     }
 
-    // Export
+    // Export: libLog is the name (like libToast, libAlert, libConfirm).
+    global.libLog = libLog;
+
+    // Old name: a thin wrapper that forwards every call to libLog, so code that
+    // still says LibLog.* keeps working. Functions forward with libLog as `this`;
+    // plain properties (version, LEVELS, console) are live getters, not copies.
+    var LibLog = {};
+    Object.keys(libLog).forEach(function (naam) {
+        if (typeof libLog[naam] === 'function') {
+            LibLog[naam] = function () { return libLog[naam].apply(libLog, arguments); };
+        } else {
+            Object.defineProperty(LibLog, naam, {
+                enumerable: true,
+                get: function () { return libLog[naam]; }
+            });
+        }
+    });
     global.LibLog = LibLog;
 
-    // Also provide as window.libLog for backward compatibility with library.js
-    global.libLog = LibLog;
-
     // Also provide as window.cmaLog for CMA compatibility
-    global.cmaLog = LibLog;
+    global.cmaLog = libLog;
 
 })(typeof window !== 'undefined' ? window : global);

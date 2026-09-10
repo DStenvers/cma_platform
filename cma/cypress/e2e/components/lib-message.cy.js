@@ -970,3 +970,32 @@ describe('lib-message Web Component', () => {
         });
     });
 });
+
+// De storybook-demo "Methodes": close() haalt het bericht uit de DOM, dus een tweede klik
+// (of show() erna) vond niets meer en viel om met "Cannot read properties of null
+// (reading 'show')". De demo maakt het bericht nu opnieuw aan bij show() en zegt bij
+// close() dat het al weg is.
+describe('lib-message storybook-demo: close() en daarna show()', () => {
+    beforeEach(() => {
+        cy.loginAsAdmin();
+        cy.visit('/tools/storybook.php');
+        cy.wait(1000);
+        cy.get('#lib-message').scrollIntoView();
+    });
+
+    it('close() haalt het bericht weg, show() zet het terug, nogmaals close() geeft geen fout', () => {
+        cy.on('uncaught:exception', (e) => { throw e; });   // een JS-fout is hier een falende test
+        const knop = (tekst) => cy.get('#lib-message .playground-preview button').contains(tekst);
+        cy.get('#lib-message .playground-preview #msgDemo').should('exist');
+        knop('close()').click();
+        cy.get('#lib-message .playground-preview #msgDemo', { timeout: 5000 }).should('not.exist');
+        knop('close()').click();          // al weg: een toast, geen fout
+        knop('show()').click();
+        cy.get('#lib-message .playground-preview #msgDemo').should('be.visible')
+            .and('contain', 'gesloten en weer getoond');
+        knop('hidden = true').click();
+        cy.get('#lib-message .playground-preview #msgDemo').should('not.be.visible');
+        knop('show()').click();
+        cy.get('#lib-message .playground-preview #msgDemo').should('be.visible');
+    });
+});

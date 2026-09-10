@@ -579,9 +579,9 @@ function savePreferences() {
         var allSuccess = results.every(function(r) { return r.success; });
 
         if (allSuccess) {
-            // Update LibLog runtime config from cookie (debug mode preference may have changed)
-            if (typeof LibLog !== 'undefined' && LibLog.refreshFromCookie) {
-                LibLog.refreshFromCookie();
+            // Update libLog runtime config from cookie (debug mode preference may have changed)
+            if (window.libLog && typeof window.libLog.refreshFromCookie === 'function') {
+                window.libLog.refreshFromCookie();
             }
 
             if (userResult.needsRefresh) {

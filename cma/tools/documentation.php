@@ -2073,7 +2073,7 @@ function render_doc_overview(): void
             <tr><td><a href="documentation.php?topic=json_forms"><span class="lnr lnr-text-format"></span> JSON-gedreven formulieren</a></td><td>JsonFormLoader + JsonFormRenderer, schema basics, form.php entry point, extraButtons placeholders.</td></tr>
             <tr><td><a href="documentation.php?topic=formval"><span class="lnr lnr-checkmark-circle"></span> Formuliervalidatie (front-end)</a></td><td>form_valid(), de foutensamenvatting bovenaan het formulier, data-attributen per veld, de min-bundel die de site laadt.</td></tr>
             <tr><td><a href="documentation.php?topic=web_components"><span class="lnr lnr-bubble"></span> Web components ontwikkelen</a></td><td>lib- vs cma- prefix, shadow DOM, minified counterpart, Storybook-integratie, icon-conventies.</td></tr>
-            <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>LibLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
+            <tr><td><a href="documentation.php?topic=errors"><span class="lnr lnr-bug"></span> Logging &amp; errors (dev)</a></td><td>libLog en CmaErrorHandler interna, error-flow, sensitive-data scrubbing in code.</td></tr>
             <tr><td><a href="documentation.php?topic=releasing"><span class="lnr lnr-tag"></span> Releasen &amp; versies</a></td><td>composer.json version bump, git tag, semver, REMOVED_PATHS voor retired bestanden.</td></tr>
             <tr><td><a href="documentation.php?topic=dashboard_cards"><span class="lnr lnr-chart-bars"></span> Dashboard-kaarten per site</a></td><td>Een site injecteert een statuskaart in het dashboard: dashboard_cards_extra, payloadcontract, lib-statusbars.</td></tr>
         </tbody>
@@ -2110,7 +2110,7 @@ function render_doc_overview(): void
 
     <h2>Andere bronnen</h2>
     <ul>
-        <li><a href="storybook.php"><span class="lnr lnr-bubble"></span> Component Storybook</a> — levende voorbeelden van alle <code>lib-*</code> en <code>cma-*</code> web components, plus JS-helpers (libAlert, libConfirm, libToast, LibLog).</li>
+        <li><a href="storybook.php"><span class="lnr lnr-bubble"></span> Component Storybook</a> — levende voorbeelden van alle <code>lib-*</code> en <code>cma-*</code> web components, plus JS-helpers (libAlert, libConfirm, libToast, libLog).</li>
         <li>Package repository: <a href="https://github.com/DStenvers/cma_platform" target="_blank" rel="noopener">github.com/DStenvers/cma_platform</a></li>
         <li><code>CLAUDE.md</code> (in repo root) — werkprincipes, hard rules, documentation-maintenance workflow.</li>
     </ul>
@@ -2866,7 +2866,7 @@ function render_doc_logs(): void
             <tr><td>Deploy log</td><td><code>logs/deploy.log</code></td><td>Output van elke deploy-pipeline; banner per run. Override via <code>DEPLOY_LOG_FILE</code>.</td></tr>
             <tr><td>Application log</td><td><code>.logs/app/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
             <tr><td>Performance log</td><td><code>.logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>
-            <tr><td>Debug log</td><td><code>.logs/debug/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>LibLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
+            <tr><td>Debug log</td><td><code>.logs/debug/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>libLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
             <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door <code>cma/404.php</code>.</td></tr>
             <tr><td>Cache log</td><td><code>cache/cache.log</code></td><td>Cache-hit/-miss events. Aan via <code>CACHE_LOG_ENABLED=true</code>.</td></tr>
             <tr><td>JS errors (DB)</td><td>Tabel <code>tblCMAJavascriptErrors</code></td><td>Client-side errors gevangen door <code>CmaErrorHandler</code>. Rate-limited tot 100 per IP per uur.</td></tr>
@@ -2944,7 +2944,7 @@ PerformanceLogger::logMemory('after_query');</code></pre>
     </table>
 
     <h2>Debug-mode aan/uit</h2>
-    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt LibLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt.</p>
+    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt libLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (deploy.log specifiek), <a href="documentation.php?topic=backups">Backups</a> (backup-failures landen in php_errors.log).
@@ -4337,19 +4337,19 @@ function render_doc_errors(): void
 {
     ?>
     <h1>Logging &amp; errors (dev)</h1>
-    <p class="docs-meta">De ontwikkelaars-kant van logging — interna van LibLog en CmaErrorHandler.</p>
+    <p class="docs-meta">De ontwikkelaars-kant van logging — interna van libLog en CmaErrorHandler.</p>
 
     <h2>Twee lagen</h2>
     <p>Het platform heeft een JavaScript-laag en een PHP-laag die samen werken:</p>
     <ul>
-        <li><span class="cma-tool__strong">LibLog</span> (<code>library/webcomponents/lib-log.js</code>) — onderschept <code>console.*</code> calls, batched naar de server. <span class="cma-tool__strong">Zit niet in de CMA-bundle</span> (<code>cma_js_bundle()</code>) en wordt door geen enkele pagina ingeladen; wie hem wil gebruiken moet het bestand zelf includen. Zonder die include bestaat <code>window.LibLog</code> niet en valt <code>cmaLog</code> terug op <code>console.*</code>.</li>
+        <li><span class="cma-tool__strong">libLog</span> (<code>library/webcomponents/lib-log.js</code>; de oude naam <code>LibLog</code> blijft als dun laagje bestaan) — onderschept <code>console.*</code> calls, batched naar de server. <span class="cma-tool__strong">Zit niet in de CMA-bundle</span> (<code>cma_js_bundle()</code>) en wordt door geen enkele pagina ingeladen; wie hem wil gebruiken moet het bestand zelf includen. Zonder die include bestaat <code>window.libLog</code> niet en valt <code>cmaLog</code> terug op <code>console.*</code>.</li>
         <li><span class="cma-tool__strong">CmaErrorHandler</span> (<code>library/assets/js/error-handler.js</code>) — vangt <code>window.onerror</code> en <code>unhandledrejection</code>, toont visueel paneel in dev-mode, post naar <code>form_api.php?action=logJsError</code>.</li>
         <li><span class="cma-tool__strong">Logger</span> (<code>cma/classes/Services/Logger.php</code>) — server-side PSR-3 logger.</li>
         <li><span class="cma-tool__strong">PerformanceLogger</span> (<code>cma/classes/Services/PerformanceLogger.php</code>) — timing metrics.</li>
     </ul>
     <p>Voor de operator-kant (welke log-bron waar): zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>. Hier focus op de code-API.</p>
 
-    <h2>LibLog runtime config</h2>
+    <h2>libLog runtime config</h2>
     <pre><code>window.LIBLOG_CONFIG = {
     apiEndpoint:       '/cma/api/log.php',
     sendToServer:      true,
@@ -4377,7 +4377,7 @@ function render_doc_errors(): void
         <li><span class="cma-tool__strong">Rate-limit client-side</span>: 5 errors per minuut in het visuele paneel. Verdere errors worden in een queue gehouden tot het minuut-venster opnieuw begint.</li>
         <li><span class="cma-tool__strong">Rate-limit server-side</span>: 100 errors per IP per uur in <code>tblCMAJavascriptErrors</code>. <code>form_api.php?action=logJsError</code> negeert verdere posts.</li>
         <li><span class="cma-tool__strong">Deduplicatie</span>: identieke errors binnen 60 seconden window worden niet opnieuw gepost. Bewust om error-storms op te vangen wanneer een onbedoelde loop oneindig dezelfde error gooit.</li>
-        <li><span class="cma-tool__strong">window.CmaErrorHandler.report()</span> — interface die LibLog en custom code kunnen gebruiken om handmatig een error in het paneel te krijgen. Signature: <code>report(source, message, context)</code>.</li>
+        <li><span class="cma-tool__strong">window.CmaErrorHandler.report()</span> — interface die libLog en custom code kunnen gebruiken om handmatig een error in het paneel te krijgen. Signature: <code>report(source, message, context)</code>.</li>
     </ul>
 
     <h2>Server-side fout-responses voor AJAX (admin/supervisor ziet de oorzaak)</h2>
@@ -4460,7 +4460,7 @@ PerformanceLogger::logMemory('checkpoint');
     <ul>
         <li>Structured logging: <span class="cma-tool__strong">altijd</span> context-array meegeven. <code>Logger::error('Save failed')</code> alleen is onbruikbaar; <code>Logger::error('Save failed', ['formId' =&gt; …, 'error' =&gt; …])</code> wel.</li>
         <li>Errors die je catch't en niet opnieuw throw't moeten gelogd worden. Geen "silent catch" — zie <code>memory/feedback_defensive_checks.md</code>.</li>
-        <li>JS-side: prefereer <code>LibLog.error(…)</code> boven raw <code>console.error</code> — context is rijker en de error landt in het visuele paneel.</li>
+        <li>JS-side: prefereer <code>libLog.error(…)</code> boven raw <code>console.error</code> — context is rijker en de error landt in het visuele paneel.</li>
     </ul>
 
     <div class="seealso">
@@ -4739,8 +4739,8 @@ function render_doc_troubleshooting(): void
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
             <tr><td>Logreader → Performance: "Geen log entries gevonden", maar er IS verkeer.</td><td>logreader leest <code>.logs/perf/perf_*.log</code>; <code>PerformanceLogger</code> schrijft naar <code>.logs/perf/perf_*.log</code>. De UI kijkt in de verkeerde map.</td><td>Bekijk de files direct op disk in <code>.logs/perf/</code> totdat een release de paden synchroniseert. Open issue.</td></tr>
-            <tr><td>Logreader → Debug: "Geen log entries gevonden", LibLog console-logging staat aan.</td><td>Zelfde patroon: logreader leest <code>.logs/debug/debug_*.log</code>; <code>cma/api/log.php</code> schrijft naar <code>.logs/debug/debug_*.log</code>.</td><td>Bekijk de files in <code>.logs/</code>. Same fix.</td></tr>
-            <tr><td><code>Uncaught TypeError: LibLog.log is not a function</code> (typisch op de storybook, ook via <code>[iframe]</code> in het error-paneel)</td><td>Named element access: een element met <code>id="LibLog"</code> zet <code>window.LibLog</code> op dat DOM-element. De oude check <code>typeof LibLog !== 'undefined'</code> in de <code>cmaLog</code>-fallback zag dat als "logger aanwezig" en riep <code>.log()</code> aan op een <code>&lt;section&gt;</code>. LibLog zit niet in de bundle, dus het echte object was er nooit.</td><td>: <code>cma-utils.js</code> en <code>library.js</code> testen nu op de méthode (<code>typeof window.LibLog.log === 'function'</code>) en de storybook-sectie heet <code>id="liblog"</code>. Regel: gebruik nooit een global-naam als element-id.</td></tr>
+            <tr><td>Logreader → Debug: "Geen log entries gevonden", libLog console-logging staat aan.</td><td>Zelfde patroon: logreader leest <code>.logs/debug/debug_*.log</code>; <code>cma/api/log.php</code> schrijft naar <code>.logs/debug/debug_*.log</code>.</td><td>Bekijk de files in <code>.logs/</code>. Same fix.</td></tr>
+            <tr><td><code>Uncaught TypeError: libLog.log is not a function</code> (vóór 1.38.52 heette de logger LibLog) (typisch op de storybook, ook via <code>[iframe]</code> in het error-paneel)</td><td>Named element access: een element met <code>id="libLog"</code> zet <code>window.libLog</code> op dat DOM-element. De oude check <code>typeof libLog !== 'undefined'</code> in de <code>cmaLog</code>-fallback zag dat als "logger aanwezig" en riep <code>.log()</code> aan op een <code>&lt;section&gt;</code>. libLog zit niet in de bundle, dus het echte object was er nooit.</td><td>: <code>cma-utils.js</code> en <code>library.js</code> testen nu op de méthode (<code>typeof window.libLog.log === 'function'</code>) en de storybook-sectie heet <code>id="liblog"</code>. Regel: gebruik nooit een global-naam als element-id.</td></tr>
             <tr><td>Logreader → Application: log-bron ontbreekt in de dropdown.</td><td>De logreader-config heeft geen 'app' source-entry — Logger's <code>.logs/app/app_*.log</code> wordt nergens via de UI ontsloten.</td><td>Open de bestanden direct, of voeg een source-entry toe aan <code>logreader.php</code>.</td></tr>
         </tbody>
     </table>
@@ -4752,6 +4752,8 @@ function render_doc_troubleshooting(): void
             <tr><td>lib-sheet animeert niet bij open (paneel "klapt" direct op zijn plek, geen slide)</td><td><code>@keyframes</code> die binnen een shadow root zijn gedefinieerd worden niet betrouwbaar geëvalueerd (met name iOS/WebKit). Het paneel springt dan meteen naar zijn rest-state zonder zichtbare beweging. Een oudere consumer-site die nog niet ge-<code>composer update</code>'d is, draait nog op die kapotte @keyframes-versie.</td><td>Slidet via de Web Animations API (<code>panel.animate([...])</code> met inline keyframes in <code>lib-sheet.js</code>) i.p.v. CSS @keyframes — die loopt wél in een shadow root. Zie je het symptoom nog? Controleer of de site daadwerkelijk heeft (<code>composer update stenversonline/platform</code>) en hard-refresh zodat de gecachte <code>lib-sheet.min.js</code> wordt vervangen.</td></tr>
             <tr><td>lib-sheet doet niets: de storybook-demo geeft <code>document.getElementById(...).open is not a function</code>, <code>customElements.get('lib-sheet')</code> is leeg</td><td>lib-sheet.js zat niet in <code>cma_js_bundle()</code> (net als lib-field, lib-arrowsteps en lib-fileuploader), terwijl het commentaar boven die lijst "ALL must be included" zegt. Het element bleef een kale HTMLElement.</td><td>Sinds 1.38.51 staan de vier in de bundel; lib-log blijft er bewust buiten (geen element, neemt console over). Guard: <code>cma/tests/JsBundleAlleWebcomponentsTest.php</code>; gedrag: <code>cypress/e2e/components/lib-sheet.cy.js</code>. Ziet een site het nog? <code>composer update</code> plus hard-refresh: de asset-versie is meegebumpt.</td></tr>
             <tr><td>lib-search-input met <code>readonly</code> is gewoon te bewerken, met wisknop</td><td>Het component kende alleen <code>disabled</code>; het attribuut readonly werd genegeerd, de storybook toonde de variant wel.</td><td>Sinds 1.38.51 zet readonly het invoerveld op readonly, verbergt de wisknop en laten Escape en <code>clear()</code> de waarde staan (Enter geeft nog <code>search</code>). Property <code>readOnly</code> om te wisselen. Tests: <code>cma/tests/js/searchinput-readonly.test.js</code>, <code>cypress/e2e/components/lib-search-input.cy.js</code>.</td></tr>
+            <tr><td>Storybook, lib-message "Methodes": <code>Cannot read properties of null (reading 'show')</code> na close()</td><td><code>close()</code> haalt het bericht uit de DOM (zo getest en bedoeld; <code>show()</code> is voor een met <code>hidden</code> verborgen bericht). De demo zocht daarna hetzelfde element weer op.</td><td>Sinds 1.38.52 maakt de demo het bericht bij show() opnieuw aan en meldt close() dat het al weg is; de methodetekst zegt nu wat close() en show() doen. Test: <code>cypress/e2e/components/lib-message.cy.js</code>.</td></tr>
+            <tr><td>Logger heet <code>LibLog</code> met hoofdletter, anders dan libToast/libAlert/libConfirm</td><td>Historisch; <code>window.libLog</code> bestond al als alias.</td><td>Sinds 1.38.52 is <code>libLog</code> de naam (lib-log.js, cma-utils.js, preferences.php, storybook, docs). <code>LibLog</code> blijft bestaan als dun laagje dat elke aanroep doorgeeft, dus oude code valt niet om. Test: <code>cma/tests/js/liblog-naam.test.js</code> (ook: nergens in het platform nog een LibLog-aanroep).</td></tr>
             <tr><td>lib-sheet grab-bar niet draggable op mobiel</td><td>Hit-area van ~12px is te klein voor touch.</td><td>Bindt drag óók op het hele <code>.header</code>-element (~50px); heeft de bar zelf ook gepromoot naar ~28px hit-area.</td></tr>
             <tr><td>Knop-klik geeft geen visuele feedback</td><td>CSS <code>:active</code> styles bestaan wel, maar een korte klik laat ze nooit lang genoeg zien.</td><td>Heeft <code>.btn--clicked</code> animatie die door een document-level click handler 220ms wordt aangezet.</td></tr>
         </tbody>

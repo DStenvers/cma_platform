@@ -7,7 +7,7 @@
  * Contains:
  * - CMA_DEBUG - Environment detection for debug mode
  * - CMA_CONSOLE_LOGGING - User preference for console logging (set by lib-log.js)
- * - cmaLog - Uses LibLog if available, otherwise simple fallback
+ * - cmaLog - Uses libLog if available, otherwise simple fallback
  * - cmaErrorParser - PHP error extraction utilities
  *
  * NOTE: lib-log.js should be loaded first and sets CMA_CONSOLE_LOGGING from cookie.
@@ -62,38 +62,39 @@ if (typeof window.CMA_CONSOLE_LOGGING === 'undefined') {
 
 /**
  * Conditional console logging
- * If LibLog (from lib-log.js) is available, use it for full features
+ * If libLog (from lib-log.js) is available, use it for full features
  * (server logging, batching, error panel integration).
  * Otherwise, fall back to simple console wrapper.
  */
-// NOTE: never test `typeof LibLog !== 'undefined'` to decide whether the real
-// logger is present. Any element with id="LibLog" makes window.LibLog a DOM node
+// NOTE: never test `typeof libLog !== 'undefined'` to decide whether the real
+// logger is present. Any element with id="libLog" makes window.libLog a DOM node
 // (named element access), so the identifier exists but has no log/warn/error.
-// Always probe the method itself.
+// Always probe the method itself. (libLog is the name; LibLog is the old
+// capitalised alias, kept as a thin wrapper in lib-log.js.)
 function cmaHasLibLog(method) {
-    return !!window.LibLog && typeof window.LibLog[method] === 'function';
+    return !!window.libLog && typeof window.libLog[method] === 'function';
 }
 
 if (typeof window.cmaLog === 'undefined' || !cmaHasLibLog('log')) {
-    // LibLog not loaded or cmaLog not set - provide fallback
-    window.cmaLog = cmaHasLibLog('log') ? window.LibLog : {
+    // libLog not loaded or cmaLog not set - provide fallback
+    window.cmaLog = cmaHasLibLog('log') ? window.libLog : {
         log: function(...args) {
-            // Delegate to LibLog if available, otherwise use console directly
-            if (cmaHasLibLog('log')) { window.LibLog.log(...args); }
+            // Delegate to libLog if available, otherwise use console directly
+            if (cmaHasLibLog('log')) { window.libLog.log(...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.log(...args); }
         },
         warn: function(...args) {
-            if (cmaHasLibLog('warn')) { window.LibLog.warn(...args); }
+            if (cmaHasLibLog('warn')) { window.libLog.warn(...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.warn(...args); }
         },
         error: function(...args) {
             // Always log errors - important for debugging production issues
-            if (cmaHasLibLog('error')) { window.LibLog.error(...args); }
+            if (cmaHasLibLog('error')) { window.libLog.error(...args); }
             else { console.error(...args); }
         },
         // Alias for convenience
         debug: function(...args) {
-            if (cmaHasLibLog('log')) { window.LibLog.log('[DEBUG]', ...args); }
+            if (cmaHasLibLog('log')) { window.libLog.log('[DEBUG]', ...args); }
             else if (window.CMA_CONSOLE_LOGGING) { console.log('[DEBUG]', ...args); }
         },
         // Method to check if logging is enabled
@@ -102,7 +103,7 @@ if (typeof window.cmaLog === 'undefined' || !cmaHasLibLog('log')) {
         }
     };
 }
-// If LibLog exists, cmaLog was already set by lib-log.js - don't overwrite
+// If libLog exists, cmaLog was already set by lib-log.js - don't overwrite
 
 /**
  * PHP Error Parser - extracts error info from HTML responses

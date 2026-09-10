@@ -30,7 +30,7 @@ ToolbarHelper::title('Component Storybook');
 ToolbarHelper::end();
 ?>
 <div style="position: fixed; top: 6px; right: 32px; z-index: 1000;">
-    <button class="btn btn-secondary" id="darkModeToggle" onclick="document.documentElement.classList.toggle('dark-mode'); this.querySelector('.lnr').className = document.documentElement.classList.contains('dark-mode') ? 'lnr lnr-sun' : 'lnr lnr-moon'; localStorage.setItem('storybook-darkmode', document.documentElement.classList.contains('dark-mode') ? '1' : '0');" style="height: 24px; padding: 0 10px; font-size: var(--font-size-xs);">
+    <button class="btn btn-secondary" id="darkModeToggle" onclick="document.documentElement.classList.toggle('dark-mode'); this.querySelector('.lnr').className = document.documentElement.classList.contains('dark-mode') ? 'lnr lnr-sun' : 'lnr lnr-moon'; localStorage.setItem('storybook-darkmode', document.documentElement.classList.contains('dark-mode') ? '1' : '0');" style="height: 18px; line-height: 18px; padding: 0 8px; font-size: var(--font-size-xs);">
         <span class="lnr lnr-moon"></span> Dark mode
     </button>
 </div>
@@ -488,7 +488,7 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'libAlert', href: '#libAlert', icon: 'lnr-warning' },
                 { label: 'libConfirm', href: '#libConfirm', icon: 'lnr-question-circle' },
                 { label: 'libPrompt', href: '#libPrompt', icon: 'lnr-text-format' },
-                { label: 'LibLog', href: '#liblog', icon: 'lnr-bug' }
+                { label: 'libLog', href: '#liblog', icon: 'lnr-bug' }
             ]
         },
         {
@@ -1620,8 +1620,12 @@ html.dark-mode .hex-dark { display: inline; }
 <p><span class="storybook__strong">Methodes</span></p>
 <lib-message id="msgDemo" type="info" closable>Dit bericht kan gesloten en weer getoond worden.</lib-message>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap; margin-top: 10px;">
-    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#msgDemo').show()">show()</button>
-    <button class="btn btn-secondary" onclick="this.closest('.playground-preview').querySelector('#msgDemo').close()">close()</button>
+    <!-- close() haalt het bericht uit de DOM; show() hoort bij een met `hidden` verborgen bericht.
+         Na close() is er dus niets meer om te tonen: de knop maakt het bericht dan opnieuw aan,
+         anders viel hij om met "Cannot read properties of null (reading 'show')". -->
+    <button class="btn btn-secondary" onclick="var p=this.closest('.playground-preview'), m=p.querySelector('#msgDemo'); if(!m){ m=document.createElement('lib-message'); m.id='msgDemo'; m.setAttribute('type','info'); m.setAttribute('closable',''); m.textContent='Dit bericht kan gesloten en weer getoond worden.'; this.parentNode.before(m); } m.show()">show()</button>
+    <button class="btn btn-secondary" onclick="var m=this.closest('.playground-preview').querySelector('#msgDemo'); if(m){ m.close(); } else { libToast.info('Al gesloten: close() heeft het bericht uit de DOM gehaald'); }">close()</button>
+    <button class="btn btn-secondary" onclick="var m=this.closest('.playground-preview').querySelector('#msgDemo'); if(m){ m.hidden=true; } else { libToast.info('Al gesloten'); }">hidden = true</button>
 </div>
 
 <p><span class="storybook__strong">JavaScript API</span></p>
@@ -1651,9 +1655,9 @@ html.dark-mode .hex-dark { display: inline; }
                 <h4>Methodes</h4>
                 <dl>
                     <dt>close()</dt>
-                    <dd>Sluit het bericht</dd>
-                    <dt>show()</dt>
-                    <dd>Toon verborgen bericht</dd>
+                    <dd>Sluit het bericht en haalt het uit de DOM (na de animatie; event <code>lib-message-close</code>)</dd>
+                    <dt>show(tekst?, type?)</dt>
+                    <dd>Toon een met <code>hidden</code> verborgen bericht; met argumenten ook nieuwe tekst en type. Na <code>close()</code> is er niets meer om te tonen</dd>
                 </dl>
                 <h4>Events</h4>
                 <dl>
@@ -2643,7 +2647,7 @@ LibTip.reset();</div>
 
     <section class="component-section" id="liblog">
         <div class="component-header">
-            <h2>LibLog</h2>
+            <h2>libLog</h2>
             <span class="tag lib">library</span>
             <p class="component-description">Gecentraliseerde logging-API: onderschept console.*, batched naar de server (log.php), respecteert debug-mode</p>
         </div>
@@ -2652,47 +2656,47 @@ LibTip.reset();</div>
                 <div class="playground">
                     <textarea><p><span class="storybook__strong">Basis-logging</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
-    <button class="btn btn-secondary" onclick="LibLog.debug('Debug-bericht uit de storybook', {source:'storybook'}); libToast.info('LibLog.debug() aangeroepen — bekijk de console en /cma/api/log.php')">LibLog.debug()</button>
-    <button class="btn btn-secondary" onclick="LibLog.info('Info-bericht', {action:'demo'}); libToast.info('LibLog.info() aangeroepen')">LibLog.info()</button>
-    <button class="btn btn-secondary" onclick="LibLog.warning('Trage query gedetecteerd', {ms:850}); libToast.warning('LibLog.warning() aangeroepen')">LibLog.warning()</button>
-    <button class="btn btn-cancel" onclick="LibLog.error('Demo-fout ter illustratie', {context:'storybook button'}); libToast.error('LibLog.error() aangeroepen — verschijnt ook in het error-paneel')">LibLog.error()</button>
+    <button class="btn btn-secondary" onclick="libLog.debug('Debug-bericht uit de storybook', {source:'storybook'}); libToast.info('libLog.debug() aangeroepen — bekijk de console en /cma/api/log.php')">libLog.debug()</button>
+    <button class="btn btn-secondary" onclick="libLog.info('Info-bericht', {action:'demo'}); libToast.info('libLog.info() aangeroepen')">libLog.info()</button>
+    <button class="btn btn-secondary" onclick="libLog.warning('Trage query gedetecteerd', {ms:850}); libToast.warning('libLog.warning() aangeroepen')">libLog.warning()</button>
+    <button class="btn btn-cancel" onclick="libLog.error('Demo-fout ter illustratie', {context:'storybook button'}); libToast.error('libLog.error() aangeroepen — verschijnt ook in het error-paneel')">libLog.error()</button>
 </div>
 
 <p><span class="storybook__strong">Server-buffer beheren</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
-    <button class="btn btn-secondary" onclick="LibLog.flush(); libToast.info('Buffer naar server geflusht')">flush()</button>
-    <button class="btn btn-secondary" onclick="libAlert('Request-ID: ' + LibLog.getRequestId())">getRequestId()</button>
-    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + (LibLog.isDebug() ? 'aan' : 'uit'))">isDebug()</button>
-    <button class="btn btn-secondary" onclick="libAlert('Config:\n' + JSON.stringify(LibLog.getConfig(), null, 2))">getConfig()</button>
+    <button class="btn btn-secondary" onclick="libLog.flush(); libToast.info('Buffer naar server geflusht')">flush()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Request-ID: ' + libLog.getRequestId())">getRequestId()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + (libLog.isDebug() ? 'aan' : 'uit'))">isDebug()</button>
+    <button class="btn btn-secondary" onclick="libAlert('Config:\n' + JSON.stringify(libLog.getConfig(), null, 2))">getConfig()</button>
 </div>
 
 <p><span class="storybook__strong">Bypass de interceptor (originele console)</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
-    <button class="btn btn-secondary" onclick="LibLog.console.log('Direct naar de echte console — niet via LibLog'); libToast.info('Direct naar console.log()')">LibLog.console.log()</button>
+    <button class="btn btn-secondary" onclick="libLog.console.log('Direct naar de echte console — niet via libLog'); libToast.info('Direct naar console.log()')">libLog.console.log()</button>
 </div>
 
 <p><span class="storybook__strong">Niveau wijzigen</span></p>
 <div class="demo-row" style="gap: 6px; flex-wrap: wrap;">
-    <button class="btn btn-secondary" onclick="LibLog.setDebug(true); libToast.success('Debug-mode aangezet (deze sessie)')">setDebug(true)</button>
-    <button class="btn btn-secondary" onclick="LibLog.setDebug(false); libToast.success('Debug-mode uitgezet (deze sessie)')">setDebug(false)</button>
-    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + LibLog.refreshFromCookie())">refreshFromCookie()</button>
+    <button class="btn btn-secondary" onclick="libLog.setDebug(true); libToast.success('Debug-mode aangezet (deze sessie)')">setDebug(true)</button>
+    <button class="btn btn-secondary" onclick="libLog.setDebug(false); libToast.success('Debug-mode uitgezet (deze sessie)')">setDebug(false)</button>
+    <button class="btn btn-secondary" onclick="libAlert('Debug-mode: ' + libLog.refreshFromCookie())">refreshFromCookie()</button>
 </div></textarea>
                 </div>
                 <div class="code-block" style="white-space: pre;">// Direct gebruik
-LibLog.info('Gebruiker ingelogd', { userId: 123 });
-LibLog.warning('Trage query', { ms: 500 });
-LibLog.error('Opslaan mislukt', { error: err.message });
+libLog.info('Gebruiker ingelogd', { userId: 123 });
+libLog.warning('Trage query', { ms: 500 });
+libLog.error('Opslaan mislukt', { error: err.message });
 
 // Aliassen voor compatibiliteit
-window.libLog === LibLog;  // library.js context
-window.cmaLog === LibLog;  // CMA context
+window.cmaLog === libLog;  // CMA context
+window.LibLog;             // oude naam: dun laagje dat elke aanroep doorgeeft aan libLog
 
 // Console-onderschepping: deze calls lopen automatisch
-// door LibLog heen (debug-niveau, geen server-flush tenzij
+// door libLog heen (debug-niveau, geen server-flush tenzij
 // debug-mode aan staat)
-console.log('foo');     // → LibLog.debug
-console.warn('bar');    // → LibLog.warning
-console.error('boom');  // → LibLog.error
+console.log('foo');     // → libLog.debug
+console.warn('bar');    // → libLog.warning
+console.error('boom');  // → libLog.error
 
 // Eigen configuratie vooraf zetten (vóór lib-log.js laadt)
 window.LIBLOG_CONFIG = {
@@ -2707,32 +2711,32 @@ window.LIBLOG_CONFIG = {
             <div class="component-options">
                 <h4>Niveaus</h4>
                 <dl>
-                    <dt>LibLog.error(msg, ctx?)</dt>
+                    <dt>libLog.error(msg, ctx?)</dt>
                     <dd>Hoogste prioriteit. Altijd naar server, altijd in console. Toont ook in het CMA-foutenpaneel</dd>
-                    <dt>LibLog.warning(msg, ctx?)</dt>
-                    <dd>Alias: <code>LibLog.warn</code>. Toont in foutenpaneel als debug-mode aan staat</dd>
-                    <dt>LibLog.info(msg, ctx?)</dt>
+                    <dt>libLog.warning(msg, ctx?)</dt>
+                    <dd>Alias: <code>libLog.warn</code>. Toont in foutenpaneel als debug-mode aan staat</dd>
+                    <dt>libLog.info(msg, ctx?)</dt>
                     <dd>Informatief. Alleen naar server wanneer debug-mode aan staat</dd>
-                    <dt>LibLog.debug(msg, ctx?)</dt>
-                    <dd>Alias: <code>LibLog.log</code>. Laagste prioriteit, alleen console output in debug-mode</dd>
+                    <dt>libLog.debug(msg, ctx?)</dt>
+                    <dd>Alias: <code>libLog.log</code>. Laagste prioriteit, alleen console output in debug-mode</dd>
                 </dl>
                 <h4>Beheer-methodes</h4>
                 <dl>
-                    <dt>LibLog.flush()</dt>
+                    <dt>libLog.flush()</dt>
                     <dd>Stuur de huidige buffer direct naar <code>/cma/api/log.php</code></dd>
-                    <dt>LibLog.getRequestId()</dt>
+                    <dt>libLog.getRequestId()</dt>
                     <dd>Het correlatie-ID dat aan elke log-regel in deze pageview hangt</dd>
-                    <dt>LibLog.configure(opts)</dt>
+                    <dt>libLog.configure(opts)</dt>
                     <dd>Wijzig config at runtime (endpoint, batchSize, interceptConsole, etc.)</dd>
-                    <dt>LibLog.setDebug(bool)</dt>
+                    <dt>libLog.setDebug(bool)</dt>
                     <dd>Schakel debug-mode aan/uit (sessie-lokaal — geen cookie-schrijven)</dd>
-                    <dt>LibLog.refreshFromCookie()</dt>
+                    <dt>libLog.refreshFromCookie()</dt>
                     <dd>Herlees <code>cma_debug_mode</code> cookie zonder page-reload. Aanroepen na opslaan van voorkeuren</dd>
-                    <dt>LibLog.isDebug() / isEnabled()</dt>
+                    <dt>libLog.isDebug() / isEnabled()</dt>
                     <dd>Of debug-mode actief is</dd>
-                    <dt>LibLog.getConfig()</dt>
+                    <dt>libLog.getConfig()</dt>
                     <dd>Effectieve configuratie (alleen-lezen snapshot)</dd>
-                    <dt>LibLog.console.{log,info,warn,error,debug}</dt>
+                    <dt>libLog.console.{log,info,warn,error,debug}</dt>
                     <dd>Originele console-methodes vóór onderschepping — voor wanneer je echt direct naar DevTools wilt</dd>
                 </dl>
                 <h4>Configuratie (window.LIBLOG_CONFIG)</h4>
