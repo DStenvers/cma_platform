@@ -166,6 +166,84 @@ class SecurityHelper
     // Static cache for user data to avoid repeated database queries
     private static ?array $currentUserCache = null;
 
+    /** Kolomnamen van tblUsers zoals de database ze echt heeft (één probe per request). */
+    private static ?array $tblUsersKolommenCache = null;
+
+    /**
+     * Welke van de gewenste kolommen tblUsers echt heeft.
+     *
+     * Een gebruikersdatabase die uit een andere omgeving is gekopieerd mist
+     * kolommen die hier pas door een migratie zijn toegevoegd — en die migraties
+     * draaien pas ná het inloggen. Access meldt een onbekende kolom als "te weinig
+     * parameters", dus één ontbrekende kolom sloot iedereen buiten. Daarom vragen
+     * login en sessiecontrole alleen de kolommen op die er zijn; wat ontbreekt
+     * leest de aanroeper als leeg (?? '').
+     *
+     * Kan de tabel niet worden gelezen, dan komt de gewenste lijst ongewijzigd
+     * terug: de query zelf meldt dan wat er mis is.
+     *
+     * @param string[] $gewenst
+     * @return string[]
+     */
+    public static function tblUsersKolommen(\PDO $conn, array $gewenst): array
+    {
+        $bestaand = self::tblUsersBestaandeKolommen($conn);
+        if ($bestaand === null) {
+            return $gewenst;
+        }
+        return self::kiesBestaandeKolommen($bestaand, $gewenst);
+    }
+
+    /**
+     * Zuivere selectie: de gewenste kolommen die in de bestaande lijst voorkomen,
+     * hoofdletterongevoelig (Access geeft de namen terug zoals ze zijn aangemaakt).
+     *
+     * @param string[] $bestaand
+     * @param string[] $gewenst
+     * @return string[]
+     */
+    public static function kiesBestaandeKolommen(array $bestaand, array $gewenst): array
+    {
+        $index = [];
+        foreach ($bestaand as $kolom) {
+            $index[strtolower((string)$kolom)] = true;
+        }
+        return array_values(array_filter($gewenst, static fn($k) => isset($index[strtolower($k)])));
+    }
+
+    /**
+     * De kolomnamen van tblUsers, of null als de tabel niet te lezen is.
+     * Een lege resultaatset (WHERE 1=0) volstaat: de kolommeta komt ook zonder rijen.
+     *
+     * @return string[]|null
+     */
+    public static function tblUsersBestaandeKolommen(\PDO $conn): ?array
+    {
+        if (self::$tblUsersKolommenCache !== null) {
+            return self::$tblUsersKolommenCache;
+        }
+        try {
+            $stmt = $conn->query(\App\Library\SQL::processSQL($conn, 'SELECT TOP 1 * FROM tblUsers WHERE 1=0'));
+            if ($stmt === false) {
+                return null;
+            }
+            $kolommen = [];
+            for ($i = 0, $n = $stmt->columnCount(); $i < $n; $i++) {
+                $meta = $stmt->getColumnMeta($i);
+                if (!empty($meta['name'])) {
+                    $kolommen[] = (string)$meta['name'];
+                }
+            }
+            if ($kolommen === []) {
+                return null;
+            }
+            self::$tblUsersKolommenCache = $kolommen;
+            return $kolommen;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     /**
      * Get the current user's level (0=User, 1=Admin, 2=Developer)
      * Fetches from database to avoid trusting cookies for security
@@ -211,7 +289,8 @@ class SecurityHelper
             // Bare minimum: only the columns this method returns. The preference and
             // debug columns are added by migrations that run after login, so a users
             // database copied from another environment must not lock everyone out.
-            $stmt = $conn->prepare("SELECT ID, userLogin, userFullName, userEMail, userSkipNotifyOwnRecords, userLevel FROM tblUsers WHERE ID = ?");
+            $kolommen = self::tblUsersKolommen($conn, ['ID', 'userLogin', 'userFullName', 'userEMail', 'userSkipNotifyOwnRecords', 'userLevel']);
+            $stmt = $conn->prepare("SELECT " . implode(', ', $kolommen) . " FROM tblUsers WHERE ID = ?");
             $stmt->execute([$safeId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $userData = null;
@@ -252,6 +331,7 @@ class SecurityHelper
     {
         self::$currentUserCache = null;
         self::$isValidatedCache = null;
+        self::$tblUsersKolommenCache = null;
     }
 
     /**

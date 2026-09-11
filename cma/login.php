@@ -59,11 +59,16 @@ function main()
         // and debug columns (prefTheme, userGUID, SkipTips, ...) are added by
         // migrations that run AFTER login, so a users database copied from
         // another environment must still be able to log in without them.
-        $SQL = 'select ID, userLogin, userPassword, userIPAddresses from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
+        // ... and of those, only the ones this database actually has: a copied
+        // users database may even miss userIPAddresses (Access then fails the
+        // whole query with "te weinig parameters").
+        $gewensteKolommen = ['ID', 'userLogin', 'userPassword', 'userIPAddresses'];
+        $kolommen = SecurityHelper::tblUsersKolommen($dbconn, $gewensteKolommen);
+        $SQL = 'select ' . implode(', ', $kolommen) . ' from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
         // If lower() fails (ODBC Access), fall back to scanning all users in PHP
         if ($rs !== null && $rs->EOF) {
-            $SQL = 'select ID, userLogin, userPassword, userIPAddresses from tblUsers';
+            $SQL = 'select ' . implode(', ', $kolommen) . ' from tblUsers';
             $rsAll = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
             if ($rsAll !== null) {
                 while (!$rsAll->EOF) {
@@ -87,6 +92,8 @@ function main()
             // file that was actually opened, so the operator sees WHICH database
             // is wrong instead of guessing from a generic sentence.
             $dbErr = Database::getLastError();
+            $aanwezig = SecurityHelper::tblUsersBestaandeKolommen($dbconn);
+            $ontbrekend = $aanwezig === null ? [] : array_diff($gewensteKolommen, $kolommen);
             $dsn = '';
             try { $dsn = Database::getDsn('users'); } catch (\Throwable $e) { $dsn = '(onbekend: ' . $e->getMessage() . ')'; }
             throw new \Exception(
@@ -96,6 +103,8 @@ function main()
                 . '<br>Verbinding: ' . htmlspecialchars($dsn)
                 . '<br>Query: ' . htmlspecialchars($SQL)
                 . '<br>Foutmelding: ' . htmlspecialchars($dbErr !== '' ? $dbErr : '(geen foutmelding van de driver)')
+                . '<br>Aanwezige kolommen: ' . htmlspecialchars($aanwezig === null ? '(tabel niet te lezen)' : implode(', ', $aanwezig))
+                . ($ontbrekend !== [] ? '<br>Ontbrekende kolommen: ' . htmlspecialchars(implode(', ', $ontbrekend)) : '')
             );
         }
         if ($rs->EOF) {
@@ -114,7 +123,7 @@ function main()
                         if ((is_null(Request::post('naam', '')) ? "" : strtolower(Request::post('naam', ''))) == 'admin') {
                             $blnOK = true;
                         } else {
-                            if ($rs->fields['userIPAddresses']!= '') {
+                            if (($rs->fields['userIPAddresses'] ?? '') != '') {
                                 $ipPatterns = Arr::splitAlways($rs->fields['userIPAddresses'], ';');
                                 if (SecurityHelper::ipMatchesAnyPattern($sIPAdres, $ipPatterns)) {
                                     $blnOK = true;
