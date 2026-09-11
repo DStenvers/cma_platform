@@ -55,11 +55,15 @@ function main()
         // Case-insensitive login lookup
         // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
         $postLogin = strtolower(Request::post('naam', '') ?? '');
-        $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
+        // Bare minimum: only the columns the login itself reads. The preference
+        // and debug columns (prefTheme, userGUID, SkipTips, ...) are added by
+        // migrations that run AFTER login, so a users database copied from
+        // another environment must still be able to log in without them.
+        $SQL = 'select ID, userLogin, userPassword, userIPAddresses from tblUsers WHERE lower(userLogin)=' . SQL::postString($postLogin);
         $rs = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
         // If lower() fails (ODBC Access), fall back to scanning all users in PHP
         if ($rs !== null && $rs->EOF) {
-            $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers';
+            $SQL = 'select ID, userLogin, userPassword, userIPAddresses from tblUsers';
             $rsAll = Database::openRS($SQL, $dbconn, adOpenForwardOnly);
             if ($rsAll !== null) {
                 while (!$rsAll->EOF) {
@@ -78,10 +82,20 @@ function main()
             // connection in databases.json. A SQLite driver here almost always
             // means the connection wasn't defined and fell through to a local
             // file. Technical detail kept on one line for the operator.
+            // Show the real driver message ("Te weinig parameters. Verwacht 2" =
+            // missing columns, "kan object niet vinden" = missing table) and the
+            // file that was actually opened, so the operator sees WHICH database
+            // is wrong instead of guessing from a generic sentence.
+            $dbErr = Database::getLastError();
+            $dsn = '';
+            try { $dsn = Database::getDsn('users'); } catch (\Throwable $e) { $dsn = '(onbekend: ' . $e->getMessage() . ')'; }
             throw new \Exception(
-                'De gebruikersdatabase kon niet worden gelezen — tabel tblUsers ontbreekt op de '
-                . htmlspecialchars($drv) . '-verbinding. '
+                'De gebruikersdatabase kon niet worden gelezen (tabel tblUsers op de '
+                . htmlspecialchars($drv) . '-verbinding). '
                 . 'Controleer de "users"-connectie in data/databases.json.'
+                . '<br>Verbinding: ' . htmlspecialchars($dsn)
+                . '<br>Query: ' . htmlspecialchars($SQL)
+                . '<br>Foutmelding: ' . htmlspecialchars($dbErr !== '' ? $dbErr : '(geen foutmelding van de driver)')
             );
         }
         if ($rs->EOF) {
@@ -304,7 +318,7 @@ function main()
             }
             if (Request::post('actie', '') == 'login_vergeten' && Request::post('email', '') != '') {
                 $postEmail = strtolower(Request::post('email', '') ?? '');
-                $SQL = 'select ID, userLogin, userFullName, userPassword, userEMail, userSkipNotifyOwnRecords, userIPAddresses, userLevel, prefTheme, prefMenuStyle, prefPopupStyle, userGUID, prefSqlLogging, prefDebugMode, prefDebugOverlay, SkipTips from tblUsers WHERE userEMail=' . SQL::postString($postEmail);
+                $SQL = 'select ID, userLogin, userPassword from tblUsers WHERE userEMail=' . SQL::postString($postEmail);
                 $rs = Database::openRS($SQL, 'users', adOpenDynamic, adLockOptimistic);
                 if ($rs === null) {
                     throw new \Exception('Database query failed: ' . Database::getLastError());
