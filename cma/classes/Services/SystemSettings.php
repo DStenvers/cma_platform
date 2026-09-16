@@ -2,14 +2,51 @@
 /**
  * System Settings Service
  *
- * Manages system-wide configuration settings that can be changed
- * by admins. Settings are persisted to the environment-specific .env file.
+ * The site-wide settings an administrator changes from the CMA
+ * (Beheerstools → Systeeminstellingen). Every setting is one variable in the
+ * site's .env file; this class is the registry (which variables, which type,
+ * which default), the reader for the CMA side, and the writer.
+ *
+ * Code that runs outside the CMA (ErrorHandler, NotFoundDigest, Database)
+ * reads the same variables straight through EnvFile::value()/flag() with the
+ * same defaults — keep the two in step when adding a setting.
  */
 
 namespace Cma\Services;
 
+use App\Library\EnvFile;
+
 class SystemSettings
 {
+    /**
+     * Registry of settings the admin UI exposes.
+     *
+     *   env     the .env variable
+     *   type    bool  — written as true/false
+     *           flag  — written as 1/0 (readers compare against the string '1')
+     *           email — one or more addresses, comma-separated
+     *           int   — bounded by min/max
+     *   default the value when the variable is absent
+     */
+    public const DEFINITIONS = [
+        // Meldingen
+        'error_mail_enabled'       => ['env' => 'ERROR_MAIL_ENABLED',       'type' => 'bool',  'default' => false],
+        'error_mail_to'            => ['env' => 'ERROR_MAIL_TO',            'type' => 'email', 'default' => ''],
+        'notfound_mail_enabled'    => ['env' => 'NOTFOUND_MAIL_ENABLED',    'type' => 'bool',  'default' => false],
+        'notfound_mail_to'         => ['env' => 'NOTFOUND_MAIL_TO',         'type' => 'email', 'default' => ''],
+        'deploy_alert_email'       => ['env' => 'DEPLOY_ALERT_EMAIL',       'type' => 'email', 'default' => ''],
+        // Logging
+        'perf_log_enabled'         => ['env' => 'PERF_LOG_ENABLED',         'type' => 'bool',  'default' => true],
+        'cache_log_enabled'        => ['env' => 'CACHE_LOG_ENABLED',        'type' => 'bool',  'default' => true],
+        'debug_log_enabled'        => ['env' => 'DEBUG_LOG_ENABLED',        'type' => 'bool',  'default' => true],
+        'email_log_enabled'        => ['env' => 'EMAIL_LOG_ENABLED',        'type' => 'bool',  'default' => true],
+        'sql_log_enabled'          => ['env' => 'SQL_LOG_ENABLED',          'type' => 'bool',  'default' => false],
+        'error_log_retention_days' => ['env' => 'ERROR_LOG_RETENTION_DAYS', 'type' => 'int',   'default' => 7, 'min' => 1, 'max' => 365],
+        // Foutweergave
+        'force_debug'              => ['env' => 'FORCE_DEBUG',              'type' => 'flag',  'default' => false],
+        'cma_debug'                => ['env' => 'CMA_DEBUG',                'type' => 'flag',  'default' => false],
+    ];
+
     private static ?string $envFile = null;
     private static ?string $envFileName = null;
 
@@ -77,51 +114,145 @@ class SystemSettings
     }
 
     /**
-     * Check if performance logging is enabled
+     * Current value of one setting, typed per its definition.
+     *
+     * @return bool|int|string
      */
+    public static function get(string $key)
+    {
+        $def = self::DEFINITIONS[$key] ?? null;
+        if ($def === null) {
+            throw new \InvalidArgumentException("Unknown system setting: $key");
+        }
+        $raw = EnvFile::value($def['env']);
+        if ($raw === null || trim($raw) === '') {
+            return $def['default'];
+        }
+        switch ($def['type']) {
+            case 'bool':
+                return filter_var($raw, FILTER_VALIDATE_BOOLEAN);
+            case 'flag':
+                return trim($raw) === '1';
+            case 'int':
+                return max($def['min'], min($def['max'], (int) $raw));
+            default:
+                return trim($raw);
+        }
+    }
+
+    /** Check if performance logging is enabled */
     public static function isPerfLogEnabled(): bool
     {
-        $envValue = getenv('PERF_LOG_ENABLED') ?: ($_ENV['PERF_LOG_ENABLED'] ?? null);
-        if ($envValue !== null) {
-            return filter_var($envValue, FILTER_VALIDATE_BOOLEAN);
-        }
-        return true; // Default to true
+        return (bool) self::get('perf_log_enabled');
     }
 
-    /**
-     * Check if cache logging is enabled
-     */
+    /** Check if cache logging is enabled */
     public static function isCacheLogEnabled(): bool
     {
-        $envValue = getenv('CACHE_LOG_ENABLED') ?: ($_ENV['CACHE_LOG_ENABLED'] ?? null);
-        if ($envValue !== null) {
-            return filter_var($envValue, FILTER_VALIDATE_BOOLEAN);
-        }
-        return true; // Default to true
+        return (bool) self::get('cache_log_enabled');
     }
 
-    /**
-     * Check if debug logging is enabled
-     */
+    /** Check if debug logging is enabled */
     public static function isDebugLogEnabled(): bool
     {
-        $envValue = getenv('DEBUG_LOG_ENABLED') ?: ($_ENV['DEBUG_LOG_ENABLED'] ?? null);
-        if ($envValue !== null) {
-            return filter_var($envValue, FILTER_VALIDATE_BOOLEAN);
-        }
-        return true; // Default to true
+        return (bool) self::get('debug_log_enabled');
     }
 
     /**
-     * Get all system settings
+     * All settings, keyed by setting name.
+     *
+     * @return array<string,bool|int|string>
      */
     public static function getAll(): array
     {
-        return [
-            'perf_log_enabled' => self::isPerfLogEnabled(),
-            'cache_log_enabled' => self::isCacheLogEnabled(),
-            'debug_log_enabled' => self::isDebugLogEnabled(),
-        ];
+        $out = [];
+        foreach (array_keys(self::DEFINITIONS) as $key) {
+            $out[$key] = self::get($key);
+        }
+        return $out;
+    }
+
+    /**
+     * Validate raw form input against the registry. Pure: no I/O.
+     *
+     * Bool/flag input is 'J'/'N' (or a PHP bool); email input is a string of
+     * comma-separated addresses; int input is a numeric string. Unknown keys
+     * are ignored. Returns the .env strings to write and the validation
+     * errors (Dutch, keyed by setting) — an entry with an error is not in
+     * $values.
+     *
+     * @param  array<string,mixed> $input
+     * @return array{values: array<string,string>, errors: array<string,string>}
+     */
+    public static function normalize(array $input): array
+    {
+        $values = [];
+        $errors = [];
+        foreach ($input as $key => $raw) {
+            $def = self::DEFINITIONS[$key] ?? null;
+            if ($def === null) {
+                continue;
+            }
+            switch ($def['type']) {
+                case 'bool':
+                    $values[$key] = self::truthy($raw) ? 'true' : 'false';
+                    break;
+                case 'flag':
+                    $values[$key] = self::truthy($raw) ? '1' : '0';
+                    break;
+                case 'int':
+                    $s = trim((string) $raw);
+                    if ($s === '' || !preg_match('/^\d+$/', $s)) {
+                        $errors[$key] = 'Vul een geheel getal in.';
+                    } elseif ((int) $s < $def['min'] || (int) $s > $def['max']) {
+                        $errors[$key] = 'Vul een getal tussen ' . $def['min'] . ' en ' . $def['max'] . ' in.';
+                    } else {
+                        $values[$key] = (string) (int) $s;
+                    }
+                    break;
+                case 'email':
+                    $addresses = array_values(array_filter(array_map('trim', explode(',', (string) $raw)), 'strlen'));
+                    $bad = array_filter($addresses, static fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL) === false);
+                    if ($bad !== []) {
+                        $errors[$key] = 'Ongeldig e-mailadres: ' . implode(', ', $bad);
+                    } else {
+                        $values[$key] = implode(',', $addresses);
+                    }
+                    break;
+            }
+        }
+        return ['values' => $values, 'errors' => $errors];
+    }
+
+    /**
+     * Validate and persist form input. Returns the validation errors; when
+     * there are any, nothing is written. A write failure is reported under
+     * the pseudo-key '_file'.
+     *
+     * @param  array<string,mixed> $input
+     * @return array<string,string>
+     */
+    public static function save(array $input): array
+    {
+        $n = self::normalize($input);
+        if ($n['errors'] !== []) {
+            return $n['errors'];
+        }
+        foreach ($n['values'] as $key => $value) {
+            if (!self::updateEnvSetting(self::DEFINITIONS[$key]['env'], $value)) {
+                return ['_file' => 'Kon ' . self::getEnvFileName() . ' niet schrijven.'];
+            }
+        }
+        return [];
+    }
+
+    private static function truthy($raw): bool
+    {
+        if (is_bool($raw)) {
+            return $raw;
+        }
+        $s = strtoupper(trim((string) $raw));
+        return $s === 'J' || $s === '1' || $s === 'TRUE' || $s === 'ON';
     }
 
     /**
@@ -209,35 +340,5 @@ class SystemSettings
         }
 
         return implode("\n", $newLines);
-    }
-
-    /**
-     * Save multiple settings
-     *
-     * @param array $settings Key-value pairs of settings to save
-     * @return bool Success
-     */
-    public static function saveSettings(array $settings): bool
-    {
-        $success = true;
-
-        // Map our setting names to env variable names
-        $mapping = [
-            'perf_log_enabled' => 'PERF_LOG_ENABLED',
-            'cache_log_enabled' => 'CACHE_LOG_ENABLED',
-            'debug_log_enabled' => 'DEBUG_LOG_ENABLED',
-        ];
-
-        foreach ($settings as $key => $value) {
-            if (isset($mapping[$key])) {
-                // Convert boolean to string
-                $strValue = $value ? 'true' : 'false';
-                if (!self::updateEnvSetting($mapping[$key], $strValue)) {
-                    $success = false;
-                }
-            }
-        }
-
-        return $success;
     }
 }

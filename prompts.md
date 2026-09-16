@@ -13400,3 +13400,391 @@ karaat-data en staat in de karaat-repo.
 ## 2026-09-06
 
 > had je kyero al geprobeerd uit te lezen?
+
+## 2026-09-15
+
+> Think mode: i want you to locate settings that administrators might want to change. Like if errors/404's should be mailed and if so to whom. Anything that is costomisable should be considered, admin and developer only and at system level
+
+> <task-notification>
+> <task-id>a8ee599453a58584d</task-id>
+> <tool-use-id>toolu_01CqGFL12e8V8brkU6TCkvz1</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/a8ee599453a58584d.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Inventory Application::get keys" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Inventory complete. Scope: `src/`, `cma/`, `library/`, `templates/` (php/inc/template), excluding `node_modules`, `vendor`, `cypress`, and `tests/` (test-only fixture keys listed separately at the end).
+>
+> ## (a) Runtime / computed state — names only
+>
+> These are written by the runtime (or derived in `app.php` from `omgeving`), or are dynamic key *prefixes*, not settings an admin fills in:
+>
+> `start`, `local`, `test`, `development`, `environment`, `env`, `Omgeving` (case variant of `omgeving`), `sql_debug` (set by `?sqldebug`), `odbc_mode` (set by `Database::setOdbcMode()`), `cache_rss_&lt;source&gt;` + `cache_rss_&lt;source&gt;_time` (RSS body/timestamp cache), `conn_` / `conn_&lt;name&gt;` / `&lt;key&gt;` (documentation placeholders, not literal keys), `migration_sources_extra` (re-`set()` at runtime by `MigrationService`, but *also* site-configurable — see below), `SUP_&lt;SUBSITE&gt;` (dynamic per-subsite supervisor list — configurable in spirit, see note in (b)).
+>
+> ## (b) Configurable keys
+>
+> `Tpl` column: `Y` = present in `templates/app.php.template`, `G` = present (commented out) in `templates/global.asa.php.template`, `N` = undocumented in any template.
+>
+> ### Environment &amp; paths
+>
+> | Key | Default(s) at read sites | Representative location(s) | Controls | Tpl |
+> |---|---|---|---|---|
+> | `omgeving` | `''`, `'?'`, `'O'`, `'P'`, `'L'` | `/mnt/c/repos/cma_platform/src/ajax/Ajax.php:230`, `/mnt/c/repos/cma_platform/cma/bootstrap.inc:76` | Environment code (O/L=dev, T=test, A=acceptance, P=production); drives debug, banners, caching | Y |
+> | `environment` | `'P'` | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:2188`, `/mnt/c/repos/cma_platform/src/ajax/Ajax.php:230` | Alias/fallback for `omgeving` | N |
+> | `env` | `''` | `/mnt/c/repos/cma_platform/cma/api/test_ip_match.php:20` | Another env alias; gates the IP-match test endpoint off P/A | N |
+> | `base_path` | `''`, `'/'` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:676`, `/mnt/c/repos/cma_platform/cma/classes/FormControlHelper.php:185` (68 prod sites) | URL/file base prefix for the site; prepended to nearly every generated URL and `Server::mapPath()` call | Y |
+> | `path_images` | `''` | `/mnt/c/repos/cma_platform/cma/tools/tools_db_consistency.php:251`, `/mnt/c/repos/cma_platform/templates/app.php.template:13` | Base URL for site images | Y |
+> | `base_resource_path` | `''` (falls back to `base_path`) | `/mnt/c/repos/cma_platform/library/lib_xmlsnippets.inc:718` | Alternate image/resource base for XML-snippet rendering (CDN/subdomain) | N |
+> | `pict_pixel` | `''` | `/mnt/c/repos/cma_platform/library/lib_table.inc:41`, `/mnt/c/repos/cma_platform/cma/wizards/file_controls.php:87` | URL of the 1px spacer gif | Y |
+> | `pict_filler` | `''` | `/mnt/c/repos/cma_platform/cma/reportdetails.php:688` | URL of the group-indent filler image in reports | N |
+> | `document_root` | `''` (→ `$_SERVER['DOCUMENT_ROOT']` → `getcwd()`) | `/mnt/c/repos/cma_platform/src/helpers/Server.php:49` | Filesystem root used by `Server::mapPath()` path-traversal guard | N |
+> | `server_allowed_paths` | `[]` | `/mnt/c/repos/cma_platform/src/helpers/Server.php:78` | Extra filesystem prefixes `Server::mapPath()` may resolve into | N |
+> | `allowed_external_url` | `''` | `/mnt/c/repos/cma_platform/library/lib_externhtml.inc:114` | Whitelist substring for external module URLs / actions (SSRF guard) | N |
+>
+> ### Branding &amp; language
+>
+> | Key | Default(s) | Location(s) | Controls | Tpl |
+> |---|---|---|---|---|
+> | `appname` | `''` | `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:224`, `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php:265` | Application display name (page titles, mail subjects) | Y |
+> | `appname_simple` | `''` | `/mnt/c/repos/cma_platform/cma/main.php:355`, `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:224` | Plain-text app name without markup, for titles/error pages | N |
+> | `app_name` | `'?'` | `/mnt/c/repos/cma_platform/cma/tools/tools_serverinfo.php:429` | App name shown on the server-info tool (third spelling) | N |
+> | `Name` | `'CMA'` | `/mnt/c/repos/cma_platform/cma/main.php:355` | Last-resort CMA window title | N |
+> | `name` | — (written only) | `/mnt/c/repos/cma_platform/templates/app.php.template:36` | Legacy alias of `company`; read by site code, not by the platform | Y |
+> | `company` | `''`, `'RINO amsterdam'` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:168`, `/mnt/c/repos/cma_platform/cma/task.php:58` | Company name; fallback for mail From-name, and a behaviour switch (`!== 'RINO Groep'` toggles grouping in `FormControlHelper.php:182`) | Y |
+> | `cma_language` | `'NL'` | `/mnt/c/repos/cma_platform/cma/preferences.php:38`, `/mnt/c/repos/cma_platform/cma/login.php:421` | CMA back-office UI language (`NL`/`UK`) | Y |
+> | `CMA_Language` / `CMA_language` / `CMA_LANGUAGE` | `''`, `'NL'` | `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php:283`, `/mnt/c/repos/cma_platform/cma/bootstrap.inc:1377`, `/mnt/c/repos/cma_platform/cma/reportdetails.php:354` | Same setting, three case variants still read literally — a site must set the exact casing each reader uses | N |
+> | `mod_language` / `Mod_language` | `''` | `/mnt/c/repos/cma_platform/library/lib_form.inc:133`, `/mnt/c/repos/cma_platform/cma/login.php:336` | Front-end module/library language (`UK` switches labels) | Y (`mod_language` only) |
+>
+> ### Email
+>
+> | Key | Default(s) | Location(s) | Controls | Tpl |
+> |---|---|---|---|---|
+> | `email_from` | `''` (→ `webmaster@stenversonline.nl`) | `/mnt/c/repos/cma_platform/src/helpers/Email.php:169`, `/mnt/c/repos/cma_platform/cma/tools/tools_serverinfo.php:399` | Default From address | Y |
+> | `email_fromname` | `''` (→ `company`) | `/mnt/c/repos/cma_platform/src/helpers/Email.php:170` | Default From display name (legacy sites put an address here; code tolerates both) | Y |
+> | `email_template` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:185` | HTML wrapper template for mail bodies; empty = none | N |
+> | `app_beheerder_email` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:192`, `/mnt/c/repos/cma_platform/cma/tools/tools_serverinfo.php:404` | Admin address auto-BCC'd on every outgoing mail | N |
+> | `app_developer_email` | `"diederik@stenversonline.nl"` | `/mnt/c/repos/cma_platform/library/500.php:134` | Recipient of 500-error crash reports (hard-coded personal default — worth overriding) | N |
+> | `cc_email`, `email_cc` | — (written only) | `/mnt/c/repos/cma_platform/templates/app.php.template:30-31` | CC/sender for site order-confirmation mail; consumed by site code (`views/afrekenen.inc`), not by the platform | Y |
+> | `emailpostfix` | `''` | `/mnt/c/repos/cma_platform/library/lib_getuser.inc:67`, `/mnt/c/repos/cma_platform/library/lib_sendmail.inc:29` | Domain suffix appended to the Windows remote user to make an email address; also gates BCC-to-webmaster | N |
+> | `error_send_mail` | `true` | `/mnt/c/repos/cma_platform/src/helpers/Error.php:59` | Whether error handler emails crashes at all | N |
+> | `mail_server` | `'localhost'` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:142` | SMTP host | N |
+> | `mail_server_port` | `25` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:143` | SMTP port | N |
+> | `mail_username` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:144` | SMTP auth user (empty = no auth) | N |
+> | `mail_password` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Email.php:145` | SMTP auth password (secret) | N |
+> | `infomailer_spaar_inkt` | `''` | `/mnt/c/repos/cma_platform/library/lib_formtext.inc:107` | "Save ink": drops `&lt;b&gt;` around values in form-to-mail tables | N |
+>
+> ### Database
+>
+> | Key | Default(s) | Location(s) | Controls | Tpl |
+> |---|---|---|---|---|
+> | `data_conn` | `'data'`, `''` | `/mnt/c/repos/cma_platform/src/helpers/Database.php:166`, `/mnt/c/repos/cma_platform/cma/classes/CmaRepository.php:550` | Name/DSN of the primary data connection (legacy; `databases.json` is now the source of truth) | N (deliberately removed from template) |
+> | `conn_data` / `conn_rep` / `conn_users` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:710`, `/mnt/c/repos/cma_platform/src/helpers/Database.php:167-168` | Legacy per-connection DSNs; still read as fallback when `databases.json` has no entry | N (template explicitly says *do not* set) |
+> | `conn_data_str` | `Application::get('data_conn','')` | `/mnt/c/repos/cma_platform/cma/migrations/0.0.1_create_databases_json.php:70` | Legacy DSN string consumed by the databases.json migration | N |
+> | `pdo_driver` | `'auto'` | `/mnt/c/repos/cma_platform/src/helpers/Database.php:189` | Force a PDO driver instead of sniffing it from the DSN | N |
+> | `odbc_mode` | `''` (class default `'native'`) | `/mnt/c/repos/cma_platform/src/helpers/Database.php:147` | `native` vs `pdo` ODBC execution for MS Access | N |
+> | `sql_debug` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Database.php:129` | Write every query to `sql_debug.log` | N |
+> | `schema_cache_enabled` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:1176` | Cache table schemas (off by default, VBScript parity) | N |
+> | `migration_sources_extra` | `[]` / `null` | `/mnt/c/repos/cma_platform/cma/classes/Services/MigrationService.php:93`, `/mnt/c/repos/cma_platform/templates/app.php.template:47` | Registers the site's own migration manifests (name/file/trackingDb/trackingTable) | Y |
+>
+> ### Caching
+>
+> | Key | Default(s) | Location(s) | Controls | Tpl |
+> |---|---|---|---|---|
+> | `cma_caching` | `true` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:176` | Master on/off for the cache layer | N |
+> | `cache_backend` | `'auto'` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:184` | `auto` / file / redis backend selection | N |
+> | `cache_directory` | `sys_get_temp_dir()` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:223` | File-cache directory | N |
+> | `cache_invalidation_interval` | `1` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:230` | Seconds between cross-instance invalidation checks | N |
+> | `cache_invalidation_ttl` | `86400` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:231` | Lifetime of invalidation markers | N |
+> | `cache_log_enabled` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:569` | Log cache hits/misses | N |
+> | `cache_log_file` | `sys_get_temp_dir().'/...'` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:576` | Cache log path | N |
+> | `redis_host` / `redis_port` / `redis_password` / `redis_database` / `redis_timeout` / `redis_prefix` | `'127.0.0.1'` / `6379` / `''` / `0` / `2.5` / `'cma_'` | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:251-274` | Redis backend connection settings | N |
+> | `list_cache_ttl` | `60` | `/mnt/c/repos/cma_platform/cma/classes/Services/ListService.php:177` | Seconds a CMA list result stays cached | N |
+> | `cma_XML_caching` | `''` | `/mnt/c/repos/cma_platform/library/lib_xmlsnippets.inc:30` | Enable XSLT/XML-snippet caching | N |
+>
+> ### Session
+>
+> | Key | Default | Location | Controls | Tpl |
+> |---|---|---|---|---|
+> | `session_name` | `'PHPSESSID'` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:48` | Session cookie name | N |
+> | `session_lifetime` | `3600` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:49` | Session cookie lifetime (s) | N |
+> | `session_path` | `'/'` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:50` | Cookie path | N |
+> | `session_domain` | `''` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:51` | Cookie domain | N |
+> | `session_secure` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:52` | HTTPS-only cookie | N |
+> | `session_httponly` | `true` | `/mnt/c/repos/cma_platform/src/helpers/Session.php:53` | HttpOnly cookie | N |
+>
+> ### SSO / authentication
+>
+> | Key | Default | Location | Controls | Tpl |
+> |---|---|---|---|---|
+> | `cma_sso_enabled` | `'false'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:30` | Offer SSO login on the CMA login page | N |
+> | `cma_force_sso` | `'false'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:38` | Disable the local password form; SSO only | N |
+> | `cma_sso_callback_url` | `'cma/sso_callback.php'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:153` | OAuth redirect path | N |
+> | `sso_idp_url` / `sso_idp_conn` | `''` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:115,184` | Identity-provider base URL (two names, second is the fallback) | N |
+> | `sso_idp_authendpoint` | `'oauth2/authorize'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:116` | Authorize endpoint path | N |
+> | `sso_idp_tokenendpoint` | `'oauth2/token'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:185` | Token endpoint path | N |
+> | `sso_client_id` | `''` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:117` | OAuth client id | G (commented) |
+> | `sso_client_secret` | `''` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:189` | OAuth client secret | G (commented) |
+> | `sso_client_base_url` | `''` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:143` | Base URL used to build the redirect_uri | N |
+> | `sso_grand_type` | `'authorization_code'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:191` | OAuth grant type (note the typo in the key name) | N |
+> | `sso_login_type` | `'code'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:120` | `response_type` | N |
+> | `sso_login_scope` | `'openid'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:119` | Requested scopes | N |
+> | `sso_login_prompt` | `'login'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:121` | OAuth `prompt` parameter | N |
+> | `sso_provider_name` | `'SSO login'` | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:348` | Button label for the SSO provider | N |
+> | `sso_login_url` | — (written only) | `/mnt/c/repos/cma_platform/templates/global.asa.php.template:24` | Legacy SSO login URL; no platform reader found | G (commented) |
+> | `cma_ip_protect` | `''` / `false` | `/mnt/c/repos/cma_platform/cma/login.php:117` | Require the user's IP to match a stored allow-list after password check | N |
+> | `askuser` | `''` | `/mnt/c/repos/cma_platform/library/lib_getuser.inc:24,77,96` | Form-based user identification instead of IIS `REMOTE_USER` | N |
+> | `askemail` | `''` | `/mnt/c/repos/cma_platform/library/lib_getuser.inc:64` | Ask for the email in a form field instead of deriving it from the remote user | N |
+> | `SUP_&lt;SUBSITE&gt;` | `''` | `/mnt/c/repos/cma_platform/library/lib_getuser.inc:80` | Pipe-delimited supervisor username list per sub-site (dynamic key: `SUP_` + uppercased sub-site) | N |
+>
+> ### HTML editor (CKEditor)
+>
+> | Key | Default | Location | Controls | Tpl |
+> |---|---|---|---|---|
+> | `cma_htmledit_css` | `''` (bootstrap sets `/cma/ckeditor/contents.css` if empty) | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:53-54`, `/mnt/c/repos/cma_platform/cma/main.php:395` | Stylesheet loaded inside the WYSIWYG editing area | Y (as default in bootstrap, not in app.php.template) |
+> | `cma_htmledit_allowBR` | `''` | `/mnt/c/repos/cma_platform/cma/main.php:396`, `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php:296` | Allow `&lt;br&gt;` (vs. forcing paragraphs) in the editor | N |
+> | `cma_htmledit_img_path` | `''` | `/mnt/c/repos/cma_platform/cma/template_edit.php:29` | Upload/browse folder for editor images | Y |
+> | `cma_htmledit_img_maxwidth` | `800` | `/mnt/c/repos/cma_platform/cma/template_edit.php:27` | Max width (px) for uploaded editor images | N |
+> | `cma_htmledit_img_maxheight` | `600` | `/mnt/c/repos/cma_platform/cma/template_edit.php:28` | Max height (px) for uploaded editor images | N |
+>
+> ### CMA behaviour, logging &amp; misc
+>
+> | Key | Default | Location | Controls | Tpl |
+> |---|---|---|---|---|
+> | `development` | `''` | `/mnt/c/repos/cma_platform/cma/form_api.php:73`, `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php:286` | Dev mode: verbose form-API errors and JS `debug:true` | N |
+> | `debug` | `false` | `/mnt/c/repos/cma_platform/cma/tools/tools_serverinfo.php:430` | Debug flag shown on the server-info page | N |
+> | `cma_monitoring` | `''` | `/mnt/c/repos/cma_platform/cma/classes/FormDataProvider.php:2398` | Write record-level audit/monitoring log entries | N |
+> | `cma_show_module_settings` | `''` | `/mnt/c/repos/cma_platform/library/lib_xmlsnippets.inc:802` | Expose `tblModuleParameters` values to XML snippets | N |
+> | `dashboard_cards_extra` | `[]` | `/mnt/c/repos/cma_platform/cma/dashboard.php:87` | Site-registered extra status cards on the CMA dashboard | N |
+> | `performance_log` | `''` | `/mnt/c/repos/cma_platform/cma/reportdetails.php:390` | Log report render timings via `Profiler::log()` | N |
+> | `app_log_enabled` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Application.php:168` | Log every `Application::get/set` access | N |
+> | `app_log_file` | `sys_get_temp_dir().'/application.log'` | `/mnt/c/repos/cma_platform/src/helpers/Application.php:178` | Destination of that access log | N |
+> | `library_relative_dates` | `false` | `/mnt/c/repos/cma_platform/src/helpers/Date.php:315,346,377` | Render "vandaag/gisteren"-style relative date names | N |
+> | `Google_api_key` | `''` | `/mnt/c/repos/cma_platform/library/lib_geocode.inc:31,66` | Google Maps Geocoding API key (note the capital `G`) | N |
+>
+> ## Notes worth flagging
+>
+> - `templates/app.php.template` documents only **17** keys (`omgeving`, `base_path`, `path_images`, `pict_pixel`, `cma_htmledit_img_path`, `email_from`, `email_fromname`, `cc_email`, `email_cc`, `appname`, `company`, `name`, `cma_language`, `mod_language`, `migration_sources_extra`, `start`, `local`, `test`). Roughly **80 configurable keys are undocumented** there, including every mail-server, session, Redis/cache, SSO and HTML-editor setting.
+> - Case-variant duplicates are real bugs waiting to happen: `cma_language` vs `CMA_Language` vs `CMA_language` vs `CMA_LANGUAGE`, `mod_language` vs `Mod_language`, `omgeving` vs `Omgeving` vs `environment` vs `env`, `appname` vs `appname_simple` vs `app_name` vs `Name` vs `name`. Each reader takes the literal spelling, so setting one does not satisfy the others.
+> - `/mnt/c/repos/cma_platform/library/500.php:134` defaults `app_developer_email` to a hard-coded personal address (`diederik@stenversonline.nl`), and `/mnt/c/repos/cma_platform/src/helpers/Email.php` defaults the From address to `webmaster@stenversonline.nl` and the From-name to `'RINO amsterdam'` — vendor-specific fallbacks that every new site inherits silently.
+> - Test-only keys (never read in production code, safe to ignore): `a`, `b`, `c`, `x`, `y`, `zero`, `foo`, `key`, `k`, `mykey`, `MyKey`, `MYKEY`, `CaseKey`, `Mixed`, `MIXED`, `mixed`, `UpperName`, `arr`, `array`, `bool`, `int`, `code`, `count`, `empty`, `emptystr`, `false`, `flag`, `feature_x`, `nope`, `nullable`, `nullkey`, `numeric_key`, `present`, `some_key`, `temp`, `anything`, `does_not_exist`, `definitely_missing`, `conn_data_path`.</result>
+> <usage><subagent_tokens>55557</subagent_tokens><tool_uses>23</tool_uses><duration_ms>424209</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a11cf4b399409a914</task-id>
+> <tool-use-id>toolu_01HtEABzgc5UdP39LmzAZJTD</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/a11cf4b399409a914.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Find hard-coded settings-like constants" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Findings below. Everything listed is a literal in source with no env/`Application::get`/config-JSON read in front of it (config-backed items with hardcoded *fallbacks* are marked "partial").
+>
+> ## auth / session / cookies
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:292-295` | `path '/'`, `httponly true`, `samesite 'Lax'` (no `lifetime`, no `secure`) | the session cookie the whole platform actually uses (this is the bootstrap path, not `Session::init`) | **no** — and notably `secure` is never set |
+> | `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:260-261` | `session.gc_probability=1`, `gc_divisor=100` | session-file GC rate (1-in-100 requests) | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Session.php:63` | `'samesite' =&gt; 'Lax'` | only key in the params array not read from config (name/lifetime/path/domain/secure/httponly all are) | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Session.php:49` | `3600` | session lifetime default | partial (`Application::get('session_lifetime')`) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Session.php:179` | `time() - 42000` | cookie-kill offset on destroy | **no** (cosmetic) |
+> | `/mnt/c/repos/cma_platform/cma/classes/SecurityHelper.php:33-42` | `CMAU`, `CMAG`, `CMAADM`, `CMALEVEL`, `CMAUNAME`, `CMASK_NOT`, `CMAlast_login_name` | all auth cookie names; no prefix/namespace, so two CMA sites on one domain collide | **no** |
+> | `/mnt/c/repos/cma_platform/cma/login.php:159,182-183` + `/mnt/c/repos/cma_platform/cma/sso_callback.php:80,98,101` | `Cookie::set(...)` with `$expire` omitted → `0` | login identity cookies are session-only; no "remember me" duration knob | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/SsoService.php:21-22,55,65` | `cma_sso_state`, `cma_sso_nonce`, length `16`, expire `0`, `secure=false` | SSO CSRF state/nonce cookie names + entropy; `secure` hardcoded false | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:253` | `CMAfilter` | list-filter cookie name | **no** |
+> | `/mnt/c/repos/cma_platform/cma/preferences.php:140,153` | `365 * 24 * 60 * 60` | lifetime of all 6 UI-preference cookies (`cma_theme`, `cma_menu_style`, `cma_popup_style`, `cma_debug_mode`, `cma_debug_overlay`, `cma_sql_threshold`) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/preferences.php:146` | `secure=false, httponly=false` on `cma_debug_mode` | debug-mode cookie readable by JS over plain HTTP; it is also a *production* debug switch (see `cma/bootstrap.inc:85`) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/user_actions.php:250-259` | adjective+noun+`rand(100,999)` (8 adjectives × 8 nouns × 900 ≈ 57.6k) | admin "reset password" temp password | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:1641,1649` | `'admin'.date('Y')` / `'dev'.date('Y')`, logins `cmaadmin` / `cmadev` | auto-created fallback accounts when no admin/developer exists — fully predictable credentials | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/GoogleOAuth.php:68` | `/auth/google/callback` | OAuth redirect path | **no** |
+> | — | *(absent)* | there is **no** login lockout / failed-attempt limit anywhere; `cma/api/dashboard_stats.php:677+` only *reports* failed logins | n/a |
+>
+> No password-complexity rule exists anywhere (no min length, no charset check) — `library/lib_password.inc` only generates.
+>
+> ## email
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/Email.php:177` | `webmaster@stenversonline.nl` | vendor address used as From when `email_from`/`email_fromname` are unset | partial (fallback only) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Email.php:168` | `'RINO amsterdam'` | default company → default From display name | partial |
+> | `/mnt/c/repos/cma_platform/src/helpers/Email.php:768-784` | `substr($company,0,4)==='RINO'` → `noreply@rino.nl`; else `diederik@stenversonline.nl` | `ensureValidFromAddress()` — customer-specific rewrite rule baked into the platform | **no** |
+> | `/mnt/c/repos/cma_platform/library/classes/class_mailer.inc:246` | `webmaster@stenversonline.nl` | same vendor fallback in the legacy mailer | partial |
+> | `/mnt/c/repos/cma_platform/src/helpers/Error.php:433` | `diederik@stenversonline.nl` | recipient of crash/ICT-alert mail when `app_developer_email` unset | partial |
+> | `/mnt/c/repos/cma_platform/library/500.php:134` | `diederik@stenversonline.nl` | contact shown on the 500 page | partial |
+> | `/mnt/c/repos/cma_platform/src/helpers/Email.php:142-150` | `localhost`, port `25`, `CharSet 'UTF-8'` | SMTP host/port defaults; charset + `isSMTP()` are unconditional (no sendmail/API transport choice) | partial host/port, **no** charset/transport |
+> | `/mnt/c/repos/cma_platform/src/helpers/Email.php:243-249` | `'TEST-OMGEVING: '` / `'ACCEPTATIE-OMGEVING: '` | subject prefixes per environment | **no** |
+> | `/mnt/c/repos/cma_platform/templates/app.php.template:26-27` | `info@example.com`, `My Project` | shipped placeholder From for new sites | n/a (template) |
+>
+> ## logging
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:137` | `ERROR_LOG_RETENTION_DAYS = 7` | days of daily PHP-error logs kept; older files deleted on rollover | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/Logger.php:65-68` | `P → WARNING`, anything else → `DEBUG` | app log level, derived only from environment letter | **no** (no `LOG_LEVEL`) |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/Logger.php:85` | `.logs/app` | app log directory | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/Logger.php:247` | `array_slice($e-&gt;getTrace(), 0, 10)` | stack-trace frames stored per exception | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/Logger.php:53` / `PerformanceLogger.php:62` | `substr(md5(...), 0, 8)` | request-id length | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/PerformanceLogger.php:349,357` | `&gt;100 ms` query, `&gt;200 ms` API | slow-query / slow-API thresholds in the stats roll-up | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/PerformanceLogger.php:154` | `500` chars | SQL truncation length in perf log | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/PerformanceLogger.php:327,396-397` | read `10000` entries, keep top `20` | stats window and top-N | **no** |
+> | `/mnt/c/repos/cma_platform/cma/tools/logreader.php:37` | default `100`, hard cap `500` lines | log reader page size | **no** |
+> | `/mnt/c/repos/cma_platform/cma/tools/logreader.php:362-363` | `2 * 1024 * 1024` | max tail chunk read from a log file | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/log.php:103,292,307` | default `1000`, cap `10000` | log API row limits | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/log.php:321` | `days` default `7`, cap `30` | log API date window | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/dashboard_stats.php:143` | last `500KB` of the error log | dashboard error-stat sample size | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/dashboard_stats.php:167,268,436,576,714` | `7 days` (most panels), `14 days` (404 panel) | dashboard stat windows, inlined into SQL (`DateAdd('d',-7,Now())`) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:1285-1294` | `100` JS errors / IP / `3600 s` | JS-error ingest rate limit | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:1305-1315` | `2000/500/4000/100/500/500/2000` | per-column truncation of logged JS errors | **no** |
+> | `/mnt/c/repos/cma_platform/cma/404.php:48`, `/mnt/c/repos/cma_platform/templates/404.php.template:28,40` | `.logs/404`, UA truncated at `200` | 404 log location + UA length | **no** |
+>
+> ## cache
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:124` | `defaultTTL = 86400` | default TTL for every `Cache::set()` without explicit ttl | **no** (only `cache_invalidation_ttl` is configurable, line 231) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:163,277,287,608,630` | `86400`, `3600` | APCu TTLs for platform-version memo, session-dir check, class/legacy-file maps | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:887` | `3600` | APCu TTL for the CMA config blob | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Cache.php:253` | `redis_timeout` default `2.5` s | Redis connect timeout | partial |
+> | `/mnt/c/repos/cma_platform/library/lib_cache.inc:25-27` | `cache_`, `__xmlstore`, `SCHEMA_CACHE_ENABLED = false` | cache key prefix and a schema-cache kill switch that is a `define`, not config | **no** |
+> | `/mnt/c/repos/cma_platform/cma/minify.php:54` | `86400 * 28` | browser `max-age` for minified JS/CSS bundles | **no** |
+> | `/mnt/c/repos/cma_platform/cma/minify.php:153` | `86400` | disk-cache file max age before cleanup | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form.php:166` | `max-age=86400, stale-while-revalidate=604800` | form-definition HTTP cache | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:178-180` | `1800` + swr `300` | combo/checklist lookup cache | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:186-188` | `3600` + swr `600` | column-definition cache | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:207` | `private, max-age=60, swr=30` | unfiltered list/tree cache | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:292` | `setCacheHeaders($maxAge = 300)` | generic API cache default | **no** |
+> | `/mnt/c/repos/cma_platform/templates/web.config.template:178,210,219` | `365.00:00:00` | IIS client cache for all static content, fonts, favicon | n/a (template, editable per site) |
+>
+> ## uploads / images
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/ResponsiveImage.php:97` | `SIZES = [300, 400, 800, 1200]` | responsive WebP breakpoints generated for every uploaded image | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/ResponsiveImage.php:99` | `DEFAULT_QUALITY = 85` | WebP quality | **no** (only per-call via `?quality=` in the WebP tool) |
+> | `/mnt/c/repos/cma_platform/src/helpers/ResponsiveImage.php:98` | `.responsive` | variant subdirectory name | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/ResponsiveImage.php:399,457` | `['jpg','jpeg','png','gif','bmp','webp']` | which extensions get variants / are batch-converted | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:1402-1403` | `maxWidth 800`, `maxHeight 600` | server-side downscale ceiling for uploads (request-overridable, no site default) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:1505` | `imagejpeg(..., 92)` | JPEG re-encode quality on upload | **no** |
+> | `/mnt/c/repos/cma_platform/cma/tools/tools_webp_convert.php:463` | `value="85"` | quality field default in the batch UI (duplicates the PHP constant) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/tools/tools_webp_convert.php:133-134,242-243` | `set_time_limit(120/600)`, `memory_limit '512M'` | batch conversion resource caps | **no** |
+> | `/mnt/c/repos/cma_platform/cma/wizards/file-browser.php:164-165` | `memory_limit '512M'`, `set_time_limit(120)` | in-place image edit resource caps | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/LibUpload.php` (whole file) | — | **no** size limit, **no** extension/MIME allow-list at all; filename is `uniqid('upload_', true) . '.' . $ext` (line 83-84) with the uploaded extension kept verbatim | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Image.php:555` | `$quality = 85` default on `rotate()` (and siblings) | re-encode quality on every editor operation | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/ImageProfiles.php:78` | `data/image-profiles.json` | *this* one is fully JSON-driven — the good pattern; `ResponsiveImage` above is the un-migrated twin | yes |
+>
+> ## deploy
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/templates/deploy.php.template:272` | `@set_time_limit(600)` | hard ceiling on a deploy run (pull + composer + tests + migrations) | **no** (everything else in this file is env-driven) |
+> | `/mnt/c/repos/cma_platform/templates/_bootstrap.php.template:45` | `1200` s | auto-expiry of an unmarked `maintenance.flag` | **no** |
+> | `/mnt/c/repos/cma_platform/templates/_bootstrap.php.template:70` | `Retry-After: 120` | maintenance 503 retry hint | **no** |
+> | `/mnt/c/repos/cma_platform/templates/deploy_status.php.template:203` | `16 * 1024` | log tail bytes read | **no** |
+> | `/mnt/c/repos/cma_platform/templates/deploy_status.php.template:269` | `array_slice($lines, -40)` | log lines returned publicly | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/DeployHealth.php:39-44` | 4 probe paths | post-sync health check file list | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/DeployHealth.php:51` | `.logs/deploy/deploy.log` | health-check log path default | partial (`$opts['log_file']`) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:27` | `VERSION = '1.28.44'` | platform version fallback; must be hand-bumped in lock-step with `composer.json` | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:246` | `STRCMAVERSION = '5.13'` | second, independent version string | **no** |
+>
+> ## security
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/cma/form_api.php:149-151` | `nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block` | API security headers; **no CSP anywhere in the codebase** | **no** |
+> | `/mnt/c/repos/cma_platform/templates/web.config.template:143-144` | `nosniff`, `X-Frame-Options: SAMEORIGIN` | site headers — note this disagrees with `DENY` above | n/a (template) |
+> | `/mnt/c/repos/cma_platform/templates/web.config.template:151-157` | `.env`, `.app_started`, `.sessions`, `composer.json`, `composer.lock` | hidden segments; `.logs`, `data/`, `.cache`, `.backup` are **not** listed | n/a |
+> | `/mnt/c/repos/cma_platform/cma/tools/documentation_fixes.inc:218,222` | same two headers | the auto-fixer that writes them into a site's web.config | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:1126-1135` | `localhost`, `127.0.0.1`, `::1`, `*.local`, `*.test` | "local environment" test that decides whether full stack traces render to the browser — driven by `SERVER_NAME`/`REMOTE_ADDR`, not by config | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:76,85` | envs `O,L,T,A` always debug; production debug via `cma_debug_mode` cookie value `'J'` | debug toggle | partial (`CMA_DEBUG` env) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Debug.php:26` / `Profiler.php:75` | `['L','O','T']` | which environments enable Debug / Profiler output | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Encryption.php:25` | `hash('sha256', …)` | the only crypto primitive offered; no salt/HMAC/key | **no** |
+> | `/mnt/c/repos/cma_platform/library/404.php:24` | 40-entry comma string (`/wp`, `.env`, `phpmyadmin`, `fckeditor`, …) | 404 ignore/bot list, inline in a local variable | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/GoogleOAuth.php:70-71,166` | authorize/token URLs, `CURLOPT_TIMEOUT =&gt; 10` | Google OAuth endpoints + timeout | **no** |
+>
+> ## UI / pagination
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/cma/classes/FormDataProvider.php:42` | `LIST_LIMIT = 800` | row count above which a list forces a search filter | partial (per-form `$formLimit` in `ListService.php:159`, no site default) |
+> | `/mnt/c/repos/cma_platform/cma/classes/FormDataProvider.php:43` | `FLUSH_LIMIT = 200` | output-buffer flush interval | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/FormControlHelper.php:22` | `DYNAMIC_LIST_ITEMS = 50` | combo items before switching to dynamic loading | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/JsonFormService.php:281` | `500` | default rows per page for JSON-form lists | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/JsonFormService.php:1555` | `min(100, max(10, … ?? 50))` | second, different pagination clamp in the same class | **no** |
+> | `/mnt/c/repos/cma_platform/library/classes/class_table.inc:896` | `TableRowsPerPage = 50` | legacy table pager | **no** |
+> | `/mnt/c/repos/cma_platform/library/webcomponents/lib-pagination.js:97` | `page-size` default `50` | `&lt;lib-pagination&gt;` | attribute only |
+> | `/mnt/c/repos/cma_platform/library/webcomponents/lib-table.js:59,152,374` | `pageSize: 50` (three copies) | `&lt;lib-table&gt;` | attribute only |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/table-preferences.js:606` | `pageSize = 500` | infinite-scroll batch size — 10× the table default | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/table-preferences.js:599` | `threshold = 200` px | scroll distance that triggers the next page | options only |
+> | `/mnt/c/repos/cma_platform/library/webcomponents/lib-table.js:1786,1891` | `MAX_FILTER_LENGTH = 500`, `MAX_CHECKBOX_VALUES = 30` | when column filters stop enumerating values | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/report-query.php:174-179,539` | default `100`, cap `1000` | report preview row limit | **no** |
+> | `/mnt/c/repos/cma_platform/cma/api/report-export.php:73` | `MAX_ROWS_FOR_FULL_EXPORT = 15000` | above this, only CSV export offered | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:5422` | `15000` | the client-side copy of the same number — two places to change | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/ReportExporter.php:33` | `';'` delimiter | CSV separator (NL Excel) | per-call arg, no site setting |
+>
+> ## other (JS runtime, DB, LLM, misc)
+>
+> | file:line | value | controls | override path |
+> |---|---|---|---|
+> | `/mnt/c/repos/cma_platform/src/helpers/Database.php:115` | `CONN_TIMEOUT = 10` | PDO connect timeout, all drivers | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Database.php:120` | `CMD_TIMEOUT = 1000` | query timeout (16 min) — MySQL `max_execution_time` + SQLSRV query timeout | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Database.php:1987` | `maxRetries = 3` | SQLite lock-contention retries | param only |
+> | `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:3275` | `PDO::ATTR_TIMEOUT =&gt; 5` | DB probe timeout on the error page | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/HttpClient.php:17,210,230,249` | `30000` ms default, `60000` ms for downloads | outbound HTTP timeouts | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:186-187` | connect `2`s / total `5`s | LLM reachability probe | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:539,638,849` | `180`s vision, `90`s ollama, connect `8`s | LLM request timeouts | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:112-113,520,529,612` | `claude-haiku-4-5`, `gpt-4o-mini` | model fallbacks when `LLM_MODEL`/`LLM_FALLBACK_MODEL` unset | partial (env) |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:492` | `'llava'` | vision model fallback | partial |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:513,690` | `anthropic-version: 2023-06-01` | API version pin, two copies | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:631,686,746` | `temperature 0.1` (three copies) | generation determinism | **no** |
+> | `/mnt/c/repos/cma_platform/src/helpers/Llm.php:521` | `max_tokens 1024` | vision output cap (the text path takes a param, the vision path does not) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/classes/Services/ProcessRunner.php:25` | `timeout = 300`, `pollInterval = 100000` µs | background process runner defaults | ctor arg only |
+> | `/mnt/c/repos/cma_platform/cma/task.php:31` | `set_time_limit(99999)` | daily batch job | **no** |
+> | `/mnt/c/repos/cma_platform/cma/reportdetails.php:211` | `set_time_limit(900000)` | ~10 days | **no** |
+> | `/mnt/c/repos/cma_platform/cma/wizards/file_outputfile.php:18` | `set_time_limit(999999)` | file streaming | **no** |
+> | `/mnt/c/repos/cma_platform/cma/tools/tools_db_consistency.php:140` | `set_time_limit(60000)` | consistency check | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/perf-logger.js:22-25` | `/cma/api/log.php`, batch `20`, interval `5000` ms, queue cap `200` | client perf-log shipping | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/request-tracker.js:15-16` | `MAX_REQUESTS = 100`, `cma_request_log` | client request ring buffer + localStorage key | **no** |
+> | `/mnt/c/repos/cma_platform/library/assets/js/error-handler.js:22-25` | `10`/min, `50` in panel, `60000` ms dedup, `cma_v2_js_errors` | client JS-error throttle | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/main.js:57,211,541` | `MAX_CACHED_PAGES = 5`, spinner delay `2000` ms, popup hide `800` ms | SPA page cache + UI timings | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:794,8011,6580` | coalesce `MAX_AGE 5000` ms, `maxRetries 3`, combo `maxAttempts 10` | request coalescing / retry policy | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/blockedit.js:1100,1355` | `maxRetries 50` (×100 ms), watchdog give-up at `2` | CKEditor readiness waits | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/cma-utils.js:431,441` | `maxChecks 3600` × `500` ms (30 min) | popup-close watcher | **no** |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/cma.js:48,58` | `maxChecks 50` × `200` ms | jQuery load watchdog | **no** |
+> | `/mnt/c/repos/cma_platform/cma/webcomponents/cma-launcher.js:32` | `/cma/api/tools-catalog.php` | launcher catalog URL | attribute `catalog-url` |
+> | `/mnt/c/repos/cma_platform/cma/assets/js/url-manager.js:19` | `CMA_BASE = '/cma'` | CMA mount point assumed in JS (PHP has `base_path` config) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:250` / `templates/_bootstrap_constants.inc:74-79` | jQuery `1.11.3` | jQuery version, defined in **two** files that must stay in lock-step (comment admits it) | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:252` | `STRCHARSET = 'utf-8'` | page charset | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:257-268` | 10-entry CSS bundle list | asset bundle, `define`d | **no** |
+> | `/mnt/c/repos/cma_platform/cma/bootstrap.inc:1411` | `http://download.stenversonline.nl/cma/Toolswizard21.exe` | vendor download URL in a user-facing string, plain HTTP | **no** |
+> | `/mnt/c/repos/cma_platform/templates/_bootstrap_constants.inc:16` | `CACHE_PATH = '.cache/'` | cache dir; guarded `defined() ||` but not config | **no** |
+> | `/mnt/c/repos/cma_platform/library/lib_form.inc:21` | 51 asterisks | profanity-filter replacement text | **no** |
+> | `/mnt/c/repos/cma_platform/library/lib_general.inc:12-13` | `UNIQUE_CODE`, `tblFormUniekeCodes` | table/field names as constants | **no** |
+> | `/mnt/c/repos/cma_platform/library/lib_formtext.inc:19` | `MSXML2.FreeThreadedDOMDocument.4.0` | dead ASP COM ProgID still `define`d | **no** |
+> | `/mnt/c/repos/cma_platform/cma/config/cma_branding.json:5-10` | logo path, `214×40`, `#3F096E` | default branding | yes (`/data/app.json` overrides) |
+>
+> ### Cross-cutting notes worth acting on first
+> - **Duplicated literals that must stay in sync**: jQuery version (2 files), `15000` export cap (PHP + JS), WebP quality `85` (constant + HTML input), `pageSize 50` (3 places in `lib-table.js` + `lib-pagination.js`), `X-Frame-Options` `DENY` vs `SAMEORIGIN`.
+> - **`cma/form_api.php:1641,1649`** is the sharpest one: a deterministic `admin&lt;year&gt;` / `dev&lt;year&gt;` credential pair is created automatically whenever the admin count hits zero.
+> - **`src/helpers/LibUpload.php`** has no size or extension gate whatsoever — worth a config-backed allow-list before anything else in the uploads group.
+> - `ImageProfiles` (JSON-driven) vs `ResponsiveImage` (constants) are two generations of the same feature; the sizes/quality in the latter are the obvious migration target.</result>
+> <usage><subagent_tokens>158505</subagent_tokens><tool_uses>65</tool_uses><duration_ms>417802</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>a8ee599453a58584d</task-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/a8ee599453a58584d.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Inventory Application::get keys" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>The background job that timed out earlier has now finished, and I used it as an independent cross-check of the inventory I already reported.
+>
+> Verification result: its 111 production keys match my report exactly — same set, no additions, no omissions. Every key it found is accounted for in either group (a) runtime/computed or group (b) configurable, and no key in my tables is absent from its list.
+>
+> One small reconciliation note: that job counted `app_log_enabled` (which I listed under logging) and included the three documentation placeholders `&lt;key&gt;`, `conn_`, `conn_&lt;name&gt;` that I flagged as non-literal. Both listings agree on substance.
+>
+> No files were modified. The inventory in my previous message stands as final.</result>
+> <usage><subagent_tokens>61557</subagent_tokens><tool_uses>24</tool_uses><duration_ms>805885</duration_ms></usage>
+> </task-notification>
+
+## 2026-09-16
+
+> okay can you start working on that? And please format the settings page with grouped controls

@@ -1556,6 +1556,34 @@ function cma_doc_format_bytes(int $bytes): string {
     return $bytes . ' ' . $units[$i];
 }
 
+function cma_doc_check_error_mail(): array {
+    $label = 'Foutmeldingen per mail';
+    $on = \App\Library\EnvFile::flag('ERROR_MAIL_ENABLED');
+    $to = trim((string) \App\Library\EnvFile::value('ERROR_MAIL_TO'));
+    if (!$on) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Uit — fouten worden alleen gelogd.', 'fix' => 'Aanzetten via Beheerstools → Systeeminstellingen.'];
+    }
+    if ($to === '') {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Aan, maar <code>ERROR_MAIL_TO</code> is leeg — er wordt niets verstuurd.', 'fix' => 'Vul een ontvanger in bij Beheerstools → Systeeminstellingen.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan, naar <code>' . htmlspecialchars($to) . '</code>.'];
+}
+
+function cma_doc_check_notfound_mail(): array {
+    $label = '404-overzicht per mail';
+    $on = \App\Library\EnvFile::flag('NOTFOUND_MAIL_ENABLED');
+    $to = trim((string) \App\Library\EnvFile::value('NOTFOUND_MAIL_TO'));
+    if (!$on) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Uit — 404\'s worden alleen gelogd.', 'fix' => 'Aanzetten via Beheerstools → Systeeminstellingen.'];
+    }
+    if ($to === '') {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Aan, maar <code>NOTFOUND_MAIL_TO</code> is leeg — er wordt niets verstuurd.', 'fix' => 'Vul een ontvanger in bij Beheerstools → Systeeminstellingen.'];
+    }
+    $yesterday = date('Y-m-d', strtotime('yesterday'));
+    $sent = is_file(dirname(__DIR__, 2) . '/.logs/404/digest_' . $yesterday . '.sent');
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan, naar <code>' . htmlspecialchars($to) . '</code>. Overzicht van ' . $yesterday . ($sent ? ' is verstuurd.' : ' is nog niet verstuurd (gaat bij het eerstvolgende request, als er een log van die dag is).')];
+}
+
 function cma_doc_check_php_error_log(): array {
     $label = 'php.ini error_log destination';
     $cfg = ini_get('error_log');
@@ -2295,6 +2323,7 @@ function render_doc_environment(): void
 
     <h2>Welke env-vars zijn er?</h2>
     <p>Er is geen <code>.env.template</code> en geen centrale lijst in code: elke variabele wordt gelezen op de plek die hem nodig heeft, met een eigen default. Hieronder staat per variabele wat hem leest en wat er gebeurt als je hem weglaat. Alles is optioneel tenzij anders vermeld.</p>
+    <p>De variabelen die een beheerder zonder bestandstoegang moet kunnen zetten — meldingen, logging, foutweergave — staan in het register <code>SystemSettings::DEFINITIONS</code> en zijn omschakelbaar via <span class="cma-tool__strong">Beheerstools → Systeeminstellingen</span>. Dat scherm schrijft naar hetzelfde env-bestand dat de bootstrap laadt.</p>
 
     <h3>Omgeving &amp; foutweergave</h3>
     <table class="listtable">
@@ -2312,13 +2341,26 @@ function render_doc_environment(): void
         <tbody>
             <tr><td><code>PERF_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Services\SystemSettings</code> — performance-logging. Waarde via <code>FILTER_VALIDATE_BOOLEAN</code>, dus <code>0</code>/<code>off</code>/<code>false</code> werken allemaal.</td></tr>
             <tr><td><code>CACHE_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de cache-log.</td></tr>
-            <tr><td><code>DEBUG_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de debug-log. Deze drie zijn ook omschakelbaar in de UI; <code>SystemSettings</code> schrijft ze terug naar het actieve env-bestand.</td></tr>
+            <tr><td><code>DEBUG_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de debug-log.</td></tr>
             <tr><td><code>EMAIL_LOG_ENABLED</code></td><td><code>true</code></td><td><code>cma/bootstrap.inc</code> — hangt de afterSend-logging aan <code>Email</code>. Let op: uitsluitend de exacte string <code>false</code> zet dit uit, <code>0</code> niet.</td></tr>
             <tr><td><code>SQL_LOG_ENABLED</code></td><td>uit</td><td><code>Database</code> — logt elke query met duur. Zet dit niet standaard aan: het is één schrijfactie per query.</td></tr>
             <tr><td><code>SQL_LOG_FILE</code></td><td><code>sql_queries.log</code> in de site-root</td><td><code>Database</code> — doelbestand van bovenstaande log. Is het pad niet schrijfbaar, dan meldt <code>Database</code> dat één keer in het PHP-errorlog.</td></tr>
             <tr><td><code>PROFILER_ENABLED</code></td><td>uit; automatisch aan in <code>L</code>/<code>O</code>/<code>T</code></td><td><code>Profiler</code> — request-profiling naar CSV.</td></tr>
             <tr><td><code>PROFILER_LOG_FILE</code></td><td><code>profiler.csv</code> in de base path</td><td><code>Profiler</code> — doelbestand.</td></tr>
             <tr><td><code>PROFILER_THRESHOLD_MS</code></td><td><code>0</code></td><td><code>Profiler</code> — requests sneller dan deze grens worden niet gelogd.</td></tr>
+            <tr><td><code>ERROR_LOG_RETENTION_DAYS</code></td><td><code>7</code></td><td><code>ErrorHandler</code> — dagen dat de dagelijkse PHP-foutlogs bewaard blijven (1 t/m 365). De opruiming draait bij de eerste fout van een nieuwe dag.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Meldingen per e-mail</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>ERROR_MAIL_ENABLED</code></td><td><code>false</code></td><td><code>ErrorHandler</code> — mailt elke niet-afgevangen fout naar <code>ERROR_MAIL_TO</code>; dezelfde fout (klasse, melding, bestand, regel) hoogstens één keer per uur. Zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</td></tr>
+            <tr><td><code>ERROR_MAIL_TO</code></td><td>leeg</td><td>Eén of meer adressen, kommagescheiden. Leeg = geen mail, ook als de schakelaar aan staat.</td></tr>
+            <tr><td><code>NOTFOUND_MAIL_ENABLED</code></td><td><code>false</code></td><td><code>NotFoundDigest</code> — mailt elke dag één overzicht van de 404's van gisteren naar <code>NOTFOUND_MAIL_TO</code>.</td></tr>
+            <tr><td><code>NOTFOUND_MAIL_TO</code></td><td>leeg</td><td>Ontvanger(s) van dat overzicht, kommagescheiden.</td></tr>
+            <tr><td><code>DEPLOY_ALERT_EMAIL</code></td><td>leeg</td><td><code>/deploy.php</code> — krijgt een best-effort <code>mail()</code> als een deploy mislukt. Zie <a href="documentation.php?topic=deployment">Deployment</a>.</td></tr>
         </tbody>
     </table>
 
@@ -2603,7 +2645,7 @@ function render_doc_deployment(): void
         <li><span class="cma-tool__strong">Migraties</span> — daarna draait <code>php cma/migrate.php</code> en past openstaande migraties toe (aan/uit met <code>DEPLOY_MIGRATE</code>, standaard aan; back-up vooraf met <code>DEPLOY_MIGRATE_BACKUP</code>, standaard aan). Ná composer, want de nieuwe migratiescripts moeten op schijf staan; vóór de recycle, zodat het schema klaar is als de pool de nieuwe code gaat serveren. Mislukt een migratie, dan faalt de deploy: geen recycle, dus productie blijft draaien op de code die bij de huidige database hoort. Een eigen proces (niet in <code>deploy.php</code> zelf) omdat dat een schone exitcode geeft én het net geïnstalleerde platform laadt — dit lopende verzoek draait nog op de oude code. Draait de app-pool-identity zonder <code>php</code> op PATH, dan zoekt de deployer hem naast de FastCGI-binary (<code>PHP_BINDIR</code>); vindt hij niets, dan faalt de deploy in plaats van de migraties stil over te slaan.</li>
         <li><span class="cma-tool__strong">Recycle</span> — touch op <code>DEPLOY_RECYCLE_TOUCH</code> (default <code>web.config</code>) om de IIS app-pool te recyclen.</li>
         <li><span class="cma-tool__strong">Health-check + post-hook</span> — best-effort <code>/cma/</code>-sync-check (<code>DeployHealth</code>) en het project-side <code>deploy_post.php</code> (cache-flushes, migraties) — alleen bij succes en alleen als <code>vendor/autoload.php</code> bestaat, zodat de hatch zelfstandig blijft.</li>
-        <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
+        <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is (ook instelbaar via Beheerstools → Systeeminstellingen) — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
     </ol>
 
     <h2>Deploy-log bekijken</h2>
@@ -2854,6 +2896,8 @@ function render_doc_logs(): void
         'cma_doc_check_data_logs_dir',
         'cma_doc_check_cache_dir',
         'cma_doc_check_php_error_log',
+        'cma_doc_check_error_mail',
+        'cma_doc_check_notfound_mail',
     ]));
     ?>
 
@@ -2862,12 +2906,12 @@ function render_doc_logs(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:160px">Naam</th><th style="width:280px">Schrijflocatie</th><th>Inhoud</th></tr></thead>
         <tbody>
-            <tr><td>PHP error log</td><td><code>.logs/phperrors/php_errors_&lt;datum&gt;.log</code></td><td>Alle uncaught exceptions, fatal errors, warnings (in dev), en <code>error_log()</code>-output. <span class="cma-tool__strong">Eén bestand per dag, 7 dagen bewaard.</span> De opruiming draait bij de eerste fout van een nieuwe dag, niet bij elke schrijfactie, en bepaalt de leeftijd aan de datum in de bestandsnaam — niet aan mtime, want een tool die het bestand opent zou het anders eeuwig levend houden.</td></tr>
+            <tr><td>PHP error log</td><td><code>.logs/phperrors/php_errors_&lt;datum&gt;.log</code></td><td>Alle uncaught exceptions, fatal errors, warnings (in dev), en <code>error_log()</code>-output. <span class="cma-tool__strong">Eén bestand per dag; bewaartermijn <code>ERROR_LOG_RETENTION_DAYS</code> (default 7), instelbaar via Beheerstools → Systeeminstellingen.</span> De opruiming draait bij de eerste fout van een nieuwe dag, niet bij elke schrijfactie, en bepaalt de leeftijd aan de datum in de bestandsnaam — niet aan mtime, want een tool die het bestand opent zou het anders eeuwig levend houden.</td></tr>
             <tr><td>Deploy log</td><td><code>logs/deploy.log</code></td><td>Output van elke deploy-pipeline; banner per run. Override via <code>DEPLOY_LOG_FILE</code>.</td></tr>
             <tr><td>Application log</td><td><code>.logs/app/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
             <tr><td>Performance log</td><td><code>.logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>
             <tr><td>Debug log</td><td><code>.logs/debug/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>libLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
-            <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door <code>cma/404.php</code>.</td></tr>
+            <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door de 404-handler van de site (<code>404.php</code> op de site-root, of <code>cma/404.php</code>). Een dagelijks overzicht per mail staat hieronder bij <span class="cma-tool__strong">Meldingen per e-mail</span>.</td></tr>
             <tr><td>Cache log</td><td><code>cache/cache.log</code></td><td>Cache-hit/-miss events. Aan via <code>CACHE_LOG_ENABLED=true</code>.</td></tr>
             <tr><td>JS errors (DB)</td><td>Tabel <code>tblCMAJavascriptErrors</code></td><td>Client-side errors gevangen door <code>CmaErrorHandler</code>. Rate-limited tot 100 per IP per uur.</td></tr>
         </tbody>
@@ -2918,10 +2962,22 @@ PerformanceLogger::logMemory('after_query');</code></pre>
     <ul>
         <li>Application log: 30 dagen (<code>Logger::cleanup(30)</code>).</li>
         <li>Performance log: 7 dagen (<code>PerformanceLogger::cleanup(7)</code>).</li>
-        <li>Andere logs (php_errors, deploy, debug, 404): platform doet niks automatisch. Stel een cleanup-job in als de schijf vol loopt.</li>
+        <li>PHP error log: <code>ERROR_LOG_RETENTION_DAYS</code> dagen (default 7), instelbaar via Beheerstools → Systeeminstellingen.</li>
+        <li>Andere logs (deploy, debug, 404): platform doet niks automatisch. Stel een cleanup-job in als de schijf vol loopt.</li>
     </ul>
     <p>Wijst <code>php.ini</code>'s <code>error_log</code> rechtstreeks naar één vast bestand, dan geldt de dagrotatie hierboven daar
        niet voor: dat bestand groeit onbeperkt door. De check bovenaan deze pagina meldt dat apart.</p>
+
+    <h2>Meldingen per e-mail</h2>
+    <p>Twee logs kunnen zichzelf melden. Beide staan standaard uit en worden aangezet via <a href="tools_settings.php" target="_top">Beheerstools → Systeeminstellingen</a>, groep <span class="cma-tool__strong">Meldingen per e-mail</span>; de check bovenaan deze pagina laat zien wat er op deze site actief is.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:200px">Melding</th><th style="width:260px">Instelling</th><th>Wanneer en wat</th></tr></thead>
+        <tbody>
+            <tr><td>Fout (500)</td><td><code>ERROR_MAIL_ENABLED</code> + <code>ERROR_MAIL_TO</code></td><td><code>ErrorHandler</code> mailt direct bij elke niet-afgevangen exception of fatal error: melding, bestand en regel, URL, verwijzing, IP, browser en stack trace. Dezelfde fout (klasse, melding, bestand, regel) gaat hoogstens één keer per uur de deur uit — het markerbestand per fout staat in <code>.logs/phperrors/mailed/</code>. Een mailfout vervangt nooit de foutpagina; die landt als regel in de PHP error log.</td></tr>
+            <tr><td>404-overzicht</td><td><code>NOTFOUND_MAIL_ENABLED</code> + <code>NOTFOUND_MAIL_TO</code></td><td><code>NotFoundDigest</code> mailt één keer per dag, bij het eerste gebootstrapte request na middernacht, de 404-log van gisteren: totaal, aandeel zoekmachines en scanners (op user-agent), en de dertig meest gemiste paden met een verwijzende pagina. Het markerbestand <code>.logs/404/digest_&lt;datum&gt;.sent</code> claimt de dag vóór het versturen, zodat gelijktijdige requests niet dubbel mailen. De mail zelf gaat bij shutdown de deur uit, dus de pagina die hem triggert wacht niet op SMTP.</td></tr>
+        </tbody>
+    </table>
+    <p>Beide gebruiken de gewone <code>Email</code>-klasse en dus de SMTP-instellingen van de site (<a href="documentation.php?topic=mail">Mail-configuratie</a>). In de O-omgeving simuleert die klasse en gaat er niets de deur uit.</p>
 
     <h2>Een groeiende error-log is een prestatieprobleem</h2>
     <p>Elke notice is een schrijfactie naar schijf. Een pagina die er per render honderden produceert &mdash; een lus over
@@ -2944,7 +3000,7 @@ PerformanceLogger::logMemory('after_query');</code></pre>
     </table>
 
     <h2>Debug-mode aan/uit</h2>
-    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt libLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt.</p>
+    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt libLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt. Voor de hele site tegelijk (<code>CMA_DEBUG</code>, <code>FORCE_DEBUG</code>) is er Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Foutweergave</span>.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (deploy.log specifiek), <a href="documentation.php?topic=backups">Backups</a> (backup-failures landen in php_errors.log).
@@ -4832,6 +4888,9 @@ function render_doc_mail(): void
         </tbody>
     </table>
     <p>Deze keys leef in <code>app.php</code> (template-bestand op de site-root, NIET in git). Voor production-secrets is dat de juiste plek.</p>
+
+    <h2>Foutmeldingen en 404-overzicht</h2>
+    <p>Wie een mail krijgt bij een fout of een dagelijks 404-overzicht is geen Application-key maar een systeeminstelling (<code>ERROR_MAIL_TO</code>, <code>NOTFOUND_MAIL_TO</code> in het env-bestand), in te stellen via Beheerstools → Systeeminstellingen. Wat er precies verstuurd wordt staat in <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</p>
 
     <h2>Email API</h2>
     <pre><code>use App\Library\Email;

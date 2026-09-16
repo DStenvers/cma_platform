@@ -595,6 +595,24 @@ cma-groupbox:hover .groupbox-chevron::before,
     }
 }
 
+/* Systeeminstellingen (tools/tools_settings.php): text inputs next to the
+   switches, and the invalid state the save response marks. */
+.tool-settings .cma-tool__settings-intro {
+    margin: 0 0 12px;
+    color: var(--text-secondary, #666);
+}
+.tool-settings .cma-tool__settings-text {
+    width: 360px;
+    max-width: 100%;
+}
+.tool-settings .cma-tool__settings-number {
+    width: 90px;
+}
+.tool-settings .cma-tool__settings-invalid {
+    border-color: var(--color-error, #c0392b);
+    outline: 1px solid var(--color-error, #c0392b);
+}
+
 /* Preferences table with groupbox sections - matches storybook pattern */
 .preferences-table {
     width: 100%;

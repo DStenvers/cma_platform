@@ -100,6 +100,9 @@ class Bootstrap
         self::defineAdoConstants();
         self::recordTiming('error_handler');
 
+        // Yesterday's 404 digest, when the site asks for one (Systeeminstellingen).
+        NotFoundDigest::maybeSend(self::$config['log_dir'] . '/404');
+
         // Helpers are loaded via Composer autoload, but we still need aliases
         self::createClassAliases();
         self::recordTiming('helpers');

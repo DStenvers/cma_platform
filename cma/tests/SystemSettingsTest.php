@@ -1,7 +1,7 @@
 <?php
 /**
  * Tests for Cma\Services\SystemSettings::applyEnvContent — the pure .env
- * transform behind "saveSystemSettings" on cma/preferences.php.
+ * transform behind saving on cma/tools/tools_settings.php.
  *
  * Regression: on a site with no .env yet (fresh install, or env supplied by the
  * web server) saving system settings failed with
@@ -48,7 +48,7 @@ class SystemSettingsTest extends TestCase
         $this->assertSame("APP_ENVIRONMENT=P\nDB_HOST=localhost\nDEBUG_LOG_ENABLED=false", $out);
     }
 
-    // The three writes saveSettings() makes must build a clean file from nothing.
+    // The writes save() makes must build a clean file from nothing.
     public function testSequentialWritesFromEmpty(): void
     {
         $c = '';
@@ -59,5 +59,89 @@ class SystemSettingsTest extends TestCase
             "PERF_LOG_ENABLED=false\nCACHE_LOG_ENABLED=true\nDEBUG_LOG_ENABLED=false",
             $c
         );
+    }
+
+    // ---- normalize(): the registry decides how form input becomes .env text ----
+
+    public function testNormalizeBoolAndFlagUseTheReadersSpelling(): void
+    {
+        $n = SystemSettings::normalize([
+            'perf_log_enabled' => 'J',
+            'sql_log_enabled'  => 'N',
+            'force_debug'      => 'J',
+            'cma_debug'        => 'N',
+        ]);
+        $this->assertSame([], $n['errors']);
+        // bool readers use FILTER_VALIDATE_BOOLEAN; flag readers compare with '1'
+        $this->assertSame('true',  $n['values']['perf_log_enabled']);
+        $this->assertSame('false', $n['values']['sql_log_enabled']);
+        $this->assertSame('1',     $n['values']['force_debug']);
+        $this->assertSame('0',     $n['values']['cma_debug']);
+    }
+
+    public function testNormalizeAcceptsCommaSeparatedAddressesAndTrims(): void
+    {
+        $n = SystemSettings::normalize(['error_mail_to' => ' a@b.nl , c@d.org ']);
+        $this->assertSame([], $n['errors']);
+        $this->assertSame('a@b.nl,c@d.org', $n['values']['error_mail_to']);
+    }
+
+    public function testNormalizeRejectsInvalidAddressAndWritesNothingForIt(): void
+    {
+        $n = SystemSettings::normalize(['error_mail_to' => 'a@b.nl, niet-een-adres']);
+        $this->assertArrayHasKey('error_mail_to', $n['errors']);
+        $this->assertStringContainsString('niet-een-adres', $n['errors']['error_mail_to']);
+        $this->assertFalse(array_key_exists('error_mail_to', $n['values']));
+    }
+
+    public function testNormalizeEmptyAddressClearsTheSetting(): void
+    {
+        $n = SystemSettings::normalize(['notfound_mail_to' => '']);
+        $this->assertSame([], $n['errors']);
+        $this->assertSame('', $n['values']['notfound_mail_to']);
+    }
+
+    public function testNormalizeBoundsTheRetentionDays(): void
+    {
+        $ok = SystemSettings::normalize(['error_log_retention_days' => '30']);
+        $this->assertSame('30', $ok['values']['error_log_retention_days']);
+        $low = SystemSettings::normalize(['error_log_retention_days' => '0']);
+        $this->assertArrayHasKey('error_log_retention_days', $low['errors']);
+        $text = SystemSettings::normalize(['error_log_retention_days' => 'zeven']);
+        $this->assertArrayHasKey('error_log_retention_days', $text['errors']);
+    }
+
+    public function testNormalizeIgnoresUnknownKeys(): void
+    {
+        $n = SystemSettings::normalize(['iets_anders' => 'J']);
+        $this->assertSame([], $n['values']);
+        $this->assertSame([], $n['errors']);
+    }
+
+    // ---- get(): defaults when unset, typed when set ----
+
+    public function testGetFallsBackToTheRegistryDefault(): void
+    {
+        unset($_ENV['ERROR_MAIL_ENABLED'], $_ENV['ERROR_LOG_RETENTION_DAYS']);
+        putenv('ERROR_MAIL_ENABLED');
+        putenv('ERROR_LOG_RETENTION_DAYS');
+        $this->assertFalse(SystemSettings::get('error_mail_enabled'));
+        $this->assertSame(7, SystemSettings::get('error_log_retention_days'));
+    }
+
+    public function testGetReadsTypedValuesFromEnv(): void
+    {
+        $_ENV['ERROR_MAIL_ENABLED'] = 'true';
+        $_ENV['ERROR_MAIL_TO'] = ' x@y.nl ';
+        $_ENV['ERROR_LOG_RETENTION_DAYS'] = '900';
+        $_ENV['FORCE_DEBUG'] = '1';
+        try {
+            $this->assertTrue(SystemSettings::get('error_mail_enabled'));
+            $this->assertSame('x@y.nl', SystemSettings::get('error_mail_to'));
+            $this->assertSame(365, SystemSettings::get('error_log_retention_days'));
+            $this->assertTrue(SystemSettings::get('force_debug'));
+        } finally {
+            unset($_ENV['ERROR_MAIL_ENABLED'], $_ENV['ERROR_MAIL_TO'], $_ENV['ERROR_LOG_RETENTION_DAYS'], $_ENV['FORCE_DEBUG']);
+        }
     }
 }

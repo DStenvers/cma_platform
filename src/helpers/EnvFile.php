@@ -54,6 +54,32 @@ final class EnvFile
     }
 
     /**
+     * One loaded variable, or null when it is not set. Looks in $_ENV first
+     * (where loadInto() puts the .env contents) and falls back to getenv() for
+     * values the web server supplies at OS level. Callers outside the CMA —
+     * ErrorHandler, the 404 digest — read their settings through this so they
+     * need nothing from cma/classes.
+     */
+    public static function value(string $key): ?string
+    {
+        if (isset($_ENV[$key])) {
+            return (string) $_ENV[$key];
+        }
+        $v = getenv($key);
+        return $v === false ? null : (string) $v;
+    }
+
+    /** True for 1/true/on/yes (case-insensitive); false otherwise. */
+    public static function flag(string $key, bool $default = false): bool
+    {
+        $v = self::value($key);
+        if ($v === null || trim($v) === '') {
+            return $default;
+        }
+        return filter_var($v, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
      * Read and parse a file. Returns [] if missing/unreadable.
      *
      * @return array<string,string>

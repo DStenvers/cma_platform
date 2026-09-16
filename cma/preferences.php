@@ -15,8 +15,6 @@ use App\Library\Server;
 use App\Library\Cookie;
 use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
-use Cma\Services\SystemSettings;
-use Cma\Services\PerformanceLogger;
 
 require_once __DIR__ . '/bootstrap.inc';
 
@@ -209,31 +207,6 @@ if ($getAction !== '' && SecurityHelper::isAdmin()) {
 if (Request::method() === 'POST') {
     $action = Request::post('action', '');
 
-    // Handle system settings save (admin only)
-    if ($action === 'saveSystemSettings' && SecurityHelper::isAdmin()) {
-        $settings = [
-            'perf_log_enabled' => Request::post('perfLogEnabled', '') === 'J',
-            'cache_log_enabled' => Request::post('cacheLogEnabled', '') === 'J',
-            'debug_log_enabled' => Request::post('debugLogEnabled', '') === 'J',
-        ];
-
-        $success = SystemSettings::saveSettings($settings);
-
-        // Clear the PerformanceLogger's cached enabled state
-        PerformanceLogger::clearEnabledCache();
-
-        if (Request::post('ajax', '') === '1') {
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => $success,
-                'message' => $success
-                    ? ($language === 'UK' ? 'System settings saved.' : 'Systeeminstellingen opgeslagen.')
-                    : ($language === 'UK' ? 'Error saving system settings.' : 'Fout bij opslaan systeeminstellingen.')
-            ]);
-            exit;
-        }
-    }
-
     if ($action === 'savePreferences') {
         // Get old values to detect changes
         $oldPrefs = getUserPreferences($userId);
@@ -301,13 +274,6 @@ $sqlThreshold = $prefs['prefSqlThreshold'];
 // Check if user is admin or developer (for showing debug options)
 $isDevOrAdmin = SecurityHelper::isAdmin() || SecurityHelper::isDeveloper();
 $isAdmin = SecurityHelper::isAdmin();
-
-// Get current system settings (admin only)
-$sysSettings = $isAdmin ? SystemSettings::getAll() : [];
-$perfLogEnabled = $sysSettings['perf_log_enabled'] ?? true;
-$cacheLogEnabled = $sysSettings['cache_log_enabled'] ?? true;
-$debugLogEnabled = $sysSettings['debug_log_enabled'] ?? true;
-$envFileName = $isAdmin ? SystemSettings::getEnvFileName() : '';
 
 // Page title
 $pageTitle = $language === 'UK' ? 'Preferences' : 'Voorkeuren';
@@ -434,50 +400,18 @@ ToolbarHelper::end();
 <?php endif; ?>
 
 <?php if ($isAdmin): ?>
-            <!-- System Settings Group -->
+            <!-- System settings live in their own tool; point admins there -->
             <tr class="groupbox-row">
                 <td colspan="3">
                     <cma-groupbox group-id="3" form-id="0" caption="<?= $language === 'UK' ? 'System Settings' : 'Systeeminstellingen' ?>"></cma-groupbox>
                 </td>
             </tr>
-            <tr id="_g3_1">
-                <td colspan="3" class="hint-cell" style="padding:8px 12px;">
+            <tr id="_g3_1" class="groupbox_end">
+                <td colspan="3" class="hint-cell">
                     <?= $language === 'UK'
-                        ? 'These settings affect all users and are persisted in the ' . $envFileName . ' file.'
-                        : 'Deze instellingen gelden voor alle gebruikers en worden opgeslagen in het ' . $envFileName . ' bestand.' ?>
-                </td>
-            </tr>
-            <tr id="_g3_2">
-                <td class="label-cell">
-                    <label for="perfLogEnabled"><?= $language === 'UK' ? 'Performance Logging' : 'Performance logging' ?></label>
-                </td>
-                <td class="input-cell">
-                    <lib-switch name="perfLogEnabled" id="perfLogEnabled" <?= $perfLogEnabled ? 'checked' : '' ?> data-system="1"></lib-switch>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Log API calls, queries, and page load times' : 'Log API-aanroepen, queries en laadtijden' ?>
-                </td>
-            </tr>
-            <tr id="_g3_3">
-                <td class="label-cell">
-                    <label for="cacheLogEnabled"><?= $language === 'UK' ? 'Cache Logging' : 'Cache logging' ?></label>
-                </td>
-                <td class="input-cell">
-                    <lib-switch name="cacheLogEnabled" id="cacheLogEnabled" <?= $cacheLogEnabled ? 'checked' : '' ?> data-system="1"></lib-switch>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Log cache hits and misses' : 'Log cache hits en misses' ?>
-                </td>
-            </tr>
-            <tr id="_g3_4"  class="groupbox_end">
-                <td class="label-cell">
-                    <label for="debugLogEnabled"><?= $language === 'UK' ? 'Debug Logging' : 'Debug logging' ?></label>
-                </td>
-                <td class="input-cell">
-                    <lib-switch name="debugLogEnabled" id="debugLogEnabled" <?= $debugLogEnabled ? 'checked' : '' ?> data-system="1"></lib-switch>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Log debug information' : 'Log debug informatie' ?>
+                        ? 'Site-wide settings (notifications, logging, error display) are under '
+                        : 'Instellingen voor de hele site (meldingen, logging, foutweergave) staan onder ' ?>
+                    <a href="tools/tools_settings.php" target="_top"><?= $language === 'UK' ? 'Admin tools → System Settings' : 'Beheerstools → Systeeminstellingen' ?></a>.
                 </td>
             </tr>
 <?php endif; ?>
@@ -547,29 +481,6 @@ function savePreferences() {
         })
         .then(function(response) { return response.json(); })
     );
-
-    // Also save system settings if admin
-    <?php if ($isAdmin): ?>
-    var sysFormData = new FormData();
-    sysFormData.append('action', 'saveSystemSettings');
-    sysFormData.append('ajax', '1');
-
-    var perfLog = document.getElementById('perfLogEnabled');
-    var cacheLog = document.getElementById('cacheLogEnabled');
-    var debugLog = document.getElementById('debugLogEnabled');
-
-    sysFormData.append('perfLogEnabled', perfLog && perfLog.checked ? 'J' : 'N');
-    sysFormData.append('cacheLogEnabled', cacheLog && cacheLog.checked ? 'J' : 'N');
-    sysFormData.append('debugLogEnabled', debugLog && debugLog.checked ? 'J' : 'N');
-
-    savePromises.push(
-        fetch('/cma/preferences.php', {
-            method: 'POST',
-            body: sysFormData
-        })
-        .then(function(response) { return response.json(); })
-    );
-    <?php endif; ?>
 
     // Wait for all saves to complete
     var reloading = false;

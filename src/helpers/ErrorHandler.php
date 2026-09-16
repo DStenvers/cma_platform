@@ -133,8 +133,24 @@ class ErrorHandler
         ini_set('display_errors', $enabled ? '1' : '0');
     }
 
-    /** Days of error logs to keep. Older daily files are pruned on rollover. */
+    /**
+     * Days of error logs to keep when ERROR_LOG_RETENTION_DAYS is not set.
+     * Older daily files are pruned on rollover.
+     */
     private const ERROR_LOG_RETENTION_DAYS = 7;
+
+    /** Seconds before the same error (class, message, file, line) is mailed again. */
+    private const ERROR_MAIL_THROTTLE_SECONDS = 3600;
+
+    /** Retention window: ERROR_LOG_RETENTION_DAYS from .env, bounded 1..365. */
+    private static function errorLogRetentionDays(): int
+    {
+        $days = (int) (EnvFile::value('ERROR_LOG_RETENTION_DAYS') ?? 0);
+        if ($days < 1) {
+            return self::ERROR_LOG_RETENTION_DAYS;
+        }
+        return min($days, 365);
+    }
 
     /**
      * Turn the configured error-log path into today's file and prune old ones.
@@ -178,7 +194,7 @@ class ErrorHandler
     /** Delete daily error logs older than the retention window. */
     private static function pruneErrorLogs(string $dir, string $base): void
     {
-        $cutoff = strtotime('-' . self::ERROR_LOG_RETENTION_DAYS . ' days');
+        $cutoff = strtotime('-' . self::errorLogRetentionDays() . ' days');
         if ($cutoff === false) {
             return;
         }
@@ -386,6 +402,9 @@ class ErrorHandler
             if (self::$config['log_errors']) {
                 self::logException($exception);
             }
+
+            // Mail it when the site asks for that (Beheerstools → Systeeminstellingen).
+            self::mailException($exception);
     
             // AJAX / fetch callers expect JSON, not an HTML error page. Emit a
             // structured JSON error so the client can parse it (and, for an
@@ -547,6 +566,93 @@ class ErrorHandler
                 exit(1);
             }
         }
+    }
+
+    /**
+     * Mail an uncaught error to ERROR_MAIL_TO when ERROR_MAIL_ENABLED is on.
+     *
+     * The same error is mailed at most once an hour: a broken page that every
+     * visitor hits would otherwise send one mail per request. The throttle is a
+     * marker file per error signature next to the error log, so it works across
+     * PHP workers without any shared state. Never throws — a mail problem must
+     * not replace the error page.
+     */
+    protected static function mailException(\Throwable $exception): void
+    {
+        try {
+            if (PHP_SAPI === 'cli' || !EnvFile::flag('ERROR_MAIL_ENABLED')) {
+                return;
+            }
+            $to = trim((string) EnvFile::value('ERROR_MAIL_TO'));
+            if ($to === '') {
+                return;
+            }
+            if (!self::errorMailThrottleAllows($exception)) {
+                return;
+            }
+
+            $server = $_SERVER['SERVER_NAME'] ?? php_uname('n');
+            $rows = [
+                'Melding'     => $exception->getMessage(),
+                'Type'        => get_class($exception),
+                'Bestand'     => $exception->getFile() . ':' . $exception->getLine(),
+                'URL'         => ($_SERVER['REQUEST_METHOD'] ?? '') . ' ' . ($_SERVER['REQUEST_URI'] ?? ''),
+                'Verwijzing'  => $_SERVER['HTTP_REFERER'] ?? '',
+                'IP'          => $_SERVER['REMOTE_ADDR'] ?? '',
+                'Browser'     => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'Tijd'        => date('Y-m-d H:i:s'),
+                'Omgeving'    => (string) (self::$config['environment'] ?? ''),
+            ];
+            $body = '<table cellpadding="4" cellspacing="0">';
+            foreach ($rows as $label => $value) {
+                if ($value === '') {
+                    continue;
+                }
+                $body .= '<tr><td valign="top" style="white-space:nowrap;color:#666;">' . $label . '</td>'
+                       . '<td>' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '</td></tr>';
+            }
+            $body .= '</table>'
+                   . '<p style="color:#666;">Deze melding wordt per fout maximaal één keer per uur verstuurd. '
+                   . 'De volledige log staat in het CMA onder Beheerstools → Logbestanden lezen.</p>'
+                   . '<pre style="font-size:12px;white-space:pre-wrap;">'
+                   . htmlspecialchars($exception->getTraceAsString(), ENT_QUOTES, 'UTF-8') . '</pre>';
+
+            $mail = new Email();
+            $mail->setSubject('Fout op ' . $server . ': ' . mb_strimwidth($exception->getMessage(), 0, 90, '…'));
+            $mail->setBody($body);
+            $mail->addRecipients($to);
+            $mail->send();
+        } catch (\Throwable $mailError) {
+            error_log('Error mail failed: ' . $mailError->getMessage());
+        }
+    }
+
+    /**
+     * Claim the throttle slot for this error. Returns false when the same
+     * signature was mailed less than ERROR_MAIL_THROTTLE_SECONDS ago. Markers
+     * older than a day are removed while we are here, so the directory stays
+     * as small as the number of distinct recent errors.
+     */
+    private static function errorMailThrottleAllows(\Throwable $exception): bool
+    {
+        $logFile = self::$config['error_log_file'] ?? '';
+        $dir = ($logFile !== '' ? dirname($logFile) : sys_get_temp_dir()) . '/mailed';
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
+            return true; // no place to remember: mail rather than stay silent
+        }
+        $signature = md5(get_class($exception) . '|' . $exception->getMessage() . '|' . $exception->getFile() . '|' . $exception->getLine());
+        $marker = $dir . '/' . $signature;
+        $now = time();
+        if (is_file($marker) && ($now - (int) @filemtime($marker)) < self::ERROR_MAIL_THROTTLE_SECONDS) {
+            return false;
+        }
+        foreach (glob($dir . '/*') ?: [] as $old) {
+            if ($old !== $marker && ($now - (int) @filemtime($old)) > 86400) {
+                @unlink($old);
+            }
+        }
+        @touch($marker);
+        return true;
     }
 
     /**

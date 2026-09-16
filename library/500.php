@@ -128,11 +128,12 @@ function main()
 
     echo '<br><br><input type="button" value="Ga naar de vorige pagina" onclick="history.go(-1)">';
 
-    // Send error email if not a search engine
-    if (!empty($strUserAgent)) {
+    // Send error email if not a search engine (same switch as ErrorHandler:
+    // Beheerstools → Systeeminstellingen)
+    if (!empty($strUserAgent) && \App\Library\EnvFile::flag('ERROR_MAIL_ENABLED')) {
         try {
-            $devEmail = Application::get("app_developer_email", "diederik@stenversonline.nl");
-            if (class_exists('\App\Library\Email')) {
+            $devEmail = trim((string) \App\Library\EnvFile::value('ERROR_MAIL_TO'));
+            if ($devEmail !== '' && class_exists('\App\Library\Email')) {
                 Email::send([
                     'to' => $devEmail,
                     'from' => $devEmail,

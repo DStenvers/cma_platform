@@ -51,6 +51,7 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'Server informatie', 'href' => 'tools/tools_serverinfo.php', 'target' => 'R', 'icon' => 'lnr-laptop'],
             ['type' => 'item', 'label' => 'Cache leegmaken', 'badge' => 'A', 'href' => 'tools/tools_clearcache.php', 'target' => 'R', 'icon' => 'lnr-trash'],
             ['type' => 'item', 'label' => 'Onderhoudsscherm', 'badge' => 'A', 'href' => 'tools/tools_maintenance.php', 'target' => 'R', 'icon' => 'lnr-warning'],
+            ['type' => 'item', 'label' => 'Systeeminstellingen', 'badge' => 'A', 'href' => 'tools/tools_settings.php', 'target' => 'R', 'icon' => 'lnr-cog'],
         ]
     ];
     $folders[] = $standardFolder;

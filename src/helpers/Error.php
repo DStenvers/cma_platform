@@ -55,8 +55,8 @@ class Error
             self::$verbose = stripos($phpSelf, '/cma/') !== false;
         }
 
-        // Email setting from config
-        self::$sendMail = Application::get('error_send_mail', true);
+        // Same switch as ErrorHandler's mail: Beheerstools → Systeeminstellingen.
+        self::$sendMail = EnvFile::flag('ERROR_MAIL_ENABLED');
     }
 
     /**
@@ -260,9 +260,8 @@ class Error
             Response::write('<script>console.error(' . $jsError . ')</script>');
         }
 
-        // Always send email for ICT alerts
-        if ($message !== '') {
-            self::sendErrorEmail($message, 'app_beheerder_email');
+        if (self::$sendMail && $message !== '') {
+            self::sendErrorEmail($message);
         }
     }
 
@@ -419,23 +418,21 @@ class Error
     }
 
     /**
-     * Send error email to developer/administrator
+     * Send error email to the ERROR_MAIL_TO recipient(s)
      *
-     * @param string $errorMessage Error message
-     * @param string $emailConfigKey Config key for recipient email (default: app_developer_email)
+     * @param string $errorMessage Error message HTML
      * @return void
      */
-    private static function sendErrorEmail(string $errorMessage, string $emailConfigKey = 'app_developer_email'): void
+    private static function sendErrorEmail(string $errorMessage): void
     {
         try {
-            $to = Application::get($emailConfigKey, '');
+            $to = trim((string) EnvFile::value('ERROR_MAIL_TO'));
             if ($to === '') {
-                $to = 'diederik@stenversonline.nl';
+                return;
             }
 
             $mail = new Email();
-            $mail->setFrom($to, 'Website ' . Request::server('SERVER_NAME', ''));
-            $mail->addRecipient($to);
+            $mail->addRecipients($to);
             $mail->setSubject('Foutmelding website ' . Request::server('SERVER_NAME', ''));
 
             $body = $errorMessage . '<br>';
