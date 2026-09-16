@@ -608,6 +608,9 @@ cma-groupbox:hover .groupbox-chevron::before,
 .tool-settings .cma-tool__settings-number {
     width: 90px;
 }
+.tool-settings .cma-tool__settings-select {
+    width: 200px;
+}
 .tool-settings .cma-tool__settings-invalid {
     border-color: var(--color-error, #c0392b);
     outline: 1px solid var(--color-error, #c0392b);

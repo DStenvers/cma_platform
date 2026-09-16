@@ -1,11 +1,14 @@
 <?php
 /**
  * Systeeminstellingen — the site-wide settings an administrator changes from
- * the CMA: mail notifications, logging, error display.
+ * the CMA: mail notifications, logging, error display — plus, in the last
+ * group, the developer switches that belong to the current user only.
  *
- * Every control maps to one .env variable through the registry in
+ * Every site-wide control maps to one .env variable through the registry in
  * Cma\Services\SystemSettings::DEFINITIONS; this page only groups and labels
  * them. Saving validates first and writes nothing when a value is rejected.
+ * The developer switches go through Cma\Services\UserPreferences (tblUsers +
+ * cookies), the same store preferences.php uses for theme and popup style.
  */
 
 use App\Library\Request;
@@ -15,8 +18,10 @@ use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
 use Cma\Services\PerformanceLogger;
 use Cma\Services\SystemSettings;
+use Cma\Services\UserPreferences;
 
 require_once __DIR__ . '/../bootstrap.inc';
+require_once __DIR__ . '/../classes/Services/UserPreferences.php';
 
 if (!SecurityHelper::isAdmin()) {
     echo '<lib-message type="error">Geen toegang</lib-message>';
@@ -24,6 +29,8 @@ if (!SecurityHelper::isAdmin()) {
 }
 
 Response::noCache();
+
+$userId = (int) SecurityHelper::getCurrentUserId();
 
 // ---- Save ----------------------------------------------------------------------
 if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
@@ -42,12 +49,21 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
             $errors[$prefix . '_to'] = $label . ' staat aan, maar er is geen ontvanger ingevuld.';
         }
     }
+    $sqlThreshold = Request::postInt('sqlThreshold', -1);
+    if (!in_array($sqlThreshold, UserPreferences::SQL_THRESHOLDS, true)) {
+        $errors['sqlThreshold'] = 'Ongeldige SQL-drempelwaarde.';
+    }
     if ($errors === []) {
         $errors = SystemSettings::save($input);
     }
     if ($errors === []) {
         // Loggers memoise their switch per request; the save must be visible now.
         PerformanceLogger::clearEnabledCache();
+        UserPreferences::save($userId, array_merge(UserPreferences::load($userId), [
+            'prefDebugMode'    => Request::post('debugMode', '') === 'J',
+            'prefDebugOverlay' => Request::post('showDebugOverlay', '') === 'J',
+            'prefSqlThreshold' => $sqlThreshold,
+        ]));
     }
     Response::json(['success' => $errors === [], 'errors' => $errors]);
     exit;
@@ -56,6 +72,7 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
 // ---- Render --------------------------------------------------------------------
 $values      = SystemSettings::getAll();
 $envFileName = SystemSettings::getEnvFileName();
+$prefs       = UserPreferences::load($userId);
 $pageTitle   = 'Systeeminstellingen';
 
 $groups = [
@@ -84,7 +101,7 @@ $groups = [
         ['key' => 'force_debug', 'label' => 'Fouten tonen op productie',
          'hint' => 'Toont foutdetails aan iedere bezoeker, ook op productie. Alleen tijdelijk aanzetten; beheerders zien de details altijd al.'],
         ['key' => 'cma_debug',   'label' => 'CMA-debugmodus voor iedereen',
-         'hint' => 'Zet de debugmodus van het CMA voor alle gebruikers aan (console-logging, debug-overlay). Per gebruiker kan dit ook via Voorkeuren.'],
+         'hint' => 'Zet de debugmodus van het CMA voor alle gebruikers aan (console-logging, debug-overlay). Alleen voor jezelf: groep Ontwikkelaar hieronder.'],
     ]],
 ];
 
@@ -98,8 +115,9 @@ ToolbarHelper::end();
 <title><?= Server::htmlEncode($pageTitle) ?></title>
 
 <div id="c">
-    <p class="cma-tool__settings-intro">Deze instellingen gelden voor de hele site en alle gebruikers. Ze worden opgeslagen in
-        <code><?= Server::htmlEncode($envFileName) ?></code> op de site-root en werken direct na opslaan.</p>
+    <p class="cma-tool__settings-intro">De eerste drie groepen gelden voor de hele site en alle gebruikers; ze worden opgeslagen in
+        <code><?= Server::htmlEncode($envFileName) ?></code> op de site-root en werken direct na opslaan. De groep
+        Ontwikkelaar geldt alleen voor jou.</p>
 
     <form id="settingsForm" autocomplete="off">
         <table class="form-table preferences-table">
@@ -131,6 +149,32 @@ ToolbarHelper::end();
                 <td class="hint-cell"><?= Server::htmlEncode($row['hint']) ?></td>
             </tr>
 <?php endforeach; endforeach; ?>
+            <tr class="groupbox-row">
+                <td colspan="3">
+                    <cma-groupbox group-id="4" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
+                </td>
+            </tr>
+            <tr id="_g4_1">
+                <td class="label-cell"><label for="debugMode">Console logging</label></td>
+                <td class="input-cell"><lib-switch name="debugMode" id="debugMode" <?= $prefs['prefDebugMode'] ? 'checked' : '' ?>></lib-switch></td>
+                <td class="hint-cell">Schakel console.log-output in (uitschakelen voor snelheidstests).</td>
+            </tr>
+            <tr id="_g4_2">
+                <td class="label-cell"><label for="showDebugOverlay">Debug overlay tonen</label></td>
+                <td class="input-cell"><lib-switch name="showDebugOverlay" id="showDebugOverlay" <?= $prefs['prefDebugOverlay'] ? 'checked' : '' ?>></lib-switch></td>
+                <td class="hint-cell">Toont formulierstatus-informatie op alle formulieren.</td>
+            </tr>
+            <tr id="_g4_3" class="groupbox_end">
+                <td class="label-cell"><label for="sqlThreshold">SQL log drempelwaarde</label></td>
+                <td class="input-cell">
+                    <select name="sqlThreshold" id="sqlThreshold" class="form-control cma-tool__settings-select">
+<?php foreach ([-1 => 'Uit', 0 => 'Alle queries', 50 => 'Langer dan 50ms', 100 => 'Langer dan 100ms', 250 => 'Langer dan 250ms'] as $ms => $label): ?>
+                        <option value="<?= $ms ?>" <?= (int) $prefs['prefSqlThreshold'] === $ms ? 'selected' : '' ?>><?= $label ?></option>
+<?php endforeach; ?>
+                    </select>
+                </td>
+                <td class="hint-cell">Filtert SQL-queries in de logreader.</td>
+            </tr>
         </table>
     </form>
 </div>
@@ -146,8 +190,8 @@ ToolbarHelper::end();
         form.querySelectorAll('lib-switch').forEach(function (sw) {
             data.append(sw.getAttribute('name'), sw.checked ? 'J' : 'N');
         });
-        form.querySelectorAll('input').forEach(function (input) {
-            data.append(input.name, input.value);
+        form.querySelectorAll('input, select').forEach(function (field) {
+            data.append(field.name, field.value);
         });
         return data;
     }
@@ -171,6 +215,10 @@ ToolbarHelper::end();
                 markErrors(errors);
                 if (result.success) {
                     libToast.success('Instellingen opgeslagen');
+                    // The console-logging switch is read from its cookie by libLog
+                    if (window.libLog && typeof window.libLog.refreshFromCookie === 'function') {
+                        window.libLog.refreshFromCookie();
+                    }
                 } else {
                     var messages = Object.keys(errors).map(function (k) { return errors[k]; });
                     libToast.error(messages.join(' ') || 'Opslaan mislukt');

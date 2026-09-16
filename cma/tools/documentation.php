@@ -3000,7 +3000,7 @@ PerformanceLogger::logMemory('after_query');</code></pre>
     </table>
 
     <h2>Debug-mode aan/uit</h2>
-    <p>Per-user via <a href="preferences.php" target="_top">Voorkeuren</a> → Console logging. Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt libLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt. Voor de hele site tegelijk (<code>CMA_DEBUG</code>, <code>FORCE_DEBUG</code>) is er Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Foutweergave</span>.</p>
+    <p>Per gebruiker via <a href="tools_settings.php" target="_top">Beheerstools → Systeeminstellingen</a>, groep <span class="cma-tool__strong">Ontwikkelaar (alleen voor jou)</span> → Console logging (naast de debug-overlay en de SQL-drempelwaarde voor de logreader). Schrijft cookie <code>cma_debug_mode</code> (<code>J</code>/<code>N</code>). Beïnvloedt libLog's console-output en server-logging-niveau. De voorkeurenpagina kent geen opslaan-knop: elke wijziging wordt meteen weggeschreven, de spinner in de werkbalk draait zolang dat loopt. Voor de hele site tegelijk (<code>CMA_DEBUG</code>, <code>FORCE_DEBUG</code>) is er Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Foutweergave</span>.</p>
 
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=deployment">Deployment</a> (deploy.log specifiek), <a href="documentation.php?topic=backups">Backups</a> (backup-failures landen in php_errors.log).

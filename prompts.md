@@ -13788,3 +13788,7 @@ karaat-data en staat in de karaat-repo.
 ## 2026-09-16
 
 > okay can you start working on that? And please format the settings page with grouped controls
+
+> https://moodle.rino.nl/my/courses.php
+
+> bij de cma/preferences staan nu de 3 loggings-instellingen. Verplaats die naar de tools_settings en plaats daar een knop naar de tools_settings (voor admins and devs only)

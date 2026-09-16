@@ -15,8 +15,10 @@ use App\Library\Server;
 use App\Library\Cookie;
 use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
+use Cma\Services\UserPreferences;
 
 require_once __DIR__ . '/bootstrap.inc';
+require_once __DIR__ . '/classes/Services/UserPreferences.php';
 
 // Prevent caching - this page shows real-time settings
 header('Cache-Control: no-cache, no-store, must-revalidate');
@@ -38,128 +40,6 @@ $userName = SecurityHelper::getCurrentUserName();
 $userId = (int)SecurityHelper::getCurrentUserId();
 $message = '';
 $messageType = '';
-
-/**
- * Get user preferences from database
- * Falls back to cookie values for migration compatibility
- */
-function getUserPreferences(int $userId): array {
-    $defaults = [
-        'prefTheme' => 'light',
-        'prefMenuStyle' => 'sidebar',
-        'prefPopupStyle' => 'sidepanel',
-        'prefDebugMode' => false,
-        'prefDebugOverlay' => false,
-        'prefSqlThreshold' => -1,
-    ];
-
-    if ($userId <= 0) {
-        return $defaults;
-    }
-
-    $usersConn = Database::getConnection('users');
-    if (!$usersConn) {
-        // No database connection, fall back to cookies
-        return [
-            'prefTheme' => Cookie::get('cma_theme', $defaults['prefTheme']),
-            'prefMenuStyle' => Cookie::get('cma_menu_style', $defaults['prefMenuStyle']),
-            'prefPopupStyle' => Cookie::get('cma_popup_style', $defaults['prefPopupStyle']),
-            'prefDebugMode' => Cookie::get('cma_debug_mode', 'N') === 'J',
-            'prefDebugOverlay' => Cookie::get('cma_debug_overlay', 'N') === 'J',
-            'prefSqlThreshold' => (int)Cookie::get('cma_sql_threshold', '-1'),
-        ];
-    }
-
-    // Try to load from database
-    $sql = "SELECT prefTheme, prefMenuStyle, prefPopupStyle, prefDebugMode, prefDebugOverlay, prefSqlThreshold FROM tblUsers WHERE ID = $userId";
-    try {
-        $rs = Database::openRS($sql, $usersConn);
-        if ($rs && !$rs->EOF) {
-            $row = $rs->fields;
-            // Merge database values with defaults (handle NULL values)
-            return [
-                'prefTheme' => $row['prefTheme'] ?? Cookie::get('cma_theme', $defaults['prefTheme']),
-                'prefMenuStyle' => $row['prefMenuStyle'] ?? Cookie::get('cma_menu_style', $defaults['prefMenuStyle']),
-                'prefPopupStyle' => $row['prefPopupStyle'] ?? Cookie::get('cma_popup_style', $defaults['prefPopupStyle']),
-                'prefDebugMode' => ($row['prefDebugMode'] ?? false) || Cookie::get('cma_debug_mode', 'N') === 'J',
-                'prefDebugOverlay' => ($row['prefDebugOverlay'] ?? false) || Cookie::get('cma_debug_overlay', 'N') === 'J',
-                'prefSqlThreshold' => (int)($row['prefSqlThreshold'] ?? Cookie::get('cma_sql_threshold', $defaults['prefSqlThreshold'])),
-            ];
-        }
-    } catch (\Exception $e) {
-        // Column doesn't exist yet, fall back to cookies
-    }
-
-    // Migration: read from cookies if database columns don't exist yet
-    return [
-        'prefTheme' => Cookie::get('cma_theme', $defaults['prefTheme']),
-        'prefMenuStyle' => Cookie::get('cma_menu_style', $defaults['prefMenuStyle']),
-        'prefPopupStyle' => Cookie::get('cma_popup_style', $defaults['prefPopupStyle']),
-        'prefDebugMode' => Cookie::get('cma_debug_mode', 'N') === 'J',
-        'prefDebugOverlay' => Cookie::get('cma_debug_overlay', 'N') === 'J',
-        'prefSqlThreshold' => (int)Cookie::get('cma_sql_threshold', '-1'),
-    ];
-}
-
-/**
- * Save user preferences to database and sync to cookies
- */
-function saveUserPreferences(int $userId, array $prefs): bool {
-    if ($userId <= 0) {
-        return false;
-    }
-
-    $usersConn = Database::getConnection('users');
-    if (!$usersConn) {
-        return false;
-    }
-
-    // Build update SQL
-    $theme = Database::escape($prefs['prefTheme'] ?? 'light');
-    $menuStyle = Database::escape($prefs['prefMenuStyle'] ?? 'sidebar');
-    $popupStyle = Database::escape($prefs['prefPopupStyle'] ?? 'sidepanel');
-    $debugMode = ($prefs['prefDebugMode'] ?? false) ? 1 : 0;
-    $debugOverlay = ($prefs['prefDebugOverlay'] ?? false) ? 1 : 0;
-    $sqlThreshold = (int)($prefs['prefSqlThreshold'] ?? 0);
-
-    $sql = "UPDATE tblUsers SET
-        prefTheme = '$theme',
-        prefMenuStyle = '$menuStyle',
-        prefPopupStyle = '$popupStyle',
-        prefDebugMode = $debugMode,
-        prefDebugOverlay = $debugOverlay,
-        prefSqlThreshold = $sqlThreshold
-        WHERE ID = $userId";
-
-    try {
-        $usersConn->exec($sql);
-
-        // Sync to cookies for JavaScript access and initial page load
-        $expires = time() + (365 * 24 * 60 * 60);
-        Cookie::set('cma_theme', $prefs['prefTheme'] ?? 'light', $expires);
-        Cookie::set('cma_menu_style', $prefs['prefMenuStyle'] ?? 'sidebar', $expires);
-        Cookie::set('cma_popup_style', $prefs['prefPopupStyle'] ?? 'sidepanel', $expires);
-        // Delete old debug cookie first (may have been httponly), then set new one as non-httponly
-        Cookie::delete('cma_debug_mode');
-        Cookie::set('cma_debug_mode', ($prefs['prefDebugMode'] ?? false) ? 'J' : 'N', $expires, '/', '', false, false);
-        Cookie::set('cma_debug_overlay', ($prefs['prefDebugOverlay'] ?? false) ? 'J' : 'N', $expires);
-        Cookie::set('cma_sql_threshold', (string)($prefs['prefSqlThreshold'] ?? 0), $expires);
-
-        return true;
-    } catch (\Exception $e) {
-        // Column doesn't exist yet - save to cookies only
-        $expires = time() + (365 * 24 * 60 * 60);
-        Cookie::set('cma_theme', $prefs['prefTheme'] ?? 'light', $expires);
-        Cookie::set('cma_menu_style', $prefs['prefMenuStyle'] ?? 'sidebar', $expires);
-        Cookie::set('cma_popup_style', $prefs['prefPopupStyle'] ?? 'sidepanel', $expires);
-        // Delete old debug cookie first (may have been httponly), then set new one as non-httponly
-        Cookie::delete('cma_debug_mode');
-        Cookie::set('cma_debug_mode', ($prefs['prefDebugMode'] ?? false) ? 'J' : 'N', $expires, '/', '', false, false);
-        Cookie::set('cma_debug_overlay', ($prefs['prefDebugOverlay'] ?? false) ? 'J' : 'N', $expires);
-        Cookie::set('cma_sql_threshold', (string)($prefs['prefSqlThreshold'] ?? 0), $expires);
-        return true;
-    }
-}
 
 // Handle GET actions (view/clear log)
 $getAction = Request::query('action', '');
@@ -209,7 +89,7 @@ if (Request::method() === 'POST') {
 
     if ($action === 'savePreferences') {
         // Get old values to detect changes
-        $oldPrefs = getUserPreferences($userId);
+        $oldPrefs = UserPreferences::load($userId);
         $oldTheme = $oldPrefs['prefTheme'];
         $oldMenuStyle = $oldPrefs['prefMenuStyle'];
 
@@ -220,25 +100,15 @@ if (Request::method() === 'POST') {
         // value on the next save).
         $menuStyle = 'sidebar';
         $popupStyle = Request::post('popupStyle', 'sidepanel');
-        $showDebugOverlay = Request::post('showDebugOverlay', '') === 'J';
-        $debugMode = Request::post('debugMode', '') === 'J';
-        $sqlThreshold = Request::postInt('sqlThreshold');
 
-        // Validate sqlThreshold (-1 = off, 0 = all, or one of the allowed values)
-        if (!in_array($sqlThreshold, [-1, 0, 50, 100, 250])) {
-            $sqlThreshold = -1;
-        }
-
-        // Save to database and cookies
-        $newPrefs = [
+        // The developer switches (console logging, debug overlay, SQL threshold)
+        // are set on tools/tools_settings.php; keep their stored values.
+        $newPrefs = array_merge($oldPrefs, [
             'prefTheme' => $theme,
             'prefMenuStyle' => $menuStyle,
             'prefPopupStyle' => $popupStyle,
-            'prefDebugMode' => $debugMode,
-            'prefDebugOverlay' => $showDebugOverlay,
-            'prefSqlThreshold' => $sqlThreshold,
-        ];
-        saveUserPreferences($userId, $newPrefs);
+        ]);
+        UserPreferences::save($userId, $newPrefs);
 
         // Check if theme or menu style changed (requires refresh)
         $themeChanged = ($oldTheme !== $theme);
@@ -264,12 +134,9 @@ if (Request::method() === 'POST') {
 }
 
 // Get current preferences from database (with cookie fallback)
-$prefs = getUserPreferences($userId);
+$prefs = UserPreferences::load($userId);
 $currentTheme = $prefs['prefTheme'];
 $popupStyle = $prefs['prefPopupStyle'];
-$showDebugOverlay = $prefs['prefDebugOverlay'] ? 'J' : 'N';
-$debugMode = $prefs['prefDebugMode'] ? 'J' : 'N';
-$sqlThreshold = $prefs['prefSqlThreshold'];
 
 // Check if user is admin or developer (for showing debug options)
 $isDevOrAdmin = SecurityHelper::isAdmin() || SecurityHelper::isDeveloper();
@@ -294,6 +161,10 @@ if (!$isNomenuMode) {
 // verwarren, en een regel die op elk bezoek hetzelfde zegt is na de eerste keer ruis. Wat
 // er WEL toe doet - er wordt op dit moment iets bewaard - laat de spinner zien.
 ToolbarHelper::start();
+if ($isAdmin) {
+    // Site-wide settings and the developer switches live on their own tool page.
+    ToolbarHelper::button('tools/tools_settings.php', 'lnr-cog', true, $language === 'UK' ? 'System settings' : 'Systeeminstellingen', '', 'btnSystemSettings');
+}
 echo '<span class="cma-page__autosave" id="autosaveStatus">' . PHP_EOL;
 echo '  <lib-loader id="autosaveSpinner" size="small" delay="0" class="cma-page__autosave-spinner"></lib-loader>' . PHP_EOL;
 echo '</span>' . PHP_EOL;
@@ -347,46 +218,7 @@ ToolbarHelper::end();
                     <cma-groupbox group-id="2" form-id="0" caption="<?= $language === 'UK' ? 'Developer' : 'Ontwikkelaar' ?>"></cma-groupbox>
                 </td>
             </tr>
-            <tr id="_g2_1">
-                <td class="label-cell">
-                    <label for="debugMode"><?= $language === 'UK' ? 'Console Logging' : 'Console logging' ?></label>
-                </td>
-                <td class="input-cell">
-                    <lib-switch name="debugMode" id="debugMode" <?= $debugMode === 'J' ? 'checked' : '' ?>></lib-switch>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Enable console.log output (disable for performance testing)' : 'Schakel console.log output in (uitschakelen voor snelheidstests)' ?>
-                </td>
-            </tr>
-            <tr id="_g2_2">
-                <td class="label-cell">
-                    <label for="showDebugOverlay"><?= $language === 'UK' ? 'Show Debug Overlay' : 'Debug overlay tonen' ?></label>
-                </td>
-                <td class="input-cell">
-                    <lib-switch name="showDebugOverlay" id="showDebugOverlay" <?= $showDebugOverlay === 'J' ? 'checked' : '' ?>></lib-switch>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Shows form state info overlay on all forms' : 'Toont formulier status info op alle formulieren' ?>
-                </td>
-            </tr>
-            <tr id="_g2_3">
-                <td class="label-cell">
-                    <label for="sqlThreshold"><?= $language === 'UK' ? 'SQL Log Threshold' : 'SQL log drempelwaarde' ?></label>
-                </td>
-                <td class="input-cell">
-                    <select name="sqlThreshold" id="sqlThreshold" class="form-control" style="width:200px;">
-                        <option value="-1" <?= $sqlThreshold === -1 ? 'selected' : '' ?>><?= $language === 'UK' ? 'Off' : 'Uit' ?></option>
-                        <option value="0" <?= $sqlThreshold === 0 ? 'selected' : '' ?>><?= $language === 'UK' ? 'All queries' : 'Alle queries' ?></option>
-                        <option value="50" <?= $sqlThreshold === 50 ? 'selected' : '' ?>><?= $language === 'UK' ? 'Longer than 50ms' : 'Langer dan 50ms' ?></option>
-                        <option value="100" <?= $sqlThreshold === 100 ? 'selected' : '' ?>><?= $language === 'UK' ? 'Longer than 100ms' : 'Langer dan 100ms' ?></option>
-                        <option value="250" <?= $sqlThreshold === 250 ? 'selected' : '' ?>><?= $language === 'UK' ? 'Longer than 250ms' : 'Langer dan 250ms' ?></option>
-                    </select>
-                </td>
-                <td class="hint-cell">
-                    <?= $language === 'UK' ? 'Filter SQL queries in the Log Reader' : 'Filtert SQL queries in de Log Reader' ?>
-                </td>
-            </tr>
-            <tr id="_g2_4" class="groupbox_end" >
+            <tr id="_g2_1" class="groupbox_end">
                 <td class="label-cell">
                     <label><?= $language === 'UK' ? 'Local Storage' : 'Lokale opslag' ?></label>
                 </td>
@@ -399,22 +231,6 @@ ToolbarHelper::end();
             </tr>
 <?php endif; ?>
 
-<?php if ($isAdmin): ?>
-            <!-- System settings live in their own tool; point admins there -->
-            <tr class="groupbox-row">
-                <td colspan="3">
-                    <cma-groupbox group-id="3" form-id="0" caption="<?= $language === 'UK' ? 'System Settings' : 'Systeeminstellingen' ?>"></cma-groupbox>
-                </td>
-            </tr>
-            <tr id="_g3_1" class="groupbox_end">
-                <td colspan="3" class="hint-cell">
-                    <?= $language === 'UK'
-                        ? 'Site-wide settings (notifications, logging, error display) are under '
-                        : 'Instellingen voor de hele site (meldingen, logging, foutweergave) staan onder ' ?>
-                    <a href="tools/tools_settings.php" target="_top"><?= $language === 'UK' ? 'Admin tools → System Settings' : 'Beheerstools → Systeeminstellingen' ?></a>.
-                </td>
-            </tr>
-<?php endif; ?>
         </table>
     </form>
 </div>
@@ -436,6 +252,18 @@ function setPrefsSaving(saving) {
     } else {
         spinner.removeAttribute('active');
     }
+}
+
+// The system-settings button opens its tool inside the shell when this page
+// runs there; standalone the plain link does the same job.
+var sysBtn = document.getElementById('btnSystemSettings');
+if (sysBtn) {
+    sysBtn.addEventListener('click', function (e) {
+        if (typeof window.loadPage === 'function') {
+            e.preventDefault();
+            window.loadPage('tools.php?tool=settings');
+        }
+    });
 }
 
 function clearLocalStorage() {

@@ -142,58 +142,37 @@ describe('User Menu', () => {
         });
     });
 
-    describe('Preferences Page - Developer Options', () => {
+    describe('System Settings - Developer Options', () => {
+        // The developer switches (console logging, debug overlay, SQL threshold)
+        // live on the system-settings tool, next to the site-wide settings.
         beforeEach(() => {
-            // Navigate to preferences page
-            cy.get('#menuPreferences, .cma-user-dropdown-item:contains("Voorkeuren")')
-                .first()
-                .click({ force: true });
-            cy.wait(2000);
+            cy.visit('/tools/tools_settings.php');
+            cy.get('#settingsForm', { timeout: 10000 }).should('exist');
         });
 
         it('should display SQL threshold dropdown for developers', () => {
-            cy.get('body').then($body => {
-                const $sqlThreshold = $body.find('select[name="sqlThreshold"], #sqlThreshold');
-                if ($sqlThreshold.length > 0) {
-                    expect($sqlThreshold.length).to.equal(1);
-                    // Check it has the expected options
-                    expect($sqlThreshold.find('option').length).to.be.at.least(4);
-                } else {
-                    cy.log('SQL threshold dropdown not found - may not be developer user');
-                }
-            });
+            cy.get('select[name="sqlThreshold"]').should('have.length', 1)
+                .find('option').should('have.length.at.least', 4);
         });
 
         it('should have SQL threshold options: all, 50ms, 100ms, 250ms', () => {
-            cy.get('body').then($body => {
-                const $sqlThreshold = $body.find('select[name="sqlThreshold"]');
-                if ($sqlThreshold.length > 0) {
-                    const options = $sqlThreshold.find('option').map(function() {
-                        return this.value;
-                    }).get();
-                    expect(options).to.include('0'); // All queries
-                    expect(options).to.include('50');
-                    expect(options).to.include('100');
-                    expect(options).to.include('250');
-                } else {
-                    cy.log('SQL threshold dropdown not found');
-                }
+            cy.get('select[name="sqlThreshold"] option').then($opts => {
+                const options = $opts.map(function() { return this.value; }).get();
+                expect(options).to.include('0'); // All queries
+                expect(options).to.include('50');
+                expect(options).to.include('100');
+                expect(options).to.include('250');
             });
         });
 
         it('should save SQL threshold preference', () => {
-            cy.get('body').then($body => {
-                const $sqlThreshold = $body.find('select[name="sqlThreshold"]');
-                if ($sqlThreshold.length > 0) {
-                    cy.intercept('POST', '**/preferences.php*').as('autosaveSql');
-                    // Changing the value autosaves - there is no save button
-                    cy.wrap($sqlThreshold).select('100', { force: true });
-                    cy.wait('@autosaveSql');
-                    cy.get('body').should('exist');
-                } else {
-                    cy.log('SQL threshold dropdown not found');
-                }
-            });
+            cy.intercept('POST', '**/tools_settings.php*', {
+                statusCode: 200,
+                body: { success: true, errors: {} }
+            }).as('saveSql');
+            cy.get('select[name="sqlThreshold"]').select('100', { force: true });
+            cy.get('#btnSaveSettings').click();
+            cy.wait('@saveSql').its('request.body').should('include', 'sqlThreshold=100');
         });
     });
 

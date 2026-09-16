@@ -311,7 +311,7 @@ describe('CMA Integration Test', () => {
       cy.get('#autosaveStatus').should('be.visible');
 
       cy.intercept('POST', '**/preferences.php*').as('autosave');
-      cy.get('#sqlThreshold').select('100', { force: true });
+      cy.get('#popupStyle').select('popup', { force: true });
       cy.wait('@autosave');
 
       // Verify the save didn't break the page

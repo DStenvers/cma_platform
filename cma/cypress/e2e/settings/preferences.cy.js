@@ -1,7 +1,9 @@
 /**
  * Preferences Page Tests
  *
- * Tests for user preferences and system settings functionality.
+ * Tests for the per-user display preferences. The developer switches and the
+ * site-wide system settings live on tools/tools_settings.php (see
+ * system-settings.cy.js); this page only links there.
  */
 
 describe('Preferences Page', () => {
@@ -29,78 +31,22 @@ describe('Preferences Page', () => {
     });
 
     describe('Developer Options', () => {
-        it('should show developer section for admin', () => {
+        it('should keep the localStorage reset for admins', () => {
             cy.visit('/preferences');
             cy.get('cma-groupbox[caption="Ontwikkelaar"]').should('exist');
         });
 
-        it('should have console logging toggle', () => {
+        it('should not carry the developer switches any more', () => {
             cy.visit('/preferences');
-            cy.get('#debugMode').should('exist');
+            cy.get('#debugMode').should('not.exist');
+            cy.get('#showDebugOverlay').should('not.exist');
+            cy.get('#sqlThreshold').should('not.exist');
         });
 
-        it('should have debug overlay toggle', () => {
+        it('should offer a toolbar button to the system settings for admins', () => {
             cy.visit('/preferences');
-            cy.get('#showDebugOverlay').should('exist');
-        });
-
-        it('should have SQL threshold selection', () => {
-            cy.visit('/preferences');
-            cy.get('#sqlThreshold').should('exist');
-        });
-    });
-
-    describe('System Settings (Admin Only)', () => {
-        it('should show system settings section for admin', () => {
-            cy.visit('/preferences');
-            cy.get('cma-groupbox[caption="Systeeminstellingen"]').should('exist');
-        });
-
-        it('should have performance logging toggle', () => {
-            cy.visit('/preferences');
-            cy.get('#perfLogEnabled').should('exist');
-        });
-
-        it('should have cache logging toggle', () => {
-            cy.visit('/preferences');
-            cy.get('#cacheLogEnabled').should('exist');
-        });
-
-        it('should have debug logging toggle', () => {
-            cy.visit('/preferences');
-            cy.get('#debugLogEnabled').should('exist');
-        });
-
-        it('should show env file name in description', () => {
-            cy.visit('/preferences');
-            // System settings section should contain env file reference
-            cy.get('cma-groupbox[caption="Systeeminstellingen"]')
-                .closest('tr')
-                .nextAll('tr')
-                .find('p, td')
-                .invoke('text')
-                .should('match', /\.env\.(local|development|test|acceptance|production)/);
-        });
-
-        it('should autosave system settings when a switch is toggled', () => {
-            cy.visit('/preferences');
-
-            // Wait for page to load and dismiss any tips
-            cy.get('#preferencesForm', { timeout: 10000 }).should('exist');
-            cy.dismissTips();
-
-            // Stub all save POSTs to return success (env file may not be writable in test)
-            cy.intercept('POST', '**/preferences.php*', {
-                statusCode: 200,
-                body: { success: true, message: 'Opgeslagen.' }
-            }).as('saveReq');
-
-            // Toggling a setting saves by itself - user preferences and system
-            // settings go out as two POSTs
-            cy.get('#perfLogEnabled').find('.lib-switch').click({ force: true });
-
-            cy.wait('@saveReq');
-            cy.wait('@saveReq');
+            cy.get('#btnSystemSettings').should('exist')
+                .find('a').should('have.attr', 'href', 'tools/tools_settings.php');
         });
     });
 
@@ -136,8 +82,8 @@ describe('Preferences Page', () => {
                 body: { success: true, message: 'Opgeslagen.' }
             }).as('saveReq');
 
-            // sqlThreshold needs no page refresh, so the page stays put
-            cy.get('#sqlThreshold').select('100');
+            // popupStyle needs no page refresh, so the page stays put
+            cy.get('#popupStyle').select('popup');
 
             cy.wait('@saveReq');
             // Spinner goes back to hidden once every request has answered
@@ -155,7 +101,7 @@ describe('Preferences Page', () => {
                 body: { success: true, message: 'Opgeslagen.' }
             }).as('saveReq');
 
-            cy.get('#sqlThreshold').select('250');
+            cy.get('#popupStyle').select('sidepanel');
             cy.wait('@saveReq');
 
             // Navigate via menu - nothing is unsaved, so no confirmation
