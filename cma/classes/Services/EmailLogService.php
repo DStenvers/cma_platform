@@ -87,7 +87,7 @@ class EmailLogService
                 self::cleanup($conn);
             }
         } catch (\Exception $e) {
-            error_log('EmailLogService::log failed: ' . $e->getMessage());
+            \App\Library\ErrorHandler::report($e, 'E-mail niet in de e-mail log opgeslagen');
         }
     }
 
@@ -193,6 +193,7 @@ class EmailLogService
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row ?: null;
         } catch (\Exception $e) {
+            \App\Library\ErrorHandler::report($e, 'E-mail log record niet gelezen');
             return null;
         }
     }

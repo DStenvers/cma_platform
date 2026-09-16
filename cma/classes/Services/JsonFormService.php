@@ -639,7 +639,7 @@ class JsonFormService extends BaseFormService
                             }
                         }
                     } catch (\Exception $e) {
-                        Logger::debug('Combo options fetch failed', ['field' => $fieldName, 'error' => $e->getMessage()]);
+                        \App\Library\ErrorHandler::report($e, 'Keuzelijst niet gevuld (' . $fieldName . ')');
                     }
                 }
 
@@ -1158,7 +1158,7 @@ class JsonFormService extends BaseFormService
                                 $optRs->MoveNext();
                             }
                         } catch (\Exception $e) {
-                            Logger::debug('FK lookup fetch failed', ['field' => $fieldName, 'error' => $e->getMessage()]);
+                            \App\Library\ErrorHandler::report($e, 'Omschrijvingen van gekoppelde records niet geladen (' . $fieldName . ')');
                         }
                     }
                 }

@@ -9517,6 +9517,7 @@ class CmaFormController {
                 }
 
                 this.showSuccess(result.message || 'Record opgeslagen');
+                this.showWarnings(result.warnings);
 
                 // Execute afterpost URL if configured
                 if (this.afterPostUrl) {
@@ -10461,6 +10462,7 @@ class CmaFormController {
                 document.body.classList.remove('is-creating');  // Ensure creating state is cleared
                 this.updateFormLayoutState({ isCreating: false, hasRecord: false });
                 this.showSuccess(result.message || 'Record verwijderd');
+                this.showWarnings(result.warnings);
 
                 // Remove deleted row from list (preserves search/filter state)
                 // cmaLog.log('deleteRecord: removing row from list for id', deletedRecordId);
@@ -12258,6 +12260,18 @@ class CmaFormController {
     /**
      * Show success message as top notification
      */
+    /**
+     * Server-side failures that did not stop the save (an audit-log insert
+     * that failed after the record was written). The server only fills this
+     * for admins and developers; everyone else gets an empty list.
+     */
+    showWarnings(warnings) {
+        if (!Array.isArray(warnings) || warnings.length === 0) return;
+        warnings.forEach((text) => {
+            if (window.libToast) libToast.error(text, { duration: 15000 });
+        });
+    }
+
     showSuccess(message) {
         this.showTopNotification(message, 'success');
     }

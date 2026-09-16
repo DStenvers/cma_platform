@@ -271,7 +271,7 @@ class MigrationService
                 $conn = Database::getConnection($db);
                 $this->currentVersions[$db] = $conn === null ? 'geen verbinding' : 'verbonden';
             } catch (\Throwable $e) {
-                $this->currentVersions[$db] = 'fout';
+                $this->currentVersions[$db] = 'fout: ' . $e->getMessage();
             }
         }
 
@@ -320,7 +320,11 @@ class MigrationService
             }
             return $latest;
         } catch (\Throwable $e) {
-            $this->log[] = "Waarschuwing: Kan versie niet ophalen uit $tableName: " . $e->getMessage();
+            // Without the version every migration looks pending; that is an
+            // error, not a note.
+            $this->errors[] = "Kan versie niet ophalen uit $tableName: " . $e->getMessage();
+            $this->log[] = "  ✗ Kan versie niet ophalen uit $tableName: " . $e->getMessage();
+            \App\Library\ErrorHandler::report($e, "Migratieversie niet gelezen uit $tableName");
             return null;
         }
     }
@@ -681,7 +685,10 @@ class MigrationService
         } catch (\Throwable $e) {
             // A driver that is not loaded throws, a file that is not there
             // throws, a server that refuses throws. All of them mean the same
-            // thing to a migration: not here.
+            // thing to a migration: not here — and the reason goes in the log,
+            // because "skipped" without a why is where migrations get lost.
+            $this->log[] = "  ⚠ Database '$name' niet bereikbaar, migraties overgeslagen: " . $e->getMessage();
+            error_log("[MigrationService] database '$name' niet bereikbaar: " . $e->getMessage());
             $seen[$key] = false;
         }
         return $seen[$key];
@@ -1146,8 +1153,12 @@ class MigrationService
         try {
             return Database::dropIndexPDO($conn, $table, $indexName);
         } catch (\Throwable $e) {
-            // Index doesn't exist — skip silently
-            return ['success' => true, 'error' => null, 'message' => "Overgeslagen: index '$indexName' bestaat niet"];
+            // Only a missing index is a skip; a lock, a permission problem or
+            // the wrong database is a failed step.
+            if (preg_match('/bestaat niet|does not exist|not found|no such index|niet gevonden/i', $e->getMessage())) {
+                return ['success' => true, 'error' => null, 'message' => "Overgeslagen: index '$indexName' bestaat niet"];
+            }
+            return ['success' => false, 'error' => "Index '$indexName' niet verwijderd: " . $e->getMessage()];
         }
     }
 
@@ -1461,7 +1472,10 @@ class MigrationService
                 ]);
             }
         } catch (\Throwable $e) {
-            $this->log[] = "  ⚠ Kan versie niet registreren in '{$source['trackingTable']}': " . $e->getMessage();
+            // The migration ran but would run again next deploy: an error.
+            $this->errors[] = "Kan versie niet registreren in '{$source['trackingTable']}': " . $e->getMessage();
+            $this->log[] = "  ✗ Kan versie niet registreren in '{$source['trackingTable']}': " . $e->getMessage();
+            \App\Library\ErrorHandler::report($e, "Migratieversie niet geregistreerd in {$source['trackingTable']}");
         }
 
         // Clear cached versions so subsequent reads see the new state.

@@ -2978,6 +2978,7 @@ PerformanceLogger::logMemory('after_query');</code></pre>
         </tbody>
     </table>
     <p>Beide gebruiken de gewone <code>Email</code>-klasse en dus de SMTP-instellingen van de site (<a href="documentation.php?topic=mail">Mail-configuratie</a>). In de O-omgeving simuleert die klasse en gaat er niets de deur uit.</p>
+    <p>De foutmail dekt ook mislukte queries: een <code>Database</code>-helper die faalt gooit een <code>DatabaseException</code> (zie <a href="documentation.php?topic=database">Database &amp; RecordSet</a>), en een gevangen bijzaak-fout die via <code>ErrorHandler::report()</code> loopt wordt op dezelfde manier gelogd en gemaild. Een ingelogde beheerder ziet beide bovendien als toast op elke CMA-pagina en, na een save, als waarschuwing naast "Record opgeslagen".</p>
 
     <h2>Een groeiende error-log is een prestatieprobleem</h2>
     <p>Elke notice is een schrijfactie naar schijf. Een pagina die er per render honderden produceert &mdash; een lus over
@@ -3676,6 +3677,11 @@ $count = Database::fetchOne(
 );
 </code></pre>
     <p>Voor een specifieke connectie: <code>Database::query($sql, $params, $connectionName)</code>. <code>fetchOne</code> en <code>fetchAll</code> hebben ook een optionele <code>$connection</code> derde parameter.</p>
+
+    <h2>Een mislukte query gooit</h2>
+    <p>Elke lees- en schrijfhelper van <code>Database</code> (<code>query</code>, <code>execute</code>, <code>executeOn</code>, <code>executeQuery</code>, <code>executeSingleRecord</code>, <code>executeStatement</code>, <code>fetchOne</code>, <code>fetchAll</code>, <code>openRS</code>, de transactiehelpers) gooit bij een fout een <code>App\Library\DatabaseException</code> — met de SQL en de parameters erin (<code>getSql()</code>, <code>getParams()</code>) en de driver-exceptie als <code>previous</code>. Er komt dus nooit <code>null</code>, <code>[]</code> of <code>0</code> terug voor een query die niet liep: dat las als "geen records" en verborg kapotte SQL wekenlang. De exceptie bereikt de <a href="documentation.php?topic=errors">ErrorHandler</a>: foutpagina of JSON-fout, regel in de PHP error log met <code>[SQL ERROR]</code>, mail als de site dat vraagt, en een toast voor de ingelogde beheerder.</p>
+    <p>Verwacht je een fout — een schema-probe, een kolom die er op oudere sites niet is — vang dan <code>DatabaseException</code> zelf en beslis wat de fout betekent. Moet de bewerking dóórgaan maar moet een beheerder het wél zien (een audit-regel na een geslaagde save), meld hem dan met <code>ErrorHandler::report($e, 'context')</code>: log, mail, toast en bij form-saves een <code>warnings</code>-lijst in het antwoord. Een lege <code>catch</code> of een <code>Logger::debug</code> in een catch is geen afhandeling: op productie logt <code>Logger</code> pas vanaf WARNING, dus dat is stilte.</p>
+    <p>De <code>safe*</code>-helpers (<code>safeQuery</code>, <code>safeScalar</code>, <code>safeExec</code>, <code>recordExists</code>) houden hun niet-gooiende vorm voor code die een lege uitkomst aankan, maar loggen elke fout — ook zonder context-tag. <code>Database::getErrors()</code> geeft alle fouten van dit request.</p>
 
     <h2>RecordSet (ADO-emulatie)</h2>
     <p>Voor legacy-stijl iteratie (vooral handig in oude form-callbacks):</p>
@@ -4404,6 +4410,15 @@ function render_doc_errors(): void
         <li><span class="cma-tool__strong">PerformanceLogger</span> (<code>cma/classes/Services/PerformanceLogger.php</code>) — timing metrics.</li>
     </ul>
     <p>Voor de operator-kant (welke log-bron waar): zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>. Hier focus op de code-API.</p>
+
+    <h2>Fouten die niet fataal zijn, maar wel gezien moeten worden</h2>
+    <p><code>App\Library\ErrorHandler::report(\Throwable $e, string $context = '')</code> is het ene kanaal voor een gevangen fout waarna de bewerking doorgaat: hij logt de exceptie zoals een niet-gevangen fout (PHP error log, <code>.logs/phperrors/</code>), mailt hem als <code>ERROR_MAIL_ENABLED</code> aan staat (dezelfde fout hoogstens één keer per uur), en bewaart de melding voor dit request. Wat er met die meldingen gebeurt:</p>
+    <ul>
+        <li><span class="cma-tool__strong">HTML-pagina's in het CMA</span>: <code>cma/bootstrap.inc</code> toont ze bij shutdown als toast aan een ingelogde beheerder of ontwikkelaar (<code>ErrorHandler::getReported()</code> plus <code>Database::getErrors()</code>). Andere gebruikers zien niets.</li>
+        <li><span class="cma-tool__strong">Form-saves en -deletes</span>: <code>FormDataProvider</code> zet ze in het antwoord onder <code>warnings</code>; <code>form-controller.js</code> toont ze als toast naast "Record opgeslagen".</li>
+        <li><span class="cma-tool__strong">Dashboard</span>: de foutenkaart telt regels met <code>[SQL ERROR]</code>, <code>[ERROR]</code>, <code>[CRITICAL]</code> en <code>[REPORTED]</code> als fout, dus ze verschijnen in het aantal en in de laatste-fouten-lijst.</li>
+    </ul>
+    <p>Wanneer <code>report()</code> en wanneer gewoon laten gooien: gooi als de hoofdbewerking zelf mislukt is (de gebruiker moet weten dat zijn record er niet is); rapporteer als de hoofdbewerking geslaagd is en een bijzaak faalde (monitoring-regel, e-mail-archief, changelog-snapshot, keuzelijst die leeg blijft). Nooit: een lege <code>catch</code>, een <code>catch</code> met alleen commentaar, of <code>Logger::debug</code> als enige actie.</p>
 
     <h2>libLog runtime config</h2>
     <pre><code>window.LIBLOG_CONFIG = {

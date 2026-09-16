@@ -149,6 +149,15 @@ class Database
     private static string $odbcMode = 'native';
 
     /**
+     * Every database failure of this request: ['message','sql','caller'].
+     * Read by the CMA bootstrap to show an admin what went wrong, next to
+     * the error log, the error mail and the dashboard.
+     *
+     * @var array<int,array{message:string,sql:string,caller:string}>
+     */
+    private static array $errors = [];
+
+    /**
      * Native ODBC connection pool (key = connection name, value = odbc resource)
      * Caches native ODBC connections to avoid repeated connection overhead.
      * @var array<string, resource>
@@ -345,20 +354,10 @@ class Database
             throw new PDOException("Database connection '$name' not configured in data/databases.json (expected an entry named '$name').");
         }
 
-        // Create and configure the connection. 'rep' is the deprecated
-        // repository database and frequently can't be opened under an IIS
-        // app-pool identity (the Access "volatile Ace DSN" registry error,
-        // SQLSTATE HY000 / 63). Since it's barely used, fall back to the data
-        // connection rather than crashing the whole request.
-        if ($name === 'rep') {
-            try {
-                $conn = self::createPDOConnection($dsn, $name);
-            } catch (PDOException $e) {
-                return self::getConnection('data');
-            }
-        } else {
-            $conn = self::createPDOConnection($dsn, $name);
-        }
+        // Create and configure the connection. A connection that cannot be
+        // opened throws (createPDOConnection names the driver and the config
+        // source); it is never quietly swapped for another database.
+        $conn = self::createPDOConnection($dsn, $name);
 
         // Store in pool
         self::$namedConnections[$name] = $conn;
@@ -750,9 +749,7 @@ class Database
 
             return $result !== false ? self::convertRowEncoding($conn, $result) : null;
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return null;
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -772,9 +769,7 @@ class Database
             $stmt->execute($params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll());
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return [];
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -1245,20 +1240,10 @@ class Database
             self::debugSQL("Query executed successfully");
             self::logSQL($sqlLogStart, $sql, $connection);
             return new RecordSet($stmt, $scrollable);
-        } catch (\PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::$lastSQL = $sql;
-            self::debugSQL("PDO EXCEPTION: " . $e->getMessage(), $sql);
-            self::logError($sql, [], $e);
-            self::logSQL($sqlLogStart, $sql, $connection, true);
-            return null;
         } catch (\Exception $e) {
-            self::$lastError = $e->getMessage();
-            self::$lastSQL = $sql;
             self::debugSQL("EXCEPTION: " . $e->getMessage(), $sql);
-            error_log('Database::openRS error: ' . $e->getMessage());
             self::logSQL($sqlLogStart, $sql, $connection, true);
-            return null;
+            self::fail($sql, [], $e);
         }
     }
 
@@ -1359,14 +1344,13 @@ class Database
             } else {
                 $odbcError = odbc_errormsg($odbcConn);
                 self::debugSQL("Native ODBC execution failed: " . $odbcError);
-                self::$lastError = "Native ODBC error: " . $odbcError;
-                self::$lastSQL = $sql;
-                return null;
+                self::fail($sql, [], new \RuntimeException('Native ODBC error: ' . $odbcError));
             }
+        } catch (DatabaseException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            self::$lastError = $e->getMessage();
             self::debugSQL("EXCEPTION in openRSNativeODBC: " . $e->getMessage(), $sql);
-            return null;
+            self::fail($sql, [], $e);
         }
     }
 
@@ -1413,9 +1397,7 @@ class Database
             $stmt->execute($params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return 0;
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -1427,9 +1409,7 @@ class Database
             $stmt->execute($params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return 0;
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -1451,9 +1431,7 @@ class Database
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return null;
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -1491,9 +1469,7 @@ class Database
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            self::logError($sql, $params, $e);
-            return null;
+            self::fail($sql, $params, $e);
         }
     }
 
@@ -1644,9 +1620,11 @@ class Database
             $stmt->execute($params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll(\PDO::FETCH_ASSOC));
         } catch (\Throwable $t) {
-            if ($context !== '') {
-                error_log('[' . $context . '] ' . $t->getMessage());
-            }
+            // Non-throwing by contract, but never silent: the failure is logged
+            // and listed like every other one.
+            self::$errors[] = ['message' => self::cleanErrorMessage($t->getMessage()), 'sql' => (string) ($sql ?? ''), 'caller' => $context];
+            error_log('[SQL ERROR] [' . ($context !== '' ? $context : 'Database::safe*') . '] ' . $t->getMessage() . (isset($sql) ? "
+SQL: " . $sql : ''));
             return [];
         }
     }
@@ -1685,9 +1663,11 @@ class Database
             $v = $stmt->fetchColumn();
             return $v === false ? $default : $v;
         } catch (\Throwable $t) {
-            if ($context !== '') {
-                error_log('[' . $context . '] ' . $t->getMessage());
-            }
+            // Non-throwing by contract, but never silent: the failure is logged
+            // and listed like every other one.
+            self::$errors[] = ['message' => self::cleanErrorMessage($t->getMessage()), 'sql' => (string) ($sql ?? ''), 'caller' => $context];
+            error_log('[SQL ERROR] [' . ($context !== '' ? $context : 'Database::safe*') . '] ' . $t->getMessage() . (isset($sql) ? "
+SQL: " . $sql : ''));
             return $default;
         }
     }
@@ -1721,9 +1701,11 @@ class Database
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
             return (bool)$stmt->execute($params);
         } catch (\Throwable $t) {
-            if ($context !== '') {
-                error_log('[' . $context . '] ' . $t->getMessage());
-            }
+            // Non-throwing by contract, but never silent: the failure is logged
+            // and listed like every other one.
+            self::$errors[] = ['message' => self::cleanErrorMessage($t->getMessage()), 'sql' => (string) ($sql ?? ''), 'caller' => $context];
+            error_log('[SQL ERROR] [' . ($context !== '' ? $context : 'Database::safe*') . '] ' . $t->getMessage() . (isset($sql) ? "
+SQL: " . $sql : ''));
             return false;
         }
     }
@@ -1759,9 +1741,11 @@ class Database
             $stmt->execute($params);
             return $stmt->fetchColumn() !== false;
         } catch (\Throwable $t) {
-            if ($context !== '') {
-                error_log('[' . $context . '] ' . $t->getMessage());
-            }
+            // Non-throwing by contract, but never silent: the failure is logged
+            // and listed like every other one.
+            self::$errors[] = ['message' => self::cleanErrorMessage($t->getMessage()), 'sql' => (string) ($sql ?? ''), 'caller' => $context];
+            error_log('[SQL ERROR] [' . ($context !== '' ? $context : 'Database::safe*') . '] ' . $t->getMessage() . (isset($sql) ? "
+SQL: " . $sql : ''));
             return false;
         }
     }
@@ -1810,8 +1794,7 @@ class Database
             $conn = self::getConnection();
             return $conn->beginTransaction();
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            return false;
+            self::fail('beginTransaction', [], $e);
         }
     }
 
@@ -1826,8 +1809,7 @@ class Database
             $conn = self::getConnection();
             return $conn->commit();
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            return false;
+            self::fail('commit', [], $e);
         }
     }
 
@@ -1842,8 +1824,7 @@ class Database
             $conn = self::getConnection();
             return $conn->rollBack();
         } catch (PDOException $e) {
-            self::$lastError = $e->getMessage();
-            return false;
+            self::fail('rollBack', [], $e);
         }
     }
 
@@ -2029,8 +2010,48 @@ class Database
      * @param PDOException $e Exception object
      * @return void
      */
-    private static function logError(string $sql, array $params, PDOException $e): void
+    /**
+     * The one exit for a failed database call: remember it, log it, throw it.
+     *
+     * Throwing — instead of the null/[]/0 the helpers used to return — is what
+     * keeps a broken query from surfacing as "no records": the exception hits
+     * the error handler (log, mail, page or JSON error), and an admin sees it.
+     * A caller that expects failure (schema probe, optional column) catches
+     * DatabaseException itself.
+     *
+     * @return never
+     */
+    private static function fail(string $sql, array $params, \Throwable $e): void
     {
+        self::$lastError = $e->getMessage();
+        self::$lastSQL = $sql;
+        self::logError($sql, $params, $e);
+        throw new DatabaseException(self::cleanErrorMessage($e->getMessage()), $sql, $params, $e);
+    }
+
+    /**
+     * Failures of this request so far (see $errors). Cleared per request by
+     * PHP's own lifecycle; nothing resets it on purpose.
+     *
+     * @return array<int,array{message:string,sql:string,caller:string}>
+     */
+    public static function getErrors(): array
+    {
+        return self::$errors;
+    }
+
+    private static function logError(string $sql, array $params, \Throwable $e): void
+    {
+        $caller = '';
+        foreach ($e->getTrace() as $frame) {
+            $file = (string) ($frame['file'] ?? '');
+            if ($file !== '' && !str_ends_with($file, DIRECTORY_SEPARATOR . 'Database.php') && !str_ends_with($file, '/Database.php')) {
+                $caller = basename($file) . ':' . ($frame['line'] ?? '?');
+                break;
+            }
+        }
+        self::$errors[] = ['message' => self::cleanErrorMessage($e->getMessage()), 'sql' => $sql, 'caller' => $caller];
+
         // Pre-1.19.8 this method only logged in dev/test (omgeving = L/O/T)
         // or when Application::get('test') was truthy. In production every
         // PDOException was silently swallowed by the callers, which return

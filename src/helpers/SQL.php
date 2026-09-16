@@ -463,7 +463,9 @@ class SQL
             try {
                 $driver = strtolower((string) $connection->getAttribute(\PDO::ATTR_DRIVER_NAME));
             } catch (\Throwable $e) {
-                return self::DIALECT_ACCESS;
+                // Guessing Access here would send Access syntax to whatever this
+                // really is; the resulting query error would name the wrong cause.
+                throw new \RuntimeException('SQL-dialect niet te bepalen: ' . $e->getMessage(), 0, $e);
             }
             if ($driver === 'sqlite') {
                 return self::DIALECT_SQLITE;

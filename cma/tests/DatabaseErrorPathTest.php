@@ -10,20 +10,22 @@
  * environments only — production silently swallowed every DB error.
  * There is no env-guard: error_log is always invoked.
  *
- * This test verifies the always-log contract by:
+ * This test verifies the contract of a failed call by:
  *  - Sending a StubConnection that throws PDOException on execute
  *  - Capturing the test process's error_log to a tmp file
- *  - Asserting the catch fires the log AND returns null/[]/0 as before
+ *  - Asserting the failure is logged AND thrown as DatabaseException
  *
- * Important: callers still receive null/[]/0 — the silent-fallback
- * behaviour for end-users is unchanged. What changed is that the
- * operator now always sees the error in logs.
+ * A failed query never comes back as null/[]/0: that read as "no records"
+ * to the user and hid broken SQL for weeks. It throws, so it reaches the
+ * error handler (page or JSON error, mail, admin toast). Code that expects
+ * a failure catches DatabaseException itself.
  */
 
 require_once __DIR__ . '/TestRunner.php';
 require_once __DIR__ . '/StubConnection.php';
 
 use App\Library\Database;
+use App\Library\DatabaseException;
 
 class DatabaseErrorPathTest extends TestCase
 {
@@ -71,19 +73,40 @@ class DatabaseErrorPathTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // Database::query — exception path returns null AND logs
+    // Database::query — exception path throws AND logs
     // ------------------------------------------------------------------
+    private function failing(string $sql, array $params, $conn): ?DatabaseException
+    {
+        try {
+            Database::query($sql, $params, $conn);
+        } catch (DatabaseException $e) {
+            return $e;
+        }
+        return null;
+    }
 
-    public function testQueryWithFailedExecuteReturnsNull(): void
+    public function testQueryWithFailedExecuteThrows(): void
     {
         $conn = StubConnection::create();
         $conn->enqueueException(new \PDOException('SQLSTATE[42000]: Syntax error near tblUsers'));
+        $e = $this->failing('SELECT * FROM tblUsers WHERE x', [], $conn);
+        $this->assertNotNull($e, 'a failed query must throw DatabaseException, not return null');
+        $this->assertEquals('SELECT * FROM tblUsers WHERE x', $e->getSql());
+        $this->assertStringContainsString('Syntax error near tblUsers', $e->getMessage());
+        $this->assertTrue($e->getPrevious() instanceof \PDOException, 'the driver exception travels along as previous');
+    }
 
-        $result = Database::query('SELECT * FROM tblUsers WHERE x', [], $conn);
-
-        // Caller contract: PDO failure → null (so existing `if ($result)`
-        // guards keep working). NOT an exception, NOT a partial result.
-        $this->assertNull($result);
+    public function testFailureIsListedForTheRequest(): void
+    {
+        $conn = StubConnection::create();
+        $conn->enqueueException(new \PDOException('Listed failure'));
+        $before = count(Database::getErrors());
+        $this->failing('SELECT 2', [], $conn);
+        $errors = Database::getErrors();
+        $this->assertEquals($before + 1, count($errors));
+        $last = end($errors);
+        $this->assertStringContainsString('Listed failure', $last['message']);
+        $this->assertEquals('SELECT 2', $last['sql']);
     }
 
     public function testQueryFailureWritesSqlToErrorLog(): void
@@ -91,7 +114,7 @@ class DatabaseErrorPathTest extends TestCase
         $conn = StubConnection::create();
         $conn->enqueueException(new \PDOException('Syntax error'));
 
-        Database::query('UPDATE tblUsers SET x = ?', ['v'], $conn);
+        $this->failing('UPDATE tblUsers SET x = ?', ['v'], $conn);
 
         $log = $this->logContents();
         $this->assertStringContainsString('[SQL ERROR]', $log);
@@ -104,7 +127,7 @@ class DatabaseErrorPathTest extends TestCase
         $conn = StubConnection::create();
         $conn->enqueueException(new \PDOException('Constraint violation'));
 
-        Database::query('INSERT INTO tblUsers (naam, email) VALUES (?, ?)', ['Alice', 'a@x'], $conn);
+        $this->failing('INSERT INTO tblUsers (naam, email) VALUES (?, ?)', ['Alice', 'a@x'], $conn);
 
         $log = $this->logContents();
         $this->assertStringContainsString('Alice', $log, 'Bound parameters must appear in the log');
@@ -123,7 +146,7 @@ class DatabaseErrorPathTest extends TestCase
         $conn = StubConnection::create();
         $conn->enqueueException(new \PDOException('Connection lost'));
 
-        Database::query('SELECT 1', [], $conn);
+        $this->failing('SELECT 1', [], $conn);
 
         $log = $this->logContents();
         $this->assertStringContainsString('Connection lost', $log,
@@ -134,24 +157,19 @@ class DatabaseErrorPathTest extends TestCase
     // Database::execute — same error contract
     // ------------------------------------------------------------------
 
-    public function testExecuteFailureReturnsZero(): void
+    public function testExecuteWithoutConnectionThrows(): void
     {
-        // Database::execute uses self::getConnection() — it doesn't accept
-        // a connection parameter, so we can't inject our stub. We verify
-        // the contract via the same code path as query() (logError is the
-        // shared mechanism) — see testQueryFailureLogsRegardlessOfEnvironment
-        // for the actual logging proof. Here we only assert that the
-        // caller-visible return on a configuration-less call is the
-        // documented sentinel value (0), not a fatal.
+        // Database::execute uses the pool connection. Without one configured
+        // the call must fail loudly — never come back as "0 rows affected".
         \App\Library\Application::set('conn_data', '');
         \App\Library\Application::set('conn_data_path', '');
-
-        $affected = Database::execute('INSERT INTO t (x) VALUES (1)');
-
-        // The execute() method catches PDOException and returns 0. Without
-        // a configured connection it can fail earlier (RuntimeException
-        // from getConnection()). Either way, no fatal.
-        $this->assertTrue(is_int($affected), 'Database::execute must return an int even on failure');
+        $threw = false;
+        try {
+            Database::execute('INSERT INTO t (x) VALUES (1)');
+        } catch (\Throwable $e) {
+            $threw = true;
+        }
+        $this->assertTrue($threw, 'Database::execute without a connection must throw, not return 0');
     }
 
     // ------------------------------------------------------------------
@@ -163,7 +181,7 @@ class DatabaseErrorPathTest extends TestCase
         $conn = StubConnection::create();
         $conn->enqueueException(new \PDOException('Specific failure message'));
 
-        Database::query('SELECT 1', [], $conn);
+        $this->failing('SELECT 1', [], $conn);
 
         $this->assertEquals('Specific failure message', Database::getLastError());
     }

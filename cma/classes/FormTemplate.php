@@ -877,7 +877,7 @@ class FormTemplate
 
             return $options;
         } catch (\Exception $e) {
-            Logger::debug('executeSqlForOptions failed', ['error' => $e->getMessage()]);
+            \App\Library\ErrorHandler::report($e, 'Keuzelijst niet gevuld');
             return null;
         }
     }
@@ -930,7 +930,7 @@ class FormTemplate
 
             return $options;
         } catch (\Exception $e) {
-            Logger::debug('getDistinctValuesForFilter failed', ['error' => $e->getMessage()]);
+            \App\Library\ErrorHandler::report($e, 'Filterwaarden niet gevuld');
             return null;
         }
     }
@@ -1187,7 +1187,7 @@ class FormTemplate
 
             return $options;
         } catch (\Exception $e) {
-            Logger::debug('getComboOptionsForSearch failed', ['error' => $e->getMessage()]);
+            \App\Library\ErrorHandler::report($e, 'Zoek-keuzelijst niet gevuld');
             return null;
         }
     }

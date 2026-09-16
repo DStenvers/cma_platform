@@ -106,7 +106,13 @@ class FormControls
             }
 
             // Fetch options from database
-            $rs = Database::openRS($sql, $connection, adOpenForwardOnly);
+            try {
+                $rs = Database::openRS($sql, $connection, adOpenForwardOnly);
+            } catch (DatabaseException $e) {
+                // The select still renders, empty; the admin hears why.
+                ErrorHandler::report($e, 'Keuzelijst niet gevuld (' . $name . ')');
+                $rs = null;
+            }
             if ($rs !== null) {
                 $previousGroup = '';
 
@@ -485,8 +491,13 @@ class FormControls
     public static function getOptions($connection, string $sql, string $idField, string $displayField): array
     {
         $options = [];
-
-        $rs = Database::openRS($sql, $connection, adOpenForwardOnly);
+        try {
+            $rs = Database::openRS($sql, $connection, adOpenForwardOnly);
+        } catch (DatabaseException $e) {
+            // The control still renders — empty — and the admin hears why.
+            ErrorHandler::report($e, 'Keuzelijst niet gevuld');
+            return $options;
+        }
         if ($rs !== null) {
             while (!$rs->EOF) {
                 $id = $rs->Fields[$idField] ?? '';

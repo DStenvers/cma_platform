@@ -109,6 +109,29 @@ try {
 /**
  * Get PHP error log statistics - daily breakdown for last 7 days
  */
+/**
+ * Which bucket a PHP-error-log line belongs to: 'error', 'warning', 'notice'
+ * or 'other'. A failed query ([SQL ERROR]), a Logger error ([ERROR]) and a
+ * reported failure count as errors — they are exactly the lines an admin
+ * opens this card for.
+ */
+function cma_dashboard_classify_log_line(string $line): string
+{
+    if (stripos($line, 'Fatal error') !== false || stripos($line, 'PHP Fatal') !== false
+        || stripos($line, '[SQL ERROR]') !== false || stripos($line, '[ERROR]') !== false
+        || stripos($line, '[CRITICAL]') !== false || stripos($line, '[REPORTED]') !== false
+        || stripos($line, 'Uncaught') !== false) {
+        return 'error';
+    }
+    if (stripos($line, 'Warning') !== false) {
+        return 'warning';
+    }
+    if (stripos($line, 'Notice') !== false) {
+        return 'notice';
+    }
+    return 'other';
+}
+
 function getErrorStats(): array
 {
     $errorLog = ini_get('error_log');
@@ -187,32 +210,14 @@ function getErrorStats(): array
                 if ($logDate === $today) {
                     $stats['today']++;
                     // Also count in by_type for today
-                    if (stripos($line, 'Fatal error') !== false || stripos($line, 'PHP Fatal') !== false) {
-                        $stats['by_type']['error']++;
-                    } elseif (stripos($line, 'Warning') !== false || stripos($line, 'PHP Warning') !== false) {
-                        $stats['by_type']['warning']++;
-                    } elseif (stripos($line, 'Notice') !== false || stripos($line, 'PHP Notice') !== false) {
-                        $stats['by_type']['notice']++;
-                    } else {
-                        $stats['by_type']['other']++;
-                    }
+                    $stats['by_type'][cma_dashboard_classify_log_line($line)]++;
                 }
 
                 // Categorize by type for daily tracking AND week totals
                 $stats['week']++;
-                if (stripos($line, 'Fatal error') !== false || stripos($line, 'PHP Fatal') !== false) {
-                    $dailyByType[$logDate]['error']++;
-                    $stats['by_type_week']['error']++;
-                } elseif (stripos($line, 'Warning') !== false || stripos($line, 'PHP Warning') !== false) {
-                    $dailyByType[$logDate]['warning']++;
-                    $stats['by_type_week']['warning']++;
-                } elseif (stripos($line, 'Notice') !== false || stripos($line, 'PHP Notice') !== false) {
-                    $dailyByType[$logDate]['notice']++;
-                    $stats['by_type_week']['notice']++;
-                } else {
-                    $dailyByType[$logDate]['other']++;
-                    $stats['by_type_week']['other']++;
-                }
+                $kind = cma_dashboard_classify_log_line($line);
+                $dailyByType[$logDate][$kind]++;
+                $stats['by_type_week'][$kind]++;
 
                 // Keep last 5 errors (from today)
                 if ($logDate === $today && count($errors) < 5) {

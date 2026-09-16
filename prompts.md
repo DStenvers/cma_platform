@@ -13922,3 +13922,351 @@ karaat-data en staat in de karaat-repo.
 > failed monitorign inserts: can you check phperrors
 
 > remove the session_* keys
+
+> v1.39.4: why not log when mail is actually send? There is one class that sends it.
+
+> - Four failed monitoring inserts, on logins, contactpersonen and urentemplate. Two fail with "Syntax error (missing operator)", one with "Too few parameters. Expected 1", one has its statement cut off. Same statements insert cleanly here on PHP 8.4.5, so this stays with the PHP 8.3.11 defect. ->
+
+> - Four failed monitoring inserts, on logins, contactpersonen and urentemplate. Two fail with "Syntax error (missing operator)", one with "Too few parameters. Expected 1", one has its statement cut off. Same statements insert cleanly here on PHP 8.4.5, so this stays with the PHP 8.3.11 defect. -> i want a full scan on silent fails of SQL's because this is very hard to find front-end only. I want errors, logs etc. NO MORE SILENT FAILURES!
+
+> <task-notification>
+> <task-id>a7ef4788b2d2cf4fb</task-id>
+> <tool-use-id>toolu_01RACA2xyAkS2tYqms18YAhq</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/a7ef4788b2d2cf4fb.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Inventory silent SQL failures" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>## Summary
+>
+> I inventoried every DB/SQL failure path in `src/helpers/`, `cma/` (excl. tests/node_modules/cypress), `library/`, `templates/`. Below, grouped by file. Pattern numbers refer to your list (1 = empty/comment-only/sentinel-only catch, 2 = `@`-suppressed DB call, 3 = central helper returning a sentinel, 4 = caller ignoring the sentinel, 5 = debug/error_log-only while user sees success).
+>
+> ---
+>
+> ## Existing mechanisms for surfacing errors (found)
+>
+> | Mechanism | Location | Notes |
+> |---|---|---|
+> | `Database::logError()` | `/mnt/c/repos/cma_platform/src/helpers/Database.php:2032` | **Always** writes `[SQL ERROR] … SQL … Params … Trace` to `error_log` (deliberately changed in 1.19.8 from dev-only). This is the main safety net for pattern 3. Comment explicitly documents "the 'silent' half of the silent fallback is gone" — but the caller still gets `null/[]/0`. |
+> | `Database::diagnoseEmptyOperand()` | `Database.php:2074` | Names the empty operand column in the log line. |
+> | `Database::$lastError` / `getLastError()` / `cleanErrorMessage()` | `Database.php:1870`, `1882`, `1911` | Used by `report-query.php`, `report-schema.php`, `RecordService`, `FormDataProvider` to show a cleaned DB error to the user. |
+> | `Logger` levels | `/mnt/c/repos/cma_platform/cma/classes/Services/Logger.php:22-84` | **Critical:** `getMinLevel()` returns `WARNING` when `omgeving === 'P'`. **Every `Logger::debug()` failure message below is discarded entirely in production.** |
+> | `ErrorHandler::viewerIsElevated()` | `/mnt/c/repos/cma_platform/src/helpers/ErrorHandler.php:77` | Admin/developer sees full exception text even in prod (used at `:430` for HTML pages and `:818` for JSON payloads). Fails closed. |
+> | Log reader with red-row `[SQL ERROR]` classification | `/mnt/c/repos/cma_platform/cma/tools/logreader.php` | Operators can grep/filter `SQL ERROR`. Only place these swallowed errors become visible. |
+> | Dashboard error cards | `/mnt/c/repos/cma_platform/cma/dashboard.php:843` (`.stats-error`), `:1510`, `:1532`, `:1568`, `:1711`, `:1729` | Only reports *fetch* failures of the stats endpoints, not DB failures behind them. |
+> | `libToast.error` / `lib-message type="error"` | `cma/preferences.php:343`, `cma/tools/tools_formedit.php:1068`, `cma/wizards/file-browser.php:3127`, etc. | Client-side only; fires on HTTP/JSON failure, not on a `success:true` that hides a DB failure. |
+> | `Error::sendErrorEmail` / `ErrorHandler` mail | `src/helpers/Error.php:446`, `ErrorHandler.php:625` | Only for uncaught errors. |
+> | `DeployHealth` alert mail | `src/helpers/DeployHealth.php:241` | Deploy-time only. |
+>
+> ---
+>
+> ## 3. Central helpers that swallow `PDOException` and return a sentinel
+>
+> File: `/mnt/c/repos/cma_platform/src/helpers/Database.php`
+>
+> | line | method | returns on failure | logs |
+> |---|---|---|---|
+> | 752 | `executeSingleRecord()` | `null` (indistinguishable from "no record") | `$lastError` + `logError` → `[SQL ERROR]` error_log |
+> | 774 | `executeQuery()` | `[]` (indistinguishable from "no rows") | same |
+> | 1415 | `executeOn()` | `0` (indistinguishable from "0 rows affected") | same |
+> | 1429 | `execute()` | `0` | same |
+> | 1453 | `executeStatement()` | `null` | same |
+> | 1493 | `query()` | `null` | same |
+> | 1517/1553 | `fetchOne()` / `fetchAll()` | `false` / `[]` — via `query()`'s null | via `query()` |
+> | 1248, 1255 | `openRS()` | `null` | `logError` (PDO branch) / plain `error_log` (generic branch) |
+> | 1366 | `openRSNativeODBC()` | `null` | **`debugSQL()` only** — i.e. nothing unless `sql_debug` is on |
+> | 1646, 1687, 1723, 1761 | `safeQuery` / `safeScalar` / `safeExec` / `recordExists` | `[]` / `$default` / `false` / `false` | `error_log` **only if `$context !== ''`**; `''` is the default → fully silent. No in-repo callers (consumer-site API). |
+> | 1796 | `getLastInsertId()` | `0` | `$lastError` only, **no log** |
+> | 1812/1828/1844/1860 | `beginTransaction` / `commit` / `rollback` / `inTransaction` | `false` | `$lastError` only, **no log** — a failed `rollback()` is invisible |
+> | 2121 | `quoteIdentifier()` | falls back to `"…"` double quotes | nothing |
+> | 2139 | `escape()` | falls back to `addslashes()` | **nothing** — security-relevant fallback, silent |
+> | 2155, 2194 | `getDriverName` / `getDatabaseType` | `'unknown'` | nothing → wrong SQL dialect chosen downstream |
+> | 2261 | `isSQLite()` | `false` | nothing |
+> | 2422 | `fieldExists()` | `false` | nothing → "column missing" reported for a connection error |
+> | 2531 | `getFieldValue()` | `null` | `logError` |
+> | 2568 | `getIds()` | `''` (empty IN-list) | `logError` |
+> | 2620 | `isConnectionOpen()` | `false` | nothing |
+> | 2693, 2731, 2773 | `addField` / `renameField` / `setDefaultValue` | `false` | `$lastError` only, **no log** |
+> | 2802 | `isRecordsetOpen()` | `false` | nothing |
+> | 3028, 3047 | `tableExistsPDO` / `columnExistsPDO` | `false` | nothing → a connection error reads as "table/column absent" |
+>
+> Suggested severities: `execute`/`executeOn`/`query`/`openRS` returning sentinels = **high** (write loss presented as success at call sites, see §4); `escape()` addslashes fallback = **high**; `getDatabaseType → 'unknown'`, `tableExistsPDO/columnExistsPDO → false`, `fieldExists → false` = **medium** (drive schema-migration and DDL decisions); rest = **low/medium**.
+>
+> Note `RecordSet.php:496-504` (`lib_openRS`) is the one helper that does the right thing: logs **and re-throws**.
+>
+> ---
+>
+> ## 4-5. Call sites — silent swallows, grouped by file
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/FormDataProvider.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 2480 | 4 + latent bug | `Database::execute($sql, [], $conn)` — `execute()` takes **2 params**; `$conn` is silently dropped, so the audit INSERT runs on the *default* `data` connection, not the form's. Return value (`0` on failure) unused. | Record save returns `success:true`; audit row missing | **high** |
+> | 2483 | dead code | `catch (\Exception $insertEx)` around `Database::execute` can **never fire** — `execute()` swallows the PDOException itself. The "INSERT without LogLevel" fallback (`:2494`) is unreachable. | — | **high** |
+> | 2484 | 5 | `Logger::debug('logMonitoring: INSERT with LogLevel failed…')` — dropped in prod | — | high |
+> | 2497-2499 | 5 | Outer `catch (\Throwable) { Logger::exception($e, 'logMonitoring exception'); }` — audit failure never reaches the caller, which reports save success | "Record toegevoegd/bijgewerkt" | **high** (audit loss) |
+> | 889 | 5 | Pre-update `SELECT *` for the `_changelog` audit trail fails → `Logger::debug` only, `$oldFields = []` → **no changelog written** | Save succeeds | **high** |
+> | 1054 | 5 | `lastInsertId()` failure → `Logger::debug` + `$recordId = ''` | Falls through to `@@IDENTITY`; if that also fails the record id shown is empty | medium |
+> | 991 | 1 | `catch (\Exception) { /* Schema check failed */ }` — the missing-column diagnosis itself failing | Generic DB error instead of the field-level message | low |
+> | 473 | 1 | `catch (\Exception $e) { // Log but continue }` — **empty body, no log at all**. Checklist `openRS` failure → checklist renders empty | Form shows all checklist items unticked; a save then wipes them | **high** |
+> | 1223, 1232 | 5 | Cache sweep / data-cache flush failures → `Logger::debug` (dropped in prod) | Stale page after save | medium |
+> | 1717 | 5 | Pre-delete record snapshot for the audit trail fails → `Logger::debug` | Delete reports success; audit trail has no field values | **high** |
+> | 2111, 2154 | 5 + surfaced | FK label lookup failure — `Logger::debug`, **but** also sets `__label` to "Kan … niet opzoeken (query fout)" and `__error = true` | Error *is* shown in-field | low (good pattern) |
+> | 2077 | 5 | Connection for FK database unavailable → `Logger::debug` only, no `__error` flag set | Label silently blank | medium |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/RecordService.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 357 | 4 | `Database::query($sql, $params, $conn)` INSERT — return value unused; on failure `query()` returns `null` and execution continues to `@@IDENTITY` | `success: true`, "Record toegevoegd" (`:407`) | **high** |
+> | 367 | 4 | `Database::query(...)` UPDATE — return unused | `success: true`, "Record bijgewerkt" | **high** |
+> | 461 | 4 | `Database::query($sql, [], $conn)` **DELETE** — return unused | `success: true`, "Record verwijderd" (`:475`) | **high** |
+> | 957 | 1 | `catch (\Exception $e) { // Log but continue }` — **empty body**, checklist read failure | Checklist appears empty | **high** |
+> | 1192, 1233, 1259 | 5 | FK label resolution — `Logger::debug`, but `__error` flag set and label carries the message | Error shown in-field | low |
+> | 1218 | 5 | FK-database connection failure → `Logger::debug` only, no user-facing flag | Blank label | medium |
+> | 2016 | 5 | Combobox cache invalidation failure → `Logger::error` (survives prod) but caller already returned success | Stale combo options | low |
+> | 1005, 1342, 1361, 1387, 1413, 1486, 1614, 1671, 1822, 1868, 1919, 1966 | 5 | Sort-list / check-list / user-group / rights / notification writes all `Logger::error(...)` and **return without propagating** into the save result | The enclosing save still returns `success: true` | **high** (permission + notification writes lost silently) |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/UserPreferences.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 61-63 | 1 | `catch (\Exception $e) { // Column doesn't exist yet, fall back to cookies }` — **completely empty**; any DB error (not just missing column) falls back to cookie values | Preferences silently revert to cookie/defaults | medium |
+> | 101-103 | 1 + 5 | `$usersConn-&gt;exec($sql)` UPDATE inside `try`; catch is **empty with a comment only**, then `return true` on line 105 | `preferences.php` shows *"Voorkeuren opgeslagen"* toast while nothing was written to `tblUsers` | **high** (wrong result presented as success) |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/EmailLogService.php` + `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `EmailLogService.php:52` | 1 | Empty catch around `SecurityHelper::getCurrentUserData()` | Email log row has empty `mail_user` | low |
+> | `EmailLogService.php:89` | 5 | The whole `INSERT INTO tblEmailLog` wrapped in try; failure → `error_log` only, function is `void` | Mail reports sent; **no log record** | medium |
+> | `Bootstrap.php:579` | 5 | `Email::$afterSend` hook wraps `EmailLogService::log()` in a second `catch (\Throwable) { error_log(...) }` | Same | medium |
+> | `EmailLogService.php:173` | 5 | Delete failure → `error_log` + `return false` | Caller must check `false`; `email-actions.php` does | low |
+> | `EmailLogService.php:195-197` | 1 | `getById()` — `catch (\Exception) { return null; }`, **no log at all** | "Record niet gevonden" for a DB outage | medium |
+> | `EmailLogService.php:214` | 5 | 30-day cleanup failure → `error_log` only | Log table grows unbounded | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/SecurityHelper.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 100-102 | 1 | Empty catch, comment only: "GUID handling is optional" — GUID auto-set fails | Dual-cookie validation degrades to single cookie | medium |
+> | 123-125 | 1 | `getUserGuid()` — empty catch, comment only, returns `''` | Same | medium |
+> | 242 | 1 | `tblUsersKolommen()` — `catch (\Throwable) { return null; }`, no log. A connection error reads as "schema unknown" | Feature detection silently picks the legacy branch | medium |
+> | 321 | 5 | `getCurrentUserData()` → `error_log` + `return null`; caller at `:85` logs and returns `false` | User is logged out with no explanation during a DB blip | medium |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/MigrationService.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 273 | 1 | `catch (\Throwable) { $this-&gt;currentVersions[$db] = 'fout'; }` — no message, no `$this-&gt;errors[]` | Migration tool shows "fout" with no reason | medium |
+> | 681-687 | 1 | `databaseIsReachable()` — any throw ⇒ `false`, cached for the request, **no log**. Drives whether migrations run at all. | Migrations silently skipped for that database | **high** |
+> | 982, 1023, 1047 | 1 | Three comment-only catches in relation discovery (`MSysRelationships`, per-table probe, index probe) | Relations list incomplete, no hint | low |
+> | 1148-1150 | 1 | `dropIndex()` — **any** `Throwable` returns `['success' =&gt; true, 'message' =&gt; "Overgeslagen: index … bestaat niet"]` | Migration step reported as **succeeded** when the drop actually failed (permissions, lock, wrong DB) | **high** (wrong result presented as success) |
+> | 1463 | 5 | Version-registration INSERT failure appended to `$this-&gt;log[]` (not `$this-&gt;errors[]`) | Migration reports success; the version row is missing → the migration re-runs next deploy | **high** |
+> | 322 | 5 | `getLatestVersion()` failure appended to `$this-&gt;log[]` as "Waarschuwing", returns `null` → treated as `0.0.0` at `:252` | Tool shows version `0.0.0`; all migrations look pending | **high** |
+> | 1862-1864 | 1 | `isMigrationApplied()` — `catch (\Throwable) { cache = false; }`, comment only | Migration re-run silently | medium |
+> | 1894 | 1 | `columnExists()` — `catch (\Throwable) { cache = false; }`, no log | Column-add migration re-runs / DDL branch chosen wrongly | medium |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/SchemaHelper.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 85 | 2 | `@odbc_connect(...) ?: null` — suppressed, no log; caller falls back to PDO or a forms-dir scan (`:133+`) | Table list may come from JSON files instead of the DB | medium |
+> | 121, 130, 132 | 2 | `@odbc_tables`, `@odbc_free_result`, `@odbc_close` | — | low |
+> | 170-172 | 1 | `catch (\Exception) { // Return empty array on error }` in `getTables()` | Empty table dropdown, no error | medium |
+> | 262-265 | 1 | `catch (\Throwable) { return null; }` with comment "callers treat null as 'leave the definition alone'" | Form definition silently left unchanged | medium |
+> | 327, 366, 368 | 2 | `@odbc_columns` / `@odbc_free_result` / `@odbc_close` | — | low |
+> | 419-421 | 1 | `getColumns()` comment-only catch → `[]` | Field list empty; `JsonFormLoader::generateFieldsFromSchema` then returns `[]` | **high** (form renders with no fields) |
+> | 475-478 | 1 | `catch (\Exception) { $keys[] = 'ID'; }` — **guesses** `ID` as PK when the probe fails | Updates/deletes may target the wrong key column | **high** |
+> | 483-485 | 1 | Outer `getPrimaryKeys()` comment-only catch → `[]` | — | medium |
+> | 573 | 1 | `getForeignKeys()` — `catch { cache = []; }`, no log | FK-derived UI silently absent | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/CmaRepository.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 406-408 | 1 | `catch (\Exception) { // Silently fail - no tables shown }` around `SchemaHelper::getTables()` | Empty `&lt;select&gt;` of tables, no error | medium |
+> | 823 | 1 | `catch (\Exception) { return 0; }` in table row count, no log | Count shows `0` | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/bootstrap.inc`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 1615-1618 | 1 | `catch (\Exception) { // DB not available yet, use fallback }` — forces `CMAU = '1'`, empty GUID | In L/O/T only: auto-login as user ID 1 when the users DB is down | medium |
+> | 2144-2146 | 1 | `ToolsTableSelect()` — "Silently fail - tables list not available" | Empty table dropdown | medium |
+>
+> ### `/mnt/c/repos/cma_platform/cma/api/user_tips.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 129 | 4 | `Database::query("UPDATE tblUsers SET SkipTips = '' …")` result unused, then `Response::json(['success' =&gt; true, …])` on the next line | "Tips gereset" while nothing was written | **high** |
+> | 142 | 4 | Same for the per-tip removal path, then `success: true` at `:144` | Same | **high** |
+> | 179 | 5 | `ensureSkipTipsColumn()` — `ALTER TABLE` failure → `error_log` only; every later `SkipTips` query then fails silently | Tips never persist | medium |
+> | (contrast) 111-116 | — | The `skipTip` path *does* check `$result` and returns 500. Inconsistent with the two above. | — | — |
+>
+> ### `/mnt/c/repos/cma_platform/cma/api/user_actions.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 188 | 4 | `Database::query("UPDATE tblUsers SET userGUID = ? …")` result unused; the cookie is then set to a GUID that was never persisted (`:190`) | Impersonation reports `success: true`, then the *next* request fails dual-cookie validation and logs the admin out | **high** |
+>
+> ### `/mnt/c/repos/cma_platform/cma/login.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 175 | 4 | `Database::query("UPDATE tblUsers SET userGUID = ?…")` result unused | Cookie holds an unpersisted GUID | medium |
+> | 177-180 | 5 | Wrapping catch → `error_log` only | Login succeeds | low |
+> | 216 | 4 | `Database::executeOn('users', $adminInsert)` — return (`0` on failure) unused. This is the **"no admin exists → create Admin/Admin"** safety net. | Silently no admin created; nobody can log in | **high** |
+> | 220 | 4 | `Database::executeOn('users', "INSERT INTO tblGroups (ID, grpName) VALUES (0, 'Iedereen')")` — return unused | Default group missing | medium |
+> | 85, 98 | 1 | Empty `catch (\Throwable $e)` at 85; `$dsn = '(onbekend: …)'` at 98 | Diagnostic-only | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/template_fillrep.php` and `/mnt/c/repos/cma_platform/library/lib_search.inc`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `template_fillrep.php:70` | 4 | `Database::execute($sSQL, [])` inserting into `tblSiteFiles` — return unused; the page has already `echo`'d the filename as processed | Page lists every file as imported; table may be empty | medium |
+> | `lib_search.inc:28` | 4 | `Database::execute($strInsertSQL, [])` into `tblSearches` — return unused | Search works, analytics row lost | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/tools/tools_db_consistency.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 206 | 4 + **bug** | `Database::execute($setsql, $conn)` — signature is `execute(string $sql, array $params = [])`. Passing a `PDO` as `$params` raises a `TypeError` (not a `PDOException`), so it is **not** caught by anything here. | Tool aborts / 500 mid-report, or (worse) the width/height UPDATE never happens while the "OK" rows are printed | **high** |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/FormTemplate.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 880 | 5 | `executeSqlForOptions()` — `Logger::debug` (dropped in prod) + `return null` | Combo/dropdown renders with no options and no message | **high** (user picks nothing / saves a blank FK) |
+> | 933 | 5 | `getDistinctValuesForFilter()` — same | Filter dropdown silently empty | medium |
+> | 1190 | 5 | `getComboOptionsForSearch()` — same | Search combo silently empty | medium |
+> | 915-917 | 4 | `if ($rs === null) { return null; }` — no message, no log (the `openRS` sentinel path, distinct from the exception path) | Same as above | medium |
+> | 558 | 1 | JS `catch(e){}` around cookie read | Cosmetic layout shift | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/JsonFormService.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 641-642 | 5 | Combo options `openRS` failure → `Logger::debug` only; `$comboOptions[$field]` stays unset | Empty dropdown, form otherwise renders normally | **high** |
+> | 1160-1161 | 5 | FK lookup `openRS` failure → `Logger::debug` only; `$fkLookup[$field]` stays empty | Existing FK values render as raw ids/blank, no error flag (unlike `RecordService::resolveFkLabels`) | **high** |
+> | 1731 | 1 | `catch { return '*'; }` — falls back to `SELECT *` | Over-fetch | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/OptionsService.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 754 | 1 | `catch (\Exception) { return 0; }` on `SELECT COUNT(*)`, no log | Count `0` ⇒ the "small table, load all options inline" branch is chosen for what may be a huge table | medium |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/JsonFormLoader.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 1021 | 1 | `generateFieldsFromSchema()` — `catch (\Throwable) { return []; }`, no log | Auto-generated form renders with **zero fields** | **high** |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/ConfigLoader.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 380, 430, 481, 539, 581, 623, 674 | 1 | Seven `catch (\RuntimeException) { return []; }` — **no log**. `getDatabases()` at 380 is the one that decides which connections exist. | Database list empty ⇒ every downstream "geen verbinding" with no root cause | **high** |
+> | 738, 754 | — | These two *do* collect the message (`$errors[]`, `_error`) — the good pattern | — | — |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/ListServiceHelper.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 498 | 1 | `catch (\Throwable) { return $uitleg; }` — the "too few parameters" column diagnosis fails | Generic Access error instead of the named missing column | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/classes/Services/BackupService.php` &amp; `/mnt/c/repos/cma_platform/cma/tools/tools_backup.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `BackupService.php:351` | 1 | `PRAGMA wal_checkpoint(TRUNCATE)` failure — comment-only catch, copy proceeds | "Backup gelukt" for a backup that may be **missing the un-checkpointed WAL data** | **high** |
+> | `tools_backup.php:313` | 1 | Same pattern (`/* non-fatal */`) on the **pre-restore** backup | Pre-restore safety copy may be incomplete; restore then reported OK | **high** |
+>
+> ### `/mnt/c/repos/cma_platform/cma/api/dashboard_stats.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 153 | 1 | `catch (Exception) { return $stats; }` — no log | Zeroed error-log stats card | low |
+> | 368 | 1 | Comment-only catch → `[]` | Empty list | low |
+> | 460, 476 | 4 | `if ($rs) { … }` / `if ($rs &amp;&amp; !$rs-&gt;EOF)` — a `null` from `openRS` silently yields zero counts, no branch for it | Monitoring card shows `0` activity for the last 7 days when the query fails | medium |
+> | 482 | — | Outer catch *does* set `$stats['error']` | — | — |
+>
+> ### `/mnt/c/repos/cma_platform/cma/details_getdata.php`
+>
+> | line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | 88-90 | 1 | Comment-only catch — the type-ahead WHERE clause is dropped on any error. **Deliberate and documented** (`:80-83`). | Combo list shows *all* rows, unfiltered | low (documented trade-off, but an unfiltered list on a large table is surprising) |
+>
+> ### `/mnt/c/repos/cma_platform/cma/tools/` (operator tooling)
+>
+> | file:line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `tools_validate_parentfields.php:113` | **2** | `@Database::openRS($sql, $conn, 0)` — the `@` is applied to a call that already logs internally; the code then reads `error_get_last()` to reconstruct the message | Reports the column as invalid with "Query returned null/false" when the real cause was a connection failure | medium |
+> | `tools_endpoint_tester.php:86-88` | 1 | `catch (\Exception) { // Query failed, return null }` | Endpoint test silently skipped (no sample id) | low |
+> | `tools_db_sync.php:353` | 1 | `catch (\Exception) { $connectionCache[$db] = false; }`, no log | Form counted in `$formsSkipped` with no reason | medium |
+> | `tools_db_sync.php:379` | 1 | `SchemaHelper::getColumns()` throw ⇒ `$formsSkipped++; continue;` | Sync report silently omits forms | medium |
+> | `tools_dbsummary.php:216, 248, 291, 323` | 2 | `@odbc_connect` / `@odbc_columns` / `@odbc_free_result` / `@odbc_close` | Summary page missing columns | low |
+> | `tools_formedit.php:229-241` | 2 | `@odbc_connect` / `@odbc_tables` / `@odbc_free_result` / `@odbc_close` | Empty table list in the form editor | medium |
+> | `tools_formedit.php:654, 674, 696` | 1 | JS `.catch(function(){ return []; })` / `.catch(function(){})` — form list, tree data, JSON parse | Empty tree / empty combo, no toast | medium |
+> | `tools_clearcache.php:84, 201, 273, 554` | 1 | Four `// Ignore` catches (Twig sweep, file cache, Redis connect) | "Cache geleegd" while some caches were not | medium |
+> | `tools_sqlite_repair.php:104` | 1 | `Database::closeAll()` failure ignored; the SQLite file is then repaired **with connections possibly still open** | Repair reported OK; file may be locked/corrupted | **high** |
+> | `set_migration_version.php:70` | 1 | `catch { $hasTable = false; }` on `SELECT TOP 1 version FROM _cma_version` | Tool assumes the version table is absent and recreates it, wiping history | medium |
+> | `logreader.php:289` | 1 | `catch (\Throwable) { return false; }` in `$logTabelCheck` | The "JavaScript errors" log source is hidden — **the very tool for seeing these silent errors disappears** without saying why | medium |
+> | `documentation.php:253` | 1 | `/* skip a broken topic, keep the rest searchable */` | Topic missing from search | low |
+> | `documentation.php:1352` | 1 | `catch (\Throwable) { $openstaand = null; }` — pending-migration count | Health card shows "onbekend" | low |
+>
+> ### `/mnt/c/repos/cma_platform/cma/migrations/`
+>
+> | file:line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `9.0.0_cleanup_test_data.php:136, 153` | 1 | `catch { echo "Skipped … (table may not exist)"; }` — masks **any** error, incl. permission/lock. Also lines 63, 76, 92, 105, 118, 132, 149 use `Database::query(...)` with the result unused, then `$deleted++` regardless. | "Deleted N orphaned …" where N counts *attempts*, not deletions | **high** (wrong result presented as success) |
+> | `9.3.0_combo_filter_by_field.php:93` | 1 | Comment-only catch → empty column map, cached | Migration silently makes no changes | medium |
+> | `6.3.0_add_log_level.php:96` | 1 | `// Ignore count errors` | Verification counts omitted | low |
+> | `1.0.1:52`, `9.8.0:55/62`, `9.13.0:61`, `9.14.0:57`, `9.15.0:70/75/80` | — | Index-creation failures `echo " ⚠ …"` — **visible**, but the migration still returns success and the version row is recorded | Table created without its indexes; reported as applied | medium |
+> | `2.7.2_export_forms.php:854` | 1 | "Silently fail - detection not possible" | — | low |
+> | `reset_to_version.php:44` | 1 | `echo "No version table found, skipping"` on any throw | Reset silently no-ops | medium |
+>
+> ### `/mnt/c/repos/cma_platform/library/`
+>
+> | file:line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `lib_form.inc:75-81` | 1 | `catch (\PDOException $e2) { // Ignore — table may have been created concurrently }` around `CREATE TABLE` for the unique-code table | Every later unique-code insert fails; the form's uniqueness guarantee is gone with no signal | **high** |
+> | `lib_xmlsnippets.inc:94` | 1 | "Silently ignore errors like in original ASP" | Missing XML element in export | medium |
+> | `lib_xmlsnippets.inc:1013` | 1 | `catch (Exception $e) { // ignore }` around per-cell value read | Blank cell in XML/XSLT export | medium |
+> | `500.php:144` | 1 | "Silently fail - already in error handling" | Acceptable | low |
+>
+> ### `/mnt/c/repos/cma_platform/src/helpers/` (non-`Database.php`)
+>
+> | file:line | pattern | what fails silently | user sees | severity |
+> |---|---|---|---|---|
+> | `Cache.php:643` | 1 | `has()` — `catch (\Exception) { return false; }`, no log | Cache treated as empty | low |
+> | `Cache.php:927` | 5 | `Cache::retrieve()` — the **SQL-backed cache read**; PDOException → `error_log` + `null` | `CmaRepository::getTableRecordCount` (`:814`) then falls through to a direct query that also returns `0` on failure | medium |
+> | `Cache.php:1229` | 5 | `fetchSchema()` INFORMATION_SCHEMA query → `error_log` + `null` | Schema info absent | low |
+> | `Cache.php:279, 346, 386, 424, 457, 1153, 1475, 1499, 1613` | 5 | Redis/file cache errors → `error_log` + `false`/`$default` | Degraded caching, no operator signal beyond error_log | low |
+> | `ErrorHandler.php:2181` | 1 | `// Silently fail` | — | low |
+> | `ErrorHandler.php:2596, 2732, 2780` | 1 | Comment-only catches in the error *renderer* | Less context on an already-failing page | low |
+> | `ErrorHandler.php:1405` | 1 | "Swallow deliberately — showing the error matters more than its version." | — | low (well-reasoned) |
+> | `SQL.php:465` | 1 | `catch { return self::DIALECT_ACCESS; }` — dialect detection failure **defaults to Access** | Generated SQL uses Access syntax against e.g. SQLite ⇒ downstream query failure with a misleading message | **high** |
+> | `Debug.php:121` | 1 | "Silently fail if can't write to file" | Debug output lost | low |
+> | `Error.php:349` | 1 | Empty `catch (e)` (JS) | — | low |
+>
+> ### `/mnt/c/repos/cma_platform/templates/`
+>
+> Only `templates/deploy.php.template:642` and `:653` contain catches; both are filesystem/HTTP, not DB. Nothing to report.
+>
+> ---
+>
+> ## The handful I'd fix first
+>
+> 1. `UserPreferences::save()` `:101` — empty catch then `return true`; the UI toasts success. Pure pattern-1 + pattern-5 combination.
+> 2. `RecordService.php:357 / 367 / 461` and `user_tips.php:129/142`, `user_actions.php:188` — `Database::query()` results discarded immediately before a `success: true`.
+> 3. `FormDataProvider.php:2480` — the `$conn` third argument is silently dropped (wrong signature) *and* the surrounding catch is unreachable because `Database::execute()` never throws. Audit rows can be going to the wrong database.
+> 4. `MigrationService.php:1148` — a failed `dropIndex` is reported as `success: true`.
+> 5. `MigrationService.php:322 / 1463` — version read/write failures land in `$this-&gt;log[]` (informational) rather than `$this-&gt;errors[]`, so a migration "succeeds" without recording its version.
+> 6. `BackupService.php:351` / `tools_backup.php:313` — WAL checkpoint failure ignored before copying a SQLite database.
+> 7. `SQL.php:465` — dialect detection failing open to Access.
+> 8. `tools_db_consistency.php:206` — `Database::execute($setsql, $conn)` is an outright argument-type bug.
+> 9. Anything routed through `Logger::debug` (`FormTemplate.php:880/933/1190`, `JsonFormService.php:641/1160`, `FormDataProvider.php:889/1717`) is **completely invisible in production** because `Logger::getMinLevel()` returns `WARNING` when `omgeving === 'P'`.</result>
+> <usage><subagent_tokens>116677</subagent_tokens><tool_uses>39</tool_uses><duration_ms>366164</duration_ms></usage>
+> </task-notification>

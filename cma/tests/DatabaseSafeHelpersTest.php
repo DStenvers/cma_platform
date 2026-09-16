@@ -96,18 +96,20 @@ class DatabaseSafeHelpersTest extends TestCase
             'PDOException message must reach the log');
     }
 
-    public function testSafeQueryWithEmptyContextSuppressesLog(): void
+    public function testSafeQueryWithEmptyContextStillLogs(): void
     {
         $conn = StubConnection::create();
-        $conn->enqueueException(new \PDOException('Intentional probe — should not surface'));
+        $conn->enqueueException(new \PDOException('Probe without context'));
 
         $rows = Database::safeQuery('SELECT 1', [], '', $conn);
 
-        // Test code intentionally probing the error path doesn't want
-        // its noise in the log. Same return shape, just no logging.
+        // The safe helpers keep their non-throwing return shape, but a
+        // failure is never silent: no context means a generic tag, not no log.
         $this->assertEquals([], $rows);
-        $this->assertEquals('', $this->logContents(),
-            'Empty $context must suppress the log line for opt-out test probes');
+        $log = $this->logContents();
+        $this->assertStringContainsString('[SQL ERROR]', $log);
+        $this->assertStringContainsString('Probe without context', $log);
+        $this->assertStringContainsString('Database::safe*', $log);
     }
 
     // ------------------------------------------------------------------

@@ -378,6 +378,9 @@ class ConfigLoader
         try {
             return self::load('databases')['databases'] ?? [];
         } catch (\RuntimeException $e) {
+            // Without this list every connection downstream reads as "not
+            // configured"; the root cause is here.
+            \App\Library\ErrorHandler::report($e, 'databases.json niet geladen');
             return [];
         }
     }

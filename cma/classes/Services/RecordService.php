@@ -955,7 +955,7 @@ class RecordService extends BaseFormService
                 }
                 $values['chklst_' . $controlId] = $selected;
             } catch (\Exception $e) {
-                // Log but continue
+                \App\Library\ErrorHandler::report($e, 'Checklist-waarden niet geladen (' . $controlId . ')');
             }
         }
 

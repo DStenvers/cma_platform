@@ -203,7 +203,7 @@ function main()
 
                             if (!empty($setParts)) {
                                 $setsql = 'UPDATE [' . $field['table'] . '] SET ' . implode(',', $setParts) . ' WHERE ID=' . intval($recordId);
-                                Database::execute($setsql, $conn);
+                                Database::executeOn($conn, $setsql);
 
                                 if (SHOW_ALL_IMAGE_INFO) {
                                     echo '<TR><TD>' . $sFormLink . htmlspecialchars($strFileName) . ': breedte ' . $sImageWidth . ', hoogte ' . $sImageHeight . '</TD></TR>';

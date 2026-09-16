@@ -349,7 +349,9 @@ class BackupService
                 $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE)');
                 $pdo = null;
             } catch (\Throwable $e) {
-                // Non-fatal: proceed with copy even if checkpoint fails
+                // A copy without the checkpoint can miss the newest writes; a
+                // backup that may be incomplete is not a backup.
+                throw new \RuntimeException('WAL-checkpoint mislukt vóór de backup van ' . basename($sourcePath) . ': ' . $e->getMessage(), 0, $e);
             }
         }
 

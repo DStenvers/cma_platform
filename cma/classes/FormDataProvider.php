@@ -471,7 +471,9 @@ class FormDataProvider
                 }
                 $values['chklst_' . $controlId] = $selected;
             } catch (\Exception $e) {
-                // Log but continue
+                // The form still opens, but with an empty checklist a save
+                // would wipe the selection — the admin has to know.
+                \App\Library\ErrorHandler::report($e, 'Checklist-waarden niet geladen (' . $controlId . ')');
             }
         }
 
@@ -886,7 +888,9 @@ class FormDataProvider
                         $oldFields = (array)$oldRs->fields;
                     }
                 } catch (\Throwable $e) {
-                    Logger::debug('SAVE: pre-update record fetch failed (changelog fallback skipped)', ['error' => $e->getMessage()]);
+                    // The save goes on, but without the old values there is no
+                    // changelog in the audit trail.
+                    \App\Library\ErrorHandler::report($e, 'Oude waarden voor de changelog niet gelezen');
                 }
             }
 
@@ -1159,6 +1163,7 @@ class FormDataProvider
                 'id' => $recordId,
                 'isNew' => $isNew,
                 'message' => $isNew ? 'Record aangemaakt' : 'Record opgeslagen',
+                'warnings' => \App\Library\ErrorHandler::getReported(),
             ];
 
         } catch (\Exception $e) {
@@ -1713,8 +1718,8 @@ class FormDataProvider
                     $deleteChangelog['_changelog'] = self::buildDeleteChangelog($formDef, $recordData['fields']);
                 }
             } catch (\Exception $e) {
-                // Non-critical: continue with delete even if we can't get full data
-                Logger::debug('deleteJsonFormRecord: Could not get record data for audit', ['error' => $e->getMessage()]);
+                // The delete goes on; the audit trail misses the field values.
+                \App\Library\ErrorHandler::report($e, 'Recordgegevens voor de audit-trail van het verwijderen niet gelezen');
             }
 
             // Check if this is a JSON config form
@@ -1760,6 +1765,7 @@ class FormDataProvider
 
             return [
                 'success' => true,
+                'warnings' => \App\Library\ErrorHandler::getReported(),
             ];
 
         } catch (\Exception $e) {
@@ -2477,7 +2483,7 @@ class FormDataProvider
             Logger::debug('logMonitoring: Executing INSERT', ['sqlLength' => strlen($sql)]);
 
             try {
-                Database::execute($sql, [], $conn);
+                Database::executeOn($conn, $sql);
                 Logger::debug('logMonitoring: INSERT successful');
             } catch (\Exception $insertEx) {
                 // LogLevel column might not exist - try without it
@@ -2491,13 +2497,15 @@ class FormDataProvider
                     SQL::postString($username) . ',' .
                     SQL::postString($notification) . ')';
 
-                Database::execute($sqlNoLogLevel, [], $conn);
+                Database::executeOn($conn, $sqlNoLogLevel);
                 Logger::debug('logMonitoring: INSERT without LogLevel successful');
             }
 
         } catch (\Throwable $e) {
-            // Log but don't fail the operation - catch Throwable to include Fatal errors
-            Logger::exception($e, 'logMonitoring exception');
+            // The record is saved by now; a lost audit row must not undo that.
+            // It must not go unnoticed either: log, mail, admin toast, and a
+            // warning in the save response.
+            \App\Library\ErrorHandler::report($e, 'CMA Monitoring niet weggeschreven');
         }
 
         Logger::debug('logMonitoring END');

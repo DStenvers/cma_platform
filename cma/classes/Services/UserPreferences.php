@@ -59,7 +59,10 @@ class UserPreferences
                 ];
             }
         } catch (\Exception $e) {
-            // Column doesn't exist yet, fall back to cookies
+            // Typically tblUsers without the preference columns (migration
+            // 6.5.0). The cookies still carry the values, but the admin must
+            // hear that saves do not reach the database.
+            \App\Library\ErrorHandler::report($e, 'Gebruikersvoorkeuren niet uit tblUsers gelezen (migratie 6.5.0 gedraaid?)');
         }
         return self::fromCookies();
     }
@@ -99,7 +102,7 @@ class UserPreferences
         try {
             $usersConn->exec($sql);
         } catch (\Exception $e) {
-            // Column doesn't exist yet - the cookies below still carry the values
+            \App\Library\ErrorHandler::report($e, 'Gebruikersvoorkeuren niet in tblUsers opgeslagen (migratie 6.5.0 gedraaid?)');
         }
         self::toCookies($prefs);
         return true;

@@ -1019,6 +1019,8 @@ class JsonFormLoader
             $columns = SchemaHelper::getColumns($conn, $tableName);
             if (empty($columns)) return [];
         } catch (\Throwable $e) {
+            // A form without fields is what the user gets; say why.
+            \App\Library\ErrorHandler::report($e, 'Velden niet afgeleid uit het schema van ' . $tableName);
             return [];
         }
 

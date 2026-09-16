@@ -240,6 +240,9 @@ class SecurityHelper
             self::$tblUsersKolommenCache = $kolommen;
             return $kolommen;
         } catch (\Throwable $e) {
+            // null means "schema unknown" to the callers; a connection error
+            // must not read as that without a trace.
+            \App\Library\ErrorHandler::report($e, 'Kolommen van tblUsers niet gelezen');
             return null;
         }
     }

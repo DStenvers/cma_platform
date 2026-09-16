@@ -142,6 +142,48 @@ class ErrorHandler
     /** Seconds before the same error (class, message, file, line) is mailed again. */
     private const ERROR_MAIL_THROTTLE_SECONDS = 3600;
 
+    /**
+     * Failures reported with report() during this request: things that were
+     * caught on purpose because the operation had to go on (an audit-log
+     * insert after a successful save, the mail archive), but that an admin
+     * must still see. The CMA bootstrap shows them as a toast; form saves
+     * return them as warnings.
+     *
+     * @var array<int,string>
+     */
+    private static array $reported = [];
+
+    /**
+     * Make a caught failure loud without ending the request: log it like an
+     * uncaught one, mail it when the site asks for that, and keep the message
+     * for the admin notice. Use this where the operation must continue — an
+     * audit-log insert after the save itself succeeded — never as a way to
+     * carry on with a broken main path; that belongs to the exception.
+     */
+    public static function report(\Throwable $e, string $context = ''): void
+    {
+        $message = ($context !== '' ? $context . ': ' : '') . $e->getMessage();
+        self::$reported[] = $message;
+        try {
+            if (self::$config['log_errors'] ?? true) {
+                self::logException($e);
+            }
+        } catch (\Throwable $logError) {
+            error_log('[REPORTED] ' . $message);
+        }
+        self::mailException($e);
+    }
+
+    /**
+     * Messages passed to report() in this request.
+     *
+     * @return array<int,string>
+     */
+    public static function getReported(): array
+    {
+        return self::$reported;
+    }
+
     /** Retention window: ERROR_LOG_RETENTION_DAYS from .env, bounded 1..365. */
     private static function errorLogRetentionDays(): int
     {

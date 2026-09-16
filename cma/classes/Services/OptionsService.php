@@ -752,6 +752,8 @@ class OptionsService extends BaseFormService
 
             return $count;
         } catch (\Exception $e) {
+            // 0 picks the "small table, load everything" branch; say why.
+            \App\Library\ErrorHandler::report($e, 'Aantal records niet geteld voor de keuzelijst');
             return 0;
         }
     }

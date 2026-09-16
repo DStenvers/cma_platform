@@ -102,7 +102,8 @@ function closeExistingConnections() {
     try {
         Database::closeAll();
     } catch (Exception $e) {
-        // Ignore - connections might not exist
+        // Repairing a file that is still open elsewhere is what corrupts it.
+        \App\Library\ErrorHandler::report($e, 'Databaseverbindingen niet gesloten vóór de reparatie');
     }
 
     // Force garbage collection to release any lingering connections

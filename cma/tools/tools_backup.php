@@ -310,7 +310,9 @@ function restoreFileDatabase(string $backupPath, string $dbName, array $dbPathMa
                 $pdo = new \PDO('sqlite:' . $targetPath);
                 $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE)');
                 $pdo = null;
-            } catch (\Throwable $e) { /* non-fatal */ }
+            } catch (\Throwable $e) {
+                return ['success' => false, 'message' => 'WAL-checkpoint mislukt vóór de veiligheidskopie: ' . $e->getMessage()];
+            }
         }
 
         if (!@copy($targetPath, $preRestoreBackup)) {

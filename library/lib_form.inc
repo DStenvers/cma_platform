@@ -77,7 +77,13 @@ function lib_FormCheckUniqueCodeTabel()
             try {
                 $conn->exec('CREATE TABLE ' . FORM_UNIQUE_CODE_TABLE . ' (ID AUTOINCREMENT PRIMARY KEY, ' . FORM_UNIQUE_CODE_FLDNAME . ' varchar(254))');
             } catch (\PDOException $e2) {
-                // Ignore — table may have been created concurrently
+                // Created concurrently by another request, or really failed:
+                // one more probe tells which, and the failure is reported.
+                try {
+                    $conn->query('SELECT TOP 1 ID FROM ' . FORM_UNIQUE_CODE_TABLE);
+                } catch (\PDOException $e3) {
+                    \App\Library\ErrorHandler::report($e2, 'Tabel ' . FORM_UNIQUE_CODE_TABLE . ' voor unieke formuliercodes niet aangemaakt');
+                }
             }
         }
     }

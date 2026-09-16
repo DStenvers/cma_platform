@@ -70,7 +70,12 @@ class DatabaseDialectEverywhereTest extends TestCase
         // Een UPDATE met een GUID in de WHERE raakt anders NUL rijen — even stil.
         $conn = $this->odbc();
         $conn->enqueueResult([]);
-        Database::execute("UPDATE tblEvalDeelname set datum_ingevuld=date() where guid='" . self::GUID . "'");
+        try {
+            Database::execute("UPDATE tblEvalDeelname set datum_ingevuld=date() where guid='" . self::GUID . "'");
+        } catch (\Throwable $e) {
+            // The pool connection does not exist here and now throws; the dialect
+            // rewrite is checked below on query() with an explicit connection.
+        }
         // execute() gebruikt de pool-verbinding, niet deze stub: hier alleen query() met
         // een expliciete verbinding controleren.
         $conn->reset();

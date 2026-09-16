@@ -169,6 +169,39 @@ require_once __DIR__ . '/classes/Services/PerformanceLogger.php';
 require_once __DIR__ . '/classes/Services/EmailLogService.php';
 
 // =========================================================================
+// SECTION: Failures of this request, shown to the admin
+// =========================================================================
+// A query that failed (Database::getErrors) or a failure a caller reported
+// (ErrorHandler::report) is in the log and the mail already; this puts it on
+// the screen of an admin or developer as a toast, on every HTML page of the
+// CMA. JSON endpoints carry the same messages in their own response
+// (form saves: 'warnings'). Nothing is shown to other users.
+register_shutdown_function(static function (): void {
+    try {
+        $messages = array_merge(
+            \App\Library\ErrorHandler::getReported(),
+            array_map(static fn (array $e) => 'SQL: ' . $e['message'] . ($e['caller'] !== '' ? ' (' . $e['caller'] . ')' : ''), \App\Library\Database::getErrors())
+        );
+        if ($messages === [] || PHP_SAPI === 'cli') {
+            return;
+        }
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'content-type:') === 0 && stripos($header, 'text/html') === false) {
+                return; // JSON, files: not a page
+            }
+        }
+        if (!class_exists('\\Cma\\SecurityHelper') || !(\Cma\SecurityHelper::isAdmin() || \Cma\SecurityHelper::isDeveloper())) {
+            return;
+        }
+        $messages = array_values(array_unique($messages));
+        echo '<script>(function(){var m=' . json_encode($messages, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
+           . ';function show(){if(!window.libToast){return setTimeout(show,300);}m.forEach(function(t){libToast.error(t,{duration:15000});});}show();})();</script>';
+    } catch (\Throwable $e) {
+        error_log('admin failure notice failed: ' . $e->getMessage());
+    }
+});
+
+// =========================================================================
 // SECTION: Suppress verbose debug/profiler console output
 // =========================================================================
 // Debug::write() injects <script>console.log()</script> into HTML responses,

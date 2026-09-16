@@ -168,7 +168,7 @@ class SchemaHelper
             self::$tablesCache[$cacheKey] = $tables;
 
         } catch (\Exception $e) {
-            // Return empty array on error
+            \App\Library\ErrorHandler::report($e, 'Tabellenlijst niet gelezen');
         }
 
         if ($filter !== null) {
@@ -417,7 +417,7 @@ class SchemaHelper
             usort($columns, fn($a, $b) => $a['ordinal'] <=> $b['ordinal']);
 
         } catch (\Exception $e) {
-            // Return empty array on error
+            \App\Library\ErrorHandler::report($e, 'Kolommen van ' . $tableName . ' niet gelezen');
         }
 
         return $columns;
@@ -473,7 +473,9 @@ class SchemaHelper
                         }
                     }
                 } catch (\Exception $e) {
-                    // Fallback: assume 'ID' as PK
+                    // 'ID' is a guess; an update on the wrong key column is
+                    // worse than a visible complaint.
+                    \App\Library\ErrorHandler::report($e, 'Primaire sleutel van ' . $tableName . ' niet bepaald, ID aangenomen');
                     $keys[] = 'ID';
                 }
             }
@@ -481,7 +483,7 @@ class SchemaHelper
             self::$primaryKeysCache[$cacheKey] = $keys;
 
         } catch (\Exception $e) {
-            // Return empty array on error
+            \App\Library\ErrorHandler::report($e, 'Primaire sleutel van ' . $tableName . ' niet gelezen');
         }
 
         return $keys;
