@@ -103,6 +103,8 @@ class Bootstrap
         // Yesterday's 404 digest, when the site asks for one (Systeeminstellingen).
         NotFoundDigest::maybeSend(self::$config['log_dir'] . '/404');
 
+        self::registerEmailLog();
+
         // Helpers are loaded via Composer autoload, but we still need aliases
         self::createClassAliases();
         self::recordTiming('helpers');
@@ -549,6 +551,35 @@ class Bootstrap
         \App\Library\ErrorHandler::register([
             'error_log_file' => self::$config['log_dir'] . '/phperrors/php_errors.log'
         ]);
+    }
+
+    /**
+     * Log every sent mail to tblEmailLog (Beheerstools → Site gezondheid →
+     * E-mail log). Registered here, in the bootstrap every request goes
+     * through, so front-end mail is logged as well as CMA mail. The service
+     * class lives in the synced cma/ tree and is loaded on the first send, so
+     * a request that sends nothing pays nothing. EMAIL_LOG_ENABLED=false turns
+     * it off.
+     */
+    private static function registerEmailLog(): void
+    {
+        if (!EnvFile::flag('EMAIL_LOG_ENABLED', true)) {
+            return;
+        }
+        $service = self::$rootDir . '/cma/classes/Services/EmailLogService.php';
+        Email::$afterSend = static function (array $data) use ($service): void {
+            try {
+                if (!class_exists('\\Cma\\Services\\EmailLogService', false)) {
+                    if (!is_file($service)) {
+                        return; // cma/ not synced on this site yet
+                    }
+                    require_once $service;
+                }
+                \Cma\Services\EmailLogService::log($data);
+            } catch (\Throwable $e) {
+                error_log('EmailLogService::log failed: ' . $e->getMessage());
+            }
+        };
     }
 
     private static function loadSpecificHelpers(): void

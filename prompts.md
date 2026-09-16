@@ -13914,3 +13914,9 @@ karaat-data en staat in de karaat-repo.
 >     </script>
 > </body>
 > </html>
+
+> what is left undecided?
+
+> Mail-log hook for front-end mail =-> frond-end uses the cma_platform
+
+> failed monitorign inserts: can you check phperrors

@@ -40,7 +40,7 @@ class EmailLogTest extends TestCase
 
     public function testAfterSendHookRegistered(): void
     {
-        $this->assertNotNull(Email::$afterSend, 'Hook is niet geregistreerd - controleer bootstrap.inc');
+        $this->assertNotNull(Email::$afterSend, 'Hook is niet geregistreerd - controleer App\\Library\\Bootstrap::registerEmailLog()');
         $this->assertTrue(is_callable(Email::$afterSend), 'Hook is geen callable');
     }
 

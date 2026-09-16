@@ -2342,7 +2342,7 @@ function render_doc_environment(): void
             <tr><td><code>PERF_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Services\SystemSettings</code> — performance-logging. Waarde via <code>FILTER_VALIDATE_BOOLEAN</code>, dus <code>0</code>/<code>off</code>/<code>false</code> werken allemaal.</td></tr>
             <tr><td><code>CACHE_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de cache-log.</td></tr>
             <tr><td><code>DEBUG_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de debug-log.</td></tr>
-            <tr><td><code>EMAIL_LOG_ENABLED</code></td><td><code>true</code></td><td><code>cma/bootstrap.inc</code> — hangt de afterSend-logging aan <code>Email</code>. Let op: uitsluitend de exacte string <code>false</code> zet dit uit, <code>0</code> niet.</td></tr>
+            <tr><td><code>EMAIL_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Bootstrap</code> — hangt de afterSend-logging aan <code>Email</code>, voor CMA- én front-end-mail. Omschakelbaar via Beheerstools → Systeeminstellingen.</td></tr>
             <tr><td><code>SQL_LOG_ENABLED</code></td><td>uit</td><td><code>Database</code> — logt elke query met duur. Zet dit niet standaard aan: het is één schrijfactie per query.</td></tr>
             <tr><td><code>SQL_LOG_FILE</code></td><td><code>sql_queries.log</code> in de site-root</td><td><code>Database</code> — doelbestand van bovenstaande log. Is het pad niet schrijfbaar, dan meldt <code>Database</code> dat één keer in het PHP-errorlog.</td></tr>
             <tr><td><code>PROFILER_ENABLED</code></td><td>uit; automatisch aan in <code>L</code>/<code>O</code>/<code>T</code></td><td><code>Profiler</code> — request-profiling naar CSV.</td></tr>
@@ -4928,14 +4928,14 @@ $ok = Email::create()
     </ul>
 
     <h2>EmailLogService afterSend hook</h2>
-    <p><code>cma/bootstrap.inc</code> registreert altijd een afterSend-callback op de static <code>Email::$afterSend</code> property:</p>
+    <p>De platform-bootstrap (<code>App\Library\Bootstrap</code>, die elk request doorloopt — CMA én front-end) registreert een afterSend-callback op de static <code>Email::$afterSend</code> property:</p>
     <pre><code>\App\Library\Email::$afterSend = function(array $data) {
     \Cma\Services\EmailLogService::log($data);
 };
 </code></pre>
     <p>Elke <code>Email::send()</code> roept deze hook aan met <code>$data</code> dat bevat: <code>success</code>, <code>from</code>, <code>to</code> (originele recipients, vóór test-clearing), <code>cc</code>, <code>bcc</code>, <code>subject</code>, <code>body</code>, <code>error</code>. <code>EmailLogService</code> persist deze naar <code>tblEmailLog</code> voor admin-review.</p>
     <p><span class="cma-tool__strong">Beheer-UI:</span> het archief is bereikbaar via <span class="cma-tool__strong">Alle beheerstools → Site gezondheid → E-mail log</span> (het standaard-CMA-formulier <code>emaillog</code>, route <code>/cma/form/emaillog</code>). De lijst toont datum/aan/onderwerp/status; het detail-scherm is read-only met een <span class="cma-tool__strong">Opnieuw verzenden</span>-knop (extra-button die <code>CMA.emailLog.resend()</code> aanroept → <code>api/email-actions.php</code> → <code>EmailLogService::resend()</code>). faalde die knop op niet-productie-omgevingen met "Kan de e-mail actie niet uitvoeren": <code>Email::send()</code> echoot daar een gesimuleerde-mail-debugtabel, die vóór de JSON-response belandde en de strikte JSON-parse van de client brak — de service buffert die output nu weg. Verwijderen kan via de standaard verwijder-knop (<code>EmailLogService::delete()</code>). Records ouder dan 30 dagen worden opgeruimd door <code>EmailLogService::cleanup()</code>.</p>
-    <p>Controleerbaar via env-var <code>EMAIL_LOG_ENABLED</code> (default <code>true</code>). Er staat een <code>class_exists</code> guard om de afterSend-assignment heen zodat half-updated installs (waar <code>Email.php</code> nog niet autoloadable is) niet crash'en op deze regel.</p>
+    <p>Uit te zetten met <code>EMAIL_LOG_ENABLED=false</code> (Beheerstools → Systeeminstellingen, groep Logging). De service-klasse staat in de gesynchroniseerde <code>cma/</code>-boom en wordt pas bij de eerste verzending geladen; op een site waar <code>cma/</code> nog niet gesynchroniseerd is, slaat de hook stil over.</p>
 
     <h2>Legacy LibMailer / SendMail()</h2>
     <p>De oude <code>library/classes/class_mailer.inc</code> (<code>LibMailer</code> plus de globale <code>SendMail()</code> / <code>SendMailNoTemplate()</code> functies, een VBScript-conversie) is nu een dunne wrapper rond <code>App\Library\Email</code>. Bij <code>Send()</code> bouwt <code>LibMailer</code> een <code>Email</code>-object en delegeert. Gevolg: er is <span class="cma-tool__strong">één</span> mail-codepad, en ook deze legacy-mails lopen door de afterSend-hook en landen dus in <code>tblEmailLog</code>. sprak <code>LibMailer</code> PHPMailer rechtstreeks aan en werden die mails NIET gelogd.</p>
