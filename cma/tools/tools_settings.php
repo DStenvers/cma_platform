@@ -203,7 +203,9 @@ ToolbarHelper::end();
 
     function save() {
         button.classList.add('disabled');
-        fetch('tools_settings.php', { method: 'POST', body: collect() })
+        // Absolute: inside the shell the document address is /cma/tools?tool=settings,
+        // so a relative URL would resolve to /cma/tools_settings.php and 404.
+        fetch('/cma/tools/tools_settings.php', { method: 'POST', body: collect() })
             .then(function (r) { return r.json(); })
             .then(function (result) {
                 var errors = result.errors || {};
