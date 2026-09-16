@@ -44,10 +44,6 @@ describe('System Settings', () => {
             cy.get('lib-switch#showDebugOverlay').should('exist');
             cy.get('select#sqlThreshold option').should('have.length', 5);
         });
-
-        it('should name the env file the settings go to', () => {
-            cy.get('.cma-tool__settings-intro code').invoke('text').should('match', /\.env/);
-        });
     });
 
     describe('Saving', () => {

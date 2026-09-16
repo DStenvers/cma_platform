@@ -597,10 +597,6 @@ cma-groupbox:hover .groupbox-chevron::before,
 
 /* Systeeminstellingen (tools/tools_settings.php): text inputs next to the
    switches, and the invalid state the save response marks. */
-.tool-settings .cma-tool__settings-intro {
-    margin: 0 0 12px;
-    color: var(--text-secondary, #666);
-}
 .tool-settings .cma-tool__settings-text {
     width: 360px;
     max-width: 100%;

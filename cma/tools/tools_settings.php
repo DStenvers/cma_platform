@@ -71,7 +71,6 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
 
 // ---- Render --------------------------------------------------------------------
 $values      = SystemSettings::getAll();
-$envFileName = SystemSettings::getEnvFileName();
 $prefs       = UserPreferences::load($userId);
 $pageTitle   = 'Systeeminstellingen';
 
@@ -115,10 +114,6 @@ ToolbarHelper::end();
 <title><?= Server::htmlEncode($pageTitle) ?></title>
 
 <div id="c">
-    <p class="cma-tool__settings-intro">De eerste drie groepen gelden voor de hele site en alle gebruikers; ze worden opgeslagen in
-        <code><?= Server::htmlEncode($envFileName) ?></code> op de site-root en werken direct na opslaan. De groep
-        Ontwikkelaar geldt alleen voor jou.</p>
-
     <form id="settingsForm" autocomplete="off">
         <table class="form-table preferences-table">
 <?php foreach ($groups as $group): ?>

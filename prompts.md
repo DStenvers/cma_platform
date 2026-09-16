@@ -13792,3 +13792,21 @@ karaat-data en staat in de karaat-repo.
 > https://moodle.rino.nl/my/courses.php
 
 > bij de cma/preferences staan nu de 3 loggings-instellingen. Verplaats die naar de tools_settings en plaats daar een knop naar de tools_settings (voor admins and devs only)
+
+> i am worried about corruption of the data, looking at https://test-mijn.rino.nl/cma/form/cmamonitoring i see a lot of garbage in the database.
+
+> if i use the sql tool, the same corruption shows
+
+> cma monitoring includes a link at the end: Voor details: <a href=https://mijn.rino.nl/cma/default.asp?FormID=106&ID=58438>https://mijn.rino.nl/cma/default.asp?FormID=106&ID=58438</a>. , but that is the wrong url, and an old format, using .asp and not the new endpoints
+
+> i see, when inline editing, the cma monitoring does not log anything
+
+> also when editing normally using the sidepanel.. no logging in cma monitoring.
+
+> the email log's don't show anything at all, even on T it should have logged emails right?
+
+> can you commit and push, i still get an old cma_platform version
+
+> weirdly, if i run composer install and then https://test-mijn.rino.nl/cma/tools/tools_settings.php, it gives a 404, but if it is pushed like you say, that did not work, the cma_platform on this site is still at version v1.38.56
+
+> haal de tekst 'De eerste drie groepen gelden voor de hele site en alle gebruikers; ze worden opgeslagen in .env op de site-root en werken direct na opslaan. De groep Ontwikkelaar geldt alleen voor jou.' maar weg.
