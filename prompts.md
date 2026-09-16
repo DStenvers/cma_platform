@@ -13920,3 +13920,5 @@ karaat-data en staat in de karaat-repo.
 > Mail-log hook for front-end mail =-> frond-end uses the cma_platform
 
 > failed monitorign inserts: can you check phperrors
+
+> remove the session_* keys

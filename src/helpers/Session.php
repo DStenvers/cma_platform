@@ -44,24 +44,9 @@ class Session
             return true;
         }
 
-        // Configure session settings from Application config
-        $sessionName = Application::get('session_name', 'PHPSESSID');
-        $sessionLifetime = Application::get('session_lifetime', 3600);
-        $sessionPath = Application::get('session_path', '/');
-        $sessionDomain = Application::get('session_domain', '');
-        $sessionSecure = Application::get('session_secure', false);
-        $sessionHttpOnly = Application::get('session_httponly', true);
-
-        // Set session cookie parameters
-        session_name($sessionName);
-        session_set_cookie_params([
-            'lifetime' => $sessionLifetime,
-            'path' => $sessionPath,
-            'domain' => $sessionDomain,
-            'secure' => $sessionSecure,
-            'httponly' => $sessionHttpOnly,
-            'samesite' => 'Lax'
-        ]);
+        // The session cookie (name, path, samesite) is configured by
+        // Bootstrap::initSession(), which has normally started the session
+        // before any call lands here. This branch only runs standalone.
 
         // Start session - use read_and_close to avoid holding the session file lock
         // for the entire request duration, which blocks other requests from the same browser.
