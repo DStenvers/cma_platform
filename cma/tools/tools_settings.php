@@ -1,23 +1,23 @@
 <?php
 /**
  * Systeeminstellingen — the site-wide settings an administrator changes from
- * the CMA: mail notifications, logging, error display — plus, in the last
- * group, the developer switches that belong to the current user only.
+ * the CMA, plus, in the last group, the developer switches that belong to the
+ * current user only.
  *
- * Every site-wide control maps to one .env variable through the registry in
- * Cma\Services\SystemSettings::DEFINITIONS; this page only groups and labels
- * them. Saving validates first and writes nothing when a value is rejected.
- * The developer switches go through Cma\Services\UserPreferences (tblUsers +
+ * Every site-wide control is one entry in the registry (App\Library\Settings,
+ * extended by a site through app.php settings_extra): group, label, hint and
+ * type come from there, so this page adds nothing per setting. Saving
+ * validates first (SystemSettings::normalize) and writes nothing when a value
+ * is rejected. The developer switches go through UserPreferences (tblUsers +
  * cookies), the same store preferences.php uses for theme and popup style.
  */
 
-use App\Library\Application;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\Server;
+use App\Library\Settings;
 use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
-use Cma\Services\PerformanceLogger;
 use Cma\Services\SystemSettings;
 use Cma\Services\UserPreferences;
 
@@ -36,20 +36,12 @@ $userId = (int) SecurityHelper::getCurrentUserId();
 // ---- Save ----------------------------------------------------------------------
 if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
     $input = [];
-    foreach (array_keys(SystemSettings::DEFINITIONS) as $key) {
+    foreach (array_keys(SystemSettings::definitions()) as $key) {
         if (isset($_POST[$key])) {
             $input[$key] = Request::post($key, '');
         }
     }
-
-    // A notification that is switched on needs somewhere to go.
     $errors = [];
-    foreach (['error_mail' => 'Fouten mailen', 'notfound_mail' => '404-overzicht mailen'] as $prefix => $label) {
-        $on = strtoupper((string) ($input[$prefix . '_enabled'] ?? 'N')) === 'J';
-        if ($on && trim((string) ($input[$prefix . '_to'] ?? '')) === '') {
-            $errors[$prefix . '_to'] = $label . ' staat aan, maar er is geen ontvanger ingevuld.';
-        }
-    }
     $sqlThreshold = Request::postInt('sqlThreshold', -1);
     if (!in_array($sqlThreshold, UserPreferences::SQL_THRESHOLDS, true)) {
         $errors['sqlThreshold'] = 'Ongeldige SQL-drempelwaarde.';
@@ -58,8 +50,7 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
         $errors = SystemSettings::save($input);
     }
     if ($errors === []) {
-        // Loggers memoise their switch per request; the save must be visible now.
-        PerformanceLogger::clearEnabledCache();
+        SystemSettings::afterSave();
         UserPreferences::save($userId, array_merge(UserPreferences::load($userId), [
             'prefDebugMode'    => Request::post('debugMode', '') === 'J',
             'prefDebugOverlay' => Request::post('showDebugOverlay', '') === 'J',
@@ -71,86 +62,59 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'save') {
 }
 
 // ---- Render --------------------------------------------------------------------
-$values      = SystemSettings::getAll();
-$prefs       = UserPreferences::load($userId);
-$pageTitle   = 'Systeeminstellingen';
 
-$groups = [
-    ['id' => 1, 'caption' => 'Meldingen per e-mail', 'rows' => [
-        ['key' => 'error_mail_enabled',    'label' => 'Fouten mailen',
-         'hint' => 'Elke niet-afgevangen fout (foutpagina 500) wordt gemaild. Dezelfde fout gaat hoogstens één keer per uur de deur uit.'],
-        ['key' => 'error_mail_to',         'label' => 'Ontvanger foutmeldingen',
-         'hint' => 'Eén of meer adressen, gescheiden door komma\'s.'],
-        ['key' => 'notfound_mail_enabled', 'label' => '404-overzicht mailen',
-         'hint' => 'Elke dag één mail met de niet-gevonden pagina\'s van gisteren. Zoekmachines en scanners worden apart geteld en niet uitgesplitst.'],
-        ['key' => 'notfound_mail_to',      'label' => 'Ontvanger 404-overzicht',
-         'hint' => 'Eén of meer adressen, gescheiden door komma\'s.'],
-        ['key' => 'deploy_alert_email',    'label' => 'Ontvanger deploy-alarm',
-         'hint' => 'Krijgt een mail als een automatische deploy mislukt. Leeg = geen mail.'],
-    ]],
-    ['id' => 2, 'caption' => 'Logging', 'rows' => [
-        ['key' => 'perf_log_enabled',   'label' => 'Performance logging', 'hint' => 'Log API-aanroepen, queries en laadtijden.'],
-        ['key' => 'cache_log_enabled',  'label' => 'Cache logging',       'hint' => 'Log cache hits en misses.'],
-        ['key' => 'debug_log_enabled',  'label' => 'Debug logging',       'hint' => 'Log debug-informatie vanuit de browser (libLog).'],
-        ['key' => 'email_log_enabled',  'label' => 'E-mail log',          'hint' => 'Bewaar elke verzonden e-mail in de e-mail log (Site gezondheid → E-mail log).'],
-        ['key' => 'sql_log_enabled',    'label' => 'SQL logging',         'hint' => 'Log elke query met duur. Niet standaard aan: het is één schrijfactie per query.'],
-        ['key' => 'error_log_retention_days', 'label' => 'Bewaartermijn foutlog',
-         'hint' => 'Dagen dat de dagelijkse PHP-foutlogs bewaard blijven (1 t/m 365).'],
-    ]],
-    ['id' => 3, 'caption' => 'Mailserver', 'rows' => [
-        ['key' => 'mail_host',     'label' => 'SMTP-server',
-         'hint' => 'Hostnaam van de mailserver. Leeg = de waarde uit app.php (mail_server).',
-         'placeholder' => (string) Application::get('mail_server', 'localhost')],
-        ['key' => 'mail_port',     'label' => 'SMTP-poort',
-         'hint' => '25 zonder versleuteling, 587 voor TLS, 465 voor SSL. Leeg = de waarde uit app.php.',
-         'placeholder' => (string) Application::get('mail_server_port', 25)],
-        ['key' => 'mail_username', 'label' => 'SMTP-gebruikersnaam',
-         'hint' => 'Leeg = geen authenticatie (of de waarde uit app.php).',
-         'placeholder' => (string) Application::get('mail_username', '')],
-        ['key' => 'mail_password', 'label' => 'SMTP-wachtwoord',
-         'hint' => 'Wordt niet getoond. Leeg laten houdt het huidige wachtwoord. Test de verbinding via Server informatie → Omgeving → Test-mail.'],
-    ]],
-    ['id' => 4, 'caption' => 'Lijsten', 'rows' => [
-        ['key' => 'list_page_size',      'label' => 'Rijen per pagina',
-         'hint' => 'Tabellen en bladerknoppen in CMA én front-end (lib-table, lib-pagination, de klassieke tabel) en de paginagrootte van lijstschermen.'],
-        ['key' => 'list_scroll_batch',   'label' => 'Rijen per scroll-stap',
-         'hint' => 'Hoeveel rijen een lijst bij doorscrollen in één keer bijlaadt (server én client).'],
-        ['key' => 'list_limit',          'label' => 'Zoekfilter verplicht vanaf',
-         'hint' => 'Boven dit aantal records toont een lijst eerst een zoekveld in plaats van alles te laden; een formulier kan een eigen limiet hebben.'],
-        ['key' => 'combo_dynamic_items', 'label' => 'Keuzelijst dynamisch vanaf',
-         'hint' => 'Boven dit aantal opties wordt een keuzelijst dynamisch geladen (zoeken-terwijl-je-typt) in plaats van volledig.'],
-        ['key' => 'report_preview_rows', 'label' => 'Rijen in rapportvoorbeeld',
-         'hint' => 'Standaard aantal rijen in het voorbeeld van de rapportontwerper (maximaal 1000).'],
-        ['key' => 'export_max_rows',     'label' => 'Volledige export tot',
-         'hint' => 'Boven dit aantal rijen biedt een rapport alleen CSV aan; Excel en PDF worden dan te zwaar.'],
-    ]],
-    ['id' => 5, 'caption' => 'Cache', 'rows' => [
-        ['key' => 'cache_default_ttl', 'label' => 'Standaard cachetijd (s)',
-         'hint' => 'Levensduur van een cache-item zonder eigen tijd, en de browsercache van formulierdefinities.'],
-        ['key' => 'list_cache_ttl',    'label' => 'Lijstcache (s)',
-         'hint' => 'Hoe lang een lijstresultaat hergebruikt wordt, op de server en in de browser. 0 = uit.'],
-        ['key' => 'lookup_cache_ttl',  'label' => 'Keuzelijstcache (s)',
-         'hint' => 'Browsercache van keuzelijsten, checklists en kolomdefinities.'],
-        ['key' => 'api_cache_ttl',     'label' => 'Overige API-cache (s)',
-         'hint' => 'Browsercache voor de overige API-antwoorden van het CMA.'],
-        ['key' => 'asset_cache_days',  'label' => 'Bundels in browsercache (dagen)',
-         'hint' => 'Hoe lang JavaScript- en CSS-bundels in de browser blijven; een nieuwe versie krijgt een nieuwe URL, dus dit mag lang.'],
-    ]],
-    ['id' => 6, 'caption' => 'Time-outs', 'rows' => [
-        ['key' => 'db_connect_timeout',    'label' => 'Databaseverbinding (s)', 'hint' => 'Wachttijd op het openen van een databaseverbinding.'],
-        ['key' => 'db_query_timeout',      'label' => 'Query (s)',              'hint' => 'Maximale looptijd van één query op MySQL en SQL Server.'],
-        ['key' => 'http_timeout',          'label' => 'HTTP-aanroepen (s)',     'hint' => 'Uitgaande HTTP-aanroepen van de site (koppelingen, feeds).'],
-        ['key' => 'http_download_timeout', 'label' => 'HTTP-downloads (s)',     'hint' => 'Uitgaande downloads van bestanden.'],
-        ['key' => 'llm_timeout',           'label' => 'LLM-aanroepen (s)',      'hint' => 'Tekstaanroepen naar het taalmodel; beeldanalyse krijgt het dubbele.'],
-        ['key' => 'process_timeout',       'label' => 'Achtergrondprocessen (s)', 'hint' => 'Maximale looptijd van een proces dat het CMA start (tests, conversies).'],
-    ]],
-    ['id' => 7, 'caption' => 'Foutweergave', 'rows' => [
-        ['key' => 'force_debug', 'label' => 'Fouten tonen op productie',
-         'hint' => 'Toont foutdetails aan iedere bezoeker, ook op productie. Alleen tijdelijk aanzetten; beheerders zien de details altijd al.'],
-        ['key' => 'cma_debug',   'label' => 'CMA-debugmodus voor iedereen',
-         'hint' => 'Zet de debugmodus van het CMA voor alle gebruikers aan (console-logging, debug-overlay). Alleen voor jezelf: groep Ontwikkelaar hieronder.'],
-    ]],
-];
+/**
+ * The control for one setting. The id and name equal the setting key: the
+ * save script collects by name and marks validation errors by id.
+ */
+function cma_settings_control(string $key, array $def, $value, bool $isSet, string $placeholder): string
+{
+    $id = Server::htmlEncode($key);
+    $ph = Server::htmlEncode($placeholder);
+    $confirm = !empty($def['confirm']) ? ' data-confirm="' . Server::htmlEncode((string) $def['confirm']) . '"' : '';
+    switch ($def['type']) {
+        case 'bool':
+        case 'flag':
+            return '<lib-switch name="' . $id . '" id="' . $id . '"' . ($value ? ' checked' : '') . $confirm . '></lib-switch>';
+        case 'int':
+        case 'float':
+            // A stored 0 is a value ("uit"), not an empty box; only an unset
+            // optional number renders blank.
+            $shown = (!$isSet && !empty($def['optional'])) ? '' : (string) $value;
+            $step = $def['type'] === 'float' ? ' step="any"' : '';
+            return '<input type="number" name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-number"'
+                . ' min="' . $def['min'] . '" max="' . $def['max'] . '"' . $step . ' value="' . Server::htmlEncode($shown) . '" placeholder="' . $ph . '"' . $confirm . '>';
+        case 'secret':
+            $has = (string) $value !== '';
+            return '<input type="password" name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-text" autocomplete="new-password"'
+                . ' value="" placeholder="' . ($has ? '•••••••• (ingesteld)' : 'niet ingesteld') . '"' . $confirm . '>';
+        case 'select':
+            $html = '<select name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-select"' . $confirm . '>';
+            if (!empty($def['optional']) || (string) $def['default'] === '') {
+                $html .= '<option value=""' . ((string) $value === '' ? ' selected' : '') . '>' . Server::htmlEncode($placeholder !== '' ? $placeholder : 'Automatisch') . '</option>';
+            }
+            foreach ((array) ($def['options'] ?? []) as $optValue => $optLabel) {
+                $html .= '<option value="' . Server::htmlEncode((string) $optValue) . '"' . ((string) $value === (string) $optValue ? ' selected' : '') . '>'
+                    . Server::htmlEncode((string) $optLabel) . '</option>';
+            }
+            return $html . '</select>';
+        case 'list':
+            $shown = is_array($value) ? implode(', ', $value) : (string) $value;
+            return '<input type="text" name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-text"'
+                . ' value="' . Server::htmlEncode($shown) . '" placeholder="' . ($ph !== '' ? $ph : 'waarde, waarde, …') . '"' . $confirm . '>';
+        case 'email':
+            return '<input type="text" name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-text"'
+                . ' value="' . Server::htmlEncode((string) $value) . '" placeholder="' . ($ph !== '' ? $ph : 'naam@voorbeeld.nl') . '"' . $confirm . '>';
+        default: // text
+            return '<input type="text" name="' . $id . '" id="' . $id . '" class="form-control cma-tool__settings-text"'
+                . ' value="' . Server::htmlEncode((string) $value) . '" placeholder="' . $ph . '"' . $confirm . '>';
+    }
+}
+
+$values    = SystemSettings::getAll();
+$groups    = SystemSettings::groupedDefinitions();
+$prefs     = UserPreferences::load($userId);
+$pageTitle = 'Systeeminstellingen';
 
 cma_html_header($pageTitle);
 echo '<body class="contentbody tools tool-settings">';
@@ -162,59 +126,60 @@ ToolbarHelper::end();
 <title><?= Server::htmlEncode($pageTitle) ?></title>
 
 <div id="c">
+    <div class="cma-tool__settings-filterbar">
+        <input type="search" id="settingsFilter" class="form-control cma-tool__settings-filter" placeholder="Zoek instelling…" autocomplete="off">
+    </div>
     <form id="settingsForm" autocomplete="off">
         <table class="form-table preferences-table">
-<?php foreach ($groups as $group): ?>
-            <tr class="groupbox-row">
+<?php $groupNo = 0; foreach ($groups as $slug => $group): $groupNo++; $rowNo = 0; $last = count($group['rows']); ?>
+            <tr class="groupbox-row" data-group="<?= $groupNo ?>">
                 <td colspan="3">
-                    <cma-groupbox group-id="<?= $group['id'] ?>" form-id="0" caption="<?= Server::htmlEncode($group['caption']) ?>"></cma-groupbox>
+                    <cma-groupbox group-id="<?= $groupNo ?>" form-id="0" storage-key="cma_settings_<?= Server::htmlEncode($slug) ?>"
+                        caption="<?= Server::htmlEncode($group['caption']) ?>" count="<?= $last ?>"<?= $slug === 'notifications' ? '' : ' collapsed' ?>></cma-groupbox>
                 </td>
             </tr>
-<?php $last = count($group['rows']); foreach ($group['rows'] as $i => $row):
-        $key  = $row['key'];
-        $def  = SystemSettings::DEFINITIONS[$key];
-        $val  = $values[$key];
-        $rowClass = ($i + 1 === $last) ? ' class="groupbox_end"' : '';
+<?php foreach ($group['rows'] as $key => $def):
+        $rowNo++;
+        $val    = $values[$key];
+        $isSet  = Settings::isSet($key);
+        $source = Settings::source($key);
+        $placeholder = (string) ($def['placeholder'] ?? '');
+        if ($source === 'app' && $def['type'] !== 'secret' && !in_array($def['type'], ['bool', 'flag'], true)) {
+            // The box shows the variable, which is empty; the value in use comes
+            // from app.php and belongs in the placeholder.
+            if ($placeholder === '') {
+                $placeholder = is_array($val) ? implode(', ', $val) : (string) $val;
+            }
+            $val = '';
+        }
+        $search = strtolower($def['label'] . ' ' . $def['hint'] . ' ' . $def['env'] . ' ' . $key);
 ?>
-            <tr id="_g<?= $group['id'] ?>_<?= $i + 1 ?>"<?= $rowClass ?>>
-                <td class="label-cell"><label for="<?= $key ?>"><?= Server::htmlEncode($row['label']) ?></label></td>
-                <td class="input-cell">
-<?php if ($def['type'] === 'bool' || $def['type'] === 'flag'): ?>
-                    <lib-switch name="<?= $key ?>" id="<?= $key ?>" <?= $val ? 'checked' : '' ?>></lib-switch>
-<?php elseif ($def['type'] === 'int'): ?>
-                    <input type="number" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-number"
-                           min="<?= $def['min'] ?>" max="<?= $def['max'] ?>" value="<?= (int) $val > 0 ? (int) $val : '' ?>"
-                           placeholder="<?= Server::htmlEncode((string) ($row['placeholder'] ?? '')) ?>">
-<?php elseif ($def['type'] === 'secret'): ?>
-                    <input type="password" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text" autocomplete="new-password"
-                           value="" placeholder="<?= (string) $val !== '' ? '•••••••• (ingesteld)' : 'niet ingesteld' ?>">
-<?php elseif ($def['type'] === 'text'): ?>
-                    <input type="text" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text"
-                           value="<?= Server::htmlEncode((string) $val) ?>" placeholder="<?= Server::htmlEncode((string) ($row['placeholder'] ?? '')) ?>">
-<?php else: ?>
-                    <input type="text" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text"
-                           value="<?= Server::htmlEncode((string) $val) ?>" placeholder="naam@voorbeeld.nl">
+            <tr id="_g<?= $groupNo ?>_<?= $rowNo ?>" data-group-row="<?= $groupNo ?>" data-search="<?= Server::htmlEncode($search) ?>"<?= $rowNo === $last ? ' class="groupbox_end"' : '' ?>>
+                <td class="label-cell"><label for="<?= Server::htmlEncode($key) ?>"><?= Server::htmlEncode($def['label']) ?></label></td>
+                <td class="input-cell"><?= cma_settings_control($key, $def, $val, $isSet, $placeholder) ?></td>
+                <td class="hint-cell"><?= Server::htmlEncode($def['hint']) ?>
+<?php if ($source === 'app'): ?>
+                    <lib-label type="information" title="Deze waarde komt uit app.php; een waarde hier gaat voor.">app.php</lib-label>
 <?php endif; ?>
                 </td>
-                <td class="hint-cell"><?= Server::htmlEncode($row['hint']) ?></td>
             </tr>
-<?php endforeach; endforeach; ?>
-            <tr class="groupbox-row">
+<?php endforeach; endforeach; $devNo = $groupNo + 1; ?>
+            <tr class="groupbox-row" data-group="<?= $devNo ?>">
                 <td colspan="3">
-                    <cma-groupbox group-id="8" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
+                    <cma-groupbox group-id="<?= $devNo ?>" form-id="0" storage-key="cma_settings_developer" caption="Ontwikkelaar (alleen voor jou)" count="3"></cma-groupbox>
                 </td>
             </tr>
-            <tr id="_g8_1">
+            <tr id="_g<?= $devNo ?>_1" data-group-row="<?= $devNo ?>" data-search="console logging debugmode">
                 <td class="label-cell"><label for="debugMode">Console logging</label></td>
                 <td class="input-cell"><lib-switch name="debugMode" id="debugMode" <?= $prefs['prefDebugMode'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Schakel console.log-output in (uitschakelen voor snelheidstests).</td>
             </tr>
-            <tr id="_g8_2">
+            <tr id="_g<?= $devNo ?>_2" data-group-row="<?= $devNo ?>" data-search="debug overlay tonen showdebugoverlay">
                 <td class="label-cell"><label for="showDebugOverlay">Debug overlay tonen</label></td>
                 <td class="input-cell"><lib-switch name="showDebugOverlay" id="showDebugOverlay" <?= $prefs['prefDebugOverlay'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Toont formulierstatus-informatie op alle formulieren.</td>
             </tr>
-            <tr id="_g8_3" class="groupbox_end">
+            <tr id="_g<?= $devNo ?>_3" data-group-row="<?= $devNo ?>" data-search="sql log drempelwaarde sqlthreshold" class="groupbox_end">
                 <td class="label-cell"><label for="sqlThreshold">SQL log drempelwaarde</label></td>
                 <td class="input-cell">
                     <select name="sqlThreshold" id="sqlThreshold" class="form-control cma-tool__settings-select">
@@ -230,9 +195,41 @@ ToolbarHelper::end();
 </div>
 
 <script>
+/* settings-filter:start */
+// Filter box: hides rows whose label, hint, variable or key do not contain the
+// text, hides groups without a visible row, and opens groups that match so a
+// hit inside a collapsed group is not invisible.
+function cmaSettingsFilter(root, text) {
+    var needle = String(text || '').trim().toLowerCase();
+    var groups = {};
+    root.querySelectorAll('tr[data-group-row]').forEach(function (row) {
+        var hit = needle === '' || (row.getAttribute('data-search') || '').indexOf(needle) !== -1;
+        row.classList.toggle('cma-tool__settings-hidden', !hit);
+        var g = row.getAttribute('data-group-row');
+        groups[g] = (groups[g] || 0) + (hit ? 1 : 0);
+    });
+    root.querySelectorAll('tr.groupbox-row').forEach(function (head) {
+        var g = head.getAttribute('data-group');
+        var visible = (groups[g] || 0) > 0;
+        head.classList.toggle('cma-tool__settings-hidden', !visible);
+        var box = head.querySelector('cma-groupbox');
+        if (box && visible && needle !== '' && typeof box.open === 'function') {
+            box.open(false);
+        }
+    });
+}
+/* settings-filter:end */
 (function () {
     var form = document.getElementById('settingsForm');
     var button = document.getElementById('btnSaveSettings');
+    var filter = document.getElementById('settingsFilter');
+    var initial = {};
+
+    form.querySelectorAll('[data-confirm]').forEach(function (el) {
+        initial[el.id] = el.tagName === 'LIB-SWITCH' ? String(!!el.checked) : el.value;
+    });
+
+    filter.addEventListener('input', function () { cmaSettingsFilter(form, filter.value); });
 
     function collect() {
         var data = new FormData();
@@ -256,7 +253,20 @@ ToolbarHelper::end();
         });
     }
 
+    function confirmed() {
+        var els = form.querySelectorAll('[data-confirm]');
+        for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            var now = el.tagName === 'LIB-SWITCH' ? String(!!el.checked) : el.value;
+            if (now !== initial[el.id] && !window.confirm(el.getAttribute('data-confirm'))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function save() {
+        if (!confirmed()) return;
         button.classList.add('disabled');
         // Absolute: inside the shell the document address is /cma/tools?tool=settings,
         // so a relative URL would resolve to /cma/tools_settings.php and 404.

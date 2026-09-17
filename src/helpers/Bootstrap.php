@@ -475,6 +475,12 @@ class Bootstrap
         if ($appConfig && file_exists($appConfig)) {
             require_once $appConfig;
         }
+        // The site's own settings (app.php: settings_extra / settings_groups_extra)
+        // join the registry here, before Application_OnStart runs.
+        Settings::registerExtra(
+            (array) Application::get('settings_extra', []),
+            (array) Application::get('settings_groups_extra', [])
+        );
 
         $environment = $_ENV['APP_ENVIRONMENT'] ?? $GLOBALS['Application']['omgeving'] ?? 'P';
         $skipFlag = in_array(strtoupper($environment), ['O', 'L']);

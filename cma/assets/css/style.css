@@ -607,6 +607,19 @@ cma-groupbox:hover .groupbox-chevron::before,
 .tool-settings .cma-tool__settings-select {
     width: 200px;
 }
+.tool-settings .cma-tool__settings-filterbar {
+    margin: 0 0 12px;
+}
+.tool-settings .cma-tool__settings-filter {
+    width: 360px;
+    max-width: 100%;
+}
+.tool-settings .cma-tool__settings-hidden {
+    display: none !important;
+}
+.tool-settings .hint-cell lib-label {
+    margin-left: 6px;
+}
 .tool-settings .cma-tool__settings-invalid {
     border-color: var(--color-error, #c0392b);
     outline: 1px solid var(--color-error, #c0392b);

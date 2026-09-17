@@ -138,13 +138,12 @@ class Email
      */
     private function initialize(): void
     {
-        // SMTP: the MAIL_* variables (Beheerstools → Systeeminstellingen) win;
-        // a site that still carries the mail_* keys in app.php keeps working
-        // until the settings are filled in.
-        $mailServer = EnvFile::value('MAIL_HOST') ?: Application::get('mail_server', 'localhost');
-        $mailPort = (int) (EnvFile::value('MAIL_PORT') ?: Application::get('mail_server_port', 25));
-        $mailUsername = EnvFile::value('MAIL_USERNAME') ?: Application::get('mail_username', '');
-        $mailPassword = EnvFile::value('MAIL_PASSWORD') ?: Application::get('mail_password', '');
+        // SMTP: the MAIL_* settings (Beheerstools → Systeeminstellingen); the
+        // registry falls back to a site's older mail_* keys in app.php.
+        $mailServer = (string) Settings::get('mail_host') ?: 'localhost';
+        $mailPort = (int) Settings::get('mail_port') ?: 25;
+        $mailUsername = (string) Settings::get('mail_username');
+        $mailPassword = (string) Settings::get('mail_password');
 
         // Configure SMTP
         $this->mailer->isSMTP();

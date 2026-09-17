@@ -174,8 +174,8 @@ class ListService extends BaseFormService
                 'limit' => $limit,
             ];
             $cacheKey = 'list_' . md5(json_encode($cacheParams));
-            // LIST_CACHE_TTL from the settings; a site's older list_cache_ttl Application key is the fallback
-            $cacheTTL = (int) \App\Library\Settings::get('list_cache_ttl', (int) Application::get('list_cache_ttl', 0) ?: null);
+            // LIST_CACHE_TTL; the registry falls back to a site's older list_cache_ttl in app.php
+            $cacheTTL = (int) \App\Library\Settings::get('list_cache_ttl');
 
             // Try cache first (with cross-instance invalidation support)
             $cachedItems = Cache::getWithInvalidation($cacheKey, 'lists');

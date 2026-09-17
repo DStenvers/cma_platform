@@ -1584,6 +1584,117 @@ function cma_doc_check_notfound_mail(): array {
     return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan, naar <code>' . htmlspecialchars($to) . '</code>. Overzicht van ' . $yesterday . ($sent ? ' is verstuurd.' : ' is nog niet verstuurd (gaat bij het eerstvolgende request, als er een log van die dag is).')];
 }
 
+/**
+ * The registry as documentation: one table per group, straight from
+ * App\Library\Settings::definitions(), so the topic cannot drift from the screen.
+ */
+function cma_doc_render_settings_tables(): void {
+    $groups = \Cma\Services\SystemSettings::groupedDefinitions();
+    foreach (\App\Library\Settings::definitions() as $key => $def) {
+        if (!empty($def['hidden'])) {
+            $slug = $def['group'];
+            $groups[$slug]['rows'][$key] = $def;
+            $groups[$slug]['caption'] = $groups[$slug]['caption'] ?? $slug;
+        }
+    }
+    foreach ($groups as $group) {
+        echo '<h4>' . htmlspecialchars($group['caption']) . '</h4>' . PHP_EOL;
+        echo '<table class="listtable"><thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:110px">Default</th><th style="width:180px">Instelling</th><th>Gelezen door &amp; effect</th></tr></thead><tbody>' . PHP_EOL;
+        foreach ($group['rows'] as $key => $def) {
+            $default = $def['default'];
+            if (is_bool($default)) {
+                $default = $def['type'] === 'flag' ? ($default ? '1' : '0') : ($default ? 'true' : 'false');
+            } elseif (is_array($default)) {
+                $default = implode(',', $default);
+            }
+            $default = (string) $default === '' ? 'leeg' : '<code>' . htmlspecialchars((string) $default) . '</code>';
+            $notes = [];
+            if (!empty($def['app'])) {
+                $notes[] = 'Terugval: <code>' . htmlspecialchars(implode('</code>, <code>', (array) $def['app'])) . '</code> uit app.php.';
+            }
+            if (!empty($def['client'])) {
+                $notes[] = 'Ook in de browser als <code>window.CMA.settings.' . htmlspecialchars($def['client']) . '</code>.';
+            }
+            if ($def['type'] === 'secret') {
+                $notes[] = 'Geheim: het scherm toont de waarde nooit terug.';
+            }
+            if (!empty($def['hidden'])) {
+                $notes[] = 'Niet op het scherm; alleen via het env-bestand.';
+            }
+            echo '<tr><td><code>' . htmlspecialchars($def['env']) . '</code></td><td>' . $default . '</td><td>' . htmlspecialchars($def['label']) . '</td><td>'
+                . htmlspecialchars((string) ($def['doc'] ?? $def['hint'] ?? '')) . ($notes !== [] ? ' ' . implode(' ', $notes) : '') . '</td></tr>' . PHP_EOL;
+        }
+        echo '</tbody></table>' . PHP_EOL;
+    }
+}
+
+function cma_doc_check_settings_registry(): array {
+    $label = 'Instellingenregister compleet';
+    $problems = [];
+    $clients = [];
+    $groups = \App\Library\Settings::groups();
+    foreach (\App\Library\Settings::definitions() as $key => $def) {
+        foreach (['env', 'type', 'group', 'label', 'hint', 'doc'] as $field) {
+            if (!isset($def[$field]) || $def[$field] === '') {
+                $problems[] = "$key mist $field";
+            }
+        }
+        if (isset($def['group']) && !isset($groups[$def['group']])) {
+            $problems[] = "$key: onbekende groep " . $def['group'];
+        }
+        if (!empty($def['client'])) {
+            if ($def['type'] === 'secret') {
+                $problems[] = "$key: een secret hoort niet in de browser";
+            }
+            if (isset($clients[$def['client']])) {
+                $problems[] = "$key: browsernaam " . $def['client'] . ' is al van ' . $clients[$def['client']];
+            }
+            $clients[$def['client']] = $key;
+        }
+    }
+    if ($problems !== []) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => htmlspecialchars(implode('; ', $problems)), 'fix' => 'Vul de ontbrekende velden aan in App\\Library\\Settings (of in settings_extra van deze site).'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => count(\App\Library\Settings::definitions()) . ' instellingen, elk met groep, label, hint en documentatie.'];
+}
+
+function cma_doc_check_settings_extra(): array {
+    $label = 'settings_extra: eigen instellingen van deze site';
+    $config = \App\Library\Application::get('settings_extra', []);
+    $rejected = \App\Library\Settings::rejectedExtra();
+    if ((!is_array($config) || $config === []) && $rejected === []) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Geen eigen instellingen geregistreerd. Dat is een keuze, geen fout.', 'fix' => ''];
+    }
+    $accepted = array_diff(array_keys(is_array($config) ? $config : []), array_keys($rejected));
+    if ($rejected !== []) {
+        $lines = [];
+        foreach ($rejected as $key => $reason) {
+            $lines[] = htmlspecialchars((string) $key) . ': ' . htmlspecialchars($reason);
+        }
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Overgeslagen: ' . implode('; ', $lines) . ($accepted !== [] ? '. Geaccepteerd: ' . htmlspecialchars(implode(', ', $accepted)) : ''), 'fix' => 'Pas de definitie in app.php aan; het register noemt per sleutel wat er mist.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Geaccepteerd: ' . htmlspecialchars(implode(', ', $accepted)) . '.'];
+}
+
+function cma_doc_check_settings_env_documented(): array {
+    // The registry renders its own tables; a hand-written row for the same
+    // variable would be a second, drifting description.
+    $label = 'Env-documentatie zonder dubbelingen';
+    $src = (string) file_get_contents(__FILE__);
+    // Leading newline: this very function mentions the name in a string.
+    $start = strpos($src, "\nfunction render_doc_environment(): void");
+    $end = strpos($src, "\nfunction ", $start + 10);
+    $hand = substr($src, $start, $end - $start);
+    $hand = preg_replace('/cma_doc_render_settings_tables\(\);/', '', $hand);
+    preg_match_all('/<tr><td><code>([A-Z][A-Z0-9_]+)<\/code><\/td>/', $hand, $m);
+    $registry = array_map(static fn ($d) => $d['env'], \App\Library\Settings::definitions());
+    $dupes = array_values(array_intersect(array_unique($m[1]), $registry));
+    if ($dupes !== []) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Handgeschreven rij voor een registervariabele: <code>' . implode('</code>, <code>', $dupes) . '</code>.', 'fix' => 'Verwijder de handgeschreven rij; de gegenereerde tabel beschrijft de variabele al.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Elke registervariabele staat één keer op de pagina.'];
+}
+
 function cma_doc_check_php_error_log(): array {
     $label = 'php.ini error_log destination';
     $cfg = ini_get('error_log');
@@ -2271,6 +2382,9 @@ function render_doc_environment(): void
 
     <?php
     cma_doc_render_check_table('Omgeving — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_settings_registry',
+        'cma_doc_check_settings_extra',
+        'cma_doc_check_settings_env_documented',
         'cma_doc_check_env_file',
         'cma_doc_check_app_environment_match',
         'cma_doc_check_vendor_in_sync',
@@ -2323,98 +2437,42 @@ function render_doc_environment(): void
 
     <h2>Welke env-vars zijn er?</h2>
     <p>Er is geen <code>.env.template</code> en geen centrale lijst in code: elke variabele wordt gelezen op de plek die hem nodig heeft, met een eigen default. Hieronder staat per variabele wat hem leest en wat er gebeurt als je hem weglaat. Alles is optioneel tenzij anders vermeld.</p>
-    <p>De variabelen die een beheerder zonder bestandstoegang moet kunnen zetten — meldingen, logging, foutweergave — staan in het register <code>SystemSettings::DEFINITIONS</code> en zijn omschakelbaar via <span class="cma-tool__strong">Beheerstools → Systeeminstellingen</span>. Dat scherm schrijft naar hetzelfde env-bestand dat de bootstrap laadt.</p>
+    <p>De variabelen die een beheerder zonder bestandstoegang moet kunnen zetten — meldingen, logging, foutweergave — staan in het register <code>Settings::definitions()</code> en zijn omschakelbaar via <span class="cma-tool__strong">Beheerstools → Systeeminstellingen</span>. Dat scherm schrijft naar hetzelfde env-bestand dat de bootstrap laadt.</p>
 
-    <h3>Omgeving &amp; foutweergave</h3>
+    <h3>Omgeving</h3>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
         <tbody>
             <tr><td><code>APP_ENVIRONMENT</code></td><td><code>P</code></td><td><code>Bootstrap</code> — de omgevingscode (<code>O</code>/<code>L</code>/<code>T</code>/<code>A</code>/<code>P</code>) uit de tabel bovenaan. Bepaalt debug-gedrag, niet welk bestand geladen wordt. Een OS-level waarde in de app-pool overrulet het bestand.</td></tr>
-            <tr><td><code>FORCE_DEBUG</code></td><td>uit</td><td><code>Bootstrap</code> — <code>1</code> houdt verbose errors aan, ook op <code>P</code>.</td></tr>
-            <tr><td><code>CMA_DEBUG</code></td><td>uit</td><td><code>cma/bootstrap.inc</code> — <code>1</code> zet de CMA-debugmodus aan (constante <code>CMA_DEBUG_MODE</code>, gebruikt door de front-end-logging). Los van <code>FORCE_DEBUG</code>: dit gaat over de CMA-UI, niet over PHP-errorweergave.</td></tr>
         </tbody>
     </table>
 
-    <h3>Logging &amp; meten</h3>
+    <h3>Instelbaar via Systeeminstellingen</h3>
+    <p>De tabellen hieronder komen uit het register <code>App\Library\Settings::definitions()</code> — dezelfde lijst die Beheerstools → Systeeminstellingen toont en die <code>window.CMA.settings</code> vult. Een variabele die hier staat, staat dus ook op het scherm; een site kan de lijst uitbreiden via <code>settings_extra</code> in <code>app.php</code> (zie onder).</p>
+    <?php cma_doc_render_settings_tables(); ?>
+
+    <h3>Overige logging &amp; meten</h3>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
         <tbody>
-            <tr><td><code>PERF_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Services\SystemSettings</code> — performance-logging. Waarde via <code>FILTER_VALIDATE_BOOLEAN</code>, dus <code>0</code>/<code>off</code>/<code>false</code> werken allemaal.</td></tr>
-            <tr><td><code>CACHE_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de cache-log.</td></tr>
-            <tr><td><code>DEBUG_LOG_ENABLED</code></td><td><code>true</code></td><td>Idem, voor de debug-log.</td></tr>
-            <tr><td><code>EMAIL_LOG_ENABLED</code></td><td><code>true</code></td><td><code>Bootstrap</code> — hangt de afterSend-logging aan <code>Email</code>, voor CMA- én front-end-mail. Omschakelbaar via Beheerstools → Systeeminstellingen.</td></tr>
-            <tr><td><code>SQL_LOG_ENABLED</code></td><td>uit</td><td><code>Database</code> — logt elke query met duur. Zet dit niet standaard aan: het is één schrijfactie per query.</td></tr>
             <tr><td><code>SQL_LOG_FILE</code></td><td><code>sql_queries.log</code> in de site-root</td><td><code>Database</code> — doelbestand van bovenstaande log. Is het pad niet schrijfbaar, dan meldt <code>Database</code> dat één keer in het PHP-errorlog.</td></tr>
             <tr><td><code>PROFILER_ENABLED</code></td><td>uit; automatisch aan in <code>L</code>/<code>O</code>/<code>T</code></td><td><code>Profiler</code> — request-profiling naar CSV.</td></tr>
             <tr><td><code>PROFILER_LOG_FILE</code></td><td><code>profiler.csv</code> in de base path</td><td><code>Profiler</code> — doelbestand.</td></tr>
             <tr><td><code>PROFILER_THRESHOLD_MS</code></td><td><code>0</code></td><td><code>Profiler</code> — requests sneller dan deze grens worden niet gelogd.</td></tr>
-            <tr><td><code>ERROR_LOG_RETENTION_DAYS</code></td><td><code>7</code></td><td><code>ErrorHandler</code> — dagen dat de dagelijkse PHP-foutlogs bewaard blijven (1 t/m 365). De opruiming draait bij de eerste fout van een nieuwe dag.</td></tr>
         </tbody>
     </table>
 
-    <h3>Meldingen per e-mail</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>ERROR_MAIL_ENABLED</code></td><td><code>false</code></td><td><code>ErrorHandler</code> — mailt elke niet-afgevangen fout naar <code>ERROR_MAIL_TO</code>; dezelfde fout (klasse, melding, bestand, regel) hoogstens één keer per uur. Zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</td></tr>
-            <tr><td><code>ERROR_MAIL_TO</code></td><td>leeg</td><td>Eén of meer adressen, kommagescheiden. Leeg = geen mail, ook als de schakelaar aan staat.</td></tr>
-            <tr><td><code>NOTFOUND_MAIL_ENABLED</code></td><td><code>false</code></td><td><code>NotFoundDigest</code> — mailt elke dag één overzicht van de 404's van gisteren naar <code>NOTFOUND_MAIL_TO</code>.</td></tr>
-            <tr><td><code>NOTFOUND_MAIL_TO</code></td><td>leeg</td><td>Ontvanger(s) van dat overzicht, kommagescheiden.</td></tr>
-            <tr><td><code>DEPLOY_ALERT_EMAIL</code></td><td>leeg</td><td><code>/deploy.php</code> — krijgt een best-effort <code>mail()</code> als een deploy mislukt. Zie <a href="documentation.php?topic=deployment">Deployment</a>.</td></tr>
-        </tbody>
-    </table>
-
-    <h3>Mailserver</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>MAIL_HOST</code></td><td>leeg</td><td><code>Email</code> — SMTP-host. Leeg = de Application-key <code>mail_server</code> uit <code>app.php</code> (default <code>localhost</code>).</td></tr>
-            <tr><td><code>MAIL_PORT</code></td><td>leeg</td><td><code>Email</code> — SMTP-poort (25, 587 voor TLS, 465 voor SSL). Leeg = <code>mail_server_port</code> uit <code>app.php</code> (default 25).</td></tr>
-            <tr><td><code>MAIL_USERNAME</code></td><td>leeg</td><td><code>Email</code> — SMTP-gebruikersnaam; leeg = geen authenticatie, tenzij <code>mail_username</code> in <code>app.php</code> staat.</td></tr>
-            <tr><td><code>MAIL_PASSWORD</code></td><td>leeg</td><td><code>Email</code> — SMTP-wachtwoord. Het instellingenscherm toont dit nooit terug; een waarde met spaties, <code>#</code> of aanhalingstekens wordt tussen dubbele aanhalingstekens weggeschreven, wat <code>EnvFile</code> weer uitpakt.</td></tr>
-        </tbody>
-    </table>
-    <p>Alle vier zijn te zetten via Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Mailserver</span>. De vier <code>mail_*</code>-keys in <code>app.php</code> blijven de terugval voor een site die het scherm nog niet gebruikt.</p>
-
-    <h3>Lijsten</h3>
-    <p>Eén waarde per begrip, gelezen door PHP én — via <code>window.CMA.settings</code>, dat <code>cma_html_header()</code> op elke CMA-pagina zet — door de webcomponents. Buiten het CMA (front-end zonder die injectie) gelden de defaults.</p>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>LIST_PAGE_SIZE</code></td><td><code>50</code></td><td><code>lib-table</code>, <code>lib-pagination</code>, de klassieke <code>class_table.inc</code> en de paginagrootte van <code>JsonFormService</code>: rijen per pagina.</td></tr>
-            <tr><td><code>LIST_SCROLL_BATCH</code></td><td><code>500</code></td><td><code>JsonFormService</code> (server) en de infinite scroll in <code>table-preferences.js</code>/<code>form-controller.js</code> (client): rijen per bijlaadstap.</td></tr>
-            <tr><td><code>LIST_LIMIT</code></td><td><code>800</code></td><td><code>ListMode::listLimit()</code> via <code>ListService</code>: boven dit aantal records eist een lijst eerst een zoekfilter. Een formulierdefinitie kan een eigen <code>listLimit</code> zetten.</td></tr>
-            <tr><td><code>COMBO_DYNAMIC_ITEMS</code></td><td><code>50</code></td><td><code>FormControlHelper::dynamicListItems()</code>: boven dit aantal opties laadt een keuzelijst dynamisch.</td></tr>
-            <tr><td><code>REPORT_PREVIEW_ROWS</code></td><td><code>100</code></td><td><code>api/report-query.php</code>: rijen in het rapportvoorbeeld als de client geen aantal meegeeft (maximaal 1000).</td></tr>
-            <tr><td><code>EXPORT_MAX_ROWS</code></td><td><code>15000</code></td><td><code>api/report-export.php</code>, <code>report-designer.php</code> en <code>form-controller.js</code>: boven dit aantal alleen CSV-export.</td></tr>
-        </tbody>
-    </table>
-
-    <h3>Cache</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>CACHE_DEFAULT_TTL</code></td><td><code>86400</code></td><td><code>Cache::set()</code> zonder eigen ttl, en de browsercache van formulierdefinities (<code>form.php</code>). Seconden.</td></tr>
-            <tr><td><code>LIST_CACHE_TTL</code></td><td><code>60</code></td><td><code>ListService</code> (servercache van lijstresultaten; een oudere <code>list_cache_ttl</code> in <code>app.php</code> is de terugval) en <code>form_api.php</code> (browsercache van ongefilterde lijsten). <code>0</code> = uit.</td></tr>
-            <tr><td><code>LOOKUP_CACHE_TTL</code></td><td><code>1800</code></td><td><code>form_api.php</code>: browsercache van keuzelijsten, checklists en kolomdefinities.</td></tr>
-            <tr><td><code>API_CACHE_TTL</code></td><td><code>300</code></td><td><code>form_api.php</code> <code>setCacheHeaders()</code>: de overige API-antwoorden.</td></tr>
-            <tr><td><code>ASSET_CACHE_DAYS</code></td><td><code>28</code></td><td><code>minify.php</code>: browsercache van de JS/CSS-bundels. Een nieuwe versie krijgt een nieuwe URL, dus dit mag lang.</td></tr>
-        </tbody>
-    </table>
-
-    <h3>Time-outs</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>DB_CONNECT_TIMEOUT</code></td><td><code>10</code></td><td><code>Database</code>: seconden wachten op een databaseverbinding (<code>PDO::ATTR_TIMEOUT</code>).</td></tr>
-            <tr><td><code>DB_QUERY_TIMEOUT</code></td><td><code>1000</code></td><td><code>Database</code>: maximale looptijd van een query op MySQL (<code>max_execution_time</code>) en SQL Server (<code>SQLSRV_ATTR_QUERY_TIMEOUT</code>).</td></tr>
-            <tr><td><code>HTTP_TIMEOUT</code></td><td><code>30</code></td><td><code>HttpClient</code>: uitgaande GET/POST zonder eigen time-out.</td></tr>
-            <tr><td><code>HTTP_DOWNLOAD_TIMEOUT</code></td><td><code>60</code></td><td><code>HttpClient::downloadFile()</code>.</td></tr>
-            <tr><td><code>LLM_TIMEOUT</code></td><td><code>90</code></td><td><code>Llm</code>: tekstaanroepen; beeldanalyse krijgt het dubbele.</td></tr>
-            <tr><td><code>PROCESS_TIMEOUT</code></td><td><code>300</code></td><td><code>Services\ProcessRunner</code>: achtergrondprocessen die het CMA start.</td></tr>
-        </tbody>
-    </table>
-    <p>Alle drie de groepen staan op Beheerstools → Systeeminstellingen. Het register is <code>App\Library\Settings::DEFINITIONS</code>; de letterlijke getallen die deze waarden vervingen staan niet meer in de code.</p>
+    <h3>Eigen instellingen van een site</h3>
+    <p>Een site registreert eigen instellingen in <code>app.php</code>; ze verschijnen in het scherm, in deze tabellen en — met een <code>client</code>-naam — in <code>window.CMA.settings</code>. Platformsleutels en al gebruikte variabelen winnen; wat niet past wordt overgeslagen en staat in de check bovenaan deze pagina.</p>
+    <pre><code>$GLOBALS['Application']['settings_groups_extra'] = ['shop' =&gt; ['caption' =&gt; 'Webshop', 'order' =&gt; 500]];
+$GLOBALS['Application']['settings_extra'] = [
+    'shop_min_order' =&gt; [
+        'env' =&gt; 'SHOP_MIN_ORDER', 'type' =&gt; 'float', 'default' =&gt; 25.0, 'min' =&gt; 0, 'max' =&gt; 10000,
+        'group' =&gt; 'shop', 'label' =&gt; 'Minimum bestelbedrag',
+        'hint' =&gt; 'Onder dit bedrag kan niet worden afgerekend.', 'client' =&gt; 'shopMinOrder',
+    ],
+];</code></pre>
+    <p>Lezen gaat overal met <code>Settings::get('shop_min_order')</code>. Types: <code>bool</code>, <code>flag</code>, <code>int</code>, <code>float</code>, <code>text</code>, <code>secret</code>, <code>email</code>, <code>list</code>, <code>select</code> (met <code>options</code>); <code>app</code> noemt een oudere Application-key als terugval, <code>requires</code> een sleutel die gevuld moet zijn als de schakelaar aan staat, <code>hidden</code> houdt een instelling van het scherm. Registratie gebeurt in de bootstrap direct na <code>app.php</code>; code die eerder draait ziet alleen de platforminstellingen.</p>
 
     <h3>Externe diensten &amp; paden</h3>
     <table class="listtable">

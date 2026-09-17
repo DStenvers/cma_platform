@@ -14280,3 +14280,803 @@ karaat-data en staat in de karaat-repo.
 > - List and page sizes, cache TTLs, timeouts. Hard-coded in several places with differing defaults. Exposing them without first reconciling the duplicates would give a setting that only half applies. 
 >
 > I disagree: it would help to reconcile and these are great cancidates
+
+> Plan mode: take a deep dive into the source and try to find settings that could be manipulated by developers/admins , make it as generic as possible. Also, remove the email defaults to rino. If all else fails send to dstenvers@gmail.com with a comment to fix it.
+
+> <task-notification>
+> <task-id>ac8dba977bb14da27</task-id>
+> <tool-use-id>toolu_01NgkAaK3N5LhohqHBHqsjJk</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/ac8dba977bb14da27.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map vendor mail defaults" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Findings below. Nothing was modified.
+>
+> ## A. Vendor/person-specific mail defaults
+>
+> ### `src/helpers/Email.php` (the main offender)
+>
+> | Line | Code | Trigger | Effective behaviour today | Asserted? |
+> |---|---|---|---|---|
+> | 170 | `$company = Application::get('company', 'RINO amsterdam');` | `company` key absent/unset in `app.php` | Becomes the From **display name** whenever `email_fromname` is empty or holds an address | Yes — `cma/tests/EmailTest.php:124` asserts `'RINO amsterdam'`; documented as the default in `cma/tools/documentation.php:4950` |
+> | 179 | `$this-&gt;fromEmail = 'webmaster@stenversonline.nl';` | Both `email_from` and `email_fromname` empty or non-email | Hard-coded vendor From address on every mail | Yes — `cma/tests/EmailTest.php:123`; documented at `cma/tools/documentation.php:4948` (doc wrongly presents it as the *default of the key* `email_from`) |
+> | 193-197 | `$adminEmail = Application::get('app_beheerder_email', ''); … $this-&gt;addRecipientBCC($adminEmail);` | Non-empty `app_beheerder_email` | Silent BCC on **every** outgoing mail in **all** environments (incl. production) | Yes — `cma/tests/EmailTest.php:152-159`; documented `documentation.php:4952` |
+> | 769-788 | `ensureValidFromAddress()` — see full text below | `company` starting with `RINO`, or empty `fromEmail` | Customer-specific rewrite baked into the shared platform; **overrides an explicit `setFrom()`** | **No test.** Not mentioned in `documentation.php` at all |
+>
+> ```php
+> // src/helpers/Email.php:769
+> private function ensureValidFromAddress(): void
+> {
+>     $company = Application::get('company', '');            // 771
+>
+>     // RINO-specific rules
+>     if (substr($company, 0, 4) === 'RINO' &amp;&amp; substr($this-&gt;fromEmail, -12) !== 'rinogroep.nl') {  // 774
+>         $this-&gt;fromEmail = 'noreply@rino.nl';              // 775
+>         $this-&gt;fromName  = $company;                       // 776
+>     }
+>
+>     if (empty($this-&gt;fromEmail)) {                         // 780
+>         $this-&gt;fromName = $company;
+>         if (substr($company, 0, 4) === 'RINO') {
+>             $this-&gt;fromEmail = 'noreply@rino.nl';          // 783
+>         } else {
+>             $this-&gt;fromEmail = 'diederik@stenversonline.nl'; // 785
+>         }
+>     }
+> }
+> ```
+>
+> Note the ordering consequence: `send()` calls `ensureValidFromAddress()` at **line 550**, i.e. *after* any caller's `setFrom()`. So on a site with `company = 'RINO …'`, `setFrom('x@klant.nl')` is silently discarded unless the address ends in `rinogroep.nl`. The second branch (`diederik@stenversonline.nl`) is only reachable via `setFrom('')`/`setFromName()` clearing the address, because `initialize()` never leaves `fromEmail` empty.
+>
+> ### `cma/task.php:58-61` (CMA data-expiry notification cron)
+>
+> ```php
+> $objMail-&gt;setSubject('Tools CMA gegevensmelding (' . Application::get('company', '') . ')');
+> $objMail-&gt;setFrom('diederik@stenversonline.nl');
+> $objMail-&gt;addRecipientBCC('diederik@stenversonline.nl');
+> ```
+> Unconditional — every consumer site's expiry notification is sent *from* and *BCC'd to* a personal address. Combined with the RINO rule the From is then rewritten to `noreply@rino.nl` on RINO sites, but the BCC is not. No test, not documented.
+>
+> ### `library/classes/class_mailer.inc` (legacy `LibMailer` wrapper)
+>
+> - `:58` — `$sendmail_objMail-&gt;fromName = Application::get('company','') ? Application::get('company','') : $strFromEMail;` in `internal_SendMail()`. Not vendor-specific itself, but it means the 8-arg legacy `SendMail()` has **no** from-name parameter; the name is always `company`.
+> - `:246` — `$from = trim((string)Application::get('email_from','')) ?: 'webmaster@stenversonline.nl';` in `_resolveFrom()`. Second copy of the same hard-coded vendor default, with a *different* precedence than `Email::initialize()` (no `email_fromname` legacy recovery here).
+> - `:250` — `$fromName = trim((string)Application::get('company','')) ?: $from;` — no `'RINO amsterdam'` default here, so `LibMailer` and `Email` disagree when `company` is unset.
+> - `:215` — `$email-&gt;setFrom($from, $fromName);` then delegates to `Email::send()`, so the RINO rewrite at Email.php:774 also applies to all legacy `SendMail()` traffic.
+>
+> ### `templates/app.php.template:26-36`
+> ```php
+> $GLOBALS['Application']['email_from']     = 'info@example.com';
+> $GLOBALS['Application']['email_fromname'] = 'My Project';
+> $GLOBALS['Application']['cc_email']       = $GLOBALS['Application']['email_from'];
+> $GLOBALS['Application']['email_cc']       = $GLOBALS['Application']['email_from'];
+> $GLOBALS['Application']['appname']        = 'My Project';
+> $GLOBALS['Application']['company']        = $GLOBALS['Application']['appname'];
+> ```
+> This is the one clean spot: a fresh install gets neutral placeholders, which is why the vendor fallbacks stay dormant *if* the installer actually wrote `app.php`. A site that never sets `company` (or sets it before this template existed) inherits `RINO amsterdam`.
+>
+> ### Not an issue anymore (contrary to older notes in `prompts.md:13567`)
+> - `library/500.php:133-142` no longer defaults to `diederik@stenversonline.nl`; it now reads `EnvFile::flag('ERROR_MAIL_ENABLED')` + `EnvFile::value('ERROR_MAIL_TO')` and returns early when empty. **But** line 137 calls `Email::send([...])` statically with an array argument while `Email::send()` is an instance method with no parameters (`src/helpers/Email.php:524`) — this path throws `Error: Non-static method … cannot be called statically`, caught by the surrounding `catch (\Throwable)`. Error mail from the last-resort 500 page is therefore silently dead.
+> - `src/helpers/Error.php:59, 429-436` and `src/helpers/ErrorHandler.php:625-628` and `src/helpers/NotFoundDigest.php:36` all use `ERROR_MAIL_TO` / `NOTFOUND_MAIL_TO` with empty defaults (`src/helpers/Settings.php:25-28`) — no vendor address, they just no-op when unset.
+> - `src/helpers/DeployHealth.php:228` — recipient falls back through `DEPLOY_HEALTH_EMAIL` → `ADMIN_EMAIL` → `MAIL_FROM`, no hard-coded address. Asserted in `cma/tests/DeployHealthTest.php:152-156`.
+>
+> ## B. RINO customer special-casing (non-mail)
+>
+> | Location | Code | Trigger | Behaviour | Asserted? |
+> |---|---|---|---|---|
+> | `cma/classes/FormControlHelper.php:186` | `$bGrouping = stripos($sql, '|') !== false &amp;&amp; Application::get('company','') !== 'RINO Groep';` | `company` exactly `'RINO Groep'` | Pipe-delimited combo SQL normally produces an `&lt;optgroup&gt;`-style grouped list; for RINO Groep grouping is suppressed and the `\|` is treated as plain display text | No test, not documented |
+> | `cma/classes/FormTemplate.php:298-301` | `'extraPlugins' =&gt; Application::get('appname','') === 'RINO Portal' ? ',literatuur' : ''` | `appname` exactly `'RINO Portal'` | Loads the CKEditor "literatuur" plugin. Comment explicitly says the exact match is deliberate because *two* clients contain "rino" | No |
+> | `cma/classes/FormTemplate.php:485-487` | `if (Application::get('appname','') === 'RINO Portal') { $html .= 'config.extraPlugins = ",literatuur";' }` | same | Duplicate of the above on the inline-config path | No |
+> | `cma/assets/js/cma.js:491-496` | `if (appName.toLowerCase().indexOf('rino') === -1) { libAlert('Deze functie is niet beschikbaar…') }` | client-side `CMA.formConfig.appName` not containing "rino" | Gates `showLiteratuurDialog()`. **Looser than the PHP check** — a *contains* test where PHP uses exact `'RINO Portal'`, so the second rino-named client passes the JS gate and then gets a missing plugin | No |
+> | `cma/menurep.inc:110-111` | `'rino_info' =&gt; 'lnr-book', 'rino info' =&gt; 'lnr-book',` | menu group named "rino info" | Customer-specific icon mapping shipped in the platform | Yes — `cma/tests/MenuGroupIconTest.php:32,35` assert `menuGroupIcon('RINO info') === 'lnr-book'` |
+> | `cma/api/user_forms.php:32-33, 134-135` | `'rino_contactpersonen' =&gt; 'lnr-user'`, `'rino info'/'rino_info' =&gt; 'lnr-clipboard-user'` | form names | Same, for form icons | No |
+> | `cma/config/menu.json:200, 314, 323, 331` | `"form": "rino_contactpersonen"`, `"name": "RINO info"`, `"form": "rino_nieuws"`, `"form": "rino_nieuws_redactie"` | shipped default menu | The platform's *default* menu is a RINO menu; a new site inherits RINO menu entries until it ships its own `menu.json` | No |
+> | `cma/config/cma_reports.json:57, 525, 534, 609, 619` | e.g. `instr([draaiboekText]&amp;"",'rinogroep.zoom.us')&gt;0`, `'https://www.rinoportal.nl/downloads/rooster/'+[bestand]` | shipped default report set | Default CMA reports query RINO tables/URLs | No |
+> | `cma/bootstrap.inc:1622` | comment `// legacy schemas (e.g. RINO) don't have all of them…` | — | Comment only, the code itself is generic | — |
+> | `cma/classes/Services/SsoService.php:172` | comment `(e.g., config says mijn.rino.lc but we're on test-mijn.rino.nl)` | — | Comment only | — |
+> | `library/lib_xmlsnippets.inc:473, 628, 1127` | comments referencing RINO-origin bugs | — | Comments only | — |
+>
+> Cypress: `cma/cypress/e2e/forms/subform-refresh.cy.js:12-28` and `oneindig-scrollen.cy.js:24-26` default their form/record fixtures to mijnRINO values (`opleidingen`/`137`/`206`/`opleidingen_vrijgesteld_blok`/`fkOpleiding`, `deelnemers`), each overridable via `Cypress.env(...)`. They do **not** assert on any email/sender value. `frontend-portal.cy.js:4` only references the RINO repo in a comment. `cma/cypress.config.js:47-49` and `cma/cypress.env.json:2-4` default `adminUser`/`testUser` to `DiederikStenvers`; `cma/migrations/9.0.0_cleanup_test_data.php:27-32` hard-sets `userLogin='DiederikStenvers'` on a user row.
+>
+> ## C. How the From address and From name are decided today
+>
+> **Step 1 — `Email::initialize()` (constructor), lines 170-184.**
+>
+> Address (`fromEmail`), first match wins:
+> 1. `Application::get('email_from')` if non-empty *and* `FILTER_VALIDATE_EMAIL` passes → use it.
+> 2. else `Application::get('email_fromname')` if non-empty *and* it validates as an email → use it as the **address**. This is the legacy swap: historically this code read `email_fromname` *as* the address, so old sites store an address there.
+> 3. else `'webmaster@stenversonline.nl'`.
+>
+> Name (`fromName`), line 182-184: `email_fromname` **only if it is non-empty and does NOT validate as an email**; otherwise `$company`, where `$company = Application::get('company', 'RINO amsterdam')`. So a legacy site whose `email_fromname` holds an address gets name = company (line 3 of the legacy contract).
+>
+> **Step 2 — caller overrides.** `setFrom($email, $name = null)` (line 293-298) sets both, with `fromName = $name ?? $email`. `setFromName($name)` (309-313) sets the name only. Both are blocked after a send by `checkSend()`.
+>
+> **Step 3 — `send()` → `ensureValidFromAddress()` (line 550, definition 769).** This runs **last**, after step 2:
+> - If `substr(company, 0, 4) === 'RINO'` **and** the current `fromEmail` does not end in `rinogroep.nl` → force `fromEmail = 'noreply@rino.nl'` and `fromName = $company`. This clobbers config *and* explicit `setFrom()`.
+> - If `fromEmail` is empty at this point → `fromName = $company` and `fromEmail = 'noreply@rino.nl'` for RINO-prefixed companies, else `'diederik@stenversonline.nl'`.
+>
+> **Step 4 — header cleanup + handoff**, line 564: `$this-&gt;mailer-&gt;setFrom($this-&gt;fromEmail, $this-&gt;cleanHeaderText($this-&gt;fromName))`. `cleanHeaderText()` (line 549 region, definition ~547-552 → `private function cleanHeaderText` just above `wrapTestEnvironmentWarning`) does `strip_tags` + `html_entity_decode` + whitespace collapse, because sites set `company`/`appname` with markup (`mijn &lt;font class=green&gt;&amp;bull;&lt;/font&gt; RINO`). Asserted by `cma/tests/EmailTest.php:70-79`.
+>
+> **Reply-To** has no default at all: `$replyTo` starts empty (line 61 region), set only via `setReplyTo()` (324-328), and applied at line 568 `if (!empty($this-&gt;replyTo)) $this-&gt;mailer-&gt;addReplyTo(...)`. `LibMailer` forwards `$mailer-&gt;replyTo` (class_mailer.inc:217-218) but never defaults it.
+>
+> **Parallel, inconsistent implementation:** `library/classes/class_mailer.inc:242-252` re-implements steps 1 with a shorter chain (`email_from` without validation → `webmaster@stenversonline.nl`; name from `company` → falls back to the address, never `'RINO amsterdam'`), and `cma/tools/tools_serverinfo.php:397-400` and `:485-497` re-implement it a *third* and *fourth* time for display/prefill (those two mirror `Email::initialize()` correctly but stop before the RINO rewrite, so the test-mail form shows a From that the send path may then override).
+>
+> **Latent bug adjacent to this chain:** `src/helpers/Email.php:594` passes `$cleanFromName` to `invokeAfterSend()`, but that variable is never assigned in `send()` (only referenced defensively at line 606 in the catch). On PHP 8 this emits `Warning: Undefined variable $cleanFromName` and passes `null` into a `string`-typed parameter (`invokeAfterSend(bool, string, …)` at line 615) → `TypeError` on every successful send when the afterSend hook is registered. The logged `mail_from_name` in `tblEmailLog` therefore comes out wrong/failing.
+>
+> ## D. How recipients are altered outside production
+>
+> Two independent mechanisms, both keyed on `app.php` flags that `templates/app.php.template:62-63` derives from `omgeving`: `local = (omgeving === 'O')`, `test = (omgeving !== 'P')`.
+>
+> **1. Unconditional admin BCC — all environments, including production.** `Email::initialize()` lines 193-197 adds `app_beheerder_email` as BCC at construction time. It goes through `addRecipientBCC()`, which registers the address in `$recipientTracker`, so the same address can never later be added as a To or CC (de-dup is global across To/CC/BCC, lines 404-410 / 452-458 / 494-500).
+>
+> **2. Test-environment interception — `wrapTestEnvironmentWarning()`, lines 726-764,** called from `send()` at 545-547 when `Application::get('test', false)` is truthy:
+> - Reads the current To/CC/BCC off PHPMailer into three arrays (732-741).
+> - Builds a grey `&lt;table&gt;` banner listing them under "Onderstaande mail zou in productie verzonden worden naar:" (743-749) and prepends it to the body (`return $warning . $body`, ~763).
+> - **Clears all three recipient lists**: `clearAddresses()` / `clearCCs()` / `clearBCCs()` at lines 751-753 — this also drops the admin BCC added in step 1.
+> - Re-adds `app_beheerder_email` as a **To**, not BCC (758-760). The comment at 755-757 explains why: a message without a To header gets rejected by spam filters, so the intercepted mail used to vanish. Asserted by `cma/tests/EmailTest.php:86-106` (`testOpgevangenTestmailZetDeBeheerderInTo`), which checks the admin is in To, the real recipient is gone, and the admin is *not* also in BCC.
+> - If `app_beheerder_email` is empty, the mail ends up with **zero** recipients and PHPMailer throws — mail is simply lost on test/acceptance sites that never set that key.
+> - `send()` snapshots the originals at lines 540-542 *before* this runs, so `invokeAfterSend()`/`EmailLogService` still logs the true intended recipients, and `showPreview()` (791-825) is passed those snapshots rather than the cleared lists (comment at 581-583).
+>
+> **3. Subject prefixing**, `setSubject()` lines 245-250: `omgeving === 'T'` → `TEST-OMGEVING: `, `'A'` → `ACCEPTATIE-OMGEVING: `.
+>
+> **4. Simulation** — `$this-&gt;simulation = Application::get('local', false)` (line 191). At send (580-586) it calls `showPreview()` — which echoes a From line built from `$this-&gt;fromName . ' (' . $this-&gt;fromEmail . ')'` (line 797), i.e. *after* the RINO rewrite — marks `mailSent = true`, and never touches SMTP. `LibMailer::Send()` short-circuits earlier (class_mailer.inc:196-200) and renders its own `ShowPreview()` (line 257+), which uses `_resolveFrom()` and therefore shows `webmaster@stenversonline.nl` where the real send path would show `noreply@rino.nl`.
+>
+> **Documentation drift worth noting:** `cma/tools/documentation.php:4987` states "De originele To/CC/BCC-lijsten worden NIET aangepast … BCC blijft op `app_beheerder_email` staan", and :4984-4986 shows a red `LET OP - TEST OMGEVING` banner. Both are wrong against the current code: the lists *are* cleared, the admin moves from BCC to To, and the banner is a grey table with different wording. `documentation.php:4948` also labels `webmaster@stenversonline.nl` as "de default van `email_from`", which understates it — it is the fallback when the key is absent, and the RINO rewrite that can override everything is undocumented.</result>
+> <usage><subagent_tokens>86100</subagent_tokens><tool_uses>38</tool_uses><duration_ms>239092</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>aa649a030a094d671</task-id>
+> <tool-use-id>toolu_01QFhu9drPqPXG5QzjzXE8QP</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/aa649a030a094d671.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Assess settings page genericity" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>## 1. Metadata the registry lacks
+>
+> Today an entry is `env / type / default / min / max / optional` only (`/mnt/c/repos/cma_platform/src/helpers/Settings.php:23-65`). The page supplies everything else by hand in `$groups` (`/mnt/c/repos/cma_platform/cma/tools/tools_settings.php:78-153`). Per setting you'd need:
+>
+> | new key | where it lives now |
+> |---|---|
+> | `group` (id + caption) | `tools_settings.php:79,91,100,113,127,139,147` — `['id' =&gt; 1, 'caption' =&gt; 'Meldingen per e-mail']`; group id also drives `&lt;cma-groupbox group-id&gt;` and the row ids `_g&lt;id&gt;_&lt;n&gt;` (`tools_settings.php:170,179`) |
+> | `order` | implicit array order; the last row per group gets `class="groupbox_end"` (`tools_settings.php:177`) — derivable if the registry is grouped, no explicit key needed |
+> | `label` | `tools_settings.php:80-152`, also carries the unit ("(s)", "(dagen)") |
+> | `hint` | idem — the third `&lt;td class="hint-cell"&gt;` (`tools_settings.php:199`) |
+> | `placeholder` source | three shapes today: static (`'naam@voorbeeld.nl'`, `tools_settings.php:196`), literal, and **dynamic from app.php** — `Application::get('mail_server','localhost')` etc. at `tools_settings.php:103,106,109`. So the key you want is not `placeholder` but `app_fallback` (an Application key) plus its own default |
+> | `app_fallback` (app.php key) | duplicated in three places: the placeholder above, `Email` reading env-then-Application directly (`/mnt/c/repos/cma_platform/src/helpers/Email.php:144-147`), and the only caller that uses `Settings::get`'s `$fallback` argument, `ListService` (`/mnt/c/repos/cma_platform/cma/classes/Services/ListService.php:178`, `list_cache_ttl`). One `'app_fallback' =&gt; 'mail_server'` key would let `Settings::get()` (`Settings.php:74-83`) resolve it and let the page render it as placeholder — Email could then stop hand-rolling the fallback |
+> | secret display | `'•••••••• (ingesteld)' : 'niet ingesteld'` (`tools_settings.php:190`) — derivable from `type === 'secret'` + whether the stored value is non-empty; no new key |
+> | client exposure | `forClient()` hardcodes three keys **and their JS names** (`Settings.php:102-109`). Needs `'client' =&gt; 'listPageSize'` — a name, not a bool, because the JS names are camelCase (`window.CMA.settings.listPageSize`) |
+> | cross-field requirement | `'requires' =&gt; 'error_mail_to'` style, currently the loop at `tools_settings.php:45-52` |
+> | doc prose | "Gelezen door &amp; effect" per variable, `documentation.php:2330-2412` (see §3) |
+>
+> Two rendering rules that are *not* metadata but are bugs you'd inherit if you copy the current template verbatim:
+>
+> - `value="&lt;?= (int) $val &gt; 0 ? (int) $val : '' ?&gt;"` (`tools_settings.php:186`). `list_cache_ttl`, `lookup_cache_ttl` and `api_cache_ttl` all have `min =&gt; 0` and 0 means "uit" (`Settings.php:51-53`), but a stored 0 renders as an empty box; re-saving then posts `''`, which `normalize()` rejects with *"Vul een geheel getal in."* because only `mail_port` has `optional` (`/mnt/c/repos/cma_platform/cma/classes/Services/SystemSettings.php:163-168`). A generic renderer should render blank only when `!empty($def['optional'])`.
+> - The email control has no `placeholder` hook at all (`tools_settings.php:194-197`), so `deploy_alert_email` gets `naam@voorbeeld.nl` regardless.
+>
+> ## 2. What becomes registry-driven, what stays bespoke
+>
+> Already generic, no change:
+> - the POST collection loop, which iterates the registry (`tools_settings.php:39-43`);
+> - the client-side `collect()`/`markErrors()` (`tools_settings.php:237-257`) — it walks `lib-switch` and `input, select` and keys errors by element id, which equals the setting key. Nothing there knows a setting name.
+>
+> Becomes registry-driven:
+> - the whole `$groups` literal (`tools_settings.php:78-153`) → a grouped iteration over `Settings::definitions()`;
+> - the row/groupbox markup (`tools_settings.php:167-201`), with the type switch (`182-197`) extracted to one `render_control($key, $def, $val)`. Adding a type (e.g. `select`, `textarea`) then means touching one function, not the page.
+>
+> Stays bespoke:
+> - **The "Ontwikkelaar" group** (`tools_settings.php:202-227`). It is a different store (tblUsers + cookies, `/mnt/c/repos/cma_platform/cma/classes/Services/UserPreferences.php:35-109`), a different scope (per user), and it uses a control type the site-wide registry has no analogue for — a `&lt;select&gt;` over `UserPreferences::SQL_THRESHOLDS` (`UserPreferences.php:20`, rendered at `tools_settings.php:220-224`). Its validation and save are separate too (`tools_settings.php:53-56`, `63-67`). The honest model is a second, small registry for user preferences rendered by the same `render_control()`, not an entry in `Settings::DEFINITIONS`.
+> - **Cross-field validation** (`tools_settings.php:45-52`): "enabled needs a recipient". This can go declarative (`'requires' =&gt; 'error_mail_to'` on `*_enabled`, with a generated message from the two labels) and move into `SystemSettings::normalize()` — worth doing, since today it lives in the page and is therefore untested (no test in `SystemSettingsTest.php` covers it) and is bypassed by any other caller of `save()`. Note the current check reads the *submitted* values, which is safe only because the page always posts both fields.
+> - **The save-time side effect** `PerformanceLogger::clearEnabledCache()` (`tools_settings.php:62`): either keep it unconditional or add an `on_save` hook; a per-setting hook is over-engineering for one call.
+> - The admin gate and `Response::json` envelope (`tools_settings.php:27-30,69`).
+>
+> ## 3. Can `render_doc_environment`'s tables be generated?
+>
+> The precedent you're after exists and is used ~12 times: `cma_doc_run_checks()` + `cma_doc_render_check_table()` (`/mnt/c/repos/cma_platform/cma/tools/documentation.php:1852-1905`, called at `2273`, `2158`, `2459`, `2946`, …). The closest analogue to what you want — documentation rendered from a *live registry* — is `cma_doc_check_dashboard_cards()` (`documentation.php:5149-5197`), which reads `Application::get('dashboard_cards_extra')` and reports what the validator kept vs dropped.
+>
+> The env tables themselves are at `documentation.php:2328-2429` (Omgeving &amp; foutweergave, Logging &amp; meten, Meldingen, Mailserver, Lijsten, Cache, Time-outs, Externe diensten). The trade-off:
+>
+> - **Coverage is partial.** Roughly half the documented variables are *not* in the registry and never will be: `APP_ENVIRONMENT`, `SQL_LOG_FILE`, `PROFILER_*` (`documentation.php:2349-2352`), `GOOGLE_OAUTH_*`, `DB_*`, `REDIS_*`, `CACHE_DIRECTORY`, `NODEJS_PATH` (`2422-2429`), plus the `DEPLOY_*`/`LLM_*` pointers (`2432-2435`). A generated table can only replace the registry rows, so the page becomes a mix of generated and hand-written tables — which is arguably *worse* to read than the current consistent hand-written set.
+> - **The prose is the value.** The third column ("Gelezen door &amp; effect") is HTML with `&lt;code&gt;` and cross-links (`documentation.php:2362` links to the Logs topic). Moving it into `Settings::DEFINITIONS` puts paragraphs of Dutch HTML into a const array that is compiled on every request and is currently a clean 40-line table; it also mixes "what the admin screen shows" (hint) with "what a developer needs to know" (effect), which are deliberately different texts today.
+> - **Cheapest win, matching the existing culture:** keep the prose hand-written and add a `cma_doc_check_settings_registry_coverage()` to the check table at `documentation.php:2273` that fails when a key in `Settings::definitions()` has no row on the page (grep the rendered buffer or a small key list), and when a documented `SystemSettings`-managed var is missing from the registry. Then "add one registry line" can't silently miss the docs, without importing prose into the registry. If you do want generation, generate only the *Variabele / Default / Groep / Instelbaar via het scherm* columns and keep an optional per-key `doc` string for the effect column, defaulting to the hint.
+>
+> Also note `documentation.php:2326` and `2417` assert in prose that the register is the single source — those sentences stay true either way.
+>
+> ## 4. Replacing `forClient()`
+>
+> Definition `Settings.php:102-109`; injection `/mnt/c/repos/cma_platform/cma/bootstrap.inc:464`:
+>
+> ```php
+> echo '&lt;script&gt;window.CMA=window.CMA||{};window.CMA.settings=' . json_encode(\App\Library\Settings::forClient()) . ';&lt;/script&gt;'
+> ```
+>
+> Consumers: `library/webcomponents/lib-table.js:39-41`, `library/webcomponents/lib-pagination.js:54-56`, `cma/assets/js/form-controller.js:5422,5720`, `cma/assets/js/table-preferences.js:606` — all do `parseInt(...) || &lt;default&gt;`.
+>
+> Replacement is mechanical: add `'client' =&gt; 'listPageSize'` to `list_page_size`, `'listScrollBatch'`, `'exportMaxRows'` (`Settings.php:43,44,48`) and make `forClient()` a loop. Two details:
+>
+> - Keep the method name — `bootstrap.inc:464` and `SettingsTest.php:65` both call it, and it's the natural place to keep the cast. Cast **per type** (`int` → int, `bool`/`flag` → bool, else string) rather than the current blanket `(int)`, otherwise the first client-exposed boolean arrives in JS as `"1"`/`""`.
+> - Key order becomes registry order. `SettingsTest.php:66` asserts the exact ordered key list, and the three keys happen to sit in that order already (`Settings.php:43,44,48`), so it passes today — but it silently becomes a constraint on where new client settings may be inserted. Rewrite that assertion as a set comparison (see §6).
+> - A client flag also makes a nice doc row: "wordt in `window.CMA.settings` gezet" can then be generated rather than explained in prose at `documentation.php:2380`.
+>
+> ## 5. Can a consumer site extend the registry?
+>
+> **Not today, and not merely because nobody wrote a hook:** `DEFINITIONS` is a `const` (`Settings.php:23`), and `SystemSettings::DEFINITIONS = Settings::DEFINITIONS` (`SystemSettings.php:23`) is a compile-time const alias. Any runtime merge requires turning both into a memoized static method (`Settings::definitions()`), touching: `SystemSettings.php:23,127,150,216`, `tools_settings.php:39,175`, `SettingsTest.php:24,71`. That refactor is the actual prerequisite for everything in this task.
+>
+> The site-extension hooks that exist and set the house style:
+>
+> - `MigrationService::loadSources()` — `Application::get('migration_sources_extra', [])`, platform sources first, `'platform'` name reserved, malformed/colliding entries silently skipped (`/mnt/c/repos/cma_platform/cma/classes/Services/MigrationService.php:93-126`, also `1668`); documented at `documentation.php:3924`.
+> - `dashboard_cards_extra` — `Application::get(...)` at `/mnt/c/repos/cma_platform/cma/dashboard.php:87`, validated by `cma_dashboard_site_cards()`, with a doc check that shows what got dropped (`documentation.php:5149`), and a contract test (`cma/tests/DashboardSiteCardsTest.php`).
+> - Documentation chapters use a function-existence hook instead: `site_doc_chapters_for_parent()` (`documentation.php:212-217`).
+>
+> **Least-surprising proposal:** `$GLOBALS['Application']['settings_extra']` in app.php, merged by a memoized `Settings::definitions()`, platform keys reserved and winning on collision, entries missing `env`/`type`/`default` (or `min`/`max` for `int`, or a `group` that doesn't exist) dropped — exactly `loadSources()`'s guard shape — plus a `cma_doc_check_settings_extra()` in the check table so dropped entries are visible rather than silent. `data/settings.json` would fit the `data/` two-layer convention that `cma_doc_check_site_defaults()` polices (`documentation.php:1719-1742`), and is nicer for non-PHP editing, but there is no generic JSON-config loader in `src/helpers` to reuse (grep found none) and it adds a file read + parse to a class that is currently zero-I/O and is called from `Database::__construct`-level code.
+>
+> One ordering caveat either way: app.php is required inside `Bootstrap` at `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php:473-477`, after `.env` is loaded — but `Settings::get()` is called from `Database` (`src/helpers/Database.php:413,562,580`), `Cache` (`Cache.php:365`) and `HttpClient` (`HttpClient.php:24`), which can run during `Application_OnStart()` / `global.asa.php` (`Bootstrap.php:504-511`). So: merge lazily and memoize on first call, never throw for platform keys, and accept that a very early call sees platform-only definitions. Also relevant: `Settings::get()` throws `InvalidArgumentException` for unknown keys (`Settings.php:77-79`) — site code calling a site key before app.php is loaded would hard-fail; that should be the documented rule, not a surprise.
+>
+> ## 6. Test assertions that would have to follow
+>
+> `/mnt/c/repos/cma_platform/cma/tests/SettingsTest.php`
+> - `:24` `assertSame(Settings::DEFINITIONS, SystemSettings::DEFINITIONS)` — must become `definitions()` vs `definitions()`, or be dropped if the const alias goes away. With `settings_extra` it should run with no extras registered, or assert containment rather than identity.
+> - `:63-67` `forClient()` key-order assertion — rewrite as "keys equal the `client`-flagged entries", ideally order-insensitive, else every new client setting must be appended last.
+> - `:69-77` the completeness test is the natural place to enforce the new contract: every entry has `group`, `label`, `hint`; `int` has `min`/`max` (already); every `group` id exists in the group table; `client` names are unique; `app_fallback` (if present) is a non-empty string.
+> - `:27-46` defaults and `:48-61` env/fallback behaviour are unaffected — but if `app_fallback` moves into the registry, `:56-61` (`Settings::get('list_cache_ttl', 45)`) should gain a sibling test that the registry-declared fallback resolves without an explicit argument, and `ListService.php:178` should then be simplified.
+>
+> `/mnt/c/repos/cma_platform/cma/tests/SystemSettingsTest.php`
+> - Essentially untouched: it tests `applyEnvContent` (`:24-62`) and `normalize`/`get` (`:66-185`) against hardcoded key names that stay valid. Only `:114-119` (`normalize` ignores unknown keys) becomes richer if extras merge — an unknown key is now "unknown *after* merging extras".
+> - New tests the registry-driven page implies: the `requires` rule if it moves out of `tools_settings.php:45-52` (currently untested anywhere), extras merging (collision with a platform key, malformed entry dropped, valid entry visible in `getAll()`), and the optional/zero rendering rule if you fix `tools_settings.php:186`.
+>
+> `/mnt/c/repos/cma_platform/cma/cypress/e2e/settings/system-settings.cy.js`
+> - `:18-27` "should show the eight groups" hardcodes all captions. Registry-driven: either keep it as a deliberate golden list (fine, and it catches accidental group renames), or assert `cma-groupbox` count = registry groups + 1 and that the developer group is last.
+> - `:29-51` per-field assertions still pass unchanged — ids remain the setting key (`tools_settings.php:183-196`). `:43,:47-50` are actually the most valuable assertions to keep in a generic world: they pin the type→control contract (`int`→`type=number`, `text`→`type=text`, `secret`→`type=password` with empty value). Worth restating as one case per type rather than one per field.
+> - `:53-57` developer switches (`debugMode`, `showDebugOverlay`, `sqlThreshold` with 5 options) — keep verbatim; it is the regression guard that the bespoke per-user group survived the genericization.
+> - `:60-88` saving: unchanged. The POST body assertions (`:71-74`) work because the JS collector is already name-agnostic, and the error-marking test (`:79-88`) only relies on `id === setting key`.</result>
+> <usage><subagent_tokens>76229</subagent_tokens><tool_uses>25</tool_uses><duration_ms>259270</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>abcca9b47defac651</task-id>
+> <tool-use-id>toolu_01HGS3oG5iXEtBqVj9AMxGTo</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/abcca9b47defac651.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Find remaining tunables for settings" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>Read-only exploration complete. Here is the full inventory.
+>
+> ## Scope notes
+>
+> - The registry is `App\Library\Settings::DEFINITIONS` (`/mnt/c/repos/cma_platform/src/helpers/Settings.php:23-69`); `Cma\Services\SystemSettings::DEFINITIONS` is literally the same array (`/mnt/c/repos/cma_platform/cma/classes/Services/SystemSettings.php:23`), so adding a key only needs to happen once.
+> - Browser side is injected once, at `/mnt/c/repos/cma_platform/cma/bootstrap.inc:464` via `Settings::forClient()` (`/mnt/c/repos/cma_platform/src/helpers/Settings.php:102-110`). Today only `listPageSize`, `listScrollBatch`, `exportMaxRows`. Consumers: `/mnt/c/repos/cma_platform/library/webcomponents/lib-table.js:39-43`, `/mnt/c/repos/cma_platform/library/webcomponents/lib-pagination.js:54-57`, `/mnt/c/repos/cma_platform/cma/assets/js/form-controller.js:5422,5720`, `/mnt/c/repos/cma_platform/cma/assets/js/table-preferences.js:606`.
+> - The registry has no `float` and no `list` type today — `redis_timeout` (2.5) and the comma-list candidates need one added, or must be stored as text/int.
+>
+> ---
+>
+> ## Sessie &amp; login
+>
+> | Sleutel | Env var | Type | Default (literal) | Min/Max | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|---|
+> | `session_cookie_lifetime` | `SESSION_COOKIE_LIFETIME` | int | 0 (niet gezet → browsersessie) | 0 / 2592000 | `src/helpers/Bootstrap.php:297-301` | nee | nee | **Levensduur sessiecookie** — Seconden dat een sessie geldig blijft. 0 = tot de browser sluit. |
+> | `session_cookie_secure` | `SESSION_COOKIE_SECURE` | bool | false (sleutel ontbreekt in de array) | — | `src/helpers/Bootstrap.php:297-301` | nee | nee | **Sessiecookie alleen via HTTPS** — Aanzetten zodra de site volledig op https draait. |
+> | `session_cookie_samesite` | `SESSION_COOKIE_SAMESITE` | text (`Lax`/`Strict`/`None`) | `'Lax'` | — | `src/helpers/Bootstrap.php:300` | nee | nee | **SameSite-beleid sessiecookie** — `Strict` is veiliger maar breekt terugkeer vanaf een externe betaalpagina. |
+> | `session_cookie_path` | `SESSION_COOKIE_PATH` | text | `'/'` | — | `src/helpers/Bootstrap.php:298` | nee | nee | **Pad sessiecookie** — Alleen wijzigen bij meerdere sites onder één domein in submappen. |
+> | `auth_cookie_lifetime` | `AUTH_COOKIE_LIFETIME` | int | 0 (= `Cookie::set` default, sessiecookie) | 0 / 31536000 | `src/helpers/Cookie.php:46-58`; gezet in `cma/login.php:159,182,183` en `cma/sso_callback.php:80,98,101` | nee | nee | **Onthoud-mij duur** — Seconden dat een ingelogde gebruiker ingelogd blijft. 0 = tot de browser sluit. |
+> | `auth_cookie_secure` | `AUTH_COOKIE_SECURE` | bool | `false` (parameterdefault) | — | `src/helpers/Cookie.php:52` | nee | nee | **Inlogcookies alleen via HTTPS** — Zet aan op elke site met een geldig certificaat. |
+> | `auth_cookie_prefix` | `AUTH_COOKIE_PREFIX` | text | `'CMA'` (CMAU/CMAG/CMAADM/CMALEVEL/CMAUNAME/CMASK_NOT/CMAlast_login_name) | — | `cma/classes/SecurityHelper.php:33-42` | nee | nee | **Voorvoegsel inlogcookies** — Onderscheidt meerdere CMA's op hetzelfde domein. Wijzigen logt iedereen uit. |
+> | `preference_cookie_days` | `PREFERENCE_COOKIE_DAYS` | int | `365` | 1 / 3650 | `cma/classes/Services/UserPreferences.php:125-133`; `cma/classes/Services/TableService.php:864` | nee | nee | **Bewaartermijn voorkeuren-cookies** — Dagen dat thema, menustijl en kolomkeuze in de browser blijven staan. |
+> | `sso_state_cookie_secure` | (deel van `auth_cookie_secure`) | bool | `false` (7e arg) | — | `cma/classes/Services/SsoService.php:56,66,75` | nee | nee | *(zelfde schakelaar; nu hard `false` doorgegeven)* |
+> | `cma_ip_protect` | `CMA_IP_PROTECT` | bool | `''` (uit) | — | `cma/login.php:117-120` | **ja — `cma_ip_protect`** | nee | **IP-controle bij inloggen** — Beperkt inloggen tot de IP-adressen bij de gebruiker/groep. |
+>
+> **Niet blootstellen:** cookienaam-constanten los per stuk (alleen het prefix), en `CMAU_ORIGINAL` (`cma/api/user_actions.php:51,172,220,233`) — impersonatie-plumbing.
+>
+> ---
+>
+> ## Uploads &amp; afbeeldingen
+>
+> | Sleutel | Env var | Type | Default | Min/Max | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|---|
+> | `upload_max_mb` | `UPLOAD_MAX_MB` | int | *geen* — er is **geen** groottecontrole; alleen php.ini geldt | 1 / 2048 | ontbreekt in `src/helpers/LibUpload.php:59-110`; `cma/form_api.php:1396-1400`; alleen gelezen in `cma/wizards/file_outputfile.php:56` (`ini_get`) | nee | ja (client-side voorcontrole) | **Maximale uploadgrootte (MB)** — Groter wordt geweigerd. Kan nooit hoger dan wat de server toestaat. |
+> | `upload_allowed_extensions` | `UPLOAD_ALLOWED_EXTENSIONS` | list | `pdf,doc,docx,rtf,jpg,jpeg` | — | gedocumenteerde veldsdefault `cma/tools/storybook.php:1057,1110`; per-veld attribuut, geen centrale bron | nee | ja | **Toegestane bestandstypen** — Komma-gescheiden extensies voor bestandsvelden. |
+> | `upload_image_mime_types` | `UPLOAD_IMAGE_MIME_TYPES` | list | `image/jpeg,image/png,image/gif,image/webp` | — | `cma/form_api.php:1408` | nee | nee | **Toegestane afbeeldingstypen** — MIME-types die de afbeeldingswizard accepteert. |
+> | `editor_image_max_width` | `EDITOR_IMAGE_MAX_WIDTH` | int | `800` | 100 / 6000 | `cma/template_edit.php:27` (**geen** fallback → leeg = kapotte JS), `cma/classes/FormTemplate.php:291,474`, `cma/form_api.php:1404` | **ja — `cma_htmledit_img_maxwidth`** | **ja** (staat al inline in de CKEditor-config) | **Max. breedte afbeelding in editor** — Grotere afbeeldingen worden bij uploaden verkleind. |
+> | `editor_image_max_height` | `EDITOR_IMAGE_MAX_HEIGHT` | int | `600` | 100 / 6000 | `cma/template_edit.php:28`, `cma/classes/FormTemplate.php:292,475`, `cma/form_api.php:1405` | **ja — `cma_htmledit_img_maxheight`** | **ja** | **Max. hoogte afbeelding in editor** — Idem, verhouding blijft behouden. |
+> | `image_webp_quality` | `IMAGE_WEBP_QUALITY` | int | `85` | 40 / 100 | `src/helpers/ResponsiveImage.php:99` (`DEFAULT_QUALITY`), gebruikt in `:108,146,154,391,429` en `cma/form_api.php:1504` | nee | nee | **WebP-kwaliteit** — Hoger = mooier en zwaarder. 85 is een goede balans. |
+> | `image_jpeg_quality` | `IMAGE_JPEG_QUALITY` | int | `92` | 40 / 100 | `cma/form_api.php:1507` | nee | nee | **JPEG-kwaliteit** — Gebruikt als de server geen WebP kan maken. |
+> | `image_crop_quality` | `IMAGE_CROP_QUALITY` | int | `97` (`compression=97`, rotatie/filter `100`) | 40 / 100 | `cma/imageupload_crop.php:239,487` (en `:404,418,432` met 100) | nee | nee | **Kwaliteit na bijsnijden** — Kwaliteit waarmee een bijgesneden of geroteerde foto wordt opgeslagen. |
+> | `responsive_image_sizes` | `RESPONSIVE_IMAGE_SIZES` | list (int) | `300,400,800,1200` | — | `src/helpers/ResponsiveImage.php:97`, gebruikt `:143,184,265,501` | nee | nee | **Breedtes responsieve varianten** — Komma-gescheiden pixelbreedtes die per afbeelding worden gegenereerd. |
+> | `image_default_path` | `IMAGE_DEFAULT_PATH` | text | `'/images/'` | — | `cma/form_api.php:1403`; verwant `Application::get('path_images')` in `cma/tools/tools_db_consistency.php:251` | **ja — `path_images`** | nee | **Standaardmap afbeeldingen** — Waar de afbeeldingswizard uploads neerzet. |
+> | `vimeo_upload_size_limit` | `VIMEO_UPLOAD_SIZE_LIMIT` | int | `1000485760` + extensielijst `mp4,avi,mpg,mpeg,mov,wmv,vob,asf` | — | `cma/ckeditor/plugins/vimeoupload/upload.php:42` | nee | ja | **Max. videogrootte (Vimeo)** — Bovengrens voor video-uploads vanuit de editor. |
+>
+> **Niet blootstellen:** `ResponsiveImage::RESPONSIVE_DIR = '.responsive'` (`src/helpers/ResponsiveImage.php:98`) — wijzigen maakt elke bestaande variant onvindbaar; `cma/tools/tools_webp_convert.php:257` batch van 20 en `:133 set_time_limit(120)` — voortgangs-chunk, geen beleid.
+>
+> ---
+>
+> ## Logs &amp; retentie
+>
+> | Sleutel | Env var | Type | Default | Min/Max | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|---|
+> | `app_log_retention_days` | `APP_LOG_RETENTION_DAYS` | int | `30` | 1 / 365 | `cma/classes/Services/Logger.php:266-275` | nee | nee | **Bewaartermijn applicatielog** — Dagen dat `.logs/app` bewaard blijft. |
+> | `perf_log_retention_days` | `PERF_LOG_RETENTION_DAYS` | int | `7` | 1 / 365 | `cma/classes/Services/PerformanceLogger.php:278-282`; aangeroepen `cma/api/log.php:327` | nee | nee | **Bewaartermijn performancelog** — Dagen dat performance-logbestanden bewaard blijven. |
+> | `debug_log_retention_days` | `DEBUG_LOG_RETENTION_DAYS` | int | `7` (geklemd 1..30 bij de aanroep) | 1 / 365 | `cma/api/log.php:158-170`, clamp op `:321` | nee | nee | **Bewaartermijn debug-/browserlog** — Dagen dat libLog-bestanden bewaard blijven. |
+> | `notfound_log_retention_days` | `NOTFOUND_LOG_RETENTION_DAYS` | int | `60` (`60 * 86400`) | 1 / 365 | `src/helpers/NotFoundDigest.php:139-146` | nee | nee | **Bewaartermijn 404-log** — Dagen dat niet-gevonden-pagina's bewaard blijven. |
+> | `notfound_digest_top_paths` | `NOTFOUND_DIGEST_TOP` | int | `30` (`TOP_PATHS`) | 5 / 200 | `src/helpers/NotFoundDigest.php:21` | nee | nee | **Aantal paden in 404-mail** — Hoeveel paden het dagelijkse overzicht opsomt. |
+> | `email_log_retention_days` | `EMAIL_LOG_RETENTION_DAYS` | int | `30` (`DateAdd('d', -30, Now())`) | 1 / 365 | `cma/classes/Services/EmailLogService.php:206-215`, getriggerd vanaf `:87` | nee | nee | **Bewaartermijn e-maillog** — Dagen dat verzonden mail in `tblEmailLog` blijft staan. |
+> | `error_mail_throttle_seconds` | `ERROR_MAIL_THROTTLE_SECONDS` | int | `3600` (`ERROR_MAIL_THROTTLE_SECONDS`) | 60 / 86400 | `src/helpers/ErrorHandler.php:143`, gebruikt `:617,673` | nee | nee | **Herhaalinterval foutmail** — Dezelfde fout wordt hoogstens eens per dit aantal seconden gemaild. |
+> | `log_min_level` | `LOG_MIN_LEVEL` | text (`warning`/`debug`) | afgeleid: `P` → warning, anders debug | — | `cma/classes/Services/Logger.php:59-67` | **ja — `omgeving`** | nee | **Minimaal logniveau** — Vanaf welk niveau er naar het applicatielog wordt geschreven. |
+> | `log_read_default` / `log_read_max` | `LOG_READ_DEFAULT` / `LOG_READ_MAX` | int | `1000` / `10000` | 50 / 100000 | `cma/api/log.php:103,122,292,307` | nee | nee | **Regels per logweergave** — Hoeveel regels "Logbestanden lezen" standaard en maximaal toont. |
+> | `sql_log_file` | `SQL_LOG_FILE` | text | `'&lt;siteroot&gt;/sql_queries.log'` | — | `src/helpers/Database.php:834-846` | nee | nee | **Pad SQL-log** — Relatief pad hangt aan de siteroot. Leeg = `sql_queries.log` in de wortel. |
+> | `profiler_enabled` | `PROFILER_ENABLED` | bool | automatisch aan in L/O/T, uit in P | — | `src/helpers/Profiler.php:69-76` | **ja — `omgeving` + `test`** | nee | **Profiler aan** — Schrijft per request een regel met tijdmetingen. Zet uit op productie. |
+> | `profiler_log_file` | `PROFILER_LOG_FILE` | text | `'&lt;siteroot&gt;/profiler.csv'` | — | `src/helpers/Profiler.php:79-93` | nee | nee | **Pad profilerlog** — Relatief pad hangt aan de siteroot. |
+> | `profiler_threshold_ms` | `PROFILER_THRESHOLD_MS` | int | `0` | 0 / 60000 | `src/helpers/Profiler.php:97-100` | nee | nee | **Profiler-drempel (ms)** — Alleen requests trager dan dit worden gelogd. 0 = alles. |
+> | `js_error_rate_limit` | `JS_ERROR_RATE_LIMIT` | int | `100` | 0 / 10000 | `cma/form_api.php:1285-1296` | nee | nee | **Max. JS-fouten per IP** — Bovengrens per tijdvenster; daarboven worden meldingen genegeerd. |
+> | `js_error_rate_window` | `JS_ERROR_RATE_WINDOW` | int | `3600` | 60 / 86400 | `cma/form_api.php:1296` | nee | nee | **Tijdvenster JS-foutlimiet (seconden)** — Periode waarover bovenstaande limiet telt. |
+>
+> **Let op (bug-achtig):** `Logger::cleanup()` heeft **geen enkele aanroeper** in de codebase (alleen `cma/tools/documentation.php:3015` beweert "30 dagen"). Het applicatielog wordt dus feitelijk nooit opgeruimd. Zelfde patroon voor `NotFoundDigest`: alleen de *markers* worden na 60 dagen geruimd, de 404-logs zelf niet.
+>
+> ---
+>
+> ## Dashboard &amp; client
+>
+> | Sleutel | Env var | Type | Default | Min/Max | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|---|
+> | `dashboard_stats_days` | `DASHBOARD_STATS_DAYS` | int | `7` | 1 / 90 | `cma/api/dashboard_stats.php:110,190-207,423,441,461,478,564,581,719,731,975,985` | nee | nee | **Periode dashboardstatistieken (dagen)** — Over hoeveel dagen gebruik, fouten en formulieren worden geteld. |
+> | `dashboard_notfound_days` | `DASHBOARD_NOTFOUND_DAYS` | int | `14` | 1 / 90 | `cma/api/dashboard_stats.php:261,273-279` | nee | nee | **Periode 404-grafiek (dagen)** — Hoe ver de grafiek met niet-gevonden pagina's terugkijkt. |
+> | `perf_client_batch_size` | `PERF_CLIENT_BATCH_SIZE` | int | `20` | 1 / 500 | `cma/assets/js/perf-logger.js:23,61,79,95` | nee | **ja** | **Meetpunten per verzending** — Hoeveel browsermetingen in één keer naar de server gaan. |
+> | `perf_client_batch_interval` | `PERF_CLIENT_BATCH_INTERVAL` | int (ms) | `5000` | 500 / 60000 | `cma/assets/js/perf-logger.js:24,75` | nee | **ja** | **Verzendinterval metingen (ms)** — Hoe vaak de browser verzamelde metingen doorstuurt. |
+> | `perf_client_max_queue` | `PERF_CLIENT_MAX_QUEUE` | int | `200` | 20 / 5000 | `cma/assets/js/perf-logger.js:25` | nee | **ja** | **Max. metingen in wachtrij** — Bovengrens zodat een trage server het geheugen niet volloopt. |
+> | `table_filter_max_values` | `TABLE_FILTER_MAX_VALUES` | int | `500` (`MAX_FILTER_LENGTH`) | 50 / 20000 | `library/webcomponents/lib-table.js:1792,1866,1876` | nee | **ja** | **Filterlijst opsommen tot** — Boven dit aantal rijen toont het filter een zoekveld in plaats van alle waarden. |
+> | `table_filter_max_checkboxes` | `TABLE_FILTER_MAX_CHECKBOXES` | int | `30` (`MAX_CHECKBOX_VALUES`) | 5 / 500 | `library/webcomponents/lib-table.js:1897-1898` | nee | **ja** | **Max. aanvinkbare filterwaarden** — Daarboven wordt het filter een vrije-tekstzoek. |
+>
+> **Niet blootstellen:** `cma/api/dashboard_stats.php:166-167` (`500 * 1024` leesvenster van het errorlog) — interne leesbuffer, geen beleid; `library/webcomponents/lib-table.js:66-67` (`rowHeight: 36`, `bufferRows: 10`) — gekoppeld aan de CSS, wijzigen breekt virtual scrolling; `lib-table.js:1101,1107,1985-1986` dropdown-afmetingen.
+>
+> **`dashboard_cards_extra`** (`cma/dashboard.php:87`, contract getest in `cma/tests/DashboardSiteCardsTest.php`) — **laten staan als app.php-sleutel**: het is een PHP-array met callbacks, niet in .env te representeren.
+>
+> ---
+>
+> ## Branding &amp; taal
+>
+> | Sleutel | Env var | Type | Default | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `app_name` | `APP_NAME` | text | `'CMA'` | `cma/main.php:355` (`appname_simple`, `Name`), `cma/classes/FormTemplate.php:265` (`appname`) | **ja — `appname` / `appname_simple` / `Name`** | nee | **Applicatienaam** — Titel in de browsertab en linksboven in het menu. |
+> | `company` | `COMPANY` | text | `'RINO amsterdam'` | `src/helpers/Email.php:170,183`, `cma/task.php:58`, `cma/tools/tools_serverinfo.php:400,497` | **ja — `company`** | nee | **Organisatienaam** — Afzendernaam in e-mail en in meldingen. |
+> | `cma_language` | `CMA_LANGUAGE` | text (`NL`/`UK`) | `'NL'` | `cma/password.php:19`, `cma/preferences.php:38`, `cma/login.php:247,421`, `cma/reportdetails.php:354`, `cma/classes/FormTemplate.php:283,1465,1476,1480`, `cma/template_edit.php:20`, `cma/wizards/file-pages.php:28` | **ja — `cma_language`** | **ja** (zit al in `FormTemplate::…'language'`) | **Taal beheerscherm** — Taal van knoppen en meldingen in het CMA. |
+> | `mod_language` | `MOD_LANGUAGE` | text (`NL`/`UK`) | `''` | `library/lib_form.inc:139,169`, `cma/login.php:336` | **ja — `mod_language`** | nee | **Taal front-end formulieren** — Taal van validatiemeldingen op de website zelf. |
+> | `mail_from` | `MAIL_FROM` | email | **`'webmaster@stenversonline.nl'`** (hard-coded leveranciersadres) | `src/helpers/Email.php:171,174-179` | **ja — `email_from`** (+ legacy `email_fromname`) | nee | **Afzenderadres e-mail** — Van welk adres de site mailt. |
+> | `mail_from_name` | `MAIL_FROM_NAME` | text | valt terug op `company` | `src/helpers/Email.php:172,182-184` | **ja — `email_fromname`** | nee | **Afzendernaam e-mail** — Naam die in de mailbox van de ontvanger verschijnt. |
+> | `admin_email` | `ADMIN_EMAIL` | email | `''` | `src/helpers/Email.php:194-197,758`, `cma/tools/tools_serverinfo.php:404`; al geprobed in `src/helpers/DeployHealth.php:228` | **ja — `app_beheerder_email`** | nee | **Beheerdersadres** — Krijgt een blinde kopie van élke verzonden mail. Leeg = geen kopie. |
+> | `mail_template` | `MAIL_TEMPLATE` | text | `''` | `src/helpers/Email.php:187-188` | **ja — `email_template`** | nee | **E-mailsjabloon** — Pad naar het HTML-sjabloon om mails in te verpakken. |
+> | `mail_bcc_postfix` | `MAIL_BCC_POSTFIX` | text | `''` | `library/lib_sendmail.inc:29` (samen met constante `BLNBCCWEBMASTER`) | **ja — `emailpostfix`** | nee | **Domein voor webmaster-kopie** — Achtervoegsel waarmee het kopie-adres wordt opgebouwd. |
+> | `library_relative_dates` | `LIBRARY_RELATIVE_DATES` | bool | `false` | `src/helpers/Date.php:315,346,377` | **ja — `library_relative_dates`** | nee | **Relatieve datums tonen** — "3 dagen geleden" in plaats van een datum. |
+>
+> **Flag — klantnaam als beleid (hoort niet hard-coded):** `cma/classes/FormControlHelper.php:186` schakelt groepering uit als `company === 'RINO Groep'`; `cma/classes/FormTemplate.php:301,485` laadt de CKEditor-plugin `literatuur` alleen als `appname === 'RINO Portal'`. Beide horen echte settings te zijn (`list_grouping_enabled`, `editor_extra_plugins`).
+>
+> **Niet als nieuwe setting:** `omgeving` / `APP_ENVIRONMENT`, `base_path`, `pict_filler`, `pict_pixel`, `data_conn`, `migration_sources_extra` — infrastructuur/arrays, geen beheerderskeuze.
+>
+> ---
+>
+> ## Editor
+>
+> | Sleutel | Env var | Type | Default | Reader(s) | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `editor_css` | `EDITOR_CSS` | text | `''` | `cma/main.php:395`, `cma/classes/FormTemplate.php:297,482`, `cma/template_edit.php:41` | **ja — `cma_htmledit_css`** | **ja** | **Stylesheet in de editor** — URL van de CSS zodat tekst in de editor er uitziet als op de site. |
+> | `editor_allow_br` | `EDITOR_ALLOW_BR` | bool | `''` → `allowBR = true` (omgekeerde logica!) | `cma/main.php:396`, `cma/classes/FormTemplate.php:296,481`, `cma/template_edit.php:34` | **ja — `cma_htmledit_allowBR`** | **ja** | **Enter maakt een nieuwe alinea** — Uit = Enter maakt een regeleinde in plaats van een alinea. |
+> | `editor_image_path` | `EDITOR_IMAGE_PATH` | text | `''` | `cma/classes/FormTemplate.php:293,476`, `cma/template_edit.php:29`, `cma/wizards/link-pages.php:18`, `cma/tools/tools_db_consistency.php:250` | **ja — `cma_htmledit_img_path`** | **ja** | **Afbeeldingsmap editor** — Map waarin de editor afbeeldingen zoekt en plaatst. |
+> | `editor_extra_plugins` | `EDITOR_EXTRA_PLUGINS` | list | `''` (nu: `,literatuur` als `appname === 'RINO Portal'`) | `cma/classes/FormTemplate.php:301,485` | nee | **ja** | **Extra editor-plugins** — Komma-gescheiden CKEditor-plugins die de site extra laadt. |
+> | `editor_debug` | *(afgeleid)* | bool | `development` | `cma/template_edit.php:33`, `cma/classes/FormTemplate.php:286,480` | **ja — `development`** | ja | *(niet als eigen setting — laten afleiden van `APP_ENVIRONMENT`)* |
+>
+> **Niet blootstellen:** `cma_XML_caching` (`library/lib_xmlsnippets.inc:30,160,194-195`) — legacy XSLT-objectcache in de Application-store; `STRJQUERYVERSION` (`cma/imageupload_crop.php:43`) — hoort in het constantenbestand.
+>
+> ---
+>
+> ## SSO
+>
+> Allemaal nu `Application::get()` uit app.php; `sso_client_secret` is een **secret**.
+>
+> | Sleutel | Env var | Type | Default | Reader | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `sso_enabled` | `SSO_ENABLED` | bool | `'false'` | `cma/classes/Services/SsoService.php:30` | **ja — `cma_sso_enabled`** (tekst `'true'`/`'false'`!) | nee | **Inloggen via SSO** — Toont de SSO-knop op het inlogscherm. |
+> | `sso_force` | `SSO_FORCE` | bool | `'false'` | `SsoService.php:38` | **ja — `cma_force_sso`** | nee | **SSO verplicht** — Verbergt het wachtwoordformulier; alleen SSO blijft over. |
+> | `sso_idp_url` | `SSO_IDP_URL` | text | `''` | `SsoService.php:115,184` | **ja — `sso_idp_url`, dan `sso_idp_conn`** | nee | **Adres identity provider** — Basis-URL van de SSO-server, zonder afsluitende slash. |
+> | `sso_authorize_endpoint` | `SSO_AUTHORIZE_ENDPOINT` | text | `'oauth2/authorize'` | `SsoService.php:116` | **ja — `sso_idp_authendpoint`** | nee | **Autorisatie-pad** — Pad achter het IdP-adres waar de gebruiker naartoe wordt gestuurd. |
+> | `sso_token_endpoint` | `SSO_TOKEN_ENDPOINT` | text | `'oauth2/token'` | `SsoService.php:185` | **ja — `sso_idp_tokenendpoint`** | nee | **Token-pad** — Pad waar de code voor een token wordt ingewisseld. |
+> | `sso_client_id` | `SSO_CLIENT_ID` | text | `''` | `SsoService.php:117,188` | **ja — `sso_client_id`** | nee | **Client-ID** — Door de identity provider uitgegeven applicatie-ID. |
+> | `sso_client_secret` | `SSO_CLIENT_SECRET` | **secret** | `''` | `SsoService.php:189` | **ja — `sso_client_secret`** | nee | **Client-secret** — Wordt niet getoond. Leeg laten houdt de huidige waarde. |
+> | `sso_scope` | `SSO_SCOPE` | text | `'openid'` | `SsoService.php:119` | **ja — `sso_login_scope`** | nee | **Scope** — Welke gegevens worden opgevraagd, spatie-gescheiden. |
+> | `sso_response_type` | `SSO_RESPONSE_TYPE` | text | `'code'` | `SsoService.php:120` | **ja — `sso_login_type`** | nee | **Response type** — Vrijwel altijd `code`. |
+> | `sso_prompt` | `SSO_PROMPT` | text | `'login'` | `SsoService.php:121` | **ja — `sso_login_prompt`** | nee | **Prompt-gedrag** — `login` dwingt opnieuw inloggen af, `none` gebruikt een bestaande sessie. |
+> | `sso_grant_type` | `SSO_GRANT_TYPE` | text | `'authorization_code'` | `SsoService.php:191` | **ja — `sso_grand_type`** (let op de typfout in de bestaande sleutel) | nee | **Grant type** — Vrijwel altijd `authorization_code`. |
+> | `sso_client_base_url` | `SSO_CLIENT_BASE_URL` | text | `''` (dan autodetectie) | `SsoService.php:143` | **ja — `sso_client_base_url`** | nee | **Basis-URL van deze site** — Leeg = afleiden uit het verzoek. Vullen bij een reverse proxy. |
+> | `sso_callback_url` | `SSO_CALLBACK_URL` | text | `'cma/sso_callback.php'` | `SsoService.php:153` | **ja — `cma_sso_callback_url`** | nee | **Callback-pad** — Moet exact overeenkomen met de redirect-URI bij de identity provider. |
+> | `sso_provider_name` | `SSO_PROVIDER_NAME` | text | `'SSO login'` | `SsoService.php:348` | **ja — `sso_provider_name`** | nee | **Naam op de inlogknop** — Bijv. "Inloggen met Microsoft". |
+>
+> ---
+>
+> ## LLM
+>
+> | Sleutel | Env var | Type | Default | Reader | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `llm_provider` | `LLM_PROVIDER` | text (`ollama`/`anthropic`/`openai`) | `''` = automatisch | `src/helpers/Llm.php:72-89`; `cma/tools/tools_llm.php:632` | nee | nee | **LLM-aanbieder** — Leeg = automatisch afleiden uit adres of sleutel. |
+> | `llm_url` | `LLM_URL` | text | `''` | `src/helpers/Llm.php:47,76,139`; `cma/tools/tools_serverinfo.php:405` | nee | nee | **LLM-adres** — Endpoint van een lokale Ollama/LM Studio, bijv. `http://localhost:11434/api/generate`. |
+> | `llm_model` | `LLM_MODEL` | text | per aanbieder (`src/helpers/Llm.php:108-125`) | `src/helpers/Llm.php:263-315`; `cma/tools/documentation.php:2034` | nee | nee | **Model** — Modelnaam bij de gekozen aanbieder. Leeg = standaardmodel. |
+> | `llm_key` | `LLM_KEY` | **secret** | `''` | `src/helpers/Llm.php:98,571-574`; `cma/tools/diag.php:274` (gemaskeerd) | nee | nee | **API-sleutel LLM** — Wordt niet getoond. Nodig bij Anthropic of OpenAI. |
+> | `llm_fallback_model` | `LLM_FALLBACK_MODEL` | text | `'claude-haiku-4-5'` | `cma/tools/tools_llm.php:578` | nee | nee | **Terugvalmodel** — Gebruikt als de lokale LLM onbereikbaar is. |
+> | `llm_vision_model` | `LLM_VISION_MODEL` | text | valt terug op `llm_model` | `src/helpers/Llm.php:457` | nee | nee | **Model voor afbeeldingen** — Een tekstmodel kan geen plaatjes lezen; hier een multimodaal model. |
+> | `llm_models_dir` | `LLM_MODELS_DIR` | text | `C:\llama\models` / `~/llama-models` | `cma/tools/llm_analyse.php:117-123` | nee | nee | **Map met lokale modellen** — Waar de analysetool naar modelbestanden zoekt. |
+> | `ocr_vision_provider` | `OCR_VISION_PROVIDER` | text | `'anthropic'` | `src/helpers/Llm.php:85,101,576` | nee | nee | **OCR-aanbieder** — Bepaalt of de OCR-sleutel ook voor de LLM gebruikt mag worden. |
+> | `ocr_vision_key` | `OCR_VISION_KEY` | **secret** | `''` | `src/helpers/Llm.php:100,575`; `cma/tools/diag.php:274` | nee | nee | **API-sleutel OCR** — Wordt niet getoond. Wordt hergebruikt als LLM-sleutel bij dezelfde aanbieder. |
+>
+> **Niet blootstellen (nu):** `OCR_VISION_MODEL`, `OCR_PRIMARY`, `TESSERACT_BIN`, `TESSERACT_LANGS` (`cma/tools/diag.php:271-272`) — worden alleen *geprobed* door diag; de lezers zitten in de consumer-app, niet in het platform. Zet ze pas in de registry als het platform ze zelf leest.
+>
+> ---
+>
+> ## Deploy
+>
+> Alle regels lezen nu rechtstreeks `getenv()`/`$_ENV` in `templates/deploy.php.template` (regels 29-75), `templates/deploy_status.php.template:172-183`, `cma/tools/tools_deploy_setup.php:79-197`, `cma/tools/diag.php:48-88`.
+>
+> | Sleutel | Env var | Type | Default | Reader | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|
+> | `deploy_secret` | `DEPLOY_SECRET` | **secret** | `''` | `templates/deploy.php.template:29`; `cma/tools/diag.php:48-88`; `cma/tools/tools_deploy_setup.php:79,96,155-159`; `templates/deploy_status.php.template:172`; `cma/tools/tools_serverinfo.php:406,458` | nee | **Deploy-secret** — Wordt nooit getoond. Zelfde waarde als in de GitHub-webhook. |
+> | `deploy_branch` | `DEPLOY_BRANCH` | text | `'main'` | `deploy.php.template:30`; `deploy_status.php.template:173` | nee | **Branch** — Welke branch deze site uitrolt. |
+> | `deploy_site_root` | `DEPLOY_SITE_ROOT` | text | map van `deploy.php` | `deploy.php.template:31` | nee | **Siteroot** — Git-werkmap. Leeg = de map waar `deploy.php` staat. |
+> | `deploy_pipeline` | `DEPLOY_PIPELINE` | text | `''` | `deploy.php.template:32` | nee | **Eigen deploy-stappen** — Puntkomma-gescheiden commando's; `{branch}` wordt vervangen. ⚠️ |
+> | `deploy_run_tests` | `DEPLOY_RUN_TESTS` | text | `''` | `deploy.php.template:58`; `tools_deploy_setup.php:79,99` | nee | **Testcommando** — Draait vóór de recycle; een rode test blokkeert de deploy. |
+> | `deploy_migrate` | `DEPLOY_MIGRATE` | flag | `1` | `deploy.php.template:62`; `cma/tools/documentation.php:1345`; `tools_deploy_setup.php:170` | nee | **Migraties automatisch draaien** — Uit = zelf toepassen via Beheer → Migraties. |
+> | `deploy_migrate_backup` | `DEPLOY_MIGRATE_BACKUP` | flag | `1` | `deploy.php.template:68` | nee | **Back-up vóór migreren** — Maakt een databasekopie voordat een migratie draait. |
+> | `deploy_composer_update` | `DEPLOY_COMPOSER_UPDATE` | list | `''` | `deploy.php.template:37`; `src/helpers/DeployHealth.php:170` | nee | **Pakketten bijwerken** — Komma-gescheiden Composer-pakketten die bij elke deploy worden geüpdatet. |
+> | `deploy_composer_clear_cache` | `DEPLOY_COMPOSER_CLEAR_CACHE` | flag | `0` | `deploy.php.template:47` | nee | **Composer-cache legen** — Alleen nodig als updates blijven hangen op oude versies. |
+> | `deploy_no_reset` | `DEPLOY_NO_RESET` | flag | `0` | `deploy.php.template:34` | nee | **Lokale wijzigingen behouden** — Slaat de `git checkout -- .` vóór de pull over. |
+> | `deploy_no_pre_pull_touch` | `DEPLOY_NO_PRE_PULL_TOUCH` | flag | `0` | `deploy.php.template:35` | nee | **Geen recycle vóór de pull** — Alleen op servers zonder bestandsvergrendeling. |
+> | `deploy_no_maintenance` | `DEPLOY_NO_MAINTENANCE` | flag | `0` | `templates/deploy.php.template` | nee | **Geen onderhoudspagina tijdens deploy** — Bezoekers zien dan half-bijgewerkte code. |
+> | `deploy_recycle_touch` | `DEPLOY_RECYCLE_TOUCH` | text | `''` | `deploy.php.template:70` | nee | **Bestand voor app-pool recycle** — Bestand dat na een geslaagde deploy wordt aangeraakt. |
+> | `deploy_post_hook` | `DEPLOY_POST_HOOK` | text | `''` | `deploy.php.template:72` | nee | **Script na deploy** — PHP-bestand dat na een geslaagde deploy wordt ingeladen. |
+> | `deploy_log_file` | `DEPLOY_LOG_FILE` | text | `'&lt;root&gt;/.logs/deploy/deploy.log'` | `deploy.php.template:74` | nee | **Pad deploy-log** — Waar het verslag van elke deploy terechtkomt. |
+> | `deploy_health_email` | `DEPLOY_HEALTH_EMAIL` | email | `''` | `src/helpers/DeployHealth.php:228` | nee | **Ontvanger deploy-gezondheid** — Krijgt bericht als een deploy een probleem achterlaat. |
+> | `maintenance_auto_expiry` | `MAINTENANCE_AUTO_EXPIRY` | int | `1200` (20 min) | `templates/_bootstrap.php.template:42-45` | nee | **Onderhoudsvlag vervalt na (seconden)** — Vangnet voor een deploy die halverwege afbreekt. Handmatig ingeschakeld onderhoud vervalt nooit. |
+> | `maintenance_retry_after` | `MAINTENANCE_RETRY_AFTER` | int | `120` | `templates/_bootstrap.php.template:69` | nee | **Retry-After bij onderhoud (seconden)** — Wat zoekmachines te horen krijgen. |
+>
+> ⚠️ **Caveat voor de twee maintenance-waarden:** `_bootstrap.php.template` draait *vóór* de Composer-autoloader en is bewust dependency-vrij (zie de comment op regel 19-23). `Settings::get()` is daar niet beschikbaar — óf de waarde blijft een literal, óf het blok krijgt een kale `parse_ini`-achtige .env-lees. Niet stilzwijgend "gewoon Settings gebruiken".
+>
+> ⚠️ **`DEPLOY_PIPELINE` en `GIT_SSH_COMMAND`** (`cma/tools/documentation.php:1992`): `cma/tools/tools_serverinfo.php:27` waarschuwt expliciet dat `DEPLOY_PIPELINE` een ingebedde credential kan bevatten. Behandel beide als secret-adjacent: wel instelbaar, niet tonen in overzichten/exports.
+>
+> ---
+>
+> ## Integraties
+>
+> | Sleutel | Env var | Type | Default | Reader | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `google_oauth_client_id` | `GOOGLE_OAUTH_CLIENT_ID` | text | `''` | `src/helpers/GoogleOAuth.php:81` (fallback `GOOGLE_CLIENT_ID`) | nee | nee | **Google client-ID** — Voor inloggen met een Google-account. |
+> | `google_oauth_client_secret` | `GOOGLE_OAUTH_CLIENT_SECRET` | **secret** | `''` | `src/helpers/GoogleOAuth.php:86` (fallback `GOOGLE_CLIENT_SECRET`) | nee | nee | **Google client-secret** — Wordt niet getoond. |
+> | `google_api_key` | `GOOGLE_API_KEY` | **secret** | `''` | `library/lib_geocode.inc:31,66,111`; migratiepad `cma/migrations/9.12.0_retire_legacy_global_config.php:94` | **ja — `Google_api_key`** | nee | **Google Maps-sleutel** — Voor geocoderen en routeberekening. |
+> | `google_cse_key` / `google_cse_cx` | `GOOGLE_CSE_KEY` / `GOOGLE_CSE_CX` | **secret** / text | `''` | geprobed in `cma/tools/diag.php:273,275` | nee | nee | **Google-zoeksleutel / zoekmachine-ID** — Voor de ingebouwde zoekfunctie. |
+> | `mollie_apikey` | `MOLLIE_APIKEY` | **secret** | `''` | `cma/migrations/9.12.0_retire_legacy_global_config.php:94` | **ja — `Mollie_ApiKey`** | nee | **Mollie API-sleutel** — Wordt niet getoond. |
+> | `pexels_api_key` / `pixabay_api_key` | idem | **secret** | `''` | `cma/tools/diag.php:273,275` | nee | nee | **Pexels/Pixabay-sleutel** — Voor het zoeken van stockafbeeldingen. |
+> | `allowed_external_url` | `ALLOWED_EXTERNAL_URL` | text/list | `''` (leeg = **alles toegestaan**) | `library/lib_externhtml.inc:114-121` | **ja — `allowed_external_url`** | nee | **Toegestane externe adressen** — Alleen deze URL's mogen worden opgehaald/doorgepost. Leeg = geen beperking. |
+> | `nodejs_path` | `NODEJS_PATH` | text | `''` | `cma/tools/tools_testrunner.php:218-223,274-276` | nee | nee | **Pad naar Node.js** — Nodig op IIS, waar PATH niet is ingesteld. |
+> | `db_backup_password` | `DB_PASSWORD` | **secret** | `''` | `cma/classes/Services/BackupService.php:390,452,496`; `cma/tools/tools_backup.php:350` | nee | nee | **Wachtwoord back-upgebruiker** — Wordt niet getoond. |
+> | `db_backup_host/port/name/user/type` | `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/`DB_TYPE` | text/int | `localhost` / `3306`/`5432` / — | `cma/classes/Services/BackupService.php:386-496`; `cma/tools/tools_backup.php:346-366` | nee | nee | **Back-upverbinding** — Gegevens waarmee `mysqldump`/`pg_dump` de database benadert. |
+>
+> **Niet blootstellen:** `CONN_USERS_PATH` / `CONN_USERS_DRIVER` (`src/helpers/Database.php:494-502`, `cma/tools/reload_env.php:57-73`) — verbindingsplumbing die thuishoort in `databases.json`; `src/helpers/Bootstrap.php:744` houdt bewust de legacy `conn_&lt;key&gt;` app.php-fallback. Idem `CYPRESS_CACHE_FOLDER` (`cma/tools/tools_testrunner.php:404`) en `GIT_TERMINAL_PROMPT`/`GIT_ASKPASS` — puur ontwikkelomgeving.
+>
+> ---
+>
+> ## Cache-backend
+>
+> Alle waarden komen nu uit **app.php** via `Application::get()` (`src/helpers/Cache.php:171-270`), behalve `CACHE_DIRECTORY`/`REDIS_HOST`/`REDIS_PORT` die in de *opruimtool* wél als env worden gelezen — die inconsistentie is een echte bug.
+>
+> | Sleutel | Env var | Type | Default | Min/Max | Reader | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|---|
+> | `cache_enabled` | `CACHE_ENABLED` | bool | `true` | — | `src/helpers/Cache.php:171` | **ja — `cma_caching`** | nee | **Cache aan** — Uit alleen bij het opsporen van verouderde gegevens. |
+> | `cache_backend` | `CACHE_BACKEND` | text (`auto`/`redis`/`apcu`/`file`) | `'auto'` | — | `src/helpers/Cache.php:179-199` | **ja — `cache_backend`** | nee | **Cache-opslag** — `auto` kiest Redis, anders APCu, anders bestanden. |
+> | `cache_directory` | `CACHE_DIRECTORY` | text | `sys_get_temp_dir() . '/cma_cache'` | — | `src/helpers/Cache.php:218,278` (app-sleutel) **vs** `cma/tools/tools_clearcache.php:14` (env) — **inconsistent** | **ja — `cache_directory`** | nee | **Cachemap** — Map voor de bestandscache; kies een map binnen de site, bijv. `/.cache/cma`. |
+> | `redis_host` | `REDIS_HOST` | text | `'127.0.0.1'` | — | `src/helpers/Cache.php:246`; `cma/tools/tools_clearcache.php:551` (env) | **ja — `redis_host`** | nee | **Redis-server** — Hostnaam of IP van de Redis-server. |
+> | `redis_port` | `REDIS_PORT` | int | `6379` | 1 / 65535 | `src/helpers/Cache.php:247`; `tools_clearcache.php:551` | **ja — `redis_port`** | nee | **Redis-poort** — Standaard 6379. |
+> | `redis_timeout` | `REDIS_TIMEOUT` | float (**nieuw type nodig**) | `2.5` | 0.1 / 30 | `src/helpers/Cache.php:248` | **ja — `redis_timeout`** | nee | **Redis-time-out (seconden)** — Hoe lang op een verbinding wordt gewacht. |
+> | `redis_password` | `REDIS_PASSWORD` | **secret** | `''` | — | `src/helpers/Cache.php:257` | **ja — `redis_password`** | nee | **Redis-wachtwoord** — Wordt niet getoond. Leeg = geen authenticatie. |
+> | `redis_database` | `REDIS_DATABASE` | int | `0` | 0 / 15 | `src/helpers/Cache.php:263` | **ja — `redis_database`** | nee | **Redis-database** — Nummer om meerdere sites op één server te scheiden. |
+> | `redis_prefix` | `REDIS_PREFIX` | text | `'cma_'` | — | `src/helpers/Cache.php:269` | **ja — `redis_prefix`** | nee | **Redis-sleutelvoorvoegsel** — Voorkomt botsingen tussen sites op dezelfde Redis. |
+>
+> **Niet blootstellen:** `cache_invalidation_interval` (`src/helpers/Cache.php:225`, 1 s) en `cache_invalidation_ttl` (`:226`, 86400) — interne consistentiepolling tussen app-pool-instanties; een verkeerde waarde levert stille stale-cache-bugs op zonder zichtbaar voordeel. Zelfde argument voor de APCu-TTL's in `src/helpers/Bootstrap.php:168` (`apcu_store(..., 86400)` platformversie) en `:281,291` (`session_dir_ok2`, 3600).
+>
+> ---
+>
+> ## Overig
+>
+> | Sleutel | Env var | Type | Default | Reader | app.php-fallback | Browser | NL label + hint |
+> |---|---|---|---|---|---|---|---|
+> | `cma_monitoring` | `CMA_MONITORING` | bool | `''` (uit) | `cma/classes/FormDataProvider.php:2408` | **ja — `cma_monitoring`** | nee | **Wijzigingen bijhouden** — Legt per record vast wie wat wanneer heeft aangepast. |
+> | `list_grouping_enabled` | `LIST_GROUPING_ENABLED` | bool | `true`, behalve hard-coded uit voor `company === 'RINO Groep'` | `cma/classes/FormControlHelper.php:186` | nee | nee | **Groeperen in keuzelijsten** — Toont keuzelijsten met kopjes wanneer de query groepen aanlevert. |
+> | `closed_site` | `CLOSED_SITE` | flag | `''` | alleen geprobed in `cma/tools/diag.php:267` | nee | nee | **Site gesloten** — *(consumer-site-vlag; alleen opnemen als het platform zelf gaat lezen)* |
+>
+> **Bewust niet als setting (afleiden van `APP_ENVIRONMENT`, niet verdubbelen):** `development`, `test`, `local`, `omgeving` — nu overal los gelezen: `cma/form_api.php:73`, `cma/template_edit.php:23,33`, `cma/classes/FormTemplate.php:286,480`, `cma/classes/Services/ListServiceHelper.php:380`, `cma/classes/FormDataProvider.php:2537`, `src/helpers/Profiler.php:74-76`, `src/helpers/Email.php:191`, `cma/classes/ToolbarHelper.php:162,243`, `src/ajax/Ajax.php:230`, `cma/classes/Services/Logger.php:65`. Een vierde bron toevoegen maakt het erger; dit vraagt om één helper, geen nieuwe registry-sleutel.
+>
+> **Overige literals die ik níet zou blootstellen:** `ProcessRunner` poll-interval 100000 µs (`cma/classes/Services/ProcessRunner.php:25`) en `set_time_limit($timeout + 30)` (`:48`) — afgeleid van de al bestaande `process_timeout`; `TableService::columnCookieName()` (`cma/classes/Services/TableService.php:864`) — cookienaam is per formulier afgeleid; `X-Frame-Options: DENY` in `cma/form_api.php:150` en `SAMEORIGIN` in `templates/web.config.template:144` — inconsistent maar hoort bij de web.config-fixer (`cma/tools/documentation.php:859-864,3293`), niet bij .env.</result>
+> <usage><subagent_tokens>117703</subagent_tokens><tool_uses>56</tool_uses><duration_ms>613610</duration_ms></usage>
+> </task-notification>
+
+> kj and
+
+> <task-notification>
+> <task-id>a7d16e7c68ef7f82d</task-id>
+> <tool-use-id>toolu_01SKu6HvmUsC3aQfPZNJAByS</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/a7d16e7c68ef7f82d.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Design generic settings registry plan" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I have everything I need; no further reads are required. Below is the plan.
+>
+> # Implementation plan: generic settings registry, mail sender rewrite, reader migrations
+>
+> ## Phase overview
+>
+> | Phase | Version | Content | Leaves suite green by |
+> |---|---|---|---|
+> | 1 | 1.43.0 | Mechanism: registry metadata, `definitions()` + `settings_extra`, app fallback in `Settings::get()`, registry-driven page, generic client injection, generated doc tables, live checks. Only the existing 37 keys. | Tests rewritten to `definitions()`; Cypress captions unchanged. |
+> | 2 | 1.44.0 | Mail sender rewrite (`Email::resolveSender()`, fallback address + notice, two latent bugs, task.php, class_mailer, serverinfo) + group "Branding &amp; mail" keys. | EmailTest rewritten; new resolveSender tests. |
+> | 3 | 1.45.0 | Keys that are already env vars: LLM, Deploy, Profiler/SQL_LOG_FILE, Google, NODEJS_PATH, DB_* backup, Redis/cache backend. Registry rows + reader swap only. | Registry completeness test; no behaviour change. |
+> | 4 | 1.46.0 | Logs &amp; retentie + Dashboard &amp; client (incl. perf-logger and lib-table filter consumers; Logger cleanup wired). | jsdom tests for the two new JS consumers. |
+> | 5 | 1.47.0 | Uploads &amp; afbeeldingen + Editor (incl. new UPLOAD_MAX_MB enforcement). | Upload tests + Cypress upload precheck. |
+> | 6 | 1.48.0 | Sessie &amp; login, SSO, Overig, remaining Branding &amp; taal (APP_NAME, CMA_LANGUAGE, MOD_LANGUAGE, LIBRARY_RELATIVE_DATES, CMA_IP_PROTECT, CMA_MONITORING). Bootstrap reorder for session cookie settings. | Cookie/SSO tests; manual login verification on the test site. |
+>
+> Every phase: docs in `cma/tools/documentation.php` in the same commit (repo rule), `composer.json` version bump, git tag.
+>
+> ---
+>
+> ## Phase 1 — Registry model and mechanism (v1.43.0)
+>
+> ### 1.1 Entry metadata (`/mnt/c/repos/cma_platform/src/helpers/Settings.php`)
+>
+> Rename the const `DEFINITIONS` to a private const `PLATFORM` and add per entry:
+>
+> | Key | Required | Meaning |
+> |---|---|---|
+> | `env` | yes | .env variable (unchanged) |
+> | `type` | yes | `bool`, `flag`, `int`, `float`, `text`, `secret`, `email`, `list`, `select` |
+> | `default` | yes | typed default; for `list` an array |
+> | `min`/`max` | int, float | bounds; clamp on read, reject on save (unchanged) |
+> | `optional` | int, float | empty allowed (unchanged) |
+> | `group` | yes | group slug (`notifications`, `logging`, `mail`, `lists`, `cache`, `timeouts`, `debug`, later `session`, `uploads`, `logs_retention`, `dashboard`, `branding`, `editor`, `sso`, `llm`, `deploy`, `integrations`, `cache_backend`, `misc`) |
+> | `label` | yes | page label (moved out of `tools_settings.php` `$groups`) |
+> | `hint` | yes | page hint (moved) |
+> | `doc` | yes | "Gelezen door &amp; effect" text for the docs table (plain text; `code:` marks rendered as `&lt;code&gt;`) |
+> | `app` | no | app.php fallback key, or list of keys tried in order (first non-empty wins) |
+> | `client` | no | camelCase name in `window.CMA.settings`; never allowed on `secret` |
+> | `requires` | no | key that must be non-empty when this bool/flag is on |
+> | `options` | select | `value =&gt; label` |
+> | `item` | list | `int` or `text`; `separator` defaults to `,` |
+> | `confirm` | no | text shown as a confirm dialog before save when the value changed (used later for `auth_cookie_prefix`) |
+> | `placeholder` | no | literal; when absent and `app` is set, the page shows the current app.php value as placeholder (what the mail_* rows do by hand today) |
+>
+> Groups: `Settings::GROUPS` (private const) = `slug =&gt; ['caption' =&gt; ..., 'order' =&gt; 10, 20, ...]`. Order is by `order`, not by array position, so extras can slot in.
+>
+> ### 1.2 `definitions()` and `settings_extra`
+>
+> - `public static function definitions(): array` — memoized static; returns `PLATFORM` merged with registered extras.
+> - `public static function registerExtra(array $settings, array $groups = []): array` — validates and merges; returns the rejected entries (`key =&gt; reason`) and stores them in `self::$rejected` for the doc check. Rules (mirror `MigrationService::loadSources()`): skip when not an array, missing `env`/`type`/`default`/`label`/`group`, unknown type, key already in platform, env already used, `secret` with `client`. Unknown group slug → group `site` (caption "Deze site", order 900). Extra groups from `$groups` (`slug =&gt; ['caption','order']`).
+> - `public static function reset(): void` — drops memo and extras (tests).
+> - Bootstrap wiring in `/mnt/c/repos/cma_platform/src/helpers/Bootstrap.php` `initApplication()`, directly after `require_once $appConfig` (line 476): `Settings::registerExtra(Application::get('settings_extra', []), Application::get('settings_groups_extra', []))`. This runs before `global.asa` / `Application_OnStart` (line 507-511), so Database/Cache/HttpClient calls during `Application_OnStart` already see extras. Calls before `initApplication` (only `initSession`, see Phase 6) see platform-only definitions; `definitions()` must therefore not memoize until `registerExtra()` has run once (a `$frozen` flag set by `registerExtra`; before that, return `PLATFORM` without caching).
+> - Keep `public const DEFINITIONS = self::PLATFORM` for one release with a deprecation note; `SystemSettings::DEFINITIONS` is replaced by `SystemSettings::definitions()` delegating to `Settings::definitions()`. Callers to migrate: `SystemSettings.php` lines 127, 150, 216; `tools_settings.php` lines 39, 175; `SettingsTest.php` lines 24, 71; documentation.php lines 2326, 2417 (text).
+>
+> Site contract (documented in the environment topic, same shape as `dashboard_cards_extra`):
+> ```php
+> $GLOBALS['Application']['settings_groups_extra'] = ['shop' =&gt; ['caption' =&gt; 'Webshop', 'order' =&gt; 500]];
+> $GLOBALS['Application']['settings_extra'] = [
+>     'shop_min_order' =&gt; ['env' =&gt; 'SHOP_MIN_ORDER', 'type' =&gt; 'float', 'default' =&gt; 25.0, 'min' =&gt; 0, 'max' =&gt; 10000,
+>                          'group' =&gt; 'shop', 'label' =&gt; 'Minimum bestelbedrag', 'hint' =&gt; '...', 'doc' =&gt; '...', 'client' =&gt; 'shopMinOrder'],
+> ];
+> ```
+>
+> ### 1.3 `Settings::get()` resolves app.php fallbacks itself
+>
+> New order in `get(string $key, $fallback = null)`:
+> 1. env value non-empty → cast.
+> 2. explicit `$fallback` argument (kept for compatibility; ListService.php:178 can then drop its hand-rolled `Application::get`).
+> 3. `app` key(s): `Application::get($k, null)`; first value that is not `null`/`''` → cast with the same `cast()` (so SSO `'true'`/`'false'` strings become bools via `filter_var`; ints clamp).
+> 4. registry default.
+>
+> Add `public static function source(string $key): string` returning `env|app|default` (page badge, docs, tests) and `public static function isSet(string $key): bool` (env non-empty) — needed for the optional-int rendering fix.
+>
+> Casting per type in one private `cast(array $def, string|mixed $raw)`: `float` → `(float)` clamped; `list` → `array_values(array_filter(array_map('trim', explode(sep, $raw)), 'strlen'))`, items cast to int when `item =&gt; int`; `select` → value if in `options`, else default.
+>
+> ### 1.4 `SystemSettings` (`/mnt/c/repos/cma_platform/cma/classes/Services/SystemSettings.php`)
+>
+> - `normalize()`: add `float` (numeric, bounds, `optional`), `list` (split, trim, per-item validation, rejoin with separator, `envQuote`), `select` (must be an option). Move the cross-field check here: after the per-field loop, for each definition with `requires`, if the submitted bool/flag is truthy and the required key's normalized value (or, when not submitted, `Settings::get(required)`) is empty → `$errors[$required] = "&lt;label&gt; staat aan, maar &lt;required label&gt; is leeg."`. Delete the inline loop in `tools_settings.php` lines 45-52.
+> - `applyEnvContent()` insertion heuristic (`PERF_LOG|CACHE_LOG|DEBUG_LOG|PROFILER`) — leave; add a comment that new keys append at the end.
+> - New `public static function afterSave(): void` — calls `PerformanceLogger::clearEnabledCache()` and any future memo clears; page calls it instead of the direct call (line 62). Keeps the side effect in one place for a site that saves programmatically.
+> - `getAll()` unchanged but over `definitions()`; add `getSources()` (key → source) for the page.
+>
+> ### 1.5 Page (`/mnt/c/repos/cma_platform/cma/tools/tools_settings.php`)
+>
+> - Delete the hand-written `$groups`; build from `SystemSettings::groupedDefinitions()` (new: ordered groups, each with its rows in registry order). Append the per-user "Ontwikkelaar" group last, exactly as now (UserPreferences unchanged).
+> - One render function `cma_settings_control(string $key, array $def, $value, bool $isSet, string $placeholder): string` with a branch per type: bool/flag → `lib-switch`; int/float → `type="number"` (`step="any"` for float); text/email → text input; secret → password input with the "(ingesteld)" placeholder; list → text input, hint suffix "kommagescheiden"; select → `&lt;select&gt;` from `options`. Control `id`/`name` = key (Cypress `#error_mail_to` and `markErrors()` keep working).
+> - Optional-int zero bug (line 186): render `value=""` only when `!$isSet &amp;&amp; optional`; otherwise render the value even when it is `0` (today `list_cache_ttl=0` renders empty and then fails validation with "Vul een geheel getal in").
+> - Group ids: numeric `group-id` = position in the ordered list (1..n); developer group = n+1. Rows get `data-group-row="N"` (supported at cma-groupbox.js:154) instead of `_gN_i` ids; last row keeps class `groupbox_end`. Fold state stable across reorders via `storage-key="cma_settings_&lt;slug&gt;"`.
+> - Collapsed by default: every group except `notifications` gets the `collapsed` attribute; cma-groupbox restores localStorage state first (line 90-94), so a user's choice sticks. Group caption gets `count="&lt;rows&gt;"`.
+> - Filter box above the table (`&lt;input id="settingsFilter" placeholder="Zoek instelling…"&gt;`): inline JS hides rows whose label/hint/env do not match, hides groups with no visible rows and forces matching groups open (`groupbox.removeAttribute('collapsed')` + `_setOpen(true, false)` via the public API if any; otherwise set `collapsed` attr). Each row carries `data-search="label hint ENV"`.
+> - Source badge in the hint cell: small `&lt;lib-label type="information"&gt;app.php&lt;/lib-label&gt;` when `source === 'app'`.
+> - `confirm`: the JS `save()` compares current vs initial value of fields with `data-confirm` and calls `confirm()` before posting.
+> - Client JS `collect()` unchanged (select values already collected).
+>
+> ### 1.6 Client injection
+>
+> - `Settings::forClient()` now iterates `definitions()` and emits every entry with `client`, cast per type (bool/flag → JSON bool, int/float → number, list → array, text/select → string). The three existing names remain (`listPageSize`, `listScrollBatch`, `exportMaxRows`).
+> - New `Settings::clientScript(): string` returning the full `&lt;script&gt;window.CMA=window.CMA||{};window.CMA.settings=...;&lt;/script&gt;` line; `cma_html_header()` (`/mnt/c/repos/cma_platform/cma/bootstrap.inc` line 464) echoes it. Yes, expose it: a consumer front-end template can echo `\App\Library\Settings::clientScript()` in its `&lt;head&gt;` so lib-table/lib-pagination on the front-end get the site's values. Document in the environment topic and the lib-table topic; keep the JS guard pattern (`window.CMA &amp;&amp; window.CMA.settings`) mandatory in `library/` so pages without the injection use defaults.
+> - Existing consumers (lib-table.js:41, lib-pagination.js:56, table-preferences.js:606, form-controller.js:5422/5720) need no change in Phase 1 (same names, still numbers).
+>
+> ### 1.7 Docs (`/mnt/c/repos/cma_platform/cma/tools/documentation.php`)
+>
+> - New `cma_doc_render_settings_tables(): void` — per group: `&lt;h3&gt;caption&lt;/h3&gt;` and a table with columns Variabele / Default / Instelling (label) / Gelezen door &amp; effect (`doc`, plus "Terugval: `app.php` key" when `app` is set, "Ook in de browser als `window.CMA.settings.&lt;client&gt;`" when `client` is set). Called from `render_doc_environment()` in place of the hand-written tables at lines 2338-2417 for registry keys. The hand-written "Omgeving &amp; foutweergave" table keeps `APP_ENVIRONMENT` only (FORCE_DEBUG/CMA_DEBUG are registry); "Externe diensten &amp; paden" and "Elders gedocumenteerd" keep only non-registry vars (they shrink in Phases 3-6).
+> - Live checks added to the topic's `cma_doc_run_checks([...])` (line 2273):
+>   - `cma_doc_check_settings_registry()` — every definition has `group`, `label`, `hint`, `doc`; every `group` slug exists; every `client` name unique; no secret with `client`. Status fail lists offenders.
+>   - `cma_doc_check_settings_extra()` — like `cma_doc_check_dashboard_cards()` (line 5149): info when no extras, pass with the accepted keys, fail listing `Settings::rejectedExtra()`.
+>   - `cma_doc_check_settings_env_documented()` — parse the rendered hand-written part of `render_doc_environment` source (`file_get_contents(__FILE__)`, regex `&lt;code&gt;([A-Z][A-Z0-9_]+)&lt;/code&gt;`) and warn for any env var that is in the registry (duplicate of the generated table) — this is the "every registry key is documented/rendered" guard from the other direction; the generated table guarantees the first direction.
+> - Update the text at lines 2325-2326 and 2417 (`DEFINITIONS` → `definitions()`, `settings_extra` contract with a code sample).
+>
+> ### 1.8 Tests (Phase 1)
+>
+> PHP (`cd cma &amp;&amp; php tests/TestRunner.php &lt;Class&gt;`):
+> - `SettingsTest.php`: replace line 24 with `assertSame(Settings::definitions(), SystemSettings::definitions())`; line 71 loop over `definitions()` adding `group/label/hint/doc` completeness and `client` uniqueness; new tests: `registerExtra` accepts a valid entry and rejects platform-key collision, env collision, secret+client, unknown type (each with reason); unknown group → `site`; `reset()` restores platform-only; `get()` app fallback: `$GLOBALS['Application']['list_cache_ttl'] = '45'` → 45 when env unset, env wins; `source()` returns env/app/default; `forClient()` casts an extra `bool`/`list`/`float` correctly and never includes a secret; `get()` for `float`/`list`/`select` incl. clamp and bad select → default.
+> - `SystemSettingsTest.php`: `normalize()` for float/list/select; `requires` produces the error on the required key when the switch is on and the target empty, none when off; `requires` falls back to the stored value when the target is not submitted.
+> - New `SettingsDocTest.php`: the hand-written part of `render_doc_environment` contains no registry env var (same regex as the live check); every group slug used in definitions exists in `GROUPS`.
+> - `DocumentationSiteTopicsTest.php` unaffected.
+>
+> JS (jsdom, `cd cma &amp;&amp; node tests/js/run.js settingsfilter`): new `settingsfilter.test.js` loading the page's inline filter script from `tools_settings.php` source (extract between markers, like other tests read shipped source) — typing hides non-matching rows, matching group is opened.
+>
+> Cypress (`cma/cypress/e2e/settings/system-settings.cy.js`): captions unchanged, so the eight-group test passes; add: groups other than "Meldingen per e-mail" start collapsed; filter box narrows to a row; `select`/`float` control types once one exists (Phase 3+).
+>
+> ---
+>
+> ## Phase 2 — Mail sender rewrite and mail/branding keys (v1.44.0)
+>
+> ### 2.1 New registry entries (group `mail`, plus `branding`)
+>
+> | key | env | type | default | app fallback | notes |
+> |---|---|---|---|---|---|
+> | `mail_from` | MAIL_FROM | email (single) | '' | `email_from` | placeholder = app value |
+> | `mail_from_name` | MAIL_FROM_NAME | text | '' | `email_fromname` | |
+> | `mail_fallback_address` | MAIL_FALLBACK_ADDRESS | email | `dstenvers@gmail.com` | — | hint: used only when no sender is configured; a notice is prepended |
+> | `admin_email` | ADMIN_EMAIL | email | '' | `app_beheerder_email` | BCC on every mail; To outside production |
+> | `mail_template` | MAIL_TEMPLATE | text | '' | `email_template` | |
+> | `mail_bcc_postfix` | MAIL_BCC_POSTFIX | text | '' | `emailpostfix` | lib_sendmail.inc:29 |
+> | `company` | COMPANY | text | '' | `company` | group `branding` |
+>
+> Add an `email` sub-flag `'single' =&gt; true` (normalize rejects a comma list) for `mail_from`, `mail_fallback_address`.
+>
+> ### 2.2 `Email::resolveSender()` (`/mnt/c/repos/cma_platform/src/helpers/Email.php`)
+>
+> ```php
+> /** @return array{email:string,name:string,configured:bool,source:string} */
+> public static function resolveSender(): array
+> ```
+> - Address: `Settings::get('mail_from')` (env MAIL_FROM → app `email_from`) if valid email; else legacy swap: app `email_fromname` if it is a valid email (source `legacy`); else `Settings::get('mail_fallback_address')` with `configured=false` (source `fallback`).
+> - Name: `Settings::get('mail_from_name')` if non-empty and not an email; else `Settings::get('company')`; else the address.
+> - `initialize()` (lines 162-197): `[$fromEmail, $fromName, $senderConfigured] = resolveSender()`; BCC from `Settings::get('admin_email')`.
+> - `send()`: delete `ensureValidFromAddress()`; replace with `applySenderFallback()`: if `$this-&gt;fromEmail === ''` → fallback address + `configured=false`; if `!configured` → `$finalBody = self::senderNotice() . $finalBody` where the notice is one `&lt;p&gt;`: "Voor deze site is nog geen afzenderadres ingesteld; deze mail is verstuurd vanaf het terugvaladres. Stel het afzenderadres in via Beheerstools → Systeeminstellingen → Mailserver." An explicit `setFrom()` is always honoured (sets `configured=true`).
+> - Bug: define `$cleanFromName = $this-&gt;cleanHeaderText($this-&gt;fromName)` before `$this-&gt;mailer-&gt;setFrom(...)` (line 564) and pass it to both `invokeAfterSend` calls (594, 606). This removes the TypeError path and fixes the from-name in the e-mail log.
+> - `wrapTestEnvironmentWarning()` line 758: `Settings::get('admin_email')`.
+>
+> ### 2.3 Other call sites
+>
+> - `/mnt/c/repos/cma_platform/library/classes/class_mailer.inc` `_resolveFrom()` (242-252): `$s = Email::resolveSender(); return [$s['email'], $s['name']];`.
+> - `/mnt/c/repos/cma_platform/cma/tools/tools_serverinfo.php` 397-400 and 485-497: use `resolveSender()`; show source (`env`/`app.php`/`legacy`/`terugval`) in the Omgeving table and a warning row when `configured=false`.
+> - `/mnt/c/repos/cma_platform/cma/task.php` 58-59: delete `setFrom('diederik@...')` and `addRecipientBCC('diederik@...')`; subject `Settings::get('company')`.
+> - `/mnt/c/repos/cma_platform/library/lib_sendmail.inc` line 58 (`company`) and 29 (`emailpostfix`): via `Settings::get`.
+> - `/mnt/c/repos/cma_platform/library/500.php` line 137: `Email::create()-&gt;setSubject(...)-&gt;setBody($strError)-&gt;addRecipient($devEmail)-&gt;send()`. Flag: once this works, a 500 can be mailed twice (ErrorHandler already mails uncaught errors with the throttle). Recommendation: route it through `ErrorHandler::report()` (existing helper) instead of a direct send, so the `ERROR_MAIL_THROTTLE_SECONDS` dedupe applies; decide during implementation after checking whether IIS's custom error page runs for the same exception ErrorHandler saw.
+>
+> ### 2.4 Tests and docs
+>
+> - `EmailTest.php`: line 119-125 → expects `mail_fallback_address` default and `configured=false`, name = address; new tests: `MAIL_FROM` env beats app `email_from`; explicit `setFrom('x@rino.nl')` is kept even with `company='RINO Groep'`; `applySenderFallback` prepends the notice only when unconfigured (reflection on the pure body transform); `admin_email` env beats `app_beheerder_email`; the afterSend payload carries the cleaned from-name (extend `EmailLogHookTest.php`). tearDown must also unset the MAIL_* env keys.
+> - New `EmailResolveSenderTest.php` (pure, table-driven over env/app combos incl. legacy swap).
+> - `render_doc_mail()` (4933-4990): rewrite the key table (`MAIL_FROM`, `MAIL_FROM_NAME`, `ADMIN_EMAIL`, `COMPANY`, `MAIL_FALLBACK_ADDRESS`, app.php keys as terugval), the precedence list, the notice behaviour, and remove `webmaster@…`/`RINO amsterdam`. Add live check `cma_doc_check_mail_sender()` (warn when `configured=false`).
+>
+> ---
+>
+> ## Phase 3 — Keys that are already env (v1.45.0)
+>
+> Registry rows only; readers switch from `EnvFile::value()`/`getenv()` to `Settings::get()` so clamps/defaults live in one place.
+>
+> | Group | Keys (type, default) | Reader files |
+> |---|---|---|
+> | `llm` | LLM_PROVIDER select (`anthropic`,`openai`,`ollama`… take the set Llm.php accepts), LLM_URL text, LLM_MODEL text, LLM_KEY secret, LLM_FALLBACK_MODEL text `claude-haiku-4-5`, LLM_VISION_MODEL text, LLM_MODELS_DIR text, OCR_VISION_PROVIDER select `anthropic`, OCR_VISION_KEY secret | src/helpers/Llm.php, cma/tools/tools_llm.php:578, llm_analyse.php |
+> | `deploy` | DEPLOY_SECRET secret, DEPLOY_BRANCH text `main`, DEPLOY_SITE_ROOT text, DEPLOY_PIPELINE secret, DEPLOY_RUN_TESTS flag, DEPLOY_MIGRATE flag 1, DEPLOY_MIGRATE_BACKUP flag 1, DEPLOY_COMPOSER_UPDATE list(text), DEPLOY_COMPOSER_CLEAR_CACHE flag 0, DEPLOY_NO_RESET flag, DEPLOY_NO_PRE_PULL_TOUCH flag, DEPLOY_NO_MAINTENANCE flag, DEPLOY_RECYCLE_TOUCH text, DEPLOY_POST_HOOK text, DEPLOY_LOG_FILE text, DEPLOY_HEALTH_EMAIL email | DeployHealth.php:228 → Settings; `deploy.php.template` keeps its own `$envRead` (it runs without the autoloader). Confirmed: the page writes KEY=value to the same file Bootstrap loaded (`getEnvFile()` uses `$GLOBALS['_env_file']`), and `envQuote` output is what `EnvFile::parse` reads — verify `deploy.php.template`'s `$envRead` unquotes double-quoted values the same way (test: write a quoted value via `applyEnvContent`, parse with the template's reader in `DeployPlatformVersionTest`-style extraction). |
+> | `logging` | SQL_LOG_FILE text, PROFILER_ENABLED bool (default derived: keep `default =&gt; false` and `doc` "automatisch aan in L/O/T" — Profiler keeps its env-derived override when unset via `Settings::isSet()`), PROFILER_LOG_FILE text, PROFILER_THRESHOLD_MS int 0 | Profiler.php:69-76, Database (SQL_LOG_FILE) |
+> | `integrations` | GOOGLE_OAUTH_CLIENT_ID text, GOOGLE_OAUTH_CLIENT_SECRET secret (`app` none; GoogleOAuth keeps the `GOOGLE_CLIENT_*` legacy env read as second step in its own code), GOOGLE_API_KEY secret (`app` `google_api_key`), ALLOWED_EXTERNAL_URL text (`app` `allowed_external_url`), NODEJS_PATH text, DB_HOST/DB_PORT int/DB_NAME/DB_USER/DB_PASSWORD secret/DB_TYPE select | GoogleOAuth.php:81,86; lib_geocode.inc:31,66,111; lib_externhtml.inc:114; tools_testrunner.php:218; BackupService.php:386-496; tools_backup.php:346-366 |
+> | `cache_backend` | CACHE_ENABLED bool true (`app` `cma_caching`), CACHE_BACKEND select auto/redis/apcu/file (`app` `cache_backend`), CACHE_DIRECTORY text (`app` `cache_directory`), REDIS_HOST text 127.0.0.1, REDIS_PORT int 6379, REDIS_TIMEOUT float 2.5, REDIS_PASSWORD secret, REDIS_DATABASE int 0, REDIS_PREFIX text | Cache.php:171-270 (`Application::get` → `Settings::get`), tools_clearcache.php:14 and 551 (line 14 runs "before Application class is available" — it can still call `Settings::get` if the autoloader is loaded; otherwise keep `getenv` there with a comment) |
+>
+> Risk note for `cache_backend`: `Cache::init` may run during `Application_OnStart` — fine (after app.php). Add `Settings::flush()` call from `SystemSettings::afterSave()` and document that a backend change needs an app-pool recycle.
+>
+> ---
+>
+> ## Phase 4 — Logs &amp; retentie, Dashboard &amp; client (v1.46.0)
+>
+> | Key | Type/default | Reader → change | Flag |
+> |---|---|---|---|
+> | APP_LOG_RETENTION_DAYS | int 30 (1-365) | Logger.php:266 `cleanup()` — no caller today. Decision: wire it. Add `Logger::maybeCleanup()` using the same marker-file pattern as `NotFoundDigest::maybeSend` (daily marker in `.logs/`), called from Bootstrap next to line 104 or, cheaper, from `api/log.php:327` where PerformanceLogger::cleanup already runs. Recommend the api/log.php spot (no bootstrap cost). | wire, don't drop |
+> | PERF_LOG_RETENTION_DAYS | int 7 | PerformanceLogger.php:278, api/log.php:327 | |
+> | DEBUG_LOG_RETENTION_DAYS | int 7 | api/log.php:158-170 | |
+> | NOTFOUND_LOG_RETENTION_DAYS | int 60 | NotFoundDigest.php:139-142 `pruneMarkers` — today only markers are pruned; extend to the daily 404 log files with the same cutoff (doc says retention, make it true). | behaviour extension |
+> | NOTFOUND_DIGEST_TOP | int 30 | NotFoundDigest.php:21 | |
+> | EMAIL_LOG_RETENTION_DAYS | int 30 | EmailLogService.php:206 | |
+> | ERROR_MAIL_THROTTLE_SECONDS | int 3600 | ErrorHandler.php:143 | |
+> | LOG_MIN_LEVEL | select (debug/info/warning/error) default '' = "afgeleid van omgeving" | Logger.php:59-67: when `Settings::isSet('log_min_level')` use it, else keep derived. `select` needs an empty option "Automatisch (omgeving)". | keep derived default |
+> | JS_ERROR_RATE_LIMIT / JS_ERROR_RATE_WINDOW | int 100 / 3600 | form_api.php:1285-1296 | |
+> | DASHBOARD_STATS_DAYS / DASHBOARD_NOTFOUND_DAYS | int 7 / 14 | dashboard_stats.php | |
+> | PERF_CLIENT_BATCH_SIZE / _INTERVAL / _MAX_QUEUE | int 20 / 5000 / 200, `client` perfBatchSize/perfBatchInterval/perfMaxQueue | cma/assets/js/perf-logger.js:23-25 → `(window.CMA &amp;&amp; window.CMA.settings &amp;&amp; parseInt(...)) || default` | new JS consumer |
+> | TABLE_FILTER_MAX_VALUES / TABLE_FILTER_MAX_CHECKBOXES | int 500 / 30, `client` tableFilterMaxValues/tableFilterMaxCheckboxes | lib-table.js:1792 `MAX_FILTER_LENGTH`, 1897 `MAX_CHECKBOX_VALUES` → read from settings with guard and default (stays a `library/` component: guard pattern, no helper) | new JS consumer; front-end without injection = defaults |
+>
+> Tests: extend `tabelfilter-veel-rijen.test.js` (set `window.CMA.settings.tableFilterMaxCheckboxes = 3` before loading lib-table.js and assert the text filter appears at 4 values); new `perflogger-batch.test.js`; PHP `NotFoundDigestPruneTest` for log-file pruning; `LoggerCleanupTest` for the marker.
+>
+> ---
+>
+> ## Phase 5 — Uploads &amp; afbeeldingen, Editor (v1.47.0)
+>
+> | Key | Type/default | Readers | Flag |
+> |---|---|---|---|
+> | UPLOAD_MAX_MB | int (default = min(`upload_max_filesize`, `post_max_size`) in MB, computed; `client` uploadMaxMb) | New enforcement: `LibUpload.php:59-110` size check before move (error "Bestand groter dan N MB"), `form_api.php:1396` same check + JSON error, client precheck in the upload control (form-controller.js upload handler) reading `window.CMA.settings.uploadMaxMb` before sending. Never exceed the PHP ini cap: effective = min(setting, ini). Doc row explains the ini cap and shows a live check `cma_doc_check_upload_limit()` (warn when setting &gt; ini). | new code |
+> | UPLOAD_IMAGE_MIME_TYPES | list(text) `image/jpeg,image/png,image/gif,image/webp` | form_api.php:1408 | |
+> | EDITOR_IMAGE_MAX_WIDTH / HEIGHT | int 800/600, `app` `cma_htmledit_img_maxwidth`/`_maxheight`, `client` editorImageMaxWidth/Height | template_edit.php:27-28, FormTemplate.php:291-292,474-475, form_api.php:1404-1405 | |
+> | IMAGE_WEBP_QUALITY / JPEG / CROP | int 85 / 92 / 97 (1-100) | ResponsiveImage.php:99, form_api.php:1504/1507, imageupload_crop.php:239,487 | |
+> | RESPONSIVE_IMAGE_SIZES | list(int) `300,400,800,1200` | ResponsiveImage.php:97 | |
+> | IMAGE_DEFAULT_PATH | text `/images/`, `app` `path_images` | form_api.php:1403 | |
+> | EDITOR_CSS | text, `app` `cma_htmledit_css`, `client` editorCss | main.php:395, FormTemplate.php:297,482, template_edit.php:41 | |
+> | EDITOR_ALLOW_BR | bool, default true, `app` `cma_htmledit_allowbr` with inversion | Today: app key truthy → `allowBR: false` (main.php:396, FormTemplate.php:296/481, template_edit.php:34). So the registry entry is `'app' =&gt; 'cma_htmledit_allowbr', 'app_invert' =&gt; true` (supported in `cast()` for bool only) and readers use `Settings::get('editor_allow_br')` directly. Verify with a test: app key `'1'` → `false`; unset → `true`; env `EDITOR_ALLOW_BR=false` → false. | inverted |
+> | EDITOR_IMAGE_PATH | text, `app` `cma_htmledit_img_path` | FormTemplate.php:293,476, template_edit.php:29, link-pages.php:18, tools_db_consistency.php:250 | |
+>
+> Tests: `ImageProfilesTest`-adjacent unit test for `RESPONSIVE_IMAGE_SIZES` list parsing; upload limit unit test on the pure check function; Cypress upload precheck (toast without request).
+>
+> ---
+>
+> ## Phase 6 — Sessie &amp; login, SSO, Branding rest, Overig (v1.48.0)
+>
+> ### 6.1 Bootstrap reorder (prerequisite for the session keys)
+> `initSession()` runs at `Bootstrap::init` line 74, before `.env` is loaded (79-88). Move `initSession()` to after `loadDotenv()` (between lines 93 and 95, still before `initApplication`). `session_start()` has no output dependency; `loadConstants`/`detectAndLoadEnv`/`loadDotenv` produce no output. `initSession` then reads `Settings::get('session_cookie_lifetime'|'_secure'|'_samesite')` (platform-only definitions at that point — acceptable, and documented). Keep `recordTiming('session')` in place. Test: `ClearCacheBootstrapVolgordeTest`-style source-order assertion.
+>
+> ### 6.2 Keys
+>
+> | Key | Type/default | Readers | Flag |
+> |---|---|---|---|
+> | SESSION_COOKIE_LIFETIME int 0, SESSION_COOKIE_SECURE bool false, SESSION_COOKIE_SAMESITE select Lax/Strict/None | Bootstrap.php:297-301 | |
+> | AUTH_COOKIE_LIFETIME int 0, AUTH_COOKIE_SECURE bool false | cma/login.php:159,182,183, sso_callback.php, Cookie.php:52 default, SsoService 56/66/75 | |
+> | AUTH_COOKIE_PREFIX text `CMA` | SecurityHelper.php:33-42 constants would become derived | Recommendation: exclude from the page (`'hidden' =&gt; true` registry flag: readable via `Settings::get`, documented, not rendered, not injected). Changing it logs everyone out and the constants are used as `const` in many places; not worth a page control. If kept, use `confirm`. |
+> | PREFERENCE_COOKIE_DAYS int 365 | UserPreferences.php:125, TableService.php:864 | |
+> | CMA_IP_PROTECT bool, `app` `cma_ip_protect` | login.php:117 | |
+> | SSO_* (see inventory) | SsoService.php:30-191,348 | `isEnabled()`/`isForced()`: `Settings::get('sso_enabled')` — `cast()` turns `'true'`/`'false'` into bools, so the `=== 'true'` comparisons go. Keep the `sso_idp_url` → `sso_idp_conn` chain as `'app' =&gt; ['sso_idp_url', 'sso_idp_conn']`; `sso_grand_type` typo kept as the fallback key. |
+> | APP_NAME text, `app` [`appname`, `appname_simple`, `Name`] | main.php:355, FormTemplate.php:265 | |
+> | CMA_LANGUAGE select NL/UK, `app` `cma_language`; MOD_LANGUAGE, `app` `mod_language` | many readers — grep `cma_language`/`mod_language` and switch | |
+> | LIBRARY_RELATIVE_DATES bool | Date.php:315,346,377 | |
+> | CMA_MONITORING bool, `app` `cma_monitoring` | FormDataProvider.php:2408 | |
+> | MAINTENANCE_AUTO_EXPIRY 1200 / MAINTENANCE_RETRY_AFTER 120 | `templates/_bootstrap.php.template` runs before the autoloader | Leave as literals; add a doc note in the deployment topic that these two are the only env-looking values not in the registry, and why. (A tiny inline env read is possible but the template is copied to sites and would drift.) |
+>
+> ---
+>
+> ## Cross-cutting: test plan and verification
+>
+> | Layer | Command | What each phase adds |
+> |---|---|---|
+> | PHP | `cd cma &amp;&amp; php tests/TestRunner.php` | Phase 1: SettingsTest/SystemSettingsTest rewrites, SettingsDocTest. Phase 2: EmailTest rewrite, EmailResolveSenderTest, EmailLogHookTest from-name. Phase 3: registry completeness for the new keys (defaults equal the literals they replaced, same style as `testDefaultsAreTheValuesTheLiteralsHad`). Phase 4: NotFoundDigestPruneTest, LoggerCleanupTest. Phase 5: upload limit, list parsing, allowBR inversion. Phase 6: bootstrap order test, SSO bool parsing. |
+> | JS (jsdom) | `cd cma &amp;&amp; npm run test:js` | Phase 1: settingsfilter. Phase 4: lib-table filter thresholds via `window.CMA.settings`, perf-logger batch. Phase 5: upload precheck. |
+> | Cypress | `system-settings.cy.js` | Phase 1: collapsed groups, filter, badge. Later phases: control types for new groups (select/float), `confirm` dialog stub. |
+> | Test site | after each deploy | Open Systeeminstellingen, save without changes (must succeed, `.env` unchanged apart from key order); Server informatie → Omgeving → Test-mail shows sender source; docs topic "Omgeving &amp; .env" checks all green; Phase 2: send a test mail with no sender configured and confirm the notice; Phase 6: log in/out after the session reorder. |
+>
+> ---
+>
+> ## Risks
+>
+> - `definitions()` before `registerExtra()` (only `initSession` in Phase 6) sees platform-only definitions; a site extra used there would be unknown → `InvalidArgumentException`. Documented limitation; extras are for site code, not bootstrap.
+> - `Application::get()` from `Settings::get()` initializes `$GLOBALS['Application']` if absent and logs access — harmless, but `SettingsTest` must snapshot/restore `$GLOBALS['Application']` like `EmailTest` does.
+> - Phase 2 changes who receives mail on every consumer site that relied on the RINO/diederik defaults; the fallback address gets those mails plus the notice. Announce in the release note.
+> - 500.php fix may double-mail; decide via `ErrorHandler::report()` (2.3).
+> - `applyEnvContent()` appends new keys at the end; a site's hand-organized `.env` gets a growing tail. Acceptable; documented.
+> - Registry size: `Settings::definitions()` is built once per request; ~130 entries is negligible. The page at ~130 rows is fine with collapsed groups.
+> - Session reorder (Phase 6) touches the earliest bootstrap step; keep it in its own commit with the order test.
+>
+> ## Release plan
+>
+> Semver minor per phase (1.43.0 → 1.48.0), each: code + docs topic updates + tests in one commit, `composer.json` bump, tag; consumer sites `composer update stenversonline/platform`. Phase 1 has no user-visible behaviour change beyond the page layout, so it is the safe first roll-out; Phase 2 is the only one that changes outgoing mail and should be verified on the test site before production.
+>
+> ### Critical Files for Implementation
+> - /mnt/c/repos/cma_platform/src/helpers/Settings.php
+> - /mnt/c/repos/cma_platform/cma/classes/Services/SystemSettings.php
+> - /mnt/c/repos/cma_platform/cma/tools/tools_settings.php
+> - /mnt/c/repos/cma_platform/src/helpers/Email.php
+> - /mnt/c/repos/cma_platform/cma/tools/documentation.php</result>
+> <usage><subagent_tokens>114146</subagent_tokens><tool_uses>29</tool_uses><duration_ms>425763</duration_ms></usage>
+> </task-notification>
+
+> continue

@@ -50,6 +50,14 @@ describe('System Settings', () => {
             cy.get('input#mail_password').should('have.attr', 'type', 'password').and('have.value', '');
         });
 
+        it('should start with only the notifications group open, and open a group on filter', () => {
+            cy.get('cma-groupbox[caption="Cache"]').should('have.attr', 'collapsed');
+            cy.get('cma-groupbox[caption="Meldingen per e-mail"]').should('not.have.attr', 'collapsed');
+            cy.get('#settingsFilter').type('cachetijd');
+            cy.get('input#cache_default_ttl').closest('tr').should('not.have.class', 'cma-tool__settings-hidden');
+            cy.get('input#error_mail_to').closest('tr').should('have.class', 'cma-tool__settings-hidden');
+        });
+
         it('should have the developer switches', () => {
             cy.get('lib-switch#debugMode').should('exist');
             cy.get('lib-switch#showDebugOverlay').should('exist');

@@ -183,4 +183,64 @@ class SystemSettingsTest extends TestCase
         $n = SystemSettings::normalize(['mail_host' => "smtp\nevil"]);
         $this->assertArrayHasKey('mail_host', $n['errors']);
     }
+
+    // ---- float / list / select / requires ----
+
+    public function testFloatListAndSelectNormalize(): void
+    {
+        \App\Library\Settings::reset();
+        \App\Library\Settings::registerExtra([
+            'x_ratio'  => ['env' => 'X_RATIO',  'type' => 'float',  'default' => 1.5, 'min' => 0, 'max' => 10, 'group' => 'site', 'label' => 'Ratio'],
+            'x_sizes'  => ['env' => 'X_SIZES',  'type' => 'list',   'default' => [1, 2], 'item' => 'int', 'group' => 'site', 'label' => 'Maten'],
+            'x_mode'   => ['env' => 'X_MODE',   'type' => 'select', 'default' => 'a', 'options' => ['a' => 'A', 'b' => 'B'], 'group' => 'site', 'label' => 'Modus'],
+        ]);
+        try {
+            $n = SystemSettings::normalize(['x_ratio' => '2,5', 'x_sizes' => ' 300, 800 ,1200', 'x_mode' => 'b']);
+            $this->assertSame([], $n['errors']);
+            $this->assertSame('2.5', $n['values']['x_ratio']);
+            $this->assertSame('300,800,1200', $n['values']['x_sizes']);
+            $this->assertSame('b', $n['values']['x_mode']);
+            $bad = SystemSettings::normalize(['x_ratio' => '11', 'x_sizes' => '3,x', 'x_mode' => 'z']);
+            $this->assertArrayHasKey('x_ratio', $bad['errors']);
+            $this->assertArrayHasKey('x_sizes', $bad['errors']);
+            $this->assertArrayHasKey('x_mode', $bad['errors']);
+        } finally {
+            \App\Library\Settings::reset();
+        }
+    }
+
+    public function testRequiresRejectsASwitchWithoutItsCompanion(): void
+    {
+        unset($_ENV['ERROR_MAIL_TO']);
+        putenv('ERROR_MAIL_TO');
+        $n = SystemSettings::normalize(['error_mail_enabled' => 'J', 'error_mail_to' => '']);
+        $this->assertArrayHasKey('error_mail_to', $n['errors']);
+        $this->assertStringContainsString('Fouten mailen staat aan', $n['errors']['error_mail_to']);
+        $ok = SystemSettings::normalize(['error_mail_enabled' => 'J', 'error_mail_to' => 'a@b.nl']);
+        $this->assertSame([], $ok['errors']);
+        $off = SystemSettings::normalize(['error_mail_enabled' => 'N', 'error_mail_to' => '']);
+        $this->assertSame([], $off['errors']);
+    }
+
+    public function testRequiresLooksAtTheStoredValueWhenTheCompanionIsNotSubmitted(): void
+    {
+        $_ENV['ERROR_MAIL_TO'] = 'stored@b.nl';
+        try {
+            $n = SystemSettings::normalize(['error_mail_enabled' => 'J']);
+            $this->assertSame([], $n['errors']);
+        } finally {
+            unset($_ENV['ERROR_MAIL_TO']);
+        }
+    }
+
+    public function testGroupedDefinitionsFollowGroupOrderAndSkipHidden(): void
+    {
+        $groups = SystemSettings::groupedDefinitions();
+        $this->assertSame('notifications', array_key_first($groups));
+        foreach ($groups as $g) {
+            foreach ($g['rows'] as $def) {
+                $this->assertFalse(!empty($def['hidden']));
+            }
+        }
+    }
 }

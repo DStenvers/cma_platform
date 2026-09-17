@@ -19,8 +19,48 @@ use App\Library\Settings;
 
 class SystemSettings
 {
-    /** The registry lives in App\Library\Settings; this is the same array. */
+    /** @deprecated Use definitions(); this holds the platform entries only. */
     public const DEFINITIONS = Settings::DEFINITIONS;
+
+    /**
+     * The full registry: platform entries plus the site's own (app.php
+     * settings_extra), see App\Library\Settings.
+     *
+     * @return array<string,array>
+     */
+    public static function definitions(): array
+    {
+        return Settings::definitions();
+    }
+
+    /**
+     * The registry grouped for the screen: ordered groups, each with its
+     * caption and its visible entries in registry order. Hidden entries and
+     * empty groups are left out.
+     *
+     * @return array<string,array{caption:string,order:int,rows:array<string,array>}>
+     */
+    public static function groupedDefinitions(): array
+    {
+        $groups = [];
+        foreach (Settings::groups() as $slug => $g) {
+            $groups[$slug] = ['caption' => $g['caption'], 'order' => $g['order'], 'rows' => []];
+        }
+        foreach (self::definitions() as $key => $def) {
+            if (!empty($def['hidden'])) {
+                continue;
+            }
+            $slug = isset($groups[$def['group']]) ? $def['group'] : 'site';
+            $groups[$slug]['rows'][$key] = $def;
+        }
+        return array_filter($groups, static fn ($g) => $g['rows'] !== []);
+    }
+
+    /** What runs after a successful save: memoised switches must see the new values. */
+    public static function afterSave(): void
+    {
+        PerformanceLogger::clearEnabledCache();
+    }
 
     private static ?string $envFile = null;
     private static ?string $envFileName = null;
@@ -124,7 +164,7 @@ class SystemSettings
     public static function getAll(): array
     {
         $out = [];
-        foreach (array_keys(self::DEFINITIONS) as $key) {
+        foreach (array_keys(self::definitions()) as $key) {
             $out[$key] = self::get($key);
         }
         return $out;
@@ -146,8 +186,9 @@ class SystemSettings
     {
         $values = [];
         $errors = [];
+        $defs = self::definitions();
         foreach ($input as $key => $raw) {
-            $def = self::DEFINITIONS[$key] ?? null;
+            $def = $defs[$key] ?? null;
             if ($def === null) {
                 continue;
             }
@@ -172,6 +213,20 @@ class SystemSettings
                         $values[$key] = (string) (int) $s;
                     }
                     break;
+                case 'float':
+                    $s = str_replace(',', '.', trim((string) $raw));
+                    if ($s === '' && !empty($def['optional'])) {
+                        $values[$key] = '';
+                        break;
+                    }
+                    if ($s === '' || !is_numeric($s)) {
+                        $errors[$key] = 'Vul een getal in.';
+                    } elseif ((float) $s < $def['min'] || (float) $s > $def['max']) {
+                        $errors[$key] = 'Vul een getal tussen ' . $def['min'] . ' en ' . $def['max'] . ' in.';
+                    } else {
+                        $values[$key] = (string) (float) $s;
+                    }
+                    break;
                 case 'text':
                 case 'secret':
                     $s = trim((string) $raw);
@@ -184,15 +239,51 @@ class SystemSettings
                         $values[$key] = self::envQuote($s);
                     }
                     break;
+                case 'list':
+                    $items = array_values(array_filter(array_map('trim', explode(',', (string) $raw)), 'strlen'));
+                    if (($def['item'] ?? 'text') === 'int') {
+                        $bad = array_filter($items, static fn ($i) => !preg_match('/^\d+$/', $i));
+                        if ($bad !== []) {
+                            $errors[$key] = 'Alleen gehele getallen, gescheiden door komma\'s: ' . implode(', ', $bad);
+                            break;
+                        }
+                    }
+                    $values[$key] = self::envQuote(implode(',', $items));
+                    break;
+                case 'select':
+                    $s = trim((string) $raw);
+                    if ($s !== '' && !array_key_exists($s, $def['options'] ?? [])) {
+                        $errors[$key] = 'Kies een van de opties.';
+                    } else {
+                        $values[$key] = $s;
+                    }
+                    break;
                 case 'email':
                     $addresses = array_values(array_filter(array_map('trim', explode(',', (string) $raw)), 'strlen'));
                     $bad = array_filter($addresses, static fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL) === false);
                     if ($bad !== []) {
                         $errors[$key] = 'Ongeldig e-mailadres: ' . implode(', ', $bad);
+                    } elseif (!empty($def['single']) && count($addresses) > 1) {
+                        $errors[$key] = 'Eén adres.';
                     } else {
                         $values[$key] = implode(',', $addresses);
                     }
                     break;
+            }
+        }
+        // A switch that needs a companion value (a notification needs a
+        // recipient): the submitted value counts, else what is stored.
+        foreach ($defs as $key => $def) {
+            if (empty($def['requires']) || !array_key_exists($key, $input) || !in_array($def['type'], ['bool', 'flag'], true)) {
+                continue;
+            }
+            if (!self::truthy($input[$key])) {
+                continue;
+            }
+            $required = $def['requires'];
+            $has = array_key_exists($required, $values) ? $values[$required] !== '' : (string) Settings::get($required) !== '';
+            if (!$has && !isset($errors[$required])) {
+                $errors[$required] = $def['label'] . ' staat aan, maar ' . lcfirst($defs[$required]['label'] ?? $required) . ' is leeg.';
             }
         }
         return ['values' => $values, 'errors' => $errors];
@@ -213,7 +304,7 @@ class SystemSettings
             return $n['errors'];
         }
         foreach ($n['values'] as $key => $value) {
-            if (!self::updateEnvSetting(self::DEFINITIONS[$key]['env'], $value)) {
+            if (!self::updateEnvSetting(self::definitions()[$key]['env'], $value)) {
                 return ['_file' => 'Kon ' . self::getEnvFileName() . ' niet schrijven.'];
             }
         }
