@@ -352,7 +352,7 @@ if (empty($contentPage)) {
     }
 }
 
-$appTitle = Application::get('appname_simple', '') ?: Application::get('Name', 'CMA');
+$appTitle = (string) \App\Library\Settings::get('app_name') ?: 'CMA';
 $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application::get('omgeving', '') === 'A' ? 'ACC: ' : '');
 ?>
 <!DOCTYPE html>

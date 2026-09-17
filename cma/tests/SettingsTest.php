@@ -16,16 +16,25 @@ class SettingsTest extends TestCase
 
     public function setUp(): void
     {
+        // Other suites leave app.php-style keys behind; the app fallback would read them.
         $this->applicationBackup = $GLOBALS['Application'] ?? null;
+        $GLOBALS['Application'] = [];
         Settings::reset();
+        $this->clearEnv();
+    }
+
+    private function clearEnv(): void
+    {
+        $vars = array_map(static fn ($d) => $d['env'], Settings::definitions());
+        foreach (array_merge($vars, ['X_ON', 'X_SIZES', 'X_RATIO', 'X_MODE']) as $k) {
+            unset($_ENV[$k]);
+            putenv($k);
+        }
     }
 
     public function tearDown(): void
     {
-        foreach (['LIST_PAGE_SIZE', 'DB_CONNECT_TIMEOUT', 'LIST_CACHE_TTL', 'MAIL_HOST', 'X_ON', 'X_SIZES', 'X_RATIO', 'X_MODE'] as $k) {
-            unset($_ENV[$k]);
-            putenv($k);
-        }
+        $this->clearEnv();
         if ($this->applicationBackup === null) {
             unset($GLOBALS['Application']);
         } else {
@@ -105,6 +114,33 @@ class SettingsTest extends TestCase
         $this->assertSame(800, Settings::get('editor_image_max_width'));
         $this->assertSame(600, Settings::get('editor_image_max_height'));
         $this->assertTrue(Settings::get('editor_allow_br'));
+        // Phase 6: session, SSO, branding, misc
+        $this->assertSame(0, Settings::get('session_cookie_lifetime'));
+        $this->assertFalse(Settings::get('session_cookie_secure'));
+        $this->assertSame('Lax', Settings::get('session_cookie_samesite'));
+        $this->assertSame(0, Settings::get('auth_cookie_lifetime'));
+        $this->assertFalse(Settings::get('cookie_secure'));
+        $this->assertSame(365, Settings::get('preference_cookie_days'));
+        $this->assertFalse(Settings::get('cma_ip_protect'));
+        $this->assertSame('', Settings::get('app_name'));
+        $this->assertSame('NL', Settings::get('cma_language'));
+        $this->assertSame('', Settings::get('mod_language'));
+        $this->assertFalse(Settings::get('sso_enabled'));
+        $this->assertSame('oauth2/authorize', Settings::get('sso_authorize_endpoint'));
+        $this->assertSame('authorization_code', Settings::get('sso_grant_type'));
+        $this->assertSame('cma/sso_callback.php', Settings::get('sso_callback_url'));
+        $this->assertFalse(Settings::get('cma_monitoring'));
+    }
+
+    public function testSsoAndLanguageKeysReadTheOldAppPhpShapes(): void
+    {
+        $GLOBALS['Application'] = ['cma_sso_enabled' => 'true', 'cma_force_sso' => 'false', 'sso_idp_conn' => 'https://idp.example', 'sso_grand_type' => 'client_credentials', 'cma_language' => 'UK', 'appname' => 'Portaal'];
+        $this->assertTrue(Settings::get('sso_enabled'), "the string 'true' is true");
+        $this->assertFalse(Settings::get('sso_force'));
+        $this->assertSame('https://idp.example', Settings::get('sso_idp_url'), 'second app key in the chain');
+        $this->assertSame('client_credentials', Settings::get('sso_grant_type'), 'the misspelled old key still counts');
+        $this->assertSame('UK', Settings::get('cma_language'));
+        $this->assertSame('Portaal', Settings::get('app_name'));
     }
 
     public function testCacheKeysFallBackToTheirAppPhpNames(): void

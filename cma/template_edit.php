@@ -17,7 +17,7 @@ echo '<HTML>';
 echo '<HEAD>';
 cma_error_handler();
 echo '<meta http-equiv="X-UA-Compatible" content="IE=edge" /> ';
-echo '<script src=../library/formval_' . (Application::get('cma_language')) . '' . '.js></script> ';
+echo '<script src=../library/formval_' . (\App\Library\Settings::get('cma_language')) . '' . '.js></script> ';
 echo '<script src="wizards/wizard.js"></script>';
 echo '<script src="/cma/ckeditor/ckeditor.js?v=' . cma_asset_version() . '" defer></script> ';
 echo '<script src="include/all' . ((!Application::get('test')) ? ".min" : "") . '' . '.js"></script>';

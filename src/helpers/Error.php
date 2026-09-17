@@ -276,7 +276,7 @@ class Error
      */
     public static function form(string $message, string $details = ''): void
     {
-        $language = Application::get('mod_language', '');
+        $language = \App\Library\Settings::get('mod_language');
 
         if ($language === 'UK') {
             $title = 'The form has not been completed:';

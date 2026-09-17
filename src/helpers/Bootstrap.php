@@ -71,9 +71,6 @@ class Bootstrap
         self::initEncoding();
         self::recordTiming('init');
 
-        self::initSession();
-        self::recordTiming('session');
-
         self::loadConstants();
 
         self::detectAndLoadEnv();
@@ -87,6 +84,10 @@ class Bootstrap
 
         self::loadDotenv();
         self::recordTiming('autoload');
+
+        // After .env: the session cookie reads SESSION_COOKIE_* from the settings.
+        self::initSession();
+        self::recordTiming('session');
 
         // .env is loaded now — re-apply with the REAL APP_ENVIRONMENT: stays
         // verbose for non-prod / FORCE_DEBUG, switches off for production runtime.
@@ -294,10 +295,13 @@ class Bootstrap
             }
         }
 
+        // SESSION_COOKIE_* (Systeeminstellingen); platform defaults before app.php exists
         session_set_cookie_params([
+            'lifetime' => (int) Settings::get('session_cookie_lifetime'),
             'path' => '/',
+            'secure' => (bool) Settings::get('session_cookie_secure'),
             'httponly' => true,
-            'samesite' => 'Lax'
+            'samesite' => (string) Settings::get('session_cookie_samesite'),
         ]);
 
         session_cache_limiter('');

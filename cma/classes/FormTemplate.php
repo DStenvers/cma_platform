@@ -280,7 +280,7 @@ class FormTemplate
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'filterIdName' => $this->formDef->getFilterIdName(),
             'filterFieldName' => $this->formDef->getFilterFieldName(),
-            'language' => Application::get('CMA_Language', 'NL'),
+            'language' => \App\Library\Settings::get('cma_language'),
             'basePath' => Application::get('base_path', ''),
             'domain' => Request::currentDomain(),
             'debug' => (bool) Application::get('development', ''),
@@ -1462,7 +1462,7 @@ class FormTemplate
         // Empty state
         $html .= '<div class="no-data" id="noDataMessage">' . PHP_EOL;
         $noDataCanAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
-        if (Application::get('CMA_Language', '') == 'UK') {
+        if (\App\Library\Settings::get('cma_language') == 'UK') {
             $noDataText = 'Select a record from the list on the left to ' .
                 ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'view' : 'edit');
         } else {
@@ -1473,11 +1473,11 @@ class FormTemplate
         $html .= '<p class="no-data__text">' . $noDataText . '</p>' . PHP_EOL;
         if ($noDataCanAdd) {
             $noDataSingular = strtolower($this->formDef->getTitleSingular() ?: $this->formDef->getTitle());
-            $noDataButtonLabel = Application::get('CMA_Language', '') == 'UK'
+            $noDataButtonLabel = \App\Library\Settings::get('cma_language') == 'UK'
                 ? 'Add ' . $noDataSingular
                 : 'Voeg ' . $noDataSingular . ' toe';
             $html .= '<p class="no-data__or">'
-                   . (Application::get('CMA_Language', '') == 'UK' ? 'or' : 'of') . '</p>' . PHP_EOL;
+                   . (\App\Library\Settings::get('cma_language') == 'UK' ? 'or' : 'of') . '</p>' . PHP_EOL;
             // Same data-action="add" contract as the toolbar button, so the
             // controller's action delegation handles it identically.
             $html .= '<button type="button" class="btn btn-primary no-data__add" data-action="add">'

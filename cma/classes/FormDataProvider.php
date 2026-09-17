@@ -2405,7 +2405,7 @@ class FormDataProvider
         string $logLevel = 'info'
     ): void {
         // Check if monitoring is enabled
-        if (!Application::get('cma_monitoring', '')) {
+        if (!\App\Library\Settings::get('cma_monitoring')) {
             Logger::debug('logMonitoring: Monitoring disabled');
             return;
         }

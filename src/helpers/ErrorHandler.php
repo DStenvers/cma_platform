@@ -276,8 +276,7 @@ class ErrorHandler
             $config['environment'] = strtoupper($environment);
 
             // Use app name from Application config
-            $config['app_name'] = $config['app_name'] ??
-                ($GLOBALS['Application']['appname_simple'] ?? $GLOBALS['Application']['appname'] ?? 'PHP Application');
+            $config['app_name'] = $config['app_name'] ?? ((string) Settings::get('app_name') ?: 'PHP Application');
 
             // On production, exclude E_DEPRECATED to avoid deprecated warnings breaking pages
             if (!($config['debug'] ?? false)) {

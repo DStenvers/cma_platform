@@ -312,7 +312,7 @@ class Date
 
         // Check Application setting if not explicitly specified
         if ($useRelative === null) {
-            $useRelative = Application::get('library_relative_dates', false) ? true : false;
+            $useRelative = (bool) Settings::get('library_relative_dates');
         }
 
         $relativeName = self::relative($date, $useRelative);
@@ -343,7 +343,7 @@ class Date
         }
 
         if ($useRelative === null) {
-            $useRelative = Application::get('library_relative_dates', false) ? true : false;
+            $useRelative = (bool) Settings::get('library_relative_dates');
         }
 
         $relativeName = self::relative($date, $useRelative);
@@ -374,7 +374,7 @@ class Date
         }
 
         if ($useRelative === null) {
-            $useRelative = Application::get('library_relative_dates', false) ? true : false;
+            $useRelative = (bool) Settings::get('library_relative_dates');
         }
 
         $relativeName = self::relative($date, $useRelative);

@@ -48,7 +48,7 @@ class Calendar
         $this->ShowDateSelect = false;
         $this->msToday = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", mktime(0, 0, 0, date("n", strtotime(date("Y-m-d H:i:s"))), date("j", strtotime(date("Y-m-d H:i:s"))), date("Y", strtotime(date("Y-m-d H:i:s")))))));
         $this->ShowPrevNextMonth = true;
-        if (Application::get('Mod_language', '') == 'UK') {
+        if (\App\Library\Settings::get('mod_language') == 'UK') {
             $this->strDays = 'Su,Mo,Tu,We,Th,Fr,Sa';
         } else {
             $this->strDays = 'Zo,Ma,Di,Wo,Do,Vr,Za';

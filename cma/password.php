@@ -16,7 +16,7 @@ if (!SecurityHelper::isLoggedIn()) {
     exit;
 }
 
-$language = Application::get('cma_language', 'NL');
+$language = \App\Library\Settings::get('cma_language');
 $pageTitle = $language === 'UK' ? 'Change Password' : 'Wachtwoord wijzigen';
 $userName = SecurityHelper::getCurrentUserName();
 

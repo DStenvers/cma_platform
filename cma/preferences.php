@@ -35,7 +35,7 @@ if (!SecurityHelper::isLoggedIn()) {
     exit;
 }
 
-$language = Application::get('cma_language', 'NL');
+$language = \App\Library\Settings::get('cma_language');
 $userName = SecurityHelper::getCurrentUserName();
 $userId = (int)SecurityHelper::getCurrentUserId();
 $message = '';

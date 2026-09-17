@@ -122,7 +122,7 @@ class UserPreferences
 
     private static function toCookies(array $prefs): void
     {
-        $expires = time() + (365 * 24 * 60 * 60);
+        $expires = time() + ((int) \App\Library\Settings::get('preference_cookie_days') * 24 * 60 * 60);
         Cookie::set('cma_theme', $prefs['prefTheme'] ?? 'light', $expires);
         Cookie::set('cma_menu_style', $prefs['prefMenuStyle'] ?? 'sidebar', $expires);
         Cookie::set('cma_popup_style', $prefs['prefPopupStyle'] ?? 'sidepanel', $expires);

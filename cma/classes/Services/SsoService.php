@@ -27,7 +27,7 @@ class SsoService
      */
     public static function isEnabled(): bool
     {
-        return Application::get('cma_sso_enabled', 'false') === 'true';
+        return (bool) \App\Library\Settings::get('sso_enabled');
     }
 
     /**
@@ -35,7 +35,7 @@ class SsoService
      */
     public static function isForced(): bool
     {
-        return Application::get('cma_force_sso', 'false') === 'true';
+        return (bool) \App\Library\Settings::get('sso_force');
     }
 
     /**
@@ -53,7 +53,7 @@ class SsoService
     public static function generateState(): string
     {
         $state = self::generateRandomString(16);
-        Cookie::set(self::COOKIE_SSO_STATE, $state, 0, '/', '', false, true);
+        Cookie::set(self::COOKIE_SSO_STATE, $state, 0, '/', '', null, true);
         return $state;
     }
 
@@ -63,7 +63,7 @@ class SsoService
     public static function generateNonce(): string
     {
         $nonce = self::generateRandomString(16);
-        Cookie::set(self::COOKIE_SSO_NONCE, $nonce, 0, '/', '', false, true);
+        Cookie::set(self::COOKIE_SSO_NONCE, $nonce, 0, '/', '', null, true);
         return $nonce;
     }
 
@@ -72,7 +72,7 @@ class SsoService
      */
     public static function setReturnUrl(string $url): void
     {
-        Cookie::set(self::COOKIE_SSO_RETURN_URL, $url, 0, '/', '', false, true);
+        Cookie::set(self::COOKIE_SSO_RETURN_URL, $url, 0, '/', '', null, true);
     }
 
     /**
@@ -112,13 +112,13 @@ class SsoService
             self::setReturnUrl($returnUrl);
         }
 
-        $idpUrl = rtrim(Application::get('sso_idp_url', Application::get('sso_idp_conn', '')), '/');
-        $authEndpoint = Application::get('sso_idp_authendpoint', 'oauth2/authorize');
-        $clientId = Application::get('sso_client_id', '');
+        $idpUrl = rtrim((string) \App\Library\Settings::get('sso_idp_url'), '/');
+        $authEndpoint = (string) \App\Library\Settings::get('sso_authorize_endpoint');
+        $clientId = (string) \App\Library\Settings::get('sso_client_id');
         $redirectUri = self::getCallbackUrl();
-        $scope = Application::get('sso_login_scope', 'openid');
-        $responseType = Application::get('sso_login_type', 'code');
-        $prompt = Application::get('sso_login_prompt', 'login');
+        $scope = (string) \App\Library\Settings::get('sso_scope');
+        $responseType = (string) \App\Library\Settings::get('sso_response_type');
+        $prompt = (string) \App\Library\Settings::get('sso_prompt');
 
         $params = [
             'response_type' => $responseType,
@@ -140,7 +140,7 @@ class SsoService
      */
     public static function getCallbackUrl(): string
     {
-        $baseUrl = Application::get('sso_client_base_url', '');
+        $baseUrl = (string) \App\Library\Settings::get('sso_client_base_url');
 
         // Auto-detect base URL if not configured or if it doesn't match current host
         if (empty($baseUrl) || self::shouldAutoDetectBaseUrl($baseUrl)) {
@@ -150,7 +150,7 @@ class SsoService
         }
 
         $baseUrl = rtrim($baseUrl, '/');
-        $callbackPath = Application::get('cma_sso_callback_url', 'cma/sso_callback.php');
+        $callbackPath = (string) \App\Library\Settings::get('sso_callback_url');
         return $baseUrl . '/' . $callbackPath;
     }
 
@@ -181,14 +181,14 @@ class SsoService
      */
     public static function exchangeCodeForToken(string $code): ?array
     {
-        $idpUrl = rtrim(Application::get('sso_idp_url', Application::get('sso_idp_conn', '')), '/');
-        $tokenEndpoint = Application::get('sso_idp_tokenendpoint', 'oauth2/token');
+        $idpUrl = rtrim((string) \App\Library\Settings::get('sso_idp_url'), '/');
+        $tokenEndpoint = (string) \App\Library\Settings::get('sso_token_endpoint');
         $tokenUrl = $idpUrl . '/' . $tokenEndpoint;
 
-        $clientId = Application::get('sso_client_id', '');
-        $clientSecret = Application::get('sso_client_secret', '');
+        $clientId = (string) \App\Library\Settings::get('sso_client_id');
+        $clientSecret = (string) \App\Library\Settings::get('sso_client_secret');
         $redirectUri = self::getCallbackUrl();
-        $grantType = Application::get('sso_grand_type', 'authorization_code');
+        $grantType = (string) \App\Library\Settings::get('sso_grant_type');
 
         $postData = [
             'grant_type' => $grantType,
@@ -345,7 +345,7 @@ class SsoService
      */
     public static function getProviderName(): string
     {
-        return Application::get('sso_provider_name', 'SSO login');
+        return (string) \App\Library\Settings::get('sso_provider_name');
     }
 
     /**

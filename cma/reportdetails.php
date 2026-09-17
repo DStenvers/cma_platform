@@ -351,7 +351,7 @@ function main()
         ob_flush();
     }
     if ($rs->EOF) {
-        echo (Application::get('CMA_LANGUAGE', '') == 'UK' ? 'No records to display...' : '<div class="no-data">Geen gegevens om weer te geven...</div>');
+        echo (\App\Library\Settings::get('cma_language') == 'UK' ? 'No records to display...' : '<div class="no-data">Geen gegevens om weer te geven...</div>');
     } else {
         if ($rsRep->fields['FilterIDField']!= '' && Request::query('action', '')== '') {
             echo '<br><br><br><form id=main name=main method=get><input type=hidden name=action value=start><input type=hidden name=RepID value=' . $sRepID . '>';

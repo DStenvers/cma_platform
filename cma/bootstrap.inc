@@ -1384,7 +1384,7 @@ $lang_back = null;
 $lang_copy = null;
 $lang_save_and_close = null;
 
-if (Application::get('CMA_language', '') == 'UK') {
+if (\App\Library\Settings::get('cma_language') == 'UK') {
     $lang_add = 'Add';
     $lang_delete = 'Delete';
     $lang_save = 'Save';

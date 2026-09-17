@@ -136,7 +136,7 @@ function lib_FormValRequired()
                     }
                     $flddescr = str_replace('_', ' ', $flddescr);
                 }
-                if (Application::get('mod_language', '') == 'UK') {
+                if (\App\Library\Settings::get('mod_language') == 'UK') {
                     $strError .= "<li>'<b>" . $flddescr . "</b>' is required</li>";
                 } else {
                     $strError .= "<li>Het veld '<b>" . $flddescr . "</b>' is niet ingevuld</li>";
@@ -166,7 +166,7 @@ function lib_FormValRequiredBinary($UploadRequest)
     $objfld = null;
     foreach ($UploadRequest as $objfld) {
         if ((is_null(substr($objfld, 0, max(0, min(9, strlen($objfld))))) ? "" : strtolower(substr($objfld, 0, max(0, min(9, strlen($objfld)))))) == 'required-' && trim(GetItem($objfld) . '') == '') {
-            if (Application::get('mod_language', '') == 'UK') {
+            if (\App\Library\Settings::get('mod_language') == 'UK') {
                 $strError .= "<li>'<b>" . substr($objfld, max(0, 10 - 1)) . "</b>' is required</li>";
             } else {
                 $strError .= "<li>Het veld '<b>" . substr($objfld, max(0, 10 - 1)) . "</b>' is niet ingevuld</li>";

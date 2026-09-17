@@ -25,7 +25,7 @@ function main()
     $strBorderColor = '#000000';
     $strMargin = 10;
     $strAlternate = '';
-    $cmaLanguage = Application::get('CMA_Language', 'NL');
+    $cmaLanguage = \App\Library\Settings::get('cma_language');
     // Check if this is an image upload from query parameters (modern method)
     $isImage = Request::queryInt('image') === 1;
 

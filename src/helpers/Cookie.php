@@ -39,7 +39,7 @@ class Cookie
      * @param int $expire Expiration time in seconds from now (default: 0 = session cookie)
      * @param string $path The path on the server (default: '/')
      * @param string $domain The domain (default: '')
-     * @param bool $secure Only send over HTTPS (default: false)
+     * @param bool|null $secure Only send over HTTPS (default: the COOKIE_SECURE setting)
      * @param bool $httponly Only accessible via HTTP protocol (default: true)
      * @return bool True on success, false on failure
      */
@@ -49,9 +49,10 @@ class Cookie
         int $expire = 0,
         string $path = '/',
         string $domain = '',
-        bool $secure = false,
+        ?bool $secure = null,
         bool $httponly = true
     ): bool {
+        $secure = $secure ?? (bool) Settings::get('cookie_secure');
         // If expire is relative (not 0), make it absolute
         if ($expire > 0) {
             $expire = time() + $expire;

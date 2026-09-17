@@ -2867,7 +2867,7 @@ function render_doc_deployment(): void
         </tbody>
     </table>
     <p>Actief env-bestand op deze site: <code><?= htmlspecialchars((string)($GLOBALS['_env_file'] ?? '.env')) ?></code>.</p>
-    <p class="docs-meta">Alle bovenstaande variabelen worden door <code>/deploy.php</code> gelezen uit het eerst-bestaande <code>.env.production</code> / <code>.env.acceptance</code> / <code>.env.test</code> / <code>.env.local</code> / <code>.env</code> naast het bestand (inline-parser, geen phpdotenv). Extra schakelaars: <code>DEPLOY_NO_RESET=1</code> (sla de pre-pull <code>git checkout -- .</code> over), <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code> (sla de pre-pull recycle over), <code>DEPLOY_SITE_ROOT</code> (git working tree), <code>DEPLOY_ALERT_EMAIL</code> (best-effort <code>mail()</code> bij FAILED).</p>
+    <p class="docs-meta">Alle bovenstaande variabelen worden door <code>/deploy.php</code> gelezen uit het eerst-bestaande <code>.env.production</code> / <code>.env.acceptance</code> / <code>.env.test</code> / <code>.env.local</code> / <code>.env</code> naast het bestand (inline-parser, geen phpdotenv). Extra schakelaars: <code>DEPLOY_NO_RESET=1</code> (sla de pre-pull <code>git checkout -- .</code> over), <code>DEPLOY_NO_PRE_PULL_TOUCH=1</code> (sla de pre-pull recycle over), <code>DEPLOY_SITE_ROOT</code> (git working tree), <code>DEPLOY_ALERT_EMAIL</code> (best-effort <code>mail()</code> bij FAILED). Ze staan ook op Beheerstools → Systeeminstellingen, groep Deploy, dat hetzelfde bestand schrijft. Twee waarden blijven bewust letterlijk in <code>_bootstrap.php</code> (het vervalmoment van de onderhoudsvlag, 20 minuten, en de <code>Retry-After</code> van 120 seconden): dat bestand draait vóór de autoloader en kan het register niet lezen.</p>
 
     <div class="docs-callout docs-callout--warn">
         <span class="cma-tool__strong">Migratie:</span> <code>/deploy.php</code> is nu het enige webhook-endpoint. De oude <code>cma/tools/deploy_webhook.php</code> (framework) én <code>cma/tools/deploy_webhook_standalone.php</code> zijn vervallen; de Installer verwijdert ze bij <code>composer update</code> (<code>REMOVED_PATHS</code>). <span class="cma-tool__strong">Her-richt elke GitHub-webhook die nog op één van die oude URLs staat naar <code>/deploy.php</code></span> — anders krijgt die 404 na de update.
@@ -3111,6 +3111,7 @@ function render_doc_security(): void
     ?>
     <h1>Beveiliging</h1>
     <p class="docs-meta">Wat het platform afdwingt en waar jij als beheerder op moet letten.</p>
+    <p>Cookie- en sessiebeleid staat op Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Sessie &amp; login</span>: levensduur, secure-vlag en SameSite van de sessiecookie, hoe lang de inlogcookies geldig blijven, de secure-vlag van alle cookies die het CMA zet (<code>COOKIE_SECURE</code> — zet aan op https), en de IP-controle bij inloggen. De namen van de inlogcookies (<code>CMAU</code>, <code>CMAG</code>, …) zijn constanten in <code>SecurityHelper</code>; twee CMA's op één domein delen ze, dus draai die op verschillende domeinen.</p>
 
     <h2>Secrets management</h2>
     <ul>

@@ -861,7 +861,7 @@ class TableService extends BaseFormService
         $cookieValue = implode(',', $columns);
 
         // Save for 1 year
-        Cookie::set(self::columnCookieName($formId), $cookieValue, 365 * 24 * 60 * 60);
+        Cookie::set(self::columnCookieName($formId), $cookieValue, (int) \App\Library\Settings::get('preference_cookie_days') * 24 * 60 * 60);
 
         // Drop a mixed-case leftover so it can't shadow the lowercase one later
         if ((string)$formId !== strtolower((string)$formId)) {

@@ -114,7 +114,7 @@ function main()
             if ((is_null(Request::post('wachtwoord', '')) ? "" : strtolower(Request::post('wachtwoord', ''))) != (is_null($rs->fields['userPassword']) ? "" : strtolower($rs->fields['userPassword']))) {
                 $strError = $lang_LoginInvalid;
              } else {
-                $blnOK = !Application::get('cma_ip_protect', '');
+                $blnOK = !\App\Library\Settings::get('cma_ip_protect');
                 $blnLoggedIn = true;
                 if (!$blnOK) {
                     if (Application::get('local', '')) {
@@ -156,7 +156,8 @@ function main()
                     $intUserID = $rs->fields['ID'];
 
                     // Set authentication cookies (userID + userGUID for dual validation)
-                    Cookie::set(SecurityHelper::COOKIE_USERID, (string)$rs->fields['ID']);
+                    $authLifetime = (int) \App\Library\Settings::get('auth_cookie_lifetime');
+                    Cookie::set(SecurityHelper::COOKIE_USERID, (string)$rs->fields['ID'], $authLifetime);
 
                     // Get or generate userGUID for dual validation (consistent with SSO callback)
                     $row = $rs->fields;
@@ -179,8 +180,8 @@ function main()
                             error_log("[login] Could not save userGUID: " . $e->getMessage());
                         }
                     }
-                    Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID);
-                    Cookie::set(SecurityHelper::COOKIE_LAST_LOGIN, $rs->fields['userLogin']);
+                    Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID, $authLifetime);
+                    Cookie::set(SecurityHelper::COOKIE_LAST_LOGIN, $rs->fields['userLogin'], $authLifetime);
                 } else {
                     Cookie::delete(SecurityHelper::COOKIE_USERID);
                     Cookie::delete(SecurityHelper::COOKIE_USERGUID);
@@ -244,7 +245,7 @@ function main()
     $extraHead .= '<link rel="preload" href="' . cma_js_url() . '" as="script">' . PHP_EOL;
     $extraHead .= '<link rel="preload" href="../library/jquery.min.js" as="script">' . PHP_EOL;
     // Only load form validation (language-specific, not in bundle)
-    $extraHead .= '<script src="' . minify_asset('../library/formval_' . strtolower(Application::get('cma_language')) . '.js') . '"></script>';
+    $extraHead .= '<script src="' . minify_asset('../library/formval_' . strtolower(\App\Library\Settings::get('cma_language')) . '.js') . '"></script>';
     cma_html_header('', $extraHead, false);
     // force refresh of menu-bar
     if (Request::post('naam', '') != '' && $blnOK && $blnLoggedIn) {
@@ -333,7 +334,7 @@ function main()
                     throw new \Exception('Database query failed: ' . Database::getLastError());
                 }
                 if ($rs->EOF) {
-                    if (Application::get('Mod_language', '') == 'UK') {
+                    if (\App\Library\Settings::get('mod_language') == 'UK') {
                         $strError = 'Email address not found';
                     } else {
                         $strError = 'Email adres niet gevonden';
@@ -418,7 +419,7 @@ function main()
             echo '<div class="kader welkomkader">';
             echo    $lang_welcome . ' <b>' . SecurityHelper::getCurrentUserName() . '</b>!';
             echo    '<div class="profile-links">';
-            echo      '<a href="preferences.php" target="C">' . (Application::get('cma_language', 'NL') === 'UK' ? 'Preferences' : 'Voorkeuren') . '</a>';
+            echo      '<a href="preferences.php" target="C">' . (\App\Library\Settings::get('cma_language') === 'UK' ? 'Preferences' : 'Voorkeuren') . '</a>';
             echo      '<a href="password.php" target="C">' . $lang_password_change . '</a>';
             echo    '</div>';
             echo '</div>';
