@@ -26,7 +26,7 @@ function lib_SendEMail($strFrom, $strFromEMail, $strToName, $strToEMail, $strSub
     $objMail->From = $strFromEMail;
     $objMail->FromName = $strFrom;
     $objMail->AddRecipients($strToEMail);
-    if (BLNBCCWEBMASTER && Application::get('emailpostfix', '')!= '') {
+    if (BLNBCCWEBMASTER && (string) \App\Library\Settings::get('mail_bcc_postfix') !== '') {
         $objMail->AddRecipientBCC();
     }
     if (!$objMail->Send()) {

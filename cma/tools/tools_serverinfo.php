@@ -394,10 +394,10 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
         $envFileCell .= ' <lib-label type="warning">alleen-lezen</lib-label>';
     }
 
-    // From-address resolution mirrors Email::initialize(): email_from is the
-    // address, email_fromname (falling back to company) is the display name.
-    $fromAddr   = trim((string)Application::get('email_from', ''));
-    $fromName   = trim((string)Application::get('email_fromname', '')) ?: trim((string)Application::get('company', ''));
+    // The sender the site really uses, from the one place that decides it.
+    $senderInfo = \App\Library\Email::resolveSender();
+    $fromAddr   = $senderInfo['email'] . ($senderInfo['configured'] ? '' : ' (terugvaladres — afzender niet ingesteld)');
+    $fromName   = $senderInfo['name'];
     $simulation = (bool)Application::get('local', false);
     $testWrap   = (bool)Application::get('test', false);
     $mailServer = (string)Application::get('mail_server', 'localhost');
@@ -482,20 +482,11 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
             echo '</lib-message>';
         } else {
             $prefillTo    = htmlspecialchars($adminMail);
-            // Mirror Email.php's From resolution: address from email_from (the
-            // correctly-named key), name from email_fromname when it is not an
-            // address, else company.
-            $cfgFrom      = trim((string)Application::get('email_from', ''));
-            $cfgFromNm    = trim((string)Application::get('email_fromname', ''));
-            $prefillFromE = htmlspecialchars(
-                ($cfgFrom !== '' && filter_var($cfgFrom, FILTER_VALIDATE_EMAIL)) ? $cfgFrom
-                : (($cfgFromNm !== '' && filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL)) ? $cfgFromNm : '')
-            );
-            $prefillFromN = htmlspecialchars(
-                ($cfgFromNm !== '' && !filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL))
-                    ? $cfgFromNm
-                    : (string)Application::get('company', '')
-            );
+            // The sender the site really uses (Email::resolveSender); an
+            // unconfigured sender leaves the address empty so the tester sees it.
+            $senderInfo   = \App\Library\Email::resolveSender();
+            $prefillFromE = htmlspecialchars($senderInfo['configured'] ? $senderInfo['email'] : '');
+            $prefillFromN = htmlspecialchars($senderInfo['name']);
             // Outlook-style "new mail" compose window (styling in .cma-mailcompose,
             // style.css). From defaults to the configured sender; leave it as-is or
             // override name + address per test.

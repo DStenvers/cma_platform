@@ -128,21 +128,13 @@ function main()
 
     echo '<br><br><input type="button" value="Ga naar de vorige pagina" onclick="history.go(-1)">';
 
-    // Send error email if not a search engine (same switch as ErrorHandler:
-    // Beheerstools → Systeeminstellingen)
-    if (!empty($strUserAgent) && \App\Library\EnvFile::flag('ERROR_MAIL_ENABLED')) {
+    // Report it the way every other failure is reported (log, mail with the
+    // ERROR_MAIL_* settings and throttle, admin notice); not a search engine.
+    if (!empty($strUserAgent) && class_exists('\App\Library\ErrorHandler')) {
         try {
-            $devEmail = trim((string) \App\Library\EnvFile::value('ERROR_MAIL_TO'));
-            if ($devEmail !== '' && class_exists('\App\Library\Email')) {
-                Email::send([
-                    'to' => $devEmail,
-                    'from' => $devEmail,
-                    'subject' => "Foutmelding website " . strtoupper(Request::server("SERVER_NAME")),
-                    'body' => $strError,
-                ]);
-            }
+            \App\Library\ErrorHandler::report(new \RuntimeException(strip_tags($strError)), 'Foutpagina 500');
         } catch (\Throwable $e) {
-            // Silently fail - already in error handling
+            // already in error handling
         }
     }
 

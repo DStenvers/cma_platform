@@ -108,6 +108,12 @@ class Email
     private $simulation = false;
 
     /**
+     * @var bool False when the From address is the fallback because nothing
+     * is configured; send() then prepends a notice to the body.
+     */
+    private $senderConfigured = true;
+
+    /**
      * @var callable|null Optional callback invoked after each send attempt.
      * Receives an array with keys: to, cc, bcc, from, fromName, subject, body,
      * attachments, success, error, simulation.
@@ -158,42 +164,72 @@ class Email
             $this->mailer->Password = $mailPassword;
         }
 
-        // Default From address + display name.
-        //   email_from     = sender ADDRESS (the correctly-named key)
-        //   email_fromname = sender DISPLAY NAME
-        // Historically this code read email_fromname AS the address, so some
-        // sites (mis)set email_fromname to an address. Be robust to both:
-        //   - address: prefer a valid email_from; else a mail-looking
-        //     email_fromname (legacy); else the hard default.
-        //   - name: email_fromname only when it is NOT an address; else company.
-        $company   = Application::get('company', 'RINO amsterdam');
-        $cfgFrom   = trim((string)Application::get('email_from', ''));
-        $cfgFromNm = trim((string)Application::get('email_fromname', ''));
-
-        if ($cfgFrom !== '' && filter_var($cfgFrom, FILTER_VALIDATE_EMAIL)) {
-            $this->fromEmail = $cfgFrom;
-        } elseif ($cfgFromNm !== '' && filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL)) {
-            $this->fromEmail = $cfgFromNm; // legacy: address stored in email_fromname
-        } else {
-            $this->fromEmail = 'webmaster@stenversonline.nl';
-        }
-
-        $this->fromName = ($cfgFromNm !== '' && !filter_var($cfgFromNm, FILTER_VALIDATE_EMAIL))
-            ? $cfgFromNm
-            : $company;
+        // Default From address + display name — see resolveSender().
+        $sender = self::resolveSender();
+        $this->fromEmail = $sender['email'];
+        $this->fromName = $sender['name'];
+        $this->senderConfigured = $sender['configured'];
 
         // Template settings
-        $this->template = Application::get('email_template', '');
+        $this->template = (string) Settings::get('mail_template');
         $this->useTemplate = !empty($this->template);
 
         // Check if in local/test environment
         $this->simulation = Application::get('local', false);
 
         // Default BCC to admin in all environments
-        $adminEmail = Application::get('app_beheerder_email', '');
-        if (!empty($adminEmail)) {
+        foreach (array_filter(array_map('trim', explode(',', (string) Settings::get('admin_email')))) as $adminEmail) {
             $this->addRecipientBCC($adminEmail);
         }
+    }
+
+    /**
+     * The site's sender, in order: MAIL_FROM (Systeeminstellingen), email_from
+     * in app.php, an address stored in the older email_fromname, and — when
+     * none of those is a valid address — MAIL_FALLBACK_ADDRESS with
+     * configured=false, which makes send() prepend a notice. The name is
+     * MAIL_FROM_NAME / email_fromname when that is not an address, else the
+     * organisation name, else the address.
+     *
+     * @return array{email:string,name:string,configured:bool,source:string}
+     */
+    public static function resolveSender(): array
+    {
+        $configured = trim((string) Settings::get('mail_from'));
+        $legacyName = trim((string) Application::get('email_fromname', ''));
+        $fromName   = trim((string) Settings::get('mail_from_name'));
+        $company    = trim((string) Settings::get('company'));
+
+        if ($configured !== '' && filter_var($configured, FILTER_VALIDATE_EMAIL)) {
+            $email = $configured;
+            $source = Settings::source('mail_from');
+            $isConfigured = true;
+        } elseif ($legacyName !== '' && filter_var($legacyName, FILTER_VALIDATE_EMAIL)) {
+            $email = $legacyName; // older sites stored the address in email_fromname
+            $source = 'legacy';
+            $isConfigured = true;
+        } else {
+            $email = trim((string) Settings::get('mail_fallback_address'));
+            $source = 'fallback';
+            $isConfigured = false;
+        }
+
+        if ($fromName !== '' && !filter_var($fromName, FILTER_VALIDATE_EMAIL)) {
+            $name = $fromName;
+        } elseif ($company !== '') {
+            $name = $company;
+        } else {
+            $name = $email;
+        }
+        return ['email' => $email, 'name' => $name, 'configured' => $isConfigured, 'source' => $source];
+    }
+
+    /** The paragraph a mail starts with when it goes out from the fallback address. */
+    public static function senderNotice(): string
+    {
+        return '<p style="background:#fff3cd;border:1px solid #ffc107;padding:8px 12px;">'
+            . 'Voor deze site is nog geen afzenderadres ingesteld; deze mail is verstuurd vanaf het terugvaladres. '
+            . 'Stel het afzenderadres in via Beheerstools → Systeeminstellingen → Mailserver.</p>';
     }
 
     /**
@@ -294,6 +330,7 @@ class Email
         if ($this->checkSend()) {
             $this->fromEmail = $email;
             $this->fromName = $name ?? $email;
+            $this->senderConfigured = trim($email) !== '';
         }
 
         return $this;
@@ -545,8 +582,9 @@ class Email
             $finalBody = $this->wrapTestEnvironmentWarning($finalBody);
         }
 
-        // Set from address
-        $this->ensureValidFromAddress();
+        // Nothing configured as sender: the fallback address, and the mail says so.
+        $finalBody = $this->applySenderFallback($finalBody);
+        $cleanFromName = $this->cleanHeaderText($this->fromName);
 
         try {
             // Configure PHPMailer.
@@ -560,7 +598,7 @@ class Email
             $this->mailer->isHTML(true);
 
             // Set from (sanitize name: strip HTML tags and decode entities like &bull; to •)
-            $this->mailer->setFrom($this->fromEmail, $this->cleanHeaderText($this->fromName));
+            $this->mailer->setFrom($this->fromEmail, $cleanFromName);
 
             // Set reply-to if provided
             if (!empty($this->replyTo)) {
@@ -754,8 +792,7 @@ class Email
         // De beheerder komt in To, niet in BCC: een bericht zónder To-header wordt
         // door spamfilters geweigerd, dus buiten productie kwam de opgevangen mail
         // regelmatig helemaal niet aan — en dan lijkt het of er niets verstuurd is.
-        $adminEmail = Application::get('app_beheerder_email', '');
-        if (!empty($adminEmail)) {
+        foreach (array_filter(array_map('trim', explode(',', (string) Settings::get('admin_email')))) as $adminEmail) {
             $this->mailer->addAddress($adminEmail);
         }
 
@@ -763,27 +800,23 @@ class Email
     }
 
     /**
-     * Ensure valid from address (RINO-specific logic)
+     * An empty From, or one that only exists because nothing is configured,
+     * becomes the fallback address — and the body starts with the notice, so
+     * whoever receives it knows the site's sender must be set.
      */
-    private function ensureValidFromAddress(): void
+    private function applySenderFallback(string $body): string
     {
-        $company = Application::get('company', '');
-
-        // RINO-specific rules
-        if (substr($company, 0, 4) === 'RINO' && substr($this->fromEmail, -12) !== 'rinogroep.nl') {
-            $this->fromEmail = 'noreply@rino.nl';
-            $this->fromName = $company;
+        if (trim($this->fromEmail) === '') {
+            $this->fromEmail = trim((string) Settings::get('mail_fallback_address'));
+            $this->senderConfigured = false;
         }
-
-        // Fallback if no from address
-        if (empty($this->fromEmail)) {
-            $this->fromName = $company;
-            if (substr($company, 0, 4) === 'RINO') {
-                $this->fromEmail = 'noreply@rino.nl';
-            } else {
-                $this->fromEmail = 'diederik@stenversonline.nl';
-            }
+        if ($this->senderConfigured) {
+            return $body;
         }
+        if (trim($this->fromName) === '' || filter_var($this->fromName, FILTER_VALIDATE_EMAIL)) {
+            $this->fromName = trim((string) Settings::get('company')) ?: $this->fromEmail;
+        }
+        return self::senderNotice() . $body;
     }
 
     /**

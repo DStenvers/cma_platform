@@ -47,6 +47,7 @@ final class Settings
         'notifications' => ['caption' => 'Meldingen per e-mail', 'order' => 100],
         'logging'       => ['caption' => 'Logging',              'order' => 200],
         'mail'          => ['caption' => 'Mailserver',           'order' => 300],
+        'branding'      => ['caption' => 'Branding & taal',      'order' => 350],
         'lists'         => ['caption' => 'Lijsten',              'order' => 400],
         'cache'         => ['caption' => 'Cache',                'order' => 500],
         'timeouts'      => ['caption' => 'Time-outs',            'order' => 600],
@@ -107,6 +108,30 @@ final class Settings
         'mail_password' => ['env' => 'MAIL_PASSWORD', 'type' => 'secret', 'default' => '', 'group' => 'mail', 'app' => 'mail_password',
             'label' => 'SMTP-wachtwoord', 'hint' => 'Wordt niet getoond. Leeg laten houdt het huidige wachtwoord. Test de verbinding via Server informatie → Omgeving → Test-mail.',
             'doc' => 'Email — SMTP-wachtwoord. Het instellingenscherm toont dit nooit terug.'],
+
+        'mail_from' => ['env' => 'MAIL_FROM', 'type' => 'email', 'single' => true, 'default' => '', 'group' => 'mail', 'app' => 'email_from',
+            'label' => 'Afzenderadres', 'hint' => 'Van welk adres de site mailt. Leeg = email_from uit app.php; is ook dat leeg, dan het terugvaladres mét een melding in de mail.',
+            'doc' => 'Email::resolveSender(): het From-adres van elke mail. Leeg = email_from uit app.php (of een adres in het oudere email_fromname); ontbreekt alles, dan MAIL_FALLBACK_ADDRESS met een melding bovenaan de mail.'],
+        'mail_from_name' => ['env' => 'MAIL_FROM_NAME', 'type' => 'text', 'default' => '', 'group' => 'mail', 'app' => 'email_fromname',
+            'label' => 'Afzendernaam', 'hint' => 'Naam die in de mailbox van de ontvanger verschijnt. Leeg = de organisatienaam.',
+            'doc' => 'Email::resolveSender(): de From-naam. Leeg = email_fromname uit app.php, anders de organisatienaam (COMPANY), anders het adres.'],
+        'mail_fallback_address' => ['env' => 'MAIL_FALLBACK_ADDRESS', 'type' => 'email', 'single' => true, 'default' => 'dstenvers@gmail.com', 'group' => 'mail',
+            'label' => 'Terugvaladres', 'hint' => 'Alleen gebruikt als geen afzenderadres is ingesteld; de mail krijgt dan een melding bovenaan dat de afzender ingesteld moet worden.',
+            'doc' => 'Email: afzender als er nergens een afzenderadres staat (geen MAIL_FROM, geen email_from). Elke zo verstuurde mail begint met een melding dat de afzender ingesteld moet worden.'],
+        'admin_email' => ['env' => 'ADMIN_EMAIL', 'type' => 'email', 'default' => '', 'group' => 'mail', 'app' => 'app_beheerder_email',
+            'label' => 'Beheerdersadres', 'hint' => 'Krijgt een blinde kopie van élke verzonden mail; buiten productie gaat alle mail hierheen in plaats van naar de echte ontvanger. Leeg = geen kopie.',
+            'doc' => 'Email: BCC op elke uitgaande mail; buiten productie (test = true) de enige ontvanger, met de echte geadresseerden in een kop boven de mail. Leeg = geen kopie en buiten productie geen ontvanger.'],
+        'mail_template' => ['env' => 'MAIL_TEMPLATE', 'type' => 'text', 'default' => '', 'group' => 'mail', 'app' => 'email_template',
+            'label' => 'E-mailsjabloon', 'hint' => 'HTML waarin de body wordt verpakt. Leeg = geen sjabloon.',
+            'doc' => 'Email: HTML-sjabloon om mails in te verpakken. Leeg = geen sjabloon.'],
+        'mail_bcc_postfix' => ['env' => 'MAIL_BCC_POSTFIX', 'type' => 'text', 'default' => '', 'group' => 'mail', 'app' => 'emailpostfix',
+            'label' => 'Domein voor webmaster-kopie', 'hint' => 'Achtervoegsel waarmee de legacy mailfuncties het kopie-adres uit de Windows-gebruikersnaam opbouwen. Leeg = geen kopie.',
+            'doc' => 'library/lib_sendmail.inc en lib_getuser.inc: achtervoegsel achter de Windows-gebruikersnaam voor het BCC-adres van de legacy SendMail(). Leeg = geen kopie.'],
+
+        // ---- Branding & taal ----
+        'company' => ['env' => 'COMPANY', 'type' => 'text', 'default' => '', 'group' => 'branding', 'app' => 'company',
+            'label' => 'Organisatienaam', 'hint' => 'Afzendernaam in e-mail en in meldingen als er geen aparte afzendernaam is.',
+            'doc' => 'Email (afzendernaam), task.php (onderwerp) en de serverinformatie. Leeg = company uit app.php.'],
 
         // ---- Lijsten ----
         'list_page_size' => ['env' => 'LIST_PAGE_SIZE', 'type' => 'int', 'default' => 50, 'min' => 10, 'max' => 1000, 'group' => 'lists', 'client' => 'listPageSize',

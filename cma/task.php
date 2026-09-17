@@ -55,10 +55,8 @@ function main()
                 $objMail = new Email();
                 $objMail->setCMATemplate(true);
                 $objMail->setBody($sNotification);
-                $objMail->setSubject('Tools CMA gegevensmelding (' . Application::get('company', '') . ')');
+                $objMail->setSubject('Tools CMA gegevensmelding (' . \App\Library\Settings::get('company') . ')');
                 $objMail->addRecipient($RS->fields['userEMail']);
-                $objMail->setFrom('diederik@stenversonline.nl');
-                $objMail->addRecipientBCC('diederik@stenversonline.nl');
                 if (!$objMail->send()) {
                     error_log('[task.php] Failed to send notification email to ' . $RS->fields['userEMail'] . ': ' . $objMail->getError());
                 }

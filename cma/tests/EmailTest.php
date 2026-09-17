@@ -118,10 +118,14 @@ class EmailTest extends TestCase
 
     public function testConstructorDefaultFromAddressWhenNoConfig(): void
     {
+        \App\Library\Settings::reset();
+        unset($_ENV['MAIL_FROM'], $_ENV['MAIL_FALLBACK_ADDRESS'], $_ENV['COMPANY']);
         $e = new Email();
-        // No email_from/email_fromname → hard default address, company as name.
-        $this->assertEquals('webmaster@stenversonline.nl', $this->priv($e, 'fromEmail'));
-        $this->assertEquals('RINO amsterdam', $this->priv($e, 'fromName'));
+        // Nothing configured → the fallback address (a setting, see
+        // EmailResolveSenderTest), and the address doubles as the name.
+        $this->assertEquals('dstenvers@gmail.com', $this->priv($e, 'fromEmail'));
+        $this->assertEquals('dstenvers@gmail.com', $this->priv($e, 'fromName'));
+        $this->assertFalse($this->priv($e, 'senderConfigured'));
     }
 
     public function testConstructorReadsConfiguredFromAddress(): void

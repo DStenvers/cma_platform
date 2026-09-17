@@ -1695,6 +1695,16 @@ function cma_doc_check_settings_env_documented(): array {
     return ['label' => $label, 'status' => 'pass', 'detail' => 'Elke registervariabele staat één keer op de pagina.'];
 }
 
+function cma_doc_check_mail_sender(): array {
+    $label = 'Afzenderadres van deze site';
+    $s = \App\Library\Email::resolveSender();
+    if (!$s['configured']) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'Niet ingesteld — mail gaat vanaf het terugvaladres <code>' . htmlspecialchars($s['email']) . '</code> met een melding bovenaan de mail.', 'fix' => 'Vul het afzenderadres in bij Beheerstools → Systeeminstellingen → Mailserver (of email_from in app.php).'];
+    }
+    $bron = ['env' => 'MAIL_FROM', 'app' => 'email_from in app.php', 'legacy' => 'het adres in email_fromname (app.php)'][$s['source']] ?? $s['source'];
+    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>' . htmlspecialchars($s['email']) . '</code> (' . htmlspecialchars($s['name']) . '), uit ' . htmlspecialchars($bron) . '.'];
+}
+
 function cma_doc_check_php_error_log(): array {
     $label = 'php.ini error_log destination';
     $cfg = ini_get('error_log');
@@ -4994,28 +5004,24 @@ function render_doc_mail(): void
     <h1>Mail-configuratie</h1>
     <p class="docs-meta">Hoe de Email-helper SMTP gebruikt, en welke environment/Application keys hij leest.</p>
 
-    <h2>Application-keys</h2>
-    <p><code>App\Library\Email</code> leest in zijn <code>initialize()</code> deze waardes via <code>Application::get()</code>:</p>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:240px">Application-key</th><th>Default</th><th>Doel</th></tr></thead>
-        <tbody>
-            <tr><td><code>mail_server</code></td><td><code>localhost</code></td><td>SMTP-host.</td></tr>
-            <tr><td><code>mail_server_port</code></td><td><code>25</code></td><td>SMTP-poort. Voor TLS: 587. Voor SSL: 465.</td></tr>
-            <tr><td><code>mail_username</code></td><td><code>''</code></td><td>SMTP-username. Lege string → geen auth.</td></tr>
-            <tr><td><code>mail_password</code></td><td><code>''</code></td><td>SMTP-password.</td></tr>
-            <tr><td><code>email_from</code></td><td><code>webmaster@stenversonline.nl</code></td><td>Default From-<span class="cma-tool__strong">adres</span>. De Email-klasse leest dit veld.</td></tr>
-            <tr><td><code>email_fromname</code></td><td><code>(leeg)</code></td><td>Default From-<span class="cma-tool__strong">naam</span> (weergavenaam). Bevat het per ongeluk een e-mailadres (oude config), dan valt de naam terug op <code>company</code> en wordt dat adres als afzender gebruikt — back-compat.</td></tr>
-            <tr><td><code>company</code></td><td><code>RINO amsterdam</code></td><td>Bedrijfsnaam; fallback voor de From-naam.</td></tr>
-            <tr><td><code>email_template</code></td><td><code>''</code></td><td>HTML-template voor de body. Leeg = geen template.</td></tr>
-            <tr><td><code>app_beheerder_email</code></td><td><code>''</code></td><td>Auto-BCC op alle uitgaande mail. Gehandhaafd voor audit-trail.</td></tr>
-            <tr><td><code>local</code></td><td><code>false</code></td><td>True → simulatie-modus: <code>showPreview()</code> i.p.v. echte SMTP.</td></tr>
-            <tr><td><code>test</code></td><td><code>false</code></td><td>True → <code>wrapTestEnvironmentWarning()</code> plakt een "TEST" banner bovenaan de body.</td></tr>
-        </tbody>
-    </table>
-    <p>Deze keys leven in <code>app.php</code> (template-bestand op de site-root, NIET in git). De SMTP-waarden (<code>mail_server</code>, <code>mail_server_port</code>, <code>mail_username</code>, <code>mail_password</code>) zijn de <span class="cma-tool__strong">terugval</span>: staan <code>MAIL_HOST</code>, <code>MAIL_PORT</code>, <code>MAIL_USERNAME</code> of <code>MAIL_PASSWORD</code> in het env-bestand (Beheerstools → Systeeminstellingen, groep Mailserver), dan winnen die — zie <a href="documentation.php?topic=environment">Omgeving &amp; .env</a>.</p>
+    <?php
+    cma_doc_render_check_table('Afzender — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_mail_sender',
+    ]));
+    ?>
 
-    <h2>Foutmeldingen en 404-overzicht</h2>
-    <p>Wie een mail krijgt bij een fout of een dagelijks 404-overzicht is geen Application-key maar een systeeminstelling (<code>ERROR_MAIL_TO</code>, <code>NOTFOUND_MAIL_TO</code> in het env-bestand), in te stellen via Beheerstools → Systeeminstellingen. Wat er precies verstuurd wordt staat in <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</p>
+    <h2>Afzender en SMTP</h2>
+    <p>Alles wat <code>App\Library\Email</code> nodig heeft staat in het instellingenregister (Beheerstools → Systeeminstellingen, groepen <span class="cma-tool__strong">Mailserver</span> en <span class="cma-tool__strong">Branding &amp; taal</span>) en in de tabellen van <a href="documentation.php?topic=environment">Omgeving &amp; .env</a>: <code>MAIL_HOST</code>, <code>MAIL_PORT</code>, <code>MAIL_USERNAME</code>, <code>MAIL_PASSWORD</code>, <code>MAIL_FROM</code>, <code>MAIL_FROM_NAME</code>, <code>MAIL_FALLBACK_ADDRESS</code>, <code>ADMIN_EMAIL</code>, <code>MAIL_TEMPLATE</code>, <code>MAIL_BCC_POSTFIX</code>, <code>COMPANY</code>. De oudere Application-keys in <code>app.php</code> (<code>mail_server</code>, <code>mail_server_port</code>, <code>mail_username</code>, <code>mail_password</code>, <code>email_from</code>, <code>email_fromname</code>, <code>app_beheerder_email</code>, <code>email_template</code>, <code>emailpostfix</code>, <code>company</code>) zijn de terugval per instelling: ze gelden zolang de variabele leeg is.</p>
+
+    <h2>Hoe de afzender wordt bepaald</h2>
+    <p><code>Email::resolveSender()</code> is de enige plek die het beslist; <code>Email</code>, de legacy <code>LibMailer</code> en het test-mailformulier van Server informatie gebruiken hem alle drie.</p>
+    <ol>
+        <li><span class="cma-tool__strong">Adres:</span> <code>MAIL_FROM</code>; anders <code>email_from</code> uit app.php; anders een e-mailadres dat een oudere site in <code>email_fromname</code> heeft gezet; anders het <span class="cma-tool__strong">terugvaladres</span> <code>MAIL_FALLBACK_ADDRESS</code>.</li>
+        <li><span class="cma-tool__strong">Naam:</span> <code>MAIL_FROM_NAME</code> / <code>email_fromname</code> als dat geen adres is; anders de organisatienaam (<code>COMPANY</code> / <code>company</code>); anders het adres.</li>
+        <li>Een expliciete <code>setFrom()</code> in code wint altijd; er is geen herschrijving op basis van de organisatienaam.</li>
+    </ol>
+    <p>Gaat een mail vanaf het terugvaladres, dan begint de body met een gele melding dat de afzender van deze site nog ingesteld moet worden (Beheerstools → Systeeminstellingen → Mailserver). Meldingen zonder ontvanger (foutmail, 404-overzicht) blijven gewoon uit; het terugvaladres vervangt alleen de afzender.</p>
+    <p><code>ADMIN_EMAIL</code> krijgt een blinde kopie van elke mail, in elke omgeving. Buiten productie (<code>test</code> = true) worden de echte ontvangers gewist, komt de beheerder in <span class="cma-tool__strong">To</span> (een mail zonder To-header wordt door spamfilters geweigerd) en staat boven de body een grijze tabel met de oorspronkelijke To/CC/BCC. Is <code>ADMIN_EMAIL</code> leeg, dan heeft zo'n mail geen ontvanger en verstuurt PHPMailer niets — stel het adres dus in op test- en acceptatiesites. Op <code>local</code> (O-omgeving) wordt niet verzonden maar getoond (<code>showPreview()</code>).</p>
 
     <h2>Email API</h2>
     <pre><code>use App\Library\Email;
@@ -5037,12 +5043,7 @@ $ok = Email::create()
     <p><span class="cma-tool__strong">Onderwerp en afzendernaam gaan door <code>cleanHeaderText()</code>:</span> markup eruit (<code>strip_tags</code>), entiteiten terug naar tekens, witruimte samengevouwen. Dat is geen kosmetiek — een mailheader is geen HTML, dus een site die <code>appname</code> of <code>company</code> met opmaak vult (<code>mijn &lt;font class="green"&gt;&amp;bull;&lt;/font&gt; RINO</code>) kreeg die tags letterlijk in de onderwerpregel te zien. Beide velden krijgen dezelfde behandeling, zodat ze niet uiteen kunnen lopen. De <span class="cma-tool__strong">body</span> blijft ongemoeid: dat is wél HTML.</p>
 
     <h2>Test-mode (Application::get('test'))</h2>
-    <p>Als de <code>test</code> flag in Application aan staat, voegt <code>send()</code> een rode warning-banner bovenaan elke body:</p>
-    <pre><code>&lt;div style="background:#fee; border:2px solid red; padding:10px;"&gt;
-    LET OP - TEST OMGEVING (origineel naar: original-recipient@example.com)
-&lt;/div&gt;
-</code></pre>
-    <p>De originele To/CC/BCC-lijsten worden NIET aangepast — die staan in de banner zodat je ziet waar de mail "echt" naartoe ging. Default: BCC blijft op <code>app_beheerder_email</code> staan en die ontvangt 'm dus ook.</p>
+    <p>Staat de <code>test</code>-flag aan, dan onderschept <code>send()</code> de mail zoals hierboven beschreven: grijze tabel met de oorspronkelijke ontvangers boven de body, ontvangerlijsten gewist, <code>ADMIN_EMAIL</code> als To. De e-mail log (<code>EmailLogService</code>) bewaart wél de oorspronkelijke ontvangers: <code>send()</code> legt ze vast vóór de onderschepping.</p>
 
     <h2>Local-mode (Application::get('local'))</h2>
     <p>Als de <code>local</code> flag aan staat, draait <code>showPreview()</code> in plaats van <code>$this-&gt;mailer-&gt;send()</code>:</p>

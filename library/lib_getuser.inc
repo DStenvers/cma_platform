@@ -64,7 +64,7 @@ function lib_getemail($strFormField)
     if (Application::get('askemail', '')) {
         return Request::post($strFormField, '');
     } else {
-        return lib_remoteuser() . Application::get('emailpostfix', '');
+        return lib_remoteuser() . \App\Library\Settings::get('mail_bcc_postfix');
     }
 }
 // Determined if the current user had supervisor priviliges for a specific part of the intranet

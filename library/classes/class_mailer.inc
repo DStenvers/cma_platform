@@ -55,7 +55,7 @@ function internal_SendMail($strToEMail, $strToName, $strFromEMail, $strCCEMail, 
     $sendmail_objMail->body = str_replace(PHP_EOL, '<BR>', $strBody);
     $sendmail_objMail->subject = $strSubject;
     $sendmail_objMail->from = $strFromEMail;
-    $sendmail_objMail->fromName = Application::get('company', '') ? Application::get('company', '') : $strFromEMail;
+    $sendmail_objMail->fromName = trim((string) \App\Library\Settings::get('company')) ?: $strFromEMail;
     $sendmail_objMail->useTemplate = $blnTemplate;
     $sendmail_objMail->AddRecipient($strToEMail);
     $sendmail_objMail->AddRecipientsCC($strCCEMail);
@@ -212,7 +212,13 @@ class LibMailer
             $email->setUseTemplate(false);
             $email->setSubject($subject);
             $email->setBody($body);
-            $email->setFrom($from, $fromName);
+            // Only an explicit From overrides the site's sender: Email itself
+            // carries the configured/fallback distinction (and the notice).
+            if (trim((string)($this->from ?? '')) !== '') {
+                $email->setFrom($from, $fromName);
+            } elseif (trim((string)($this->fromName ?? '')) !== '') {
+                $email->setFromName($fromName);
+            }
 
             $replyTo = trim((string)($this->replyTo ?? ''));
             if ($replyTo !== '') { $email->setReplyTo($replyTo); }
@@ -238,16 +244,15 @@ class LibMailer
         }
     }
 
-    /** Resolve the effective From address/name: instance value, else config, else a safe default. */
+    /** Resolve the effective From address/name: instance value, else the site's sender (Email::resolveSender). */
     private function _resolveFrom(): array
     {
         $from = trim((string)($this->from ?? ''));
-        if ($from === '') {
-            $from = trim((string)Application::get('email_from', '')) ?: 'webmaster@stenversonline.nl';
-        }
         $fromName = trim((string)($this->fromName ?? ''));
-        if ($fromName === '') {
-            $fromName = trim((string)Application::get('company', '')) ?: $from;
+        if ($from === '' || $fromName === '') {
+            $sender = \App\Library\Email::resolveSender();
+            if ($from === '') { $from = $sender['email']; }
+            if ($fromName === '') { $fromName = $sender['name']; }
         }
         return [$from, $fromName];
     }
