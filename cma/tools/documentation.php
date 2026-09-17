@@ -2364,6 +2364,18 @@ function render_doc_environment(): void
         </tbody>
     </table>
 
+    <h3>Mailserver</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>MAIL_HOST</code></td><td>leeg</td><td><code>Email</code> — SMTP-host. Leeg = de Application-key <code>mail_server</code> uit <code>app.php</code> (default <code>localhost</code>).</td></tr>
+            <tr><td><code>MAIL_PORT</code></td><td>leeg</td><td><code>Email</code> — SMTP-poort (25, 587 voor TLS, 465 voor SSL). Leeg = <code>mail_server_port</code> uit <code>app.php</code> (default 25).</td></tr>
+            <tr><td><code>MAIL_USERNAME</code></td><td>leeg</td><td><code>Email</code> — SMTP-gebruikersnaam; leeg = geen authenticatie, tenzij <code>mail_username</code> in <code>app.php</code> staat.</td></tr>
+            <tr><td><code>MAIL_PASSWORD</code></td><td>leeg</td><td><code>Email</code> — SMTP-wachtwoord. Het instellingenscherm toont dit nooit terug; een waarde met spaties, <code>#</code> of aanhalingstekens wordt tussen dubbele aanhalingstekens weggeschreven, wat <code>EnvFile</code> weer uitpakt.</td></tr>
+        </tbody>
+    </table>
+    <p>Alle vier zijn te zetten via Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Mailserver</span>. De vier <code>mail_*</code>-keys in <code>app.php</code> blijven de terugval voor een site die het scherm nog niet gebruikt.</p>
+
     <h3>Externe diensten &amp; paden</h3>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
@@ -4902,7 +4914,7 @@ function render_doc_mail(): void
             <tr><td><code>test</code></td><td><code>false</code></td><td>True → <code>wrapTestEnvironmentWarning()</code> plakt een "TEST" banner bovenaan de body.</td></tr>
         </tbody>
     </table>
-    <p>Deze keys leef in <code>app.php</code> (template-bestand op de site-root, NIET in git). Voor production-secrets is dat de juiste plek.</p>
+    <p>Deze keys leven in <code>app.php</code> (template-bestand op de site-root, NIET in git). De SMTP-waarden (<code>mail_server</code>, <code>mail_server_port</code>, <code>mail_username</code>, <code>mail_password</code>) zijn de <span class="cma-tool__strong">terugval</span>: staan <code>MAIL_HOST</code>, <code>MAIL_PORT</code>, <code>MAIL_USERNAME</code> of <code>MAIL_PASSWORD</code> in het env-bestand (Beheerstools → Systeeminstellingen, groep Mailserver), dan winnen die — zie <a href="documentation.php?topic=environment">Omgeving &amp; .env</a>.</p>
 
     <h2>Foutmeldingen en 404-overzicht</h2>
     <p>Wie een mail krijgt bij een fout of een dagelijks 404-overzicht is geen Application-key maar een systeeminstelling (<code>ERROR_MAIL_TO</code>, <code>NOTFOUND_MAIL_TO</code> in het env-bestand), in te stellen via Beheerstools → Systeeminstellingen. Wat er precies verstuurd wordt staat in <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>.</p>

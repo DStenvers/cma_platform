@@ -11,6 +11,7 @@
  * cookies), the same store preferences.php uses for theme and popup style.
  */
 
+use App\Library\Application;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\Server;
@@ -96,7 +97,20 @@ $groups = [
         ['key' => 'error_log_retention_days', 'label' => 'Bewaartermijn foutlog',
          'hint' => 'Dagen dat de dagelijkse PHP-foutlogs bewaard blijven (1 t/m 365).'],
     ]],
-    ['id' => 3, 'caption' => 'Foutweergave', 'rows' => [
+    ['id' => 3, 'caption' => 'Mailserver', 'rows' => [
+        ['key' => 'mail_host',     'label' => 'SMTP-server',
+         'hint' => 'Hostnaam van de mailserver. Leeg = de waarde uit app.php (mail_server).',
+         'placeholder' => (string) Application::get('mail_server', 'localhost')],
+        ['key' => 'mail_port',     'label' => 'SMTP-poort',
+         'hint' => '25 zonder versleuteling, 587 voor TLS, 465 voor SSL. Leeg = de waarde uit app.php.',
+         'placeholder' => (string) Application::get('mail_server_port', 25)],
+        ['key' => 'mail_username', 'label' => 'SMTP-gebruikersnaam',
+         'hint' => 'Leeg = geen authenticatie (of de waarde uit app.php).',
+         'placeholder' => (string) Application::get('mail_username', '')],
+        ['key' => 'mail_password', 'label' => 'SMTP-wachtwoord',
+         'hint' => 'Wordt niet getoond. Leeg laten houdt het huidige wachtwoord. Test de verbinding via Server informatie → Omgeving → Test-mail.'],
+    ]],
+    ['id' => 4, 'caption' => 'Foutweergave', 'rows' => [
         ['key' => 'force_debug', 'label' => 'Fouten tonen op productie',
          'hint' => 'Toont foutdetails aan iedere bezoeker, ook op productie. Alleen tijdelijk aanzetten; beheerders zien de details altijd al.'],
         ['key' => 'cma_debug',   'label' => 'CMA-debugmodus voor iedereen',
@@ -135,7 +149,14 @@ ToolbarHelper::end();
                     <lib-switch name="<?= $key ?>" id="<?= $key ?>" <?= $val ? 'checked' : '' ?>></lib-switch>
 <?php elseif ($def['type'] === 'int'): ?>
                     <input type="number" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-number"
-                           min="<?= $def['min'] ?>" max="<?= $def['max'] ?>" value="<?= (int) $val ?>">
+                           min="<?= $def['min'] ?>" max="<?= $def['max'] ?>" value="<?= (int) $val > 0 ? (int) $val : '' ?>"
+                           placeholder="<?= Server::htmlEncode((string) ($row['placeholder'] ?? '')) ?>">
+<?php elseif ($def['type'] === 'secret'): ?>
+                    <input type="password" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text" autocomplete="new-password"
+                           value="" placeholder="<?= (string) $val !== '' ? '•••••••• (ingesteld)' : 'niet ingesteld' ?>">
+<?php elseif ($def['type'] === 'text'): ?>
+                    <input type="text" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text"
+                           value="<?= Server::htmlEncode((string) $val) ?>" placeholder="<?= Server::htmlEncode((string) ($row['placeholder'] ?? '')) ?>">
 <?php else: ?>
                     <input type="text" name="<?= $key ?>" id="<?= $key ?>" class="form-control cma-tool__settings-text"
                            value="<?= Server::htmlEncode((string) $val) ?>" placeholder="naam@voorbeeld.nl">
@@ -146,20 +167,20 @@ ToolbarHelper::end();
 <?php endforeach; endforeach; ?>
             <tr class="groupbox-row">
                 <td colspan="3">
-                    <cma-groupbox group-id="4" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
+                    <cma-groupbox group-id="5" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
                 </td>
             </tr>
-            <tr id="_g4_1">
+            <tr id="_g5_1">
                 <td class="label-cell"><label for="debugMode">Console logging</label></td>
                 <td class="input-cell"><lib-switch name="debugMode" id="debugMode" <?= $prefs['prefDebugMode'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Schakel console.log-output in (uitschakelen voor snelheidstests).</td>
             </tr>
-            <tr id="_g4_2">
+            <tr id="_g5_2">
                 <td class="label-cell"><label for="showDebugOverlay">Debug overlay tonen</label></td>
                 <td class="input-cell"><lib-switch name="showDebugOverlay" id="showDebugOverlay" <?= $prefs['prefDebugOverlay'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Toont formulierstatus-informatie op alle formulieren.</td>
             </tr>
-            <tr id="_g4_3" class="groupbox_end">
+            <tr id="_g5_3" class="groupbox_end">
                 <td class="label-cell"><label for="sqlThreshold">SQL log drempelwaarde</label></td>
                 <td class="input-cell">
                     <select name="sqlThreshold" id="sqlThreshold" class="form-control cma-tool__settings-select">

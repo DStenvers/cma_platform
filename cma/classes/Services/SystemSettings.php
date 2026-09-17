@@ -22,10 +22,13 @@ class SystemSettings
      * Registry of settings the admin UI exposes.
      *
      *   env     the .env variable
-     *   type    bool  — written as true/false
-     *           flag  — written as 1/0 (readers compare against the string '1')
-     *           email — one or more addresses, comma-separated
-     *           int   — bounded by min/max
+     *   type    bool   — written as true/false
+     *           flag   — written as 1/0 (readers compare against the string '1')
+     *           email  — one or more addresses, comma-separated
+     *           int    — bounded by min/max; 'optional' allows an empty value
+     *           text   — free text, one line
+     *           secret — like text, but never shown again; an empty submission
+     *                    keeps the stored value
      *   default the value when the variable is absent
      */
     public const DEFINITIONS = [
@@ -45,6 +48,11 @@ class SystemSettings
         // Foutweergave
         'force_debug'              => ['env' => 'FORCE_DEBUG',              'type' => 'flag',  'default' => false],
         'cma_debug'                => ['env' => 'CMA_DEBUG',                'type' => 'flag',  'default' => false],
+        // Mailserver (Email falls back to the mail_* Application keys in app.php when these are empty)
+        'mail_host'                => ['env' => 'MAIL_HOST',                'type' => 'text',   'default' => ''],
+        'mail_port'                => ['env' => 'MAIL_PORT',                'type' => 'int',    'default' => 0, 'min' => 1, 'max' => 65535, 'optional' => true],
+        'mail_username'            => ['env' => 'MAIL_USERNAME',            'type' => 'text',   'default' => ''],
+        'mail_password'            => ['env' => 'MAIL_PASSWORD',            'type' => 'secret', 'default' => ''],
     ];
 
     private static ?string $envFile = null;
@@ -202,12 +210,28 @@ class SystemSettings
                     break;
                 case 'int':
                     $s = trim((string) $raw);
+                    if ($s === '' && !empty($def['optional'])) {
+                        $values[$key] = '';
+                        break;
+                    }
                     if ($s === '' || !preg_match('/^\d+$/', $s)) {
                         $errors[$key] = 'Vul een geheel getal in.';
                     } elseif ((int) $s < $def['min'] || (int) $s > $def['max']) {
                         $errors[$key] = 'Vul een getal tussen ' . $def['min'] . ' en ' . $def['max'] . ' in.';
                     } else {
                         $values[$key] = (string) (int) $s;
+                    }
+                    break;
+                case 'text':
+                case 'secret':
+                    $s = trim((string) $raw);
+                    if ($def['type'] === 'secret' && $s === '') {
+                        break; // keep what is stored
+                    }
+                    if (preg_match('/[\r\n]/', $s)) {
+                        $errors[$key] = 'Eén regel, zonder regeleinden.';
+                    } else {
+                        $values[$key] = self::envQuote($s);
                     }
                     break;
                 case 'email':
@@ -244,6 +268,20 @@ class SystemSettings
             }
         }
         return [];
+    }
+
+    /**
+     * Quote a value for a KEY=value line when EnvFile would otherwise misread
+     * it: whitespace followed by # starts an inline comment, and a leading
+     * quote starts a quoted string. Double quotes with \\ and \" escaped,
+     * which EnvFile::parse() unescapes.
+     */
+    public static function envQuote(string $value): string
+    {
+        if ($value === '' || !preg_match('/[\s#"\'\\\\]/', $value)) {
+            return $value;
+        }
+        return '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
     }
 
     private static function truthy($raw): bool

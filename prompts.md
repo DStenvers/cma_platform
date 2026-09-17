@@ -14270,3 +14270,13 @@ karaat-data en staat in de karaat-repo.
 > 9. Anything routed through `Logger::debug` (`FormTemplate.php:880/933/1190`, `JsonFormService.php:641/1160`, `FormDataProvider.php:889/1717`) is **completely invisible in production** because `Logger::getMinLevel()` returns `WARNING` when `omgeving === 'P'`.</result>
 > <usage><subagent_tokens>116677</subagent_tokens><tool_uses>39</tool_uses><duration_ms>366164</duration_ms></usage>
 > </task-notification>
+
+## 2026-09-17
+
+> about the settings in a form, did you create all settings you had in mind, any open ends?
+
+> let's implement these:  SMTP host, port, user, password.
+
+> - List and page sizes, cache TTLs, timeouts. Hard-coded in several places with differing defaults. Exposing them without first reconciling the duplicates would give a setting that only half applies. 
+>
+> I disagree: it would help to reconcile and these are great cancidates

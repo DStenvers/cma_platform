@@ -144,4 +144,43 @@ class SystemSettingsTest extends TestCase
             unset($_ENV['ERROR_MAIL_ENABLED'], $_ENV['ERROR_MAIL_TO'], $_ENV['ERROR_LOG_RETENTION_DAYS'], $_ENV['FORCE_DEBUG']);
         }
     }
+
+    // ---- text / secret: the mail server settings ----
+
+    public function testTextIsTrimmedAndQuotedOnlyWhenNeeded(): void
+    {
+        $n = SystemSettings::normalize(['mail_host' => ' smtp.example.nl ', 'mail_username' => 'user name']);
+        $this->assertSame([], $n['errors']);
+        $this->assertSame('smtp.example.nl', $n['values']['mail_host']);
+        $this->assertSame('"user name"', $n['values']['mail_username']);
+    }
+
+    public function testSecretEmptyKeepsTheStoredValue(): void
+    {
+        $n = SystemSettings::normalize(['mail_password' => '']);
+        $this->assertSame([], $n['errors']);
+        $this->assertFalse(array_key_exists('mail_password', $n['values']), 'an empty password submission writes nothing');
+    }
+
+    public function testSecretWithHashAndQuotesSurvivesTheEnvRoundTrip(): void
+    {
+        $raw = 'p#ss "wo\\rd" x';
+        $n = SystemSettings::normalize(['mail_password' => $raw]);
+        $line = SystemSettings::applyEnvContent('', 'MAIL_PASSWORD', $n['values']['mail_password']);
+        $parsed = \App\Library\EnvFile::parse($line);
+        $this->assertSame($raw, $parsed['MAIL_PASSWORD'], 'what the page saves is what Email reads back');
+    }
+
+    public function testOptionalPortAcceptsEmptyAndBounds(): void
+    {
+        $this->assertSame('', SystemSettings::normalize(['mail_port' => ''])['values']['mail_port']);
+        $this->assertSame('587', SystemSettings::normalize(['mail_port' => '587'])['values']['mail_port']);
+        $this->assertArrayHasKey('mail_port', SystemSettings::normalize(['mail_port' => '70000'])['errors']);
+    }
+
+    public function testTextRejectsLineBreaks(): void
+    {
+        $n = SystemSettings::normalize(['mail_host' => "smtp\nevil"]);
+        $this->assertArrayHasKey('mail_host', $n['errors']);
+    }
 }

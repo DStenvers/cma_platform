@@ -15,9 +15,10 @@ describe('System Settings', () => {
     });
 
     describe('Groups', () => {
-        it('should show the four groups', () => {
+        it('should show the five groups', () => {
             cy.get('cma-groupbox[caption="Meldingen per e-mail"]').should('exist');
             cy.get('cma-groupbox[caption="Logging"]').should('exist');
+            cy.get('cma-groupbox[caption="Mailserver"]').should('exist');
             cy.get('cma-groupbox[caption="Foutweergave"]').should('exist');
             cy.get('cma-groupbox[caption="Ontwikkelaar (alleen voor jou)"]').should('exist');
         });
@@ -37,6 +38,13 @@ describe('System Settings', () => {
             cy.get('lib-switch#email_log_enabled').should('exist');
             cy.get('lib-switch#sql_log_enabled').should('exist');
             cy.get('input#error_log_retention_days').should('have.attr', 'type', 'number');
+        });
+
+        it('should have the mail server fields, password write-only', () => {
+            cy.get('input#mail_host').should('have.attr', 'type', 'text');
+            cy.get('input#mail_port').should('have.attr', 'type', 'number');
+            cy.get('input#mail_username').should('have.attr', 'type', 'text');
+            cy.get('input#mail_password').should('have.attr', 'type', 'password').and('have.value', '');
         });
 
         it('should have the developer switches', () => {
