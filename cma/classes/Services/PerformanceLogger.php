@@ -275,8 +275,9 @@ class PerformanceLogger
     /**
      * Cleanup old log files (keep last N days)
      */
-    public static function cleanup(int $keepDays = 7): int
+    public static function cleanup(?int $keepDays = null): int
     {
+        $keepDays = $keepDays ?? (int) \App\Library\Settings::get('perf_log_retention_days');
         $logDir = self::getLogDir();
         $cutoff = strtotime("-{$keepDays} days");
         $deleted = 0;

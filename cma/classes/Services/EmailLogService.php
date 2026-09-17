@@ -199,7 +199,7 @@ class EmailLogService
     }
 
     /**
-     * Delete records older than 30 days
+     * Delete records older than EMAIL_LOG_RETENTION_DAYS
      *
      * @param \PDO|null $conn Optional connection (reuse existing)
      */
@@ -211,7 +211,8 @@ class EmailLogService
             }
             if ($conn === null) return;
 
-            $conn->exec("DELETE FROM tblEmailLog WHERE datestamp < DateAdd('d', -30, Now())");
+            $days = (int) \App\Library\Settings::get('email_log_retention_days');
+            $conn->exec("DELETE FROM tblEmailLog WHERE datestamp < DateAdd('d', -{$days}, Now())");
         } catch (\Exception $e) {
             error_log('EmailLogService::cleanup failed: ' . $e->getMessage());
         }

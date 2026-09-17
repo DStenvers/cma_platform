@@ -17,9 +17,6 @@ namespace App\Library;
  */
 final class NotFoundDigest
 {
-    /** Paths listed in the mail; the rest is summarised as a count. */
-    private const TOP_PATHS = 30;
-
     /** User agents counted separately and left out of the path list. */
     private const BOT_PATTERN = '/bot|crawl|spider|slurp|seek|scan|archiver|heritrix|java\/|python-|curl\/|wget\//i';
 
@@ -61,7 +58,7 @@ final class NotFoundDigest
                     $mail->addRecipient($recipient);
                 }
                 $mail->send();
-                self::pruneMarkers($logDir);
+                self::prune($logDir, (int) Settings::get('notfound_log_retention_days'));
             } catch (\Throwable $e) {
                 error_log('404 digest failed: ' . $e->getMessage());
             }
@@ -122,7 +119,7 @@ final class NotFoundDigest
                . '<tr><td style="color:#666;">Aantal</td><td style="color:#666;">Pad</td><td style="color:#666;">Verwijzing vanaf</td></tr>';
         $shown = 0;
         foreach ($summary['paths'] as $path => $info) {
-            if ($shown++ >= self::TOP_PATHS) {
+            if ($shown++ >= (int) Settings::get('notfound_digest_top')) {
                 break;
             }
             $body .= '<tr><td align="right">' . $info['count'] . '</td>'
@@ -138,14 +135,25 @@ final class NotFoundDigest
         return $body;
     }
 
-    /** Markers older than the longest plausible log retention are noise; drop them. */
-    private static function pruneMarkers(string $logDir): void
+    /**
+     * Retention of the 404 logs: daily log files and their digest markers
+     * older than $days are removed. The age is the DATE IN THE FILENAME, not
+     * mtime, so a tool that opens a log cannot keep it alive. Runs after each
+     * digest. Returns the number of files removed.
+     */
+    public static function prune(string $logDir, int $days, ?int $now = null): int
     {
-        $cutoff = time() - 60 * 86400;
-        foreach (glob($logDir . '/digest_*.sent') ?: [] as $file) {
-            if ((int) @filemtime($file) < $cutoff) {
-                @unlink($file);
+        $cutoff = ($now ?? time()) - $days * 86400;
+        $removed = 0;
+        foreach (array_merge(glob($logDir . '/404_*.log') ?: [], glob($logDir . '/digest_*.sent') ?: []) as $file) {
+            if (!preg_match('/(\d{4}-\d{2}-\d{2})\.(log|sent)$/', $file, $m)) {
+                continue;
+            }
+            $stamp = strtotime($m[1]);
+            if ($stamp !== false && $stamp < $cutoff && @unlink($file)) {
+                $removed++;
             }
         }
+        return $removed;
     }
 }

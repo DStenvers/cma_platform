@@ -155,8 +155,9 @@ function readLogFile(string $type, string $date, int $limit = 1000): array
 /**
  * Cleanup old log files
  */
-function cleanupLogs(int $daysToKeep = 7): int
+function cleanupLogs(?int $daysToKeep = null): int
 {
+    $daysToKeep = $daysToKeep ?? (int) \App\Library\Settings::get('debug_log_retention_days');
     global $logsDir;
 
     $cutoff = strtotime("-{$daysToKeep} days");
@@ -317,19 +318,20 @@ try {
         ]);
 
     } elseif ($action === 'cleanup') {
-        // Cleanup old logs
-        $days = max(1, min((int)Request::query('days', 7), 30));
+        // Cleanup old logs: an explicit ?days= applies to every log, otherwise
+        // each log keeps its own retention setting (Systeeminstellingen).
+        $requested = (int) Request::query('days', 0);
+        $days = $requested > 0 ? max(1, min($requested, 365)) : null;
 
-        // Cleanup file-based logs
         $deletedFiles = cleanupLogs($days);
-
-        // Cleanup PerformanceLogger logs
         $deletedPerf = PerformanceLogger::cleanup($days);
+        $deletedApp = \Cma\Services\Logger::cleanup($days);
 
         echo json_encode([
             'success' => true,
             'deletedFiles' => $deletedFiles,
             'deletedPerfEntries' => $deletedPerf,
+            'deletedAppLogs' => $deletedApp,
         ]);
 
     } else {

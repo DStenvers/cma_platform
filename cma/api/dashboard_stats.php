@@ -132,6 +132,12 @@ function cma_dashboard_classify_log_line(string $line): string
     return 'other';
 }
 
+/** The window of the activity, error and form cards: DASHBOARD_STATS_DAYS. */
+function cma_dashboard_days(): int
+{
+    return (int) \App\Library\Settings::get('dashboard_stats_days');
+}
+
 function getErrorStats(): array
 {
     $errorLog = ini_get('error_log');
@@ -190,7 +196,7 @@ function getErrorStats(): array
     // Initialize daily counts for last 7 days - tracking by type
     $dailyByType = [];
     $dateLabels = [];
-    for ($d = 6; $d >= 0; $d--) {
+    for ($d = cma_dashboard_days() - 1; $d >= 0; $d--) {
         $date = date('d-M-Y', strtotime("-$d days"));
         $dailyByType[$date] = ['error' => 0, 'warning' => 0, 'notice' => 0, 'other' => 0];
         $dateLabels[] = $date;
@@ -270,7 +276,7 @@ function getNotFoundStats(): array
     $stats = ['exists' => false, 'today' => 0, 'total' => 0, 'daily' => [], 'top' => []];
 
     $logsDir = dirname(__DIR__, 2) . '/.logs/404'; // site .logs/404 (same dir cma/404.php writes to)
-    $days = 14;
+    $days = (int) \App\Library\Settings::get('dashboard_notfound_days');
     $maxPerFile = 20000; // safety cap so a pathological log can't stall the dashboard
     $todayStr = date('Y-m-d');
     $paths = [];
@@ -438,7 +444,7 @@ function getUserActivityStats(): array
         // Get daily activity for last 7 days
         $sql = "SELECT Format(datestamp, 'yyyy-mm-dd') AS day, Count(*) AS cnt
                 FROM tblCMAMonitoring
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                 GROUP BY Format(datestamp, 'yyyy-mm-dd')
                 ORDER BY Format(datestamp, 'yyyy-mm-dd')";
 
@@ -458,7 +464,7 @@ function getUserActivityStats(): array
         // Get breakdown by action type
         $sql = "SELECT Actie, Count(*) AS cnt
                 FROM tblCMAMonitoring
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                 GROUP BY Actie
                 ORDER BY Count(*) DESC";
 
@@ -475,7 +481,7 @@ function getUserActivityStats(): array
         // Count unique users
         $sql = "SELECT Count(*) AS cnt FROM (
                     SELECT DISTINCT Username FROM tblCMAMonitoring
-                    WHERE datestamp >= DateAdd('d', -7, Now())
+                    WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                 )";
 
         $rs = Database::openRS($sql, $conn);
@@ -578,7 +584,7 @@ function getMostUsedFormsStats(): array
         // Get top 10 most used forms - prefer Form (handle) over Formname (title)
         $sql = "SELECT TOP 10 IIf(Form Is Null Or Form='', Formname, Form) AS FormHandle, Count(*) AS cnt
                 FROM tblCMAMonitoring
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                   AND (Form Is Not Null Or Formname Is Not Null)
                   AND IIf(Form Is Null Or Form='', Formname, Form) <> ''
                 GROUP BY IIf(Form Is Null Or Form='', Formname, Form)
@@ -716,7 +722,7 @@ function getFailedLoginStats(): array
 
         // Count failed logins this week
         $sql = "SELECT Count(*) AS cnt FROM tblCMAMonitoring
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                   AND $errorFilter";
 
         $rs = Database::openRS($sql, $conn);
@@ -728,7 +734,7 @@ function getFailedLoginStats(): array
         // Get failed attempts by user (top 5)
         $sql = "SELECT TOP 5 Username, Count(*) AS cnt
                 FROM tblCMAMonitoring
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                   AND $errorFilter
                   AND Username Is Not Null AND Username <> ''
                 GROUP BY Username
@@ -972,7 +978,7 @@ function getJSLogStats(): array
         // Count this week's errors
         $sql = "SELECT Count(*) AS cnt
                 FROM tblCMAJavascriptErrors
-                WHERE datestamp >= DateAdd('d', -7, Now())";
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())";
 
         $rs = Database::openRS($sql, $conn);
         if ($rs && !$rs->EOF) {
@@ -982,7 +988,7 @@ function getJSLogStats(): array
         // Get daily breakdown for last 7 days
         $sql = "SELECT Format(datestamp, 'yyyy-mm-dd') AS day, Count(*) AS cnt
                 FROM tblCMAJavascriptErrors
-                WHERE datestamp >= DateAdd('d', -7, Now())
+                WHERE datestamp >= DateAdd('d', -" . cma_dashboard_days() . ", Now())
                 GROUP BY Format(datestamp, 'yyyy-mm-dd')
                 ORDER BY Format(datestamp, 'yyyy-mm-dd')";
 

@@ -139,8 +139,6 @@ class ErrorHandler
      */
     private const ERROR_LOG_RETENTION_DAYS = 7;
 
-    /** Seconds before the same error (class, message, file, line) is mailed again. */
-    private const ERROR_MAIL_THROTTLE_SECONDS = 3600;
 
     /**
      * Failures reported with report() during this request: things that were
@@ -673,7 +671,7 @@ class ErrorHandler
 
     /**
      * Claim the throttle slot for this error. Returns false when the same
-     * signature was mailed less than ERROR_MAIL_THROTTLE_SECONDS ago. Markers
+     * signature was mailed less than ERROR_MAIL_THROTTLE_SECONDS (a setting) ago. Markers
      * older than a day are removed while we are here, so the directory stays
      * as small as the number of distinct recent errors.
      */
@@ -687,7 +685,7 @@ class ErrorHandler
         $signature = md5(get_class($exception) . '|' . $exception->getMessage() . '|' . $exception->getFile() . '|' . $exception->getLine());
         $marker = $dir . '/' . $signature;
         $now = time();
-        if (is_file($marker) && ($now - (int) @filemtime($marker)) < self::ERROR_MAIL_THROTTLE_SECONDS) {
+        if (is_file($marker) && ($now - (int) @filemtime($marker)) < (int) Settings::get('error_mail_throttle_seconds')) {
             return false;
         }
         foreach (glob($dir . '/*') ?: [] as $old) {

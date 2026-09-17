@@ -20,9 +20,11 @@
     'use strict';
 
     const LOG_ENDPOINT = '/cma/api/log.php';
-    const BATCH_SIZE = 20;
-    const BATCH_INTERVAL = 5000; // 5 seconds
-    const MAX_QUEUE_SIZE = 200; // Prevent unbounded queue growth
+    // PERF_CLIENT_* settings (window.CMA.settings, injected by the CMA), else the defaults
+    const settings = (global.CMA && global.CMA.settings) || {};
+    const BATCH_SIZE = parseInt(settings.perfBatchSize, 10) || 20;
+    const BATCH_INTERVAL = parseInt(settings.perfBatchInterval, 10) || 5000;
+    const MAX_QUEUE_SIZE = parseInt(settings.perfMaxQueue, 10) || 200; // Prevent unbounded queue growth
     // Only enable when explicitly requested via CMA_PERF_LOG flag
     const ENABLED = !!window.CMA_PERF_LOG;
 

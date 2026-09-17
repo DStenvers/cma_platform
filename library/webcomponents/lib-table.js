@@ -1789,7 +1789,8 @@ class LibTable extends HTMLElement {
         const noSort = th.hasAttribute('data-no-sort');
         const noFilter = th.hasAttribute('data-no-filter');
         const noSearch = th.hasAttribute('data-no-search');
-        const MAX_FILTER_LENGTH = 500;
+        // TABLE_FILTER_MAX_VALUES (window.CMA.settings, injected by the CMA), else 500
+        const MAX_FILTER_LENGTH = (window.CMA && window.CMA.settings && parseInt(window.CMA.settings.tableFilterMaxValues, 10)) || 500;
 
         const menu = {
             th,
@@ -1894,7 +1895,7 @@ class LibTable extends HTMLElement {
 
                     // Skip checkbox filter if too many unique values (> 30)
                     // This prevents performance issues and unusable UI
-                    const MAX_CHECKBOX_VALUES = 30;
+                    const MAX_CHECKBOX_VALUES = (window.CMA && window.CMA.settings && parseInt(window.CMA.settings.tableFilterMaxCheckboxes, 10)) || 30;
                     if (values.length > MAX_CHECKBOX_VALUES) {
                         // Use direct text filtering mode (no checkboxes)
                         menu.isTextFilterMode = true;

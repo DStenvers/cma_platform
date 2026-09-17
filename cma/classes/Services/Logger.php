@@ -62,9 +62,15 @@ class Logger
     private static function getMinLevel(): string
     {
         if (self::$minLevel === null) {
-            $env = Application::get('omgeving', 'P');
-            // P = Production, T = Test, O = Development
-            self::$minLevel = ($env === 'P') ? self::WARNING : self::DEBUG;
+            // LOG_MIN_LEVEL (Systeeminstellingen) when set; else the environment decides:
+            // P = Production → WARNING, T/O = test/development → DEBUG
+            $configured = strtoupper((string) \App\Library\Settings::get('log_min_level'));
+            if ($configured !== '' && defined(self::class . '::' . $configured)) {
+                self::$minLevel = constant(self::class . '::' . $configured);
+            } else {
+                $env = Application::get('omgeving', 'P');
+                self::$minLevel = ($env === 'P') ? self::WARNING : self::DEBUG;
+            }
         }
         return self::$minLevel;
     }
@@ -263,8 +269,9 @@ class Logger
     /**
      * Cleanup old log files (keep last N days)
      */
-    public static function cleanup(int $keepDays = 30): int
+    public static function cleanup(?int $keepDays = null): int
     {
+        $keepDays = $keepDays ?? (int) \App\Library\Settings::get('app_log_retention_days');
         $logDir = self::getLogDir();
         $cutoff = strtotime("-{$keepDays} days");
         $deleted = 0;

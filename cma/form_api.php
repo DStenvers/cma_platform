@@ -1282,18 +1282,18 @@ try {
                 $userLogin = SecurityHelper::getCurrentUserName();
             }
 
-            // Rate limit: max 100 errors per IP per hour
+            // Rate limit: JS_ERROR_RATE_LIMIT per IP per JS_ERROR_RATE_WINDOW (Systeeminstellingen)
             $clientIp = Request::ip();
             $rateLimitKey = 'jsError_' . md5($clientIp);
             $errorCount = (int)(\App\Library\Cache::get($rateLimitKey) ?? 0);
 
-            if ($errorCount >= 100) {
+            if ($errorCount >= (int) \App\Library\Settings::get('js_error_rate_limit')) {
                 addDebug('Rate limited');
                 outputJson(['success' => false, 'error' => 'Rate limited']);
                 break;
             }
 
-            \App\Library\Cache::set($rateLimitKey, $errorCount + 1, 3600);
+            \App\Library\Cache::set($rateLimitKey, $errorCount + 1, (int) \App\Library\Settings::get('js_error_rate_window'));
 
             try {
                 $dataConn = \App\Library\Database::getConnection('data');

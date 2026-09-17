@@ -3057,10 +3057,10 @@ PerformanceLogger::logMemory('after_query');</code></pre>
 
     <h2>Retentie</h2>
     <ul>
-        <li>Application log: 30 dagen (<code>Logger::cleanup(30)</code>).</li>
-        <li>Performance log: 7 dagen (<code>PerformanceLogger::cleanup(7)</code>).</li>
+        <li>Application log: <code>APP_LOG_RETENTION_DAYS</code> dagen (default 30), performance log <code>PERF_LOG_RETENTION_DAYS</code> (7), debug-/browserlog <code>DEBUG_LOG_RETENTION_DAYS</code> (7) — alle drie opgeruimd door "Logs opruimen" in de logreader (<code>api/log.php?action=cleanup</code>); een expliciete <code>?days=</code> geldt dan voor alle drie.</li>
+        <li>404-log: <code>NOTFOUND_LOG_RETENTION_DAYS</code> dagen (60), opgeruimd na het dagelijkse 404-overzicht — dus alleen met <code>NOTFOUND_MAIL_ENABLED</code> aan. E-mail log: <code>EMAIL_LOG_RETENTION_DAYS</code> (30), bij elke tiende insert.</li>
         <li>PHP error log: <code>ERROR_LOG_RETENTION_DAYS</code> dagen (default 7), instelbaar via Beheerstools → Systeeminstellingen.</li>
-        <li>Andere logs (deploy, debug, 404): platform doet niks automatisch. Stel een cleanup-job in als de schijf vol loopt.</li>
+        <li>Deploy-log: het platform doet niks automatisch. Alle termijnen staan op Beheerstools → Systeeminstellingen, groep Logs &amp; retentie.</li>
     </ul>
     <p>Wijst <code>php.ini</code>'s <code>error_log</code> rechtstreeks naar één vast bestand, dan geldt de dagrotatie hierboven daar
        niet voor: dat bestand groeit onbeperkt door. De check bovenaan deze pagina meldt dat apart.</p>

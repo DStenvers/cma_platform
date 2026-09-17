@@ -76,6 +76,24 @@ class SettingsTest extends TestCase
         $this->assertSame(['stenversonline/platform'], Settings::get('deploy_composer_update'));
         $this->assertSame('localhost', Settings::get('db_host'));
         $this->assertSame('mysql', Settings::get('db_type'));
+        // Phase 4: retention, dashboard and client caps
+        $this->assertSame(30, Settings::get('app_log_retention_days'));
+        $this->assertSame(7, Settings::get('perf_log_retention_days'));
+        $this->assertSame(7, Settings::get('debug_log_retention_days'));
+        $this->assertSame(60, Settings::get('notfound_log_retention_days'));
+        $this->assertSame(30, Settings::get('email_log_retention_days'));
+        $this->assertSame(3600, Settings::get('error_mail_throttle_seconds'));
+        $this->assertSame(30, Settings::get('notfound_digest_top'));
+        $this->assertSame('', Settings::get('log_min_level'));
+        $this->assertSame(100, Settings::get('js_error_rate_limit'));
+        $this->assertSame(3600, Settings::get('js_error_rate_window'));
+        $this->assertSame(7, Settings::get('dashboard_stats_days'));
+        $this->assertSame(14, Settings::get('dashboard_notfound_days'));
+        $this->assertSame(20, Settings::get('perf_client_batch_size'));
+        $this->assertSame(5000, Settings::get('perf_client_batch_interval'));
+        $this->assertSame(200, Settings::get('perf_client_max_queue'));
+        $this->assertSame(500, Settings::get('table_filter_max_values'));
+        $this->assertSame(30, Settings::get('table_filter_max_checkboxes'));
     }
 
     public function testCacheKeysFallBackToTheirAppPhpNames(): void
