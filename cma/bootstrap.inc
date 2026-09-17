@@ -459,6 +459,9 @@ function cma_html_header($title = '', $extraHead = '', $closeHead = true) {
     echo '<meta charset="' . STRCHARSET . '">' . PHP_EOL;
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . PHP_EOL;
     echo '<meta name="mobile-web-app-capable" content="yes">' . PHP_EOL;
+    // Site-wide settings the browser side reads (list sizes, export cap):
+    // one object, before any bundle, so components pick it up at definition.
+    echo '<script>window.CMA=window.CMA||{};window.CMA.settings=' . json_encode(\App\Library\Settings::forClient()) . ';</script>' . PHP_EOL;
 
     // PERFORMANCE: Preload critical resources to speed up rendering
     // Use same URLs as actual loads for cache consistency

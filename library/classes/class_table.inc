@@ -893,7 +893,7 @@ class LibTable
                 $this->TableActiveRowID = '';
                 $this->TableConnection = 'data';
                 $this->TableDefaultSortCol = -1;
-                $this->TableRowsPerPage = 50;
+                $this->TableRowsPerPage = (int) \App\Library\Settings::get('list_page_size');
                 if (Request::query('TablePage', '') != '') {
                     $this->TablePage = intval(round(floatval(substr(Request::queryInt('TablePage'), 0, max(0, min(4, strlen(Request::queryInt('TablePage'))))))));
                 } else {

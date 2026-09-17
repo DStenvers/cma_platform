@@ -38,9 +38,13 @@ class ListMode
     public const FILTER_TOO_MANY_RECORDS = 2; // Record count exceeds LIST_LIMIT
     public const FILTER_REPOSITORY_FORCED = 3; // Form definition has FilterFieldName set
 
-    // Limits (matching list.asp)
-    public const LIST_LIMIT = 800;      // Force search if more records than this
     public const FLUSH_LIMIT = 200;     // Flush output buffer if more than this
+
+    /** Rows above which a list demands a search filter (LIST_LIMIT setting). */
+    public static function listLimit(): int
+    {
+        return (int) \App\Library\Settings::get('list_limit');
+    }
 }
 
 /**

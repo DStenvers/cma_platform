@@ -536,7 +536,7 @@ final class Llm
             }
         }
 
-        $r = self::curlPost($url, $payload, $headers, 180);
+        $r = self::curlPost($url, $payload, $headers, (int) Settings::get('llm_timeout') * 2); // vision: twice the text time-out
         if ($r[0] === null || $r[1] !== 200) {
             return null;
         }
@@ -635,7 +635,7 @@ final class Llm
         ];
         if ($schema !== null) { $payload['format'] = $schema; }
 
-        [$body, $http, $err] = self::curlPost($url, $payload, ['Content-Type: application/json'], 90);
+        [$body, $http, $err] = self::curlPost($url, $payload, ['Content-Type: application/json'], (int) Settings::get('llm_timeout'));
         if ($body === null) {
             return ['ok' => false, 'text' => '', 'model' => $model, 'error' => "HTTP $http $err", 'diag' => []];
         }

@@ -163,7 +163,8 @@ if (file_exists($formDefPath)) {
     }
 
     header('ETag: ' . $etag);
-    header('Cache-Control: public, max-age=86400, stale-while-revalidate=604800');
+    $ttl = (int) \App\Library\Settings::get('cache_default_ttl');
+    header('Cache-Control: public, max-age=' . $ttl . ', stale-while-revalidate=' . ($ttl * 7));
 }
 
 // Get template (from cache or generate)

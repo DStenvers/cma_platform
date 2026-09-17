@@ -51,7 +51,7 @@ $DISK_CACHE_ACTIVE = $isProduction;
 
 $config = [
     'cache_dir' => dirname(__DIR__) . '/.cache/cma/minify',  // Cache directory in site root
-    'cache_time' => 86400 * 28,  // Browser cache: 28 days (URL versioning handles cache busting)
+    'cache_time' => 86400 * (int) \App\Library\Settings::get('asset_cache_days'),  // Browser cache (URL versioning handles cache busting)
     'gzip' => true,              // Enable gzip compression
 ];
 

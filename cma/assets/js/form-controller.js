@@ -5418,8 +5418,8 @@ class CmaFormController {
 
         const tableName = table.dataset.name || table.id;
 
-        // Limit: only CSV for large datasets (>15000 rows)
-        const MAX_ROWS_FOR_FULL_EXPORT = 15000;
+        // Limit: only CSV for large datasets (EXPORT_MAX_ROWS, Systeeminstellingen)
+        const MAX_ROWS_FOR_FULL_EXPORT = (window.CMA && window.CMA.settings && parseInt(window.CMA.settings.exportMaxRows, 10)) || 15000;
         const csvOnly = rowCount > MAX_ROWS_FOR_FULL_EXPORT;
 
         // Create simplified export menu (same as filtering_init but without filters)
@@ -5713,12 +5713,11 @@ class CmaFormController {
             table: table,
             formId: this.jsonForm,
             // De eerste pagina is klein (200, gezet in form_api) zodat het
-            // scherm snel staat; de vervolgstappen mogen fors zijn — de lijst
-            // is er dan al en de achtergrond-prefetch haalt gewoon minder vaak
-            // een grotere hap. Niet data.pageSize overnemen: dat is die eerste
-            // 200, en dan sjokte de prefetch met stapjes van 200 door een
-            // tabel van tienduizenden regels.
-            pageSize: 1000,
+            // scherm snel staat; de vervolgstappen zijn LIST_SCROLL_BATCH
+            // (Systeeminstellingen) — de lijst is er dan al en de
+            // achtergrond-prefetch haalt gewoon minder vaak een grotere hap.
+            // Niet data.pageSize overnemen: dat is die eerste 200.
+            pageSize: (window.CMA && window.CMA.settings && parseInt(window.CMA.settings.listScrollBatch, 10)) || 500,
             loadMore: async (lastId, pageSize) => {
                 return await self.loadMoreRows(lastId, pageSize);
             }

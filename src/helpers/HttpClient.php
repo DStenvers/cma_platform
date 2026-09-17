@@ -14,13 +14,14 @@ class HttpClient
     private $responseText = '';
     private $responseBody = '';
     private $headers = [];
-    private $timeout = 30000; // milliseconds
-    private $connectTimeout = 30000;
+    private $timeout;        // milliseconds, HTTP_TIMEOUT unless setTimeouts() says otherwise
+    private $connectTimeout;
     private $error = '';
     private $errorCode = 0;
 
     public function __construct()
     {
+        $this->timeout = $this->connectTimeout = (int) Settings::get('http_timeout') * 1000;
         $this->ch = curl_init();
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
@@ -204,11 +205,12 @@ class HttpClient
      * Static helper for simple GET requests
      * @param string $url URL to fetch
      * @param array $headers Optional headers
-     * @param int $timeout Timeout in milliseconds
+     * @param int|null $timeout Timeout in milliseconds (HTTP_TIMEOUT when omitted)
      * @return HttpClient
      */
-    public static function get($url, $headers = [], $timeout = 30000)
+    public static function get($url, $headers = [], $timeout = null)
     {
+        $timeout = $timeout ?? (int) Settings::get('http_timeout') * 1000;
         $client = new self();
         $client->setTimeouts($timeout, $timeout, $timeout, $timeout);
         $client->open('GET', $url);
@@ -224,11 +226,12 @@ class HttpClient
      * @param string $url URL to post to
      * @param string $body Request body
      * @param array $headers Optional headers
-     * @param int $timeout Timeout in milliseconds
+     * @param int|null $timeout Timeout in milliseconds (HTTP_TIMEOUT when omitted)
      * @return HttpClient
      */
-    public static function post($url, $body = '', $headers = [], $timeout = 30000)
+    public static function post($url, $body = '', $headers = [], $timeout = null)
     {
+        $timeout = $timeout ?? (int) Settings::get('http_timeout') * 1000;
         $client = new self();
         $client->setTimeouts($timeout, $timeout, $timeout, $timeout);
         $client->open('POST', $url);
@@ -246,8 +249,9 @@ class HttpClient
      * @param int $timeout Timeout in milliseconds
      * @return bool True on success
      */
-    public static function downloadFile($url, $localPath, $timeout = 60000)
+    public static function downloadFile($url, $localPath, $timeout = null)
     {
+        $timeout = $timeout ?? (int) Settings::get('http_download_timeout') * 1000;
         $client = new self();
         $client->setTimeouts($timeout, $timeout, $timeout, $timeout);
         $client->open('GET', $url);

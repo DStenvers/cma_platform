@@ -110,7 +110,41 @@ $groups = [
         ['key' => 'mail_password', 'label' => 'SMTP-wachtwoord',
          'hint' => 'Wordt niet getoond. Leeg laten houdt het huidige wachtwoord. Test de verbinding via Server informatie → Omgeving → Test-mail.'],
     ]],
-    ['id' => 4, 'caption' => 'Foutweergave', 'rows' => [
+    ['id' => 4, 'caption' => 'Lijsten', 'rows' => [
+        ['key' => 'list_page_size',      'label' => 'Rijen per pagina',
+         'hint' => 'Tabellen en bladerknoppen in CMA én front-end (lib-table, lib-pagination, de klassieke tabel) en de paginagrootte van lijstschermen.'],
+        ['key' => 'list_scroll_batch',   'label' => 'Rijen per scroll-stap',
+         'hint' => 'Hoeveel rijen een lijst bij doorscrollen in één keer bijlaadt (server én client).'],
+        ['key' => 'list_limit',          'label' => 'Zoekfilter verplicht vanaf',
+         'hint' => 'Boven dit aantal records toont een lijst eerst een zoekveld in plaats van alles te laden; een formulier kan een eigen limiet hebben.'],
+        ['key' => 'combo_dynamic_items', 'label' => 'Keuzelijst dynamisch vanaf',
+         'hint' => 'Boven dit aantal opties wordt een keuzelijst dynamisch geladen (zoeken-terwijl-je-typt) in plaats van volledig.'],
+        ['key' => 'report_preview_rows', 'label' => 'Rijen in rapportvoorbeeld',
+         'hint' => 'Standaard aantal rijen in het voorbeeld van de rapportontwerper (maximaal 1000).'],
+        ['key' => 'export_max_rows',     'label' => 'Volledige export tot',
+         'hint' => 'Boven dit aantal rijen biedt een rapport alleen CSV aan; Excel en PDF worden dan te zwaar.'],
+    ]],
+    ['id' => 5, 'caption' => 'Cache', 'rows' => [
+        ['key' => 'cache_default_ttl', 'label' => 'Standaard cachetijd (s)',
+         'hint' => 'Levensduur van een cache-item zonder eigen tijd, en de browsercache van formulierdefinities.'],
+        ['key' => 'list_cache_ttl',    'label' => 'Lijstcache (s)',
+         'hint' => 'Hoe lang een lijstresultaat hergebruikt wordt, op de server en in de browser. 0 = uit.'],
+        ['key' => 'lookup_cache_ttl',  'label' => 'Keuzelijstcache (s)',
+         'hint' => 'Browsercache van keuzelijsten, checklists en kolomdefinities.'],
+        ['key' => 'api_cache_ttl',     'label' => 'Overige API-cache (s)',
+         'hint' => 'Browsercache voor de overige API-antwoorden van het CMA.'],
+        ['key' => 'asset_cache_days',  'label' => 'Bundels in browsercache (dagen)',
+         'hint' => 'Hoe lang JavaScript- en CSS-bundels in de browser blijven; een nieuwe versie krijgt een nieuwe URL, dus dit mag lang.'],
+    ]],
+    ['id' => 6, 'caption' => 'Time-outs', 'rows' => [
+        ['key' => 'db_connect_timeout',    'label' => 'Databaseverbinding (s)', 'hint' => 'Wachttijd op het openen van een databaseverbinding.'],
+        ['key' => 'db_query_timeout',      'label' => 'Query (s)',              'hint' => 'Maximale looptijd van één query op MySQL en SQL Server.'],
+        ['key' => 'http_timeout',          'label' => 'HTTP-aanroepen (s)',     'hint' => 'Uitgaande HTTP-aanroepen van de site (koppelingen, feeds).'],
+        ['key' => 'http_download_timeout', 'label' => 'HTTP-downloads (s)',     'hint' => 'Uitgaande downloads van bestanden.'],
+        ['key' => 'llm_timeout',           'label' => 'LLM-aanroepen (s)',      'hint' => 'Tekstaanroepen naar het taalmodel; beeldanalyse krijgt het dubbele.'],
+        ['key' => 'process_timeout',       'label' => 'Achtergrondprocessen (s)', 'hint' => 'Maximale looptijd van een proces dat het CMA start (tests, conversies).'],
+    ]],
+    ['id' => 7, 'caption' => 'Foutweergave', 'rows' => [
         ['key' => 'force_debug', 'label' => 'Fouten tonen op productie',
          'hint' => 'Toont foutdetails aan iedere bezoeker, ook op productie. Alleen tijdelijk aanzetten; beheerders zien de details altijd al.'],
         ['key' => 'cma_debug',   'label' => 'CMA-debugmodus voor iedereen',
@@ -167,20 +201,20 @@ ToolbarHelper::end();
 <?php endforeach; endforeach; ?>
             <tr class="groupbox-row">
                 <td colspan="3">
-                    <cma-groupbox group-id="5" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
+                    <cma-groupbox group-id="8" form-id="0" caption="Ontwikkelaar (alleen voor jou)"></cma-groupbox>
                 </td>
             </tr>
-            <tr id="_g5_1">
+            <tr id="_g8_1">
                 <td class="label-cell"><label for="debugMode">Console logging</label></td>
                 <td class="input-cell"><lib-switch name="debugMode" id="debugMode" <?= $prefs['prefDebugMode'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Schakel console.log-output in (uitschakelen voor snelheidstests).</td>
             </tr>
-            <tr id="_g5_2">
+            <tr id="_g8_2">
                 <td class="label-cell"><label for="showDebugOverlay">Debug overlay tonen</label></td>
                 <td class="input-cell"><lib-switch name="showDebugOverlay" id="showDebugOverlay" <?= $prefs['prefDebugOverlay'] ? 'checked' : '' ?>></lib-switch></td>
                 <td class="hint-cell">Toont formulierstatus-informatie op alle formulieren.</td>
             </tr>
-            <tr id="_g5_3" class="groupbox_end">
+            <tr id="_g8_3" class="groupbox_end">
                 <td class="label-cell"><label for="sqlThreshold">SQL log drempelwaarde</label></td>
                 <td class="input-cell">
                     <select name="sqlThreshold" id="sqlThreshold" class="form-control cma-tool__settings-select">

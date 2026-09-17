@@ -70,7 +70,7 @@ switch ($action) {
 /**
  * Maximum records for non-CSV export formats
  */
-const MAX_ROWS_FOR_FULL_EXPORT = 15000;
+define('MAX_ROWS_FOR_FULL_EXPORT', (int) \App\Library\Settings::get('export_max_rows'));
 
 /**
  * Handle export request

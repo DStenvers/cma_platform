@@ -114,3 +114,19 @@ test('properties renderen opnieuw', () => {
     p.el.setAttribute('href', '/lijst?p={page}&q=a{page}');
     assert.gelijk(p.el.hrefFor(4), '/lijst?p=4&q=a4', 'elke {page} vervangen');
 });
+
+test('page-size zonder attribuut komt uit window.CMA.settings (LIST_PAGE_SIZE), anders 50', () => {
+    const zonder = maak('page="1" total="100" href="?p={page}"');
+    assert.gelijk(zonder.el.pageSize, 50, 'zonder injectie is de standaard 50');
+    const dom = new (require('jsdom').JSDOM)(
+        '<!doctype html><html><body>' +
+        '<script>window.CMA={settings:{listPageSize:20}};</script>' +
+        '<lib-pagination id="p" page="1" total="100" href="?p={page}"></lib-pagination>' +
+        '<script>' + require('fs').readFileSync(BRON, 'utf8') + '</script>' +
+        '</body></html>',
+        { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/cma/main.php' }
+    );
+    const met = dom.window.document.getElementById('p');
+    assert.gelijk(met.pageSize, 20, 'de geïnjecteerde instelling wint');
+    assert.gelijk(met.pages, 5, '100 regels bij 20 per pagina');
+});

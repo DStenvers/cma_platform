@@ -36,6 +36,12 @@
  */
 
 // Guard against double registration
+// Default page size: LIST_PAGE_SIZE (window.CMA.settings, injected by the CMA), else 50.
+function libTableDefaultPageSize() {
+    var s = window.CMA && window.CMA.settings;
+    return (s && parseInt(s.listPageSize, 10)) || 50;
+}
+
 if (!customElements.get('lib-data-table')) {
 
 class LibDataTable extends HTMLElement {
@@ -56,7 +62,7 @@ class LibDataTable extends HTMLElement {
 
     // Configuration
     #config = {
-        pageSize: 50,
+        pageSize: libTableDefaultPageSize(),
         rowHeight: 36,
         bufferRows: 10,     // Extra rows to render above/below viewport
         formId: null,
@@ -149,7 +155,7 @@ class LibDataTable extends HTMLElement {
                 this.#loadPreferences();
                 break;
             case 'page-size':
-                this.#config.pageSize = parseInt(newValue) || 50;
+                this.#config.pageSize = parseInt(newValue) || libTableDefaultPageSize();
                 break;
             case 'row-height':
                 this.#config.rowHeight = parseInt(newValue) || 36;
@@ -371,7 +377,7 @@ class LibDataTable extends HTMLElement {
     #parseAttributes() {
         this.#config.dataUrl = this.getAttribute('data-url');
         this.#config.formId = this.getAttribute('data-form-id');
-        this.#config.pageSize = parseInt(this.getAttribute('page-size')) || 50;
+        this.#config.pageSize = parseInt(this.getAttribute('page-size')) || libTableDefaultPageSize();
         this.#config.sortable = this.hasAttribute('sortable');
         this.#config.filterable = this.hasAttribute('filterable');
         this.#config.resizable = this.hasAttribute('resizable');

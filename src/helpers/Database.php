@@ -109,15 +109,8 @@ class Database
      */
     private static string $lastSQL = '';
 
-    /**
-     * Connection timeout in seconds
-     */
-    private const CONN_TIMEOUT = 10;
-
-    /**
-     * Command timeout in seconds
-     */
-    private const CMD_TIMEOUT = 1000;
+    // Connection and query time-outs come from Settings (DB_CONNECT_TIMEOUT,
+    // DB_QUERY_TIMEOUT); see connectTimeout()/queryTimeout().
 
     /**
      * Enable connection pooling (matches ASP behavior)
@@ -417,7 +410,7 @@ class Database
 
         try {
             new PDO($dsn, null, null, [
-                PDO::ATTR_TIMEOUT => self::CONN_TIMEOUT,
+                PDO::ATTR_TIMEOUT => (int) Settings::get('db_connect_timeout'),
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
             return null;
@@ -566,7 +559,7 @@ class Database
             ]);
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $conn->setAttribute(PDO::ATTR_TIMEOUT, self::CONN_TIMEOUT);
+            $conn->setAttribute(PDO::ATTR_TIMEOUT, (int) Settings::get('db_connect_timeout'));
 
             // Get actual driver (may differ from DSN prefix)
             $actualDriver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -584,9 +577,9 @@ class Database
 
             // Configure timeouts based on driver
             if ($actualDriver === 'mysql') {
-                $conn->exec('SET SESSION max_execution_time = ' . (self::CMD_TIMEOUT * 1000));
+                $conn->exec('SET SESSION max_execution_time = ' . ((int) Settings::get('db_query_timeout') * 1000));
             } elseif ($actualDriver === 'sqlsrv') {
-                $conn->setAttribute(PDO::SQLSRV_ATTR_QUERY_TIMEOUT, self::CMD_TIMEOUT);
+                $conn->setAttribute(PDO::SQLSRV_ATTR_QUERY_TIMEOUT, (int) Settings::get('db_query_timeout'));
             }
 
             return $conn;

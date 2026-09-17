@@ -175,15 +175,15 @@ switch ($action) {
     case 'combo':
     case 'combos':
     case 'checklist':
-        $cacheMaxAge = 1800; // 30 minutes
+        $cacheMaxAge = (int) \App\Library\Settings::get('lookup_cache_ttl');
         header('Cache-Control: public, max-age=' . $cacheMaxAge . ', stale-while-revalidate=300');
         header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheMaxAge) . ' GMT');
         header('Vary: Accept-Encoding');
         break;
 
-    // Column definitions - cache for 1 hour (public, rarely change)
+    // Column definitions: same lookup cache as the combos
     case 'columns':
-        $cacheMaxAge = 3600; // 1 hour
+        $cacheMaxAge = (int) \App\Library\Settings::get('lookup_cache_ttl');
         header('Cache-Control: public, max-age=' . $cacheMaxAge . ', stale-while-revalidate=600');
         header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheMaxAge) . ' GMT');
         header('Vary: Accept-Encoding');
@@ -203,8 +203,9 @@ switch ($action) {
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
             header('Pragma: no-cache');
         } else {
-            // Allow 60 seconds cache for unfiltered list/tree views
-            header('Cache-Control: private, max-age=60, stale-while-revalidate=30');
+            // Unfiltered list/tree views: LIST_CACHE_TTL, same as the server-side list cache
+            $listTtl = (int) \App\Library\Settings::get('list_cache_ttl');
+            header('Cache-Control: private, max-age=' . $listTtl . ', stale-while-revalidate=' . (int) ($listTtl / 2));
         }
         header('Vary: Accept-Encoding');
         break;
@@ -289,7 +290,8 @@ function cma_generate_image_variants(string $formName, array $data): void
     }
 }
 
-function setCacheHeaders(int $maxAge = 300, bool $private = true) {
+function setCacheHeaders(?int $maxAge = null, bool $private = true) {
+    $maxAge = $maxAge ?? (int) \App\Library\Settings::get('api_cache_ttl');
     $cacheControl = $private ? 'private' : 'public';
     header("Cache-Control: {$cacheControl}, max-age={$maxAge}");
     header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT');

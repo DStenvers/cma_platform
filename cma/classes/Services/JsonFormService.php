@@ -278,7 +278,7 @@ class JsonFormService extends BaseFormService
             }
 
             // Pagination settings for infinite scroll
-            $pageSize = (int)($options['limit'] ?? 500); // Default 500 rows per page
+            $pageSize = (int)($options['limit'] ?? \App\Library\Settings::get('list_scroll_batch'));
             $lastId = $options['lastId'] ?? null;
             $isLoadMore = $lastId !== null;
 
@@ -1552,7 +1552,7 @@ class JsonFormService extends BaseFormService
             // net zo bruikbaar als het exacte getal, en het scheelt de rest
             // van de scan.
             $page = max(1, (int)($options['page'] ?? 1));
-            $pageSize = min(100, max(10, (int)($options['pageSize'] ?? 50)));
+            $pageSize = min(1000, max(10, (int)($options['pageSize'] ?? \App\Library\Settings::get('list_page_size'))));
             $offset = ($page - 1) * $pageSize;
             $maxTelling = 250000;
 

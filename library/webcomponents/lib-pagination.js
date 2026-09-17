@@ -51,6 +51,12 @@
  */
 
 // Guard tegen dubbele registratie (een pagina die het bestand ook los laadt).
+// Default page size: LIST_PAGE_SIZE (window.CMA.settings, injected by the CMA), else 50.
+function libPaginationDefaultPageSize() {
+    var s = window.CMA && window.CMA.settings;
+    return (s && parseInt(s.listPageSize, 10)) || 50;
+}
+
 if (!customElements.get('lib-pagination')) {
 
     class LibPagination extends HTMLElement {
@@ -94,7 +100,7 @@ if (!customElements.get('lib-pagination')) {
         get total()  { return this._int('total', 0); }
         set total(v) { this.setAttribute('total', String(Math.max(0, parseInt(v, 10) || 0))); }
 
-        get pageSize()  { return Math.max(1, this._int('page-size', 50)); }
+        get pageSize()  { return Math.max(1, this._int('page-size', libPaginationDefaultPageSize())); }
         set pageSize(v) { this.setAttribute('page-size', String(Math.max(1, parseInt(v, 10) || 1))); }
 
         /** De link voor een pagina, of null zonder href-sjabloon. */

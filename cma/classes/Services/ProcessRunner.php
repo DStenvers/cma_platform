@@ -19,13 +19,13 @@ class ProcessRunner
 
     /**
      * @param string $tempDir Directory for output files
-     * @param int $timeout Maximum execution time in seconds
+     * @param int|null $timeout Maximum execution time in seconds (PROCESS_TIMEOUT when omitted)
      * @param int $pollInterval Polling interval in microseconds
      */
-    public function __construct($tempDir = null, $timeout = 300, $pollInterval = 100000)
+    public function __construct($tempDir = null, $timeout = null, $pollInterval = 100000)
     {
         $this->tempDir = $tempDir ?? dirname(__DIR__, 2) . '/temp';
-        $this->timeout = $timeout;
+        $this->timeout = $timeout ?? (int) \App\Library\Settings::get('process_timeout');
         $this->pollInterval = $pollInterval;
 
         // Ensure temp directory exists

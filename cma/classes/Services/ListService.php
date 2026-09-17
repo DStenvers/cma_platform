@@ -156,7 +156,7 @@ class ListService extends BaseFormService
 
             // Limit records: use form-specific limit, request limit, or default (800)
             $formLimit = $formDef->getListLimit();
-            $limit = (int)($options['limit'] ?? $formLimit ?? ListMode::LIST_LIMIT);
+            $limit = (int)($options['limit'] ?? $formLimit ?? ListMode::listLimit());
 
             // Apply TOP for Access/SQL Server or LIMIT for SQLite - handle DISTINCT properly
             $finalSql = SQL::addTop($listSql, $limit, $conn);
@@ -174,7 +174,8 @@ class ListService extends BaseFormService
                 'limit' => $limit,
             ];
             $cacheKey = 'list_' . md5(json_encode($cacheParams));
-            $cacheTTL = (int)Application::get('list_cache_ttl', 60); // Default 60 seconds
+            // LIST_CACHE_TTL from the settings; a site's older list_cache_ttl Application key is the fallback
+            $cacheTTL = (int) \App\Library\Settings::get('list_cache_ttl', (int) Application::get('list_cache_ttl', 0) ?: null);
 
             // Try cache first (with cross-instance invalidation support)
             $cachedItems = Cache::getWithInvalidation($cacheKey, 'lists');

@@ -15,45 +15,12 @@
 namespace Cma\Services;
 
 use App\Library\EnvFile;
+use App\Library\Settings;
 
 class SystemSettings
 {
-    /**
-     * Registry of settings the admin UI exposes.
-     *
-     *   env     the .env variable
-     *   type    bool   — written as true/false
-     *           flag   — written as 1/0 (readers compare against the string '1')
-     *           email  — one or more addresses, comma-separated
-     *           int    — bounded by min/max; 'optional' allows an empty value
-     *           text   — free text, one line
-     *           secret — like text, but never shown again; an empty submission
-     *                    keeps the stored value
-     *   default the value when the variable is absent
-     */
-    public const DEFINITIONS = [
-        // Meldingen
-        'error_mail_enabled'       => ['env' => 'ERROR_MAIL_ENABLED',       'type' => 'bool',  'default' => false],
-        'error_mail_to'            => ['env' => 'ERROR_MAIL_TO',            'type' => 'email', 'default' => ''],
-        'notfound_mail_enabled'    => ['env' => 'NOTFOUND_MAIL_ENABLED',    'type' => 'bool',  'default' => false],
-        'notfound_mail_to'         => ['env' => 'NOTFOUND_MAIL_TO',         'type' => 'email', 'default' => ''],
-        'deploy_alert_email'       => ['env' => 'DEPLOY_ALERT_EMAIL',       'type' => 'email', 'default' => ''],
-        // Logging
-        'perf_log_enabled'         => ['env' => 'PERF_LOG_ENABLED',         'type' => 'bool',  'default' => true],
-        'cache_log_enabled'        => ['env' => 'CACHE_LOG_ENABLED',        'type' => 'bool',  'default' => true],
-        'debug_log_enabled'        => ['env' => 'DEBUG_LOG_ENABLED',        'type' => 'bool',  'default' => true],
-        'email_log_enabled'        => ['env' => 'EMAIL_LOG_ENABLED',        'type' => 'bool',  'default' => true],
-        'sql_log_enabled'          => ['env' => 'SQL_LOG_ENABLED',          'type' => 'bool',  'default' => false],
-        'error_log_retention_days' => ['env' => 'ERROR_LOG_RETENTION_DAYS', 'type' => 'int',   'default' => 7, 'min' => 1, 'max' => 365],
-        // Foutweergave
-        'force_debug'              => ['env' => 'FORCE_DEBUG',              'type' => 'flag',  'default' => false],
-        'cma_debug'                => ['env' => 'CMA_DEBUG',                'type' => 'flag',  'default' => false],
-        // Mailserver (Email falls back to the mail_* Application keys in app.php when these are empty)
-        'mail_host'                => ['env' => 'MAIL_HOST',                'type' => 'text',   'default' => ''],
-        'mail_port'                => ['env' => 'MAIL_PORT',                'type' => 'int',    'default' => 0, 'min' => 1, 'max' => 65535, 'optional' => true],
-        'mail_username'            => ['env' => 'MAIL_USERNAME',            'type' => 'text',   'default' => ''],
-        'mail_password'            => ['env' => 'MAIL_PASSWORD',            'type' => 'secret', 'default' => ''],
-    ];
+    /** The registry lives in App\Library\Settings; this is the same array. */
+    public const DEFINITIONS = Settings::DEFINITIONS;
 
     private static ?string $envFile = null;
     private static ?string $envFileName = null;
@@ -128,24 +95,7 @@ class SystemSettings
      */
     public static function get(string $key)
     {
-        $def = self::DEFINITIONS[$key] ?? null;
-        if ($def === null) {
-            throw new \InvalidArgumentException("Unknown system setting: $key");
-        }
-        $raw = EnvFile::value($def['env']);
-        if ($raw === null || trim($raw) === '') {
-            return $def['default'];
-        }
-        switch ($def['type']) {
-            case 'bool':
-                return filter_var($raw, FILTER_VALIDATE_BOOLEAN);
-            case 'flag':
-                return trim($raw) === '1';
-            case 'int':
-                return max($def['min'], min($def['max'], (int) $raw));
-            default:
-                return trim($raw);
-        }
+        return Settings::get($key);
     }
 
     /** Check if performance logging is enabled */

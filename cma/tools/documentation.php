@@ -2376,6 +2376,46 @@ function render_doc_environment(): void
     </table>
     <p>Alle vier zijn te zetten via Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Mailserver</span>. De vier <code>mail_*</code>-keys in <code>app.php</code> blijven de terugval voor een site die het scherm nog niet gebruikt.</p>
 
+    <h3>Lijsten</h3>
+    <p>Eén waarde per begrip, gelezen door PHP én — via <code>window.CMA.settings</code>, dat <code>cma_html_header()</code> op elke CMA-pagina zet — door de webcomponents. Buiten het CMA (front-end zonder die injectie) gelden de defaults.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>LIST_PAGE_SIZE</code></td><td><code>50</code></td><td><code>lib-table</code>, <code>lib-pagination</code>, de klassieke <code>class_table.inc</code> en de paginagrootte van <code>JsonFormService</code>: rijen per pagina.</td></tr>
+            <tr><td><code>LIST_SCROLL_BATCH</code></td><td><code>500</code></td><td><code>JsonFormService</code> (server) en de infinite scroll in <code>table-preferences.js</code>/<code>form-controller.js</code> (client): rijen per bijlaadstap.</td></tr>
+            <tr><td><code>LIST_LIMIT</code></td><td><code>800</code></td><td><code>ListMode::listLimit()</code> via <code>ListService</code>: boven dit aantal records eist een lijst eerst een zoekfilter. Een formulierdefinitie kan een eigen <code>listLimit</code> zetten.</td></tr>
+            <tr><td><code>COMBO_DYNAMIC_ITEMS</code></td><td><code>50</code></td><td><code>FormControlHelper::dynamicListItems()</code>: boven dit aantal opties laadt een keuzelijst dynamisch.</td></tr>
+            <tr><td><code>REPORT_PREVIEW_ROWS</code></td><td><code>100</code></td><td><code>api/report-query.php</code>: rijen in het rapportvoorbeeld als de client geen aantal meegeeft (maximaal 1000).</td></tr>
+            <tr><td><code>EXPORT_MAX_ROWS</code></td><td><code>15000</code></td><td><code>api/report-export.php</code>, <code>report-designer.php</code> en <code>form-controller.js</code>: boven dit aantal alleen CSV-export.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Cache</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>CACHE_DEFAULT_TTL</code></td><td><code>86400</code></td><td><code>Cache::set()</code> zonder eigen ttl, en de browsercache van formulierdefinities (<code>form.php</code>). Seconden.</td></tr>
+            <tr><td><code>LIST_CACHE_TTL</code></td><td><code>60</code></td><td><code>ListService</code> (servercache van lijstresultaten; een oudere <code>list_cache_ttl</code> in <code>app.php</code> is de terugval) en <code>form_api.php</code> (browsercache van ongefilterde lijsten). <code>0</code> = uit.</td></tr>
+            <tr><td><code>LOOKUP_CACHE_TTL</code></td><td><code>1800</code></td><td><code>form_api.php</code>: browsercache van keuzelijsten, checklists en kolomdefinities.</td></tr>
+            <tr><td><code>API_CACHE_TTL</code></td><td><code>300</code></td><td><code>form_api.php</code> <code>setCacheHeaders()</code>: de overige API-antwoorden.</td></tr>
+            <tr><td><code>ASSET_CACHE_DAYS</code></td><td><code>28</code></td><td><code>minify.php</code>: browsercache van de JS/CSS-bundels. Een nieuwe versie krijgt een nieuwe URL, dus dit mag lang.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Time-outs</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
+        <tbody>
+            <tr><td><code>DB_CONNECT_TIMEOUT</code></td><td><code>10</code></td><td><code>Database</code>: seconden wachten op een databaseverbinding (<code>PDO::ATTR_TIMEOUT</code>).</td></tr>
+            <tr><td><code>DB_QUERY_TIMEOUT</code></td><td><code>1000</code></td><td><code>Database</code>: maximale looptijd van een query op MySQL (<code>max_execution_time</code>) en SQL Server (<code>SQLSRV_ATTR_QUERY_TIMEOUT</code>).</td></tr>
+            <tr><td><code>HTTP_TIMEOUT</code></td><td><code>30</code></td><td><code>HttpClient</code>: uitgaande GET/POST zonder eigen time-out.</td></tr>
+            <tr><td><code>HTTP_DOWNLOAD_TIMEOUT</code></td><td><code>60</code></td><td><code>HttpClient::downloadFile()</code>.</td></tr>
+            <tr><td><code>LLM_TIMEOUT</code></td><td><code>90</code></td><td><code>Llm</code>: tekstaanroepen; beeldanalyse krijgt het dubbele.</td></tr>
+            <tr><td><code>PROCESS_TIMEOUT</code></td><td><code>300</code></td><td><code>Services\ProcessRunner</code>: achtergrondprocessen die het CMA start.</td></tr>
+        </tbody>
+    </table>
+    <p>Alle drie de groepen staan op Beheerstools → Systeeminstellingen. Het register is <code>App\Library\Settings::DEFINITIONS</code>; de letterlijke getallen die deze waarden vervingen staan niet meer in de code.</p>
+
     <h3>Externe diensten &amp; paden</h3>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>

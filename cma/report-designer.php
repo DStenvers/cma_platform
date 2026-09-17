@@ -508,7 +508,7 @@ ToolbarHelper::end(true);
     };
 
     // Constants
-    const MAX_ROWS_FOR_FULL_EXPORT = 15000;
+    const MAX_ROWS_FOR_FULL_EXPORT = <?= (int) \App\Library\Settings::get('export_max_rows') ?>;
 
     // Sync debounce timer for SQL parsing
     let sqlSyncDebounceTimer = null;

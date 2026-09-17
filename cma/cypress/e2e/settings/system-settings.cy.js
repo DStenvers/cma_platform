@@ -15,10 +15,13 @@ describe('System Settings', () => {
     });
 
     describe('Groups', () => {
-        it('should show the five groups', () => {
+        it('should show the eight groups', () => {
             cy.get('cma-groupbox[caption="Meldingen per e-mail"]').should('exist');
             cy.get('cma-groupbox[caption="Logging"]').should('exist');
             cy.get('cma-groupbox[caption="Mailserver"]').should('exist');
+            cy.get('cma-groupbox[caption="Lijsten"]').should('exist');
+            cy.get('cma-groupbox[caption="Cache"]').should('exist');
+            cy.get('cma-groupbox[caption="Time-outs"]').should('exist');
             cy.get('cma-groupbox[caption="Foutweergave"]').should('exist');
             cy.get('cma-groupbox[caption="Ontwikkelaar (alleen voor jou)"]').should('exist');
         });

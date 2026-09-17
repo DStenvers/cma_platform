@@ -119,11 +119,6 @@ class Cache
     private static $enabled = true;
 
     /**
-     * @var int Default TTL in seconds (24 hours)
-     */
-    private static $defaultTTL = 86400;
-
-    /**
      * @var int Cache hit counter
      */
     private static $hits = 0;
@@ -367,7 +362,7 @@ class Cache
             return false;
         }
 
-        $ttl = $ttl ?? self::$defaultTTL;
+        $ttl = $ttl ?? (int) Settings::get('cache_default_ttl');
 
         try {
             switch (self::$backend) {

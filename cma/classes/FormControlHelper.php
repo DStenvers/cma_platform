@@ -19,7 +19,11 @@ use PDO;
 class FormControlHelper
 {
     public const FULL_LOAD_CHK_FIELD = '__fully_loaded';
-    public const DYNAMIC_LIST_ITEMS = 50;
+    /** Combo items above which the list loads dynamically (COMBO_DYNAMIC_ITEMS setting). */
+    public static function dynamicListItems(): int
+    {
+        return (int) \App\Library\Settings::get('combo_dynamic_items');
+    }
 
     // Image resize type constants
     public const IMG_NO_RESIZE = 0;
@@ -186,7 +190,7 @@ JS;
 
         if ($tableName !== null && $tableName !== '') {
             $nRecords = Database::getTableRecordCount($conn, $tableName);
-            $bDynamic = $nRecords > self::DYNAMIC_LIST_ITEMS;
+            $bDynamic = $nRecords > self::dynamicListItems();
         } else {
             $bDynamic = false;
             $nRecords = -1;
@@ -205,8 +209,8 @@ JS;
         $rsCombo = null;
 
         if (!$bDynamic && !$bCached) {
-            $listSQL = str_ireplace('select ', 'select top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' ', $sql);
-            $listSQL = str_ireplace('select top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' DISTINCT ', 'select DISTINCT top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' ', $listSQL);
+            $listSQL = str_ireplace('select ', 'select top ' . (self::dynamicListItems() + 1) . ' ', $sql);
+            $listSQL = str_ireplace('select top ' . (self::dynamicListItems() + 1) . ' DISTINCT ', 'select DISTINCT top ' . (self::dynamicListItems() + 1) . ' ', $listSQL);
             $rsCombo = Database::openRS($listSQL, $conn, adOpenStatic);
             if ($rsCombo === null) {
                 throw new \Exception('Database query failed: ' . Database::getLastError());
@@ -216,7 +220,7 @@ JS;
             $originalScript = strtolower(Request::getOriginalScript());
             if (stripos($originalScript, 'details.php') !== false || stripos($originalScript, 'list.php') !== false) {
                 if (!$rsCombo->EOF) {
-                    while (!$rsCombo->EOF && !($recordCount > self::DYNAMIC_LIST_ITEMS && ($currentValue === '' || $defaultValue !== ''))) {
+                    while (!$rsCombo->EOF && !($recordCount > self::dynamicListItems() && ($currentValue === '' || $defaultValue !== ''))) {
                         $recordCount++;
                         if ($currentValue !== '') {
                             if (($rsCombo->fields[$idField] ?? '') == $currentValue . '') {
@@ -228,7 +232,7 @@ JS;
                         }
                         $rsCombo->MoveNext();
                     }
-                    $bDynamic = $recordCount > self::DYNAMIC_LIST_ITEMS;
+                    $bDynamic = $recordCount > self::dynamicListItems();
                     if ($bDynamic) {
                         $dynamicUrl = Request::currentDomain() . Application::get('base_path', '') . 'cma/details_getdata.php?formid=' . $formId . '&controlname=' . $name;
                     }
@@ -250,8 +254,8 @@ JS;
         } else {
             if (!$bCached) {
                 // Re-query the database since the first loop consumed the recordset
-                $listSQL = str_ireplace('select ', 'select top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' ', $sql);
-                $listSQL = str_ireplace('select top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' DISTINCT ', 'select DISTINCT top ' . (self::DYNAMIC_LIST_ITEMS + 1) . ' ', $listSQL);
+                $listSQL = str_ireplace('select ', 'select top ' . (self::dynamicListItems() + 1) . ' ', $sql);
+                $listSQL = str_ireplace('select top ' . (self::dynamicListItems() + 1) . ' DISTINCT ', 'select DISTINCT top ' . (self::dynamicListItems() + 1) . ' ', $listSQL);
                 $rsCombo = Database::openRS($listSQL, $conn, adOpenStatic);
                 // Note: Recordset is already positioned at first row after construction - no need to call fetch()
 
@@ -329,7 +333,7 @@ JS;
                      $readonly === -1 || $readonly === '-1');
 
         $recordCount = count($values);
-        $bDynamic = $recordCount > self::DYNAMIC_LIST_ITEMS;
+        $bDynamic = $recordCount > self::dynamicListItems();
         $dynamicUrl = Request::currentDomain() . Application::get('base_path', '') . 'details_getdata.php?formid=' . $formId . '&controlname=' . $name;
 
         // Build select element

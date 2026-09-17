@@ -170,10 +170,10 @@ function handlePreview(): void
         return;
     }
 
-    // Get limit (default 100)
-    $limit = Request::postInt('limit', 100);
+    // Preview rows: REPORT_PREVIEW_ROWS unless the client asks for a size
+    $limit = Request::postInt('limit', (int) \App\Library\Settings::get('report_preview_rows'));
     if ($limit <= 0) {
-        $limit = 100;
+        $limit = (int) \App\Library\Settings::get('report_preview_rows');
     }
     if ($limit > 1000) {
         $limit = 1000; // Max limit for preview

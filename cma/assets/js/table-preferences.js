@@ -603,7 +603,7 @@ class CmaInfiniteScroll {
         this.isLoading = false;
         this.hasMore = true;
         this.lastId = null;
-        this.pageSize = options.pageSize || 500;
+        this.pageSize = options.pageSize || ((window.CMA && window.CMA.settings && parseInt(window.CMA.settings.listScrollBatch, 10)) || 500);
         this.stallTimeoutMs = options.stallTimeoutMs || 30000; // loadMore stall guard, see _loadWithStallGuard
         this.scrollDebounceTimer = null; // Debounce timer for scroll events
         this.pendingLastId = null; // Track which lastId is being loaded to prevent duplicates
