@@ -65,10 +65,9 @@ class Profiler
             return;
         }
 
-        // Check .env for explicit profiler setting
-        $envEnabled = $_ENV['PROFILER_ENABLED'] ?? getenv('PROFILER_ENABLED');
-        if ($envEnabled !== false && $envEnabled !== null) {
-            self::$enabled = filter_var($envEnabled, FILTER_VALIDATE_BOOLEAN);
+        // PROFILER_ENABLED (Systeeminstellingen) when set; else derived from the environment
+        if (Settings::isSet('profiler_enabled')) {
+            self::$enabled = (bool) Settings::get('profiler_enabled');
         } else {
             // Auto-enable in test/development environments if not explicitly set
             $env = Application::get('omgeving', 'P');
@@ -76,10 +75,10 @@ class Profiler
         }
 
         // Set log file path from .env or default
-        $logPath = $_ENV['PROFILER_LOG_FILE'] ?? getenv('PROFILER_LOG_FILE');
+        $logPath = (string) Settings::get('profiler_log_file');
         $basePath = Application::get('base_path', '/');
         $siteRoot = rtrim(($_SERVER['DOCUMENT_ROOT'] ?? '') . $basePath, '/');
-        if ($logPath !== false && $logPath !== null && !empty($logPath)) {
+        if ($logPath !== '') {
             // Een RELATIEF pad hangt aan de siteroot, niet aan de werkmap van het script.
             // Dat laatste was het stille gedrag: deze waarde ging rechtstreeks naar fopen(),
             // dus "logs/profiler.csv" landde ergens anders zodra het verzoek uit /cma/ kwam.
@@ -94,9 +93,8 @@ class Profiler
         }
 
         // Set threshold from .env or default
-        $threshold = $_ENV['PROFILER_THRESHOLD_MS'] ?? getenv('PROFILER_THRESHOLD_MS');
-        if ($threshold !== false && $threshold !== null) {
-            self::$threshold = (float)$threshold;
+        if (Settings::isSet('profiler_threshold_ms')) {
+            self::$threshold = (float) Settings::get('profiler_threshold_ms');
         }
 
         // Initialize start time

@@ -432,7 +432,9 @@ class Error
             }
 
             $mail = new Email();
-            $mail->addRecipients($to);
+            foreach (array_filter(array_map('trim', explode(',', $to))) as $recipient) {
+                $mail->addRecipient($recipient);
+            }
             $mail->setSubject('Foutmelding website ' . Request::server('SERVER_NAME', ''));
 
             $body = $errorMessage . '<br>';

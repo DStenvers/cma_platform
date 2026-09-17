@@ -111,14 +111,14 @@ function RetrieveExternalURLText($txtModuleURL, $txtCurrentUrl)
     $sw_reqMethod = Request::query('sw_reqMethod', '');
     $action = Request::query('strSWAction', '');
     $mode = Request::query('mode', '');
-    if (Application::get('allowed_external_url', '') != '') {
+    if (\App\Library\Settings::get('allowed_external_url') != '') {
         if ($txtModuleURL != '') {
-            if (!(($pos = stripos($txtModuleURL, Application::get('allowed_external_url', ''))) !== false ? $pos + 1 : 0) > 1) {
+            if (!(($pos = stripos($txtModuleURL, \App\Library\Settings::get('allowed_external_url'))) !== false ? $pos + 1 : 0) > 1) {
                 $bAllowed = false;
             }
         }
         if ($action != '') {
-            if (!(($pos = stripos($action, Application::get('allowed_external_url', ''))) !== false ? $pos + 1 : 0) > 1) {
+            if (!(($pos = stripos($action, \App\Library\Settings::get('allowed_external_url'))) !== false ? $pos + 1 : 0) > 1) {
                 $bAllowed = false;
             }
         }

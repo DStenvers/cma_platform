@@ -2152,7 +2152,7 @@ function cma_doc_check_llm_configured(): array {
     if (\App\Library\Llm::isConfigured()) {
         // The configured name, not resolveModel(): a doc check must stay
         // read-only and fast, and resolving probes the engine over HTTP.
-        $model = trim((string)($_ENV['LLM_MODEL'] ?? (getenv('LLM_MODEL') ?: '')));
+        $model = (string) \App\Library\Settings::get('llm_model');
         if ($model === '') { $model = \App\Library\Llm::defaultModel(); }
         return ['label' => $label, 'status' => 'pass',
                 'detail' => 'Provider <code>' . htmlspecialchars(\App\Library\Llm::provider())
@@ -2461,17 +2461,6 @@ function render_doc_environment(): void
     <p>De tabellen hieronder komen uit het register <code>App\Library\Settings::definitions()</code> — dezelfde lijst die Beheerstools → Systeeminstellingen toont en die <code>window.CMA.settings</code> vult. Een variabele die hier staat, staat dus ook op het scherm; een site kan de lijst uitbreiden via <code>settings_extra</code> in <code>app.php</code> (zie onder).</p>
     <?php cma_doc_render_settings_tables(); ?>
 
-    <h3>Overige logging &amp; meten</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>SQL_LOG_FILE</code></td><td><code>sql_queries.log</code> in de site-root</td><td><code>Database</code> — doelbestand van bovenstaande log. Is het pad niet schrijfbaar, dan meldt <code>Database</code> dat één keer in het PHP-errorlog.</td></tr>
-            <tr><td><code>PROFILER_ENABLED</code></td><td>uit; automatisch aan in <code>L</code>/<code>O</code>/<code>T</code></td><td><code>Profiler</code> — request-profiling naar CSV.</td></tr>
-            <tr><td><code>PROFILER_LOG_FILE</code></td><td><code>profiler.csv</code> in de base path</td><td><code>Profiler</code> — doelbestand.</td></tr>
-            <tr><td><code>PROFILER_THRESHOLD_MS</code></td><td><code>0</code></td><td><code>Profiler</code> — requests sneller dan deze grens worden niet gelogd.</td></tr>
-        </tbody>
-    </table>
-
     <h3>Eigen instellingen van een site</h3>
     <p>Een site registreert eigen instellingen in <code>app.php</code>; ze verschijnen in het scherm, in deze tabellen en — met een <code>client</code>-naam — in <code>window.CMA.settings</code>. Platformsleutels en al gebruikte variabelen winnen; wat niet past wordt overgeslagen en staat in de check bovenaan deze pagina.</p>
     <pre><code>$GLOBALS['Application']['settings_groups_extra'] = ['shop' =&gt; ['caption' =&gt; 'Webshop', 'order' =&gt; 500]];
@@ -2483,18 +2472,6 @@ $GLOBALS['Application']['settings_extra'] = [
     ],
 ];</code></pre>
     <p>Lezen gaat overal met <code>Settings::get('shop_min_order')</code>. Types: <code>bool</code>, <code>flag</code>, <code>int</code>, <code>float</code>, <code>text</code>, <code>secret</code>, <code>email</code>, <code>list</code>, <code>select</code> (met <code>options</code>); <code>app</code> noemt een oudere Application-key als terugval, <code>requires</code> een sleutel die gevuld moet zijn als de schakelaar aan staat, <code>hidden</code> houdt een instelling van het scherm. Registratie gebeurt in de bootstrap direct na <code>app.php</code>; code die eerder draait ziet alleen de platforminstellingen.</p>
-
-    <h3>Externe diensten &amp; paden</h3>
-    <table class="listtable">
-        <thead><tr class="listheader"><th style="width:220px">Variabele</th><th style="width:150px">Default</th><th>Gelezen door &amp; effect</th></tr></thead>
-        <tbody>
-            <tr><td><code>GOOGLE_OAUTH_CLIENT_ID</code><br><code>GOOGLE_OAUTH_CLIENT_SECRET</code></td><td>leeg</td><td><code>GoogleOAuth</code> — zonder deze twee is Google-login uit. De oudere namen <code>GOOGLE_CLIENT_ID</code>/<code>GOOGLE_CLIENT_SECRET</code> werken als terugval, dus beide naamparen kunnen op een site voorkomen.</td></tr>
-            <tr><td><code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code></td><td><code>localhost</code> voor host</td><td><code>Services\BackupService</code> — <span class="cma-tool__em">alleen</span> voor mysqldump/restore van MySQL-databases. De runtime-verbindingen komen uit <a href="documentation.php?topic=json_config">databases.json</a>, niet hieruit.</td></tr>
-            <tr><td><code>REDIS_HOST</code>, <code>REDIS_PORT</code></td><td><code>127.0.0.1</code>, <code>6379</code></td><td><code>tools_clearcache.php</code> — alleen relevant als <code>Cache</code> op de redis-backend staat.</td></tr>
-            <tr><td><code>CACHE_DIRECTORY</code></td><td>de standaard cache-map</td><td><code>tools_clearcache.php</code> — welke map de cache-leegmaker opruimt.</td></tr>
-            <tr><td><code>NODEJS_PATH</code></td><td>leeg</td><td><code>tools_testrunner.php</code> — nodig op IIS, waar de app-pool geen <code>PATH</code> met node erin heeft. Zonder deze var kan de Cypress-runner niet starten.</td></tr>
-        </tbody>
-    </table>
 
     <h3>Elders gedocumenteerd</h3>
     <ul>
@@ -5082,6 +5059,7 @@ function render_doc_llm(): void
 {
     ?>
     <h1>LLM-configuratie</h1>
+    <p class="docs-meta">Alle LLM_*- en OCR_VISION_*-variabelen zijn in te stellen via Beheerstools → Systeeminstellingen, groep LLM; de sleutels worden daar nooit teruggetoond.</p>
     <p class="docs-meta">Engines, env-vars, en de curated modellenlijst die <code>tools_llm.php</code> en <code>llm_analyse.php</code> beide voeden.</p>
 
     <?php

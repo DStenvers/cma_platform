@@ -828,10 +828,9 @@ class Database
     {
         // Lazy-init from .env on first call
         if (self::$sqlLogEnabled === null) {
-            $env = $_ENV['SQL_LOG_ENABLED'] ?? getenv('SQL_LOG_ENABLED');
-            self::$sqlLogEnabled = $env !== false && $env !== null && filter_var($env, FILTER_VALIDATE_BOOLEAN);
+            self::$sqlLogEnabled = (bool) Settings::get('sql_log_enabled');
             if (self::$sqlLogEnabled) {
-                $file = $_ENV['SQL_LOG_FILE'] ?? getenv('SQL_LOG_FILE');
+                $file = (string) Settings::get('sql_log_file');
                 $siteRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__ . '/../..', '/');
                 if ($file && $file !== '') {
                     // Relatief pad = vanaf de siteroot, niet vanaf de werkmap van het script.

@@ -402,7 +402,7 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
     $testWrap   = (bool)Application::get('test', false);
     $mailServer = (string)Application::get('mail_server', 'localhost');
     $adminMail  = (string)Application::get('app_beheerder_email', '');
-    $llmUrl     = trim((string)(getenv('LLM_URL') ?: ($_ENV['LLM_URL'] ?? '')));
+    $llmUrl     = (string) \App\Library\Settings::get('llm_url');
     $deployKey  = trim((string)(getenv('DEPLOY_SECRET') ?: ($_ENV['DEPLOY_SECRET'] ?? '')));
 
     $boolLabel = static fn(bool $b, string $onLabel = 'Ja', string $offLabel = 'Nee'): string =>

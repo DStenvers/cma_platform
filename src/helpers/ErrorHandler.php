@@ -662,7 +662,9 @@ class ErrorHandler
             $mail = new Email();
             $mail->setSubject('Fout op ' . $server . ': ' . mb_strimwidth($exception->getMessage(), 0, 90, '…'));
             $mail->setBody($body);
-            $mail->addRecipients($to);
+            foreach (array_filter(array_map('trim', explode(',', $to))) as $recipient) {
+                $mail->addRecipient($recipient);
+            }
             $mail->send();
         } catch (\Throwable $mailError) {
             error_log('Error mail failed: ' . $mailError->getMessage());

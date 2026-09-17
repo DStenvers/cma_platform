@@ -11,7 +11,7 @@
 // Pre-calculate cache directories (before Application class is available)
 // Cache is now in site root: /site/.cache/cma/
 $_siteRoot = dirname(__DIR__, 2);
-$_envCacheDir = getenv('CACHE_DIRECTORY') ?: ($_ENV['CACHE_DIRECTORY'] ?? null);
+$_envCacheDir = (string) \App\Library\Settings::get('cache_directory') ?: null;
 $_appCacheDir = $_envCacheDir ?: ($_siteRoot . '/cache');
 $_cmaCacheDir = $_siteRoot . '/.cache/cma';
 $_formCacheDir = $_siteRoot . '/.cache/cma/forms';
@@ -548,7 +548,7 @@ if ($backend === 'none' || !$cacheEnabled) {
     $redisInfo = null;
     try {
         $redis = new Redis();
-        $redis->connect(getenv('REDIS_HOST') ?: '127.0.0.1', (int)(getenv('REDIS_PORT') ?: 6379));
+        $redis->connect((string) \App\Library\Settings::get('redis_host'), (int) \App\Library\Settings::get('redis_port'));
         $redisCount = $redis->dbSize();
         $redisInfo = $redis->info();
     } catch (Exception $e) {

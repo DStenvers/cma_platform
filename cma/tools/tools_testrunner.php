@@ -215,7 +215,7 @@ if (Request::query('action', '') === 'run') {
 
     if (PHP_OS_FAMILY === 'Windows') {
         // Get NODEJS_PATH from .env (required for IIS which doesn't have PATH set)
-        $nodejsPathRaw = $_ENV['NODEJS_PATH'] ?? getenv('NODEJS_PATH') ?? null;
+        $nodejsPathRaw = (string) \App\Library\Settings::get('nodejs_path') ?: null;
 
         if ($nodejsPathRaw) {
             // Normalize path separators and remove quotes

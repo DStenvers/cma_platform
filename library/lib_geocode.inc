@@ -28,7 +28,7 @@ function Lib_GeoCode($strAdres, $strPlaats, $strLand)
     if ($strLand == '') {
         $strLand = 'Nederland';
     }
-    $sGoogleUrl = 'https://maps.googleapis.com/maps/api/geocode/xml?address=' . Server::urlEncode($strAdres) . ',' . Server::urlEncode($strPlaats) . ',' . Server::urlEncode($strLand) . '&sensor=false' . (Application::get('Google_api_key', '') != '' ? '&key=' . Application::get('Google_api_key', '') : '');
+    $sGoogleUrl = 'https://maps.googleapis.com/maps/api/geocode/xml?address=' . Server::urlEncode($strAdres) . ',' . Server::urlEncode($strPlaats) . ',' . Server::urlEncode($strLand) . '&sensor=false' . (\App\Library\Settings::get('google_api_key') != '' ? '&key=' . \App\Library\Settings::get('google_api_key') : '');
     // response.write vbCrlf & "<!---" & sGoogleURL & "--->" & vbCrlf
     $strTmp = lib_HttpGet($sGoogleUrl);
     // response.write vbCrlf & "<!--- resultaat: " & strTmp & "--->" & vbCrlf
@@ -63,7 +63,7 @@ function Lib_Provincie($strAdres, $strPlaats)
     $Elt2 = null;
     $bGevonden = null;
     $strAdres = str_replace('  ', ' ', $strAdres);
-    $strTmp = lib_HttpGet('https://maps.googleapis.com/maps/api/geocode/xml?address=' . ($strAdres != '' ? Server::urlEncode($strAdres) . ',' : '') . Server::urlEncode($strPlaats) . ',Nederland&sensor=false' . (Application::get('Google_api_key', '') != '' ? '&key=' . Application::get('Google_api_key', '') : ''));
+    $strTmp = lib_HttpGet('https://maps.googleapis.com/maps/api/geocode/xml?address=' . ($strAdres != '' ? Server::urlEncode($strAdres) . ',' : '') . Server::urlEncode($strPlaats) . ',Nederland&sensor=false' . (\App\Library\Settings::get('google_api_key') != '' ? '&key=' . \App\Library\Settings::get('google_api_key') : ''));
     if ((($pos = stripos($strTmp, '<status>OK</status>', max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
         $objxml = null /* COM Object: Microsoft.XMLDOM - not supported in PHP */;
         $objxml->LoadXml($strTmp);
@@ -108,7 +108,7 @@ function Lib_Geocode_distance($strFrom, $strTo)
     // dim arrLoc2 : arrLoc2 = Arr::splitAlways(location2, ",")
     // Lib_Geocode_distance = Lib_Travel_Distance( cdbl( replace(arrLoc1(0),".",",")) &","& cdbl( replace(arrLoc1(1),,",")), cdbl( replace(arrLoc2(0),,","))&","&cdbl( replace(arrLoc2(1),,",")))
     $strTmp = "";
-    $strUrl = 'https://maps.googleapis.com/maps/api/directions/xml?origin=' . Server::urlEncode($strFrom) . '&destination=' . Server::urlEncode($strTo) . '&sensor=false' . (Application::get('Google_api_key', '') != '' ? '&key=' . Application::get('Google_api_key', '') : '');
+    $strUrl = 'https://maps.googleapis.com/maps/api/directions/xml?origin=' . Server::urlEncode($strFrom) . '&destination=' . Server::urlEncode($strTo) . '&sensor=false' . (\App\Library\Settings::get('google_api_key') != '' ? '&key=' . \App\Library\Settings::get('google_api_key') : '');
     $strTmp = lib_HttpGet($strUrl);
     // response.write strUrl
     // response.write "<hr>" & Server::htmlEncode($strTmp) & "<hr><br>"

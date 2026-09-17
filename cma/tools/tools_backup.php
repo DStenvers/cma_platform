@@ -343,11 +343,11 @@ function restoreFileDatabase(string $backupPath, string $dbName, array $dbPathMa
  */
 function restoreSqlDump(string $backupPath, string $dbName, string $backupTimestamp): array
 {
-    $dbType = strtolower(getenv('DB_TYPE') ?: 'mysql');
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $database = getenv('DB_NAME') ?: $dbName;
-    $user = getenv('DB_USER') ?: '';
-    $password = getenv('DB_PASSWORD') ?: '';
+    $dbType = (string) \App\Library\Settings::get('db_type');
+    $host = ((string) \App\Library\Settings::get('db_host') ?: 'localhost');
+    $database = ((string) \App\Library\Settings::get('db_name') ?: $dbName);
+    $user = (string) \App\Library\Settings::get('db_user');
+    $password = (string) \App\Library\Settings::get('db_password');
 
     if (empty($user)) {
         return ['success' => false, 'message' => 'Database gebruiker niet geconfigureerd (DB_USER)'];
@@ -356,14 +356,14 @@ function restoreSqlDump(string $backupPath, string $dbName, string $backupTimest
     switch ($dbType) {
         case 'mysql':
         case 'mariadb':
-            $port = getenv('DB_PORT') ?: '3306';
+            $port = ((string) ((int) \App\Library\Settings::get('db_port') ?: 3306));
             $cmd = sprintf('mysql --host=%s --port=%s --user=%s --password=%s %s < %s 2>&1',
                 escapeshellarg($host), escapeshellarg($port), escapeshellarg($user),
                 escapeshellarg($password), escapeshellarg($database), escapeshellarg($backupPath));
             break;
         case 'pgsql':
         case 'postgresql':
-            $port = getenv('DB_PORT') ?: '5432';
+            $port = ((string) ((int) \App\Library\Settings::get('db_port') ?: 5432));
             $cmd = sprintf('PGPASSWORD=%s psql --host=%s --port=%s --username=%s --dbname=%s --file=%s 2>&1',
                 escapeshellarg($password), escapeshellarg($host), escapeshellarg($port),
                 escapeshellarg($user), escapeshellarg($database), escapeshellarg($backupPath));

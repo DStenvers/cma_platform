@@ -44,7 +44,7 @@ final class Llm
     /** Returns the configured base URL (no trailing slash, no /api/* suffix). */
     public static function baseUrl(): ?string
     {
-        $raw = trim((string)($_ENV['LLM_URL'] ?? ''));
+        $raw = (string) Settings::get('llm_url');
         if ($raw === '') {
             return null;
         }
@@ -69,11 +69,11 @@ final class Llm
      */
     public static function provider(): string
     {
-        $explicit = strtolower(trim((string)($_ENV['LLM_PROVIDER'] ?? '')));
+        $explicit = (string) Settings::get('llm_provider');
         if (in_array($explicit, ['ollama', 'anthropic', 'openai'], true)) {
             return $explicit;
         }
-        $raw = trim((string)($_ENV['LLM_URL'] ?? ''));
+        $raw = (string) Settings::get('llm_url');
         if ($raw !== '') {
             $host = strtolower((string)parse_url($raw, PHP_URL_HOST));
             if (str_contains($host, 'anthropic.com')) { return 'anthropic'; }
@@ -82,7 +82,7 @@ final class Llm
         }
         // No LLM_URL, but a key is configured somewhere → hosted.
         if (self::apiKey() !== '') {
-            return strtolower(trim((string)($_ENV['OCR_VISION_PROVIDER'] ?? 'anthropic'))) === 'openai'
+            return (string) Settings::get('ocr_vision_provider') === 'openai'
                 ? 'openai' : 'anthropic';
         }
         return 'ollama';
@@ -95,10 +95,10 @@ final class Llm
      */
     public static function apiKey(): string
     {
-        $k = trim((string)($_ENV['LLM_KEY'] ?? ''));
+        $k = (string) Settings::get('llm_key');
         if ($k !== '') { return $k; }
-        $ocrKey      = trim((string)($_ENV['OCR_VISION_KEY']      ?? ''));
-        $ocrProvider = strtolower(trim((string)($_ENV['OCR_VISION_PROVIDER'] ?? 'anthropic')));
+        $ocrKey      = (string) Settings::get('ocr_vision_key');
+        $ocrProvider = (string) Settings::get('ocr_vision_provider');
         if ($ocrKey !== '' && $ocrProvider === self::provider()) {
             return $ocrKey;
         }
@@ -136,7 +136,7 @@ final class Llm
      */
     public static function openAiUrl(): string
     {
-        $raw = trim((string)($_ENV['LLM_URL'] ?? ''));
+        $raw = (string) Settings::get('llm_url');
         if ($raw === '') {
             return 'https://api.openai.com/v1/chat/completions';
         }
@@ -260,7 +260,7 @@ final class Llm
      */
     public static function resolveModel(?string &$reason = null): ?string
     {
-        $envModel = trim((string)($_ENV['LLM_MODEL'] ?? ''));
+        $envModel = (string) Settings::get('llm_model');
 
         // Hosted providers skip /api/tags entirely — the API accepts
         // whatever model string we hand it (and 404s with a clear
@@ -454,7 +454,7 @@ final class Llm
      */
     public static function visionModel(): string
     {
-        $explicit = trim((string)($_ENV['LLM_VISION_MODEL'] ?? getenv('LLM_VISION_MODEL') ?: ''));
+        $explicit = (string) Settings::get('llm_vision_model');
         return $explicit !== '' ? $explicit : self::defaultModel();
     }
 
@@ -570,10 +570,10 @@ final class Llm
         $read = static fn(string $name, string $default = ''): string
             => trim((string)($_ENV[$name] ?? (getenv($name) ?: $default)));
 
-        $k = $read('LLM_KEY');
+        $k = (string) Settings::get('llm_key');
         if ($k !== '') { return $k; }
-        $ocrKey      = $read('OCR_VISION_KEY');
-        $ocrProvider = strtolower($read('OCR_VISION_PROVIDER', 'anthropic'));
+        $ocrKey      = (string) Settings::get('ocr_vision_key');
+        $ocrProvider = (string) Settings::get('ocr_vision_provider');
         if ($ocrKey !== '' && $ocrProvider === 'anthropic') {
             return $ocrKey;
         }
@@ -609,7 +609,7 @@ final class Llm
 
     private static function generateAnthropicFallback(string $systemPrompt, string $userText, int $maxTokens, string $apiKey, string $reason): array
     {
-        $model = trim((string)($_ENV['LLM_FALLBACK_MODEL'] ?? '')) ?: 'claude-haiku-4-5';
+        $model = (string) Settings::get('llm_fallback_model');
         error_log('[Llm] Ollama unreachable — falling back to Anthropic (' . $model . '). Reason: ' . $reason);
         $result = self::generateAnthropicRaw($systemPrompt, $userText, $model, $maxTokens, $apiKey);
         $result['diag']['fallback_from']   = 'ollama';

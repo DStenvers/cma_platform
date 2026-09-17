@@ -168,7 +168,7 @@ class Cache
         }
 
         // Check if caching is enabled via Application config
-        self::$enabled = Application::get('cma_caching', true);
+        self::$enabled = (bool) Settings::get('cache_enabled');
 
         if (!self::$enabled) {
             self::$backend = 'none';
@@ -176,7 +176,7 @@ class Cache
         }
 
         // Determine backend preference
-        $preferredBackend = Application::get('cache_backend', 'auto');
+        $preferredBackend = (string) Settings::get('cache_backend');
 
         if ($preferredBackend === 'auto') {
             // Auto-detect best available backend
@@ -215,7 +215,7 @@ class Cache
     private static function initInvalidation(): void
     {
         // Use same directory as file cache for invalidation signal
-        $cacheDir = Application::get('cache_directory', sys_get_temp_dir() . '/cma_cache');
+        $cacheDir = ((string) Settings::get('cache_directory') ?: sys_get_temp_dir() . '/cma_cache');
 
         if (!is_dir($cacheDir)) {
             @mkdir($cacheDir, 0755, true);
@@ -243,9 +243,9 @@ class Cache
 
         try {
             $redis = new Redis();
-            $host = Application::get('redis_host', '127.0.0.1');
-            $port = Application::get('redis_port', 6379);
-            $timeout = Application::get('redis_timeout', 2.5);
+            $host = (string) Settings::get('redis_host');
+            $port = (int) Settings::get('redis_port');
+            $timeout = (float) Settings::get('redis_timeout');
 
             $connected = $redis->connect($host, $port, $timeout);
 
@@ -254,19 +254,19 @@ class Cache
             }
 
             // Optional authentication
-            $password = Application::get('redis_password', '');
+            $password = (string) Settings::get('redis_password');
             if (!empty($password)) {
                 $redis->auth($password);
             }
 
             // Optional database selection
-            $database = Application::get('redis_database', 0);
+            $database = (int) Settings::get('redis_database');
             if ($database > 0) {
                 $redis->select($database);
             }
 
             // Set key prefix
-            $prefix = Application::get('redis_prefix', 'cma_');
+            $prefix = (string) Settings::get('redis_prefix');
             $redis->setOption(Redis::OPT_PREFIX, $prefix);
 
             self::$redis = $redis;
@@ -283,7 +283,7 @@ class Cache
     private static function initFileCache(): void
     {
         // Use system temp directory or custom cache directory
-        $cacheDir = Application::get('cache_directory', sys_get_temp_dir() . '/cma_cache');
+        $cacheDir = ((string) Settings::get('cache_directory') ?: sys_get_temp_dir() . '/cma_cache');
 
         if (!is_dir($cacheDir)) {
             @mkdir($cacheDir, 0755, true);
@@ -1047,7 +1047,7 @@ class Cache
     private static function getCacheFilename(string $identifier): string
     {
         // Get cache directory from Application config or use default
-        $cacheDir = \App\Library\Application::get('cache_directory', sys_get_temp_dir() . '/cma_cache');
+        $cacheDir = ((string) \App\Library\Settings::get('cache_directory') ?: sys_get_temp_dir() . '/cma_cache');
 
         // Sanitize filename (remove invalid characters)
         $safeIdentifier = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $identifier);
@@ -1126,7 +1126,7 @@ class Cache
      */
     public static function clearAllFiles(): bool
     {
-        $cacheDir = \App\Library\Application::get('cache_directory', sys_get_temp_dir() . '/cma_cache');
+        $cacheDir = ((string) \App\Library\Settings::get('cache_directory') ?: sys_get_temp_dir() . '/cma_cache');
 
         if (!is_dir($cacheDir)) {
             return true;

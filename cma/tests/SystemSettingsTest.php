@@ -152,7 +152,7 @@ class SystemSettingsTest extends TestCase
         $n = SystemSettings::normalize(['mail_host' => ' smtp.example.nl ', 'mail_username' => 'user name']);
         $this->assertSame([], $n['errors']);
         $this->assertSame('smtp.example.nl', $n['values']['mail_host']);
-        $this->assertSame('"user name"', $n['values']['mail_username']);
+        $this->assertSame("'user name'", $n['values']['mail_username']);
     }
 
     public function testSecretEmptyKeepsTheStoredValue(): void

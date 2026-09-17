@@ -78,12 +78,12 @@ final class GoogleOAuth
     public static function clientId(): string
     {
         // Voorkeursnaam GOOGLE_OAUTH_CLIENT_ID; valt terug op de oude GOOGLE_CLIENT_ID.
-        return trim((string)($_ENV['GOOGLE_OAUTH_CLIENT_ID'] ?? $_ENV['GOOGLE_CLIENT_ID'] ?? ''));
+        return (string) Settings::get('google_oauth_client_id') ?: trim((string)($_ENV['GOOGLE_CLIENT_ID'] ?? ''));
     }
 
     public static function clientSecret(): string
     {
-        return trim((string)($_ENV['GOOGLE_OAUTH_CLIENT_SECRET'] ?? $_ENV['GOOGLE_CLIENT_SECRET'] ?? ''));
+        return (string) Settings::get('google_oauth_client_secret') ?: trim((string)($_ENV['GOOGLE_CLIENT_SECRET'] ?? ''));
     }
 
     /** Build the redirect URI from the current request — must match

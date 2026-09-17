@@ -312,15 +312,20 @@ class SystemSettings
     }
 
     /**
-     * Quote a value for a KEY=value line when EnvFile would otherwise misread
-     * it: whitespace followed by # starts an inline comment, and a leading
-     * quote starts a quoted string. Double quotes with \\ and \" escaped,
-     * which EnvFile::parse() unescapes.
+     * Quote a value for a KEY=value line when a reader would otherwise misread
+     * it: whitespace followed by # starts an inline comment, a leading quote a
+     * quoted string, and a backslash in double quotes an escape. Single quotes
+     * keep the value verbatim in EnvFile::parse() and in deploy.php's own
+     * reader (Windows paths survive); double quotes with escapes only when the
+     * value itself contains a single quote.
      */
     public static function envQuote(string $value): string
     {
         if ($value === '' || !preg_match('/[\s#"\'\\\\]/', $value)) {
             return $value;
+        }
+        if (strpos($value, "'") === false) {
+            return "'" . $value . "'";
         }
         return '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
     }

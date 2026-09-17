@@ -58,6 +58,33 @@ class SettingsTest extends TestCase
         $this->assertSame(60, Settings::get('http_download_timeout'));
         $this->assertSame(90, Settings::get('llm_timeout'));
         $this->assertSame(300, Settings::get('process_timeout'));
+        // Phase 3: the env-backed groups keep the literals their readers had
+        $this->assertSame('', Settings::get('sql_log_file'));
+        $this->assertFalse(Settings::get('profiler_enabled'));
+        $this->assertSame(0, Settings::get('profiler_threshold_ms'));
+        $this->assertTrue(Settings::get('cache_enabled'));
+        $this->assertSame('auto', Settings::get('cache_backend'));
+        $this->assertSame('127.0.0.1', Settings::get('redis_host'));
+        $this->assertSame(6379, Settings::get('redis_port'));
+        $this->assertSame(2.5, Settings::get('redis_timeout'));
+        $this->assertSame('cma_', Settings::get('redis_prefix'));
+        $this->assertSame('', Settings::get('llm_provider'));
+        $this->assertSame('claude-haiku-4-5', Settings::get('llm_fallback_model'));
+        $this->assertSame('anthropic', Settings::get('ocr_vision_provider'));
+        $this->assertSame('main', Settings::get('deploy_branch'));
+        $this->assertTrue(Settings::get('deploy_migrate'));
+        $this->assertSame(['stenversonline/platform'], Settings::get('deploy_composer_update'));
+        $this->assertSame('localhost', Settings::get('db_host'));
+        $this->assertSame('mysql', Settings::get('db_type'));
+    }
+
+    public function testCacheKeysFallBackToTheirAppPhpNames(): void
+    {
+        $GLOBALS['Application'] = ['cma_caching' => false, 'cache_backend' => 'file', 'cache_directory' => '/tmp/x', 'redis_timeout' => '4'];
+        $this->assertFalse(Settings::get('cache_enabled'));
+        $this->assertSame('file', Settings::get('cache_backend'));
+        $this->assertSame('/tmp/x', Settings::get('cache_directory'));
+        $this->assertSame(4.0, Settings::get('redis_timeout'));
     }
 
     public function testEnvWinsAndIsBounded(): void

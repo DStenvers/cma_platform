@@ -57,7 +57,9 @@ final class NotFoundDigest
                 $mail = new Email();
                 $mail->setSubject('404-overzicht ' . $server . ' ' . $day . ': ' . $summary['total'] . ' niet gevonden');
                 $mail->setBody(self::renderBody($day, $summary));
-                $mail->addRecipients($to);
+                foreach (array_filter(array_map('trim', explode(',', $to))) as $recipient) {
+                    $mail->addRecipient($recipient);
+                }
                 $mail->send();
                 self::pruneMarkers($logDir);
             } catch (\Throwable $e) {

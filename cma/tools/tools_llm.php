@@ -575,7 +575,7 @@ if ($action === 'scan') {
                         $models = $eng['extract']($j);
                     }
                 }
-                $fbModel = trim((string)($_ENV['LLM_FALLBACK_MODEL'] ?? getenv('LLM_FALLBACK_MODEL') ?: '')) ?: 'claude-haiku-4-5';
+                $fbModel = (string) \App\Library\Settings::get('llm_fallback_model');
                 $extras = ['key_masked' => llm_mask_key($apiKey), 'fallback_model' => $fbModel];
             }
             $results[$key] = [
@@ -629,7 +629,7 @@ if ($action === 'scan') {
     // when LLM_PROVIDER=anthropic OR LLM_URL host is api.anthropic.com.
     $configuredPort = $configuredUrl !== '' ? (parse_url($configuredUrl, PHP_URL_PORT) ?: null) : null;
     $configuredHost = $configuredUrl !== '' ? strtolower((string)parse_url($configuredUrl, PHP_URL_HOST)) : '';
-    $providerEnv    = strtolower(trim((string)($_ENV['LLM_PROVIDER'] ?? getenv('LLM_PROVIDER') ?: '')));
+    $providerEnv    = (string) \App\Library\Settings::get('llm_provider');
     $inUseKey = null;
     foreach ($results as $key => $r) {
         $kind = (string)($r['engine']['probe_kind'] ?? 'local');

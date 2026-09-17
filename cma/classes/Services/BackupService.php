@@ -383,11 +383,11 @@ class BackupService
         $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $database['name']);
         $backupFile = $this->backupDir . '/' . $timestamp . '_' . $name . '_backup.sql';
 
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $port = getenv('DB_PORT') ?: '3306';
-        $dbName = getenv('DB_NAME') ?: $database['name'];
-        $user = getenv('DB_USER') ?: '';
-        $password = getenv('DB_PASSWORD') ?: '';
+        $host = ((string) \App\Library\Settings::get('db_host') ?: 'localhost');
+        $port = ((string) ((int) \App\Library\Settings::get('db_port') ?: 3306));
+        $dbName = ((string) \App\Library\Settings::get('db_name') ?: $database['name']);
+        $user = (string) \App\Library\Settings::get('db_user');
+        $password = (string) \App\Library\Settings::get('db_password');
 
         if (empty($user)) {
             return [
@@ -436,10 +436,10 @@ class BackupService
         $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $database['name']);
         $backupFile = $this->backupDir . '/' . $timestamp . '_' . $name . '_backup.sql';
 
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $port = getenv('DB_PORT') ?: '5432';
-        $dbName = getenv('DB_NAME') ?: $database['name'];
-        $user = getenv('DB_USER') ?: '';
+        $host = ((string) \App\Library\Settings::get('db_host') ?: 'localhost');
+        $port = ((string) ((int) \App\Library\Settings::get('db_port') ?: 5432));
+        $dbName = ((string) \App\Library\Settings::get('db_name') ?: $database['name']);
+        $user = (string) \App\Library\Settings::get('db_user');
 
         if (empty($user)) {
             return [
@@ -449,7 +449,7 @@ class BackupService
             ];
         }
 
-        $env = 'PGPASSWORD=' . escapeshellarg(getenv('DB_PASSWORD') ?: '');
+        $env = 'PGPASSWORD=' . escapeshellarg((string) \App\Library\Settings::get('db_password'));
 
         $cmd = sprintf(
             '%s pg_dump --host=%s --port=%s --username=%s --format=plain --file=%s %s 2>&1',
@@ -490,10 +490,10 @@ class BackupService
         $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $database['name']);
         $backupFile = $this->backupDir . '/' . $timestamp . '_' . $name . '_backup.sql';
 
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $dbName = getenv('DB_NAME') ?: $database['name'];
-        $user = getenv('DB_USER') ?: '';
-        $password = getenv('DB_PASSWORD') ?: '';
+        $host = ((string) \App\Library\Settings::get('db_host') ?: 'localhost');
+        $dbName = ((string) \App\Library\Settings::get('db_name') ?: $database['name']);
+        $user = (string) \App\Library\Settings::get('db_user');
+        $password = (string) \App\Library\Settings::get('db_password');
 
         if (empty($user)) {
             return [
