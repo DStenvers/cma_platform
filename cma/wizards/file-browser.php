@@ -406,6 +406,11 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite, stri
         return ['success' => false, 'error' => 'Bestandstype niet toegestaan'];
     }
 
+    $tooLarge = \App\Library\Upload::sizeError($file);
+    if ($tooLarge !== null) {
+        return ['success' => false, 'error' => $tooLarge];
+    }
+
     $targetPath = $fullPath . DIRECTORY_SEPARATOR . $filename;
 
     // Check if file exists

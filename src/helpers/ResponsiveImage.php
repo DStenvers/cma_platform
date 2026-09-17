@@ -94,9 +94,20 @@ namespace App\Library;
  */
 class ResponsiveImage
 {
-    public const SIZES = [300, 400, 800, 1200];
+    /** Widths of the variants: RESPONSIVE_IMAGE_SIZES (Systeeminstellingen). */
+    public static function sizes(): array
+    {
+        $sizes = array_values(array_filter(array_map('intval', (array) Settings::get('responsive_image_sizes')), static fn ($w) => $w > 0));
+        sort($sizes);
+        return $sizes;
+    }
+
+    /** WebP quality: IMAGE_WEBP_QUALITY (Systeeminstellingen). */
+    public static function defaultQuality(): int
+    {
+        return (int) Settings::get('image_webp_quality');
+    }
     public const RESPONSIVE_DIR = '.responsive';
-    public const DEFAULT_QUALITY = 85;
 
     /**
      * Generate all WebP variants for an image
@@ -105,8 +116,9 @@ class ResponsiveImage
      * @param int $quality WebP quality (1-100)
      * @return array ['success' => bool, 'variants' => [...], 'error' => string]
      */
-    public static function generate(string $sourcePath, int $quality = self::DEFAULT_QUALITY): array
+    public static function generate(string $sourcePath, ?int $quality = null): array
     {
+        $quality = $quality ?? self::defaultQuality();
         if (!Image::isWebPSupported()) {
             return ['success' => false, 'variants' => [], 'error' => 'WebP niet ondersteund door GD'];
         }
@@ -140,7 +152,7 @@ class ResponsiveImage
         $variants = [];
 
         // Generate width variants (only for sizes smaller than original)
-        foreach (self::SIZES as $width) {
+        foreach (self::sizes() as $width) {
             if ($width < $info['width']) {
                 $variantPath = $responsiveDir . DIRECTORY_SEPARATOR . $baseName . '-' . $width . 'w.webp';
                 if (Image::resize($sourcePath, $variantPath, $width, 0, $quality)) {
@@ -181,7 +193,7 @@ class ResponsiveImage
         if ($name === '') {
             return null;
         }
-        $smallest = self::SIZES[0] ?? 300;
+        $smallest = self::sizes()[0] ?? 300;
         $base = trim($base, '/');
         $relDir = ($base !== '' ? $base . '/' : '') . self::RESPONSIVE_DIR;
         $file = $name . '-' . $smallest . 'w.webp';
@@ -262,7 +274,7 @@ class ResponsiveImage
 
         // Check for width variants
         if (is_dir($responsiveDir)) {
-            foreach (self::SIZES as $width) {
+            foreach (self::sizes() as $width) {
                 $variantFile = $responsiveDir . DIRECTORY_SEPARATOR . $baseName . '-' . $width . 'w.webp';
                 if (file_exists($variantFile)) {
                     // Skip variant if larger than original
@@ -388,8 +400,9 @@ class ResponsiveImage
      * @param int $quality WebP quality
      * @return array ['total' => int, 'generated' => int, 'skipped' => int, 'errors' => int, 'files' => [...]]
      */
-    public static function batchGenerate(string $directory, bool $recursive = true, int $quality = self::DEFAULT_QUALITY): array
+    public static function batchGenerate(string $directory, bool $recursive = true, ?int $quality = null): array
     {
+        $quality = $quality ?? self::defaultQuality();
         $result = ['total' => 0, 'generated' => 0, 'skipped' => 0, 'errors' => 0, 'files' => []];
 
         if (!is_dir($directory)) {
@@ -498,7 +511,7 @@ class ResponsiveImage
                 $variants = [];
 
                 // Width variants
-                foreach (self::SIZES as $width) {
+                foreach (self::sizes() as $width) {
                     $variantPath = $responsiveDir . DIRECTORY_SEPARATOR . $baseName . '-' . $width . 'w.webp';
                     if (file_exists($variantPath)) {
                         $variants[] = [

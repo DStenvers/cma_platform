@@ -20,7 +20,7 @@
  *   - path:        Base upload directory
  *   - path-extra:  Dynamic prefix prepended to filename
  *   - extensions:  Comma-separated allowed file extensions (default: "pdf,doc,docx,rtf,jpg,jpeg")
- *   - max-size:    Max file size in bytes (default: 10485760 = 10MB)
+ *   - max-size:    Max file size in bytes (default: UPLOAD_MAX_MB from the CMA's window.CMA.settings, else 10485760 = 10MB)
  *   - button-text: Custom button label (default: "Plaats bestand")
  *   - type-error:  Custom type error message (auto-generated from extensions if omitted)
  *   - multiple:    Allow multiple file uploads (default: false)
@@ -86,7 +86,13 @@ class LibFileUploader extends HTMLElement {
         const ext = this.getAttribute('extensions');
         return ext ? ext.split(',').map(function(e) { return e.trim().toLowerCase(); }) : ['pdf', 'doc', 'docx', 'rtf', 'jpg', 'jpeg'];
     }
-    get maxSize() { return parseInt(this.getAttribute('max-size'), 10) || 10485760; }
+    get maxSize() {
+        // The attribute wins; else UPLOAD_MAX_MB from window.CMA.settings (injected by the CMA); else 10 MB
+        var own = parseInt(this.getAttribute('max-size'), 10);
+        if (own > 0) return own;
+        var mb = window.CMA && window.CMA.settings && parseInt(window.CMA.settings.uploadMaxMb, 10);
+        return mb > 0 ? mb * 1048576 : 10485760;
+    }
     get buttonText() { return this.getAttribute('button-text') || 'Plaats bestand'; }
     get typeError() { return this.getAttribute('type-error') || ''; }
     get isMultiple() { return this.hasAttribute('multiple'); }

@@ -15,7 +15,7 @@ function main()
 
     $serverName = Request::server('SERVER_NAME', 'localhost');
     $basePath = Application::get('base_path', '');
-    $imgPath = Application::get('cma_htmledit_img_path', '');
+    $imgPath = (string) \App\Library\Settings::get('editor_image_path');
 
     echo '<HTML><HEAD>';
     cma_error_handler();

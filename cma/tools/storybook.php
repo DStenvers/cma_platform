@@ -4591,7 +4591,7 @@ if (!ResponsiveImage::hasVariants($demoPath)) {
 $responsiveDir = ResponsiveImage::getResponsiveDir($demoPath);
 $baseName = pathinfo($demoImage, PATHINFO_FILENAME);
 $variants = [];
-foreach (ResponsiveImage::SIZES as $w) {
+foreach (ResponsiveImage::sizes() as $w) {
     $vPath = $responsiveDir . DIRECTORY_SEPARATOR . $baseName . '-' . $w . 'w.webp';
     if (file_exists($vPath)) {
         $variants[] = ['width' => $w, 'size' => filesize($vPath)];
@@ -4657,9 +4657,9 @@ $origSize = filesize($demoPath);
                 <h4>Constanten</h4>
                 <dl>
                     <dt>SIZES</dt>
-                    <dd><?= implode(', ', ResponsiveImage::SIZES) ?> px breedtes</dd>
-                    <dt>DEFAULT_QUALITY</dt>
-                    <dd><?= ResponsiveImage::DEFAULT_QUALITY ?>%</dd>
+                    <dd><?= implode(', ', ResponsiveImage::sizes()) ?> px breedtes</dd>
+                    <dt>IMAGE_WEBP_QUALITY</dt>
+                    <dd><?= ResponsiveImage::defaultQuality() ?>%</dd>
                     <dt>RESPONSIVE_DIR</dt>
                     <dd><code><?= ResponsiveImage::RESPONSIVE_DIR ?></code></dd>
                 </dl>

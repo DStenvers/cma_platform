@@ -12,6 +12,9 @@ class LibUpload
     /** @var bool Whether to generate random filename */
     public $Random = false;
 
+    /** Why the last Save() refused the file, when the size rule did. */
+    public $LastError = '';
+
     /** @var string Upload path relative to document root */
     public $Path = '';
 
@@ -69,6 +72,16 @@ class LibUpload
         }
 
         $uploadedFile = $_FILES[$fieldName];
+
+        // Size rule of the site (UPLOAD_MAX_MB, capped by php.ini). Marking the
+        // upload as UPLOAD_ERR_FORM_SIZE lets every caller's existing error
+        // mapping explain it.
+        $tooLarge = Upload::sizeError($uploadedFile);
+        if ($tooLarge !== null) {
+            $this->LastError = $tooLarge;
+            $_FILES[$fieldName]['error'] = UPLOAD_ERR_FORM_SIZE;
+            return false;
+        }
 
         // Get original filename
         $originalFilename = basename($uploadedFile['name']);

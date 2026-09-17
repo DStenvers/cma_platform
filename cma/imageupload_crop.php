@@ -236,7 +236,7 @@ function main()
         $nOriginalWidth = 0;
         $intAttempts = 0;
         if (Request::post('rebuild', '') == '') {
-            $sResizeUrl = Request::currentDomain() . Application::get('base_path', '') . 'library/lib_ImageCropper.php?image=' . str_replace(Application::get('base_path', ''), '/', $sOriginal) . '&thumb=' . str_replace(Application::get('base_path', ''), '/', $sOriginalResized) . '&compression=97';
+            $sResizeUrl = Request::currentDomain() . Application::get('base_path', '') . 'library/lib_ImageCropper.php?image=' . str_replace(Application::get('base_path', ''), '/', $sOriginal) . '&thumb=' . str_replace(Application::get('base_path', ''), '/', $sOriginalResized) . '&compression=' . (int) \App\Library\Settings::get('image_crop_quality') . '';
             if ($nOriginalHeight > $nOriginalWidth) {
                 $sResizeUrl .= '&thumb_h=' . $intermediatesize;
             } else {
@@ -484,7 +484,7 @@ function main()
                 $result_h = round($result_h, 0);
             }
         }
-        $sCropUrl = Request::currentDomain() . Application::get('base_path', '') . 'library/lib_ImageCropper.php?image=' . str_replace(Application::get('base_path', ''), '/', $sThumb) . '&thumb=' . str_replace(Application::get('base_path', ''), '/', $parPath . $sBestandsnaam) . '&x=' . Request::post('x', '') . '&y=' . Request::post('y', '') . '&w=' . $img_w . '&h=' . $img_h . '&thumb_h=' . $result_h . '&thumb_w=' . $result_w . '&compression=97';
+        $sCropUrl = Request::currentDomain() . Application::get('base_path', '') . 'library/lib_ImageCropper.php?image=' . str_replace(Application::get('base_path', ''), '/', $sThumb) . '&thumb=' . str_replace(Application::get('base_path', ''), '/', $parPath . $sBestandsnaam) . '&x=' . Request::post('x', '') . '&y=' . Request::post('y', '') . '&w=' . $img_w . '&h=' . $img_h . '&thumb_h=' . $result_h . '&thumb_w=' . $result_w . '&compression=' . (int) \App\Library\Settings::get('image_crop_quality') . '';
         $targetFile = Server::mapPath($parPath . $sBestandsnaam);
         if (file_exists($targetFile)) {
             unlink($targetFile);
@@ -494,10 +494,10 @@ function main()
         $displayFilename = $sBestandsnaam;
         $croppedPath = Server::mapPath($parPath . $sBestandsnaam);
         if (Image::isWebPSupported() && file_exists($croppedPath)) {
-            ResponsiveImage::generate($croppedPath, ResponsiveImage::DEFAULT_QUALITY);
+            ResponsiveImage::generate($croppedPath, ResponsiveImage::defaultQuality());
             $webpBestandsnaam = preg_replace('/\.jpg$/i', '.webp', $sBestandsnaam);
             $webpPath = Server::mapPath($parPath . $webpBestandsnaam);
-            if (Image::convertToWebP($croppedPath, $webpPath, ResponsiveImage::DEFAULT_QUALITY)) {
+            if (Image::convertToWebP($croppedPath, $webpPath, ResponsiveImage::defaultQuality())) {
                 $displayFilename = $webpBestandsnaam;
             }
         }

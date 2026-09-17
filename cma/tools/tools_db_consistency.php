@@ -247,7 +247,7 @@ function main()
     ob_start();
     foreach ($imagePaths as $imgPath) {
         $sDir = Application::get('base_path', '') . $imgPath;
-        if (strtolower($sDir) != strtolower(Application::get('cma_htmledit_img_path', '')) &&
+        if (strtolower($sDir) != strtolower((string) \App\Library\Settings::get('editor_image_path')) &&
             strtolower($sDir) != strtolower(Application::get('path_images', ''))) {
             StartDirectory($sDir, $imageFields, $unusedCount);
         }

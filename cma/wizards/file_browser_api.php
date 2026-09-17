@@ -241,7 +241,10 @@ function handleUpload($fullPath)
     // Handle multiple files
     if (is_array($files['name'])) {
         for ($i = 0; $i < count($files['name']); $i++) {
-            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+            $tooLarge = \App\Library\Upload::sizeError(['size' => $files['size'][$i] ?? 0]);
+            if ($tooLarge !== null) {
+                $errors[] = $files['name'][$i] . ': ' . $tooLarge;
+            } elseif ($files['error'][$i] === UPLOAD_ERR_OK) {
                 $name = sanitizeFilename($files['name'][$i]);
                 $dest = $fullPath . DIRECTORY_SEPARATOR . $name;
 
@@ -256,7 +259,10 @@ function handleUpload($fullPath)
         }
     } else {
         // Single file
-        if ($files['error'] === UPLOAD_ERR_OK) {
+        $tooLarge = \App\Library\Upload::sizeError($files);
+        if ($tooLarge !== null) {
+            $errors[] = $files['name'] . ': ' . $tooLarge;
+        } elseif ($files['error'] === UPLOAD_ERR_OK) {
             $name = sanitizeFilename($files['name']);
             $dest = $fullPath . DIRECTORY_SEPARATOR . $name;
 

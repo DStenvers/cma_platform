@@ -24,21 +24,21 @@ echo '<script src="include/all' . ((!Application::get('test')) ? ".min" : "") . 
 echo '<script>
 var HTMLEdit = new Object();
 HTMLEdit.image_resize_type = ' . FormControlHelper::IMG_MAXIMUM . ';
-HTMLEdit.image_max_width   = ' . (Application::get('cma_htmledit_img_maxwidth')) . '' . ';
-HTMLEdit.image_max_height  = ' . (Application::get('cma_htmledit_img_maxheight')) . '' . ';
-HTMLEdit.image_path		   = "' . (Application::get('cma_htmledit_img_path')) . '' . '";
+HTMLEdit.image_max_width   = ' . (int) \App\Library\Settings::get('editor_image_max_width') . ';
+HTMLEdit.image_max_height  = ' . (int) \App\Library\Settings::get('editor_image_max_height') . ';
+HTMLEdit.image_path		   = "' . \App\Library\Settings::get('editor_image_path') . '";
 HTMLEdit.domain			   = "http://' . Server::getServerName() . '";
 HTMLEdit.subpath		   = "' . (Application::get('base_path')) . '' . '";
 HTMLEdit.maximized		   = false;
 HTMLEdit.debug             = ' . ((Application::get('development')) ? "true" : "false") . '' . ';
-HTMLEdit.allowBR           = ' . ((Application::get('cma_htmledit_allowBR')) ? "false" : "true") . '' . ';
+HTMLEdit.allowBR           = ' . (\App\Library\Settings::get('editor_allow_br') ? "true" : "false") . ';
 /**
 * Template Createfkeditor
 */
 function template_CreateFKEditor( fieldname, bSpamJS, nHeight )
 {
     var config = {};
-    config.contentsCss = \'' . (Application::get('cma_htmledit_css')) . '' . '\';
+    config.contentsCss = \'' . \App\Library\Settings::get('editor_css') . '\';
     config.language = \'nl\';
     config.contentsLanguage = config.language;
     config.defaultLanguage = config.contentsLanguage;

@@ -2513,7 +2513,7 @@ function render_doc_images(): void
     </ul>
 
     <h2>Wat er bij een upload gebeurt</h2>
-    <p>De upload-handler (<code>form_api.php?action=uploadImage</code>) detecteert WebP-support, schaalt de afbeelding terug binnen <code>maxWidth</code>×<code>maxHeight</code> (standaard 800×600), schrijft het resultaat als <code>.webp</code> (kwaliteit 85) en roept dan <code>ResponsiveImage::generate()</code> aan. Zonder GD-WebP-support valt de upload terug op JPEG.</p>
+    <p>De upload-handler (<code>form_api.php?action=uploadImage</code>) detecteert WebP-support, schaalt de afbeelding terug binnen <code>maxWidth</code>×<code>maxHeight</code> (standaard <code>EDITOR_IMAGE_MAX_WIDTH</code>×<code>EDITOR_IMAGE_MAX_HEIGHT</code>, 800×600), weigert bestanden boven <code>UPLOAD_MAX_MB</code> en buiten <code>UPLOAD_IMAGE_MIME_TYPES</code>, schrijft het resultaat als <code>.webp</code> (kwaliteit <code>IMAGE_WEBP_QUALITY</code>, 85) en roept dan <code>ResponsiveImage::generate()</code> aan. Zonder GD-WebP-support valt de upload terug op JPEG.</p>
     <p>Het origineel blijft staan; de varianten komen in een <code>.responsive/</code>-submap naast het bestand:</p>
     <pre><code>/images/foto.jpg                      &larr; origineel (blijft staan)
 /images/.responsive/foto-300w.webp    &larr; 300px variant
@@ -2521,7 +2521,7 @@ function render_doc_images(): void
 /images/.responsive/foto-800w.webp    &larr; 800px variant
 /images/.responsive/foto-1200w.webp   &larr; 1200px variant
 /images/.responsive/foto.webp         &larr; volledige WebP</code></pre>
-    <p>Breedtes en kwaliteit zijn constanten op <code>ResponsiveImage</code>: <code>SIZES = [300, 400, 800, 1200]</code>, <code>DEFAULT_QUALITY = 85</code>, <code>RESPONSIVE_DIR = '.responsive'</code>. Varianten groter dan het origineel worden overgeslagen.</p>
+    <p>Breedtes en kwaliteit zijn instellingen (Beheerstools → Systeeminstellingen, groep Uploads &amp; afbeeldingen): <code>ResponsiveImage::sizes()</code> leest <code>RESPONSIVE_IMAGE_SIZES</code> (300, 400, 800, 1200), <code>ResponsiveImage::defaultQuality()</code> leest <code>IMAGE_WEBP_QUALITY</code> (85). De map <code>RESPONSIVE_DIR = '.responsive'</code> is een constante: wijzigen maakt elke bestaande variant onvindbaar. Varianten groter dan het origineel worden overgeslagen; een gewijzigde breedtelijst geldt voor nieuwe uploads en de batch-conversie, bestaande varianten blijven staan.</p>
 
     <h2>Crop / roteren / schalen</h2>
     <p>In de file-browser (<code>cma/wizards/file-browser.php</code>) werken crop, rotate en resize <span class="cma-tool__em">in-place</span> op het bestand. Na elke bewerking worden de oude varianten verwijderd (<code>deleteVariants()</code>) en opnieuw gegenereerd (<code>generate()</code>), zodat de <code>.responsive/</code>-set altijd klopt met de huidige inhoud. Deze bewerk-acties (<code>rotate</code>/<code>filter</code>/<code>crop</code>/<code>autocrop</code>/<code>restore</code>/<code>resize</code>) vereisen een ingelogde CMA-gebruiker.</p>

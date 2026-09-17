@@ -1400,12 +1400,17 @@ try {
             }
 
             $file = $_FILES['image'];
-            $path = Request::post('path', '/images/');
-            $maxWidth = (int)Request::post('maxWidth', 800);
-            $maxHeight = (int)Request::post('maxHeight', 600);
+            $tooLarge = \App\Library\Upload::sizeError($file);
+            if ($tooLarge !== null) {
+                outputJson(['success' => false, 'error' => $tooLarge]);
+                break;
+            }
+            $path = Request::post('path', (string) \App\Library\Settings::get('image_default_path'));
+            $maxWidth = (int)Request::post('maxWidth', (int) \App\Library\Settings::get('editor_image_max_width'));
+            $maxHeight = (int)Request::post('maxHeight', (int) \App\Library\Settings::get('editor_image_max_height'));
 
             // Validate file type
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $allowedTypes = (array) \App\Library\Settings::get('upload_image_mime_types');
             $finfo = new \finfo(FILEINFO_MIME_TYPE);
             $mimeType = $finfo->file($file['tmp_name']);
 
@@ -1502,9 +1507,9 @@ try {
                 // Preserve alpha for WebP
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
-                $saved = imagewebp($image, $targetPath, ResponsiveImage::DEFAULT_QUALITY);
+                $saved = imagewebp($image, $targetPath, ResponsiveImage::defaultQuality());
             } else {
-                $saved = imagejpeg($image, $targetPath, 92);
+                $saved = imagejpeg($image, $targetPath, (int) \App\Library\Settings::get('image_jpeg_quality'));
             }
 
             if ($saved) {

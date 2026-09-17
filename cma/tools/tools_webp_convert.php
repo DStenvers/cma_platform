@@ -185,9 +185,9 @@ if ($action !== '') {
                 $oneDone = true;
                 break;
             }
-            $quality = (int)Request::query('quality', (string)ResponsiveImage::DEFAULT_QUALITY);
+            $quality = (int)Request::query('quality', (string)ResponsiveImage::defaultQuality());
             if ($quality < 1 || $quality > 100) {
-                $quality = ResponsiveImage::DEFAULT_QUALITY;
+                $quality = ResponsiveImage::defaultQuality();
             }
             // Delete existing variants when regenerating
             if (Request::query('regenerate', '0') === '1' && ResponsiveImage::hasVariants($singlePath)) {
@@ -206,7 +206,7 @@ if ($action !== '') {
             $relDir = dirname($file);
             $responsiveUrlDir = preg_replace('#(?<!:)//#', '/', $directory . ($relDir && $relDir !== '.' ? $relDir . '/' : '') . '.responsive/');
             $variants = [];
-            foreach (ResponsiveImage::SIZES as $w) {
+            foreach (ResponsiveImage::sizes() as $w) {
                 $vPath = $responsiveDir . DIRECTORY_SEPARATOR . $baseName . '-' . $w . 'w.webp';
                 if (file_exists($vPath)) {
                     $variants[] = [
@@ -249,9 +249,9 @@ if ($action !== '') {
                 echo json_encode(['success' => false, 'error' => 'Map bestaat niet: ' . $directory]);
                 break;
             }
-            $quality = (int)Request::post('quality', Request::query('quality', (string)ResponsiveImage::DEFAULT_QUALITY));
+            $quality = (int)Request::post('quality', Request::query('quality', (string)ResponsiveImage::defaultQuality()));
             if ($quality < 1 || $quality > 100) {
-                $quality = ResponsiveImage::DEFAULT_QUALITY;
+                $quality = ResponsiveImage::defaultQuality();
             }
             $offset = max(0, (int)Request::query('offset', '0'));
             $limit = min(20, max(1, (int)Request::query('limit', '20')));
@@ -425,9 +425,9 @@ sort($imageDirs);
 
 <div style="margin-bottom: 20px; padding: 12px 16px; background: var(--bg-surface, #f5f5f5); border: 1px solid var(--border-color, #ddd); border-left: 3px solid var(--color-primary, #4a90d9); border-radius: 4px; font-size: 0.9em; line-height: 1.5;">
     <div style="font-weight: bold; margin-bottom: 6px;">Responsieve beeldformaten</div>
-    <p style="margin: 0 0 8px;">Per afbeelding worden de volgende WebP-varianten in de <code>.responsive/</code>-submap gegenereerd (bron: <code>ResponsiveImage::SIZES</code>, kwaliteit <span class="cma-tool__strong"><?= ResponsiveImage::DEFAULT_QUALITY ?></span>):</p>
+    <p style="margin: 0 0 8px;">Per afbeelding worden de volgende WebP-varianten in de <code>.responsive/</code>-submap gegenereerd (bron: <code>ResponsiveImage::sizes()</code>, kwaliteit <span class="cma-tool__strong"><?= ResponsiveImage::defaultQuality() ?></span>):</p>
     <ul style="margin: 0; padding-left: 18px;">
-        <?php foreach (ResponsiveImage::SIZES as $w): ?>
+        <?php foreach (ResponsiveImage::sizes() as $w): ?>
             <li><span class="cma-tool__strong"><?= (int) $w ?> px</span> breed — <code>photo-<?= (int) $w ?>w.webp</code></li>
         <?php endforeach; ?>
         <li><span class="cma-tool__strong">volledige grootte</span> — <code>photo.webp</code></li>
@@ -494,13 +494,13 @@ sort($imageDirs);
             <tbody>
                 <tr>
                     <td style="padding: 6px 8px;">Kwaliteit</td>
-                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= ResponsiveImage::DEFAULT_QUALITY ?></span></td>
-                    <td style="padding: 6px 8px;"><code>ResponsiveImage::DEFAULT_QUALITY</code></td>
+                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= ResponsiveImage::defaultQuality() ?></span></td>
+                    <td style="padding: 6px 8px;"><code>ResponsiveImage::defaultQuality()</code></td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 8px;">Responsive breedtes</td>
-                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= implode(', ', ResponsiveImage::SIZES) ?></span> px</td>
-                    <td style="padding: 6px 8px;"><code>ResponsiveImage::SIZES</code></td>
+                    <td style="padding: 6px 8px;"><span class="cma-tool__strong"><?= implode(', ', ResponsiveImage::sizes()) ?></span> px</td>
+                    <td style="padding: 6px 8px;"><code>ResponsiveImage::sizes()</code></td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 8px;">Submap</td>
@@ -513,7 +513,7 @@ sort($imageDirs);
         <h3>Bestandsstructuur</h3>
         <?php
         $structLines = str_pad('/images/photo.jpg', 41) . '&larr; origineel (blijft behouden)' . "\n";
-        foreach (ResponsiveImage::SIZES as $w) {
+        foreach (ResponsiveImage::sizes() as $w) {
             $structLines .= str_pad('/images/.responsive/photo-' . (int) $w . 'w.webp', 41) . '&larr; ' . (int) $w . 'px breed' . "\n";
         }
         $structLines .= str_pad('/images/.responsive/photo.webp', 41) . '&larr; volledige grootte WebP';
@@ -549,7 +549,7 @@ echo ResponsiveImage::imgTag('/images/photo.jpg', 'Alt', '100vw', 'hero-image', 
         <p style="margin-top: 12px;">In <span class="cma-tool__strong">JavaScript</span> (dynamische content):</p>
         <pre style="background: var(--bg-surface, #f5f5f5); padding: 12px; border-radius: 4px; font-size: 0.85em; overflow-x: auto;">const dir = '/images';
 const name = 'photo';  // zonder extensie
-const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
+const srcset = [<?= implode(', ', ResponsiveImage::sizes()) ?>]
     .map(w => `${dir}/.responsive/${name}-${w}w.webp ${w}w`)
     .join(', ');</pre>
 
@@ -942,7 +942,7 @@ const srcset = [<?= implode(', ', ResponsiveImage::SIZES) ?>]
         });
     }
 
-    var VARIANT_SIZES = [<?= implode(', ', array_map('intval', ResponsiveImage::SIZES)) ?>];   // bron: ResponsiveImage::SIZES
+    var VARIANT_SIZES = [<?= implode(', ', array_map('intval', ResponsiveImage::sizes())) ?>];   // bron: ResponsiveImage::sizes()
 
     function findVariant(f, width, isFull) {
         if (!f.variants) return null;

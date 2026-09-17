@@ -392,8 +392,8 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof SetFKEditorConfig === 'function') {
             SetFKEditorConfig({
-                customCSS: <?= json_encode(Application::get('cma_htmledit_css', '')) ?>,
-                allowBR: <?= Application::get('cma_htmledit_allowBR', '') ? 'false' : 'true' ?>,
+                customCSS: <?= json_encode((string) \App\Library\Settings::get('editor_css')) ?>,
+                allowBR: <?= \App\Library\Settings::get('editor_allow_br') ? 'true' : 'false' ?>,
                 extraPlugins: ''
             });
         }

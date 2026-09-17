@@ -93,6 +93,12 @@ if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
     exit;
 }
 
+$tooLarge = \App\Library\Upload::sizeError($file);
+if ($tooLarge !== null) {
+    echo json_encode(['success' => false, 'error' => $tooLarge]);
+    exit;
+}
+
 // Sanitize filename
 $originalName = $file['name'];
 $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $originalName);

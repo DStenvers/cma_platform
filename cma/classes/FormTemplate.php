@@ -288,13 +288,13 @@ class FormTemplate
             'appName' => $appName,
             'imageConfig' => [
                 'resize_type' => FormControlHelper::IMG_MAXIMUM,
-                'max_width' => Application::get('cma_htmledit_img_maxwidth', 800),
-                'max_height' => Application::get('cma_htmledit_img_maxheight', 600),
-                'path' => Application::get('cma_htmledit_img_path', ''),
+                'max_width' => (int) \App\Library\Settings::get('editor_image_max_width'),
+                'max_height' => (int) \App\Library\Settings::get('editor_image_max_height'),
+                'path' => (string) \App\Library\Settings::get('editor_image_path'),
             ],
             'editorConfig' => [
-                'allowBR' => !Application::get('cma_htmledit_allowBR', ''),
-                'customCSS' => Application::get('cma_htmledit_css', ''),
+                'allowBR' => (bool) \App\Library\Settings::get('editor_allow_br'),
+                'customCSS' => (string) \App\Library\Settings::get('editor_css'),
                 // Exact match is DELIBERATE: two clients have "rino" in their
                 // name and only RINO Portal gets the literatuur plugin — do
                 // not loosen this to a contains-check.
@@ -471,15 +471,15 @@ class FormTemplate
         if ($needsCKEditor) {
             $html .= 'var config = {' . PHP_EOL;
             $html .= '    image_resize_type: ' . FormControlHelper::IMG_MAXIMUM . ',' . PHP_EOL;
-            $html .= '    image_max_width: ' . (int) Application::get('cma_htmledit_img_maxwidth', 800) . ',' . PHP_EOL;
-            $html .= '    image_max_height: ' . (int) Application::get('cma_htmledit_img_maxheight', 600) . ',' . PHP_EOL;
-            $html .= '    image_path: ' . json_encode(Application::get('cma_htmledit_img_path', '')) . ',' . PHP_EOL;
+            $html .= '    image_max_width: ' . (int) \App\Library\Settings::get('editor_image_max_width') . ',' . PHP_EOL;
+            $html .= '    image_max_height: ' . (int) \App\Library\Settings::get('editor_image_max_height') . ',' . PHP_EOL;
+            $html .= '    image_path: ' . json_encode((string) \App\Library\Settings::get('editor_image_path')) . ',' . PHP_EOL;
             $html .= '    domain: ' . json_encode(Request::currentDomain()) . ',' . PHP_EOL;
             $html .= '    subpath: ' . json_encode(Application::get('base_path', '')) . ',' . PHP_EOL;
             $html .= '    maximized: false,' . PHP_EOL;
             $html .= '    debug: ' . (Application::get('development', '') ? 'true' : 'false') . ',' . PHP_EOL;
-            $html .= '    allowBR: ' . (Application::get('cma_htmledit_allowBR', '') ? 'false' : 'true') . ',' . PHP_EOL;
-            $html .= '    customCSS: ' . json_encode(Application::get('cma_htmledit_css', '')) . ',' . PHP_EOL;
+            $html .= '    allowBR: ' . (\App\Library\Settings::get('editor_allow_br') ? 'true' : 'false') . ',' . PHP_EOL;
+            $html .= '    customCSS: ' . json_encode((string) \App\Library\Settings::get('editor_css')) . ',' . PHP_EOL;
             $html .= '    extraPlugins: ""' . PHP_EOL;
             $html .= '};' . PHP_EOL;
             if (Application::get('appname', '') === 'RINO Portal') {

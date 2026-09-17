@@ -94,6 +94,17 @@ class SettingsTest extends TestCase
         $this->assertSame(200, Settings::get('perf_client_max_queue'));
         $this->assertSame(500, Settings::get('table_filter_max_values'));
         $this->assertSame(30, Settings::get('table_filter_max_checkboxes'));
+        // Phase 5: uploads, images, editor
+        $this->assertSame(0, Settings::get('upload_max_mb'));
+        $this->assertSame(['image/jpeg', 'image/png', 'image/gif', 'image/webp'], Settings::get('upload_image_mime_types'));
+        $this->assertSame('/images/', Settings::get('image_default_path'));
+        $this->assertSame(85, Settings::get('image_webp_quality'));
+        $this->assertSame(92, Settings::get('image_jpeg_quality'));
+        $this->assertSame(97, Settings::get('image_crop_quality'));
+        $this->assertSame([300, 400, 800, 1200], Settings::get('responsive_image_sizes'));
+        $this->assertSame(800, Settings::get('editor_image_max_width'));
+        $this->assertSame(600, Settings::get('editor_image_max_height'));
+        $this->assertTrue(Settings::get('editor_allow_br'));
     }
 
     public function testCacheKeysFallBackToTheirAppPhpNames(): void
