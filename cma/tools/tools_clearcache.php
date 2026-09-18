@@ -11,7 +11,16 @@
 // Pre-calculate cache directories (before Application class is available)
 // Cache is now in site root: /site/.cache/cma/
 $_siteRoot = dirname(__DIR__, 2);
-$_envCacheDir = (string) \App\Library\Settings::get('cache_directory') ?: null;
+// Settings::get() needs the App\Library\ autoloader. On sites where _bootstrap.php
+// is auto-prepended it is already there; elsewhere nothing is loaded yet at this
+// point (the bootstrap deliberately comes later, see above), so load Composer's
+// autoloader alone — it creates no cache files. Without it: "Class Settings not found".
+if (!class_exists(\App\Library\Settings::class) && is_file($_siteRoot . '/vendor/autoload.php')) {
+    require_once $_siteRoot . '/vendor/autoload.php';
+}
+$_envCacheDir = class_exists(\App\Library\Settings::class)
+    ? ((string) \App\Library\Settings::get('cache_directory') ?: null)
+    : (getenv('CACHE_DIRECTORY') ?: ($_ENV['CACHE_DIRECTORY'] ?? null));
 $_appCacheDir = $_envCacheDir ?: ($_siteRoot . '/cache');
 $_cmaCacheDir = $_siteRoot . '/.cache/cma';
 $_formCacheDir = $_siteRoot . '/.cache/cma/forms';

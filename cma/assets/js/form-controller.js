@@ -1004,6 +1004,11 @@ class CmaFormController {
         }
         this.parentID = formLayout?.dataset.parentId || null;
         this.parentField = formLayout?.dataset.parentField || null;
+        // True once anything in this form has been written to the server (save,
+        // delete, inline subform edit, afterpost). closeForm() uses it to decide
+        // whether the opener/parent list needs a refresh at all: a record that
+        // was only viewed leaves the parent untouched.
+        this._dataChanged = false;
         this._dataRecordId = formLayout?.dataset.recordId;
         this._dataCopyMode = formLayout?.dataset.copyMode === 'true';
 
@@ -5903,9 +5908,11 @@ class CmaFormController {
             },
             onSaveSuccess: (rowId, record) => {
                 // Refresh the row data after save
+                this._dataChanged = true;
                 this.showNotification('Opgeslagen', 'success');
             },
             onDeleteSuccess: (rowId) => {
+                this._dataChanged = true;
                 this.showNotification('Verwijderd', 'success');
             }
         };
@@ -9485,6 +9492,7 @@ class CmaFormController {
             }
 
             if (result.success) {
+                this._dataChanged = true;
                 // cmaLog.log('saveRecord: SUCCESS, id=', result.id, 'isNew=', result.isNew, 'message=', result.message);
                 // Invalidate combo dropdown caches — the saved record may have
                 // added/changed a value that other forms' combos depend on.
@@ -10434,6 +10442,7 @@ class CmaFormController {
             const result = await response.json();
 
             if (result.success) {
+                this._dataChanged = true;
                 // Invalidate combo caches — a deleted row may have been an
                 // option in some other form's combo. See saveRecord for the
                 // matching call.
@@ -11607,9 +11616,11 @@ class CmaFormController {
                 self.openSubformRecord(rowId, data);
             },
             onSaveSuccess: (rowId, record) => {
+                self._dataChanged = true;
                 self.showNotification('Opgeslagen', 'success');
             },
             onDeleteSuccess: (rowId) => {
+                self._dataChanged = true;
                 self.showNotification('Verwijderd', 'success');
                 // Guard (mirrors the popup path): make sure the deleted row is
                 // actually gone. CmaInlineEdit removes it in place, but if that
@@ -12292,6 +12303,7 @@ class CmaFormController {
      * @param {number|string} recordId - The saved record ID
      */
     async executeAfterPost(recordId) {
+        this._dataChanged = true;
         const url = this.afterPostUrl.replace('[ID]', recordId);
         try {
             const response = await fetch(url);
@@ -12392,6 +12404,9 @@ class CmaFormController {
         // Check if this is an "add related record" popup (updatevalues parameter)
         const urlParams = new URLSearchParams(window.location.search);
         const updateValuesField = urlParams.get('updatevalues');
+        // Nothing was written while this form was open: the parent's list is still
+        // current, so closing must not reload it (or the whole parent page).
+        const parentNeedsRefresh = this._dataChanged || deleted;
         // cmaLog.log('closeForm: recordId=', recordId, 'deleted=', deleted, 'updateValuesField=', updateValuesField, 'url=', window.location.href);
 
         // Handle real popup (window.open)
@@ -12414,6 +12429,8 @@ class CmaFormController {
                         openerCmaForm.refreshComboOptions(updateValuesField, recordId);
                         // cmaLog.log('Refreshed combobox in opener:', updateValuesField, 'with new ID:', recordId);
                     }
+                } else if (!parentNeedsRefresh) {
+                    // viewed only — leave the opener as it is
                 } else if (this.parentID && openerCmaForm &&
                     typeof openerCmaForm.refreshSubformList === 'function' &&
                     openerCmaForm.refreshSubformList(this.jsonForm || this.formId)) {
@@ -12456,7 +12473,7 @@ class CmaFormController {
                 if (updateValuesField && recordId && !deleted) {
                     cmaLog.log('[closeForm] calling refreshParentCombobox');
                     this.refreshParentCombobox(updateValuesField, recordId);
-                } else {
+                } else if (parentNeedsRefresh) {
                     // Try to refresh the parent's list before closing
                     this.refreshParentList(recordId, deleted);
                 }
@@ -12478,7 +12495,7 @@ class CmaFormController {
                 if (updateValuesField && recordId && !deleted) {
                     // cmaLog.log('closeForm: calling refreshParentCombobox');
                     this.refreshParentCombobox(updateValuesField, recordId);
-                } else {
+                } else if (parentNeedsRefresh) {
                     // Try to refresh the parent's list before closing
                     this.refreshParentList(recordId, deleted);
                 }

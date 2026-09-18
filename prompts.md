@@ -15092,3 +15092,6 @@ karaat-data en staat in de karaat-repo.
 > continue
 
 > the sql processor should be able to translate to windows-1252, there is a php function for that right?
+
+> if i open a sidepanel and close it, it always refreshes. can we only do that if dat has changed?
+> Fatal error: Uncaught Error: Class "App\Library\Settings" not found in D:\wwwroot\test-mijn.rino.nl\cma\tools\tools_clearcache.php:14
