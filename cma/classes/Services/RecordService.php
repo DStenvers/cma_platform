@@ -1627,7 +1627,9 @@ class RecordService extends BaseFormService
      */
     protected static function saveGroupMembers($groupId, $userIds): void
     {
-        if (!$groupId) {
+        // Membership of group 0 "Iedereen" is implicit for every user (SecurityHelper merges
+        // its rights for everyone), so it has no member list to save.
+        if ($groupId === null || $groupId === '' || $groupId === false || (int)$groupId === 0) {
             return;
         }
 
@@ -1690,7 +1692,8 @@ class RecordService extends BaseFormService
      */
     protected static function saveGroupRights($groupId, array $data): void
     {
-        if (!$groupId) {
+        // Group 0 "Iedereen" is a real group with editable rights; only a missing id is a no-op.
+        if ($groupId === null || $groupId === '' || $groupId === false) {
             Logger::debug("saveGroupRights: No groupId provided");
             return;
         }

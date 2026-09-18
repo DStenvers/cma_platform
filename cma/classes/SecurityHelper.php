@@ -28,6 +28,10 @@ class SecurityHelper
     // Array index constants for group rights query result
     private const ARR_OBJECTID = 0;
     private const ARR_ACCESSTYPE = 1;
+    /** Column index of tblGroups.isBeheer in the rights array (after the five buttons). */
+    private const ARR_ISBEHEER = 7;
+    /** Group 0 "Iedereen": its rights apply to every logged-in user, without membership rows. */
+    public const GROUP_EVERYONE = 0;
 
     // Cookie constants
     public const COOKIE_USERID = 'CMAU';
@@ -478,9 +482,15 @@ class SecurityHelper
                 $debugInfo[] = "  => User is admin, returning FULL (30)";
             }
         } elseif (self::isLoggedIn()) {
-            $sql = 'SELECT tblGroupRights.secObjectID, Max(tblGroupRights.secAccessType) AS AccessType, tblGroupRights.secButton1, tblGroupRights.secButton2, tblGroupRights.secButton3, tblGroupRights.secButton4, tblGroupRights.secButton5 FROM (tblGroups INNER JOIN tblGroupMembers ON tblGroups.ID = tblGroupMembers.fkGroup) INNER JOIN tblGroupRights ON tblGroups.ID = tblGroupRights.fkGroup GROUP BY tblGroupMembers.fkUser, tblGroupRights.secObjectType, tblGroupRights.secObjectID, tblGroupRights.secButton1, tblGroupRights.secButton2, tblGroupRights.secButton3, tblGroupRights.secButton4, tblGroupRights.secButton5 HAVING (((tblGroupMembers.fkUser)=' . $userId . ') AND ((tblGroupRights.secObjectType)=' . $type . ') AND ((Max(tblGroupRights.secAccessType))>0))';
+            // Rights of the user's groups plus those of group 0 "Iedereen" (every logged-in
+            // user is implicitly a member, as in the classic CMA). tblGroups.isBeheer travels
+            // along: FULL through a beheer group becomes FULL_BEHEER (see below).
+            $sql = self::groupRightsSql('tblGroupMembers.fkUser = ' . $userId, $type);
             $arrRights = Cache::retrieveFromFile('CMA_access_' . $userId . '_' . $type, 'users', $sql);
-
+            $arrEveryone = Cache::retrieveFromFile('CMA_access_everyone_' . $type, 'users',
+                self::groupRightsSql('tblGroups.ID = ' . self::GROUP_EVERYONE, $type, false));
+            $arrRights = self::mergeRightsArrays($arrRights, $arrEveryone);
+            $bBeheer = false;
             if ($debugInfo !== null) {
                 $debugInfo[] = "  Group rights query returned: " . (Arr::isArray($arrRights) ? count($arrRights[0] ?? []) . " rows" : "no results");
             }
@@ -494,6 +504,7 @@ class SecurityHelper
                     if (($arrRights[self::ARR_OBJECTID][$t] ?? '') == $objectId . '') {
                         $matchFound = true;
                         $accessType = max($accessType, $arrRights[self::ARR_ACCESSTYPE][$t] ?? 0);
+                        $bBeheer = $bBeheer || !empty($arrRights[self::ARR_ISBEHEER][$t]);
                         if ($buttonId > -1) {
                             $buttonValue = $arrRights[self::ARR_ACCESSTYPE + $buttonId][$t] ?? 0;
                             $accessType = max($accessType, ($buttonValue ? self::ACCESS_FULL : self::ACCESS_NONE));
@@ -507,6 +518,15 @@ class SecurityHelper
                     $debugInfo[] = "  => No matching ObjectID found in group rights!";
                 }
             }
+            // Beheer functions only for someone who already has full rights, through a
+            // group flagged isBeheer (classic security.inc). Main forms are checked as
+            // menu items and subforms as forms, so both types qualify.
+            if ($bBeheer && $accessType === self::ACCESS_FULL && ($type === self::TYPE_FORM || $type === self::TYPE_MENU)) {
+                $accessType = self::ACCESS_FULL_BEHEER;
+                if ($debugInfo !== null) {
+                    $debugInfo[] = "  => beheer group with FULL => FULL_BEHEER (40)";
+                }
+            }
         } else {
             if ($debugInfo !== null) {
                 $debugInfo[] = "  => Not logged in, returning NONE (0)";
@@ -517,6 +537,61 @@ class SecurityHelper
             $debugInfo[] = "  Final result: $accessType";
         }
         return $accessType;
+    }
+
+    /**
+     * The group-rights query behind checkRightsForUser(): per object the highest access
+     * type over the selected groups, the five button flags and the isBeheer flag.
+     * $where selects the groups: the user's memberships, or group 0 for "Iedereen"
+     * ($withMembers=false joins tblGroups straight to tblGroupRights).
+     */
+    private static function groupRightsSql(string $where, int $type, bool $withMembers = true): string
+    {
+        $from = $withMembers
+            ? '(tblGroups INNER JOIN tblGroupMembers ON tblGroups.ID = tblGroupMembers.fkGroup) INNER JOIN tblGroupRights ON tblGroups.ID = tblGroupRights.fkGroup'
+            : 'tblGroups INNER JOIN tblGroupRights ON tblGroups.ID = tblGroupRights.fkGroup';
+        // Aggregated so it needs no GROUP BY entry: 1 when any selected group that grants
+        // the object is a beheer group (Yes/No is -1/0 in Access, hence the IIf).
+        $beheer = self::groupsHaveBeheerColumn() ? 'Max(IIf(tblGroups.isBeheer, 1, 0))' : 'Max(0)';
+        return 'SELECT tblGroupRights.secObjectID, Max(tblGroupRights.secAccessType) AS AccessType, '
+            . 'tblGroupRights.secButton1, tblGroupRights.secButton2, tblGroupRights.secButton3, tblGroupRights.secButton4, tblGroupRights.secButton5, '
+            . $beheer . ' AS isBeheer '
+            . 'FROM ' . $from . ' '
+            . 'WHERE (' . $where . ') AND tblGroupRights.secObjectType = ' . $type . ' '
+            . 'GROUP BY tblGroupRights.secObjectID, tblGroupRights.secButton1, tblGroupRights.secButton2, tblGroupRights.secButton3, tblGroupRights.secButton4, tblGroupRights.secButton5 '
+            . 'HAVING Max(tblGroupRights.secAccessType) > 0';
+    }
+
+    /** Is tblGroups.isBeheer there (migration 9.24.0)? Cached per request. */
+    private static ?bool $groupsBeheerColumn = null;
+    private static function groupsHaveBeheerColumn(): bool
+    {
+        if (self::$groupsBeheerColumn === null) {
+            try {
+                $conn = Database::getConnection('users');
+                self::$groupsBeheerColumn = $conn !== null && Database::columnExistsPDO($conn, 'tblGroups', 'isBeheer');
+            } catch (\Throwable $e) {
+                self::$groupsBeheerColumn = false;
+            }
+        }
+        return self::$groupsBeheerColumn;
+    }
+
+    /** Append the rows of a second column-major rights array to the first. */
+    private static function mergeRightsArrays($a, $b)
+    {
+        if (!Arr::isArray($b) || count($b[0] ?? []) === 0) {
+            return $a;
+        }
+        if (!Arr::isArray($a) || count($a[0] ?? []) === 0) {
+            return $b;
+        }
+        $out = [];
+        $cols = max(count($a), count($b));
+        for ($c = 0; $c < $cols; $c++) {
+            $out[$c] = array_merge(array_values($a[$c] ?? []), array_values($b[$c] ?? []));
+        }
+        return $out;
     }
 
     /**
@@ -1037,7 +1112,7 @@ class SecurityHelper
     public static function checkGroupRights(int $groupId, int $type, int $objectId, int $buttonId): int
     {
         $accessType = self::ACCESS_NONE;
-        if ($groupId <= 0) {
+        if ($groupId < 0) {
             return $accessType;
         }
 

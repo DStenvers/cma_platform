@@ -59,7 +59,7 @@ class JsonFormRenderer
 
         // Get user's current notification subscriptions
         $subscribed = [];
-        if ($recordId && $usersConn) {
+        if ($recordId !== null && $recordId !== '' && $usersConn) {
             $sql = "SELECT fkFormID FROM tblNotifications WHERE fkUserID = " . (int)$recordId;
             $rs = Database::openRS($sql, $usersConn);
             if ($rs) {
@@ -195,7 +195,7 @@ class JsonFormRenderer
         // Get current rights for this group (menu type = 10, form type = 30)
         $rights = [];
         $buttonRights = [];
-        if ($recordId && $usersConn) {
+        if ($recordId !== null && $recordId !== '' && $usersConn) {
             $sql = "SELECT secObjectID, secObjectType, secAccessType, " .
                 "secButton1, secButton2, secButton3, secButton4, secButton5 " .
                 "FROM tblGroupRights WHERE fkGroup = " . (int)$recordId .
@@ -606,7 +606,7 @@ class JsonFormRenderer
 
         // Get current report rights for this group (tblGroupRights is in users db)
         $rights = [];
-        if ($recordId) {
+        if ($recordId !== null && $recordId !== '') {
             $usersConn = Database::getConnection('users');
             $rightsSql = "SELECT secObjectID FROM tblGroupRights " .
                 "WHERE fkGroup = " . (int)$recordId . " AND secObjectType = 20 AND secAccessType > 0"; // 20 = report

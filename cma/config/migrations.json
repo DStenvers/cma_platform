@@ -441,7 +441,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.6.0_export_menu.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert tblMenu en tblMenuItems naar config/menu.json"
                 }
             ]
@@ -453,7 +455,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.7.1_regenerate_forms.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Verwijdert alle bestaande JSON en exporteert alle formulieren opnieuw"
                 }
             ]
@@ -465,7 +469,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.7.2_export_forms.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert alle formulieren van tblForms naar assets/forms/definitions/"
                 }
             ]
@@ -477,7 +483,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.7.3_update_menu_formnames.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Vervangt formId door formName in config/menu.json"
                 }
             ]
@@ -489,7 +497,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.7.4_export_databases.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert tblDatabases naar config/databases.json"
                 }
             ]
@@ -501,7 +511,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/3.0.0_export_reports.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert tblReports naar config/reports.json"
                 }
             ]
@@ -513,7 +525,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/3.1.0_export_datastores.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert tblXMLStore naar config/data-sources.json"
                 }
             ]
@@ -536,7 +550,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/4.0.20_export_application.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert logo, afmetingen en achtergrondkleur uit tblApplications naar menu.json"
                 }
             ]
@@ -579,7 +595,9 @@
                     "type": "addIndex",
                     "database": "data",
                     "table": "tblCMAMonitoring",
-                    "columns": ["Form"],
+                    "columns": [
+                        "Form"
+                    ],
                     "indexName": "tblCMAMonitoring_Form",
                     "note": "Index voor snel zoeken op form naam"
                 }
@@ -637,7 +655,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.0.0_reports_editform_to_formname.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Converteert numerieke editForm waarden naar form namen. Transitief afhankelijk van rep — leest reports.json die door 3.0.0_export_reports.php uit rep wordt gegenereerd."
                 }
             ]
@@ -649,7 +669,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.1.0_reports_remove_moduleid.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Verwijdert ongebruikt moduleId veld. Transitief afhankelijk van rep — leest reports.json die door 3.0.0_export_reports.php uit rep wordt gegenereerd."
                 }
             ]
@@ -661,7 +683,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/6.2.0_menu_add_accesslevel.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Voegt accessLevel toe aan menus. Transitief afhankelijk van rep — leest menu.json die door 2.6.0_export_menu.php uit rep wordt gegenereerd."
                 }
             ]
@@ -812,7 +836,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/7.3.0_reexport_reports_queries.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Exporteert report queries opnieuw naar JSON"
                 }
             ]
@@ -846,7 +872,9 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/2.7.2_export_forms.php",
-                    "requires": ["rep"],
+                    "requires": [
+                        "rep"
+                    ],
                     "note": "Re-exporteert formulieren met verbeterde listQuery die daadwerkelijke kolommen bevat ipv alleen ID"
                 }
             ]
@@ -1035,7 +1063,9 @@
                     "type": "addIndex",
                     "database": "data",
                     "table": "tblCMAMonitoring",
-                    "columns": ["datestamp"],
+                    "columns": [
+                        "datestamp"
+                    ],
                     "indexName": "idx_CMAMonitoring_datestamp",
                     "note": "Index voor ORDER BY datestamp en datumfiltering"
                 },
@@ -1043,7 +1073,9 @@
                     "type": "addIndex",
                     "database": "data",
                     "table": "tblCMAMonitoring",
-                    "columns": ["Username"],
+                    "columns": [
+                        "Username"
+                    ],
                     "indexName": "idx_CMAMonitoring_Username",
                     "note": "Index voor zoeken op gebruikersnaam (quickSearchFields)"
                 },
@@ -1051,7 +1083,9 @@
                     "type": "addIndex",
                     "database": "data",
                     "table": "tblCMAMonitoring",
-                    "columns": ["Actie"],
+                    "columns": [
+                        "Actie"
+                    ],
                     "indexName": "idx_CMAMonitoring_Actie",
                     "note": "Index voor zoeken op actie (quickSearchFields)"
                 },
@@ -1059,7 +1093,9 @@
                     "type": "addIndex",
                     "database": "data",
                     "table": "tblCMAMonitoring",
-                    "columns": ["LogLevel"],
+                    "columns": [
+                        "LogLevel"
+                    ],
                     "indexName": "idx_CMAMonitoring_LogLevel",
                     "note": "Index voor filteren op log niveau"
                 }
@@ -1215,7 +1251,7 @@
                 {
                     "type": "runPhp",
                     "script": "migrations/9.22.0_remove_orphan_config_constants.php",
-                    "note": "De constanten komen uit library/config/constants.php (gesynct met het pakket). Een site-root config/constants.php is een restant dat door niets wordt geladen en daardoor ongemerkt uiteenloopt \u2014 op de aangetroffen site was het blok twaalf keer herhaald. Verwijdert het bestand alleen als library/config/constants.php bestaat \u00e9n geen enkel PHP-bestand van de site het laadt; anders slaat hij over met een melding. config/ zelf blijft (page_roles.php e.a.). Idempotent."
+                    "note": "De constanten komen uit library/config/constants.php (gesynct met het pakket). Een site-root config/constants.php is een restant dat door niets wordt geladen en daardoor ongemerkt uiteenloopt — op de aangetroffen site was het blok twaalf keer herhaald. Verwijdert het bestand alleen als library/config/constants.php bestaat én geen enkel PHP-bestand van de site het laadt; anders slaat hij over met een melding. config/ zelf blijft (page_roles.php e.a.). Idempotent."
                 }
             ]
         },
@@ -1227,6 +1263,21 @@
                     "type": "runPhp",
                     "script": "migrations/9.23.0_move_backup_to_data.php",
                     "note": "De back-uptool schreef zijn databasekopieen naar een verborgen map in de siteroot; het zijn gegevens en ze horen onder data/. BackupService::bepaalBackupDir() kiest sinds deze versie data/.backup en valt alleen terug op de oude plek zolang die nog inhoud heeft en de nieuwe er niet is - dit script maakt aan dat venster een eind. Verhuist de map in een rename als data/.backup nog niet bestaat, anders bestand voor bestand; overschrijft NOOIT een bestaand bestand en gooit niets weg, maar meldt wat er bleef staan. Ruimt de oude map alleen op als die daarna leeg is. Idempotent."
+                }
+            ]
+        },
+        {
+            "version": "9.24.0",
+            "description": "Beheer-vlag op groepen (tblGroups.isBeheer)",
+            "changes": [
+                {
+                    "type": "addColumn",
+                    "database": "users",
+                    "table": "tblGroups",
+                    "column": "isBeheer",
+                    "dataType": "YESNO",
+                    "default": "0",
+                    "note": "Groep met isBeheer: leden met Volledig op een formulier krijgen FULL_BEHEER (klassieke security.inc). SecurityHelper::groupRightsSql valt terug op Max(0) zolang de kolom ontbreekt."
                 }
             ]
         }
