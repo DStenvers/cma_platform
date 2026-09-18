@@ -2607,6 +2607,24 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 					'<iframe id="' + iframeId + '" class="lib_sidepanel_content" src="' + url + '" style="opacity:0;transition:opacity 0.2s ease;"></iframe>';
 			}
 
+			// Register the panel BEFORE its iframe exists. The iframe starts
+			// loading the moment it lands in innerHTML, and a same-origin page
+			// runs its init at once; that init asks lib_IsInSidePanel(), which
+			// looks for its own window in this stack. Pushed afterwards, the
+			// child found nothing, took itself for a plain deep link, and opened
+			// the record in a panel of its own — again and again.
+			if (typeof topWindow.lib_sidepanel_stack === 'undefined') {
+				topWindow.lib_sidepanel_stack = [];
+			}
+			var previousTitle = topWindow.document.title;
+			topWindow.lib_sidepanel_stack.push({
+				id: panelId,
+				panel: mObj,
+				backdrop: backdrop,
+				previousTitle: previousTitle,
+				url: url
+			});
+
 			mObj.innerHTML = header + content;
 
 			// Reveal the iframe as soon as its DOCUMENT is parsed, not at the
@@ -2651,19 +2669,6 @@ function lib_OpenSidePanel(url, name, width, title, htmlContent) {
 					iframe.onload = reveal;
 				}
 			}
-
-			// Store in stack for proper closing (use top window's stack)
-			if (typeof topWindow.lib_sidepanel_stack === 'undefined') {
-				topWindow.lib_sidepanel_stack = [];
-			}
-			var previousTitle = topWindow.document.title;
-			topWindow.lib_sidepanel_stack.push({
-				id: panelId,
-				panel: mObj,
-				backdrop: backdrop,
-				previousTitle: previousTitle,
-				url: url
-			});
 
 			// Reflect the opened panel in the address bar. lib_CloseSidePanel
 			// already unwinds the URL when a panel closes; without the mirror
@@ -3216,13 +3221,21 @@ function lib_GetSidePanelIframe() {
  */
 function lib_IsInSidePanel() {
 	try {
-		// Check if parent has sidepanel stack with our iframe
-		if (self !== top && parent.lib_sidepanel_stack && parent.lib_sidepanel_stack.length > 0) {
-			var current = parent.lib_sidepanel_stack[parent.lib_sidepanel_stack.length - 1];
-			var iframe = current.panel.querySelector('iframe');
-			if (iframe && iframe.contentWindow === window) {
+		// The DOM answers this, not the stack: a panel's iframe sits inside its
+		// panel element, whatever window opened it. The stack lives on the window
+		// that opened the panel (the shell's content frame, not top, in the CMA),
+		// so asking parent or top for it found nothing from inside the panel and
+		// the page took itself for a plain deep link — which opened the record in
+		// a panel of its own, again and again. Walk up through every frame
+		// boundary: a panel inside a panel is still in a panel.
+		var w = window;
+		while (w !== w.top) {
+			var el = w.frameElement;
+			if (!el) return false;
+			if (el.closest && el.closest('.lib_sidepanel_container')) {
 				return true;
 			}
+			w = w.parent;
 		}
 	} catch (e) {
 		// Cross-origin

@@ -426,10 +426,9 @@ class FormRenderer
                 }
             }
 
-            if ($addButton) {
-                return '<span class="input-group">' . $html . $addButton . '</span>';
-            }
-            return $html;
+            // Always the same box, with or without the add button: a bare combo in
+            // a table cell took the whole cell, a wrapped one the control width.
+            return '<span class="input-group">' . $html . $addButton . '</span>';
         }
 
         // Static combos render as lib-combo with option children
@@ -479,11 +478,8 @@ class FormRenderer
             }
         }
 
-        // Use flexbox wrapper only if we have an add button
-        if ($addButton) {
-            return '<span class="input-group">' . $html . $addButton . '</span>';
-        }
-        return $html;
+        // Always the same box, with or without the add button (see above).
+        return '<span class="input-group">' . $html . $addButton . '</span>';
     }
 
     /**

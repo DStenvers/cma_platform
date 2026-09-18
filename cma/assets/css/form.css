@@ -2746,6 +2746,19 @@ span.dateselect .cal_arrow:hover::before {
     display: inline-flex;
     align-items: stretch;
     min-width: var(--control-min-width);
+    /* Grows with the content, never past the cell */
+    max-width: 100%;
+}
+
+/* A combo in its group: the standard control width to start with, wider
+   when the selected label needs it. The combo's own width: 100% (its host
+   style) would pin it to the group, so flex-basis carries the minimum and
+   flex-grow lets it stretch; the +-button next to it keeps its own width. */
+.input-group > lib-combo {
+    flex: 1 0 auto;
+    width: auto;
+    min-width: calc(var(--control-min-width) - var(--icon-btn-width) - 1px);
+    max-width: 100%;
 }
 
 .input-group select {
