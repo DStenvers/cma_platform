@@ -1,0 +1,431 @@
+[
+ {
+  "label": "LIST PAGE",
+  "nav": {
+   "ttfb": 7,
+   "domContentLoaded": 52,
+   "load": 55
+  },
+  "rows": [
+   {
+    "name": "/cma/minify.php?f=../library/css/lib-variables.css,assets/css/colors.css,../library/library.css,../library/css/lib-components.css,assets/css/style.css,../library/select2/select2.css,../library/classes/class_table.css,../library/webcomponents/lib-table.css,assets/css/form.css,assets/css/inline-edit.css,assets/css/main.css&v=20260910a",
+    "type": "link",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 47077,
+    "dec": 260817,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/cma/assets/js/cma-utils.min.js",
+    "type": "script",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 6127,
+    "dec": 16960,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/library/assets/js/error-handler.min.js",
+    "type": "script",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 4431,
+    "dec": 15997,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/library/jquery.min.js",
+    "type": "script",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 33162,
+    "dec": 93032,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/cma/minify.php?f=assets/js/cma-utils.js,assets/js/url-manager.js,../library/assets/js/error-handler.js,assets/js/request-tracker.js,webcomponents/cma-base-component.js,../library/webcomponents/lib-shared-styles.js,../library/webcomponents/lib-loader.js,../library/webcomponents/lib-switch.js,../library/webcomponents/lib-radio-group.js,../library/webcomponents/lib-dialog.js,../library/webcomponents/lib-message.js,../library/webcomponents/lib-toaster.js,../library/webcomponents/lib-search-input.js,../library/webcomponents/lib-datepicker.js,../library/webcomponents/lib-timepicker.js,../library/webcomponents/lib-histogram.js,../library/webcomponents/lib-gauge.js,../library/webcomponents/lib-statusbars.js,../library/webcomponents/lib-combo.js,../library/webcomponents/lib-sheet.js,../library/webcomponents/lib-field.js,../library/webcomponents/lib-arrowsteps.js,../library/webcomponents/lib-fileuploader.js,../library/webcomponents/lib-pagination.js,webcomponents/shared-icons.js,webcomponents/cma-blockeditor.js,webcomponents/cma-fold.js,webcomponents/cma-tree.js,webcomponents/cma-sortlist.js,webcomponents/cma-groupbox.js,webcomponents/cma-toolbar.js,webcomponents/cma-tabs.js,webcomponents/cma-launcher.js,../library/library.js,../library/formval_nl.js,../library/datepicker.js,../library/select2/select2.js,../library/webcomponents/lib-table.js,assets/js/cma.js,assets/js/cma-users.js,webcomponents/cma-htmledit.js,assets/js/blockedit.js,assets/js/table-preferences.js,assets/js/form-controller.js,assets/js/inline-edit.js,assets/js/perf-logger.js,../library/webcomponents/lib-tip.js,assets/js/cma-tours.js,assets/js/cma-list-thumb.js,assets/js/main.js&v=20260910a",
+    "type": "script",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 237791,
+    "dec": 972765,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/cma/ckeditor/ckeditor.js?v=20260910a",
+    "type": "script",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 169031,
+    "dec": 564563,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/assets/images/cma_logo.svg",
+    "type": "img",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 48026,
+    "dec": 66633,
+    "start": 12,
+    "cache": "cache"
+   },
+   {
+    "name": "/library/fonts/Linearicons.woff2?v=20260713",
+    "type": "css",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 32500,
+    "dec": 32500,
+    "start": 27,
+    "cache": "cache"
+   },
+   {
+    "name": "/cma/main.php?nomenu&page=form.php%3Fform%3Dopleidingen",
+    "type": "fetch",
+    "dur": 317,
+    "ttfb": 315,
+    "enc": 12721,
+    "dec": 59635,
+    "start": 32,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=combos&form=opleidingen&fields=fkOplSoort%2CfkDifferentiatie%2Ccontact1%2Ccontact2%2CfkPlanner%2CfkEvaluatieTemplate%2CfkUrenTemplate%2CfkKBTTemplate%2CfkCompetentieTemplate%2CfkVATemplate",
+    "type": "fetch",
+    "dur": 49,
+    "ttfb": 46,
+    "enc": 1185,
+    "dec": 5227,
+    "start": 371,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=init&displayMode=2&jsonForm=opleidingen",
+    "type": "fetch",
+    "dur": 337,
+    "ttfb": 125,
+    "enc": 44970,
+    "dec": 809424,
+    "start": 372,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=combos&form=opleidingen&fields=fkOplSoort%2CfkDifferentiatie%2Ccontact1%2Ccontact2%2CfkPlanner%2CfkEvaluatieTemplate%2CfkUrenTemplate%2CfkKBTTemplate%2CfkCompetentieTemplate%2CfkVATemplate",
+    "type": "fetch",
+    "dur": 82,
+    "ttfb": 36,
+    "enc": 1185,
+    "dec": 5227,
+    "start": 374,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=init&displayMode=2&jsonForm=opleidingen",
+    "type": "fetch",
+    "dur": 540,
+    "ttfb": 124,
+    "enc": 44968,
+    "dec": 809422,
+    "start": 375,
+    "cache": ""
+   },
+   {
+    "name": "/cma/assets/icons/0185-copy.svg",
+    "type": "img",
+    "dur": 22,
+    "ttfb": 21,
+    "enc": 479,
+    "dec": 1060,
+    "start": 376,
+    "cache": ""
+   },
+   {
+    "name": "/cma/assets/icons/0151-envelope.svg",
+    "type": "img",
+    "dur": 24,
+    "ttfb": 16,
+    "enc": 464,
+    "dec": 777,
+    "start": 376,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form/api/log.php?type=debug",
+    "type": "beacon",
+    "dur": 162,
+    "ttfb": 159,
+    "enc": 7890,
+    "dec": 53827,
+    "start": 899,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=combo&form=opleidingen&field=fkPlanner",
+    "type": "fetch",
+    "dur": 44,
+    "ttfb": 41,
+    "enc": 98,
+    "dec": 93,
+    "start": 1017,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=tree&displayMode=2&lastId=222&limit=200&jsonForm=opleidingen",
+    "type": "fetch",
+    "dur": 77,
+    "ttfb": 65,
+    "enc": 6565,
+    "dec": 280120,
+    "start": 1647,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form/api/log.php?type=debug",
+    "type": "beacon",
+    "dur": 169,
+    "ttfb": 166,
+    "enc": 7890,
+    "dec": 53827,
+    "start": 2209,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=combo&form=opleidingen&field=fkPlanner",
+    "type": "fetch",
+    "dur": 38,
+    "ttfb": 36,
+    "enc": 98,
+    "dec": 93,
+    "start": 2333,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=tree&displayMode=2&lastId=222&limit=200&jsonForm=opleidingen",
+    "type": "fetch",
+    "dur": 86,
+    "ttfb": 82,
+    "enc": 6565,
+    "dec": 280120,
+    "start": 2860,
+    "cache": ""
+   }
+  ]
+ },
+ {
+  "label": "TREE + RECORD 244",
+  "nav": {
+   "ttfb": 7,
+   "domContentLoaded": 52,
+   "load": 55
+  },
+  "rows": [
+   {
+    "name": "/cma/form_api.php?action=tree&displayMode=1&jsonForm=opleidingen",
+    "type": "fetch",
+    "dur": 37,
+    "ttfb": 35,
+    "enc": 3834,
+    "dec": 34140,
+    "start": 5733,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=record&form=opleidingen&id=1",
+    "type": "fetch",
+    "dur": 65,
+    "ttfb": 62,
+    "enc": 2648,
+    "dec": 14218,
+    "start": 8838,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form/opleidingen/api/log.php?type=debug",
+    "type": "beacon",
+    "dur": 47,
+    "ttfb": 45,
+    "enc": 7903,
+    "dec": 53845,
+    "start": 8914,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form_api.php?action=subforms&form=opleidingen&ParentID=1&indices=1,2,3,4,5,6",
+    "type": "fetch",
+    "dur": 63,
+    "ttfb": 58,
+    "enc": 2578,
+    "dec": 20620,
+    "start": 8915,
+    "cache": ""
+   },
+   {
+    "name": "/assets/css/cma.css",
+    "type": "fetch",
+    "dur": 19,
+    "ttfb": 17,
+    "enc": 198,
+    "dec": 114,
+    "start": 8961,
+    "cache": ""
+   },
+   {
+    "name": "/assets/css/cma.css",
+    "type": "fetch",
+    "dur": 39,
+    "ttfb": 21,
+    "enc": 198,
+    "dec": 114,
+    "start": 8962,
+    "cache": ""
+   },
+   {
+    "name": "/assets/css/cma.css",
+    "type": "fetch",
+    "dur": 59,
+    "ttfb": 19,
+    "enc": 198,
+    "dec": 114,
+    "start": 8962,
+    "cache": ""
+   },
+   {
+    "name": "/assets/css/cma.css",
+    "type": "fetch",
+    "dur": 78,
+    "ttfb": 19,
+    "enc": 198,
+    "dec": 114,
+    "start": 8963,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/config.js?t=G14E",
+    "type": "script",
+    "dur": 42,
+    "ttfb": 32,
+    "enc": 121,
+    "dec": 118,
+    "start": 8964,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form/opleidingen/api/log.php?type=debug",
+    "type": "beacon",
+    "dur": 55,
+    "ttfb": 52,
+    "enc": 7903,
+    "dec": 53845,
+    "start": 8980,
+    "cache": ""
+   },
+   {
+    "name": "/cma/form/opleidingen/api/log.php?type=debug",
+    "type": "beacon",
+    "dur": 51,
+    "ttfb": 47,
+    "enc": 7903,
+    "dec": 53845,
+    "start": 8981,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/skins/office2013_modified/skin.js?t=G14E",
+    "type": "script",
+    "dur": 26,
+    "ttfb": 23,
+    "enc": 111,
+    "dec": 134,
+    "start": 9009,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/skins/office2013_modified/editor.css?t=G14E",
+    "type": "link",
+    "dur": 20,
+    "ttfb": 18,
+    "enc": 4424,
+    "dec": 15517,
+    "start": 9037,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/lang/nl.js?t=G14E",
+    "type": "script",
+    "dur": 27,
+    "ttfb": 23,
+    "enc": 6730,
+    "dec": 18084,
+    "start": 9037,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/plugins/myMaximize/plugin.js?t=G14E",
+    "type": "script",
+    "dur": 32,
+    "ttfb": 31,
+    "enc": 3647,
+    "dec": 11505,
+    "start": 9066,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/plugins/myRemoveFormat/plugin.js?t=G14E",
+    "type": "script",
+    "dur": 23,
+    "ttfb": 21,
+    "enc": 2410,
+    "dec": 8670,
+    "start": 9067,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/plugins/myRemoveFormat/lang/nl.js?t=G14E",
+    "type": "script",
+    "dur": 19,
+    "ttfb": 18,
+    "enc": 250,
+    "dec": 239,
+    "start": 9101,
+    "cache": ""
+   },
+   {
+    "name": "/cma/ckeditor/plugins/myMaximize/lang/nl.js?t=G14E",
+    "type": "script",
+    "dur": 19,
+    "ttfb": 17,
+    "enc": 242,
+    "dec": 260,
+    "start": 9102,
+    "cache": ""
+   },
+   {
+    "name": "",
+    "type": "css",
+    "dur": 0,
+    "ttfb": 0,
+    "enc": 0,
+    "dec": 0,
+    "start": 9142,
+    "cache": "cache"
+   }
+  ]
+ },
+ {
+  "label": "TAB Docenten",
+  "nav": {
+   "ttfb": 7,
+   "domContentLoaded": 52,
+   "load": 55
+  },
+  "rows": []
+ }
+]

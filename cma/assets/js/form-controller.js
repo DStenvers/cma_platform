@@ -1012,6 +1012,14 @@ class CmaFormController {
         }
         this.parentID = formLayout?.dataset.parentId || null;
         this.parentField = formLayout?.dataset.parentField || null;
+        // The cached template carries empty __ParentField/__ParentValue inputs;
+        // fill them from this request's data attributes (afterPostUrl posts them).
+        if (this.parentField) {
+            const pf = formLayout.querySelector('input[name="__ParentField"]');
+            const pv = formLayout.querySelector('input[name="__ParentValue"]');
+            if (pf) pf.value = this.parentField;
+            if (pv) pv.value = this.parentID || '';
+        }
         // True once anything in this form has been written to the server (save,
         // delete, inline subform edit, afterpost). closeForm() uses it to decide
         // whether the opener/parent list needs a refresh at all: a record that

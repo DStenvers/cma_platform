@@ -243,13 +243,29 @@ try {
             $bodyClasses[] = ((string)$storedMode === '2') ? 'mode-table' : 'mode-tree';
         }
     }
+    // Popup / sidepanel / "add related record" request: detail only, no list.
+    // (The cached template is request-neutral; it used to bake these in from
+    // whichever request happened to generate it.)
+    $isPopupRequest = $parentID !== '' || $parentField !== ''
+        || Request::query('updatevalues', '') !== '' || Request::query('popup', '') !== '';
+    if ($isPopupRequest) {
+        $bodyClasses = array_values(array_diff($bodyClasses, ['mode-tree', 'mode-table', 'mode-detail']));
+        $bodyClasses[] = 'mode-detail';
+        $bodyClasses[] = 'popup';
+        if (!in_array('is-creating', $bodyClasses, true) && !in_array('has-record', $bodyClasses, true)) {
+            $bodyClasses[] = 'has-record'; // popup without explicit id: JS loads the record
+        }
+    }
     if (!empty($bodyClasses)) {
-        // Add classes to body tag
+        // Add classes to body tag (replace the template's neutral mode-tree)
         $template = preg_replace(
             '/<body\s+class="([^"]*)"/',
             '<body class="$1 ' . implode(' ', $bodyClasses) . '"',
             $template
         );
+        if ($isPopupRequest) {
+            $template = preg_replace('/(<body\s+class="[^"]*)\bmode-tree\b/', '$1', $template, 1);
+        }
     }
 
     // In nomenu mode (sidebar layout), strip HTML wrapper and keep only body content
@@ -275,8 +291,10 @@ try {
 
             // In nomenu mode, body classes need to be applied to parent body in main.php
             // Output a script to add the classes immediately (before content renders)
-            if (!empty($bodyClasses)) {
-                echo '<script>(function(){var c=' . json_encode($bodyClasses) . ';c.forEach(function(cls){document.body.classList.add(cls);});})();</script>' . PHP_EOL;
+            // ('popup' is for a real popup/sidepanel window, not the SPA shell body)
+            $shellClasses = array_values(array_diff($bodyClasses, ['popup']));
+            if (!empty($shellClasses)) {
+                echo '<script>(function(){var c=' . json_encode($shellClasses) . ';c.forEach(function(cls){document.body.classList.add(cls);});})();</script>' . PHP_EOL;
             }
 
             echo $bodyContent;

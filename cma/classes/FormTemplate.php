@@ -524,36 +524,14 @@ class FormTemplate
      */
     private function generateBody(): string
     {
-        $isPopup = Request::query('parentID', '') !== '' || Request::query('parentField', '') !== ''
-            || Request::query('updatevalues', '') !== ''; // "Add related record" popup
-        $isNewMode = Request::query('New', '') === 'Y';
-        $directRecordId = Request::query('ID', '') !== '' ? Request::queryInt('ID')
-            : (Request::query('id', '') !== '' ? Request::queryInt('id') : null);
-        $hasDirectRecordId = $directRecordId !== null || $isNewMode || Request::query('guid', '') !== '';
-
-        // Determine initial display mode to avoid visual flicker
-        // - Popup or direct record: mode-detail (hides left panel)
-        // - Normal: check localStorage for saved preference, then default to tree
+        // The template is cached per form + access level and served to every
+        // request, so nothing request-specific may end up in it: the body state
+        // classes (is-creating / has-record / mode-*) are injected per request by
+        // form.php, 'popup' is added by the controller (isInPopup) and the parent
+        // field comes in through data-parent-field/data-parent-id on .form-layout.
         $initialMode = 'mode-tree';
-        if ($isPopup || $hasDirectRecordId) {
-            $initialMode = 'mode-detail';
-        }
-
-        // Determine detail content state classes
-        // - is-creating: new record mode (New=Y or popup with parentID without ID) - shows empty form
-        // - has-record: editing existing record (any ID including 0, or guid) - shows form with data
         $detailStateClass = '';
-        $hasGuid = Request::query('guid', '') !== '';
-        $isAddRelatedRecord = Request::query('parentID', '') !== '' && Request::query('parentField', '') !== '' && $directRecordId === null;
-        if ($isNewMode || $isAddRelatedRecord) {
-            $detailStateClass = ' is-creating';
-        } elseif (($directRecordId !== null && $directRecordId !== '') || $hasGuid) {
-            $detailStateClass = ' has-record';
-        } elseif ($isPopup) {
-            // Popup without explicit ID - JavaScript will set the correct class
-            // For now, assume it will load a record (has-record)
-            $detailStateClass = ' has-record';
-        }
+        $isPopup = false;
 
         // Body with onbeforeunload for unsaved changes warning
         // Note: 'has-subform' class is added dynamically by JS when subforms load data
@@ -568,11 +546,13 @@ class FormTemplate
         // Inline script to immediately set correct mode class from the persisted cookie
         // (prevents layout shift). Reads the same cookie the server reads (cma_listMode_<form>,
         // falling back to cma_lastViewMode) keyed by form NAME to match form-controller.js.
-        // Runs synchronously before any rendering occurs.
-        if (!$isPopup && !$hasDirectRecordId) {
+        // Runs synchronously before any rendering occurs; only for a plain list view
+        // (form.php marks a direct record / new record with has-record / is-creating).
+        {
             $html .= '<script>' . PHP_EOL;
             $html .= '(function(){' . PHP_EOL;
             $html .= '  try {' . PHP_EOL;
+            $html .= '    if (document.body.classList.contains("has-record") || document.body.classList.contains("is-creating")) return;' . PHP_EOL;
             $html .= '    function gc(n){var p=n+"=";var c=document.cookie.split(";");for(var i=0;i<c.length;i++){var s=c[i];while(s.charAt(0)===" ")s=s.substring(1);if(s.indexOf(p)===0)return s.substring(p.length);}return "";}' . PHP_EOL;
             $html .= '    var formName = ' . json_encode((string)$this->jsonFormName) . ';' . PHP_EOL;
             $html .= '    var stored = gc("cma_listMode_" + formName) || gc("cma_lastViewMode");' . PHP_EOL;
@@ -583,8 +563,6 @@ class FormTemplate
             $html .= '  } catch(e) {}' . PHP_EOL;
             $html .= '})();' . PHP_EOL;
             $html .= '</script>' . PHP_EOL;
-        } else {
-            $html .= PHP_EOL;
         }
 
         // Main layout with split toolbars
@@ -1566,13 +1544,10 @@ class FormTemplate
         $html .= '<input type="hidden" id="_changelog_copy" name="_changelog_copy" value="">' . PHP_EOL;
         $html .= '<input type="hidden" id="_changelog_copy_id" name="_changelog_copy_id" value="">' . PHP_EOL;
 
-        // Parent field support (for subforms/popups)
-        $parentField = Request::query('parentField', '');
-        $parentID = Request::query('parentID', '');
-        if ($parentField !== '') {
-            $html .= '<input type="hidden" name="__ParentField" value="' . Server::htmlEncode($parentField) . '">' . PHP_EOL;
-            $html .= '<input type="hidden" name="__ParentValue" value="' . Server::htmlEncode($parentID) . '">' . PHP_EOL;
-        }
+        // Parent field support (for subforms/popups): filled per request by the
+        // controller from data-parent-field/data-parent-id (template is cached)
+        $html .= '<input type="hidden" name="__ParentField" value="">' . PHP_EOL;
+        $html .= '<input type="hidden" name="__ParentValue" value="">' . PHP_EOL;
 
         // Required fields tracking (populated dynamically via JS)
         $html .= '<input type="hidden" name="required" id="requiredFields" value="">' . PHP_EOL;
@@ -1669,7 +1644,8 @@ class FormTemplate
                     'caption' => $caption,
                     'groupId' => $groupId,
                     'collapsed' => false,
-                    'sourceFormId' => $this->sourceFormId,
+                    // storage key cma_grp_<form>_<group>: 0 would make every form share its collapse state
+                    'formId' => $this->sourceFormId ?: (int)(crc32((string)$this->jsonFormName) % 1000000),
                 ]);
                 continue;
             }

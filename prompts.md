@@ -15179,3 +15179,6 @@ karaat-data en staat in de karaat-repo.
 > skip weiting and validating readonly fields
 > aoft dwlete may be retired, make aure documentaion and schemas are updated accordingly
 > let's start with the first 10 please
+> yes continue with the next batch
+
+> Okay do a full performance review and make recommendations on improvements, focus on safe changes tgat will not cause regression, if no performance gains can be achieved that is a valid outcome, make sure you test assumptions
