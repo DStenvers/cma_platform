@@ -1533,6 +1533,12 @@ async function lib_OpenWindowCenteredClose(skipConfirm) {
 		} else {
 
 			var lw = lib_OpenGetTopmostWindow();
+			// Same bookkeeping as lib_CloseSidePanel: let the opener know whether
+			// the form in this popup changed anything (see lib_PanelDataChanged).
+			try {
+				var topWin = top_elt.defaultView || top_elt.parentWindow || window;
+				topWin.lib_popup_lastClose = { dataChanged: lib_PanelDataChanged(lw) };
+			} catch (e) { /* best effort */ }
 			if (!lw) {
 
 				if( self != top ) {
@@ -3041,6 +3047,12 @@ async function lib_CloseSidePanel(skipConfirm) {
 		}
 	}
 
+	// Remember whether the form in this panel wrote anything (save/delete/subform
+	// edit). The opener's close-watcher (CMA.utils.openFormPopup) reads this to
+	// decide whether its list needs a reload; a record that was only viewed must
+	// not trigger one. null = unknown (no CMA form in the panel) -> caller refreshes.
+	topWindow.lib_sidepanel_lastClose = { id: panelId, dataChanged: lib_PanelDataChanged(panel) };
+
 	// Use top window's z-index manager directly (NOT lib_zindex_manager.pop()).
 	// See lib_zindex_manager doc block for why this bypasses getTopManager().
 	var zIndexManager = (topWindow.lib_zindex_manager || lib_zindex_manager);
@@ -3164,6 +3176,26 @@ async function lib_CloseSidePanel(skipConfirm) {
 	} catch (e) {
 		// CustomEvent not supported
 	}
+}
+
+/**
+ * Did the CMA form inside a panel/popup container write anything to the server?
+ * @param {Element} container - element that holds the iframe
+ * @returns {boolean|null} true/false from the form's _dataChanged flag, null if unknown
+ */
+function lib_PanelDataChanged(container) {
+	try {
+		var iframe = container && container.querySelector ? container.querySelector('iframe') : null;
+		var win = iframe && iframe.contentWindow;
+		if (!win) return null;
+		var ctrl = (win.cmaForm) ||
+			(win.document && win.document.querySelector('.form-layout') && win.document.querySelector('.form-layout')._cmaController) ||
+			win.formController || null;
+		if (ctrl && typeof ctrl._dataChanged === 'boolean') return ctrl._dataChanged;
+	} catch (e) {
+		// cross-origin or already unloaded
+	}
+	return null;
 }
 
 /**

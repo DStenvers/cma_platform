@@ -15095,3 +15095,5 @@ karaat-data en staat in de karaat-repo.
 
 > if i open a sidepanel and close it, it always refreshes. can we only do that if dat has changed?
 > Fatal error: Uncaught Error: Class "App\Library\Settings" not found in D:\wwwroot\test-mijn.rino.nl\cma\tools\tools_clearcache.php:14
+
+> Still there is a refresh when i did nothing in the side-panel?

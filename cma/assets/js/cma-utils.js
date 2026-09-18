@@ -410,7 +410,8 @@ window.ucfirst = CMA.utils.ucfirst;
  * @param {string} [options.windowName] - Window name for reuse, default 'form_popup'
  * @param {string} [options.filterField] - Toolbar filter field to inherit in the popup
  * @param {string} [options.filterValue] - Toolbar filter value
- * @param {function} [options.onClose] - Called once the popup/sidepanel closes
+ * @param {function} [options.onClose] - Called once the popup/sidepanel closes, with
+ *   dataChanged: true (saved/deleted), false (only viewed) or null (unknown)
  * @param {boolean} [options.cascadeOffset] - Shrink size for stacked windows (default true)
  * @returns {string|null} The form.php URL that was opened, or null when deduped
  */
@@ -426,15 +427,29 @@ CMA.utils.cancelPopupWatch = null;
         }
     }
 
-    function watchClose(isClosed, onClose) {
+    /**
+     * Poll until the panel/popup is gone, then call onClose(dataChanged).
+     * dataChanged comes from lib_CloseSidePanel / lib_OpenWindowCenteredClose, which
+     * read the closing form's _dataChanged flag: true = something was saved or
+     * deleted, false = only viewed, null = unknown. Callers treat only `false` as
+     * "nothing to refresh"; unknown keeps the old always-refresh behaviour.
+     */
+    function watchClose(isClosed, onClose, lastCloseKey) {
         cancelWatch();
         let checkCount = 0;
         const maxChecks = 3600; // Max 30 minutes (3600 * 500ms)
+        const topWin = window.top || window;
+        try { topWin[lastCloseKey] = null; } catch (e) { /* ignore */ }
         checkInterval = setInterval(function() {
             checkCount++;
             if (isClosed()) {
                 cancelWatch();
-                onClose();
+                let dataChanged = null;
+                try {
+                    const info = topWin[lastCloseKey];
+                    if (info && typeof info.dataChanged === 'boolean') dataChanged = info.dataChanged;
+                } catch (e) { /* ignore */ }
+                onClose(dataChanged);
             } else if (checkCount >= maxChecks) {
                 cancelWatch();
             }
@@ -615,7 +630,7 @@ CMA.utils.cancelPopupWatch = null;
                     // the top window - the local stack is always empty inside an iframe
                     const stack = (window.top || window).lib_sidepanel_stack;
                     return typeof stack === 'undefined' || stack.length === 0;
-                }, onClose);
+                }, onClose, 'lib_sidepanel_lastClose');
             }
         } else {
             // Use centered popup
@@ -624,7 +639,7 @@ CMA.utils.cancelPopupWatch = null;
                 watchClose(function() {
                     // lib_OpenGetTopmostWindow searches __lib_win1..20 in top.document
                     return !(typeof lib_OpenGetTopmostWindow === 'function' && lib_OpenGetTopmostWindow() !== null);
-                }, onClose);
+                }, onClose, 'lib_popup_lastClose');
             }
         }
 

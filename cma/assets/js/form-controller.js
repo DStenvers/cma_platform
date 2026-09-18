@@ -4656,7 +4656,9 @@ class CmaFormController {
             title: title,
             windowName: 'form_popup',
             cascadeOffset: false,
-            onClose: function() {
+            onClose: function(dataChanged) {
+                // Only viewed, nothing written: the list is still current.
+                if (dataChanged === false) return;
                 // Force-refresh (adds _t) so the reload bypasses the 60s list
                 // cache — a popup edit/add just changed the data, and a plain
                 // loadList() would otherwise serve the stale cached rows (e.g. an
@@ -11458,7 +11460,8 @@ class CmaFormController {
             title: title,
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
-            onClose: function() {
+            onClose: function(dataChanged) {
+                if (dataChanged === false) return; // only viewed
                 // Refresh just this subform's list. Capture the parent record id
                 // outside the callback: `this` is not the controller here, and the
                 // global record id may have moved on by the time the popup closes.
@@ -11700,7 +11703,8 @@ class CmaFormController {
             title: title,
             windowName: 'sub_form_details_' + subformId,
             cascadeOffset: true,
-            onClose: function() {
+            onClose: function(dataChanged) {
+                if (dataChanged === false) return; // only viewed
                 // Refresh just this subform's list; reloading the whole parent
                 // record would also throw away edits in the detail form above it.
                 if (!self.refreshSubformList(subformId) && parentRecordId) {
