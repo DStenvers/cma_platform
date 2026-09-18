@@ -15171,3 +15171,9 @@ karaat-data en staat in de karaat-repo.
 > <status>failed</status>
 > <summary>Background command "Wait for the Cypress run to finish and print its measurements" failed with exit code 144</summary>
 > </task-notification>
+
+> it was also jumping with an existing record, felt like a default setttibg of getting the height from the number of records..
+
+> first i want to restore server aide validation
+> then i need the afterposturl's to be re-activated, they serve as database triggers acceess does not support
+> skip weiting and validating readonly fields

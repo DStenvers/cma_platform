@@ -10,9 +10,11 @@
  *
  * De bewaarde stand mag daarbij niet verloren gaan: zodra de balk er weer is,
  * hoort hij te staan waar de gebruiker hem liet — en dat "er weer is" ziet de
- * balk zelf, via een ResizeObserver op zichzelf: na het opslaan van het nieuwe
- * record verschijnt hij, en dan krijgt het doel alsnog zijn maat. Zonder die
- * maat is de subform-sectie zo hoog als haar inhoud, en die wisselt per tabblad.
+ * balk zelf, via een ResizeObserver op zichzelf. Verborgen is hij zolang er
+ * geen record is: op de lijstpagina tot je in de boom een record kiest, op de
+ * toevoegpagina tot het opslaan. Zodra hij verschijnt krijgt het doel alsnog
+ * zijn maat. Zonder die maat is de subform-sectie zo hoog als de lijst in het
+ * actieve tabblad, en die wisselt per tabblad.
  * jsdom heeft geen ResizeObserver; een stukje stub vangt de waarnemer op zodat
  * de test hem zelf kan laten afgaan.
  *
