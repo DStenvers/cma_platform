@@ -3135,16 +3135,20 @@ SQL: " . $sql : ''));
                 return ['success' => true, 'error' => null, 'message' => 'Kolom bestaat al', 'sql' => ''];
             }
 
-            // Access ODBC does not support DEFAULT in ALTER TABLE ADD COLUMN
-            // (except for YESNO fields). Use a separate UPDATE for defaults.
+            // Access ODBC does not support DEFAULT in ALTER TABLE ADD COLUMN at all
+            // (the Jet/ACE ODBC driver speaks ANSI-89: "De instructie ALTER TABLE
+            // bevat een syntaxisfout", also for YESNO). Use a separate UPDATE for
+            // defaults; a YESNO column is already False for existing rows, so a
+            // FALSE default needs no UPDATE at all.
             $defaultClause = '';
             $needsDefaultUpdate = false;
 
             if ($default !== null && $default !== '') {
                 if ($driver === 'odbc') {
-                    // Access: only YESNO supports DEFAULT in ALTER TABLE
                     if (strtoupper($dataType) === 'YESNO') {
-                        $defaultClause = ' DEFAULT ' . (strtoupper($default) === 'TRUE' || $default === '1' ? 'TRUE' : 'FALSE');
+                        $isTrue = strtoupper($default) === 'TRUE' || $default === '1' || $default === '-1';
+                        $default = $isTrue ? 'True' : 'False';
+                        $needsDefaultUpdate = $isTrue;
                     } else {
                         $needsDefaultUpdate = true;
                     }
@@ -3174,8 +3178,12 @@ SQL: " . $sql : ''));
 
             // For Access: set default value via UPDATE on existing rows
             if ($needsDefaultUpdate) {
-                $defaultVal = is_numeric($default) ? $default : "'" . str_replace("'", "''", $default) . "'";
-                $conn->exec("UPDATE [$table] SET [$column] = $defaultVal WHERE [$column] IS NULL");
+                $isYesNo = strtoupper($dataType) === 'YESNO';
+                $defaultVal = is_numeric($default) || $isYesNo
+                    ? $default
+                    : "'" . str_replace("'", "''", $default) . "'";
+                // A new YESNO column is False everywhere (never NULL): set all rows.
+                $conn->exec("UPDATE [$table] SET [$column] = $defaultVal" . ($isYesNo ? '' : " WHERE [$column] IS NULL"));
             }
 
             return ['success' => true, 'error' => null, 'sql' => $sql];
