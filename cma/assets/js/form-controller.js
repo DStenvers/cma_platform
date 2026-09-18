@@ -9469,6 +9469,22 @@ class CmaFormController {
             cmaPerf.measure('saveRecord.collectData', 'saveRecord_collectStart', 'saveRecord_collectEnd');
             cmaPerf.gauge('saveRecord.fieldCount', Object.keys(formData).length);
 
+            // Nothing changed on an existing record: no write, no audit row, no
+            // afterPostUrl trigger (the old all.js did the same). collectFormData()
+            // has just synced the rich-text editors, so the comparison is complete.
+            if (!isNew && !this._dataCopyMode && this.getChangedFields().length === 0) {
+                this.hideLoading();
+                this.setDirty(false);
+                cmaPerf.end(perfId, { unchanged: true });
+                cmaPerf.count('saveRecord.unchanged');
+                if (closeAfter) {
+                    this.closeForm(currentId, false);
+                } else {
+                    this.showSuccess('Geen wijzigingen om op te slaan');
+                }
+                return;
+            }
+
             // Debug: Log complete form data being saved
             // cmaLog.log('[FormController] saveRecord: Complete form data:', formData);
 

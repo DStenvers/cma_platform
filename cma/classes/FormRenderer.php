@@ -1167,6 +1167,17 @@ class FormRenderer
         // Caption cell
         $html .= '<td class="c1' . ($groupId > 0 ? '_g' : '') . '">';
         $html .= self::escapeWithBreaks($caption);
+        // Required marker and per-field "actie" note (vervalt/beheer/...), as the old
+        // details.asp showed them next to the caption
+        if ($required) {
+            $html .= '<span class="required-marker" title="Verplicht veld">*</span>';
+        }
+        if ($beheer && stripos((string)$actie, 'beheer') === false) {
+            $actie = trim($actie === '' ? 'beheer' : 'beheer, ' . $actie);
+        }
+        if ($actie !== '') {
+            $html .= '<span class="actie lnr lnr-warning" title="' . self::escape($actie) . '"></span>';
+        }
         // Post caption below label (for larger fields)
         if ($postCaption !== '' && !$postCaptionAfterInput) {
             $html .= '<div class="postcaption">' . self::escapeWithBreaks($postCaption) . '</div>';

@@ -120,6 +120,20 @@ class FormRendererControlsTest extends TestCase
         $this->assertStringNotContainsString('<textarea', $out);
     }
 
+    public function testFormRowShowsRequiredMarkerAndActie(): void
+    {
+        $out = FormRenderer::renderFormRow('naam', 'Naam', '<input name="naam">', ['required' => true, 'actie' => 'vervalt']);
+        $this->assertStringContainsString('Naam<span class="required-marker" title="Verplicht veld">*</span>', $out);
+        $this->assertStringContainsString('<span class="actie lnr lnr-warning" title="vervalt"></span>', $out);
+    }
+
+    public function testFormRowBeheerBecomesActieNote(): void
+    {
+        $out = FormRenderer::renderFormRow('x', 'X', '<input name="x">', ['beheer' => true]);
+        $this->assertStringContainsString('title="beheer"', $out);
+        $this->assertStringNotContainsString('required-marker', $out);
+    }
+
     public function testTextBoxEscapesNameInAttributeContext(): void
     {
         $out = FormRenderer::renderTextBox('a"b', []);
