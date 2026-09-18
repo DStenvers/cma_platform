@@ -35,6 +35,23 @@ class JsonFormService extends BaseFormService
      * mean nothing to end users; map the common ones instead of showing the
      * bare name. Extend the map as more abbreviations surface.
      */
+
+    /**
+     * A column header from a field caption. A caption is written for the
+     * form's label column, where a <br> puts a long name on two lines; a table
+     * header has no room for that, so the header is what stands before the
+     * first line break, without markup.
+     */
+    public static function columnTitle(?string $caption, string $fallback): string
+    {
+        if ($caption === null || trim($caption) === '') {
+            return $fallback;
+        }
+        $first = preg_split('/<br\s*\/?>/i', $caption, 2)[0];
+        $first = trim(strip_tags($first));
+        return $first !== '' ? $first : trim(strip_tags($caption));
+    }
+
     public static function fieldNameCaption(string $fieldName): string
     {
         static $known = [
@@ -154,7 +171,7 @@ class JsonFormService extends BaseFormService
 
                         $listColumns[] = [
                             'field' => $colName,
-                            'title' => $field['caption'] ?? ucfirst($colName),
+                            'title' => self::columnTitle($field['caption'] ?? null, ucfirst($colName)),
                             'type' => $colType,
                         ];
                     }
@@ -190,7 +207,7 @@ class JsonFormService extends BaseFormService
 
                         $listColumns[] = [
                             'field' => $fieldName,
-                            'title' => $field['caption'] ?? $fieldName,
+                            'title' => self::columnTitle($field['caption'] ?? null, $fieldName),
                             'type' => $colType,
                             'path' => $field['path'] ?? '',
                         ];
@@ -972,7 +989,7 @@ class JsonFormService extends BaseFormService
                     $colType = self::detectColumnType($field);
                     $listColumns[] = [
                         'field' => $colName,
-                        'title' => $field['caption'] ?? ucfirst($colName),
+                        'title' => self::columnTitle($field['caption'] ?? null, ucfirst($colName)),
                         'type' => $colType,
                         'path' => $field['path'] ?? '',
                     ];
@@ -996,7 +1013,7 @@ class JsonFormService extends BaseFormService
                         $colType = self::detectColumnType($field);
                         $listColumns[] = [
                             'field' => $colName,
-                            'title' => $field['caption'] ?? ucfirst($colName),
+                            'title' => self::columnTitle($field['caption'] ?? null, ucfirst($colName)),
                             'type' => $colType,
                             'path' => $field['path'] ?? '',
                         ];
@@ -1028,7 +1045,7 @@ class JsonFormService extends BaseFormService
                         $colType = self::detectColumnType($field);
                         $listColumns[] = [
                             'field' => $fieldName,
-                            'title' => $field['caption'] ?? ucfirst($fieldName),
+                            'title' => self::columnTitle($field['caption'] ?? null, ucfirst($fieldName)),
                             'type' => $colType,
                             'path' => $field['path'] ?? '',
                         ];
@@ -1850,7 +1867,7 @@ class JsonFormService extends BaseFormService
 
                 $listColumns[] = [
                     'field' => $fieldName,
-                    'title' => $field['caption'] ?? $fieldName,
+                    'title' => self::columnTitle($field['caption'] ?? null, $fieldName),
                     'type' => $colType,
                 ];
                 $colCount++;
@@ -2076,7 +2093,7 @@ class JsonFormService extends BaseFormService
 
                 $listColumns[] = [
                     'field' => $fieldName,
-                    'title' => $field['caption'] ?? $fieldName,
+                    'title' => self::columnTitle($field['caption'] ?? null, $fieldName),
                     'type' => $colType,
                 ];
                 $colCount++;
