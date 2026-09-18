@@ -185,6 +185,7 @@ class JsonFormRenderer
         $columns = $options['columns'] ?? [
             ['value' => 0, 'label' => 'Geen'],
             ['value' => 10, 'label' => 'Lezen'],
+            ['value' => 20, 'label' => 'Eigen', 'conditional' => true], // only for forms with securityByUser
             ['value' => 30, 'label' => 'Volledig'],
         ];
 

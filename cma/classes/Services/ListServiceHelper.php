@@ -8,6 +8,7 @@ use App\Library\Database;
 use App\Library\SQL;
 use Cma\FormControlHelper;
 use Cma\FormDefinition;
+use Cma\SecurityHelper;
 
 /**
  * List Service Helper
@@ -275,6 +276,24 @@ class ListServiceHelper
         }
 
         return $sql;
+    }
+
+    /**
+     * Restrict a list to the current user's own records when the form uses
+     * securityByUser and the user only has "Alleen eigen records" (level 20).
+     * Like the old list.asp, the row's `userid` column (alias it in listQuery if
+     * needed) is compared with the current CMA user id. Full/read rights see all.
+     */
+    public static function applyOwnDataFilter(string $sql, array $jsonData, string $formName): string
+    {
+        if (empty($jsonData['securityByUser'])) {
+            return $sql;
+        }
+        $userId = (int)((SecurityHelper::getCurrentUserData()['ID'] ?? SecurityHelper::getCurrentUserId()) ?: 0);
+        if (SecurityHelper::checkFormRightsByName($userId, $formName) !== SecurityHelper::ACCESS_CHANGE_OWN_DATA) {
+            return $sql;
+        }
+        return SQL::addWhere($sql, '[userid] = ' . $userId);
     }
 
     /**

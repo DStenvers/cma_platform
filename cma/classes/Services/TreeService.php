@@ -397,6 +397,7 @@ class TreeService extends BaseFormService
                     $sql = ListServiceHelper::applyJsonFormFilters($sql, $filters, $rawFormDef);
                 }
             }
+            $sql = ListServiceHelper::applyOwnDataFilter($sql, $jsonData, $formName);
 
             // Row limit, as the table mode and the classic list have: the form's own
             // listLimit, else the request's, else the list_limit setting. Fetched one row
@@ -572,7 +573,7 @@ class TreeService extends BaseFormService
             }
 
             $html = implode('', $htmlParts);
-            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+            $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
 
             $result = [
                 'success' => true,

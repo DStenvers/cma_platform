@@ -394,6 +394,7 @@ class JsonFormService extends BaseFormService
             if (!empty($filters) && $rawFormDef) {
                 $sql = ListServiceHelper::applyJsonFormFilters($sql, $filters, $rawFormDef);
             }
+            $sql = ListServiceHelper::applyOwnDataFilter($sql, $jsonData, $formName);
 
             // Get order direction from form definition (default ASC)
             $orderDir = strtoupper($jsonData['orderDirection'] ?? 'ASC');
@@ -732,7 +733,7 @@ class JsonFormService extends BaseFormService
             // affected by skipping a render here.)
             $renderedIds = [];
             // Check if form is editable (for inline switch toggles)
-            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+            $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
             foreach ($rows as $fields) {
                 $recordId = $fields[$idField] ?? $fields[strtolower($idField)] ?? $fields[strtoupper($idField)] ?? '';
                 if ($recordId !== '' && isset($renderedIds[$recordId])) {
@@ -1212,7 +1213,7 @@ class JsonFormService extends BaseFormService
             }
 
             // Render the row
-            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+            $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
             $html = '<tr class="listrow" data-id="' . htmlspecialchars($recordId) . '">';
 
             // Menu trigger goes inside the first data cell
@@ -1955,7 +1956,7 @@ class JsonFormService extends BaseFormService
         $html .= '<tbody>';
         $count = 0;
         // Check if form is editable (for inline switch toggles)
-        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+        $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
         foreach ($items as $item) {
             $recordId = $item[$idField] ?? $item['id'] ?? '';
             $isActive = ($activeId !== null && $recordId == $activeId);
@@ -2062,7 +2063,7 @@ class JsonFormService extends BaseFormService
 
         // Editability follows the user's rights on the form
         // (admins resolve to FULL_BEHEER via the rights check)
-        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+        $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
 
         $response = [
             'success' => true,
@@ -2147,7 +2148,7 @@ class JsonFormService extends BaseFormService
         }
 
         // Check if form is editable (for inline switch toggles)
-        $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
+        $hasFullAccess = SecurityHelper::canWriteAtLevel(SecurityHelper::currentUserFormRights(0, $formName), !empty($jsonData['securityByUser']));
 
         // Build the row HTML
         $html = '<tr class="listrow" data-id="' . htmlspecialchars($recordId) . '">';

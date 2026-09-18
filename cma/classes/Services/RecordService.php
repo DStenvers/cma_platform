@@ -196,8 +196,8 @@ class RecordService extends BaseFormService
             $meta = [
                 'id' => $recordId,
                 'accessLevel' => $accessLevel,
-                'canEdit' => $formDef->allowEdit() && $accessLevel >= SecurityHelper::ACCESS_FULL,
-                'canDelete' => $formDef->allowDelete() && $accessLevel >= SecurityHelper::ACCESS_FULL,
+                'canEdit' => $formDef->allowEdit() && SecurityHelper::canWriteAtLevel($accessLevel, $formDef->hasSecurityByUser()),
+                'canDelete' => $formDef->allowDelete() && SecurityHelper::canWriteAtLevel($accessLevel, $formDef->hasSecurityByUser()),
             ];
 
             // Last modified info

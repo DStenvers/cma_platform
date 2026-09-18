@@ -395,6 +395,18 @@ class SecurityHelper
      * Convenience for API endpoints that accept both identifiers; admins
      * resolve to ACCESS_FULL_BEHEER via the underlying checks.
      */
+    /**
+     * May a user with this access level change records of the form?
+     * FULL (30+) always; "Alleen eigen records" (20) only on forms with
+     * securityByUser — the lists are then limited to the user's own rows and
+     * FormDataProvider checks the row's userid on save/delete.
+     */
+    public static function canWriteAtLevel(int $accessLevel, bool $securityByUser): bool
+    {
+        return $accessLevel >= self::ACCESS_FULL
+            || ($securityByUser && $accessLevel === self::ACCESS_CHANGE_OWN_DATA);
+    }
+
     public static function currentUserFormRights(int $formId, string $formName = ''): int
     {
         // No early return on a missing user id: admin status is carried by its

@@ -297,9 +297,9 @@ class FormTemplate
             'hasSubforms' => Arr::isArray($this->arrSubForms) || $this->arrSubForms instanceof \ArrayAccess,
             'subforms' => $this->buildSubformClientConfig(),
             'accessLevel' => $this->accessLevel,
-            'canAdd' => $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canDelete' => $this->formDef->allowDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
-            'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
+            'canAdd' => $this->formDef->allowAdd() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser()),
+            'canDelete' => $this->formDef->allowDelete() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser()),
+            'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser()),
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'afterPostUrl' => self::resolveAfterPostUrl((string)($this->arrRep[\Q_AFTERPOSTURL][0] ?? '')),
@@ -682,7 +682,7 @@ class FormTemplate
 
         // Add button (only visible in table mode via CSS) - separator + button
         // Uses data-action="add" which opens popup in table mode, inline form in tree mode
-        $canAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
+        $canAdd = $this->formDef->allowAdd() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
         if ($canAdd) {
             $addTooltip = 'Voeg een ' . Server::htmlEncode(strtolower($formNameSingular)) . ' toe';
             $html .= '<span class="tb-sep table-mode-only"></span>' . PHP_EOL;
@@ -690,7 +690,7 @@ class FormTemplate
         }
 
         // Readonly indicator (shown when form doesn't allow editing)
-        $canEdit = $this->formDef->allowEdit() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
+        $canEdit = $this->formDef->allowEdit() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
         if (!$canEdit) {
             $html .= '<span class="tb-sep"></span>' . PHP_EOL;
             $html .= '<span id="listReadonlyIndicator" class="toolbar-readonly-indicator" data-tooltip="Dit formulier is alleen-lezen ingericht — wijzigingen lopen via automatisering/audit zodat de geschiedenis traceerbaar blijft" data-tooltip-pos="top" title="Dit formulier is alleen-lezen ingericht — wijzigingen lopen via automatisering/audit zodat de geschiedenis traceerbaar blijft"><span class="lnr lnr-lock"></span></span>' . PHP_EOL;
@@ -1305,9 +1305,9 @@ class FormTemplate
      */
     private function generateDetailToolbar(): string
     {
-        $canAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
-        $canDelete = $this->formDef->hasMenuDelete() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
-        $canCopy = ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
+        $canAdd = $this->formDef->allowAdd() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
+        $canDelete = $this->formDef->hasMenuDelete() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
+        $canCopy = ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
         $formName = $this->formDef->getTitle() ?: 'Form';
         $formNameSingular = $this->formDef->getTitleSingular() ?: $formName;
 
@@ -1492,7 +1492,7 @@ class FormTemplate
 
         // Empty state
         $html .= '<div class="no-data" id="noDataMessage">' . PHP_EOL;
-        $noDataCanAdd = $this->formDef->allowAdd() && $this->accessLevel >= SecurityHelper::ACCESS_FULL;
+        $noDataCanAdd = $this->formDef->allowAdd() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser());
         if (\App\Library\Settings::get('cma_language') == 'UK') {
             $noDataText = 'Select a record from the list on the left to ' .
                 ($this->accessLevel == SecurityHelper::ACCESS_READ ? 'view' : 'edit');

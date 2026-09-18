@@ -618,9 +618,10 @@ class FormDataProvider
             $database = $jsonData['database'] ?? '';
 
             // Determine edit permissions based on access level AND form settings
-            $canEdit = $accessLevel >= SecurityHelper::ACCESS_FULL && ($jsonData['allowEdit'] ?? true);
-            $canAdd = $accessLevel >= SecurityHelper::ACCESS_FULL && ($jsonData['allowAdd'] ?? true);
-            $canDelete = $accessLevel >= SecurityHelper::ACCESS_FULL && ($jsonData['allowDelete'] ?? true);
+            $canWrite = SecurityHelper::canWriteAtLevel($accessLevel, !empty($jsonData['securityByUser']));
+            $canEdit = $canWrite && ($jsonData['allowEdit'] ?? true);
+            $canAdd = $canWrite && ($jsonData['allowAdd'] ?? true);
+            $canDelete = $canWrite && ($jsonData['allowDelete'] ?? true);
 
             // Check if this is a JSON config form
             if ($database === 'json') {
@@ -691,6 +692,21 @@ class FormDataProvider
 
             if (!$rowData) {
                 return self::error('Record niet gevonden');
+            }
+
+            // "Alleen eigen records": another user's record is view-only
+            if ($accessLevel === SecurityHelper::ACCESS_CHANGE_OWN_DATA && !empty($jsonData['securityByUser'])) {
+                $ownerId = null;
+                foreach ($rowData as $key => $value) {
+                    if (strtolower((string)$key) === 'userid') {
+                        $ownerId = (int)$value;
+                        break;
+                    }
+                }
+                if ($ownerId !== (int)((SecurityHelper::getCurrentUserData()['ID'] ?? $userId) ?: 0)) {
+                    $canEdit = false;
+                    $canDelete = false;
+                }
             }
 
             // Build record data - use field names from JSON definition for case-sensitivity
