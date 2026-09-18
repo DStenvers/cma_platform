@@ -250,6 +250,6 @@ class DatabaseErrorPathTest extends TestCase
         $this->assertEquals($mark, count(Database::getErrors()), 'the recovered failure is gone');
         $errors = Database::getErrors();
         $last = end($errors);
-        $this->assertStringContainsString('first', $last['message'] ?? '', 'the older one stays');
+        $this->assertStringContainsString('First', $last['message'] ?? '', 'the older one stays (cleanErrorMessage capitalises)');
     }
 }
