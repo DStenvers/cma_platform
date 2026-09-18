@@ -1429,19 +1429,12 @@ class FormDataProvider
 
                 $rs = Database::openRS($lookupSql, $conn);
                 if ($rs !== null && !$rs->EOF) {
-                    $row = $rs->fetchAssoc();
-                    $values = [];
-                    foreach ($row as $key => $value) {
-                        if (!is_numeric($key)) {
-                            $values[] = $value;
-                        }
-                    }
-                    if (count($values) >= 2) {
-                        $labelText = Str::toUtf8($values[1]);
+                    [$optId, $labelText] = self::comboIdAndText($rs->fetchAssoc(), $idField, $displayField);
+                    if ($optId !== null) {
                         return [
                             'success' => true,
                             'label' => $labelText,
-                            'options' => [['id' => $values[0], 'text' => $labelText]],
+                            'options' => [['id' => $optId, 'text' => $labelText]],
                         ];
                     }
                 }
@@ -1539,24 +1532,9 @@ class FormDataProvider
 
             $options = [];
             while (!$rs->EOF) {
-                $row = $rs->fetchAssoc();
-                // Get first two non-numeric fields as id and text
-                $values = [];
-                foreach ($row as $key => $value) {
-                    if (!is_numeric($key)) {
-                        $values[] = $value;
-                    }
-                }
-                if (count($values) >= 2) {
-                    $options[] = [
-                        'id' => $values[0],
-                        'text' => Str::toUtf8($values[1]),
-                    ];
-                } elseif (count($values) === 1) {
-                    $options[] = [
-                        'id' => $values[0],
-                        'text' => Str::toUtf8($values[0]),
-                    ];
+                [$optId, $optText] = self::comboIdAndText($rs->fetchAssoc(), $idField, $displayField);
+                if ($optId !== null) {
+                    $options[] = ['id' => $optId, 'text' => $optText];
                 }
                 $rs->MoveNext();
             }
@@ -1569,6 +1547,34 @@ class FormDataProvider
         } catch (\Exception $e) {
             return self::error($e->getMessage());
         }
+    }
+
+    /**
+     * The id and text of one option row. The definition's idField and
+     * displayField name the columns (case-insensitive, as ODBC may return a
+     * different case than the query wrote); only when a name is absent from
+     * the row do the first two columns stand in. A query that lists an extra
+     * column first — a status for sorting, say — thus still yields the right
+     * pair. Returns [null, ''] for a row without an id.
+     *
+     * @param  array<string,mixed> $row
+     * @return array{0:?string,1:string}
+     */
+    public static function comboIdAndText(array $row, string $idField, string $displayField): array
+    {
+        $named = [];
+        foreach ($row as $key => $value) {
+            if (!is_numeric($key)) {
+                $named[strtolower((string) $key)] = $value;
+            }
+        }
+        $positional = array_values($named);
+        $id = $named[strtolower($idField)] ?? ($positional[0] ?? null);
+        $text = $named[strtolower($displayField)] ?? ($positional[1] ?? $positional[0] ?? null);
+        if ($id === null || (string) $id === '') {
+            return [null, ''];
+        }
+        return [(string) $id, Str::toUtf8((string) ($text ?? ''))];
     }
 
     /**

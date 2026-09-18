@@ -1,0 +1,16 @@
+action=combos&form=opleidingen&fields=fkOplSoort%2CfkDifferentiatie%2Ccontact1%2Ccontact2%2CfkPlanner%2CfkEvaluatieTemplate%2CfkUrenTemplate%2CfkKBTTemplate%2CfkCompetentieTemplate%2CfkVATemplate => fkOplSoort:10,fkDifferentiatie:5,contact1:33,contact2:33,fkPlanner:0(search),fkEvaluatieTemplate:7,fkUrenTemplate:11,fkKBTTemplate:3,fkCompetentieTemplate:5,fkVATemplate:6
+action=combos&form=opleidingen&fields=fkOplSoort%2CfkDifferentiatie%2Ccontact1%2Ccontact2%2CfkPlanner%2CfkEvaluatieTemplate%2CfkUrenTemplate%2CfkKBTTemplate%2CfkCompetentieTemplate%2CfkVATemplate => fkOplSoort:10,fkDifferentiatie:5,contact1:33,contact2:33,fkPlanner:0(search),fkEvaluatieTemplate:7,fkUrenTemplate:11,fkKBTTemplate:3,fkCompetentieTemplate:5,fkVATemplate:6
+action=combo&form=opleidingen&field=fkPlanner => 0 (search)
+action=combo&form=opleidingen&field=fkPlanner => 0 (search)
+action=combos&form=opleidingen&fields=fkPlanner => fkPlanner:0(search)
+---
+fkOplSoort value=34 options=10 ["30:BIG Inhalers      ","34:BIG Keuzemodule   ","25:BIG Opleiding     "] requiresSearch=undefined dynamic=false
+fkDifferentiatie value=3 options=5 ["1:GZ - GZ-Psycholoog","4:KNP - Klinisch neu","3:KP - Klinisch psyc"] requiresSearch=undefined dynamic=false
+contact1 value=34 options=33 ["23:__Renée de Haan","2:Angelique van Wees","24:Anneloes Klaassen"] requiresSearch=undefined dynamic=false
+contact2 value=12 options=33 ["23:__Renée de Haan","2:Angelique van Wees","24:Anneloes Klaassen"] requiresSearch=undefined dynamic=false
+fkPlanner value= options=1 [":"] requiresSearch=true dynamic=false
+fkEvaluatieTemplate value=8 options=7 ["8:BIG- BIG keuzemodu","2:BIG- BIG template ","1:BNS- BNS template"] requiresSearch=undefined dynamic=false
+fkUrenTemplate value= options=11 ["68:Dossier Hejan Epoz","1:GZ versie 2024 - H","62:KP V&O 2024"] requiresSearch=undefined dynamic=false
+fkKBTTemplate value= options=3 ["Actief:102","Actief:101","Actief:1"] requiresSearch=undefined dynamic=false
+fkCompetentieTemplate value= options=5 ["1:Competentieprofiel","5:Competentieprofiel","3:Competentieprofiel"] requiresSearch=undefined dynamic=false
+fkVATemplate value= options=6 ["8:GZ KBA 2027 templa","3:GZ-template","4:KNP-Template"] requiresSearch=undefined dynamic=false
