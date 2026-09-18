@@ -39,6 +39,7 @@ use Cma\FormDataProvider;
 class SaveJsonFormRecordTest extends TestCase
 {
     private StubConnection $conn;
+    private array $formDef = [];
 
     public function setUp(): void
     {
@@ -61,6 +62,7 @@ class SaveJsonFormRecordTest extends TestCase
                 ],
             ],
         ];
+        $this->formDef = $formDef;
         TestHarness::injectFormDef('test_form', $formDef);
 
         $this->conn = StubConnection::create();
@@ -252,18 +254,49 @@ class SaveJsonFormRecordTest extends TestCase
 
     public function testNonAdminIsRejected(): void
     {
-        // Demote to USER level — saveJsonFormRecord opens with isAdmin
-        // check and must reject without touching the DB.
+        // A USER-level login with only read rights on the form must be rejected
+        // without touching the DB. Write access follows the form's group rights
+        // (Volledig), not the user level — see FormDataProvider::writeAccessError.
         TestHarness::reset();
         TestHarness::loginAs(0); // LEVEL_USER
         TestHarness::silenceLogger();
+        TestHarness::injectFormDef('test_form', $this->formDef);
         TestHarness::injectConnection('data', $this->conn);
+        $this->setFormRights('test_form', \Cma\SecurityHelper::ACCESS_READ);
 
         $result = FormDataProvider::saveJsonFormRecord('test_form', '1', ['naam' => 'Bob']);
 
-        $this->assertFalse($result['success'] ?? true, 'Non-admin must be rejected');
+        $this->assertFalse($result['success'] ?? true, 'User with read rights must be rejected');
         $this->assertStringContainsString('toegang', strtolower($result['error'] ?? ''));
-        $this->assertEquals(0, count($this->conn->getCalls()), 'No DB calls when auth fails');
+        $writes = array_filter($this->conn->getCalls(), fn($c) => preg_match('/^(INSERT|UPDATE)/i', $c['sql']));
+        $this->assertEquals(0, count($writes), 'no write without rights');
+    }
+
+    public function testNonAdminWithFullRightsMaySave(): void
+    {
+        TestHarness::reset();
+        TestHarness::loginAs(0); // LEVEL_USER
+        TestHarness::silenceLogger();
+        TestHarness::injectFormDef('test_form', $this->formDef);
+        TestHarness::injectConnection('data', $this->conn);
+        $this->setFormRights('test_form', \Cma\SecurityHelper::ACCESS_FULL);
+        $this->conn->enqueueResult([['ID' => '1', 'naam' => 'Alice']]);
+        $this->conn->enqueueResult([]);
+        $this->conn->enqueueResult([['cnt' => 1]]);
+
+        $result = FormDataProvider::saveJsonFormRecord('test_form', '1', ['naam' => 'Bob']);
+
+        $this->assertTrue($result['success'] ?? false, 'Volledig on the form is enough: ' . ($result['error'] ?? ''));
+    }
+
+    /** Pre-fill SecurityHelper's per-request rights cache for the current user (ID 1). */
+    private function setFormRights(string $formName, int $level): void
+    {
+        $prop = new \ReflectionProperty(\Cma\SecurityHelper::class, 'formRightsCache');
+        $prop->setAccessible(true);
+        $cache = $prop->getValue();
+        $cache['1_name_' . $formName] = $level;
+        $prop->setValue(null, $cache);
     }
 
     public function testMissingFormDefIsRejected(): void

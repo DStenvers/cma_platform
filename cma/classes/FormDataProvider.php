@@ -783,7 +783,7 @@ class FormDataProvider
     public static function saveJsonFormRecord(string $formName, ?string $recordId, array $data, array $changelog = []): array
     {
         try {
-            if (!SecurityHelper::isAdmin()) {
+            if (!SecurityHelper::isLoggedIn()) {
                 return self::error('Geen toegang tot dit formulier');
             }
 
@@ -797,6 +797,9 @@ class FormDataProvider
 
             // Check if this is a JSON config form
             if ($database === 'json') {
+                if (!SecurityHelper::isAdmin()) {
+                    return self::error('Geen toegang tot dit formulier');
+                }
                 $data['id'] = $recordId;
                 $isNew = $recordId === null || $recordId === '';
                 $result = ConfigFormService::saveRecord($formName, $data);
@@ -821,6 +824,13 @@ class FormDataProvider
 
             // Determine if SQLite for proper identifier quoting
             $isSqlite = Database::isSQLite($conn);
+
+            // Write access follows the form's group rights ("Volledig", or "Alleen eigen
+            // records" for the owner), not the user level — as in the classic CMA.
+            $accessError = self::writeAccessError($formName, $jsonData, $conn, $tableName, $idField, $recordId, $isSqlite);
+            if ($accessError !== null) {
+                return self::error($accessError);
+            }
 
             // Build list of valid database fields from form definition
             // Keys are lowercase for case-insensitive lookup, values are original field names
@@ -1733,7 +1743,7 @@ class FormDataProvider
     public static function deleteJsonFormRecord(string $formName, string $recordId): array
     {
         try {
-            if (!SecurityHelper::isAdmin()) {
+            if (!SecurityHelper::isLoggedIn()) {
                 return self::error('Geen toegang tot dit formulier');
             }
 
@@ -1746,6 +1756,17 @@ class FormDataProvider
             $tableName = $jsonData['table'] ?? '';
             $idField = $jsonData['idField'] ?? 'ID';
             $database = $jsonData['database'] ?? '';
+            if ($database === 'json' && !SecurityHelper::isAdmin()) {
+                return self::error('Geen toegang tot dit formulier');
+            }
+            if ($database !== 'json') {
+                $accessConn = self::getJsonFormConnection($database);
+                $accessError = self::writeAccessError($formName, $jsonData, $accessConn, $tableName, $idField, $recordId,
+                    $accessConn !== null && Database::isSQLite($accessConn));
+                if ($accessError !== null) {
+                    return self::error($accessError);
+                }
+            }
             $protectedRecords = $jsonData['protectedRecords'] ?? [];
             $formTitle = $jsonData['title'] ?? $formName;
 
@@ -2571,6 +2592,45 @@ class FormDataProvider
     /**
      * Create error response
      */
+    /**
+     * May the current user write (save/delete) this record of this form?
+     *
+     * Uses the form's group rights, as the classic CMA did (details.asp: rights >= Full):
+     *   - ACCESS_FULL / FULL_BEHEER (admins always get FULL_BEHEER): yes
+     *   - ACCESS_CHANGE_OWN_DATA on a form with securityByUser: a new record, or an
+     *     existing record whose `userid` column is the current user
+     *   - otherwise: no
+     *
+     * @return string|null null when allowed, else the error message
+     */
+    public static function writeAccessError(string $formName, array $jsonData, $conn, string $tableName, string $idField, $recordId, bool $isSqlite): ?string
+    {
+        $userData = SecurityHelper::getCurrentUserData();
+        $userId = (int)($userData['ID'] ?? SecurityHelper::getCurrentUserId());
+        $level = SecurityHelper::checkFormRightsByName($userId, $formName);
+        if ($level >= SecurityHelper::ACCESS_FULL) {
+            return null;
+        }
+        if ($level === SecurityHelper::ACCESS_CHANGE_OWN_DATA && !empty($jsonData['securityByUser'])) {
+            if ($recordId === null || $recordId === '') {
+                return null;
+            }
+            if ($conn === null || $tableName === '') {
+                return 'Geen toegang tot dit record';
+            }
+            $sql = 'SELECT ' . self::quoteIdentifier('userid', $isSqlite) . ' AS Eigenaar FROM ' . self::quoteIdentifier($tableName, $isSqlite)
+                . ' WHERE ' . self::quoteIdentifier($idField, $isSqlite) . ' = '
+                . (is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId));
+            try {
+                $owner = Database::getFieldValue($conn, $sql, 'Eigenaar');
+            } catch (\Throwable $e) {
+                return 'Geen toegang tot dit record';
+            }
+            return ((int)$owner === $userId) ? null : 'Geen toegang tot dit record (niet je eigen gegevens)';
+        }
+        return 'Geen toegang tot dit formulier';
+    }
+
     /**
      * Server-side validation and normalisation of posted JSON-form data.
      *
