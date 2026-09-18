@@ -115,6 +115,10 @@ class CmaFold extends HTMLElement {
     disconnectedCallback() {
         document.removeEventListener('mousemove', this._onMouseMove);
         document.removeEventListener('mouseup', this._onMouseUp);
+        if (this._zichtbaarObserver) {
+            this._zichtbaarObserver.disconnect();
+            this._zichtbaarObserver = null;
+        }
 
         // Clean up if disconnected during drag
         if (this._isDragging) {
@@ -568,11 +572,12 @@ class CmaFold extends HTMLElement {
         // toepassen zet het formulier op een fractie van het paneel vast — een
         // inline height plus flex:0 0 — en daaronder blijft een lege band staan.
         // De bewaarde stand blijft in localStorage staan voor als de balk er weer
-        // wel is; alleen het toepassen slaan we over.
+        // wel is; het toepassen wacht tot dat moment (zie _pasMaatToeZodraZichtbaar).
         if (getComputedStyle(this).display === 'none') {
             this._target.style.width = '';
             this._target.style.height = '';
             this._target.style.flex = '';
+            this._pasMaatToeZodraZichtbaar();
             return;
         }
 
@@ -596,6 +601,21 @@ class CmaFold extends HTMLElement {
         } catch (e) {
             // Ignore localStorage errors
         }
+    }
+
+    /** De balk is nu verborgen. Zodra hij zichtbaar wordt — het record is
+     *  opgeslagen en het subformulier eronder verschijnt — krijgt het doel
+     *  alsnog zijn maat. Zonder die maat is het doel zo hoog als zijn inhoud,
+     *  en die inhoud wisselt met elk tabblad. */
+    _pasMaatToeZodraZichtbaar() {
+        if (this._zichtbaarObserver || typeof ResizeObserver === 'undefined') return;
+        this._zichtbaarObserver = new ResizeObserver(() => {
+            if (getComputedStyle(this).display === 'none') return;
+            this._zichtbaarObserver.disconnect();
+            this._zichtbaarObserver = null;
+            this._loadState();
+        });
+        this._zichtbaarObserver.observe(this);
     }
 
     /** Zet één maat op het doel, in de richting van deze balk. */

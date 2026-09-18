@@ -9,7 +9,12 @@
  * lege band eronder — zichtbaar als "het scherm neemt niet de hele hoogte".
  *
  * De bewaarde stand mag daarbij niet verloren gaan: zodra de balk er weer is,
- * hoort hij te staan waar de gebruiker hem liet.
+ * hoort hij te staan waar de gebruiker hem liet — en dat "er weer is" ziet de
+ * balk zelf, via een ResizeObserver op zichzelf: na het opslaan van het nieuwe
+ * record verschijnt hij, en dan krijgt het doel alsnog zijn maat. Zonder die
+ * maat is de subform-sectie zo hoog als haar inhoud, en die wisselt per tabblad.
+ * jsdom heeft geen ResizeObserver; een stukje stub vangt de waarnemer op zodat
+ * de test hem zelf kan laten afgaan.
  *
  * Cypress kan dit niet dekken zonder site; hier is één document genoeg.
  */
@@ -33,9 +38,10 @@ function maakPagina({ verborgen = false, bewaard = null, doelStijl = '' } = {}) 
         ? `localStorage.setItem('cma_fold_form_foldH', ${JSON.stringify(JSON.stringify(bewaard))});`
         : '';
 
+    const waarnemer = "window.ResizeObserver = class { constructor(cb) { this.cb = cb; this.doelen = []; window.__waarnemers = (window.__waarnemers || []).concat(this); } observe(el) { this.doelen.push(el); } disconnect() { this.doelen = []; } };";
     const dom = new JSDOM(
         '<!doctype html><html><body>' +
-        '<script>' + opslag + '</script>' +
+        '<script>' + opslag + waarnemer + '</script>' +
         '<div class="detail-content" style="' + doelStijl + '"></div>' +
         '<cma-fold orientation="horizontal" target=".detail-content" storage-key="form_foldH"' +
         (verborgen ? ' style="display:none"' : '') + '></cma-fold>' +
@@ -47,6 +53,8 @@ function maakPagina({ verborgen = false, bewaard = null, doelStijl = '' } = {}) 
     const doc = dom.window.document;
     return {
         win: dom.window,
+        balk: doc.querySelector('cma-fold'),
+        waarnemers: () => dom.window.__waarnemers || [],
         doel: doc.querySelector('.detail-content'),
         opslag: () => dom.window.localStorage.getItem('cma_fold_form_foldH')
     };
@@ -85,4 +93,30 @@ test('de bewaarde stand blijft staan — verbergen is geen vergeten', () => {
 test('een ingeklapte, zichtbare balk klapt zijn doel wel in', () => {
     const p = maakPagina({ bewaard: { collapsed: true, savedSize: 300 } });
     assert.waar(p.doel.style.height !== '', 'doel kreeg de ingeklapte maat');
+});
+
+test('een verborgen balk wacht tot hij zichtbaar is en zet de maat dan alsnog', () => {
+    const p = maakPagina({ verborgen: true, bewaard: { size: 300, collapsed: false } });
+    const w = p.waarnemers();
+    assert.gelijk(w.length, 1, 'één waarnemer op de balk');
+    assert.gelijk(w[0].doelen[0], p.balk, 'die kijkt naar de balk zelf');
+
+    w[0].cb([]); // afgegaan terwijl de balk nog verborgen is: niets doen
+    assert.gelijk(p.doel.style.height, '', 'nog steeds geen hoogte');
+    assert.gelijk(w[0].doelen.length, 1, 'blijft kijken');
+
+    p.balk.style.display = ''; // het record is opgeslagen; de balk verschijnt
+    w[0].cb([]);
+    assert.gelijk(p.doel.style.height, '300px', 'bewaarde maat alsnog toegepast');
+    assert.gelijk(p.doel.style.flex, '0 0 300px');
+    assert.gelijk(w[0].doelen.length, 0, 'waarnemer losgelaten');
+    assert.gelijk(p.waarnemers().length, 1, 'geen tweede waarnemer aangemaakt');
+});
+
+test('zonder bewaarde stand krijgt het doel bij verschijnen de startmaat', () => {
+    const p = maakPagina({ verborgen: true });
+    p.balk.setAttribute('default-size', '250');
+    p.balk.style.display = '';
+    p.waarnemers()[0].cb([]);
+    assert.gelijk(p.doel.style.height, '250px');
 });
