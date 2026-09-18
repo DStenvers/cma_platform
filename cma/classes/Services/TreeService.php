@@ -398,12 +398,21 @@ class TreeService extends BaseFormService
                 }
             }
 
+            // Row limit, as the table mode and the classic list have: the form's own
+            // listLimit, else the request's, else the list_limit setting. Fetched one row
+            // beyond the limit to know whether it was hit; the tree then ends with a
+            // note instead of silently rendering every row of a large table.
+            $limit = (int)($jsonData['listLimit'] ?? $options['limit'] ?? ListMode::listLimit());
+            if ($limit > 0) {
+                $sql = SQL::addTop($sql, $limit + 1, $conn);
+            }
             // Execute query
             $rs = Database::openRS($sql, $conn);
             if ($rs === null) {
                 return self::error('Query uitvoering mislukt: ' . ListServiceHelper::verklaarQueryFout(
                     Database::getLastError(), $sql, $tableName, $conn));
             }
+            $truncated = false;
 
             // Determine display field
             $displayFieldName = $detailField ?: '';
@@ -477,6 +486,10 @@ class TreeService extends BaseFormService
             $fieldMap = [];
 
             while (!$rs->EOF) {
+                if ($limit > 0 && $count >= $limit) {
+                    $truncated = true;
+                    break;
+                }
                 $fields = \App\Library\Str::toUtf8($rs->fetchAssoc());
 
                 if (!$fieldMapBuilt) {
@@ -552,11 +565,14 @@ class TreeService extends BaseFormService
                 if ($count === 0) {
                     $htmlParts[] = '<div class="no-data">Geen gegevens gevonden</div>';
                 }
+                if ($truncated) {
+                    $htmlParts[] = '<div class="no-data tree-truncated">Alleen de eerste ' . $limit . ' records worden getoond; gebruik het zoekveld om verder te kijken.</div>';
+                }
                 $htmlParts[] = '</div>';
             }
 
             $html = implode('', $htmlParts);
-            $hasFullAccess = SecurityHelper::isAdmin();
+            $hasFullAccess = SecurityHelper::currentUserFormRights(0, $formName) >= SecurityHelper::ACCESS_FULL;
 
             $result = [
                 'success' => true,
@@ -578,7 +594,9 @@ class TreeService extends BaseFormService
                 if (!empty($treeData)) {
                     $result['treeData'] = $treeData;
                     $result['treeTitle'] = $title;
-                    $result['html'] = '';
+                    $result['html'] = $truncated
+                        ? '<div class="no-data tree-truncated">Alleen de eerste ' . $limit . ' records worden getoond; gebruik het zoekveld om verder te kijken.</div>'
+                        : '';
                 }
                 if (empty($treeData) && $count > 0) {
                     error_log("TreeService: buildTreeFromFlat returned empty for {$count} items (form={$formName}, group1={$group1Field})");

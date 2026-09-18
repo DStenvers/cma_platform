@@ -251,8 +251,11 @@ class ListServiceHelper
             }
             // Boolean filter
             elseif ($fieldType === 'checkbox') {
-                $boolVal = ($value === '1' || $value === 1 || $value === true) ? 1 : 0;
-                $sql = SQL::addWhere($sql, "[$columnName] = $boolVal");
+                // "= True"/"= False": Access stores Yes/No as -1/0, so "= 1" never matched
+                // a checked box there. SQL::processSQL rewrites True/False per dialect
+                // (Access -> -1/0, SQL Server -> 1/0, SQLite handles the literal itself).
+                $isTrue = ($value === '1' || $value === 1 || $value === true || $value === 'true' || $value === -1 || $value === '-1');
+                $sql = SQL::addWhere($sql, "[$columnName] = " . ($isTrue ? 'True' : 'False'));
             }
             // Combobox/select filter
             elseif (in_array($fieldType, ['combobox', 'userlist', 'select'])) {
