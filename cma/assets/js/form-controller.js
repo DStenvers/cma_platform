@@ -2084,8 +2084,10 @@ class CmaFormController {
             });
         }
 
-        // Update status text and sidepanel title
-        const statusText = canEdit ? 'Wijzigen' : 'Bekijken';
+        // Update status text and sidepanel title ("(beheer)" as the classic toolbar
+        // showed it when the user has the beheer functions on this form)
+        const beheer = (data.meta && Number(data.meta.accessLevel) >= 40) || Number(this.config.accessLevel) >= 40;
+        const statusText = (canEdit ? 'Wijzigen' : 'Bekijken') + (beheer ? ' (beheer)' : '');
         this.updateStatus(statusText);
         this.updateSidepanelTitle(canEdit ? 'wijzigen' : 'bekijken');
 
@@ -9523,6 +9525,9 @@ class CmaFormController {
                 // uitstuurt, en dan wordt er tegen die oude waarden vergeleken.
                 this.captureOriginalValues();
                 this.updateStatus(result.message);
+                if (result.lastModifiedUser) {
+                    this.updateMeta({ lastModifiedUser: result.lastModifiedUser, lastModifiedDate: result.lastModifiedDate || '' });
+                }
 
                 // Update URL first
                 this.updateUrl();

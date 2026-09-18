@@ -757,13 +757,13 @@ class FormDataProvider
             return [
                 'success' => true,
                 'fields' => $record,
-                'meta' => [
+                'meta' => array_merge([
                     'id' => $recordId,
                     'accessLevel' => $accessLevel,
                     'canEdit' => $canEdit,
                     'canAdd' => $canAdd,
                     'canDelete' => $canDelete,
-                ],
+                ], self::lastModifiedMeta($jsonData, is_array($rowData ?? null) ? $rowData : [])),
             ];
 
         } catch (\Exception $e) {
@@ -940,6 +940,14 @@ class FormDataProvider
             }
 
             $params = []; // bound values for numeric fields (see numericBindValue)
+
+            // storeLastModified: who saved this record and when (LastModifiedUser = CMA
+            // user id, LastModifiedDate = today), as the classic CMA stamped it.
+            $stampLastModified = !empty($jsonData['storeLastModified']);
+            if ($stampLastModified) {
+                $stampUser = (int)((SecurityHelper::getCurrentUserData()['ID'] ?? SecurityHelper::getCurrentUserId()) ?: 0);
+                $stampDate = $isSqlite ? SQL::postString(date('Y-m-d')) : SQL::postDateOnly(date('Y-m-d'));
+            }
             if ($isNew) {
                 // INSERT
                 $fields = [];
@@ -985,6 +993,12 @@ class FormDataProvider
                         $values[] = self::formatValueForSql($value);
                     }
                 }
+                if ($stampLastModified) {
+                    $fields[] = self::quoteIdentifier('LastModifiedUser', $isSqlite);
+                    $values[] = (string)$stampUser;
+                    $fields[] = self::quoteIdentifier('LastModifiedDate', $isSqlite);
+                    $values[] = $stampDate;
+                }
                 if ($fields === []) {
                     // Every posted value was empty: insert the first valid column as NULL so
                     // the row still comes into being (Jet has no DEFAULT VALUES clause).
@@ -1027,6 +1041,10 @@ class FormDataProvider
                     }
                 }
                 // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
+                if ($stampLastModified && $sets !== []) {
+                    $sets[] = self::quoteIdentifier('LastModifiedUser', $isSqlite) . ' = ' . (string)$stampUser;
+                    $sets[] = self::quoteIdentifier('LastModifiedDate', $isSqlite) . ' = ' . $stampDate;
+                }
                 $idValue = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId);
                 $sql = "UPDATE " . self::quoteIdentifier($tableName, $isSqlite) . " SET " . implode(', ', $sets) . " WHERE " . self::quoteIdentifier($idField, $isSqlite) . " = " . $idValue;
             }
@@ -1231,13 +1249,21 @@ class FormDataProvider
             // legacy cma_afterpost.asp trigger). See clearFormCachesOnSave().
             self::clearFormCachesOnSave($jsonData, $recordId);
 
-            return [
+            $lastModified = [];
+            if ($stampLastModified) {
+                $lastModified = [
+                    'lastModifiedUser' => (string)(SecurityHelper::getCurrentUserData()['userFullName'] ?? '') ?: ('gebruiker ' . $stampUser),
+                    'lastModifiedDate' => date('d-m-Y'),
+                ];
+            }
+
+            return array_merge([
                 'success' => true,
                 'id' => $recordId,
                 'isNew' => $isNew,
                 'message' => $isNew ? 'Record aangemaakt' : 'Record opgeslagen',
                 'warnings' => \App\Library\ErrorHandler::getReported(),
-            ];
+            ], $lastModified);
 
         } catch (\Exception $e) {
             return self::error($e->getMessage());
@@ -2657,6 +2683,35 @@ class FormDataProvider
     /**
      * Create error response
      */
+    /**
+     * "Laatst gewijzigd" for the record header: the CMA user's name and the date from
+     * LastModifiedUser/LastModifiedDate, on forms with storeLastModified.
+     */
+    private static function lastModifiedMeta(array $jsonData, array $row): array
+    {
+        if (empty($jsonData['storeLastModified'])) {
+            return [];
+        }
+        $user = null; $date = null;
+        foreach ($row as $k => $v) {
+            if (strcasecmp((string)$k, 'LastModifiedUser') === 0) { $user = $v; }
+            if (strcasecmp((string)$k, 'LastModifiedDate') === 0) { $date = $v; }
+        }
+        if (($user === null || $user === '') && ($date === null || $date === '')) {
+            return [];
+        }
+        $name = '';
+        if ((int)$user > 0) {
+            try { $name = SecurityHelper::getUserName((int)$user); } catch (\Throwable $e) { $name = ''; }
+        }
+        $dateText = '';
+        if ($date !== null && $date !== '') {
+            $norm = \App\Library\Date::normalize($date);
+            $dateText = $norm ? date('d-m-Y', strtotime($norm)) : (string)$date;
+        }
+        return ['lastModifiedUser' => $name !== '' ? $name : ('gebruiker ' . $user), 'lastModifiedDate' => $dateText];
+    }
+
     /**
      * May the current user write (save/delete) this record of this form?
      *
