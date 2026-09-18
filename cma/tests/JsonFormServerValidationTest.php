@@ -126,6 +126,24 @@ class JsonFormServerValidationTest extends TestCase
         $this->assertEquals(0, count($writes), 'geen INSERT/UPDATE bij validatiefouten');
     }
 
+    public function testLegeWaardeNietInInsertZodatKolomDefaultGeldt(): void
+    {
+        $this->conn->enqueueResult([]); $this->conn->enqueueResult([['ID' => 8]]); $this->conn->enqueueResult([['cnt' => 1]]);
+        FormDataProvider::saveJsonFormRecord('val_form', null, ['naam' => 'ok', 'email' => '', 'site' => '']);
+        $insert = array_values(array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'INSERT')));
+        $this->assertTrue(count($insert) > 0, 'INSERT verwacht');
+        $sql = $insert[0]['sql'];
+        $this->assertFalse(str_contains($sql, '[email]') || str_contains($sql, '[site]'), 'lege velden niet in INSERT (kolom-default): ' . $sql);
+        $this->assertTrue(str_contains($sql, '[naam]'), $sql);
+
+        // UPDATE: een geleegd veld wordt wél NULL
+        $this->conn = StubConnection::create(); TestHarness::injectConnection('data', $this->conn);
+        $this->conn->enqueueResult([['ID' => '1', 'naam' => 'a', 'email' => 'x@y.nl']]); $this->conn->enqueueResult([]); $this->conn->enqueueResult([['cnt' => 1]]);
+        FormDataProvider::saveJsonFormRecord('val_form', '1', ['naam' => 'ok', 'email' => '']);
+        $update = array_values(array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'UPDATE')));
+        $this->assertTrue(str_contains($update[0]['sql'], '[email] = NULL'), 'geleegd veld -> NULL bij UPDATE: ' . $update[0]['sql']);
+    }
+
     public function testReadonlyNietGeschrevenBehalveDefaultOpNieuw(): void
     {
         // INSERT: 'stamp' (readonly zonder default) niet, 'code' met definitie-default 'NIEUW'

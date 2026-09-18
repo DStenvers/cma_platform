@@ -960,6 +960,14 @@ class FormDataProvider
                         }
                         $value = $readOnlyDefaults[$lc];
                     }
+                    // An empty value on a NEW record is left out of the INSERT instead of
+                    // being written as NULL, so the column's own default applies — in
+                    // Access that is where GenGUID(), Now(), Date()+60 and the like live
+                    // (the classic CMA pre-filled those from the schema). An UPDATE still
+                    // writes NULL: there the user emptied the field on purpose.
+                    if ($value === null || $value === '') {
+                        continue;
+                    }
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
                     $norm = ($value === null || $value === '') ? null : SQL::normalizeDecimal((string)$value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
@@ -975,6 +983,17 @@ class FormDataProvider
                         $values[] = $norm;
                     } else {
                         $values[] = self::formatValueForSql($value);
+                    }
+                }
+                if ($fields === []) {
+                    // Every posted value was empty: insert the first valid column as NULL so
+                    // the row still comes into being (Jet has no DEFAULT VALUES clause).
+                    foreach ($data as $field => $value) {
+                        if (isset($validFields[strtolower($field)]) && !str_ends_with($field, '__label')) {
+                            $fields[] = self::quoteIdentifier($field, $isSqlite);
+                            $values[] = 'NULL';
+                            break;
+                        }
                     }
                 }
                 $sql = "INSERT INTO " . self::quoteIdentifier($tableName, $isSqlite) . " (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $values) . ")";
