@@ -1516,6 +1516,11 @@ body:not(.has-record):not(.is-creating) #detailToolbar .tb-sep {
     display: none !important;
 }
 
+/* "Bewaar en sluit" only makes sense in a popup/sidepanel */
+body:not(.popup) #detailToolbar .tb-btn.popup-only {
+    display: none !important;
+}
+
 /* Fallback: Hide requires-record buttons by default, show only when has-record */
 #detailToolbar .tb-btn.requires-record,
 #detailToolbar .tb-sep.requires-record {

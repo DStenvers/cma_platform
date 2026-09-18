@@ -137,11 +137,15 @@ class FormRenderer
      */
     public static function renderTextBox(string $name, array $config): string
     {
-        $maxLength = $config['maxLength'] ?? 50;
+        $validationType = $config['validationType'] ?? '';
+        // Number fields: length comes from the numeric precision (FormTemplate maps it
+        // into maxLength); without one, 8 characters. Never wider than 20.
+        $maxLength = $validationType === 'number'
+            ? min((int)($config['maxLength'] ?? 8), 20)
+            : ($config['maxLength'] ?? 50);
         $required = $config['required'] ?? false;
         $readonly = $config['readonly'] ?? false;
         $newChangableOnly = $config['newChangableOnly'] ?? false;
-        $validationType = $config['validationType'] ?? '';
         $isDate = $config['isDate'] ?? false;
         $isDateTime = $config['isDateTime'] ?? false;
         $caption = $config['caption'] ?? '';
@@ -239,12 +243,12 @@ class FormRenderer
         $size = $hasMaxLength ? min($maxLength, 70) : 70;
         $maxLengthAttr = $hasMaxLength ? sprintf(' maxlength="%d"', $maxLength) : '';
 
-        // Number fields: limit to 8 chars and 80px width
+        // Number fields: narrow input sized to the (precision-based) maxLength
         $style = '';
         if ($validationType === 'number') {
-            $size = 8;
-            $maxLengthAttr = ' maxlength="8"';
-            $style = ' style="width:80px"';
+            $size = $hasMaxLength ? $maxLength : 8;
+            $maxLengthAttr = sprintf(' maxlength="%d"', $size);
+            $style = sprintf(' style="width:%dpx"', $size * 10);
         }
 
         return sprintf(

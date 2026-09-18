@@ -4584,10 +4584,16 @@ class CmaFormController {
                 this.newRecord();
                 break;
             case 'save':
-                // cmaLog.log('Calling saveRecord...');
-                // Auto-close popup after save if opened via window.opener or in iframe popup
-                const closeAfterSave = this.isInPopup();
-                this.saveRecord(closeAfterSave).catch(error => {
+                // Plain save keeps the form (also in popups) open on the saved record,
+                // so a parent can be added and its children edited without reopening.
+                this.saveRecord(false).catch(error => {
+                    cmaLog.error('[saveRecord] Error:', error);
+                    this.showError('Opslaan mislukt: ' + error.message);
+                });
+                break;
+            case 'saveClose':
+                // "Bewaar en sluit": save and close the popup/sidepanel
+                this.saveRecord(this.isInPopup()).catch(error => {
                     cmaLog.error('[saveRecord] Error:', error);
                     this.showError('Opslaan mislukt: ' + error.message);
                 });
@@ -9552,6 +9558,11 @@ class CmaFormController {
                 if (closeAfter) {
                     // Pass record ID for targeted row refresh in parent
                     this.closeForm(cmaGetRecordId(this.formLayout), false);
+                } else if (this.directRecordMode) {
+                    // Popup/sidepanel without a list: stay on the saved record and
+                    // let the opener's (sub)list pick up the change.
+                    this.refreshParentSubformList();
+                    this.setDirty(false);
                 } else {
                     // Opened from a subform list: refresh that list now, so the
                     // change shows up without having to close this popup first.
@@ -11850,14 +11861,14 @@ class CmaFormController {
         // reads as "disabled yet unsaved", which is a contradiction on screen.
         // cma.js still paints 'dirty' itself on legacy toolbars (tb_DoSave pages);
         // on a page with this controller it delegates here instead.
-        const saveBtn = this.formLayout?.querySelector('[data-action="save"]');
-        if (saveBtn) {
+        const saveBtns = this.formLayout?.querySelectorAll('[data-action="save"], [data-action="saveClose"]') || [];
+        saveBtns.forEach(saveBtn => {
             const tbBtn = saveBtn.closest('.tb-btn');
             if (tbBtn) {
                 tbBtn.classList.toggle('muted', !dirty);
                 tbBtn.classList.toggle('dirty', dirty);
             }
-        }
+        });
 
         // Update title dirty indicator without overwriting the page name
         var baseTitle = document.title.replace(/^\*\s*/, '');

@@ -102,6 +102,24 @@ class FormRendererControlsTest extends TestCase
         $this->assertStringContainsString('maxlength="8"', $out);
     }
 
+    public function testTextBoxNumberLengthFollowsPrecision(): void
+    {
+        // FormTemplate turns numericPrecision "10" into maxLength 11 (sign); the
+        // renderer must honour that instead of the old hard cap of 8.
+        $out = FormRenderer::renderTextBox('uren', ['validationType' => 'number', 'maxLength' => 11]);
+        $this->assertStringContainsString('maxlength="11"', $out);
+        $this->assertStringContainsString('size="11"', $out);
+        $this->assertStringContainsString('style="width:110px"', $out);
+        $this->assertStringNotContainsString('<textarea', $out);
+    }
+
+    public function testTextBoxNumberLengthIsCappedAtTwenty(): void
+    {
+        $out = FormRenderer::renderTextBox('groot', ['validationType' => 'number', 'maxLength' => 500]);
+        $this->assertStringContainsString('maxlength="20"', $out);
+        $this->assertStringNotContainsString('<textarea', $out);
+    }
+
     public function testTextBoxEscapesNameInAttributeContext(): void
     {
         $out = FormRenderer::renderTextBox('a"b', []);

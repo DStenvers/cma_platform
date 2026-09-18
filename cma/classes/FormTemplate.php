@@ -1329,6 +1329,10 @@ class FormTemplate
         $saveTooltip = 'Sla deze ' . Server::htmlEncode($singularLower) . ' op';
         $html .= '<span class="tb-btn responsive-btn requires-record" id="toolbar_save" data-btn-order="' . $btnIndex++ . '" title="' . $saveTooltip . '"><a href="#" data-action="save"><span class="lnr lnr-save"></span><span class="btn-text">Opslaan</span></a></span>' . PHP_EOL;
 
+        // Save & close button - only shown in popups/sidepanels (body.popup); plain save keeps the popup open
+        $saveCloseTooltip = 'Sla deze ' . Server::htmlEncode($singularLower) . ' op en sluit het venster';
+        $html .= '<span class="tb-btn responsive-btn requires-record popup-only" id="toolbar_saveclose" data-btn-order="' . $btnIndex++ . '" title="' . $saveCloseTooltip . '"><a href="#" data-action="saveClose"><span class="lnr lnr-save"></span><span class="btn-text">Opslaan &amp; sluiten</span></a></span>' . PHP_EOL;
+
         // Cancel button - requires record
         $cancelTooltip = 'Wijzigingen aan deze ' . Server::htmlEncode($singularLower) . ' annuleren';
         $html .= '<span class="tb-btn responsive-btn requires-record" id="toolbar_cancel" data-btn-order="' . $btnIndex++ . '" title="' . $cancelTooltip . '"><a href="#" data-action="cancel"><span class="lnr lnr-undo"></span><span class="btn-text">Annuleren</span></a></span>' . PHP_EOL;
@@ -1851,6 +1855,16 @@ class FormTemplate
                         $this->arrRep[\Q_SCHEMA_NUM_PREC][$index] ?? null,
                         $this->arrRep[\Q_SCHEMA_DATATYPE][$index] ?? null
                     );
+                    // Numeric field: maxLength follows the numeric precision (as the old
+                    // details.asp did), plus room for sign/decimal separator on "p,s".
+                    $numPrec = trim((string)($this->arrRep[\Q_SCHEMA_NUM_PREC][$index] ?? ''));
+                    if ($config['validationType'] === 'number') {
+                        if ($numPrec !== '' && preg_match('/^(\d+)(?:[,.](\d+))?$/', $numPrec, $pm)) {
+                            $config['maxLength'] = (int)$pm[1] + (isset($pm[2]) ? 1 : 0) + 1;
+                        } elseif ((int)($this->arrRep[\Q_SCHEMA_CHAR_MAXL][$index] ?? 0) === 0) {
+                            $config['maxLength'] = 8;
+                        }
+                    }
                 }
                 break;
 
