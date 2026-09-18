@@ -59,7 +59,7 @@
     "allowDelete": {
       "type": "boolean",
       "default": true,
-      "description": "Allow deleting records"
+      "description": "Allow deleting records. Deleting is permanent (DELETE); there is no soft delete — the classic CMA's DeletedField was never used and is retired."
     },
     "allowCopy": {
       "type": "boolean",
@@ -88,7 +88,7 @@
         "string",
         "null"
       ],
-      "description": "URL to redirect after save"
+      "description": "Page that is POSTed after every save and delete, as the database trigger Access does not have (mail, sync, cache invalidation). Receives all fields, their _old_* values, the changelog, _changelog_type (add|edit|delete), formid, formname, recid, table, copy_id. Same-origin POST with the user's session; '../cma_afterpost.asp' resolves to /cma_afterpost.php."
     },
     "previewUrl": {
       "type": [

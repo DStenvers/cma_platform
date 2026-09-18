@@ -15177,3 +15177,4 @@ karaat-data en staat in de karaat-repo.
 > first i want to restore server aide validation
 > then i need the afterposturl's to be re-activated, they serve as database triggers acceess does not support
 > skip weiting and validating readonly fields
+> aoft dwlete may be retired, make aure documentaion and schemas are updated accordingly

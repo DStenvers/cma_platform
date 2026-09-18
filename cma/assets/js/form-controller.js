@@ -979,6 +979,8 @@ class CmaFormController {
 
         this.formId = formId;
         this.config = config || {};
+        // Form-level "database trigger" page, posted after save/delete (see executeAfterPost)
+        this.afterPostUrl = this.config.afterPostUrl || '';
         // NOTE: currentRecordId is now stored in DOM via getter/setter (see below)
         // NOTE: isDirty is now computed from DOM state (see getter below)
         // NOTE: originalValues are now stored as data-original-value on each field
@@ -9538,7 +9540,7 @@ class CmaFormController {
 
                 // Execute afterpost URL if configured
                 if (this.afterPostUrl) {
-                    await this.executeAfterPost(result.id);
+                    await this.executeAfterPost(result.id, result.isNew ? 'add' : 'edit');
                 }
 
                 // Close form if requested (popup mode)
@@ -9587,8 +9589,11 @@ class CmaFormController {
                     formData: formData
                 });
 
-                // Show error to user
+                // Show error to user; server-side validation also names the fields
                 this.showError(errorMsg);
+                if (result.validation && typeof result.validation === 'object') {
+                    this.markServerValidationErrors(result.validation);
+                }
                 cmaPerf.end(perfId, { success: false, error: result.error });
                 cmaPerf.count('saveRecord.errors');
             }
@@ -10442,6 +10447,8 @@ class CmaFormController {
         }
 
         this.showLoading();
+        // Field values as they were, for the afterPostUrl (the form is cleared below)
+        const afterPostSnapshot = (this.afterPostUrl && this.mainForm) ? new FormData(this.mainForm) : null;
 
         try {
             const response = await fetch(`/cma/form_api.php?action=delete&${this.getFormParam()}&id=${cmaGetRecordId(this.formLayout)}`);
@@ -10460,6 +10467,9 @@ class CmaFormController {
                     cmaComboCache.clear();
                 }
                 const deletedRecordId = cmaGetRecordId(this.formLayout);
+                if (this.afterPostUrl) {
+                    await this.executeAfterPost(deletedRecordId, 'delete', afterPostSnapshot);
+                }
                 cmaSetRecordId(null, this.formLayout);
                 this.setDirty(false);  // Clear dirty state before closing
 
@@ -12310,15 +12320,70 @@ class CmaFormController {
     }
 
     /**
-     * Execute afterpost URL and show popup if the response contains visible content.
-     * Recognizes and skips responses that only contain redirects or window-close scripts.
-     * @param {number|string} recordId - The saved record ID
+     * Mark the fields the server rejected (result.validation = {field: message}) and
+     * focus the first one, switching to its tab if needed.
+     * @param {Object} validation
      */
-    async executeAfterPost(recordId) {
+    markServerValidationErrors(validation) {
+        if (!this.mainForm) return;
+        let first = null;
+        for (const name of Object.keys(validation)) {
+            const el = this.mainForm.querySelector(`[name="${name}"]`)
+                || this.mainForm.querySelector(`[data-field="${name}"]`);
+            if (!el) continue;
+            el.classList.add('invalid');
+            el.setAttribute('data-error-short', validation[name]);
+            if (!first) first = el;
+        }
+        if (first) {
+            try {
+                const tab = first.closest('[data-tab-id], .tab-content, .tab-panel');
+                if (tab && typeof this.activateTab === 'function') this.activateTab(tab);
+            } catch (e) { /* no tabs */ }
+            if (typeof first.focus === 'function') first.focus();
+            if (typeof first.scrollIntoView === 'function') first.scrollIntoView({ block: 'center' });
+        }
+    }
+
+    /**
+     * Execute the form's afterPostUrl after a save or delete.
+     *
+     * The classic CMA posted the whole form to this URL from the browser (a hidden
+     * auto-submitted form): every field, its `_old_*` value, the changelog and
+     * `formid/recid/recdescr/table/copy_id/close/nextpage`. Sites use that page as the
+     * database trigger Access does not have (cma_afterpost: mail, sync, cache
+     * invalidation). Same contract here: a same-origin POST with the session cookies,
+     * `_changelog_type` = add | edit | delete. The response is shown only when it has
+     * visible content (redirect/close-only pages are ignored).
+     *
+     * @param {number|string} recordId  saved or deleted record id
+     * @param {string} [changeType]     'add' | 'edit' | 'delete' (default from the form)
+     * @param {FormData} [snapshot]     field values captured before the form was cleared (delete)
+     */
+    async executeAfterPost(recordId, changeType = null, snapshot = null) {
         this._dataChanged = true;
+        if (!this.afterPostUrl) return;
         const url = this.afterPostUrl.replace('[ID]', recordId);
         try {
-            const response = await fetch(url);
+            const body = snapshot || (this.mainForm ? new FormData(this.mainForm) : new FormData());
+            for (const key of Array.from(body.keys())) {
+                if (key.startsWith('action')) body.delete(key);
+            }
+            const type = changeType || (document.getElementById('_changelog_type')?.value) || 'edit';
+            body.set('_changelog_type', type);
+            body.set('formid', String(this.config.sourceFormId || this.formId || ''));
+            body.set('formname', String(this.jsonForm || ''));
+            body.set('recid', String(recordId ?? ''));
+            body.set('recdescr', String(this.getRecordDescription ? (this.getRecordDescription() || '') : ''));
+            body.set('table', String(this.config.tableName || ''));
+            body.set('copy_id', String(document.getElementById('_changelog_copy_id')?.value || ''));
+            body.set('close', '');
+            body.set('nextpage', '');
+            const parentField = this.mainForm?.querySelector('[name="__ParentField"]')?.value;
+            const parentValue = this.mainForm?.querySelector('[name="__ParentValue"]')?.value;
+            if (parentField && !body.has(parentField)) body.set(parentField, parentValue || '');
+
+            const response = await fetch(url, { method: 'POST', body, credentials: 'same-origin' });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status} ${response.statusText}`);
             }

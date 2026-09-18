@@ -259,6 +259,30 @@ class FormTemplate
      * actions; getTitleSingular() prefers an explicit titleSingular and
      * otherwise auto-derives the Dutch singular.
      */
+    /**
+     * Resolve a definition's afterPostUrl to a site-absolute URL.
+     *
+     * Definitions converted from the classic CMA say "../cma_afterpost.asp": relative to
+     * /cma/, so the site root, and an .asp page that is a .php page on a converted site
+     * (the site's web.config maps cma_afterpost.php to its real location).
+     */
+    public static function resolveAfterPostUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+        if (preg_match('#^(https?:)?//#i', $url)) {
+            return $url; // external: taken as is
+        }
+        if (str_starts_with($url, '../')) {
+            $url = '/' . substr($url, 3);
+        } elseif (!str_starts_with($url, '/')) {
+            $url = '/cma/' . $url;
+        }
+        return preg_replace('/\.asp(\?|$)/i', '.php$1', $url);
+    }
+
     private function buildFormConfig(string $jsonFormIdentifier, string $title): array
     {
         $jsonData = $this->arrRep['_json'] ?? [];
@@ -278,6 +302,7 @@ class FormTemplate
             'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && $this->accessLevel >= SecurityHelper::ACCESS_FULL,
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
+            'afterPostUrl' => self::resolveAfterPostUrl((string)($this->arrRep[\Q_AFTERPOSTURL][0] ?? '')),
             'filterIdName' => $this->formDef->getFilterIdName(),
             'filterFieldName' => $this->formDef->getFilterFieldName(),
             'language' => \App\Library\Settings::get('cma_language'),

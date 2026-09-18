@@ -861,6 +861,37 @@ class FormDataProvider
                 }
             }
 
+            // Read-only fields are shown, not edited: never write what the client posts for
+            // them (the input is `readonly`, not `disabled`, so its display-formatted value
+            // does arrive). On INSERT a definition default still applies.
+            $readOnlyFields = [];
+            $readOnlyDefaults = [];
+            foreach ($jsonData['fields'] ?? [] as $fieldDef) {
+                $lcName = strtolower((string)($fieldDef['name'] ?? ''));
+                if ($lcName !== '' && !empty($fieldDef['readOnly'])) {
+                    $readOnlyFields[$lcName] = true;
+                    if (array_key_exists('defaultValue', $fieldDef) && (string)$fieldDef['defaultValue'] !== '') {
+                        $readOnlyDefaults[$lcName] = $fieldDef['defaultValue'];
+                    }
+                }
+            }
+
+            // Server-side validation and normalisation (required, numeric, date/time,
+            // e-mail, URL, directory, length) — the client validates too, but the API is
+            // callable without it. Same rules as the classic detailsRep_post.asp.
+            $isNewForValidation = $recordId === null || $recordId === '';
+            $validation = self::validateJsonFormData(
+                $jsonData['fields'] ?? [], $data, $isNewForValidation, $conn, $tableName, $idField, $recordId, $isSqlite
+            );
+            if ($validation['errors'] !== []) {
+                return [
+                    'success' => false,
+                    'error' => 'Controleer de invoer: ' . implode('; ', array_values($validation['errors'])),
+                    'validation' => $validation['errors'],
+                ];
+            }
+            $data = $validation['data'];
+
             // Debug: Log valid fields
             Logger::debug("SAVE: Valid fields", ['fields' => array_keys($validFields)]);
 
@@ -913,6 +944,12 @@ class FormDataProvider
                         continue;
                     }
                     $lc = strtolower($field);
+                    if (isset($readOnlyFields[$lc])) {
+                        if (!array_key_exists($lc, $readOnlyDefaults)) {
+                            continue;
+                        }
+                        $value = $readOnlyDefaults[$lc];
+                    }
                     $fields[] = self::quoteIdentifier($field, $isSqlite);
                     $norm = ($value === null || $value === '') ? null : SQL::normalizeDecimal((string)$value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
@@ -944,6 +981,9 @@ class FormDataProvider
                         continue;
                     }
                     $lc = strtolower($field);
+                    if (isset($readOnlyFields[$lc])) {
+                        continue;
+                    }
                     $norm = ($value === null || $value === '') ? null : SQL::normalizeDecimal((string)$value);
                     if (($fieldTypeMap[$lc] ?? '') === 'date') {
                         $sets[] = self::quoteIdentifier($field, $isSqlite) . " = " . self::formatDateValueForSql((string)$value, $isSqlite);
@@ -2531,6 +2571,148 @@ class FormDataProvider
     /**
      * Create error response
      */
+    /**
+     * Server-side validation and normalisation of posted JSON-form data.
+     *
+     * Mirrors the checks the classic CMA did in detailsRep_post.asp (CheckValue + the
+     * per-type block): required, numeric, date/datetime, time (HH:MM), e-mail (several,
+     * `;`-separated), URL (https:// prefixed), directory (upper-case, illegal characters
+     * stripped, unique in the table) and maxLength for single-line text. Read-only,
+     * label/custom/separator, checklist/sortlist, checkbox, image/file/video, password
+     * and hidden fields are not validated (they are set by the system or elsewhere).
+     *
+     * @return array{errors: array<string,string>, data: array} errors keyed by field name
+     *         ("<caption> is verplicht"), data with the normalised values.
+     */
+    public static function validateJsonFormData(array $fieldDefs, array $data, bool $isNew, $conn, string $tableName, string $idField, $recordId, bool $isSqlite): array
+    {
+        $errors = [];
+        $skipTypes = ['label', 'custom', 'separator', 'groupseparator', 'heading', 'hidden', 'autonumber',
+            'ignorefield', 'checklist', 'sortlist', 'checklistinline', 'checklisttree', 'checkbox', 'image',
+            'file', 'video', 'thumbnail', 'xmlstore', 'htmlstrip', 'password', 'radio', 'radiogroup'];
+        $numericTypes = ['number', 'int', 'integer', 'bigint', 'smallint', 'tinyint', 'decimal', 'numeric',
+            'float', 'double', 'real', 'currency', 'money', '2', '3', '4', '5', '6', '14', '16', '17', '18', '19', '20', '21', '131', '139'];
+        $dateTypes = ['date', 'datetime', 'timestamp', 'smalldatetime', '7', '133', '134', '135'];
+
+        foreach ($fieldDefs as $def) {
+            $name = (string)($def['name'] ?? '');
+            $type = strtolower((string)($def['type'] ?? ''));
+            if ($name === '' || in_array($type, $skipTypes, true) || !empty($def['readOnly'])) {
+                continue;
+            }
+            // find the posted value case-insensitively
+            $key = null;
+            foreach ($data as $k => $v) {
+                if (strcasecmp((string)$k, $name) === 0) {
+                    $key = $k;
+                    break;
+                }
+            }
+            if ($key === null) {
+                // not posted at all: only "required" can fail, and only on a new record
+                // (an UPDATE without the field leaves the stored value as it is)
+                if (!empty($def['required']) && $isNew) {
+                    $errors[$name] = self::captionOf($def) . ' is verplicht';
+                }
+                continue;
+            }
+            $raw = $data[$key];
+            if (is_array($raw)) {
+                continue;
+            }
+            $value = trim((string)$raw);
+            $caption = self::captionOf($def);
+
+            if ($value === '') {
+                if (!empty($def['required'])) {
+                    $errors[$name] = "$caption is verplicht";
+                }
+                continue;
+            }
+
+            $dataType = strtolower((string)($def['dataType'] ?? ''));
+            $isNumeric = in_array($dataType, $numericTypes, true) || (string)($def['numericPrecision'] ?? '') !== '';
+            $isDate = in_array($type, ['date', 'datetime'], true) || in_array($dataType, $dateTypes, true);
+
+            switch ($type) {
+                case 'email':
+                    $parts = array_values(array_filter(array_map('trim', preg_split('/[;,]/', $value)), 'strlen'));
+                    foreach ($parts as $addr) {
+                        if (filter_var($addr, FILTER_VALIDATE_EMAIL) === false) {
+                            $errors[$name] = "$caption bevat een ongeldig e-mailadres ($addr)";
+                            break;
+                        }
+                    }
+                    $value = implode('; ', $parts);
+                    break;
+
+                case 'time':
+                    if (!preg_match('/^(\d{1,2}):(\d{2})$/', $value, $m) || (int)$m[1] > 23 || (int)$m[2] > 59) {
+                        $errors[$name] = "$caption heeft het formaat UU:MM, bijvoorbeeld 9:15";
+                    }
+                    break;
+
+                case 'url':
+                    if (!preg_match('#^[a-z][a-z0-9+.-]*://#i', $value) && !str_starts_with($value, 'mailto:')) {
+                        $value = 'https://' . $value;
+                    }
+                    break;
+
+                case 'directory':
+                    // illegal characters: / [ ] ; = " \ : | , * . and whitespace
+                    $value = strtoupper(preg_replace('#[/\[\];="\\:|,*.\s]+#', '', $value));
+                    if ($value === '') {
+                        $errors[$name] = "$caption bevat geen toegestane tekens";
+                        break;
+                    }
+                    if ($conn !== null && $tableName !== '') {
+                        $sqlCheck = 'SELECT COUNT(*) AS Aantal FROM ' . self::quoteIdentifier($tableName, $isSqlite)
+                            . ' WHERE LCASE(' . self::quoteIdentifier($name, $isSqlite) . ')=' . SQL::postString(strtolower($value));
+                        if (!$isNew && $recordId !== null && $recordId !== '') {
+                            $sqlCheck .= ' AND ' . self::quoteIdentifier($idField, $isSqlite) . '<>'
+                                . (is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId));
+                        }
+                        try {
+                            if ((int)Database::getFieldValue($conn, $sqlCheck, 'Aantal') > 0) {
+                                $errors[$name] = "$caption '$value' is al in gebruik; kies een andere";
+                            }
+                        } catch (\Throwable $e) {
+                            Logger::warning('validateJsonFormData: directory-uniekheid niet gecontroleerd', ['error' => $e->getMessage()]);
+                        }
+                    }
+                    break;
+
+                default:
+                    if ($isNumeric) {
+                        if (!is_numeric(SQL::normalizeDecimal($value))) {
+                            $errors[$name] = "$caption mag alleen een getal bevatten";
+                        }
+                    } elseif ($isDate) {
+                        if (!preg_match('/^\d{1,2}:\d{2}$/', $value) && \App\Library\Date::normalize($value) === null) {
+                            $errors[$name] = "$caption is geen geldige datum (dd-mm-jjjj)";
+                        }
+                    }
+                    break;
+            }
+
+            $maxLength = (int)($def['maxLength'] ?? 0);
+            if ($maxLength > 0 && in_array($type, ['textbox', 'email', 'url', 'directory', 'userlist'], true)
+                && mb_strlen($value) > $maxLength) {
+                $errors[$name] = "$caption is te lang (maximaal $maxLength tekens)";
+            }
+
+            $data[$key] = $value;
+        }
+        return ['errors' => $errors, 'data' => $data];
+    }
+
+    private static function captionOf(array $def): string
+    {
+        $caption = (string)($def['caption'] ?? $def['label'] ?? $def['name'] ?? 'Veld');
+        $caption = preg_replace('/<br\s*\/?>.*$/i', '', $caption);
+        return trim(strip_tags($caption)) ?: (string)($def['name'] ?? 'Veld');
+    }
+
     private static function error(string $message): array
     {
         return [
