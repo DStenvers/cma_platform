@@ -15080,3 +15080,15 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > continue
+
+> cma platform: combo lists are not retrieved correctly, it a value is missing, the entire combo is empty, if a value is found only that value is in the list, seen in https://test-mijn.rino.nl/cma/form/opleidingen/244
+
+## 2026-09-18
+
+> cma platform: combo lists are not retrieved correctly, it a value is missing, the entire combo is empty, if a value is found only that value is in the list, seen in https://test-mijn.rino.nl/cma/form/opleidingen/244
+
+> cma platform: combo lists are not retrieved correctly, it a value is missing, the entire combo is empty, if a value is found only that value is in the list, seen in https://test-mijn.rino.nl/cma/form/opleidingen/244
+
+> continue
+
+> the sql processor should be able to translate to windows-1252, there is a php function for that right?

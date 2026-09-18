@@ -318,7 +318,7 @@ lib-table div.menutrigger {
     line-height: 24px;
     position: absolute;
     left: 2px;
-    top: 0;
+    top: -4px;
     bottom: 0;
     cursor: pointer;
     background-image:
@@ -789,7 +789,7 @@ lib-table .dropdown-filter-item label::before {
     height: 16px;
     width: 16px;
     background-color: #ffffff;
-    left: -3px;
+    left: -5px;
     top: 4px;
     border: 0px;
     border-radius: 3px;

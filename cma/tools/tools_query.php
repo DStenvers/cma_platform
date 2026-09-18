@@ -591,7 +591,7 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
                     case 'select':
                         // Force PDO to throw on errors
                         $conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                        $stmt = $conn->prepare($tempSQL);
+                        $stmt = $conn->prepare($isAccess ? Database::encodeForOdbc($tempSQL) : $tempSQL);
                         $stmt->execute();
                         $rs = new \App\Library\RecordSet($stmt, false);
                         echo Table::fromRecordset($rs, [
@@ -601,7 +601,7 @@ if (Str::trim($CustomSQL) != '' && Request::post('_execute', '') === '1') {
                         break;
                     default:
                         $conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                        $stmt = $conn->prepare($tempSQL);
+                        $stmt = $conn->prepare($isAccess ? Database::encodeForOdbc($tempSQL) : $tempSQL);
                         $stmt->execute();
                         $iAffected = $stmt->rowCount();
                         echo $iAffected . ' record' . ($iAffected != 1 ? 's' : '') . ' aangepast<br><br>';

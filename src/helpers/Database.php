@@ -737,7 +737,7 @@ class Database
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             $result = $stmt->fetch();
 
             return $result !== false ? self::convertRowEncoding($conn, $result) : null;
@@ -759,7 +759,7 @@ class Database
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return self::convertRowsEncoding($conn, $stmt->fetchAll());
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -883,6 +883,45 @@ class Database
                 $warned = true;
             }
         }
+    }
+
+    /**
+     * Encode SQL text for the ANSI Access ODBC driver.
+     *
+     * The Jet/ACE ODBC driver is an ANSI driver: it interprets the bytes it receives as
+     * Windows-1252. PHP strings are UTF-8, so without conversion a literal like 'één'
+     * arrives as the bytes C3 A9 C3 A9 6E and is stored as the characters "Ã©Ã©n". Reads
+     * then look correct in PHP only because the same bytes come back, while any Unicode
+     * reader of the same database (Access, classic ASP) shows mojibake and every accented
+     * character occupies two or three stored characters. This is the mirror image of
+     * convertRowEncoding(): UTF-8 in, Windows-1252 out.
+     *
+     * Characters outside Windows-1252 become '?'. Text that is not valid UTF-8 (already
+     * Windows-1252) is passed through unchanged, so double conversion cannot happen.
+     */
+    public static function encodeForOdbc(string $sql): string
+    {
+        if ($sql === '' || !preg_match('/[\x80-\xFF]/', $sql) || !mb_check_encoding($sql, 'UTF-8')) {
+            return $sql;
+        }
+        return mb_convert_encoding($sql, 'Windows-1252', 'UTF-8');
+    }
+
+    /**
+     * Apply encodeForOdbc() to the string values of a bound-parameter array when the
+     * connection is ODBC (Access). Other drivers get the parameters untouched.
+     */
+    private static function paramsForDriver(PDO $conn, array $params): array
+    {
+        if (empty($params) || $conn->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'odbc') {
+            return $params;
+        }
+        foreach ($params as $k => $v) {
+            if (is_string($v)) {
+                $params[$k] = self::encodeForOdbc($v);
+            }
+        }
+        return $params;
     }
 
     /**
@@ -1125,7 +1164,7 @@ class Database
                     self::debugSQL("Native ODBC connection ready, executing query");
 
                     // Execute using native ODBC
-                    $odbcResult = @odbc_exec($odbcConn, $sql);
+                    $odbcResult = @odbc_exec($odbcConn, self::encodeForOdbc($sql));
 
                     if ($odbcResult) {
                         // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
@@ -1256,7 +1295,7 @@ class Database
             $scrollable = ($cursorType !== null && $cursorType !== 0);
 
             // Execute using native ODBC
-            $odbcResult = @odbc_exec($odbcConn, $sql);
+            $odbcResult = @odbc_exec($odbcConn, self::encodeForOdbc($sql));
 
             if ($odbcResult) {
                 // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
@@ -1386,7 +1425,7 @@ class Database
         try {
             $conn = self::getConnection($connection);
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return $stmt->rowCount();
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1398,7 +1437,7 @@ class Database
         try {
             $conn = self::getConnection();
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return $stmt->rowCount();
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1420,7 +1459,7 @@ class Database
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return $stmt;
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1458,7 +1497,7 @@ class Database
             }
 
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return $stmt;
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1568,7 +1607,7 @@ class Database
      *     if ($conn === null) { return []; }
      *     try {
      *         $stmt = $conn->prepare($sql);
-     *         $stmt->execute($params);
+     *         $stmt->execute(self::paramsForDriver($conn, $params));
      *         return $stmt->fetchAll(PDO::FETCH_ASSOC);
      *     } catch (\Throwable $t) {
      *         error_log('[Recipes::popular] ' . $t->getMessage());
@@ -1609,7 +1648,7 @@ class Database
         }
         try {
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return self::convertRowsEncoding($conn, $stmt->fetchAll(\PDO::FETCH_ASSOC));
         } catch (\Throwable $t) {
             // Non-throwing by contract, but never silent: the failure is logged
@@ -1651,7 +1690,7 @@ SQL: " . $sql : ''));
         }
         try {
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             $v = $stmt->fetchColumn();
             return $v === false ? $default : $v;
         } catch (\Throwable $t) {
@@ -1691,7 +1730,7 @@ SQL: " . $sql : ''));
         }
         try {
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            return (bool)$stmt->execute($params);
+            return (bool)$stmt->execute(self::paramsForDriver($conn, $params));
         } catch (\Throwable $t) {
             // Non-throwing by contract, but never silent: the failure is logged
             // and listed like every other one.
@@ -1730,7 +1769,7 @@ SQL: " . $sql : ''));
         }
         try {
             $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute($params);
+            $stmt->execute(self::paramsForDriver($conn, $params));
             return $stmt->fetchColumn() !== false;
         } catch (\Throwable $t) {
             // Non-throwing by contract, but never silent: the failure is logged
@@ -2297,6 +2336,9 @@ SQL: " . $sql : ''));
         $processed = SQL::processSQL($conn, $sql);
         if ($processed !== $sql) {
             self::debugSQL("SQL PROCESSED", "Before: " . $sql . "\n\nAfter: " . $processed);
+        }
+        if ($conn->getAttribute(PDO::ATTR_DRIVER_NAME) === 'odbc') {
+            $processed = self::encodeForOdbc($processed);
         }
         return $processed;
     }
