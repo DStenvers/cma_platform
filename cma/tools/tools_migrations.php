@@ -909,8 +909,12 @@ echo '</form>';
 // Separate pending and completed migrations
 $pendingMigrationsList = [];
 $completedMigrationsList = [];
+$pendingById = array_column($pendingMigrations, null, '_id');
 foreach ($allMigrations as $migration) {
     if (in_array($migration['_id'] ?? '', $pendingIds, true)) {
+        // De reden waarom een eerder toegepaste migratie opnieuw openstaat
+        // (ontbrekende kolom) komt alleen mee via getPendingMigrations().
+        $migration['_drift'] = $pendingById[$migration['_id'] ?? '']['_drift'] ?? null;
         $pendingMigrationsList[] = $migration;
     } else {
         $completedMigrationsList[] = $migration;
@@ -983,8 +987,12 @@ if (empty($pendingMigrationsList)) {
         echo '<input type="radio" name="target_version" value="' . htmlspecialchars($id) . '" form="migrationForm"' . $checked . ' onchange="updateMigrationButton()">';
         echo '</td>';
         echo '<td><span class="cma-tool__strong">' . $toonVersie($migration) . '</span></td>';
-        echo '<td>' . htmlspecialchars($migration['description']) . '</td>';
-        echo '<td><span class="badge badge-warning">Openstaand</span></td>';
+        echo '<td>' . htmlspecialchars($migration['description']);
+        if (!empty($migration['_drift'])) {
+            echo '<br><span style="opacity:.75">Eerder toegepast, maar ' . htmlspecialchars((string)$migration['_drift']) . '</span>';
+        }
+        echo '</td>';
+        echo '<td><span class="badge badge-warning">' . (empty($migration['_drift']) ? 'Openstaand' : 'Opnieuw nodig') . '</span></td>';
         echo '</tr>';
     }
     echo '</tbody></table>';

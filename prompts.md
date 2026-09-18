@@ -15097,3 +15097,6 @@ karaat-data en staat in de karaat-repo.
 > Fatal error: Uncaught Error: Class "App\Library\Settings" not found in D:\wwwroot\test-mijn.rino.nl\cma\tools\tools_clearcache.php:14
 
 > Still there is a refresh when i did nothing in the side-panel?
+
+> There is a serious issue with comboboxes, they seem to be limited to the values last retrieved, if that is an empty value the combobox is empty. Pleas check thoroughly
+> Gebruikersvoorkeuren niet uit tblUsers gelezen (migratie 6.5.0 gedraaid?): COUNT field incorrect: -3010 Too few parameters. Expected 1. The dashboard did not show pending migrations

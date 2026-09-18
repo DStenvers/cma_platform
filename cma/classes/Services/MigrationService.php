@@ -279,6 +279,40 @@ class MigrationService
     }
 
     /**
+     * Columns that an applied migration added but that no longer exist:
+     * "db.table.column" per missing one, [] when everything is in place or the
+     * migration adds no columns. Only tables that exist are judged (a missing
+     * table is a different problem, not schema drift of this migration).
+     */
+    private function missingColumns(array $migration): array
+    {
+        $ontbrekend = [];
+        foreach ($migration['changes'] ?? [] as $change) {
+            if (($change['type'] ?? '') !== 'addColumn') {
+                continue;
+            }
+            $db = (string)($change['database'] ?? 'data');
+            $table = (string)($change['table'] ?? '');
+            $column = (string)($change['column'] ?? '');
+            if ($table === '' || $column === '') {
+                continue;
+            }
+            try {
+                $conn = Database::getConnection($db);
+                if ($conn === null || !Database::tableExistsPDO($conn, $table)) {
+                    continue;
+                }
+                if (!self::columnExists($table, $column, $db)) {
+                    $ontbrekend[] = "$db.$table.$column";
+                }
+            } catch (\Throwable $e) {
+                // unreachable database: not drift, reported elsewhere
+            }
+        }
+        return $ontbrekend;
+    }
+
+    /**
      * Check if a version-tracking table exists.  Default table name is the
      * platform's `_cma_version`; pass a custom name for additional sources.
      */
@@ -356,6 +390,20 @@ class MigrationService
                 $current = '0.0.0';
             }
             if (version_compare($migration['version'], $current, '>')) {
+                $pending[] = $migration;
+                continue;
+            }
+            // Recorded as applied, but is its work still there? The version is
+            // tracked in one database while addColumn changes may target another
+            // (6.5.0 adds the preference columns to the users db). Restore or
+            // replace that other database and the columns are gone while the
+            // version still says "done" — the dashboard showed nothing and the
+            // site kept failing on the missing columns. A missing column makes
+            // the migration pending again; addColumn skips columns that exist,
+            // so re-applying it is safe.
+            $ontbrekend = $this->missingColumns($migration);
+            if ($ontbrekend !== []) {
+                $migration['_drift'] = 'kolom ontbreekt: ' . implode(', ', $ontbrekend);
                 $pending[] = $migration;
             }
         }

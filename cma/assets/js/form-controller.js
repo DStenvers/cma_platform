@@ -537,7 +537,7 @@ if (typeof window.cmaComboCache === 'undefined') {
     var CACHE_PREFIX = 'cma_combo_';
     var CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
     var CACHE_VERSION_KEY = 'cma_combo_version';
-    var CACHE_VERSION = '4'; // Increment to invalidate all caches
+    var CACHE_VERSION = '5'; // Increment to invalidate all caches
 
     /**
      * Check if sessionStorage is available
@@ -668,6 +668,12 @@ if (typeof window.cmaComboCache === 'undefined') {
          */
         set: function(formId, field, options, recordId) {
             if (!isAvailable()) return;
+            // Never cache an empty list. The API answers with options:[] when a
+            // combo still needs a search term (requires_search) or a record
+            // context (requires_context), and form combos and search-panel combos
+            // share this key: one cached [] blanked every combo for that field for
+            // the next five minutes. An empty list is cheap to fetch again anyway.
+            if (!Array.isArray(options) || options.length === 0) return;
 
             var key = this.buildKey(formId, field, recordId);
             try {
@@ -6378,9 +6384,11 @@ class CmaFormController {
                     }
                     const result = await response.json();
 
-                    if (result.success && result.options) {
+                    if (result.success && result.options && !result.requires_search && !result.requires_context) {
                         options = result.options;
                         cmaComboCache.set(cacheFormId, fieldName, options, recordId);
+                    } else if (result.success && result.options) {
+                        options = result.options; // special answer: use, don't cache
                     }
                 }
 

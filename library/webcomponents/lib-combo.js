@@ -41,6 +41,10 @@ class LibCombo extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this._options = [];
+        // Results of the current AJAX search. Kept apart from _options so a search
+        // (also one with no hits) never replaces the base list or drops the option
+        // that carries the selected value's label. null = no search active.
+        this._searchResults = null;
         this._selectedValues = [];
         this._isOpen = false;
         this._highlightedIndex = -1;
@@ -622,8 +626,9 @@ class LibCombo extends HTMLElement {
         }
 
         const filterLower = filter.toLowerCase();
-        const filteredOptions = this._options.filter(opt =>
-            !filter || opt.label.toLowerCase().includes(filterLower)
+        const source = this._searchResults !== null ? this._searchResults : this._options;
+        const filteredOptions = source.filter(opt =>
+            this._searchResults !== null || !filter || opt.label.toLowerCase().includes(filterLower)
         );
 
         if (filteredOptions.length === 0) {
@@ -788,6 +793,7 @@ class LibCombo extends HTMLElement {
 
         // Clear search and refresh options
         searchInput.value = '';
+        this._searchResults = null;
         this._renderOptions();
 
         // Focus search input
@@ -925,6 +931,15 @@ class LibCombo extends HTMLElement {
         const isMultiple = this.hasAttribute('multiple');
         // Normalize value to string for consistent comparison
         const strValue = String(value);
+
+        // Picked from AJAX search results: carry the option over to the base list
+        // so its label can still be shown once the search results are discarded.
+        if (this._searchResults !== null) {
+            const hit = this._searchResults.find(o => String(o.value) === strValue);
+            if (hit && !this._options.some(o => String(o.value) === strValue)) {
+                this._options.push(hit);
+            }
+        }
 
         if (isMultiple) {
             // Use string comparison to find existing value
@@ -1075,6 +1090,9 @@ class LibCombo extends HTMLElement {
         const minSearch = parseInt(this.getAttribute('min-search') || '0', 10);
 
         if (term.length < minSearch) {
+            // Below the search threshold: back to the base options, not the
+            // leftovers of the previous search.
+            this._searchResults = null;
             this._renderOptions();
             return;
         }
@@ -1092,7 +1110,7 @@ class LibCombo extends HTMLElement {
                 const idField = this.getAttribute('ajax-id') || 'id';
                 const textField = this.getAttribute('ajax-text') || 'text';
 
-                this._options = (data.results || data.options || data).map(item => ({
+                this._searchResults = (data.results || data.options || data).map(item => ({
                     value: String(item[idField]),
                     label: item[textField],
                     disabled: false,
@@ -1106,7 +1124,7 @@ class LibCombo extends HTMLElement {
                 const logFn = (typeof cmaLog !== 'undefined') ? cmaLog : console;
                 logFn.error('[lib-combo] AJAX error:', err.message);
                 this._loading = false;
-                this._options = [];
+                this._searchResults = [];
                 this._renderOptions();
             });
     }
