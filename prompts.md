@@ -15125,3 +15125,17 @@ karaat-data en staat in de karaat-repo.
 > #2 D:\wwwroot\test-mijn.rino.nl\cma\classes\FormDataProvider.php(1159): Cma\FormDataProvider::logMonitoring('opleidingen_dee...', 'Deelnemers', '3975', 'edit', Array)
 > #3 D:\wwwroot\test-mijn.rino.nl\cma\form_api.php(997): Cma\FormDataProvider::saveJsonFormRecord('opleidingen_dee...', '3975', Array, Array)
 > #4 {main}
+
+> about selects, i am suprised that in the opleidingen form the select fkDifferentiatie is much wider than the fkoplsoort combo, is there a reason for that?
+
+> yes please do. And if content is wider, can we have it expand automatically?
+
+> the big opleiding combo should also have a plus button, the form is there : differentiatie 
+>
+> in that form another thing: a caption is very long with a <br> inside, that looks weird as a table column header. Can we stop the header at the <br> ?
+
+> move back to the cma platform. Do a detailed comparison between the old CMA functionality and the new CMA. See if we are missing nuances or things that could be usefull. Small optimasations for instance in the display.
+
+> on https://test-mijn.rino.nl/cma/form/opleidingen, if i click on another tab the height of the subform suddently changes, I really don't want that, what causes it and can we prevent that?
+
+> the tab aanmeldingsdocumenten https://test-mijn.rino.nl/cma/form/opleidingen as an unnamed second parameter in the SQL , make that Verplicht and the values Ja or Nee , it now shows expr1002 and Verplicht (probably Niet verplicht)

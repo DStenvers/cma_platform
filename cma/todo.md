@@ -5,6 +5,7 @@ For completed items, see [done.md](done.md)
 **Last updated:** 2026-05-31
 
 See also: [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) for system-wide issues.
+See also: [OLD_VS_NEW_FUNCTIONAL_COMPARISON.md](OLD_VS_NEW_FUNCTIONAL_COMPARISON.md) for behaviour the classic-ASP CMA had and this one lacks (prioritised, with file:line).
 
 ---
 
