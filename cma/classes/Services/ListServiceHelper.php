@@ -279,6 +279,111 @@ class ListServiceHelper
     }
 
     /**
+     * Are there search-panel criteria besides the (forced) toolbar filter field?
+     */
+    public static function hasOtherFilters(array $filters, string $filterFieldName): bool
+    {
+        foreach ($filters as $name => $value) {
+            if (strcasecmp((string)$name, $filterFieldName) === 0) continue;
+            if (is_array($value)) {
+                if (array_filter($value, fn($v) => $v !== '' && $v !== null) !== []) return true;
+            } elseif ($value !== '' && $value !== null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Split a quick-search entry on " en " / " and ": every part must match.
+     */
+    public static function quickSearchTerms(string $search): array
+    {
+        $terms = preg_split('/\s+(?:en|and)\s+/i', $search) ?: [$search];
+        $terms = array_values(array_filter(array_map('trim', $terms), fn($t) => $t !== ''));
+        return count($terms) > 0 ? $terms : [$search];
+    }
+
+    /**
+     * OR-conditions for one quick-search term.
+     *
+     * quickSearchFields wins when defined. Otherwise the visible list columns are
+     * searched (text: LIKE, numeric: exact) PLUS every text-like field of the form
+     * itself (textbox, memo, email, url, file, label, directory) — the old list.asp
+     * searched all of those, not only the listed columns, so a search on a memo or
+     * an unlisted text column finds the record. The record id always matches on
+     * a numeric term.
+     */
+    public static function quickSearchConditions(string $term, array $jsonData, array $listColumns, array $fieldsByName, string $tableName, string $idField): array
+    {
+        $searchConditions = [];
+        $searchEscaped = SQL::postString('%' . $term . '%');
+
+        $quickSearchFields = $jsonData['quickSearchFields'] ?? '';
+        if ($quickSearchFields !== '') {
+            $fields = array_filter(array_map('trim', explode(',', $quickSearchFields)));
+            foreach ($fields as $fieldName) {
+                $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
+            }
+        } else {
+            $skipTypes = ['checkbox', 'radiogroup', 'combobox', 'select', 'userlist'];
+            $numericTypes = ['number', 'integer', 'decimal', 'currency', 'money'];
+            $searchNumber = SQL::normalizeDecimal($term);
+            $covered = [];
+            if (!empty($listColumns)) {
+                foreach ($listColumns as $col) {
+                    $fieldName = $col['field'] ?? '';
+                    if (!$fieldName) continue;
+
+                    $fieldDef = $fieldsByName[strtolower($fieldName)] ?? null;
+                    $fieldType = $fieldDef['type'] ?? 'textbox';
+                    if (in_array($fieldType, $skipTypes)) continue;
+                    $covered[strtolower($fieldName)] = true;
+
+                    if (in_array($fieldType, $numericTypes)) {
+                        if (is_numeric($searchNumber)) {
+                            $searchConditions[] = "[$fieldName] = " . floatval($searchNumber);
+                        }
+                        continue;
+                    }
+
+                    // CAST-to-text LIKE isn't portable across Access/SQL Server/SQLite
+                    $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
+                }
+            }
+
+            // Text-like fields of the form that are not list columns. In a joined
+            // listQuery the column is qualified with the form's table (old behaviour).
+            $listQuery = (string)($jsonData['listQuery'] ?? '');
+            $qualify = $tableName !== '' && stripos($listQuery, ' JOIN ') !== false;
+            $textTypes = ['textbox', 'memo', 'email', 'url', 'file', 'label', 'directory', 'htmlstrip', 'image'];
+            foreach ($jsonData['fields'] ?? [] as $fieldDef) {
+                $fieldName = $fieldDef['name'] ?? '';
+                $lower = strtolower($fieldName);
+                if ($fieldName === '' || isset($covered[$lower]) || $lower === strtolower($idField)) continue;
+                if (!in_array($fieldDef['type'] ?? '', $textTypes, true)) continue;
+                if (str_starts_with($fieldName, '_') || strpos($fieldName, '[') !== false) continue;
+                if (!empty($fieldDef['sql']) || !empty($fieldDef['source'])) continue; // computed, not a column
+                $covered[$lower] = true;
+                $column = $qualify ? "[$tableName].[$fieldName]" : "[$fieldName]";
+                $searchConditions[] = "$column LIKE $searchEscaped";
+            }
+        }
+
+        // Always allow searching by record ID (numeric exact match)
+        $searchId = SQL::normalizeDecimal($term);
+        if (is_numeric($searchId)) {
+            $idCol = $tableName !== '' ? "[$tableName].[$idField]" : "[$idField]";
+            $idCond = "$idCol = " . (int)$searchId;
+            if (!in_array($idCond, $searchConditions, true)) {
+                $searchConditions[] = $idCond;
+            }
+        }
+
+        return $searchConditions;
+    }
+
+    /**
      * Restrict a list to the current user's own records when the form uses
      * securityByUser and the user only has "Alleen eigen records" (level 20).
      * Like the old list.asp, the row's `userid` column (alias it in listQuery if

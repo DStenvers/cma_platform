@@ -1,0 +1,27 @@
+form-layouts in document: 1
+controllers: true
+frames: 0
+
+/cma/form_api.php?action=init&displayMode=2&jsonForm=opleidingen
+    at w.fetch (https://test-mijn.rino.nl/__cypress/tests?p=cypress/e2e/_tmp_dup.cy.js:20:22)
+    at window.fetch (BUNDLE:82:2333)
+    at CmaFormController._doFormInit (BUNDLE:80:26483)
+    at CmaFormController.formInit (BUNDLE:80:25412)
+    at CmaFormController.init (BUNDLE:80:19151)
+    at new CmaFormController (BUNDLE:80:13456)
+    at initForm (<anonymous>:12:37)
+    at <anonymous>:23:9
+    at <anonymous>:25:3
+    at BUNDLE:86:8438
+
+/cma/form_api.php?action=init&displayMode=2&jsonForm=opleidingen
+    at w.fetch (https://test-mijn.rino.nl/__cypress/tests?p=cypress/e2e/_tmp_dup.cy.js:20:22)
+    at window.fetch (BUNDLE:82:2333)
+    at CmaFormController._doFormInit (BUNDLE:80:26483)
+    at CmaFormController.formInit (BUNDLE:80:25412)
+    at CmaFormController.init (BUNDLE:80:19151)
+    at new CmaFormController (BUNDLE:80:13456)
+    at initForm (<anonymous>:12:37)
+    at <anonymous>:23:9
+    at <anonymous>:25:3
+    at BUNDLE:86:8438

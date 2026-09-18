@@ -341,7 +341,9 @@ class TreeService extends BaseFormService
             $search = $options['search'] ?? '';
             $filters = $options['filters'] ?? [];
 
-            if ($filterFieldName !== '' && $search === '') {
+            // The forced filter is only demanded for a plain list: a quick search or
+            // extended-search criteria ("In alle records zoeken") look past it.
+            if ($filterFieldName !== '' && $search === '' && !ListServiceHelper::hasOtherFilters($filters, $filterFieldName)) {
                 $filterValue = $filters[$filterFieldName] ?? '';
                 if ($filterValue === '') {
                     $displayFormName = $jsonData['title'] ?? ucfirst(str_replace('_', ' ', $formName));
@@ -372,20 +374,18 @@ class TreeService extends BaseFormService
                 $sql = "SELECT $columns FROM [$tableName]";
             }
 
-            // Apply search filter
-            if ($search !== '' && !empty($listColumns)) {
-                $searchConditions = [];
-                foreach ($listColumns as $col) {
-                    $fieldName = $col['field'] ?? '';
-                    if ($fieldName) {
-                        $searchConditions[] = "[$fieldName] LIKE " . SQL::postString('%' . $search . '%');
+            // Apply search filter (same fields and " en "-logic as the table view)
+            if ($search !== '') {
+                $fieldsByName = [];
+                foreach ($jsonData['fields'] ?? [] as $fieldDef) {
+                    if (!empty($fieldDef['name'])) {
+                        $fieldsByName[strtolower($fieldDef['name'])] = $fieldDef;
                     }
                 }
-                if (!empty($searchConditions)) {
-                    if (stripos($sql, ' WHERE ') !== false) {
-                        $sql .= ' AND (' . implode(' OR ', $searchConditions) . ')';
-                    } else {
-                        $sql .= ' WHERE (' . implode(' OR ', $searchConditions) . ')';
+                foreach (ListServiceHelper::quickSearchTerms($search) as $term) {
+                    $searchConditions = ListServiceHelper::quickSearchConditions($term, $jsonData, $listColumns, $fieldsByName, $tableName, $idField);
+                    if (!empty($searchConditions)) {
+                        $sql = SQL::addWhere($sql, '(' . implode(' OR ', $searchConditions) . ')');
                     }
                 }
             }

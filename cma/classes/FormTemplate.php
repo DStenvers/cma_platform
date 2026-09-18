@@ -976,6 +976,11 @@ class FormTemplate
         // Search panel buttons
         $html .= '<div class="search-panel-buttons">' . PHP_EOL;
         $html .= '<button type="button" class="btn btn-primary" onclick="cmaApplySearchFilters()">Zoeken</button>' . PHP_EOL;
+        // Forms with a forced toolbar filter: let the extended search look past it
+        // (the old list.asp posted NoAutoFilter=Y from this panel)
+        if (!empty($this->formDef->getFilterFieldName())) {
+            $html .= '<label class="search-all-records"><input type="checkbox" id="searchAllRecords"> In alle records zoeken (filter negeren)</label>' . PHP_EOL;
+        }
         $html .= '<button type="button" class="btn search-reset-btn" id="searchResetBtn" onclick="cmaClearSearchFilters()" style="display:none;"><span class="lnr lnr-cross"></span> Wissen</button>' . PHP_EOL;
         if (count($fields) > $visibleCount) {
             $html .= '<button type="button" class="btn btn-link search-more-btn" id="searchMoreBtn" onclick="cmaToggleSearchMore()">' . PHP_EOL;

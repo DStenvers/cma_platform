@@ -6481,11 +6481,16 @@ class CmaFormController {
             }
         });
 
-        // Preserve toolbar filter if set (forms with FilterFieldName)
+        // Preserve toolbar filter if set (forms with FilterFieldName), unless the
+        // user asked to search all records (old NoAutoFilter=Y)
         const filterFieldName = this.config.filterFieldName;
-        if (filterFieldName && this.searchFilters && this.searchFilters[filterFieldName]) {
+        const searchAll = !!panel.querySelector('#searchAllRecords:checked');
+        if (filterFieldName && !searchAll && this.searchFilters && this.searchFilters[filterFieldName]) {
             // Keep the toolbar filter value
             filters[filterFieldName] = this.searchFilters[filterFieldName];
+        }
+        if (searchAll && filterFieldName) {
+            delete filters[filterFieldName];
         }
 
         // Store filters and reload list (showLoading is called by loadList)

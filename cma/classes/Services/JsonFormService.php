@@ -264,7 +264,9 @@ class JsonFormService extends BaseFormService
             $search = $options['search'] ?? '';
             $filters = $options['filters'] ?? [];
 
-            if ($filterFieldName !== '' && $search === '') {
+            // The forced filter is only demanded for a plain list: a quick search or
+            // extended-search criteria ("In alle records zoeken") look past it.
+            if ($filterFieldName !== '' && $search === '' && !ListServiceHelper::hasOtherFilters($filters, $filterFieldName)) {
                 $filterValue = $filters[$filterFieldName] ?? '';
                 if ($filterValue === '') {
                     // Filter required but not provided - show message instead of loading all records
@@ -329,63 +331,16 @@ class JsonFormService extends BaseFormService
                 return self::error('Formulier heeft geen tabel of listQuery');
             }
 
-            // Apply search filter
+            // Apply search filter. Terms joined with " en " / " and " must all match
+            // (each term is its own OR-group, AND-ed together), as lib_sql's
+            // complicatedWhere did for the old list.
             $search = $options['search'] ?? '';
             if ($search !== '') {
-                $searchConditions = [];
-                $searchEscaped = SQL::postString('%' . $search . '%');
-
-                // Use quickSearchFields if defined (guaranteed text-searchable fields)
-                $quickSearchFields = $jsonData['quickSearchFields'] ?? '';
-                if ($quickSearchFields !== '') {
-                    $fields = array_filter(array_map('trim', explode(',', $quickSearchFields)));
-                    foreach ($fields as $fieldName) {
-                        $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
+                foreach (ListServiceHelper::quickSearchTerms($search) as $term) {
+                    $searchConditions = ListServiceHelper::quickSearchConditions($term, $jsonData, $listColumns, $fieldsByName, $tableName, $idField);
+                    if (!empty($searchConditions)) {
+                        $sql = SQL::addWhere($sql, '(' . implode(' OR ', $searchConditions) . ')');
                     }
-                } elseif (!empty($listColumns)) {
-                    // Fallback: search visible list columns. Text columns use LIKE;
-                    // numeric columns are matched exactly when the search term is a
-                    // number — the old CMA allowed numeric simple-search and it
-                    // regressed here. CAST-to-text LIKE isn't portable across
-                    // Access/SQL Server/SQLite, so we use an exact numeric match.
-                    // FK/bool/option controls stay excluded (they hold codes, not
-                    // searchable text).
-                    $skipTypes = ['checkbox', 'radiogroup', 'combobox', 'select', 'userlist'];
-                    $numericTypes = ['number', 'integer', 'decimal', 'currency', 'money'];
-                    $searchNumber = SQL::normalizeDecimal($search);
-                    foreach ($listColumns as $col) {
-                        $fieldName = $col['field'] ?? '';
-                        if (!$fieldName) continue;
-
-                        // Check the actual field type from form definition
-                        $fieldDef = $fieldsByName[strtolower($fieldName)] ?? null;
-                        $fieldType = $fieldDef['type'] ?? 'textbox';
-                        if (in_array($fieldType, $skipTypes)) continue;
-
-                        if (in_array($fieldType, $numericTypes)) {
-                            if (is_numeric($searchNumber)) {
-                                $searchConditions[] = "[$fieldName] = " . floatval($searchNumber);
-                            }
-                            continue;
-                        }
-
-                        $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
-                    }
-                }
-
-                // Always allow searching by record ID (numeric exact match), even when
-                // ID isn't a visible column or listed in quickSearchFields.
-                $searchId = SQL::normalizeDecimal($search);
-                if (is_numeric($searchId)) {
-                    $idCol = $tableName !== '' ? "[$tableName].[$idField]" : "[$idField]";
-                    $idCond = "$idCol = " . (int)$searchId;
-                    if (!in_array($idCond, $searchConditions, true)) {
-                        $searchConditions[] = $idCond;
-                    }
-                }
-
-                if (!empty($searchConditions)) {
-                    $sql = SQL::addWhere($sql, '(' . implode(' OR ', $searchConditions) . ')');
                 }
             }
 

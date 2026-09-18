@@ -1363,6 +1363,12 @@ body.mode-tree .search-fields {
     margin-top: 4px;
 }
 
+.search-panel-buttons .search-all-records {
+    margin-left: 12px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
 .search-panel-buttons .btn-link {
     background: var(--bg-hover);
     color: var(--text-primary) !important;
