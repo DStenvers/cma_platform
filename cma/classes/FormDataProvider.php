@@ -2481,6 +2481,47 @@ class FormDataProvider
      * @param string $action Action type: 'add', 'edit', 'delete'
      * @param string $notification Description of what happened
      */
+    /**
+     * Mail a change notification to the users subscribed to the form (tblNotifications,
+     * keyed on the form's sourceFormId). The acting user is left out when their profile
+     * says "geen notificatie voor eigen wijzigingen". Failures are logged, never thrown:
+     * the record is already saved.
+     */
+    private static function sendChangeNotificationMail(string $formName, string $formTitle, string $notification): void
+    {
+        try {
+            $formId = JsonFormLoader::getFormIdByName($formName);
+            if ($formId === null) {
+                return;
+            }
+            $emails = array_values(array_filter(array_map('trim', explode(';', SecurityHelper::getNotifyEmailsForForm((int)$formId))), 'strlen'));
+            if ($emails === []) {
+                return;
+            }
+            if (SecurityHelper::skipNotifyOwnRecords()) {
+                $own = strtolower(trim((string)(SecurityHelper::getCurrentUserData()['userEmail'] ?? '')));
+                $emails = array_values(array_filter($emails, fn($e) => strtolower($e) !== $own));
+                if ($emails === []) {
+                    return;
+                }
+            }
+            $appName = (string)(Application::get('appname_simple', '') ?: Application::get('appname', '') ?: 'CMA');
+            $mail = new \App\Library\Email();
+            $mail->setSubject($appName . ' | CMA notificatie (' . $formTitle . ')');
+            $mail->setBody('<html><head><style>body,p,td{font-family:verdana;font-size:10px}th{text-align:left;font-family:verdana;font-size:10px;color:white;background-color:#003366}</style></head><body>'
+                . $notification . '</body></html>');
+            $mail->setCMATemplate(false);
+            foreach (array_unique($emails) as $email) {
+                $mail->addRecipient($email);
+            }
+            if (!$mail->send()) {
+                Logger::warning('sendChangeNotificationMail: verzenden mislukt', ['form' => $formName, 'to' => $emails]);
+            }
+        } catch (\Throwable $e) {
+            \App\Library\ErrorHandler::report($e, 'CMA-notificatiemail niet verzonden (' . $formName . ')');
+        }
+    }
+
     private static function logMonitoring(
         string $formName,
         string $formTitle,
@@ -2490,11 +2531,7 @@ class FormDataProvider
         string $recordDescription = '',
         string $logLevel = 'info'
     ): void {
-        // Check if monitoring is enabled
-        if (!\App\Library\Settings::get('cma_monitoring')) {
-            Logger::debug('logMonitoring: Monitoring disabled');
-            return;
-        }
+        $monitoringOn = (bool)\App\Library\Settings::get('cma_monitoring');
 
         Logger::debug('logMonitoring START', ['form' => $formName, 'action' => $action, 'recordId' => $recordId]);
 
@@ -2541,6 +2578,15 @@ class FormDataProvider
                 $notification .= '<div>Voor details: <a href="' . $detailsUrl . '">' . $detailsUrl . '</a></div>';
             }
             Logger::debug('logMonitoring: notification_length=' . strlen($notification));
+
+            // E-mail to the users subscribed to this form ("Notificaties" on the users
+            // form), independent of the monitoring log — as the classic detailsRep_post did.
+            self::sendChangeNotificationMail($formName, $formTitle, $notification);
+
+            if (!$monitoringOn) {
+                Logger::debug('logMonitoring: Monitoring disabled, only e-mail');
+                return;
+            }
 
             // Get data connection for tblCMAMonitoring
             $conn = Database::getConnection('data');
