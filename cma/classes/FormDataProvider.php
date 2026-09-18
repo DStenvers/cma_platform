@@ -2478,39 +2478,46 @@ class FormDataProvider
                 $logLevel = 'warning';
             }
 
-            // Use simple INSERT without checking column existence
-            // The LogLevel column was added in migration 6.3.0 and should exist
-            // If it doesn't exist, Access will error and we'll catch it
-            $sql = 'INSERT INTO tblCMAMonitoring (Form, Formname, RecordID, Actie, Username, Notificatie, LogLevel) VALUES (' .
-                SQL::postString($formName) . ',' .
+            // The notification is a long HTML literal. On some PHP builds the
+            // ODBC layer mangles a long inlined literal ("Syntax error (missing
+            // operator)", "Too few parameters") while a bound parameter arrives
+            // intact — bindValue() stores an Access memo exactly, no padding. So:
+            // inline first (the form that works everywhere else), bound as the
+            // fallback, and the LogLevel column (migration 6.3.0) left out when
+            // a site does not have it yet. Every attempt that fails is logged;
+            // only when all of them fail does report() carry it to the admin.
+            $columns = 'Form, Formname, RecordID, Actie, Username, Notificatie';
+            $values  = SQL::postString($formName) . ',' .
                 SQL::postString($formTitle) . ',' .
                 SQL::postString((string)($recordId ?? '')) . ',' .
                 SQL::postString($action) . ',' .
-                SQL::postString($username) . ',' .
-                SQL::postString($notification) . ',' .
-                SQL::postString($logLevel) . ')';
-
-            Logger::debug('logMonitoring: Executing INSERT', ['sqlLength' => strlen($sql)]);
-
-            try {
-                Database::executeOn($conn, $sql);
-                Logger::debug('logMonitoring: INSERT successful');
-            } catch (\Exception $insertEx) {
-                // LogLevel column might not exist - try without it
-                Logger::debug('logMonitoring: INSERT with LogLevel failed, trying without', ['error' => $insertEx->getMessage()]);
-
-                $sqlNoLogLevel = 'INSERT INTO tblCMAMonitoring (Form, Formname, RecordID, Actie, Username, Notificatie) VALUES (' .
-                    SQL::postString($formName) . ',' .
-                    SQL::postString($formTitle) . ',' .
-                    SQL::postString((string)($recordId ?? '')) . ',' .
-                    SQL::postString($action) . ',' .
-                    SQL::postString($username) . ',' .
-                    SQL::postString($notification) . ')';
-
-                Database::executeOn($conn, $sqlNoLogLevel);
-                Logger::debug('logMonitoring: INSERT without LogLevel successful');
+                SQL::postString($username);
+            $attempts = [
+                ['INSERT INTO tblCMAMonitoring (' . $columns . ', LogLevel) VALUES (' . $values . ',' . SQL::postString($notification) . ',' . SQL::postString($logLevel) . ')', []],
+                ['INSERT INTO tblCMAMonitoring (' . $columns . ', LogLevel) VALUES (' . $values . ',?,' . SQL::postString($logLevel) . ')', [$notification]],
+                ['INSERT INTO tblCMAMonitoring (' . $columns . ') VALUES (' . $values . ',' . SQL::postString($notification) . ')', []],
+                ['INSERT INTO tblCMAMonitoring (' . $columns . ') VALUES (' . $values . ',?)', [$notification]],
+            ];
+            $lastError = null;
+            $errorsBefore = count(Database::getErrors());
+            foreach ($attempts as $i => [$sql, $params]) {
+                try {
+                    Database::executeOn($conn, $sql, $params);
+                    if ($i > 0) {
+                        // The earlier attempts failed and are in the log; the row is
+                        // written, so the admin notice about them would be noise.
+                        Database::forgetErrorsSince($errorsBefore);
+                        Logger::warning('logMonitoring: INSERT succeeded on attempt ' . ($i + 1) . ' (bound parameter or without LogLevel)', ['form' => $formName, 'recordId' => $recordId]);
+                    }
+                    $lastError = null;
+                    break;
+                } catch (\Throwable $insertEx) {
+                    $lastError = $insertEx;
+                }
             }
-
+            if ($lastError !== null) {
+                throw $lastError;
+            }
         } catch (\Throwable $e) {
             // The record is saved by now; a lost audit row must not undo that.
             // It must not go unnoticed either: log, mail, admin toast, and a

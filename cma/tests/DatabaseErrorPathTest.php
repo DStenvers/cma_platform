@@ -236,4 +236,20 @@ class DatabaseErrorPathTest extends TestCase
         // Capitalisation is mb-aware; the body text is left intact.
         $this->assertEquals('Ünïcode blijft staan', Database::cleanErrorMessage('ünïcode blijft staan'));
     }
+
+    public function testForgetErrorsSinceDropsOnlyTheNewerOnes(): void
+    {
+        $conn = StubConnection::create();
+        $conn->enqueueException(new \PDOException('first'));
+        $this->failing('SELECT 1', [], $conn);
+        $mark = count(Database::getErrors());
+        $conn->enqueueException(new \PDOException('retried away'));
+        $this->failing('SELECT 2', [], $conn);
+        $this->assertEquals($mark + 1, count(Database::getErrors()));
+        Database::forgetErrorsSince($mark);
+        $this->assertEquals($mark, count(Database::getErrors()), 'the recovered failure is gone');
+        $errors = Database::getErrors();
+        $last = end($errors);
+        $this->assertStringContainsString('first', $last['message'] ?? '', 'the older one stays');
+    }
 }

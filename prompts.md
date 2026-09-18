@@ -15104,3 +15104,24 @@ karaat-data en staat in de karaat-repo.
 > 2 yes please fix that
 
 > 3 true, but the dynamic values are the same..
+
+> Resultaat
+> From    mijn <font class=green>&bull;</font> RINO (noreply@rino.nl)
+> BCC    ict-alert@rino.nl
+> Subject    Fout op test-mijn.rino.nl: Syntax error or access violation: Syntax error (missing operator) in query expression ''<…
+> Melding    Syntax error or access violation: Syntax error (missing operator) in query expression ''<b>Diederik Stenvers</b> heeft in formulier <b>Deelnemers</b> het record <b>gewijzigd</b> (ID: 3975).<br><br><table cellspacing='0' cellpadding='3'><tr><th style='font-size:10pt;background-color:#1a4d72;color:white;text-align:left'>Veld</th><th style='font-'.
+> Type    App\Library\DatabaseException
+> Bestand    D:\wwwroot\test-mijn.rino.nl\vendor\stenversonline\platform\src\helpers\Database.php:2060
+> URL    POST /cma/form_api.php
+> Verwijzing    https://test-mijn.rino.nl/cma/form.php?form=opleidingen_deelnemers&id=3975&parentID=237&parentField=fkOpleiding
+> IP    188.90.225.65
+> Browser    Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36
+> Tijd    2026-09-18 14:47:40
+> Omgeving    O
+> Deze melding wordt per fout maximaal één keer per uur verstuurd. De volledige log staat in het CMA onder Beheerstools → Logbestanden lezen.
+>
+> #0 D:\wwwroot\test-mijn.rino.nl\vendor\stenversonline\platform\src\helpers\Database.php(1431): App\Library\Database::fail('INSERT INTO tbl...', Array, Object(PDOException))
+> #1 D:\wwwroot\test-mijn.rino.nl\cma\classes\FormDataProvider.php(2504): App\Library\Database::executeOn(Object(PDO), 'INSERT INTO tbl...')
+> #2 D:\wwwroot\test-mijn.rino.nl\cma\classes\FormDataProvider.php(1159): Cma\FormDataProvider::logMonitoring('opleidingen_dee...', 'Deelnemers', '3975', 'edit', Array)
+> #3 D:\wwwroot\test-mijn.rino.nl\cma\form_api.php(997): Cma\FormDataProvider::saveJsonFormRecord('opleidingen_dee...', '3975', Array, Array)
+> #4 {main}

@@ -2071,6 +2071,18 @@ SQL: " . $sql : ''));
         return self::$errors;
     }
 
+    /**
+     * Drop the failures recorded since $count entries existed — for a caller
+     * that retried a failed statement another way and succeeded: the log line
+     * stays (the retry is itself logged), the admin notice does not.
+     */
+    public static function forgetErrorsSince(int $count): void
+    {
+        if ($count >= 0 && $count < count(self::$errors)) {
+            self::$errors = array_slice(self::$errors, 0, $count);
+        }
+    }
+
     private static function logError(string $sql, array $params, \Throwable $e): void
     {
         $caller = '';
