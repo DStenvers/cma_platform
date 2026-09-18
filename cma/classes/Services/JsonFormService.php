@@ -300,9 +300,28 @@ class JsonFormService extends BaseFormService
             $isLoadMore = $lastId !== null;
 
             // Build SQL: prefer table-based query, fall back to listQuery
+            // The definition's own listQuery still counts when a table is set: its WHERE
+            // restricts what the form shows (the classic NameQuery always did) and its
+            // ORDER BY is the form's natural order — both used to be dropped here.
+            $definitionWhere = '';
+            $definitionOrderBy = '';
+            if (!empty($listQuery)) {
+                if (preg_match('/\s+ORDER\s+BY\s+(.+)$/is', $listQuery, $om)) {
+                    $definitionOrderBy = trim($om[1]);
+                }
+                $withoutOrder = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', $listQuery);
+                if (preg_match('/\sWHERE\s+(.+?)(?:\s+GROUP\s+BY\s.*|\s+HAVING\s.*)?$/is', $withoutOrder, $wm)) {
+                    $definitionWhere = trim($wm[1]);
+                }
+            }
             if (!empty($tableName)) {
                 $columns = ListServiceHelper::buildJsonColumnList($listColumns, $idField);
                 $sql = "SELECT $columns FROM [$tableName]";
+                if ($definitionWhere !== '' && stripos($listQuery, ' JOIN ') === false && stripos($definitionWhere, '[' . $tableName . '].') === false) {
+                    // Only a WHERE on the table itself can be carried over; a join
+                    // condition would reference tables this SELECT does not have.
+                    $sql = SQL::addWhere($sql, '(' . $definitionWhere . ')');
+                }
             } elseif (!empty($listQuery)) {
                 // Strip existing ORDER BY - we add our own for pagination
                 $sql = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', $listQuery);
@@ -456,8 +475,19 @@ class JsonFormService extends BaseFormService
                 }
             }
 
-            // Add ORDER BY for consistent pagination
-            $sql .= " ORDER BY $qualifiedIdField $orderDir";
+            // Add ORDER BY for consistent pagination. The keyset paging below works on the
+            // id, so the definition's own ORDER BY can only lead when everything fits in
+            // one batch (no paging) — then the list appears in its natural order, e.g.
+            // groups by name; larger lists keep the id order the paging depends on.
+            $useDefinitionOrder = $definitionOrderBy !== ''
+                && !$isLoadMore
+                && $totalCount > 0 && $totalCount <= $pageSize
+                && stripos($definitionOrderBy, $idField) === false;
+            if ($useDefinitionOrder) {
+                $sql .= ' ORDER BY ' . $definitionOrderBy . ", $qualifiedIdField $orderDir";
+            } else {
+                $sql .= " ORDER BY $qualifiedIdField $orderDir";
+            }
 
             // Apply TOP limit - fetch one extra to detect if there are more rows
             $sql = SQL::addTop($sql, $pageSize + 1, $conn);
