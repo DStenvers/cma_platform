@@ -4083,7 +4083,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>quickSearchFields</code></td><td>Comma-gescheiden veldnamen voor het snelzoek-veld.</td></tr>
             <tr><td><code>activeField</code></td><td>Veld dat actief (1=groen) / inactief (0) markeert in de list.</td></tr>
             <tr><td><code>allowAdd</code> / <code>allowDelete</code> / <code>allowCopy</code></td><td>Toolbar-acties aan/uit.</td></tr>
-            <tr><td><code>securityByUser</code></td><td>Records filteren op eigenaar (rij-niveau autorisatie).</td></tr>
+            <tr><td><code>securityByUser</code></td><td>Rij-niveau autorisatie: in de rechtenmatrix wordt de kolom <strong>Eigen</strong> (niveau 20, "alleen eigen records") voor dit formulier toekenbaar. Gebruikers met dat niveau zien in boom en tabel alleen rijen waarvan de kolom <code>userid</code> (zo nodig via <code>AS userid</code> in de <code>listQuery</code>) hun CMA-gebruikers-id is, mogen toevoegen en hun eigen records wijzigen/verwijderen; records van anderen zijn alleen-lezen.</td></tr>
             <tr><td><code>storeLastModified</code></td><td>Houd last-modified timestamp bij.</td></tr>
             <tr><td><code>protectedRecords</code></td><td>Record-IDs die niet verwijderd mogen worden.</td></tr>
             <tr><td><code>filter</code></td><td>Configuratie van de filter-dropdown.</td></tr>
@@ -4109,6 +4109,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>hint</code> / <code>hintEnglish</code></td><td>Tooltip-tekst.</td></tr>
             <tr><td><code>required</code> / <code>readonly</code></td><td>Verplicht / alleen-lezen.</td></tr>
             <tr><td><code>maxLength</code> / <code>height</code></td><td>Max. aantal tekens / hoogte (memo-velden).</td></tr>
+            <tr><td><code>numericPrecision</code></td><td>Numeriek veld: aantal cijfers (<code>"10"</code> of <code>"10,2"</code>). Bepaalt de invoerlengte en -breedte (precisie + teken, + 1 bij decimalen; zonder precisie 8 tekens, maximaal 20).</td></tr>
             <tr><td><code>useContentBlocks</code></td><td>Gebruik de blockedit content-block-editor i.p.v. een gewone richttext (zie <a href="documentation.php?topic=iis_config">…</a> / blockedit).</td></tr>
             <tr><td><code>source</code> / <code>sql</code> / <code>database</code> / <code>filterByField</code></td><td>Opties-bron voor <code>combobox</code>/<code>dropdown</code>/<code>checklist</code>: een data-source, een SQL-query, en optioneel afhankelijk van een ander veld.</td></tr>
             <tr><td><code>options</code></td><td>Inline keuze-opties (i.p.v. een query).</td></tr>
