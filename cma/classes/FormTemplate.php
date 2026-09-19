@@ -720,7 +720,7 @@ class FormTemplate
                 // No options found - show quick search box instead
                 // The filter field will be included in the search panel
                 $html .= '<div class="toolbar-right">' . PHP_EOL;
-                $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="Zoeken..."></lib-search-input>' . PHP_EOL;
+                $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="' . Server::htmlEncode('Zoeken in \'' . $formName . '\'...') . '"></lib-search-input>' . PHP_EOL;
                 // Empty until the list reports a count. No inline display:none — the
             // .table-mode-only rules are !important, so an inline style never
             // wins; the element is steered by its TEXT (see CMA.utils.setRecordCount).
@@ -730,7 +730,7 @@ class FormTemplate
         } else {
             // Standard quick search box on right
             $html .= '<div class="toolbar-right">' . PHP_EOL;
-            $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="Zoeken..."></lib-search-input>' . PHP_EOL;
+            $html .= '<lib-search-input id="searchfor" name="searchfor" placeholder="' . Server::htmlEncode('Zoeken in \'' . $formName . '\'...') . '"></lib-search-input>' . PHP_EOL;
             // Empty until the list reports a count. No inline display:none — the
             // .table-mode-only rules are !important, so an inline style never
             // wins; the element is steered by its TEXT (see CMA.utils.setRecordCount).

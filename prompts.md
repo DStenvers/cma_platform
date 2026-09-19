@@ -15208,3 +15208,6 @@ karaat-data en staat in de karaat-repo.
 > <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
 > I have one more change queued for cma/assets/js/form-controller.js (applyDefaultValues: date defaults "today"/"Date()" for lib-datepicker, ~10 lines) and will wait until you message that 1.50.5 is pushed. My other files (FormRenderer.php, marketingurl.json, tests) are uncommitted in the tree; please keep staging by explicit path as before. No rush.
 > </cross-session-message>
+
+> any work left?
+> great pleas continue

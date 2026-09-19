@@ -415,8 +415,16 @@ class TreeService extends BaseFormService
             }
             $truncated = false;
 
-            // Determine display field
+            // Determine display field. A detailField that the query does not return
+            // is a definition error: say so (old list.asp listed the available
+            // columns) instead of silently showing another column.
             $displayFieldName = $detailField ?: '';
+            if ($displayFieldName !== '' && !$rs->EOF) {
+                $available = array_keys(array_filter(\App\Library\Str::toUtf8($rs->fetchAssoc()), fn($k) => !is_int($k), ARRAY_FILTER_USE_KEY));
+                if (!in_array(strtolower($displayFieldName), array_map('strtolower', $available), true)) {
+                    return self::error("detailField '$displayFieldName' komt niet voor in de lijstquery van formulier '$formName'. Beschikbare kolommen: " . implode(', ', $available));
+                }
+            }
             if (empty($displayFieldName) && !empty($listColumns)) {
                 $excludeFields = array_map('strtolower', array_filter(array_merge([$idField], $groupFields ?? [])));
                 foreach ($listColumns as $col) {
@@ -534,7 +542,10 @@ class TreeService extends BaseFormService
                 $group2 = $group2Field ? $getField($group2Field) : '';
                 $group3 = $group3Field ? $getField($group3Field) : '';
 
-                $display = (string)$display;
+                // Same clean-up the old list gave item labels: line breaks to spaces,
+                // ISO dates to dd-mm-yyyy and Access' English month abbreviations
+                // (oct, may) to Dutch (folders already had this)
+                $display = \App\Library\Date::fixMonthNames(\App\Library\Date::fixValue(str_replace(["\r\n", "\r", "\n"], ' ', (string)$display)));
                 $rawImg = $imageField ? (string)$getField($imageField) : '';
                 $imageSrc = $buildTreeImgSrc($rawImg);       // full-size (data-full)
                 $imageThumb = $buildTreeThumbSrc($rawImg);   // smallest WebP (src)

@@ -446,7 +446,7 @@ $envPrefix = Application::get('omgeving', '') === 'T' ? 'TEST: ' : (Application:
     <div class="cma-app">
         <aside class="cma-sidebar" id="sidebar">
             <div class="cma-sidebar-header">
-                <a href="<?= Server::htmlEncode($appLogoUrl) ?>" class="cma-logo" target="_blank">
+                <a href="<?= Server::htmlEncode($appLogoUrl) ?>" class="cma-logo" target="_blank" title="Ga naar de site">
                     <?php if (!empty($appLogoPath)): ?>
                     <?php /* onerror: when the configured logo file is
                        missing on the consumer site, swap the broken

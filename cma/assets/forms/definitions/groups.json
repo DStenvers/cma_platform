@@ -7,7 +7,7 @@
   "table": "tblGroups",
   "database": "users",
   "idField": "ID",
-  "listQuery": "SELECT ID, grpName as Naam\nFROM tblGroups\nORDER BY grpName",
+  "listQuery": "SELECT ID, grpName & IIf(isBeheer, ' (beheer)', '') AS Naam\nFROM tblGroups\nORDER BY grpName",
   "allowAdd": true,
   "allowDelete": true,
   "allowCopy": false,

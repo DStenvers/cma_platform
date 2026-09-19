@@ -2893,6 +2893,12 @@ class CmaFormController {
                 // Regular field - just set value
                 field.value = this.parentID;
             }
+            // Added from a subform: the parent is given, not a choice (details.asp
+            // showed it as a label). Readonly keeps the value in the submission.
+            if (typeof field.setAttribute === 'function') {
+                field.setAttribute('readonly', '');
+                field.setAttribute('data-parent-locked', 'true');
+            }
         } else {
             // cmaLog.log('setParentFieldValue: field not found for', this.parentField);
         }
@@ -6056,10 +6062,20 @@ class CmaFormController {
      */
     _doSearchAsYouType(value) {
         // Client-side filtering - no SQL calls, just show/hide items
-        const trimmedValue = (value || '').trim().toLowerCase();
+        let trimmedValue = (value || '').trim().toLowerCase();
 
         // Store search term for highlighting (case-sensitive for display)
         this.searchTerm = (value || '').trim();
+
+        // Threshold scaled to the list size (old all.js): 3 characters above 2000
+        // items, 2 above 1000, else 1 — a single letter on a big list hides
+        // almost nothing and costs a full DOM pass per keystroke. Shorter input
+        // leaves the list unfiltered until Enter.
+        const listSize = (this.listContent?.querySelectorAll('a[data-id], tr.listrow, li') || []).length;
+        const minLetters = listSize > 2000 ? 3 : (listSize > 1000 ? 2 : 1);
+        if (trimmedValue !== '' && trimmedValue.length < minLetters) {
+            trimmedValue = '';
+        }
 
         // If cma-tree web component is present, use its built-in filter method
         const cmaTree = this.listContent ? this.listContent.querySelector('cma-tree') : null;
@@ -6229,7 +6245,7 @@ class CmaFormController {
         if (searchInput) {
             if (count > 0) {
                 searchInput.disabled = false;
-                searchInput.placeholder = 'Zoek...';
+                // Keep the server's "Zoeken in '<formulier>'..." placeholder
                 // Restore search term if we have one (important when switching views)
                 if (this.searchTerm && searchInput.value !== this.searchTerm) {
                     searchInput.value = this.searchTerm;
@@ -7619,13 +7635,15 @@ class CmaFormController {
                 }
 
                 if (recordId) {
-                    // Only set active state if loadRecord succeeds
+                    // Highlight at once (old ftiens4 did), so the click has visible
+                    // feedback during the fetch; put the previous item back on failure
+                    const previous = self.listContent.querySelector('a.active');
+                    self.listContent.querySelectorAll('a.active').forEach(a => a.classList.remove('active'));
+                    link.classList.add('active');
                     const success = await self.loadRecord(recordId);
-                    if (success) {
-                        // Remove previous active state
-                        self.listContent.querySelectorAll('a.active').forEach(a => a.classList.remove('active'));
-                        // Add active state
-                        link.classList.add('active');
+                    if (!success) {
+                        link.classList.remove('active');
+                        if (previous) previous.classList.add('active');
                     }
                 } else {
                     cmaLog.warn('Could not extract ID from href:', link.getAttribute('href'));
@@ -8285,6 +8303,11 @@ class CmaFormController {
                 // Load custom renderers (security_groups, group_menu_rights, etc.) for copied records
                 this.loadCustomRenderers('').catch(error => {
                     cmaLog.error('loadCustomRenderers error (copy):', error);
+                });
+                // Checklist selections of the source record come along with the copy
+                // (details.asp copied them; they were lost here)
+                this.loadChecklists(sourceRecordId).catch(error => {
+                    cmaLog.error('loadChecklists error (copy):', error);
                 });
 
                 // Update status and toolbar
@@ -10374,9 +10397,30 @@ class CmaFormController {
                 parts.push(formatErrors.join(', '));
             }
             this.showError(parts.join('. ') || 'Vul alle verplichte velden in');
+            // Take the user to the first problem (old formval_nl focused it), opening
+            // a collapsed group box if it sits in one
+            const first = this.mainForm.querySelector('.invalid');
+            if (first) this.focusInvalidField(first);
         }
 
         return isValid;
+    }
+
+    /**
+     * Open the group box around an invalid field, focus and scroll to it.
+     */
+    focusInvalidField(field) {
+        try {
+            const row = field.closest('tr[data-group-row]');
+            if (row) {
+                const groupbox = document.querySelector(`cma-groupbox[group-id="${row.dataset.groupRow}"]`);
+                if (groupbox && !groupbox.isOpen && typeof groupbox.open === 'function') groupbox.open(false);
+            }
+        } catch (e) { /* no group boxes */ }
+        const target = field.matches('input, textarea, select') ? field
+            : (field.querySelector('input, textarea, select') || field);
+        if (typeof target.focus === 'function') target.focus();
+        if (typeof field.scrollIntoView === 'function') field.scrollIntoView({ block: 'center' });
     }
 
     /**
@@ -12479,12 +12523,7 @@ class CmaFormController {
             if (!first) first = el;
         }
         if (first) {
-            try {
-                const tab = first.closest('[data-tab-id], .tab-content, .tab-panel');
-                if (tab && typeof this.activateTab === 'function') this.activateTab(tab);
-            } catch (e) { /* no tabs */ }
-            if (typeof first.focus === 'function') first.focus();
-            if (typeof first.scrollIntoView === 'function') first.scrollIntoView({ block: 'center' });
+            this.focusInvalidField(first);
         }
     }
 

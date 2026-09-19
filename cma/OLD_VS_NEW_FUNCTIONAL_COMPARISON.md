@@ -61,7 +61,7 @@ These are the items most likely to bite a user today. They are regressions again
 | 33 | **Done 2026-09-19 (v1.50.6: classic tabs open their first item; quick-search term follows via the menu; ?search= filters on first load).** Menu group click no longer opens its first item; search criteria not carried across forms | `all.js:574-603, 623-627` | `main.js:390-420, 600-650` |
 | 34 | **Not applicable 2026-09-19: module parameters are not used by the PHP site.** Module-parameters editor (`tblModuleParameters`) removed | `mod_maint.asp:169-260` | — |
 | 35 | **Not applicable 2026-09-19: no site combo SQL uses Group|Item or =[field] placeholders.** Combo `Group\|Item` → OPTGROUP and `<br>` → ", " cleanup not reproduced; `=[ProdID]` → `is null` for new records gone | `edit.inc:206-226` | `FormDataProvider.php:1370-1380, 1533-1540` |
-| 36 | Copy via URL loses checklist selections; `clearflds` gone | `details.asp:960-965` | `form-controller.js:8138-8235` |
+| 36 | **Done 2026-09-19 (v1.50.8: checklist selections of the source record are loaded for a copy via URL).** Copy via URL loses checklist selections; `clearflds` gone | `details.asp:960-965` | `form-controller.js:8138-8235` |
 | 37 | **Not applicable 2026-09-19: no site definition uses a userlist field.** UserList field no longer admin-gated / defaulted to current user | `details.asp:525, 690-697` | `FormTemplate.php:1843` |
 | 38 | **Not applicable 2026-09-19: no site definition uses [GUID2]/[omgeving].** `[GUID2]` reads `guid2` instead of `secret`; `[omgeving]` not substituted in extra buttons | `toolbar.inc:100-111` | `form-controller.js:2132-2133, 10570-10590` |
 | 39 | **Done 2026-09-19 (v1.50.4: template request-neutral; form.php injects popup/detail state, controller fills __ParentField).** Cached form template bakes request state (`body.popup`, `__ParentField/Value`) into a per-form cache | — | `FormTemplate.php:106-149, 502-533, 1539-1544` |
@@ -76,29 +76,29 @@ These are the items most likely to bite a user today. They are regressions again
 
 ### P2 — small display optimisations worth adopting
 
-1. Placeholder with the form name: `Zoeken in 'Cursisten'...` (`list.asp:621`); new uses two different generic strings (`FormTemplate.php:691,701`, `form-controller.js:6149`).
-2. `user-select: none` on the list panel and toolbar (`list.asp:635`, `toolbar.inc:39`): double-click now opens a popup and selects text.
-3. Instant active highlight on click (`ftiens4.js:182-185`) instead of after the fetch (`form-controller.js:7530-7538`).
-4. Search-as-you-type threshold scaled to list size: 3 chars above 2000 rows (`all.js:413`); new filters from the first character regardless of size.
-5. Show the tree title with the form name (generated in `TreeService.php:462`, hidden by `style.css:754-755`).
+1. **Done v1.50.8: "Zoeken in '<formulier>'...".** Placeholder with the form name: `Zoeken in 'Cursisten'...` (`list.asp:621`); new uses two different generic strings (`FormTemplate.php:691,701`, `form-controller.js:6149`).
+2. **Done v1.50.8.** `user-select: none` on the list panel and toolbar (`list.asp:635`, `toolbar.inc:39`): double-click now opens a popup and selects text.
+3. **Done v1.50.8 (simple tree; the grouped tree already did).** Instant active highlight on click (`ftiens4.js:182-185`) instead of after the fetch (`form-controller.js:7530-7538`).
+4. **Done v1.50.8.** Search-as-you-type threshold scaled to list size: 3 chars above 2000 rows (`all.js:413`); new filters from the first character regardless of size.
+5. **Done v1.50.8.** Show the tree title with the form name (generated in `TreeService.php:462`, hidden by `style.css:754-755`).
 6. Fold "expanded" width as a percentage (old 50 %, `style.css:231-235`) and per form (`list.asp:209-214`) instead of a global 600 px cap (`FormTemplate.php:573`).
 7. Apply the remembered toolbar filter server-side on first paint (`list.asp:475-479`) to avoid the empty-combo flash (`form-controller.js:6547-6628`).
-8. Month-name fix on tree items, not only folders (`list.asp:1161,1164` vs `TreeService.php:647`).
-9. Clear error when `DetailField` is missing (`list.asp:1027-1040`) instead of a silent fallback (`TreeService.php:503-517`).
+8. **Done v1.50.8 (also line breaks and ISO dates).** Month-name fix on tree items, not only folders (`list.asp:1161,1164` vs `TreeService.php:647`).
+9. **Done v1.50.8.** Clear error when `DetailField` is missing (`list.asp:1027-1040`) instead of a silent fallback (`TreeService.php:503-517`).
 10. `<sort:value>` and `<html>` cell prefixes for custom sort keys and raw HTML (`class_table.inc:267-294`), unsupported by `JsonFormService.php:706-768`.
-11. Required `*` beside the caption with "Verplichte invoer" tooltip; stays visible when filled or readonly.
-12. "Laatste gewijzigd" tip card (markup exists, `form.css:751-780`) once #19 is fixed.
-13. Post-caption hints `dd-mm-jjjj` / `uu:mm` at 11 px (`style.css:1247-1253`) instead of 9 px italic (`form.css:803-812`).
+11. **Rejected 2026-09-19 (no star).** Required `*` beside the caption with "Verplichte invoer" tooltip; stays visible when filled or readonly.
+12. **Done v1.50.0 (tip card shows with the stamped values).** "Laatste gewijzigd" tip card (markup exists, `form.css:751-780`) once #19 is fixed.
+13. **Done v1.50.8 (11 px upright).** Post-caption hints `dd-mm-jjjj` / `uu:mm` at 11 px (`style.css:1247-1253`) instead of 9 px italic (`form.css:803-812`).
 14. Image size hint next to the control ("Maximaal: 300px breed - 200px hoog", `details.asp:1150-1172`), not only inside the editor.
 15. Sortlist A→Z / Z→A buttons and Ctrl+arrow hint (`details.asp:1369-1381`).
-16. Auto-growing textareas and content-sized editor (`details.asp:912-917, 1244`).
+16. **Done v1.50.4.** Auto-growing textareas and content-sized editor (`details.asp:912-917, 1244`).
 17. Pressed-button feedback on Save/New/Copy (`style.css:43-49`, `all.js:700`); also listed in `todo.md`.
 18. Collapsed groups rendered collapsed server-side to avoid the expand→collapse flash (`details.asp:508-515`).
-19. Focus and tab-switch to the first invalid field after validation (`formval_nl.js:94-112`).
-20. Parent record shown as a read-only label when adding from a subform (`details.asp:807-817`) instead of a hidden row.
-21. Auto-open the first item when a menu group is expanded (`all.js:623-627`); focus the password field when the login name is pre-filled (`login.asp:291`).
-22. Red menu bar on TEST (`style.css:276-278`) versus a small label; " (beheer)" suffix in the group list (`sec_list_groups.asp:210`); logo tooltip "Ga naar de site" (`menurep.asp:141`).
-23. Report toolbar: Print button and `FormatDateTime(now(), vbLongDate)`; loader spinner only after 500 ms (`reportdetails.asp:87-88`).
+19. **Done v1.50.8 (focus + group box opened; tabs are subform-only).** Focus and tab-switch to the first invalid field after validation (`formval_nl.js:94-112`).
+20. **Done v1.50.8 (parent combo locked readonly).** Parent record shown as a read-only label when adding from a subform (`details.asp:807-817`) instead of a hidden row.
+21. **Partly: first item opens (v1.50.4, classic tabs); login keeps focusing the name field by an explicit earlier decision in login.php.** Auto-open the first item when a menu group is expanded (`all.js:623-627`); focus the password field when the login name is pre-filled (`login.asp:291`).
+22. **Partly v1.50.8: " (beheer)" suffix and logo tooltip; red TEST bar not adopted.** Red menu bar on TEST (`style.css:276-278`) versus a small label; " (beheer)" suffix in the group list (`sec_list_groups.asp:210`); logo tooltip "Ga naar de site" (`menurep.asp:141`).
+23. **Done v1.50.6.** Report toolbar: Print button and `FormatDateTime(now(), vbLongDate)`; loader spinner only after 500 ms (`reportdetails.asp:87-88`).
 
 ### What the new CMA does better (do not regress)
 
@@ -108,7 +108,7 @@ Table view with sticky headers, column filters, chooser and drag order, inline e
 
 ## 2. Suggested order of work
 
-_Status 2026-09-19: P0 1–14 and P1 18–24, 27–30, 33, 39–44, 46, 47 done in v1.49.0–v1.50.6; 25 decided against; 15, 16, 26, 31, 34, 35, 37, 38 not applicable to the site (see the notes in the tables). Open: P0 17, P1 36, 45 and the P2 list._
+_Status 2026-09-19: P0 1–14 and P1 18–24, 27–30, 33, 39–44, 46, 47 done in v1.49.0–v1.50.6; 25 decided against; 15, 16, 26, 31, 34, 35, 37, 38 not applicable to the site (see the notes in the tables). Open: P0 17, P1 45 and P2 6, 7, 10, 14, 15, 17, 18._
 
 1. P0 #1–#3 (rights): one change in `FormDataProvider` (use form rights, not admin level), restore group 0 and `isBeheer` in `SecurityHelper`/`RecordService`/`groups.json`.
 2. P0 #5–#7 (save path): skip readonly fields, keep DB defaults by omitting empty columns, port the server-side validators from `detailsRep_post.asp`.

@@ -751,8 +751,15 @@ table#buttonbar button {width:110px}
 .libTableSort		  {width:21px;color:var(--text-secondary)}
 
 	
+/* Tree title with the form name, as the old list showed it (was display:none) */
 #simpletree div.titel,
-.complextree div.titel {display:none}
+.complextree div.titel {font-weight:600;padding:4px 6px 6px 6px;color:var(--text-primary)}
+#simpletree div.titel::first-letter {text-transform: uppercase;}
+/* The list panel and toolbars are for clicking; a double-click opens a record and
+   must not select the text (old list.asp/toolbar.inc had user-select:none) */
+#listContent, #listContent *, #detailToolbar, #listToolbar, .toolbar { user-select: none; }
+#listContent input, #listContent textarea, #listContent lib-search-input,
+.toolbar input, .toolbar textarea, .toolbar lib-search-input, .toolbar lib-combo, .toolbar select { user-select: text; }
 .complextree {padding:6px}
 .complextree div.titel::first-letter {text-transform: uppercase;}
 .complextree ul.f_closed {display:none}

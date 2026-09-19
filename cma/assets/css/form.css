@@ -799,21 +799,20 @@ span.dateselect input.datefield.invalid {
     margin-top: 2px;
 }
 
-/* Post caption (hint text below label) */
+/* Post caption (hint text below label): 11px upright as the old .small hints,
+   9px italic was hard to read */
 .postcaption {
-    font-size: 9px;
+    font-size: 11px;
     color: var(--text-secondary);
     margin-top: 2px;
     margin-left: 12px;
-    font-style: italic;
 }
 
 /* Post caption inline (after small input fields) */
 .postcaption-inline {
-    font-size: 9px;
+    font-size: 11px;
     color: var(--text-secondary);
     margin-left: 8px;
-    font-style: italic;
     vertical-align: middle;
     display: inline-block;
     line-height: 24px;
