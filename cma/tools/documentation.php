@@ -2031,6 +2031,28 @@ function cma_doc_check_php_version(): array {
 }
 
 /**
+ * OPcache with the JIT. opcache.jit_buffer_size is PHP_INI_SYSTEM: only php.ini
+ * of de FastCGI-handler zet het, niet .user.ini, niet ini_set(), niet een
+ * migratie; daarna is een app-pool-recycle nodig. Vandaar een check die de
+ * beheerder de regel voorzegt, in plaats van code die het probeert te zetten.
+ */
+function cma_doc_check_opcache_jit(): array {
+    $label = 'OPcache + JIT';
+    if (!function_exists('opcache_get_status') || !filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'OPcache staat uit: elke request compileert alle PHP-bestanden opnieuw.',
+            'fix' => 'Zet in php.ini <code>opcache.enable=1</code> en recycle de app-pool.'];
+    }
+    $jit = (string) ini_get('opcache.jit');
+    $buffer = \App\Library\Upload::iniBytes((string) ini_get('opcache.jit_buffer_size'));
+    $jitOn = $buffer > 0 && $jit !== '' && $jit !== '0' && strtolower($jit) !== 'off' && strtolower($jit) !== 'disable';
+    $advies = 'Zet in php.ini (niet in <code>.user.ini</code>: de instelling is PHP_INI_SYSTEM) <code>opcache.jit=tracing</code> en <code>opcache.jit_buffer_size=64M</code>, en recycle de app-pool. 64M is ruim voor deze codebase; de winst is bescheiden op een site die vooral op de database wacht.';
+    if ($jitOn) {
+        return ['label' => $label, 'status' => 'pass', 'detail' => 'OPcache aan, JIT <code>' . htmlspecialchars($jit) . '</code> met een buffer van ' . htmlspecialchars((string) ini_get('opcache.jit_buffer_size')) . '.', 'fix' => ''];
+    }
+    return ['label' => $label, 'status' => 'warn', 'detail' => 'OPcache aan, maar de JIT staat uit (<code>opcache.jit=' . htmlspecialchars($jit) . '</code>, <code>opcache.jit_buffer_size=' . htmlspecialchars((string) ini_get('opcache.jit_buffer_size')) . '</code>).', 'fix' => $advies];
+}
+
+/**
  * The extensions the platform actually calls into. mbstring is hard-required
  * (App\Library\Str is mb_* end to end); the rest degrade a feature, not the app.
  */
@@ -2279,6 +2301,7 @@ function render_doc_installation(): void
     cma_doc_render_check_table('Vereisten — live check op deze site', cma_doc_run_checks([
         'cma_doc_check_php_version',
         'cma_doc_check_php_extensions',
+        'cma_doc_check_opcache_jit',
         'cma_doc_check_composer_script_handlers',
     ]));
     ?>
@@ -2290,6 +2313,7 @@ function render_doc_installation(): void
         <li>PHP 8.4+ via FastCGI handler (PHP 8.5 wordt ondersteund maar test consumer-code op nieuwe deprecaties).</li>
         <li>PHP-extensies: <code>mbstring</code> (verplicht — <code>App\Library\Str</code> draait volledig op <code>mb_*</code>), <code>gd</code> (beeldbewerking/WebP), <code>odbc</code> of <code>pdo_odbc</code> (Access), <code>openssl</code>, <code>curl</code>, <code>fileinfo</code> (MIME-detectie bij downloads). Controleer met <code>php -m</code>, of lees de check-tabel bovenaan deze pagina.</li>
         <li>Composer 2.x in het <code>PATH</code> van de IIS app-pool user (anders faalt <code>DEPLOY_COMPOSER_UPDATE</code> stilzwijgend tijdens deploys).</li>
+        <li><span class="cma-tool__strong">php.ini</span>: <code>opcache.enable=1</code> (verplicht in de praktijk), en bij voorkeur <code>opcache.jit=tracing</code> met <code>opcache.jit_buffer_size=64M</code>. Die drie zijn PHP_INI_SYSTEM: alleen php.ini van de FastCGI-handler telt, niet <code>.user.ini</code> en niet <code>ini_set()</code>, dus ook geen migratie of deploy-stap kan ze zetten; na de wijziging is een app-pool-recycle nodig. De check-tabel bovenaan laat zien wat deze site heeft, en het dashboard toont beheerders en ontwikkelaars dezelfde adviezen als kaart (<code>Cma\Services\PhpAdvice</code>): PHP ouder dan 8.3.14 (PDO_ODBC verminkt daar lange tekstwaarden bij het schrijven), OPcache uit, JIT uit, APCu ontbreekt, kleine realpath-cache.</li>
         <li>Git voor pull-deploys.</li>
     </ul>
 

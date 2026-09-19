@@ -1105,29 +1105,25 @@ if ($isAdmin) {
     </div>
 
     <?php
-    // PHP performance warnings for admin/developer users
-    if ($isAdmin || $isDeveloper):
-        $phpWarnings = [];
-        // Check OPcache
-        if (!function_exists('opcache_get_status') || opcache_get_status(false) === false) {
-            $phpWarnings[] = '<b>OPcache</b> is niet actief. Dit vertraagt elke pagina-aanvraag aanzienlijk doordat PHP-bestanden steeds opnieuw gecompileerd worden.';
-        }
-        // Check APCu (used by Cache class for in-memory caching)
-        if (!function_exists('apcu_fetch')) {
-            $phpWarnings[] = '<b>APCu</b> is niet geïnstalleerd. Zonder APCu valt de cache terug op bestandssysteem-I/O, wat formulierlijsten en templates aanzienlijk vertraagt.';
-        }
-        // Check realpath cache size (low values cause excessive disk I/O)
-        $realpathCacheSize = ini_get('realpath_cache_size');
-        if ($realpathCacheSize && intval($realpathCacheSize) < 4096) {
-            $phpWarnings[] = '<b>realpath_cache_size</b> is laag (' . $realpathCacheSize . '). Verhoog naar minimaal 4M voor betere prestaties.';
-        }
-    endif;
+    // PHP version and performance advice for admin/developer users (rules in PhpAdvice)
+    $phpWarnings = [];
+    if ($isAdmin || $isDeveloper) {
+        require_once __DIR__ . '/classes/Services/PhpAdvice.php';
+        $phpWarnings = \Cma\Services\PhpAdvice::warnings(
+            PHP_VERSION,
+            function_exists('opcache_get_status') && opcache_get_status(false) !== false,
+            (string) ini_get('opcache.jit'),
+            \App\Library\Upload::iniBytes((string) ini_get('opcache.jit_buffer_size')),
+            function_exists('apcu_fetch'),
+            intdiv(\App\Library\Upload::iniBytes((string) ini_get('realpath_cache_size')), 1024)
+        );
+    }
     if (!empty($phpWarnings)):
     ?>
     <div class="dashboard-card warning">
         <div class="dashboard-card-header">
             <span class="lnr lnr-warning"></span>
-            PHP prestatie-instellingen
+            PHP-versie en prestatie-instellingen
         </div>
         <div class="dashboard-card-body">
             <?php foreach ($phpWarnings as $w): ?>
