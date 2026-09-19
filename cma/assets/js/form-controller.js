@@ -1547,6 +1547,8 @@ class CmaFormController {
                 this.loadCustomRenderers('').catch(error => {
                     cmaLog.error('loadCustomRenderers error (nieuw record, directe URL):', error);
                 });
+                // onLoadJS also runs for a new record (recordId null), as details.asp did
+                this.executeOnLoadJS(null);
 
                 this.expandGroupboxesWithRequiredFields();
             });
@@ -2152,8 +2154,44 @@ class CmaFormController {
         // Re-check toolbar overflow (more buttons visible now)
         this.checkToolbarOverflow();
 
+        // Memo heights follow the content (details.asp estimated them per record)
+        this.sizeMemosToContent();
+
         // Execute onLoadJS from form definition (if configured)
         this.executeOnLoadJS(recordId);
+    }
+
+    /**
+     * Size memo fields to their content: plain textareas grow with the text
+     * (library.js autoGrow, the old details.asp did the same), rich-text editors
+     * get a height estimated from the text length (35px + ~18px per 65 chars,
+     * capped at 450px) like the old form did.
+     */
+    sizeMemosToContent() {
+        if (!this.mainForm) return;
+        try {
+            if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.autoGrow === 'function') {
+                this.mainForm.querySelectorAll('textarea[data-type="memo"]:not([data-allow-html="true"])').forEach(ta => {
+                    const minHeight = Math.max(parseInt(ta.style.height, 10) || 0, 36);
+                    jQuery(ta).autoGrow({ minHeight: minHeight });
+                });
+            }
+        } catch (e) {
+            cmaLog.warn('sizeMemosToContent (textarea):', e.message);
+        }
+        if (typeof CKEDITOR === 'undefined') return;
+        this.mainForm.querySelectorAll('textarea[data-allow-html="true"]').forEach(ta => {
+            const editor = CKEDITOR.instances[ta.name];
+            if (!editor) return;
+            const apply = () => {
+                try {
+                    const text = (editor.getData() || '').replace(/<[^>]*>/g, '');
+                    const estimate = Math.min(450, Math.max(parseInt(ta.style.height, 10) || 90, 35 + Math.ceil(text.length / 65) * 18 + 60));
+                    if (typeof editor.resize === 'function') editor.resize('100%', estimate);
+                } catch (e) { /* editor not ready or destroyed */ }
+            };
+            if (editor.status === 'ready') apply(); else editor.once('instanceReady', apply);
+        });
     }
 
     /**
@@ -9031,6 +9069,9 @@ class CmaFormController {
 
         // Re-check toolbar overflow (fewer buttons visible in create mode)
         this.checkToolbarOverflow();
+
+        // onLoadJS also runs for a new record (recordId null), as details.asp did
+        this.executeOnLoadJS(null);
 
         // Enable "new changable only" fields for new records
         this.updateNewChangableOnlyFields(true);
