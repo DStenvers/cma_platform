@@ -337,6 +337,14 @@
           "type": "string",
           "description": "Help text below field (Dutch)"
         },
+        "dirTemplate": {
+          "type": "string",
+          "description": "directory fields: page content served at /<value>/ by the 404 handler (Cma\\Services\\DirectoryUrlService); [ID] and [fieldname] are replaced by the record"
+        },
+        "dirFilename": {
+          "type": "string",
+          "description": "directory fields: file name the template stands for (informational, e.g. index.php)"
+        },
         "hintEnglish": {
           "type": "string",
           "description": "Help text below field (English)"

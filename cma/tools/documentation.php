@@ -4155,6 +4155,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
         <code>directory</code>, <code>xmlstore</code>, <code>label</code>, <code>groupseparator</code>,
         <code>readonly</code>, <code>custom</code>.
     </p>
+    <p class="docs-meta"><code>directory</code>: de waarde (hoofdletters, geen vreemde tekens, uniek) maakt het record bereikbaar als <code>/&lt;waarde&gt;/</code>. Het 404-afhandelscript vraagt <code>\Cma\Services\DirectoryUrlService::resolve($pad)</code>; die geeft de <code>dirTemplate</code> van het veld terug met <code>[ID]</code>/<code>[veldnaam]</code> ingevuld (de oude <code>lib_404.inc</code>). <code>dirFilename</code> is informatief.</p>
     <p class="docs-meta"><code>cma/config/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
     <p class="docs-meta">Nu rendert <code>sortlist</code> als de <code>&lt;cma-sortlist&gt;</code> web component (drag-and-drop). De items komen record-specifiek mee in de record-data (sleutel <code>srtlst_{controlId}</code>, gesorteerd op <code>SortOrder</code>); de gekozen volgorde reist terug via het verborgen veld <code>srtlst_{controlId}_info</code> en wordt als <code>SortOrder</code>-update in de brontabel opgeslagen.</p>
 
