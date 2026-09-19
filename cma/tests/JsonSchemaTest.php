@@ -191,7 +191,6 @@ class JsonSchemaTest extends TestCase
             $cma . '/config/cma_branding.json'            => 'cma_branding',
             $cma . '/config/cma_reports.json'             => 'cma_reports',
             $cma . '/config/menu.json'                    => 'menu',
-            $cma . '/config/control-types.json'           => 'control-types',
             $cma . '/control-types.json'                  => 'control-types',
             $cma . '/config/migrations.json'              => 'migrations',
             $cma . '/assets/contentblocks/contentblocks.json' => 'contentblocks',

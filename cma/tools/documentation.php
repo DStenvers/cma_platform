@@ -2614,7 +2614,7 @@ function render_doc_json_config(): void
     </div>
 
     <h2>De configbestanden</h2>
-    <p>In <code>cma/config/</code> zitten: <code>cma_branding.json</code>, <code>menu.json</code>, <code>cma_reports.json</code>, <code>control-types.json</code> en <code>migrations.json</code>. Wie wat leest en welke laag wint:</p>
+    <p>In <code>cma/config/</code> zitten: <code>cma_branding.json</code>, <code>menu.json</code>, <code>cma_reports.json</code> en <code>migrations.json</code>; <code>control-types.json</code> staat direct in <code>cma/</code>. Wie wat leest en welke laag wint:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th><th>Lezer</th><th>Welke laag wint</th></tr></thead>
         <tbody>
@@ -4158,7 +4158,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
     </p>
     <p class="docs-meta"><strong>Module-parameters</strong> (Beheerstools &rarr; Module-parameters, formulier <code>moduleparameters</code>, tabel <code>tblCMAModuleParameters</code>, migratie 9.25.0): per module een sleutel/waarde met type (tekst, HTML, getal, datum, URL, afbeelding), omschrijving en volgorde &mdash; de <code>tblModuleParameters</code> van de oude <code>mod_maint.asp</code>. Sitecode leest ze met <code>\Cma\Services\ModuleParameters::get('module', 'sleutel', 'standaard')</code> of <code>::all('module')</code>.</p>
     <p class="docs-meta"><code>directory</code>: de waarde (hoofdletters, geen vreemde tekens, uniek) maakt het record bereikbaar als <code>/&lt;waarde&gt;/</code>. Het 404-afhandelscript vraagt <code>\Cma\Services\DirectoryUrlService::resolve($pad)</code>; die geeft de <code>dirTemplate</code> van het veld terug met <code>[ID]</code>/<code>[veldnaam]</code> ingevuld (de oude <code>lib_404.inc</code>). <code>dirFilename</code> is informatief.</p>
-    <p class="docs-meta"><code>cma/config/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
+    <p class="docs-meta"><code>cma/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
     <p class="docs-meta">Nu rendert <code>sortlist</code> als de <code>&lt;cma-sortlist&gt;</code> web component (drag-and-drop). De items komen record-specifiek mee in de record-data (sleutel <code>srtlst_{controlId}</code>, gesorteerd op <code>SortOrder</code>); de gekozen volgorde reist terug via het verborgen veld <code>srtlst_{controlId}_info</code> en wordt als <code>SortOrder</code>-update in de brontabel opgeslagen.</p>
 
     <h2>Subforms</h2>
@@ -4442,6 +4442,13 @@ customElements.define('lib-mything', LibMything);
     <pre><code>&lt;div class="panel" part="panel"&gt;…&lt;/div&gt;
 // Host page kan dan:
 // lib-sheet::part(panel) { border-radius: 0; }</code></pre>
+
+    <h3>Gedeelde stylesheets: LibSharedStyles</h3>
+    <p>Elke shadow root met een eigen <code>&lt;style&gt;</code> parseert die CSS opnieuw, per instantie. <code>library/webcomponents/lib-shared-styles.js</code> deelt de gemeenschappelijke regels via <code>adoptedStyleSheets</code>: één <code>CSSStyleSheet</code> per categorie, door alle instanties samen gebruikt. Categorieën: <code>base</code> (custom properties, box-sizing, typografie; altijd meegenomen), <code>button</code>, <code>input</code>, <code>animation</code>, <code>dropdown</code>, <code>badge</code>, <code>scrollbar</code>. In <code>connectedCallback()</code>:</p>
+    <pre><code>if (typeof LibSharedStyles !== 'undefined' &amp;&amp; LibSharedStyles.isSupported()) {
+    LibSharedStyles.adopt(this.shadowRoot, 'button', 'input');
+}</code></pre>
+    <p><code>adopt()</code> geeft <code>false</code> terug als de browser het niet kan; dan levert <code>LibSharedStyles.getInlineCSS('base', 'button')</code> dezelfde CSS als tekst voor een inline <code>&lt;style&gt;</code>. Gebruik in component-CSS de variabelen uit <code>base</code> (<code>--bg-surface</code>, <code>--border-color</code>, <code>--text-primary</code>, <code>--spacing-sm</code>, <code>--radius-md</code>, <code>--transition-base</code>, …) altijd mét terugvalwaarde, <code>var(--bg-surface, #fff)</code>, want zonder adoptie bestaan ze niet. <code>LibSharedStyles.categories</code> geeft de namen; een onbekende categorie logt een waarschuwing en wordt overgeslagen.</p>
 
     <h2>De grens van ::part — en de licht-DOM als uitweg</h2>
     <p><code>::part()</code> kent <span class="cma-page__strong">geen afdaling in de shadow tree</span>. Je kunt van buiten wel het element mét het part aanspreken, maar niet iets dáárbinnen: <code>cma-tabs::part(tab selected) .tab-title</code> selecteert niets. Elke toestand die een site wil opmaken moet dus als extra token in het part-attribuut van precies dat element staan (<code>part="title selected"</code>). Zolang alleen de buitenste <code>&lt;li&gt;</code> zijn toestand meekrijgt, is de helft van een bestaande stylesheet niet uit te drukken.</p>
@@ -4823,6 +4830,7 @@ function render_doc_releasing(): void
     // …
 ];</code></pre>
     <p>Entries kunnen voor altijd blijven staan — <code>is_file()</code> guard zorgt dat de cleanup idempotent is.</p>
+    <p>Een hele map die het platform niet meer levert gaat in <code>REMOVED_DIRS</code> (recursief verwijderd, alleen voor mappen die uitsluitend van het platform zijn en waar een site nooit eigen bestanden zet). En <code>RUNTIME_DIRS</code> (<code>logs</code>, <code>cache</code>, <code>temp</code> bovenin een gesynchroniseerde boom) worden nooit gekopieerd: dat is per-site toestand, geen pakketinhoud; alleen de <code>web.config</code> direct in zo'n map (de toegangsblokkade) gaat wel mee.</p>
 
     <h2>Automatisch melden in de response</h2>
     <p>Per CLAUDE.md / memory <code>feedback_version_bump</code>: na elke push noem ik de nieuwe versie expliciet in de user-facing message. Zonder dat moeten consumer-operators in de profiel-balk kijken om te weten welke versie ze net binnen krijgen.</p>

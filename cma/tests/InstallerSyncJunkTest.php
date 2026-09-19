@@ -171,4 +171,45 @@ class InstallerSyncJunkTest extends TestCase
         $this->assertFalse(file_exists($dest . '/.DS_Store'));
         $this->assertEquals(0, count($errors));
     }
+
+    public function testRuntimeDirsAreNotSyncedExceptTheirWebConfig(): void
+    {
+        $src = $this->tmpRoot . '/src6';
+        $dest = $this->tmpRoot . '/dest6';
+
+        $this->write('src6/logs/404_2026-01-06.log', 'stale');
+        $this->write('src6/cache/logs/app_2026-01-08.log', 'stale');
+        $this->write('src6/temp/web.config', '<deny/>');
+        $this->write('src6/temp/scratch.txt', 'x');
+        $this->write('src6/assets/logs/keep.txt', 'not a runtime dir: only the top level counts');
+        $this->write('src6/main.php', 'real');
+        // What a site already has there must be left alone.
+        $this->write('dest6/logs/404_2026-09-19.log', 'live');
+
+        $errors = $this->syncDirectory($src, $dest);
+
+        $this->assertEquals(0, count($errors));
+        $this->assertTrue(file_exists($dest . '/main.php'));
+        $this->assertFalse(file_exists($dest . '/logs/404_2026-01-06.log'), 'package logs never reach a site');
+        $this->assertFalse(is_dir($dest . '/cache'), 'the runtime dir is not even created');
+        $this->assertFalse(file_exists($dest . '/temp/scratch.txt'));
+        $this->assertTrue(file_exists($dest . '/temp/web.config'), 'the access-deny rule inside a runtime dir ships');
+        $this->assertTrue(file_exists($dest . '/assets/logs/keep.txt'), 'a nested directory that happens to be called logs is package content');
+        $this->assertEquals('live', file_get_contents($dest . '/logs/404_2026-09-19.log'), 'the site\'s own log is untouched');
+    }
+
+    public function testRetiredDirectoriesAreRemovedRecursively(): void
+    {
+        $root = $this->tmpRoot . '/site';
+        $this->write('site/cma/images/menuicons/originelen/poll.png', 'x');
+        $this->write('site/cma/images/menuicons/menu.png', 'x');
+        $this->write('site/cma/images/icons/0151-envelope.png', 'stays');
+
+        $removed = Installer::cleanRemovedDirs($root);
+
+        $this->assertTrue(in_array('cma/images/menuicons', $removed, true), 'reported: ' . implode(',', $removed));
+        $this->assertFalse(is_dir($root . '/cma/images/menuicons'));
+        $this->assertTrue(file_exists($root . '/cma/images/icons/0151-envelope.png'), 'a sibling that is not retired stays');
+        $this->assertEquals([], Installer::cleanRemovedDirs($root), 'second run: nothing left to remove');
+    }
 }

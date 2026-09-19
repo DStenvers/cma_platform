@@ -24,6 +24,32 @@ class Installer
      * Files/directories that should NEVER be overwritten in the project.
      * These contain project-specific configuration.
      */
+    /**
+     * Directories under a synced tree that hold per-site runtime state, never
+     * package content: logs, caches, scratch files. They exist in the package
+     * checkout because the platform's own dev site writes there, and the
+     * repository once tracked months of them; syncing them would overwrite a
+     * site's live logs with the package's stale copies. Matched at the top of
+     * each synced tree (cma/logs, not cma/assets/logs). The directory itself is
+     * not created either; the code that writes there creates it.
+     */
+    private const RUNTIME_DIRS = ['logs', 'cache', 'temp'];
+
+    /**
+     * Whole directories that were once shipped and are retired since. Removed
+     * recursively on every consumer site; only list a directory the platform
+     * owns outright (no site ever puts its own files there).
+     */
+    private const REMOVED_DIRS = [
+        // Legacy raster images nothing references any more: the menu maps
+        // group names to Linearicons classes (menurep.inc), the old
+        // htmleditor is gone, and every site's logo comes from its own
+        // branding config.
+        'cma/images/menuicons',
+        'cma/images/htmledit',
+        'cma/images/logos',
+    ];
+
     private const PROTECTED_PATHS = [
         'data/cma_branding.json',
         'data/app.json',
@@ -230,6 +256,256 @@ class Installer
         // one) + its POST target tools_consistency_picture_delete.php. These were
         // unsurfaced in the tools menu, self-declared deprecated, and reachable by
         // nothing. tools_contentblocks.php is superseded by form.php?form=contentblocks.
+        // Months of log files and app-cache logs that the repository once tracked
+        // under cma/logs and cma/cache/logs and every composer update copied onto
+        // every site. Live logs go to the site's .logs/ and .cache/, so these
+        // are stale copies wherever they exist. cma/logs and cma/cache are
+        // no longer synced at all (RUNTIME_DIRS).
+        'cma/cache/logs/app_2026-01-08.log',
+        'cma/cache/logs/app_2026-01-09.log',
+        'cma/cache/logs/app_2026-01-10.log',
+        'cma/cache/logs/app_2026-01-11.log',
+        'cma/cache/logs/app_2026-01-12.log',
+        'cma/cache/logs/app_2026-01-13.log',
+        'cma/cache/logs/app_2026-01-14.log',
+        'cma/cache/logs/app_2026-01-15.log',
+        'cma/cache/logs/app_2026-01-16.log',
+        'cma/cache/logs/app_2026-01-17.log',
+        'cma/cache/logs/app_2026-01-18.log',
+        'cma/cache/logs/app_2026-01-19.log',
+        'cma/cache/logs/app_2026-01-20.log',
+        'cma/cache/logs/app_2026-01-21.log',
+        'cma/cache/logs/app_2026-01-22.log',
+        'cma/cache/logs/app_2026-01-23.log',
+        'cma/cache/logs/app_2026-01-24.log',
+        'cma/cache/logs/app_2026-01-25.log',
+        'cma/cache/logs/app_2026-01-26.log',
+        'cma/cache/logs/app_2026-01-27.log',
+        'cma/cache/logs/app_2026-01-28.log',
+        'cma/cache/logs/app_2026-01-29.log',
+        'cma/cache/logs/app_2026-01-30.log',
+        'cma/cache/logs/app_2026-01-31.log',
+        'cma/cache/logs/app_2026-02-01.log',
+        'cma/cache/logs/app_2026-02-02.log',
+        'cma/cache/logs/app_2026-02-03.log',
+        'cma/cache/logs/app_2026-02-04.log',
+        'cma/cache/logs/app_2026-02-05.log',
+        'cma/cache/logs/app_2026-02-06.log',
+        'cma/cache/logs/app_2026-02-07.log',
+        'cma/cache/logs/app_2026-02-08.log',
+        'cma/cache/logs/app_2026-02-09.log',
+        'cma/cache/logs/app_2026-02-10.log',
+        'cma/cache/logs/app_2026-02-11.log',
+        'cma/cache/logs/app_2026-02-12.log',
+        'cma/cache/logs/app_2026-02-13.log',
+        'cma/cache/logs/app_2026-02-14.log',
+        'cma/cache/logs/app_2026-02-15.log',
+        'cma/cache/logs/app_2026-02-17.log',
+        'cma/cache/logs/app_2026-02-18.log',
+        'cma/cache/logs/app_2026-02-19.log',
+        'cma/cache/logs/app_2026-02-20.log',
+        'cma/cache/logs/app_2026-02-23.log',
+        'cma/cache/logs/app_2026-02-24.log',
+        'cma/cache/logs/app_2026-02-25.log',
+        'cma/cache/logs/app_2026-02-26.log',
+        'cma/cache/logs/app_2026-02-27.log',
+        'cma/cache/logs/app_2026-02-28.log',
+        'cma/cache/logs/app_2026-03-01.log',
+        'cma/cache/logs/app_2026-03-02.log',
+        'cma/cache/logs/app_2026-03-03.log',
+        'cma/cache/logs/app_2026-03-04.log',
+        'cma/cache/logs/app_2026-03-05.log',
+        'cma/cache/logs/app_2026-03-07.log',
+        'cma/cache/logs/app_2026-03-08.log',
+        'cma/cache/logs/app_2026-03-09.log',
+        'cma/cache/logs/app_2026-03-10.log',
+        'cma/cache/logs/app_2026-03-11.log',
+        'cma/cache/logs/app_2026-03-16.log',
+        'cma/logs/404_2026-01-06.log',
+        'cma/logs/404_2026-01-07.log',
+        'cma/logs/404_2026-01-08.log',
+        'cma/logs/404_2026-01-09.log',
+        'cma/logs/404_2026-01-10.log',
+        'cma/logs/404_2026-01-11.log',
+        'cma/logs/404_2026-01-12.log',
+        'cma/logs/404_2026-01-13.log',
+        'cma/logs/404_2026-01-14.log',
+        'cma/logs/404_2026-01-15.log',
+        'cma/logs/404_2026-01-16.log',
+        'cma/logs/404_2026-01-17.log',
+        'cma/logs/404_2026-01-18.log',
+        'cma/logs/404_2026-01-19.log',
+        'cma/logs/404_2026-01-20.log',
+        'cma/logs/404_2026-01-21.log',
+        'cma/logs/404_2026-01-22.log',
+        'cma/logs/404_2026-01-23.log',
+        'cma/logs/404_2026-01-24.log',
+        'cma/logs/404_2026-01-25.log',
+        'cma/logs/404_2026-01-26.log',
+        'cma/logs/404_2026-01-28.log',
+        'cma/logs/404_2026-01-29.log',
+        'cma/logs/404_2026-01-30.log',
+        'cma/logs/404_2026-01-31.log',
+        'cma/logs/404_2026-02-01.log',
+        'cma/logs/404_2026-02-02.log',
+        'cma/logs/404_2026-02-03.log',
+        'cma/logs/404_2026-02-04.log',
+        'cma/logs/404_2026-02-05.log',
+        'cma/logs/404_2026-02-06.log',
+        'cma/logs/404_2026-02-07.log',
+        'cma/logs/404_2026-02-08.log',
+        'cma/logs/404_2026-02-09.log',
+        'cma/logs/404_2026-02-10.log',
+        'cma/logs/404_2026-02-11.log',
+        'cma/logs/404_2026-02-12.log',
+        'cma/logs/404_2026-02-13.log',
+        'cma/logs/404_2026-02-14.log',
+        'cma/logs/404_2026-02-15.log',
+        'cma/logs/404_2026-02-17.log',
+        'cma/logs/404_2026-02-19.log',
+        'cma/logs/404_2026-02-23.log',
+        'cma/logs/404_2026-02-24.log',
+        'cma/logs/404_2026-02-25.log',
+        'cma/logs/404_2026-02-26.log',
+        'cma/logs/404_2026-02-27.log',
+        'cma/logs/404_2026-02-28.log',
+        'cma/logs/404_2026-03-02.log',
+        'cma/logs/404_2026-03-07.log',
+        'cma/logs/404_2026-03-08.log',
+        'cma/logs/404_2026-03-09.log',
+        'cma/logs/404_2026-03-10.log',
+        'cma/logs/404_2026-03-11.log',
+        'cma/logs/404_2026-03-15.log',
+        'cma/logs/404_2026-03-16.log',
+        'cma/logs/404_2026-03-20.log',
+        'cma/logs/404_2026-03-22.log',
+        'cma/logs/404_2026-03-23.log',
+        'cma/logs/404_2026-03-24.log',
+        'cma/logs/perf_2026-01-06.log',
+        'cma/logs/perf_2026-01-07.log',
+        'cma/logs/perf_2026-01-08.log',
+        'cma/logs/perf_2026-01-09.log',
+        'cma/logs/perf_2026-01-10.log',
+        'cma/logs/perf_2026-01-11.log',
+        'cma/logs/perf_2026-01-12.log',
+        'cma/logs/perf_2026-01-13.log',
+        'cma/logs/perf_2026-01-14.log',
+        'cma/logs/perf_2026-01-15.log',
+        'cma/logs/perf_2026-01-16.log',
+        'cma/logs/perf_2026-01-17.log',
+        'cma/logs/perf_2026-01-18.log',
+        'cma/logs/perf_2026-01-19.log',
+        'cma/logs/perf_2026-01-20.log',
+        'cma/logs/perf_2026-01-21.log',
+        'cma/logs/perf_2026-01-22.log',
+        'cma/logs/perf_2026-01-23.log',
+        'cma/logs/perf_2026-01-24.log',
+        'cma/logs/perf_2026-01-25.log',
+        'cma/logs/perf_2026-01-26.log',
+        'cma/logs/perf_2026-01-27.log',
+        'cma/logs/perf_2026-01-28.log',
+        'cma/logs/perf_2026-01-29.log',
+        'cma/logs/perf_2026-01-30.log',
+        'cma/logs/perf_2026-01-31.log',
+        'cma/logs/perf_2026-02-01.log',
+        'cma/logs/perf_2026-02-04.log',
+        'cma/logs/perf_2026-02-19.log',
+        'cma/logs/perf_2026-03-09.log',
+        'cma/logs/rooster_debug.log',
+        // Loose legacy images under cma/images that nothing references (the
+        // referenced ones stay; images/icons stays whole because ToolbarHelper
+        // resolves theme icons there).
+        'cma/images/MaximizeDown.gif',
+        'cma/images/MaximizeOut.gif',
+        'cma/images/MaximizeOver.gif',
+        'cma/images/accept-database.png',
+        'cma/images/accolade.gif',
+        'cma/images/add-database.png',
+        'cma/images/btn_help.gif',
+        'cma/images/btn_info.gif',
+        'cma/images/check.gif',
+        'cma/images/colours.png',
+        'cma/images/database-error.png',
+        'cma/images/delete-database.png',
+        'cma/images/fase1.gif',
+        'cma/images/fase2.gif',
+        'cma/images/fase3.gif',
+        'cma/images/file_DOC.gif',
+        'cma/images/file_GIF.gif',
+        'cma/images/file_HTM.gif',
+        'cma/images/file_JPG.gif',
+        'cma/images/file_PDF.gif',
+        'cma/images/file_TXT.gif',
+        'cma/images/file_XLS.gif',
+        'cma/images/file_ZIP.gif',
+        'cma/images/group_close.gif',
+        'cma/images/group_grip_gray.gif',
+        'cma/images/group_open.gif',
+        'cma/images/group_right.gif',
+        'cma/images/help.gif',
+        'cma/images/ico_PElogo.png',
+        'cma/images/ico_cal.gif',
+        'cma/images/ico_doc.gif',
+        'cma/images/ico_doc_delete.gif',
+        'cma/images/ico_doc_select.gif',
+        'cma/images/ico_doc_view.gif',
+        'cma/images/ico_edit.gif',
+        'cma/images/ico_extra_aanwezig.png',
+        'cma/images/ico_extra_opnieuw.gif',
+        'cma/images/ico_extra_presentielijst.png',
+        'cma/images/ico_filesel.gif',
+        'cma/images/ico_html.gif',
+        'cma/images/ico_html_edit.gif',
+        'cma/images/ico_ilias.png',
+        'cma/images/ico_login.png',
+        'cma/images/ico_url.gif',
+        'cma/images/icoedit.gif',
+        'cma/images/image.gif',
+        'cma/images/img_file.gif',
+        'cma/images/img_file_gif.gif',
+        'cma/images/img_file_jpg.gif',
+        'cma/images/img_folder.gif',
+        'cma/images/img_uparrow.gif',
+        'cma/images/maximize.gif',
+        'cma/images/maximize_hover.gif',
+        'cma/images/mimaskl.gif',
+        'cma/images/mimaskr.gif',
+        'cma/images/minimize.gif',
+        'cma/images/minimize_hover.gif',
+        'cma/images/move_down.gif',
+        'cma/images/move_up.gif',
+        'cma/images/nav_end.gif',
+        'cma/images/nav_end_dwn.gif',
+        'cma/images/nav_fwd_dwn.gif',
+        'cma/images/nav_rwnd_dwn.gif',
+        'cma/images/nav_start.gif',
+        'cma/images/nav_start_dwn.gif',
+        'cma/images/tb_table_grouped.gif',
+        'cma/images/tb_table_normal.gif',
+        'cma/images/tb_tree.gif',
+        'cma/images/wizard-head-bg.gif',
+        'cma/images/wizard_img_cell.gif',
+        'cma/images/wizard_img_char.gif',
+        'cma/images/wizard_img_row.gif',
+        'cma/images/wizard_img_table.gif',
+        // Working notes that lived at the cma root and shipped to every site.
+        // Moved to notes/ in the repository root, which the Installer never syncs.
+        'cma/ARCHITECTURE_REVIEW.md',
+        'cma/FORM_COMPARISON_REPORT.md',
+        'cma/OLD_VS_NEW_FUNCTIONAL_COMPARISON.md',
+        'cma/change.md',
+        'cma/cypress-fix-plan-detailed.md',
+        'cma/cypress-fix-plan.md',
+        'cma/done.md',
+        'cma/requirements.md',
+        'cma/prompts.md',
+        'cma/todo.md',
+        // The one file under cma/assets/webcomponents: a readme about
+        // LibSharedStyles, now a section of the web-components topic.
+        'cma/assets/webcomponents/readme.md',
+        // Duplicate of cma/control-types.json (the file ConfigLoader reads;
+        // migration 9.9.0 moved it out of config/ and this copy lingered).
+        'cma/config/control-types.json',
         'cma/tools/tools_missing_files.php',
         'cma/tools/tools_missing_pictures.php',
         'cma/tools/tools_show_pictures.php',
@@ -606,6 +882,9 @@ class Installer
         //    a re-added file with the same path isn't accidentally wiped.
         foreach (self::cleanRemovedPaths($projectRoot) as $relPath) {
             $io->write('  - removed (retired): ' . $relPath);
+        }
+        foreach (self::cleanRemovedDirs($projectRoot) as $relPath) {
+            $io->write('  - removed (retired directory): ' . $relPath . '/');
         }
 
         // Per-file copy failures are collected across all three directory syncs
@@ -1017,6 +1296,35 @@ class Installer
      * @param string $projectRoot Absolute path to the consumer site root.
      * @return string[] Relative paths that were actually removed.
      */
+    /**
+     * Delete the directories in REMOVED_DIRS from the consumer site root,
+     * recursively. Idempotent: a directory that is already gone is a no-op.
+     *
+     * @return string[] Relative paths of directories that were removed.
+     */
+    public static function cleanRemovedDirs(string $projectRoot): array
+    {
+        $removed = [];
+        foreach (self::REMOVED_DIRS as $relPath) {
+            $abs = $projectRoot . '/' . $relPath;
+            if (is_dir($abs) && !is_link($abs) && self::removeTree($abs)) {
+                $removed[] = $relPath;
+            }
+        }
+        return $removed;
+    }
+
+    private static function removeTree(string $dir): bool
+    {
+        foreach (new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        ) as $item) {
+            $item->isDir() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+        }
+        return @rmdir($dir);
+    }
+
     public static function cleanRemovedPaths(string $projectRoot): array
     {
         $removed = [];
@@ -1095,6 +1403,14 @@ class Installer
                         break;
                     }
                 }
+            }
+
+            // Per-site runtime state is never package content (see RUNTIME_DIRS).
+            // The one exception is the web.config directly inside such a
+            // directory: that is the access-deny rule, and it must ship.
+            $topDir = strstr($normalizedRelative, '/', true) ?: $normalizedRelative;
+            if (in_array($topDir, self::RUNTIME_DIRS, true) && $normalizedRelative !== $topDir . '/web.config') {
+                continue;
             }
 
             if ($item->isDir()) {
