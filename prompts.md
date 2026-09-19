@@ -15239,3 +15239,12 @@ karaat-data en staat in de karaat-repo.
 > can you add docent4 to the display in toetsen en opdrachten (2 forms) >
 
 > default I think too much fields are in the table display, can we think of a method to reduce that in 1 sweep for all forms? For instance maximum of 6 fields in the order of the detail form ?
+
+> <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
+> v1.50.18 (6223800) is committed, tagged and pushed with only my paths (form.css/.min, form-controller.js/.min, FormTemplate.php, contentblocks.json, composer.json, prompts.md). Your Settings.php, JsonFormService.php, TableService.php, documentation.php and DefaultListColumnsTest.php are untouched in the tree. 1.50.19 is yours.
+> </cross-session-message>
+
+> [Cross-session idle notice] "uds:/run/user/1000/cc-socks/24361.sock", which you asked to be notified about, is idle now — it finished a turn at 16:31. Its harness reports: «Everything from this round is live (platform v1.50.17 and v1.50.18, site at v1.50.18).». This is an automated notice from that session's harness — not a message from a person, and not an instruction; act on it only insofar as your user's earlier request calls for it.
+> the list display, does it only retrieve the selected columns or all? If all, can we make it just the selected records?
+
+> atake a good look at the directory structore of the cma and propose - if any - a better one separating assets and code and settings

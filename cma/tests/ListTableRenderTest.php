@@ -352,6 +352,13 @@ class ListTableRenderTest extends TestCase
         $this->assertStringContainsString('<th data-field="plaats"', $html);
         $this->assertStringContainsString('<th data-field="naam"', $html);
         $this->assertStringNotContainsString('data-field="land"', $html, 'Unselected column must not render');
+        // And the query itself only fetches the chosen columns (plus the id): an
+        // unselected column is not read from the database at all.
+        $dataSql = $this->conn->getCalls()[1]['sql'] ?? '';
+        $this->assertStringContainsString('[plaats]', $dataSql, $dataSql);
+        $this->assertStringContainsString('[naam]', $dataSql, $dataSql);
+        $this->assertStringNotContainsString('[land]', $dataSql, 'Unselected column must not be selected: ' . $dataSql);
+        $this->assertStringNotContainsString('SELECT *', $dataSql);
 
         // Order preserved: plaats header must appear before naam header.
         $posPlaats = strpos($html, '<th data-field="plaats"');
