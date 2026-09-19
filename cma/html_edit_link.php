@@ -113,7 +113,24 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
             document.getElementById("target0").checked = true;
         }
         document.getElementById("href").focus();
+        updateSubjectRow();
     }
+
+    // E-mail link builder (old link-pages.asp "email adres" wizard): a bare address
+    // becomes mailto:, and the subject field appears for mailto links
+    function isEmailLike(v) { return /^[^\s@\/:]+@[^\s@\/:]+\.[a-z]{2,}$/i.test(v); }
+    function updateSubjectRow() {
+        var href = document.getElementById("href").value.trim();
+        var isMail = href.toLowerCase().indexOf('mailto:') === 0 || isEmailLike(href);
+        document.getElementById("subjectRow").style.display = isMail ? '' : 'none';
+        if (isMail && href.indexOf('?subject=') > -1 && document.getElementById("subject").value === '') {
+            document.getElementById("subject").value = decodeURIComponent(href.split('?subject=')[1] || '');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById("href").addEventListener('input', updateSubjectRow);
+        updateSubjectRow();
+    });
 
     function save() {
         var href = document.getElementById("href").value.trim();
@@ -121,6 +138,15 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
             if (typeof libAlert === 'function') { libAlert('Vul een URL in.'); } else { alert('Vul een URL in.'); }
             document.getElementById("href").focus();
             return;
+        }
+        if (isEmailLike(href)) {
+            href = 'mailto:' + href;
+        }
+        if (href.toLowerCase().indexOf('mailto:') === 0) {
+            var subject = document.getElementById("subject").value.trim();
+            href = href.split('?')[0] + (subject !== '' ? '?subject=' + encodeURIComponent(subject) : '');
+        } else if (/^www\./i.test(href)) {
+            href = 'https://' + href;
         }
         var target = '';
         if (document.getElementById("target1").checked) {
@@ -145,6 +171,14 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
                 <div class="input-group">
                     <input type="text" name="href" id="href" maxlength="256">
                     <div class="help-text">Inclusief https:// of mailto:</div>
+                </div>
+            </div>
+
+            <div class="form-row" id="subjectRow" style="display:none">
+                <label for="subject">Onderwerp:</label>
+                <div class="input-group">
+                    <input type="text" name="subject" id="subject" maxlength="256">
+                    <div class="help-text">Optioneel onderwerp voor de e-mail (mailto)</div>
                 </div>
             </div>
 

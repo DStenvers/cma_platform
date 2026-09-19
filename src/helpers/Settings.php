@@ -112,6 +112,9 @@ final class Settings
         'cma_ip_protect' => ['env' => 'CMA_IP_PROTECT', 'type' => 'bool', 'default' => false, 'group' => 'session', 'app' => 'cma_ip_protect',
             'label' => 'IP-controle bij inloggen', 'hint' => 'Beperkt inloggen tot de IP-adressen die bij de gebruiker of groep staan.',
             'doc' => 'cma/login.php — na een geldig wachtwoord moet het IP-adres in de lijst van de gebruiker/groep staan.'],
+        'cma_ip_addresses' => ['env' => 'CMA_IP_ADDRESSES', 'type' => 'text', 'default' => '', 'group' => 'session', 'app' => 'cma_ip_adresses',
+            'label' => 'IP-adressen met toegang tot de CMA', 'hint' => 'Leeg = geen beperking. ;-gescheiden IP-adressen of CIDR-bereiken; alleen deze zien het inlogscherm (vereist IP-controle).',
+            'doc' => 'cma/login.php — met IP-controle aan en deze lijst gevuld krijgt elk ander adres HTTP 401 vóór het inlogscherm (de oude default.asp cma_ip_adresses).'],
 
         // ---- Logging ----
         'perf_log_enabled' => ['env' => 'PERF_LOG_ENABLED', 'type' => 'bool', 'default' => true, 'group' => 'logging',

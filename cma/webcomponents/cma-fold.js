@@ -60,7 +60,16 @@ class CmaFold extends HTMLElement {
     }
 
     get maxSize() {
-        return parseInt(this.getAttribute('max-size') || '600', 10);
+        // "50%" = half of the container/window (the old list took 50 % when expanded)
+        const raw = (this.getAttribute('max-size') || '600').trim();
+        if (raw.endsWith('%')) {
+            const pct = parseFloat(raw) || 50;
+            const base = this.orientation === 'vertical'
+                ? (this.parentElement?.clientWidth || window.innerWidth)
+                : (this.parentElement?.clientHeight || window.innerHeight);
+            return Math.max(this.minSize + 1, Math.round(base * pct / 100));
+        }
+        return parseInt(raw, 10);
     }
 
     get collapsedSize() {

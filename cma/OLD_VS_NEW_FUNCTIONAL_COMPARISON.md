@@ -37,7 +37,7 @@ These are the items most likely to bite a user today. They are regressions again
 | 14 | **Done 2026-09-18 (v1.50.0: definition WHERE carried over, ORDER BY used for single-page lists).** Table mode ignores the definition's own `listQuery` WHERE and ORDER BY (replaced by `ORDER BY [id]`) | `list.asp:315, 644` | `JsonFormService.php:286-294, 362-376, 443` | Groups sorted by ID instead of name; filtered lists show everything. |
 | 15 | **Not applicable 2026-09-19: no site definition uses imgWidthField/imgHeightField; thumbnails replaced by responsive variants.** Image save no longer maintains `imgWidthField/imgHeightField`, `_tn` thumbnails or HTMLStrip plain-text copies | `detailsRep_post.asp:187-312, 524-542` | `FormDataProvider.php:783-1176`; `form_api.php:1004-1014` (WebP instead) | Front-end code that reads those columns gets stale data. |
 | 16 | **Partly done (v1.49.0: uppercase/illegal chars/uniqueness in server validation); `_old` rename not ported — no site definition uses a directory field.** Directory field type (uppercase, illegal chars, uniqueness, `_old` rename) is a plain textbox | `details.asp:854-884`; `detailsRep_post.asp:411-413, 502-522` | `FormRenderer.php:95-97` | |
-| 17 | App-wide IP allowlist (`cma_ip_protect`) has no equivalent | `default.asp:34-41` | — | Per-user/group IPs remain (and are better). |
+| 17 | **Done 2026-09-19 (v1.50.10: setting cma_ip_addresses; with IP-controle on, other addresses get 401 before the login screen).** App-wide IP allowlist (`cma_ip_protect`) has no equivalent | `default.asp:34-41` | — | Per-user/group IPs remain (and are better). |
 
 ### P1 — lost nuances users will notice
 
@@ -57,7 +57,7 @@ These are the items most likely to bite a user today. They are regressions again
 | 29 | **Done 2026-09-19 (v1.50.4: open folders remembered by label path).** Tree open-state stored by node *index* instead of folder name → wrong folders re-open after any insert/delete | `ftiens4.js:301-330` | `cma-tree.js:290-321` |
 | 30 | **Done 2026-09-19 (v1.50.6: unchanged label keeps the node incl. thumbnail; changed label reloads the list so it is re-sorted/re-grouped).** Simple-tree row refresh wipes the thumbnail and skips re-sort/re-group | `details.asp:144` → `list.asp:119-122` (full reload) | `form-controller.js:7302-7311`; `TreeService.php:531-534` |
 | 31 | **Not applicable 2026-09-19: no site definition uses recurseField.** Recursive (self-referencing) tree unsupported | `list.asp:957-1005` | `FormDefinition.php:117, 566` (constant only) |
-| 32 ✓ | Remembered login name deleted at logout | `logout.asp` (kept 365 d, `login.asp:94`) | `logout.php:22` |
+| 32 ✓ | **Done 2026-09-19 (v1.50.10: logout keeps the remembered name).** Remembered login name deleted at logout | `logout.asp` (kept 365 d, `login.asp:94`) | `logout.php:22` |
 | 33 | **Done 2026-09-19 (v1.50.6: classic tabs open their first item; quick-search term follows via the menu; ?search= filters on first load).** Menu group click no longer opens its first item; search criteria not carried across forms | `all.js:574-603, 623-627` | `main.js:390-420, 600-650` |
 | 34 | **Not applicable 2026-09-19: module parameters are not used by the PHP site.** Module-parameters editor (`tblModuleParameters`) removed | `mod_maint.asp:169-260` | — |
 | 35 | **Not applicable 2026-09-19: no site combo SQL uses Group|Item or =[field] placeholders.** Combo `Group\|Item` → OPTGROUP and `<br>` → ", " cleanup not reproduced; `=[ProdID]` → `is null` for new records gone | `edit.inc:206-226` | `FormDataProvider.php:1370-1380, 1533-1540` |
@@ -70,7 +70,7 @@ These are the items most likely to bite a user today. They are regressions again
 | 42 | **Done 2026-09-19 (v1.50.6: Print button, "vrijdag 18 september 2026 (14:05)", print-only edit URL; the report shell is flushed early so no spinner is needed).** Report toolbar lost Print button and the long Dutch date; report loader spinner gone; print-only edit URL gone | `toolbar.inc:250, 278-281`; `reportdetails.asp:87-88, 393` | `ToolbarHelper.php:378 (unused), 438-488`; `reportdetails.php:716` |
 | 43 | **Done 2026-09-19 (v1.50.6: .php indexed, code directories skipped).** Template indexer still scans `.asp/.htm/.html`, never `.php` | `template_fillrep.asp:410` | `template_fillrep.php:52` |
 | 44 | **Partly done 2026-09-19 (v1.50.6: clear-cache bumps the asset version via .cache/cma/asset_version). HTMLStrip resync not ported (no site definition uses htmlstrip).** Clear-cache no longer bumps the asset version; consistency tool lost the "HTML-stripped fields" resync | `tools_clearcache.asp:122-125`; `tools_db_consistency.asp:258-300` | `bootstrap.inc:788-790`; `tools/tools_db_consistency.php` |
-| 45 | Link wizard lost mailto builder, upload-and-link, ImageZoom links; `wizards/link-pages.php` is dead code with stale logic | `wizards/link-pages.asp:484-573` | `html_edit_link.php`; `wizards/link-pages.php:100-114` |
+| 45 | **Partly done 2026-09-19 (v1.50.10: bare e-mail address becomes mailto: with an optional subject, www. gets https://; dead wizards/link-pages.php removed). Upload-and-link and ImageZoom not ported.** Link wizard lost mailto builder, upload-and-link, ImageZoom links; `wizards/link-pages.php` is dead code with stale logic | `wizards/link-pages.asp:484-573` | `html_edit_link.php`; `wizards/link-pages.php:100-114` |
 | 46 | **Partly done 2026-09-19 (v1.50.4: onLoadJS for new records; memo/editor height from content). maxChars counter not ported (unused on the site).** `onLoadJS` not run for new records; memo `maxChars` counter inert; CKEditor blur cleanup gone; editor height not sized to content | `details.asp:206, 912-934, 1245-1266` | `form-controller.js:2144, 8946`; `FormRenderer.php:634, 646-665` |
 | 47 | **Partly done 2026-09-19 (v1.50.6: "Bekijk" preview /[Dir]/, host and tip hints, DATESTAMP default today; date defaults now work for every date field). Update-on-duplicate stays a unique-index error by design.** Marketing URL screen lost "Bekijk" preview, host prefix hint, auto-date and update-on-duplicate | `url_maint.asp:146-180`; `url_maint_post.asp:244-276` | `marketingurl.json`; migration `9.14.0` unique index |
 
@@ -81,19 +81,19 @@ These are the items most likely to bite a user today. They are regressions again
 3. **Done v1.50.8 (simple tree; the grouped tree already did).** Instant active highlight on click (`ftiens4.js:182-185`) instead of after the fetch (`form-controller.js:7530-7538`).
 4. **Done v1.50.8.** Search-as-you-type threshold scaled to list size: 3 chars above 2000 rows (`all.js:413`); new filters from the first character regardless of size.
 5. **Done v1.50.8.** Show the tree title with the form name (generated in `TreeService.php:462`, hidden by `style.css:754-755`).
-6. Fold "expanded" width as a percentage (old 50 %, `style.css:231-235`) and per form (`list.asp:209-214`) instead of a global 600 px cap (`FormTemplate.php:573`).
-7. Apply the remembered toolbar filter server-side on first paint (`list.asp:475-479`) to avoid the empty-combo flash (`form-controller.js:6547-6628`).
+6. **Done v1.50.10 (max-size 50 %, storage key per form).** Fold "expanded" width as a percentage (old 50 %, `style.css:231-235`) and per form (`list.asp:209-214`) instead of a global 600 px cap (`FormTemplate.php:573`).
+7. **Not adopted: the toolbar filter lives in localStorage, which the server cannot read.** Apply the remembered toolbar filter server-side on first paint (`list.asp:475-479`) to avoid the empty-combo flash (`form-controller.js:6547-6628`).
 8. **Done v1.50.8 (also line breaks and ISO dates).** Month-name fix on tree items, not only folders (`list.asp:1161,1164` vs `TreeService.php:647`).
 9. **Done v1.50.8.** Clear error when `DetailField` is missing (`list.asp:1027-1040`) instead of a silent fallback (`TreeService.php:503-517`).
-10. `<sort:value>` and `<html>` cell prefixes for custom sort keys and raw HTML (`class_table.inc:267-294`), unsupported by `JsonFormService.php:706-768`.
+10. **Not applicable: no site listQuery uses <sort:> or <html>.** `<sort:value>` and `<html>` cell prefixes for custom sort keys and raw HTML (`class_table.inc:267-294`), unsupported by `JsonFormService.php:706-768`.
 11. **Rejected 2026-09-19 (no star).** Required `*` beside the caption with "Verplichte invoer" tooltip; stays visible when filled or readonly.
 12. **Done v1.50.0 (tip card shows with the stamped values).** "Laatste gewijzigd" tip card (markup exists, `form.css:751-780`) once #19 is fixed.
 13. **Done v1.50.8 (11 px upright).** Post-caption hints `dd-mm-jjjj` / `uu:mm` at 11 px (`style.css:1247-1253`) instead of 9 px italic (`form.css:803-812`).
-14. Image size hint next to the control ("Maximaal: 300px breed - 200px hoog", `details.asp:1150-1172`), not only inside the editor.
-15. Sortlist A→Z / Z→A buttons and Ctrl+arrow hint (`details.asp:1369-1381`).
+14. **Not applicable: the two image fields have no size limits configured.** Image size hint next to the control ("Maximaal: 300px breed - 200px hoog", `details.asp:1150-1172`), not only inside the editor.
+15. **Not applicable: no site definition uses a sortlist.** Sortlist A→Z / Z→A buttons and Ctrl+arrow hint (`details.asp:1369-1381`).
 16. **Done v1.50.4.** Auto-growing textareas and content-sized editor (`details.asp:912-917, 1244`).
-17. Pressed-button feedback on Save/New/Copy (`style.css:43-49`, `all.js:700`); also listed in `todo.md`.
-18. Collapsed groups rendered collapsed server-side to avoid the expand→collapse flash (`details.asp:508-515`).
+17. **Done v1.50.10 (.tb-btn:active).** Pressed-button feedback on Save/New/Copy (`style.css:43-49`, `all.js:700`); also listed in `todo.md`.
+18. **Not adopted: collapse state is client-side (localStorage).** Collapsed groups rendered collapsed server-side to avoid the expand→collapse flash (`details.asp:508-515`).
 19. **Done v1.50.8 (focus + group box opened; tabs are subform-only).** Focus and tab-switch to the first invalid field after validation (`formval_nl.js:94-112`).
 20. **Done v1.50.8 (parent combo locked readonly).** Parent record shown as a read-only label when adding from a subform (`details.asp:807-817`) instead of a hidden row.
 21. **Partly: first item opens (v1.50.4, classic tabs); login keeps focusing the name field by an explicit earlier decision in login.php.** Auto-open the first item when a menu group is expanded (`all.js:623-627`); focus the password field when the login name is pre-filled (`login.asp:291`).
@@ -108,7 +108,7 @@ Table view with sticky headers, column filters, chooser and drag order, inline e
 
 ## 2. Suggested order of work
 
-_Status 2026-09-19: P0 1–14 and P1 18–24, 27–30, 33, 39–44, 46, 47 done in v1.49.0–v1.50.6; 25 decided against; 15, 16, 26, 31, 34, 35, 37, 38 not applicable to the site (see the notes in the tables). Open: P0 17, P1 45 and P2 6, 7, 10, 14, 15, 17, 18._
+_Status 2026-09-19: P0 1–14 and P1 18–24, 27–30, 33, 39–44, 46, 47 done in v1.49.0–v1.50.6; 25 decided against; 15, 16, 26, 31, 34, 35, 37, 38 not applicable to the site (see the notes in the tables). All rows are now done, decided against or not applicable (v1.50.10); remaining gaps are noted per row (P1 45 upload-and-link, P2 7/18)._
 
 1. P0 #1–#3 (rights): one change in `FormDataProvider` (use form rights, not admin level), restore group 0 and `isBeheer` in `SecurityHelper`/`RecordService`/`groups.json`.
 2. P0 #5–#7 (save path): skip readonly fields, keep DB defaults by omitting empty columns, port the server-side validators from `detailsRep_post.asp`.

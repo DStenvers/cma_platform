@@ -15211,3 +15211,8 @@ karaat-data en staat in de karaat-repo.
 
 > any work left?
 > great pleas continue
+> contiunue please
+
+> can you make a migration that sets (opcache.jit_buffer_size to the best value ?
+
+> can we make a messaage on the dashboard for developeers and admins if php version < 8.3.14 shy upgrading is advisable?

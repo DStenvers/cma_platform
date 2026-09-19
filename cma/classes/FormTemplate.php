@@ -602,7 +602,10 @@ class FormTemplate
         $html .= $this->generateListPanel();
 
         // Fold bar for resizing columns (draggable)
-        $html .= '<cma-fold class="fold-vertical" orientation="vertical" target="#leftlist" min-size="150" max-size="600" storage-key="form_fold"></cma-fold>' . PHP_EOL;
+        // Up to half the window (old expanded list = 50 %) and remembered per form
+        // (old cookie list_state_<FormID>) instead of one global 600 px cap
+        $foldKey = 'form_fold_' . preg_replace('/[^a-z0-9_]/i', '_', (string)($this->jsonFormName ?: $this->sourceFormId));
+        $html .= '<cma-fold class="fold-vertical" orientation="vertical" target="#leftlist" min-size="150" max-size="50%" storage-key="' . $foldKey . '"></cma-fold>' . PHP_EOL;
 
         // Detail panel (with its own toolbar)
         $html .= $this->generateDetailPanel();

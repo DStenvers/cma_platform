@@ -19,7 +19,8 @@ Response::noCache();
 // Verwijder alle CMA cookies
 Cookie::delete(SecurityHelper::COOKIE_USERID);
 Cookie::delete(SecurityHelper::COOKIE_USERGUID);
-Cookie::delete(SecurityHelper::COOKIE_LAST_LOGIN);
+// The remembered login name stays (old logout.asp kept it for a year) so the
+// next login only needs the password
 
 // Clear cached user data
 SecurityHelper::clearUserCache();

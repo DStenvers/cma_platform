@@ -26,6 +26,17 @@ function main()
     Response::noCache();
     $strError = '';
     $sIPAdres = Request::server('REMOTE_HOST', '');
+    // App-wide allowlist (old default.asp cma_ip_adresses): with IP-controle on and
+    // a list configured, other addresses do not even get the login screen
+    $cmaIpList = trim((string)\App\Library\Settings::get('cma_ip_addresses'));
+    if (\App\Library\Settings::get('cma_ip_protect') && $cmaIpList !== '' && !Application::get('local', '')) {
+        $allowed = array_values(array_filter(array_map('trim', preg_split('/[;,\s]+/', $cmaIpList)), 'strlen'));
+        if (!SecurityHelper::ipMatchesAnyPattern($sIPAdres, $allowed)) {
+            Response::setStatus(401);
+            echo 'Access denied';
+            return;
+        }
+    }
     $blnOK = $sIPAdres == '109.237.208.163' || $sIPAdres == '185.224.89.229';
     // always grant access from the server (given a valid login)
     $strPageAction = Request::query('pageaction', '');

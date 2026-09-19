@@ -1096,6 +1096,14 @@ body.popup #detailToolbar .responsive-btn .btn-text {
     border-color: var(--border-hover);
 }
 
+/* Pressed feedback (old tb_but_down): the button visibly goes down while clicked */
+.tb-btn:active,
+.tb-btn.pressed {
+    background: var(--bg-surface-alt);
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.25);
+    transform: translateY(1px);
+}
+
 /* Toolbar spinner - right aligned in toolbar-right */
 .toolbar-spinner {
     margin-left: auto;

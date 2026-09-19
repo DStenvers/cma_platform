@@ -122,6 +122,7 @@ class SettingsTest extends TestCase
         $this->assertFalse(Settings::get('cookie_secure'));
         $this->assertSame(365, Settings::get('preference_cookie_days'));
         $this->assertFalse(Settings::get('cma_ip_protect'));
+        $this->assertSame('', Settings::get('cma_ip_addresses'));
         $this->assertSame('', Settings::get('app_name'));
         $this->assertSame('NL', Settings::get('cma_language'));
         $this->assertSame('', Settings::get('mod_language'));
