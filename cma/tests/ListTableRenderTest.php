@@ -137,6 +137,27 @@ class ListTableRenderTest extends TestCase
         $this->assertStringContainsString('Utrecht', $html);
     }
 
+    public function testOrderByOverJoinedTableIsNotCarriedToTheSingleTableSelect(): void
+    {
+        // A subform's listQuery joins a parent table and orders on it. Table mode
+        // builds its own SELECT on the form's table only; carrying that ORDER BY over
+        // gave "Te weinig parameters. Het verwachte aantal is: 2" (v1.50.0-1.50.16).
+        $this->injectForm('list_join_order', [
+            ['name' => 'fkStartDocument', 'type' => 'textbox', 'caption' => 'Doc'],
+        ], [
+            'table' => 'tblSub',
+            'listQuery' => 'SELECT tblSub.ID, tblParent.Naam AS Descr FROM tblParent INNER JOIN tblSub ON tblParent.ID = tblSub.fkParent ORDER BY tblParent.Sortorder, tblParent.Naam',
+        ]);
+        $this->conn->enqueueResult([['cnt' => 1]]);
+        $this->conn->enqueueResult([['ID' => 1, 'fkStartDocument' => 5]]);
+
+        $result = JsonFormService::getTableHtml('list_join_order', null, []);
+        $this->assertTrue($result['success'] ?? false, $result['error'] ?? '');
+        $dataSql = $this->conn->getCalls()[1]['sql'] ?? '';
+        $this->assertStringNotContainsString('tblParent', $dataSql, $dataSql);
+        $this->assertStringContainsString('ORDER BY', $dataSql);
+    }
+
     // ------------------------------------------------------------------
     // 2. Empty result set — valid empty table, no crash/warning
     // ------------------------------------------------------------------

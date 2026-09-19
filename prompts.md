@@ -15229,3 +15229,5 @@ karaat-data en staat in de karaat-repo.
 > https://test-mijn.rino.nl/cma/main.php?page=tools%2Ftools_settings.php -> the #c element lacks overflow:auto, the save icon in the opslaan button is not visible and the dashboard link inside Uitgebreide logging actief should point there.
 > the .cma-mailcompose__bar should have the inverted color (white on normal screens and another on dark mode) including it's icon (which is now grey
 > the double click on the sidepar title still hides it, of you don's get it to work, skip it entirily and remove the alt tekst that says it will undock the sidepanel. I am on version .13
+
+> okay let's not do that then. Any more optimizations left?

@@ -310,6 +310,17 @@ class JsonFormService extends BaseFormService
             if (!empty($listQuery)) {
                 if (preg_match('/\s+ORDER\s+BY\s+(.+)$/is', $listQuery, $om)) {
                     $definitionOrderBy = trim($om[1]);
+                    // An ORDER BY over another (joined) table cannot be carried to the
+                    // single-table SELECT below ("Te weinig parameters"): keep it only
+                    // when every table prefix in it is the form's own table.
+                    if (preg_match_all('/\[?([A-Za-z_][A-Za-z0-9_]*)\]?\s*\.\s*\[?[A-Za-z_]/', $definitionOrderBy, $pm)) {
+                        foreach ($pm[1] as $prefix) {
+                            if (strcasecmp($prefix, (string)$tableName) !== 0) {
+                                $definitionOrderBy = '';
+                                break;
+                            }
+                        }
+                    }
                 }
                 $withoutOrder = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', $listQuery);
                 if (preg_match('/\sWHERE\s+(.+?)(?:\s+GROUP\s+BY\s.*|\s+HAVING\s.*)?$/is', $withoutOrder, $wm)) {
