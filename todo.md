@@ -571,16 +571,27 @@ uitgerold is.
 
 ## Lijstcellen: booleans als gewone elementen in plaats van `<lib-switch>`
 
-Gemeten op 2026-09-19 op de opleidingenlijst (280 rijen, 14 boolean-kolommen):
-3.920 `<lib-switch>`-webcomponenten in de tabel. Het invoegen van 200 rijen
-kost 200 ms mét de componenten en 95 ms met een gewone `<span>` per cel; de
-helft van de DOM-opbouw van elke lijstpagina zit dus in het upgraden van
-schakelaars die in de lijst alleen iets tonen.
+Gemeten op 2026-09-19 op de opleidingenlijst (280 rijen, 14 boolean-kolommen,
+3.920 `<lib-switch>`-componenten). Het invoegen van 200 rijen kost gemiddeld
+206 ms met de component en 153 ms met alleen haar eigen binnenmarkup: een
+kwart minder, zo'n 50 ms per 200 rijen. Niet meer dan dat.
 
-Voorstel: de lijst rendert een boolean als statisch element (span + CSS in
-dezelfde look), en alleen de inline-bewerking maakt er bij het bewerken van
-een cel een echte `<lib-switch>` van. Eerst uitzoeken wat `inline-edit.js`
-van de cel verwacht (het leest nu `lib-switch` in de cel) en of de
-kolomfilters op de `data-value` van de `td` werken (dan raakt het ze niet).
-Geparkeerd: middelgrote wijziging, alleen winst op lijsten met veel
-boolean-kolommen.
+Er is niets te dupliceren: `lib-switch` heeft geen shadow DOM en rendert een
+`<span class="lib-switch">` met track en thumb in de light DOM, gestyled door
+de gedeelde klassen in `lib-components.css`. Het "gewone element" is dus de
+binnenmarkup van de component zelf, met de readonly-modifier.
+
+Ontwerp als het ooit nodig wordt:
+- `LibSwitch.markup(checked, opts)` (statisch) als enige bron van die markup
+  aan de client; `render()` en de boolean-formatter van lib-table gebruiken
+  hem. De PHP-lijstrenderer zendt dezelfde string (zoals hij nu de tag zendt).
+- `render()` adopteert een bestaand `.lib-switch`-kind in plaats van het
+  opnieuw te schrijven; dan kost een echte `<lib-switch>` om een statische
+  span heen niets, en het detailformulier spaart per element een
+  innerHTML-parse. Dit deel is op zichzelf de moeite waard.
+- Inline-bewerking maakt de wrapper pas als een boolean-cel in bewerkmodus
+  gaat; de zes detectieplekken in `inline-edit.js` en de celwaarde-lezer in
+  `lib-table.js` selecteren `lib-switch, .lib-switch`.
+
+Geparkeerd: 50 ms per 200 rijen merkt niemand, en het raakt zeven plekken in
+de inline-bewerking.
