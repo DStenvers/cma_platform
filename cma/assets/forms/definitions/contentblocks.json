@@ -49,9 +49,9 @@
                         "dataType": "text",
                         "height": 4,
                         "caption": "HTML template",
-                        "required": true,
+                        "required": false,
                         "rows": 20,
-                        "hint": "Gebruik een variabele in de template met dubbele accolades: {{variable_name}}. De namen komen uit het veld Variabelen hieronder."
+                        "hint": "Gebruik een variabele in de template met dubbele accolades: {{variable_name}}. De namen komen uit het veld Variabelen hieronder. Leeg laten voor bloktypen die de editor zelf opbouwt (accordeon, beeldengalerij, tab, button, ... in blockedit_compose_html)."
                 },
                 {
                         "name": "variables",

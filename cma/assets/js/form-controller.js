@@ -2099,11 +2099,10 @@ class CmaFormController {
             });
         }
 
-        // Update status text and sidepanel title ("(beheer)" as the classic toolbar
-        // showed it when the user has the beheer functions on this form)
-        const beheer = (data.meta && Number(data.meta.accessLevel) >= 40) || Number(this.config.accessLevel) >= 40;
-        const statusText = (canEdit ? 'Wijzigen' : 'Bekijken') + (beheer ? ' (beheer)' : '');
-        this.updateStatus(statusText);
+        // Update status text and sidepanel title. The classic "(beheer)" suffix is
+        // gone: the beheer level still gates adminOnly fields, but it reads as noise
+        // in the status text.
+        this.updateStatus(canEdit ? 'Wijzigen' : 'Bekijken');
         this.updateSidepanelTitle(canEdit ? 'wijzigen' : 'bekijken');
 
         // Set filter value if filterIdName is configured

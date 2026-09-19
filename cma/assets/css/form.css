@@ -999,6 +999,12 @@ body.popup #detailToolbar .responsive-btn .btn-text {
     position: relative;
 }
 
+/* Record status ("Wijzigen") sits at the far right of the detail toolbar */
+#detailToolbar .toolbar-right #toolbar-status {
+    margin-left: auto;
+    padding-right: 8px;
+}
+
 .form-layout .toolbar-right {
     padding-right: 0px;
 }

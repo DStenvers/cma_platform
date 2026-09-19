@@ -15231,3 +15231,11 @@ karaat-data en staat in de karaat-repo.
 > the double click on the sidepar title still hides it, of you don's get it to work, skip it entirily and remove the alt tekst that says it will undock the sidepanel. I am on version .13
 
 > okay let's not do that then. Any more optimizations left?
+
+> i have lost access to the server, so can you email me a description of what to do? diederik@stenversonline.nl
+
+> did you send the email?
+
+> can you add docent4 to the display in toetsen en opdrachten (2 forms) >
+
+> default I think too much fields are in the table display, can we think of a method to reduce that in 1 sweep for all forms? For instance maximum of 6 fields in the order of the detail form ?
