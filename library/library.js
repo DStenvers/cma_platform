@@ -2793,10 +2793,10 @@ function lib_sidepanel_bewaarStand(sleutel, stand) {
  * Maakt een sidepanel versleepbaar (aan de kop) en verstelbaar (linkerrand en
  * linker-onderhoek), en zet de vorige stand van dit formulier terug.
  *
- * Standaard blijft het paneel rechts vastgeplakt: dan wordt alleen de breedte
- * onthouden. Sleep je hem weg, dan wordt hij zwevend en onthoudt hij ook positie en
- * hoogte. Dubbelklik op de kop zet alles terug naar de standaard — het vangnet voor
- * een paneel dat buiten beeld is beland.
+ * Standaard blijft het paneel rechts vastgeplakt en wordt alleen de breedte
+ * onthouden. Sleep je hem weg, dan wordt hij zwevend voor de duur van dit paneel;
+ * bij opnieuw openen staat hij weer vastgeplakt (een zwevende stand wordt niet
+ * bewaard, zodat een paneel nooit buiten beeld blijft hangen).
  */
 function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 	if (!panel || !top_elt) { return; }
@@ -2805,12 +2805,6 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 
 	var MIN_B = 320, MIN_H = 200, ZICHTBAAR = 120;
 
-	// De vastgeplakte stand staat alleen als inline stijl op het paneel (zie
-	// lib_OpenSidePanel); het stylesheet kent geen top/right/bottom/width voor
-	// de container. Onthoud die waarden nu, vóór een bewaarde stand ze overschrijft:
-	// "terug naar de standaard" moet ze kunnen terugzetten, anders staat het paneel
-	// na het wissen als position:fixed zonder plek en breedte — weg uit beeld.
-	var basis = { top: panel.style.top, right: panel.style.right, bottom: panel.style.bottom, width: panel.style.width, maxWidth: panel.style.maxWidth };
 
 	// --- vorige stand terugzetten -------------------------------------------------
 	lib_sidepanel_opschonenEenmalig();
@@ -2819,17 +2813,7 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		panel.style.width = Math.min(stand.b, win.innerWidth) + 'px';
 		panel.style.maxWidth = 'none';
 	}
-	if (stand && stand.zwevend && isFinite(stand.l) && isFinite(stand.t)) {
-		panel.classList.add('lib_sidepanel_zwevend');
-		panel.style.left = Math.max(0, Math.min(stand.l, win.innerWidth - ZICHTBAAR)) + 'px';
-		panel.style.top = Math.max(0, Math.min(stand.t, win.innerHeight - ZICHTBAAR)) + 'px';
-		panel.style.right = 'auto';
-		panel.style.bottom = 'auto';
-		panel.style.transform = 'none';
-		if (isFinite(stand.h) && stand.h >= MIN_H) {
-			panel.style.height = Math.min(stand.h, win.innerHeight) + 'px';
-		}
-	}
+	// Een oude bewaarde zwevende stand (van vóór deze versie) wordt genegeerd.
 
 	// --- grepen -------------------------------------------------------------------
 	var randGreep = doc.createElement('div');
@@ -2857,15 +2841,13 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		laag = null;
 	}
 
+	// Alleen de breedte wordt onthouden. Een zwevende stand niet: die was bedoeld
+	// om met een dubbelklik op de kop terug te zetten, maar dat werkte niet
+	// betrouwbaar (het paneel raakte buiten beeld). Een losgesleept paneel staat
+	// bij de volgende keer openen dus gewoon weer rechts vastgeplakt.
 	function huidigeStand() {
 		var r = panel.getBoundingClientRect();
-		return {
-			b: Math.round(r.width),
-			h: Math.round(r.height),
-			l: Math.round(r.left),
-			t: Math.round(r.top),
-			zwevend: panel.classList.contains('lib_sidepanel_zwevend')
-		};
+		return { b: Math.round(r.width) };
 	}
 
 	// Een klik is geen sleep. Pas voorbij deze afstand telt het als slepen.
@@ -2966,32 +2948,12 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 				panel.style.transform = 'none';
 			});
 		});
-		// Terug naar vastgeplakt: dubbelklik op de kop. Dat staat ook in de
-		// tooltip van de kop, want anders is het onvindbaar.
-		//
-		// Hier stond een tijdlang ook een punaiseknop. Die was er gekomen omdat een
-		// zwevend paneel als een eigen venster leest ("waarom krijg ik een popup
-		// terwijl mijn voorkeur zijpaneel is?") — maar dat was een deurtje naast het
-		// lek: panelen raakten los bij een gewone klik op de kop, zonder te slepen.
-		// Sinds de sleepdrempel in sleep() gebeurt dat niet meer, en dan is een derde
-		// knopje in de kop overbodig.
-		function zetVast() {
-			panel.classList.remove('lib_sidepanel_zwevend');
-			panel.style.left = '';
-			panel.style.height = '';
-			panel.style.top = basis.top;
-			panel.style.right = basis.right;
-			panel.style.bottom = basis.bottom;
-			panel.style.width = basis.width;
-			panel.style.maxWidth = basis.maxWidth;
-			panel.style.transform = 'translateX(0)';
-			lib_sidepanel_bewaarStand(sleutel, null);
-		}
-		kop.addEventListener('dblclick', function (ev) {
-			if (ev.target.closest('button, a, input, select, textarea')) { return; }
-			zetVast();
-		});
-		kop.title = 'Sleep om het paneel los te maken \u00b7 dubbelklik om vast te zetten';
+		// Er was hier een dubbelklik op de kop om een zwevend paneel weer vast te
+		// zetten. Die liet het paneel in de praktijk verdwijnen (ook na een reparatie
+		// in v1.50.3), dus hij is weg: een zwevende stand wordt niet meer onthouden
+		// (zie huidigeStand), zodat het paneel bij de volgende keer openen weer
+		// vastgeplakt staat. Sluiten en opnieuw openen is de weg terug.
+		kop.title = 'Sleep om het paneel te verplaatsen';
 	}
 }
 

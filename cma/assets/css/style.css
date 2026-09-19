@@ -2020,8 +2020,14 @@ body.backup #c.tools {
     gap: 8px;
     padding: 10px 14px;
     background: var(--color-primary, #204496);
-    color: #ffffff;
+    color: var(--text-inverse, #ffffff);
     font-weight: 600;
+}
+/* The generic element rule (div,span {color:var(--text-primary)}) would paint the
+   icon and text grey on the primary background; inverted colour for both modes */
+.cma-mailcompose__bar span,
+.cma-mailcompose__bar .lnr {
+    color: var(--text-inverse, #ffffff);
 }
 .cma-mailcompose__row {
     display: flex;
