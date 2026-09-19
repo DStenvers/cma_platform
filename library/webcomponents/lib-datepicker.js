@@ -866,10 +866,35 @@ class LibDatepicker extends HTMLElement {
             return;
         }
 
+        // Shorthand as the old formval_nl.js accepted it (dd-mm-yyyy formats):
+        // "5" -> 05-<this month>-<this year>, "0101" -> 01-01-<this year>,
+        // "010126" -> 01-01-2026, "01012026" -> 01-01-2026; spaces as separators.
+        inputValue = String(inputValue).trim().replace(/\s+/g, '-');
+        if (this._format !== 'yyyy-mm-dd' && this._format !== 'mm-dd-yyyy') {
+            const now = new Date();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            if (/^\d{1,2}$/.test(inputValue)) {
+                inputValue = `${inputValue}-${mm}-${now.getFullYear()}`;
+            } else if (/^\d{4}$/.test(inputValue)) {
+                inputValue = `${inputValue.slice(0, 2)}-${inputValue.slice(2)}-${now.getFullYear()}`;
+            } else if (/^\d{6}$/.test(inputValue) || /^\d{8}$/.test(inputValue)) {
+                inputValue = `${inputValue.slice(0, 2)}-${inputValue.slice(2, 4)}-${inputValue.slice(4)}`;
+            }
+        }
+
         // Try to parse the input value based on format
         let date = null;
         const parts = inputValue.split(/[-/.]/);
         const currentYear = new Date().getFullYear();
+        const input = this.shadowRoot?.querySelector('.datepicker-input');
+        const reject = (message) => {
+            // Old form named the problem ("ongeldige dag 32"); keep the typed text so it can be fixed
+            if (input && typeof input.setCustomValidity === 'function') {
+                input.setCustomValidity(message);
+                input.reportValidity?.();
+                setTimeout(() => input.setCustomValidity(''), 2500);
+            }
+        };
 
         // Handle partial date (day-month only, no year) - auto-add current year
         if (parts.length === 2) {
@@ -888,11 +913,13 @@ class LibDatepicker extends HTMLElement {
 
             if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
                 date = new Date(currentYear, month - 1, day);
-                if (!isNaN(date.getTime())) {
+                if (!isNaN(date.getTime()) && date.getDate() === day) {
                     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     this.selectDate(dateStr);
+                    return;
                 }
             }
+            reject(month < 1 || month > 12 ? `Ongeldige maand ${month}` : `Ongeldige dag ${day}`);
             return;
         }
 
@@ -927,12 +954,19 @@ class LibDatepicker extends HTMLElement {
                 year += 1000;
             }
 
+            if (!(month >= 1 && month <= 12)) { reject(`Ongeldige maand ${month}`); return; }
+            if (!(day >= 1 && day <= 31)) { reject(`Ongeldige dag ${day}`); return; }
+            if (!(year >= 1900 && year <= 2100)) { reject(`Ongeldig jaar ${year}`); return; }
             date = new Date(year, month - 1, day);
-            if (!isNaN(date.getTime())) {
+            if (!isNaN(date.getTime()) && date.getDate() === day) {
                 const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 this.selectDate(dateStr);
+            } else {
+                reject(`Ongeldige dag ${day} voor maand ${month}`);
             }
+            return;
         }
+        reject('Ongeldige datum (dd-mm-jjjj)');
     }
 
     parseDate(dateStr) {

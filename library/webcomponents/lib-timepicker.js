@@ -132,9 +132,22 @@ class LibTimepicker extends HTMLElement {
         match = value.match(/^\d{2}-\d{2}-1899\s+(\d{2}):(\d{2})/);
         if (match) return `${match[1]}:${match[2]}`;
 
+        // Shorthand as the old formval_nl.js accepted it: "9" -> 09:00, "9:" -> 09:00,
+        // "9.3"/"9 3" -> 09:30, "9:1" -> 09:15, "9:4" -> 09:45, "930"/"1730" -> 09:30/17:30
+        value = String(value).trim().replace(/[.\s]/, ':');
+        if (/^\d{1,2}$/.test(value)) value += ':00';
+        else if (/^\d{1,2}:$/.test(value)) value += '00';
+        else if (/^\d{3,4}$/.test(value)) value = value.slice(0, -2) + ':' + value.slice(-2);
+        match = value.match(/^(\d{1,2}):(\d)$/);
+        if (match) {
+            const quarter = { '1': '15', '3': '30', '4': '45' }[match[2]] || (match[2] + '0');
+            value = `${match[1]}:${quarter}`;
+        }
+
         // Already time only: "09:30" or "09:30:00"
         match = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
         if (match) {
+            if (parseInt(match[1], 10) > 23 || parseInt(match[2], 10) > 59) return '';
             const hours = match[1].padStart(2, '0');
             const minutes = match[2];
             return `${hours}:${minutes}`;
@@ -459,7 +472,12 @@ class LibTimepicker extends HTMLElement {
                     composed: true
                 }));
             } else {
-                // Invalid input - revert to current value
+                // Invalid input: say so (old form: "ongeldige uur-indicatie"), then revert
+                if (typeof displayInput.setCustomValidity === 'function') {
+                    displayInput.setCustomValidity(`'${typed}' is geen geldige tijd (uu:mm)`);
+                    displayInput.reportValidity?.();
+                    setTimeout(() => displayInput.setCustomValidity(''), 2500);
+                }
                 this._updateDisplayInput();
             }
         });
