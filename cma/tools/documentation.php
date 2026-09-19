@@ -4107,6 +4107,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>quickSearchFields</code></td><td>Comma-gescheiden veldnamen voor het snelzoek-veld.</td></tr>
             <tr><td><code>activeField</code></td><td>Veld dat actief (1=groen) / inactief (0) markeert in de list.</td></tr>
             <tr><td><code>allowAdd</code> / <code>allowDelete</code> / <code>allowCopy</code></td><td>Toolbar-acties aan/uit.</td></tr>
+            <tr><td><code>recurseField</code></td><td>Zelfverwijzende boom: kolom met het id van het ouderrecord. Records zonder ouder zijn de wortels; een record met kinderen wordt een aanklikbare map (de <code>recurseTree</code> van list.asp).</td></tr>
             <tr><td><code>securityByUser</code></td><td>Rij-niveau autorisatie: in de rechtenmatrix wordt de kolom <strong>Eigen</strong> (niveau 20, "alleen eigen records") voor dit formulier toekenbaar. Gebruikers met dat niveau zien in boom en tabel alleen rijen waarvan de kolom <code>userid</code> (zo nodig via <code>AS userid</code> in de <code>listQuery</code>) hun CMA-gebruikers-id is, mogen toevoegen en hun eigen records wijzigen/verwijderen; records van anderen zijn alleen-lezen.</td></tr>
             <tr><td><code>storeLastModified</code></td><td>Houd last-modified timestamp bij.</td></tr>
             <tr><td><code>protectedRecords</code></td><td>Record-IDs die niet verwijderd mogen worden.</td></tr>

@@ -104,6 +104,10 @@
       ],
       "description": "JavaScript to execute on form load"
     },
+    "recurseField": {
+      "type": "string",
+      "description": "Self-referencing tree: the column holding the parent record's id. Records with an empty parent are the roots; a record with children becomes a clickable folder (tree view)."
+    },
     "listQuery": {
       "type": "string",
       "description": "SQL query for list/tree display"

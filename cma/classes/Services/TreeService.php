@@ -367,10 +367,15 @@ class TreeService extends BaseFormService
             }
 
             // Build query
+            // Self-referencing tree (old list.asp recurseTree): recurseField is the
+            // column holding the parent record's id; records with an empty parent
+            // are the roots, a record with children becomes a clickable folder.
+            $recurseField = trim((string)($jsonData['recurseField'] ?? ''));
+
             if (!empty($listQuery)) {
                 $sql = $listQuery;
             } else {
-                $columns = self::buildJsonColumnList($listColumns, $idField, $detailField, $groupFields);
+                $columns = self::buildJsonColumnList($listColumns, $idField, $detailField, $recurseField !== '' ? array_merge($groupFields, [$recurseField]) : $groupFields);
                 $sql = "SELECT $columns FROM [$tableName]";
             }
 
@@ -474,7 +479,7 @@ class TreeService extends BaseFormService
             // Build tree
             $formClass = strtolower(str_replace(' ', '_', $formName ?? ''));
             $htmlParts = [];
-            $bSimpleTree = empty($groupFields);
+            $bSimpleTree = empty($groupFields) && $recurseField === '';
 
             if ($bSimpleTree) {
                 $htmlParts[] = '<div id="simpletree"><div class="titel">' . Server::htmlEncode($title) . '</div>';
@@ -566,6 +571,7 @@ class TreeService extends BaseFormService
                         'g2' => $group2,
                         'g3' => $group3,
                         'image' => $imageThumb,
+                        'parent' => $recurseField !== '' ? (string)$getField($recurseField) : '',
                     ];
                 }
 
@@ -602,7 +608,9 @@ class TreeService extends BaseFormService
 
             // For grouped trees, assemble JSON tree from flat items
             if (!$bSimpleTree && !empty($flatItems)) {
-                $treeData = self::buildTreeFromFlat($flatItems, $group1Field, $group2Field, $group3Field);
+                $treeData = $recurseField !== ''
+                    ? self::buildRecursiveTree($flatItems)
+                    : self::buildTreeFromFlat($flatItems, $group1Field, $group2Field, $group3Field);
                 if (!empty($treeData)) {
                     $result['treeData'] = $treeData;
                     $result['treeTitle'] = $title;
@@ -620,6 +628,52 @@ class TreeService extends BaseFormService
         } catch (\Exception $e) {
             return self::error($e->getMessage());
         }
+    }
+
+    /**
+     * Nest flat items on their 'parent' key (recurseField). A record with children
+     * is a folder that is also clickable (it has an id); roots are the records
+     * whose parent is empty or unknown, so an orphan still shows up.
+     */
+    public static function buildRecursiveTree(array $flatItems): array
+    {
+        $byParent = [];
+        $ids = [];
+        foreach ($flatItems as $fi) {
+            $ids[(string)$fi['id']] = true;
+        }
+        foreach ($flatItems as $fi) {
+            $parent = trim((string)($fi['parent'] ?? ''));
+            if ($parent === '' || $parent === '0' || !isset($ids[$parent]) || $parent === (string)$fi['id']) {
+                $parent = '';
+            }
+            $byParent[$parent][] = $fi;
+        }
+        $build = function (string $parent, array $seen) use (&$build, &$byParent): array {
+            $nodes = [];
+            foreach ($byParent[$parent] ?? [] as $fi) {
+                $id = (string)$fi['id'];
+                if (isset($seen[$id])) {
+                    continue; // cycle guard
+                }
+                $children = isset($byParent[$id]) ? $build($id, $seen + [$id => true]) : [];
+                $node = [
+                    'type' => $children ? 'folder' : 'item',
+                    'label' => (string)$fi['label'],
+                    'id' => $id,
+                    'href' => 'javascript:void(0)',
+                ];
+                if (!empty($fi['image'])) {
+                    $node['image'] = $fi['image'];
+                }
+                if ($children) {
+                    $node['children'] = $children;
+                }
+                $nodes[] = $node;
+            }
+            return $nodes;
+        };
+        return $build('', []);
     }
 
     /**
