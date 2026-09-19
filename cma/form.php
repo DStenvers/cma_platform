@@ -182,6 +182,9 @@ try {
     $rawFormDef = JsonFormLoader::loadRaw($formName);
     $formTitle = (is_array($rawFormDef) && !empty($rawFormDef['title'])) ? $rawFormDef['title'] : $formName;
     $dataAttrs[] = 'data-form-title="' . htmlspecialchars($formTitle, ENT_QUOTES) . '"';
+    // Per request (the template is cached): the logged-in user, for userlist
+    // defaults ("currentUser") on a new record
+    $dataAttrs[] = 'data-current-user-id="' . htmlspecialchars((string)(SecurityHelper::getCurrentUserData()['ID'] ?? ''), ENT_QUOTES) . '"';
     if ($directRecordId !== null) {
         $dataAttrs[] = 'data-record-id="' . htmlspecialchars((string)$directRecordId, ENT_QUOTES) . '"';
     }

@@ -401,11 +401,18 @@ class FormRenderer
 
         $filterByField = $config['filterByField'] ?? '';
 
-        $dataAttrs = self::buildDataAttributes($name, 'combobox', $required, $readonly, [
+        $extraAttrs = [
             'source-table' => $sourceTable,
             'dynamic' => $isDynamic ? 'true' : 'false',
             'filter-by-field' => $filterByField,
-        ], $newChangableOnly, $caption);
+        ];
+        // defaultValue for a new record (applyDefaultValues); a userlist takes
+        // "currentUser" = the logged-in CMA user, as the old details.asp did
+        $defaultValue = (string)($config['defaultValue'] ?? '');
+        if ($defaultValue !== '') {
+            $extraAttrs['default'] = $defaultValue;
+        }
+        $dataAttrs = self::buildDataAttributes($name, 'combobox', $required, $readonly, $extraAttrs, $newChangableOnly, $caption);
 
         // Dynamic combos use lib-combo with AJAX.  min-search defaults
         // to 3 (big-table-style: type to filter), but small directories

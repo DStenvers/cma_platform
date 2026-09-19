@@ -337,6 +337,8 @@ class FormTemplate
             'language' => \App\Library\Settings::get('cma_language'),
             'basePath' => Application::get('base_path', ''),
             'domain' => Request::currentDomain(),
+            // T/A/P -> test/acceptatie/www for the [omgeving] placeholder in extra buttons
+            'environment' => strtoupper((string) Application::get('omgeving', Application::get('environment', 'P'))),
             'debug' => (bool) Application::get('development', ''),
             'showDetails' => SecurityHelper::isAdmin() || SecurityHelper::isDeveloper(),
             'appName' => $appName,
@@ -1704,6 +1706,18 @@ class FormTemplate
             // ACCESS_READ = 10, ACCESS_CHANGE_OWN_DATA = 20, ACCESS_FULL = 30, ACCESS_FULL_BEHEER = 40
             if ($this->accessLevel <= SecurityHelper::ACCESS_READ) {
                 $config['readonly'] = true;
+            }
+
+            // Userlist (owner/assignee): only beheer may change it, others see it
+            // locked; a new record defaults to the current user (details.asp).
+            // Template is cached per access level, so this is safe.
+            if ($controlType === FormRenderer::TYPE_USERLIST) {
+                if ($this->accessLevel < SecurityHelper::ACCESS_FULL_BEHEER) {
+                    $config['readonly'] = true;
+                }
+                if (($config['defaultValue'] ?? '') === '') {
+                    $config['defaultValue'] = 'currentUser';
+                }
             }
 
             // Check for custom renderer (JSON forms have Q_RENDERER column)

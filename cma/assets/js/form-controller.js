@@ -2149,7 +2149,8 @@ class CmaFormController {
                 const fieldsLower = {};
                 Object.keys(data.fields).forEach(k => fieldsLower[k.toLowerCase()] = data.fields[k]);
                 formLayoutEl.dataset.recordGuid = fieldsLower.guid || fieldsLower.code || '';
-                formLayoutEl.dataset.recordGuid2 = fieldsLower.guid2 || '';
+                // [GUID2] was the record's "secret" column in the old toolbar
+                formLayoutEl.dataset.recordGuid2 = fieldsLower.secret || fieldsLower.guid2 || '';
             }
         }
 
@@ -9443,8 +9444,10 @@ class CmaFormController {
                     });
                 }
             } else if (field.tagName === 'LIB-COMBO') {
-                // lib-combo dropdowns
-                field.value = defaultValue;
+                // lib-combo dropdowns; "currentUser" = the logged-in CMA user (userlist)
+                field.value = defaultValue === 'currentUser'
+                    ? String(this.formLayout?.dataset.currentUserId || '')
+                    : defaultValue;
             } else if (field.tagName === 'LIB-DATEPICKER') {
                 // Date defaults: "today"/"Date()"/"Now()", "+14" (days from today)
                 // or a fixed dd-mm-yyyy — the old details.asp evaluated such expressions
@@ -10782,6 +10785,12 @@ class CmaFormController {
             // port (window.location.host), so links keep working on a non-standard
             // port (e.g. a dev site on :8090). On ports 80/443 host === hostname.
             url = url.replace(/\[domein\]/gi, window.location.host);
+
+            // [omgeving]: test / acceptatie / www from the environment (old toolbar.inc)
+            if (/\[omgeving\]/i.test(url)) {
+                const env = { T: 'test', A: 'acceptatie', P: 'www' }[(this.config.environment || 'P').toUpperCase()] || 'www';
+                url = url.replace(/\[omgeving\]/gi, env);
+            }
 
             // Generic field-based substitution — any remaining `[fieldname]`
             // placeholder is looked up as the value of a form input with
