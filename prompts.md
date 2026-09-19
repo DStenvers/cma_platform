@@ -15224,3 +15224,6 @@ karaat-data en staat in de karaat-repo.
 
 > any items left to be done?
 > Not applicable to this site: rows 15, 16 (_old rename), 26, 31, 34, 35, 37, 38 and P2 10, 14, 15. (...) please do implement them!
+
+> about the boooleans in tables: i hate to duplicate code, can we think of simething to re-use the css and have plain elements
+> https://test-mijn.rino.nl/cma/main.php?page=tools%2Ftools_settings.php -> the #c element lacks overflow:auto, the save icon in the opslaan button is not visible and the dashboard link inside Uitgebreide logging actief should point there.

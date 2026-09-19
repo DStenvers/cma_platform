@@ -1100,7 +1100,7 @@ if ($isAdmin) {
             <span id="loggingNoticeText">Er is uitgebreide logging ingeschakeld.</span>
             Dit kan de systeemprestaties negatief beïnvloeden.
             <br>
-            <a href="preferences.php" class="migration-link" onclick="return navigateToPreferences();">Instellingen wijzigen</a>
+            <a href="tools/tools_settings.php" class="migration-link" onclick="return navigateToPreferences();">Systeeminstellingen wijzigen</a>
         </div>
     </div>
 
@@ -1895,7 +1895,7 @@ if ($isAdmin) {
             });
 
             html += '<div class="log-settings-footer">' +
-                '<a href="preferences.php" onclick="return navigateToPreferences()">Instellingen wijzigen</a>' +
+                '<a href="tools/tools_settings.php" onclick="return navigateToPreferences()">Systeeminstellingen wijzigen</a>' +
             '</div>';
 
             content.innerHTML = html;
@@ -1938,9 +1938,10 @@ if ($isAdmin) {
             }
         }
 
+        // The logging switches live in Systeeminstellingen (tools_settings.php)
         function navigateToPreferences() {
             if (typeof window.loadPage === 'function') {
-                window.loadPage('preferences.php');
+                window.loadPage('tools/tools_settings.php');
                 return false;
             }
             return true;

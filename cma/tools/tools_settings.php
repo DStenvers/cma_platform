@@ -120,12 +120,12 @@ cma_html_header($pageTitle);
 echo '<body class="contentbody tools tool-settings">';
 
 ToolbarHelper::start();
-ToolbarHelper::button('#', 'lnr-checkmark', true, 'Opslaan', 'Instellingen opslaan', 'btnSaveSettings', 'save');
+ToolbarHelper::button('#', 'lnr-save', true, 'Opslaan', 'Instellingen opslaan', 'btnSaveSettings', 'save');
 ToolbarHelper::end();
 ?>
 <title><?= Server::htmlEncode($pageTitle) ?></title>
 
-<div id="c">
+<div id="c" class="tools">
     <div class="cma-tool__settings-filterbar">
         <input type="search" id="settingsFilter" class="form-control cma-tool__settings-filter" placeholder="Zoek instelling…" autocomplete="off">
     </div>
