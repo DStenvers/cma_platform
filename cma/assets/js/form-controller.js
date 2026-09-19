@@ -1957,6 +1957,11 @@ class CmaFormController {
             if (this.searchFilters && Object.keys(this.searchFilters).length > 0) {
                 params.set('filters', JSON.stringify(this.searchFilters));
             }
+            // Deep link ?search=x (also how a search term follows the user from one
+            // form to the next via the menu): filter on first load, not only fill the box
+            if (this.searchTerm) {
+                params.set('search', this.searchTerm);
+            }
 
             const response = await fetch(`/cma/form_api.php?${params}`);
             if (!response.ok) {
@@ -7365,14 +7370,17 @@ class CmaFormController {
 
                 // Also try tree view - find node by ID
                 const treeNode = document.querySelector(`#listContent a[id="${recordId}"], #listContent a[data-id="${recordId}"]`);
-                if (treeNode && data.displayText) {
-                    // Update the text content of the tree node
-                    const textNode = treeNode.querySelector('.node-text') || treeNode;
-                    if (textNode) {
-                        textNode.textContent = data.displayText;
-                        // cmaLog.log('refreshRow: tree node text updated');
+                if (treeNode && data.displayText !== undefined) {
+                    // Unchanged label: the node (incl. its thumbnail) can stay as it is.
+                    // Changed label: reload the list so the item is re-sorted and
+                    // re-grouped (the old list.asp reloaded after every save); just
+                    // overwriting textContent wiped the thumbnail and kept the old order.
+                    if (treeNode.textContent.trim() === String(data.displayText).trim()) {
                         return;
                     }
+                    await this.loadList(true, true);
+                    this.selectListItem(recordId);
+                    return;
                 }
             }
 

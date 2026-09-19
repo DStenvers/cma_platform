@@ -401,6 +401,12 @@
             });
             // Toggle this menu
             group.classList.toggle('open');
+            // Classic tabs (as the old CMA): opening a menu also opens its first
+            // item, unless one of its items is already the active page
+            if (!wasOpen && group.classList.contains('open') && !group.querySelector('.cma-menu-item.active')) {
+                const first = group.querySelector('.cma-menu-group-items .cma-menu-item[data-page]');
+                if (first) first.click();
+            }
             return;
         }
 
@@ -647,7 +653,7 @@
 
                     // Hide popup and load page
                     hideAllPopups();
-                    loadPage(page);
+                    loadPage(carrySearchTerm(page));
                 });
             });
         });
@@ -688,6 +694,22 @@
 
         setActiveMenuItem(page);
         cmaPerf.count('loadPage.iframe');
+    }
+
+    /**
+     * The quick-search term follows the user from one form to the next via the
+     * menu (old all.js form() carried SearchFor along): a form page gets ?search=.
+     */
+    function carrySearchTerm(page) {
+        if (!page || !/(^|\/)form(\.php|\/)/.test(page) || /[?&]search=/.test(page)) return page;
+        let term = '';
+        try {
+            const controller = document.querySelector('.form-layout')?._cmaController;
+            term = (controller && controller.searchTerm) || document.getElementById('searchfor')?.value || '';
+        } catch (e) { /* no form on this page */ }
+        term = String(term).trim();
+        if (!term) return page;
+        return page + (page.includes('?') ? '&' : '?') + 'search=' + encodeURIComponent(term);
     }
 
     window.loadPage = async function(page, updateHistory) {
@@ -1398,7 +1420,7 @@
                     if (menuBtn) menuBtn.classList.remove('is-open');
                 }
 
-                loadPage(page);
+                loadPage(carrySearchTerm(page));
             });
         });
     }
