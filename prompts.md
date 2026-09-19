@@ -15223,3 +15223,4 @@ karaat-data en staat in de karaat-repo.
 > can you port upload-and-link and imagezoom also?
 
 > any items left to be done?
+> Not applicable to this site: rows 15, 16 (_old rename), 26, 31, 34, 35, 37, 38 and P2 10, 14, 15. (...) please do implement them!
