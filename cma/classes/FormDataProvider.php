@@ -918,6 +918,13 @@ class FormDataProvider
             }
             $data = $validation['data'];
 
+            // Derived columns the classic detailsRep_post.asp maintained on save:
+            // image width/height fields, _tn thumbnails and HTMLStrip plain-text copies
+            foreach (self::derivedColumns($jsonData['fields'] ?? [], $data) as $derivedName => $derivedValue) {
+                $data[$derivedName] = $derivedValue;
+                $validFields[strtolower($derivedName)] = $derivedName;
+            }
+
             // Debug: Log valid fields
             Logger::debug("SAVE: Valid fields", ['fields' => array_keys($validFields)]);
 
@@ -2925,6 +2932,92 @@ class FormDataProvider
             $data[$key] = $value;
         }
         return ['errors' => $errors, 'data' => $data];
+    }
+
+    /**
+     * Columns filled from other fields on save (old detailsRep_post.asp):
+     *  - image field with widthField/heightField: the picture's pixel size (from the
+     *    posted <name>_width/_height, else measured on disk);
+     *  - thumbnail field with baseField: a <base>_tn.<ext> next to the original,
+     *    resized to resizeWidth x resizeHeight, its file name stored;
+     *  - htmlstrip field with baseField: the plain text of the base field's HTML.
+     * Returns column => value; an empty return means nothing to add.
+     */
+    public static function derivedColumns(array $fieldDefs, array $data): array
+    {
+        $derived = [];
+        $lowerData = [];
+        foreach ($data as $k => $v) {
+            $lowerData[strtolower((string)$k)] = $v;
+        }
+        $get = fn(string $name) => $lowerData[strtolower($name)] ?? null;
+        $siteRoot = rtrim((string)Server::mapPath(Application::get('base_path', '/')), '/\\');
+
+        foreach ($fieldDefs as $def) {
+            $name = (string)($def['name'] ?? '');
+            $type = (string)($def['type'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            // image settings may sit at the top level or in the "image" sub-object
+            foreach (['path', 'widthField', 'heightField', 'resizeWidth', 'resizeHeight'] as $k) {
+                if (!isset($def[$k]) && isset($def['image'][$k])) {
+                    $def[$k] = $def['image'][$k];
+                }
+            }
+
+            if ($type === 'image' && (!empty($def['widthField']) || !empty($def['heightField']))) {
+                $file = trim((string)($get($name) ?? ''));
+                $w = $get($name . '_width');
+                $h = $get($name . '_height');
+                if (($w === null || $w === '' || $h === null || $h === '') && $file !== '' && !preg_match('#^(https?:)?//#i', $file)) {
+                    $disk = $siteRoot . '/' . ltrim((string)($def['path'] ?? ''), '/\\') . '/' . ltrim($file, '/\\');
+                    $size = is_file($disk) ? @getimagesize($disk) : false;
+                    if ($size !== false) {
+                        [$w, $h] = $size;
+                    }
+                }
+                if ($file === '') {
+                    $w = $h = null; // picture cleared: clear the sizes too
+                }
+                if (!empty($def['widthField'])) {
+                    $derived[$def['widthField']] = ($w === null || $w === '') ? '' : (int)$w;
+                }
+                if (!empty($def['heightField'])) {
+                    $derived[$def['heightField']] = ($h === null || $h === '') ? '' : (int)$h;
+                }
+            } elseif ($type === 'thumbnail' && !empty($def['baseField'])) {
+                $base = trim((string)($get($def['baseField']) ?? ''));
+                if ($base === '' || preg_match('#^(https?:)?//#i', $base)) {
+                    $derived[$name] = '';
+                    continue;
+                }
+                $srcDir = ltrim((string)($def['path'] ?? ''), '/\\');
+                $src = $siteRoot . '/' . $srcDir . '/' . ltrim($base, '/\\');
+                $info = pathinfo($base);
+                $thumbName = (isset($info['dirname']) && $info['dirname'] !== '.' ? $info['dirname'] . '/' : '')
+                    . $info['filename'] . '_tn' . (isset($info['extension']) ? '.' . $info['extension'] : '');
+                $dest = $siteRoot . '/' . $srcDir . '/' . $thumbName;
+                if (is_file($src) && class_exists(\App\Library\Image::class)) {
+                    try {
+                        \App\Library\Image::thumbnail($src, $dest, (int)($def['resizeHeight'] ?? 0), (int)($def['resizeWidth'] ?? 0));
+                    } catch (\Throwable $e) {
+                        Logger::warning('Thumbnail niet gemaakt', ['src' => $src, 'error' => $e->getMessage()]);
+                    }
+                }
+                $derived[$name] = $thumbName;
+            } elseif ($type === 'htmlstrip' && !empty($def['baseField'])) {
+                $html = (string)($get($def['baseField']) ?? '');
+                $text = html_entity_decode(strip_tags(preg_replace('#<br\s*/?>|</p>|</div>|</li>#i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $text = trim(preg_replace("/[ \t\x{00A0}]+/u", ' ', preg_replace("/\n{3,}/", "\n\n", $text)));
+                $maxLen = (int)($def['maxLength'] ?? 0);
+                if ($maxLen > 0 && mb_strlen($text) > $maxLen) {
+                    $text = mb_substr($text, 0, $maxLen);
+                }
+                $derived[$name] = $text;
+            }
+        }
+        return $derived;
     }
 
     private static function isIpOrCidr(string $value): bool

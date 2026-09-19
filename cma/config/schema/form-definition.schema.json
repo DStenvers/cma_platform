@@ -321,9 +321,11 @@
             "video",
             "hidden",
             "ignorefield",
-            "autonumber"
+            "autonumber",
+            "thumbnail",
+            "htmlstrip"
           ],
-          "description": "Control type. 'hidden' posts a value without showing it, 'ignorefield' stores without rendering, 'autonumber' is a read-only counter column."
+          "description": "Control type. 'hidden' posts a value without showing it, 'ignorefield' stores without rendering, 'autonumber' is a read-only counter column. 'thumbnail' (baseField = an image field, resizeWidth/resizeHeight, path) stores the name of a <base>_tn.<ext> made on save; 'htmlstrip' (baseField = a memo) stores the plain text of that field. Neither is rendered."
         },
         "caption": {
           "type": "string",
@@ -336,6 +338,18 @@
         "hint": {
           "type": "string",
           "description": "Help text below field (Dutch)"
+        },
+        "baseField": {
+          "type": "string",
+          "description": "thumbnail/htmlstrip: the field this column is derived from on save"
+        },
+        "widthField": {
+          "type": "string",
+          "description": "image: column that receives the picture's pixel width on save"
+        },
+        "heightField": {
+          "type": "string",
+          "description": "image: column that receives the picture's pixel height on save"
         },
         "dirTemplate": {
           "type": "string",
