@@ -2805,6 +2805,13 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 
 	var MIN_B = 320, MIN_H = 200, ZICHTBAAR = 120;
 
+	// De vastgeplakte stand staat alleen als inline stijl op het paneel (zie
+	// lib_OpenSidePanel); het stylesheet kent geen top/right/bottom/width voor
+	// de container. Onthoud die waarden nu, vóór een bewaarde stand ze overschrijft:
+	// "terug naar de standaard" moet ze kunnen terugzetten, anders staat het paneel
+	// na het wissen als position:fixed zonder plek en breedte — weg uit beeld.
+	var basis = { top: panel.style.top, right: panel.style.right, bottom: panel.style.bottom, width: panel.style.width, maxWidth: panel.style.maxWidth };
+
 	// --- vorige stand terugzetten -------------------------------------------------
 	lib_sidepanel_opschonenEenmalig();
 	var stand = lib_sidepanel_leesStand(sleutel);
@@ -2970,9 +2977,13 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		// knopje in de kop overbodig.
 		function zetVast() {
 			panel.classList.remove('lib_sidepanel_zwevend');
-			['left', 'top', 'right', 'bottom', 'width', 'height', 'maxWidth', 'transform'].forEach(function (eig) {
-				panel.style[eig] = '';
-			});
+			panel.style.left = '';
+			panel.style.height = '';
+			panel.style.top = basis.top;
+			panel.style.right = basis.right;
+			panel.style.bottom = basis.bottom;
+			panel.style.width = basis.width;
+			panel.style.maxWidth = basis.maxWidth;
 			panel.style.transform = 'translateX(0)';
 			lib_sidepanel_bewaarStand(sleutel, null);
 		}

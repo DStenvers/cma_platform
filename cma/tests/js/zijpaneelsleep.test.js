@@ -28,7 +28,7 @@ const LIBRARY = path.join(__dirname, '..', '..', '..', 'library', 'library.js');
 function paneelMetSleep(bewaardeStand, alOpgeschoond, extraSleutels) {
     const src = fs.readFileSync(LIBRARY, 'utf8');
     const dom = new JSDOM(`<!doctype html><html><body>
-        <div id="p" class="lib_sidepanel_container" style="z-index:1000">
+        <div id="p" class="lib_sidepanel_container" style="position:fixed;top:50px;right:0;bottom:0;width:60vw;max-width:1400px;z-index:1000;transform:translateX(100%)">
             <div class="lib_sidepanel_header"><div class="lib_sidepanel_title">Logins</div></div>
         </div></body></html>`, { pretendToBeVisual: true, url: 'https://test-mijn.rino.nl/cma/' });
 
@@ -148,4 +148,26 @@ test('het opruimen gebeurt maar één keer', () => {
 test('andere voorkeuren blijven ongemoeid', () => {
     const { opslag } = paneelMetSleep({ zwevend: true, l: 300, t: 100 }, false, { cma_popup_style: 'sidepanel' });
     assert.gelijk(opslag['cma_popup_style'], 'sidepanel', 'de paneelvoorkeur is geen paneelstand');
+});
+
+test('dubbelklik op de kop zet een zwevend paneel terug op zijn vaste plek', () => {
+    // De vaste plek staat alleen als inline stijl op het paneel; het stylesheet
+    // kent geen top/right/bottom/width voor de container. Wist je die mee met de
+    // zwevende waarden, dan stond het paneel als position:fixed zonder plek en
+    // zonder breedte: weg uit beeld, wat leest als "dubbelklik sluit het paneel".
+    const { win, panel, opslag } = paneelMetSleep({ zwevend: true, l: 300, t: 100, b: 700, h: 500 }, true);
+    assert.waar(panel.classList.contains('lib_sidepanel_zwevend'), 'begint zwevend');
+
+    panel.querySelector('.lib_sidepanel_title').dispatchEvent(new win.MouseEvent('dblclick', { bubbles: true, button: 0 }));
+
+    assert.onwaar(panel.classList.contains('lib_sidepanel_zwevend'), 'weer vastgeplakt');
+    assert.gelijk(panel.style.top, '50px', 'de oorspronkelijke bovenkant');
+    assert.gelijk(panel.style.right, '0px', 'rechts vastgeplakt');
+    assert.gelijk(panel.style.bottom, '0px', 'tot onderaan');
+    assert.gelijk(panel.style.width, '60vw', 'de oorspronkelijke breedte');
+    assert.gelijk(panel.style.maxWidth, '1400px');
+    assert.gelijk(panel.style.left, '', 'geen zwevende plek meer');
+    assert.gelijk(panel.style.height, '', 'geen zwevende hoogte meer');
+    assert.gelijk(panel.style.transform, 'translateX(0)', 'in beeld');
+    assert.gelijk(opslag['cma_sidepanel_form:logins'], undefined, 'de zwevende stand is vergeten');
 });
