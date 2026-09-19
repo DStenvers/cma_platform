@@ -99,7 +99,6 @@ enum FormField: string
     case SchemaDataType = 'schema_datatype';
 
     // Actions
-    case Action = 'actie';
     case FormAction = 'FormActie';
     case IsBeheer = 'isBeheer';
 

@@ -22,6 +22,7 @@ class CmaTree extends HTMLElement {
         this._storageKey = '';
         this._itemIcon = '';
         this._openFolders = new Set();
+        this._savedOpenKeys = null;
         this._nodeIndex = [];
         this._hasData = false;
         // Of de standaard-open wortelmap al gezet is; zie _render().
@@ -287,12 +288,18 @@ class CmaTree extends HTMLElement {
         return false;
     }
 
+    // Open folders are remembered by their label path ("Groep/Subgroep"), not by
+    // node index: after an insert or delete the indexes shift and the wrong
+    // folders would re-open (the old ftiens4 tree had the same flaw).
     _loadState() {
         if (!this._storageKey) return;
         try {
             const saved = localStorage.getItem('tree_' + this._storageKey);
             if (saved) {
-                this._openFolders = new Set(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                this._savedOpenKeys = new Set(parsed.filter(v => typeof v === 'string'));
+                // legacy numeric state: honour it once, it gets rewritten as keys
+                this._openFolders = new Set(parsed.filter(v => typeof v === 'number'));
             }
         } catch (e) {
             // localStorage may be disabled or quota exceeded - use defaults
@@ -302,10 +309,27 @@ class CmaTree extends HTMLElement {
     _saveState() {
         if (!this._storageKey) return;
         try {
-            localStorage.setItem('tree_' + this._storageKey, JSON.stringify(Array.from(this._openFolders)));
+            const keys = [];
+            this._openFolders.forEach(id => {
+                const key = this._folderKey(id);
+                if (key !== null) keys.push(key);
+            });
+            localStorage.setItem('tree_' + this._storageKey, JSON.stringify(keys));
         } catch (e) {
             // localStorage may be disabled or quota exceeded - state won't persist
         }
+    }
+
+    _folderKey(id) {
+        const node = this._nodeIndex[id];
+        if (!node) return null;
+        const parts = [];
+        let cur = node;
+        while (cur) {
+            parts.unshift(String(cur.label ?? ''));
+            cur = cur._parentId === null || cur._parentId === undefined ? null : this._nodeIndex[cur._parentId];
+        }
+        return parts.join('/');
     }
 
     _buildIndex(nodes, parentId = null) {
@@ -318,6 +342,15 @@ class CmaTree extends HTMLElement {
                 this._buildIndex(node.children, id);
             }
         });
+        if (parentId === null && this._savedOpenKeys && this._savedOpenKeys.size > 0) {
+            // Resolve remembered label paths to this render's node indexes
+            this._nodeIndex.forEach((n, id) => {
+                if (n.children && n.children.length > 0 && this._savedOpenKeys.has(this._folderKey(id))) {
+                    this._openFolders.add(id);
+                }
+            });
+            this._savedOpenKeys = null;
+        }
     }
 
     _toggleFolder(id) {
@@ -427,6 +460,17 @@ class CmaTree extends HTMLElement {
     }
 
     _render() {
+        // Carry the open folders over by label path: fresh data (after an
+        // insert/delete/refresh) renumbers the nodes.
+        if (this._nodeIndex.length > 0 && this._openFolders.size > 0) {
+            const keys = new Set(this._savedOpenKeys || []);
+            this._openFolders.forEach(id => {
+                const key = this._folderKey(id);
+                if (key !== null) keys.add(key);
+            });
+            this._savedOpenKeys = keys;
+            this._openFolders = new Set();
+        }
         this._nodeIndex = [];
         this._buildIndex(this._data);
 

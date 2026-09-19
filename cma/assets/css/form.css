@@ -833,22 +833,6 @@ td.c2_g:has(.postcaption-inline) {
     max-width: 360px;
 }
 
-/* Required marker and "actie" glyph next to the caption */
-.c1 .required-marker,
-.c1_g .required-marker {
-    color: var(--color-error);
-    margin-left: 3px;
-    font-weight: bold;
-}
-.c1 .actie,
-.c1_g .actie {
-    color: var(--color-warning, #ff6400);
-    margin-left: 4px;
-    font-size: 0.85em;
-    vertical-align: middle;
-    cursor: help;
-}
-
 /* Float tables in c2 (value column) for inline layout */
 .c2 table {
     float: left;

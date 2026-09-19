@@ -99,7 +99,6 @@ class FormColumn
     public const SCHEMA_DATA_TYPE = 'schema_datatype';
 
     // Action/behavior columns
-    public const ACTION = 'actie';
     public const FORM_ACTION = 'FormActie';
     public const IS_BEHEER = 'isBeheer';
 

@@ -106,7 +106,6 @@ class FormDefinition
         'schemaCharMaxLength' => 'schema_char_maxl',
         'schemaNumPrecision' => 'schema_num_prec',
         'schemaDataType' => 'schema_datatype',
-        'action' => 'actie',
         'formAction' => 'FormActie',
         'isBeheer' => 'isBeheer',
         'group1Field' => 'Group1Field',
@@ -636,11 +635,6 @@ class FormDefinition
     public function getXmlSnippet(int $row): ?string
     {
         return $this->get('xmlSnippet', $row);
-    }
-
-    public function getAction(int $row): ?string
-    {
-        return $this->get('action', $row);
     }
 
     public function isBeheer(int $row): bool

@@ -15182,3 +15182,4 @@ karaat-data en staat in de karaat-repo.
 > yes continue with the next batch
 
 > Okay do a full performance review and make recommendations on improvements, focus on safe changes tgat will not cause regression, if no performance gains can be achieved that is a valid outcome, make sure you test assumptions
+> please continue with the rest, but for 25: required is already indicated by a red line, no * please and the actie field may go, also remove it from documentation and schema definitions

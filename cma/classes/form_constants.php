@@ -90,7 +90,6 @@ define("Q_SCHEMA_NUM_PREC", "schema_num_prec");
 define("Q_SCHEMA_DATATYPE", "schema_datatype");
 
 // Action/behavior columns
-define("Q_ACTIE", "actie");
 define("Q_FORM_ACTIE", "FormActie");
 define("Q_BEHEER", "isBeheer");
 

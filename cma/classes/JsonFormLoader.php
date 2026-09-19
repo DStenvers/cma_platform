@@ -1136,7 +1136,7 @@ class JsonFormLoader
             Q_NOSPAMJS, Q_NEWCHANGABLEONLY, Q_FLDREADONLY, Q_FLDLIMITEDHTML,
             Q_FLDMAXCHARS, Q_KEEPWITHNEXT, Q_SCHEMA_DATE_PREC, Q_SCHEMA_DEFAULT,
             Q_SCHEMA_CHAR_MAXL, Q_SCHEMA_NUM_PREC, Q_SCHEMA_DATATYPE,
-            Q_ACTIE, Q_BEHEER, Q_RENDERER, Q_RENDEROPTIONS
+            Q_BEHEER, Q_RENDERER, Q_RENDEROPTIONS
         ];
 
         foreach ($fieldArrays as $idx) {
@@ -1212,7 +1212,6 @@ class JsonFormLoader
 
             // Use explicit dataType from JSON definition
             $legacy[Q_SCHEMA_DATATYPE][$i] = $field['dataType'] ?? '';
-            $legacy[Q_ACTIE][$i] = $field['action'] ?? '';
             $legacy[Q_BEHEER][$i] = $field['adminOnly'] ?? false;
             $legacy[Q_RENDERER][$i] = $field['renderer'] ?? '';
             $legacy[Q_RENDEROPTIONS][$i] = !empty($field['options']) ? json_encode($field['options']) : '';
@@ -1504,9 +1503,6 @@ class JsonFormLoader
             }
             if (!empty($arrRep[Q_POSTCAPTION][$i])) {
                 $field['hint'] = $arrRep[Q_POSTCAPTION][$i];
-            }
-            if (!empty($arrRep[Q_ACTIE][$i])) {
-                $field['action'] = $arrRep[Q_ACTIE][$i];
             }
 
             // Control-specific properties

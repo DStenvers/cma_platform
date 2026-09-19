@@ -1619,7 +1619,6 @@ class FormTemplate
             $required = $this->toBool($this->arrRep[\Q_ISREQUIRED][$i] ?? false);
             $readonly = $this->toBool($this->arrRep[\Q_FLDREADONLY][$i] ?? false);
             $isBeheer = $this->toBool($this->arrRep[\Q_BEHEER][$i] ?? false);
-            $actie = $this->arrRep[\Q_ACTIE][$i] ?? '';
             $postCaption = $this->arrRep[\Q_POSTCAPTION][$i] ?? '';
             // combineWithNext disabled - too many edge cases with row closing
             // TODO: Re-implement combineWithNext (side-by-side fields) properly
@@ -1730,7 +1729,6 @@ class FormTemplate
                 $html .= FormRenderer::renderFormRow($fieldName, $caption, $controlHtml, [
                     'required' => $required,
                     'beheer' => $isBeheer,
-                    'actie' => $actie,
                     'postCaption' => $postCaption,
                     'combineWithNext' => $combineWithNext,
                     'groupId' => $groupId,
