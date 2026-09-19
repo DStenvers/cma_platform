@@ -786,7 +786,18 @@ function minify_asset($files): string {
  * which stamp `?v=` with this so a patched bundle isn't served from cache.
  */
 function cma_asset_version(): string {
-    return '20260910a';
+    // Base version from the code, plus the last "Cache legen" bump (the old
+    // tools_clearcache.asp raised Application("asset_version") the same way, so
+    // browsers refetch JS/CSS after a cache clear without a code change).
+    static $version = null;
+    if ($version === null) {
+        $version = '20260910a';
+        $bump = @file_get_contents(dirname(__DIR__) . '/.cache/cma/asset_version');
+        if (is_string($bump) && preg_match('/^\d{6,14}$/', trim($bump))) {
+            $version .= '-' . trim($bump);
+        }
+    }
+    return $version;
 }
 
 // Legacy aliases for backward compatibility

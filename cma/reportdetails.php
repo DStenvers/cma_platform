@@ -713,7 +713,8 @@ if ($useLibTable) {
 
         if ($strEditURL != '') {
             $sFullEditUrl = str_replace('[ID]', $currentIdVal . '', $strEditURL);
-            echo '<TD><A class="icon editicon" href="' . Server::htmlEncode($sFullEditUrl) . '" data-edit-sidepanel="' . Server::htmlEncode($sFullEditUrl) . '" title="' . Server::htmlEncode($lang_tb_edit) . '"></A></TD>';
+            // The edit URL is printed in full on paper (old reportdetails.asp span.print)
+            echo '<TD><A class="icon editicon" href="' . Server::htmlEncode($sFullEditUrl) . '" data-edit-sidepanel="' . Server::htmlEncode($sFullEditUrl) . '" title="' . Server::htmlEncode($lang_tb_edit) . '"><span class="print">' . Server::htmlEncode($sFullEditUrl) . '</span></A></TD>';
         }
         $sSingleRecord = '';
         for ($a = 0; $a < $fieldCount; $a++) {

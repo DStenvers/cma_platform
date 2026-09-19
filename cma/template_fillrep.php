@@ -48,8 +48,8 @@ function IterateFolders($folderPath, $sParent, $iLevel)
         if (is_file($fullPath)) {
             $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
 
-            // Only process asp, htm, html files
-            if (in_array($ext, ['asp', 'htm', 'html'])) {
+            // Only process page files (the site is PHP now; asp/htm/html kept for old content)
+            if (in_array($ext, ['php', 'asp', 'htm', 'html'])) {
                 $sFileTitle = '';
                 $bFileEditable = IsTemplate($fullPath, $sFileTitle);
                 echo htmlspecialchars($item) . '----' . htmlspecialchars($sFileTitle) . '<BR>';
@@ -81,8 +81,9 @@ function IterateFolders($folderPath, $sParent, $iLevel)
 
         if (is_dir($fullPath)) {
             $itemLower = strtolower($item);
-            // Skip cma, _vti*, and _private directories
-            if ($itemLower !== 'cma' && substr($itemLower, 0, 4) !== '_vti' && substr($itemLower, 0, 8) !== '_private') {
+            // Skip cma, _vti*, _private and the code/dependency directories (PHP files there are no pages)
+            $skip = ['cma', 'vendor', 'node_modules', 'src', 'library', 'api', '.git', '.cache', 'data', 'logs', '.logs', 'tests', '.tests'];
+            if (!in_array($itemLower, $skip, true) && substr($itemLower, 0, 4) !== '_vti' && substr($itemLower, 0, 8) !== '_private') {
                 IterateFolders($fullPath, $sParent . $folderName . '/', $iLevel + 1);
             }
         }

@@ -439,6 +439,10 @@ class ToolbarHelper
     {
         self::start(true);
 
+        // Print button first, as the old toolbar.inc ToolbarReport had it
+        self::printButton(true);
+        self::separator();
+
         // Title on the left
         self::title($title);
 
@@ -478,6 +482,9 @@ class ToolbarHelper
         if ($extraHtml !== '') {
             echo $extraHtml . PHP_EOL;
         }
+        // Report date on the right, as the old toolbar showed it:
+        // "vrijdag 19 september 2026 (14:05)" — also lands on the print-out
+        self::status(self::longDateTime(time()));
         if ($showTimestamp) {
             self::status(date("Y-m-d H:i:s"));
         }
@@ -485,6 +492,16 @@ class ToolbarHelper
             self::helpButton($helpDialogId);
         }
         self::end(true);
+    }
+
+    /**
+     * Dutch long date with weekday and time: "vrijdag 19 september 2026 (14:05)"
+     */
+    public static function longDateTime(int $ts): string
+    {
+        $days = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+        $months = ['', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+        return $days[(int)date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $months[(int)date('n', $ts)] . ' ' . date('Y', $ts) . ' (' . date('H:i', $ts) . ')';
     }
 
     /**

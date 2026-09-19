@@ -91,19 +91,33 @@ class JsonFormRenderer
             }
 
             $html .= '<div class="checklist-group">';
-            // Capitalize first letter only
-            $displayName = ucfirst(strtolower($menuName));
-            $html .= '<div class="checklist-group-header">' . Server::htmlEncode($displayName) . '</div>';
+            $html .= '<div class="checklist-group-header">' . Server::htmlEncode($menuName) . '</div>';
 
-            foreach ($formItems as $item) {
-                $formId = $item['formId'];
-                $formName = $item['form'] ?? $item['name'] ?? '';
-
+            // Menu item name as shown in the menu, then the definition title, never
+            // the raw JSON key; subforms listed indented under their parent (as the
+            // old sec_user_maint.asp did) so change mails can be subscribed per subform
+            $subforms = JsonFormLoader::getSubformsMap();
+            $renderItem = function (int $formId, string $label, int $indent) use (&$html, $fieldName, $subscribed): void {
                 $checked = isset($subscribed[$formId]) ? ' checked' : '';
-                $html .= '<label class="checklist-item">';
+                $html .= '<label class="checklist-item' . ($indent > 0 ? ' checklist-subitem' : '') . '">';
                 $html .= '<input type="checkbox" name="' . Server::htmlEncode($fieldName) . '[]" value="' . $formId . '"' . $checked . '>';
-                $html .= ' ' . Server::htmlEncode($formName);
+                $html .= ' ' . Server::htmlEncode($label);
                 $html .= '</label>';
+            };
+            foreach ($formItems as $item) {
+                $formId = (int)$item['formId'];
+                $jsonFormName = $item['formName'] ?? '';
+                $label = $item['name'] ?? $item['form'] ?? '';
+                if ($label === '' && $jsonFormName !== '') {
+                    $def = JsonFormLoader::loadRaw($jsonFormName);
+                    $label = $def['title'] ?? ucfirst(str_replace('_', ' ', $jsonFormName));
+                }
+                $renderItem($formId, $label, 0);
+                foreach ($subforms[$formId] ?? [] as $sub) {
+                    if (!empty($sub['formId'])) {
+                        $renderItem((int)$sub['formId'], (string)$sub['formName'], 1);
+                    }
+                }
             }
 
             $html .= '</div>'; // Close group

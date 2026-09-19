@@ -1976,6 +1976,10 @@ lib-table .subform-section table thead {
     cursor: pointer;
 }
 
+.checklist-item.checklist-subitem {
+    padding-left: 20px;
+}
+
 .checklist-item input[type="checkbox"] {
     margin-top: 2px;
 }

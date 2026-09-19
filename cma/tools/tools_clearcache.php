@@ -102,9 +102,21 @@ if (isset($_GET['api']) && $_GET['api'] === '1') {
     if (function_exists('opcache_reset')) {
         @opcache_reset();
     }
+    cma_bump_asset_version($_cmaCacheDir);
 
     echo json_encode(['success' => true, 'cleared' => $cleared]);
     exit;
+}
+
+/**
+ * New asset version so browsers refetch JS/CSS (read by cma_asset_version()).
+ */
+function cma_bump_asset_version(string $cmaCacheDir): void
+{
+    if (!is_dir($cmaCacheDir)) {
+        @mkdir($cmaCacheDir, 0755, true);
+    }
+    @file_put_contents($cmaCacheDir . '/asset_version', date('YmdHis'));
 }
 
 // De bootstrap MOET vóór de eerste uitvoer geladen zijn.
@@ -412,6 +424,7 @@ if (function_exists('apcu_cache_info')) {
 if (function_exists('apcu_clear_cache')) {
     $_preApcuResult = @apcu_clear_cache();
 }
+cma_bump_asset_version($_cmaCacheDir);
 // APCu baseline straight after clearing, before bootstrap repopulates it.
 $_postApcuCount = null;
 if (function_exists('apcu_cache_info')) {
