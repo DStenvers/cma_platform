@@ -1476,18 +1476,20 @@ class FormDataProvider
             $idField = $fieldDef['idField'] ?? 'ID';
             $displayField = $fieldDef['displayField'] ?? '';
 
-            // Check for context-dependent SQL (contains [id] or similar placeholders)
-            // These require a record context to be provided
-            if (!empty($sql) && preg_match('/\[id\]|\[parentId\]|\[recordId\]/i', $sql)) {
-                // SQL requires record context but no lookupId was provided
-                if ($lookupId === '') {
-                    return [
-                        'success' => true,
-                        'options' => [],
-                        'requires_context' => true,
-                        'message' => 'Deze combo vereist een record context (id parameter)',
-                    ];
+            // Record-dependent SQL: [ID]/[ProdID]/[recordId] is the current record.
+            // For a new record "= [ID]" becomes "IS NULL" and a bare [ID] becomes -1
+            // (old edit.inc/details.asp), so the query still runs.
+            if (!empty($sql) && preg_match('/\[(id|prodid|recordId)\]/i', $sql)) {
+                $ctxRecordId = trim((string)($filterContext['_recordId'] ?? ''));
+                unset($filterContext['_recordId']);
+                if ($ctxRecordId !== '' && strtolower($ctxRecordId) !== 'new') {
+                    $sql = preg_replace('/\[(id|prodid|recordId)\]/i', SQL::postNumber($ctxRecordId), $sql);
+                } else {
+                    $sql = preg_replace('/=\s*\[(id|prodid|recordId)\]/i', ' IS NULL', $sql);
+                    $sql = preg_replace('/\[(id|prodid|recordId)\]/i', '-1', $sql);
                 }
+            } else {
+                unset($filterContext['_recordId']);
             }
 
             // Get the connection first to determine database type
@@ -1643,9 +1645,11 @@ class FormDataProvider
 
             $options = [];
             while (!$rs->EOF) {
-                [$optId, $optText] = self::comboIdAndText($rs->fetchAssoc(), $idField, $displayField);
+                [$optId, $optText, $optGroup] = self::comboIdAndText($rs->fetchAssoc(), $idField, $displayField);
                 if ($optId !== null) {
-                    $options[] = ['id' => $optId, 'text' => $optText];
+                    $options[] = $optGroup !== null
+                        ? ['id' => $optId, 'text' => $optText, 'group' => $optGroup]
+                        : ['id' => $optId, 'text' => $optText];
                 }
                 $rs->MoveNext();
             }
@@ -1683,9 +1687,19 @@ class FormDataProvider
         $id = $named[strtolower($idField)] ?? ($positional[0] ?? null);
         $text = $named[strtolower($displayField)] ?? ($positional[1] ?? $positional[0] ?? null);
         if ($id === null || (string) $id === '') {
-            return [null, ''];
+            return [null, '', null];
         }
-        return [(string) $id, Str::toUtf8((string) ($text ?? ''))];
+        $text = Str::toUtf8((string) ($text ?? ''));
+        // "Groep|Item" in the display column groups the options (old edit.inc made
+        // OPTGROUPs of it); a <br> in the label becomes ", "
+        $group = null;
+        if (strpos($text, '|') !== false) {
+            [$group, $text] = explode('|', $text, 2);
+            $group = trim($group);
+            $text = ltrim($text);
+        }
+        $text = preg_replace('#<br\s*/?>#i', ', ', $text);
+        return [(string) $id, $text, $group !== '' ? $group : null];
     }
 
     /**

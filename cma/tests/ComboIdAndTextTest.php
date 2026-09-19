@@ -17,28 +17,35 @@ class ComboIdAndTextTest extends TestCase
     public function testNamedColumnsWinOverPosition(): void
     {
         $row = ['Actief' => 'Actief', 'ID' => 102, 'descr' => 'KP KBT 2026'];
-        $this->assertSame(['102', 'KP KBT 2026'], FormDataProvider::comboIdAndText($row, 'ID', 'Descr'));
+        $this->assertSame(['102', 'KP KBT 2026', null], FormDataProvider::comboIdAndText($row, 'ID', 'Descr'));
     }
 
     public function testLookupIsCaseInsensitive(): void
     {
         $row = ['id' => 7, 'NAAM' => 'Zeven'];
-        $this->assertSame(['7', 'Zeven'], FormDataProvider::comboIdAndText($row, 'ID', 'naam'));
+        $this->assertSame(['7', 'Zeven', null], FormDataProvider::comboIdAndText($row, 'ID', 'naam'));
     }
 
     public function testFallsBackToTheFirstTwoColumnsWhenNamesAreAbsent(): void
     {
         $row = ['x' => 3, 'y' => 'Drie', 0 => 3, 1 => 'Drie'];
-        $this->assertSame(['3', 'Drie'], FormDataProvider::comboIdAndText($row, 'ID', 'Naam'));
+        $this->assertSame(['3', 'Drie', null], FormDataProvider::comboIdAndText($row, 'ID', 'Naam'));
     }
 
     public function testSingleColumnUsesItForBoth(): void
     {
-        $this->assertSame(['NL', 'NL'], FormDataProvider::comboIdAndText(['code' => 'NL'], 'ID', 'Naam'));
+        $this->assertSame(['NL', 'NL', null], FormDataProvider::comboIdAndText(['code' => 'NL'], 'ID', 'Naam'));
     }
 
     public function testRowWithoutIdIsSkipped(): void
     {
-        $this->assertSame([null, ''], FormDataProvider::comboIdAndText(['ID' => null, 'Naam' => 'x'], 'ID', 'Naam'));
+        $this->assertSame([null, '', null], FormDataProvider::comboIdAndText(['ID' => null, 'Naam' => 'x'], 'ID', 'Naam'));
+    }
+
+    public function testGroepEnBrInDeWeergavekolom(): void
+    {
+        // "Groep|Item" wordt een optgroup (oude edit.inc), <br> wordt ", "
+        $this->assertSame(['3', 'Amsterdam', 'Noord'], FormDataProvider::comboIdAndText(['ID' => 3, 'Naam' => 'Noord|Amsterdam'], 'ID', 'Naam'));
+        $this->assertSame(['4', 'Jan, Amsterdam', null], FormDataProvider::comboIdAndText(['ID' => 4, 'Naam' => 'Jan<br>Amsterdam'], 'ID', 'Naam'));
     }
 }

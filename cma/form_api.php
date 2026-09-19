@@ -616,7 +616,7 @@ try {
                 $combos = [];
                 foreach ($fieldNames as $fieldName) {
                     if (!empty($fieldName)) {
-                        $combos[$fieldName] = FormDataProvider::getJsonFormComboOptions($jsonFormName, $fieldName, '');
+                        $combos[$fieldName] = FormDataProvider::getJsonFormComboOptions($jsonFormName, $fieldName, '', '', ['_recordId' => Request::queryId('ID')]);
                     }
                 }
                 $result['combos'] = $combos;
@@ -1165,6 +1165,8 @@ try {
             if ($parentField && $parentID !== '') {
                 $filterContext[$parentField] = $parentID;
             }
+            // Current record for [ID]-dependent combo SQL ('' = new record)
+            $filterContext['_recordId'] = Request::query('recordId', '');
             $result = FormDataProvider::getJsonFormComboOptions($jsonFormName, $fieldName, $search, $lookupId, $filterContext);
             sendDebugHeader();
             outputJson($result);

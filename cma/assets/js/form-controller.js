@@ -3066,14 +3066,15 @@ class CmaFormController {
         const url = '/cma/form_api.php?action=combo&' + this.getFormParam() +
             '&field=' + encodeURIComponent(fieldName) +
             '&filterField=' + encodeURIComponent(filterByField) +
-            '&filterValue=' + encodeURIComponent(filterValue);
+            '&filterValue=' + encodeURIComponent(filterValue) +
+            '&recordId=' + encodeURIComponent(cmaGetRecordId(this.formLayout) || '');
 
         try {
             const response = await fetch(url);
             const data = await response.json();
             if (data.success && data.options) {
                 const options = data.options.map(function(o) {
-                    return { value: String(o.id), label: o.text };
+                    return { value: String(o.id), label: o.text, group: o.group || null };
                 });
                 combo.setOptions(options);
 
@@ -3137,7 +3138,7 @@ class CmaFormController {
         const parentID = urlParams.get('parentID') || '';
         const parentField = urlParams.get('parentField') || '';
 
-        let ajaxUrl = `/cma/form_api.php?action=combo&form=${encodeURIComponent(self.jsonForm)}&field=${encodeURIComponent(fieldName)}`;
+        let ajaxUrl = `/cma/form_api.php?action=combo&form=${encodeURIComponent(self.jsonForm)}&field=${encodeURIComponent(fieldName)}&recordId=${encodeURIComponent(cmaGetRecordId(self.formLayout) || '')}`;
         if (filterField && filterValue) {
             ajaxUrl += `&filterField=${encodeURIComponent(filterField)}&filterValue=${encodeURIComponent(filterValue)}`;
         }
@@ -3438,7 +3439,7 @@ class CmaFormController {
                         if (opt.selected) {
                             selectedIds.push(String(opt.id));
                         }
-                        return { value: String(opt.id), label: opt.text };
+                        return { value: String(opt.id), label: opt.text, group: opt.group || null };
                     });
 
                     selectElement.setOptions(comboOptions);
@@ -6493,7 +6494,7 @@ class CmaFormController {
                     // For lib-combo: build options array including the "-- Alle --" empty option
                     const allOptions = [{ value: '', label: '-- Alle --' }];
                     options.forEach(opt => {
-                        allOptions.push({ value: String(opt.id), label: opt.text });
+                        allOptions.push({ value: String(opt.id), label: opt.text, group: opt.group || null });
                     });
                     combo.setOptions(allOptions);
 
