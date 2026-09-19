@@ -4114,7 +4114,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>source</code> / <code>sql</code> / <code>database</code> / <code>filterByField</code></td><td>Opties-bron voor <code>combobox</code>/<code>dropdown</code>/<code>checklist</code>: een data-source, een SQL-query, en optioneel afhankelijk van een ander veld.</td></tr>
             <tr><td><code>options</code></td><td>Inline keuze-opties (i.p.v. een query).</td></tr>
             <tr><td><code>format</code></td><td>Weergave-formaat: <code>date</code>, <code>datetime</code>, <code>currency</code>, <code>percentage</code>.</td></tr>
-            <tr><td><code>validation</code></td><td>Array van extra validatieregels.</td></tr>
+            <tr><td><code>validation</code></td><td>Array van extra validatieregels. <code>ip-address-list</code>: ;-gescheiden IP-adressen of CIDR-bereiken (komma's worden ;), zoals <code>userIPAddresses</code> / <code>groupIPAddresses</code> waarop <code>login.php</code> de toegang beperkt.</td></tr>
             <tr><td><code>dependencies</code> / <code>hiddenWhen</code></td><td>Toon/verberg dit veld afhankelijk van de waarde van een ander veld.</td></tr>
             <tr><td><code>image</code> / <code>file</code></td><td>Upload-configuratie (max afmetingen, pad) voor <code>image</code>/<code>file</code>-types.</td></tr>
             <tr><td><code>renderer</code></td><td>Naam van een custom renderer (voor <code>type: custom</code>).</td></tr>

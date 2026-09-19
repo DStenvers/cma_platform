@@ -86,7 +86,8 @@
       "type": "textbox",
       "caption": "IP Adressen",
       "maxLength": 76,
-      "hint": "Komma-gescheiden (geen beperking)",
+      "hint": "IP-adressen of CIDR-bereiken, ;-gescheiden (leeg = geen beperking)",
+      "validation": ["ip-address-list"],
       "dataType": "text"
     },
     {

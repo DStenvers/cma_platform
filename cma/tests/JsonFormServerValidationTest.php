@@ -34,6 +34,7 @@ class JsonFormServerValidationTest extends TestCase
         ['name' => 'stamp',    'type' => 'textbox',  'caption' => 'Stamp', 'readOnly' => true],
         ['name' => 'code',     'type' => 'textbox',  'caption' => 'Code', 'readOnly' => true, 'defaultValue' => 'NIEUW'],
         ['name' => 'actief',   'type' => 'checkbox', 'caption' => 'Actief', 'required' => true],
+        ['name' => 'ips',      'type' => 'textbox',  'caption' => 'IP Adressen', 'validation' => ['ip-address-list']],
     ];
 
     public function setUp(): void
@@ -72,6 +73,22 @@ class JsonFormServerValidationTest extends TestCase
     {
         $r = $this->validate(['naam' => 'ok', 'actief' => '', 'stamp' => 'onzin']);
         $this->assertEquals([], $r['errors']);
+    }
+
+    public function testIpLijstGeldigGenormaliseerdNaarPuntkomma(): void
+    {
+        // login.php splitst op ';' — komma's en spaties worden dus ';'
+        $r = $this->validate(['naam' => 'x', 'actief' => '1', 'ips' => '10.0.0.1, 192.168.1.0/24;2001:db8::1']);
+        $this->assertSame([], $r['errors'], json_encode($r['errors']));
+        $this->assertSame('10.0.0.1;192.168.1.0/24;2001:db8::1', $r['data']['ips']);
+    }
+
+    public function testIpLijstOngeldigAdresGeweigerd(): void
+    {
+        foreach (['10.0.0.999', '10.0.0.0/33', 'kantoor', '10.0.0.1/x'] as $bad) {
+            $r = $this->validate(['naam' => 'x', 'actief' => '1', 'ips' => '10.0.0.1;' . $bad]);
+            $this->assertStringContainsString($bad, $r['errors']['ips'] ?? '', "'$bad' had geweigerd moeten worden");
+        }
     }
 
     public function testEmailMeerdereAdressenGenormaliseerd(): void

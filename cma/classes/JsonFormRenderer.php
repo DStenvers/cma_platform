@@ -445,7 +445,7 @@ class JsonFormRenderer
         $currentRight = $rights[$key] ?? 0;
         $currentButtons = $buttonRights[$key] ?? [false, false, false, false, false];
 
-        $displayName = ucfirst(strtolower($label));
+        $displayName = $label; // as defined in the menu ("CGO document" stays "CGO document")
         $rowClass = $indent > 0 ? 'subform-row indent-' . $indent : '';
         $parentAttr = $parentRowId ? ' data-parent="' . $parentRowId . '"' : '';
 

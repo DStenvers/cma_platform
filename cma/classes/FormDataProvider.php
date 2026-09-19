@@ -2879,7 +2879,18 @@ class FormDataProvider
                     break;
 
                 default:
-                    if ($isNumeric) {
+                    if (in_array('ip-address-list', (array)($def['validation'] ?? []), true)) {
+                        // ;-separated IP addresses or CIDR ranges (commas accepted, stored as ';'
+                        // because login.php splits on ';')
+                        $parts = array_values(array_filter(array_map('trim', preg_split('/[;,\s]+/', $value)), 'strlen'));
+                        foreach ($parts as $part) {
+                            if (!self::isIpOrCidr($part)) {
+                                $errors[$name] = "$caption: '$part' is geen geldig IP-adres of CIDR-bereik";
+                                break;
+                            }
+                        }
+                        $value = implode(';', $parts);
+                    } elseif ($isNumeric) {
                         if (!is_numeric(SQL::normalizeDecimal($value))) {
                             $errors[$name] = "$caption mag alleen een getal bevatten";
                         }
@@ -2900,6 +2911,24 @@ class FormDataProvider
             $data[$key] = $value;
         }
         return ['errors' => $errors, 'data' => $data];
+    }
+
+    private static function isIpOrCidr(string $value): bool
+    {
+        $bits = null;
+        if (strpos($value, '/') !== false) {
+            [$value, $bits] = explode('/', $value, 2);
+            if (!ctype_digit($bits)) {
+                return false;
+            }
+        }
+        if (filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+            return $bits === null || (int)$bits <= 32;
+        }
+        if (filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+            return $bits === null || (int)$bits <= 128;
+        }
+        return false;
     }
 
     private static function captionOf(array $def): string

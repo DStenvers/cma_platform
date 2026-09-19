@@ -31,7 +31,8 @@
       "name": "groupIPAddresses",
       "type": "textbox",
       "caption": "IP adres(sen)",
-      "hint": "Toegestand IP adres(sen) van leden (;-gescheiden)",
+      "hint": "Toegestane IP-adressen of CIDR-bereiken van leden, ;-gescheiden (leeg = geen beperking)",
+      "validation": ["ip-address-list"],
       "maxLength": 254,
       "dataType": "text"
     },
