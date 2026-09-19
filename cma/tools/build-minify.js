@@ -89,7 +89,16 @@ function writeIfChanged(src, min, bytes) {
     const before = fs.existsSync(min) ? fs.readFileSync(min) : null;
     if (before && before.equals(bytes)) {
         const s = fs.statSync(src);
-        fs.utimesSync(min, s.atime, s.mtime);
+        try {
+            fs.utimesSync(min, s.atime, s.mtime);
+        } catch (e) {
+            // A drvfs mount without uid mapping refuses to set times on a file
+            // it considers owned by someone else (EPERM). Writing the same
+            // bytes again is allowed and moves the mtime to now, which is
+            // newer than the source and serves the same purpose.
+            if (e.code !== 'EPERM') throw e;
+            fs.writeFileSync(min, bytes);
+        }
         stats.skipped++;
         return null;
     }

@@ -275,18 +275,11 @@ try {
         if (preg_match('/<body[^>]*>(.*)<\/body>/is', $template, $matches)) {
             $bodyContent = $matches[1];
 
-            // Extract ALL script tags from the template (head + body)
-            // These contain CMA.formConfig and the CmaFormController initialization
-            if (preg_match_all('/<script>(.+?)<\/script>/is', $template, $scriptMatches)) {
-                foreach ($scriptMatches[1] as $scriptContent) {
-                    // Only output scripts that contain CMA config or controller init
-                    // Skip external script references (those are in main.php shell)
-                    if (strpos($scriptContent, 'CMA.formConfig') !== false ||
-                        strpos($scriptContent, 'CmaFormController') !== false ||
-                        strpos($scriptContent, 'window.CMA') !== false) {
-                        echo '<script>' . $scriptContent . '</script>' . PHP_EOL;
-                    }
-                }
+            // The head scripts (CMA.formConfig and the like) go first; the body
+            // keeps its own scripts, so the controller init at the end of the
+            // body runs exactly once, after the config.
+            foreach (\Cma\FormTemplate::headScriptsForShell($template) as $scriptContent) {
+                echo '<script>' . $scriptContent . '</script>' . PHP_EOL;
             }
 
             // In nomenu mode, body classes need to be applied to parent body in main.php

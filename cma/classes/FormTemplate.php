@@ -155,6 +155,35 @@ class FormTemplate
      * @param int $accessLevel User access level
      * @return string HTML template
      */
+    /**
+     * The inline scripts from the <head> of a rendered form page that the
+     * sidebar shell needs before the body content: the ones that set up
+     * window.CMA / CMA.formConfig. Only the head is searched. The body's own
+     * scripts (the controller init at its end) stay inside the body content
+     * the shell inserts, so every script runs once. When the body was
+     * searched too, the init script was emitted twice and every form page
+     * created two controllers, each fetching the list, tree and combos.
+     *
+     * @return string[] script contents, in document order
+     */
+    public static function headScriptsForShell(string $template): array
+    {
+        $bodyStart = stripos($template, '<body');
+        $head = $bodyStart === false ? $template : substr($template, 0, $bodyStart);
+        if (!preg_match_all('/<script>(.+?)<\/script>/is', $head, $matches)) {
+            return [];
+        }
+        $scripts = [];
+        foreach ($matches[1] as $scriptContent) {
+            if (strpos($scriptContent, 'CMA.formConfig') !== false ||
+                strpos($scriptContent, 'CmaFormController') !== false ||
+                strpos($scriptContent, 'window.CMA') !== false) {
+                $scripts[] = $scriptContent;
+            }
+        }
+        return $scripts;
+    }
+
     private function generateFromJson(string $formName, int $accessLevel): string
     {
         $this->accessLevel = $accessLevel;
