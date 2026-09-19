@@ -15216,3 +15216,10 @@ karaat-data en staat in de karaat-repo.
 > can you make a migration that sets (opcache.jit_buffer_size to the best value ?
 
 > can we make a messaage on the dashboard for developeers and admins if php version < 8.3.14 shy upgrading is advisable?
+
+> <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
+> v1.50.10 (36bdde9) is pushed on top of your 37b680c; cma-fold.min.js and form.min.css were rebuilt in it, so MinifiedAssetsTest is green again. Working tree is clean. Next version is yours: 1.50.11. I'm now updating mijnrino_php and then I'm done with the comparison batches.
+> </cross-session-message>
+> can you port upload-and-link and imagezoom also?
+
+> any items left to be done?

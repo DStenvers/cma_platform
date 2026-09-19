@@ -4,6 +4,11 @@ require_once __DIR__ . '/bootstrap.inc';
 use App\Library\Request;
 
 $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
+// Upload folder for "Bestand kiezen / uploaden" (old link-pages.asp used cma_htmledit_img_path)
+$uploadBase = trim((string) \App\Library\Settings::get('editor_image_path'), '/');
+if ($uploadBase === '') {
+    $uploadBase = 'uploads';
+}
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -82,6 +87,45 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
     </style>
     <script>
     var MODE = <?php echo json_encode($mode); ?>;
+    var UPLOAD_BASE = <?php echo json_encode($uploadBase . '/'); ?>;
+    var ZOOM_RE = /^javascript:lib_window_ImageZoom\('([^']*)'(?:,\s*'([^']*)')?\)$/i;
+    var IMAGE_RE = /\.(jpe?g|png|gif|webp)(\?.*)?$/i;
+
+    // "Bestand kiezen / uploaden": the file browser in an iframe inside this dialog
+    // (old link-pages.asp embedded file_frameset.asp the same way). It posts
+    // {type:'file-browser-select', value} to its parent, which is this window.
+    var browserOpen = false;
+    function toggleFileBrowser() {
+        var wrap = document.getElementById('fileBrowserWrap');
+        var frame = document.getElementById('fileBrowserFrame');
+        browserOpen = !browserOpen;
+        if (browserOpen && !frame.getAttribute('src')) {
+            frame.setAttribute('src', 'wizards/file-browser.php?layout=0&fieldname=cma_link_file&basepath=' + encodeURIComponent(UPLOAD_BASE));
+        }
+        wrap.style.display = browserOpen ? '' : 'none';
+        document.getElementById('page1').style.display = browserOpen ? 'none' : '';
+        if (window.parent && typeof window.parent.lib_OpenWindowCenteredMax === 'function') {
+            window.parent.lib_OpenWindowCenteredMax();
+        }
+    }
+    // The embedded browser closes "its popup" through this on select/cancel
+    window.lib_OpenWindowCenteredClose = function() { if (browserOpen) toggleFileBrowser(); };
+    window.addEventListener('message', function(e) {
+        if (e.origin !== window.location.origin || !e.data || e.data.type !== 'file-browser-select') return;
+        var value = String(e.data.value || '').replace(/^\/+/, '');
+        document.getElementById('href').value = '/' + UPLOAD_BASE + value;
+        if (browserOpen) toggleFileBrowser();
+        if (IMAGE_RE.test(value)) document.getElementById('zoom').checked = true;
+        updateSubjectRow();
+        document.getElementById('title').focus();
+    });
+
+    // Image links open in the zoom window (lib_window_ImageZoom) as the old wizard did
+    function updateZoomRow() {
+        var href = document.getElementById('href').value.trim();
+        var isImage = IMAGE_RE.test(href.split('?')[0]) || ZOOM_RE.test(href);
+        document.getElementById('zoomRow').style.display = isImage ? '' : 'none';
+    }
     // The editor and the selected anchor live on the top window (set by CMA.editor
     // before this dialog was opened). Same-origin iframe, so we can read them directly.
     var EDITWIN = window.top;
@@ -97,6 +141,12 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
         if (anchor) {
             var href = anchor.getAttribute('data-cke-saved-href') || anchor.getAttribute('href') || '';
             var target = anchor.getAttribute('target') || '';
+            var zoom = href.match(ZOOM_RE);
+            if (zoom) {
+                // javascript:lib_window_ImageZoom('url','title') -> plain url + checkbox
+                href = zoom[1].replace(/^https?:\/\/[^\/]+/i, '');
+                document.getElementById('zoom').checked = true;
+            }
             document.getElementById("href").value = href;
             document.getElementById("title").value = anchor.getAttribute('title') || '';
 
@@ -123,6 +173,7 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
         var href = document.getElementById("href").value.trim();
         var isMail = href.toLowerCase().indexOf('mailto:') === 0 || isEmailLike(href);
         document.getElementById("subjectRow").style.display = isMail ? '' : 'none';
+        updateZoomRow();
         if (isMail && href.indexOf('?subject=') > -1 && document.getElementById("subject").value === '') {
             document.getElementById("subject").value = decodeURIComponent(href.split('?subject=')[1] || '');
         }
@@ -154,6 +205,13 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
         } else if (document.getElementById("target2").checked) {
             target = document.getElementById("target_other").value.trim();
         }
+        var zoomRow = document.getElementById('zoomRow');
+        if (zoomRow.style.display !== 'none' && document.getElementById('zoom').checked) {
+            var abs = /^https?:\/\//i.test(href) ? href : window.location.origin + (href.charAt(0) === '/' ? '' : '/') + href;
+            var zoomTitle = document.getElementById("title").value.trim();
+            href = "javascript:lib_window_ImageZoom('" + abs.replace(/'/g, '%27') + "','" + encodeURIComponent(zoomTitle) + "')";
+            target = '';
+        }
         EDITWIN.CMA.editor.applyLink({
             href: href,
             title: document.getElementById("title").value.trim(),
@@ -170,7 +228,14 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
                 <label for="href">URL:</label>
                 <div class="input-group">
                     <input type="text" name="href" id="href" maxlength="256">
-                    <div class="help-text">Inclusief https:// of mailto:</div>
+                    <div class="help-text">Inclusief https:// of mailto: &mdash; of <a href="#" onclick="toggleFileBrowser();return false;">bestand kiezen / uploaden</a></div>
+                </div>
+            </div>
+
+            <div class="form-row" id="zoomRow" style="display:none">
+                <label></label>
+                <div class="input-group">
+                    <label><input type="checkbox" id="zoom" name="zoom"> Plaatje openen in een zoom-venster</label>
                 </div>
             </div>
 
@@ -217,6 +282,10 @@ $mode = (Request::query('mode', 'insert') === 'edit') ? 'edit' : 'insert';
                 <button type="button" class="button" onclick="save()"><?php echo $mode === 'edit' ? 'Opslaan' : 'Invoegen'; ?></button>
             </div>
         </form>
+    </div>
+    <div id="fileBrowserWrap" style="display:none">
+        <div class="form-actions" style="margin:6px 0"><button type="button" class="button" onclick="toggleFileBrowser()">&larr; Terug naar de link</button></div>
+        <iframe id="fileBrowserFrame" title="Bestand kiezen" style="width:100%;height:calc(100vh - 70px);border:0"></iframe>
     </div>
 </body>
 </html>
