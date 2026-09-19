@@ -2816,15 +2816,11 @@ class CmaFormController {
         }
 
         if (parentRow) {
-            // Check if the field is required - never hide required fields
-            const field = parentRow.querySelector('[data-required="true"]');
-            if (field) {
-                // cmaLog.log('hideParentField: NOT hiding required field', this.parentField);
-                return;
-            }
-
-            parentRow.style.display = 'none';
-            // cmaLog.log('hideParentField: hidden row for field', this.parentField);
+            // The parent stays visible as a locked (readonly) field, as details.asp
+            // showed it as a label: the user sees which parent the record belongs
+            // to. setParentFieldValue() sets the value and the readonly attribute.
+            parentRow.classList.add('parent-field-row');
+            // cmaLog.log('hideParentField: parent row kept visible (locked) for field', this.parentField);
         } else {
             // cmaLog.log('hideParentField: row not found for field', this.parentField);
         }

@@ -1626,7 +1626,17 @@ class FormTemplate
         $html = '';
         $groupId = 0;
         $groupRow = 0;
-        $isCombining = false; // Track if we're adding fields to an existing row
+        // combineWithNext ("keep with next"): the row of a combining field is held
+        // back and its followers are appended as .next_col cells until a field
+        // that does not combine closes it. Every other path out of the loop body
+        // (skipped field, group separator, end of fields) flushes the held row.
+        $pendingRow = null;
+        $flushPending = function () use (&$pendingRow, &$html) {
+            if ($pendingRow !== null) {
+                $html .= FormRenderer::renderFormRow($pendingRow['name'], $pendingRow['caption'], $pendingRow['html'], $pendingRow['options']);
+                $pendingRow = null;
+            }
+        };
 
         // arrRep is ColumnMajorArray where each column index contains an array of values
         // $this->arrRep[\Q_FIELDNAME] returns an array of all field names
@@ -1652,22 +1662,23 @@ class FormTemplate
             $readonly = $this->toBool($this->arrRep[\Q_FLDREADONLY][$i] ?? false);
             $isBeheer = $this->toBool($this->arrRep[\Q_BEHEER][$i] ?? false);
             $postCaption = $this->arrRep[\Q_POSTCAPTION][$i] ?? '';
-            // combineWithNext disabled - too many edge cases with row closing
-            // TODO: Re-implement combineWithNext (side-by-side fields) properly
-            $combineWithNext = false; // $this->toBool($this->arrRep[\Q_KEEPWITHNEXT][$i] ?? false);
+            $combineWithNext = $this->toBool($this->arrRep[\Q_KEEPWITHNEXT][$i] ?? false);
 
             // Skip beheer fields for non-beheer users
             if ($isBeheer && $this->accessLevel != SecurityHelper::ACCESS_FULL_BEHEER) {
+                $flushPending();
                 continue;
             }
 
             // Skip hidden control types
             if ($controlType == FormRenderer::TYPE_HTMLSTRIP || $controlType == FormRenderer::TYPE_THUMBNAIL || $controlType == FormRenderer::TYPE_IGNOREFIELD) {
+                $flushPending();
                 continue;
             }
 
             // Handle group separator
             if ($controlType == FormRenderer::TYPE_GROUPSEPARATOR) {
+                $flushPending();
                 // Add groupbox-end row if there was a previous groupbox
                 if ($groupId > 0) {
                     $html .= '<tr class="groupbox-end" data-group-row="' . $groupId . '"><td colspan="99"></td></tr>';
@@ -1744,21 +1755,17 @@ class FormTemplate
             $controlHtml .= $hiddenInputs;
 
             // Handle combining fields (side-by-side layout)
-            if ($isCombining) {
-                // Add this field inline with the previous one
-                $html .= '<div class="next_col">';
-                $html .= '<span>' . Server::htmlEncode($caption) . '</span>';
-                $html .= $controlHtml;
-                $html .= '</div>';
-
-                // Check if we should continue combining or close the row
+            if ($pendingRow !== null) {
+                // Add this field inline with the held row (caption above the control)
+                $pendingRow['html'] .= '<div class="next_col" data-field-col="' . Server::htmlEncode($fieldName) . '">'
+                    . '<span>' . Server::htmlEncode($caption) . '</span>'
+                    . $controlHtml
+                    . '</div>';
                 if (!$combineWithNext) {
-                    $html .= '</td></tr>' . PHP_EOL;
-                    $isCombining = false;
+                    $flushPending();
                 }
             } else {
-                // Render normal row
-                $html .= FormRenderer::renderFormRow($fieldName, $caption, $controlHtml, [
+                $rowOptions = [
                     'required' => $required,
                     'beheer' => $isBeheer,
                     'postCaption' => $postCaption,
@@ -1768,22 +1775,17 @@ class FormTemplate
                     'controlType' => $controlType,
                     'maxLength' => $config['maxLength'] ?? 0,
                     'dataType' => $config['dataType'] ?? '',
-                ]);
-
-                // If this field has combineWithNext, next field will be added inline
-                // But we need to remove the closing </td></tr> from the row
+                ];
                 if ($combineWithNext) {
-                    // Strip the closing tags using regex to handle variations
-                    $html = preg_replace('/<\/td>\s*<\/tr>\s*$/i', '', $html);
-                    $isCombining = true;
+                    $pendingRow = ['name' => $fieldName, 'caption' => $caption, 'html' => $controlHtml, 'options' => $rowOptions];
+                } else {
+                    $html .= FormRenderer::renderFormRow($fieldName, $caption, $controlHtml, $rowOptions);
                 }
             }
         }
 
-        // Close any open combining row (if last field had combineWithNext=true)
-        if ($isCombining) {
-            $html .= '</td></tr>' . PHP_EOL;
-        }
+        // A last field with combineWithNext still needs its row
+        $flushPending();
 
         // Add final groupbox-end if there was at least one groupbox
         if ($groupId > 0) {
