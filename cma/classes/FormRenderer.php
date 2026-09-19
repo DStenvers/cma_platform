@@ -349,7 +349,14 @@ class FormRenderer
             );
         }
 
-        $dataAttrs = self::buildDataAttributes($name, 'date', $required, $readonly, [], $newChangableOnly, $caption);
+        // defaultValue ("today", "Date()", "+14", dd-mm-yyyy) is applied by
+        // applyDefaultValues() -> resolveDateDefault() for a new record
+        $extra = [];
+        $defaultValue = (string)($config['defaultValue'] ?? '');
+        if ($defaultValue !== '') {
+            $extra['default'] = $defaultValue;
+        }
+        $dataAttrs = self::buildDataAttributes($name, 'date', $required, $readonly, $extra, $newChangableOnly, $caption);
 
         return sprintf(
             '<lib-datepicker name="%s" %s></lib-datepicker>',

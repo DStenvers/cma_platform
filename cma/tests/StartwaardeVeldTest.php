@@ -136,6 +136,10 @@ class StartwaardeVeldTest extends TestCase
         $this->assertStringContainsString('data-default="today"', $out);
         $zonder = FormRenderer::renderTextBox('Datum', ['isDate' => true]);
         $this->assertStringNotContainsString('data-default', $zonder);
+        // type "date" in a JSON definition goes through renderDateBox
+        $box = FormRenderer::renderDateBox('DATESTAMP', ['defaultValue' => 'today']);
+        $this->assertStringContainsString('data-default="today"', $box);
+        $this->assertStringNotContainsString('data-default', FormRenderer::renderDateBox('Datum', []));
     }
 
     public function testRadiogroepNeemtDeStartwaardeOver(): void
