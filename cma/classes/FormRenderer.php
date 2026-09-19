@@ -197,12 +197,16 @@ class FormRenderer
                 );
             }
 
-            // Use lib-datepicker web component
+            // Use lib-datepicker web component. A defaultValue ("today", "Date()",
+            // "+14" days or a fixed dd-mm-yyyy) is applied by applyDefaultValues()
+            // for a new record.
+            $defaultAttr = $defaultValue !== '' ? ' data-default="' . self::escape((string)$defaultValue) . '"' : '';
             return sprintf(
-                '<lib-datepicker name="%s" format="dd-mm-yyyy" locale="nl" data-type="date" data-caption="%s"%s></lib-datepicker>',
+                '<lib-datepicker name="%s" format="dd-mm-yyyy" locale="nl" data-type="date" data-caption="%s"%s%s></lib-datepicker>',
                 self::escape($name),
                 self::escape($caption),
-                $requiredAttr
+                $requiredAttr,
+                $defaultAttr
             );
         }
 

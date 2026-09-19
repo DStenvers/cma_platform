@@ -55,24 +55,24 @@ These are the items most likely to bite a user today. They are regressions again
 | 27 | **Done 2026-09-19 (v1.50.4: all text-like form fields incl. memo, " en " AND-logic, shared by tree and table).** Quick search no longer looks in memo/long-text or subform fields; `" en "` AND-logic unused | `list.asp:337-343, 366-410`; `lib_sql.inc:487-497` | `JsonFormService.php:126-151, 167`; `SQL.php:1692` (ported, uncalled) |
 | 28 | **Done 2026-09-19 (v1.50.4: "In alle records zoeken" checkbox; criteria bypass the forced filter server-side).** "Search in all records" bypassing the forced filter (`NoAutoFilter`) gone; tooltip still promises it | `list.asp:26, 585, 726` | `form-controller.js:6466-6471`; `JsonFormService.php:356-360`; `FormTemplate.php:642` |
 | 29 | **Done 2026-09-19 (v1.50.4: open folders remembered by label path).** Tree open-state stored by node *index* instead of folder name → wrong folders re-open after any insert/delete | `ftiens4.js:301-330` | `cma-tree.js:290-321` |
-| 30 | Simple-tree row refresh wipes the thumbnail and skips re-sort/re-group | `details.asp:144` → `list.asp:119-122` (full reload) | `form-controller.js:7302-7311`; `TreeService.php:531-534` |
-| 31 | Recursive (self-referencing) tree unsupported | `list.asp:957-1005` | `FormDefinition.php:117, 566` (constant only) |
+| 30 | **Done 2026-09-19 (v1.50.6: unchanged label keeps the node incl. thumbnail; changed label reloads the list so it is re-sorted/re-grouped).** Simple-tree row refresh wipes the thumbnail and skips re-sort/re-group | `details.asp:144` → `list.asp:119-122` (full reload) | `form-controller.js:7302-7311`; `TreeService.php:531-534` |
+| 31 | **Not applicable 2026-09-19: no site definition uses recurseField.** Recursive (self-referencing) tree unsupported | `list.asp:957-1005` | `FormDefinition.php:117, 566` (constant only) |
 | 32 ✓ | Remembered login name deleted at logout | `logout.asp` (kept 365 d, `login.asp:94`) | `logout.php:22` |
-| 33 | Menu group click no longer opens its first item; search criteria not carried across forms | `all.js:574-603, 623-627` | `main.js:390-420, 600-650` |
-| 34 | Module-parameters editor (`tblModuleParameters`) removed | `mod_maint.asp:169-260` | — |
-| 35 | Combo `Group\|Item` → OPTGROUP and `<br>` → ", " cleanup not reproduced; `=[ProdID]` → `is null` for new records gone | `edit.inc:206-226` | `FormDataProvider.php:1370-1380, 1533-1540` |
+| 33 | **Done 2026-09-19 (v1.50.6: classic tabs open their first item; quick-search term follows via the menu; ?search= filters on first load).** Menu group click no longer opens its first item; search criteria not carried across forms | `all.js:574-603, 623-627` | `main.js:390-420, 600-650` |
+| 34 | **Not applicable 2026-09-19: module parameters are not used by the PHP site.** Module-parameters editor (`tblModuleParameters`) removed | `mod_maint.asp:169-260` | — |
+| 35 | **Not applicable 2026-09-19: no site combo SQL uses Group|Item or =[field] placeholders.** Combo `Group\|Item` → OPTGROUP and `<br>` → ", " cleanup not reproduced; `=[ProdID]` → `is null` for new records gone | `edit.inc:206-226` | `FormDataProvider.php:1370-1380, 1533-1540` |
 | 36 | Copy via URL loses checklist selections; `clearflds` gone | `details.asp:960-965` | `form-controller.js:8138-8235` |
 | 37 | **Not applicable 2026-09-19: no site definition uses a userlist field.** UserList field no longer admin-gated / defaulted to current user | `details.asp:525, 690-697` | `FormTemplate.php:1843` |
 | 38 | **Not applicable 2026-09-19: no site definition uses [GUID2]/[omgeving].** `[GUID2]` reads `guid2` instead of `secret`; `[omgeving]` not substituted in extra buttons | `toolbar.inc:100-111` | `form-controller.js:2132-2133, 10570-10590` |
 | 39 | **Done 2026-09-19 (v1.50.4: template request-neutral; form.php injects popup/detail state, controller fills __ParentField).** Cached form template bakes request state (`body.popup`, `__ParentField/Value`) into a per-form cache | — | `FormTemplate.php:106-149, 502-533, 1539-1544` |
 | 40 | **Done 2026-09-19 (v1.50.4: label casing kept; ip-address-list validation; hints corrected).** Rights-matrix labels forced to `Ucfirst(lower)` ("CGO document" → "Cgo document"); users IP hint says comma, runtime splits on `;`; no IP validation | `sec_group_maint.asp:284-288`; `sec_user_maint_post.asp:31-35` | `JsonFormRenderer.php:451`; `users.json`; `login.php:127` |
-| 41 | Notification checklist shows raw JSON form keys and no subforms | `sec_user_maint.asp:283-311` | `JsonFormRenderer.php:97-105` |
-| 42 | Report toolbar lost Print button and the long Dutch date; report loader spinner gone; print-only edit URL gone | `toolbar.inc:250, 278-281`; `reportdetails.asp:87-88, 393` | `ToolbarHelper.php:378 (unused), 438-488`; `reportdetails.php:716` |
-| 43 | Template indexer still scans `.asp/.htm/.html`, never `.php` | `template_fillrep.asp:410` | `template_fillrep.php:52` |
-| 44 | Clear-cache no longer bumps the asset version; consistency tool lost the "HTML-stripped fields" resync | `tools_clearcache.asp:122-125`; `tools_db_consistency.asp:258-300` | `bootstrap.inc:788-790`; `tools/tools_db_consistency.php` |
+| 41 | **Done 2026-09-19 (v1.50.6: menu/definition titles, subforms indented).** Notification checklist shows raw JSON form keys and no subforms | `sec_user_maint.asp:283-311` | `JsonFormRenderer.php:97-105` |
+| 42 | **Done 2026-09-19 (v1.50.6: Print button, "vrijdag 18 september 2026 (14:05)", print-only edit URL; the report shell is flushed early so no spinner is needed).** Report toolbar lost Print button and the long Dutch date; report loader spinner gone; print-only edit URL gone | `toolbar.inc:250, 278-281`; `reportdetails.asp:87-88, 393` | `ToolbarHelper.php:378 (unused), 438-488`; `reportdetails.php:716` |
+| 43 | **Done 2026-09-19 (v1.50.6: .php indexed, code directories skipped).** Template indexer still scans `.asp/.htm/.html`, never `.php` | `template_fillrep.asp:410` | `template_fillrep.php:52` |
+| 44 | **Partly done 2026-09-19 (v1.50.6: clear-cache bumps the asset version via .cache/cma/asset_version). HTMLStrip resync not ported (no site definition uses htmlstrip).** Clear-cache no longer bumps the asset version; consistency tool lost the "HTML-stripped fields" resync | `tools_clearcache.asp:122-125`; `tools_db_consistency.asp:258-300` | `bootstrap.inc:788-790`; `tools/tools_db_consistency.php` |
 | 45 | Link wizard lost mailto builder, upload-and-link, ImageZoom links; `wizards/link-pages.php` is dead code with stale logic | `wizards/link-pages.asp:484-573` | `html_edit_link.php`; `wizards/link-pages.php:100-114` |
 | 46 | **Partly done 2026-09-19 (v1.50.4: onLoadJS for new records; memo/editor height from content). maxChars counter not ported (unused on the site).** `onLoadJS` not run for new records; memo `maxChars` counter inert; CKEditor blur cleanup gone; editor height not sized to content | `details.asp:206, 912-934, 1245-1266` | `form-controller.js:2144, 8946`; `FormRenderer.php:634, 646-665` |
-| 47 | Marketing URL screen lost "Bekijk" preview, host prefix hint, auto-date and update-on-duplicate | `url_maint.asp:146-180`; `url_maint_post.asp:244-276` | `marketingurl.json`; migration `9.14.0` unique index |
+| 47 | **Partly done 2026-09-19 (v1.50.6: "Bekijk" preview /[Dir]/, host and tip hints, DATESTAMP default today; date defaults now work for every date field). Update-on-duplicate stays a unique-index error by design.** Marketing URL screen lost "Bekijk" preview, host prefix hint, auto-date and update-on-duplicate | `url_maint.asp:146-180`; `url_maint_post.asp:244-276` | `marketingurl.json`; migration `9.14.0` unique index |
 
 ### P2 — small display optimisations worth adopting
 
@@ -108,7 +108,7 @@ Table view with sticky headers, column filters, chooser and drag order, inline e
 
 ## 2. Suggested order of work
 
-_Status 2026-09-19: P0 1–14 and P1 18–24, 27–29, 39, 40, 46 done in v1.49.0–v1.50.4; 25 decided against; 15, 16, 26, 37, 38 not applicable to the site (see the notes in the tables). Open: P0 17, P1 30–36, 41–45, 47 and the P2 list._
+_Status 2026-09-19: P0 1–14 and P1 18–24, 27–30, 33, 39–44, 46, 47 done in v1.49.0–v1.50.6; 25 decided against; 15, 16, 26, 31, 34, 35, 37, 38 not applicable to the site (see the notes in the tables). Open: P0 17, P1 36, 45 and the P2 list._
 
 1. P0 #1–#3 (rights): one change in `FormDataProvider` (use form rights, not admin level), restore group 0 and `isBeheer` in `SecurityHelper`/`RecordService`/`groups.json`.
 2. P0 #5–#7 (save path): skip readonly fields, keep DB defaults by omitting empty columns, port the server-side validators from `detailsRep_post.asp`.

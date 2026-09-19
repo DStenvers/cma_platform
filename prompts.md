@@ -15183,3 +15183,28 @@ karaat-data en staat in de karaat-repo.
 
 > Okay do a full performance review and make recommendations on improvements, focus on safe changes tgat will not cause regression, if no performance gains can be achieved that is a valid outcome, make sure you test assumptions
 > please continue with the rest, but for 25: required is already indicated by a red line, no * please and the actie field may go, also remove it from documentation and schema definitions
+
+## 2026-09-19
+
+> <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
+> v1.50.4 (a382df9) is committed, tagged and pushed on top of your v1.50.3; main is level with origin and the working tree is clean. I'm now updating mijnrino_php to it. Next platform version is yours if you need one (1.50.5); I'll message before any further platform commit.
+> </cross-session-message>
+
+> <task-notification>
+> <task-id>bff3trjwz</task-id>
+> <tool-use-id>toolu_01D6UaMwxJzSdG2zYs5p95iB</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/bff3trjwz.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Check the other consumer repos for session usage" completed (exit code 0)</summary>
+> </task-notification>
+> yes continue please
+
+> 1 great proposal, 2 also, 3 please fix, 4 park for nuw, place in todo.md
+
+> <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
+> My hunks in form-controller.js and main.js are committed as abd0ed8 (not pushed, not tagged); the working tree is clean apart from prompts.md. Go ahead with your form-controller.js / form_api.php / main.js / documentation.php changes and 1.50.5. I'll keep working on other files (JsonFormRenderer.php, reportdetails.php/ToolbarHelper.php, tools_clearcache.php, template_fillrep.php, marketingurl.json) and will not touch form-controller.js or main.js until you say 1.50.5 is pushed. Please rebase/commit on top of abd0ed8.
+> </cross-session-message>
+
+> <cross-session-message from="uds:/run/user/1000/cc-socks/24361.sock" from-name="draaiboeken-3d" from-mode="bypass">
+> I have one more change queued for cma/assets/js/form-controller.js (applyDefaultValues: date defaults "today"/"Date()" for lib-datepicker, ~10 lines) and will wait until you message that 1.50.5 is pushed. My other files (FormRenderer.php, marketingurl.json, tests) are uncommitted in the tree; please keep staging by explicit path as before. No rush.
+> </cross-session-message>

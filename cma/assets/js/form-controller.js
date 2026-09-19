@@ -9365,6 +9365,29 @@ class CmaFormController {
      * Apply default values to form fields for new records
      * Reads data-default attributes from fields and sets their values
      */
+    /**
+     * Turn a date default expression into an ISO date (yyyy-mm-dd) for lib-datepicker.
+     */
+    resolveDateDefault(expr) {
+        const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const v = String(expr || '').trim();
+        const lower = v.toLowerCase().replace(/[()\s]/g, '');
+        if (['today', 'now', 'date', 'getdate', 'current_date_stamp', 'vandaag'].includes(lower)) {
+            return iso(new Date());
+        }
+        const rel = v.match(/^([+-]\d+)$/);
+        if (rel) {
+            const d = new Date();
+            d.setDate(d.getDate() + parseInt(rel[1], 10));
+            return iso(d);
+        }
+        const nl = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (nl) {
+            return `${nl[3]}-${nl[2].padStart(2, '0')}-${nl[1].padStart(2, '0')}`;
+        }
+        return v; // already ISO or unknown: pass through
+    }
+
     applyDefaultValues() {
         if (!this.mainForm) return;
 
@@ -9402,6 +9425,10 @@ class CmaFormController {
             } else if (field.tagName === 'LIB-COMBO') {
                 // lib-combo dropdowns
                 field.value = defaultValue;
+            } else if (field.tagName === 'LIB-DATEPICKER') {
+                // Date defaults: "today"/"Date()"/"Now()", "+14" (days from today)
+                // or a fixed dd-mm-yyyy — the old details.asp evaluated such expressions
+                field.value = this.resolveDateDefault(defaultValue);
             } else if (field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
                 // Text inputs and textareas
                 field.value = defaultValue;

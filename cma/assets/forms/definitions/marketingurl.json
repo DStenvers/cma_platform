@@ -9,6 +9,7 @@
         "idField": "ID",
         "displayMode": 2,
         "listQuery": "",
+        "previewUrl": "/[Dir]/",
         "allowAdd": true,
         "allowDelete": true,
         "allowCopy": false,
@@ -29,6 +30,7 @@
                         "caption": "Directory",
                         "required": true,
                         "maxLength": 78,
+                        "hint": "Korte URL achter https://<domein>/ (bijv. 'aanmelden' voor /aanmelden/)",
                         "helpText": "De korte URL (bijv. 'aanmelden' voor /aanmelden/)"
                 },
                 {
@@ -37,17 +39,20 @@
                         "caption": "Doorverwijzen naar",
                         "required": true,
                         "maxLength": 78,
+                        "hint": "TIP: ga met de browser naar de pagina en kopieer het adres",
                         "helpText": "De volledige URL waarnaar doorverwezen wordt"
                 },
                 {
                         "name": "Opmerking",
                         "type": "textbox",
-                        "caption": "Opmerking"
+                        "caption": "Opmerking",
+                        "hint": "TIP: vermeld waar(in) deze URL gecommuniceerd is"
                 },
                 {
                         "name": "DATESTAMP",
                         "type": "date",
                         "caption": "Datum",
+                        "defaultValue": "today",
                         "maxLength": 19
                 }
         ]

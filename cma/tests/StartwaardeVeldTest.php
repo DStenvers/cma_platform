@@ -128,6 +128,16 @@ class StartwaardeVeldTest extends TestCase
         $this->assertStringContainsString('data-default="Psycholoog"', $out);
     }
 
+    public function testDatumveldKrijgtDeStartwaardeAlsDataDefault(): void
+    {
+        // "today" wordt door applyDefaultValues() op de dag van invoer omgezet
+        $out = FormRenderer::renderTextBox('DATESTAMP', ['isDate' => true, 'defaultValue' => 'today']);
+        $this->assertStringContainsString('<lib-datepicker', $out);
+        $this->assertStringContainsString('data-default="today"', $out);
+        $zonder = FormRenderer::renderTextBox('Datum', ['isDate' => true]);
+        $this->assertStringNotContainsString('data-default', $zonder);
+    }
+
     public function testRadiogroepNeemtDeStartwaardeOver(): void
     {
         $out = FormRenderer::renderRadioGroup('soort', [
