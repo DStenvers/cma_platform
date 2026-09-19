@@ -134,6 +134,7 @@ $formBackedTools = [
     'monitoring'    => 'cmamonitoring',
     'marketingurl'  => 'marketingurl',
     'redirects'     => 'marketingurl',
+    'moduleparameters' => 'moduleparameters',
     'emaillog'      => 'emaillog',
     'maillog'       => 'emaillog',
 ];

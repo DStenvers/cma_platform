@@ -1,0 +1,36 @@
+{
+        "$schema": "../../../config/schema/form-definition.schema.json",
+        "version": "1.0.0",
+        "name": "moduleparameters",
+        "title": "Module-parameters",
+        "titleSingular": "Module-parameter",
+        "table": "tblCMAModuleParameters",
+        "database": "data",
+        "idField": "ID",
+        "displayMode": 1,
+        "listQuery": "SELECT ID, ModuleNaam, Caption & ' (' & Name & ')' AS Omschrijving FROM tblCMAModuleParameters ORDER BY ModuleNaam, Sortorder, Caption",
+        "groupFields": ["ModuleNaam"],
+        "detailField": "Omschrijving",
+        "quickSearchFields": "ModuleNaam,Name,Caption,Waarde",
+        "allowAdd": true,
+        "allowDelete": true,
+        "allowCopy": true,
+        "fields": [
+                { "name": "ID", "type": "autonumber", "caption": "ID", "visible": false },
+                { "name": "ModuleNaam", "type": "textbox", "caption": "Module", "required": true, "maxLength": 50, "hint": "Naam van de module/pagina die de parameter leest (ModuleParameters::get)" },
+                { "name": "Name", "type": "textbox", "caption": "Sleutel", "required": true, "maxLength": 50, "hint": "Technische naam, per module uniek" },
+                { "name": "Caption", "type": "textbox", "caption": "Omschrijving", "required": true, "maxLength": 100 },
+                { "name": "ParamType", "type": "dropdown", "caption": "Type", "required": true, "defaultValue": "TEKST",
+                  "options": [
+                        { "value": "TEKST", "text": "Tekst" },
+                        { "value": "HTML", "text": "HTML" },
+                        { "value": "NUMMER", "text": "Getal" },
+                        { "value": "DATUM", "text": "Datum" },
+                        { "value": "URL", "text": "URL" },
+                        { "value": "IMG", "text": "Afbeelding (bestandsnaam)" }
+                  ] },
+                { "name": "Waarde", "type": "memo", "caption": "Waarde", "height": 4, "allowHtml": true, "hint": "Bij type HTML met opmaak, anders platte tekst" },
+                { "name": "PostCaption", "type": "textbox", "caption": "Toelichting", "maxLength": 100, "hint": "Wordt achter de waarde getoond" },
+                { "name": "Sortorder", "type": "textbox", "caption": "Volgorde", "dataType": "int", "numericPrecision": "5", "defaultValue": "10" }
+        ]
+}

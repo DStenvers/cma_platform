@@ -1280,6 +1280,17 @@
                     "note": "Groep met isBeheer: leden met Volledig op een formulier krijgen FULL_BEHEER (klassieke security.inc). SecurityHelper::groupRightsSql valt terug op Max(0) zolang de kolom ontbreekt."
                 }
             ]
+        },
+        {
+            "version": "9.25.0",
+            "description": "tblCMAModuleParameters aanmaken (module-parameters, oude mod_maint.asp)",
+            "changes": [
+                {
+                    "type": "runPhp",
+                    "script": "migrations/9.25.0_create_tblcmamoduleparameters.php",
+                    "note": "Per-module instellingen (module, sleutel, waarde, type). Neemt een bestaande tblModuleParameters eenmalig over. Idempotent."
+                }
+            ]
         }
     ]
 }

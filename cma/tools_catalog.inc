@@ -126,6 +126,7 @@ function buildToolsTreeData(bool $isDeveloper): array
         'children' => [
             ['type' => 'item', 'label' => 'Content blocks', 'href' => 'form.php?form=contentblocks', 'target' => 'R', 'icon' => 'lnr-text-format'],
             ['type' => 'item', 'label' => 'Marketing URLs/Redirects', 'href' => 'form.php?form=marketingurl', 'target' => 'R', 'icon' => 'lnr-link'],
+            ['type' => 'item', 'label' => 'Module-parameters', 'href' => 'form.php?form=moduleparameters', 'target' => 'R', 'icon' => 'lnr-cog'],
             ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'],
         ]
     ];

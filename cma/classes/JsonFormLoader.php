@@ -57,6 +57,7 @@ class JsonFormLoader
         'cmamonitoring',
         'contentblocks',
         'marketingurl',
+        'moduleparameters',
         'formdefinitions',
         'emaillog',
     ];

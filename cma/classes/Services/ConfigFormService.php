@@ -937,7 +937,7 @@ class ConfigFormService
             $name = basename($file, '.json');
 
             // Skip internal CMA forms (users, groups, etc.)
-            if (in_array($name, ['users', 'groups', '_menus', '_menu_items', 'cmamonitoring', 'contentblocks', 'marketingurl', 'formdefinitions'], true)) {
+            if (in_array($name, ['users', 'groups', '_menus', '_menu_items', 'cmamonitoring', 'contentblocks', 'marketingurl', 'moduleparameters', 'formdefinitions'], true)) {
                 continue;
             }
 
