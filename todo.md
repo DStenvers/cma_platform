@@ -568,3 +568,19 @@ uitgerold is.
       sluit `.deprecated/` dan uit in de sync (en documenteer die uitzondering), of
       verwijder het bestand meteen helemaal in plaats van te verplaatsen.
 - [ ] Bump de versie + tag, en meld in de commit dat de aspJSON-compat weg is.
+
+## Lijstcellen: booleans als gewone elementen in plaats van `<lib-switch>`
+
+Gemeten op 2026-09-19 op de opleidingenlijst (280 rijen, 14 boolean-kolommen):
+3.920 `<lib-switch>`-webcomponenten in de tabel. Het invoegen van 200 rijen
+kost 200 ms mét de componenten en 95 ms met een gewone `<span>` per cel; de
+helft van de DOM-opbouw van elke lijstpagina zit dus in het upgraden van
+schakelaars die in de lijst alleen iets tonen.
+
+Voorstel: de lijst rendert een boolean als statisch element (span + CSS in
+dezelfde look), en alleen de inline-bewerking maakt er bij het bewerken van
+een cel een echte `<lib-switch>` van. Eerst uitzoeken wat `inline-edit.js`
+van de cel verwacht (het leest nu `lib-switch` in de cel) en of de
+kolomfilters op de `data-value` van de `td` werken (dan raakt het ze niet).
+Geparkeerd: middelgrote wijziging, alleen winst op lijsten met veel
+boolean-kolommen.

@@ -32,7 +32,11 @@
         if (!window.CMA_DEBUG) return;
 
         try {
-            navigator.sendBeacon('api/log.php?type=debug', JSON.stringify({
+            // Absolute: on a clean URL like /cma/form/opleidingen a relative
+            // 'api/log.php' became /cma/form/api/log.php, which the rewrite
+            // hands to the shell — a full 54KB page render per beacon and the
+            // entry never reached the log.
+            navigator.sendBeacon('/cma/api/log.php?type=debug', JSON.stringify({
                 source: source,
                 info: info,
                 level: level || 'debug',
@@ -343,7 +347,9 @@
             return false;
         }
 
-        fetch('api/change-password.php', {
+        // Absolute for the same reason as the debug beacon above: relative to a
+        // clean URL this landed on the shell and the dialog got HTML back.
+        fetch('/cma/api/change-password.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'old_password=' + encodeURIComponent(oldPwd) + '&new_password=' + encodeURIComponent(newPwd)

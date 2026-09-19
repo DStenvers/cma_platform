@@ -681,6 +681,13 @@ class CmaInfiniteScroll {
         }, 50);
     }
 
+    /** Rebuild the column filter menus so they include every row now in the table. */
+    refreshFilters() {
+        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.excelTableFilterRefresh === 'function') {
+            jQuery(this.table).excelTableFilterRefresh();
+        }
+    }
+
     /**
      * Load more data
      */
@@ -836,9 +843,12 @@ class CmaInfiniteScroll {
                             this.hasMore = false;
                         }
 
-                        // Refresh table filtering to include new rows
-                        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.excelTableFilterRefresh === 'function') {
-                            jQuery(this.table).excelTableFilterRefresh();
+                        // Refresh table filtering to include new rows. Not while
+                        // the background prefetch runs (paused): that rebuild walks
+                        // the whole table, so per batch it made every next batch
+                        // slower; the prefetch calls refreshFilters() once at the end.
+                        if (!this.paused) {
+                            this.refreshFilters();
                         }
 
                         // NOTE: DOM pruning disabled - was causing issues with placeholder growth
@@ -1203,8 +1213,12 @@ class CmaInfiniteScroll {
         // non-scroll path; here hasMore drives the "(laden...)" suffix. Writing
         // it on EVERY render (including the "nothing to report" case, which
         // clears it) is what keeps the last batch's "(laden...)" from staying
-        // behind once loading has finished.
-        CMA.utils.setRecordCount(CMA.utils.formatRecordCount(loaded, this.totalCount, this.hasMore));
+        // behind once loading has finished. The suffix means "busy": a batch in
+        // flight, or the background prefetch between batches (paused). A list
+        // that stopped at LIST_PREFETCH_MAX_ROWS has more rows but is idle, so it
+        // reads "records 1-1000 van 52941" until scrolling loads the next step.
+        const bezig = this.hasMore && (this.isLoading || this.paused);
+        CMA.utils.setRecordCount(CMA.utils.formatRecordCount(loaded, this.totalCount, bezig));
     }
 
     /**

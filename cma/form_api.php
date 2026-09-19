@@ -64,6 +64,14 @@ require_once __DIR__ . '/bootstrap.inc';
 require_once __DIR__ . '/classes/Services/Logger.php';
 require_once __DIR__ . '/classes/Services/PerformanceLogger.php';
 
+// The bootstrap opened the PHP session, and an open session holds an exclusive
+// lock on its file until the request ends. The form loads through several
+// parallel calls to this endpoint (init, combos, tree; record and subforms),
+// and that lock queued them one after another: eight parallel calls took
+// 185-337ms each against 119ms without the lock. This endpoint only reads the
+// session ($_SESSION stays readable after the close), so release it now.
+session_write_close();
+
 // Prevent Debug::write() from outputting <script>console.log()</script> into JSON responses
 \App\Library\Debug::setJsonMode(true);
 $_apiTimings['include'] = round((microtime(true) - $_apiStartTime) * 1000, 1);

@@ -5415,13 +5415,24 @@ class CmaFormController {
     }
 
     /**
-     * Auto-prefetch all remaining rows in the background.
-     * Loads batches sequentially until all data is fetched, updating the counter
-     * after each batch. When complete, the counter is hidden (showing "1-X of X" is useless).
+     * Auto-prefetch remaining rows in the background, up to LIST_PREFETCH_MAX_ROWS
+     * (Systeeminstellingen, window.CMA.settings.listPrefetchMaxRows).
+     * Loads batches sequentially, updating the counter after each batch. When all
+     * data is in, the counter is hidden (showing "1-X of X" is useless); at the cap
+     * it stays, and scrolling loads the rest as before.
+     *
+     * The cap is not a nicety. Every appended batch costs more than the one before
+     * (the row count check and the column-filter rebuild walk the whole table), so
+     * on a 50,000-row list the prefetch kept the main thread busy for about six
+     * minutes and grew the DOM to over a million nodes. The filter rebuild is
+     * therefore also deferred to the end of the prefetch (see refreshFilters).
      */
     _autoPrefetchRows() {
         const scroller = this.infiniteScroll;
         if (!scroller || !scroller.hasMore) return;
+
+        const maxRows = CmaFormController.prefetchMaxRows();
+        if (scroller.currentCount >= maxRows) return;
 
         // Pause scroll-based loading to prevent race conditions with background fetches
         scroller.paused = true;
@@ -5429,8 +5440,9 @@ class CmaFormController {
         const self = this;
         // Use setTimeout(0) to let the browser paint the initial batch first
         setTimeout(async function prefetchBatch() {
-            if (!scroller.hasMore || scroller.destroyed) {
+            if (!scroller.hasMore || scroller.destroyed || scroller.currentCount >= maxRows) {
                 scroller.paused = false;
+                if (!scroller.destroyed) scroller.refreshFilters();
                 return;
             }
             try {
@@ -5444,23 +5456,33 @@ class CmaFormController {
                 scroller.paused = false;
                 throw e;
             }
-            if (scroller.hasMore && !scroller.destroyed) {
+            if (scroller.hasMore && !scroller.destroyed && scroller.currentCount < maxRows) {
                 // Background prefetch is gentle: a 200ms gap between batches so it
                 // doesn't hammer the server / block the UI (scroll-induced loads
                 // stay immediate — they go through onScroll -> load(), not here).
                 // Back off longer before a retry so a transient failure recovers.
                 setTimeout(prefetchBatch, scroller._loadRetries ? 500 : 200);
             } else {
-                // All data loaded — re-enable scroll handler and hide counter.
+                // Done (all data in, or the cap reached) — re-enable the scroll
+                // handler, rebuild the column filters once for everything that
+                // arrived, and update the counter (hidden when complete).
                 // A destroyed scroller retired as stale (its list was re-rendered);
                 // its counts belong to the previous list, so never write them to
                 // the shared #recordCount element.
                 scroller.paused = false;
                 if (!scroller.destroyed) {
+                    scroller.refreshFilters();
                     self.updateRecordCount(scroller.currentCount, scroller.totalCount);
                 }
             }
         }, 0);
+    }
+
+    /** Rows up to which a list is fetched in the background (0 = never). */
+    static prefetchMaxRows() {
+        const s = window.CMA && window.CMA.settings;
+        const n = s ? parseInt(s.listPrefetchMaxRows, 10) : NaN;
+        return isNaN(n) ? 1000 : n;
     }
 
     /**

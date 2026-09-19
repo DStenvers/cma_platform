@@ -987,7 +987,9 @@ class CmaConditionsPanel extends HTMLElement {
                 conditions: this.getConditions()
             };
 
-            fetch('api/report-query.php?action=getWhere', {
+            // Absolute: relative to a clean URL (/cma/reports/...) this resolved
+            // to a path the rewrite hands to the shell, and the preview got HTML.
+            fetch('/cma/api/report-query.php?action=getWhere', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(definition)
