@@ -129,6 +129,14 @@ class FormRendererControlsTest extends TestCase
         $this->assertStringNotContainsString('actie', $out);
     }
 
+    public function testImageSizeHintFollowsTheResizeRule(): void
+    {
+        $this->assertSame('Maximaal: 300px breed - 200px hoog', FormRenderer::imageSizeHint(1, 300, 200));
+        $this->assertSame('Vast formaat: 300px breed - 200px hoog', FormRenderer::imageSizeHint(2, 300, 200));
+        $this->assertSame('Maximaal: 300px breed', FormRenderer::imageSizeHint(1, 300, 0));
+        $this->assertSame('', FormRenderer::imageSizeHint(0, 300, 200));
+    }
+
     public function testTextBoxEscapesNameInAttributeContext(): void
     {
         $out = FormRenderer::renderTextBox('a"b', []);

@@ -125,10 +125,22 @@ class CmaSortlist extends HTMLElement {
                     pointer-events: none;
                 }
 
+                .sortlist-toolbar { display: inline-flex; gap: 4px; }
+                .sortlist-tool {
+                    border: 1px solid var(--border-color, #ccc);
+                    background: var(--bg-surface, #fff);
+                    border-radius: 3px;
+                    padding: 1px 6px;
+                    font-size: var(--font-size-xs, 11px);
+                    cursor: pointer;
+                }
+                .sortlist-tool:hover { background: var(--bg-hover, #f0f0f0); }
+                .sortlist-item:focus { outline: 2px solid var(--color-accent, #204496); outline-offset: -2px; }
                 .sortlist-header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    gap: 8px;
                     padding: 8px 12px;
                     background-color: var(--bg-surface-alt, #f8f9fa);
                     border-bottom: 1px solid var(--border-light, #eee);
@@ -287,7 +299,11 @@ class CmaSortlist extends HTMLElement {
             </style>
             <div class="sortlist-container ${isDisabled ? 'disabled' : ''}">
                 <div class="sortlist-header">
-                    <span>Sleep items om de volgorde te wijzigen</span>
+                    <span class="sortlist-toolbar">
+                        <button type="button" class="sortlist-tool" data-tool="az" title="Sorteer van A naar Z">A&rarr;Z</button>
+                        <button type="button" class="sortlist-tool" data-tool="za" title="Sorteer van Z naar A">Z&rarr;A</button>
+                    </span>
+                    <span>Sleep items, of Ctrl+pijltjes verplaatst het gekozen item</span>
                     <span>${this._items.length} items</span>
                 </div>
                 <div class="sortlist-body">
@@ -310,6 +326,7 @@ class CmaSortlist extends HTMLElement {
         return this._items.map((item, index) => `
             <div class="sortlist-item ${item.disabled ? 'disabled' : ''}"
                  data-value="${this._escapeHtml(item.value)}"
+                 tabindex="${item.disabled ? '-1' : '0'}"
                  draggable="${item.disabled ? 'false' : 'true'}">
                 <div class="sortlist-handle">
                     <span></span>
@@ -501,6 +518,31 @@ class CmaSortlist extends HTMLElement {
             touchItem = null;
             this._draggedItem = null;
             this._placeholder = null;
+        });
+
+        // A->Z / Z->A (old sortlist toolbar lb_sort)
+        container.addEventListener('click', (e) => {
+            const tool = e.target.closest('.sortlist-tool');
+            if (!tool || this.hasAttribute('disabled')) return;
+            const desc = tool.dataset.tool === 'za';
+            this._items.sort((a, b) => String(a.label).localeCompare(String(b.label), 'nl', { sensitivity: 'base' }) * (desc ? -1 : 1));
+            this._rerender();
+            this._dispatchChange();
+        });
+
+        // Ctrl+arrow moves the focused item (old "Ctrl+Pijltjes verplaatst")
+        container.addEventListener('keydown', (e) => {
+            if (!e.ctrlKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+            const item = e.target.closest('.sortlist-item');
+            if (!item || this.hasAttribute('disabled')) return;
+            const index = this._items.findIndex(i => i.value === item.dataset.value);
+            const to = e.key === 'ArrowUp' ? index - 1 : index + 1;
+            if (index < 0 || to < 0 || to >= this._items.length) return;
+            e.preventDefault();
+            [this._items[index], this._items[to]] = [this._items[to], this._items[index]];
+            this._rerender();
+            this._dispatchChange();
+            this.shadowRoot.querySelector(`.sortlist-item[data-value="${CSS.escape(item.dataset.value)}"]`)?.focus();
         });
 
         // Up/down button clicks

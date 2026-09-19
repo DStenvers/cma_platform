@@ -832,6 +832,14 @@ td.c2_g:has(.postcaption-inline) {
     max-width: 360px;
 }
 
+/* Image size rule next to the image control */
+.image-size-hint {
+    margin-left: 6px;
+    color: var(--text-secondary);
+    cursor: help;
+    vertical-align: middle;
+}
+
 /* Float tables in c2 (value column) for inline layout */
 .c2 table {
     float: left;

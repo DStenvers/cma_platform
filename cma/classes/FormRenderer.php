@@ -828,9 +828,37 @@ class FormRenderer
             );
         }
 
+        // Size rule next to the control (old details.asp info icon), not only
+        // inside the editor: 1 = maximum, 2 = fixed size
+        $sizeHint = self::imageSizeHint((int)$resizeType, (int)$resizeWidth, (int)$resizeHeight);
+        if ($sizeHint !== '') {
+            $html .= '<span class="image-size-hint lnr lnr-question-circle" title="' . self::escape($sizeHint) . '"></span>';
+        }
+
         $html .= '</span>';
 
         return $html;
+    }
+
+    /**
+     * "Maximaal: 300px breed - 200px hoog" / "Vast formaat: 300px breed - 200px hoog"
+     */
+    public static function imageSizeHint(int $resizeType, int $width, int $height): string
+    {
+        if ($resizeType !== 1 && $resizeType !== 2) {
+            return '';
+        }
+        $parts = [];
+        if ($width > 0) {
+            $parts[] = $width . 'px breed';
+        }
+        if ($height > 0) {
+            $parts[] = $height . 'px hoog';
+        }
+        if (empty($parts)) {
+            return '';
+        }
+        return ($resizeType === 2 ? 'Vast formaat: ' : 'Maximaal: ') . implode(' - ', $parts);
     }
 
     /**

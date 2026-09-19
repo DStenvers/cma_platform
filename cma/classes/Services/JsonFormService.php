@@ -758,6 +758,25 @@ class JsonFormService extends BaseFormService
                     } elseif ($colType === 'number') {
                         // Strip trailing-zero decimals (12.5000 -> 12.5, 12.0000 -> 12)
                         $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="number">' . $prefix . htmlspecialchars(self::formatNumber($value)) . '</td>';
+                    } elseif (is_string($value) && (str_starts_with($value, '<sort:') || str_starts_with($value, '<html>'))) {
+                        // Cell prefixes from the old class_table.inc:
+                        //   <sort:key>text  -> data-sort="key", shows "text" (custom sort key)
+                        //   <html>markup    -> raw HTML in the cell (the query built it)
+                        $sortAttr = '';
+                        $cell = $value;
+                        if (str_starts_with($cell, '<sort:')) {
+                            $end = strpos($cell, '>');
+                            if ($end !== false) {
+                                $sortAttr = ' data-sort="' . htmlspecialchars(substr($cell, 6, $end - 6)) . '"';
+                                $cell = substr($cell, $end + 1);
+                            }
+                        }
+                        if (str_starts_with($cell, '<html>')) {
+                            $cell = substr($cell, 6);
+                        } else {
+                            $cell = htmlspecialchars($cell);
+                        }
+                        $html .= '<td data-field="' . htmlspecialchars($fieldName) . '" data-type="' . htmlspecialchars($detectedType) . '"' . $sortAttr . '>' . $prefix . $cell . '</td>';
                     } else {
                         // Try to detect and format dates in other fields
                         $origValue = $value;
