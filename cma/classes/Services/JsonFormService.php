@@ -179,40 +179,8 @@ class JsonFormService extends BaseFormService
 
                 // If no valid columns from preferences (or all were invalid), build from fields array
                 if (empty($listColumns) && !empty($jsonData['fields'])) {
-                    // Build from fields array (default columns)
-                    $maxCols = (int)($options['maxColumns'] ?? 999);
-                    $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
-                    // Skip the filter field in default columns - when filtering is required,
-                    // all rows have the same filter value so it's not useful to display
-                    // Check both filterIdName (legacy) and filter.field (new format)
-                    $filterIdName = strtolower($jsonData['filterIdName'] ?? '');
-                    if ($filterIdName === '' && isset($jsonData['filter']['field'])) {
-                        $filterIdName = strtolower($jsonData['filter']['field']);
-                    }
-                    $colCount = 0;
-                    foreach ($jsonData['fields'] as $field) {
-                        if ($colCount >= $maxCols) break;
-                        $fieldType = $field['type'] ?? 'textbox';
-                        $fieldName = $field['name'] ?? '';
-                        if (empty($fieldName) || strpos($fieldName, '_group') === 0) continue;
-                        // Normally-skipped types (image, etc.) can opt back in with showInTableView
-                        if (in_array($fieldType, $skipTypes) && empty($field['showInTableView'])) continue;
-                        if (strtolower($fieldName) === strtolower($idField)) continue;
-                        // Respect skipInTableView property from form definition
-                        if (!empty($field['skipInTableView'])) continue;
-                        // Skip filter field - not useful in table view when filtering is required
-                        if ($filterIdName !== '' && strtolower($fieldName) === $filterIdName) continue;
-
-                        $colType = self::detectColumnType($field);
-
-                        $listColumns[] = [
-                            'field' => $fieldName,
-                            'title' => self::columnTitle($field['caption'] ?? null, $fieldName),
-                            'type' => $colType,
-                            'path' => $field['path'] ?? '',
-                        ];
-                        $colCount++;
-                    }
+                    $listColumns = self::defaultListColumns($jsonData, $idField,
+                        (int)($options['maxColumns'] ?? \App\Library\Settings::get('list_default_columns')));
                 }
 
                 // Fallback: derive columns from listQuery when fields array is empty
@@ -938,6 +906,44 @@ class JsonFormService extends BaseFormService
      * @param int $displayMode Display mode (1=tree, 2=table)
      * @return array ['success' => bool, 'html' => string]
      */
+    /**
+     * The default columns of the table view: the first $maxCols fields in the
+     * order of the detail form, minus the types that make no sense as a column
+     * and the required filter field (every row would show the same value).
+     * LIST_DEFAULT_COLUMNS (Systeeminstellingen) sets $maxCols: a table of every
+     * field is unreadable, and the first few are the ones people look for. A
+     * saved column choice or listColumns in the definition is not capped.
+     */
+    public static function defaultListColumns(array $jsonData, string $idField, int $maxCols): array
+    {
+        $listColumns = [];
+        $skipTypes = ['groupseparator', 'label', 'checklist', 'sortlist', 'image', 'video', 'file', 'thumbnail', 'directory', 'memo', 'xmlstore', 'custom', 'password', 'ignorefield'];
+        // Check both filterIdName (legacy) and filter.field (new format)
+        $filterIdName = strtolower($jsonData['filterIdName'] ?? '');
+        if ($filterIdName === '' && isset($jsonData['filter']['field'])) {
+            $filterIdName = strtolower($jsonData['filter']['field']);
+        }
+        foreach ($jsonData['fields'] ?? [] as $field) {
+            if (count($listColumns) >= $maxCols) break;
+            $fieldType = $field['type'] ?? 'textbox';
+            $fieldName = $field['name'] ?? '';
+            if (empty($fieldName) || strpos($fieldName, '_group') === 0) continue;
+            // Normally-skipped types (image, etc.) can opt back in with showInTableView
+            if (in_array($fieldType, $skipTypes) && empty($field['showInTableView'])) continue;
+            if (strtolower($fieldName) === strtolower($idField)) continue;
+            if (!empty($field['skipInTableView'])) continue;
+            if ($filterIdName !== '' && strtolower($fieldName) === $filterIdName) continue;
+
+            $listColumns[] = [
+                'field' => $fieldName,
+                'title' => self::columnTitle($field['caption'] ?? null, $fieldName),
+                'type' => self::detectColumnType($field),
+                'path' => $field['path'] ?? '',
+            ];
+        }
+        return $listColumns;
+    }
+
     public static function getRowHtml(string $formName, string $recordId, int $displayMode = 2, array $columns = []): array
     {
         try {

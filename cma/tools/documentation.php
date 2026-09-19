@@ -4102,7 +4102,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>title</code> / <code>titleEnglish</code></td><td>Weergavetitel (NL / EN).</td></tr>
             <tr><td><code>database</code></td><td>Connectienaam uit <code>databases.json</code> (default <code>data</code>).</td></tr>
             <tr><td><code>idField</code></td><td>Naam van het primary-key veld.</td></tr>
-            <tr><td><code>listColumns</code></td><td>Kolommen in de list/tree-weergave.</td></tr>
+            <tr><td><code>listColumns</code></td><td>Kolommen in de list/tree-weergave. Ontbreekt dit, dan toont de tabelweergave standaard de eerste <code>LIST_DEFAULT_COLUMNS</code> velden (Systeeminstellingen → Lijsten, standaard 6) in de volgorde van het detailformulier, zonder groepen, memo's, bestanden en het verplichte filterveld; <code>skipInTableView: true</code> op een veld slaat het over, <code>showInTableView: true</code> haalt een normaal overgeslagen type (afbeelding) er juist bij. Een kolomkeuze die de gebruiker zelf opslaat (kolomkiezer) gaat vóór en kent geen grens.</td></tr>
             <tr><td><code>listQuery</code></td><td>Eigen SQL voor de list/tree (overschrijft de standaard SELECT).</td></tr>
             <tr><td><code>quickSearchFields</code></td><td>Comma-gescheiden veldnamen voor het snelzoek-veld.</td></tr>
             <tr><td><code>activeField</code></td><td>Veld dat actief (1=groen) / inactief (0) markeert in de list.</td></tr>

@@ -139,7 +139,8 @@ class TableService extends BaseFormService
                 $selectedColumns = self::getColumnPreferences($formId);
             }
 
-            $maxColumns = (int)($options['maxColumns'] ?? 999);
+            // Only the default columns (no saved choice) are capped: LIST_DEFAULT_COLUMNS.
+            $maxColumns = (int)($options['maxColumns'] ?? \App\Library\Settings::get('list_default_columns'));
             $allColumns = [];
             $columns = [];
             $fieldDefs = [];
@@ -572,7 +573,8 @@ class TableService extends BaseFormService
                 $selectedColumns = self::getColumnPreferences($formId);
             }
 
-            $maxColumns = (int)($options['maxColumns'] ?? 999);
+            // Only the default columns (no saved choice) are capped: LIST_DEFAULT_COLUMNS.
+            $maxColumns = (int)($options['maxColumns'] ?? \App\Library\Settings::get('list_default_columns'));
             $allColumns = [];
             $columns = [];
             $fieldTypes = [];
