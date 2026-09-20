@@ -5043,6 +5043,14 @@ function render_doc_troubleshooting(): void
         </tbody>
     </table>
 
+    <h2>Rapporten</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:300px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>Een rapport heeft geen Excel/CSV/Word-knoppen en toont "Exporteren is uitgeschakeld: dit rapport heeft subrapporten"; <code>?export=excel</code> geeft "Export niet mogelijk"</td><td>Bewust. <code>ExcelExportRS</code> en <code>WordExportRS</code> in <code>reportdetails.php</code> schrijven alleen de hoofdrijen; een export van een rapport met subrapporten zou de subrapportgegevens stil missen.</td><td>Afdrukken, of de subrapporten als eigen rapport exporteren. Wil je ze wél in één bestand, dan moeten beide exporters de subrijen per hoofdrij gaan schrijven.</td></tr>
+        </tbody>
+    </table>
+
     <h2>Content blocks (blockedit)</h2>
     <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen. Blockedit hookt zelf het submit-event (én programmatic <code>form.submit()</code>) van het formulier rond een <code>.blockedit</code> container en oogst de blokken vlak vóór verzending — host-pagina's hoeven <code>blockedit_collect_htmls()</code> niet meer zelf aan te roepen, maar mogen dat blijven doen (de aanroep is idempotent).</p>
     <table class="listtable">

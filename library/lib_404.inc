@@ -86,7 +86,11 @@ function lib_404ScanDir($sDir)
             if ($fieldsRS_current_row !== false) {
                 $filesRS = null;
                 while (!($fieldsRS->eof())) {
-                    // TODO: : Optimize this, is a bit sluggish!
+                    // One SELECT ID per registered table, on every 404 that
+                    // looks like a moved record. Slow on a large site, and
+                    // kept that way on purpose: 404s are rare, the lookup is
+                    // what finds the record's new address, and a cache of every
+                    // table's ids would go stale the moment a record is added.
                     $conn = Database::getConnection(Arr::field($fieldsRS_current_row, 'ConnectionString'));
                     $filesSQL = 'SELECT ID FROM ' . Arr::field($fieldsRS_current_row, 'Table');
                     // 'response.write filesSQL

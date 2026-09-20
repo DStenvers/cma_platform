@@ -570,8 +570,14 @@ describe('Groups Form CRUD Operations', () => {
                 }
             });
 
-            // Intercept save
-            cy.intercept('POST', '**/form_api.php').as('saveGroup');
+            // Intercept the save itself: the matrix and the list also POST to
+            // form_api.php, and the first POST would otherwise be the one inspected.
+            cy.intercept('POST', '**/form_api.php', (req) => {
+                const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
+                if (/name="action"\r?\n\r?\nsave/.test(body) || /"action":"save"/.test(body) || /(^|&)action=save(&|$)/.test(body)) {
+                    req.alias = 'saveGroup';
+                }
+            });
 
             // Save
             cy.clickToolbarButton('save');
@@ -761,11 +767,10 @@ describe('Groups Form CRUD Operations', () => {
             cy.shouldShowSuccess({ timeout: 10000 });
         });
 
-        // Test: Custom renderer persistence after save
-        // TODO: This test requires investigation - rights are sent in POST but not persisting to DB
-        // The menu rights and report rights tests pass, so the client-side data collection is fixed.
-        // The persistence issue may be related to PDO connection or transaction handling.
-        it.skip('should persist rights when reloading group record', () => {
+        // Test: Custom renderer persistence after save. Rights posted as
+        // group_menu_rights_menu_<id>=30 land in tblGroupRights and the matrix
+        // renders them checked on reload (verified through form_api as well).
+        it('should persist rights when reloading group record', () => {
             const persistTestGroup = `Persist Rights ${Date.now()}`;
             let persistGroupId;
 

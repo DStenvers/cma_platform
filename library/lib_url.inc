@@ -228,60 +228,13 @@ function LinkURLs($strInput)
         $iCurrentLocation = $iLinkEnd;
     }
     $strOutput .= substr($strInput, max(0, $iCurrentLocation - 1));
-    // Now, look for email addresses (recognizable through the @ sign)
-    $strInput = $strOutput;
-    $strOutput = '';
-    $iCurrentLocation = 1;
-    while ((($pos = stripos($strInput, '@', max(0, $iCurrentLocation - 1))) !== false ? $pos + 1 : 0) != 0) {
-        $iLinkStart = (($pos = stripos($strInput, '@', max(0, $iCurrentLocation - 1))) !== false ? $pos + 1 : 0);
-        $iLinkEnd = $iLinkStart + 1;
-        $blnSearchOn = true;
-        // scan for the end of the email address
-        while ($blnSearchOn) {
-            if ((substr($strInput, max(0, $iLinkEnd - 1), 1) == '<') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == chr(10)) || (substr($strInput, max(0, $iLinkEnd - 1), 1) == chr(13)) || (substr($strInput, max(0, $iLinkEnd - 1), 1) == ' ') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == '(') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == ')') || preg_match("/^.$/i", substr($strInput, max(0, $iLinkEnd - 1), 1)) || (substr($strInput, max(0, $iLinkEnd - 1), 1) == ',') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == '>') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == '"') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == '!') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == '&') || (substr($strInput, max(0, $iLinkEnd - 1), 1) == ';')) {
-                $blnSearchOn = false;
-            } else {
-                if ($iLinkEnd <= (is_null($strInput) ? 0 : strlen($strInput))) {
-                    $iLinkEnd = $iLinkEnd + 1;
-                } else {
-                    $blnSearchOn = false;
-                }
-            }
-        }
-        // eventuele leestekens aan het einde skippen, deze mogen dus wel in een url/email adres opgenomen zijn
-        if ((($pos = stripos(',:;.?! ', substr($strInput, max(0, $iLinkEnd - 1 - 1), 1), max(0, 1 - 1))) !== false ? $pos + 1 : 0) > 0) {
-            $iLinkEnd = $iLinkEnd - 1;
-        }
-        // scan for the beginning of the email address
-        $blnSearchOn = true;
-        if ($iLinkStart - $iCurrentLocation > 2) {
-            while ($blnSearchOn) {
-                if ($iLinkStart == 1) {
-                    $blnSearchOn = false;
-                } else {
-                    if ((substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '<') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == chr(10)) || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == chr(13)) || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == ' ') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '(') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == ')') || preg_match("/^.$/i", substr($strInput, max(0, $iLinkStart - 1 - 1), 1)) || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == ',') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '>') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '"') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '!') || (substr($strInput, max(0, $iLinkStart - 1 - 1), 1) == '&')) {
-                        $blnSearchOn = false;
-                    } else {
-                        if ($iLinkStart > 0) {
-                            $iLinkStart = $iLinkStart - 1;
-                        } else {
-                            $blnSearchOn = false;
-                        }
-                    }
-                }
-            }
-        }
-        $strOutput .= substr($strInput, max(0, $iCurrentLocation - 1), $iLinkStart - $iCurrentLocation);
-        $strLinkText = substr($strInput, max(0, $iLinkStart - 1), $iLinkEnd - $iLinkStart);
-        // TODO: Make this a real check for valid email adresses
-        if ((($pos = stripos($strLinkText, '.')) !== false ? $pos + 1 : 0) > 0) {
-            $strOutput .= Lib_LinkEmailAntiSpam($strLinkText);
-        } else {
-            $strOutput .= $strLinkText;
-        }
-        $iCurrentLocation = $iLinkEnd;
-    }
-    $strOutput .= substr($strInput, max(0, $iCurrentLocation - 1));
+    // E-mail addresses: every real address (filter_var) becomes an anti-spam
+    // link; an @ in other text stays. Not one already inside a mailto: href.
+    $strOutput = preg_replace_callback(
+        '/(?<!mailto:)(?<![\\w.-])([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})/',
+        static fn(array $m): string => filter_var($m[1], FILTER_VALIDATE_EMAIL) !== false ? Lib_LinkEmailAntiSpam($m[1]) : $m[1],
+        $strOutput
+    ) ?? $strOutput;
     return $strOutput;
 }
 // Create an email link safe for email scrapers (requires library.js in the resulting HTML to be included!)

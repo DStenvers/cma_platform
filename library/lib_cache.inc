@@ -1,11 +1,11 @@
 <?php
 /**
- * Legacy cache file functions - NOT YET MIGRATED
- *
- * These functions handle file-based caching and are not yet
- * migrated to the Cache helper class.
- *
- * TODO: Migrate these to Cache helper and remove this file
+ * File-cache functions under their VBScript names, kept for the converted
+ * sites that still call them (mijnRINO: the agenda and the header). They are
+ * thin wrappers; the implementation is App\Library\Cache (loadFile, saveFile,
+ * clearFile). New code calls Cache directly. The file goes when the last site
+ * call site is gone; until then it stays, as deleting it would fatal those
+ * pages on the next update.
  */
 
 // Include-guard: dit bestand weigert zichzelf een tweede keer uit te voeren.

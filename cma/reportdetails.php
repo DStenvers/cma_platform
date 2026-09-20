@@ -2,6 +2,7 @@
 use App\Library\Arr;
 use App\Library\Application;
 use App\Library\Database;
+use App\Library\Error;
 use App\Library\Html;
 use App\Library\Profiler;
 use App\Library\Request;
@@ -341,8 +342,19 @@ function main()
     if ($sFilterID != '') {
         $strTitle .= ' | ' . Arr::field($rs_current_row, $rsRep->fields['filterDisplayField']);
     }
-    // TODO: : block Excel when not rsSubs.eof?
-    ToolbarHelper::report($strTitle, $rsRep->fields['GroupField1']!= '', $strOrderBy == '', !$rsRep->fields['FilterIDField']!= '' && $sFilterID == '');
+    // A report with sub-reports cannot be exported: ExcelExportRS and
+    // WordExportRS write the main rows only, so the file would silently miss
+    // the sub-report data. The buttons stay away and the page says why; the
+    // server route refuses too, so a typed ?export= gets the same answer.
+    $blnHasSubReports = !$rsSubs->EOF;
+    if ($blnHasSubReports && ($blnExcel || $blnWord)) {
+        Error::page('Export niet mogelijk', 'Dit rapport heeft subrapporten; die komen niet mee in een Excel-, CSV- of Word-export. Druk het rapport af of exporteer de subrapporten apart.', true);
+        exit;
+    }
+    ToolbarHelper::report($strTitle, $rsRep->fields['GroupField1']!= '', $strOrderBy == '', !$rsRep->fields['FilterIDField']!= '' && $sFilterID == '' && !$blnHasSubReports);
+    if ($blnHasSubReports && !$rsRep->fields['FilterIDField']!= '' && $sFilterID == '') {
+        echo '<lib-message type="info">Exporteren is uitgeschakeld: dit rapport heeft subrapporten, en die komen niet mee in Excel, CSV of Word.</lib-message>' . PHP_EOL;
+    }
     // Flushing sends the page shell and commits the response headers. An export
     // still has to set Content-Disposition, so it keeps everything buffered and
     // throws the shell away when the download starts.

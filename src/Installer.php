@@ -524,6 +524,10 @@ class Installer
         // never synced again (DEV_ONLY_PATHS); this removes the copies.
         'cma/cypress.env.json',
         'cma/cypress.config.js',
+        // A showModalDialog-era wizard shell (window.dialogArguments) nothing
+        // opens any more, and the file-pages wizard that file-browser.php replaced.
+        'cma/wizard.php',
+        'cma/wizards/file-pages.php',
         // Duplicate of cma/control-types.json (the file ConfigLoader reads;
         // migration 9.9.0 moved it out of config/ and this copy lingered).
         'cma/config/control-types.json',

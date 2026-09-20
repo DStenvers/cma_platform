@@ -112,15 +112,16 @@ class CmaRepository
             return '';
         }
 
-        // Open connection to data database
+        // The form's own database: a numeric id sets the legacy global $conn,
+        // a name ('users', 'data') gives a connection directly. Pick before
+        // touching the global: a `global $conn` after the assignment threw the
+        // named connection away and read tblGroups on the data database.
         $databaseId = $formDef['database'] ?? '';
         if (is_numeric($databaseId)) {
-            self::openConnectionById((int)$databaseId);
+            $conn = self::openConnectionById((int)$databaseId);
         } else {
             $conn = Database::getConnection($databaseId ?: 'data');
         }
-
-        global $conn;
         $baseQuery = str_ireplace(chr(34), "'", str_ireplace('&', '+', $baseQuery));
 
         // PERFORMANCE FIX: Wrap query with WHERE clause to fetch only the needed record

@@ -621,71 +621,6 @@ function lib_form_nospaces (evt) {
 	return (charCode != 32)
 }
 
-//	Save the content of all fields in a form to separate cookies (currently igoring hidden end password fields)
-//
-//	exclude fields by setting their class to lib_nosave
-//
-function lib_form_save_content(frm) {
-	var string;
-	var blnStoreField;
-
-	try {
-		if (frm) {
-			var n = frm.length;
-			for (i = 0; i < n; i++) {
-				var e = frm[i].name;
-				if (e) {
-					var e_clean=e;
-					if (e_clean.substring(0,9).toLowerCase()=='required-')
-						e_clean = e_clean.substring(9);
-					blnStoreField = !frm[i].disabled && (frm[i].className.search(/lib_nosave/i)==-1);
-					if (blnStoreField) {
-						fieldValue  = frm[i].value;
-						fieldType   = frm[i].type;
-						string 		= "";
-
-						if (fieldType == "radio") {
-							for (x=0; x < frm.elements[e].length; x++) {
-								if (frm.elements[e][x].checked) {string = frm.elements[e][x].value};
-							}
-							if (i+1<frm.length)
-								while (frm[i].name && frm[i].name.toLowerCase()==e.toLowerCase() && i+1<frm.length) i++;
-							while (frm[i].name && frm[i].name.toLowerCase()!=e.toLowerCase()) i--;
-						}
-						if ((fieldType == "text") || (fieldType == "textarea")) {
-							string = frm.elements[e].value;
-						}
-						if (fieldType == "select-one") {
-							string = frm[i].options[frm[i].selectedIndex].text;
-						}
-						if (fieldType == "checkbox") {
-							// store all other values of this checkbox in the same cookie
-							if (i+1<frm.length) {
-								while (frm[i].name && frm[i].name.toLowerCase()==e.toLowerCase() && i+1<frm.length) {
-									string = string + (frm[i].checked==true ? ((string=="" ? "" : ",") + frm[i].value) : "");
-									i++;
-								}
-								while (frm[i].name && frm[i].name.toLowerCase()!=e.toLowerCase()) i--;
-							} else {
-								string = frm[i].checked==true ? fieldValue : "";
-							}
-						}
-
-						// also save empty values: this can be informational as well! , save them for a year
-						if (fieldType!="hidden" && fieldType!="password" && fieldType!="select-multiple") {
-							lib_createCookie(lib_form_saving_prefix + e_clean.toLowerCase(), string, lib_form_saving_days);
-						}
-					}
-				}
-			}
-		}
-	}
-	catch(err) {}
-}
-
-/**
-* Lib Setquerystringparameter
-*/
 function lib_SetQueryStringParameter(uri, key, value)
 {
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
@@ -693,55 +628,6 @@ function lib_SetQueryStringParameter(uri, key, value)
     return uri.match(re) ? uri.replace(re, '$1' + key + "=" + value + '$2') : uri + separator + key + "=" + value;
 }
 
-
-//	TODO: Multiple selection listboxes
-//	exclude fields by setting their class to lib_nosave
-//
-function lib_form_load_content(frm) {
-	var blnRestoreField;
-
-	try {
-		if (frm) {
-			var n = frm.length;
-			for (var i = 0; i < n; i++) {
-					var e = frm[i].name;
-					if (e) {
-						var e_clean = e;
-						if (e_clean.substring(0,9).toLowerCase()=='required-')
-							e_clean = e_clean.substring(9);
-
-						blnRestoreField = !frm[i].disabled && (frm[i].className.search(/lib_nosave/i)==-1);
-
-						if (blnRestoreField) {
-							var fieldValue = lib_readCookie(lib_form_saving_prefix + e_clean.toLowerCase());
-							if (fieldValue) {
-								var fieldType  = frm[i].type.toLowerCase();
-								if (fieldValue!="undefined") {
-									if ((fieldType == "text") || (fieldType == "textarea")) {
-										frm[i].value = fieldValue;
-									}
-									if (fieldType == "select-one") {
-										lib_form_group_select(frm, e, fieldValue);
-									}
-									if (fieldType == "checkbox") {
-										lib_form_setCheckbox(frm, e, fieldValue);
-										if (i+1<frm.length)
-											while (frm[i+1] && frm[i+1].name && frm[i+1].name.toLowerCase()==e.toLowerCase() && i+1<frm.length) i++;
-									}
-									if (fieldType == "radio") {
-										lib_form_setRadio(frm, e, fieldValue)
-										if (i+1<frm.length)
-											while (frm[i+1] && frm[i+1].name && frm[i+1].name.toLowerCase()==e.toLowerCase() && i+1<frm.length) i++;
-									}
-								}
-							}
-						}
-					}
-			}
-		}
-	}
-	catch(err) {}
-}
 
 //	Sets the select field to the tip (like type your name here..)
 //
@@ -807,20 +693,6 @@ function lib_form_findfield(sName) {
 	  }
 	}
 	return fldObj;
-}
-
-//	Selects a value within a select box
-//
-function lib_form_group_select(oFrm, sField, sSelectedValue){
-	try {
-		var fld = oFrm.elements[sField];
-		for (t=0;t<fld.options.length;t++) {
-			if (fld.options[t].text.toLowerCase() == sSelectedValue.toLowerCase()) {
-				fld.selectedIndex=t;
-			}
-		}
-	}
-	catch(e) {}
 }
 
 // Selects a group of checkboxes to a specified value
