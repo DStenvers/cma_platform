@@ -1045,8 +1045,9 @@ function lib_XMLfromRS($objRS, $arrDateFields, $arrPaths, $arrTxtConvert, $arrEM
                             }
                         }
                     }
-                // email anti-spam Creates extra protected fields!
-                // TODO: : leads to problems for ALIASED (fld as xxx) email fields!
+                // The e-mail anti-spam step of the ASP version (an extra protected
+                // copy of every e-mail field) is not ported: it broke on aliased
+                // fields (fld AS xxx), whose alias never matched the field list.
                 // if $arrEMailFields[$intCurFieldIdx]&""<>"" then
                 // set objXMLEmailField = objXMLNodeList.item($arrIndex)
                 // objXMLEmailField.text = Lib_LinkEmailAntiSpam( sCurValue )

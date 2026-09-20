@@ -6,9 +6,6 @@
 // is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
 if (defined('INC_LIB_FORMTEXT')) { return; }
 define('INC_LIB_FORMTEXT', 1);
-// TODO: : Re-organize this stuff:
-// create a generic processor for form generated data (array : name/value) -> lib_FormFieldList 2nd edition!
-// Quick fix until reorganisation is complete!
 use App\Library\Application;
 use App\Library\Arr;
 use App\Library\Html;
@@ -284,7 +281,6 @@ function lib_FormSplitsAchternaam($strCompletenaam, $strTussenvoegsel, $strAchte
             $strAchternaam = trim(substr($strNaam, 0, max(0, min((is_null($strNaam) ? 0 : strlen($strNaam)) - (is_null($strTussenvoegsel) ? 0 : strlen($strTussenvoegsel)), strlen($strNaam)))));
         }
     }
-    // TODO: Call libstringfirstupper
-    $strAchternaam = (is_null(substr($strAchternaam, 0, max(0, min(1, strlen($strAchternaam))))) ? "" : strtoupper(substr($strAchternaam, 0, max(0, min(1, strlen($strAchternaam)))))) . substr($strAchternaam, max(0, 2 - 1));
+    $strAchternaam = \App\Library\Str::firstUpper($strAchternaam);
 }
 ?>

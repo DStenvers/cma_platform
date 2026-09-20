@@ -868,7 +868,6 @@ function ExcelExportRS($rs, $rsSubs, $bCSV)
     }
 }
 // Schrijf naar een bestand
-// TODO: : Library function for this (HIG replace e.d)
 /**
 * Writetofile
 *

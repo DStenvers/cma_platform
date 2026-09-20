@@ -123,7 +123,7 @@ function RetrieveExternalURLText($txtModuleURL, $txtCurrentUrl)
             }
         }
     }
-    // HACK: it's a hack!
+    // A URL outside ALLOWED_EXTERNAL_URL is not fetched at all.
     if (!$bAllowed) {
         echo 'Halting.';
         exit();

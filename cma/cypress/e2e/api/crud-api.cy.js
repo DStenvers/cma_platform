@@ -227,17 +227,12 @@ describe('CRUD API', () => {
                 url: `/form_api.php?action=tree&form=${testFormName}`,
                 failOnStatusCode: false
             }).then(response => {
-                // API should either:
-                // - Return 401/302/403 status (proper authentication check)
-                // - Return error message in body
-                // - Return success if authentication is temporarily disabled
-                // Currently authentication is disabled in bootstrap.inc (TODO to restore)
+                // The bootstrap gates every API endpoint: without a session it
+                // answers 401 (or a redirect/403 through a proxy). A 200 here
+                // would mean the gate is gone.
                 const isValidResponse = response.status === 401 ||
                                        response.status === 302 ||
-                                       response.status === 403 ||
-                                       response.status === 200 ||
-                                       (response.body && response.body.error) ||
-                                       (typeof response.body === 'string' && response.body.includes('toegang'));
+                                       response.status === 403;
                 expect(isValidResponse).to.be.true;
 
                 // Log current auth behavior for debugging

@@ -1756,7 +1756,7 @@ function lib_screen_fade( ) {
 }
 
 
-//   -			-			-			-			-			STRING FUNCTIONS -> TODO Put them all in prototype structure : Way better!
+//   -			-			-			-			-			STRING FUNCTIONS
 
 
 String.prototype.lib_contains_numbers = function () {

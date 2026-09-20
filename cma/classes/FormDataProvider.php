@@ -544,17 +544,6 @@ class FormDataProvider
     }
 
     /**
-     * Get single row HTML for targeted refresh after popup save
-     * Returns rowHtml that can be used to replace a single row in the table
-     */
-    public static function getRowHtml(int $formId, string $recordId, int $displayMode = 2): array
-    {
-        // TODO: Implement targeted row refresh for better performance
-        // For now, return empty to trigger fallback to full list reload
-        return ['success' => false, 'error' => 'Not implemented - use full list reload'];
-    }
-
-    /**
      * Get single row HTML for JSON form targeted refresh after popup save
      */
     public static function getJsonFormRowHtml(string $formName, string $recordId, int $displayMode = 2, array $columns = []): array

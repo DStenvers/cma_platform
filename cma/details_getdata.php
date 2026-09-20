@@ -111,7 +111,6 @@ function GetData_VisibleError($strError)
     // { "id" : 13, "text" : "Idaho" }
     echo ' { "id" : 0, "text" : ' . chr(34) . $strError . chr(34) . '}';
 }
-// TODO: : Check user
 /**
 * Getdata Writerecords
 *

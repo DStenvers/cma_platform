@@ -66,7 +66,6 @@ function EditModeButtonText($intEditMode)
     }
 }
 // Creates the text for the Save button
-// TODO: returns a string for the button  Use this one
 /**
 * Editmodesavebutton
 *
@@ -120,7 +119,6 @@ function EditModePrintButton()
     }
 }
 // Creates the text for the Cancel button
-// TODO: returns a string for the button  Use this one
 /**
 * Editmodecancelbutton
 *

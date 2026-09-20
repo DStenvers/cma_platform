@@ -224,7 +224,6 @@ function lib_HTML_RemoveScripts($strInput)
     $strOutput = preg_replace('/<script(.|\\n)+?<\/script>/si', '', $strInput);
     return $strOutput;
 }
-// TODO: Test if vbCrlf can be replaced by <BR> : i dont think it would always work as desired!
 /**
 * Htmlcompile
 *

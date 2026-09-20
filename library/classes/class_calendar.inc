@@ -6,7 +6,6 @@
 // is uniek per bestand, zodat de guard niet van de aanroeper afhangt.
 if (defined('INC_CLASS_CALENDAR')) { return; }
 define('INC_CLASS_CALENDAR', 1);
-// TODO: make optional
 use App\Library\Application;
 use App\Library\Request;
 use App\Library\Server;
@@ -17,7 +16,6 @@ $blnSmartLinks = null;
 $blnShowEventsInCalendar = null;
 $CalendarFont = null;
 // Requires lib_datum.inc
-// TODO: : allow change of CSS classes used
 if (class_exists('Calendar')) { return; }
 class Calendar
 {
