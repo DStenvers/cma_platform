@@ -32,7 +32,9 @@
       "type": "textbox",
       "caption": "IP adres(sen)",
       "hint": "Toegestane IP-adressen of CIDR-bereiken van leden, ;-gescheiden (leeg = geen beperking)",
-      "validation": ["ip-address-list"],
+      "validation": [
+        "ip-address-list"
+      ],
       "maxLength": 254,
       "dataType": "text"
     },
@@ -40,7 +42,7 @@
       "name": "isBeheer",
       "type": "checkbox",
       "caption": "Beheerders?",
-      "hint": "Leden met 'Volledig' op een formulier krijgen daar ook de beheer-functies (velden en subformulieren die alleen voor beheerders zichtbaar zijn)."
+      "hint": "Leden krijgen op elk formulier waar deze groep 'Volledig' heeft ook de beheerfuncties (adminOnly-velden en -subformulieren). Dit is iets anders dan het niveau Administrator op de gebruiker: dat geldt overal en zonder rechtenmatrix."
     },
     {
       "name": "group_menu_rights",
@@ -67,5 +69,11 @@
   "subforms": [],
   "protectedRecords": [
     0
+  ],
+  "tips": [
+    {
+      "id": "beheer-vs-admin",
+      "content": "Rechten: 'Lezen', 'Eigen' en 'Volledig' per formulier gelden voor de leden van deze groep. 'Beheerders?' geeft de leden daarbovenop de beheerfuncties op de formulieren waar de groep 'Volledig' heeft. Een gebruiker met niveau Administrator (op het gebruikersformulier) heeft alles, overal, ongeacht groepen."
+    }
   ]
 }

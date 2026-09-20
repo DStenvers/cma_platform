@@ -15248,3 +15248,21 @@ karaat-data en staat in de karaat-repo.
 > the list display, does it only retrieve the selected columns or all? If all, can we make it just the selected records?
 
 > atake a good look at the directory structore of the cma and propose - if any - a better one separating assets and code and settings
+> so per user level Admin is user level beheerder or is it a separate setting?
+
+> <task-notification>
+> <task-id>b2dewtybh</task-id>
+> <tool-use-id>toolu_017vgGEjUd5w8S82W87cK1SP</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/1afda499-bce7-4819-b1fd-58a182c4c882/tasks/b2dewtybh.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Check tracked runtime dirs, unreferenced images, data/reports and config readers" completed (exit code 0)</summary>
+> </task-notification>
+
+> lets start
+
+## 2026-09-20
+
+> yes please start
+> we might need to explain that on the group form
+
+> the old cma has template editing, there is another site that actively uses it, can you migrate that?
