@@ -10,6 +10,12 @@ use App\Library\Str;
 use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/bootstrap.inc';
+
+// Editing site pages is an administrator's job: it writes files in the webroot.
+if (!\Cma\SecurityHelper::isAdmin()) {
+    \App\Library\Error::page('Geen toegang', 'Alleen beheerders kunnen pagina\'s wijzigen.', true);
+    exit;
+}
 Response::noCache();
 
 $parSearchFor = trim(Request::query('SearchFor', '') ?: Request::post('SearchFor', ''));

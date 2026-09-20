@@ -108,6 +108,7 @@ $topics = [
             'formval'       => ['label' => 'Formuliervalidatie (front-end)', 'icon' => 'lnr-checkmark-circle','render' => 'render_doc_formval'],
             'json_config'   => ['label' => 'JSON-configuratie',           'icon' => 'lnr-papers',     'render' => 'render_doc_json_config'],
             'images'        => ['label' => 'WebP & afbeeldingen',         'icon' => 'lnr-picture',    'render' => 'render_doc_images'],
+            'templates'     => ['label' => 'Wijzigbare pagina\'s (sjablonen)', 'icon' => 'lnr-file-empty', 'render' => 'render_doc_templates'],
             'web_components'=> ['label' => 'Web components ontwikkelen',  'icon' => 'lnr-bubble',     'render' => 'render_doc_web_components'],
             'errors'        => ['label' => 'Logging & errors (dev)',      'icon' => 'lnr-bug',        'render' => 'render_doc_errors'],
             'testing'       => ['label' => 'Tests & coverage strategie',  'icon' => 'lnr-shield-check','render' => 'render_doc_testing'],
@@ -4325,6 +4326,60 @@ function render_doc_formval(): void
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=json_forms">JSON-gedreven formulieren</a> (server-side formulierdefinities), <a href="documentation.php?topic=testing">Tests &amp; coverage strategie</a>.
     </div>
+    <?php
+}
+
+function render_doc_templates(): void
+{
+    ?>
+    <h1>Wijzigbare pagina's (sjablonen)</h1>
+    <p class="docs-meta">Een site-pagina markeert de stukken die een beheerder mag wijzigen; het CMA toont per stuk een invoerveld en schrijft de waarden terug in het bestand. De rest van de pagina blijft precies zoals hij was.</p>
+
+    <h2>Markeringen in de pagina</h2>
+    <pre><code>&lt;!-- #beginedit type=title,name=titel,pre=&lt;title&gt;,post=&lt;/title&gt;,required=yes --&gt;
+&lt;title&gt;Welkom&lt;/title&gt;
+&lt;!-- #endedit --&gt;
+
+&lt;!-- #beginedit type=textarea,name=intro tekst,html=yes,height=8 --&gt;
+&lt;p&gt;Vrije tekst met opmaak&lt;/p&gt;
+&lt;!-- #endedit --&gt;
+
+&lt;p&gt;Bijgewerkt: &lt;!-- #beginedit type=datestamp,format=dd-mm-jjjj --&gt;1-1-2026&lt;!-- #endedit --&gt;&lt;/p&gt;</code></pre>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:140px">Element</th><th>Betekenis</th></tr></thead>
+        <tbody>
+            <tr><td><code>type</code></td><td><code>text</code> of <code>title</code> (invoerveld), <code>textarea</code> (tekstvak, met <code>html=yes</code> een CKEditor), <code>keyword</code> en <code>description</code> (een <code>&lt;meta&gt;</code>-tag; de waarde is de <code>content</code>), <code>datestamp</code> (niet getoond; bij elke keer opslaan de datum van vandaag). Onbekend = <code>text</code>.</td></tr>
+            <tr><td><code>name</code></td><td>Label en veldnaam; spaties worden <code>_</code>. Standaard <code>field</code>.</td></tr>
+            <tr><td><code>size</code>, <code>height</code></td><td>Maximale lengte van een invoerveld (standaard 80), aantal regels van een tekstvak (standaard 6; een CKEditor krijgt <code>height × 40</code> px).</td></tr>
+            <tr><td><code>required=yes</code></td><td>Verplicht: het veld heet <code>required-…</code>, wat de formuliervalidatie (<code>form_valid</code>, <code>lib_FormValRequired</code>) afdwingt.</td></tr>
+            <tr><td><code>pre</code>, <code>post</code></td><td>Vaste tekst binnen het gebied vóór en na de waarde, zoals <code>&lt;title&gt;</code> en <code>&lt;/title&gt;</code>; hoofdletterongevoelig herkend en bij opslaan teruggezet.</td></tr>
+            <tr><td><code>format</code></td><td>Patroon van een datestamp: <code>dd</code>, <code>mm</code>, <code>yyyy</code>, <code>yy</code> (een Nederlandse <code>j</code> voor het jaar mag ook); standaard <code>dd/mm/yyyy</code>.</td></tr>
+        </tbody>
+    </table>
+    <p>Gewone tekst wordt HTML-gecodeerd opgeslagen (<code>&lt;</code> wordt <code>&amp;lt;</code>); met <code>html=yes</code> gaat de waarde er letterlijk in. De hele lees- en schrijflogica staat in <code>Cma\Services\TemplateService</code> (<code>parse()</code>, <code>render()</code>, <code>title()</code>), zonder I/O, met <code>TemplateServiceTest</code> als contract.</p>
+
+    <h2>De schermen</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:220px">Pagina</th><th>Doet</th></tr></thead>
+        <tbody>
+            <tr><td><code>listTemplates.php</code></td><td>Boom van wijzigbare pagina's uit <code>tblSiteFiles</code> (map → titel), met zoeken. In Beheerstools onder Front-end, alleen als de tabel bestaat.</td></tr>
+            <tr><td><code>template_fillrep.php</code></td><td>De knop Vernieuwen: leegt <code>tblSiteFiles</code>, loopt de site-root door (<code>.php</code>, <code>.asp</code>, <code>.htm</code>, <code>.html</code>; code-mappen als <code>vendor</code>, <code>src</code>, <code>cma</code> overgeslagen) en registreert elk bestand met markeringen, met zijn <code>&lt;title&gt;</code> als titel.</td></tr>
+            <tr><td><code>template_edit.php?ID=…</code></td><td>Eén invoerveld per gebied; de werkbalk-knop Opslaan post naar <code>template_post.php</code> (alleen als er iets gewijzigd is), Bekijk opent de pagina zelf.</td></tr>
+            <tr><td><code>template_post.php</code></td><td>Schrijft de waarden in het bestand, zet de datestamps, werkt de titel in <code>tblSiteFiles</code> bij en keert terug naar de editor. Weigert bij een leeg verplicht veld of een alleen-lezen bestand.</td></tr>
+        </tbody>
+    </table>
+    <p>Alle vier zijn alleen voor beheerders: ze schrijven bestanden in de webroot. De tabel: <code>tblSiteFiles (ID, FilePath, FileName, FileTitle, FileEditable)</code> in de data-database; <code>FilePath</code> is de map met een slash aan het eind, relatief aan de site-root.</p>
+
+    <h2>Troubleshooting</h2>
+    <table class="listtable">
+        <thead><tr class="listheader"><th style="width:300px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
+        <tbody>
+            <tr><td>Het onderdeel staat niet in Beheerstools</td><td><code>tblSiteFiles</code> bestaat niet in de data-database.</td><td>Maak de tabel aan (zie boven) en klik Vernieuwen in de lijst.</td></tr>
+            <tr><td>Een pagina met markeringen ontbreekt in de lijst</td><td>De lijst is een momentopname; of het bestand staat in een overgeslagen map.</td><td>Vernieuwen; zet wijzigbare pagina's niet in code-mappen.</td></tr>
+            <tr><td>"Bestand is alleen-lezen"</td><td>De app-pool-gebruiker mag het bestand niet schrijven.</td><td>Schrijfrecht op de pagina (niet op de hele webroot).</td></tr>
+            <tr><td>Een gebied verschijnt niet in de editor</td><td>Geen <code>&lt;!-- #endedit --&gt;</code> na de start-markering: het lezen stopt daar. Of het is een datestamp.</td><td>Sluit elk gebied af.</td></tr>
+        </tbody>
+    </table>
     <?php
 }
 

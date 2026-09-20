@@ -38,6 +38,20 @@ function cma_db_uses_sqlite(): bool
     return false;
 }
 
+/**
+ * Does this site have editable page templates? The index table tblSiteFiles
+ * exists only on sites whose pages carry <!-- #beginedit --> regions; on any
+ * other site the tool would only show an empty list.
+ */
+function cma_site_has_templates(): bool
+{
+    try {
+        return \App\Library\Database::tableExists(null, 'tblSiteFiles');
+    } catch (\Throwable $e) {
+        return false;
+    }
+}
+
 function buildToolsTreeData(bool $isDeveloper): array
 {
     $folders = [];
@@ -130,6 +144,9 @@ function buildToolsTreeData(bool $isDeveloper): array
             ['type' => 'item', 'label' => 'WebP beeld-conversie', 'href' => 'tools/tools_webp_convert.php', 'target' => 'R', 'icon' => 'lnr-picture'],
         ]
     ];
+    if (cma_site_has_templates()) {
+        $frontendFolder['children'][] = ['type' => 'item', 'label' => 'Wijzigbare pagina\'s (sjablonen)', 'badge' => 'A', 'href' => 'listTemplates.php', 'target' => 'R', 'icon' => 'lnr-file-empty'];
+    }
     $folders[] = $frontendFolder;
 
     // === DOCUMENTATIE ===

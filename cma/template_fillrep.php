@@ -6,6 +6,13 @@ use App\Library\SQL;
 use App\Library\Server;
 
 require_once __DIR__ . '/bootstrap.inc';
+require_once __DIR__ . '/classes/Services/TemplateService.php';
+
+// Editing site pages is an administrator's job: it writes files in the webroot.
+if (!\Cma\SecurityHelper::isAdmin()) {
+    \App\Library\Error::page('Geen toegang', 'Alleen beheerders kunnen pagina\'s wijzigen.', true);
+    exit;
+}
 
 Response::noCache();
 cma_html_header('CMA - Fill Repository');
@@ -95,48 +102,14 @@ function IterateFolders($folderPath, $sParent, $iLevel)
 */
 function IsTemplate($filePath, &$sTitle)
 {
-    $bResult = false;
     $sTitle = basename($filePath);
-    $sTempTitle = '';
-
     $content = @file_get_contents($filePath);
     if ($content === false) {
         return false;
     }
-
-    // Check if file contains edit markers
-    if (stripos($content, CONSTEDITSTART) !== false) {
-        $bResult = true;
-    }
-
-    // Try to get the title from <title> tags
-    $sTempTitle = GetTitle($content);
-    if ($sTempTitle !== '') {
-        $sTitle = $sTempTitle;
-    }
-
-    return $bResult;
-}
-
-/**
-* GetTitle - Extract title from HTML content
-*/
-function GetTitle($sString)
-{
-    $sResult = '';
-
-    $iStart = stripos($sString, '<title>');
-    if ($iStart !== false) {
-        $iStart = $iStart + strlen('<title>');
-        $iEnd = stripos($sString, '</title>', $iStart);
-        if ($iEnd !== false) {
-            $sResult = substr($sString, $iStart, $iEnd - $iStart);
-        } else {
-            $sResult = substr($sString, $iStart);
-        }
-    }
-
-    return HTMLDecompile($sResult);
+    // One reader of the markers and the title: TemplateService (also used by the editor)
+    $sTitle = \Cma\Services\TemplateService::title($content, $sTitle);
+    return \Cma\Services\TemplateService::isTemplate($content);
 }
 
 /**
