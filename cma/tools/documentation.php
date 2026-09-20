@@ -4765,6 +4765,7 @@ php tests/TestRunner.php                        # alle PHP unit-tests
 php tests/TestRunner.php ArrTest                # één klasse
 php tests/TestRunner.php ArrTest --filter=testFlatten   # één methode
 
+cp cypress.env.example.json cypress.env.json    # eenmalig; vul de inloggegevens in (blijft buiten git en buiten het pakket)
 npx cypress open                                # interactief
 npx cypress run                                 # headless (CI)
 npx cypress run --spec 'cypress/e2e/forms/**/*.cy.js'  # selectief
@@ -4830,7 +4831,7 @@ function render_doc_releasing(): void
     // …
 ];</code></pre>
     <p>Entries kunnen voor altijd blijven staan — <code>is_file()</code> guard zorgt dat de cleanup idempotent is.</p>
-    <p>Een hele map die het platform niet meer levert gaat in <code>REMOVED_DIRS</code> (recursief verwijderd, alleen voor mappen die uitsluitend van het platform zijn en waar een site nooit eigen bestanden zet). En <code>RUNTIME_DIRS</code> (<code>logs</code>, <code>cache</code>, <code>temp</code> bovenin een gesynchroniseerde boom) worden nooit gekopieerd: dat is per-site toestand, geen pakketinhoud; alleen de <code>web.config</code> direct in zo'n map (de toegangsblokkade) gaat wel mee.</p>
+    <p>Een hele map die het platform niet meer levert gaat in <code>REMOVED_DIRS</code> (recursief verwijderd, alleen voor mappen die uitsluitend van het platform zijn en waar een site nooit eigen bestanden zet). En <code>RUNTIME_DIRS</code> (<code>logs</code>, <code>cache</code>, <code>temp</code> bovenin een gesynchroniseerde boom) worden nooit gekopieerd: dat is per-site toestand, geen pakketinhoud; alleen de <code>web.config</code> direct in zo'n map (de toegangsblokkade) gaat wel mee. <code>DEV_ONLY_PATHS</code> (<code>cypress/</code>, <code>cypress.config.js</code>, <code>cypress.env.json</code>) blijven ook thuis: de Cypress-suite draait vanaf een ontwikkelmachine tegen de site, en een inloggegeven in dat bestand stond anders leesbaar in de webroot van elke site. <code>tests/</code> en de bouwscripts onder <code>tools/</code> gaan wél mee: de deploy-hook draait de PHP-tests op de server en de post-update-stap bouwt de geminificeerde bestanden.</p>
 
     <h2>Automatisch melden in de response</h2>
     <p>Per CLAUDE.md / memory <code>feedback_version_bump</code>: na elke push noem ik de nieuwe versie expliciet in de user-facing message. Zonder dat moeten consumer-operators in de profiel-balk kijken om te weten welke versie ze net binnen krijgen.</p>

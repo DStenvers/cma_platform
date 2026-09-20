@@ -41,15 +41,11 @@ module.exports = defineConfig({
         // Shadow DOM support for web components
         includeShadowDom: true,
 
-        // Environment variables
+        // Environment variables. The credentials are NOT here: they come from
+        // cypress.env.json (untracked, see cypress.env.example.json), which
+        // Cypress merges over this block. A password in this file ships with
+        // the package to every site's webroot.
         env: {
-            // Test credentials
-            adminUser: 'DiederikStenvers',
-            adminPass: '_rino!',
-            testUser: 'DiederikStenvers',
-            testPass: '_rino!',
-            frontendUser: 'hesges@hotmail.com',
-            frontendPass: '_rino!',
 
             // API endpoints
             apiEndpoint: '/form_api.php',

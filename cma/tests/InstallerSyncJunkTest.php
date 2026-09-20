@@ -212,4 +212,24 @@ class InstallerSyncJunkTest extends TestCase
         $this->assertTrue(file_exists($root . '/cma/images/icons/0151-envelope.png'), 'a sibling that is not retired stays');
         $this->assertEquals([], Installer::cleanRemovedDirs($root), 'second run: nothing left to remove');
     }
+
+    public function testDevOnlyPathsAreNotSynced(): void
+    {
+        $src = $this->tmpRoot . '/src7';
+        $dest = $this->tmpRoot . '/dest7';
+        $this->write('src7/cypress/e2e/login.cy.js', 'x');
+        $this->write('src7/cypress.config.js', 'x');
+        $this->write('src7/cypress.env.json', '{"adminPass":"secret"}');
+        $this->write('src7/tests/SomeTest.php', 'ships: the deploy hook runs it');
+        $this->write('src7/tools/build-minify.js', 'ships: the post-update step runs it');
+
+        $errors = $this->syncDirectory($src, $dest);
+
+        $this->assertEquals(0, count($errors));
+        $this->assertFalse(is_dir($dest . '/cypress'));
+        $this->assertFalse(file_exists($dest . '/cypress.config.js'));
+        $this->assertFalse(file_exists($dest . '/cypress.env.json'), 'credentials never reach a webroot');
+        $this->assertTrue(file_exists($dest . '/tests/SomeTest.php'));
+        $this->assertTrue(file_exists($dest . '/tools/build-minify.js'));
+    }
 }

@@ -25,3 +25,6 @@ Thumbs.db
 # (the Installer skips these directories on sync as well)
 /cma/logs/
 /cma/cache/
+
+# Cypress credentials: per developer, never in the package
+/cma/cypress.env.json

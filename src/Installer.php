@@ -36,6 +36,15 @@ class Installer
     private const RUNTIME_DIRS = ['logs', 'cache', 'temp'];
 
     /**
+     * Development-only paths inside a synced tree that a site never needs:
+     * the Cypress suite runs from a developer machine against the site. Not
+     * synced (matched from the top of the tree). Note that tests/ and the
+     * build scripts under tools/ do ship: the deploy hook runs the PHP tests
+     * on the server and the post-update step rebuilds the minified assets.
+     */
+    private const DEV_ONLY_PATHS = ['cypress', 'cypress.config.js', 'cypress.env.json', 'cypress.env.example.json'];
+
+    /**
      * Whole directories that were once shipped and are retired since. Removed
      * recursively on every consumer site; only list a directory the platform
      * owns outright (no site ever puts its own files there).
@@ -48,6 +57,13 @@ class Installer
         'cma/images/menuicons',
         'cma/images/htmledit',
         'cma/images/logos',
+        // Report definitions that the platform repository tracked by accident
+        // (test data of the dev site). Sites store reports in data/reports at
+        // the site root (ReportStorage); migration 9.9.0 moved anything real
+        // there long ago, and every update re-copied this junk since.
+        'cma/data/reports',
+        // The Cypress suite runs from a developer machine (DEV_ONLY_PATHS).
+        'cma/cypress',
     ];
 
     private const PROTECTED_PATHS = [
@@ -503,6 +519,11 @@ class Installer
         // The one file under cma/assets/webcomponents: a readme about
         // LibSharedStyles, now a section of the web-components topic.
         'cma/assets/webcomponents/readme.md',
+        // Cypress credentials file: it was tracked, synced, and publicly
+        // readable in the webroot of every site (HTTP 200). Untracked now and
+        // never synced again (DEV_ONLY_PATHS); this removes the copies.
+        'cma/cypress.env.json',
+        'cma/cypress.config.js',
         // Duplicate of cma/control-types.json (the file ConfigLoader reads;
         // migration 9.9.0 moved it out of config/ and this copy lingered).
         'cma/config/control-types.json',
@@ -1410,6 +1431,9 @@ class Installer
             // directory: that is the access-deny rule, and it must ship.
             $topDir = strstr($normalizedRelative, '/', true) ?: $normalizedRelative;
             if (in_array($topDir, self::RUNTIME_DIRS, true) && $normalizedRelative !== $topDir . '/web.config') {
+                continue;
+            }
+            if (in_array($topDir, self::DEV_ONLY_PATHS, true)) {
                 continue;
             }
 
