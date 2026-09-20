@@ -87,7 +87,9 @@
       "caption": "IP Adressen",
       "maxLength": 76,
       "hint": "IP-adressen of CIDR-bereiken, ;-gescheiden (leeg = geen beperking)",
-      "validation": ["ip-address-list"],
+      "validation": [
+        "ip-address-list"
+      ],
       "dataType": "text"
     },
     {
@@ -110,7 +112,8 @@
           "text": "Developer"
         }
       ],
-      "maxLength": 10
+      "maxLength": 10,
+      "hint": "Administrator en Developer hebben altijd volledige toegang (inclusief beheerfuncties) tot alle formulieren, ongeacht groepen en rechtenmatrix. Een Gebruiker krijgt zijn rechten via de groepen."
     },
     {
       "name": "user_groups",

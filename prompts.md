@@ -15266,3 +15266,4 @@ karaat-data en staat in de karaat-repo.
 > we might need to explain that on the group form
 
 > the old cma has template editing, there is another site that actively uses it, can you migrate that?
+> on the user form give a hint that administrators and developer always have full access to all forms
