@@ -43,7 +43,7 @@ These are the items most likely to bite a user today. They are regressions again
 
 | # | Finding | Old | New |
 |---|---|---|---|
-| 18 ✓ | **Done 2026-09-18 (v1.50.0: #toolbar-status rendered).** **Record status text invisible**: `updateStatus('Toevoegen' / 'Wijzigen' / 'Gekopieerde gegevens toevoegen' / '(beheer)')` writes to `#toolbar-status`, which the form template never renders | `details.asp:383-409` | `form-controller.js:11877-11881`; no such id in `FormTemplate.php` |
+| 18 ✗ | **Reverted 2026-09-21 (v1.52.3): the status text was removed again on request; the panel title already says Wijzigen/Toevoegen.** **Done 2026-09-18 (v1.50.0: #toolbar-status rendered).** **Record status text invisible**: `updateStatus('Toevoegen' / 'Wijzigen' / 'Gekopieerde gegevens toevoegen' / '(beheer)')` writes to `#toolbar-status`, which the form template never renders | `details.asp:383-409` | `form-controller.js:11877-11881`; no such id in `FormTemplate.php` |
 | 19 | **Done 2026-09-18 (v1.50.0: stamped on save, shown in meta).** **"Laatste gewijzigd" (who/when) never shown or stamped on JSON forms** although 11 definitions set `storeLastModified` | `detailsRep_post.asp:144-151`; `edit.inc:258-267` | `FormDataProvider.php:760-766, 783-1176`; block hidden `FormTemplate.php:1512-1518` |
 | 20 ✓ | **Done 2026-09-18 (v1.50.0: "Opslaan & sluiten" added, plain save stays open).** **Popup "Bewaar" always closes**; the old "save, stay open, subforms become available" flow for parent-then-children is gone | `toolbar.inc:12-28, 200-213` | `form-controller.js:4585` |
 | 21 | **Done 2026-09-19 (v1.50.4: unchanged existing record is not posted).** Save is sent even when nothing changed (extra writes + a no-op audit row) | `all.js:692-712` | `form-controller.js:9411-9440` |

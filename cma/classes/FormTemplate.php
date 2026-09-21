@@ -1381,11 +1381,10 @@ class FormTemplate
 
         $html .= '</div>' . PHP_EOL;
 
-        // Right side - record status ("Toevoegen" / "Wijzigen" / "Bekijken", the
-        // classic toolbar text, written by form-controller updateStatus()) and form name
+        // Right side: the form name. No record-status text ("Wijzigen",
+        // "Toevoegen"): the panel title already says which it is.
         $html .= '<div class="toolbar-right">' . PHP_EOL;
         $html .= '<span class="form-title">' . Server::htmlEncode($formName) . '</span>' . PHP_EOL;
-        $html .= '<span id="toolbar-status" class="toolbar-status"></span>' . PHP_EOL;
         $html .= '</div>' . PHP_EOL;
 
         $html .= '</div>' . PHP_EOL;

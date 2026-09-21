@@ -1036,7 +1036,6 @@ class CmaFormController {
         this.noDataMessage = document.getElementById('noDataMessage');
         // Note: mainForm is accessed via getter - always reads fresh from DOM
         this.loadingOverlay = document.getElementById('loadingOverlay');
-        this.toolbarStatus = document.getElementById('toolbar-status');
 
         // State
         this.currentPage = 1;
@@ -2102,7 +2101,6 @@ class CmaFormController {
         // Update status text and sidepanel title. The classic "(beheer)" suffix is
         // gone: the beheer level still gates adminOnly fields, but it reads as noise
         // in the status text.
-        this.updateStatus(canEdit ? 'Wijzigen' : 'Bekijken');
         this.updateSidepanelTitle(canEdit ? 'wijzigen' : 'bekijken');
 
         // Set filter value if filterIdName is configured
@@ -8316,7 +8314,6 @@ class CmaFormController {
                     formLayout.classList.remove('has-record');
                     formLayout.classList.add('is-creating');
                 }
-                this.updateStatus('Toevoegen (kopie van ' + sourceRecordId + ')');
                 // Initialize formval_nl input masking for copied record form
                 if (form_init_container) {
                     form_init_container(this.mainForm);
@@ -9114,7 +9111,6 @@ class CmaFormController {
             formLayout.classList.remove('has-record');
             formLayout.classList.add('is-creating');
         }
-        this.updateStatus('Toevoegen');
         this.updateUrl();
 
         // Re-check toolbar overflow (fewer buttons visible in create mode)
@@ -9679,7 +9675,6 @@ class CmaFormController {
                 // aan zodra lib-combo of lib-switch bij het verversen een change
                 // uitstuurt, en dan wordt er tegen die oude waarden vergeleken.
                 this.captureOriginalValues();
-                this.updateStatus(result.message);
                 if (result.lastModifiedUser) {
                     this.updateMeta({ lastModifiedUser: result.lastModifiedUser, lastModifiedDate: result.lastModifiedDate || '' });
                 }
@@ -10711,7 +10706,6 @@ class CmaFormController {
             }
         });
 
-        this.updateStatus('Gekopieerde gegevens toevoegen');
         document.body.classList.remove('has-record');
         document.body.classList.add('is-creating');
         this.setDirty(true);
@@ -12074,15 +12068,6 @@ class CmaFormController {
     }
 
     /**
-     * Update status text
-     */
-    updateStatus(text) {
-        if (this.toolbarStatus) {
-            this.toolbarStatus.textContent = text;
-        }
-    }
-
-    /**
      * Get list of changed fields with their labels and values
      * @returns {Array} Array of { label, oldValue, newValue } objects
      */
@@ -13153,7 +13138,6 @@ class CmaFormController {
         this.detailPanel = document.getElementById('detailPanel');
         this.detailContent = document.getElementById('detailContent');
         this.loadingOverlay = document.getElementById('loadingOverlay');
-        this.toolbarStatus = document.getElementById('toolbar-status');
         this.noDataMessage = document.getElementById('noDataMessage');
 
         // NOTE: We intentionally do NOT call loadList() here.
