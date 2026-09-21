@@ -63,4 +63,16 @@ class DefaultListColumnsTest extends TestCase
         Settings::reset();
         $this->assertSame(3, Settings::get('list_default_columns'));
     }
+
+    public function testLabelsOnlyYieldNoColumnSoTheListQueryTakesOver(): void
+    {
+        // The login subforms: two labels, a listQuery with an alias. No field
+        // makes a column, so getTableHtml must run the listQuery instead of
+        // selecting the alias names on the table (Access: "Too few parameters").
+        $def = ['idField' => 'ID', 'fields' => [
+            ['name' => 'email_primair', 'type' => 'label', 'caption' => 'Bevestigd'],
+            ['name' => 'Guid', 'type' => 'label', 'caption' => 'Guid'],
+        ]];
+        $this->assertSame([], JsonFormService::defaultListColumns($def, 'ID', 6));
+    }
 }

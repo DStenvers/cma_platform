@@ -3844,6 +3844,10 @@ class CmaFormController {
 
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                // A muted or disabled button does nothing, also for a click that
+                // arrives without the pointer (keyboard, script): same as disabled.
+                const tbBtn = btn.closest('.tb-btn');
+                if (tbBtn && (tbBtn.classList.contains('muted') || tbBtn.classList.contains('disabled'))) return;
                 this.handleToolbarAction(btn.dataset.action, btn.dataset);
             });
         });
@@ -12022,8 +12026,9 @@ class CmaFormController {
         // document.querySelector die opnieuw naar "een" formulier zocht.
         cmaSetIsDirty(dirty, this.formLayout);
 
-        // Update save button visual state (grayed out when no changes, but still clickable)
-        // Note: We only add 'muted' class for visual feedback, NOT 'disabled' which blocks clicks
+        // Save button state: 'muted' when clean. It behaves like disabled (no
+        // clicks, see .tb-btn.muted and the click guard in bindEvents) and only
+        // looks lighter, so it does not read as "saving is not allowed".
         //
         // Both looks come from this one hand: 'muted' when clean, 'dirty' (the red
         // save-pulse) when not. They are two halves of the same state, and painted

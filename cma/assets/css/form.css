@@ -1524,9 +1524,13 @@ body.mode-tree .toolbar-filter label {
     cursor: default;
 }
 
-/* Muted toolbar button (still clickable, just visually subdued) */
+/* Muted toolbar button: the save button while there is nothing to save.
+   Behaves like disabled (no clicks) and only differs in weight, so a clean
+   form is not confused with one where saving is not allowed at all. */
 .tb-btn.muted {
     opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
 }
 
 /* Dirty state - handled by save-pulse animation in style.css */
@@ -3351,11 +3355,11 @@ a.migration-link:hover {
     min-height: 20px;
 }
 
-/* Column selector content - no bottom padding */
+/* Column selector content: the same 8px the toolbar above it uses */
 #columnSelectorContent {
-    padding: 16px;
-    height: 100%;
     box-sizing: border-box;
+    height: 100%;
+    padding: 8px;
 }
 
 /* Column selector dark mode overrides */

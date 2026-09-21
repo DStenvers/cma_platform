@@ -1,7 +1,7 @@
 /**
  * Eén hand kleurt de bewaarknop.
  *
- * De knop kent twee gezichten: 'muted' (schoon — gedempt maar klikbaar) en
+ * De knop kent twee gezichten: 'muted' (schoon — gedempt en, net als disabled, niet klikbaar) en
  * 'dirty' (het rode pulseren — er staat iets ongeboekt). Dat zijn twee helften
  * van dezelfde toestand, en ze werden vanuit twee plekken geschilderd: de
  * controller zette 'muted', het legacy-script in cma.js zette 'dirty' er los

@@ -183,8 +183,13 @@ class JsonFormService extends BaseFormService
                         (int)($options['maxColumns'] ?? \App\Library\Settings::get('list_default_columns')));
                 }
 
-                // Fallback: derive columns from listQuery when fields array is empty
+                // Fallback: derive columns from listQuery when the fields yield no
+                // column (empty, or labels only). Those columns may be aliases
+                // (email_primair AS login_email), so the query must then be the
+                // listQuery itself and not a SELECT of those names on the table:
+                // Access reports an unknown name as a missing parameter.
                 if (empty($listColumns) && !empty($listQuery)) {
+                    $columnsFromListQuery = true;
                     $tables = SqlParser::extractTables($listQuery) ?? [];
                     $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
                     foreach ($parsedFields as $pf) {
@@ -295,7 +300,7 @@ class JsonFormService extends BaseFormService
                     $definitionWhere = trim($wm[1]);
                 }
             }
-            if (!empty($tableName)) {
+            if (!empty($tableName) && empty($columnsFromListQuery)) {
                 $columns = ListServiceHelper::buildJsonColumnList($listColumns, $idField);
                 $sql = "SELECT $columns FROM [$tableName]";
                 if ($definitionWhere !== '' && stripos($listQuery, ' JOIN ') === false && stripos($definitionWhere, '[' . $tableName . '].') === false) {
@@ -351,7 +356,7 @@ class JsonFormService extends BaseFormService
             // (FROM a, b WHERE ...), a UNION ALL, or a one-to-many view — not
             // only when the ' JOIN ' keyword is present. Whether the count needs
             // deduping keys off "came from a listQuery", NOT the keyword.
-            $customQuery = empty($tableName);
+            $customQuery = empty($tableName) || !empty($columnsFromListQuery);
 
             // Apply keyset pagination for infinite scroll
             if ($lastId !== null) {
@@ -1075,8 +1080,10 @@ class JsonFormService extends BaseFormService
                     }
                 }
 
-                // Fallback: derive columns from listQuery when fields array is empty
+                // Fallback: derive columns from listQuery (see getTableHtml). The
+                // row is then read through that query too, so aliases resolve.
                 if (empty($listColumns) && !empty($listQuery)) {
+                    $columnsFromListQuery = true;
                     $tables = SqlParser::extractTables($listQuery) ?? [];
                     $parsedFields = SqlParser::extractFields($listQuery, $tables) ?? [];
                     foreach ($parsedFields as $pf) {
@@ -1100,7 +1107,12 @@ class JsonFormService extends BaseFormService
 
             // Handle both numeric and GUID IDs - use string quoting for non-numeric IDs
             $idValue = is_numeric($recordId) ? SQL::postNumber($recordId) : SQL::postString($recordId, $conn);
-            $sql = "SELECT " . self::memoLastSelectList($conn, $tableName) . " FROM [$tableName] WHERE [$idField] = " . $idValue;
+            if (!empty($columnsFromListQuery)) {
+                $inner = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', $listQuery);
+                $sql = "SELECT * FROM (" . $inner . ") AS cma_row WHERE [$idField] = " . $idValue;
+            } else {
+                $sql = "SELECT " . self::memoLastSelectList($conn, $tableName) . " FROM [$tableName] WHERE [$idField] = " . $idValue;
+            }
             $rs = Database::openRS($sql, $conn);
             if (!$rs || $rs->EOF) {
                 return self::error('Record niet gevonden');
