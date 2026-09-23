@@ -4940,8 +4940,8 @@ class CmaFormController {
                         ${checkboxesHtml}
                     </div>
                     <div class="col-selector-buttons">
-                        <button type="button" onclick="CMA.FormController.getController()?.resetColumnPreferences()" class="btn-secondary">Standaard</button>
-                        <button type="button" onclick="CMA.FormController.getController()?.saveColumnSelection()" class="btn-primary">Toon gewijzigde lijst</button>
+                        <button type="button" id="colSelectorReset" class="btn-secondary">Standaard</button>
+                        <button type="button" id="colSelectorApply" class="btn-primary">Toon gewijzigde lijst</button>
                     </div>
                 </div>
             `;
@@ -4985,6 +4985,23 @@ class CmaFormController {
             }
         }
         if (!contentDiv) return;
+
+        // De knoppen hier aanhaken in plaats van met een inline onclick. Zo'n onclick
+        // zoekt CMA op in het document waar de KNOP staat, en het paneel belandt (net als
+        // columnSelectorContent hierboven) niet per se in het document van het formulier.
+        // Stond daar geen controller, dan kapte de optionele aanroep het stil af:
+        // "Toon gewijzigde lijst" deed niets, zonder fout in de console. Via deze binding
+        // houdt elke knop de controller waar hij bij hoort.
+        const applyBtn = contentDiv.querySelector('#colSelectorApply');
+        if (applyBtn && !applyBtn.dataset.bound) {
+            applyBtn.dataset.bound = '1';
+            applyBtn.addEventListener('click', () => this.saveColumnSelection());
+        }
+        const resetBtn = contentDiv.querySelector('#colSelectorReset');
+        if (resetBtn && !resetBtn.dataset.bound) {
+            resetBtn.dataset.bound = '1';
+            resetBtn.addEventListener('click', () => this.resetColumnPreferences());
+        }
 
         const list = contentDiv.querySelector('.col-selector-list');
         if (!list) return;

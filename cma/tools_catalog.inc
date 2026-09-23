@@ -90,7 +90,6 @@ function buildToolsTreeData(bool $isDeveloper): array
         'icon' => 'lnr-heart-pulse',
         'children' => [
             ['type' => 'item', 'label' => 'Logbestanden lezen', 'href' => 'tools/logreader.php', 'target' => 'R', 'icon' => 'lnr-list'],
-            ['type' => 'item', 'label' => 'E-mail log', 'badge' => 'A', 'href' => 'form.php?form=emaillog', 'target' => 'R', 'icon' => 'lnr-envelope'],
             ['type' => 'item', 'label' => 'Controleer bestanden', 'badge' => 'A', 'href' => 'tools/tools_db_consistency.php', 'target' => 'R', 'icon' => 'lnr-sync'],
             ['type' => 'item', 'label' => 'LLM management', 'badge' => 'A', 'href' => 'tools/tools_llm.php', 'target' => 'R', 'icon' => 'lnr-brain'],
         ]
@@ -128,6 +127,7 @@ function buildToolsTreeData(bool $isDeveloper): array
         'icon' => 'lnr-chart-bars',
         'children' => [
             ['type' => 'item', 'label' => 'CMA Monitoring', 'badge' => 'A', 'href' => 'form.php?form=cmamonitoring', 'target' => 'R', 'icon' => 'lnr-chart-bars'],
+            ['type' => 'item', 'label' => 'E-mail log', 'badge' => 'A', 'href' => 'form.php?form=emaillog', 'target' => 'R', 'icon' => 'lnr-envelope'],
         ]
     ];
     $folders[] = $reportsFolder;

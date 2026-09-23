@@ -121,14 +121,17 @@ echo '<body class="contentbody tools tool-settings">';
 
 ToolbarHelper::start();
 ToolbarHelper::button('#', 'lnr-save', true, 'Opslaan', 'Instellingen opslaan', 'btnSaveSettings', 'save');
+// Het zoekveld hoort in de werkbalk, niet als losse balk boven het formulier. Geen
+// ToolbarHelper::searchBox(): die heeft een vaste id ('searchfor') en een placeholder
+// voor formulierzoeken, en hier filteren we de instellingen ter plekke.
+ToolbarHelper::startRight();
+echo '<lib-search-input id="settingsFilter" name="settingsFilter" icon="left"'
+    . ' placeholder="Zoek instelling…" aria-label="Zoek instelling"></lib-search-input>' . PHP_EOL;
 ToolbarHelper::end();
 ?>
 <title><?= Server::htmlEncode($pageTitle) ?></title>
 
 <div id="c" class="tools">
-    <div class="cma-tool__settings-filterbar">
-        <input type="search" id="settingsFilter" class="form-control cma-tool__settings-filter" placeholder="Zoek instelling…" autocomplete="off">
-    </div>
     <form id="settingsForm" autocomplete="off">
         <table class="form-table preferences-table">
 <?php $groupNo = 0; foreach ($groups as $slug => $group): $groupNo++; $rowNo = 0; $last = count($group['rows']); ?>
@@ -229,7 +232,13 @@ function cmaSettingsFilter(root, text) {
         initial[el.id] = el.tagName === 'LIB-SWITCH' ? String(!!el.checked) : el.value;
     });
 
-    filter.addEventListener('input', function () { cmaSettingsFilter(form, filter.value); });
+    // <lib-search-input> stuurt de term mee in detail.value; komt het event van het
+    // ingebouwde <input> dan is er geen detail en lezen we de waarde van de component.
+    filter.addEventListener('input', function (e) {
+        var term = (e.detail && typeof e.detail.value === 'string') ? e.detail.value
+            : (typeof filter.value === 'string' ? filter.value : '');
+        cmaSettingsFilter(form, term);
+    });
 
     function collect() {
         var data = new FormData();

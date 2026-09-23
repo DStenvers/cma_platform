@@ -954,6 +954,22 @@ document.addEventListener('click', function(e) {
             if (entry.ua) {
                 html += '<tr><th>Browser</th><td style="font-size: var(--font-size-xs);">' + escapeHtml(entry.ua) + '</td></tr>';
             }
+            // Alles wat de logbron verder meestuurt. Dit venster toonde een vaste lijst
+            // velden, dus eigen velden van een bron stonden wel in het bestand maar nergens
+            // op het scherm — en dan is de regel lezen alleen nog mogelijk op de serverschijf.
+            // 'kind' (pagina of bestand) hoort daar ook bij: dat werd nergens getoond.
+            var vasteVelden = { ts: 1, type: 1, url: 1, redirect: 1, referer: 1, method: 1, ip: 1, ua: 1 };
+            Object.keys(entry).forEach(function(veld) {
+                if (vasteVelden[veld]) return;
+                var waarde = entry[veld];
+                if (waarde === undefined || waarde === '') return;
+                // false en null zijn hier betekenisvol ("bestond niet", "niet van toepassing"),
+                // dus die worden uitgeschreven in plaats van overgeslagen.
+                if (waarde === null) { waarde = 'null'; }
+                else if (typeof waarde === 'object') { waarde = JSON.stringify(waarde); }
+                else { waarde = String(waarde); }
+                html += '<tr><th>' + escapeHtml(veld) + '</th><td style="font-size: var(--font-size-xs);">' + escapeHtml(waarde) + '</td></tr>';
+            });
             html += '</table>';
 
             document.getElementById('notFoundDetailContent').innerHTML = html;

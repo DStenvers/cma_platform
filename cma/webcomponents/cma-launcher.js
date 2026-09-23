@@ -158,7 +158,27 @@
         toggle() { this._open ? this.close() : this.open(); }
 
         _onKeydown(e) {
-            if (e.key === 'Escape') { e.preventDefault(); this.close(); }
+            if (e.key !== 'Escape') return;
+            // Escape breekt eerst het ZOEKEN af, pas daarna sluit hij het menu. Deze
+            // listener hangt op document in de capture-fase (zie open()), dus hij is aan
+            // de beurt vóór het zoekveld: zonder onderscheid sluit Escape meteen het hele
+            // menu terwijl de gebruiker alleen zijn zoekterm wilde wissen. Juist bij een
+            // term zonder treffers is dat de eerste reflex, en dan moet je het menu
+            // opnieuw openen om verder te zoeken.
+            var search = this.querySelector('.cma-launcher__search');
+            var term = (search && typeof search.value === 'string') ? search.value : '';
+            if (term) {
+                e.preventDefault();
+                // De capture-fase afkappen, anders wist het zoekveld zichzelf daarna
+                // nog een tweede keer met zijn eigen Escape-afhandeling.
+                e.stopPropagation();
+                if (typeof search.clear === 'function') { search.clear(); } else { search.value = ''; }
+                this._applyFilter('');
+                if (typeof search.focus === 'function') search.focus();
+                return;
+            }
+            e.preventDefault();
+            this.close();
         }
 
         async _loadCatalog() {

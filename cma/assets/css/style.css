@@ -607,11 +607,9 @@ cma-groupbox:hover .groupbox-chevron::before,
 .tool-settings .cma-tool__settings-select {
     width: 200px;
 }
-.tool-settings .cma-tool__settings-filterbar {
-    margin: 0 0 12px;
-}
-.tool-settings .cma-tool__settings-filter {
-    width: 360px;
+/* Het zoekveld staat in de werkbalk; de losse filterbalk erboven is vervallen. */
+.tool-settings #toolbar lib-search-input#settingsFilter {
+    width: 320px;
     max-width: 100%;
 }
 .tool-settings .cma-tool__settings-hidden {

@@ -2825,7 +2825,14 @@ function lib_sidepanel_maakVerstelbaar(panel, sleutel, top_elt) {
 		// in v1.50.3), dus hij is weg: een zwevende stand wordt niet meer onthouden
 		// (zie huidigeStand), zodat het paneel bij de volgende keer openen weer
 		// vastgeplakt staat. Sluiten en opnieuw openen is de weg terug.
-		kop.title = 'Sleep om het paneel te verplaatsen';
+		// De tooltip hoort bij de TITEL, niet bij de hele kop. De knoppen in de kop zijn
+		// afstammelingen en erven een title van hun ouder zodra hun eigen title wegvalt —
+		// wat gebeurt als een tooltip-script die verplaatst om de native tooltip te
+		// vervangen. Boven de sluitknop stonden er dan twee tegelijk: "Sluiten" uit het
+		// script en "Sleep om het paneel te verplaatsen" van de browser. Slepen blijft op
+		// de hele kop werken; alleen de uitleg hangt nu aan de titel.
+		var kopTitel = kop.querySelector('.lib_sidepanel_title') || kop;
+		kopTitel.title = 'Sleep om het paneel te verplaatsen';
 	}
 }
 
