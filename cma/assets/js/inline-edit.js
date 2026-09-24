@@ -114,12 +114,16 @@
     async function fetchJson(url, options = {}, context = 'fetch') {
         const response = await fetchWithRetry(url, options, { context, retries: 1 });
 
+        // De body één keer als tekst lezen en zelf parsen: na een mislukte response.json()
+        // is de body al verbruikt, en een clone() gooit dan zelf een fout die de echte
+        // oorzaak (geen JSON) verbergt.
+        const text = await response.text().catch(() => '[unreadable]');
         try {
-            return await response.json();
+            return JSON.parse(text);
         } catch (e) {
-            const text = await response.clone().text().catch(() => '[unreadable]');
-            log.error(`[${context}] Invalid JSON response:`, text.substring(0, 500));
-            throw new Error(`[${context}] Invalid JSON response from server`);
+            const begin = text.trim().substring(0, 120);
+            log.error(`[${context}] Invalid JSON response from ${url}:`, text.substring(0, 500));
+            throw new Error(`[${context}] Geen geldige JSON van ${url.split('?')[0]} (${response.status}): "${begin}"`);
         }
     }
 
