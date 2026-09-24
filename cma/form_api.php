@@ -60,6 +60,13 @@ use Cma\JsonFormRenderer;
 use Cma\SecurityHelper;
 use Cma\Services\Logger;
 
+// Alles wat buiten outputJson() om wordt ge-echood (een PHP-waarschuwing, een mailvoorbeeld,
+// een debugtabel uit een site-include) zou vóór de JSON belanden en de response onleesbaar
+// maken ("Unexpected token '<'" in de browser, zonder te zeggen waar het vandaan kwam).
+// Die uitvoer vangen we hier op; outputJson() logt hem en stuurt alleen de JSON.
+ob_start();
+$_apiObLevel = ob_get_level();
+
 require_once __DIR__ . '/bootstrap.inc';
 require_once __DIR__ . '/classes/Services/Logger.php';
 require_once __DIR__ . '/classes/Services/PerformanceLogger.php';
@@ -317,7 +324,7 @@ function setNoCacheHeaders() {
 }
 
 function outputJson($data) {
-    global $_isDevMode, $action, $_apiStartTime;
+    global $_isDevMode, $action, $_apiStartTime, $jsonFormName, $_apiObLevel;
     $data = buildResponse($data);
 
     // Always sanitize UTF-8 before encoding to prevent bad field issues
@@ -379,6 +386,25 @@ function outputJson($data) {
         'url' => $apiUrl,
         'method' => Request::method(),
     ]);
+
+    // Onverwachte uitvoer (zie ob_start() bij de bootstrap) weggooien en vastleggen: met
+    // actie, formulier, record en het begin van de tekst is de bron direct te vinden.
+    $stray = '';
+    while (isset($_apiObLevel) && ob_get_level() >= $_apiObLevel) {
+        $stray = (string) ob_get_clean() . $stray;
+    }
+    if (trim($stray) !== '') {
+        Logger::warning('form_api: onverwachte uitvoer vóór de JSON (weggegooid)', [
+            'action' => $action ?? 'unknown',
+            'form'   => $jsonFormName ?? '',
+            'id'     => Request::query('id', Request::post('id', '')),
+            'bytes'  => strlen($stray),
+            'begin'  => function_exists('mb_substr') ? mb_substr(trim($stray), 0, 500) : substr(trim($stray), 0, 500),
+        ]);
+        if (!headers_sent()) {
+            header('X-Cma-Stray-Output: ' . strlen($stray) . ' bytes, zie het CMA-log');
+        }
+    }
 
     echo $json;
 }

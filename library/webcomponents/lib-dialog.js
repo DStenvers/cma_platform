@@ -532,8 +532,9 @@ class LibDialog extends HTMLElement {
                 }
 
                 .dialog-info .dialog-icon {
-                    color: var(--color-info, #077ab2);
-                    border: 1px solid #077ab2;
+                    color: #ffffff;
+                    background-color: var(--color-info, #077ab2);
+                    border: 1px solid var(--color-info, #077ab2);
                     width: 18px;
                     height: 18px;
                     border-radius: 50%;

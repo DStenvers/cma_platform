@@ -15267,3 +15267,20 @@ karaat-data en staat in de karaat-repo.
 
 > the old cma has template editing, there is another site that actively uses it, can you migrate that?
 > on the user form give a hint that administrators and developer always have full access to all forms
+
+> are there more todo's registered in the source? re-evaluate all and if no longer an issue remove the todo, otherwise list them here so we can decide
+
+> 1 document but keep,2 keep, 3 fix, 4 and 5 and 6 remove, 7 block and explain, 8 investigate
+
+## 2026-09-21
+
+> toolbar-status on a form is useless, the title already says if were editing or adding, please remove that
+
+> COUNT field incorrect: -3010 Too few parameters. Expected 1. error when clicking on the + in the login subform of a the contactpersonen inventarisatie
+
+> Muted toolbar buttons are usable, I would expect the same behaviour as disabled buttons
+
+> #columnSelectorContent {
+>     box-sizing: border-box;
+>     height: 100%;
+>     padding: 8px;
