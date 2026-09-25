@@ -34,9 +34,13 @@
  *   DEPLOY_NO_RESET          1 = skip the pre-pull `git checkout -- .`.
  *   DEPLOY_NO_PRE_PULL_TOUCH 1 = skip the pre-pull recycle (Windows file-lock
  *                            release before git/composer run).
- *   DEPLOY_COMPOSER_UPDATE   comma-separated packages to `composer update`
- *                            after the pipeline. Default: stenversonline/platform.
- *                            "-" skips the composer step entirely.
+ *   DEPLOY_COMPOSER_UPDATE   wat de composer-stap doet na de pipeline:
+ *                              niet gezet  -> `composer update` van de standaardpakketten
+ *                              "update"    -> hetzelfde, maar expliciet opgeschreven
+ *                              "install"   -> `composer install` (zie hieronder)
+ *                              "-" of leeg -> composer-stap helemaal overslaan
+ *                              anders      -> komma-gescheiden pakketten om bij te werken
+ *                            Default: stenversonline/platform.
  *                            "install" runs `composer install` instead: vendor/ volgt
  *                            dan exact de composer.lock uit git en de server SCHRIJFT
  *                            die lock niet. Dat is de stand voor een site die zijn lock
@@ -458,7 +462,15 @@ foreach (array_filter(array_map('trim', explode(';', $pipeline))) as $step) {
 //     composer binary first — the app-pool identity rarely has it on PATH.
 $platformVoor = $platformVersion();
 $log('platform vooraf: ' . $platformVoor);
-$composerPkgs = $envRead('DEPLOY_COMPOSER_UPDATE', 'stenversonline/platform');
+$composerStandaardPkgs = 'stenversonline/platform';
+$composerPkgs = $envRead('DEPLOY_COMPOSER_UPDATE', $composerStandaardPkgs);
+// "update" is de expliciete tegenhanger van "install". Zonder deze regel kreeg je een
+// update alleen door de instelling WEG te laten, terwijl een LEGE waarde juist betekent
+// "sla de composer-stap over" - twee betekenissen die te dicht bij elkaar liggen om je
+// niet op te vergissen. Wie 'update' invult krijgt nu wat er staat.
+if (strcasecmp(trim($composerPkgs), 'update') === 0) {
+    $composerPkgs = $composerStandaardPkgs;
+}
 if ($noComposer) {
     $log('composer step skipped (?nocomposer=Y) — git pull + recycle only, no platform package update');
 }

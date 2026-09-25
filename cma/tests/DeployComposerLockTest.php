@@ -78,6 +78,20 @@ class DeployComposerLockTest extends TestCase
             'de kop van het bestand legt uit wanneer je dat wilt');
     }
 
+    public function testUpdateAlsExplicieteWaarde(): void
+    {
+        // Een update kreeg je alleen door DEPLOY_COMPOSER_UPDATE WEG te laten, terwijl een
+        // LEGE waarde juist "sla de composer-stap over" betekent. Die twee liggen te dicht
+        // bij elkaar; 'update' zegt wat het doet, net als 'install'.
+        $bron = $this->bron();
+        $this->assertTrue(strpos($bron, "strcasecmp(trim(\$composerPkgs), 'update') === 0") !== false,
+            "DEPLOY_COMPOSER_UPDATE=update wordt herkend");
+        $this->assertTrue(strpos($bron, '$composerStandaardPkgs') !== false,
+            'en valt terug op dezelfde standaardpakketten als wanneer de instelling ontbreekt');
+        $this->assertTrue(strpos($bron, '"update"') !== false,
+            'de kop van het bestand noemt de waarde');
+    }
+
     public function testGitMagInDeWerkkopieWerken(): void
     {
         // IIS draait de deploy als de app-pool-identiteit; die is niet de eigenaar van de
