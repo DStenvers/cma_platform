@@ -1667,6 +1667,9 @@ class LibTable extends HTMLElement {
             theadRow.classList.add('listheader');
         }
 
+        // Hele rij klikbaar maken wanneer row-href is gezet
+        this._initializeRowLinks();
+
         // Initialize filtering on each column
         this._initializeFilters();
 
@@ -1721,6 +1724,76 @@ class LibTable extends HTMLElement {
         this._columnManager = new CmaTableColumnManager(this._table, storageKey, {
             resizable: resizable,
             reorderable: reorderable
+        });
+    }
+
+    /**
+     * Hele rij klikbaar maken: <lib-table row-href="/pad.php?code=[guid]">.
+     *
+     * Plaatshouders tussen blokhaken worden per rij ingevuld uit de data-attributen van
+     * die <tr>: [guid] leest data-guid, [id] leest data-id. Zo staat de URL één keer op
+     * de tabel in plaats van in elke rij, en hoeft de serverkant alleen de sleutel mee te
+     * geven. Onbekende of lege sleutel: die rij blijft gewoon onklikbaar, want een link
+     * naar "?code=" levert een leeg scherm op en dat is erger dan geen link.
+     *
+     * [id] valt terug op het rij-id lt_row_<n> dat class_table.inc al zet, zodat een lijst
+     * zonder eigen data-attributen toch werkt.
+     *
+     * Klikken binnen een cel op iets dat zelf al iets doet (link, knop, invoerveld,
+     * schakelaar, het filterbalkje) laat de rijklik met rust; anders zou een druk op een
+     * verwijderknop ook nog de rij openen.
+     */
+    _initializeRowLinks() {
+        const sjabloon = this.getAttribute('row-href');
+        if (!sjabloon || !this._table) { return; }
+        const doelVenster = this.getAttribute('row-target') || '';
+
+        const rijUrl = (tr) => {
+            let leeg = false;
+            const url = sjabloon.replace(/\[([a-z0-9_-]+)\]/gi, (_, naam) => {
+                const sleutel = naam.toLowerCase();
+                let waarde = tr.dataset ? tr.dataset[sleutel] : '';
+                if ((waarde === undefined || waarde === '') && sleutel === 'id') {
+                    const m = /^lt_row_(.+)$/.exec(tr.id || '');
+                    if (m) { waarde = m[1]; }
+                }
+                if (waarde === undefined || waarde === null || waarde === '') { leeg = true; return ''; }
+                return encodeURIComponent(waarde);
+            });
+            return leeg ? '' : url;
+        };
+
+        const rijen = Array.from(this._table.querySelectorAll('tbody tr'));
+        rijen.forEach((tr) => {
+            if (!rijUrl(tr)) { return; }
+            tr.classList.add('lib-table-row--link');
+            if (!tr.hasAttribute('tabindex')) { tr.setAttribute('tabindex', '0'); }
+            tr.setAttribute('role', 'link');
+        });
+
+        const openen = (tr, nieuwVenster) => {
+            const url = rijUrl(tr);
+            if (!url) { return; }
+            if (nieuwVenster || doelVenster) { window.open(url, doelVenster || '_blank'); }
+            else { window.location.href = url; }
+        };
+
+        const eigenGedrag = 'a, button, input, select, textarea, label, lib-switch, .lib-table-filter, .col-resize-handle';
+
+        this._table.addEventListener('click', (e) => {
+            const tr = e.target.closest('tbody tr.lib-table-row--link');
+            if (!tr || !this._table.contains(tr)) { return; }
+            if (e.target.closest(eigenGedrag)) { return; }
+            if (window.getSelection && String(window.getSelection()) !== '') { return; }  // tekst selecteren is geen klik
+            openen(tr, e.ctrlKey || e.metaKey || e.shiftKey);
+        });
+
+        this._table.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') { return; }
+            const tr = e.target.closest ? e.target.closest('tbody tr.lib-table-row--link') : null;
+            if (!tr || e.target.closest(eigenGedrag)) { return; }
+            e.preventDefault();
+            openen(tr, e.ctrlKey || e.metaKey);
         });
     }
 

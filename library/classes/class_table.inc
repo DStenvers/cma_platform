@@ -50,6 +50,13 @@ class LibTable
         // ('N' = geen filterkeuzelijst, voor icoon-/actiekolommen).
         'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
         'hidefields' => 'TableHideFields',
+        // RowHref: maakt de HELE rij klikbaar. De waarde is een URL met plaatshouders
+        // tussen blokhaken die per rij uit de recordset worden gevuld, bijvoorbeeld
+        // 'formulier_dispensatie.php?pagepreview=Y&code=[guid]'. De genoemde velden
+        // hoeven geen zichtbare kolom te zijn: zet ze in HideFields en ze komen alleen
+        // als data-attribuut op de <tr> te staan. <lib-table> doet de rest (zie
+        // _initializeRowLinks in lib-table.js). RowTarget zet desgewenst het doelvenster.
+        'rowhref' => 'TableRowHref', 'rowtarget' => 'TableRowTarget',
         // SortedColumn: de kolom waarop de rijen binnenkomen — de VELDNAAM uit de
         // recordset, eventueel met richting ('Groep' of 'Groep DESC'). Nodig zodra de
         // volgorde niet uit één query af te lezen is:
@@ -113,6 +120,10 @@ class LibTable
     public $TableSortedColumn = '';
     /** Veldnamen die gegevens dragen maar nooit een kolom worden. */
     public $TableHideFields = [];
+    /** URL-sjabloon met [veld]-plaatshouders dat de hele rij klikbaar maakt; zie de map hierboven. */
+    public $TableRowHref = '';
+    /** Doelvenster voor RowHref ('_blank' opent in een nieuw tabblad); leeg = zelfde venster. */
+    public $TableRowTarget = '';
 
     /**
      * Master-detail: onder elke masterrij één of meer eigen tabellen.
@@ -304,6 +315,27 @@ class LibTable
      * gebruikt wordt. Alleen letters/cijfers/koppeltekens: een gegevenswaarde mag nooit een
      * attribuut de <TR> in schrijven.
      */
+    /**
+     * De data-attributen die RowHref per rij nodig heeft.
+     *
+     * Welke velden dat zijn staat in het sjabloon zelf: [guid] wordt data-guid, [id] wordt
+     * data-id. Zo hoeft de aanroeper niets dubbel op te geven, en blijft de kennis over de
+     * sleutel op één plek staan. Een veld dat niet in de recordset zit wordt overgeslagen;
+     * lib-table laat zo'n rij dan onklikbaar, wat beter is dan een link naar een leeg scherm.
+     */
+    private function _rijDataAttributen(): string
+    {
+        if (!hasValue($this->TableRowHref)) { return ''; }
+        if (!preg_match_all('/\[([a-z0-9_-]+)\]/i', (string)$this->TableRowHref, $treffers)) { return ''; }
+        $uit = '';
+        foreach (array_unique($treffers[1]) as $veld) {
+            $waarde = $this->TableRS->Fields[$veld] ?? null;
+            if ($waarde === null || $waarde === '') { continue; }
+            $uit .= ' data-' . strtolower($veld) . '="' . htmlspecialchars((string)$waarde, ENT_QUOTES) . '"';
+        }
+        return $uit;
+    }
+
     private function _rijKlasse(): string
     {
         if ($this->TableRowClassField == '') {
@@ -692,7 +724,10 @@ class LibTable
                 if (id!=intActiveRowID) {' . PHP_EOL . "    var x=document.getElementById('lt_row_'+id.toString());" . PHP_EOL . "
                     if(x){x.className=(bOn?'" . $this->TableTRClass . "_hover':'libTableTR')}" . PHP_EOL . '  }' . PHP_EOL . '}</script>' . PHP_EOL;
                     if (!$this->TableIsChild) {
-                        echo '<lib-table resizable>';
+                        echo '<lib-table resizable'
+                            . (hasValue($this->TableRowHref) ? ' row-href="' . htmlspecialchars((string)$this->TableRowHref, ENT_QUOTES) . '"' : '')
+                            . (hasValue($this->TableRowTarget) ? ' row-target="' . htmlspecialchars((string)$this->TableRowTarget, ENT_QUOTES) . '"' : '')
+                            . '>';
                     }
                     echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableIsChild ? '' : ($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :''))) .' onselectstart="return(false)"><THEAD><TR>';
                     if ($this->TableShowCaptions) {
@@ -765,7 +800,7 @@ class LibTable
                                 // zouden ze dubbele DOM-id's en 'row_act(,true)' opleveren.
                                 echo '<TR class="' . $this->TableTRClass . $this->_rijKlasse() . '">';
                             } else {
-                                echo '<TR ID="lt_row_' . $curID . '" class="' . $this->TableTRClass . $this->_rijKlasse() . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
+                                echo '<TR ID="lt_row_' . $curID . '"' . $this->_rijDataAttributen() . ' class="' . $this->TableTRClass . $this->_rijKlasse() . '" onmouseOver="row_hover' . $Table_CtrlID . '(' . $curID . ',true)" onmouseOut="row_hover' . $Table_CtrlID . '(' . $curID . ',false)" onclick="row_act' . $Table_CtrlID . '(' . $curID . ');' . str_replace('[ID]', $curID, $this->TableOnClick) . '">';
                             }
                             $fldTel = 0;
                             if ($this->TableDeleteField != '') {

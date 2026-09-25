@@ -2205,7 +2205,7 @@ html.dark-mode .hex-dark { display: inline; }
         <div class="component-body">
             <div class="component-content">
                 <div class="playground">
-                    <textarea><lib-table resizable reorderable>
+                    <textarea><lib-table resizable reorderable row-href="#bekeken-[id]">
     <table>
         <thead>
             <tr>
@@ -2216,13 +2216,13 @@ html.dark-mode .hex-dark { display: inline; }
             </tr>
         </thead>
         <tbody>
-            <tr>
+            <tr data-id="1">
                 <td>1</td>
                 <td>Jan Jansen</td>
                 <td>jan@voorbeeld.nl</td>
                 <td>Actief</td>
             </tr>
-            <tr>
+            <tr data-id="2">
                 <td>2</td>
                 <td>Piet Pieters</td>
                 <td>piet@voorbeeld.nl</td>
@@ -2230,7 +2230,7 @@ html.dark-mode .hex-dark { display: inline; }
             </tr>
             <tr>
                 <td>3</td>
-                <td>Klaas Kansen</td>
+                <td>Klaas Kansen (geen data-id, dus niet klikbaar)</td>
                 <td>klaas@voorbeeld.nl</td>
                 <td>Actief</td>
             </tr>
@@ -2248,6 +2248,15 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Kolommen kunnen worden herschikt via drag & drop (default: <code>false</code>)</dd>
                     <dt>storage-key</dt>
                     <dd>Sleutel voor opslaan van kolomvoorkeuren in localStorage (default: geen)</dd>
+                    <dt>row-href</dt>
+                    <dd>Maakt de <strong>hele rij</strong> klikbaar. De waarde is een URL met plaatshouders tussen blokhaken die per rij uit de <code>data-</code>attributen van die <code>&lt;tr&gt;</code> worden gevuld: <code>[guid]</code> leest <code>data-guid</code>, <code>[id]</code> leest <code>data-id</code> (en valt terug op het rij-id <code>lt_row_&lt;n&gt;</code> dat <code>LibTable</code> al zet). Zo staat de URL één keer op de tabel in plaats van in elke rij. Een rij waarvoor een plaatshouder leeg blijft wordt <em>niet</em> klikbaar — een link naar <code>?code=</code> levert een leeg scherm op. Klikken op iets dat zelf al werkt (link, knop, invoerveld, schakelaar, filterbalkje) laat de rijklik met rust, tekst selecteren telt niet als klik, en ctrl/cmd-klik opent in een nieuw tabblad. De rij is met Tab bereikbaar en reageert op Enter. Voorbeeld: <code>row-href="formulier_dispensatie.php?pagepreview=Y&amp;code=[guid]"</code></dd>
+                    <dt>row-target</dt>
+                    <dd>Doelvenster voor <code>row-href</code>, bijvoorbeeld <code>_blank</code> (default: hetzelfde venster)</dd>
+                </dl>
+                <h4>Vanuit PHP</h4>
+                <dl>
+                    <dt>LibTable</dt>
+                    <dd>De gedeelde PHP-klasse zet deze attributen voor je: <code>$oTable-&gt;RowHref = 'formulier_dispensatie.php?pagepreview=Y&amp;code=[guid]';</code> en desgewenst <code>$oTable-&gt;RowTarget = '_blank';</code>. De velden uit het sjabloon worden automatisch als <code>data-</code>attribuut op elke rij gezet — ze hoeven dus geen zichtbare kolom te zijn: neem het veld op in de recordset en zet het in <code>HideFields</code>.</dd>
                 </dl>
                 <h4>Kolom attributen (th)</h4>
                 <dl>
