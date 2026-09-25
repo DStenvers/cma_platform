@@ -854,6 +854,7 @@ $extraScript = '
             if (Array.isArray(qsf)) qsf = qsf.join(", ");
             document.getElementById("gs-quickSearchFields").value = (typeof qsf === "string" ? qsf : "");
             document.getElementById("gs-activeField").value = def.activeField || "";
+            document.getElementById("gs-labelColumnWidth").value = def.labelColumnWidth > 0 ? def.labelColumnWidth : "";
             this.setSwitch("gs-securityByUser", def.securityByUser === true);
 
             // Switches
@@ -925,6 +926,10 @@ $extraScript = '
 
             def.securityByUser = this.getSwitch("gs-securityByUser");
             if (!def.securityByUser) delete def.securityByUser;
+
+            // Labelbreedte: leeg = automatisch (berekend uit de langste veldnaam)
+            var lcw = parseInt(document.getElementById("gs-labelColumnWidth").value, 10);
+            if (lcw > 0) { def.labelColumnWidth = lcw; } else { delete def.labelColumnWidth; }
 
             var qsf = document.getElementById("gs-quickSearchFields").value.trim();
             if (qsf) {
@@ -2278,6 +2283,7 @@ echo '</div>';
 echo '<div class="form-row">';
 echo '<div><label>Snelzoek velden</label><input type="text" id="gs-quickSearchFields" style="width:300px" placeholder="veld1,veld2,veld3"></div>';
 echo '<div><label>Actief veld</label><input type="text" id="gs-activeField" style="width:150px" placeholder="bijv. bActief"></div>';
+echo '<div><label>Labelbreedte (px)</label><input type="number" id="gs-labelColumnWidth" min="60" max="800" step="10" style="width:110px" placeholder="automatisch" title="Leeg laten: de breedte wordt berekend uit de langste veldnaam"></div>';
 echo '</div>';
 echo '<div class="form-row">';
 echo '<div><label>After post URL</label><input type="text" id="adv-afterPostUrl" style="width:400px"></div>';

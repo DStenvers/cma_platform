@@ -330,6 +330,8 @@ class FormTemplate
             'canDelete' => $this->formDef->allowDelete() && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser()),
             'canCopy' => ($this->formDef->hasMenuCopy() || $this->formDef->allowCopy()) && SecurityHelper::canWriteAtLevel($this->accessLevel, $this->formDef->hasSecurityByUser()),
             'storeLastModified' => $this->formDef->hasStoreLastModified(),
+            // Vaste labelbreedte per formulier (px); 0 = automatisch, zie calculateLabelWidth()
+            'labelColumnWidth' => max(0, (int) ($jsonData['labelColumnWidth'] ?? 0)),
             'previewUrl' => $this->arrRep[\Q_PREVIEWURL][0] ?? '',
             'afterPostUrl' => self::resolveAfterPostUrl((string)($this->arrRep[\Q_AFTERPOSTURL][0] ?? '')),
             'filterIdName' => $this->formDef->getFilterIdName(),

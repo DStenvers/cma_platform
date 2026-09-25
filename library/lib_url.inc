@@ -98,39 +98,31 @@ function lib_UrlDecode($str)
 */
 function lib_friendlyURL($sUrl)
 {
+    // Zoekvriendelijk URL-deel (slug): kleine letters, cijfers en punten, verder alleen enkele
+    // streepjes. Een witte lijst: alles wat geen a-z, 0-9 of punt is wordt een streepje, zodat
+    // curly quotes, (R), zachte afbreekstreepjes en harde spaties niet in de URL belanden.
+    // Zelfde regels als lib_friendlyURL() in de ASP-library, zodat beide dezelfde slug maken.
     $sTemp = Str::replaceDiacritics(HTMLToAscii(Html::fixUnicode($sUrl . '')));
-    $sTemp = str_ireplace("'", '', $sTemp);
-    $sTemp = str_ireplace('?', '', $sTemp);
-    $sTemp = str_ireplace('&', 'en', $sTemp);
-    $sTemp = str_ireplace('/', '-', $sTemp);
-    $sTemp = str_ireplace(',', '', $sTemp);
-    $sTemp = str_ireplace(';', '', $sTemp);
-    $sTemp = str_ireplace(':', '', $sTemp);
-    $sTemp = str_ireplace('!', '', $sTemp);
-    $sTemp = str_ireplace(')', '', $sTemp);
-    $sTemp = str_ireplace('(', '', $sTemp);
-    $sTemp = str_ireplace(' ', '-', $sTemp);
-    $sTemp = str_ireplace('%', 'procent', $sTemp);
-    $sTemp = str_ireplace('ñ', 'n', $sTemp);
-    $sTemp = str_ireplace('á', 'a', $sTemp);
-    $sTemp = str_ireplace('ó', 'o', $sTemp);
-    $sTemp = str_ireplace('é', 'e', $sTemp);
-    $sTemp = str_ireplace('è', 'e', $sTemp);
-    $sTemp = str_ireplace('í', 'i', $sTemp);
-    $sTemp = str_ireplace('à', 'a', $sTemp);
-    $sTemp = str_ireplace('ì', 'i', $sTemp);
-    $sTemp = str_ireplace('ü', 'u', $sTemp);
-    // skip lidwoorden (daar zoekt men zelden op.)
-    $sTemp = str_ireplace('_de_', '-', $sTemp);
-    $sTemp = str_ireplace('_het_', '-', $sTemp);
-    $sTemp = str_ireplace('_een_', '-', $sTemp);
-    $sTemp = str_ireplace('--', '-', $sTemp);
-    $sTemp = str_ireplace('..', '.', $sTemp);
-    $sTemp = str_ireplace('Ã«', 'e', $sTemp);
-    while (substr($sTemp, 0, max(0, min(1, strlen($sTemp)))) == '-') {
-        $sTemp = substr($sTemp, max(0, 2 - 1));
-    }
-    return (is_null($sTemp) ? "" : strtolower($sTemp));
+    $sTemp = str_ireplace('Ã«', 'e', $sTemp);            // foutief gecodeerde e-trema
+    $sTemp = mb_strtolower($sTemp, 'UTF-8');
+
+    // tekens met een eigen vertaling
+    $sTemp = str_replace(['&', '%'], ['-en-', '-procent-'], $sTemp);
+    $sTemp = strtr($sTemp, [
+        'ß' => 'ss', 'æ' => 'ae', 'œ' => 'oe', 'ø' => 'o', 'ã' => 'a', 'å' => 'a',
+        'û' => 'u', 'ý' => 'y', 'ñ' => 'n', 'ç' => 'c',
+    ]);
+
+    // apostrofs, aanhalingstekens en zachte afbreekstreepjes weglaten zonder streepje
+    $sTemp = preg_replace("/['\"`\x{00B4}\x{2018}\x{2019}\x{201A}\x{201C}\x{201D}\x{201E}\x{00AD}]/u", '', $sTemp);
+
+    // al het andere buiten a-z, 0-9 en de punt wordt één streepje
+    $sTemp = preg_replace('/[^a-z0-9.]+/', '-', $sTemp);
+    $sTemp = preg_replace('/\.{2,}/', '.', $sTemp);
+    $sTemp = preg_replace('/-\.+(?=-)/', '', $sTemp);      // losse punten tussen streepjes
+    $sTemp = preg_replace('/-{2,}/', '-', $sTemp);
+    $sTemp = preg_replace('/^[-.]+|[-.]+$/', '', $sTemp);
+    return (string) $sTemp;
 }
 // Create tooltips automatically, careful not to create links inside links.
 /**

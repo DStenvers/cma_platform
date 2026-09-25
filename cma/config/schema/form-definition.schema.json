@@ -66,6 +66,12 @@
       "default": false,
       "description": "Allow copying records"
     },
+    "labelColumnWidth": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 800,
+      "description": "Fixed width of the label column in pixels. Leave out for the automatic width (calculated from the longest field caption)."
+    },
     "securityByUser": {
       "type": "boolean",
       "default": false,

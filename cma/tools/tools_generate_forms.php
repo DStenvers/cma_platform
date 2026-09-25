@@ -348,7 +348,6 @@ function generateFormJson($formId, $repConn, $controlTypeMap, $dataTypeMap, $par
     $json['allowDelete'] = !empty($form['MenuDelete']);
     $json['allowCopy'] = !empty($form['menuCopy']);
     $json['securityByUser'] = !empty($form['blnSecurityByUser']);
-    $json['labelColumnWidth'] = 200;
     $json['storeLastModified'] = !empty($form['blnStoreLastModified']);
     $json['previewUrl'] = $form['previewUrl'] ?? '';
     $json['afterPostUrl'] = $form['AfterPostUrl'] ?? '';

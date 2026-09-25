@@ -1810,10 +1810,14 @@ class CmaFormController {
      * Check if toolbar buttons overflow and toggle compact mode (icon-only)
      */
     /**
-     * Calculate optimal label column width from field captions.
-     * Formula: (longestCaptionLength * 6.5) + 10, clamped 110–360px.
+     * Label column width. A form can set a fixed width (labelColumnWidth in its definition,
+     * "Labelbreedte" in the form editor); otherwise it is calculated from the field captions:
+     * (longestCaptionLength * 6.5) + 10, clamped 110–360px.
      */
     calculateLabelWidth() {
+        const fixed = parseInt(this.config.labelColumnWidth, 10);
+        if (fixed > 0) return Math.max(60, Math.min(800, fixed));
+
         const fields = this.config.fields;
         if (!fields || !fields.length) return 150;
 
@@ -10654,55 +10658,73 @@ class CmaFormController {
 
         try {
             const response = await fetch(`/cma/form_api.php?action=delete&${this.getFormParam()}&id=${cmaGetRecordId(this.formLayout)}`);
+            // Body één keer als tekst lezen: bij een HTTP-fout of ongeldige JSON willen we
+            // zien WAT de server stuurde, niet alleen dat het misging.
+            const text = await response.text();
+            const begin = text.trim().replace(/\s+/g, ' ').substring(0, 150);
             if (!response.ok) {
-                throw new Error(`[deleteRecord] HTTP ${response.status} ${response.statusText}`);
+                throw new Error(`HTTP ${response.status} ${response.statusText}${begin ? ': "' + begin + '"' : ''}`);
+            }
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseError) {
+                throw new Error(`geen geldige JSON van de server: "${begin}"`);
             }
 
-            const result = await response.json();
-
             if (result.success) {
-                this._dataChanged = true;
-                // Invalidate combo caches — a deleted row may have been an
-                // option in some other form's combo. See saveRecord for the
-                // matching call.
-                if (typeof cmaComboCache.clear === 'function') {
-                    cmaComboCache.clear();
+                // Het record is weg. Gaat hierna iets mis in het bijwerken van het scherm,
+                // dan mag de melding niet suggereren dat het verwijderen zelf mislukte.
+                try {
+                    this._dataChanged = true;
+                    // Invalidate combo caches — a deleted row may have been an
+                    // option in some other form's combo. See saveRecord for the
+                    // matching call.
+                    if (typeof cmaComboCache.clear === 'function') {
+                        cmaComboCache.clear();
+                    }
+                    const deletedRecordId = cmaGetRecordId(this.formLayout);
+                    if (this.afterPostUrl) {
+                        await this.executeAfterPost(deletedRecordId, 'delete', afterPostSnapshot);
+                    }
+                    cmaSetRecordId(null, this.formLayout);
+                    this.setDirty(false);  // Clear dirty state before closing
+
+                    // Clear last record ID to prevent loading deleted record on next list reload
+                    this.clearLastRecordId();
+
+                    // If in popup, close and refresh parent
+                    if (this.isInPopup()) {
+                        this.closeForm(deletedRecordId, true);  // Pass deleted=true
+                        return;
+                    }
+
+                    // Not in popup - update local UI
+                    cmaSetRecordId(null, this.formLayout);  // Clear record ID
+                    this.clearForm();  // Clear form fields to avoid stale data
+                    this.hideDetailPanel();
+                    this.updateUrl();  // Remove ID from URL
+                    document.body.classList.remove('is-creating');  // Ensure creating state is cleared
+                    this.updateFormLayoutState({ isCreating: false, hasRecord: false });
+                    this.showSuccess(result.message || 'Record verwijderd');
+                    this.showWarnings(result.warnings);
+
+                    // Remove deleted row from list (preserves search/filter state)
+                    // cmaLog.log('deleteRecord: removing row from list for id', deletedRecordId);
+                    this.removeRowFromList(deletedRecordId);
+                } catch (uiError) {
+                    cmaLog.error('Delete: record removed, UI update failed:', uiError);
+                    this.showError('Record is verwijderd, maar het scherm bijwerken mislukte: ' + uiError.message,
+                        { details: uiError.stack || '' });
                 }
-                const deletedRecordId = cmaGetRecordId(this.formLayout);
-                if (this.afterPostUrl) {
-                    await this.executeAfterPost(deletedRecordId, 'delete', afterPostSnapshot);
-                }
-                cmaSetRecordId(null, this.formLayout);
-                this.setDirty(false);  // Clear dirty state before closing
-
-                // Clear last record ID to prevent loading deleted record on next list reload
-                this.clearLastRecordId();
-
-                // If in popup, close and refresh parent
-                if (this.isInPopup()) {
-                    this.closeForm(deletedRecordId, true);  // Pass deleted=true
-                    return;
-                }
-
-                // Not in popup - update local UI
-                cmaSetRecordId(null, this.formLayout);  // Clear record ID
-                this.clearForm();  // Clear form fields to avoid stale data
-                this.hideDetailPanel();
-                this.updateUrl();  // Remove ID from URL
-                document.body.classList.remove('is-creating');  // Ensure creating state is cleared
-                this.updateFormLayoutState({ isCreating: false, hasRecord: false });
-                this.showSuccess(result.message || 'Record verwijderd');
-                this.showWarnings(result.warnings);
-
-                // Remove deleted row from list (preserves search/filter state)
-                // cmaLog.log('deleteRecord: removing row from list for id', deletedRecordId);
-                this.removeRowFromList(deletedRecordId);
             } else {
                 this.showError(result.error || 'Verwijderen mislukt');
             }
         } catch (error) {
             cmaLog.error('Delete error:', error);
-            this.showError('Netwerkfout bij verwijderen');
+            const netwerk = error instanceof TypeError && /fetch|network/i.test(error.message);
+            this.showError((netwerk ? 'Netwerkfout bij verwijderen: ' : 'Verwijderen mislukt: ') + error.message,
+                { details: error.stack || '' });
         } finally {
             this.hideLoading();
         }
