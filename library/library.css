@@ -770,31 +770,31 @@ form.flexcontainer textarea {width:100%; min-height:80px; display:block}
 table tr.even { background-color: #f6f6f6 }
 table tr.odd { background-color: #fdfdfd }
 
-/* Hele rij klikbaar: <lib-table row-href="..."> zet .lib-table-row--link op elke rij
+/* Hele rij klikbaar: <lib-table row-href="..."> zet [data-row-link] op elke rij
    waarvoor een URL kon worden samengesteld. Een rand op een <tr> tekent niet bij
    border-collapse, vandaar de randen als inset-schaduw op de cellen: boven en onder over
    de hele rij, en links respectievelijk rechts op de buitenste cel. Zo staat er een
    doorlopend kader omheen. Ook bij toetsenbordfocus, want de rij is met Tab bereikbaar. */
-.listtable tr.lib-table-row--link { cursor: pointer }
-.listtable tr.lib-table-row--link:hover > td,
-.listtable tr.lib-table-row--link:focus-visible > td {
+.listtable tr[data-row-link] { cursor: pointer }
+.listtable tr[data-row-link]:hover > td,
+.listtable tr[data-row-link]:focus-visible > td {
     background-color: var(--lib-row-link-bg, #e8f2fb);
     box-shadow: inset 0 1px 0 var(--lib-row-link-border, #1c4f82),
                 inset 0 -1px 0 var(--lib-row-link-border, #1c4f82);
 }
-.listtable tr.lib-table-row--link:hover > td:first-child,
-.listtable tr.lib-table-row--link:focus-visible > td:first-child {
+.listtable tr[data-row-link]:hover > td:first-child,
+.listtable tr[data-row-link]:focus-visible > td:first-child {
     box-shadow: inset 1px 0 0 var(--lib-row-link-border, #1c4f82),
                 inset 0 1px 0 var(--lib-row-link-border, #1c4f82),
                 inset 0 -1px 0 var(--lib-row-link-border, #1c4f82);
 }
-.listtable tr.lib-table-row--link:hover > td:last-child,
-.listtable tr.lib-table-row--link:focus-visible > td:last-child {
+.listtable tr[data-row-link]:hover > td:last-child,
+.listtable tr[data-row-link]:focus-visible > td:last-child {
     box-shadow: inset -1px 0 0 var(--lib-row-link-border, #1c4f82),
                 inset 0 1px 0 var(--lib-row-link-border, #1c4f82),
                 inset 0 -1px 0 var(--lib-row-link-border, #1c4f82);
 }
-.listtable tr.lib-table-row--link:focus-visible { outline: none }
+.listtable tr[data-row-link]:focus-visible { outline: none }
 
 /* Generic checkbox styling (used outside lib-table too) */
 .checkbox-container input[type="checkbox"] { display: none }

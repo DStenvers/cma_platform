@@ -404,6 +404,36 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
     $adminMail  = (string)Application::get('app_beheerder_email', '');
     $llmUrl     = (string) \App\Library\Settings::get('llm_url');
     $deployKey  = trim((string)(getenv('DEPLOY_SECRET') ?: ($_ENV['DEPLOY_SECRET'] ?? '')));
+    // Wát de deploy met composer doet, is minstens zo belangrijk als of het geheim er is:
+    // op 'install' volgt de server de vastgelegde composer.lock en blijft het platform
+    // staan waar het staat, ook als er een nieuwe versie klaar ligt. Dat is een bewuste
+    // keuze, maar wel een die je wilt kunnen ZIEN zonder de .env op de server te openen.
+    // De versie die NU in vendor/ staat. Naast de methode hierboven maakt dat in één blik
+    // duidelijk of de server achterloopt op wat er klaar ligt.
+    $platformVersie = static function (): string {
+        foreach ([dirname(__DIR__, 2), dirname(__DIR__, 3)] as $wortel) {
+            $json = $wortel . '/vendor/stenversonline/platform/composer.json';
+            if (is_file($json)) {
+                $d = json_decode((string) @file_get_contents($json), true);
+                if (is_array($d) && hasValue($d['version'] ?? '')) { return (string) $d['version']; }
+                return 'onbekend (geen version in composer.json)';
+            }
+        }
+        return 'niet gevonden';
+    };
+    $deployComposer = trim((string)(getenv('DEPLOY_COMPOSER_UPDATE') ?: ($_ENV['DEPLOY_COMPOSER_UPDATE'] ?? '')));
+    $deployBranch   = trim((string)(getenv('DEPLOY_BRANCH') ?: ($_ENV['DEPLOY_BRANCH'] ?? '')));
+    if ($deployComposer === '' ) {
+        $deployMethode = 'update van de standaardpakketten (instelling niet gezet)';
+    } elseif (strcasecmp($deployComposer, 'update') === 0) {
+        $deployMethode = 'composer update van de standaardpakketten';
+    } elseif (strcasecmp($deployComposer, 'install') === 0) {
+        $deployMethode = 'composer install — vendor/ volgt composer.lock, het platform wordt NIET bijgewerkt';
+    } elseif ($deployComposer === '-') {
+        $deployMethode = 'composer-stap wordt overgeslagen';
+    } else {
+        $deployMethode = 'composer update van: ' . $deployComposer;
+    }
 
     $boolLabel = static fn(bool $b, string $onLabel = 'Ja', string $offLabel = 'Nee'): string =>
         '<lib-label type="' . ($b ? 'warning' : 'success') . '">' . ($b ? $onLabel : $offLabel) . '</lib-label>';
@@ -455,7 +485,11 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
     ]);
 
     $renderTable('lnr-rocket', 'Deployment', [
-        ['DEPLOY_SECRET aanwezig', $boolLabel($deployKey !== '', 'Ja', 'Nee')],
+        ['DEPLOY_SECRET aanwezig',   $boolLabel($deployKey !== '', 'Ja', 'Nee')],
+        ['Composer bij een deploy',  htmlspecialchars($deployMethode)],
+        ['DEPLOY_COMPOSER_UPDATE',   $deployComposer === '' ? $unset : $code($deployComposer)],
+        ['Branch',                   $deployBranch === '' ? $unset . ' (dan: main)' : $code($deployBranch)],
+        ['Platformversie nu geïnstalleerd', $code($platformVersie())],
     ]);
 
     $renderTable('lnr-lock', 'Beveiliging', [

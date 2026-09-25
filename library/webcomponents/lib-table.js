@@ -1766,7 +1766,11 @@ class LibTable extends HTMLElement {
         const rijen = Array.from(this._table.querySelectorAll('tbody tr'));
         rijen.forEach((tr) => {
             if (!rijUrl(tr)) { return; }
-            tr.classList.add('lib-table-row--link');
+            // Een data-attribuut, GEEN klasse: de oude hoverafhandeling van class_table.inc
+            // zet bij elke muisbeweging x.className opnieuw ('libTableTR_hover' of
+            // 'libTableTR') en wist daarmee alles wat wij toevoegen. Daardoor verdween de
+            // opmaak én matchte de klikafhandeling niet meer zodra je de rij aanraakte.
+            tr.setAttribute('data-row-link', '');
             if (!tr.hasAttribute('tabindex')) { tr.setAttribute('tabindex', '0'); }
             tr.setAttribute('role', 'link');
         });
@@ -1781,7 +1785,7 @@ class LibTable extends HTMLElement {
         const eigenGedrag = 'a, button, input, select, textarea, label, lib-switch, .lib-table-filter, .col-resize-handle';
 
         this._table.addEventListener('click', (e) => {
-            const tr = e.target.closest('tbody tr.lib-table-row--link');
+            const tr = e.target.closest('tbody tr[data-row-link]');
             if (!tr || !this._table.contains(tr)) { return; }
             if (e.target.closest(eigenGedrag)) { return; }
             if (window.getSelection && String(window.getSelection()) !== '') { return; }  // tekst selecteren is geen klik
@@ -1790,7 +1794,7 @@ class LibTable extends HTMLElement {
 
         this._table.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter') { return; }
-            const tr = e.target.closest ? e.target.closest('tbody tr.lib-table-row--link') : null;
+            const tr = e.target.closest ? e.target.closest('tbody tr[data-row-link]') : null;
             if (!tr || e.target.closest(eigenGedrag)) { return; }
             e.preventDefault();
             openen(tr, e.ctrlKey || e.metaKey);
