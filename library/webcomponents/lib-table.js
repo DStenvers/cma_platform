@@ -1778,8 +1778,21 @@ class LibTable extends HTMLElement {
         const openen = (tr, nieuwVenster) => {
             const url = rijUrl(tr);
             if (!url) { return; }
-            if (nieuwVenster || doelVenster) { window.open(url, doelVenster || '_blank'); }
-            else { window.location.href = url; }
+            // row-target="popup": het venster van de site zelf (lib_OpenWindowCentered uit
+            // library.js), zo groot als het scherm toelaat. Dat houdt de lijst eronder
+            // zichtbaar en sluit terug naar dezelfde plek in plaats van naar een tabblad.
+            // Ctrl/cmd-klik blijft altijd een echt nieuw tabblad: die verwachting wil je
+            // niet afpakken. Zonder library.js valt het terug op window.open.
+            if (doelVenster === 'popup' && !nieuwVenster && typeof window.lib_OpenWindowCentered === 'function') {
+                const breed = (typeof window.lib_window_width === 'function' ? window.lib_window_width() : window.innerWidth) - 60;
+                const hoog = (typeof window.lib_window_height === 'function' ? window.lib_window_height() : window.innerHeight) - 60;
+                const titel = this.getAttribute('row-popup-title') || '';
+                window.lib_OpenWindowCentered(url, 'rijlink', Math.max(640, breed), Math.max(480, hoog), titel);
+                return;
+            }
+            if (nieuwVenster) { window.open(url, '_blank'); return; }
+            if (doelVenster && doelVenster !== 'popup') { window.open(url, doelVenster); return; }
+            window.location.href = url;
         };
 
         const eigenGedrag = 'a, button, input, select, textarea, label, lib-switch, .lib-table-filter, .col-resize-handle';

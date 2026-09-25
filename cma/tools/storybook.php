@@ -2251,7 +2251,9 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>row-href</dt>
                     <dd>Maakt de <strong>hele rij</strong> klikbaar. De waarde is een URL met plaatshouders tussen blokhaken die per rij uit de <code>data-</code>attributen van die <code>&lt;tr&gt;</code> worden gevuld: <code>[guid]</code> leest <code>data-guid</code>, <code>[id]</code> leest <code>data-id</code> (en valt terug op het rij-id <code>lt_row_&lt;n&gt;</code> dat <code>LibTable</code> al zet). Zo staat de URL één keer op de tabel in plaats van in elke rij. Een rij waarvoor een plaatshouder leeg blijft wordt <em>niet</em> klikbaar — een link naar <code>?code=</code> levert een leeg scherm op. Klikken op iets dat zelf al werkt (link, knop, invoerveld, schakelaar, filterbalkje) laat de rijklik met rust, tekst selecteren telt niet als klik, en ctrl/cmd-klik opent in een nieuw tabblad. De rij is met Tab bereikbaar en reageert op Enter. Voorbeeld: <code>row-href="formulier_dispensatie.php?pagepreview=Y&amp;code=[guid]"</code></dd>
                     <dt>row-target</dt>
-                    <dd>Doelvenster voor <code>row-href</code>, bijvoorbeeld <code>_blank</code> (default: hetzelfde venster)</dd>
+                    <dd>Waar <code>row-href</code> opent: leeg = hetzelfde venster, <code>_blank</code> = nieuw tabblad, of <code>popup</code> = het venster van de site zelf (<code>lib_OpenWindowCentered</code>), zo groot als het scherm toelaat. Bij <code>popup</code> blijft de lijst eronder zichtbaar en kom je bij sluiten terug op dezelfde plek. Ctrl/cmd-klik geeft altijd een echt nieuw tabblad, ongeacht deze instelling.</dd>
+                    <dt>row-popup-title</dt>
+                    <dd>Titel boven het venster bij <code>row-target="popup"</code> (default: geen)</dd>
                 </dl>
                 <h4>Vanuit PHP</h4>
                 <dl>
