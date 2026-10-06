@@ -53,7 +53,7 @@ function maakPaneel({ bewaard = null, nieuw = false } = {}) {
         '<div class="detail-panel">' +
         '<div class="detail-content" id="detailContent"></div>' +
         '<cma-fold class="fold-horizontal" orientation="horizontal" target=".subform-section"' +
-        ' reverse min-size="100" max-size="800" default-size="250" storage-key="form_foldH"' +
+        ' reverse min-size="120" collapsed-size="120" max-size="800" default-size="250" storage-key="form_foldH"' +
         (verborgen ? ' style="' + verborgen + '"' : '') + '></cma-fold>' +
         '<div class="subform-section" id="subformSection"' +
         (verborgen ? ' style="' + verborgen + '"' : '') + '></div>' +
@@ -98,10 +98,30 @@ test('een nieuw record vergeet de bewaarde stand niet', () => {
     assert.waar(p.win.localStorage.getItem('cma_fold_form_foldH') !== null);
 });
 
-test('een ingeklapte balk drukt de sectie samen, niet het formulier', () => {
+test('een ingeklapte balk drukt de sectie samen tot de tabs, niet het formulier', () => {
     const p = maakPaneel({ bewaard: '{"collapsed":true,"savedSize":300}' });
-    assert.gelijk(p.sectie.style.height, '0px');
+    assert.gelijk(p.sectie.style.height, '120px', 'ingeklapt blijven de tabs zichtbaar');
     assert.gelijk(p.formulier.style.height, '');
+});
+
+/**
+ * Een bewaarde stand van 0 (of van vóór een hogere min-size) zette de sectie
+ * onzichtbaar klein: de tabs met de subformulieren leken verdwenen. Bij het
+ * laden geldt dezelfde ondergrens als bij het slepen.
+ */
+test('een te kleine bewaarde stand gaat naar de ondergrens', () => {
+    const p = maakPaneel({ bewaard: '{"size":40,"collapsed":false}' });
+    assert.gelijk(p.sectie.style.height, '120px');
+});
+
+test('een bewaarde stand van 0 krijgt de startmaat', () => {
+    const p = maakPaneel({ bewaard: '{"size":0,"collapsed":false}' });
+    assert.gelijk(p.sectie.style.height, '250px');
+});
+
+test('een te grote bewaarde stand gaat naar de bovengrens', () => {
+    const p = maakPaneel({ bewaard: '{"size":5000,"collapsed":false}' });
+    assert.gelijk(p.sectie.style.height, '800px');
 });
 
 suite('De bron: geen tweede eigenaar meer');
@@ -152,4 +172,8 @@ test('het formulier zet de balk op de subform-sectie', () => {
     assert.waar(regel.indexOf('target=".subform-section"') !== -1, 'meet de sectie op');
     assert.waar(regel.indexOf('reverse') !== -1, 'sleeprichting omgekeerd, want de sectie staat eronder');
     assert.waar(regel.indexOf('default-size=') !== -1, 'heeft een startmaat');
+    // Minstens 120px, ook ingeklapt: anders vallen de tabs van de subformulieren weg
+    const min = /min-size="(\d+)"/.exec(regel), dicht = /collapsed-size="(\d+)"/.exec(regel);
+    assert.waar(!!min && parseInt(min[1], 10) >= 120, 'min-size is minstens 120');
+    assert.waar(!!dicht && parseInt(dicht[1], 10) >= 120, 'collapsed-size is minstens 120');
 });

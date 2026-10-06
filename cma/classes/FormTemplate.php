@@ -1612,7 +1612,7 @@ class FormTemplate
             // ná de balk (vandaar reverse) en heeft een hoogte die ergens vandaan
             // moet komen. Het formulier erboven krijgt wat overblijft, puur via
             // flex — er wordt niets aan uitgerekend, met of zonder gegevens.
-            $html .= '<cma-fold class="fold-horizontal" orientation="horizontal" target=".subform-section" reverse min-size="100" max-size="800" default-size="250" storage-key="form_foldH"></cma-fold>' . PHP_EOL;
+            $html .= '<cma-fold class="fold-horizontal" orientation="horizontal" target=".subform-section" reverse min-size="120" collapsed-size="120" max-size="800" default-size="250" storage-key="form_foldH"></cma-fold>' . PHP_EOL;
             $html .= $this->generateSubformTabs();
         }
 

@@ -605,7 +605,11 @@ class CmaFold extends HTMLElement {
                 this._collapsed = state.collapsed || false;
                 this._savedSize = state.savedSize || null;
 
-                this._pasMaatToe(this._collapsed ? this.collapsedSize : (state.size || this.defaultSize));
+                // Een bewaarde stand binnen min-size/max-size houden, net als bij het slepen.
+                // Een oude of kapotte waarde (0, of van vóór een hogere min-size) zette het
+                // doel anders onzichtbaar klein: bij het subformulier vielen de tabs weg.
+                const maat = Math.max(this.minSize, Math.min(this.maxSize, state.size || this.defaultSize));
+                this._pasMaatToe(this._collapsed ? this.collapsedSize : maat);
             }
         } catch (e) {
             // Ignore localStorage errors
