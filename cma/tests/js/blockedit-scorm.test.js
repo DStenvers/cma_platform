@@ -109,3 +109,40 @@ test('opslaan: scorm leest de verborgen input, elke [variabele] wordt vervangen,
     assert.waar(SRC.indexOf('window.blockedit_scorm_set = blockedit_scorm_set;') > -1, 'set geëxporteerd');
     assert.waar(knip('blockedit_scorm_select').indexOf("'/mod/scorm/picker.php?mode=block'") > -1, 'picker in mode=block');
 });
+
+suite('blockedit: site-bloklijst samenvoegen met de platformlijst');
+
+test('site-template met nieuw id komt erbij, zelfde id vervangt het platformblok', () => {
+    const merge = new Function(knip('blockedit_merge_templates') + '; return blockedit_merge_templates;')();
+    const platform = { version: '1.0.0', templates: [{ id: 'C47', title: 'Accordeon' }, { id: 'T01', title: 'Tekst' }] };
+    const site = { templates: [{ id: 'T01', title: 'Tekst (site)' }, { id: 'S01', title: 'SCORM' }] };
+    const uit = merge(platform, site);
+    assert.gelijk(uit.templates.map(t => t.id + ':' + t.title).join(','), 'C47:Accordeon,T01:Tekst (site),S01:SCORM');
+    assert.gelijk(uit.version, '1.0.0', 'overige sleutels van de platformlijst blijven');
+    assert.gelijk(platform.templates.length, 2, 'de platformlijst zelf wordt niet aangepast');
+    assert.gelijk(merge(platform, null), platform, 'geen site-lijst: platformlijst ongewijzigd');
+    assert.gelijk(merge(platform, { templates: [] }), platform);
+});
+
+test('de loader haalt na de platformlijst de site-lijst assets/contentblocks/contentblocks.json op', () => {
+    assert.waar(SRC.indexOf('"/assets/contentblocks/contentblocks.json?v="') > -1, 'site-URL');
+    assert.waar(knip('blockedit_load_definitions').indexOf('blockedit_load_site_definitions(parsed)') > -1,
+        'na een bruikbare platformlijst volgt de site-lijst');
+    const site = knip('blockedit_load_site_definitions');
+    assert.waar(site.indexOf('.fail(') > -1 && site.indexOf('klaar(null)') > -1, 'zonder site-lijst wordt gewoon gerenderd');
+});
+
+suite('CKEditor-plugin scorm');
+
+test('"Zonder voortgang" zet data-scorm-preview="1" op de link', () => {
+    const PLUGIN = fs.readFileSync(path.join(ROOT, 'cma', 'ckeditor', 'plugins', 'scorm', 'plugin.js'), 'utf8');
+    const start = PLUGIN.indexOf('function insertLink(');
+    const insertLink = new Function(PLUGIN.slice(start) + '; return insertLink;')();
+    let html = '';
+    const editor = { insertHtml: h => { html = h; } };
+    insertLink(editor, { id: 3, name: 'Module', url: '/mod/scorm/player.php?id=3&preview=1&mode=review', preview: true });
+    assert.waar(html.indexOf('data-scorm-preview="1"') > -1, 'preview-attribuut aanwezig');
+    assert.waar(html.indexOf('class="mr-scorm-launch"') > -1 && html.indexOf('data-scorm-id="3"') > -1);
+    insertLink(editor, { id: 4, name: 'Module', url: '/mod/scorm/player.php?id=4' });
+    assert.onwaar(html.indexOf('data-scorm-preview') > -1, 'zonder preview geen attribuut');
+});

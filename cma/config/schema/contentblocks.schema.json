@@ -67,7 +67,16 @@
                 },
                 "type": {
                     "type": "string",
-                    "enum": ["text", "longtext", "url", "array", "select", "number", "boolean"]
+                    "enum": ["text", "longtext", "url", "array", "select", "number", "boolean", "date", "image", "file", "switch", "scorm"]
+                },
+                "options": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Choices for a switch"
+                },
+                "default": {
+                    "type": ["string", "number", "boolean"],
+                    "description": "Value a new block starts with"
                 },
                 "defaultvalue": {
                     "type": ["string", "number", "boolean"]

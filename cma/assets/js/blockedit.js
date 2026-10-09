@@ -61,6 +61,10 @@ var BLOCK_DEFINITION_URLS = [
 	"/cma/assets/contentblocks/contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now()),
 	"/cma_contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now())
 ];
+// Site-specific block templates (site root assets/contentblocks/), merged over
+// the platform list: a site template with the same id replaces the platform
+// one, a new id is added. Optional - a missing file simply adds nothing.
+var BLOCK_SITE_DEFINITION_URL = "/assets/contentblocks/contentblocks.json?v=" + (window.CMA_CACHE_VERSION || Date.now());
 var BLOCK_START_HTML = "<div class=\"row\">"
 var BLOCK_END_HTML = "</div>"
 
@@ -225,15 +229,59 @@ function blockedit_load_definitions(urlIndex) {
 			blockedit_definitions_next(urlIndex, 'invalid definitions response');
 			return;
 		}
-		all_components = parsed;
 		blockedit_trace('load_definitions: loaded', parsed.templates.length, 'templates from', BLOCK_DEFINITION_URLS[urlIndex]);
-		blockedit_init_elements();
+		blockedit_load_site_definitions(parsed);
 	}).fail(function(jqXHR, textStatus, errorThrown) {
 		blockedit_trace('load_definitions: request FAILED for', BLOCK_DEFINITION_URLS[urlIndex], '- status', jqXHR.status, '(' + textStatus + ')');
 		// Every failed status (404, 500, network error, ...) takes the same
 		// path: try the next location, then degrade to plain editing.
 		blockedit_definitions_next(urlIndex, 'status ' + jqXHR.status + ' (' + textStatus + ')');
 	});
+}
+
+//
+// Add the site's own templates to the platform list, then render. Any failure
+// (404, invalid JSON, no templates) keeps the platform list as it is.
+//
+function blockedit_load_site_definitions(parsed) {
+	var klaar = function(site) {
+		all_components = blockedit_merge_templates(parsed, site);
+		blockedit_init_elements();
+	};
+	jQuery.ajax( {
+		url: BLOCK_SITE_DEFINITION_URL,
+		cache: true
+	} ).done( function( result ) {
+		var site = null;
+		if (typeof result==="object" && result) {
+			site = result;
+		} else if (result) {
+			try { site = jQuery.parseJSON( result ); } catch (e) { site = null; }
+		}
+		klaar(site);
+	}).fail(function() {
+		klaar(null);
+	});
+}
+
+//
+// Merge site templates over the platform templates (same id: site wins).
+//
+function blockedit_merge_templates(base, site) {
+	if (!site || !site.templates || !site.templates.length) { return base; }
+	var templates = base.templates.slice();
+	site.templates.forEach(function(t) {
+		if (!t || !t.id) { return; }
+		var i = -1;
+		for (var j = 0; j < templates.length; j++) {
+			if (templates[j] && templates[j].id === t.id) { i = j; break; }
+		}
+		if (i > -1) { templates[i] = t; } else { templates.push(t); }
+	});
+	var merged = {};
+	for (var k in base) { if (Object.prototype.hasOwnProperty.call(base, k)) { merged[k] = base[k]; } }
+	merged.templates = templates;
+	return merged;
 }
 
 //

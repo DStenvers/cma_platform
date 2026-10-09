@@ -791,7 +791,7 @@ function cma_asset_version(): string {
     // browsers refetch JS/CSS after a cache clear without a code change).
     static $version = null;
     if ($version === null) {
-        $version = '20261009a';
+        $version = '20261009b';
         $bump = @file_get_contents(dirname(__DIR__) . '/.cache/cma/asset_version');
         if (is_string($bump) && preg_match('/^\d{6,14}$/', trim($bump))) {
             $version .= '-' . trim($bump);
