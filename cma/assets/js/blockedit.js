@@ -616,6 +616,9 @@ function blockedit_createfield( template, key, data_block) {
 		}
 	}
 	if (!sValue) { sValue=""}
+	// New block: optional default from the definition (e.g. a switch "Nee"). Without it a
+	// switch without a choice stays undefined on save and the whole block is skipped.
+	if (sValue==="" && attrObj["default"]) { sValue = String(attrObj["default"]); }
 	var sType = attrObj.type.toLowerCase();
 	sNewField += "<tr class='form_elt'>";
 	sNewField += "<td class='label" + (attrObj.required ? " required" : "") + "'>" + ucfirst(attrObj.description) + "</td>";
@@ -662,6 +665,15 @@ function blockedit_createfield( template, key, data_block) {
 			sNewField += "<a style=\"cursor:pointer\" onclick=\"return blockedit_image_select('" + sControlName + "',0, "+ (attrObj.maxheight ? attrObj.maxheight : 456).toString() + ", " +( attrObj.maxwidth ? attrObj.maxwidth : 948).toString() + ")\">[Selecteer]</a>"
 			sNewField += "<a style=\"cursor:pointer\" onclick=\"javascript:blockedit_image_clear('" + sControlName + "')\">[wis]</a>"
 			sNewField += "&nbsp; (max afm. h " + (attrObj.maxheight ? attrObj.maxheight : 456).toString() + " x b " +( attrObj.maxwidth ? attrObj.maxwidth : 948) + ")";
+			break;
+
+		case "scorm":
+			// SCORM package chosen via /mod/scorm/picker.php (mode=block) in a lib-dialog; value = package id.
+			var sControlName = "scorm_" + element_cnt.toString() + "_" + key + "_" + Date.now().toString();
+			sNewField += "<input type=\"hidden\" value='" + sValue + "' " + sRequired + " id='" + sControlName + "' name='" + key + "'>";
+			sNewField += "<span id='" + sControlName + "_label' class='blockedit_scorm_label'>" + (sValue ? "pakket #" + sValue : "(geen pakket gekozen)") + "</span> ";
+			sNewField += "<a style=\"cursor:pointer\" onclick=\"return blockedit_scorm_select('" + sControlName + "')\">[Selecteer SCORM-pakket]</a> ";
+			sNewField += "<a style=\"cursor:pointer\" onclick=\"blockedit_scorm_set('" + sControlName + "', '', '');return false\">[wis]</a>";
 			break;
 
 		case "file":				
@@ -1677,6 +1689,7 @@ function blockedit_collect_htmls(  ) {
 								case "boolean":
 								case "image":
 								case "file":
+								case "scorm":
 									sValue = $( this ).find("input[name='"+cDataEltName+"']").val();
 									break;
 
@@ -1766,7 +1779,10 @@ function blockedit_collect_htmls(  ) {
 								aVariables = aValues;							
 							} else { 
 								// if (sValue) { 
-								cHTML = cHTML.replace( "[" + cDataEltName + "]", sValue );
+								// Replace every occurrence (a template may use a variable more than once);
+								// no value -> empty string, never the text "undefined" in the HTML.
+								if (sValue == null) { sValue = ""; }
+								cHTML = cHTML.split( "[" + cDataEltName + "]" ).join( sValue );
 								if (cHTML=="") {
 									cHTML = sValue;
 								}
@@ -1929,6 +1945,56 @@ function blockedit_image_set(sControl, sPath, filename) {
 function blockedit_image_clear(sControl) {
 	blockedit_image_set(sControl, '', '');
 }
+
+//
+//	Choose a SCORM package (blockedit type "scorm"). Same lib-dialog approach as the file
+//	browser; the picker (/mod/scorm/picker.php, site-owned) posts
+//	{source:'mr-scorm-picker', pkg:{id,name,url}} and in mode=block does not close itself -
+//	this host does.
+//
+function blockedit_scorm_select(sControl) {
+	var dialogId = 'blockedit-scorm-picker-dialog';
+	var dialog = document.getElementById(dialogId);
+
+	if (!dialog) {
+		dialog = document.createElement('lib-dialog');
+		dialog.id = dialogId;
+		dialog.setAttribute('heading', 'SCORM-pakket kiezen');
+		dialog.setAttribute('size', 'fullscreen');
+		dialog.setAttribute('modal', '');
+		var iframe = document.createElement('iframe');
+		iframe.id = 'blockedit-scorm-iframe';
+		iframe.style.cssText = 'width: 100%; height: 100%; border: none; display: block;';
+		dialog.appendChild(iframe);
+		document.body.appendChild(dialog);
+	}
+	document.getElementById('blockedit-scorm-iframe').src = '/mod/scorm/picker.php?mode=block';
+
+	var messageHandler = function(e) {
+		if (e.origin !== window.location.origin) return;
+		if (!e.data || e.data.source !== 'mr-scorm-picker' || !e.data.pkg) return;
+		window.removeEventListener('message', messageHandler);
+		blockedit_scorm_set(sControl, e.data.pkg.id, e.data.pkg.name);
+		dialog.close();
+	};
+	window.addEventListener('message', messageHandler);
+
+	dialog.open();
+	return false;
+}
+
+function blockedit_scorm_set(sControl, id, name) {
+	var input = document.getElementById(sControl);
+	var label = document.getElementById(sControl + '_label');
+	if (!input) return;
+	input.value = id ? String(id) : '';
+	if (label) { label.textContent = id ? (name ? name + ' (#' + id + ')' : 'pakket #' + id) : '(geen pakket gekozen)'; }
+	// Prefill the block title with the package name while it is still empty.
+	if (id && name) {
+		var titel = jQuery(input).closest('.blockedit_elt').find("input[name='scorm_titel']");
+		if (titel.length && !titel.val()) { titel.val(name); }
+	}
+}
 //
 //	Find a specific variable within a block type 
 // 
@@ -2088,5 +2154,8 @@ window.blockedit_image_select = blockedit_image_select;
 window.blockedit_image_clear = blockedit_image_clear;
 window.blockedit_image_set = blockedit_image_set;
 window.blockedit_file_select = blockedit_file_select;
+// SCORM package choice (content block "SCORM"): called from inline onclick, so exported
+window.blockedit_scorm_select = blockedit_scorm_select;
+window.blockedit_scorm_set = blockedit_scorm_set;
 
 })();

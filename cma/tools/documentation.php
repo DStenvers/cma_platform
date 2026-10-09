@@ -4224,6 +4224,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
 ]
 </code></pre>
     <p>Placeholders worden vervangen door waardes uit het huidige record. Het platform substitueert hardgecodeerd: <code>[id]</code>, <code>[guid]</code>, <code>[guid2]</code>, <code>[domein]</code>. <span class="cma-tool__em">Alle</span> overige <code>[fieldname]</code> placeholders worden ook geresolveerd door naar het form-veld met die naam te kijken — zo werkt <code>[slug]</code> automatisch als er een veld <code>slug</code> bestaat.</p>
+    <p><code>https://[domein]</code> en <code>http://[domein]</code> worden samen vervangen door protocol + host + poort van het huidige verzoek (<code>Request::currentDomain()</code>), zodat een knop ook op een niet-standaard poort werkt, bijvoorbeeld lokaal op <code>http://localhost:52779</code>. Een kale <code>[domein]</code> zonder protocol wordt alleen de hostnaam.</p>
 
     <h2>JsonFormRenderer</h2>
     <p>Server-side rendering gebeurt door <code>Cma\Services\JsonFormRenderer</code>. Die produceert de HTML; het form-controller.js framework in de browser handelt validatie, AJAX-save, subform navigation, etc. af. Custom render-overrides plaats je in <code>cma/classes/Services/</code> met eigen subclassen — zelden nodig, meestal volstaat een nieuwe field-type via <code>control-types.json</code>.</p>
@@ -4388,6 +4389,9 @@ function render_doc_web_components(): void
     ?>
     <h1>Web components ontwikkelen</h1>
     <p class="docs-meta">Hoe je een <code>lib-*</code> of <code>cma-*</code> component schrijft, en wat de prefix-conventies betekenen.</p>
+
+    <h2>lib-table: filter en sortering onthouden</h2>
+    <p>Een <code>&lt;lib-table&gt;</code> bewaart de actieve kolomfilters en de gekozen sortering in <code>localStorage</code> en zet ze bij de volgende opbouw terug. De sleutel is <code>cma_tableFilter_&lt;data-json-form of data-name&gt;</code>; heeft de tabel geen van beide (de meeste front-end-lijsten), dan <code>cma_tableFilter_&lt;pad&gt;::&lt;kolomkoppen&gt;</code>. Binnen de opgeslagen staat heet een kolom naar zijn <code>data-field</code>, of anders naar de tekst van de kolomkop. Zoeken in een filtermenu is tijdelijk en wordt niet bewaard.</p>
 
     <h2>Een site bijkleuren zonder het platform aan te raken</h2>
     <p>Zet je overschrijfregels in <code>assets/css/cma-overrides.css</code> op de site-root. Bestaat dat bestand, dan plakt <code>cma_css_bundle()</code> het als <span class="cma-tool__strong">laatste</span> aan de CMA-bundel: het wint dus van alle platformregels, zit in dezelfde request en krijgt dezelfde cache-busting. De Installer raakt het nooit aan, dus een <code>composer update</code> overschrijft je huisstijl niet.</p>
@@ -5052,6 +5056,7 @@ function render_doc_troubleshooting(): void
     </table>
 
     <h2>Content blocks (blockedit)</h2>
+    <p>Veldtypes van een bloktemplate in <code>contentblocks.json</code>: <code>text</code>, <code>longtext</code>, <code>url</code>, <code>date</code>, <code>boolean</code>, <code>switch</code> (met <code>options</code>), <code>image</code>, <code>file</code>, <code>array</code> en <code>scorm</code>. Een <code>scorm</code>-veld kiest een pakket via de site-picker <code>/mod/scorm/picker.php?mode=block</code> (die stuurt <code>{source:'mr-scorm-picker', pkg:{id,name}}</code> via postMessage) en bewaart het pakket-id; een leeg <code>scorm_titel</code>-veld in hetzelfde blok krijgt de pakketnaam. Een variabele met <code>"default"</code> krijgt die waarde in een nieuw blok. Elke <code>[variabele]</code> in de <code>html</code> van de template wordt vervangen, ook als hij er meer dan eens in staat; zonder waarde wordt het een lege string.</p>
     <p class="docs-meta">Het content-block veld (<code>&lt;div class="blockedit"&gt;</code> rond een <code>data-allow-html</code> textarea, aangestuurd door <code>cma/assets/js/blockedit.js</code>) rendert per blok een CKEditor. Hetzelfde veld is tegelijk een CKEditor-instance én de serialisatie-sink — die dubbele eigenaarschap is de bron van de meeste content-verlies-symptomen. Blockedit hookt zelf het submit-event (én programmatic <code>form.submit()</code>) van het formulier rond een <code>.blockedit</code> container en oogst de blokken vlak vóór verzending — host-pagina's hoeven <code>blockedit_collect_htmls()</code> niet meer zelf aan te roepen, maar mogen dat blijven doen (de aanroep is idempotent).</p>
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>

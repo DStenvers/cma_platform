@@ -173,9 +173,7 @@ class ToolbarHelper
             $href = str_ireplace('www.onderwijsportaal.', 'onderwijsportaal.', $href);
         }
         // Replace domain placeholder
-        if (stripos($href, '[domein]') !== false) {
-            $href = str_ireplace('[domein]', Request::server('SERVER_NAME', ''), $href);
-        }
+        $href = self::resolveDomain($href);
         // Match protocol to current request (avoid https on localhost/IP)
         $isHttps = (Request::server('HTTPS', '') === 'on') || (Request::server('HTTP_X_FORWARDED_PROTO', '') === 'https');
         if (!$isHttps && stripos($href, 'https:') !== false) {
@@ -254,9 +252,7 @@ class ToolbarHelper
             $href = str_ireplace('www.onderwijsportaal.', 'onderwijsportaal.', $href);
         }
         // Replace domain placeholder
-        if (stripos($href, '[domein]') !== false) {
-            $href = str_ireplace('[domein]', Request::server('SERVER_NAME', ''), $href);
-        }
+        $href = self::resolveDomain($href);
         // Match protocol to current request (avoid https on localhost/IP)
         $isHttps = (Request::server('HTTPS', '') === 'on') || (Request::server('HTTP_X_FORWARDED_PROTO', '') === 'https');
         if (!$isHttps && stripos($href, 'https:') !== false) {
@@ -572,6 +568,23 @@ class ToolbarHelper
     }
 
     /**
+     * Resolve the [domein] placeholder.
+     *
+     * scheme://[domein] becomes Request::currentDomain() (protocol + host + port), so
+     * buttons keep working on a non-standard port such as a local http://localhost:52779;
+     * a bare [domein] falls back to the host name alone.
+     */
+    public static function resolveDomain(string $href): string
+    {
+        if (stripos($href, '[domein]') === false) {
+            return $href;
+        }
+        $domain = Request::currentDomain();
+        $href = str_ireplace(['https://[domein]', 'http://[domein]'], $domain, $href);
+        return str_ireplace('[domein]', Request::server('SERVER_NAME', ''), $href);
+    }
+
+    /**
      * Generate a link URL with parameter substitutions
      */
     public static function makeLink(string $url, string $recordId, string $guid, string $guid2): string
@@ -582,8 +595,7 @@ class ToolbarHelper
             [$recordId, $guid, $guid2],
             $url
         );
-        $serverName = Request::server('SERVER_NAME', '');
-        $result = str_ireplace('[domein]', $serverName, $result);
+        $result = self::resolveDomain($result);
 
         // Match protocol to current request (avoid https on localhost/IP)
         $isHttps = (Request::server('HTTPS', '') === 'on') || (Request::server('HTTP_X_FORWARDED_PROTO', '') === 'https');

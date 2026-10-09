@@ -51,9 +51,14 @@ function form_valid(form) {
 	var objfield;
 	var objFocus=null;
 	var pSubmit="Verstuur";
-	
+
+	// Called without a form (e.g. a getElementById on an id that does not exist):
+	// fall back to the last form on the page, so validation still runs.
+	if (!form) {
+		form = document.forms[document.forms.length - 1];
+	}
 	if (form){
-		
+
 		if (!(form.getAttribute("data-form-init"))) {
 			form_init( form );
 		}

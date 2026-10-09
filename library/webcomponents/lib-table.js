@@ -1886,6 +1886,9 @@ class LibTable extends HTMLElement {
             th,
             column,
             index,
+            // Original header text, before the header is rebuilt: identifies the column
+            // in the saved filter state when the th carries no data-field.
+            caption: th.textContent.replace(/\s+/g, ' ').trim(),
             tds,
             isDateColumn,
             isTimeColumn,
@@ -2339,7 +2342,10 @@ class LibTable extends HTMLElement {
             input.checked = true;
         });
 
+        // Searching is temporary: it filters the rows but is not remembered.
+        this._restoringFilters = true;
         this._updateRowVisibility();
+        this._restoringFilters = false;
     }
 
     _toggleAll(menu, checked) {
@@ -2413,7 +2419,11 @@ class LibTable extends HTMLElement {
             if (icon) icon.classList.add('sorted');
         }
 
+        const sorted = this._filterMenus.find(fm => fm.column === column);
+        this._sortState = sorted ? { c: this._filterColumnId(sorted), o: order } : null;
+
         this._updateView();
+        this._saveFilters();
     }
 
     _sortableDate(dateStr) {
@@ -2978,15 +2988,26 @@ class LibTable extends HTMLElement {
     // --- Column-filter persistence (localStorage) --------------------------
     // The last applied column filters are remembered per form and re-applied on
     // the next render, matching the existing cma_* persistence pattern
-    // (cma_filter_field_, cma_lastRecord_, cma_lastViewMode). Keyed on the
-    // table's data-json-form so it is stable per list; tables without that
-    // attribute simply are not persisted.
+    // (cma_filter_field_, cma_lastRecord_, cma_lastViewMode), together with the
+    // chosen sort order. Keyed on the table's data-json-form / data-name so it is
+    // stable per list. A table without either (most front-end lists) is keyed on
+    // page path + column captions instead: table ids can be random per render,
+    // the captions are not.
 
     _filterStorageKey() {
         if (!this._table) return null;
         var form = this._table.getAttribute('data-json-form') ||
                    this._table.getAttribute('data-name') || '';
-        return form ? 'cma_tableFilter_' + form : null;
+        if (form) return 'cma_tableFilter_' + form;
+        var caps = this._filterMenus.map(function(fm) { return fm.caption || ''; }).join('|');
+        if (!caps.replace(/\|/g, '')) return null;
+        return 'cma_tableFilter_' + location.pathname + '::' + caps;
+    }
+
+    // Column identity inside the saved state: data-field when present, else the caption.
+    _filterColumnId(fm) {
+        var field = (fm.th && fm.th.dataset) ? (fm.th.dataset.field || '') : '';
+        return field || fm.caption || '';
     }
 
     _normalizeFilterValue(v) {
@@ -3000,8 +3021,8 @@ class LibTable extends HTMLElement {
         var state = {};
         var self = this;
         this._filterMenus.forEach(function(fm) {
-            var field = (fm.th && fm.th.dataset) ? (fm.th.dataset.field || '') : '';
-            if (!field) return;
+            var field = self._filterColumnId(fm);
+            if (!field || field === '__sort') return;
             if (fm.isDateColumn) {
                 var df = fm.dateFromInput ? fm.dateFromInput.value : '';
                 var dt = fm.dateToInput ? fm.dateToInput.value : '';
@@ -3023,6 +3044,9 @@ class LibTable extends HTMLElement {
                 if (excluded.length) state[field] = { t: 'c', ex: excluded };
             }
         });
+        if (this._sortState && this._sortState.c) {
+            state.__sort = this._sortState;
+        }
         return state;
     }
 
@@ -3055,8 +3079,8 @@ class LibTable extends HTMLElement {
         this._restoringFilters = true;
         var applied = false;
         this._filterMenus.forEach(function(fm) {
-            var field = (fm.th && fm.th.dataset) ? (fm.th.dataset.field || '') : '';
-            var s = field && state[field];
+            var field = self._filterColumnId(fm);
+            var s = field && field !== '__sort' && state[field];
             if (!s) return;
             if (s.t === 'c' && fm.inputs && fm.inputs.length) {
                 var ex = s.ex || [];
@@ -3082,6 +3106,12 @@ class LibTable extends HTMLElement {
                 applied = true;
             }
         });
+        var sortMenu = state.__sort && state.__sort.c
+            ? this._filterMenus.find(function(fm) { return self._filterColumnId(fm) === state.__sort.c; })
+            : null;
+        if (sortMenu && (state.__sort.o === 'a---z' || state.__sort.o === 'z---a')) {
+            this._sort(sortMenu.column, state.__sort.o);
+        }
         this._restoringFilters = false;
         if (applied) this._updateRowVisibility();
     }
