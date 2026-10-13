@@ -390,6 +390,13 @@ lib-message[hidden] {
     color: var(--message-error-text, #7f1d1d);
 }
 
+/* Validation: neutral — the input needs attention, nothing went wrong */
+.lib-message--validation {
+    background-color: var(--message-validation-bg, #f1f5f9);
+    border: 1px solid var(--message-validation-border, #cbd5e1);
+    color: var(--message-validation-text, #334155);
+}
+
 .lib-message__icon {
     flex-shrink: 0;
     font-size: 18px;
@@ -535,6 +542,10 @@ lib-message[hidden] {
 
 .lib-message--error .lib-message__icon {
     color: var(--color-error, #b91c1c);
+}
+
+.lib-message--validation .lib-message__icon {
+    color: var(--message-validation-icon, #475569);
 }
 
 .lib-message__icon .lnr {

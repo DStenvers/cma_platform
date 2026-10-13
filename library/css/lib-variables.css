@@ -238,6 +238,10 @@ html.dark-mode {
     --message-info-bg: #1a3a4a;
     --message-info-text: #7ac4f5;
     --message-info-border: #2a5a7a;
+    --message-validation-bg: #2a2f36;
+    --message-validation-text: #d1d5db;
+    --message-validation-border: #3f4650;
+    --message-validation-icon: #9ca3af;
 
     --bg-body: #1a1a1a;
     --bg-content: #222222;

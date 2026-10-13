@@ -15296,3 +15296,5 @@ karaat-data en staat in de karaat-repo.
 > <status>completed</status>
 > <summary>Background command "npm run test:js 2&gt;&amp;1 | tail -3; git -C .. show --stat HEAD | head -30" completed (exit code 0)</summary>
 > </task-notification>
+
+> i would like these validation errors to have a different syling, preferably neutral. And an icon of a form, not a warning or an error, include this in the storyboard as well

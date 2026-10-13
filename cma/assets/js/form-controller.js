@@ -12431,8 +12431,8 @@ class CmaFormController {
      * @param {string} message - Error message to display
      * @param {boolean|object} options - If boolean: alsoNotify. If object: { alsoNotify, details, level }
      *   level 'warning': the message is about the user's input (a required field left
-     *   empty, no record selected), not a fault — it goes to the dev panel as a warning
-     *   and never to the server error log.
+     *   empty, no record selected), not a fault — it is shown as a neutral 'validation'
+     *   message, goes to the dev panel as a warning and never to the server error log.
      */
     showError(message, options = false) {
         // Handle legacy boolean parameter for backwards compatibility
@@ -12440,6 +12440,7 @@ class CmaFormController {
         let alsoNotify = opts.alsoNotify || false;
         const details = opts.details || '';
         const source = opts.source || 'FormController';
+        const messageType = opts.level === 'warning' ? 'validation' : 'error';
 
         if (opts.level === 'warning') {
             cmaLog.warn('[CMA Warning]', message);
@@ -12473,7 +12474,7 @@ class CmaFormController {
             if (customElements.get('lib-message')) {
                 const errorEl = document.createElement('lib-message');
                 errorEl.className = 'persistent-error';
-                errorEl.setAttribute('type', 'error');
+                errorEl.setAttribute('type', messageType);
                 errorEl.setAttribute('closable', '');
                 // Only show details to admins/developers
                 if (details && window.CMA?.formConfig?.showDetails) {
@@ -12508,7 +12509,7 @@ class CmaFormController {
         }
 
         if (alsoNotify) {
-            this.showTopNotification(message, 'error', 0); // 0 = persistent
+            this.showTopNotification(message, messageType, 0); // 0 = persistent
         }
     }
 

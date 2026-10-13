@@ -91,3 +91,37 @@ test('zonder level blijft het een fout', () => {
     ieShowError(env, 'Fout bij opslaan');
     assert.gelijk(env.log.some(r => r[0] === 'server'), true);
 });
+
+suite('Invoerfouten zien er neutraal uit');
+
+test('FormController toont level warning als lib-message type validation', () => {
+    const { JSDOM } = require('jsdom');
+    const dom = new JSDOM('<!doctype html><div class="detail-content"></div>');
+    const env = maakOmgeving();
+    const fn = new Function('cmaLog', 'CmaErrorHandler', 'window', 'customElements', 'document', 'message', 'options', fcBody);
+    const self = { jsonForm: 'test', detailPanel: dom.window.document, showTopNotification() {} };
+    const ce = { get: () => true };
+    fn.call(self, env.cmaLog, env.CmaErrorHandler, env.window, ce, dom.window.document, 'Vul alle verplichte velden in: Manager', { level: 'warning' });
+    assert.gelijk(dom.window.document.querySelector('lib-message').getAttribute('type'), 'validation');
+    fn.call(self, env.cmaLog, env.CmaErrorHandler, env.window, ce, dom.window.document, 'Opslaan mislukt', false);
+    assert.gelijk(dom.window.document.querySelector('lib-message').getAttribute('type'), 'error');
+});
+
+test('InlineEdit toont level warning als validation-toast', () => {
+    const env = maakOmgeving();
+    const types = [];
+    const fn = new Function('CmaErrorHandler', 'window', 'message', 'details', 'level', ieBody);
+    const self = { showNotification: (m, t) => types.push(t), options: {} };
+    fn.call(self, env.CmaErrorHandler, env.window, 'Vul alle verplichte velden in: Naam', '', 'warning');
+    fn.call(self, env.CmaErrorHandler, env.window, 'Fout bij opslaan', '', 'error');
+    assert.gelijk(types.join(','), 'validation,error');
+});
+
+test('lib-message en lib-toaster kennen het type validation met een formulier-icoon', () => {
+    const msg = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'library', 'webcomponents', 'lib-message.js'), 'utf8');
+    const toast = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'library', 'webcomponents', 'lib-toaster.js'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'library', 'css', 'lib-components.css'), 'utf8');
+    assert.gelijk(msg.includes("validation: 'lnr-clipboard-text'"), true);
+    assert.gelijk(toast.includes("'error', 'validation']"), true);
+    assert.gelijk(css.includes('.lib-message--validation {'), true);
+});

@@ -2443,11 +2443,12 @@
          * Show error notification
          * @param {string} message - Error message
          * @param {string} details - Optional technical details (shown to admins/devs only)
-         * @param {string} level - 'warning' for a message about the user's input: it goes to
-         *   the dev panel as a warning and never to the server error log
+         * @param {string} level - 'warning' for a message about the user's input: it is shown
+         *   as a neutral 'validation' toast, goes to the dev panel as a warning and never to
+         *   the server error log
          */
         showError(message, details = '', level = 'error') {
-            this.showNotification(message, 'error', details);
+            this.showNotification(message, level === 'warning' ? 'validation' : 'error', details);
 
             if (level === 'warning') {
                 if (typeof CmaErrorHandler !== 'undefined') {
@@ -2478,7 +2479,7 @@
         /**
          * Show notification using lib-toaster component
          * @param {string} message - Message to display
-         * @param {string} type - Notification type (success, error, warning, info)
+         * @param {string} type - Notification type (success, error, warning, info, validation)
          * @param {string} details - Optional technical details (currently unused)
          */
         showNotification(message, type, details = '') {

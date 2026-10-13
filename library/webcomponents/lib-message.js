@@ -9,9 +9,11 @@
  *   <lib-message type="error">Something went wrong</lib-message>
  *   <lib-message type="warning" closable auto-dismiss="5000">This will auto-close</lib-message>
  *   <lib-message type="info" icon="false">No icon message</lib-message>
+ *   <lib-message type="validation">Vul alle verplichte velden in: Naam</lib-message>
  *
  * Attributes:
- *   - type: info (default), success, warning, error
+ *   - type: info (default), success, warning, error, validation
+ *     (validation = neutral, form icon: the user's input needs attention, nothing went wrong)
  *   - closable: Show close button (no value needed)
  *   - auto-dismiss: Auto-close after X milliseconds (e.g., "5000")
  *   - icon: Show icon (default: true, set to "false" to hide)
@@ -145,6 +147,7 @@ class LibMessage extends HTMLElement {
             success: 'lnr-checkmark-circle',
             error: 'lnr-cross-circle',
             warning: 'lnr-warning',
+            validation: 'lnr-clipboard-text',
             info: 'lnr-question-circle'
         };
         const iconClass = icons[type] || icons.info;
@@ -362,6 +365,10 @@ window.libMessage = {
 
     warning: function(message, options = {}) {
         return this.create(message, { ...options, type: 'warning' });
+    },
+
+    validation: function(message, options = {}) {
+        return this.create(message, { ...options, type: 'validation' });
     },
 
     error: function(message, options = {}) {

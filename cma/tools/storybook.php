@@ -1623,6 +1623,7 @@ html.dark-mode .hex-dark { display: inline; }
 <lib-message type="success">Actie succesvol uitgevoerd!</lib-message>
 <lib-message type="warning" closable>Let op: deze actie kan niet ongedaan worden gemaakt.</lib-message>
 <lib-message type="error" closable>Er is een fout opgetreden bij het opslaan.</lib-message>
+<lib-message type="validation" closable>Vul alle verplichte velden in: Opleidingsmedewerker, Manager</lib-message>
 
 <p><span class="storybook__strong">Methodes</span></p>
 <lib-message id="msgDemo" type="info" closable>Dit bericht kan gesloten en weer getoond worden.</lib-message>
@@ -1640,6 +1641,7 @@ html.dark-mode .hex-dark { display: inline; }
     <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.info('Info bericht via JavaScript API'); else libToast.info('libMessage niet beschikbaar')">libMessage.info()</button>
     <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.success('Succes bericht via API'); else libToast.success('libMessage niet beschikbaar')">libMessage.success()</button>
     <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.error('Fout bericht via API'); else libToast.error('libMessage niet beschikbaar')">libMessage.error()</button>
+    <button class="btn btn-secondary" onclick="if(typeof libMessage!=='undefined') libMessage.validation('Vul alle verplichte velden in: Naam'); else libToast.validation('libMessage niet beschikbaar')">libMessage.validation()</button>
 </div></textarea>
                 </div>
             </div>
@@ -1647,7 +1649,7 @@ html.dark-mode .hex-dark { display: inline; }
                 <h4>Attributen</h4>
                 <dl>
                     <dt>type</dt>
-                    <dd>Type: <code>info</code>, <code>success</code>, <code>warning</code>, <code>error</code> (default: <code>"info"</code>)</dd>
+                    <dd>Type: <code>info</code>, <code>success</code>, <code>warning</code>, <code>error</code>, <code>validation</code> (default: <code>"info"</code>). <code>validation</code> is neutraal met een formulier-icoon: de invoer vraagt aandacht, er ging niets mis</dd>
                     <dt>closable</dt>
                     <dd>Toon sluitknop (default: <code>false</code>)</dd>
                     <dt>auto-dismiss</dt>
@@ -1679,6 +1681,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Creëer succes bericht</dd>
                     <dt>libMessage.error(msg)</dt>
                     <dd>Creëer fout bericht</dd>
+                    <dt>libMessage.validation(msg)</dt>
+                    <dd>Creëer validatiebericht (neutraal, formulier-icoon)</dd>
                 </dl>
             </div>
         </div>
@@ -2473,7 +2477,7 @@ LibTip.reset();</div>
         <div class="component-header">
             <h2>lib-toaster</h2>
             <span class="tag lib">library</span>
-            <p class="component-description">Toast notificaties via libToast.info/success/warning/error()</p>
+            <p class="component-description">Toast notificaties via libToast.info/success/warning/error/validation()</p>
         </div>
         <div class="component-body">
             <div class="component-content">
@@ -2483,6 +2487,7 @@ LibTip.reset();</div>
     <button class="btn btn-primary" onclick="libToast.success('Succesvol opgeslagen!')">Succes toast</button>
     <button class="btn btn-primary" onclick="libToast.warning('Waarschuwing!')">Waarschuwing toast</button>
     <button class="btn btn-primary" onclick="libToast.error('Fout bij opslaan')">Fout toast</button>
+    <button class="btn btn-primary" onclick="libToast.validation('Vul alle verplichte velden in: Naam')">Validatie toast</button>
 </div>
 
 <p><span class="storybook__strong">Methodes</span></p>
@@ -2522,6 +2527,8 @@ LibTip.reset();</div>
                     <dd>Toon waarschuwing toast</dd>
                     <dt>error(msg, duration?)</dt>
                     <dd>Toon fout toast</dd>
+                    <dt>validation(msg, duration?)</dt>
+                    <dd>Toon validatie toast: neutraal, formulier-icoon — de invoer vraagt aandacht, er ging niets mis</dd>
                     <dt>clear()</dt>
                     <dd>Verwijder alle toasts</dd>
                     <dt>configure(options)</dt>
