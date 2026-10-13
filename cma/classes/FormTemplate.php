@@ -105,7 +105,7 @@ class FormTemplate
      */
     public static function getForJsonForm(string $formName, int $accessLevel = SecurityHelper::ACCESS_FULL): string
     {
-        $cacheKey = self::CACHE_PREFIX . 'json_' . $formName . '_' . $accessLevel;
+        $cacheKey = self::jsonCacheKey($formName, $accessLevel);
         $noCache = Request::hasQuery('nocache') || Request::hasQuery('refresh');
 
         if (!$noCache) {
@@ -120,7 +120,11 @@ class FormTemplate
             $filePath = self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $accessLevel . '.html';
             if (file_exists($filePath)) {
                 $jsonDefPath = JsonFormLoader::getFilePath($formName);
-                $cacheValid = !$jsonDefPath || !file_exists($jsonDefPath) || filemtime($filePath) >= filemtime($jsonDefPath);
+                // The template embeds the bundle URLs (v=cma_asset_version()), which
+                // live in bootstrap.inc: a file older than that is from an older
+                // release and would load the old JS from the browser cache.
+                $cacheValid = (!$jsonDefPath || !file_exists($jsonDefPath) || filemtime($filePath) >= filemtime($jsonDefPath))
+                    && filemtime($filePath) >= (int) @filemtime(__DIR__ . '/../bootstrap.inc');
                 if ($cacheValid) {
                     $template = file_get_contents($filePath);
                     // Store in APCu for faster subsequent access
@@ -445,8 +449,7 @@ class FormTemplate
             SecurityHelper::ACCESS_FULL,
             SecurityHelper::ACCESS_FULL_BEHEER
         ] as $level) {
-            $cacheKey = self::CACHE_PREFIX . 'json_' . $formName . '_' . $level;
-            Cache::delete($cacheKey);
+            Cache::delete(self::jsonCacheKey($formName, $level));
 
             // Delete file
             $filePath = self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $level . '.html';
@@ -457,6 +460,17 @@ class FormTemplate
 
         // Also invalidate the cache group
         Cache::invalidateGroup(self::CACHE_GROUP);
+    }
+
+    /**
+     * APCu key for a rendered JSON form template. It carries the asset version
+     * because the template embeds the bundle URLs: an entry that survived a
+     * deploy (app pool not recycled) would otherwise keep pointing browsers at
+     * the previous release's JS.
+     */
+    private static function jsonCacheKey(string $formName, int $accessLevel): string
+    {
+        return self::CACHE_PREFIX . 'json_' . $formName . '_' . $accessLevel . '_' . cma_asset_version();
     }
 
     /**

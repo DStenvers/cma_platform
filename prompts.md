@@ -15320,3 +15320,8 @@ karaat-data en staat in de karaat-repo.
 > mijn rino php test-mijnrinonl) lijkt niet te updaten. wil je meekijkejn? IK snap het niet
 
 > Als ik de cma bekijk zegt die nog versie v1.52.15 ??
+
+> [08:43:10] API: [iframe] [FormController] Vul alle verplichte velden in: Titel
+>   at https://test-mijn.rino.nl/cma/form.php?form=opleidingen&id=3 
+>
+> still on the hjavascript errors console, the issue is that it it persistant and that is weird
