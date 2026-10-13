@@ -9774,9 +9774,11 @@ class CmaFormController {
                     formData: formData
                 });
 
-                // Show error to user; server-side validation also names the fields
-                this.showError(errorMsg);
-                if (result.validation && typeof result.validation === 'object') {
+                // Show error to user; server-side validation also names the fields,
+                // and a rejected input is the user's to fix, not a fault to log
+                const isValidation = result.validation && typeof result.validation === 'object';
+                this.showError(errorMsg, isValidation ? { level: 'warning' } : false);
+                if (isValidation) {
                     this.markServerValidationErrors(result.validation);
                 }
                 cmaPerf.end(perfId, { success: false, error: result.error });
@@ -10415,7 +10417,7 @@ class CmaFormController {
             if (formatErrors.length > 0) {
                 parts.push(formatErrors.join(', '));
             }
-            this.showError(parts.join('. ') || 'Vul alle verplichte velden in');
+            this.showError(parts.join('. ') || 'Vul alle verplichte velden in', { level: 'warning' });
             // Take the user to the first problem (old formval_nl focused it), opening
             // a collapsed group box if it sits in one
             const first = this.mainForm.querySelector('.invalid');
@@ -10897,7 +10899,7 @@ class CmaFormController {
         if (/\[(id|guid|guid2)\]/i.test(url)) {
 
             if (!id) {
-                this.showError('Selecteer eerst een record');
+                this.showError('Selecteer eerst een record', { level: 'warning' });
                 return;
             }
 
@@ -10919,7 +10921,7 @@ class CmaFormController {
         // (javascript:-knoppen niet: daar is [x] gewoon arraysyntax.)
         const onopgelost = url.startsWith('javascript:') ? null : url.match(/\[[a-z_][a-z0-9_]*\]/i);
         if (onopgelost) {
-            this.showError('Deze knop gebruikt ' + onopgelost[0] + ' en werkt pas als het record is opgeslagen');
+            this.showError('Deze knop gebruikt ' + onopgelost[0] + ' en werkt pas als het record is opgeslagen', { level: 'warning' });
             return;
         }
 
@@ -12427,7 +12429,10 @@ class CmaFormController {
     /**
      * Show error message persistently in the detail panel
      * @param {string} message - Error message to display
-     * @param {boolean|object} options - If boolean: alsoNotify. If object: { alsoNotify, details }
+     * @param {boolean|object} options - If boolean: alsoNotify. If object: { alsoNotify, details, level }
+     *   level 'warning': the message is about the user's input (a required field left
+     *   empty, no record selected), not a fault — it goes to the dev panel as a warning
+     *   and never to the server error log.
      */
     showError(message, options = false) {
         // Handle legacy boolean parameter for backwards compatibility
@@ -12436,18 +12441,25 @@ class CmaFormController {
         const details = opts.details || '';
         const source = opts.source || 'FormController';
 
-        cmaLog.error('[CMA Error]', message);
-        if (details) {
-            cmaLog.error('[CMA Error Details]', details);
-        }
+        if (opts.level === 'warning') {
+            cmaLog.warn('[CMA Warning]', message);
+            if (typeof CmaErrorHandler !== 'undefined') {
+                CmaErrorHandler.reportWarning(message, { source: source, url: window.location.href });
+            }
+        } else {
+            cmaLog.error('[CMA Error]', message);
+            if (details) {
+                cmaLog.error('[CMA Error Details]', details);
+            }
 
-        // Report to dev error panel
-        if (typeof CmaErrorHandler !== 'undefined') {
-            CmaErrorHandler.reportServerError(source, message, {
-                url: window.location.href,
-                debug: details || null,
-                form: this.jsonForm
-            });
+            // Report to dev error panel
+            if (typeof CmaErrorHandler !== 'undefined') {
+                CmaErrorHandler.reportServerError(source, message, {
+                    url: window.location.href,
+                    debug: details || null,
+                    form: this.jsonForm
+                });
+            }
         }
 
         // Show persistent error in detail panel content area

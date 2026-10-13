@@ -15284,3 +15284,15 @@ karaat-data en staat in de karaat-repo.
 >     box-sizing: border-box;
 >     height: 100%;
 >     padding: 8px;
+
+## 2026-10-13
+
+> can we prevent errors like [Server] FormController: Vul alle verplichte velden in: Opleidingsmedewerker, Manager to be included in logs and the custom javascript console? In fact, can we re-route them to warnings?
+
+> <task-notification>
+> <task-id>bbe4mu8bj</task-id>
+> <tool-use-id>toolu_018GBFmqxqskag4y653pZL7U</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/6277d625-d10f-4422-8812-5d33d69e9aa7/tasks/bbe4mu8bj.output</output-file>
+> <status>completed</status>
+> <summary>Background command "npm run test:js 2&gt;&amp;1 | tail -3; git -C .. show --stat HEAD | head -30" completed (exit code 0)</summary>
+> </task-notification>

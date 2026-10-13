@@ -4606,6 +4606,9 @@ function render_doc_errors(): void
     </ul>
     <p>Voor de operator-kant (welke log-bron waar): zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>. Hier focus op de code-API.</p>
 
+    <h2>Invoerfouten zijn waarschuwingen, geen fouten</h2>
+    <p><code>FormController.showError(message, options)</code> meldt een fout standaard via <code>CmaErrorHandler.reportServerError</code>: rood in het foutpaneel én als <code>[Server] FormController: …</code> in de serverlog. Een melding over de invoer van de gebruiker — een leeg verplicht veld, een veld dat de server afwijst (<code>result.validation</code>), "Selecteer eerst een record", een knop die pas na opslaan werkt — is geen fout van de applicatie. Die roepen <code>showError(message, { level: 'warning' })</code> aan: de gebruiker ziet dezelfde melding, maar het foutpaneel krijgt hem via <code>CmaErrorHandler.reportWarning</code> als waarschuwing, de console via <code>cmaLog.warn</code>, en de serverlog niets. Inline-edit werkt hetzelfde met <code>showError(message, '', 'warning')</code>. Gebruik het waarschuwingsniveau alleen voor wat de gebruiker zelf kan oplossen; een mislukte save of netwerkfout blijft een fout.</p>
+
     <h2>Fouten die niet fataal zijn, maar wel gezien moeten worden</h2>
     <p><code>App\Library\ErrorHandler::report(\Throwable $e, string $context = '')</code> is het ene kanaal voor een gevangen fout waarna de bewerking doorgaat: hij logt de exceptie zoals een niet-gevangen fout (PHP error log, <code>.logs/phperrors/</code>), mailt hem als <code>ERROR_MAIL_ENABLED</code> aan staat (dezelfde fout hoogstens één keer per uur), en bewaart de melding voor dit request. Wat er met die meldingen gebeurt:</p>
     <ul>

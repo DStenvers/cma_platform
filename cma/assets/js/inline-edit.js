@@ -2055,7 +2055,7 @@
 
             if (!valid && errorMessages.length > 0) {
                 // Show unique error messages
-                this.showError([...new Set(errorMessages)].join('. '));
+                this.showError([...new Set(errorMessages)].join('. '), '', 'warning');
             }
 
             return valid;
@@ -2443,9 +2443,18 @@
          * Show error notification
          * @param {string} message - Error message
          * @param {string} details - Optional technical details (shown to admins/devs only)
+         * @param {string} level - 'warning' for a message about the user's input: it goes to
+         *   the dev panel as a warning and never to the server error log
          */
-        showError(message, details = '') {
+        showError(message, details = '', level = 'error') {
             this.showNotification(message, 'error', details);
+
+            if (level === 'warning') {
+                if (typeof CmaErrorHandler !== 'undefined') {
+                    CmaErrorHandler.reportWarning(message, { source: 'InlineEdit', url: window.location.href });
+                }
+                return;
+            }
 
             // Report to dev error panel
             if (typeof CmaErrorHandler !== 'undefined') {
