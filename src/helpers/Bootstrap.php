@@ -141,10 +141,12 @@ class Bootstrap
      * Get the platform package version — the "version" field from the platform's
      * own composer.json (the single centralised source, bumped each release).
      *
-     * The file is parsed at most once per app-pool lifetime: memoized for the
-     * request, then cached cross-request in APCu (or the session when APCu is
-     * absent). A deploy recycles the app pool, which flushes APCu, so the new
-     * version is picked up automatically on the next request — no per-call read.
+     * The file is parsed at most once per version: memoized for the request,
+     * then cached cross-request in APCu (or the session when APCu is absent).
+     * The cache key carries the file's mtime, so a deploy that replaces
+     * composer.json is seen on the next request — without it, a session that
+     * outlived the deploy (or an app pool that was not recycled) kept showing
+     * the old version.
      */
     public static function getPlatformVersion(): string
     {
@@ -153,7 +155,8 @@ class Bootstrap
             return $memo;
         }
 
-        $cacheKey = 'cma_platform_version';
+        $mtime = @filemtime(self::composerPath());
+        $cacheKey = 'cma_platform_version_' . ($mtime ?: 0);
         if (function_exists('apcu_fetch')) {
             $hit = apcu_fetch($cacheKey);
             if (is_string($hit) && $hit !== '') {
@@ -181,7 +184,7 @@ class Bootstrap
      */
     private static function readVersionFromComposer(): string
     {
-        $composerPath = __DIR__ . '/../../composer.json';
+        $composerPath = self::composerPath();
         if (is_readable($composerPath)) {
             $data = json_decode((string) file_get_contents($composerPath), true);
             if (is_array($data) && !empty($data['version']) && is_string($data['version'])) {
@@ -189,6 +192,11 @@ class Bootstrap
             }
         }
         return self::VERSION;
+    }
+
+    private static function composerPath(): string
+    {
+        return __DIR__ . '/../../composer.json';
     }
 
     /**

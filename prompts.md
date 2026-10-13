@@ -15316,3 +15316,7 @@ karaat-data en staat in de karaat-repo.
 > bij het openen van Storybook
 
 > worden toast met formulier info ook ondersteund?
+
+> mijn rino php test-mijnrinonl) lijkt niet te updaten. wil je meekijkejn? IK snap het niet
+
+> Als ik de cma bekijk zegt die nog versie v1.52.15 ??
