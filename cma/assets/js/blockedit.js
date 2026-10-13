@@ -1154,7 +1154,7 @@ function blockedit_create_htmls() {
 
 	// Check if CKEditor is available - it may be loaded with defer
 	if (typeof CKEDITOR === 'undefined') {
-		cmaLog.warn('[blockedit_create_htmls] CKEDITOR not yet loaded, waiting...');
+		cmaLog.log('[blockedit_create_htmls] CKEDITOR not yet loaded, waiting...');
 		// Wait for CKEditor to load and retry
 		var retryCount = 0;
 		var maxRetries = 50; // 5 seconds max wait
@@ -1279,10 +1279,11 @@ function blockedit_createCKEditor(fieldId) {
 		if (pendingCKEditors.indexOf(fieldId) === -1) {
 			pendingCKEditors.push(fieldId);
 		}
-		// Diagnostic: if a deferred editor never gets created after its
-		// container becomes visible, watch for this id NOT being followed by
-		// a "=> created" below.
-		cmaLog.warn('[blockedit][createCKEditor] DEFERRED (not visible):', fieldId);
+		// Deferring is the normal path for every editor in a collapsed block or
+		// hidden tab, so this is debug output, not a warning. To diagnose an editor
+		// that never appears, check that this id is later followed by "Creating
+		// CKEditor for".
+		cmaLog.log('[blockedit][createCKEditor] DEFERRED (not visible):', fieldId);
 		return 'deferred';
 	}
 

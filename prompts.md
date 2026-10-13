@@ -15298,3 +15298,21 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > i would like these validation errors to have a different syling, preferably neutral. And an icon of a form, not a warning or an error, include this in the storyboard as well
+
+> did you commit and push?
+
+>
+>
+> <pasted_content id="587e">
+> [08:20:22] WARNING: [iframe] [blockedit][createCKEditor] DEFERRED (not visible):
+>
+> [08:20:22] WARNING: [iframe] [blockedit][createCKEditor] DEFERRED (not visible):
+>
+> [08:20:22] WARNING: [iframe] [blockedit][createCKEditor] DEFERRED (not visible):
+>
+> [08:20:22] WARNING: [iframe] [blockedit][createCKEditor] DEFERRED (not visible):
+> </pasted_content id="587e">
+
+> bij het openen van Storybook
+
+> worden toast met formulier info ook ondersteund?
