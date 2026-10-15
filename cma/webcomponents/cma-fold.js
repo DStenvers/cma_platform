@@ -21,6 +21,8 @@
  *   - storage-key: localStorage key for saving state
  *   - collapsed-size: Size when collapsed (default: 0)
  *   - reverse: Invert drag direction (use when target is AFTER the fold)
+ *   - min-voor: Horizontaal + reverse: ruimte in px die vóór de balk (het hoofdscherm)
+ *               altijd overblijft (default: 50)
  *
  * Events:
  *   - fold-resize: Fired during resize with { size, collapsed }
@@ -48,7 +50,7 @@ class CmaFold extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['orientation', 'target', 'min-size', 'max-size', 'storage-key', 'collapsed-size', 'reverse'];
+        return ['orientation', 'target', 'min-size', 'max-size', 'storage-key', 'collapsed-size', 'reverse', 'min-voor'];
     }
 
     get orientation() {
@@ -70,6 +72,40 @@ class CmaFold extends HTMLElement {
             return Math.max(this.minSize + 1, Math.round(base * pct / 100));
         }
         return parseInt(raw, 10);
+    }
+
+    /** Ruimte die vóór een horizontale reverse-balk altijd overblijft (het hoofdscherm). */
+    get minVoor() {
+        const waarde = parseInt(this.getAttribute('min-voor') || '50', 10);
+        return isNaN(waarde) ? 50 : waarde;
+    }
+
+    /**
+     * Grootste maat die het doel mag krijgen. Normaal max-size, maar bij een
+     * horizontale balk met het doel eronder (reverse) ook niet zo groot dat de
+     * balk tot binnen min-voor van de bovenkant schuift. Anders verdwijnt het
+     * hoofdscherm en zie je alleen nog de tabs van het subformulier: max-size
+     * is een vaste 800px, ook op een scherm waar het paneel lager is dan dat.
+     * Het hoofdscherm gaat dan vóór min-size van het doel.
+     */
+    get _maxMaat() {
+        const max = this.maxSize;
+        if (this.isVertical || !this.reverse) return max;
+        const ouder = this.parentElement;
+        if (!ouder || !ouder.clientHeight) return max;   // nog geen layout: niets te begrenzen
+        let naDeBalk = 0;
+        let voorbij = false;
+        for (const kind of ouder.children) {
+            if (kind === this) { voorbij = true; continue; }
+            if (voorbij && kind !== this._target) naDeBalk += kind.offsetHeight || 0;
+        }
+        const ruimte = ouder.clientHeight - (this.offsetHeight || 0) - naDeBalk - this.minVoor;
+        return Math.max(0, Math.min(max, ruimte));
+    }
+
+    /** Maat binnen min-size en de grootste toegestane maat; de bovengrens wint. */
+    _begrens(maat) {
+        return Math.min(this._maxMaat, Math.max(this.minSize, maat));
     }
 
     get collapsedSize() {
@@ -119,6 +155,27 @@ class CmaFold extends HTMLElement {
         this._findTarget();
         this._loadState();
         this._setupEventListeners();
+        this._bewaakRuimteVoor();
+    }
+
+    /**
+     * Wordt het paneel kleiner (venster verkleind, ander scherm), dan kan een
+     * eerder goede maat het hoofdscherm alsnog wegdrukken. Dan het doel kleiner
+     * maken — zonder dat op te slaan, zodat de eigen maat op een groter scherm
+     * terugkomt.
+     */
+    _bewaakRuimteVoor() {
+        if (this.isVertical || !this.reverse || this._ruimteObserver) return;
+        if (typeof ResizeObserver === 'undefined' || !this.parentElement) return;
+        this._ruimteObserver = new ResizeObserver(() => this._houdRuimteVoor());
+        this._ruimteObserver.observe(this.parentElement);
+    }
+
+    _houdRuimteVoor() {
+        if (!this._target || this._isDragging) return;
+        if (getComputedStyle(this).display === 'none') return;
+        const max = this._maxMaat;
+        if ((this._target.offsetHeight || 0) > max) this._pasMaatToe(max);
     }
 
     disconnectedCallback() {
@@ -127,6 +184,10 @@ class CmaFold extends HTMLElement {
         if (this._zichtbaarObserver) {
             this._zichtbaarObserver.disconnect();
             this._zichtbaarObserver = null;
+        }
+        if (this._ruimteObserver) {
+            this._ruimteObserver.disconnect();
+            this._ruimteObserver = null;
         }
 
         // Clean up if disconnected during drag
@@ -374,7 +435,7 @@ class CmaFold extends HTMLElement {
                 // divider the opposite way, so the min/max mapping must flip — otherwise
                 // the buttons feel inverted (the left arrow moves the divider right).
                 const goMin = this.reverse ? !isCollapse : isCollapse;
-                const size = goMin ? this.minSize : this.maxSize;
+                const size = goMin ? Math.min(this.minSize, this._maxMaat) : this._maxMaat;
                 this._target.style.transition = (this.isVertical ? 'width' : 'height') + ' 0.2s ease, flex 0.2s ease';
                 if (this.isVertical) {
                     this._target.style.width = size + 'px';
@@ -438,8 +499,8 @@ class CmaFold extends HTMLElement {
         // When reverse is true (target is after the fold), invert the delta
         let newSize = this.reverse ? this._startSize - delta : this._startSize + delta;
 
-        // Clamp to min/max
-        newSize = Math.max(this.minSize, Math.min(this.maxSize, newSize));
+        // Clamp to min/max (en houd het hoofdscherm vóór de balk zichtbaar)
+        newSize = this._begrens(newSize);
 
         // Apply size - use flex shorthand to fully override CSS flex property
         if (this.isVertical) {
@@ -527,7 +588,7 @@ class CmaFold extends HTMLElement {
 
         if (this._collapsed) {
             // Expand
-            const size = this._savedSize || (this.isVertical ? 280 : 200);
+            const size = Math.min(this._savedSize || (this.isVertical ? 280 : 200), this._maxMaat);
             if (this.isVertical) {
                 this._target.style.width = size + 'px';
                 this._target.style.flex = '0 0 ' + size + 'px';
@@ -597,7 +658,7 @@ class CmaFold extends HTMLElement {
                 // een hoogte HEEFT. Zonder maat valt het terug op zijn inhoud en
                 // bepaalt het aantal rijen in het subformulier hoeveel er van het
                 // formulier erboven overblijft.
-                this._pasMaatToe(this.defaultSize);
+                this._pasMaatToe(this.defaultSize === null ? null : Math.min(this.defaultSize, this._maxMaat));
                 return;
             }
             {
@@ -608,8 +669,8 @@ class CmaFold extends HTMLElement {
                 // Een bewaarde stand binnen min-size/max-size houden, net als bij het slepen.
                 // Een oude of kapotte waarde (0, of van vóór een hogere min-size) zette het
                 // doel anders onzichtbaar klein: bij het subformulier vielen de tabs weg.
-                const maat = Math.max(this.minSize, Math.min(this.maxSize, state.size || this.defaultSize));
-                this._pasMaatToe(this._collapsed ? this.collapsedSize : maat);
+                const maat = this._begrens(state.size || this.defaultSize);
+                this._pasMaatToe(this._collapsed ? Math.min(this.collapsedSize, this._maxMaat) : maat);
             }
         } catch (e) {
             // Ignore localStorage errors
@@ -662,7 +723,7 @@ class CmaFold extends HTMLElement {
     setSize(size) {
         if (!this._target) return;
 
-        const clamped = Math.max(this.minSize, Math.min(this.maxSize, size));
+        const clamped = this._begrens(size);
         if (this.isVertical) {
             this._target.style.width = clamped + 'px';
         } else {

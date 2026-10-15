@@ -15325,3 +15325,336 @@ karaat-data en staat in de karaat-repo.
 >   at https://test-mijn.rino.nl/cma/form.php?form=opleidingen&id=3 
 >
 > still on the hjavascript errors console, the issue is that it it persistant and that is weird
+
+> css : bwlow 770px the .tl-day-line moves too much to the left, margin-left should stay on 18px
+
+> de rol Contactpersoon lijkt niet volledig ondersteund. Als iemand maar alleen die rol heeft krijg je een wissel rol scherm, die niets doet. Kun je daarin duiken?
+
+> De rol moet weer her-introduceerd worden omdat we daar toch functionaliteit aan willen geven. We willen voor incompany trainingen het mogelijk maken om deelnemers toe te voegen en weg te halen. Weghalen kan tot het moment waarop de cursus start. Cursussen worden klaargezet maar zonder deelnemers. De contactpersoon die daaraan is gekoppeld kan mensen toevoegen en verwijderen. Daarnaast kan deze de certificaten en facturen van deelnemers van  deze cursussen zien. Dit gaat via de STB API. inschrijvingen moeten rechstreeks in STB worden gezet, dus niet via transactions. Deelnemers dienen in ieder geval een naam en een email te hebben, daarmee moet ook een login worden aangemaakt.
+
+> De rol moet weer her-introduceerd worden omdat we daar toch functionaliteit aan willen geven. We willen voor incompany trainingen het mogelijk maken om deelnemers toe te voegen en weg te halen. Weghalen kan tot het moment waarop de cursus start. Cursussen worden klaargezet maar zonder deelnemers. De contactpersoon die daaraan is gekoppeld kan mensen toevoegen en verwijderen. Daarnaast kan deze de certificaten en facturen van deelnemers van  deze cursussen zien. Dit gaat via de STB API. inschrijvingen moeten rechstreeks in STB worden gezet, dus niet via transactions. Deelnemers dienen in ieder geval een naam en een email te hebben, daarmee moet ook een login worden aangemaakt.
+
+> <task-notification>
+> <task-id>a40abbc1504216b2b</task-id>
+> <tool-use-id>toolu_01RMZrmXmbhqXUF2x6c73EMR</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/6277d625-d10f-4422-8812-5d33d69e9aa7/tasks/a40abbc1504216b2b.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map STB API integration" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I found no code anywhere that creates or deletes an STB enrollment directly. Every enrollment goes in as a "transaction" (type 40). For certificates and invoices the API calls already exist, but they work per contact only. Local STB IDs are also inconsistent between the two sync paths: one stores the raw group ID, the other adds 2,000,000.
+>
+> ## 1. API clients for STB
+>
+> **Main client: `/mnt/c/repos/adam/mijnrino_php/profiel/app/RinoHttpClient.php`**
+> - `__construct(string $baseUrl, string $apiKey)` (L12).
+> - **`request(string $method, string $endpoint, array $options = []): array`** (L17). Options are `['json'=&gt;…]` for POST/PUT or `['query'=&gt;…]` for GET. The literal `{apiKey}` / `{api_key}` / `{APIKEY}` in the endpoint is replaced with the urlencoded key (L21-25).
+>   - Error handling: a 404 returns `[]` (L101). Any status ≥400 throws, with an explanation for 401/403 (L105-134). A bare `true` response becomes `[]` (L148).
+>   - SSL verification is off (L46-47). Timeout is 15s.
+> - `requestBinary(string $endpoint, array $query = []): array` (L163). Returns `['ok','status','body','contentType']` and is used for PDF downloads.
+> - **Auth is the API key in the URL path** (`{resource}/{apiKey}/…`). There are no headers.
+>
+> **Where the key and URL come from**
+> - `EnvLoader` (`profiel/app/EnvLoader.php` L13-15) reads `profiel/.env` by default, not the site root `.env`.
+> - Keys: `RINO-API` (base URL, defaults to `https://crm07.stb.nl:443/rino/api/`) and `RINO-SECRET` (API key).
+> - Example: `QuickEnrollService.php` L38-41. Shared page bootstrap: `profiel/secties/_bootstrap.php` L44-55.
+> - Other keys:
+>   - SSO: `SSO-URL`, `SSO-CLIENT-ID` (`AuthClient.php` L27, L56), `SSO_URL` (`profiel/index.php` L28)
+>   - `OWNER_GROUP_ID`, `QUICK_ENROLL_TOKEN`, `WEBHOOKS_ENABLED`, `MSACCESS_ODBC_DRIVER`, `DEBUG_MODE`
+> - The non-profiel part of the site uses `Application('stb_api_base_url')` and `Application('stb_api_key')`. Their env names are `STB_API_BASE_URL` / `STB_API_KEY` (`global.asa.php` L55, `src/sync/sync_shared.inc` L168-172).
+>
+> **Other clients**
+>
+> | File | What it does |
+> |---|---|
+> | `profiel/app/ContactClient.php` | Contacts, registrations, certificates, invoices, file downloads (details in §3) |
+> | `profiel/app/ProfileClient.php` | `profile/{key}` with `/findByQuery`, `/resetPasswordRequest`, `/resetPassword`, `/loginProfile`, and PUT |
+> | `profiel/app/AuthClient.php` | `sso/{key}/verify-session` |
+> | `profiel/app/QuickEnrollService.php` | Orchestrates an enrollment (§2) |
+> | `profiel/app/RegistrationHelper.php` | Older 7-step registration flow (transactions) |
+> | `profiel/app/CrmPortalMapper.php` | Only maps fields to the RegistrationHelper format; makes no API calls |
+> | `profiel/app/WebhookEmitter.php` | Doesn't call STB. It inserts a row into `tblWebhookOutbox`, gated by `WEBHOOKS_ENABLED`; only `person.update.email.mijnrino` exists |
+> | `src/sync/sync_shared.inc` | Class `StbCRestApi` (L155+): GET `profile/{key}/FindByQuery` and `contact/{key}/{id}`. Used by the "Maak en Haak" login tool |
+> | `src/includes/stb_rest.inc` | `Carta_Rest_GET/POST/PUT` (L108-135) are **stubs that return `''`** ("TODO(STB)") |
+> | `/mnt/c/repos/adam/stb_sync/StbApiClient.php` | Its own cURL client with retry. `request($method, $endpoint, $query, $body)` (L160); it also supports DELETE (L230), though nothing calls it |
+> | `/mnt/c/repos/adam/webhooks/src/Client/StbcApi.php` | Env keys `STBC_API` / `STBC_SECRET`. `fetchDetails($type,$id)` (L46), `updateContactEmail` (L100), `updateProfile` (L116) |
+>
+> **Not STB**
+> - `/mnt/c/repos/adam/portal/RINO_API.inc` calls RINO's own onderwijsportaal API.
+> - `/mnt/c/repos/rino/Rino-api` is RINO's own Node API, with old Carta-era `carta_sync` routes.
+> - Neither contains any STB or crm07 calls.
+>
+> ## 2. Transactions vs. direct creation
+>
+> **Transactions** are requests that wait in STB's processing queue (the code calls it the "wmut" queue). The docs say STB staff must approve each one (`profiel/docs/group-registration-guide.md` L180-197).
+>
+> Type codes are in `profiel/app/TransactionTypes.php`: 10 = new profile, 30 = change profile, 40 = registration.
+>
+> - **POST `RINO-transaction-registration/{key}`** creates an enrollment. The body looks like this:
+>   ```
+>   {"ProfileId":int,"Type":40,"RegistrationTransactionCreate":{"ContactId","GroupId","RegistrationDate","RegistrationStatus":1,"FinPayTypeId","InvoiceToEntity":"contact","RegistrationNoteInt",…}}
+>   ```
+>   - The response has `transactionID` or `WmutTrainregId` / `wmutTrainregId`.
+>   - Callers: `QuickEnrollService.php` L157-177, `RegistrationHelper.php` L193-221, `ContactClient::createRegistration` L177-201, `registration-api-basic.php` L296, `registration-api-extended.php` L432.
+>   - `ProfileId` is required, which is why QuickEnroll creates a profile first.
+> - **POST `RINO-transaction-crm/{key}`** (type 10/30, body `{profileID, type, crmTransaction:{Contact:{…}}}`) is used for contact changes (`ContactClient` L88-111, L389-412).
+> - To read pending transactions: GET `transaction/{key}/{profileId}?type=40`, then GET `RINO-transaction-registration/{key}/{txId}` (`QuickEnrollService.php` L301-320).
+>
+> **Direct writes that skip the queue exist only for contacts:**
+> - POST `RINO-contact-details/{key}` with `{"Contact":{…}}` returns `ContactID` (`ContactClient::createContact` L67).
+> - The minimal valid payload is in `QuickEnrollService::createMinimalContact` (L251-276): `category:1`, `name_common`, `name_last`, `email`, `preferred_email`, `BankInfo`, `Occupation:{Organisation:[]}`, `visit_country_id:31`.
+>
+> **Direct enrollment creation: none.** I found no POST or PUT on `RINO-trainregistration` or `registration/` in any repo. QuickEnroll creates the contact directly but the enrollment still as a transaction. Comments at L8-13 and L280-282 explicitly mention the problem of the staff queue.
+>
+> ## 3. Existing endpoints and methods
+>
+> | Need | Endpoint as used in the code | Where |
+> |---|---|---|
+> | Find contact by email | GET `RINO-contact-details/{key}/findByQuery?email=` (one hit comes back as an object, several as a list; normalise it) | `ContactClient::findByEmail` L150, `QuickEnrollService::findContactByEmail` L211 |
+> | Get contact | GET `RINO-contact-details/{key}/{id}` (returns `contactID`, `ProfileId`) | `ContactClient` L30 |
+> | Create contact | POST `RINO-contact-details/{key}` | `ContactClient` L67 |
+> | Update contact | PUT `RINO-contact-details/{key}` with `{contact_id, Contact:{…}}` | `ContactClient` L120 |
+> | Read contact (webhooks, stb_sync) | GET `contact/{key}/{id}` | `StbcApi` L92, `StbApiClient` L36 |
+> | Find or create profile | GET `profile/{key}/findByQuery?username=`, POST `profile/{key}` | `ProfileClient` L64, L95 |
+> | Group details and checks | GET `RINO-traingroup-details/{key}/{groupId}` (fields `GroupId`, `Code`, `Status`, `MaxParticipants`, `NumberSubscriptions`, `Title`, `StartDate`, `TraingroupContacts`) | `QuickEnrollService` L92-106, `webhooks/src/Mapper/CourseGroupMapper.php` L26-50 |
+> | Existing enrollments | GET `RINO-trainregistration/{key}/findByQuery?contact_id=&amp;train_group_id=` | `QuickEnrollService` L139-142, `ContactClient::getRegistrations` L276 |
+> | Enrollments per contact | GET `registration/{key}/{contactId}` (has `group.href`, `registration_status`) | `QuickEnrollService` L182, `StbApiClient` L145 |
+> | Create enrollment | Only as a transaction (§2) | — |
+> | Delete or cancel enrollment | **Not found anywhere** | — |
+> | Certificates | GET `RINO-certificate/{key}/findByQuery?ContactId=` | `ContactClient::getCertificates` L209 |
+> | Publish certificate | PUT `RINO-certificate/{key}` with `{CertificateID, PublishDate}` | `ContactClient` L230 |
+> | Invoices | GET `RINO-invoice/{key}/findByQuery?contact_id=&amp;status=2` | `ContactClient::getInvoices` L314 |
+> | PDF download | GET `file/{key}/binary?fileID=` | `ContactClient::downloadFile` L253 |
+>
+> Response shapes:
+> - **Enrollments** (`RINO-trainregistration`): `train_registration_id`, `contact_id`, `train_group_id`, `registration_status`, `RegistrationStatus` (from `stb_sync/entities/RegistrationSync.php` L110-207). `secties/registraties.php` also reads `CancellationDate`, `CancellationReasonId`, `GroupCode`, `GroupStartDate`, `SucceededChk` and similar.
+> - **Certificates**: `CertificateID`, `CertificateTypeCode`, `CertificateTypeTitle`, `PublishDate`, `ValidUntil`, `FileStorageId`, `CertificateFileName`, `TrainRegistrationStatus` (only 128 means a certificate has been issued). See `profiel/secties/certificaten.php` L25-60 and `certificaat-download.php`.
+> - **Invoices**: `Invoice_code`, `Invoice_date`, `Invoice_title`, `Invoice_amount`, `c_payment_amount_due`, `def_invoice_file_storage_id`, `filename` (`profiel/secties/facturen.php` L24-39). The header comment at L8-13 saying STB has no endpoint yet is out of date.
+> - Status codes:
+>   - Group status: 3 = cancelled, 237 = postponed, 239 = full, 109 = deleted (`QuickEnrollService` L99-100).
+>   - Enrollment status: 1 = registered, 3 = confirmed, 7 = candidate, 6 = cancelled (`stb_sync/config.php` L72-77).
+>
+> **Gaps:**
+> - No query by group or organisation for certificates or invoices; contact only. Incompany invoices probably go to the organisation, so a per-contact query may return nothing.
+> - No local STB OpenAPI/Swagger spec. The only spec files are RINO's own: `/mnt/c/repos/adam/mijnrino/api/openapi.json` and `/mnt/c/repos/rino/Rino-api/swagger/` (Carta-era routes).
+>
+> ## 4. ID mapping and sync into Access
+>
+> **The course ID mapping is inconsistent:**
+> - `stb_sync`: `tblOpleidingen.PromptusID = train_group_id` (raw) (`config.php` L110-111, `CourseSync.php`). It also uses PK names like `pkOpleiding` / `pkDeelname`, while mijnRINO SQL uses `ID`.
+> - The webhook data API (`/mnt/c/repos/adam/mijnrino/api/AccessWriter.php` L21, L33, L633-637): `tblOpleidingen.PromptusID = GroupId + 2000000`.
+>
+> **Other IDs:**
+> - Participants: `tblDeelnemers.PromptusID` = STB `contactID`. Contacts are routed to a table by category (category 1 goes to `tblDeelnemers`).
+> - Enrollments: `tblDeelname.PromptusID` = `train_registration_id` (in stb_sync). The old Carta field is `tblDeelname.cartaid`.
+> - Logins: `tblLogins.PromptusID`. Organisations: `tblPOinstellingen.CartaID`.
+>
+> **How participants are synced:**
+> - `stb_sync`: `php cli-sync.php registrations` (CLI or cron), or `webhook.php` with `{entity, id, action}`. It upserts `tblDeelname` (`RegistrationSync.php` L108-141).
+> - Webhooks chain: STB → `webhooks/producer/webhook.php` → `StbEnricherHandler` → `MijnrinoApi` (`PUT /contacts/{id}`, `POST /coursegroups`, `DELETE /contacts/{id}?coursegroup=`) → `mijnrino/api/AccessRepository.php`.
+>   - Removing a participant sets `tblDeelname.Einddatum = #01/01/1970#` (`tombstoneDeelname` L539, `reconcileOpleidingDeelnemers` L443).
+>   - **Nothing in this path INSERTs into `tblDeelname`.**
+> - Legacy: the Promptus XML import (`promptus_perform.php`, `src/promptus/promptus_deelnemers.inc` L263-292) does insert into `tblDeelname`.
+>
+> **Contact persons (`tblKlantContactpersonen`, `tblDeelnameCP`): no STB sync exists.**
+> - Schema: `.deprecated/convert.php` L1848-1862. `tblDeelnameCP` has `fkOpleiding`, `fkKlantContactPersoon`, `Einddatum`, `datLoginMail`.
+> - They are maintained by hand through CMA forms: `assets/forms/opleidingen_contactpersonen.json`, `contactpersonen.json`, `contactpersonen_contactpersoon_voor.json`.
+> - The role is `USER_TYPE_KLANTCP` = 9131 (`src/classes/login/class_login.inc` L118). Login loads the courses via `tblDeelnameCP` where `Einddatum` is empty or in the future (L1000-1008). The menu for this role is empty (`src/includes/header.inc` L575).
+> - The welcome mail is sent from `task_controles.php` L265-274.
+> - The only past sync was Carta: `/mnt/c/repos/rino/Rino-api/pages/api/carta_sync/klantcontactpersoon/[id].js`, keyed on `PromptusID`.
+> - The STB group payload does include `TraingroupContacts`, but no code stores it.
+>
+> ## Hardcoded secrets in source
+> I'm not repeating the values. They are in `global.asa.php` L44-55 (`stb_api_key` fallback and SSO client secrets), `profiel/app/RegistrationHelper.php` L33, `stb_sync/config.php` L13, a comment at `src/sync/sync_shared.inc` L163, and `portal/RINO_API.inc` L5.
+>
+> ## Not found
+> - Any STB endpoint to create an enrollment directly, or to delete/cancel one. You'd need STB's API docs or the supplier to confirm whether something like POST/PUT/DELETE on `RINO-trainregistration` exists.
+> - Any query by group or organisation for certificates or invoices.
+> - Any sync of contact persons from STB.</result>
+> <usage><subagent_tokens>177666</subagent_tokens><tool_uses>52</tool_uses><duration_ms>475367</duration_ms></usage>
+> </task-notification>
+
+> <task-notification>
+> <task-id>afa50c0260ae4770b</task-id>
+> <tool-use-id>toolu_011saLzyX5Gfw1TDYVEhuRyw</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/6277d625-d10f-4422-8812-5d33d69e9aa7/tasks/afa50c0260ae4770b.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Map logins, deelname, roles" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I covered all five questions. Nothing was modified. Line numbers are from the current working tree of `/mnt/c/repos/adam/mijnrino_php`.
+>
+> ## 1. How a login is created
+>
+> **`/mnt/c/repos/adam/mijnrino_php/src/promptus/promptus_login.inc`**
+> - **`CreateLogin`** (line 25):
+>   `CreateLogin($node, $strCartaID, $fkDeelnemer, $fkDocent, $fkPraktijkopleider, $fkSRHForumLid, $fkSRHServicepakket, $fkKlantContactPersoon, $fkPOpleider)`
+>   - It reads the names from the Promptus XML `$node` and looks up the email in the role table by PromptusID (tblDocenten, tblDeelnemers or tblPraktijkopleiders). There is no lookup for tblKlantContactpersonen; it falls back to the XML `Email` attribute.
+>   - It then calls `Internal_CreateLogin`.
+> - **`Internal_CreateLogin`** (line 55):
+>   `Internal_CreateLogin($strVolledigeNaam, $strOrganisatie, $strRoepnaam, $strTussenvoegsels, $strAchternaam, $sEmail, $strGeboorteJaar, $strCartaID, $fkDeelnemer, $fkDocent, $fkPraktijkopleider, $fkSRHForumLid, $fkSRHServicepakket, $fkKlantContactPersoon, $fkPOpleider)`
+>   - **Finding an existing login (l.69–78):** it builds `$cWhere` from the first non-'0' FK, in this order: fkP_Praktopl, fkKlantContactPersoon, fkDeelnemer, … It then looks for an existing login by that FK, then by `PromptusID`, then by `Login = email`.
+>   - **Bug at l.70:** `$iType` has no KLANTCP branch, so it becomes 0 for a contact person.
+>   - **New login (l.80–89):** `INSERT INTO tblLogins (fkDeelnemer, fkDocent, fkPraktijkopleider, fkSRHServicePakket, fkSRHForumLid, fkKlantContactPersoon, fkP_Praktopl, PromptusID, Login, Toegangscode, Password_Enc, Roepnaam, AchternaamCompleet, email_primair_onbevestigd)`
+>     - Username: `Login` = the email.
+>     - Password: `Toegangscode` = `'-'`, and `Password_Enc` = `Encryption::sha256('-')`. No real password is generated.
+>     - The email goes into `email_primair_onbevestigd` (unconfirmed).
+>   - **Existing login (l.91):** `UPDATE tblLogins SET &lt;fk&gt;=…, Actief=-1, PromptusID=… WHERE ID=…`. This adds the role to that login.
+>   - **Name fields (l.98):** always updates Roepnaam, AchternaamCompleet and Tussenvoegsel.
+>   - **GUID:** the code never writes `tblLogins.Guid`; it only reads it (l.102, 113). It is presumably a DB default (Access autonumber GUID). I can't confirm this because I can't open the .mdb schema here.
+>   - **Welcome mail (l.100–133):** explicitly skipped when `$fkDeelnemer != 0 || $fkKlantContactPersoon != 0`. The comment says those mails go out "in de 17:00 batch". Other roles get `loginbericht_overige_rollen` with an activation link `/bevestig_email.php?uuid=&lt;Guid&gt;`, then `datVerstuurd = Date()`.
+> - **Callers:** only `promptus_deelnemers.inc:225,241,392,403`, `promptus_personen.inc:98,134` and `promptus_rooster.inc:674,692`. **No caller ever passes `$fkKlantContactPersoon`.**
+>
+> **`/mnt/c/repos/adam/mijnrino_php/task_controles.php`**
+> - l.263: `if (SEND_LOGIN_EMAILS) {`. Inside it, the contact-person welcome blocks `1700_mail_2` and `1700_mail_2a` (l.264–275) are wrapped in **`if (false)`**, so they are dead code.
+>   - They join tblDeelnameCP → tblKlantContactpersonen → tblLogins, filtered by `$actiefCriterium` (`DatOnSite&lt;=Date()`, l.177) and old vs new account (`email_primair_onbevestigd` null / not null).
+>   - They stamp `tblDeelnameCP.datLoginMail`.
+>   - The text comes from `$CONTACTPERSOON_WELKOM_CONTENT = $LOGIN_EMAIL_CONFIRM_MESSAGE` (l.93).
+>   - `DO_Controle` is defined at l.792.
+> - `SEND_LOGIN_EMAILS` is defined as **false** in `src/includes/utils.inc:28` (repeated at l.53). The same flag also gates `src/pagina/beheer/cma_afterpost.php:276`. When it is false, that code instead moves `email_primair_onbevestigd` straight into `email_primair` without sending a mail (l.~290). It also gates `src/promptus/promptus_rooster.inc:711`.
+>
+> **Other places that create tblLogins rows**
+> - **`src/sync/sync_shared.inc:112` `CreateLogin($objContactJson)`** — a different function with the same name, used by `src/sync/make_login.php:93` (the "Maak en Haak" screen).
+>   - It INSERTs PromptusID (= STB contactID), Login, Roepnaam, AchternaamCompleet, Tussenvoegsel, email_primair, email_primair_onbevestigd and weergavenaam from STB contact JSON. It sends no mail.
+>   - Role-adding pattern you can copy: `AddRoleCiToLogin` (l.290) and `AddRolePoToLogin` (l.320) insert into the role table, then `RegisterNewRoleToLogin($loginId, $roleId, $col)` (l.~355) runs `UPDATE tblLogins SET &lt;col&gt;=…`. Helpers: `getLoginId($email)` (l.371) and `getRoleId($loginId, $col)` (l.384).
+>   - **Both files define `CreateLogin` behind `function_exists`, with different signatures. Never include both in one request.**
+> - **`src/opleiding/opleiding_voordracht_aanmakenaccount.inc:20` `CreateMijnRinoAccount(...)`** — the closest precedent for a local "add participant" flow:
+>   - Finds or creates `tblOpleidingen` by code.
+>   - Finds `tblDeelnemers` by email, or INSERTs `(Achternaam, VolledigeNaam, email, PromptusID, eMailNotificaties)`.
+>   - INSERTs `tblDeelname (fkDeelnemer, fkOpleiding, toegelaten, fkPraktijkopleider)`.
+>   - INSERTs `tblLogins (fkDeelnemer, WeergaveNaam, Roepnaam, AchternaamCompleet, Login, email_primair, Actief, PromptusID)`, or UPDATEs an existing login. It sends no mail.
+> - **profiel registration** (`profiel/registration-*.php`, `profiel/app/*`): this creates STB profiles and contacts through the RINO API, not tblLogins rows. I did not find a local INSERT there.
+>
+> ## 2. tblDeelname, tblDeelnemers and tblOpleidingen
+>
+> **Sync (Promptus XML)**
+> - Flow: `promptus_notificatie.php` → `promptus_perform`. The participant handling is in `src/promptus/promptus_deelnemers.inc`:
+>   - **`ProcessDeelnemerNode` (l.196):** INSERT `tblDeelnemers (VolledigeNaam, Achternaam, MV, Organisatie, Organisatie2, Functie1, Functie2, Email, GeboortePlaats, GeboorteDatum, PromptusID, eMailNotificaties)`, matched by PromptusID then email.
+>   - **`ProcessDeelnameNode` (l.~245):** INSERT `tblDeelname (fkOpleiding, fkDeelnemer, fkHoofddeelname, EindDatum, Certificaatdatum, datVerwachteEinddatum, toegelaten)` (l.282). Toetsen are copied in if the course has not started.
+> - **Removal:**
+>   - If the course is already active (`MyGetOplIsActief`): set `Einddatum` (to the cancellation date, or `#01-01-1970#`) and `datLoginMail = 1970`.
+>   - If it is not active yet: `DELETE FROM tblToetsPerDeelnemer` + `DELETE FROM tblDeelname` (l.~90–96).
+>   - When `IsVerwijderd = j`: `EindDatum=#01-01-1970#` (l.~291).
+> - **Caveat:** this converted file contains broken PHP such as `$objXML.documentElement.childNodes` (string concatenation, l.44). It may not run as-is.
+>
+> **tblDeelname columns**
+> - From `assets/forms/opleidingen_deelnemers.json`: fkOpleiding, fkDeelnemer, fkHoofddeelname, fkPraktijkOpleider, fkHoofdDocent, toegelaten, toegelaten_datum, Einddatum, CertificaatDatum, datVerwachteEinddatum, datAangemeld, datLoginMail, datLoginMailPO, inhaler, factuurgegevens_*.
+> - Also used elsewhere: bPauze and datPauze.
+> - Status filters (`src/includes/utils.inc:31–39`): `SQL_ACTIEVE_DEELNAME`, `SQL_DEELNAME_ARCHIEF` (certificaatdatum ≤ today and einddatum not passed), `SQL_DEELNAME_BEEINDIGD`, `SQL_DEELNAME_DEELNEMER_TOEGANG`.
+>
+> **tblDeelnameCP**
+> - Schema from the ASP `convert.asp:2603`: `(ID AUTOINCREMENT, fkOpleiding INTEGER, fkKlantContactPersoon INTEGER, Einddatum DateTime)`, with `datLoginMail` added at l.2571 and FKs to tblKlantContactpersonen and tblOpleidingen.
+> - Maintained only through CMA forms: `assets/forms/opleidingen_contactpersonen.json` and `assets/forms/contactpersonen_contactpersoon_voor.json`.
+> - `src/pagina/beheer/cma_afterpost.php:212` runs `SELECT fkDeelname FROM tblDeelnameCP`. That column doesn't exist, so this archive guard will error or do nothing for this table.
+>
+> **tblOpleidingen dates**
+> - **`Startdatum`**: course start. `MyGetOplIsGestart` (`src/promptus/promptus_utils.inc:364`) uses `[startdatum]&lt;=Date()`.
+> - **`datOnSite`**: the date the course is visible/active on the site. `MyGetOplIsActief` (l.355) uses this, and so does the welcome-mail `$actiefCriterium`. `#01-01-2030#` means "not online".
+> - **`sluitdatum`**: course closed. Used in `assets/forms/opleidingen.json` listQuery and `class_login.inc:1230`.
+> - Also present: datDocentenOnline, datMedewOnline, bHerregistratie, bTijdelijkeGroep, bBlended, BNSOpleiding.
+>
+> **Incompany marker**
+> - There is no boolean flag. The type is `tblOpleidingen.fkOplSoort` → `tblOpleidingenSoort`, with constants in `src/includes/utils.inc:42–43`: `OPLSOORT_MAATWERK = 26` and **`OPLSOORT_IC = 27` ("IC" = incompany)**. Promptus "Cursussoort" names include 'IC', 'Maatwerk' and 'Open Maatwerk' (`promptus_rooster.inc:300`, `make_import_csv.php:143`).
+> - `OPLSOORT_IC` is never referenced anywhere apart from its definition.
+> - The only "bedrijfsopleiding" text is in the welcome-mail descriptions and the comment at `class_login.inc:995`.
+>
+> ## 3. Page structure
+>
+> **index.php dispatch** (`/mnt/c/repos/adam/mijnrino_php/index.php`)
+> - Includes at l.23–59. Add a `require_once` for any new .inc there.
+> - Central pageaction RBAC at l.187–193 looks up `page_role_rules()['index.php?pageaction=&lt;x&gt;']`. If the role is denied, `$paAccessDenied` triggers the message at l.205.
+> - The dispatch is an `elseif ($strPageAction == '...')` chain from l.207 to l.344. Add a new branch next to `opleidingen`/`deelnemers` (l.301–319), before `WriteBottom()` at l.346.
+> - Pageactions that skip login are listed at l.98–112. A new page should not go there.
+>
+> **Header menu** (`src/includes/header.inc`)
+> - l.575: `if ($LoginType == USER_TYPE_KLANTCP) { } else { …opleiding/deelnemers items… }`. The ASP had the same empty branch (`mijnrino/header.inc:403`).
+> - Use `WriteSubItem(url, label)` or `WriteInMenu('&lt;li&gt;…')`, as in l.580/590.
+> - l.538 excludes KLANTCP from the Dossioma/IOP links (inside `if (false)`).
+> - l.684–689: for every non-external login the profile menu shows Registraties, Interesselijst, **Facturen** (`mijn_facturen()`) and **Accreditaties en certificaten** (`mijn_certificaten()`).
+> - l.715: the role switch already offers KLANTCP.
+>
+> **Login role setup** (`src/classes/login/class_login.inc:1000–1009`)
+> - KLANTCP sets `$LoginType` and `$UserAlleOpleidingen` from tblDeelnameCP rows where `Einddatum` is null or in the future. It sets `$UserOpleidingen = ''` (l.991). The generic code at l.1262–1306 later fills it from the cookie or `$UserAlleOpleidingen`.
+>
+> **RBAC registry**
+> - `/mnt/c/repos/adam/mijnrino_php/data/page_roles.json`, key `"pages"`, format:
+>   `"index.php?pageaction=X": {"roles": ["klantcp", ...]}`
+>   For ajax: `"src/ajax/X.php": {"roles": [...], "ajax": true}`.
+>   - Role slugs are in `config/page_roles.php:124–136` `page_role_map()`. **`klantcp` already maps to `USER_TYPE_KLANTCP`.** No page currently grants `klantcp`.
+>   - Existing entries: `index.php?pageaction=opleidingen` (l.156) and `deelnemers` (l.190).
+> - **The gate is live and fail-closed:** `app.php:40` sets `feature_page_rbac = true`. Any unlisted page or endpoint is denied.
+> - `enforce_page_roles()` (`config/page_roles.php:143`) aggregates by file. For `src/ajax/ajax.php?type=X` it applies the roles of `src/ajax/X.php` (l.~185–200).
+>
+> **Ajax**
+> - `src/ajax/ajax.php` (14 lines) just calls `\App\Library\Ajax::run(__DIR__)`. The dispatcher is `src/ajax/AjaxRunner.php`.
+> - Handler files are `src/ajax/&lt;type&gt;.php` and call `Ajax::register('&lt;type&gt;', fn, requiresLogin: true[, requiresRole: …])`. No existing handler uses `requiresRole`; the role check comes from page_roles.json.
+> - The dispatcher's documented contract: the handler returns an array, which is JSON-encoded. Legacy handlers `echo` JSON instead; that output is captured and decoded (AjaxRunner ~l.155–170).
+> - Representative endpoint, `src/ajax/set_rooster_zichtbaar.php` (registry l.716: roles `["assistent"]`, `"ajax": true`):
+>   ```php
+>   \App\Library\Ajax::register('set_rooster_zichtbaar', function () {
+>       Response::noCache(); Debug::setActive(false);
+>       $parID = Request::queryInt('id'); $parZichtbaar = Request::query('zichtbaar', '');
+>       if (hasValue($parID) &amp;&amp; hasValue($parZichtbaar)) {
+>           $sql = 'update tblAgenda set VisibleState=' . $parZichtbaar . ' where ...';
+>           echo Database::execute($sql, []) ? '{"succes" : true}' : '{"succes" : false}';
+>       } else { echo '{"succes" : false, "error" : "Ontbrekende parameter"}'; }
+>   }, requiresLogin: true);
+>   ```
+>   - `set_compensatie_akkoord.php` shows the extra archive guard (`Deelnemer_IsArchief` → `utils_WriteArchiefMelding_Json()`).
+>   - Existing endpoints spell the key `"succes"` (one s), while the dispatcher's own envelope uses `success`.
+>
+> ## 4. Existing participant, certificate and invoice UI
+>
+> **Participant lists**
+> - **`src/opleiding/opleiding_deelnemers.inc` `OpleidingDeelnemers()`** (l.19): l.28 already treats `USER_TYPE_DEELNEMER || USER_TYPE_KLANTCP` the same way. It renders `snippet('pdo_deeln_deeln{tbldeelname.fkOpleiding=…}')` and `pdo_deeln_docenten`, read-only. It is called from `src/includes/index_opleidingen.inc:395,400`.
+> - **Datastore `pdo_deeln_deeln`** (`assets/datastores/data-sources.json:143`): deelnemers + tblLogins joined on tblDeelname, where EindDatum is null or in the future, excluding bHerregistratie and bTijdelijkeGroep. Template: `src/templates/datastores/pdo_deeln_deeln.twig`, which renders person cards through the `_macros/person.twig` `person.card` macro. Sibling templates are `pdo_deeln_*.twig`.
+> - **`src/includes/index_deelnemers.inc` `toon_deelnemers()`** (l.26): the paginated, searchable participant table with active and archive tabs.
+>   - Its role filter (l.~75–110) is fail-closed through `lib_RolbeperkingAanwezig` and has no KLANTCP branch.
+>   - Its query includes `tblDeelname.certificaatdatum`.
+>
+> **Certificates and invoices** — these come from STB/CRM through the profiel app, not from local tables, and only for the logged-in person's own contactId:
+> - `profiel/secties/facturen.php` and `factuur-download.php` use `ContactClient::getInvoices($contactId)` (`profiel/app/ContactClient.php:314`, `RINO-invoice/findByQuery?contact_id=&amp;status=2`). The download includes an ownership check against IDOR.
+> - `profiel/secties/certificaten.php` and `certificaat-download.php` use `getCertificates()` (l.209, only `TrainRegistrationStatus == 128`), `publishCertificate()` and `downloadFile()` (l.253).
+> - They are opened from `general.js:1489–1493` (`mijn_facturen()`, `mijn_certificaten()`) via `profiel/loader.php`, with their own bootstrap and session in `profiel/secties/_bootstrap.php`.
+> - **Nothing lets one person see another person's invoices or certificates.** Showing participants' invoices to a contact person would need new STB queries for each participant's contactId (= `tblDeelnemers.PromptusID`), plus an ownership check through tblDeelnameCP.
+> - Local data that exists: `tblDeelname.certificaatdatum`, and the `pdo_factuurverklaringen.twig` datastore (factuurgegevens_ingevuld per participant).
+>
+> ## 5. CLAUDE.md hard rules
+>
+> Files: `/mnt/c/repos/adam/mijnrino_php/CLAUDE.md`, `.claude/CLAUDE.md`, `profiel/CLAUDE.md`.
+> - **Never edit the CMA platform:** `vendor/stenversonline/platform/`, `cma/`, `library/`, `module/`. Report platform bugs instead.
+> - Editable here: root `*.php`/`*.inc`, `src/`, `app.php`, `.env`, `data/`, `assets/forms/*.json`.
+> - Don't edit the synced helper classes (`app/library`, source in the converter). Don't add bootstrap includes to pages (`_bootstrap.php` is auto-loaded).
+> - **Never use `is_array()`; use `Arr::isArray()`.**
+> - **Every feature or bugfix needs a test:**
+>   - Add each new page or endpoint to `data/page_roles.json`. It drives the RBAC gate, the PHP role-walker and Playwright, and the role-walker reads each entry's `roles` (plus `ajax: true` for JSON endpoints).
+>   - Add a Playwright spec for behavioural changes; run with `npm run test:e2e`.
+>   - Specs actually live in `.tests/e2e/` (CLAUDE.md says `e2e/`). The walker is `.tests/roles_walk_lib.php`.
+>   - **The walker excludes `klantcp` today:** `.tests/roles_walk_lib.php:113–117` uses `$concrete = [...]` without klantcp, and `.claude/full_tests.md:130–140` calls it "intentionally seedless". A probe mapping exists in `.tests/_probe_roles.php:76`.
+> - UI: reuse existing colours and controls, don't invent new layouts.
+> - New JS/CSS is minified at cache-clear time.
+> - profiel/CLAUDE.md: RINO API field names are inconsistent per endpoint; copy them exactly.
+>
+> ## Not found / gaps
+> - No local code ever creates a `fkKlantContactPersoon` login or a tblKlantContactpersonen row. Both are CMA-only, and the Promptus import never passes the FK.
+> - There is no active contact-person welcome mail (`if (false)`), and `SEND_LOGIN_EMAILS` is false.
+> - There is no incompany boolean; only `fkOplSoort = 27` (`OPLSOORT_IC`).
+> - I couldn't inspect the .mdb schema (no mdb-tools), so the Guid default and the exact tblKlantContactpersonen columns are inferred from forms and queries (ID, VolledigeNaam, Achternaam, Email, EmailNotificaties).</result>
+> <usage><subagent_tokens>155809</subagent_tokens><tool_uses>44</tool_uses><duration_ms>581121</duration_ms></usage>
+> </task-notification>
+
+> Kunnen we de api calls stubben?
+
+> ja graag wel goed documenteren wat je hebt gestubt.
+
+> de stubs doen nu dingen die volgens mij wel mogelijk zijn. Kun je dat dubbel checken?
+
+> de stubs doen nu dingen die volgens mij wel mogelijk zijn. Kun je dat dubbel checken?
+
+> kun je test-data genereren voor pietje puk? En contactpersonen moeten bestaande deelnemers kunnen kiezen of een nieuwe deelnemer aan kunnen maken en kunnen koppelen aan een incompany training
+
+> wacht even met de live koppeling. stub die inderdaad eerst maar even
+
+> kun je committen en pushen?
+
+> ik blijf blokkeren op het wisselen van rollen
+
+> data/db/testdata_incompany_pietje.php staat er niet?
