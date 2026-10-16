@@ -967,6 +967,15 @@ function cmaSetIsDirty(value, element) {
     // welk formulier hij hoort. De opmaak selecteert nu vanaf .form-layout.
 }
 
+/**
+ * Form web components that hold their own value: lib-combo is not form-associated,
+ * the pickers and the radio group only are where the engine has ElementInternals,
+ * and none of them is handled by the form.elements loop of buildChangelog(). Change
+ * tracking (captureOriginalValues / getChangedFields / buildChangelog) reads these
+ * by .value, the same way collectFormData() posts them.
+ */
+const CMA_VALUE_COMPONENTS = 'lib-combo[name], lib-datepicker[name], lib-timepicker[name], lib-radio-group[name]';
+
 class CmaFormController {
     /**
      * @param {number} formId - Form ID
@@ -10161,21 +10170,12 @@ class CmaFormController {
                         // cmaLog.log('[buildChangelog] field:', objfield.name, 'type:', objfield.type, 'current:', objfield.value.substring(0, 30), 'original:', String(originalValue).substring(0, 30), 'hasDataOrig:', !!objfield.dataset.originalValue, 'bShowAll:', bShowAll);
                     }
                     if (objfield.value !== originalValue || bShowAll) {
-                        let sOld, sNew;
+                        // Trim values - use data-original-value for AJAX-loaded forms
+                        const trimmedValue = this.specTrim(objfield.value);
+                        const trimmedDefault = this.specTrim(objfield.dataset.originalValue ?? objfield.defaultValue ?? '');
 
-                        // Handle lib-combo fields - get display text from selected option
-                        if (objfield.tagName === 'LIB-COMBO') {
-                            sOld = objfield.getAttribute('data-default_value') || objfield.dataset.originalValue || '';
-                            const selectedOpts = objfield.selectedOptions;
-                            sNew = selectedOpts && selectedOpts.length > 0 ? selectedOpts[0].label : objfield.value;
-                        } else {
-                            // Trim values - use data-original-value for AJAX-loaded forms
-                            const trimmedValue = this.specTrim(objfield.value);
-                            const trimmedDefault = this.specTrim(objfield.dataset.originalValue ?? objfield.defaultValue ?? '');
-
-                            sOld = this.specCharReplace(trimmedDefault);
-                            sNew = trimmedValue;
-                        }
+                        const sOld = this.specCharReplace(trimmedDefault);
+                        const sNew = trimmedValue;
 
                         // For ADD mode (bShowAll), only include fields that have a value
                         // For EDIT mode, include if value changed (even if now empty)
@@ -10249,6 +10249,24 @@ class CmaFormController {
                     this.formChangeAdd(mockField, bDefaultValue ? 'Aan' : 'Uit', sw.checked ? 'Aan' : 'Uit', frm_changelog, frm_changelog_flds, frm_changelog_type, frm_action);
                     blnRetval = true;
                 }
+            }
+        });
+
+        // Value components (CMA_VALUE_COMPONENTS): lib-combo is not in form.elements,
+        // and the pickers / radio group report a type ('date', 'time', none) the loop
+        // above has no branch for. Without this a changed dropdown never reached
+        // _changelog / _changelog_flds, so afterpost logic that checks "was field X
+        // changed" missed it.
+        this.mainForm.querySelectorAll(CMA_VALUE_COMPONENTS).forEach(field => {
+            const name = field.getAttribute('name');
+            if (!name || name.startsWith('_')) return;
+            const sOldValue = field.dataset.originalValue ?? '';
+            const sNewValue = this.componentFieldValue(field);
+            if (sNewValue !== sOldValue || (bShowAll && sNewValue !== '')) {
+                const sOld = sOldValue === '' ? '' : (field.dataset.originalLabel || sOldValue);
+                const sNew = sNewValue === '' ? '' : this.componentFieldLabel(field);
+                this.formChangeAdd({ name: name }, sOld, sNew, frm_changelog, frm_changelog_flds, frm_changelog_type, frm_action);
+                blnRetval = true;
             }
         });
 
@@ -12114,6 +12132,26 @@ class CmaFormController {
     }
 
     /**
+     * Value of a lib-combo / lib-datepicker / lib-timepicker / lib-radio-group as it
+     * is posted: a multi-select combo joined with commas, like collectFormData().
+     */
+    componentFieldValue(field) {
+        const value = field.value;
+        if (Array.isArray(value)) return value.join(',');
+        return (value === null || value === undefined) ? '' : String(value);
+    }
+
+    /**
+     * Display text of such a component for the changelog: the selected option
+     * label(s) of a combo, otherwise the value itself.
+     */
+    componentFieldLabel(field) {
+        const selected = field.tagName === 'LIB-COMBO' ? (field.selectedOptions || []) : [];
+        if (selected.length > 0) return selected.map(opt => opt.label ?? opt.text ?? opt.value).join(';');
+        return this.componentFieldValue(field);
+    }
+
+    /**
      * Get list of changed fields with their labels and values
      * @returns {Array} Array of { label, oldValue, newValue } objects
      */
@@ -12154,7 +12192,9 @@ class CmaFormController {
             return s === 'j' || s === 'y' || s === '1' || s === '-1' || s === 'true' || s === 'ja' || s === 'yes';
         };
 
+        const seenInFormData = new Set();
         for (const [name, newValue] of formData.entries()) {
+            seenInFormData.add(name);
             // Skip hidden/system fields, __label fields (display-only), and _changelog fields
             if (name.startsWith('_') || name.endsWith('__label') || name === 'ID' || name === 'FormID') continue;
 
@@ -12187,6 +12227,25 @@ class CmaFormController {
                 newValue: newStr
             });
         }
+
+        // Web components whose value FormData does not carry (CMA_VALUE_COMPONENTS).
+        // Without this a change made only in a dropdown counted as "no change" and
+        // saveRecord() skipped the save. Names FormData did carry are already compared.
+        mainForm.querySelectorAll(CMA_VALUE_COMPONENTS).forEach(field => {
+            const name = field.getAttribute('name');
+            if (!name || name.startsWith('_') || seenInFormData.has(name)) return;
+
+            const origStr = field.dataset.originalValue ?? '';
+            const newStr = this.componentFieldValue(field);
+            if (origStr === newStr) return;
+
+            changes.push({
+                field: name,
+                label: labelMap[(field.dataset.field || name).toLowerCase()] || name,
+                oldValue: origStr,
+                newValue: newStr
+            });
+        });
 
         // Also check checkboxes (they don't appear in FormData when unchecked)
         mainForm.querySelectorAll('input[type="checkbox"], lib-switch').forEach(field => {
@@ -12265,6 +12324,16 @@ class CmaFormController {
                 field.dataset.originalValue = field.checked ? 'true' : 'false';
                 capturedCount++;
             }
+        });
+
+        // Capture the value components FormData does not carry (see getChangedFields).
+        // The label is kept too, so the changelog can show "was" as text, not an id.
+        mainForm.querySelectorAll(CMA_VALUE_COMPONENTS).forEach(field => {
+            const name = field.getAttribute('name');
+            if (!name || name.startsWith('_') || processedFields.has(name)) return;
+            field.dataset.originalValue = this.componentFieldValue(field);
+            field.dataset.originalLabel = this.componentFieldLabel(field);
+            capturedCount++;
         });
 
         // Log capture result for debugging Notificatie issue

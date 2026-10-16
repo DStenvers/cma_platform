@@ -112,8 +112,10 @@ function lib_FormValRequired()
             $arrRequired = explode(',', $strRequiredField);
         }
     }
-    Request::postAll();
-    foreach (Request::postAll() as $fld) {
+    // Loop over the posted field NAMES, as VBScript "for each fld in request.form" does;
+    // the value is read per name below.
+    foreach (array_keys(Request::postAll()) as $fld) {
+        $fld = (string) $fld;
         $blnRequired = (is_null(substr($fld, 0, max(0, min(9, strlen($fld))))) ? "" : strtolower(substr($fld, 0, max(0, min(9, strlen($fld)))))) == 'required-';
         if (!$blnRequired) {
             if (Arr::isArray($arrRequired)) {
@@ -404,9 +406,11 @@ function lib_FormPassOn($strSkipFlds)
     $arrSkip = array();
     $sVal = null;
     $arrSkip = Arr::splitAlways($strSkipFlds, ',');
-    Request::postAll();
-    foreach (Request::postAll() as $fld) {
-        if (!Arr::findTrimmed($arrSkip, $fld) > -1) {
+    // Field NAMES, as VBScript "for each fld in request.form" yields. VBScript's
+    // "not find(...) > -1" negates the comparison, so the parentheses are needed here.
+    foreach (array_keys(Request::postAll()) as $fld) {
+        $fld = (string) $fld;
+        if (!(Arr::findTrimmed($arrSkip, $fld) > -1)) {
             $sVal = Str::trim(Request::post($fld, ''));
             if ($sVal!= '') {
                 $sVal = str_ireplace("'", '&apos;', str_ireplace(chr(34), '&quot;', lib_HTML_CharacterCompile($sVal)));
