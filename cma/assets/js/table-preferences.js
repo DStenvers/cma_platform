@@ -681,8 +681,20 @@ class CmaInfiniteScroll {
         }, 50);
     }
 
-    /** Rebuild the column filter menus so they include every row now in the table. */
+    /**
+     * Rebuild the column filter menus so they include every row now in the table.
+     * lib-table collects its rows and filter choices once, from the first chunk;
+     * refresh() re-collects them and re-applies the active filters, so a column
+     * filter also hides rows that arrived later. A table outside a lib-table
+     * keeps the jQuery excelTableFilter path when that plugin is loaded.
+     */
     refreshFilters() {
+        const libTable = this.table && typeof this.table.closest === 'function'
+            ? this.table.closest('lib-table') : null;
+        if (libTable && typeof libTable.refresh === 'function') {
+            libTable.refresh();
+            return;
+        }
         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.excelTableFilterRefresh === 'function') {
             jQuery(this.table).excelTableFilterRefresh();
         }

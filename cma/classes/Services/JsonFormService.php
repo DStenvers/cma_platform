@@ -701,8 +701,7 @@ class JsonFormService extends BaseFormService
 
                     // Format value based on type
                     if ($colType === 'boolean') {
-                        $boolVal = ($value === true || $value === 1 || $value === -1 ||
-                            strtolower((string)$value) === 'true' || $value === '1' || $value === '-1');
+                        $boolVal = ListServiceHelper::toBool($value);
                         if ($hasFullAccess) {
                             // Render as clickable toggle switch using lib-switch web component
                             $switchHtml = '<lib-switch data-field="' . htmlspecialchars($fieldName) . '"' .
@@ -1232,8 +1231,7 @@ class JsonFormService extends BaseFormService
                 $isFirstCol = false;
 
                 if ($colType === 'boolean') {
-                    $boolVal = ($value === true || $value === 1 || $value === -1 ||
-                        strtolower((string)$value) === 'true' || $value === '1' || $value === '-1');
+                    $boolVal = ListServiceHelper::toBool($value);
                     if ($hasFullAccess) {
                         $switchHtml = '<lib-switch data-field="' . htmlspecialchars($fieldName) . '"' .
                             ($boolVal ? ' checked' : '') . '></lib-switch>';
@@ -1980,8 +1978,7 @@ class JsonFormService extends BaseFormService
 
                 // Format value based on type
                 if ($colType === 'boolean') {
-                    $boolVal = ($value === true || $value === 1 || $value === -1 ||
-                        strtolower((string)$value) === 'true' || $value === '1' || $value === '-1');
+                    $boolVal = ListServiceHelper::toBool($value);
                     if ($hasFullAccess) {
                         // Render as clickable toggle switch using lib-switch web component
                         $switchHtml = '<lib-switch data-field="' . htmlspecialchars($fieldName) . '"' .
@@ -2168,8 +2165,7 @@ class JsonFormService extends BaseFormService
             $isFirstCol = false;
 
             if ($colType === 'boolean') {
-                $boolVal = ($value === true || $value === 1 || $value === -1 ||
-                    strtolower((string)$value) === 'true' || $value === '1' || $value === '-1');
+                $boolVal = ListServiceHelper::toBool($value);
                 if ($hasFullAccess) {
                     $switchHtml = '<lib-switch data-field="' . htmlspecialchars($fieldName) . '"' .
                         ($boolVal ? ' checked' : '') . '></lib-switch>';

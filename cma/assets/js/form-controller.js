@@ -10674,7 +10674,7 @@ class CmaFormController {
 
         this.showLoading();
         // Field values as they were, for the afterPostUrl (the form is cleared below)
-        const afterPostSnapshot = (this.afterPostUrl && this.mainForm) ? new FormData(this.mainForm) : null;
+        const afterPostSnapshot = (this.afterPostUrl && this.mainForm) ? this.afterPostFormData() : null;
 
         try {
             const response = await fetch(`/cma/form_api.php?action=delete&${this.getFormParam()}&id=${cmaGetRecordId(this.formLayout)}`);
@@ -12644,6 +12644,28 @@ class CmaFormController {
     }
 
     /**
+     * The form's field values as the afterPostUrl receives them: new FormData(form)
+     * plus the value components (CMA_VALUE_COMPONENTS). lib-combo is not
+     * form-associated, so FormData only carries its `<field>__label` input; the
+     * pickers and the radio group only are where the engine has ElementInternals.
+     * Their .value is set the way collectFormData() posts it for the save, so the
+     * afterpost handler sees the same field values the record was saved with.
+     * Fields whose name starts with `_` are internal and stay as FormData has them.
+     *
+     * @returns {FormData}
+     */
+    afterPostFormData() {
+        const body = this.mainForm ? new FormData(this.mainForm) : new FormData();
+        if (!this.mainForm) return body;
+        this.mainForm.querySelectorAll(CMA_VALUE_COMPONENTS).forEach(field => {
+            const name = field.getAttribute('name');
+            if (!name || name.startsWith('_')) return;
+            body.set(name, this.componentFieldValue(field));
+        });
+        return body;
+    }
+
+    /**
      * Execute the form's afterPostUrl after a save or delete.
      *
      * The classic CMA posted the whole form to this URL from the browser (a hidden
@@ -12663,7 +12685,7 @@ class CmaFormController {
         if (!this.afterPostUrl) return;
         const url = this.afterPostUrl.replace('[ID]', recordId);
         try {
-            const body = snapshot || (this.mainForm ? new FormData(this.mainForm) : new FormData());
+            const body = snapshot || this.afterPostFormData();
             for (const key of Array.from(body.keys())) {
                 if (key.startsWith('action')) body.delete(key);
             }

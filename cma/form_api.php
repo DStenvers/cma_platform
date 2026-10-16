@@ -1113,7 +1113,7 @@ try {
                 outputJson(['success' => false, 'error' => 'ParentID parameter is verplicht']);
                 exit;
             }
-            $indices = array_filter(array_map('intval', explode(',', $indicesParam)));
+            $indices = \Cma\Services\ListServiceHelper::parseIndexList((string)$indicesParam);
             if (empty($indices)) {
                 addDebug('EXIT: no indices');
                 sendDebugHeader();

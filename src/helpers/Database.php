@@ -366,6 +366,33 @@ class Database
     }
 
     /**
+     * Open a fresh, NON-persistent connection for a logical name (data/rep/users),
+     * with the same DSN and attributes as getConnection(). It is not pooled: every
+     * call returns a new handle that belongs to the caller alone, and it closes when
+     * the last reference goes away.
+     *
+     * Intended for transactions. getConnection() hands out one shared persistent
+     * handle per name, and the Access ODBC driver refuses beginTransaction() on it
+     * while any recordset is still open on that handle ("SQLSTATE[HY011] Attribute
+     * cannot be set now", AUTOCOMMIT = OFF). A private connection has no other open
+     * statements, so the transaction can start. Changes are visible to the pooled
+     * connection after commit.
+     *
+     * @param string $name Logical connection name (default 'data')
+     * @return PDO
+     * @throws PDOException When the name is not configured or the connection fails
+     */
+    public static function newConnection(string $name = 'data'): PDO
+    {
+        $name = trim($name) === '' ? 'data' : $name;
+        $dsn = self::getDsn($name);
+        if ($dsn === '') {
+            throw new PDOException("Database connection '$name' not configured in data/databases.json (expected an entry named '" . strtolower(trim($name)) . "').");
+        }
+        return self::createPDOConnection($dsn, strtolower(trim($name)), false);
+    }
+
+    /**
      * Resolve the DSN string for a logical connection name (data/rep/users),
      * as registered from databases.json by Bootstrap::initDatabaseConnections().
      * Returns '' if unknown. 'rep' falls back to 'data'. Used by components that
@@ -530,10 +557,11 @@ class Database
      *
      * @param string $dsn Database connection string
      * @param string $name Connection name (for error messages)
+     * @param bool $persistent Persistent handle (the pooled default); false for newConnection()
      * @return PDO Configured PDO connection
      * @throws PDOException If connection fails
      */
-    private static function createPDOConnection(string $dsn, string $name): PDO
+    private static function createPDOConnection(string $dsn, string $name, bool $persistent = true): PDO
     {
         // Detect driver from DSN
         $driver = 'unknown';
@@ -550,12 +578,15 @@ class Database
         // dsnForConnection(): een OLEDB-string komt in de pool onder een
         // gehashte sleutel te staan en is daarna nergens meer te herleiden,
         // terwijl native odbc_*-uitvragen die DSN wél nodig hebben.
-        self::$openedDsns[strtolower($name)] = $dsn;
+        if ($persistent) {
+            self::$openedDsns[strtolower($name)] = $dsn;
+        }
 
         try {
-            // Use persistent connections to avoid ODBC connection overhead on each request
+            // Pooled connections are persistent to avoid ODBC connection overhead on
+            // each request; newConnection() asks for a private, non-persistent one.
             $conn = new PDO($dsn, null, null, [
-                PDO::ATTR_PERSISTENT => true
+                PDO::ATTR_PERSISTENT => $persistent
             ]);
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

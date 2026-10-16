@@ -578,7 +578,30 @@ class ListServiceHelper
     }
 
     /**
-     * Convert database value to boolean
+     * Parse a comma-separated list of subform indices ("0,2,3"). Index 0 is the
+     * first subform and therefore a valid entry; blanks and non-numeric or negative
+     * pieces are dropped, duplicates collapse.
+     *
+     * @return int[]
+     */
+    public static function parseIndexList(string $param): array
+    {
+        $indices = [];
+        foreach (explode(',', $param) as $piece) {
+            $piece = trim($piece);
+            if ($piece !== '' && ctype_digit($piece)) {
+                $indices[(int)$piece] = (int)$piece;
+            }
+        }
+        return array_values($indices);
+    }
+
+    /**
+     * Convert a database value to boolean. Access returns a Yes/No field as -1/0
+     * (number or string, depending on the driver), and a list query may return a
+     * text expression instead: "Ja"/"Yes"/"True"/"-1"/"1"/true are true,
+     * "Nee"/"No"/"False"/"0"/0/false/null/'' are false. Every boolean list cell
+     * (JsonFormService, SubformService, TableService) uses this one table.
      */
     public static function toBool($value): bool
     {

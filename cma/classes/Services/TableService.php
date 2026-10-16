@@ -13,6 +13,7 @@ use Cma\FormControlHelper;
 use Cma\FormDefinition;
 use Cma\JsonFormLoader;
 use Cma\ListMode;
+use Cma\SecurityHelper;
 
 /**
  * Table Service
@@ -981,10 +982,7 @@ class TableService extends BaseFormService
         $dataType = 'text';
 
         if ($controlType == FormControlHelper::TYPE_CHECKBOX) {
-            $boolVal = is_bool($value) ? $value : (
-                $value === 1 || $value === '1' || $value === -1 || $value === '-1' ||
-                strtolower((string)$value) === 'true'
-            );
+            $boolVal = ListServiceHelper::toBool($value);
             $dataType = 'boolean';
             $canEditField = $rights >= SecurityHelper::ACCESS_FULL;
             if ($canEditField) {

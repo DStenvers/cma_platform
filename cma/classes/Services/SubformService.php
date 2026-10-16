@@ -733,10 +733,7 @@ class SubformService extends BaseFormService
                         }
                         $html .= '<td data-field="' . Server::htmlEncode($col) . '" data-type="image" class="cma-list-thumb-cell">' . $prefix . $inner . '</td>';
                     } elseif ($controlType == FormControlHelper::TYPE_CHECKBOX) {
-                        $boolVal = is_bool($value) ? $value : (
-                            $value === 1 || $value === '1' || $value === -1 || $value === '-1' ||
-                            strtolower((string)$value) === 'true'
-                        );
+                        $boolVal = ListServiceHelper::toBool($value);
 
                         if ($inlineEdit) {
                             // Render as interactive switch for inline editing
