@@ -313,16 +313,39 @@ class ListServiceHelper
      * searched all of those, not only the listed columns, so a search on a memo or
      * an unlisted text column finds the record. The record id always matches on
      * a numeric term.
+     *
+     * Combobox fields are searched on the text the user SEES, not on the stored
+     * foreign key: each one adds `[fk] IN (SELECT id FROM ... WHERE display LIKE)`
+     * (see comboSearchCondition). That holds for every combobox of the form when
+     * quickSearchFields is empty, and for each combobox named in quickSearchFields.
      */
     public static function quickSearchConditions(string $term, array $jsonData, array $listColumns, array $fieldsByName, string $tableName, string $idField): array
     {
         $searchConditions = [];
         $searchEscaped = SQL::postString('%' . $term . '%');
 
+        // In a joined listQuery the form's own columns are qualified with its table.
+        $listQuery = (string)($jsonData['listQuery'] ?? '');
+        $qualify = $tableName !== '' && stripos($listQuery, ' JOIN ') !== false;
+        $formDatabase = strtolower((string)($jsonData['database'] ?? ''));
+
         $quickSearchFields = $jsonData['quickSearchFields'] ?? '';
         if ($quickSearchFields !== '') {
+            $fieldDefs = [];
+            foreach ($jsonData['fields'] ?? [] as $fieldDef) {
+                if (!empty($fieldDef['name'])) $fieldDefs[strtolower($fieldDef['name'])] = $fieldDef;
+            }
             $fields = array_filter(array_map('trim', explode(',', $quickSearchFields)));
             foreach ($fields as $fieldName) {
+                $fieldDef = $fieldDefs[strtolower($fieldName)] ?? $fieldsByName[strtolower($fieldName)] ?? null;
+                if ($fieldDef !== null && in_array($fieldDef['type'] ?? '', self::COMBO_SEARCH_TYPES, true)) {
+                    $column = $qualify ? "[$tableName].[$fieldName]" : "[$fieldName]";
+                    $comboCond = self::comboSearchCondition($fieldDef, $column, $term, $formDatabase);
+                    if ($comboCond !== null) {
+                        $searchConditions[] = $comboCond;
+                    }
+                    continue;
+                }
                 $searchConditions[] = "[$fieldName] LIKE $searchEscaped";
             }
         } else {
@@ -354,8 +377,6 @@ class ListServiceHelper
 
             // Text-like fields of the form that are not list columns. In a joined
             // listQuery the column is qualified with the form's table (old behaviour).
-            $listQuery = (string)($jsonData['listQuery'] ?? '');
-            $qualify = $tableName !== '' && stripos($listQuery, ' JOIN ') !== false;
             $textTypes = ['textbox', 'memo', 'email', 'url', 'file', 'label', 'directory', 'htmlstrip', 'image'];
             foreach ($jsonData['fields'] ?? [] as $fieldDef) {
                 $fieldName = $fieldDef['name'] ?? '';
@@ -367,6 +388,21 @@ class ListServiceHelper
                 $covered[$lower] = true;
                 $column = $qualify ? "[$tableName].[$fieldName]" : "[$fieldName]";
                 $searchConditions[] = "$column LIKE $searchEscaped";
+            }
+
+            // Comboboxes: match on the displayed text of the referenced record.
+            foreach ($jsonData['fields'] ?? [] as $fieldDef) {
+                $fieldName = $fieldDef['name'] ?? '';
+                $lower = strtolower($fieldName);
+                if ($fieldName === '' || isset($covered[$lower]) || $lower === strtolower($idField)) continue;
+                if (!in_array($fieldDef['type'] ?? '', self::COMBO_SEARCH_TYPES, true)) continue;
+                if (str_starts_with($fieldName, '_') || strpos($fieldName, '[') !== false) continue;
+                $covered[$lower] = true;
+                $column = $qualify ? "[$tableName].[$fieldName]" : "[$fieldName]";
+                $comboCond = self::comboSearchCondition($fieldDef, $column, $term, $formDatabase);
+                if ($comboCond !== null) {
+                    $searchConditions[] = $comboCond;
+                }
             }
         }
 
@@ -381,6 +417,68 @@ class ListServiceHelper
         }
 
         return $searchConditions;
+    }
+
+    /** Field types whose stored value is a key into another table (searched on its display text). */
+    private const COMBO_SEARCH_TYPES = ['combobox', 'select'];
+
+    /**
+     * Quick-search condition for one combobox: the record matches when the text the
+     * combo DISPLAYS for its value contains the term.
+     *
+     *   [fkDocent] IN (SELECT [ID] FROM [tblDocenten] WHERE [VolledigeNaam] LIKE '%jan%')
+     *
+     * The plain source table is used when displayField is a real column of it (not
+     * an alias in the field's sql): that is the cheapest query and does not depend on
+     * the combo's own WHERE, which only limits what can be CHOSEN. When displayField
+     * is an alias of an expression (`[VolledigeNaam] & ' (' & [code] & ')' AS Descr`)
+     * the field's sql becomes a derived table, without its ORDER BY (Access rejects an
+     * ORDER BY in a subquery) and without a trailing ';'.
+     *
+     * Returns null when the combo cannot be searched safely, so it never breaks the
+     * list query: no idField/displayField, a combo in another database than the form,
+     * sql with record parameters (`[fkOpleiding]`, filled from the open record — Access
+     * would ask for a parameter value and the whole list fails), or sql with GROUP BY
+     * (SQL::addClause splits the outer query on the first GROUP BY it sees).
+     */
+    public static function comboSearchCondition(array $fieldDef, string $column, string $term, string $formDatabase = ''): ?string
+    {
+        $idField = self::plainColumnName((string)($fieldDef['idField'] ?? ''));
+        $displayField = self::plainColumnName((string)($fieldDef['displayField'] ?? ''));
+        if ($idField === '' || $displayField === '') {
+            return null;
+        }
+        $fieldDatabase = strtolower((string)($fieldDef['database'] ?? ''));
+        if ($fieldDatabase !== '' && $fieldDatabase !== $formDatabase) {
+            return null;
+        }
+
+        $like = SQL::postString('%' . $term . '%');
+        $sourceTable = trim((string)($fieldDef['sourceTable'] ?? ''), " []");
+        $sql = trim(preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', trim((string)($fieldDef['sql'] ?? ''))) ?? '');
+        $sql = trim(rtrim($sql, "; \t\r\n"));
+        $isAlias = $sql !== '' && preg_match('/\bAS\s+\[?' . preg_quote($displayField, '/') . '\]?(?![\w])/i', $sql);
+
+        if ($sourceTable !== '' && preg_match('/^\w+$/', $sourceTable) && !$isAlias) {
+            return "$column IN (SELECT [$idField] FROM [$sourceTable] WHERE [$displayField] LIKE $like)";
+        }
+        if ($sql === '' || !preg_match('/^SELECT\s/i', $sql) || preg_match('/\bGROUP\s+BY\b/i', $sql)) {
+            return null;
+        }
+        // Same parameter heuristic as OptionsService::buildComboSql.
+        if (preg_match('/\[(?:id|fk[a-z0-9_]*|prod[a-z0-9_]*|parent[a-z0-9_]*|opleiding[a-z0-9_]*)\]/i', $sql)
+            || ($sourceTable !== '' && preg_match('/WHERE\s+.*\[[a-z_][a-z0-9_]*\]/is', $sql))) {
+            return null;
+        }
+        return "$column IN (SELECT [$idField] FROM ($sql) AS cma_qs WHERE [$displayField] LIKE $like)";
+    }
+
+    /** "[tblDocenten].[VolledigeNaam]" / "tblDocenten.VolledigeNaam" -> "VolledigeNaam"; '' when not a plain name. */
+    private static function plainColumnName(string $name): string
+    {
+        $parts = explode('.', $name);
+        $last = trim((string)end($parts), " []");
+        return preg_match('/^\w+$/', $last) ? $last : '';
     }
 
     /**
