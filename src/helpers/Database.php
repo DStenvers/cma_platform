@@ -371,7 +371,7 @@ class Database
      * call returns a new handle that belongs to the caller alone, and it closes when
      * the last reference goes away.
      *
-     * Intended for transactions. getConnection() hands out one shared persistent
+     * Intended for transactions. getConnection() hands out one shared
      * handle per name, and the Access ODBC driver refuses beginTransaction() on it
      * while any recordset is still open on that handle ("SQLSTATE[HY011] Attribute
      * cannot be set now", AUTOCOMMIT = OFF). A private connection has no other open
@@ -390,6 +390,43 @@ class Database
             throw new PDOException("Database connection '$name' not configured in data/databases.json (expected an entry named '" . strtolower(trim($name)) . "').");
         }
         return self::createPDOConnection($dsn, strtolower(trim($name)), false);
+    }
+
+    /**
+     * Whether a DSN points at an MS Access database: an ODBC DSN with the Access
+     * driver (Microsoft Access Driver / Jet / ACE) or a Dbq= pointing at an .mdb/.accdb.
+     * A named system DSN (odbc:MijnDsn) cannot be recognised and counts as not-Access.
+     */
+    public static function isAccessDsn(string $dsn): bool
+    {
+        if (!preg_match('/^odbc:/i', trim($dsn))) {
+            return false;
+        }
+        return (bool) preg_match('/Microsoft Access Driver|Microsoft\.(?:ACE|Jet)\.OLEDB|\.(?:mdb|accdb)\s*(?:;|$)/i', $dsn);
+    }
+
+    /**
+     * Whether the shared (pooled) connection for this DSN is opened persistent
+     * (PDO::ATTR_PERSISTENT). Setting db_persistent (DB_PERSISTENT):
+     *   auto (default) - NOT persistent for MS Access, persistent for other drivers
+     *   on             - always persistent
+     *   off            - never persistent
+     *
+     * Access caches reads per connection; a persistent handle survives in the
+     * php-cgi process, so a write by one process stays invisible to another for
+     * a long time (observed: >30 s; an uploaded file only showed after a new
+     * login). One connection per request costs only the ODBC open.
+     */
+    public static function usePersistentConnection(string $dsn): bool
+    {
+        $mode = (string) Settings::get('db_persistent');
+        if ($mode === 'on') {
+            return true;
+        }
+        if ($mode === 'off') {
+            return false;
+        }
+        return !self::isAccessDsn($dsn);
     }
 
     /**
@@ -557,11 +594,13 @@ class Database
      *
      * @param string $dsn Database connection string
      * @param string $name Connection name (for error messages)
-     * @param bool $persistent Persistent handle (the pooled default); false for newConnection()
+     * @param bool $pooled True for the shared pool handle (persistence per
+     *                     usePersistentConnection()); false for newConnection(),
+     *                     which is never persistent
      * @return PDO Configured PDO connection
      * @throws PDOException If connection fails
      */
-    private static function createPDOConnection(string $dsn, string $name, bool $persistent = true): PDO
+    private static function createPDOConnection(string $dsn, string $name, bool $pooled = true): PDO
     {
         // Detect driver from DSN
         $driver = 'unknown';
@@ -578,13 +617,19 @@ class Database
         // dsnForConnection(): een OLEDB-string komt in de pool onder een
         // gehashte sleutel te staan en is daarna nergens meer te herleiden,
         // terwijl native odbc_*-uitvragen die DSN wél nodig hebben.
-        if ($persistent) {
+        if ($pooled) {
             self::$openedDsns[strtolower($name)] = $dsn;
         }
 
+        // Persistent of niet: zie usePersistentConnection(). Niet persistent voor
+        // MS Access (standaard), want de Jet/ACE-driver houdt per verbinding een
+        // leescache vast; een persistente handle leeft door in het php-cgi-proces
+        // en ziet schrijfacties van andere processen pas veel later. Binnen één
+        // request blijft de pool in getConnection() één handle per naam geven.
+        // newConnection() vraagt altijd een eigen, niet-persistente verbinding.
+        $persistent = $pooled && self::usePersistentConnection($dsn);
+
         try {
-            // Pooled connections are persistent to avoid ODBC connection overhead on
-            // each request; newConnection() asks for a private, non-persistent one.
             $conn = new PDO($dsn, null, null, [
                 PDO::ATTR_PERSISTENT => $persistent
             ]);
