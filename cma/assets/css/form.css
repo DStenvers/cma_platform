@@ -188,6 +188,16 @@ body.data-loading textarea[data-required="true"] + .cke {
     border-left-color: var(--border-color) !important;
 }
 
+/* ...and the fields do not take input during that window. Whatever is picked or
+   typed before the record lands is overwritten by it, and a Save in between
+   validated the still-empty required combos ("Vul alle verplichte velden in")
+   although they showed their value a moment later. pointer-events stops the
+   mouse; saveRecord() refuses a Save that still gets through (isRecordLoading).
+   Add mode (body.is-creating) is never affected. */
+body.data-loading:not(.is-creating) #mainForm {
+    pointer-events: none;
+}
+
 /* The date/time pickers draw their required stripe INSIDE their shadow DOM,
    where none of the selectors above can reach — a document rule stops at the
    shadow boundary, so these two kept flashing red during the load window

@@ -9578,6 +9578,19 @@ class CmaFormController {
     }
 
     /**
+     * True while an existing record is being loaded into the form: the initial load
+     * (body.data-loading, set by form.php and the direct-record paths; never in add
+     * mode) or a loadRecord() still in flight. The fields are empty or stale then.
+     *
+     * @returns {boolean}
+     */
+    isRecordLoading() {
+        if (this._loadingRecordPromise) return true;
+        const body = document.body;
+        return !!body && body.classList.contains('data-loading') && !body.classList.contains('is-creating');
+    }
+
+    /**
      * Save record via AJAX
      * @param {boolean} closeAfter - If true, close form after save
      */
@@ -9587,6 +9600,17 @@ class CmaFormController {
         // verifyIdentity() does NOT abort — it re-syncs from DOM and continues
         // — so the rest of saveRecord uses the corrected identity below.
         this.verifyIdentity('saveRecord');
+
+        // While an existing record is still loading the fields are not filled yet:
+        // validating now reports the required combos as empty ("Vul alle verplichte
+        // velden in: Opleiding, Deelnemer") although they show their value a moment
+        // later, and whatever was picked in the meantime is overwritten when the
+        // record lands. The form is inert during the load (form.css, body.data-loading);
+        // a Save that still gets through (toolbar, Ctrl+S) waits instead of acting.
+        if (this.isRecordLoading()) {
+            this.showTopNotification('Het record wordt nog geladen; probeer het zo opnieuw.', 'info');
+            return;
+        }
 
         // Performance tracking
         const perfId = 'saveRecord_' + Date.now();
