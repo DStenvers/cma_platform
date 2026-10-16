@@ -281,9 +281,10 @@ class JsonFormRenderer
                         $formDef = JsonFormLoader::exportFromDatabase($formId);
                     }
 
+                    // Op knopnummer (slot): kolom "Knop N" is secButtonN
                     if ($formDef && !empty($formDef['extraButtons'])) {
-                        foreach ($formDef['extraButtons'] as $idx => $btn) {
-                            $buttonLabels[$idx] = $btn['title'] ?? '';
+                        foreach (JsonFormLoader::extraButtonsBySlot($formDef['extraButtons']) as $slot => $btn) {
+                            $buttonLabels[$slot - 1] = $btn['title'] ?? '';
                         }
                     }
 

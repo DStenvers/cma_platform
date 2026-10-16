@@ -508,27 +508,7 @@ class SecurityHelper
             }
 
             if (Arr::isArray($arrRights)) {
-                $matchFound = false;
-                for ($t = 0; $t <= (count($arrRights[0] ?? []) - 1); $t++) {
-                    if ($debugInfo !== null) {
-                        $debugInfo[] = "    Row $t: ObjectID=" . ($arrRights[self::ARR_OBJECTID][$t] ?? 'null') . ", AccessType=" . ($arrRights[self::ARR_ACCESSTYPE][$t] ?? 'null');
-                    }
-                    if (($arrRights[self::ARR_OBJECTID][$t] ?? '') == $objectId . '') {
-                        $matchFound = true;
-                        $accessType = max($accessType, $arrRights[self::ARR_ACCESSTYPE][$t] ?? 0);
-                        $bBeheer = $bBeheer || !empty($arrRights[self::ARR_ISBEHEER][$t]);
-                        if ($buttonId > -1) {
-                            $buttonValue = $arrRights[self::ARR_ACCESSTYPE + $buttonId][$t] ?? 0;
-                            $accessType = max($accessType, ($buttonValue ? self::ACCESS_FULL : self::ACCESS_NONE));
-                        }
-                        if ($debugInfo !== null) {
-                            $debugInfo[] = "    => MATCH! AccessType now: $accessType";
-                        }
-                    }
-                }
-                if (!$matchFound && $debugInfo !== null) {
-                    $debugInfo[] = "  => No matching ObjectID found in group rights!";
-                }
+                [$accessType, $bBeheer] = self::accessFromRightsRows($arrRights, $objectId, $buttonId, $debugInfo);
             }
             // Beheer functions only for someone who already has full rights, through a
             // group flagged isBeheer (classic security.inc). Main forms are checked as
@@ -549,6 +529,50 @@ class SecurityHelper
             $debugInfo[] = "  Final result: $accessType";
         }
         return $accessType;
+    }
+
+    /**
+     * Toegang uit de rijen van groupRightsSql() voor één object, letterlijk zoals
+     * CheckRightsforUser in de klassieke security.inc: het hoogste secAccessType over de
+     * rijen van dat object, en met een knopnummer ($buttonId 1..5) bovendien
+     * max(toegang, secButtonN ? VOLLEDIG : GEEN).
+     *
+     * Let op, zo deed de ASP het ook: de query geeft alleen rijen met secAccessType > 0,
+     * dus wie het object mag zien krijgt voor een knop altijd > 0 terug, ook zonder
+     * secButtonN. secButtonN tilt een knop alleen naar VOLLEDIG; een knop verdwijnt pas als
+     * de gebruiker het object (menu-item of subformulier) helemaal niet mag zien.
+     *
+     * @param array      $arrRights Kolom-georiënteerde rijen (secObjectID, AccessType, secButton1..5, isBeheer)
+     * @param int|string $objectId  Menu-item- of formulier-ID
+     * @param int        $buttonId  -1 = geen knop, 1..5 = secButtonN
+     * @return array{0: int, 1: bool} [toegang, via een beheergroep]
+     */
+    public static function accessFromRightsRows(array $arrRights, $objectId, int $buttonId = -1, ?array &$debugInfo = null): array
+    {
+        $accessType = self::ACCESS_NONE;
+        $bBeheer = false;
+        $matchFound = false;
+        for ($t = 0; $t <= (count($arrRights[0] ?? []) - 1); $t++) {
+            if ($debugInfo !== null) {
+                $debugInfo[] = "    Row $t: ObjectID=" . ($arrRights[self::ARR_OBJECTID][$t] ?? 'null') . ", AccessType=" . ($arrRights[self::ARR_ACCESSTYPE][$t] ?? 'null');
+            }
+            if (($arrRights[self::ARR_OBJECTID][$t] ?? '') == $objectId . '') {
+                $matchFound = true;
+                $accessType = max($accessType, $arrRights[self::ARR_ACCESSTYPE][$t] ?? 0);
+                $bBeheer = $bBeheer || !empty($arrRights[self::ARR_ISBEHEER][$t]);
+                if ($buttonId > -1) {
+                    $buttonValue = $arrRights[self::ARR_ACCESSTYPE + $buttonId][$t] ?? 0;
+                    $accessType = max($accessType, ($buttonValue ? self::ACCESS_FULL : self::ACCESS_NONE));
+                }
+                if ($debugInfo !== null) {
+                    $debugInfo[] = "    => MATCH! AccessType now: $accessType";
+                }
+            }
+        }
+        if (!$matchFound && $debugInfo !== null) {
+            $debugInfo[] = "  => No matching ObjectID found in group rights!";
+        }
+        return [$accessType, $bBeheer];
     }
 
     /**
@@ -857,45 +881,14 @@ class SecurityHelper
     }
 
     /**
-     * Check form-specific button rights directly from tblGroupRights (TYPE_FORM)
-     * Used for subforms that have their own button rights defined
-     *
-     * @param int $userId User ID
-     * @param int $formId Form's sourceFormId
-     * @param int $buttonId Button ID (1-5)
-     * @return int|null Access level or null if no specific rights defined
-     */
-    private static function checkFormSpecificButtonRights(int $userId, int $formId, int $buttonId): ?int
-    {
-        if (!self::isLoggedIn() || $buttonId < 1 || $buttonId > 5) {
-            return null;
-        }
-
-        $buttonCol = 'secButton' . $buttonId;
-
-        // Query for form-specific button rights (TYPE_FORM = 30)
-        $sql = 'SELECT tblGroupRights.' . $buttonCol . ' ' .
-            'FROM (tblGroups INNER JOIN tblGroupMembers ON tblGroups.ID = tblGroupMembers.fkGroup) ' .
-            'INNER JOIN tblGroupRights ON tblGroups.ID = tblGroupRights.fkGroup ' .
-            'WHERE tblGroupMembers.fkUser = ' . $userId . ' ' .
-            'AND tblGroupRights.secObjectType = ' . self::TYPE_FORM . ' ' .
-            'AND tblGroupRights.secObjectID = ' . $formId . ' ' .
-            'AND tblGroupRights.secAccessType > 0';
-
-        $arrRights = Cache::retrieveFromFile('CMA_form_btn_rights_' . $userId . '_' . $formId . '_' . $buttonId, 'users', $sql);
-
-        if (Arr::isArray($arrRights) && !empty($arrRights[0])) {
-            $buttonValue = $arrRights[0][0] ?? 0;
-            return $buttonValue ? self::ACCESS_FULL : self::ACCESS_NONE;
-        }
-
-        return null;
-    }
-
-    /**
-     * Check button-specific rights for a form
-     * For subforms: checks form-specific button rights first, then falls back to parent form
-     * For main forms: uses menu item lookup
+     * Rechten voor extra knop $buttonId (1..5) van een formulier, zoals
+     * CheckFormButtonRights in de klassieke security.inc: beheerder = VOLLEDIG; een
+     * hoofdformulier via zijn menu-item, een subformulier via zijn eigen formulierrechten
+     * (TYPE_FORM), beide door checkRightsForUser() met het knopnummer erbij (zie
+     * accessFromRightsRows() voor wat secButtonN daar wel en niet doet). Een subformulier
+     * zonder eigen rechten volgt het hoofdformulier, net als checkFormRights() hier doet
+     * voor de toegang tot het formulier zelf; zo hangen formulier en knop aan dezelfde regel.
+     * Een knop is zichtbaar bij een resultaat > 0.
      */
     public static function checkFormButtonRights(int $userId, int $formId, int $buttonId): int
     {
@@ -904,25 +897,16 @@ class SecurityHelper
         if (self::isAdmin()) {
             $accessType = self::ACCESS_FULL;
         } elseif (self::isLoggedIn()) {
-            // Check if this is a subform
             $parentFormId = JsonFormLoader::getParentFormId($formId);
-            $isSubform = $parentFormId !== null;
 
-            if ($isSubform) {
-                // For subforms: check form-specific button rights first
-                $formSpecificRights = self::checkFormSpecificButtonRights($userId, $formId, $buttonId);
-
-                if ($formSpecificRights !== null) {
-                    $accessType = $formSpecificRights;
-                } else {
-                    // Fall back to parent form button rights
-                    $accessType = self::checkFormButtonRights($userId, $parentFormId, $buttonId);
-                }
+            if ($parentFormId !== null) {
+                // Subformulier: eigen rechten, anders die van het hoofdformulier
+                $accessType = self::checkFormSpecificRights($userId, $formId) !== null
+                    ? self::checkRightsForUser($userId, self::TYPE_FORM, $formId, $buttonId)
+                    : self::checkFormButtonRights($userId, $parentFormId, $buttonId);
             } else {
-                // For main forms: use menu item lookup
-                $formName = self::getFormNameById($formId);
-                $menuItemId = $formName !== null ? self::getMenuItemIdForFormName($formName) : null;
-
+                // Hoofdformulier: via het menu-item
+                $menuItemId = self::getMenuItemIdForForm($formId);
                 if ($menuItemId !== null) {
                     $accessType = self::checkRightsForUser($userId, self::TYPE_MENU, $menuItemId, $buttonId);
                 }
@@ -930,6 +914,49 @@ class SecurityHelper
         }
 
         return $accessType;
+    }
+
+    /** Bitmasker voor alle vijf extra knoppen: bit N-1 = knop N. */
+    public const EXTRA_BUTTONS_ALL = 31;
+
+    /**
+     * Welke extra knoppen (slots 1..5) de huidige gebruiker op dit JSON-formulier ziet,
+     * als bitmasker (bit N-1 = knop N). Beheerder: alle; niet ingelogd of een formulier
+     * zonder sourceFormId: geen (zo'n formulier krijgt een gewone gebruiker ook niet te zien,
+     * zie MenuService::getFormAccessLevel()). Het masker hoort in de cachesleutel van het
+     * formuliersjabloon (FormTemplate::getForJsonForm()).
+     */
+    public static function currentUserExtraButtonMask(string $formName): int
+    {
+        if (self::isAdmin()) {
+            return self::EXTRA_BUTTONS_ALL;
+        }
+        if (!self::isLoggedIn()) {
+            return 0;
+        }
+        $formId = JsonFormLoader::getFormIdByName($formName);
+        $userId = (int)self::getCurrentUserId();
+        if ($formId === null || $userId <= 0) {
+            return 0;
+        }
+        return self::extraButtonMask(fn (int $slot): int => self::checkFormButtonRights($userId, $formId, $slot));
+    }
+
+    /**
+     * Bitmasker uit een rechtenfunctie per knopnummer: knop N telt mee als
+     * $rightsForSlot(N) > 0 (de ASP-toolbar: "if CheckFormButtonRights(...) then").
+     *
+     * @param callable(int): int $rightsForSlot
+     */
+    public static function extraButtonMask(callable $rightsForSlot): int
+    {
+        $mask = 0;
+        for ($slot = 1; $slot <= 5; $slot++) {
+            if ((int)$rightsForSlot($slot) > 0) {
+                $mask |= 1 << ($slot - 1);
+            }
+        }
+        return $mask;
     }
 
     /**

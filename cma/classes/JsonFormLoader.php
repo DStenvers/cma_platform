@@ -641,6 +641,81 @@ class JsonFormLoader
             }
         }
 
+        return array_merge($problems, self::extraButtonSlotProblems($data['extraButtons'] ?? []));
+    }
+
+    /**
+     * De extra knoppen van een definitie per knopnummer (slot 1..5), zoals de klassieke
+     * CMA ze had: extraIconURL = knop 1, extraIcon2URL..extraIcon5URL = knop 2..5. Het
+     * knopnummer is ook het recht: tblGroupRights.secButtonN hoort bij knop N. Een knop
+     * met een eigen "slot" krijgt dat nummer; zonder "slot" geldt de positie in de lijst
+     * (positie + 1), zodat bestaande definities ongewijzigd blijven werken. Een ongeldig
+     * of al bezet nummer valt weg (validateDefinitionData() meldt het).
+     *
+     * @param mixed $buttons De array "extraButtons" uit de definitie
+     * @return array<int, array> [slot => knop], oplopend op slot
+     */
+    public static function extraButtonsBySlot($buttons): array
+    {
+        $perSlot = [];
+        if (!Arr::isArray($buttons)) {
+            return $perSlot;
+        }
+        foreach (array_values($buttons) as $positie => $btn) {
+            if (!Arr::isArray($btn)) {
+                continue;
+            }
+            $slot = self::extraButtonSlot($btn, $positie);
+            if ($slot !== null && !isset($perSlot[$slot])) {
+                $perSlot[$slot] = $btn;
+            }
+        }
+        ksort($perSlot);
+        return $perSlot;
+    }
+
+    /** Knopnummer (1..5) van één extra knop: zijn "slot", anders positie + 1; null = ongeldig. */
+    private static function extraButtonSlot(array $btn, int $positie): ?int
+    {
+        $slot = array_key_exists('slot', $btn) ? $btn['slot'] : $positie + 1;
+        if (!is_int($slot) && !(is_string($slot) && ctype_digit($slot))) {
+            return null;
+        }
+        $slot = (int)$slot;
+        return ($slot >= 1 && $slot <= 5) ? $slot : null;
+    }
+
+    /**
+     * Problemen met de knopnummers van extraButtons: een "slot" buiten 1..5, of twee knoppen
+     * op hetzelfde nummer (ook een knop zonder "slot" waarvan de positie al door een andere
+     * knop is geclaimd). Zo'n knop zou het recht van een andere knop krijgen of wegvallen.
+     *
+     * @param mixed $buttons
+     * @return string[]
+     */
+    public static function extraButtonSlotProblems($buttons): array
+    {
+        $problems = [];
+        if (!Arr::isArray($buttons)) {
+            return $problems;
+        }
+        $bezet = [];
+        foreach (array_values($buttons) as $positie => $btn) {
+            if (!Arr::isArray($btn)) {
+                continue;
+            }
+            $naam = "'" . ($btn['title'] ?? ('#' . ($positie + 1))) . "'";
+            $slot = self::extraButtonSlot($btn, $positie);
+            if ($slot === null) {
+                $problems[] = "Extra knop $naam heeft een ongeldig slot (1 t/m 5).";
+                continue;
+            }
+            if (isset($bezet[$slot])) {
+                $problems[] = "Extra knop $naam staat op slot $slot, net als $bezet[$slot] — geef elke knop een eigen \"slot\".";
+                continue;
+            }
+            $bezet[$slot] = $naam;
+        }
         return $problems;
     }
 
@@ -1134,8 +1209,10 @@ class JsonFormLoader
 
         // Extra buttons (up to 5)
         // Support both extraButtons array format AND root-level extraIconURL/extraIconTitle properties
+        // Op knopnummer (slot), niet op positie: knop N hoort bij secButtonN.
+        $buttonsBySlot = self::extraButtonsBySlot($data['extraButtons'] ?? []);
         for ($i = 1; $i <= 5; $i++) {
-            $btn = $data['extraButtons'][$i - 1] ?? [];
+            $btn = $buttonsBySlot[$i] ?? [];
             $suffix = $i == 1 ? '' : (string)$i;
 
             // Check for root-level properties (extraIconURL, extraIcon2URL, etc.)
@@ -1479,6 +1556,7 @@ class JsonFormLoader
 
             if ($url || $icon || $title) {
                 $extraButtons[] = [
+                    'slot' => $i, // knopnummer = secButtonN, ook als een eerder slot leeg is
                     'url' => $url,
                     'icon' => $icon,
                     'title' => $title,

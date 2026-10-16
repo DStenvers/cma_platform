@@ -89,6 +89,13 @@ class FormTemplate
     private ?string $jsonFormName = null;
 
     /**
+     * @var int Welke extra knoppen (slot 1..5) in het sjabloon komen: bit N-1 = knop N.
+     *          Per gebruiker verschillend (tblGroupRights.secButtonN), daarom deel van de
+     *          cachesleutel; zie SecurityHelper::currentUserExtraButtonMask().
+     */
+    private int $extraButtonMask = SecurityHelper::EXTRA_BUTTONS_ALL;
+
+    /**
      * Private constructor - use static methods
      */
     private function __construct()
@@ -101,11 +108,14 @@ class FormTemplate
      *
      * @param string $formName Form name (e.g., 'users', 'groups')
      * @param int $accessLevel User's access level (affects toolbar buttons)
+     * @param int|null $extraButtonMask Zichtbare extra knoppen (bit N-1 = knop N); null =
+     *                 die van de huidige gebruiker (SecurityHelper::currentUserExtraButtonMask)
      * @return string HTML template
      */
-    public static function getForJsonForm(string $formName, int $accessLevel = SecurityHelper::ACCESS_FULL): string
+    public static function getForJsonForm(string $formName, int $accessLevel = SecurityHelper::ACCESS_FULL, ?int $extraButtonMask = null): string
     {
-        $cacheKey = self::jsonCacheKey($formName, $accessLevel);
+        $extraButtonMask = ($extraButtonMask ?? SecurityHelper::currentUserExtraButtonMask($formName)) & SecurityHelper::EXTRA_BUTTONS_ALL;
+        $cacheKey = self::jsonCacheKey($formName, $accessLevel, $extraButtonMask);
         $noCache = Request::hasQuery('nocache') || Request::hasQuery('refresh');
 
         if (!$noCache) {
@@ -117,7 +127,7 @@ class FormTemplate
             }
 
             // Try file cache (validate against JSON definition mtime)
-            $filePath = self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $accessLevel . '.html';
+            $filePath = self::jsonTemplateFile($formName, $accessLevel, $extraButtonMask);
             if (file_exists($filePath)) {
                 $jsonDefPath = JsonFormLoader::getFilePath($formName);
                 // The template embeds the bundle URLs (v=cma_asset_version()), which
@@ -137,8 +147,9 @@ class FormTemplate
 
         // Generate new template from JSON definition
         PerformanceLogger::startTimer('jsonFormTemplate_generate');
-        $filePath = self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $accessLevel . '.html';
+        $filePath = self::jsonTemplateFile($formName, $accessLevel, $extraButtonMask);
         $generator = new self();
+        $generator->extraButtonMask = $extraButtonMask;
         $template = $generator->generateFromJson($formName, $accessLevel);
         PerformanceLogger::endTimer('jsonFormTemplate_generate', ['formName' => $formName, 'size' => strlen($template)]);
 
@@ -449,12 +460,13 @@ class FormTemplate
             SecurityHelper::ACCESS_FULL,
             SecurityHelper::ACCESS_FULL_BEHEER
         ] as $level) {
-            Cache::delete(self::jsonCacheKey($formName, $level));
-
-            // Delete file
-            $filePath = self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $level . '.html';
-            if (file_exists($filePath)) {
-                @unlink($filePath);
+            // Every combination of visible extra buttons (0..31)
+            for ($mask = 0; $mask <= SecurityHelper::EXTRA_BUTTONS_ALL; $mask++) {
+                Cache::delete(self::jsonCacheKey($formName, $level, $mask));
+                $filePath = self::jsonTemplateFile($formName, $level, $mask);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
             }
         }
 
@@ -468,9 +480,15 @@ class FormTemplate
      * deploy (app pool not recycled) would otherwise keep pointing browsers at
      * the previous release's JS.
      */
-    private static function jsonCacheKey(string $formName, int $accessLevel): string
+    private static function jsonCacheKey(string $formName, int $accessLevel, int $extraButtonMask): string
     {
-        return self::CACHE_PREFIX . 'json_' . $formName . '_' . $accessLevel . '_' . cma_asset_version();
+        return self::CACHE_PREFIX . 'json_' . $formName . '_' . $accessLevel . '_b' . $extraButtonMask . '_' . cma_asset_version();
+    }
+
+    /** Sjabloonbestand voor formulier + toegangsniveau + zichtbare extra knoppen. */
+    private static function jsonTemplateFile(string $formName, int $accessLevel, int $extraButtonMask): string
+    {
+        return self::TEMPLATE_DIR . '/form_json_' . $formName . '_' . $accessLevel . '_b' . $extraButtonMask . '.html';
     }
 
     /**
@@ -1425,12 +1443,17 @@ class FormTemplate
             ['url' => 'extraIcon5URL', 'res' => 'extraIcon5Resource', 'title' => 'extraIcon5Title'],
         ];
 
-        // Get JSON extra buttons for openInNewWindow flag
+        // JSON extra buttons per knopnummer (slot), for the openInNewWindow flag
         $jsonData = $this->arrRep['_json'] ?? [];
-        $jsonExtraButtons = $jsonData['extraButtons'] ?? [];
+        $jsonExtraButtons = JsonFormLoader::extraButtonsBySlot($jsonData['extraButtons'] ?? []);
 
         $btnOrder = 10; // Start after standard buttons
         foreach ($icons as $index => $icon) {
+            // Knop N alleen met het recht op knop N (tblGroupRights.secButtonN), zoals
+            // ToolbarWriteExtraButtons in de klassieke toolbar.inc; beheerders zien alles.
+            if (($this->extraButtonMask & (1 << $index)) === 0) {
+                continue;
+            }
             $url = $this->arrRep[$icon['url']][0] ?? '';
             $res = $this->arrRep[$icon['res']][0] ?? '';
             $title = $this->arrRep[$icon['title']][0] ?? '';
@@ -1449,7 +1472,7 @@ class FormTemplate
                 $needsFieldValues = (bool) preg_match('/\[(?!domein\]|id\]|guid\]|guid2\])[a-z_][a-z0-9_]*\]/i', $url);
                 $extraClass = ($hasPlaceholder ? ' requires-record' : '')
                             . ($needsFieldValues ? ' needs-record-values' : '');
-                $openNewWindow = !empty($jsonExtraButtons[$index]['openInNewWindow']);
+                $openNewWindow = !empty($jsonExtraButtons[$index + 1]['openInNewWindow']);
                 $openNewWindowAttr = $openNewWindow ? ' data-open-new-window="true"' : '';
                 // Use same structure as standard toolbar buttons: responsive-btn class and data-btn-order
                 $html .= '<span class="tb-btn responsive-btn extra-button' . $extraClass . '" data-btn-order="' . ($btnOrder + $index) . '" data-extra-index="' . ($index + 1) . '">';

@@ -134,7 +134,8 @@ class FormMetadataService
                     continue;
                 }
 
-                // Extract metadata
+                // Extract metadata (extra button titles per knopnummer/slot)
+                $knoppen = \Cma\JsonFormLoader::extraButtonsBySlot($json['extraButtons'] ?? []);
                 self::$formsCache[$formId] = [
                     'id' => $formId,
                     'name' => basename($file, '.json'),
@@ -142,11 +143,11 @@ class FormMetadataService
                     'visible' => $json['visible'] ?? true,
                     'securityByUser' => $json['securityByUser'] ?? false,
                     'adminOnly' => $json['adminOnly'] ?? false,
-                    'extraIconTitle' => $json['extraButtons'][0]['title'] ?? null,
-                    'extraIcon2Title' => $json['extraButtons'][1]['title'] ?? null,
-                    'extraIcon3Title' => $json['extraButtons'][2]['title'] ?? null,
-                    'extraIcon4Title' => $json['extraButtons'][3]['title'] ?? null,
-                    'extraIcon5Title' => $json['extraButtons'][4]['title'] ?? null,
+                    'extraIconTitle' => $knoppen[1]['title'] ?? null,
+                    'extraIcon2Title' => $knoppen[2]['title'] ?? null,
+                    'extraIcon3Title' => $knoppen[3]['title'] ?? null,
+                    'extraIcon4Title' => $knoppen[4]['title'] ?? null,
+                    'extraIcon5Title' => $knoppen[5]['title'] ?? null,
                 ];
             }
         }

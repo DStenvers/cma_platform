@@ -150,11 +150,15 @@ if (!empty($defProblems)) {
     );
 }
 
+// Which extra toolbar buttons this user sees (tblGroupRights.secButtonN per slot, as
+// in the classic toolbar.inc). Part of the template cache key and of the ETag.
+$extraButtonMask = SecurityHelper::currentUserExtraButtonMask($formName);
+
 // HTTP Cache optimization with ETag
-// Generate ETag from form definition modification time + access level
+// Generate ETag from form definition modification time + access level + visible buttons
 $formDefPath = __DIR__ . '/assets/forms/definitions/' . $formName . '.json';
 if (file_exists($formDefPath)) {
-    $etag = '"' . md5(filemtime($formDefPath) . '_' . $accessLevel) . '"';
+    $etag = '"' . md5(filemtime($formDefPath) . '_' . $accessLevel . '_' . $extraButtonMask) . '"';
 
     // Check If-None-Match header - return 304 if unchanged
     if (Request::server('HTTP_IF_NONE_MATCH') === $etag) {
@@ -169,7 +173,7 @@ if (file_exists($formDefPath)) {
 
 // Get template (from cache or generate)
 try {
-    $template = FormTemplate::getForJsonForm($formName, $accessLevel);
+    $template = FormTemplate::getForJsonForm($formName, $accessLevel, $extraButtonMask);
 
     // Build data attributes for form state (no more window globals!)
     // These are read by CmaFormController from the form-layout container

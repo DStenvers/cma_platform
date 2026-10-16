@@ -1517,7 +1517,10 @@ $extraScript = '
             var self = this;
             buttons.forEach(function(btn, idx) {
                 var tr = document.createElement("tr");
+                // Knopnummer (slot): eigen "slot" of anders de positie (zoals JsonFormLoader::extraButtonsBySlot)
+                var slot = btn.slot ? btn.slot : idx + 1;
                 tr.innerHTML =
+                    \'<td><input type="number" class="eb-slot" min="1" max="5" value="\' + self.escapeHtml(String(slot)) + \'" style="width:50px"></td>\' +
                     \'<td><input type="text" class="eb-icon" value="\' + self.escapeHtml(btn.icon || "") + \'" style="width:150px"></td>\' +
                     \'<td><input type="text" class="eb-title" value="\' + self.escapeHtml(btn.title || "") + \'" style="width:120px"></td>\' +
                     \'<td><input type="text" class="eb-url" value="\' + self.escapeHtml(btn.url || "") + \'" style="width:200px"></td>\' +
@@ -1546,6 +1549,9 @@ $extraScript = '
                 var title = tr.querySelector(".eb-title").value.trim();
                 if (!url && !title) return;
                 var btn = {};
+                var slotInput = tr.querySelector(".eb-slot");
+                var slot = slotInput ? parseInt(slotInput.value, 10) : NaN;
+                if (slot >= 1 && slot <= 5) btn.slot = slot;
                 var icon = tr.querySelector(".eb-icon").value.trim();
                 if (icon) btn.icon = icon;
                 if (title) btn.title = title;
@@ -1565,7 +1571,10 @@ $extraScript = '
                 libToast.warning("Maximaal 5 extra knoppen");
                 return;
             }
-            btns.push({ icon: "", title: "", url: "", target: "_self" });
+            // Nieuwe knop op het eerste vrije knopnummer
+            var vrij = 1;
+            while (btns.some(function(b) { return b.slot === vrij; })) vrij++;
+            btns.push({ slot: vrij, icon: "", title: "", url: "", target: "_self" });
             this.renderExtraButtons(btns);
             this.markDirty();
         },
@@ -2215,7 +2224,7 @@ echo '<left><span class="toolbar-title">Extra knoppen (max 5)</span></left>';
 echo '<right><span class="tb-btn" id="addExtraBtn"><a href="javascript:void(0)" title="Toevoegen"><span class="lnr lnr-file-add"></span><span class="tb-btn-text">Toevoegen</span></a></span></right>';
 echo '</cma-toolbar>';
 echo '<lib-table export="n"><table class="filtering">';
-echo '<thead><tr><th>Icoon</th><th>Titel</th><th>URL</th><th>Target</th><th>Nieuw venster</th><th data-no-sort data-no-filter>Acties</th></tr></thead>';
+echo '<thead><tr><th title="Knopnummer 1-5 = recht secButtonN in de groepsrechten">Knop</th><th>Icoon</th><th>Titel</th><th>URL</th><th>Target</th><th>Nieuw venster</th><th data-no-sort data-no-filter>Acties</th></tr></thead>';
 echo '<tbody id="extraButtonsBody"></tbody>';
 echo '</table></lib-table>';
 echo '</div>';

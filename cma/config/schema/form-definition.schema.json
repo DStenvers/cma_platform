@@ -253,6 +253,12 @@
         "url"
       ],
       "properties": {
+        "slot": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Button number 1-5 (classic extraIconURL = 1, extraIcon2URL..extraIcon5URL = 2..5). It is also the right: tblGroupRights.secButtonN belongs to button N. Default: position in the list + 1. Each button needs its own slot."
+        },
         "icon": {
           "type": "string",
           "description": "CSS icon class (e.g., 'lnr lnr-preview')"
