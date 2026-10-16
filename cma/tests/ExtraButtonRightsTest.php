@@ -59,13 +59,24 @@ class ExtraButtonRightsTest extends TestCase
         $this->assertEquals(30, $this->knop($rijen, 83, 3));
     }
 
-    public function testZonderSecButtonNGeldtDeToegangZoalsInDeAsp(): void
+    public function testZonderSecButtonNGeenKnop(): void
     {
-        // Rij met toegang maar zonder knoprecht: de ASP gaf max(toegang, 0) = toegang
-        // terug, en "if 10 then" is waar: de knop stond er dus wel.
-        $rijen = [[83, 10, [0, 0, 0, 0, 0]]];
-        $this->assertEquals(10, $this->knop($rijen, 83, 1));
-        $this->assertTrue(\Cma\SecurityHelper::extraButtonMask(fn ($s) => $this->knop($rijen, 83, $s)) === 31);
+        // Besluit 16-10-2026: het vinkje beslist. Toegang tot het formulier zonder vinkje
+        // "Knop N" = geen knop (de klassieke code gaf hier max(toegang, 0) = toegang, en dan
+        // stond de knop er toch).
+        foreach ([10, 20, 30] as $toegang) {
+            $rijen = [[83, $toegang, [0, 0, 0, 0, 0]]];
+            $this->assertEquals(0, $this->knop($rijen, 83, 1), "toegang $toegang zonder vinkje");
+            $this->assertEquals(0, \Cma\SecurityHelper::extraButtonMask(fn ($s) => $this->knop($rijen, 83, $s)));
+        }
+    }
+
+    public function testVinkjeVanEenVanDeGroepenIsGenoeg(): void
+    {
+        // Twee groepen op hetzelfde menu-item: alleen de tweede heeft knop 1.
+        $rijen = [[74, 30, [0, 0, 0, 0, 0]], [74, 10, [-1, 0, 0, 0, 0]]];
+        $this->assertEquals(30, $this->knop($rijen, 74, 1));
+        $this->assertEquals(0, $this->knop($rijen, 74, 2));
     }
 
     public function testZonderKnopnummerAlleenDeToegang(): void
@@ -76,10 +87,10 @@ class ExtraButtonRightsTest extends TestCase
 
     public function testKnopkolomHoortBijHetKnopnummer(): void
     {
-        // Alleen knop 4 aan: knop 4 = 30, de rest = de toegang (20)
+        // Alleen knop 4 aan: knop 4 = 30, de rest = geen knop
         $rijen = [[83, 20, [0, 0, 0, -1, 0]]];
         $this->assertEquals(30, $this->knop($rijen, 83, 4));
-        $this->assertEquals(20, $this->knop($rijen, 83, 5));
+        $this->assertEquals(0, $this->knop($rijen, 83, 5));
     }
 
     // ---- masker ---------------------------------------------------------------------

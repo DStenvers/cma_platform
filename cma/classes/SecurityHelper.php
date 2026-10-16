@@ -572,15 +572,17 @@ class SecurityHelper
     }
 
     /**
-     * Toegang uit de rijen van groupRightsSql() voor één object, letterlijk zoals
-     * CheckRightsforUser in de klassieke security.inc: het hoogste secAccessType over de
-     * rijen van dat object, en met een knopnummer ($buttonId 1..5) bovendien
-     * max(toegang, secButtonN ? VOLLEDIG : GEEN).
+     * Toegang uit de rijen van groupRightsSql() voor één object.
      *
-     * Let op, zo deed de ASP het ook: de query geeft alleen rijen met secAccessType > 0,
-     * dus wie het object mag zien krijgt voor een knop altijd > 0 terug, ook zonder
-     * secButtonN. secButtonN tilt een knop alleen naar VOLLEDIG; een knop verdwijnt pas als
-     * de gebruiker het object (menu-item of subformulier) helemaal niet mag zien.
+     * Zonder knopnummer ($buttonId -1): het hoogste secAccessType over de rijen van dat
+     * object, zoals CheckRightsforUser in de klassieke security.inc.
+     *
+     * Met een knopnummer (1..5): VOLLEDIG als een van de groepen van de gebruiker het vinkje
+     * "Knop N" (secButtonN) voor dit object heeft, anders GEEN. Besluit 16-10-2026 (mijnRINO):
+     * de knoprechten moeten echt gelden. De klassieke code gaf max(toegang, secButtonN ? 30 : 0)
+     * terug, waardoor iedereen met toegang tot het formulier alle knoppen zag en het vinkje
+     * niets uitmaakte; dat is hier bewust verlaten. Beheerders zien alle knoppen
+     * (checkFormButtonRights).
      *
      * @param array      $arrRights Kolom-georiënteerde rijen (secObjectID, AccessType, secButton1..5, isBeheer)
      * @param int|string $objectId  Menu-item- of formulier-ID
@@ -592,6 +594,7 @@ class SecurityHelper
         $accessType = self::ACCESS_NONE;
         $bBeheer = false;
         $matchFound = false;
+        $knopAan = false;
         for ($t = 0; $t <= (count($arrRights[0] ?? []) - 1); $t++) {
             if ($debugInfo !== null) {
                 $debugInfo[] = "    Row $t: ObjectID=" . ($arrRights[self::ARR_OBJECTID][$t] ?? 'null') . ", AccessType=" . ($arrRights[self::ARR_ACCESSTYPE][$t] ?? 'null');
@@ -600,9 +603,8 @@ class SecurityHelper
                 $matchFound = true;
                 $accessType = max($accessType, $arrRights[self::ARR_ACCESSTYPE][$t] ?? 0);
                 $bBeheer = $bBeheer || !empty($arrRights[self::ARR_ISBEHEER][$t]);
-                if ($buttonId > -1) {
-                    $buttonValue = $arrRights[self::ARR_ACCESSTYPE + $buttonId][$t] ?? 0;
-                    $accessType = max($accessType, ($buttonValue ? self::ACCESS_FULL : self::ACCESS_NONE));
+                if ($buttonId > -1 && !empty($arrRights[self::ARR_ACCESSTYPE + $buttonId][$t])) {
+                    $knopAan = true;
                 }
                 if ($debugInfo !== null) {
                     $debugInfo[] = "    => MATCH! AccessType now: $accessType";
@@ -611,6 +613,10 @@ class SecurityHelper
         }
         if (!$matchFound && $debugInfo !== null) {
             $debugInfo[] = "  => No matching ObjectID found in group rights!";
+        }
+        if ($buttonId > -1) {
+            // Een knop: alleen het vinkje telt (zie hierboven), niet de toegang tot het formulier.
+            $accessType = ($matchFound && $knopAan) ? self::ACCESS_FULL : self::ACCESS_NONE;
         }
         return [$accessType, $bBeheer];
     }
@@ -925,7 +931,7 @@ class SecurityHelper
      * CheckFormButtonRights in de klassieke security.inc: beheerder = VOLLEDIG; een
      * hoofdformulier via zijn menu-item, een subformulier via zijn eigen formulierrechten
      * (TYPE_FORM), beide door checkRightsForUser() met het knopnummer erbij (zie
-     * accessFromRightsRows() voor wat secButtonN daar wel en niet doet). Een subformulier
+     * accessFromRightsRows(): de knop staat er alleen met het vinkje "Knop N"). Een subformulier
      * zonder eigen rechten volgt het hoofdformulier, net als checkFormRights() hier doet
      * voor de toegang tot het formulier zelf; zo hangen formulier en knop aan dezelfde regel.
      * Een knop is zichtbaar bij een resultaat > 0.
