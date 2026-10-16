@@ -197,6 +197,50 @@ class JsonFormLoader
     }
 
     /**
+     * Read a form definition from APCu, valid only for the source it was built from
+     *
+     * The APCu entry carries the mtime of the JSON source it was made from. A
+     * different mtime now means the source was edited, so the entry is a miss,
+     * the same rule the file cache applies.
+     *
+     * @param string $apcuKey APCu key
+     * @param string $formName Normalized form name
+     * @return array|null Cached data, or null on a miss
+     */
+    private static function apcuFetchCurrent(string $apcuKey, string $formName): ?array
+    {
+        if (!function_exists('apcu_fetch')) {
+            return null;
+        }
+        $entry = apcu_fetch($apcuKey);
+        if (!Arr::isArray($entry) || !array_key_exists('__sourceMtime', $entry) || !Arr::isArray($entry['__data'] ?? null)) {
+            return null;
+        }
+        if ($entry['__sourceMtime'] !== self::getFileMtime(self::getFilePath($formName))) {
+            return null;
+        }
+        return $entry['__data'];
+    }
+
+    /**
+     * Store a form definition in APCu (1-hour TTL) together with its source mtime
+     *
+     * @param string $apcuKey APCu key
+     * @param string $formName Normalized form name
+     * @param array $data Data to cache
+     */
+    private static function apcuStoreCurrent(string $apcuKey, string $formName, array $data): void
+    {
+        if (!function_exists('apcu_store')) {
+            return;
+        }
+        apcu_store($apcuKey, [
+            '__sourceMtime' => self::getFileMtime(self::getFilePath($formName)),
+            '__data' => $data,
+        ], 3600);
+    }
+
+    /**
      * Read from file cache
      *
      * @param string $formName Form name
@@ -393,12 +437,10 @@ class JsonFormLoader
 
         // Tier 2: APCu cache (shared memory across requests)
         $apcuKey = 'jfl_' . $formName . '_raw';
-        if (function_exists('apcu_fetch')) {
-            $apcuCached = apcu_fetch($apcuKey);
-            if ($apcuCached !== false) {
-                self::$cache[$cacheKey] = $apcuCached;
-                return $apcuCached;
-            }
+        $apcuCached = self::apcuFetchCurrent($apcuKey, $formName);
+        if ($apcuCached !== null) {
+            self::$cache[$cacheKey] = $apcuCached;
+            return $apcuCached;
         }
 
         // Tier 3: File cache (persisted)
@@ -406,9 +448,7 @@ class JsonFormLoader
         if ($cached !== null) {
             self::$cache[$cacheKey] = $cached;
             // Promote to APCu for faster access next request
-            if (function_exists('apcu_store')) {
-                apcu_store($apcuKey, $cached, 3600);
-            }
+            self::apcuStoreCurrent($apcuKey, $formName, $cached);
             return $cached;
         }
 
@@ -439,10 +479,8 @@ class JsonFormLoader
         // Write to file cache for future requests
         self::writeFileCache($formName, $data, 'raw');
 
-        // Store in APCu cache (1-hour TTL)
-        if (function_exists('apcu_store')) {
-            apcu_store($apcuKey, $data, 3600);
-        }
+        // Store in APCu cache (1-hour TTL, tied to the source mtime)
+        self::apcuStoreCurrent($apcuKey, $formName, $data);
 
         // Store in memory cache
         self::$cache[$cacheKey] = $data;
@@ -454,7 +492,7 @@ class JsonFormLoader
      *
      * Uses 4-tier caching:
      * 1. Memory cache (current request)
-     * 2. APCu cache (shared memory, 1 hour TTL)
+     * 2. APCu cache (shared memory, 1 hour TTL, a miss once the JSON source has changed)
      * 3. File cache (persisted, 1 week TTL)
      * 4. JSON source file (parsed, converted, and cached)
      *
@@ -473,21 +511,17 @@ class JsonFormLoader
 
         // Tier 2: APCu cache (shared memory across requests)
         $apcuKey = 'jfl_' . $formName . '_legacy';
-        if (function_exists('apcu_fetch')) {
-            $apcuCached = apcu_fetch($apcuKey);
-            if ($apcuCached !== false) {
-                self::$cache[$formName] = $apcuCached;
-                return $apcuCached;
-            }
+        $apcuCached = self::apcuFetchCurrent($apcuKey, $formName);
+        if ($apcuCached !== null) {
+            self::$cache[$formName] = $apcuCached;
+            return $apcuCached;
         }
 
         // Tier 3: File cache (persisted legacy format)
         $cached = self::readFileCache($formName, 'legacy');
         if ($cached !== null) {
             self::$cache[$formName] = $cached;
-            if (function_exists('apcu_store')) {
-                apcu_store($apcuKey, $cached, 3600);
-            }
+            self::apcuStoreCurrent($apcuKey, $formName, $cached);
             return $cached;
         }
 
@@ -503,10 +537,8 @@ class JsonFormLoader
         // Write to file cache for future requests
         self::writeFileCache($formName, $legacyFormat, 'legacy');
 
-        // Store in APCu cache (1-hour TTL)
-        if (function_exists('apcu_store')) {
-            apcu_store($apcuKey, $legacyFormat, 3600);
-        }
+        // Store in APCu cache (1-hour TTL, tied to the source mtime)
+        self::apcuStoreCurrent($apcuKey, $formName, $legacyFormat);
 
         // Store in memory cache
         self::$cache[$formName] = $legacyFormat;

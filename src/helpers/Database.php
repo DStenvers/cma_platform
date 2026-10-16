@@ -2433,7 +2433,7 @@ SQL: " . $sql : ''));
      *
      * Equivalent to ASP's lib_dbFieldExist function
      *
-     * @param string|null $connectionString Connection string (null = use conn_data)
+     * @param string|PDO|null $connectionString PDO connection to ask; anything else = default connection
      * @param string $table Table name
      * @param string $fieldName Field name (empty string to check table only)
      * @return bool True if field/table exists
@@ -2441,51 +2441,35 @@ SQL: " . $sql : ''));
     public static function fieldExists($connectionString, string $table, string $fieldName = ''): bool
     {
         // Accept a DSN string, null, or a PDO connection (ASP-converted callers
-        // pass the open connection object). The value only feeds the null-default
-        // below; the actual query runs on the default connection.
-        if ($connectionString === null) {
-            $connectionString = self::getConfiguredDsn('data');
-        }
-
+        // pass the open connection object). A PDO connection is the one asked;
+        // otherwise the question goes to the default connection.
         try {
-            $conn = self::getConnection();
+            $conn = $connectionString instanceof PDO ? $connectionString : self::getConnection();
             $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-            if ($driver === 'mysql') {
-                // MySQL: Use INFORMATION_SCHEMA
-                $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?";
-                if (!empty($fieldName)) {
-                    $sql .= " AND COLUMN_NAME = ?";
-                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
-                    $stmt->execute([$table, $fieldName]);
-                } else {
-                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
-                    $stmt->execute([$table]);
-                }
-            } elseif ($driver === 'sqlsrv' || $driver === 'mssql') {
-                // SQL Server: Use INFORMATION_SCHEMA
+            if ($driver === 'mysql' || $driver === 'sqlsrv' || $driver === 'mssql') {
+                // INFORMATION_SCHEMA: the field/table exists when a row comes back
                 $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?";
+                if ($driver === 'mysql') {
+                    $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?";
+                }
+                $params = [$table];
                 if (!empty($fieldName)) {
                     $sql .= " AND COLUMN_NAME = ?";
-                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
-                    $stmt->execute([$table, $fieldName]);
-                } else {
-                    $stmt = $conn->prepare(self::forDriver($conn, $sql));
-                    $stmt->execute([$table]);
-                }
-            } else {
-                // Generic approach - try to query the table
-                if (!empty($fieldName)) {
-                    $sql = "SELECT $fieldName FROM $table WHERE 1=0";
-                } else {
-                    $sql = "SELECT * FROM $table WHERE 1=0";
+                    $params[] = $fieldName;
                 }
                 $stmt = $conn->prepare(self::forDriver($conn, $sql));
-                $stmt->execute();
+                $stmt->execute($params);
+                return $stmt->fetch() !== false;
             }
 
-            $result = $stmt->fetch();
-            return $result !== false || $stmt->rowCount() >= 0;
+            // Access/ODBC, SQLite and the rest: ask for the column (or table) and
+            // see whether the query is accepted. rowCount() is no answer here —
+            // the ODBC driver reports -1 for every SELECT.
+            if (!empty($fieldName)) {
+                return self::columnExistsPDO($conn, $table, $fieldName);
+            }
+            return self::tableExistsPDO($conn, $table);
         } catch (PDOException $e) {
             return false;
         }
@@ -2721,21 +2705,19 @@ SQL: " . $sql : ''));
      *
      * Equivalent to ASP's lib_dbFieldAdd function
      *
-     * @param string|null $connectionString Connection string (null = use conn_data)
+     * @param string|PDO|null $connectionString PDO connection to alter; anything else = default connection
      * @param string $table Table name
      * @param string $field Field name
      * @param string $type Field type (varchar, int, etc.)
      * @param int $length Field length
      * @return bool True on success
      */
-    public static function addField(?string $connectionString, string $table, string $field, string $type, int $length): bool
+    public static function addField($connectionString, string $table, string $field, string $type, int $length): bool
     {
-        if ($connectionString === null) {
-            $connectionString = self::getConfiguredDsn('data');
-        }
-
+        // Same connection rule as fieldExists(): a PDO connection is the one
+        // altered, otherwise the default connection.
         try {
-            $conn = self::getConnection();
+            $conn = $connectionString instanceof PDO ? $connectionString : self::getConnection();
             $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
 
             // Build ALTER TABLE statement based on driver
@@ -2752,7 +2734,14 @@ SQL: " . $sql : ''));
                     $sql = "ALTER TABLE $table ADD $field $type";
                 }
             } else {
-                return false;
+                // Access/ODBC and the rest: addColumnPDO() speaks the Access DDL
+                // dialect and leaves an existing column alone.
+                $dataType = $type === 'varchar' ? "VARCHAR($length)" : $type;
+                $result = self::addColumnPDO($conn, $table, $field, $dataType);
+                if (!$result['success']) {
+                    self::$lastError = (string)$result['error'];
+                }
+                return $result['success'];
             }
 
             $conn->exec($sql);
