@@ -64,10 +64,13 @@ class SecurityHelper
     private static ?bool $isValidatedCache = null;
 
     /**
-     * Controleer of de huidige gebruiker is ingelogd
-     * Validates userID cookie against database.
-     * GUID cookie is set during login for additional security but
-     * a missing GUID does not block login (auto-set if missing).
+     * Controleer of de huidige gebruiker is ingelogd.
+     *
+     * Een sessie bestaat uit TWEE cookies: CMAU (tblUsers.ID) en CMAG (tblUsers.userGUID, gezet
+     * door login.php / sso_callback.php). Tot v1.52.26 telde alleen CMAU: wie zelf een cookie
+     * CMAU=1 zette was ingelogd als gebruiker 1 - ook met een verkeerde CMAG, want een
+     * ontbrekende CMAG werd zelfs automatisch aangevuld. Nu moet CMAG overeenkomen met de
+     * userGUID in de database (zie guidKlopt()).
      */
     public static function isLoggedIn(): bool
     {
@@ -79,7 +82,7 @@ class SecurityHelper
         $userId = Cookie::get(self::COOKIE_USERID, '');
 
         // Must have userID cookie
-        if ($userId === '') {
+        if ($userId === '' || !ctype_digit((string)$userId)) {
             self::$isValidatedCache = false;
             return false;
         }
@@ -92,21 +95,58 @@ class SecurityHelper
             return false;
         }
 
-        // If GUID cookie is missing but user is valid, try to auto-set it
-        try {
-            $guidCookie = Cookie::get(self::COOKIE_USERGUID, '');
-            if ($guidCookie === '') {
-                $dbGuid = self::getUserGuid((int)$userId);
-                if (!empty($dbGuid)) {
-                    Cookie::set(self::COOKIE_USERGUID, $dbGuid);
-                }
-            }
-        } catch (\Exception $e) {
-            // GUID handling is optional - don't block login
+        // De GUID-cookie moet bij deze gebruiker horen.
+        $dbGuid = self::getUserGuidOfNull((int)$userId);
+        if (!self::guidKlopt((string)Cookie::get(self::COOKIE_USERGUID, ''), $dbGuid)) {
+            error_log("[SecurityHelper::isLoggedIn] CMAG past niet bij CMAU=$userId - geen sessie");
+            self::$isValidatedCache = false;
+            return false;
+        }
+        if ($dbGuid === null) {
+            error_log('[SecurityHelper::isLoggedIn] tblUsers heeft geen kolom userGUID: sessie alleen op CMAU (onveilig; draai de migraties)');
         }
 
         self::$isValidatedCache = true;
         return true;
+    }
+
+    /**
+     * Hoort deze CMAG-cookie bij de gebruiker? Zuivere beslissing, los te testen.
+     *
+     * - $dbGuid null  = de kolom userGUID bestaat niet (oude, gekopieerde gebruikersdatabase,
+     *   migraties nog niet gedraaid). Dan valt er niets te vergelijken en blijft het oude
+     *   gedrag, anders kan daar niemand meer inloggen (login.php kan de GUID dan niet opslaan).
+     * - $dbGuid ''    = de kolom bestaat maar is leeg voor deze gebruiker: geen sessie. Bij de
+     *   volgende gewone login schrijft login.php een GUID.
+     * - anders        = de cookie moet gelijk zijn (zonder accolades, hoofdletterongevoelig).
+     */
+    public static function guidKlopt(string $cookieGuid, ?string $dbGuid): bool
+    {
+        if ($dbGuid === null) {
+            return true;
+        }
+        $kaal = static fn(string $g): string => strtoupper(trim(trim($g), '{}'));
+        $db = $kaal($dbGuid);
+        return $db !== '' && hash_equals($db, $kaal($cookieGuid));
+    }
+
+    /**
+     * userGUID van de gebruiker; '' als die leeg is, null als de kolom niet bestaat.
+     */
+    private static function getUserGuidOfNull(int $userId): ?string
+    {
+        try {
+            $conn = \App\Library\Database::getConnection('users');
+            if (!($conn instanceof \PDO)) {
+                return '';
+            }
+            if (self::tblUsersKolommen($conn, ['userGUID']) === []) {
+                return null;
+            }
+        } catch (\Throwable $e) {
+            return '';
+        }
+        return self::getUserGuid($userId);
     }
 
     /**
