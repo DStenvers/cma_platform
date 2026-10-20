@@ -21,6 +21,70 @@ namespace App\Library;
 class Request
 {
     /**
+     * Join repeated fields the way ASP Request.Form / Request.QueryString did
+     *
+     * A form with several inputs of the same name (checkboxes name=deelnemers, a
+     * <select multiple name=personen>) sends name=a&name=b. ASP returned "a, b"; PHP
+     * keeps only the last value, so converted code that splits on the comma silently
+     * lost every value but one. This rewrites $_GET and $_POST (urlencoded bodies only;
+     * multipart bodies are not readable from php://input) so a repeated name holds the
+     * values joined with ", ". Names with [] stay PHP arrays. When all values are equal
+     * the field keeps that single value, so an accidentally duplicated hidden field
+     * does not turn "5" into "5, 5".
+     *
+     * Called once by Bootstrap::init(), before anything reads the request.
+     *
+     * @param string|null $query Raw query string (default: QUERY_STRING)
+     * @param string|null $body Raw urlencoded body (default: php://input for urlencoded POSTs)
+     */
+    public static function joinRepeatedFields(?string $query = null, ?string $body = null): void
+    {
+        $query = $query ?? (string) ($_SERVER['QUERY_STRING'] ?? '');
+        if ($query !== '') {
+            self::joinRepeatedInto($_GET, $query);
+        }
+        if ($body === null) {
+            $type = strtolower((string) ($_SERVER['CONTENT_TYPE'] ?? ''));
+            if (self::method() === 'POST' && strpos($type, 'application/x-www-form-urlencoded') === 0) {
+                $body = (string) @file_get_contents('php://input');
+            }
+        }
+        if ($body !== null && $body !== '') {
+            self::joinRepeatedInto($_POST, $body);
+        }
+    }
+
+    /**
+     * @param array $target $_GET or $_POST
+     * @param string $raw urlencoded name=value pairs
+     */
+    private static function joinRepeatedInto(array &$target, string $raw): void
+    {
+        $values = [];
+        foreach (explode('&', $raw) as $pair) {
+            if ($pair === '') {
+                continue;
+            }
+            $parts = explode('=', $pair, 2);
+            $name = urldecode($parts[0]);
+            if ($name === '' || strpos($name, '[') !== false) {
+                continue;
+            }
+            $values[$name][] = urldecode($parts[1] ?? '');
+        }
+        foreach ($values as $name => $list) {
+            if (count($list) < 2 || count(array_unique($list)) < 2) {
+                continue;
+            }
+            // PHP stores "a.b" and "a b" as "a_b"
+            $key = str_replace(['.', ' '], '_', (string) $name);
+            if (array_key_exists($key, $target) && !is_array($target[$key])) {
+                $target[$key] = implode(', ', $list);
+            }
+        }
+    }
+
+    /**
      * Get value from any source ($_GET, $_POST, $_COOKIE)
      *
      * @param string $key The parameter name

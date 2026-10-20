@@ -69,6 +69,7 @@ class Bootstrap
         ], $config);
 
         self::initEncoding();
+        Request::joinRepeatedFields();
         self::recordTiming('init');
 
         self::loadConstants();

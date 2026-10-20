@@ -953,4 +953,52 @@ class RequestCoreTest extends TestCase
             Request::addAllToURL('http://x.com/p?a=1')
         );
     }
+
+    // ------------------------------------------------------------------
+    // joinRepeatedFields() — repeated names joined like ASP Request.Form
+    // ------------------------------------------------------------------
+
+    public function testJoinRepeatedPostFieldsLikeAsp(): void
+    {
+        // What PHP itself parses from personen=Deelnemer_5&personen=Docent_7: only the last.
+        $_POST = ['personen' => 'Docent_7', 'onderwerp' => 'x'];
+        Request::joinRepeatedFields('', 'onderwerp=x&personen=Deelnemer_5&personen=Docent_7');
+        $this->assertSame('Deelnemer_5, Docent_7', Request::post('personen'));
+        $this->assertSame('x', Request::post('onderwerp'));
+    }
+
+    public function testJoinRepeatedQueryFields(): void
+    {
+        $_GET = ['id' => '3'];
+        Request::joinRepeatedFields('id=1&id=3', '');
+        $this->assertSame('1, 3', Request::query('id'));
+    }
+
+    public function testJoinRepeatedDecodesValues(): void
+    {
+        $_POST = ['t' => 'c d'];
+        Request::joinRepeatedFields('', 't=a%2Cb&t=c+d');
+        $this->assertSame('a,b, c d', Request::post('t'));
+    }
+
+    public function testJoinRepeatedKeepsIdenticalDuplicateSingle(): void
+    {
+        $_POST = ['id' => '5'];
+        Request::joinRepeatedFields('', 'id=5&id=5');
+        $this->assertSame('5', Request::post('id'));
+    }
+
+    public function testJoinRepeatedLeavesBracketArraysAlone(): void
+    {
+        $_POST = ['msg' => ['1', '2']];
+        Request::joinRepeatedFields('', 'msg%5B%5D=1&msg%5B%5D=2');
+        $this->assertSame(['1', '2'], Request::post('msg'));
+    }
+
+    public function testJoinRepeatedUsesPhpKeyForDottedNames(): void
+    {
+        $_POST = ['a_b' => '2'];
+        Request::joinRepeatedFields('', 'a.b=1&a.b=2');
+        $this->assertSame('1, 2', Request::post('a_b'));
+    }
 }
