@@ -1112,8 +1112,6 @@ if ($isAdmin) {
         $phpWarnings = \Cma\Services\PhpAdvice::warnings(
             PHP_VERSION,
             function_exists('opcache_get_status') && opcache_get_status(false) !== false,
-            (string) ini_get('opcache.jit'),
-            \App\Library\Upload::iniBytes((string) ini_get('opcache.jit_buffer_size')),
             function_exists('apcu_fetch'),
             intdiv(\App\Library\Upload::iniBytes((string) ini_get('realpath_cache_size')), 1024)
         );

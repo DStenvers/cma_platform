@@ -11,9 +11,9 @@ use Cma\Services\PhpAdvice;
 
 class PhpAdviceTest extends TestCase
 {
-    private function all(string $version, string $jit = 'tracing', int $buffer = 64 * 1024 * 1024): array
+    private function all(string $version): array
     {
-        return PhpAdvice::warnings($version, true, $jit, $buffer, true, 4096);
+        return PhpAdvice::warnings($version, true, true, 4096);
     }
 
     public function testAHealthyEnvironmentGetsNoAdvice(): void
@@ -32,32 +32,31 @@ class PhpAdviceTest extends TestCase
         $this->assertCount(1, $this->all('8.2.30'), '8.2 is older too');
     }
 
-    public function testJitOffIsAdvisedOnlyWhenOpcacheIsOn(): void
+    public function testNoJitAdvice(): void
     {
-        $w = $this->all('8.4.2', 'tracing', 0);
-        $this->assertCount(1, $w);
-        $this->assertStringContainsString('opcache.jit_buffer_size=64M', $w[0]);
-        $this->assertCount(1, $this->all('8.4.2', 'off', 64 * 1024 * 1024), 'jit=off with a buffer is still off');
-        $this->assertCount(1, $this->all('8.4.2', '0', 64 * 1024 * 1024));
-        $this->assertSame([], $this->all('8.4.2', '1255', 64 * 1024 * 1024), 'the numeric spelling of tracing');
+        // JIT aanzetten gaf zwarte schermen; het dashboard mag er niet meer toe aansporen.
+        foreach (PhpAdvice::warnings('8.3.11', false, false, 16) as $w) {
+            $this->assertFalse(stripos($w, 'jit') !== false, 'het dashboard noemt de JIT: ' . $w);
+        }
+        $this->assertFalse(method_exists(PhpAdvice::class, 'jitOn'), 'jitOn() hoort weg te zijn');
 
-        $noOpcache = PhpAdvice::warnings('8.4.2', false, 'tracing', 0, true, 4096);
-        $this->assertCount(1, $noOpcache, 'without OPcache only the OPcache warning, not also JIT');
+        $noOpcache = PhpAdvice::warnings('8.4.2', false, true, 4096);
+        $this->assertCount(1, $noOpcache, 'zonder OPcache alleen de OPcache-melding');
         $this->assertStringContainsString('OPcache', $noOpcache[0]);
     }
 
     public function testApcuAndRealpathCache(): void
     {
-        $w = PhpAdvice::warnings('8.4.2', true, 'tracing', 64 * 1024 * 1024, false, 16);
+        $w = PhpAdvice::warnings('8.4.2', true, false, 16);
         $this->assertCount(2, $w);
         $this->assertStringContainsString('APCu', $w[0]);
         $this->assertStringContainsString('realpath_cache_size', $w[1]);
-        $this->assertSame([], PhpAdvice::warnings('8.4.2', true, 'tracing', 64 * 1024 * 1024, true, 0), 'an unknown realpath size is not a warning');
+        $this->assertSame([], PhpAdvice::warnings('8.4.2', true, true, 0), 'an unknown realpath size is not a warning');
     }
 
     public function testNoEmphasisTags(): void
     {
-        foreach (PhpAdvice::warnings('8.3.11', false, '0', 0, false, 16) as $w) {
+        foreach (PhpAdvice::warnings('8.3.11', false, false, 16) as $w) {
             $this->assertFalse((bool) preg_match('/<(b|i|strong|em)\b/', $w), 'geen nadruk-tags: ' . $w);
         }
     }

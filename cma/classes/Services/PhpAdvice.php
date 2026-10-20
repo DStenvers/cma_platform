@@ -1,8 +1,11 @@
 <?php
 /**
  * The PHP-environment advice on the dashboard for admins and developers:
- * version, OPcache, JIT, APCu, realpath cache. Pure: every input is a
+ * version, OPcache, APCu, realpath cache. Pure: every input is a
  * parameter, so the rules are testable without a live PHP configuration.
+ *
+ * Deliberately no JIT advice: turning opcache.jit on led to black screens and other
+ * hard-to-trace failures on these sites, so the dashboard must not nudge anyone to it.
  */
 
 namespace Cma\Services;
@@ -15,13 +18,11 @@ class PhpAdvice
     /**
      * @param string $phpVersion   PHP_VERSION
      * @param bool   $opcache      OPcache active
-     * @param string $jit          ini opcache.jit ('tracing', '1255', '0', 'off', …)
-     * @param int    $jitBuffer    opcache.jit_buffer_size in bytes
      * @param bool   $apcu         APCu available
      * @param int    $realpathKb   realpath_cache_size in KB
      * @return string[] HTML fragments, one per warning; empty when all is well
      */
-    public static function warnings(string $phpVersion, bool $opcache, string $jit, int $jitBuffer, bool $apcu, int $realpathKb): array
+    public static function warnings(string $phpVersion, bool $opcache, bool $apcu, int $realpathKb): array
     {
         $w = [];
         if (version_compare($phpVersion, self::MIN_PHP_VERSION, '<')) {
@@ -30,8 +31,6 @@ class PhpAdvice
         }
         if (!$opcache) {
             $w[] = '<span class="cma-page__strong">OPcache</span> is niet actief. Dit vertraagt elke pagina-aanvraag aanzienlijk doordat PHP-bestanden steeds opnieuw gecompileerd worden.';
-        } elseif (!self::jitOn($jit, $jitBuffer)) {
-            $w[] = '<span class="cma-page__strong">JIT</span> staat uit. Zet in php.ini <code>opcache.jit=tracing</code> en <code>opcache.jit_buffer_size=64M</code> en recycle de app-pool; dat kan alleen in php.ini (PHP_INI_SYSTEM), niet in .user.ini.';
         }
         if (!$apcu) {
             $w[] = '<span class="cma-page__strong">APCu</span> is niet geïnstalleerd. Zonder APCu valt de cache terug op bestandssysteem-I/O, wat formulierlijsten en templates aanzienlijk vertraagt.';
@@ -42,9 +41,4 @@ class PhpAdvice
         return $w;
     }
 
-    public static function jitOn(string $jit, int $jitBuffer): bool
-    {
-        $j = strtolower(trim($jit));
-        return $jitBuffer > 0 && $j !== '' && $j !== '0' && $j !== 'off' && $j !== 'disable' && $j !== 'no' && $j !== 'false';
-    }
 }
