@@ -1383,22 +1383,10 @@ class SQL
      */
     private static function convertDoubleQuotesToSingle(string $sql): string
     {
-        // Match double-quoted strings, capturing the content
-        // This regex handles escaped double quotes ("") within strings
-        $pattern = '/"((?:[^"\\\\]|\\\\.|"")*)"/';
-
-        return preg_replace_callback($pattern, function($matches) {
-            $content = $matches[1];
-
-            // Unescape any escaped double quotes ("" -> ")
-            $content = str_replace('""', '"', $content);
-
-            // Escape single quotes for Access (' -> '')
-            $content = str_replace("'", "''", $content);
-
-            // Return with single quotes
-            return "'" . $content . "'";
-        }, $sql);
+        // Must skip single-quoted literals: SQL::postString() leaves a " in the data as is,
+        // so a stored text like 'click <a href="x">' would otherwise be cut into
+        // 'click <a href='x'>' and the statement fails with "operator ontbreekt".
+        return self::accessDoubleQuotesToSingle($sql);
     }
 
     /**

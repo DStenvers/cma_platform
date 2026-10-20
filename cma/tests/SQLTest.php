@@ -729,6 +729,23 @@ class SQLTest extends TestCase
         $this->assertEquals($sql, SQL::accessDoubleQuotesToSingle($sql));
     }
 
+    public function testProcessSqlLeavesQuotesInsideAPostStringValueAlone(): void
+    {
+        // Een bericht met een link, opgeslagen via postString(). processSQL() maakte van
+        // href="x" binnen de literal href='x', en dan viel de INSERT om met
+        // "Syntaxisfout (operator ontbreekt)" - bij elke toetsinlevering, en bij elke
+        // opmerking waarin iemand iets "tussen aanhalingstekens" zette.
+        $tekst = 'Klik <a href="https://mijn.rino.nl">hier</a>, zei hij "gewoon"';
+        $sql = 'INSERT INTO tblMessages (Subject, Details) VALUES (\'x\', ' . SQL::postString($tekst, 'ACCESS_VIA_ODBC') . ')';
+        $this->assertEquals($sql, SQL::processSQL('ACCESS_VIA_ODBC', $sql));
+    }
+
+    public function testProcessSqlStillConvertsADoubleQuotedValue(): void
+    {
+        $this->assertStringContainsString("where code <> ''", SQL::processSQL('ACCESS_VIA_ODBC', 'select id from t where code<>""'));
+        $this->assertStringContainsString("IIF(a,'J','N')", SQL::processSQL('ACCESS_VIA_ODBC', 'select iif(a,"J","N") from t'));
+    }
+
     public function testAnUnterminatedQuoteIsLeftAlone(): void
     {
         // Geen literal, dus niets om te vertalen - en gokken maakt het alleen erger.
