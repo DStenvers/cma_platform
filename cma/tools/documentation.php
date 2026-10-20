@@ -3888,6 +3888,13 @@ SQL::processDdl($conn, $sql);     // schema-statements
     </table>
     <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASS</code>) of uit <code>app.php</code>.</p>
 
+    <h2>Queryresultaten cachen: Cache::retrieve() en Cache::clearPrefix()</h2>
+    <p><code>Cache::retrieve($identifier, 'data', $sql)</code> voert de query één keer uit en bewaart de rijen onder de sleutel <code>cache_</code> + identifier, tot de TTL (<code>CACHE_DEFAULT_TTL</code>, standaard een dag) verloopt. De SQL telt niet mee in de sleutel: wie de query verandert, verandert de identifier mee.</p>
+    <p>Na een wijziging wis je de bijbehorende resultaten met <code>Cache::clearPrefix($prefix)</code>: alle identifiers die met die tekst beginnen, ongeacht hoofdletters, zoals <code>Cache_Clear</code> in de ASP. Een lege prefix wist de hele cache. <code>Cache::delete()</code> werkt op één exacte sleutel en mist het <code>cache_</code>-voorvoegsel, dus die raakt een <code>retrieve()</code>-resultaat niet.</p>
+    <pre><code>$arr = Cache::retrieve('PDO_pauze_' . $deelnemerId, 'data', $sql);
+// na het wijzigen van de pauze:
+Cache::clearPrefix('PDO_pauze_' . $deelnemerId);</code></pre>
+
     <h2>VBScript-shims: RecordSet, ScriptingDictionary, Regexp</h2>
     <p>ASP&rarr;PHP geconverteerde code verwacht een paar VBScript-objecten die letterlijk in de code blijven staan. Het platform levert ze zodat de converter-output zonder handwerk draait:</p>
     <ul>
@@ -4957,6 +4964,7 @@ function render_doc_troubleshooting(): void
     <table class="listtable">
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
+            <tr><td>Een wijziging in de database (pauze, status) is pas na een dag op de site te zien</td><td>Het scherm leest uit <code>Cache::retrieve()</code>, en de code wist na het wijzigen met <code>Cache::delete('PDO_…')</code>. Die wist één exacte sleutel zonder het <code>cache_</code>-voorvoegsel dat <code>retrieve()</code> gebruikt, dus er wordt niets gewist en het oude resultaat blijft staan tot de TTL verloopt.</td><td>Wis met <code>Cache::clearPrefix('PDO_…')</code>; zie <a href="documentation.php?topic=database">Database &amp; RecordSet</a>.</td></tr>
             <tr><td>Zwarte of lege schermen, pagina's die af en toe half of helemaal niet laden, zonder duidelijke fout in de log</td><td>De OPcache-<span class="cma-tool__strong">JIT</span> staat aan (<code>opcache.jit=tracing</code> of een getal, met een <code>opcache.jit_buffer_size</code> groter dan 0). Op deze sites leverde dat onvoorspelbare fouten op.</td><td>Zet in php.ini <code>opcache.jit=disable</code> en <code>opcache.jit_buffer_size=0</code> en recycle de app-pool; OPcache zelf blijft aan. De check "OPcache (JIT uit)" in het onderwerp Installatie laat zien of dat gelukt is.</td></tr>
             <tr><td><code>vdev-main</code> in profielmenu i.p.v. echte versie</td><td>vendor/ stale t.o.v. cma/ files; Bootstrap::getPlatformVersion() las ooit eerst installed.json, die zegt <code>dev-main</code> bij branch-installs.</td><td><code>composer update stenversonline/platform</code>. leest eerst de package's eigen composer.json — daarna verschijnt vanzelf <code>v&lt;X.Y.Z&gt;</code>.</td></tr>
             <tr><td>Profielmenu toont na een deploy nog de oude versie, terwijl <code>deploy_status.php</code> de nieuwe noemt</td><td>De versie kwam uit een cache die de deploy overleefde: de sessie (als APCu ontbreekt) of APCu in een app pool die niet herstart was. <code>deploy_status.php</code> leest <code>composer.json</code> rechtstreeks en had dus wel gelijk.</td><td>Update het platform: de cachesleutel bevat nu de wijzigingstijd van <code>composer.json</code>, dus de nieuwe versie verschijnt bij het eerstvolgende verzoek. Blijft hij oud, dan is <code>vendor/</code> zelf niet bijgewerkt — vergelijk met de <code>platform:</code>-regel in <code>deploy_status.php</code>.</td></tr>

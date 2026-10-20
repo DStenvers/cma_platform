@@ -273,6 +273,48 @@ class CacheTest extends TestCase
     }
 
     // ---------------------------------------------------------------------
+    // clearPrefix — the retrieve() counterpart of VBScript Cache_Clear()
+    // ---------------------------------------------------------------------
+
+    public function testClearPrefixRemovesRetrieveSiblings(): void
+    {
+        // retrieve() stores under 'cache_' . identifier
+        Cache::set('cache_PDO_deelname_details_12_ab12cd34', [['bPauze' => 1]]);
+        Cache::set('cache_PDO_deelname_details_12_ef56ab78', [['bPauze' => 1]]);
+        Cache::set('cache_PDO_deelname_details_13_ab12cd34', [['bPauze' => 0]]);
+        $this->assertTrue(Cache::clearPrefix('PDO_deelname_details_12_'));
+        $this->assertFalse(Cache::has('cache_PDO_deelname_details_12_ab12cd34'));
+        $this->assertFalse(Cache::has('cache_PDO_deelname_details_12_ef56ab78'));
+        $this->assertTrue(Cache::has('cache_PDO_deelname_details_13_ab12cd34'), 'another identifier stays');
+    }
+
+    public function testClearPrefixIsCaseInsensitive(): void
+    {
+        Cache::set('cache_PDO_pauze_7', [[1]]);
+        Cache::clearPrefix('pdo_PAUZE_');
+        $this->assertFalse(Cache::has('cache_PDO_pauze_7'));
+    }
+
+    public function testClearPrefixLeavesKeysOutsideRetrieve(): void
+    {
+        // A plain set() key with the same text is not a retrieve() result.
+        Cache::set('PDO_pauze_7', 'eigen');
+        Cache::set('cache_PDO_pauze_7', [[1]]);
+        Cache::clearPrefix('PDO_pauze_');
+        $this->assertSame('eigen', Cache::get('PDO_pauze_7'));
+        $this->assertFalse(Cache::has('cache_PDO_pauze_7'));
+    }
+
+    public function testClearPrefixEmptyClearsEverything(): void
+    {
+        Cache::set('k1', 'a');
+        Cache::set('cache_PDO_x', [[1]]);
+        $this->assertTrue(Cache::clearPrefix(''));
+        $this->assertNull(Cache::get('k1'));
+        $this->assertFalse(Cache::has('cache_PDO_x'));
+    }
+
+    // ---------------------------------------------------------------------
     // TTL / expiry
     // ---------------------------------------------------------------------
 

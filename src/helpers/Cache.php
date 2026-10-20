@@ -423,6 +423,65 @@ class Cache
     }
 
     /**
+     * Clear every Cache::retrieve() result whose identifier starts with $prefix
+     *
+     * Maps VBScript Cache_Clear(): retrieve() stores under 'cache_' . $identifier, so
+     * Cache::delete('PDO_pauze_12') never hits it, and a prefix such as 'PDO_deelname_'
+     * clears all siblings ('PDO_deelname_details_12_ab12cd34', ...). The match is
+     * case-insensitive, like the ASP original. An empty prefix clears the whole cache.
+     *
+     * @param string $prefix Identifier prefix as passed to retrieve()
+     * @return bool True on success
+     */
+    public static function clearPrefix(string $prefix): bool
+    {
+        self::init();
+
+        if (!self::$enabled) {
+            return false;
+        }
+        if ($prefix === '') {
+            return self::clear();
+        }
+
+        $zoek = strtolower('cache_' . $prefix);
+        $past = static function ($key) use ($zoek): bool {
+            return is_string($key) && strncmp(strtolower($key), $zoek, strlen($zoek)) === 0;
+        };
+
+        try {
+            switch (self::$backend) {
+                case 'redis':
+                    // SCAN-patronen zijn hoofdlettergevoelig; daarom alle cache_-sleutels langs.
+                    $iterator = null;
+                    do {
+                        $keys = self::$redis->scan($iterator, 'cache_*', 500) ?: [];
+                        $weg = array_values(array_filter($keys, $past));
+                        if ($weg) {
+                            self::$redis->del($weg);
+                        }
+                    } while ($iterator > 0);
+                    return true;
+
+                case 'apcu':
+                    foreach (new \APCUIterator('/^' . preg_quote('cache_' . $prefix, '/') . '/i', APC_ITER_KEY) as $item) {
+                        apcu_delete($item['key']);
+                    }
+                    return true;
+
+                case 'file':
+                    return self::clearFilePrefix($past);
+
+                default:
+                    return false;
+            }
+        } catch (\Exception $e) {
+            error_log('Cache clearPrefix error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Clear all cached values
      *
      * @return bool True on success
@@ -741,7 +800,9 @@ class Cache
     {
         $filepath = self::getCacheFilepath($key);
 
+        // 'key' staat erbij omdat de bestandsnaam een hash is: clearPrefix() leest hem terug.
         $data = [
+            'key' => $key,
             'value' => $value,
             'expires' => time() + $ttl,
             'created' => time()
@@ -806,6 +867,35 @@ class Cache
             if ($file->isDir()) {
                 @rmdir($file->getPathname());
             } else {
+                @unlink($file->getPathname());
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Remove file-cache entries whose stored key matches
+     *
+     * @param callable $past Receives the stored key, returns true to remove the file
+     * @return bool
+     */
+    private static function clearFilePrefix(callable $past): bool
+    {
+        if (!is_dir(self::$cacheDir)) {
+            return true;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(self::$cacheDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file->isFile() || substr($file->getFilename(), -6) !== '.cache') {
+                continue;
+            }
+            $data = @unserialize((string) @file_get_contents($file->getPathname()), ['allowed_classes' => false]);
+            if (is_array($data) && $past($data['key'] ?? null)) {
                 @unlink($file->getPathname());
             }
         }
