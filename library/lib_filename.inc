@@ -58,6 +58,9 @@ function Lib_FilenameSanitize($strInput)
 
     }
 
+    // dubbele punten (bv. "def..docx") geven een ongeldig pad bij openen
+    $strTemp = preg_replace('/\.{2,}/', '.', $strTemp);
+
     return $strTemp;
 
 }

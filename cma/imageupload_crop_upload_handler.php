@@ -102,6 +102,8 @@ if ($tooLarge !== null) {
 // Sanitize filename
 $originalName = $file['name'];
 $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $originalName);
+// dubbele punten (bv. "def..docx") geven een ongeldig pad bij openen
+$filename = preg_replace('/\.{2,}/', '.', $filename);
 
 if ($filename === '' || $filename === '.' || $filename === '..') {
     $filename = 'image_' . time() . '.jpg';

@@ -85,6 +85,8 @@ class LibUpload
 
         // Get original filename
         $originalFilename = basename($uploadedFile['name']);
+        // dubbele punten (bv. "def..docx") geven een ongeldig pad bij openen
+        $originalFilename = preg_replace('/\.{2,}/', '.', $originalFilename);
 
         // Determine final filename:
         //   - Random: always generate a unique name (overrides any pre-set Filename)

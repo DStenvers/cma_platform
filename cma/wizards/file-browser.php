@@ -390,6 +390,8 @@ function handleUpload(string $fullPath, string $urlPath, string $overwrite, stri
 
     // Sanitize filename
     $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $file['name']);
+    // dubbele punten (bv. "def..docx") geven een ongeldig pad bij openen
+    $filename = preg_replace('/\.{2,}/', '.', $filename);
 
     // Redirect onto the selected file when the client asked for "overwrite
     // the selected file". basename() + the same charset filter as the
