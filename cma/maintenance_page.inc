@@ -63,16 +63,18 @@ foreach ([$cmaMaintBranding, $cmaMaintApp] as $cmaMaintSource) {
 
 // A manually raised flag can carry a one-off message. The gate normally hands it
 // over in $message; read the flag ourselves when it did not.
+$cmaMaintFlagRaw  = trim((string) @file_get_contents($cmaMaintRoot . '/maintenance.flag'));
+$cmaMaintFlagJson = $cmaMaintFlagRaw !== '' ? json_decode($cmaMaintFlagRaw, true) : null;
 $cmaMaintFlagMessage = '';
 if (!isset($message) || !is_string($message) || trim($message) === '') {
-    $cmaMaintFlagRaw = trim((string) @file_get_contents($cmaMaintRoot . '/maintenance.flag'));
-    if ($cmaMaintFlagRaw !== '') {
-        $cmaMaintFlagJson = json_decode($cmaMaintFlagRaw, true);
-        if (is_array($cmaMaintFlagJson) && isset($cmaMaintFlagJson['message']) && is_string($cmaMaintFlagJson['message'])) {
-            $cmaMaintFlagMessage = trim($cmaMaintFlagJson['message']);
-        }
+    if (is_array($cmaMaintFlagJson) && isset($cmaMaintFlagJson['message']) && is_string($cmaMaintFlagJson['message'])) {
+        $cmaMaintFlagMessage = trim($cmaMaintFlagJson['message']);
     }
 }
+// "Probeer het over een paar minuten opnieuw" past bij een deploy, niet bij
+// onderhoud van onbekende duur. Een handmatige vlag kan het uitzetten met
+// "retry": false; zonder die sleutel (zoals bij een deploy) blijft het staan.
+$cmaMaintRetry = !(is_array($cmaMaintFlagJson) && ($cmaMaintFlagJson['retry'] ?? true) === false);
 
 // "cma" is de placeholder-bedrijfsnaam van een kaal platform, geen sitenaam.
 // Zonder deze uitzondering stond er "cma" op de onderhoudspagina van een site
@@ -214,9 +216,11 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
       <div class="art"><img src="<?= $h($cmaMaintArt) ?>" alt="" width="120" height="120"></div>
 <?php endif; ?>
       <h1><?= $h($message) ?></h1>
+<?php if ($cmaMaintRetry): ?>
       <p>Probeer het over een paar minuten opnieuw.</p>
+<?php endif; ?>
 <?php if ($cmaMaintContactLine !== ''): ?>
-      <p class="help">Blijft u deze melding langer dan 10 minuten zien?<br><?= $cmaMaintContactLine ?></p>
+      <p class="help"><?= $cmaMaintRetry ? 'Blijft u deze melding langer dan 10 minuten zien?' : 'Vragen?' ?><br><?= $cmaMaintContactLine ?></p>
 <?php endif; ?>
     </div>
   </div>

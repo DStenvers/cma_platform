@@ -35,7 +35,8 @@ if ($action === 'on') {
     if ($message === '') {
         $notice = ['error', 'Vul een bericht in — een leeg bericht is niet toegestaan.'];
     } else {
-        $payload = ['manual' => true, 'since' => time(), 'message' => $message];
+        $payload = ['manual' => true, 'since' => time(), 'message' => $message,
+                    'retry' => Request::post('retry', '') === '1'];
         $ok = @file_put_contents(
             $flagPath,
             json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
@@ -65,6 +66,7 @@ if ($isOn) {
     $since    = isset($flagData['since']) ? (int) $flagData['since'] : (int) @filemtime($flagPath);
     $curMsg   = is_string($flagData['message'] ?? null) ? $flagData['message'] : '';
 }
+$retryChecked = ($flagData['retry'] ?? true) !== false;
 
 // The effective default message the maintenance page shows from config, in the
 // same source order as maintenance.php: data/maintenance.json -> data/app.json
@@ -128,6 +130,9 @@ echo '<input type="hidden" name="action" value="on">';
 echo '<label for="maintmsg" style="display:block;font-weight:600;margin-bottom:.35rem;">Bericht voor bezoekers</label>';
 echo '<textarea id="maintmsg" name="message" rows="3" required style="width:100%;padding:.6rem;border:1px solid #ccc;border-radius:4px;font:inherit;margin-bottom:.75rem;">'
    . htmlspecialchars($msgValue) . '</textarea>';
+echo '<label style="display:block;margin-bottom:.75rem;"><input type="checkbox" name="retry" value="1"'
+   . ($retryChecked ? ' checked' : '') . '> Toon &lsquo;Probeer het over een paar minuten opnieuw&rsquo; '
+   . 'en &lsquo;Blijft u deze melding langer dan 10 minuten zien?&rsquo;</label>';
 echo '<button type="submit" class="btn btn-primary"><span class="lnr lnr-warning"></span> '
    . ($isOn && $isManual ? 'Bericht bijwerken' : 'Onderhoud AANzetten') . '</button>';
 echo '</form>';
