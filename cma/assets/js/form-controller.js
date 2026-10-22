@@ -5774,13 +5774,20 @@ class CmaFormController {
             onReset: () => this.loadList(true) // Force refresh on reset
         });
 
-        // lib-table rebuilds the header cells one frame later, which strips the
-        // handles we just attached. Hang them back on once it reports ready.
+        // lib-table rebuilds the header cells one frame later, and again on every
+        // refresh() (after a background prefetch), which strips the handles we just
+        // attached. Hang them back on each time it reports ready. One listener per
+        // host; it asks the controller that rendered the list last.
         const host = table.closest('lib-table');
-        if (host && !host._ready) {
-            host.addEventListener('lib-table-ready', () => {
-                if (this.columnManager) this.columnManager.initResizeHandles();
-            }, { once: true });
+        if (host) {
+            host._cmaColumnOwner = this;
+            if (!host._cmaResizeListener) {
+                host._cmaResizeListener = true;
+                host.addEventListener('lib-table-ready', () => {
+                    const owner = host._cmaColumnOwner;
+                    if (owner && owner.columnManager) owner.columnManager.initResizeHandles();
+                });
+            }
         }
 
         // Store field info for field chooser

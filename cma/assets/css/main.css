@@ -76,6 +76,7 @@ html.dark-mode {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0; /* may shrink beside the toggle button, so the img's max-width: 100% has a box to fit */
     color: #fff;
     font-weight: 600;
     font-size: var(--font-size-lg);
@@ -87,7 +88,7 @@ html.dark-mode {
 .cma-logo img {
     height: 32px;
     width: auto;
-    max-width: 180px;
+    max-width: 100%;
     object-fit: contain;
 }
 

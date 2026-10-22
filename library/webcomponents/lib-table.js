@@ -2948,7 +2948,13 @@ class LibTable extends HTMLElement {
         this._rows = Array.from(this._table.querySelectorAll('tbody tr'));
         this._initializeFilters();
         this._restoreFilters();
+        // Resetting th.innerHTML above also wiped the export menu (it lives in the
+        // first th's .th-header-wrapper); rebuild it like the first initialisation does.
+        this._initializeExportMenu();
         this._updateView();
+        // The header cells were rebuilt again: let the page re-attach what it hangs on
+        // a th (the CMA's column resize handles), same as after the first build.
+        this.dispatchEvent(new CustomEvent('lib-table-ready', { bubbles: true }));
     }
 
     clearFilters() {

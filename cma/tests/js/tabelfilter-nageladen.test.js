@@ -90,6 +90,38 @@ test('het filtermenu kent na refreshFilters ook de waarden van nageladen rijen',
     assert.waar(waarden.includes('C'), 'C staat in het filtermenu: ' + JSON.stringify(waarden));
 });
 
+test('het exportmenu staat er na refreshFilters nog', async () => {
+    // refresh() zet elke th terug op zijn koptekst (th.innerHTML) en wiste daarmee het
+    // exportmenu in de eerste kolom; het verscheen even en verdween zodra het bijladen klaar was.
+    const w = await laad();
+    const eersteTh = () => w.document.querySelector('#listTable thead th');
+    assert.waar(!!eersteTh().querySelector('.menutrigger'), 'exportmenu na de eerste opbouw');
+    w.document.querySelector('#listTable tbody').insertAdjacentHTML('beforeend', rij(6, 'Fien', 'D'));
+    const scroller = new w.CmaInfiniteScroll({
+        container: w.document.getElementById('container'),
+        table: w.document.getElementById('listTable'),
+        formId: 'opleidingen', pageSize: 2, loadMore: async () => ({ success: false })
+    });
+    scroller.refreshFilters();
+    assert.gelijk(eersteTh().querySelectorAll('.menutrigger').length, 1, 'precies één exportmenu na refreshFilters');
+    assert.waar(!!eersteTh().querySelector('.menutrigger .exportCSV'), 'het menu biedt CSV-export aan');
+});
+
+test('refreshFilters meldt lib-table-ready opnieuw (de kop is opnieuw opgebouwd)', async () => {
+    // De CMA hangt zijn kolombreedte-grepen aan dit event; zonder nieuw event waren ze na
+    // het bijladen ook weg.
+    const w = await laad();
+    let gemeld = 0;
+    w.document.getElementById('container').addEventListener('lib-table-ready', () => gemeld++);
+    const scroller = new w.CmaInfiniteScroll({
+        container: w.document.getElementById('container'),
+        table: w.document.getElementById('listTable'),
+        formId: 'opleidingen', pageSize: 2, loadMore: async () => ({ success: false })
+    });
+    scroller.refreshFilters();
+    assert.gelijk(gemeld, 1, 'lib-table-ready na refresh()');
+});
+
 test('een tabel buiten een lib-table gebruikt de jQuery-plugin als die er is', () => {
     const dom = new JSDOM('<!doctype html><html><body><div id="c"><table id="t"><tbody></tbody></table></div></body></html>',
         { runScripts: 'dangerously', url: 'http://localhost/cma/form.php' });
