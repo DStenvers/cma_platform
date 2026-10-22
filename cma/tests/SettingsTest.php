@@ -101,7 +101,6 @@ class SettingsTest extends TestCase
         $this->assertSame(20, Settings::get('perf_client_batch_size'));
         $this->assertSame(5000, Settings::get('perf_client_batch_interval'));
         $this->assertSame(200, Settings::get('perf_client_max_queue'));
-        $this->assertSame(500, Settings::get('table_filter_max_values'));
         $this->assertSame(30, Settings::get('table_filter_max_checkboxes'));
         // Phase 5: uploads, images, editor
         $this->assertSame(0, Settings::get('upload_max_mb'));

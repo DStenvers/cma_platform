@@ -1,15 +1,11 @@
 /**
  * Bewijs voor "een lange lijst houdt een filter".
  *
- * <lib-table> somt per kolom de waarden op in een keuzelijst. Boven MAX_FILTER_LENGTH (500)
- * rijen is dat te duur en wordt zo'n lijst ook onbruikbaar lang, dus dat gebeurde niet meer.
- * Alleen: er kwam ook niets voor in de plaats. Het filtermenu ging open en was leeg — geen
- * keuzelijst, geen zoekveld. Gemeld op het rapport "ontbrekende presentie" van mijnRINO
- * (1182 regels): daar had ELKE kolom een leeg filter, en was er dus niets te filteren.
- *
- * Er bestond al een antwoord voor precies dit probleem: een kolom met meer dan 30
- * verschillende waarden krijgt geen vinkjes maar een vrij tekstveld. Dat is nu ook het
- * antwoord op "te veel rijen".
+ * <lib-table> somt per kolom de waarden op in een keuzelijst. Of een kolom vinkjes of een
+ * vrij tekstveld krijgt, hangt af van het aantal VERSCHILLENDE waarden in die kolom (meer dan
+ * 30: tekstveld), niet van het aantal rijen. Een lange lijst houdt zo zijn vinkjes voor een
+ * kolom als "Login actief?", en een kolom met veel waarden krijgt een zoekveld - nooit een
+ * leeg filtermenu.
  *
  * Wat hier NIET verandert: een tabel in continue modus (data-continuous). Daar bepaalt de
  * server welke rijen er zijn en zegt wat er in de DOM staat niets over het geheel.
@@ -69,16 +65,17 @@ test('korte lijst houdt de keuzelijst met waarden', async () => {
         'er staan aankruisbare waarden in');
 });
 
-test('lange lijst (> 500 rijen) krijgt een vrij tekstveld in plaats van niets', async () => {
+test('lange lijst (600 rijen): weinig waarden houdt vinkjes, veel waarden krijgt een tekstveld', async () => {
     const doc = await naOpbouw(maakTabel(600));
-    for (const kolom of [0, 1]) {
-        const menu = menuVan(doc, kolom);
-        assert.waar(!!menu, 'kolom ' + kolom + ' heeft een filtermenu');
-        assert.waar(menu.querySelectorAll('.checkbox-container input').length === 0,
-            'kolom ' + kolom + ': geen keuzelijst met 600 waarden');
-        assert.waar(!!menu.querySelector('input.dropdown-filter-menu-search'),
-            'kolom ' + kolom + ': er staat wel een tekstfilter');
-    }
+    const groep = menuVan(doc, 0);
+    assert.waar(!!groep, 'kolom 0 heeft een filtermenu');
+    assert.gelijk(groep.querySelectorAll('.checkbox-container input.item').length, 7,
+        'kolom 0 (7 groepen): zeven aanvinkbare waarden, ook bij 600 rijen');
+    const titel = menuVan(doc, 1);
+    assert.waar(titel.querySelectorAll('.checkbox-container input').length === 0,
+        'kolom 1: geen keuzelijst met 600 waarden');
+    assert.waar(!!titel.querySelector('input.dropdown-filter-menu-search'),
+        'kolom 1: er staat wel een tekstfilter');
 });
 
 test('continue modus blijft leeg: daar gaat de server over de rijen', async () => {

@@ -1,7 +1,8 @@
 /**
- * De grenzen van het kolomfilter van <lib-table> komen uit window.CMA.settings
- * (TABLE_FILTER_MAX_VALUES, TABLE_FILTER_MAX_CHECKBOXES) als het CMA die
- * injecteert, en zijn anders 500 en 30. Draait tegen de echte bron.
+ * De grens van het kolomfilter van <lib-table> komt uit window.CMA.settings
+ * (TABLE_FILTER_MAX_CHECKBOXES) als het CMA die injecteert, en is anders 30:
+ * het aantal verschillende waarden per kolom, niet het aantal rijen. Draait tegen
+ * de echte bron.
  */
 
 const fs = require('fs');
@@ -58,9 +59,12 @@ test('tableFilterMaxCheckboxes=3 maakt van 7 waarden een tekstfilter', async () 
     assert.waar(!!menu.querySelector('input.dropdown-filter-menu-search'), 'wel een tekstfilter');
 });
 
-test('tableFilterMaxValues=20 behandelt 40 rijen als een lange lijst', async () => {
-    const doc = await naOpbouw(maakTabel(40, 3, { tableFilterMaxValues: 20 }));
-    const menu = menuVan(doc, 1);
-    assert.gelijk(menu.querySelectorAll('.checkbox-container input').length, 0, 'niet opgesomd boven de rijgrens');
-    assert.waar(!!menu.querySelector('input.dropdown-filter-menu-search'), 'tekstfilter in plaats daarvan');
+test('het aantal rijen telt niet: 1200 rijen met 3 waarden blijven aanvinkbaar', async () => {
+    // Een oude rijgrens (TABLE_FILTER_MAX_VALUES) gaf boven 500 rijen elke kolom een zoekveld,
+    // ook een ja/nee-kolom. Een injectie van die oude sleutel mag niets meer doen.
+    const doc = await naOpbouw(maakTabel(1200, 3, { tableFilterMaxValues: 20 }));
+    assert.gelijk(menuVan(doc, 0).querySelectorAll('.checkbox-container input.item').length, 3, 'drie aanvinkbare waarden');
+    const titel = menuVan(doc, 1);
+    assert.gelijk(titel.querySelectorAll('.checkbox-container input').length, 0, 'kolom met 1200 verschillende waarden: geen vinkjes');
+    assert.waar(!!titel.querySelector('input.dropdown-filter-menu-search'), 'maar een zoekveld');
 });
