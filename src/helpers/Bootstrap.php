@@ -506,7 +506,12 @@ class Bootstrap
             if (function_exists('apcu_fetch')) {
                 $appStarted = apcu_fetch('application_started');
 
-                if ($appStarted && !$fileCacheExists) {
+                // Deleting .app_started is the manual reset: APCu says started but the
+                // file is gone, so clear the cache and start again. Only when the flag
+                // says the file WAS written ('file', or a bare true) - if it could not be
+                // written (read-only root), a missing file means nothing and would
+                // otherwise clear the whole cache on every request.
+                if ($appStarted && $appStarted !== 'apcu' && !$fileCacheExists) {
                     if (class_exists('\\App\\Library\\Cache')) {
                         \App\Library\Cache::clear();
                     } else {
@@ -531,10 +536,13 @@ class Bootstrap
                 }
 
                 if (!$skipFlag) {
+                    // Always write the file: it is what the reset check above looks at.
+                    // With APCu the flag also records whether the file exists ('file') or
+                    // could not be written ('apcu'), so that check never fires on a file
+                    // that never was.
+                    $flagWritten = @touch(self::$rootDir . '/.app_started');
                     if (function_exists('apcu_store')) {
-                        apcu_store('application_started', true, 0);
-                    } else {
-                        touch(self::$rootDir . '/.app_started');
+                        apcu_store('application_started', $flagWritten ? 'file' : 'apcu', 0);
                     }
                 }
             } catch (\Exception $e) {

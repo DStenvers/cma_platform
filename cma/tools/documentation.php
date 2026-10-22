@@ -3152,7 +3152,7 @@ function render_doc_security(): void
     <p>De site-root <code>web.config</code> blokkeert direct-access op gevoelige bestanden via <code>&lt;hiddenSegments&gt;</code>:</p>
     <ul>
         <li><code>.env</code> — alle environment files.</li>
-        <li><code>.app_started</code> — application state file.</li>
+        <li><code>.app_started</code> — vlag dat <code>Application_OnStart()</code> heeft gedraaid (op T/A/P één keer per applicatieleven; met APCu staat de vlag ook daar). Verwijder het bestand om de cache te legen en de start opnieuw te laten draaien. Kan het niet worden geschreven (siteroot alleen-lezen), dan houdt APCu de vlag alleen en werkt die reset niet.</li>
         <li><code>composer.json</code> — voorkomt lekken van dependency-config.</li>
         <li><code>composer.lock</code> — zelfde reden.</li>
     </ul>
