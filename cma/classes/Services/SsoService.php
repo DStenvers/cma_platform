@@ -20,6 +20,7 @@ class SsoService
     // Cookie namen voor SSO state management
     private const COOKIE_SSO_STATE = 'cma_sso_state';
     private const COOKIE_SSO_NONCE = 'cma_sso_nonce';
+    private const COOKIE_SSO_CODE_VERIFIER = 'cma_sso_code_verifier';
     private const COOKIE_SSO_RETURN_URL = 'cma_sso_return_url';
 
     /**
@@ -45,6 +46,26 @@ class SsoService
     {
         $bytes = random_bytes($length);
         return bin2hex($bytes);
+    }
+
+    /**
+     * PKCE code_verifier (RFC 7636): 64 tekens uit [A-Za-z0-9-_], bewaard in een cookie tot
+     * de callback hem bij het token-verzoek meestuurt. STB CRM weigert een autorisatie zonder
+     * ("Only code challenge method 'S256' is supported"); andere IdP's negeren hem.
+     */
+    public static function generateCodeVerifier(): string
+    {
+        $verifier = rtrim(strtr(base64_encode(random_bytes(48)), '+/', '-_'), '=');
+        Cookie::set(self::COOKIE_SSO_CODE_VERIFIER, $verifier, 0, '/', '', null, true);
+        return $verifier;
+    }
+
+    /**
+     * PKCE code_challenge bij een verifier: base64url(SHA-256(verifier)), methode S256.
+     */
+    public static function codeChallenge(string $verifier): string
+    {
+        return rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
     }
 
     /**
@@ -107,6 +128,7 @@ class SsoService
     {
         $state = self::generateState();
         $nonce = self::generateNonce();
+        $codeVerifier = self::generateCodeVerifier();
 
         if (!empty($returnUrl)) {
             self::setReturnUrl($returnUrl);
@@ -128,6 +150,8 @@ class SsoService
             'state' => $state,
             'nonce' => $nonce,
             'prompt' => $prompt,
+            'code_challenge' => self::codeChallenge($codeVerifier),
+            'code_challenge_method' => 'S256',
         ];
 
         return $idpUrl . '/' . $authEndpoint . '?' . http_build_query($params);
@@ -197,6 +221,12 @@ class SsoService
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
         ];
+        // PKCE: dezelfde verifier als bij getAuthorizationUrl(); eenmalig bruikbaar.
+        $codeVerifier = (string) Cookie::get(self::COOKIE_SSO_CODE_VERIFIER, '');
+        Cookie::delete(self::COOKIE_SSO_CODE_VERIFIER);
+        if ($codeVerifier !== '') {
+            $postData['code_verifier'] = $codeVerifier;
+        }
 
         // cURL request naar token endpoint
         $ch = curl_init();
