@@ -233,8 +233,11 @@ html.dark-mode {
     display: block;
 }
 
-.cma-menu-group-header:hover .cma-menu-group-icon {
-    color: var(--sidebar-text-hover);
+/* Hover: icon and title take the blue of the group arrow on the right;
+   the background change alone was too subtle. */
+.cma-menu-group-header:hover .cma-menu-group-icon,
+.cma-menu-group-header:hover .cma-menu-group-title {
+    color: var(--color-info, #077ab2);
 }
 
 .cma-menu-group-icon .lnr-graduation-hat::before {
