@@ -20,6 +20,8 @@ class CmaFormDetailsTest extends TestCase
 
     private function regel(string $css, string $selector): string
     {
+        // Commentaar eruit: de toelichting noemt de oude waarde (line-height: 7px).
+        $css = (string) preg_replace('#/\*.*?\*/#s', '', $css);
         return preg_match('/(?:^|\})\s*' . preg_quote($selector, '/') . '\s*\{([^}]*)\}/m', $css, $m) ? $m[1] : '';
     }
 
