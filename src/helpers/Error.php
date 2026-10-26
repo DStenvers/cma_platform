@@ -245,23 +245,30 @@ class Error
      * Maps VBScript lib_ReportError_ictAlert()
      *
      * @param string $message Error message
+     * @param string $details Technische toelichting: achter "Toon details" op de kaart en
+     *                        mee in de mail. Leeg = de oude weergave (melding in een <pre>).
      * @return void
      */
-    public static function reportIctAlert(string $message): void
+    public static function reportIctAlert(string $message, string $details = ''): void
     {
         self::init();
 
-        $showDetails = Application::get('test', false);
-        self::ictAlert('Foutmelding', '<pre>' . $message . '</pre>', true);
+        if ($details === '') {
+            self::ictAlert('Foutmelding', '<pre>' . $message . '</pre>', true);
+        } else {
+            self::renderDialog('Foutmelding', nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')), true, true, $details);
+        }
+
+        $fullText = $details === '' ? $message : $message . PHP_EOL . PHP_EOL . $details;
 
         // Write error to console in verbose mode
         if (self::$verbose) {
-            $jsError = json_encode($message);
+            $jsError = json_encode($fullText);
             Response::write('<script>console.error(' . $jsError . ')</script>');
         }
 
         if (self::$sendMail && $message !== '') {
-            self::sendErrorEmail($message);
+            self::sendErrorEmail($details === '' ? $message : nl2br(htmlspecialchars($fullText, ENT_QUOTES, 'UTF-8')));
         }
     }
 
@@ -411,7 +418,12 @@ class Error
 
         // Back button
         if ($showBackButton) {
-            Response::write('<tr><td colspan=9 align=center style="padding-top:16px"><a class="button GenButton FormBack" href="javascript:history.go(-1)">Terug</a><br>&nbsp;</td></tr>');
+            // Zonder vorige pagina in dit tabblad (bv. binnengekomen via een redirect van een
+            // externe login, of een nieuw tabblad) doet "Terug" niets: dan verbergt het script
+            // de rij. Zonder JavaScript of currentScript blijft de knop gewoon staan.
+            Response::write('<tr><td colspan=9 align=center style="padding-top:16px"><a class="button GenButton FormBack" href="javascript:history.go(-1)">Terug</a><br>&nbsp;'
+                . "<script>(function(){var s=document.currentScript;if(s&&window.history.length<2){s.parentNode.parentNode.style.display='none';}})();</script>"
+                . '</td></tr>');
         }
 
         Response::write('</table></div></div>');

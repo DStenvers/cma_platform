@@ -112,6 +112,40 @@ class ErrorCardTest extends TestCase
         $this->assertTrue(str_contains($html, 'history.go(-1)'));
     }
 
+    public function testBackButtonHidesWithoutHistory(): void
+    {
+        // Gemeld: "de Terug-knop slaat nergens op" op de SSO-callback — daar kom je via een
+        // redirect binnen, vaak zonder vorige pagina in het tabblad.
+        $html = $this->render('nohistory ' . __FUNCTION__);
+        $this->assertTrue(str_contains($html, 'window.history.length<2'), 'kijkt of er een vorige pagina is');
+        $this->assertTrue(str_contains($html, "s.parentNode.parentNode.style.display='none'"), 'verbergt dan de hele knoprij');
+        $this->assertFalse(str_contains($html, '<tr style="display:none"'), 'zonder JavaScript blijft de knop staan');
+    }
+
+    public function testReportIctAlertWithDetailsShowsMessageAndHiddenDetails(): void
+    {
+        Error::setSendMail(false);
+        ob_start();
+        Error::reportIctAlert("Inloggen is niet gelukt.\nProbeer het opnieuw. " . __FUNCTION__, "Foutcode: invalid_request\nHTTP-status: 400 <b>");
+        $html = (string) ob_get_clean();
+        $this->assertTrue(str_contains($html, 'Inloggen is niet gelukt.<br />'), 'melding als tekst met regeleinden, geen <pre>');
+        $this->assertFalse(str_contains($html, '<pre>'), 'geen <pre> om de melding');
+        $this->assertTrue(str_contains($html, 'class="lib-error-details"'), 'details staan in het uitklapblok');
+        $this->assertTrue(str_contains($html, 'Foutcode: invalid_request'), 'details komen op de kaart');
+        $this->assertTrue(str_contains($html, '400 &lt;b&gt;'), 'details worden ge-escaped');
+        $this->assertTrue(str_contains($html, 'Toon details'), 'met de schakelaar');
+    }
+
+    public function testReportIctAlertWithoutDetailsKeepsOldLayout(): void
+    {
+        Error::setSendMail(false);
+        ob_start();
+        Error::reportIctAlert('oud ' . __FUNCTION__);
+        $html = (string) ob_get_clean();
+        $this->assertTrue(str_contains($html, '<pre>oud ' . __FUNCTION__ . '</pre>'), 'bestaande aanroepen veranderen niet');
+        $this->assertFalse(str_contains($html, 'Toon details'));
+    }
+
     public function testCardIsValidHtml(): void
     {
         $html = $this->render('parse ' . __FUNCTION__);
