@@ -284,27 +284,31 @@ lib-radio-group {
     border-right-color: var(--color-border, #c4c8d0);
 }
 
-/* No left divider on the first option (host border owns that edge);
-   no right divider on the last option (same).  When the selected
-   option sits at an edge we also round its outer corners to match
-   the host's radius so the background fill follows the rounded
-   wrapper instead of showing a square corner. */
-.lib-radio-group__option--selected:first-child {
-    border-left-color: transparent;
+/* De knoppen vormen één geheel: alleen de buitenhoeken zijn rond. De linkerknop
+   alleen links, de rechterknop alleen rechts, de middelste helemaal niet; één knop
+   alleen is aan beide kanten rond. Op ALLE knoppen (niet alleen de gekozen), anders
+   kreeg een knop met een eigen border-radius (zoals in de CMA-formulieren) vier ronde
+   hoeken en vielen de knoppen los van elkaar. */
+.lib-radio-group .lib-radio-group__option {
+    border-radius: 0;
+}
+.lib-radio-group .lib-radio-group__option:first-child {
     border-top-left-radius:    var(--radius, 6px);
     border-bottom-left-radius: var(--radius, 6px);
-    /* Inner edge (towards the next option) stays square. */
-    border-top-right-radius:    0;
-    border-bottom-right-radius: 0;
+}
+.lib-radio-group .lib-radio-group__option:last-child {
+    border-top-right-radius:    var(--radius, 6px);
+    border-bottom-right-radius: var(--radius, 6px);
+}
+
+/* No left divider on the first option (host border owns that edge);
+   no right divider on the last option (same). */
+.lib-radio-group__option--selected:first-child {
+    border-left-color: transparent;
     margin-left: -1px;
 }
 .lib-radio-group__option--selected:last-child  {
     border-right-color: transparent;
-    border-top-right-radius:    var(--radius, 6px);
-    border-bottom-right-radius: var(--radius, 6px);
-    /* Inner edge (towards the previous option) stays square. */
-    border-top-left-radius:    0;
-    border-bottom-left-radius: 0;
     margin-right: 1px;
 }
 
