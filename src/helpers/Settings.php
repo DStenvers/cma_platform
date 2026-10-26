@@ -388,8 +388,8 @@ final class Settings
         // ---- SSO (the older sso_*/cma_sso_* keys in app.php remain the fallback) ----
         'sso_enabled' => ['env' => 'SSO_ENABLED', 'type' => 'bool', 'default' => false, 'group' => 'sso', 'app' => 'cma_sso_enabled',
             'label' => 'Inloggen via SSO', 'hint' => 'Toont de SSO-knop op het inlogscherm.', 'doc' => 'SsoService::isEnabled().'],
-        'sso_force' => ['env' => 'SSO_FORCE', 'type' => 'bool', 'default' => false, 'group' => 'sso', 'app' => 'cma_force_sso',
-            'label' => 'SSO verplicht', 'hint' => 'Verbergt het wachtwoordformulier; alleen SSO blijft over.', 'doc' => 'SsoService::isForced().'],
+        'sso_force' => ['env' => 'CMA_SSO_FORCE', 'type' => 'bool', 'default' => false, 'group' => 'sso', 'app' => 'cma_force_sso',
+            'label' => 'SSO verplicht', 'hint' => 'Alleen het CMA: geen wachtwoordformulier; niet-ingelogd gaat meteen naar de IdP, na uitloggen met prompt=login. (De front-end heeft een eigen schakelaar.)', 'doc' => 'SsoService::isForced().'],
         'sso_idp_url' => ['env' => 'SSO_IDP_URL', 'type' => 'text', 'default' => '', 'group' => 'sso', 'app' => ['sso_idp_url', 'sso_idp_conn'],
             'label' => 'Adres identity provider', 'hint' => 'Basis-URL van de SSO-server, zonder afsluitende slash.', 'doc' => 'SsoService — basis-URL van de IdP.'],
         'sso_authorize_endpoint' => ['env' => 'SSO_AUTHORIZE_ENDPOINT', 'type' => 'text', 'default' => 'oauth2/authorize', 'group' => 'sso', 'app' => 'sso_idp_authendpoint',

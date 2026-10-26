@@ -61,8 +61,18 @@ function main()
         }
     }
 
+    // SSO verplicht (SSO_ENABLED + CMA_SSO_FORCE): geen wachtwoordlogin. Wie niet is ingelogd,
+    // gaat meteen naar de IdP — behalve als er een SSO-fout te tonen is (anders een lus).
+    $bSsoForced = SsoService::isEnabled() && SsoService::isForced();
+    if ($bSsoForced && $intUserID == '' && Request::query('sso_error', '') === '') {
+        Response::noCache();
+        header('Location: ' . SsoService::forcedLoginUrl());
+        exit;
+    }
+
     $dbconn = Database::getConnection('users');
-    if (Request::post('naam', '') != '') {
+    // Bij verplichte SSO wordt een geposte naam/wachtwoord genegeerd.
+    if (Request::post('naam', '') != '' && !$bSsoForced) {
         // Case-insensitive login lookup
         // Use lower() with PHP fallback for ODBC Access where lower()/lcase() may not work
         $postLogin = strtolower(Request::post('naam', '') ?? '');
@@ -329,16 +339,22 @@ function main()
             if (SsoService::isEnabled()) {
                 $ssoProviderName = SsoService::getProviderName();
                 echo '<div class="sso-login" style="padding:20px;text-align:center;">';
-                echo '<a href="sso_login.php" class="btn btn-primary sso-button">';
+                echo '<a href="sso_login.php' . ($bSsoForced ? '?prompt=login' : '') . '" class="btn btn-primary sso-button">';
                 echo htmlspecialchars($ssoProviderName);
                 echo '</a>';
                 echo '</div>' . PHP_EOL;
 
-                // Scheidingslijn met "of"
-                echo '<div class="login-divider" style="display:flex;align-items:center;margin:10px 20px;">';
-                echo    '<hr><span style="padding:0 15px;color:#666;font-size:var(--font-size-sm);">of</span><hr>';
-                echo '</div>' . PHP_EOL;
+                // Scheidingslijn met "of" — niet bij verplichte SSO: daar is er geen "of".
+                if (!$bSsoForced) {
+                    echo '<div class="login-divider" style="display:flex;align-items:center;margin:10px 20px;">';
+                    echo    '<hr><span style="padding:0 15px;color:#666;font-size:var(--font-size-sm);">of</span><hr>';
+                    echo '</div>' . PHP_EOL;
+                }
             }
+            if ($bSsoForced) {
+                // Alleen de foutmelding en de SSO-knop: geen naam/wachtwoord, geen "vergeten".
+                echo '</div></form>' . PHP_EOL;
+            } else {
             if (Request::post('actie', '') == 'login_vergeten' && Request::post('email', '') != '') {
                 $postEmail = strtolower(Request::post('email', '') ?? '');
                 $SQL = 'select ID, userLogin, userPassword from tblUsers WHERE userEMail=' . SQL::postString($postEmail);
@@ -390,6 +406,7 @@ function main()
                 echo '</div>' . PHP_EOL;
             echo '</form>' . PHP_EOL;
             echo '</div>' . PHP_EOL;
+            }
             echo '<script>';
             echo 'jQuery(document).ready(function() { ';
             if ($strError) {

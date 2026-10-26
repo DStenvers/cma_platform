@@ -27,6 +27,8 @@ SecurityHelper::clearUserCache();
 
 // Verwijder SSO gerelateerde cookies
 SsoService::clearSsoCookies();
+// Zelf uitgelogd: bij verplichte SSO vraagt de IdP de volgende keer opnieuw het wachtwoord.
+Cookie::set(SsoService::COOKIE_SSO_LOGGED_OUT, '1');
 
 // Verwijder session migration check flag
 Session::remove('_migration_check_done');

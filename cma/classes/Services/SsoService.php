@@ -22,6 +22,8 @@ class SsoService
     private const COOKIE_SSO_NONCE = 'cma_sso_nonce';
     private const COOKIE_SSO_CODE_VERIFIER = 'cma_sso_code_verifier';
     private const COOKIE_SSO_RETURN_URL = 'cma_sso_return_url';
+    /** Zelf uitgelogd: de volgende SSO-login met prompt=login (zie forcedLoginUrl()). */
+    public const COOKIE_SSO_LOGGED_OUT = 'cma_sso_uitgelogd';
 
     /**
      * Controleer of SSO is ingeschakeld
@@ -124,7 +126,7 @@ class SsoService
     /**
      * Bouw de authorization URL voor redirect naar IDP
      */
-    public static function getAuthorizationUrl(string $returnUrl = ''): string
+    public static function getAuthorizationUrl(string $returnUrl = '', string $promptOverride = ''): string
     {
         $state = self::generateState();
         $nonce = self::generateNonce();
@@ -140,7 +142,7 @@ class SsoService
         $redirectUri = self::getCallbackUrl();
         $scope = (string) \App\Library\Settings::get('sso_scope');
         $responseType = (string) \App\Library\Settings::get('sso_response_type');
-        $prompt = (string) \App\Library\Settings::get('sso_prompt');
+        $prompt = $promptOverride !== '' ? $promptOverride : (string) \App\Library\Settings::get('sso_prompt');
 
         $params = [
             'response_type' => $responseType,
@@ -149,12 +151,36 @@ class SsoService
             'scope' => $scope,
             'state' => $state,
             'nonce' => $nonce,
-            'prompt' => $prompt,
             'code_challenge' => self::codeChallenge($codeVerifier),
             'code_challenge_method' => 'S256',
         ];
 
+        // Lege prompt = parameter weglaten: wie al bij de IdP is ingelogd, komt dan zonder
+        // wachtwoord terug ("prompt=" leeg weigert Keycloak).
+        if ($prompt !== '') {
+            $params['prompt'] = $prompt;
+        }
+
         return $idpUrl . '/' . $authEndpoint . '?' . http_build_query($params);
+    }
+
+    /**
+     * Waar login.php heen gaat als SSO verplicht is: sso_login.php, na zelf uitloggen met
+     * prompt=login — anders logt de nog lopende IdP-sessie je direct weer in.
+     */
+    public static function forcedLoginUrl(): string
+    {
+        return 'sso_login.php' . (Cookie::get(self::COOKIE_SSO_LOGGED_OUT, '') !== '' ? '?prompt=login' : '');
+    }
+
+    /**
+     * Moet de IdP-fout opnieuw geprobeerd worden met prompt=login? Bij prompt=none zonder
+     * IdP-sessie antwoordt de IdP login_required/interaction_required: dan gewoon het
+     * inlogscherm van de IdP tonen in plaats van een fout.
+     */
+    public static function needsInteractiveLogin(string $error): bool
+    {
+        return in_array($error, ['login_required', 'interaction_required', 'consent_required', 'account_selection_required'], true);
     }
 
     /**

@@ -24,6 +24,13 @@ $state = Request::query('state', '');
 $error = Request::query('error', '');
 $errorDescription = Request::query('error_description', '');
 
+// Geen IdP-sessie bij prompt=none: gewoon het inlogscherm van de IdP tonen.
+if (SsoService::needsInteractiveLogin((string) $error)) {
+    SsoService::clearSsoCookies();
+    header('Location: sso_login.php?prompt=login');
+    exit;
+}
+
 // Check voor error van IDP
 if (!empty($error)) {
     handleError('IDP fout: ' . $error . ($errorDescription ? ' - ' . $errorDescription : ''));
@@ -102,8 +109,9 @@ Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID, $authLifetime);
 // Laatste login opslaan
 Cookie::set(SecurityHelper::COOKIE_LAST_LOGIN, $user['login'], $authLifetime);
 
-// Verwijder SSO cookies
+// Verwijder SSO cookies; weer ingelogd, dus de uitgelogd-markering mag weg.
 SsoService::clearSsoCookies();
+Cookie::delete(SsoService::COOKIE_SSO_LOGGED_OUT);
 
 // Redirect naar originele URL of main.php
 $returnUrl = SsoService::getReturnUrl();

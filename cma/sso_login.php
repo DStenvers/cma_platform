@@ -43,7 +43,8 @@ if (empty($returnUrl)) {
 }
 
 // Genereer authorization URL
-$authUrl = SsoService::getAuthorizationUrl($returnUrl);
+// Alleen "login" mag van buitenaf (na uitloggen, of na login_required bij prompt=none).
+$authUrl = SsoService::getAuthorizationUrl($returnUrl, strtolower((string) Request::query('prompt', '')) === 'login' ? 'login' : '');
 
 Response::noCache();
 Response::redirect($authUrl);
