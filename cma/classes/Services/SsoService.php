@@ -135,7 +135,7 @@ class SsoService
         }
 
         $idpUrl = rtrim((string) \App\Library\Settings::get('sso_idp_url'), '/');
-        $authEndpoint = (string) \App\Library\Settings::get('sso_authorize_endpoint');
+        $authEndpoint = ltrim((string) \App\Library\Settings::get('sso_authorize_endpoint'), '/');
         $clientId = (string) \App\Library\Settings::get('sso_client_id');
         $redirectUri = self::getCallbackUrl();
         $scope = (string) \App\Library\Settings::get('sso_scope');
@@ -206,7 +206,7 @@ class SsoService
     public static function exchangeCodeForToken(string $code): ?array
     {
         $idpUrl = rtrim((string) \App\Library\Settings::get('sso_idp_url'), '/');
-        $tokenEndpoint = (string) \App\Library\Settings::get('sso_token_endpoint');
+        $tokenEndpoint = ltrim((string) \App\Library\Settings::get('sso_token_endpoint'), '/');
         $tokenUrl = $idpUrl . '/' . $tokenEndpoint;
 
         $clientId = (string) \App\Library\Settings::get('sso_client_id');

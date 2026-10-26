@@ -49,6 +49,15 @@ class SsoPkceTest extends TestCase
         $this->assertTrue(strpos($src, "'code_challenge_method' => 'S256'") !== false);
     }
 
+    public function testEndpointWithLeadingSlashGivesNoDoubleSlash(): void
+    {
+        // Gemeld: SSO_AUTHORIZE_ENDPOINT=/protocol/openid-connect/auth gaf
+        // ".../realms/eudonet-nl-crm//protocol/...". Alleen de IdP-URL werd getrimd.
+        $src = (string) file_get_contents(__DIR__ . '/../classes/Services/SsoService.php');
+        $this->assertTrue(strpos($src, "ltrim((string) \\App\\Library\\Settings::get('sso_authorize_endpoint'), '/')") !== false);
+        $this->assertTrue(strpos($src, "ltrim((string) \\App\\Library\\Settings::get('sso_token_endpoint'), '/')") !== false);
+    }
+
     public function testTokenRequestSendsVerifierFromCookie(): void
     {
         $src = (string) file_get_contents(__DIR__ . '/../classes/Services/SsoService.php');
