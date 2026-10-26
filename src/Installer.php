@@ -547,15 +547,11 @@ class Installer
         'library/error-handler.js',
         'library/error-handler.min.js',
         'library/css/errorhandler.css',
-        // Removed: dead static CSS bundles. The CMA serves all CSS
-        // through minify.php, which minifies the SOURCE files (cma_css_bundle())
-        // on the fly and only ever prefers a pre-built .min.JS — never a .min.CSS.
-        // build-minify.js doesn't generate these either (it only does
-        // webcomponents/*.css). So these three were orphaned artifacts referenced
-        // by nothing; drop the synced copies off consumer sites.
-        'cma/assets/css/form.min.css',
-        'cma/assets/css/style.min.css',
-        'cma/assets/css/main.min.css',
+        // NIET meer: cma/assets/css/{form,style,main}.min.css. Die stonden hier sinds 1.29.11
+        // (toen maakte niets ze en gebruikte niets ze), maar sinds build-minify.js ook
+        // cma/assets/css verkleint en minify.php de .min.css verkiest, zijn het gewone
+        // bouwresultaten. Elke update verwijderde ze dan ("removed (retired)") en de
+        // verkleinstap bouwde ze daarna opnieuw. Bewaakt door InstallerRemovedPathsTest.
         // Removed: the assets/js/modules/ ES-module set was an
         // extract-of-form-controller that was never wired up — nothing loads
         // it (the files use `export` syntax, so a plain <script> tag would

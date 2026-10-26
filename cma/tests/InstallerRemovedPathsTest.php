@@ -81,6 +81,21 @@ class InstallerRemovedPathsTest extends TestCase
     // Behaviour: present files get removed, return-list reflects reality
     // ------------------------------------------------------------------
 
+    public function testNoBuiltMinFileIsRetired(): void
+    {
+        // Gemeld: elke release "removed (retired): cma/assets/css/main.min.css" (en form/style).
+        // Een .min-bestand waarvan de bron in het pakket staat, wordt door build-minify.js
+        // gebouwd; staat het hier, dan verwijdert elke update het en bouwt de verkleinstap het
+        // daarna opnieuw.
+        $pakket = dirname(__DIR__, 2);
+        foreach ($this->removedPaths as $rel) {
+            if (preg_match('/\.min\.(css|js)$/', $rel, $m)) {
+                $bron = preg_replace('/\.min\.(css|js)$/', '.$1', $rel);
+                $this->assertFalse(is_file($pakket . '/' . $bron), "$rel wordt gebouwd uit $bron en mag niet als retired verwijderd worden");
+            }
+        }
+    }
+
     public function testRemovesExistingFilesAndReportsThem(): void
     {
         // Drop every REMOVED_PATHS entry into the fake project root.
