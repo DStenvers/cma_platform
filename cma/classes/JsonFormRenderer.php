@@ -704,9 +704,19 @@ class JsonFormRenderer
 
         while (!$rs->EOF) {
             $groupId = $rs->fields['ID'];
-            $groupName = $rs->fields['grpName'];
+            $groupName = trim((string) $rs->fields['grpName']);
 
             $checked = isset($memberOf[$groupId]) ? ' checked' : '';
+            // Groepen zonder naam overslaan (lege knopjes in het gebruikersscherm). Is de
+            // gebruiker er wel lid van, dan blijft hij staan: alleen zichtbare vinkjes worden
+            // gepost, dus anders zou opslaan het lidmaatschap stil verwijderen.
+            if ($groupName === '') {
+                if ($checked === '') {
+                    $rs->MoveNext();
+                    continue;
+                }
+                $groupName = '(naamloos, groep ' . $groupId . ')';
+            }
             $html .= '<label class="checklist-item-inline">';
             $html .= '<input type="checkbox" name="' . Server::htmlEncode($fieldName) . '[]" value="' . $groupId . '"' . $checked . '>';
             $html .= ' ' . Server::htmlEncode($groupName);

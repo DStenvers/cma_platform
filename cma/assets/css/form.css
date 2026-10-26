@@ -1714,12 +1714,12 @@ body.inline-editing .toolbar .tb-btn {
     color: var(--color-primary);
 }
 
-/* Active state - dark blue with white text */
+/* Active state - same blue as the active sidebar item, white text */
 .complextree li a.active,
 .complextree li a.active::before,
 #listContent a.active,
 #listContent a.active::before {
-    background-color: var(--color-primary) !important;
+    background-color: var(--sidebar-active) !important;
     color: #fff !important;
 }
 
@@ -2014,17 +2014,24 @@ lib-table .subform-section table thead {
 }
 
 .checklist-item-inline {
-    display: inline-block;
-    padding: 1px 16px 1px 8px;
+    /* inline-flex + align-items: vinkje en tekst staan midden in het knopje. Met
+       inline-block en line-height: 7px stond de tekst lager dan het vinkje (en het
+       vinkje had een eigen marge op de basislijn). */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+    line-height: normal;
+    padding: 2px 14px 2px 8px;
     cursor: pointer;
     border: 1px solid var(--border-dark);
-    margin-right: 6px;
+    margin: 3px 6px 3px 0;
     border-radius: 3px;
     background-color: #eeeeee66;
-    margin-bottom: 3px;
-    margin-top: 3px;
-    line-height: 7px;
-    padding-top: 1px;
+}
+
+.checklist-item-inline input[type="checkbox"] {
+    margin: 0;
 }
 
 .checklist-item:hover,
@@ -3556,6 +3563,8 @@ a.migration-link:hover {
 
     .toolbar-left {
         flex: 1 1;
+        /* Zonder deze ruimte schoof de toolbar op de telefoon links het scherm af. */
+        padding-left: 8px;
     }
 
     .toolbar-center {
@@ -3890,7 +3899,7 @@ button.btn.primary {
 
 /* Reports checklist styling in groups form */
 .checklist-inline[data-field="group_report_rights"] .checklist-item-inline {
-    display: block;
+    display: flex; /* één per regel, vinkje en tekst wel midden uitgelijnd */
     border: 0;
     background-color: transparent;
 }
