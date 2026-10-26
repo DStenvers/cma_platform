@@ -410,8 +410,8 @@ final class Settings
             'label' => 'Grant type', 'hint' => 'Vrijwel altijd authorization_code.', 'doc' => 'SsoService — grant_type (de oudere app.php-key heet sso_grand_type).'],
         'sso_client_base_url' => ['env' => 'SSO_CLIENT_BASE_URL', 'type' => 'text', 'default' => '', 'group' => 'sso', 'app' => 'sso_client_base_url',
             'label' => 'Basis-URL van deze site', 'hint' => 'Leeg = afleiden uit het verzoek. Vullen bij een reverse proxy.', 'doc' => 'SsoService — basis voor de redirect-URI.'],
-        'sso_callback_url' => ['env' => 'SSO_CALLBACK_URL', 'type' => 'text', 'default' => 'cma/sso_callback.php', 'group' => 'sso', 'app' => 'cma_sso_callback_url',
-            'label' => 'Callback-pad', 'hint' => 'Moet exact overeenkomen met de redirect-URI bij de identity provider.', 'doc' => 'SsoService — callback-pad.'],
+        'sso_callback_url' => ['env' => 'CMA_SSO_CALLBACK_URL', 'type' => 'text', 'default' => 'cma/sso_callback.php', 'group' => 'sso', 'app' => 'cma_sso_callback_url',
+            'label' => 'Callback-pad', 'hint' => 'Alleen het CMA (de front-end heeft SSO_CALLBACK_URL). Moet exact overeenkomen met de redirect-URI bij de identity provider; een voorloop-slash mag.', 'doc' => 'SsoService — callback-pad.'],
         'sso_provider_name' => ['env' => 'SSO_PROVIDER_NAME', 'type' => 'text', 'default' => 'SSO login', 'group' => 'sso', 'app' => 'sso_provider_name',
             'label' => 'Naam op de inlogknop', 'hint' => 'Bijvoorbeeld "Inloggen met Microsoft".', 'doc' => 'SsoService — label van de SSO-knop.'],
 

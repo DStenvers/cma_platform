@@ -200,7 +200,8 @@ class SsoService
         }
 
         $baseUrl = rtrim($baseUrl, '/');
-        $callbackPath = (string) \App\Library\Settings::get('sso_callback_url');
+        // ltrim: "/cma/sso_callback.php" gaf anders een dubbele slash.
+        $callbackPath = ltrim((string) \App\Library\Settings::get('sso_callback_url'), '/');
         return $baseUrl . '/' . $callbackPath;
     }
 

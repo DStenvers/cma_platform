@@ -28,6 +28,15 @@ class CmaSsoForceTest extends TestCase
         $this->assertTrue(str_contains($settings, "'sso_force' => ['env' => 'CMA_SSO_FORCE'"), 'eigen naam, los van FORCE_SSO van de front-end');
     }
 
+    public function testCallbackUrlHasItsOwnCmaEnvNameAndNoDoubleSlash(): void
+    {
+        // Gevraagd: "change SSO_CALLBACK_URL for the CMA to CMA_SSO_CALLBACK_URL=/cma/sso_callback.php
+        // and keep SSO_CALLBACK for front-end".
+        $settings = (string) file_get_contents(__DIR__ . '/../../src/helpers/Settings.php');
+        $this->assertTrue(str_contains($settings, "'sso_callback_url' => ['env' => 'CMA_SSO_CALLBACK_URL'"));
+        $this->assertTrue(str_contains($this->src('classes/Services/SsoService.php'), "ltrim((string) \\App\\Library\\Settings::get('sso_callback_url'), '/')"));
+    }
+
     public function testLoginRedirectsToIdpAndIgnoresPasswordPost(): void
     {
         $src = $this->src('login.php');
