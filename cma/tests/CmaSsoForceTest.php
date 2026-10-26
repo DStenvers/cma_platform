@@ -51,7 +51,8 @@ class CmaSsoForceTest extends TestCase
     {
         $this->assertTrue(str_contains($this->src('logout.php'), "Cookie::set(SsoService::COOKIE_SSO_LOGGED_OUT, '1');"));
         $this->assertTrue(str_contains($this->src('sso_callback.php'), 'Cookie::delete(SsoService::COOKIE_SSO_LOGGED_OUT);'));
-        $this->assertTrue(str_contains($this->src('classes/Services/SsoService.php'), "'sso_login.php' . (Cookie::get(self::COOKIE_SSO_LOGGED_OUT, '') !== '' ? '?prompt=login' : '')"), 'na uitloggen prompt=login');
+        $svc = $this->src('classes/Services/SsoService.php');
+        $this->assertTrue(str_contains($svc, "Cookie::delete(self::COOKIE_SSO_LOGGED_OUT);\n            return 'sso_login.php?prompt=login';"), 'na uitloggen één keer prompt=login, daarna is de markering op');
     }
 
     public function testPromptOnlyLoginFromOutsideAndEmptyIsOmitted(): void

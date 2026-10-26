@@ -170,7 +170,13 @@ class SsoService
      */
     public static function forcedLoginUrl(): string
     {
-        return 'sso_login.php' . (Cookie::get(self::COOKIE_SSO_LOGGED_OUT, '') !== '' ? '?prompt=login' : '');
+        // Eén keer: daarna is de markering op. Log je intussen elders in (bv. op de
+        // front-end via de IdP), dan gaat de volgende keer weer stil.
+        if (Cookie::get(self::COOKIE_SSO_LOGGED_OUT, '') !== '') {
+            Cookie::delete(self::COOKIE_SSO_LOGGED_OUT);
+            return 'sso_login.php?prompt=login';
+        }
+        return 'sso_login.php';
     }
 
     /**
