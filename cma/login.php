@@ -319,7 +319,9 @@ function main()
             // Toon SSO foutmelding indien aanwezig
             $ssoError = Request::query('sso_error', '');
             if (!empty($ssoError)) {
-                echo '<lib-message type="error" closable style="margin:15px;">';
+                // white-space: pre-line — de SSO-meldingen hebben meerdere regels (zie
+                // SsoService::accountNotFoundMessage()).
+                echo '<lib-message type="error" closable style="margin:15px;white-space:pre-line;">';
                 echo htmlspecialchars($ssoError);
                 echo '</lib-message>' . PHP_EOL;
             }

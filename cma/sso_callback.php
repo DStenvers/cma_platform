@@ -62,17 +62,18 @@ if ($tokenData === null) {
     exit;
 }
 
-// Haal email (sub claim) uit token
-$email = $tokenData['sub'] ?? '';
-if (empty($email)) {
-    handleError('Geen email adres in token gevonden.');
-    exit;
+// Identiteiten uit het token (sub, daarna email/preferred_username/upn) en de
+// CMA-gebruiker bij de eerste die past.
+$candidates = SsoService::identityCandidates($tokenData);
+$user = null;
+foreach ($candidates as $candidate) {
+    $user = SsoService::findCmaUserByEmail($candidate);
+    if ($user !== null) {
+        break;
+    }
 }
-
-// Zoek gebruiker in CMA database
-$user = SsoService::findCmaUserByEmail($email);
 if ($user === null) {
-    handleError('Account niet gevonden in CMA beheer. Neem contact op met de administrator.', $email);
+    handleError(SsoService::accountNotFoundMessage($candidates), implode(', ', $candidates));
     exit;
 }
 

@@ -371,6 +371,63 @@ class SsoService
     }
 
     /**
+     * De identiteiten uit het ID-token waarop een CMA-gebruiker gezocht wordt, in volgorde:
+     * sub, email, preferred_username, upn. Uniek en niet leeg. sub is niet bij elke IdP een
+     * e-mailadres; dan vindt de e-mail-claim de gebruiker alsnog.
+     *
+     * @return string[]
+     */
+    public static function identityCandidates(array $tokenData): array
+    {
+        $result = [];
+        foreach (['sub', 'email', 'preferred_username', 'upn'] as $claim) {
+            $value = trim((string) (is_scalar($tokenData[$claim] ?? null) ? $tokenData[$claim] : ''));
+            if ($value !== '' && !in_array(strtolower($value), array_map('strtolower', $result), true)) {
+                $result[] = $value;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Melding als er bij geen van de identiteiten een CMA-gebruiker hoort: welk account de
+     * IdP doorgaf en wat er moet gebeuren. Regels gescheiden door "\n" (login.php toont ze
+     * als losse regels).
+     *
+     * @param string[] $candidates uit identityCandidates()
+     */
+    public static function accountNotFoundMessage(array $candidates): string
+    {
+        $provider = self::getProviderName();
+        $provider = $provider !== '' ? $provider : 'de identity provider';
+        $email = '';
+        foreach ($candidates as $candidate) {
+            if (strpos($candidate, '@') !== false) {
+                $email = $candidate;
+                break;
+            }
+        }
+
+        if ($candidates === []) {
+            return 'Inloggen via ' . $provider . ' is gelukt, maar ' . $provider . ' gaf geen account door (geen sub of e-mail in het token).' . "\n"
+                . 'Oplossing: laat ' . $provider . ' het e-mailadres meesturen in de claim sub of email.';
+        }
+
+        $shown = implode(' / ', $candidates);
+        $lines = [
+            'Je bent bij ' . $provider . ' ingelogd als ' . $shown . ', maar in het CMA bestaat geen gebruiker met dat e-mailadres of die loginnaam.',
+        ];
+        if ($email !== '') {
+            $lines[] = 'Oplossing: laat een CMA-beheerder bij Gebruikers het e-mailadres van jouw gebruiker op ' . $email
+                . ' zetten, of een nieuwe gebruiker met dat e-mailadres aanmaken. Probeer daarna opnieuw in te loggen.';
+        } else {
+            $lines[] = 'Let op: ' . $provider . ' stuurde geen e-mailadres mee, alleen ' . $shown . '. Het CMA zoekt gebruikers op e-mailadres of loginnaam.';
+            $lines[] = 'Oplossing: laat ' . $provider . ' het e-mailadres meesturen (claim sub of email), of laat een CMA-beheerder bij Gebruikers de loginnaam van jouw gebruiker op ' . $candidates[0] . ' zetten.';
+        }
+        return implode("\n", $lines);
+    }
+
+    /**
      * Haal de naam van de SSO provider op voor weergave
      */
     public static function getProviderName(): string
