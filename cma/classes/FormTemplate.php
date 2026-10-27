@@ -2098,7 +2098,7 @@ class FormTemplate
             // Don't show add button if it's the same form
             if ($formId !== $this->sourceFormId) {
                 // Check if current user has access to add form
-                $userId = (int) Cookie::get(SecurityHelper::COOKIE_USERID, 0);
+                $userId = (int) SecurityHelper::getCurrentUserId();
                 if (SecurityHelper::checkFormRights($userId, $formId)) {
                     $cache[$sourceTable] = $formId;
                     return $formId;

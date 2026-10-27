@@ -233,7 +233,8 @@ class Profiler
             // Get user ID from cookies (CMA user or regular user)
             $userId = '';
             if ($area === 'CMA') {
-                $userId = $_COOKIE['CMAU'] ?? '';
+                // De CMA-gebruiker komt alleen uit SecurityHelper (geldige sessie, anders '').
+                $userId = class_exists(\Cma\SecurityHelper::class, false) ? \Cma\SecurityHelper::getCurrentUserId() : '';
             } else {
                 $userId = $_COOKIE['USERL'] ?? '';
             }

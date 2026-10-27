@@ -47,18 +47,12 @@ function main()
     $SQLGroup = null;
     $dummy = null;
     $blnShowForm = true;
-    $intUserID = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+    $intUserID = SecurityHelper::getCurrentUserId();
 
-    // If cookie present but not a POST (return visit), validate session early
-    // This prevents redirect loops: login → main → default → login
-    if ($intUserID != '' && Request::post('naam', '') == '') {
-        if (!SecurityHelper::isLoggedIn()) {
-            // Stale cookie - clear it and show login form
-            Cookie::delete(SecurityHelper::COOKIE_USERID);
-            Cookie::delete(SecurityHelper::COOKIE_USERGUID);
-            SecurityHelper::clearUserCache();
-            $intUserID = '';
-        }
+    // Cookie present but no valid session (return visit, not a POST): clear it and show the
+    // login form. This prevents redirect loops: login → main → default → login
+    if ($intUserID === '' && SecurityHelper::hasSessionCookie() && Request::post('naam', '') == '') {
+        SecurityHelper::endSession();
     }
 
     // SSO verplicht (SSO_ENABLED + CMA_SSO_FORCE): geen wachtwoordlogin. Wie niet is ingelogd,
@@ -178,7 +172,6 @@ function main()
 
                     // Set authentication cookies (userID + userGUID for dual validation)
                     $authLifetime = (int) \App\Library\Settings::get('auth_cookie_lifetime');
-                    Cookie::set(SecurityHelper::COOKIE_USERID, (string)$rs->fields['ID'], $authLifetime);
 
                     // Get or generate userGUID for dual validation (consistent with SSO callback)
                     $row = $rs->fields;
@@ -201,11 +194,10 @@ function main()
                             error_log("[login] Could not save userGUID: " . $e->getMessage());
                         }
                     }
-                    Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID, $authLifetime);
+                    SecurityHelper::startSession((int)$rs->fields['ID'], $userGUID, $authLifetime);
                     Cookie::set(SecurityHelper::COOKIE_LAST_LOGIN, $rs->fields['userLogin'], $authLifetime);
                 } else {
-                    Cookie::delete(SecurityHelper::COOKIE_USERID);
-                    Cookie::delete(SecurityHelper::COOKIE_USERGUID);
+                    SecurityHelper::endSession();
                 }
             }
             // Bootstrap een beheerder als er nog geen is. Drie dingen gaan hier
@@ -243,7 +235,7 @@ function main()
             }
         }
         $dbconn = null;
-        $blnShowForm = Cookie::get(SecurityHelper::COOKIE_USERID, '') == '';
+        $blnShowForm = SecurityHelper::getCurrentUserId() == '';
         if (!$blnShowForm) {
             // The sidebar shell is the only layout (classic retired) — always
             // land on main.php after login.
@@ -444,7 +436,7 @@ function main()
         // Don't show welcome section for login-only layout
     } else {
         echo '<td style="width:25%;text-align:right;padding-left:10px;padding-right:30px;vertical-align:top">';
-        if (Cookie::get(SecurityHelper::COOKIE_USERID, '') != '') {
+        if (SecurityHelper::getCurrentUserId() != '') {
             // Welcome message with profile links
             echo '<div class="kader welkomkader">';
             echo    $lang_welcome . ' <b>' . SecurityHelper::getCurrentUserName() . '</b>!';

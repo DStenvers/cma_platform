@@ -6,10 +6,20 @@ use App\Library\Request;
 use App\Library\Response;
 use App\Library\SQL;
 use Cma\CmaRepository;
+use Cma\SecurityHelper;
 
 require_once __DIR__ . '/bootstrap.inc';
 
 Response::noCache();
+// Keuzelijstgegevens alleen voor een ingelogde CMA-gebruiker. bootstrap.inc weigert al zonder
+// sessie; deze controle staat er ook zelf, zodat het endpoint niet open gaat als iemand het
+// ooit aan de uitzonderingslijst van bootstrap toevoegt.
+if (!SecurityHelper::isLoggedIn()) {
+    http_response_code(401);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['data' => [], 'error' => 'Niet ingelogd', 'requireLogin' => true]);
+    exit;
+}
 // select2 documentation: http://ivaynberg.github.io/select2/
 $parFormID = Request::queryInt('FormID');
 $parControl = Request::query('ControlName', '');

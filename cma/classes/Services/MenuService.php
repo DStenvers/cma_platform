@@ -320,7 +320,7 @@ class MenuService
             return SecurityHelper::ACCESS_NONE;
         }
 
-        $userId = (int)(\App\Library\Cookie::get(SecurityHelper::COOKIE_USERID, 0));
+        $userId = (int)(SecurityHelper::getCurrentUserId());
 
         if ($userId <= 0) {
             return SecurityHelper::ACCESS_NONE;

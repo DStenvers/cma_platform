@@ -591,7 +591,7 @@ class FormDataProvider
             // Check access rights via sourceFormId or admin status
             $jsonData = $formDef['_json'] ?? [];
             $sourceFormId = $jsonData['sourceFormId'] ?? 0;
-            $userId = (int)Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+            $userId = (int)SecurityHelper::getCurrentUserId();
 
             if ($sourceFormId > 0) {
                 $accessLevel = SecurityHelper::checkFormRights($userId, $sourceFormId);

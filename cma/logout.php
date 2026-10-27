@@ -17,13 +17,9 @@ require_once __DIR__ . '/bootstrap.inc';
 Response::noCache();
 
 // Verwijder alle CMA cookies
-Cookie::delete(SecurityHelper::COOKIE_USERID);
-Cookie::delete(SecurityHelper::COOKIE_USERGUID);
+SecurityHelper::endSession();
 // The remembered login name stays (old logout.asp kept it for a year) so the
 // next login only needs the password
-
-// Clear cached user data
-SecurityHelper::clearUserCache();
 
 // Verwijder SSO gerelateerde cookies
 SsoService::clearSsoCookies();

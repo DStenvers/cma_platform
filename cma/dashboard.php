@@ -17,7 +17,7 @@ Response::noCache();
 require_once __DIR__ . '/menurep.inc';
 
 // Check if logged in
-$userId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+$userId = SecurityHelper::getCurrentUserId();
 if (empty($userId)) {
     header('Location: login.php');
     exit;

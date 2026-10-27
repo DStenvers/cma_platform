@@ -19,7 +19,7 @@ require_once __DIR__ . '/../bootstrap.inc';
 Response::setContentType('application/json');
 
 // Get current user ID
-$userId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+$userId = SecurityHelper::getCurrentUserId();
 if (empty($userId)) {
     Response::json(['error' => 'Not authenticated'], 401);
     exit;

@@ -514,7 +514,7 @@ class ToolbarHelper
         for ($iconNum = 1; $iconNum <= 5; $iconNum++) {
             $icon = $formDef->getExtraIcon($iconNum);
             if (!empty($icon['url'])) {
-                if (SecurityHelper::checkFormButtonRights((int) Cookie::get(SecurityHelper::COOKIE_USERID, ''), (int) $formId, $iconNum)) {
+                if (SecurityHelper::checkFormButtonRights((int) SecurityHelper::getCurrentUserId(), (int) $formId, $iconNum)) {
                     $enabled = !$alwaysDisabled && self::checkButtonEnabled($icon['url'], $recordId, $guid, $guid2);
                     self::separator();
                     // Site-specific icons: a path starting with '/' (e.g.

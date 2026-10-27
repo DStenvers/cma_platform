@@ -1652,25 +1652,24 @@ if ($_testToken === 'cma_endpoint_test_2025' && in_array(strtoupper($_cmaEnv), [
             $_testUser = $_testCandidates[0]; // no admin flagged — first user is fine in O/L/T
         }
         if ($_testUser) {
-            $_COOKIE[SecurityHelper::COOKIE_USERID] = (string)$_testUser['ID'];
-            $_COOKIE[SecurityHelper::COOKIE_USERGUID] = $_testUser['userGUID'] ?? '';
+            SecurityHelper::assumeSessionForRequest((int)$_testUser['ID'], (string)($_testUser['userGUID'] ?? ''));
         } else {
             // Fallback: use ID 1 with empty GUID (will pass if DB GUID is also empty)
-            $_COOKIE[SecurityHelper::COOKIE_USERID] = '1';
-            $_COOKIE[SecurityHelper::COOKIE_USERGUID] = '';
+            SecurityHelper::assumeSessionForRequest(1, '');
         }
     } catch (\Exception $e) {
         // DB not available yet, use fallback
-        $_COOKIE[SecurityHelper::COOKIE_USERID] = '1';
-        $_COOKIE[SecurityHelper::COOKIE_USERGUID] = '';
+        SecurityHelper::assumeSessionForRequest(1, '');
     }
 }
 
-// Login check: redirect unauthenticated users to login page
+// Login check: redirect unauthenticated users to login page. Only SecurityHelper::isLoggedIn()
+// counts (CMAU + CMAG against the database); a bare CMAU cookie is not a session.
 if (!$_skipLoginCheck) {
-    if (Cookie::get(SecurityHelper::COOKIE_USERID, '') == '') {
-        // Check if this is an API endpoint that expects JSON response
-        if ($_isApiEndpoint) {
+    if (!SecurityHelper::isLoggedIn()) {
+        // Check if this is an endpoint that expects JSON response (details_getdata.php feeds
+        // select2 and is not under /api/, but a login redirect in HTML breaks it just the same)
+        if ($_isApiEndpoint || stripos($_scriptPath, 'details_getdata.php') !== false) {
             // Return JSON error for API endpoints. Pre-1.19.7 this came back
             // as HTTP 200 with success:false in the body, which made
             // `fetch().ok`-based clients treat it as success and then choke
@@ -2032,14 +2031,14 @@ function WriteSubForms($sFormID, $sParentID, $blnPrint)
 {
     global $lang_tb_add;
     $arrFormDetails = array();
-    $nCurRights = SecurityHelper::checkFormRights((int) Cookie::get(SecurityHelper::COOKIE_USERID, ''), (int) $sFormID);
+    $nCurRights = SecurityHelper::checkFormRights((int) SecurityHelper::getCurrentUserId(), (int) $sFormID);
     ToolbarHelper::writeJS();
 
     if ($sParentID != '') {
         $arrFormDetails = SubFormGetArray($sFormID);
         if (Arr::isArray($arrFormDetails)) {
             for ($tel = 0; $tel <= (count($arrFormDetails) - 1); $tel++) {
-                $nCurRights = SecurityHelper::checkFormRights((int) Cookie::get(SecurityHelper::COOKIE_USERID, ''), (int) $arrFormDetails[SUBFORM_ID][$tel]);
+                $nCurRights = SecurityHelper::checkFormRights((int) SecurityHelper::getCurrentUserId(), (int) $arrFormDetails[SUBFORM_ID][$tel]);
                 if ($nCurRights > SecurityHelper::ACCESS_NONE && ($nCurRights == SecurityHelper::ACCESS_FULL_BEHEER || !$arrFormDetails[SUBFORM_BEHEER][$tel])) {
                     if ($blnPrint) {
                         echo PHP_EOL . '<div>';

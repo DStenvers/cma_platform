@@ -490,7 +490,7 @@ class RecordService extends BaseFormService
     public static function getSubformData(int|string $formId, string|int $parentId, int $subformIndex): array
     {
         try {
-            $userId = (int)Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+            $userId = (int)SecurityHelper::getCurrentUserId();
 
             $arrSubForms = \SubFormGetArray($formId);
             if (!Arr::isArray($arrSubForms) && !($arrSubForms instanceof \ArrayAccess)) {

@@ -561,10 +561,10 @@ try {
                     'formGroupRights' => $groupRights,
                     'securityDebug' => $debugInfo,
                     'cookies' => [
-                        'CMAU' => Cookie::get('CMAU', ''),
-                        'CMALEVEL' => Cookie::get('CMALEVEL', ''),
-                        'CMAADM' => Cookie::get('CMAADM', ''),
-                        'CMAU_ORIGINAL' => Cookie::get('CMAU_ORIGINAL', ''),
+                        'CMAU' => \Cma\SecurityHelper::getCurrentUserId(),
+                        'CMALEVEL' => \Cma\SecurityHelper::getUserLevel(),
+                        'CMAADM' => \Cma\SecurityHelper::isAdmin(),
+                        'CMAU_ORIGINAL' => \Cma\SecurityHelper::getOriginalUserId(),
                     ]
                 ]
             ]);
@@ -1725,7 +1725,7 @@ function validateUsersDelete($recordId) {
         }
 
         // Prevent self-deletion
-        $currentUserId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+        $currentUserId = SecurityHelper::getCurrentUserId();
         if ($recordId === $currentUserId) {
             return ['success' => false, 'error' => 'Je kunt je eigen account niet verwijderen.'];
         }

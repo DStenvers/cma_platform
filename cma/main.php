@@ -161,7 +161,7 @@ Response::noCache();
 $userName = SecurityHelper::getCurrentUserName() ?: 'Gebruiker';
 $isAdmin = SecurityHelper::isAdmin();
 $isDeveloper = SecurityHelper::isDeveloper();
-$isImpersonating = !empty(Cookie::get('CMAU_ORIGINAL', ''));
+$isImpersonating = SecurityHelper::getOriginalUserId() !== '';
 
 // The classic (horizontal-tabs) layout has been retired — the sidebar shell is
 // the only layout. Kept as an always-false flag so the classic-mode CSS hook on

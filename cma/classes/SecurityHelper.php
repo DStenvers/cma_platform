@@ -36,6 +36,7 @@ class SecurityHelper
     // Cookie constants
     public const COOKIE_USERID = 'CMAU';
     public const COOKIE_USERGUID = 'CMAG';  // Must match userGUID in database for validation
+    public const COOKIE_ORIGINAL_USERID = 'CMAU_ORIGINAL';  // "Inloggen als": de beheerder erachter
     /** @deprecated No longer used - userLevel is fetched from database */
     public const COOKIE_ADMIN = 'CMAADM';
     /** @deprecated No longer used - userLevel is fetched from database */
@@ -422,11 +423,68 @@ class SecurityHelper
     }
 
     /**
-     * Get the current user's ID from cookie
+     * Het ID van de ingelogde gebruiker, alleen bij een geldige sessie (isLoggedIn()); anders ''.
+     * Dit is de enige plek waar code buiten deze klasse het gebruikers-ID vandaan haalt: de
+     * login-cookies worden alleen hier gelezen en geschreven.
      */
     public static function getCurrentUserId(): string
     {
-        return Cookie::get(self::COOKIE_USERID, '');
+        return self::isLoggedIn() ? (string) Cookie::get(self::COOKIE_USERID, '') : '';
+    }
+
+    /**
+     * Staat er een sessiecookie, geldig of niet? Alleen voor de inlogpagina (een verlopen cookie
+     * opruimen) en foutmeldingen; voor toegang telt uitsluitend isLoggedIn().
+     */
+    public static function hasSessionCookie(): bool
+    {
+        return Cookie::get(self::COOKIE_USERID, '') !== '';
+    }
+
+    /**
+     * Begin een sessie voor deze gebruiker: CMAU + CMAG. $lifetime in seconden, 0 = sessiecookie.
+     * Leegt de cache, zodat isLoggedIn() in dezelfde request de nieuwe gebruiker ziet.
+     */
+    public static function startSession(int $userId, string $guid, int $lifetime = 0): void
+    {
+        Cookie::set(self::COOKIE_USERID, (string) $userId, $lifetime);
+        Cookie::set(self::COOKIE_USERGUID, $guid, $lifetime);
+        self::clearUserCache();
+    }
+
+    /**
+     * Alleen voor deze request als deze gebruiker gelden, zonder cookies naar de browser te
+     * sturen. Voor de endpoint-tester (testtoken, alleen O/L/T, zie bootstrap.inc).
+     */
+    public static function assumeSessionForRequest(int $userId, string $guid): void
+    {
+        $_COOKIE[self::COOKIE_USERID] = (string) $userId;
+        $_COOKIE[self::COOKIE_USERGUID] = $guid;
+        self::clearUserCache();
+    }
+
+    /** Beëindig de sessie: CMAU + CMAG weg, cache leeg. */
+    public static function endSession(): void
+    {
+        Cookie::delete(self::COOKIE_USERID);
+        Cookie::delete(self::COOKIE_USERGUID);
+        self::clearUserCache();
+    }
+
+    /** "Inloggen als": het ID van de beheerder die een ander account gebruikt, of ''. */
+    public static function getOriginalUserId(): string
+    {
+        return (string) Cookie::get(self::COOKIE_ORIGINAL_USERID, '');
+    }
+
+    /** Zet ('' = wis) de beheerder achter "Inloggen als"; sessiecookie. */
+    public static function setOriginalUserId(string $userId): void
+    {
+        if ($userId === '') {
+            Cookie::set(self::COOKIE_ORIGINAL_USERID, '', -1);
+        } else {
+            Cookie::set(self::COOKIE_ORIGINAL_USERID, $userId, 0);
+        }
     }
 
     /**

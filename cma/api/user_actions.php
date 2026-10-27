@@ -23,7 +23,7 @@ $action = $input['action'] ?? '';
 $targetUserId = $input['userId'] ?? '';
 
 // Get current user info
-$currentUserId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+$currentUserId = SecurityHelper::getCurrentUserId();
 $currentUserLevel = SecurityHelper::getUserLevel();
 
 if (empty($currentUserId)) {
@@ -33,7 +33,7 @@ if (empty($currentUserId)) {
 
 // return_to_self is special - verify the original user was actually an admin
 if ($action === 'return_to_self') {
-    $originalUserId = Cookie::get('CMAU_ORIGINAL', '');
+    $originalUserId = SecurityHelper::getOriginalUserId();
     if (empty($originalUserId)) {
         Response::json(['error' => 'Je bent niet ingelogd als een andere gebruiker.']);
         exit;
@@ -48,7 +48,7 @@ if ($action === 'return_to_self') {
     );
     if (!$originalUser || (int)$originalUser['userLevel'] < SecurityHelper::LEVEL_ADMIN) {
         // Someone tried to manipulate the cookie - clear it and deny access
-        Cookie::set('CMAU_ORIGINAL', '', -1);
+        SecurityHelper::setOriginalUserId('');
         Response::json(['error' => 'Ongeldige sessie'], 403);
         exit;
     }
@@ -166,14 +166,13 @@ function loginAsUser($conn, $targetUserId, $targetUser, $currentUserId, $current
     }
 
     // Store the original user ID for returning later
-    $originalUserId = Cookie::get('CMAU_ORIGINAL', '');
+    $originalUserId = SecurityHelper::getOriginalUserId();
     if (empty($originalUserId)) {
         // First impersonation - store current user as original
-        Cookie::set('CMAU_ORIGINAL', $currentUserId, 0); // Session cookie
+        SecurityHelper::setOriginalUserId((string) $currentUserId);
     }
 
     // Set cookies for the target user (userID + userGUID for dual validation)
-    Cookie::set(SecurityHelper::COOKIE_USERID, $targetUserId, 0);
 
     // Get or generate GUID for target user
     $targetGUID = $targetUser['userGUID'] ?? '';
@@ -187,10 +186,7 @@ function loginAsUser($conn, $targetUserId, $targetUser, $currentUserId, $current
         );
         Database::query("UPDATE tblUsers SET userGUID = ? WHERE ID = ?", [$targetGUID, $targetUserId], $conn);
     }
-    Cookie::set(SecurityHelper::COOKIE_USERGUID, $targetGUID, 0);
-
-    // Clear cached user data so next request fetches fresh data
-    SecurityHelper::clearUserCache();
+    SecurityHelper::startSession((int) $targetUserId, $targetGUID);
 
     // Log the action
     Logger::info('Login as user', [
@@ -208,29 +204,25 @@ function loginAsUser($conn, $targetUserId, $targetUser, $currentUserId, $current
 
 /**
  * Return to original user after impersonation
- * Note: CMAU_ORIGINAL cookie is already validated in main code
+ * Note: the original user (SecurityHelper::getOriginalUserId()) is already validated in main code
  */
 function returnToSelf($conn) {
-    $originalUserId = Cookie::get('CMAU_ORIGINAL', '');
+    $originalUserId = SecurityHelper::getOriginalUserId();
 
     // Get original user info
     $originalUser = Database::fetchOne("SELECT ID, userLogin, userFullName, userLevel, userGUID FROM tblUsers WHERE ID = ?", [$originalUserId], $conn);
     if (!$originalUser) {
         // Clear the invalid cookie and error
-        Cookie::set('CMAU_ORIGINAL', '', -1);
+        SecurityHelper::setOriginalUserId('');
         Response::json(['error' => 'Originele gebruiker niet gevonden.'], 404);
         exit;
     }
 
     // Restore original user cookies (userID + userGUID for dual validation)
-    Cookie::set(SecurityHelper::COOKIE_USERID, $originalUserId, 0);
-    Cookie::set(SecurityHelper::COOKIE_USERGUID, $originalUser['userGUID'] ?? '', 0);
-
-    // Clear cached user data so next request fetches fresh data
-    SecurityHelper::clearUserCache();
+    SecurityHelper::startSession((int) $originalUserId, (string) ($originalUser['userGUID'] ?? ''));
 
     // Clear the impersonation cookie
-    Cookie::set('CMAU_ORIGINAL', '', -1);
+    SecurityHelper::setOriginalUserId('');
 
     // Log the action
     Logger::info('Returned to own account', [

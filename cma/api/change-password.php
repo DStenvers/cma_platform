@@ -14,7 +14,7 @@ require_once __DIR__ . '/../bootstrap.inc';
 header('Content-Type: application/json');
 
 // Check if logged in
-$userId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+$userId = SecurityHelper::getCurrentUserId();
 if (empty($userId)) {
     echo json_encode(['success' => false, 'message' => 'Niet ingelogd']);
     exit;

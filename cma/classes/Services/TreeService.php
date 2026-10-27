@@ -188,7 +188,7 @@ class TreeService extends BaseFormService
 
                     $blnShowIt = true;
                     if ($blnCheckUser) {
-                        $blnShowIt = ($rowLower['userid'] ?? '') == Cookie::get(SecurityHelper::COOKIE_USERID, '');
+                        $blnShowIt = ($rowLower['userid'] ?? '') == SecurityHelper::getCurrentUserId();
                     }
 
                     if ($blnShowIt) {

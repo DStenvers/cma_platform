@@ -141,7 +141,7 @@ abstract class BaseFormService
      */
     protected static function getUserId(): int
     {
-        return (int) Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+        return (int) SecurityHelper::getCurrentUserId();
     }
 
     /**
@@ -226,7 +226,7 @@ abstract class BaseFormService
      * Check form access and return error if no access
      *
      * Consolidates the common pattern:
-     *   $userId = (int)Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+     *   $userId = (int)SecurityHelper::getCurrentUserId();
      *   $rights = SecurityHelper::checkFormRights($userId, $formId);
      *   if ($rights == SecurityHelper::ACCESS_NONE) {
      *       return self::error('Geen toegang tot dit formulier');

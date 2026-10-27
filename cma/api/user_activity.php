@@ -17,7 +17,7 @@ require_once __DIR__ . '/../bootstrap.inc';
 header('Content-Type: application/json');
 
 // Get current user
-$userId = Cookie::get(SecurityHelper::COOKIE_USERID, '');
+$userId = SecurityHelper::getCurrentUserId();
 $username = SecurityHelper::getCurrentUserName();
 
 if (empty($userId) || !SecurityHelper::isLoggedIn()) {

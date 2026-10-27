@@ -104,10 +104,10 @@ if (!JsonFormLoader::exists($formName)) {
     showFormError('Formulier niet gevonden', "Het formulier '$formName' bestaat niet.", 404);
 }
 
-// Check if cookies are available at all - if not, show helpful error
-if (!Cookie::has(SecurityHelper::COOKIE_USERID)) {
-    // No cookies - likely a cookie transmission issue
+// No valid session (no cookie, or one that does not match the user) - show a helpful error
+if (!SecurityHelper::isLoggedIn()) {
     $cookieDebug = [
+        'hasSessionCookie' => SecurityHelper::hasSessionCookie(),
         'hasCookies' => !empty(Cookie::all()),
         'cookieKeys' => array_keys(Cookie::all()),
         'requestUri' => Request::server('REQUEST_URI'),

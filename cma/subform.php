@@ -24,7 +24,7 @@ function main()
 
     $formId = Request::queryInt('FormID');
     $parentId = Request::queryIntAndGuid('ID');
-    $userId = (int)Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+    $userId = (int)SecurityHelper::getCurrentUserId();
 
     // Get subform definitions
     $subforms = SubFormGetArray($formId);

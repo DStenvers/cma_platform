@@ -86,7 +86,6 @@ if ($user === null) {
 
 // Login succesvol - zet cookies (userID + userGUID for dual validation)
 $authLifetime = (int) \App\Library\Settings::get('auth_cookie_lifetime');
-Cookie::set(SecurityHelper::COOKIE_USERID, (string)$user['id'], $authLifetime);
 
 // Get or generate userGUID for dual validation
 $userGUID = $user['guid'] ?? '';
@@ -104,7 +103,7 @@ if (empty($userGUID)) {
         \App\Library\Database::query("UPDATE tblUsers SET userGUID = ? WHERE ID = ?", [$userGUID, $user['id']], $conn);
     }
 }
-Cookie::set(SecurityHelper::COOKIE_USERGUID, $userGUID, $authLifetime);
+SecurityHelper::startSession((int)$user['id'], $userGUID, $authLifetime);
 
 // Laatste login opslaan
 Cookie::set(SecurityHelper::COOKIE_LAST_LOGIN, $user['login'], $authLifetime);

@@ -771,7 +771,7 @@ class CmaRepository
 
         // Check user access rights
         if ($userId === null) {
-            $userId = (int)\App\Library\Cookie::get(SecurityHelper::COOKIE_USERID, '0');
+            $userId = (int)SecurityHelper::getCurrentUserId();
         }
 
         if (!SecurityHelper::checkFormRights($userId, $formId)) {
