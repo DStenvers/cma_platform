@@ -3857,6 +3857,15 @@ try {
     </ul>
     <p>Waarom uit voor Access: de Jet/ACE-driver houdt per verbinding een leescache vast. Met een persistente verbinding leeft die cache door over requests heen, dus ziet het ene php-cgi-proces een schrijfactie van een ander proces pas veel later (gemeten: tientallen seconden; een geüpload bestand verscheen pas na opnieuw inloggen). Een nieuwe verbinding ziet de wijziging direct. Per request één verbinding openen kost alleen de ODBC-open. <code>Database::usePersistentConnection($dsn)</code> geeft de keuze voor een DSN; <code>newConnection()</code> is altijd niet-persistent.</p>
 
+    <h2>Vergrendelde database: opnieuw proberen</h2>
+    <p>Access is soms even niet te openen: hij wordt gecomprimeerd of gekopieerd (back-up), of een ander proces heeft hem exclusief open. De melding is dan bijvoorbeeld <em>"The database has been placed in a state by user 'Admin' on machine … that prevents it from being opened or locked"</em>. Dat duurt meestal kort, dus de Database-class wacht en probeert het opnieuw in plaats van de request te laten falen:</p>
+    <ul>
+        <li><span class="cma-tool__strong">Wanneer:</span> bij het openen van een verbinding (PDO en native <code>odbc_connect</code>), en bij elke query: de query-methodes (<code>query()</code>, <code>fetchOne()</code>, <code>fetchAll()</code>, <code>execute()</code>, <code>executeOn()</code>, <code>executeSingleRecord()</code>, <code>executeQuery()</code> en de <code>safe*</code>-helpers) en <code>openRS()</code> in beide ODBC-modes.</li>
+        <li><span class="cma-tool__strong">Hoe vaak:</span> tot 5 pogingen, met 250, 500, 750 en 1000 ms ertussen (samen hooguit 2,5 s). Elke herhaling komt in de PHP-errorlog (<code>[Database] vergrendeld, poging …</code>).</li>
+        <li><span class="cma-tool__strong">Welke fouten:</span> alleen vergrendelingen, herkend door <code>Database::isLockError($melding)</code>: <em>placed in a state by user</em>, <em>could not lock file</em>, <em>file already in use</em>, <em>could not use</em>, <em>currently locked</em>, <em>cannot open database</em> en (SQLite) <em>database is locked</em>. Een fout in de SQL gaat meteen door. Blijft de database vergrendeld, dan komt na de laatste poging de oorspronkelijke fout, zoals voorheen.</li>
+    </ul>
+    <p>Opnieuw uitvoeren is veilig: een statement dat op een vergrendeling stuit, is niet uitgevoerd. De ASP-versie van een site doet hetzelfde met <code>lib_db_IsLockFout</code> en <code>lib_db_OpenConnectie</code> in <code>library/lib_db.inc</code>.</p>
+
     <h2>Dialecten: Access, SQL Server, SQLite</h2>
     <p>Het platform is uit Classic ASP omgezet en zijn SQL is dus in het <span class="cma-page__strong">Access-dialect</span> geschreven. Draaien op een ander backend is daarom een vertaling, geen modus — en die vertaling zit in de klasse, zodat een aanroeper niets over de driver hoeft te weten.</p>
     <pre><code>use App\Library\SQL;

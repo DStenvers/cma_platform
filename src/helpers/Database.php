@@ -630,9 +630,11 @@ class Database
         $persistent = $pooled && self::usePersistentConnection($dsn);
 
         try {
-            $conn = new PDO($dsn, null, null, [
+            // Een vergrendelde Access-database (compact, back-up, exclusief open door een
+            // ander proces) gaat na een korte pauze meestal weer open: zie withLockRetry().
+            $conn = self::withLockRetry(static fn () => new PDO($dsn, null, null, [
                 PDO::ATTR_PERSISTENT => $persistent
-            ]);
+            ]));
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             $conn->setAttribute(PDO::ATTR_TIMEOUT, (int) Settings::get('db_connect_timeout'));
@@ -812,8 +814,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             $result = $stmt->fetch();
 
             return $result !== false ? self::convertRowEncoding($conn, $result) : null;
@@ -834,8 +835,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll());
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1222,11 +1222,18 @@ class Database
                     self::debugSQL("Reusing pooled native ODBC connection for: $connectionName");
                 } else {
                     // Create native ODBC connection using the full connection string
-                    $odbcConn = @odbc_connect($odbcConnStr, '', '', SQL_CUR_USE_ODBC);
+                    // Vergrendeld (zie withLockRetry): even wachten en opnieuw.
+                    for ($poging = 1; ; $poging++) {
+                        $odbcConn = @odbc_connect($odbcConnStr, '', '', SQL_CUR_USE_ODBC);
 
-                    if (!$odbcConn) {
-                        // Try alternate method - use PDO's connection string directly
-                        $odbcConn = @odbc_connect($dsn, '', '');
+                        if (!$odbcConn) {
+                            // Try alternate method - use PDO's connection string directly
+                            $odbcConn = @odbc_connect($dsn, '', '');
+                        }
+                        if ($odbcConn || $poging >= self::LOCK_ATTEMPTS || !self::isLockError((string) @odbc_errormsg())) {
+                            break;
+                        }
+                        usleep(self::$lockWaitMs * $poging * 1000);
                     }
 
                     // Pool the connection for reuse
@@ -1240,7 +1247,7 @@ class Database
                     self::debugSQL("Native ODBC connection ready, executing query");
 
                     // Execute using native ODBC
-                    $odbcResult = @odbc_exec($odbcConn, self::encodeForOdbc($sql));
+                    $odbcResult = self::odbcExecWithLockRetry($odbcConn, $sql);
 
                     if ($odbcResult) {
                         // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
@@ -1340,8 +1347,11 @@ class Database
             } else {
                 self::debugSQL("Using PDO::prepare() + execute()");
             }
-            $stmt = $conn->prepare($sql);
-            $stmt->execute();
+            $stmt = self::withLockRetry(static function () use ($conn, $sql) {
+                $stmt = $conn->prepare($sql);
+                $stmt->execute();
+                return $stmt;
+            });
 
             // Create RecordSet object with PDOStatement
             self::debugSQL("Query executed successfully");
@@ -1371,7 +1381,7 @@ class Database
             $scrollable = ($cursorType !== null && $cursorType !== 0);
 
             // Execute using native ODBC
-            $odbcResult = @odbc_exec($odbcConn, self::encodeForOdbc($sql));
+            $odbcResult = self::odbcExecWithLockRetry($odbcConn, $sql);
 
             if ($odbcResult) {
                 // Raise odbc_longreadlen so odbc_result() returns LONG/MEMO columns in
@@ -1500,8 +1510,7 @@ class Database
     {
         try {
             $conn = self::getConnection($connection);
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1512,8 +1521,7 @@ class Database
     {
         try {
             $conn = self::getConnection();
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1534,8 +1542,7 @@ class Database
     {
         try {
             $conn = $useRepConnection ? self::getRepConnection() : self::getConnection();
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return $stmt;
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1572,8 +1579,7 @@ class Database
                 throw new \InvalidArgumentException('Invalid connection parameter');
             }
 
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return $stmt;
         } catch (PDOException $e) {
             self::fail($sql, $params, $e);
@@ -1723,8 +1729,7 @@ class Database
             return [];
         }
         try {
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return self::convertRowsEncoding($conn, $stmt->fetchAll(\PDO::FETCH_ASSOC));
         } catch (\Throwable $t) {
             // Non-throwing by contract, but never silent: the failure is logged
@@ -1765,8 +1770,7 @@ SQL: " . $sql : ''));
             return $default;
         }
         try {
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             $v = $stmt->fetchColumn();
             return $v === false ? $default : $v;
         } catch (\Throwable $t) {
@@ -1844,8 +1848,7 @@ SQL: " . $sql : ''));
             return false;
         }
         try {
-            $stmt = $conn->prepare(self::forDriver($conn, $sql));
-            $stmt->execute(self::paramsForDriver($conn, $params));
+            $stmt = self::prepareAndExecute($conn, $sql, $params);
             return $stmt->fetchColumn() !== false;
         } catch (\Throwable $t) {
             // Non-throwing by contract, but never silent: the failure is logged
@@ -2065,6 +2068,90 @@ SQL: " . $sql : ''));
         return self::$enablePooling;
     }
 
+    /** Aantal pogingen bij een vergrendelde database (de eerste meegeteld). */
+    private const LOCK_ATTEMPTS = 5;
+
+    /** Wachttijd vóór poging n+1 is n × deze waarde (250, 500, 750, 1000 ms: samen 2,5 s). */
+    private static int $lockWaitMs = 250;
+
+    /**
+     * Is dit een fout door een tijdelijke vergrendeling, en niet een fout in de SQL?
+     *
+     * Access/Jet: de database wordt gecomprimeerd of gekopieerd ("placed in a state by user
+     * 'Admin'"), het .ldb-bestand is even niet te vergrendelen, of een record/tabel is in gebruik.
+     * SQLite: "database is locked". Dezelfde lijst als lib_db_IsLockFout in de ASP-site.
+     */
+    public static function isLockError(string $message): bool
+    {
+        $m = strtolower($message);
+        foreach ([
+            'has been placed in a state by user',
+            'could not lock file',
+            'file already in use',
+            'could not use',
+            'currently locked',
+            'cannot open database',
+            'database is locked',
+        ] as $tekst) {
+            if (str_contains($m, $tekst)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Voer $actie uit; bij een vergrendeling (isLockError) kort wachten en opnieuw, tot
+     * LOCK_ATTEMPTS pogingen. Elke andere fout, of de vergrendeling na de laatste poging, gaat
+     * ongewijzigd door. Een vergrendelde statement is niet uitgevoerd, dus opnieuw is veilig.
+     *
+     * @template T
+     * @param callable(): T $actie
+     * @return T
+     */
+    private static function withLockRetry(callable $actie)
+    {
+        for ($poging = 1; ; $poging++) {
+            try {
+                return $actie();
+            } catch (PDOException $e) {
+                if ($poging >= self::LOCK_ATTEMPTS || !self::isLockError($e->getMessage())) {
+                    throw $e;
+                }
+                error_log('[Database] vergrendeld, poging ' . ($poging + 1) . ' na ' . (self::$lockWaitMs * $poging) . ' ms: ' . $e->getMessage());
+                usleep(self::$lockWaitMs * $poging * 1000);
+            }
+        }
+    }
+
+    /**
+     * odbc_exec() (native ODBC-modus) met dezelfde retry: odbc_exec gooit niet maar geeft false,
+     * en de reden staat in odbc_errormsg(). Geeft het resultaat of false, zoals odbc_exec zelf.
+     *
+     * @return mixed
+     */
+    private static function odbcExecWithLockRetry($odbcConn, string $sql)
+    {
+        for ($poging = 1; ; $poging++) {
+            $resultaat = @odbc_exec($odbcConn, self::encodeForOdbc($sql));
+            if ($resultaat || $poging >= self::LOCK_ATTEMPTS || !self::isLockError((string) @odbc_errormsg($odbcConn))) {
+                return $resultaat;
+            }
+            error_log('[Database] vergrendeld (odbc), poging ' . ($poging + 1) . ' na ' . (self::$lockWaitMs * $poging) . ' ms');
+            usleep(self::$lockWaitMs * $poging * 1000);
+        }
+    }
+
+    /** prepare() + execute() met de driverafhankelijke SQL/parameters, en opnieuw bij een vergrendeling. */
+    private static function prepareAndExecute(PDO $conn, string $sql, array $params): \PDOStatement
+    {
+        return self::withLockRetry(static function () use ($conn, $sql, $params) {
+            $stmt = $conn->prepare(self::forDriver($conn, $sql));
+            $stmt->execute(self::paramsForDriver($conn, $params));
+            return $stmt;
+        });
+    }
+
     /**
      * Execute SQL with retry logic for database lock errors
      *
@@ -2088,10 +2175,7 @@ SQL: " . $sql : ''));
                 $errorMsg = $e->getMessage();
 
                 // Check for lock/busy errors (matches ASP lib_db.inc logic)
-                $isLockError = stripos($errorMsg, 'locked') !== false ||
-                               stripos($errorMsg, 'database is locked') !== false ||
-                               stripos($errorMsg, 'cannot open database') !== false ||
-                               stripos($errorMsg, 'database has been placed in a state') !== false;
+                $isLockError = self::isLockError($errorMsg);
 
                 if ($isLockError && $attempts < $maxRetries) {
                     // Wait before retrying
