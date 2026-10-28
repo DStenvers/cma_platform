@@ -15666,3 +15666,9 @@ karaat-data en staat in de karaat-repo.
 > 1 PHP is prima, 2 voor de aanroep van 404.php kunnen we dat toch doen? In de bootstrap? 3 geen whitelist nodig want het betreft alleen hackpogingen y = 10 en x is 10,
 
 > blokkadeduur: 1 uur.
+
+> can you document this in the cma documentation? Create a new chapter
+
+> bekeijk de laatste commits of daar zaken in staan die ook in de documentatie thuishoren.
+
+> commit and push please

@@ -91,6 +91,7 @@ $topics = [
             'backups'      => ['label' => 'Backups & herstel',     'icon' => 'lnr-database',    'render' => 'render_doc_backups'],
             'logs'         => ['label' => 'Logs & monitoring',     'icon' => 'lnr-list',        'render' => 'render_doc_logs'],
             'security'     => ['label' => 'Beveiliging',           'icon' => 'lnr-lock',        'render' => 'render_doc_security'],
+            'hack_attempts' => ['label' => 'Hackpogingen & IP-blokkades', 'icon' => 'lnr-shield-alert', 'render' => 'render_doc_hack_attempts'],
             'iis_config'   => ['label' => 'IIS-configuratie',      'icon' => 'lnr-server',      'render' => 'render_doc_iis_config'],
             'portability'  => ['label' => 'Portabiliteit (niet-IIS)', 'icon' => 'lnr-sync',    'render' => 'render_doc_portability'],
         ],
@@ -123,6 +124,7 @@ $topics = [
             'troubleshooting' => ['label' => 'Troubleshooting',     'icon' => 'lnr-warning',  'render' => 'render_doc_troubleshooting'],
             'mail'            => ['label' => 'Mail-configuratie',   'icon' => 'lnr-envelope', 'render' => 'render_doc_mail'],
             'llm'             => ['label' => 'LLM-configuratie',    'icon' => 'lnr-brain',    'render' => 'render_doc_llm'],
+            'sso'             => ['label' => 'SSO-configuratie',    'icon' => 'lnr-key',      'render' => 'render_doc_sso'],
         ],
     ],
     'storybook' => [
@@ -1585,6 +1587,37 @@ function cma_doc_check_notfound_mail(): array {
     return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan, naar <code>' . htmlspecialchars($to) . '</code>. Overzicht van ' . $yesterday . ($sent ? ' is verstuurd.' : ' is nog niet verstuurd (gaat bij het eerstvolgende request, als er een log van die dag is).')];
 }
 
+function cma_doc_check_hack_list(): array {
+    $label = 'Hacklijst';
+    $lijsten = \App\Library\NotFoundLists::forSite(dirname(__DIR__, 2))->all();
+    $hack = count($lijsten[\App\Library\NotFoundLists::HACK]);
+    $genegeerd = count($lijsten[\App\Library\NotFoundLists::IGNORE]);
+    if ($hack === 0) {
+        return ['label' => $label, 'status' => 'warn', 'detail' => 'De hacklijst is leeg: geen enkele 404 telt als hackpoging, dus er wordt ook niemand geblokkeerd. Genegeerd: ' . $genegeerd . ' patroon/patronen.', 'fix' => 'Zet patronen op de lijst via Logbestanden lezen → 404 → Patronen, of vanuit het detailvenster van een 404-regel.'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => $hack . ' patroon/patronen op de hacklijst, ' . $genegeerd . ' genegeerd (<code>data/notfound_lists.json</code>).'];
+}
+
+function cma_doc_check_hack_files_writable(): array {
+    $label = 'Schrijfrechten lijsten en blokkades';
+    $root = dirname(__DIR__, 2);
+    $nietSchrijfbaar = [];
+    // Bestaat een map nog niet, dan maakt de code hem aan: dan telt de ouder.
+    foreach (['data' => $root . '/data', '.logs/404' => $root . '/.logs/404'] as $naam => $map) {
+        $test = $map;
+        while (!is_dir($test) && dirname($test) !== $test) {
+            $test = dirname($test);
+        }
+        if (!is_writable($test)) {
+            $nietSchrijfbaar[] = $naam;
+        }
+    }
+    if ($nietSchrijfbaar !== []) {
+        return ['label' => $label, 'status' => 'fail', 'detail' => 'Niet schrijfbaar voor de app-pool: <code>' . implode('</code>, <code>', $nietSchrijfbaar) . '</code>. Patronen opslaan, hits tellen en blokkeren mislukken dan.', 'fix' => 'Geef de app-pool-identiteit schrijfrechten op die map(pen).'];
+    }
+    return ['label' => $label, 'status' => 'pass', 'detail' => '<code>data/</code> en <code>.logs/404/</code> zijn schrijfbaar.'];
+}
+
 function cma_doc_check_hackguard_404(): array {
     $label = 'Hackpogingen blokkeren';
     if (!\App\Library\Settings::get('hack_block_enabled')) {
@@ -2607,7 +2640,7 @@ function render_doc_images(): void
             <tr><td>Geen <code>srcset</code> in de output</td><td>Geen varianten aanwezig</td><td>Draai de batch-tool of <code>ResponsiveImage::generate()</code> op de map.</td></tr>
             <tr><td>Batch-conversie stopt na een paar beelden met HTTP 500</td><td>Grote afbeelding put GD-geheugen uit → niet-vangbare fatal breekt de request af</td><td>De tool slaat te grote beelden over met reden en meldt het bestand waarop een fatal stukliep op het scherm. Verhoog <code>memory_limit</code> of verklein het bronbeeld.</td></tr>
             <tr><td><code>image-editor.php</code> toont &ldquo;Geen toegang&rdquo;</td><td>Geen geldige CMA-sessie (<code>CMAU</code>-cookie)</td><td>Log in op de CMA; de editor en zijn bewerk-acties vereisen een ingelogde gebruiker.</td></tr>
-            <tr><td>Na de update moet iedereen opnieuw inloggen, of een script/test met alleen <code>CMAU</code> komt de CMA niet meer in</td><td>Sinds v1.52.26 is een sessie <code>CMAU</code> + <code>CMAG</code>: <code>SecurityHelper::isLoggedIn()</code> eist dat <code>CMAG</code> gelijk is aan <code>tblUsers.userGUID</code> (<code>guidKlopt()</code>). Daarvoor gaf alleen <code>CMAU=&lt;id&gt;</code> al toegang als die gebruiker.</td><td>Gewoon inloggen (login.php en sso_callback.php zetten beide cookies). Een test zet <code>CMAG</code> met de userGUID uit tblUsers. Ontbreekt de kolom userGUID helemaal (oude, gekopieerde gebruikersdatabase), dan valt er niets te vergelijken en blijft alleen <code>CMAU</code> gelden &mdash; draai dan de migraties.</td></tr>
+            <tr><td>Na de update moet iedereen opnieuw inloggen, of een script/test met alleen <code>CMAU</code> komt de CMA niet meer in</td><td>Een sessie is <code>CMAU</code> + <code>CMAG</code>: <code>SecurityHelper::isLoggedIn()</code> eist dat <code>CMAG</code> gelijk is aan <code>tblUsers.userGUID</code> (<code>guidKlopt()</code>). Alleen <code>CMAU=&lt;id&gt;</code> geeft geen toegang.</td><td>Gewoon inloggen (login.php en sso_callback.php zetten beide cookies). Een test zet <code>CMAG</code> met de userGUID uit tblUsers. Ontbreekt de kolom userGUID helemaal (oude, gekopieerde gebruikersdatabase), dan valt er niets te vergelijken en blijft alleen <code>CMAU</code> gelden &mdash; draai dan de migraties.</td></tr>
             <tr><td>Editor slaat op maar de maat klopt niet met het veld</td><td><code>resizetype/-width/-height</code> niet meegegeven aan de URL</td><td>Open via een image-veld (form-controller geeft de veldregel mee) of zet de params expliciet in de URL.</td></tr>
         </tbody>
     </table>
@@ -2788,6 +2821,15 @@ function render_doc_deployment(): void
         <li><span class="cma-tool__strong">Health-check + post-hook</span> — best-effort <code>/cma/</code>-sync-check (<code>DeployHealth</code>) en het project-side <code>deploy_post.php</code> (cache-flushes, migraties) — alleen bij succes en alleen als <code>vendor/autoload.php</code> bestaat, zodat de hatch zelfstandig blijft.</li>
         <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is (ook instelbaar via Beheerstools → Systeeminstellingen) — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
     </ol>
+
+    <h2>Handmatig onderhoudsscherm</h2>
+    <p>Buiten een deploy zet je de site in onderhoud met de tool <span class="cma-tool__strong">Onderhoudsscherm</span> (<code>/cma/tools/onderhoud</code>, alleen beheerders). Die schrijft dezelfde <code>maintenance.flag</code> als de deploy, met <code>"manual": true</code>, het tijdstip en jouw bericht:</p>
+    <ul>
+        <li>Een <span class="cma-tool__strong">bericht</span> is verplicht; het staat op het onderhoudsscherm in plaats van de standaardtekst.</li>
+        <li>Het vinkje <span class="cma-tool__strong">Toon 'Probeer het over een paar minuten opnieuw'</span> bepaalt of het scherm die regel en "Blijft u deze melding langer dan 10 minuten zien?" toont (<code>"retry"</code> in de vlag). Bij onderhoud van onbekende duur zet je het uit. Een deploy-vlag heeft die sleutel niet en toont de regels altijd.</li>
+        <li>Een handmatige vlag blijft staan tot je hem uitzet; een deploy-vlag verdwijnt na twintig minuten vanzelf.</li>
+        <li><code>/cma/</code> blijft achter een handmatige vlag bereikbaar, zodat je het onderhoud ook weer kunt uitzetten. Achter een deploy-vlag niet: dan is <code>cma/</code> zelf half bijgewerkt.</li>
+    </ul>
 
     <h2>Deploy-log bekijken</h2>
     <p>
@@ -3039,7 +3081,6 @@ function render_doc_logs(): void
         'cma_doc_check_php_error_log',
         'cma_doc_check_error_mail',
         'cma_doc_check_notfound_mail',
-        'cma_doc_check_hackguard_404',
     ]));
     ?>
 
@@ -3053,7 +3094,7 @@ function render_doc_logs(): void
             <tr><td>Application log</td><td><code>.logs/app/app_YYYY-MM-DD.log</code></td><td>Structured JSON-per-regel logs van <code>Cma\Services\Logger</code>. Productie: WARNING+; dev/test: DEBUG+. <code>$logDir</code> gezet door <code>Logger.php</code> line 88.</td></tr>
             <tr><td>Performance log</td><td><code>.logs/perf/perf_YYYY-MM-DD.log</code></td><td>Timing metrics van <code>PerformanceLogger</code> (queries, API-calls, memory). Aan via <code>PERF_LOG_ENABLED=true</code>. Locatie gezet door <code>PerformanceLogger.php</code> line 75.</td></tr>
             <tr><td>Debug log</td><td><code>.logs/debug/debug_YYYY-MM-DD.log</code></td><td>Verbose debug van <code>cma/api/log.php</code> wanneer browser-side <code>libLog</code> debug-mode aan zet. <code>$logsDir</code> gezet door <code>api/log.php</code> line 44.</td></tr>
-            <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door de 404-handler van de site (<code>404.php</code> op de site-root, of <code>cma/404.php</code>). Een dagelijks overzicht per mail staat hieronder bij <span class="cma-tool__strong">Meldingen per e-mail</span>. Welke paden hackpogingen zijn en welke genegeerd worden staat apart in <code>data/notfound_lists.json</code> — zie <span class="cma-tool__strong">404: hackpogingen en genegeerde paden</span> hieronder.</td></tr>
+            <tr><td>404 log</td><td><code>.logs/404/404_YYYY-MM-DD.log</code></td><td>Niet-gevonden URLs gevangen door de 404-handler van de site (<code>404.php</code> op de site-root, of <code>cma/404.php</code>). Een dagelijks overzicht per mail staat hieronder bij <span class="cma-tool__strong">Meldingen per e-mail</span>. Welke paden hackpogingen zijn en welke genegeerd worden staat apart in <code>data/notfound_lists.json</code> — zie <a href="documentation.php?topic=hack_attempts">Hackpogingen &amp; IP-blokkades</a>.</td></tr>
             <tr><td>Cache log</td><td><code>cache/cache.log</code></td><td>Cache-hit/-miss events. Aan via <code>CACHE_LOG_ENABLED=true</code>.</td></tr>
             <tr><td>JS errors (DB)</td><td>Tabel <code>tblCMAJavascriptErrors</code></td><td>Client-side errors gevangen door <code>CmaErrorHandler</code>. Rate-limited tot 100 per IP per uur.</td></tr>
         </tbody>
@@ -3068,49 +3109,13 @@ function render_doc_logs(): void
     <ul>
         <li><span class="cma-tool__strong">PHP errors / Deploy / Cache</span> — plain text view, leegmaken via "Log leegmaken" toolbar-knop (truncate, niet delete, zodat de volgende write kan appenden). De PHP-error view kleurt per foutregel: entries met <code>[SQL ERROR]</code> (mislukte database-query, geschreven door <code>Database::logError()</code>), <code>PHP Fatal/Parse error</code> of <code>Uncaught</code> krijgen een rode rij; <code>[SQL WARN]</code> (bv. <code>SELECT *</code> waar Access ODBC een expliciete kolomlijst met MEMO-velden als laatste vereist) en <code>PHP Warning/Deprecated</code> een oranje rij. Typ <code>SQL ERROR</code> of <code>SQL WARN</code> in het filterveld om alleen die te tonen.</li>
         <li><span class="cma-tool__strong">Performance</span> — JSON-rendered table, klikbare detail-rows, SQL-threshold filter op de toolbar.</li>
-        <li><span class="cma-tool__strong">404</span> — tabbladen <span class="cma-tool__strong">Gemist</span> (echte misses), <span class="cma-tool__strong">Hackpogingen</span> (met IP-kolom), <span class="cma-tool__strong">Genegeerd</span> en <span class="cma-tool__strong">Patronen</span> (de lijsten onderhouden). Klik een regel aan voor de details; daar zet je een gemiste URL met <span class="cma-tool__strong">Markeer als hackpoging</span> of <span class="cma-tool__strong">Negeren</span> op een lijst. Het tabblad <span class="cma-tool__strong">Blokkades</span> toont de IP's die nu een 403 krijgen. <code>?tab=hack</code>, <code>?tab=genegeerd</code>, <code>?tab=patronen</code> of <code>?tab=blokkades</code> opent direct dat tabblad.</li>
+        <li><span class="cma-tool__strong">404</span> — tabbladen <span class="cma-tool__strong">Gemist</span>, <span class="cma-tool__strong">Hackpogingen</span>, <span class="cma-tool__strong">Genegeerd</span>, <span class="cma-tool__strong">Patronen</span> en <span class="cma-tool__strong">Blokkades</span>; klik een regel aan voor de details. Zie <a href="documentation.php?topic=hack_attempts">Hackpogingen &amp; IP-blokkades</a>.</li>
         <li><span class="cma-tool__strong">Debug</span> — date-picker bovenaan voor historische dagen.</li>
         <li><span class="cma-tool__strong">JS errors</span> — leest van de database; "leegmaken" verwijdert ALLE entries.</li>
     </ul>
 
     <h2>404: hackpogingen en genegeerde paden</h2>
-    <p>De 404-log mengt drie soorten misses: kapotte links (die wil je repareren), scanners die naar <code>/wp-login.php</code> of <code>/.env</code> zoeken (hackpogingen), en bekende misses die het najagen niet waard zijn (een oude link in een externe nieuwsbrief). Alleen de eerste soort hoort in <span class="cma-tool__strong">Meest gemiste URLs</span> op het dashboard en in het dagelijkse 404-overzicht.</p>
-    <p>Daarvoor heeft elke site twee lijsten met patronen in <code>data/notfound_lists.json</code> (de Installer blijft van <code>data/</code> af), beheerd door <code>App\Library\NotFoundLists</code> en via <code>cma/api/notfound_lists.php</code> (beheerders en hoger). Onderhoud gaat in de logreader, 404-log, tabblad <span class="cma-tool__strong">Patronen</span>, of vanuit het detailvenster van een regel.</p>
-    <ul>
-        <li>Een patroon wordt vergeleken met het <span class="cma-tool__strong">pad</span> van de gevraagde URL — zonder querystring, hoofdletterongevoelig, en over het hele pad. <code>*</code> staat voor willekeurige tekens: <code>/wp-*</code>, <code>*.env</code>, <code>*/phpmyadmin*</code>. Zonder <code>*</code> is het één exact pad. Een volledige URL wordt bij het opslaan teruggebracht tot zijn pad.</li>
-        <li>Staat een pad op beide lijsten, dan telt het als hackpoging.</li>
-        <li>De indeling gebeurt bij het lezen, niet bij het loggen. Een patroon dat je vandaag toevoegt, deelt dus ook de regels van eerdere dagen opnieuw in.</li>
-        <li>Dashboard: de grafiek, de tellers en de top-lijst tellen alleen echte misses. Hackpogingen staan als aparte teller ernaast en linken naar het tabblad <span class="cma-tool__strong">Hackpogingen</span>.</li>
-        <li>Dagelijks overzicht per mail: hackpogingen en genegeerde paden worden geteld ("waarvan 12 hackpogingen en 3 genegeerd") maar niet als pad opgesomd.</li>
-    </ul>
-
-    <h3>Blokkeren</h3>
-    <p>Een IP dat meer dan <code>HACK_BLOCK_THRESHOLD</code> (10) URLs van de hacklijst opvraagt binnen <code>HACK_BLOCK_WINDOW_MINUTES</code> (10), krijgt <code>HACK_BLOCK_DURATION_MINUTES</code> (60) minuten lang een kale <code>403</code> op elke PHP-pagina, ook in de CMA. In te stellen via Systeeminstellingen → Beveiliging (<code>HACK_BLOCK_ENABLED</code>, standaard aan). Actieve blokkades staan in de logreader, 404-log, tabblad <span class="cma-tool__strong">Blokkades</span>; daar hef je er een eerder op.</p>
-    <ul>
-        <li><span class="cma-tool__strong">Tellen gebeurt in de 404-afhandeling.</span> IIS stuurt een ontbrekend bestand (<code>/wp-login.php</code>, <code>/.env</code>) rechtstreeks naar <code>404.php</code>, zonder <code>_bootstrap_wrapper.php</code> en zonder bootstrap. Daarom roepen <code>404.php</code> op de site-root en <code>cma/404.php</code> als eerste <code>cma/hackguard.inc</code> aan. Dat laadt alleen de Composer-autoloader en de <code>HACK_BLOCK_*</code>-waarden uit <code>.env</code> (geen sessie, geen app) en roept <code>App\Library\HackBlocker::guardNotFound()</code> aan.</li>
-        <li><span class="cma-tool__strong">De 403 zit ook in de bootstrap</span> (<code>HackBlocker::guard()</code> in <code>Bootstrap::init</code>), zodat een geblokkeerd IP ook gewone pagina's niet meer krijgt.</li>
-        <li>Het IP is <code>REMOTE_ADDR</code>, net als in de 404-log. Nooit <code>X-Forwarded-For</code>: die header zet de client zelf, en daarmee zou hij de blokkade kunnen ontlopen of een ander laten blokkeren. Achter een proxy of load balancer is <code>REMOTE_ADDR</code> het adres van de proxy — zet blokkeren daar uit.</li>
-        <li>Bestanden: <code>data/ip_blocks.json</code> (actieve blokkades) en <code>.logs/404/hackhits.json</code> (hits binnen het tijdvenster; houdt nooit meer dan één venster bij). Een geblokkeerd verzoek komt niet in de 404-log.</li>
-        <li><code>404.php</code> is van de site en wordt niet overschreven. Een <code>404.php</code> dat nog precies een eerder sjabloon is, werkt de Installer bij <code>composer update</code> bij; een aangepast exemplaar heeft één regel nodig — de live check bovenaan dit onderwerp wijst hem aan.</li>
-    </ul>
-    <table class="listtable">
-        <tr><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr>
-        <tr>
-            <td>Hackpogingen staan in de log, maar niemand wordt geblokkeerd</td>
-            <td><code>404.php</code> op de site-root roept <code>cma/hackguard.inc</code> niet aan; de bootstrap draait voor die 404's niet, dus er wordt niets geteld.</td>
-            <td>Zet <code>require __DIR__ . '/cma/hackguard.inc';</code> bovenaan <code>404.php</code>. De live check "Hackpogingen blokkeren" toont het.</td>
-        </tr>
-        <tr>
-            <td>Een bezoeker (of jijzelf) krijgt overal alleen "Toegang tijdelijk geblokkeerd."</td>
-            <td>Dat IP deed meer hackpogingen dan de drempel binnen het tijdvenster — of een patroon op de hacklijst is te ruim en raakt ook gewone ontbrekende pagina's.</td>
-            <td>Hef de blokkade op (logreader → 404 → Blokkades; vanaf een ander IP als je zelf geblokkeerd bent, of wacht de blokkadeduur af). Maak het patroon nauwer op het tabblad Patronen.</td>
-        </tr>
-        <tr>
-            <td>Ineens krijgt iedereen een 403</td>
-            <td>De site staat achter een proxy of load balancer: <code>REMOTE_ADDR</code> is voor alle bezoekers hetzelfde adres, en dat is geblokkeerd.</td>
-            <td>Zet <code>HACK_BLOCK_ENABLED</code> uit en verwijder <code>data/ip_blocks.json</code>.</td>
-        </tr>
-    </table>
+    <p>Welke 404's hackpogingen zijn, welke genegeerd worden en welke IP's daardoor tijdelijk geblokkeerd zijn, staat in een eigen hoofdstuk: <a href="documentation.php?topic=hack_attempts">Hackpogingen &amp; IP-blokkades</a>.</p>
 
     <h2>Logger API (PHP)</h2>
     <p><code>Cma\Services\Logger</code> is PSR-3 compatible:</p>
@@ -3195,6 +3200,7 @@ function render_doc_security(): void
     ?>
     <h1>Beveiliging</h1>
     <p class="docs-meta">Wat het platform afdwingt en waar jij als beheerder op moet letten.</p>
+    <p>Scanners die naar <code>/wp-login.php</code> of <code>/.env</code> zoeken, tel je als hackpoging en het IP wordt boven een drempel tijdelijk geblokkeerd: zie <a href="documentation.php?topic=hack_attempts">Hackpogingen &amp; IP-blokkades</a>.</p>
     <p>Cookie- en sessiebeleid staat op Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Sessie &amp; login</span>: levensduur, secure-vlag en SameSite van de sessiecookie, hoe lang de inlogcookies geldig blijven, de secure-vlag van alle cookies die het CMA zet (<code>COOKIE_SECURE</code> — zet aan op https), en de IP-controle bij inloggen. De namen van de inlogcookies (<code>CMAU</code>, <code>CMAG</code>, …) zijn constanten in <code>SecurityHelper</code>; twee CMA's op één domein delen ze, dus draai die op verschillende domeinen.</p>
     <p><span class="cma-tool__strong">Ingelogd of niet</span> bepaalt alleen <code>SecurityHelper</code>: <code>isLoggedIn()</code> (CMAU + CMAG tegen de database) en <code>getCurrentUserId()</code>, dat zonder geldige sessie <code>''</code> geeft. De inlogcookies worden nergens anders gelezen of gezet: <code>startSession()</code> / <code>endSession()</code> voor in- en uitloggen, <code>hasSessionCookie()</code> alleen om op de inlogpagina een verlopen cookie op te ruimen, <code>getOriginalUserId()</code> / <code>setOriginalUserId()</code> voor &ldquo;Inloggen als&rdquo;. De poort in <code>bootstrap.inc</code> vraagt <code>isLoggedIn()</code>; <code>details_getdata.php</code> (keuzelijsten) controleert het ook zelf en geeft zonder sessie JSON met 401. Bewaakt door <code>tests/CmaLoginControleTest.php</code>, dat ook faalt zodra ergens buiten <code>SecurityHelper</code> een inlogcookie wordt gelezen.</p>
 
@@ -3233,6 +3239,7 @@ function render_doc_security(): void
     <p>De file-browser wizard (<code>cma/wizards/file-browser.php</code>) blokkeert uploads met deze extensies:</p>
     <p><code>php, phtml, phar, php3, php4, php5, php7, asp, aspx, jsp, sh, cgi, pl, exe, bat, cmd, com, htaccess, htpasswd</code></p>
     <p>De check draait op de FINAL filename (na sanitization + na een eventuele <code>targetName</code>-redirect), zodat een client-side "overschrijf het geselecteerde bestand met deze upload" actie niet om de check heen kan.</p>
+    <p>Bij het opschonen van de bestandsnaam worden twee of meer punten na elkaar één punt (<code>verslag_def..docx</code> → <code>verslag_def.docx</code>): zo'n naam gaf bij openen een ongeldig-pad-fout. Dat geldt voor de file-browser, de uploadhandler voor bijsnijden (<code>imageupload_crop_upload_handler.php</code>) en <code>LibUpload</code>.</p>
 
     <h2>Gebruikersniveau's</h2>
     <p><code>Cma\SecurityHelper</code> kent drie levels:</p>
@@ -3244,6 +3251,7 @@ function render_doc_security(): void
             <tr><td>Developer</td><td><code>LEVEL_DEVELOPER</code></td><td>Alles + storybook, formulier-editor, dev-tools, env-switch, test-email.</td></tr>
         </tbody>
     </table>
+    <p>Op het gebruikersformulier staan de groepen als vinkjes. Een groep zonder naam wordt daar niet getoond, tenzij de gebruiker er lid van is: dan staat hij er als <code>(naamloos, groep &lt;id&gt;)</code>. Alleen zichtbare vinkjes worden opgeslagen, dus een verborgen lidmaatschap zou bij opslaan stil verdwijnen. Geef de groep een naam of haal het lidmaatschap bewust weg.</p>
     <p>Gates: <code>SecurityHelper::isAdmin()</code> en <code>SecurityHelper::isDeveloper()</code>. Tools-pagina's beginnen typisch met:</p>
     <pre><code>if (!SecurityHelper::isAdmin()) {
     echo '&lt;lib-message type="error"&gt;Geen toegang&lt;/lib-message&gt;';
@@ -3288,6 +3296,175 @@ function render_doc_security(): void
     <div class="seealso">
         Zie ook: <a href="documentation.php?topic=installation">Installatie</a> (file-rechten), <a href="documentation.php?topic=environment">Omgeving &amp; .env</a> (waar secrets leven), <a href="documentation.php?topic=iis_config">IIS-configuratie</a> (hiddenSegments + securityheaders).
     </div>
+    <?php
+}
+
+function render_doc_hack_attempts(): void
+{
+    ?>
+    <h1>Hackpogingen &amp; IP-blokkades</h1>
+    <p class="docs-meta">Scanners en bekende misses apart houden van echte kapotte links, en een IP dat blijft scannen tijdelijk buitensluiten.</p>
+
+    <?php
+    cma_doc_render_check_table('Hackpogingen — live check op deze site', cma_doc_run_checks([
+        'cma_doc_check_hackguard_404',
+        'cma_doc_check_hack_list',
+        'cma_doc_check_hack_files_writable',
+    ]));
+    ?>
+
+    <h2>Waarom</h2>
+    <p>De 404-log mengt drie soorten misses:</p>
+    <ul>
+        <li><span class="cma-tool__strong">Kapotte links</span>: een pagina of bestand dat er hoort te zijn. Die wil je repareren.</li>
+        <li><span class="cma-tool__strong">Hackpogingen</span>: scanners die naar <code>/wp-login.php</code>, <code>/.env</code> of <code>/phpmyadmin/</code> zoeken. Niets aan te repareren; wel een reden om dat IP buiten te sluiten.</li>
+        <li><span class="cma-tool__strong">Bekende misses</span>: een oude link in een externe nieuwsbrief, een bestand dat bewust weg is. Het najagen niet waard.</li>
+    </ul>
+    <p>Alleen de eerste soort hoort in <span class="cma-tool__strong">Meest gemiste URLs</span> op het dashboard en in het dagelijkse 404-overzicht. Daarvoor heeft elke site twee lijsten met patronen: de <span class="cma-tool__strong">hacklijst</span> en de lijst <span class="cma-tool__strong">genegeerde 404's</span>.</p>
+
+    <h2>Patronen</h2>
+    <ul>
+        <li>Een patroon wordt vergeleken met het <span class="cma-tool__strong">pad</span> van de gevraagde URL: zonder querystring, zonder op hoofdletters te letten, en over het hele pad.</li>
+        <li><code>*</code> staat voor willekeurige tekens. Zonder <code>*</code> is het één exact pad.</li>
+        <li>Een volledige URL (<code>https://site.nl/xmlrpc.php</code>) wordt bij het opslaan teruggebracht tot zijn pad.</li>
+        <li>Staat een pad op beide lijsten, dan telt het als hackpoging.</li>
+        <li>De indeling gebeurt bij het lezen van de log, niet bij het loggen. Een patroon dat je vandaag toevoegt, deelt dus ook de regels van eerdere dagen opnieuw in.</li>
+    </ul>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Patroon</th><th>Raakt</th><th>Raakt niet</th></tr></thead>
+        <tbody>
+            <tr><td><code>/wp-login.php</code></td><td><code>/wp-login.php</code>, <code>/WP-Login.php?x=1</code></td><td><code>/blog/wp-login.php</code></td></tr>
+            <tr><td><code>/wp-*</code></td><td><code>/wp-admin/setup-config.php</code>, <code>/wp-content/x.php</code></td><td><code>/blog/wp-admin/</code></td></tr>
+            <tr><td><code>*/wp-*</code></td><td><code>/wp-login.php</code>, <code>/blog/wp-admin/</code></td><td><code>/nieuws/wordpress.html</code></td></tr>
+            <tr><td><code>*.env</code></td><td><code>/.env</code>, <code>/api/.env</code></td><td><code>/.env.bak</code></td></tr>
+        </tbody>
+    </table>
+    <p>Houd patronen op de hacklijst nauw. Een te ruim patroon (<code>/admin*</code> op een site met een echte <code>/administratie</code>) telt gewone bezoekers die een kapotte link volgen als hackpoging, en blokkeert ze ook.</p>
+
+    <h2>Werken in de logreader</h2>
+    <p>Beheerstools → <span class="cma-tool__strong">Logbestanden lezen</span> → <span class="cma-tool__strong">404 Errors</span> (alleen voor developers). De log van de gekozen dag staat verdeeld over tabbladen:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Tabblad</th><th>Inhoud</th></tr></thead>
+        <tbody>
+            <tr><td>Gemist</td><td>Echte misses: wat op geen van beide lijsten staat.</td></tr>
+            <tr><td>Hackpogingen</td><td>Regels op de hacklijst, met een kolom IP.</td></tr>
+            <tr><td>Genegeerd</td><td>Regels op de lijst genegeerde 404's.</td></tr>
+            <tr><td>Patronen</td><td>Beide lijsten: patroon, wanneer en door wie toegevoegd. Hier voeg je patronen toe en haal je ze weg (prullenbak).</td></tr>
+            <tr><td>Blokkades</td><td>De IP's die nu een 403 krijgen: sinds, tot, aantal pogingen en de laatste URL. <span class="cma-tool__strong">Opheffen</span> beëindigt een blokkade direct.</td></tr>
+        </tbody>
+    </table>
+    <p>Een gemiste URL zet je op een lijst vanuit het detailvenster (klik de regel aan): <span class="cma-tool__strong">Markeer als hackpoging</span> of <span class="cma-tool__strong">Negeren</span>. Het pad staat al ingevuld; maak er eerst een patroon van als dat beter past (<code>/wp-login.php</code> → <code>/wp-*</code>). Na opslaan laadt de pagina opnieuw, want de nieuwe regel kan elke regel van de dag van tabblad laten wisselen. Staat een regel al op een lijst, dan brengt <span class="cma-tool__strong">Patronen beheren</span> je naar het tabblad Patronen.</p>
+    <p>Direct naar een tabblad: <code>tools.php?tool=logs&amp;log=404&amp;tab=hack</code> (ook <code>genegeerd</code>, <code>patronen</code> en <code>blokkades</code>).</p>
+
+    <h2>Dashboard en dagelijks overzicht</h2>
+    <ul>
+        <li><span class="cma-tool__strong">Dashboard</span>, kaart "Pagina niet gevonden": de grafiek, de tellers <span class="cma-tool__strong">Vandaag</span> en <span class="cma-tool__strong">14 dagen</span> en de lijst Meest gemiste URLs tellen alleen echte misses. <span class="cma-tool__strong">Hackpogingen</span> staat als aparte teller ernaast en opent het tabblad Hackpogingen. Genegeerde 404's tellen nergens mee.</li>
+        <li><span class="cma-tool__strong">Dagelijks 404-overzicht per mail</span> (<code>NOTFOUND_MAIL_ENABLED</code>, zie <a href="documentation.php?topic=logs">Logs &amp; monitoring</a>): het totaal blijft alles wat niet gevonden is, met "waarvan 12 hackpogingen en 3 genegeerd". Alleen de echte misses worden als pad opgesomd.</li>
+    </ul>
+
+    <h2>IP-blokkades</h2>
+    <p>Een IP dat meer hackpogingen doet dan de drempel binnen het tijdvenster, krijgt voor de blokkadeduur op elke PHP-pagina een kale <code>403</code> met de tekst "Toegang tijdelijk geblokkeerd." en een <code>Retry-After</code>-header. Dat geldt voor de hele site, ook de CMA. De teller staat op de hit die de drempel overschrijdt: bij een drempel van 10 is de elfde poging binnen het venster de eerste 403. Een geblokkeerd verzoek komt niet meer in de 404-log.</p>
+    <p>Instellen via Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Beveiliging</span>:</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Variabele</th><th>Standaard</th><th>Nu op deze site</th><th>Betekenis</th></tr></thead>
+        <tbody>
+        <?php foreach (\App\Library\Settings::definitions() as $key => $def):
+            if (strncmp($key, 'hack_block_', 11) !== 0) continue;
+            $nu = \App\Library\Settings::get($key);
+            $toon = static fn ($v): string => is_bool($v) ? ($v ? 'aan' : 'uit') : (string) $v;
+        ?>
+            <tr>
+                <td><code><?= htmlspecialchars($def['env']) ?></code></td>
+                <td><?= htmlspecialchars($toon($def['default'])) ?></td>
+                <td><?= htmlspecialchars($toon($nu)) ?></td>
+                <td><?= htmlspecialchars($def['hint'] ?? $def['label']) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <ul>
+        <li><span class="cma-tool__strong">Het IP is <code>REMOTE_ADDR</code></span>, hetzelfde adres als in de 404-log. Nooit <code>X-Forwarded-For</code>: die header zet de client zelf, dus daarmee zou een scanner de blokkade ontlopen of een ander laten blokkeren.</li>
+        <li><span class="cma-tool__strong">Achter een proxy of load balancer</span> is <code>REMOTE_ADDR</code> voor alle bezoekers het adres van de proxy. Eén blokkade sluit dan iedereen buiten. Zet blokkeren op zo'n site uit.</li>
+        <li>Er is geen witte lijst: alleen paden op de hacklijst tellen mee, en een gewone bezoeker vraagt die niet op. Sluit je jezelf buiten (bijvoorbeeld door zelf de lijst te testen), hef de blokkade dan op vanaf een ander IP of wacht de blokkadeduur af.</li>
+    </ul>
+
+    <h2>Hoe het werkt</h2>
+    <p>Blokkeren gebeurt op twee plekken, omdat IIS een ontbrekend bestand of een onbekende URL rechtstreeks naar <code>404.php</code> stuurt, <span class="cma-tool__strong">zonder</span> <code>_bootstrap_wrapper.php</code> en zonder bootstrap. De regel "Bootstrap PHP Files" in <code>web.config</code> heeft een <code>IsFile</code>-voorwaarde, dus een ontbrekende <code>/wp-login.php</code> komt nooit langs de wrapper.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Waar</th><th>Wat</th></tr></thead>
+        <tbody>
+            <tr><td><code>Bootstrap::init</code> → <code>HackBlocker::guard()</code></td><td>Elke gebootstrapte pagina: een geblokkeerd IP stopt hier met de 403. Voor alle anderen één bestandscontrole.</td></tr>
+            <tr><td><code>404.php</code> (site-root) en <code>cma/404.php</code> → <code>cma/hackguard.inc</code> → <code>HackBlocker::guardNotFound()</code></td><td>Elke 404: ook hier de 403 voor een geblokkeerd IP, en een hit als het pad op de hacklijst staat. <code>hackguard.inc</code> laadt alleen de Composer-autoloader en leest de <code>HACK_BLOCK_*</code>-waarden zelf uit <code>.env</code>: geen sessie, geen app. De 404-afhandeling blijft zo licht als hij was.</td></tr>
+        </tbody>
+    </table>
+    <p><code>hackguard.inc</code> leest alleen <code>.env</code> op de site-root. Een site die zijn instellingen nog in een los <code>.env.&lt;omgeving&gt;</code> heeft, telt in de 404-afhandeling met de standaardwaarden.</p>
+
+    <h3>Bestanden</h3>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Bestand</th><th>Inhoud</th></tr></thead>
+        <tbody>
+            <tr><td><code>data/notfound_lists.json</code></td><td>De twee lijsten (<code>hack</code>, <code>genegeerd</code>), per patroon met <code>toegevoegd</code> en <code>door</code>. De Installer blijft van <code>data/</code> af. Klasse: <code>App\Library\NotFoundLists</code>.</td></tr>
+            <tr><td><code>data/ip_blocks.json</code></td><td>Actieve blokkades per IP: <code>sinds</code>, <code>tot</code> (unix-tijd), <code>pogingen</code>, <code>laatste</code>. Verlopen blokkades tellen niet meer mee en verdwijnen bij de volgende schrijfactie. Klasse: <code>App\Library\HackBlocker</code>.</td></tr>
+            <tr><td><code>.logs/404/hackhits.json</code></td><td>Hits per IP binnen het tijdvenster. Ouder dan het venster valt er bij elke schrijfactie uit, dus het bestand blijft klein.</td></tr>
+        </tbody>
+    </table>
+    <p>Beide schrijvers zijn veilig bij gelijktijdige verzoeken: de hits gaan onder een bestandsvergrendeling, de lijsten en blokkades via een tijdelijk bestand en een rename, zodat een lezer nooit een half bestand ziet.</p>
+
+    <h3>API</h3>
+    <p><code>cma/api/notfound_lists.php</code>, voor beheerders en hoger (<code>SecurityHelper::isAdmin()</code>):</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Verzoek</th><th>Doet</th></tr></thead>
+        <tbody>
+            <tr><td><code>GET ?action=list</code></td><td>Beide lijsten en hun labels.</td></tr>
+            <tr><td><code>POST {"action":"add","lijst":"hack","patroon":"/wp-*"}</code></td><td>Patroon toevoegen (<code>lijst</code> is <code>hack</code> of <code>genegeerd</code>). Weigert een patroon dat al op die lijst staat.</td></tr>
+            <tr><td><code>POST {"action":"remove","lijst":"hack","patroon":"/wp-*"}</code></td><td>Patroon weghalen.</td></tr>
+            <tr><td><code>POST {"action":"unblock","ip":"185.1.2.3"}</code></td><td>Blokkade opheffen.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>De 404.php van de site</h2>
+    <p><code>404.php</code> op de site-root is van de site: de Installer maakt hem alleen aan als hij ontbreekt en overschrijft hem daarna niet. Het sjabloon (<code>templates/404.php.template</code>) roept <code>cma/hackguard.inc</code> als eerste aan. Voor een bestaande site:</p>
+    <ul>
+        <li>Is <code>404.php</code> nog precies een eerder sjabloon, dan werkt de Installer hem bij met <code>composer update</code>.</li>
+        <li>Is hij aangepast, dan moet er één regel bij, bovenaan, vóór het loggen en vóór elke <code>exit</code>:
+            <pre><code>require __DIR__ . '/cma/hackguard.inc';</code></pre>
+            De live check bovenaan dit hoofdstuk meldt het zolang die regel ontbreekt.</li>
+    </ul>
+
+    <h2>Troubleshooting</h2>
+    <table class="listtable">
+        <tr><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr>
+        <tr>
+            <td>Hackpogingen staan in de log, maar niemand wordt geblokkeerd</td>
+            <td><code>404.php</code> op de site-root roept <code>cma/hackguard.inc</code> niet aan; de bootstrap draait voor die 404's niet, dus er wordt niets geteld.</td>
+            <td>Zet <code>require __DIR__ . '/cma/hackguard.inc';</code> bovenaan <code>404.php</code>. De live check "Hackpogingen blokkeren" toont het.</td>
+        </tr>
+        <tr>
+            <td>Tabblad Hackpogingen blijft leeg, terwijl de log vol scanners staat</td>
+            <td>De hacklijst is leeg of de patronen raken niet: een patroon zonder <code>*</code> is één exact pad, en een patroon geldt voor het hele pad.</td>
+            <td>Voeg patronen toe op het tabblad Patronen; gebruik <code>*</code> voor varianten (<code>/wp-*</code>, <code>*.env</code>).</td>
+        </tr>
+        <tr>
+            <td>Een bezoeker (of jijzelf) krijgt overal alleen "Toegang tijdelijk geblokkeerd."</td>
+            <td>Dat IP deed meer hackpogingen dan de drempel binnen het tijdvenster, of een patroon op de hacklijst is te ruim en raakt ook gewone ontbrekende pagina's.</td>
+            <td>Hef de blokkade op (tabblad Blokkades; vanaf een ander IP als je zelf geblokkeerd bent, of wacht de blokkadeduur af). Maak het patroon nauwer op het tabblad Patronen.</td>
+        </tr>
+        <tr>
+            <td>Ineens krijgt iedereen een 403</td>
+            <td>De site staat achter een proxy of load balancer: <code>REMOTE_ADDR</code> is voor alle bezoekers hetzelfde adres, en dat is geblokkeerd.</td>
+            <td>Zet <code>HACK_BLOCK_ENABLED</code> uit en verwijder <code>data/ip_blocks.json</code>.</td>
+        </tr>
+        <tr>
+            <td>Patroon toevoegen geeft "Lijst niet bijgewerkt"</td>
+            <td><code>data/</code> is niet schrijfbaar voor de app-pool, of het patroon staat al op die lijst.</td>
+            <td>Zie de live check "Schrijfrechten lijsten en blokkades" bovenaan; een dubbel patroon hoeft er niet nog eens op.</td>
+        </tr>
+        <tr>
+            <td>Drempel aangepast in Systeeminstellingen, maar de 404-afhandeling telt met de oude waarde</td>
+            <td>De site heeft zijn instellingen in een los <code>.env.&lt;omgeving&gt;</code>; <code>hackguard.inc</code> leest alleen <code>.env</code>.</td>
+            <td>Zet de <code>HACK_BLOCK_*</code>-waarden in <code>.env</code> op de site-root.</td>
+        </tr>
+    </table>
     <?php
 }
 
@@ -3893,7 +4070,7 @@ $sql = "SELECT * FROM tblUsers WHERE userName = " . SQL::postString($_POST['user
     <p>Helpers per type: <code>postString</code>, <code>postNumber</code>, <code>postDate</code>, <code>postBool</code>. De "post" prefix komt uit het ASP-tijdperk ("form post variable"). <span class="cma-tool__strong">Nieuw werk gebruikt prepared statements</span>; SQL-helpers blijven voor de tienduizenden legacy-regels die er al zijn.</p>
 
     <h2>Transacties: een eigen verbinding</h2>
-    <p><code>Database::getConnection()</code> deelt per naam één PDO-handle (zie <em>Persistente verbindingen</em> hieronder); alle helpers en recordsets van het request lopen erover. De Access-ODBC-driver weigert <code>beginTransaction()</code> op een handle waarop nog een recordset openstaat: <code>SQLSTATE[HY011] Attribute cannot be set now … (SQLSetConnectAttr AUTOCOMMIT = OFF)</code>. Op de gedeelde handle staat er in een gewone pagina vrijwel altijd wel een open. Voor een transactie open je daarom een eigen verbinding:</p>
+    <p><code>Database::getConnection()</code> deelt per naam één PDO-handle (zie <span class="cma-tool__em">Persistente verbindingen</span> hieronder); alle helpers en recordsets van het request lopen erover. De Access-ODBC-driver weigert <code>beginTransaction()</code> op een handle waarop nog een recordset openstaat: <code>SQLSTATE[HY011] Attribute cannot be set now … (SQLSetConnectAttr AUTOCOMMIT = OFF)</code>. Op de gedeelde handle staat er in een gewone pagina vrijwel altijd wel een open. Voor een transactie open je daarom een eigen verbinding:</p>
     <pre><code>$tx = Database::newConnection('data');   // of 'users' / 'rep'
 $tx-&gt;beginTransaction();
 try {
@@ -3916,11 +4093,11 @@ try {
     <p>Waarom uit voor Access: de Jet/ACE-driver houdt per verbinding een leescache vast. Met een persistente verbinding leeft die cache door over requests heen, dus ziet het ene php-cgi-proces een schrijfactie van een ander proces pas veel later (gemeten: tientallen seconden; een geüpload bestand verscheen pas na opnieuw inloggen). Een nieuwe verbinding ziet de wijziging direct. Per request één verbinding openen kost alleen de ODBC-open. <code>Database::usePersistentConnection($dsn)</code> geeft de keuze voor een DSN; <code>newConnection()</code> is altijd niet-persistent.</p>
 
     <h2>Vergrendelde database: opnieuw proberen</h2>
-    <p>Access is soms even niet te openen: hij wordt gecomprimeerd of gekopieerd (back-up), of een ander proces heeft hem exclusief open. De melding is dan bijvoorbeeld <em>"The database has been placed in a state by user 'Admin' on machine … that prevents it from being opened or locked"</em>. Dat duurt meestal kort, dus de Database-class wacht en probeert het opnieuw in plaats van de request te laten falen:</p>
+    <p>Access is soms even niet te openen: hij wordt gecomprimeerd of gekopieerd (back-up), of een ander proces heeft hem exclusief open. De melding is dan bijvoorbeeld <span class="cma-tool__em">"The database has been placed in a state by user 'Admin' on machine … that prevents it from being opened or locked"</span>. Dat duurt meestal kort, dus de Database-class wacht en probeert het opnieuw in plaats van de request te laten falen:</p>
     <ul>
         <li><span class="cma-tool__strong">Wanneer:</span> bij het openen van een verbinding (PDO en native <code>odbc_connect</code>), en bij elke query: de query-methodes (<code>query()</code>, <code>fetchOne()</code>, <code>fetchAll()</code>, <code>execute()</code>, <code>executeOn()</code>, <code>executeSingleRecord()</code>, <code>executeQuery()</code> en de <code>safe*</code>-helpers) en <code>openRS()</code> in beide ODBC-modes.</li>
         <li><span class="cma-tool__strong">Hoe vaak:</span> tot 5 pogingen, met 250, 500, 750 en 1000 ms ertussen (samen hooguit 2,5 s). Elke herhaling komt in de PHP-errorlog (<code>[Database] vergrendeld, poging …</code>).</li>
-        <li><span class="cma-tool__strong">Welke fouten:</span> alleen vergrendelingen, herkend door <code>Database::isLockError($melding)</code>: <em>placed in a state by user</em>, <em>could not lock file</em>, <em>file already in use</em>, <em>could not use</em>, <em>currently locked</em>, <em>cannot open database</em> en (SQLite) <em>database is locked</em>. Een fout in de SQL gaat meteen door. Blijft de database vergrendeld, dan komt na de laatste poging de oorspronkelijke fout, zoals voorheen.</li>
+        <li><span class="cma-tool__strong">Welke fouten:</span> alleen vergrendelingen, herkend door <code>Database::isLockError($melding)</code>: <span class="cma-tool__em">placed in a state by user</span>, <span class="cma-tool__em">could not lock file</span>, <span class="cma-tool__em">file already in use</span>, <span class="cma-tool__em">could not use</span>, <span class="cma-tool__em">currently locked</span>, <span class="cma-tool__em">cannot open database</span> en (SQLite) <span class="cma-tool__em">database is locked</span>. Een fout in de SQL gaat meteen door. Blijft de database vergrendeld, dan komt na de laatste poging de oorspronkelijke fout, zoals voorheen.</li>
     </ul>
     <p>Opnieuw uitvoeren is veilig: een statement dat op een vergrendeling stuit, is niet uitgevoerd. De ASP-versie van een site doet hetzelfde met <code>lib_db_IsLockFout</code> en <code>lib_db_OpenConnectie</code> in <code>library/lib_db.inc</code>.</p>
 
@@ -4209,14 +4386,14 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
             <tr><td><code>activeField</code></td><td>Veld dat actief (1=groen) / inactief (0) markeert in de list.</td></tr>
             <tr><td><code>allowAdd</code> / <code>allowDelete</code> / <code>allowCopy</code></td><td>Toolbar-acties aan/uit.</td></tr>
             <tr><td><code>recurseField</code></td><td>Zelfverwijzende boom: kolom met het id van het ouderrecord. Records zonder ouder zijn de wortels; een record met kinderen wordt een aanklikbare map (de <code>recurseTree</code> van list.asp).</td></tr>
-            <tr><td><code>securityByUser</code></td><td>Rij-niveau autorisatie: in de rechtenmatrix wordt de kolom <strong>Eigen</strong> (niveau 20, "alleen eigen records") voor dit formulier toekenbaar. Gebruikers met dat niveau zien in boom en tabel alleen rijen waarvan de kolom <code>userid</code> (zo nodig via <code>AS userid</code> in de <code>listQuery</code>) hun CMA-gebruikers-id is, mogen toevoegen en hun eigen records wijzigen/verwijderen; records van anderen zijn alleen-lezen.</td></tr>
+            <tr><td><code>securityByUser</code></td><td>Rij-niveau autorisatie: in de rechtenmatrix wordt de kolom <span class="cma-tool__strong">Eigen</span> (niveau 20, "alleen eigen records") voor dit formulier toekenbaar. Gebruikers met dat niveau zien in boom en tabel alleen rijen waarvan de kolom <code>userid</code> (zo nodig via <code>AS userid</code> in de <code>listQuery</code>) hun CMA-gebruikers-id is, mogen toevoegen en hun eigen records wijzigen/verwijderen; records van anderen zijn alleen-lezen.</td></tr>
             <tr><td><code>storeLastModified</code></td><td>Houd last-modified timestamp bij.</td></tr>
             <tr><td><code>protectedRecords</code></td><td>Record-IDs die niet verwijderd mogen worden.</td></tr>
             <tr><td><code>filter</code></td><td>Configuratie van de filter-dropdown.</td></tr>
             <tr><td><code>extraButtons</code></td><td>Custom toolbar-knoppen (<code>slot</code>, <code>icon</code>, <code>title</code>, <code>url</code>, <code>target</code>, <code>openInNewWindow</code>, <code>condition</code>). Ondersteunt placeholders zoals <code>[slug]</code>. <code>icon</code> kent drie vormen: een <code>lnr …</code> CSS-class, een platform-icoonnaam (genormaliseerd naar <code>/cma/assets/icons/</code>, met automatische <code>.png</code>→<code>.svg</code>-swap — de gebundelde set is SVG-only), of een <span class="cma-tool__strong">absoluut site-pad</span> zoals <code>/assets/icons/ico-moodle.png</code> dat exact zo wordt gebruikt. Site-eigen iconen horen in <code>/assets/icons/</code> op de site-root (Installer blijft er vanaf); in <code>/cma/assets/icons/</code> worden ze door composer update overschreven en door de svg-swap ge-404't.</td></tr>
             <tr><td><code>tips</code></td><td>Helptips in de zijbalk.</td></tr>
             <tr><td><code>postHandler</code> / <code>afterPostUrl</code> / <code>previewUrl</code> / <code>onLoadJs</code></td><td>Hooks: eigen POST-handler PHP-bestand; <code>afterPostUrl</code> = pagina die na elke save én delete gePOST wordt met alle velden, hun <code>_old_*</code>-waarden, de changelog met <code>_changelog_flds</code> (komma-lijst van gewijzigde veldnamen, keuzelijsten, datum-/tijdkiezers en radiogroepen inbegrepen). Keuzelijsten, datum-/tijdkiezers en radiogroepen komen met dezelfde waarde mee als bij het opslaan (een checklist als komma-lijst), naast het <code>&lt;veld&gt;__label</code> van een keuzelijst; bij delete zijn het de waarden van vlak vóór het verwijderen en <code>_changelog_type</code> (add/edit/delete), <code>formid</code>, <code>recid</code>, <code>table</code> &mdash; de database-trigger die Access niet kent (<code>../cma_afterpost.asp</code> wordt <code>/cma_afterpost.php</code>). Een bestaand record waarin niets gewijzigd is, wordt niet opgeslagen en krijgt dus ook geen afterPostUrl-post; preview-URL-template; on-load JavaScript.</td></tr>
-            <tr><td><code>notificaties</code> (gebruikers)</td><td>Wie op het gebruikersformulier bij <em>Notificaties</em> een formulier aanvinkt, krijgt na elke toevoeging, wijziging of verwijdering in dat formulier een e-mail met de wijzigingen (los van de monitoring-instelling); met <em>Geen notificaties eigen wijzigingen</em> niet voor eigen acties. De oude <em>Data meldingen</em> (verlopen XML-gegevensbronnen, <code>tblUserDataNotifications</code>, dagelijkse taak) zijn vervallen: het platform heeft geen XML-store-runtime, dus de conditie "bron raakt over N dagen leeg" is niet te bepalen; <code>task.php</code> mailt daar niet meer voor.</td></tr>
+            <tr><td><code>notificaties</code> (gebruikers)</td><td>Wie op het gebruikersformulier bij <span class="cma-tool__em">Notificaties</span> een formulier aanvinkt, krijgt na elke toevoeging, wijziging of verwijdering in dat formulier een e-mail met de wijzigingen (los van de monitoring-instelling); met <span class="cma-tool__em">Geen notificaties eigen wijzigingen</span> niet voor eigen acties. De oude <span class="cma-tool__em">Data meldingen</span> (verlopen XML-gegevensbronnen, <code>tblUserDataNotifications</code>, dagelijkse taak) zijn vervallen: het platform heeft geen XML-store-runtime, dus de conditie "bron raakt over N dagen leeg" is niet te bepalen; <code>task.php</code> mailt daar niet meer voor.</td></tr>
             <tr><td><code>allowDelete</code></td><td>Verwijderen is definitief (<code>DELETE</code>). Er is geen soft delete: het klassieke <code>DeletedField</code> is nooit gebruikt en niet overgenomen; wie een record wil bewaren markeert het via een eigen veld (bijv. <code>actief</code>) en filtert daarop.</td></tr>
             <tr><td><code>clearCache</code></td><td>Lijst glob-patronen (relatief aan de site-<code>cache/</code>-map) die na elke geslaagde save gewist worden &mdash; de moderne opvolger van <code>cma_afterpost.asp</code>. <code>{ID}</code>/<code>{id}</code> wordt vervangen door het record-id, bijv. <code>["prod_detail_v8_{ID}.html", "stenen_*.html"]</code>. Wist ook de data-cachelaag (<code>App\Library\Cache</code>) zodat afgeleide lijsten/carousels niet verouderen. Best-effort en gesandboxed tot <code>cache/</code>.</td></tr>
             <tr><td><code>title</code> / <code>titleSingular</code></td><td>Weergavetitel (meervoud, voor lijst-koppen en tab-titels) en het enkelvoud (voor "X toevoegen/wijzigen"-titels). Ontbreekt <code>titleSingular</code>, dan wordt het Nederlandse enkelvoud automatisch afgeleid van <code>title</code> — dat werkt alleen op het láátste woord, dus zet bij meerwoordige titels als "Resultaten per deelnemer" een expliciete <code>titleSingular</code> ("Resultaat per deelnemer"). Ook de subform-add-popup gebruikt deze titels (via <code>CMA.formConfig.subforms</code>); voordien viel die terug op de rauwe form-naam ("Toetsen_per_deelnemer toevoegen").</td></tr>
@@ -4257,7 +4434,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
         <code>directory</code>, <code>xmlstore</code>, <code>label</code>, <code>groupseparator</code>,
         <code>readonly</code>, <code>custom</code>.
     </p>
-    <p class="docs-meta"><strong>Module-parameters</strong> (Beheerstools &rarr; Module-parameters, formulier <code>moduleparameters</code>, tabel <code>tblCMAModuleParameters</code>, migratie 9.25.0): per module een sleutel/waarde met type (tekst, HTML, getal, datum, URL, afbeelding), omschrijving en volgorde &mdash; de <code>tblModuleParameters</code> van de oude <code>mod_maint.asp</code>. Sitecode leest ze met <code>\Cma\Services\ModuleParameters::get('module', 'sleutel', 'standaard')</code> of <code>::all('module')</code>.</p>
+    <p class="docs-meta"><span class="cma-tool__strong">Module-parameters</span> (Beheerstools &rarr; Module-parameters, formulier <code>moduleparameters</code>, tabel <code>tblCMAModuleParameters</code>, migratie 9.25.0): per module een sleutel/waarde met type (tekst, HTML, getal, datum, URL, afbeelding), omschrijving en volgorde &mdash; de <code>tblModuleParameters</code> van de oude <code>mod_maint.asp</code>. Sitecode leest ze met <code>\Cma\Services\ModuleParameters::get('module', 'sleutel', 'standaard')</code> of <code>::all('module')</code>.</p>
     <p class="docs-meta"><code>directory</code>: de waarde (hoofdletters, geen vreemde tekens, uniek) maakt het record bereikbaar als <code>/&lt;waarde&gt;/</code>. Het 404-afhandelscript vraagt <code>\Cma\Services\DirectoryUrlService::resolve($pad)</code>; die geeft de <code>dirTemplate</code> van het veld terug met <code>[ID]</code>/<code>[veldnaam]</code> ingevuld (de oude <code>lib_404.inc</code>). <code>dirFilename</code> is informatief.</p>
     <p class="docs-meta"><code>cma/control-types.json</code> is iets ánders: dat is de legacy <code>pctControlType</code>-id-mapping (pctTextbox, pctMemo, …) uit de Access-tijd, niet de field-types hierboven.</p>
     <p class="docs-meta">Nu rendert <code>sortlist</code> als de <code>&lt;cma-sortlist&gt;</code> web component (drag-and-drop). De items komen record-specifiek mee in de record-data (sleutel <code>srtlst_{controlId}</code>, gesorteerd op <code>SortOrder</code>); de gekozen volgorde reist terug via het verborgen veld <code>srtlst_{controlId}_info</code> en wordt als <code>SortOrder</code>-update in de brontabel opgeslagen.</p>
@@ -4327,7 +4504,7 @@ JsonFormLoader::setFileCacheEnabled(false);               // disable disk-cache
     <p>Placeholders worden vervangen door waardes uit het huidige record. Het platform substitueert hardgecodeerd: <code>[id]</code>, <code>[guid]</code>, <code>[guid2]</code>, <code>[domein]</code>. <span class="cma-tool__em">Alle</span> overige <code>[fieldname]</code> placeholders worden ook geresolveerd door naar het form-veld met die naam te kijken — zo werkt <code>[slug]</code> automatisch als er een veld <code>slug</code> bestaat.</p>
     <h3>Knopnummer (<code>slot</code>) en knoprechten</h3>
     <p>Elke extra knop heeft een knopnummer 1 t/m 5, zoals in de klassieke CMA (<code>extraIconURL</code> = knop 1, <code>extraIcon2URL</code>..<code>extraIcon5URL</code> = knop 2..5). Zet het met <code>"slot": N</code>; zonder <code>slot</code> geldt de positie in de lijst + 1 (bestaande definities blijven zo werken). Het nummer is ook het recht: de kolom "Knop N" in de groepsrechten is <code>tblGroupRights.secButtonN</code>. Voeg je vooraan een knop toe, geef de bestaande knoppen dan hun eigen <code>slot</code>, anders schuift hun recht door naar een andere knop. Twee knoppen op hetzelfde nummer of een nummer buiten 1..5 blokkeert het formulier (definitie-validatie). In de formuliereditor staat het nummer in de kolom <span class="cma-tool__em">Knop</span>.</p>
-    <p>De toolbar toont knop N alleen als <code>SecurityHelper::checkFormButtonRights(gebruiker, formulier, N) &gt; 0</code>: beheerders zien alles; voor anderen beslist <span class="cma-tool__strong">het vinkje "Knop N"</span> (<code>secButtonN</code>) bij een van hun groepen. Een hoofdformulier gaat via zijn menu-item, een subformulier via zijn eigen formulierrechten (zonder eigen rechten: die van het hoofdformulier). Toegang tot het formulier alleen is niet genoeg (sinds v1.52.27). De klassieke CMA gaf <code>max(secAccessType, secButtonN ? 30 : 0)</code> terug, waardoor iedereen met toegang alle knoppen zag en het vinkje niets uitmaakte; dat is bewust verlaten. <span class="cma-tool__strong">Na een update:</span> controleer per groep de vinkjes, anders verdwijnen knoppen die gebruikers tot nu toe zagen.</p>
+    <p>De toolbar toont knop N alleen als <code>SecurityHelper::checkFormButtonRights(gebruiker, formulier, N) &gt; 0</code>: beheerders zien alles; voor anderen beslist <span class="cma-tool__strong">het vinkje "Knop N"</span> (<code>secButtonN</code>) bij een van hun groepen. Een hoofdformulier gaat via zijn menu-item, een subformulier via zijn eigen formulierrechten (zonder eigen rechten: die van het hoofdformulier). Toegang tot het formulier alleen is niet genoeg. De klassieke CMA gaf <code>max(secAccessType, secButtonN ? 30 : 0)</code> terug, waardoor iedereen met toegang alle knoppen zag en het vinkje niets uitmaakte; dat is bewust verlaten. <span class="cma-tool__strong">Na een update:</span> controleer per groep de vinkjes, anders verdwijnen knoppen die gebruikers tot nu toe zagen.</p>
     <p>Omdat de zichtbare knoppen per gebruiker verschillen, draagt het gecachete formuliersjabloon een knopmasker (<code>SecurityHelper::currentUserExtraButtonMask()</code>, bit N-1 = knop N) in zijn APCu-sleutel, bestandsnaam (<code>form_json_&lt;naam&gt;_&lt;niveau&gt;_b&lt;masker&gt;.html</code>) en ETag. Het contextmenu in de lijst neemt de knoppen uit de toolbar over, dus volgt dezelfde rechten. Test: <code>cma/tests/ExtraButtonRightsTest.php</code>.</p>
     <p><code>https://[domein]</code> en <code>http://[domein]</code> worden samen vervangen door protocol + host + poort van het huidige verzoek (<code>Request::currentDomain()</code>), zodat een knop ook op een niet-standaard poort werkt, bijvoorbeeld lokaal op <code>http://localhost:52779</code>. Een kale <code>[domein]</code> zonder protocol wordt alleen de hostnaam.</p>
 
@@ -5127,7 +5304,7 @@ function render_doc_troubleshooting(): void
         <tbody>
             <tr><td>Logreader → Performance: "Geen log entries gevonden", maar er IS verkeer.</td><td>logreader leest <code>.logs/perf/perf_*.log</code>; <code>PerformanceLogger</code> schrijft naar <code>.logs/perf/perf_*.log</code>. De UI kijkt in de verkeerde map.</td><td>Bekijk de files direct op disk in <code>.logs/perf/</code> totdat een release de paden synchroniseert. Open issue.</td></tr>
             <tr><td>Logreader → Debug: "Geen log entries gevonden", libLog console-logging staat aan.</td><td>Zelfde patroon: logreader leest <code>.logs/debug/debug_*.log</code>; <code>cma/api/log.php</code> schrijft naar <code>.logs/debug/debug_*.log</code>.</td><td>Bekijk de files in <code>.logs/</code>. Same fix.</td></tr>
-            <tr><td><code>Uncaught TypeError: libLog.log is not a function</code> (vóór 1.38.52 heette de logger LibLog) (typisch op de storybook, ook via <code>[iframe]</code> in het error-paneel)</td><td>Named element access: een element met <code>id="libLog"</code> zet <code>window.libLog</code> op dat DOM-element. De oude check <code>typeof libLog !== 'undefined'</code> in de <code>cmaLog</code>-fallback zag dat als "logger aanwezig" en riep <code>.log()</code> aan op een <code>&lt;section&gt;</code>. libLog zit niet in de bundle, dus het echte object was er nooit.</td><td>: <code>cma-utils.js</code> en <code>library.js</code> testen nu op de méthode (<code>typeof window.libLog.log === 'function'</code>) en de storybook-sectie heet <code>id="liblog"</code>. Regel: gebruik nooit een global-naam als element-id.</td></tr>
+            <tr><td><code>Uncaught TypeError: libLog.log is not a function</code> (of <code>LibLog.log</code>) (typisch op de storybook, ook via <code>[iframe]</code> in het error-paneel)</td><td>Named element access: een element met <code>id="libLog"</code> zet <code>window.libLog</code> op dat DOM-element. De oude check <code>typeof libLog !== 'undefined'</code> in de <code>cmaLog</code>-fallback zag dat als "logger aanwezig" en riep <code>.log()</code> aan op een <code>&lt;section&gt;</code>. libLog zit niet in de bundle, dus het echte object was er nooit.</td><td>: <code>cma-utils.js</code> en <code>library.js</code> testen nu op de méthode (<code>typeof window.libLog.log === 'function'</code>) en de storybook-sectie heet <code>id="liblog"</code>. Regel: gebruik nooit een global-naam als element-id.</td></tr>
             <tr><td>Logreader → Application: log-bron ontbreekt in de dropdown.</td><td>De logreader-config heeft geen 'app' source-entry — Logger's <code>.logs/app/app_*.log</code> wordt nergens via de UI ontsloten.</td><td>Open de bestanden direct, of voeg een source-entry toe aan <code>logreader.php</code>.</td></tr>
         </tbody>
     </table>
@@ -5137,13 +5314,13 @@ function render_doc_troubleshooting(): void
         <thead><tr class="listheader"><th style="width:340px">Symptoom</th><th>Oorzaak</th><th>Fix</th></tr></thead>
         <tbody>
             <tr><td>lib-sheet animeert niet bij open (paneel "klapt" direct op zijn plek, geen slide)</td><td><code>@keyframes</code> die binnen een shadow root zijn gedefinieerd worden niet betrouwbaar geëvalueerd (met name iOS/WebKit). Het paneel springt dan meteen naar zijn rest-state zonder zichtbare beweging. Een oudere consumer-site die nog niet ge-<code>composer update</code>'d is, draait nog op die kapotte @keyframes-versie.</td><td>Slidet via de Web Animations API (<code>panel.animate([...])</code> met inline keyframes in <code>lib-sheet.js</code>) i.p.v. CSS @keyframes — die loopt wél in een shadow root. Zie je het symptoom nog? Controleer of de site daadwerkelijk heeft (<code>composer update stenversonline/platform</code>) en hard-refresh zodat de gecachte <code>lib-sheet.min.js</code> wordt vervangen.</td></tr>
-            <tr><td>lib-sheet doet niets: de storybook-demo geeft <code>document.getElementById(...).open is not a function</code>, <code>customElements.get('lib-sheet')</code> is leeg</td><td>lib-sheet.js zat niet in <code>cma_js_bundle()</code> (net als lib-field, lib-arrowsteps en lib-fileuploader), terwijl het commentaar boven die lijst "ALL must be included" zegt. Het element bleef een kale HTMLElement.</td><td>Sinds 1.38.51 staan de vier in de bundel; lib-log blijft er bewust buiten (geen element, neemt console over). Guard: <code>cma/tests/JsBundleAlleWebcomponentsTest.php</code>; gedrag: <code>cypress/e2e/components/lib-sheet.cy.js</code>. Ziet een site het nog? <code>composer update</code> plus hard-refresh: de asset-versie is meegebumpt.</td></tr>
-            <tr><td>lib-search-input met <code>readonly</code> is gewoon te bewerken, met wisknop</td><td>Het component kende alleen <code>disabled</code>; het attribuut readonly werd genegeerd, de storybook toonde de variant wel.</td><td>Sinds 1.38.51 zet readonly het invoerveld op readonly, verbergt de wisknop en laten Escape en <code>clear()</code> de waarde staan (Enter geeft nog <code>search</code>). Property <code>readOnly</code> om te wisselen. Tests: <code>cma/tests/js/searchinput-readonly.test.js</code>, <code>cypress/e2e/components/lib-search-input.cy.js</code>.</td></tr>
-            <tr><td>Storybook, lib-message "Methodes": <code>Cannot read properties of null (reading 'show')</code> na close()</td><td><code>close()</code> haalt het bericht uit de DOM (zo getest en bedoeld; <code>show()</code> is voor een met <code>hidden</code> verborgen bericht). De demo zocht daarna hetzelfde element weer op.</td><td>Sinds 1.38.52 maakt de demo het bericht bij show() opnieuw aan en meldt close() dat het al weg is; de methodetekst zegt nu wat close() en show() doen. Test: <code>cypress/e2e/components/lib-message.cy.js</code>.</td></tr>
-            <tr><td>Logger heet <code>LibLog</code> met hoofdletter, anders dan libToast/libAlert/libConfirm</td><td>Historisch; <code>window.libLog</code> bestond al als alias.</td><td>Sinds 1.38.52 is <code>libLog</code> de naam (lib-log.js, cma-utils.js, preferences.php, storybook, docs). <code>LibLog</code> blijft bestaan als dun laagje dat elke aanroep doorgeeft, dus oude code valt niet om. Test: <code>cma/tests/js/liblog-naam.test.js</code> (ook: nergens in het platform nog een LibLog-aanroep).</td></tr>
-            <tr><td>Storybook, sectie libLog: <code>libLog.flush is not a function</code> (ook getRequestId, isDebug)</td><td>lib-log.js zit bewust niet in de bundel en de storybook laadde het ook niet los; de sectie viel terug op de kale libLog uit library.js, die alleen log/warn/info/error kent.</td><td>Sinds 1.38.53 laadt storybook.php lib-log.js zelf, met een absoluut pad (<code>/library/…</code>: de pagina staat in /cma/tools/, dus <code>../library/…</code> gaf een 404). Test: <code>cypress/e2e/tools/storybook-liblog.cy.js</code>.</td></tr>
-            <tr><td>Een lijst met bladerknoppen: elke site tekende zijn eigen pager</td><td>Er was geen component voor; de CMA-lijsten pagineren met infinite scroll in form-controller.js en dat is niet los te gebruiken.</td><td>Sinds 1.38.54 is er <code>&lt;lib-pagination&gt;</code> (library/webcomponents): links via een href-sjabloon met <code>{page}</code> voor server-side bladeren, of het event <code>page-change</code> voor client-side; thema via CSS-variabelen. Zie de storybook. Tests: <code>cma/tests/js/pagination.test.js</code>, <code>cypress/e2e/components/lib-pagination.cy.js</code>.</td></tr>
-            <tr><td>Op Opslaan geklikt vlak na het openen van een record: "Vul alle verplichte velden in: Opleiding, Deelnemer" terwijl die keuzelijsten zichtbaar een waarde hebben, en de net gemaakte keuze is weg</td><td>Een bestaand record wordt na het tonen van het formulier via <code>action=record</code> nageladen (<code>body.data-loading</code>). Tot platform 1.52.30 nam het formulier in dat venster al invoer aan: de validatie zag de nog lege verplichte keuzelijsten, en het binnenkomende record overschreef wat er gekozen was. Hoe trager de database antwoordt, hoe groter dat venster.</td><td>Sinds 1.52.31 neemt <code>#mainForm</code> geen muisinvoer aan zolang <code>body.data-loading</code> staat (<code>form.css</code>, niet in toevoegmodus), en weigert <code>saveRecord()</code> met "Het record wordt nog geladen" zolang <code>isRecordLoading()</code> waar is. Test: <code>cma/tests/js/opslaan-tijdens-laden.test.js</code>.</td></tr>
+            <tr><td>lib-sheet doet niets: de storybook-demo geeft <code>document.getElementById(...).open is not a function</code>, <code>customElements.get('lib-sheet')</code> is leeg</td><td>lib-sheet.js zat niet in <code>cma_js_bundle()</code> (net als lib-field, lib-arrowsteps en lib-fileuploader), terwijl het commentaar boven die lijst "ALL must be included" zegt. Het element bleef een kale HTMLElement.</td><td>De vier staan in de bundel; lib-log blijft er bewust buiten (geen element, neemt console over). Guard: <code>cma/tests/JsBundleAlleWebcomponentsTest.php</code>; gedrag: <code>cypress/e2e/components/lib-sheet.cy.js</code>. Ziet een site het nog? <code>composer update</code> plus hard-refresh: de asset-versie is meegebumpt.</td></tr>
+            <tr><td>lib-search-input met <code>readonly</code> is gewoon te bewerken, met wisknop</td><td>Het component kende alleen <code>disabled</code>; het attribuut readonly werd genegeerd, de storybook toonde de variant wel.</td><td>readonly zet het invoerveld op readonly, verbergt de wisknop en laten Escape en <code>clear()</code> de waarde staan (Enter geeft nog <code>search</code>). Property <code>readOnly</code> om te wisselen. Tests: <code>cma/tests/js/searchinput-readonly.test.js</code>, <code>cypress/e2e/components/lib-search-input.cy.js</code>.</td></tr>
+            <tr><td>Storybook, lib-message "Methodes": <code>Cannot read properties of null (reading 'show')</code> na close()</td><td><code>close()</code> haalt het bericht uit de DOM (zo getest en bedoeld; <code>show()</code> is voor een met <code>hidden</code> verborgen bericht). De demo zocht daarna hetzelfde element weer op.</td><td>De demo maakt het bericht bij show() opnieuw aan en meldt close() dat het al weg is; de methodetekst zegt wat close() en show() doen. Test: <code>cypress/e2e/components/lib-message.cy.js</code>.</td></tr>
+            <tr><td>Logger heet <code>LibLog</code> met hoofdletter, anders dan libToast/libAlert/libConfirm</td><td>Een oudere schrijfwijze die in eigen code van een site kan staan.</td><td><code>libLog</code> is de naam (lib-log.js, cma-utils.js, preferences.php, storybook, docs). <code>LibLog</code> blijft bestaan als dun laagje dat elke aanroep doorgeeft, dus oude code valt niet om. Test: <code>cma/tests/js/liblog-naam.test.js</code> (ook: nergens in het platform nog een LibLog-aanroep).</td></tr>
+            <tr><td>Storybook, sectie libLog: <code>libLog.flush is not a function</code> (ook getRequestId, isDebug)</td><td>lib-log.js zit bewust niet in de bundel en de storybook laadde het ook niet los; de sectie viel terug op de kale libLog uit library.js, die alleen log/warn/info/error kent.</td><td>storybook.php laadt lib-log.js zelf, met een absoluut pad (<code>/library/…</code>: de pagina staat in /cma/tools/, dus <code>../library/…</code> gaf een 404). Test: <code>cypress/e2e/tools/storybook-liblog.cy.js</code>.</td></tr>
+            <tr><td>Een lijst met bladerknoppen: elke site tekende zijn eigen pager</td><td>De CMA-lijsten pagineren met infinite scroll in form-controller.js, en dat is niet los te gebruiken.</td><td>Gebruik <code>&lt;lib-pagination&gt;</code> (library/webcomponents): links via een href-sjabloon met <code>{page}</code> voor server-side bladeren, of het event <code>page-change</code> voor client-side; thema via CSS-variabelen. Zie de storybook. Tests: <code>cma/tests/js/pagination.test.js</code>, <code>cypress/e2e/components/lib-pagination.cy.js</code>.</td></tr>
+            <tr><td>Op Opslaan geklikt vlak na het openen van een record: "Vul alle verplichte velden in: Opleiding, Deelnemer" terwijl die keuzelijsten zichtbaar een waarde hebben, en de net gemaakte keuze is weg</td><td>Een bestaand record wordt na het tonen van het formulier via <code>action=record</code> nageladen (<code>body.data-loading</code>). Neemt het formulier in dat venster al invoer aan, dan ziet de validatie de nog lege verplichte keuzelijsten en overschrijft het binnenkomende record wat er gekozen was. Hoe trager de database antwoordt, hoe groter dat venster. Op een site met een oudere platformversie gebeurt precies dat.</td><td>Update het platform. <code>#mainForm</code> geen muisinvoer aan zolang <code>body.data-loading</code> staat (<code>form.css</code>, niet in toevoegmodus), en weigert <code>saveRecord()</code> met "Het record wordt nog geladen" zolang <code>isRecordLoading()</code> waar is. Test: <code>cma/tests/js/opslaan-tijdens-laden.test.js</code>.</td></tr>
             <tr><td>Alleen een keuzelijst gewijzigd en op Opslaan geklikt: er gebeurt niets (of "Geen wijzigingen om op te slaan"), en de afterpost ziet het veld niet in <code>_changelog_flds</code></td><td>Een bestaand record wordt alleen opgeslagen als <code>getChangedFields()</code> een wijziging vindt. <code>&lt;lib-combo&gt;</code> is niet form-associated en zit dus niet in <code>new FormData(form)</code> en niet in <code>form.elements</code>; de kiezers en <code>&lt;lib-radio-group&gt;</code> alleen waar de browser ElementInternals heeft, en <code>buildChangelog()</code> kent hun type niet. Een component dat daar buiten valt, telt niet als wijziging.</td><td>De wijzigingsdetectie (<code>captureOriginalValues</code>, <code>getChangedFields</code>, <code>buildChangelog</code> in <code>form-controller.js</code>) leest deze componenten via <code>.value</code>, net als <code>collectFormData()</code>. Een nieuw waarde-component in een CMA-formulier hoort in de selector <code>CMA_VALUE_COMPONENTS</code> bovenaan dat bestand; de test <code>cma/tests/js/keuzelijst-wijziging.test.js</code> bewijst het gedrag. Ziet de browser het nog niet: update het platform (de assetversie gaat mee, zodat de nieuwe bundel wordt geladen).</td></tr>
             <tr><td>lib-sheet grab-bar niet draggable op mobiel</td><td>Hit-area van ~12px is te klein voor touch.</td><td>Bindt drag óók op het hele <code>.header</code>-element (~50px); heeft de bar zelf ook gepromoot naar ~28px hit-area.</td></tr>
             <tr><td>Knop-klik geeft geen visuele feedback</td><td>CSS <code>:active</code> styles bestaan wel, maar een korte klik laat ze nooit lang genoeg zien.</td><td>Heeft <code>.btn--clicked</code> animatie die door een document-level click handler 220ms wordt aangezet.</td></tr>
@@ -5164,7 +5341,7 @@ function render_doc_troubleshooting(): void
             <tr><td>Teller op mobiel bereikt het totaal nooit — stopt op 1-200 / 1-400 van M en beweegt niet meer</td><td>Twee stale <code>CmaInfiniteScroll</code>-instances op hetzelfde <code>#listTable</code> (een <code>FormController</code> die bij navigatie nooit werd afgebroken). Ze racen; de verliezer krijgt enkel-duplicaat-batches, raakt de all-duplicate-stop (<code>uniqueRows === 0 → hasMore=false</code>) en stopt vroeg.</td><td>één scroller per tabel-element — de constructor vernietigt een al-geregistreerde <code>table._cmaScroller</code> en registreert zichzelf; <code>destroy()</code> deregistreert. Zo kan er nooit een tweede scroller op dezelfde tabel meelezen.</td></tr>
             <tr><td>Teller blijft hangen een paar rijen onder het totaal (bv. <code>1-1800 van 1806</code>) — ook ná alle client-fixes, op elke omgeving</td><td>De <span class="cma-tool__strong">server</span>, niet de client. De <code>listQuery</code> heeft een één-op-veel JOIN, dus het resultaat bevat dubbele-id-rijen. <code>totalCount</code> was <code>COUNT(*)</code> over die join (1806 opgeblazen rijen), terwijl server- en client-dedup één rij per id tonen (1800 records). De opgetelde-distinct-teller kan de opgeblazen noemer nooit halen → <code>(laden…)</code> settlet nooit. De drie voorgaande fixes zaten allemaal client-side en konden dit per definitie niet raken.</td><td><code>JsonFormService::getTableHtml</code> dedupt de gerenderde rijen per id (geen dubbele <code>&lt;tr&gt;</code> meer in de DOM) én telt <code>totalCount</code> als <span class="cma-tool__strong">DISTINCT id</span> zodra de query een JOIN heeft (Access mist <code>COUNT(DISTINCT)</code>, dus <code>COUNT(*)</code> over een <code>SELECT DISTINCT [id]</code>-subquery). De keyset-cursor (<code>lastId</code>) blijft de ruwe laatste rij, dus paginering loopt gewoon door. Nu is noemer = getoonde records en verdwijnt de teller bij voltooiing. Regressietest: <code>ListTableRenderTest::testJoinDuplicateRowsAreDedupedAndTotalIsDistinct</code>.</td></tr>
             <tr><td>Teller bevriest onder het totaal (bv. <code>1-1400 van 1423 (laden…)</code>) na zoeken, filteren of navigeren naar een ander formulier, met een console-error <code>[Infinite Scroll] Pagination stopped at X/M</code> waarvan de getallen (en soms de formuliernaam) niet kloppen met wat de teller toont</td><td>De stale-tabel-recovery in <code>load()</code>: verdween de eigen tabel uit de DOM (lijst opnieuw gerenderd), dan <span class="cma-tool__em">adopteerde</span> de oude scroller <code>document.getElementById('listTable')</code> — een tabel die al een eigen verse scroller heeft. Dat omzeilt de constructor-guard die twee scrollers op dezelfde tabel moet voorkomen: twee prefetch-lussen vlechten door één tbody met gedeelde dedup-set, elk telt alleen z'n eigen appends. De gedeelde <code>#recordCount</code> toont de laatste schrijver (bevroren onder het totaal), en de stale scroller — wiens batches volledig wegdedupen — gooit de pagination-stopped-error met tellers van een lijst die al van het scherm is (na in-page formulier-navigatie zelfs met de vorige formuliernaam, en potentieel met rijen van het verkeerde formulier in de tabel).</td><td>een scroller waarvan de tabel uit de DOM is, adopteert niets meer maar trekt zich terug — <code>_retireIfStale()</code> (destroy) draait vóór elke fetch én na de await; <code>destroyed</code> onderdrukt de misleidende throw. Alleen de geregistreerde eigenaar (<code>table._cmaScroller</code>) mag <code>#recordCount</code> schrijven, en <code>_autoPrefetchRows()</code> schrijft geen teller meer namens een destroyed scroller.</td></tr>
-            <tr><td>Console-<span class="cma-tool__em">error</span> (unhandledrejection, foutpaneel, serverrapport) <code>[Infinite Scroll] Pagination stopped at 2144/2304 — 160 record(s) not loaded (last id 2392, form logins)</code>, terwijl de teller eerlijk <code>1-2144 van 2304</code> toont en de lijst gewoon bruikbaar is</td><td>Niet de paginering maar de <span class="cma-tool__strong">ernst</span> van de melding. <code>load()</code> gooide een Error zodra de paginering eindigde onder het bekende totaal, om een stille korte stop zichtbaar te maken. Maar zo'n stop is geen fout: de tellerstand vertelt al wat er ontbreekt, en de gebruiker kan verder.</td><td>Sinds 1.38.50 is het een <code>cmaLog.warn</code> met dezelfde tekst en tellerstand, geen Error meer. Hij zwijgt nog steeds bij een onderbreking (pagina verlaten, tabel uit de DOM) omdat de tellerstand dan niets zegt. Test: <code>cma/tests/js/infinitescroll-onderbroken.test.js</code>.</td></tr>
+            <tr><td>Console-<span class="cma-tool__em">error</span> (unhandledrejection, foutpaneel, serverrapport) <code>[Infinite Scroll] Pagination stopped at 2144/2304 — 160 record(s) not loaded (last id 2392, form logins)</code>, terwijl de teller eerlijk <code>1-2144 van 2304</code> toont en de lijst gewoon bruikbaar is</td><td>Niet de paginering maar de <span class="cma-tool__strong">ernst</span> van de melding. Een oudere <code>load()</code> gooit een Error zodra de paginering eindigde onder het bekende totaal, om een stille korte stop zichtbaar te maken. Maar zo'n stop is geen fout: de tellerstand vertelt al wat er ontbreekt, en de gebruiker kan verder.</td><td>Update het platform: het is een <code>cmaLog.warn</code> met dezelfde tekst en tellerstand, geen Error. Hij zwijgt bij een onderbreking (pagina verlaten, tabel uit de DOM) omdat de tellerstand dan niets zegt. Test: <code>cma/tests/js/infinitescroll-onderbroken.test.js</code>.</td></tr>
             <tr><td>Teller bevriest exact op een batch-grens (bv. <code>records 1-2000 van 2174 (laden…)</code>, 2000 = 4×500) en beweegt nooit meer — geen console-error, en ook scrollen naar beneden laadt niets bij</td><td>Eén promise die nooit settlet, brickt de hele pijplijn: <code>load()</code> wacht op de <code>loadMore</code>-callback; settlet die nooit (gestalde fetch wiens 20s-aborttimer verloren ging — systeemslaap of tab-freeze midden in een request), dan blijven <code>isLoading</code> én <code>paused</code> eeuwig <code>true</code>. De prefetch-lus parkeert op zijn <code>await</code>, en <code>onScroll</code> keert op beide flags vroegtijdig terug — zelfs handmatig scrollen kan niets meer starten. Een hangende promise gooit niets, dus geen enkel <code>hasMore</code>-vangnet of error-report vuurt. Zelfde effect als een synchrone throw tussen <code>isLoading=true</code> en het <code>try</code>-blok (<code>showLoading()</code> stond daarbuiten). Beide bewezen met de uitvoerbare harness die de échte client-code draait.</td><td><code>_loadWithStallGuard()</code> in <code>CmaInfiniteScroll</code> racet elke <code>loadMore</code>-aanroep tegen een 30s-timer (bewust boven de interne 20s-abort van <code>loadMoreRows</code>, dus hij vuurt alleen als dat mechanisme al faalde). Verliest de callback, dan wordt dat dezelfde retriable failure die de bestaande retry-machinerie afhandelt: een transiënte stall (slaap/resume) herstelt vanzelf en laadt door tot het totaal; een blijvende stall stopt na 4 pogingen luid via de pagination-stopped-error. <code>showLoading()</code> is bovendien binnen het <code>try</code>-blok getrokken zodat een synchrone throw daar nooit meer <code>isLoading</code> vast kan zetten.</td></tr>
             <tr><td>Een grote lijst (duizenden rijen) blokkeert de browser minutenlang na het openen; scrollen en klikken reageren pas na lange tijd</td><td>Het achtergrond-laden haalde álle rijen op, en elke stap werd trager dan de vorige (rijtelling en kolomfilter-herbouw over de hele tabel).</td><td><code>LIST_PREFETCH_MAX_ROWS</code> begrenst het achtergrond-laden (standaard 1000 rijen; 0 = nooit op de achtergrond), daarna laadt scrollen verder. Staat de grens hoger, zet hem terug.</td></tr>
             <tr><td>Teller blijft staan op <code>records 1-N van M (laden…)</code> terwijl de lijst wél compleet is: alle regels staan in de tabel, <code>currentCount === totalCount</code> en <code>hasMore</code> is <code>false</code></td><td>Niet de paginering maar de weergave. <code>#recordCount</code> draagt de klasse <code>table-mode-only</code>, en die is in <span class="cma-tool__strong">beide</span> richtingen met <code>!important</code> gestyled (verborgen buiten tabelmodus, getoond erbinnen). Een inline <code>style.display</code> uit JavaScript komt daar nooit doorheen — het "verbergen" verborg dus niets. En omdat juist die tak de enige was die de tekst niet herschreef, bleef de regel van de vórige batch staan. Zo leest een lijst die keurig doorlaadt als een lijst die halverwege stopt, en wijst elk onderzoek de verkeerde kant op (naar de scroller, terwijl die zijn werk deed).</td><td>Eén eigenaar: het blad toont het element per modus, JavaScript schrijft alleen de tekst. <code>CMA.utils.setRecordCount()</code> is de enige schrijver en zet een <span class="cma-tool__strong">lege tekst</span> wanneer er niets te melden is; nergens wordt de teller nog via <code>style.display</code> gestuurd, en de span wordt zonder inline <code>display</code> gerenderd. Regressietests: <code>cma/tests/js/recordteller.test.js</code> (inclusief een bronscan die de tweede eigenaar niet laat terugkomen) en <code>cma/cypress/e2e/forms/oneindig-scrollen.cy.js</code>.</td></tr>
@@ -5210,6 +5387,86 @@ function render_doc_troubleshooting(): void
     <div class="seealso">
         Zie ook: alle topics hebben eigen "Troubleshooting" subsecties voor onderwerp-specifieke issues. Deze pagina is de cross-cutting catalog.
     </div>
+    <?php
+}
+
+function render_doc_sso(): void
+{
+    ?>
+    <h1>SSO-configuratie</h1>
+    <p class="docs-meta">Inloggen op de CMA via een identity provider (OpenID Connect, authorization code met PKCE). Klasse: <code>Cma\Services\SsoService</code>; pagina's <code>cma/sso_login.php</code> en <code>cma/sso_callback.php</code>.</p>
+
+    <h2>Instellingen</h2>
+    <p>Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">SSO</span>. Oudere sleutels in <code>app.php</code> (<code>cma_sso_enabled</code>, <code>sso_idp_url</code>, …) gelden alleen als de variabele niet gezet is.</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Variabele</th><th>Standaard</th><th>Betekenis</th></tr></thead>
+        <tbody>
+        <?php foreach (\App\Library\Settings::definitions() as $key => $def):
+            if (($def['group'] ?? '') !== 'sso') continue;
+            $standaard = is_bool($def['default']) ? ($def['default'] ? 'aan' : 'uit') : (string) $def['default'];
+        ?>
+            <tr>
+                <td><code><?= htmlspecialchars($def['env']) ?></code></td>
+                <td><?= $standaard === '' ? '<span class="cma-tool__em">leeg</span>' : '<code>' . htmlspecialchars($standaard) . '</code>' ?></td>
+                <td><?= htmlspecialchars($def['label']) ?> — <?= htmlspecialchars($def['hint'] ?? '') ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <p><code>CMA_SSO_FORCE</code> en <code>CMA_SSO_CALLBACK_URL</code> gelden alleen voor de CMA. Een front-end met eigen SSO heeft zijn eigen schakelaar en zijn eigen <code>SSO_CALLBACK_URL</code>, zodat de twee elkaars callback niet overschrijven.</p>
+
+    <h2>Bij de identity provider registreren</h2>
+    <ul>
+        <li><span class="cma-tool__strong">Redirect-URI</span>: de basis-URL van de site plus <code>CMA_SSO_CALLBACK_URL</code>, standaard <code>https://&lt;site&gt;/cma/sso_callback.php</code>. Die moet exact overeenkomen met wat de CMA meestuurt. Een voorloop-slash in het callback-pad maakt niet uit.</li>
+        <li>De basis-URL komt uit <code>SSO_CLIENT_BASE_URL</code>. Is die leeg, of wijst hij naar een andere host dan het huidige verzoek (een geconfigureerde productie-URL op een testserver), dan leidt de CMA hem af uit het verzoek (<code>HTTPS</code> en <code>HTTP_HOST</code>). Achter een reverse proxy vul je hem dus in.</li>
+        <li><span class="cma-tool__strong">PKCE</span> is altijd aan: de CMA stuurt een <code>code_challenge</code> (S256) mee bij de autorisatie en de bijbehorende <code>code_verifier</code> bij het token-verzoek. Een IdP die PKCE eist werkt dus zonder extra instelling; een IdP die het niet kent negeert de parameters.</li>
+        <li>Scope minimaal <code>openid</code>; vraag <code>email</code> erbij als de IdP het e-mailadres anders niet in het token zet (zie hieronder).</li>
+    </ul>
+
+    <h2>Wie er inlogt</h2>
+    <p>Na de callback leest de CMA de identiteiten uit het ID-token, in deze volgorde: <code>sub</code>, <code>email</code>, <code>preferred_username</code>, <code>upn</code>. Voor elk zoekt hij een CMA-gebruiker waarvan het e-mailadres of de loginnaam daaraan gelijk is (hoofdletters tellen niet). De eerste die past logt in. <code>sub</code> is niet bij elke IdP een e-mailadres; dan vindt de claim <code>email</code> de gebruiker alsnog.</p>
+    <p>Past er geen, dan toont het inlogscherm welk account de IdP doorgaf en wat de oplossing is: bij Gebruikers het e-mailadres of de loginnaam van de gebruiker gelijkzetten, of de IdP het e-mailadres laten meesturen. Een SSO-gebruiker moet dus al als CMA-gebruiker bestaan; SSO maakt geen gebruikers aan.</p>
+    <p>Het ID-token komt rechtstreeks van het token-endpoint, server naar server; de CMA controleert <code>state</code> (tegen CSRF), <code>nonce</code> en de vervaltijd <code>exp</code>, niet de handtekening. Zet <code>SSO_IDP_URL</code> daarom altijd op <code>https://</code>.</p>
+
+    <h2>SSO verplicht</h2>
+    <p>Met <code>CMA_SSO_FORCE</code> aan (en <code>SSO_ENABLED</code> aan) heeft de CMA geen wachtwoordlogin:</p>
+    <ul>
+        <li>Wie niet is ingelogd, gaat vanaf <code>login.php</code> meteen naar de IdP. Het inlogscherm toont alleen nog een foutmelding (als er een is) en de SSO-knop; geen naam/wachtwoord, geen "wachtwoord vergeten". Een gepost wachtwoordformulier wordt genegeerd.</li>
+        <li><span class="cma-tool__strong">Uitloggen</span> zet de cookie <code>cma_sso_uitgelogd</code>. De eerstvolgende SSO-login gaat dan met <code>prompt=login</code>, zodat de nog lopende IdP-sessie je niet direct weer inlogt. Dat geldt één keer: daarna is de markering op, en bij een geslaagde SSO-login verdwijnt hij ook.</li>
+        <li>Komt er een SSO-fout terug, dan blijft de CMA op het inlogscherm met die melding in plaats van opnieuw naar de IdP te sturen, anders zou dat een lus worden.</li>
+    </ul>
+
+    <h2>De parameter prompt</h2>
+    <ul>
+        <li><code>SSO_PROMPT=login</code> (standaard): de IdP vraagt altijd opnieuw om in te loggen.</li>
+        <li><code>SSO_PROMPT=none</code>: een bestaande IdP-sessie wordt gebruikt, zonder scherm. Heeft de gebruiker geen sessie, dan antwoordt de IdP met <code>login_required</code> (of <code>interaction_required</code>, <code>consent_required</code>, <code>account_selection_required</code>); de callback stuurt dan gewoon opnieuw naar de IdP met <code>prompt=login</code>, zodat het inlogscherm van de IdP verschijnt in plaats van een fout.</li>
+        <li><code>SSO_PROMPT</code> leeg: de parameter gaat niet mee. Wie al bij de IdP is ingelogd komt zonder wachtwoord terug. (Een lege <code>prompt=</code> meesturen weigert Keycloak; daarom wordt hij weggelaten.)</li>
+    </ul>
+
+    <h2>Troubleshooting</h2>
+    <table class="listtable">
+        <tr><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr>
+        <tr>
+            <td>"Je bent bij … ingelogd als …, maar in het CMA bestaat geen gebruiker met dat e-mailadres of die loginnaam"</td>
+            <td>Geen van de identiteiten uit het token (<code>sub</code>, <code>email</code>, <code>preferred_username</code>, <code>upn</code>) komt overeen met het e-mailadres of de loginnaam van een CMA-gebruiker.</td>
+            <td>Zet bij Gebruikers het e-mailadres van de gebruiker op het adres uit de melding, of maak de gebruiker aan. Staat er geen e-mailadres in de melding, laat de IdP het dan meesturen (scope <code>email</code>).</td>
+        </tr>
+        <tr>
+            <td>De IdP meldt een ongeldige redirect-URI</td>
+            <td>De redirect-URI die de CMA meestuurt (basis-URL + <code>CMA_SSO_CALLBACK_URL</code>) staat niet exact zo bij de IdP geregistreerd; vaak http tegenover https achter een proxy.</td>
+            <td>Vul <code>SSO_CLIENT_BASE_URL</code> in met de publieke URL, en registreer precies <code>&lt;basis-URL&gt;/cma/sso_callback.php</code>.</td>
+        </tr>
+        <tr>
+            <td>Na uitloggen ben je meteen weer ingelogd</td>
+            <td>De IdP-sessie loopt nog en de login gaat zonder <code>prompt=login</code>, bijvoorbeeld omdat de cookie <code>cma_sso_uitgelogd</code> al verbruikt is of niet gezet kon worden.</td>
+            <td>Log ook bij de IdP uit, of zet <code>SSO_PROMPT=login</code>.</td>
+        </tr>
+        <tr>
+            <td>"Ongeldige state parameter"</td>
+            <td>De SSO-cookies van het begin van de login zijn weg: verlopen, een andere browser(tab) of een ander domein tussen heen- en terugweg.</td>
+            <td>Opnieuw inloggen vanaf hetzelfde domein. Controleer dat <code>SSO_CLIENT_BASE_URL</code> naar hetzelfde domein wijst als waar de login begint.</td>
+        </tr>
+    </table>
     <?php
 }
 
@@ -5442,7 +5699,7 @@ function cma_doc_check_dashboard_cards(): array {
         if ($start === false || $end === false) {
             return ['label' => $label, 'status' => 'fail',
                 'detail' => 'De validator (cma_dashboard_site_cards) is niet te vinden in dashboard.php.',
-                'fix' => 'Platform bijwerken: dit hoort bij versie 1.34.0 of nieuwer.'];
+                'fix' => 'Update het platform (composer update stenversonline/platform).'];
         }
         eval(substr($src, $start, $end - $start + 2));
     }
