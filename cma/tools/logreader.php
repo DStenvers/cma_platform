@@ -7,6 +7,7 @@
  */
 
 use App\Library\Arr;
+use App\Library\NotFoundLists;
 use App\Library\Request;
 use App\Library\Server;
 use App\Library\Cookie;
@@ -475,6 +476,22 @@ foreach ($logSettings as $key => &$setting) {
 unset($setting); // break the reference — otherwise a later foreach corrupts the last
                  // row (the classic PHP by-reference bug: 'php' became a copy of 'debug').
 
+// 404: every line is sorted into a tab — a real miss, a hack attempt or an ignored
+// 404 — by matching its path against the site's lists. Sorting at read time means a
+// pattern added today also re-sorts what was logged before it.
+$notFoundTabs = ['' => [], NotFoundLists::HACK => [], NotFoundLists::IGNORE => []];
+$notFoundLijsten = [];
+if ($selectedLog === '404') {
+    $lijsten = NotFoundLists::forSite($siteRoot);
+    $notFoundLijsten = $lijsten->all();
+    foreach ($logContent as $index => &$entry) {
+        $entry['_lijst'] = $lijsten->classify(NotFoundLists::pathOf((string) ($entry['url'] ?? ''))) ?? '';
+        $notFoundTabs[$entry['_lijst']][$index] = $entry;
+    }
+    unset($entry);
+}
+$notFoundTabIndex = ['hack' => 1, 'genegeerd' => 2, 'patronen' => 3][Request::query('tab', '')] ?? 0;
+
 // Build table data for lib-table
 $tableData = [];
 if ($selectedLog === 'perf' && !empty($logContent)) {
@@ -880,15 +897,29 @@ document.addEventListener('click', function(e) {
             </tbody>
         </table>
     </lib-table>
-    <?php elseif ($selectedLog === '404' && !empty($logContent)): ?>
+    <?php elseif ($selectedLog === '404'): ?>
+    <?php
+    $notFoundTabTitels = ['' => 'Gemist', NotFoundLists::HACK => 'Hackpogingen', NotFoundLists::IGNORE => 'Genegeerd'];
+    $notFoundTabJson = [];
+    foreach ($notFoundTabTitels as $lijst => $titel) {
+        $notFoundTabJson[] = ['title' => $titel, 'count' => count($notFoundTabs[$lijst])];
+    }
+    $notFoundTabJson[] = ['title' => 'Patronen', 'count' => array_sum(array_map('count', $notFoundLijsten))];
+    ?>
+    <cma-tabs id="notFoundTabs" remember="hash" selected="<?= $notFoundTabIndex ?>" tabs="<?= Server::htmlEncode(json_encode($notFoundTabJson, JSON_UNESCAPED_UNICODE)) ?>">
+    <?php $tabNr = 0; foreach ($notFoundTabTitels as $lijst => $titel): ?>
+    <div slot="tab-<?= $tabNr++ ?>" class="notfound-tab">
+    <?php if (empty($notFoundTabs[$lijst])): ?>
+    <lib-message type="info"><?= $lijst === '' ? 'Geen gemiste URLs op deze dag.' : 'Geen ' . Server::htmlEncode(strtolower($titel)) . ' op deze dag.' ?></lib-message>
+    <?php else: ?>
     <lib-table
-        id="notFoundLogTable"
+        class="notfound-table"
         filterable
         sortable
         resizable
         paginate="50"
-        export-filename="404-errors"
-        storage-key="logreader_404"
+        export-filename="404-<?= $lijst === '' ? 'errors' : $lijst ?>"
+        storage-key="logreader_404<?= $lijst === '' ? '' : '_' . $lijst ?>"
     >
         <table class="listtable filtering" cellspacing="0" cellpadding="0">
             <thead>
@@ -896,11 +927,14 @@ document.addEventListener('click', function(e) {
                     <th data-type="string" data-field="tijd" style="width: 140px;">Datum/tijd</th>
                     <th data-type="string" data-field="type" style="width: 100px;">Type</th>
                     <th data-type="string" data-field="url">Gevraagde URL</th>
+                    <?php if ($lijst === NotFoundLists::HACK): ?>
+                    <th data-type="string" data-field="ip" class="notfound-table__ip">IP</th>
+                    <?php endif; ?>
                     <th data-type="string" data-field="referer" style="width: 200px;">Referer</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($logContent as $index => $row): ?>
+                <?php foreach ($notFoundTabs[$lijst] as $index => $row): ?>
                 <tr class="notfound-row" data-index="<?= $index ?>">
                     <td data-field="tijd" style="white-space: nowrap; font-size: var(--font-size-xs);"><?= Server::htmlEncode($row['ts'] ?? '-') ?></td>
                     <td data-field="type"><?php
@@ -909,12 +943,54 @@ document.addEventListener('click', function(e) {
                         echo $typeLabel;
                     ?></td>
                     <td data-field="url" style="font-family: monospace; font-size: var(--font-size-xs);" title="<?= Server::htmlEncode($row['url'] ?? '') ?>"><?= Server::htmlEncode($row['url'] ?? '-') ?></td>
+                    <?php if ($lijst === NotFoundLists::HACK): ?>
+                    <td data-field="ip" class="notfound-table__ip"><?= Server::htmlEncode($row['ip'] ?? '-') ?></td>
+                    <?php endif; ?>
                     <td data-field="referer" style="font-size: var(--font-size-xs); max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="<?= Server::htmlEncode($row['referer'] ?? '') ?>"><?= Server::htmlEncode($row['referer'] ?: '-') ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </lib-table>
+    <?php endif; ?>
+    </div>
+    <?php endforeach; ?>
+
+    <div slot="tab-3" class="notfound-tab notfound-patronen">
+        <p class="notfound-patronen__uitleg">Een patroon is een pad zoals <code>/wp-login.php</code>. Een <code>*</code> staat voor willekeurige tekens: <code>/wp-*</code>, <code>*.env</code>, <code>*/phpmyadmin*</code>. Hoofdletters en de querystring tellen niet mee. Wat op een lijst staat telt niet meer mee bij de gemiste URLs op het dashboard en in het dagelijkse 404-overzicht.</p>
+        <form class="notfound-patronen__toevoegen" id="notFoundPatroonForm">
+            <select name="lijst" class="form-control">
+                <?php foreach (NotFoundLists::LABELS as $lijst => $label): ?>
+                <option value="<?= $lijst ?>"><?= Server::htmlEncode($label) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="text" name="patroon" class="form-control notfound-patronen__invoer" placeholder="/pad of /patroon*" required>
+            <button type="submit" class="btn btn-primary">Toevoegen</button>
+        </form>
+        <?php foreach (NotFoundLists::LABELS as $lijst => $label): ?>
+        <h3 class="notfound-patronen__kop"><?= Server::htmlEncode($label) ?></h3>
+        <?php if (empty($notFoundLijsten[$lijst])): ?>
+        <p class="notfound-patronen__leeg">Nog geen patronen.</p>
+        <?php else: ?>
+        <table class="listtable notfound-patronen__tabel">
+            <thead><tr class="listheader"><th>Patroon</th><th>Toegevoegd</th><th>Door</th><th></th></tr></thead>
+            <tbody>
+            <?php foreach ($notFoundLijsten[$lijst] as $patroon): ?>
+                <tr>
+                    <td><code><?= Server::htmlEncode($patroon['patroon']) ?></code></td>
+                    <td><?= Server::htmlEncode($patroon['toegevoegd'] ?: '-') ?></td>
+                    <td><?= Server::htmlEncode($patroon['door'] ?: '-') ?></td>
+                    <td class="notfound-patronen__actie">
+                        <button type="button" class="btn notfound-patroon-verwijder" data-lijst="<?= $lijst ?>" data-patroon="<?= Server::htmlEncode($patroon['patroon']) ?>" title="Van de lijst halen"><span class="lnr lnr-trash"></span></button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+    </cma-tabs>
 
     <lib-dialog id="notFoundDetailDialog" heading="404 Error Details" size="large">
         <div id="notFoundDetailContent"></div>
@@ -922,8 +998,67 @@ document.addEventListener('click', function(e) {
     <script>
     (function() {
         var notFoundData = <?= json_encode($logContent, JSON_UNESCAPED_UNICODE) ?>;
+        var lijstLabels = <?= json_encode(NotFoundLists::LABELS, JSON_UNESCAPED_UNICODE) ?>;
 
-        document.getElementById('notFoundLogTable').addEventListener('click', function(e) {
+        // Eén aanroep voor toevoegen en verwijderen; na een wijziging laadt de pagina
+        // opnieuw, want elke regel van de dag kan daardoor van tabblad wisselen.
+        function wijzigLijst(actie, lijst, patroon) {
+            return fetch('../api/notfound_lists.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: actie, lijst: lijst, patroon: patroon })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success) throw new Error(data.error || 'Opslaan mislukt');
+                window.location.reload();
+            })
+            .catch(function(e) {
+                libAlert(e.message, { title: 'Lijst niet bijgewerkt', type: 'error' });
+            });
+        }
+
+        // Voorstel = het exacte pad; de beheerder kan er een patroon van maken
+        // (/wp-login.php → /wp-*) voordat het op de lijst komt.
+        async function zetOpLijst(lijst, pad) {
+            var patroon = await libPrompt('Pad of patroon (* = willekeurige tekens):', {
+                title: lijstLabels[lijst] + ': toevoegen',
+                defaultValue: pad,
+                required: true,
+                confirmText: 'Toevoegen'
+            });
+            if (patroon === null || patroon.trim() === '') return;
+            wijzigLijst('add', lijst, patroon);
+        }
+
+        document.getElementById('notFoundPatroonForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            wijzigLijst('add', this.elements.lijst.value, this.elements.patroon.value);
+        });
+
+        document.querySelectorAll('.notfound-patroon-verwijder').forEach(function(knop) {
+            knop.addEventListener('click', async function() {
+                var ok = await libConfirm('Patroon <code>' + escapeHtml(knop.dataset.patroon) + '</code> van de lijst halen?', {
+                    title: lijstLabels[knop.dataset.lijst],
+                    confirmText: 'Verwijderen',
+                    cancelText: 'Annuleren'
+                });
+                if (ok) wijzigLijst('remove', knop.dataset.lijst, knop.dataset.patroon);
+            });
+        });
+
+        document.getElementById('notFoundDetailContent').addEventListener('click', function(e) {
+            var knop = e.target.closest('[data-notfound-actie]');
+            if (!knop) return;
+            document.getElementById('notFoundDetailDialog').close();
+            if (knop.dataset.notfoundActie === 'beheer') {
+                document.getElementById('notFoundTabs').selectTab(3);
+            } else {
+                zetOpLijst(knop.dataset.notfoundActie, knop.dataset.pad);
+            }
+        });
+
+        document.getElementById('notFoundTabs').addEventListener('click', function(e) {
             // Ignore clicks on resize handles
             if (e.target.closest('.col-resize-handle')) return;
 
@@ -933,7 +1068,6 @@ document.addEventListener('click', function(e) {
             var index = parseInt(row.dataset.index, 10);
             var entry = notFoundData[index];
             if (!entry) return;
-
             var html = '<table class="log-detail-table">';
             html += '<tr><th>Datum/tijd</th><td>' + escapeHtml(entry.ts || '-') + '</td></tr>';
             html += '<tr><th>Type</th><td>' + (entry.type === 'icon_redirect' ? '<span style="color: var(--color-success);">Redirect naar juiste locatie</span>' : '<span style="color: var(--color-error);">Niet gevonden (404)</span>') + '</td></tr>';
@@ -958,7 +1092,7 @@ document.addEventListener('click', function(e) {
             // velden, dus eigen velden van een bron stonden wel in het bestand maar nergens
             // op het scherm — en dan is de regel lezen alleen nog mogelijk op de serverschijf.
             // 'kind' (pagina of bestand) hoort daar ook bij: dat werd nergens getoond.
-            var vasteVelden = { ts: 1, type: 1, url: 1, redirect: 1, referer: 1, method: 1, ip: 1, ua: 1 };
+            var vasteVelden = { ts: 1, type: 1, url: 1, redirect: 1, referer: 1, method: 1, ip: 1, ua: 1, _lijst: 1 };
             Object.keys(entry).forEach(function(veld) {
                 if (vasteVelden[veld]) return;
                 var waarde = entry[veld];
@@ -971,6 +1105,19 @@ document.addEventListener('click', function(e) {
                 html += '<tr><th>' + escapeHtml(veld) + '</th><td style="font-size: var(--font-size-xs);">' + escapeHtml(waarde) + '</td></tr>';
             });
             html += '</table>';
+
+            // Een gemiste URL kan vanaf hier op een lijst; een die er al op staat
+            // wordt beheerd op het tabblad Patronen (welk patroon raakte hem?).
+            var pad = escapeHtml(logDetailRelatiefPad(entry.url));
+            html += '<div class="notfound-acties">';
+            if (entry._lijst) {
+                html += '<span class="notfound-acties__status">Staat op de lijst ' + escapeHtml(lijstLabels[entry._lijst]) + '.</span>' +
+                    '<button type="button" class="btn" data-notfound-actie="beheer">Patronen beheren</button>';
+            } else {
+                html += '<button type="button" class="btn btn-primary" data-notfound-actie="hack" data-pad="' + pad + '">Markeer als hackpoging</button>' +
+                    '<button type="button" class="btn" data-notfound-actie="genegeerd" data-pad="' + pad + '">Negeren</button>';
+            }
+            html += '</div>';
 
             document.getElementById('notFoundDetailContent').innerHTML = html;
             document.getElementById('notFoundDetailDialog').open();
@@ -1318,6 +1465,57 @@ tr.notfound-row:hover td {
 .empty-value {
     color: var(--text-muted, #999);
     font-style: italic;
+}
+
+/* 404: tabbladen Gemist / Hackpogingen / Genegeerd / Patronen */
+.notfound-tab {
+    padding-top: 12px;
+}
+.notfound-table__ip {
+    width: 120px;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+}
+.notfound-acties {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+.notfound-acties__status {
+    color: var(--text-muted, #777);
+    margin-right: auto;
+}
+.notfound-patronen__uitleg {
+    max-width: 720px;
+    margin: 0 0 12px;
+    color: var(--text-muted, #777);
+}
+.notfound-patronen__toevoegen {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0 0 16px;
+}
+.notfound-patronen__invoer {
+    width: 280px;
+}
+.notfound-patronen__kop {
+    margin: 20px 0 8px;
+}
+.notfound-patronen__leeg {
+    color: var(--text-muted, #999);
+    font-style: italic;
+}
+.notfound-patronen__tabel {
+    width: auto;
+    min-width: 480px;
+}
+.notfound-patronen__actie {
+    width: 1%;
+    text-align: right;
 }
 </style>
 

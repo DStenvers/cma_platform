@@ -15658,3 +15658,7 @@ karaat-data en staat in de karaat-repo.
 > ik blijf blokkeren op het wisselen van rollen
 
 > data/db/testdata_incompany_pietje.php staat er niet?
+
+## 2026-10-28
+
+> 404 errors en gemiste urls worden gelogd. Daarbij wil ik aan kunnen geven dat iets een hackpoging is, die moeten in een aparte categorie komen te staan (via tabs) en onderhouden kunnen worden. Op termijn wil ik ip-blokkades kunnen zetten op clients die in x minuten meer dan y hack urls hebben opgeroepen

@@ -267,13 +267,18 @@ function getErrorStats(): array
  * Get 404 (page-not-found) statistics for the last 14 days.
  *
  * Reads the daily JSON logs written by cma/404.php (.logs/404/404_YYYY-MM-DD.log).
- * Auto-resolved icon redirects are excluded — only genuine misses are counted.
+ * Auto-resolved icon redirects are excluded — only genuine misses are counted;
+ * paths on the hack list or the ignored-404 list (NotFoundLists) are counted in
+ * 'hack' / 'genegeerd' instead.
  * Returns a per-day series (for the bar chart), today's/total counts, and the
  * most-missed URL paths.
  */
 function getNotFoundStats(): array
 {
-    $stats = ['exists' => false, 'today' => 0, 'total' => 0, 'daily' => [], 'top' => []];
+    $stats = ['exists' => false, 'today' => 0, 'total' => 0, 'daily' => [], 'top' => [], 'hack' => 0, 'genegeerd' => 0];
+    // Paths on the hack list or the ignored-404 list are counted apart and stay out of the
+    // chart, the totals and the top list: those show the misses worth fixing.
+    $lists = \App\Library\NotFoundLists::forSite(dirname(__DIR__, 2));
 
     $logsDir = dirname(__DIR__, 2) . '/.logs/404'; // site .logs/404 (same dir cma/404.php writes to)
     $days = (int) \App\Library\Settings::get('dashboard_notfound_days');
@@ -296,13 +301,16 @@ function getNotFoundStats(): array
                     if ($line === '') continue;
                     $entry = json_decode($line, true);
                     if (is_array($entry) && ($entry['type'] ?? '') === 'icon_redirect') continue;
-                    $count++;
                     if (is_array($entry)) {
-                        $url = (string)($entry['url'] ?? '');
-                        $path = parse_url($url, PHP_URL_PATH);
-                        $path = ($path !== null && $path !== false && $path !== '') ? $path : ($url !== '' ? $url : '(onbekend)');
+                        $path = \App\Library\NotFoundLists::pathOf((string)($entry['url'] ?? ''));
+                        $list = $lists->classify($path);
+                        if ($list !== null) {
+                            $stats[$list]++;
+                            continue;
+                        }
                         $paths[$path] = ($paths[$path] ?? 0) + 1;
                     }
+                    $count++;
                 }
                 fclose($fh);
             }

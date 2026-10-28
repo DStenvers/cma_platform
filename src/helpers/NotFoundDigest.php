@@ -46,7 +46,7 @@ final class NotFoundDigest
         register_shutdown_function(static function () use ($log, $day, $to, $logDir): void {
             try {
                 $lines = file($log, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-                $summary = self::summarize($lines);
+                $summary = self::summarize($lines, NotFoundLists::forSite(dirname($logDir, 2)));
                 if ($summary['total'] === 0) {
                     return;
                 }
@@ -68,13 +68,17 @@ final class NotFoundDigest
     /**
      * Aggregate the JSON lines of one day's log. Pure, so it is unit-tested.
      *
+     * Paths on the hack list or the ignored-404 list ($lists) are counted under
+     * 'hack' / 'genegeerd' and left out of the path list, like bots.
+     *
      * @param  iterable<string> $lines
-     * @return array{total:int, bots:int, paths:array<string,array{count:int, referer:string}>}
+     * @return array{total:int, bots:int, hack:int, genegeerd:int, paths:array<string,array{count:int, referer:string}>}
      */
-    public static function summarize(iterable $lines): array
+    public static function summarize(iterable $lines, ?NotFoundLists $lists = null): array
     {
         $total = 0;
         $bots = 0;
+        $listed = [NotFoundLists::HACK => 0, NotFoundLists::IGNORE => 0];
         $paths = [];
         foreach ($lines as $line) {
             $entry = json_decode(trim((string) $line), true);
@@ -82,13 +86,16 @@ final class NotFoundDigest
                 continue;
             }
             $total++;
+            $path = NotFoundLists::pathOf((string) ($entry['url'] ?? ''));
+            $list = $lists !== null ? $lists->classify($path) : null;
+            if ($list !== null) {
+                $listed[$list]++;
+                continue;
+            }
             if (preg_match(self::BOT_PATTERN, (string) ($entry['ua'] ?? ''))) {
                 $bots++;
                 continue;
             }
-            $url  = (string) ($entry['url'] ?? '');
-            $path = parse_url($url, PHP_URL_PATH);
-            $path = is_string($path) && $path !== '' ? $path : ($url !== '' ? $url : '(onbekend)');
             if (!isset($paths[$path])) {
                 $paths[$path] = ['count' => 0, 'referer' => ''];
             }
@@ -99,18 +106,25 @@ final class NotFoundDigest
             }
         }
         uasort($paths, static fn ($a, $b) => $b['count'] <=> $a['count']);
-        return ['total' => $total, 'bots' => $bots, 'paths' => $paths];
+        return ['total' => $total, 'bots' => $bots] + $listed + ['paths' => $paths];
     }
 
     /**
-     * @param array{total:int, bots:int, paths:array<string,array{count:int, referer:string}>} $summary
+     * @param array{total:int, bots:int, hack?:int, genegeerd?:int, paths:array<string,array{count:int, referer:string}>} $summary
      */
     public static function renderBody(string $day, array $summary): string
     {
         $e = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-        $visitors = $summary['total'] - $summary['bots'];
+        $hack = $summary[NotFoundLists::HACK] ?? 0;
+        $ignored = $summary[NotFoundLists::IGNORE] ?? 0;
+        $visitors = $summary['total'] - $summary['bots'] - $hack - $ignored;
+        $parts = array_filter([
+            $hack > 0 ? $hack . ' hackpogingen' : '',
+            $ignored > 0 ? $ignored . ' genegeerd' : '',
+            $summary['bots'] > 0 ? $summary['bots'] . ' door zoekmachines en scanners' : '',
+        ]);
         $body = '<p>Op ' . $e($day) . ' zijn ' . $summary['total'] . ' pagina\'s of bestanden niet gevonden'
-              . ($summary['bots'] > 0 ? ', waarvan ' . $summary['bots'] . ' door zoekmachines en scanners' : '')
+              . ($parts !== [] ? ', waarvan ' . self::joinDutch($parts) : '')
               . '.</p>';
         if ($visitors === 0) {
             return $body . '<p>Geen misses van bezoekers.</p>';
@@ -133,6 +147,13 @@ final class NotFoundDigest
         }
         $body .= '<p style="color:#666;">De volledige log staat in het CMA onder Beheerstools → Logbestanden lezen → 404.</p>';
         return $body;
+    }
+
+    /** ['a', 'b', 'c'] → 'a, b en c'. */
+    private static function joinDutch(array $parts): string
+    {
+        $last = array_pop($parts);
+        return $parts === [] ? $last : implode(', ', $parts) . ' en ' . $last;
     }
 
     /**

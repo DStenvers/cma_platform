@@ -2088,7 +2088,8 @@ if ($isAdmin) {
 
         function renderNotFoundStats(nf) {
             // Nothing logged -> hide both 404 cards (keeps the dashboard tidy).
-            if (!nf || !nf.exists || (Number(nf.total) || 0) === 0) {
+            // Hack attempts alone still show the card: they are counted apart, not hidden.
+            if (!nf || !nf.exists || ((Number(nf.total) || 0) === 0 && (Number(nf.hack) || 0) === 0)) {
                 [notFoundStats, notFoundTop].forEach(function(el) {
                     if (el) { var c = el.closest('.stats-card'); if (c) c.style.display = 'none'; }
                 });
@@ -2111,6 +2112,7 @@ if ($isAdmin) {
                 '<div class="stats-row">' +
                     '<div class="stat-item clickable" onclick="' + nfLog() + '" title="Open de 404-log van vandaag"><div class="stat-value">' + nf.today + '</div><div class="stat-label">Vandaag</div></div>' +
                     '<div class="stat-item clickable" onclick="' + nfLog() + '" title="Open de 404-log"><div class="stat-value">' + nf.total + '</div><div class="stat-label">14 dagen</div></div>' +
+                    '<div class="stat-item clickable" onclick="' + nfLog('&tab=hack') + '" title="URLs op de hacklijst — apart geteld, niet in de grafiek"><div class="stat-value">' + (nf.hack || 0) + '</div><div class="stat-label">Hackpogingen</div></div>' +
                 '</div>';
 
             // Most-missed URLs (reuses the .hbar-* list from the forms widget).
