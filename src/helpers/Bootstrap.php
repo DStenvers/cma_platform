@@ -102,6 +102,10 @@ class Bootstrap
         self::defineAdoConstants();
         self::recordTiming('error_handler');
 
+        // Blocked IPs stop here with a 403; a 404 on a hack path counts towards a
+        // block. Before the page runs, so before the site's 404.php.
+        HackBlocker::guard($rootDir);
+
         // Yesterday's 404 digest, when the site asks for one (Systeeminstellingen).
         NotFoundDigest::maybeSend(self::$config['log_dir'] . '/404');
 

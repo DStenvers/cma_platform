@@ -640,6 +640,32 @@ class Installer
      * These are one-time setup files.
      */
     /**
+     * Een bestaand 404.php bijwerken naar het huidige sjabloon — uitsluitend
+     * wanneer het nog byte-voor-byte een eerder sjabloon is.
+     *
+     * 404.php is copy-if-absent: het is van de site. Maar het sjabloon roept nu
+     * cma/hackguard.inc aan (hackpogingen tellen en blokkeren), en een site die
+     * het bestand nooit heeft aangeraakt krijgt dat anders nooit binnen. Is er
+     * ook maar iets aan veranderd, dan blijven we eraf; de live check in de
+     * documentatie (Logs & monitoring) wijst dan de regel aan die erbij moet.
+     *
+     * PUUR: broncode en huidig sjabloon erin, nieuwe broncode eruit — of null.
+     */
+    public static function upgradeNotFoundHandler(string $source, string $template): ?string
+    {
+        return in_array(sha1(str_replace("\r\n", "\n", $source)), self::OUDE_404_SJABLONEN, true) ? $template : null;
+    }
+
+    /**
+     * sha1 (LF-regeleinden) van eerdere versies van templates/404.php.template.
+     * Een 404.php dat daar precies mee overeenkomt is nooit aangepast en mag mee
+     * naar het huidige sjabloon; zie upgradeNotFoundHandler().
+     */
+    private const OUDE_404_SJABLONEN = [
+        '903ce8dc9c5fa86e7e39286fd960bc94e2a9519c', // zonder hackguard.inc
+    ];
+
+    /**
      * De verouderde onderhoudspoort in een bestaand _bootstrap.php vervangen —
      * uitsluitend wanneer daar het ongewijzigde platformblok van een vorige
      * generatie staat.
@@ -959,6 +985,18 @@ class Installer
                 $bijgewerkt = self::upgradeMaintenanceGate($huidig);
                 if ($bijgewerkt !== null && @file_put_contents($bootstrapPad, $bijgewerkt) !== false) {
                     $io->write('  - _bootstrap.php: onderhoudspoort bijgewerkt (deploy-vlag sluit nu ook /cma/ af)');
+                }
+            }
+
+            // Idem voor een ongewijzigd 404.php: het huidige sjabloon telt hackpogingen.
+            $notFoundPad = $projectRoot . '/404.php';
+            if (is_file($notFoundPad) && is_file($templatesDir . '/404.php.template')) {
+                $bijgewerkt = self::upgradeNotFoundHandler(
+                    (string) @file_get_contents($notFoundPad),
+                    (string) file_get_contents($templatesDir . '/404.php.template')
+                );
+                if ($bijgewerkt !== null && @file_put_contents($notFoundPad, $bijgewerkt) !== false) {
+                    $io->write('  - 404.php: bijgewerkt naar het huidige sjabloon (telt hackpogingen)');
                 }
             }
 

@@ -1585,6 +1585,24 @@ function cma_doc_check_notfound_mail(): array {
     return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan, naar <code>' . htmlspecialchars($to) . '</code>. Overzicht van ' . $yesterday . ($sent ? ' is verstuurd.' : ' is nog niet verstuurd (gaat bij het eerstvolgende request, als er een log van die dag is).')];
 }
 
+function cma_doc_check_hackguard_404(): array {
+    $label = 'Hackpogingen blokkeren';
+    if (!\App\Library\Settings::get('hack_block_enabled')) {
+        return ['label' => $label, 'status' => 'info', 'detail' => 'Uit — hackpogingen worden alleen apart geteld, niet geblokkeerd.', 'fix' => 'Aanzetten via Beheerstools → Systeeminstellingen → Beveiliging.'];
+    }
+    $handler = dirname(__DIR__, 2) . '/404.php';
+    $source = is_file($handler) ? (string) file_get_contents($handler) : '';
+    if (strpos($source, 'hackguard.inc') === false) {
+        return ['label' => $label, 'status' => 'fail',
+            'detail' => is_file($handler)
+                ? 'Aan, maar <code>404.php</code> op de site-root roept <code>cma/hackguard.inc</code> niet aan. IIS stuurt een ontbrekend bestand rechtstreeks naar <code>404.php</code>, zonder bootstrap — dus daar wordt niets geteld en wordt niemand geblokkeerd.'
+                : 'Aan, maar er staat geen <code>404.php</code> op de site-root.',
+            'fix' => 'Zet bovenaan <code>404.php</code>, vóór het loggen: <code>require __DIR__ . \'/cma/hackguard.inc\';</code> — een ongewijzigd <code>404.php</code> werkt de Installer zelf bij met <code>composer update</code>.'];
+    }
+    $blocks = count((new \App\Library\HackBlocker(dirname(__DIR__, 2)))->blocks());
+    return ['label' => $label, 'status' => 'pass', 'detail' => 'Aan: meer dan ' . (int) \App\Library\Settings::get('hack_block_threshold') . ' hackpogingen in ' . (int) \App\Library\Settings::get('hack_block_window_minutes') . ' minuten → ' . (int) \App\Library\Settings::get('hack_block_duration_minutes') . ' minuten 403. Nu ' . $blocks . ' IP(\'s) geblokkeerd.'];
+}
+
 /**
  * The registry as documentation: one table per group, straight from
  * App\Library\Settings::definitions(), so the topic cannot drift from the screen.
@@ -3021,6 +3039,7 @@ function render_doc_logs(): void
         'cma_doc_check_php_error_log',
         'cma_doc_check_error_mail',
         'cma_doc_check_notfound_mail',
+        'cma_doc_check_hackguard_404',
     ]));
     ?>
 
@@ -3049,7 +3068,7 @@ function render_doc_logs(): void
     <ul>
         <li><span class="cma-tool__strong">PHP errors / Deploy / Cache</span> — plain text view, leegmaken via "Log leegmaken" toolbar-knop (truncate, niet delete, zodat de volgende write kan appenden). De PHP-error view kleurt per foutregel: entries met <code>[SQL ERROR]</code> (mislukte database-query, geschreven door <code>Database::logError()</code>), <code>PHP Fatal/Parse error</code> of <code>Uncaught</code> krijgen een rode rij; <code>[SQL WARN]</code> (bv. <code>SELECT *</code> waar Access ODBC een expliciete kolomlijst met MEMO-velden als laatste vereist) en <code>PHP Warning/Deprecated</code> een oranje rij. Typ <code>SQL ERROR</code> of <code>SQL WARN</code> in het filterveld om alleen die te tonen.</li>
         <li><span class="cma-tool__strong">Performance</span> — JSON-rendered table, klikbare detail-rows, SQL-threshold filter op de toolbar.</li>
-        <li><span class="cma-tool__strong">404</span> — vier tabbladen: <span class="cma-tool__strong">Gemist</span> (echte misses), <span class="cma-tool__strong">Hackpogingen</span> (met IP-kolom), <span class="cma-tool__strong">Genegeerd</span> en <span class="cma-tool__strong">Patronen</span> (de lijsten onderhouden). Klik een regel aan voor de details; daar zet je een gemiste URL met <span class="cma-tool__strong">Markeer als hackpoging</span> of <span class="cma-tool__strong">Negeren</span> op een lijst. <code>?tab=hack</code>, <code>?tab=genegeerd</code> of <code>?tab=patronen</code> opent direct dat tabblad.</li>
+        <li><span class="cma-tool__strong">404</span> — tabbladen <span class="cma-tool__strong">Gemist</span> (echte misses), <span class="cma-tool__strong">Hackpogingen</span> (met IP-kolom), <span class="cma-tool__strong">Genegeerd</span> en <span class="cma-tool__strong">Patronen</span> (de lijsten onderhouden). Klik een regel aan voor de details; daar zet je een gemiste URL met <span class="cma-tool__strong">Markeer als hackpoging</span> of <span class="cma-tool__strong">Negeren</span> op een lijst. Het tabblad <span class="cma-tool__strong">Blokkades</span> toont de IP's die nu een 403 krijgen. <code>?tab=hack</code>, <code>?tab=genegeerd</code>, <code>?tab=patronen</code> of <code>?tab=blokkades</code> opent direct dat tabblad.</li>
         <li><span class="cma-tool__strong">Debug</span> — date-picker bovenaan voor historische dagen.</li>
         <li><span class="cma-tool__strong">JS errors</span> — leest van de database; "leegmaken" verwijdert ALLE entries.</li>
     </ul>
@@ -3064,6 +3083,34 @@ function render_doc_logs(): void
         <li>Dashboard: de grafiek, de tellers en de top-lijst tellen alleen echte misses. Hackpogingen staan als aparte teller ernaast en linken naar het tabblad <span class="cma-tool__strong">Hackpogingen</span>.</li>
         <li>Dagelijks overzicht per mail: hackpogingen en genegeerde paden worden geteld ("waarvan 12 hackpogingen en 3 genegeerd") maar niet als pad opgesomd.</li>
     </ul>
+
+    <h3>Blokkeren</h3>
+    <p>Een IP dat meer dan <code>HACK_BLOCK_THRESHOLD</code> (10) URLs van de hacklijst opvraagt binnen <code>HACK_BLOCK_WINDOW_MINUTES</code> (10), krijgt <code>HACK_BLOCK_DURATION_MINUTES</code> (60) minuten lang een kale <code>403</code> op elke PHP-pagina, ook in de CMA. In te stellen via Systeeminstellingen → Beveiliging (<code>HACK_BLOCK_ENABLED</code>, standaard aan). Actieve blokkades staan in de logreader, 404-log, tabblad <span class="cma-tool__strong">Blokkades</span>; daar hef je er een eerder op.</p>
+    <ul>
+        <li><span class="cma-tool__strong">Tellen gebeurt in de 404-afhandeling.</span> IIS stuurt een ontbrekend bestand (<code>/wp-login.php</code>, <code>/.env</code>) rechtstreeks naar <code>404.php</code>, zonder <code>_bootstrap_wrapper.php</code> en zonder bootstrap. Daarom roepen <code>404.php</code> op de site-root en <code>cma/404.php</code> als eerste <code>cma/hackguard.inc</code> aan. Dat laadt alleen de Composer-autoloader en de <code>HACK_BLOCK_*</code>-waarden uit <code>.env</code> (geen sessie, geen app) en roept <code>App\Library\HackBlocker::guardNotFound()</code> aan.</li>
+        <li><span class="cma-tool__strong">De 403 zit ook in de bootstrap</span> (<code>HackBlocker::guard()</code> in <code>Bootstrap::init</code>), zodat een geblokkeerd IP ook gewone pagina's niet meer krijgt.</li>
+        <li>Het IP is <code>REMOTE_ADDR</code>, net als in de 404-log. Nooit <code>X-Forwarded-For</code>: die header zet de client zelf, en daarmee zou hij de blokkade kunnen ontlopen of een ander laten blokkeren. Achter een proxy of load balancer is <code>REMOTE_ADDR</code> het adres van de proxy — zet blokkeren daar uit.</li>
+        <li>Bestanden: <code>data/ip_blocks.json</code> (actieve blokkades) en <code>.logs/404/hackhits.json</code> (hits binnen het tijdvenster; houdt nooit meer dan één venster bij). Een geblokkeerd verzoek komt niet in de 404-log.</li>
+        <li><code>404.php</code> is van de site en wordt niet overschreven. Een <code>404.php</code> dat nog precies een eerder sjabloon is, werkt de Installer bij <code>composer update</code> bij; een aangepast exemplaar heeft één regel nodig — de live check bovenaan dit onderwerp wijst hem aan.</li>
+    </ul>
+    <table class="listtable">
+        <tr><th>Symptoom</th><th>Oorzaak</th><th>Oplossing</th></tr>
+        <tr>
+            <td>Hackpogingen staan in de log, maar niemand wordt geblokkeerd</td>
+            <td><code>404.php</code> op de site-root roept <code>cma/hackguard.inc</code> niet aan; de bootstrap draait voor die 404's niet, dus er wordt niets geteld.</td>
+            <td>Zet <code>require __DIR__ . '/cma/hackguard.inc';</code> bovenaan <code>404.php</code>. De live check "Hackpogingen blokkeren" toont het.</td>
+        </tr>
+        <tr>
+            <td>Een bezoeker (of jijzelf) krijgt overal alleen "Toegang tijdelijk geblokkeerd."</td>
+            <td>Dat IP deed meer hackpogingen dan de drempel binnen het tijdvenster — of een patroon op de hacklijst is te ruim en raakt ook gewone ontbrekende pagina's.</td>
+            <td>Hef de blokkade op (logreader → 404 → Blokkades; vanaf een ander IP als je zelf geblokkeerd bent, of wacht de blokkadeduur af). Maak het patroon nauwer op het tabblad Patronen.</td>
+        </tr>
+        <tr>
+            <td>Ineens krijgt iedereen een 403</td>
+            <td>De site staat achter een proxy of load balancer: <code>REMOTE_ADDR</code> is voor alle bezoekers hetzelfde adres, en dat is geblokkeerd.</td>
+            <td>Zet <code>HACK_BLOCK_ENABLED</code> uit en verwijder <code>data/ip_blocks.json</code>.</td>
+        </tr>
+    </table>
 
     <h2>Logger API (PHP)</h2>
     <p><code>Cma\Services\Logger</code> is PSR-3 compatible:</p>

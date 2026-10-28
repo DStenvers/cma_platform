@@ -21,6 +21,14 @@
  * the page belongs in the platform.
  */
 
+// ---- Hack attempts ------------------------------------------------------------
+// A 404 on a path from the hack list counts towards a temporary IP block, and a
+// blocked client stops here with a 403 (logreader → 404 → Patronen/Blokkades).
+// The guard keeps this working before the first sync of cma/.
+if (is_file(__DIR__ . '/cma/hackguard.inc')) {
+    require __DIR__ . '/cma/hackguard.inc';
+}
+
 $requestUri    = $_SERVER['REQUEST_URI'] ?? '/unknown';
 $requestedPath = parse_url($requestUri, PHP_URL_PATH) ?: $requestUri;
 

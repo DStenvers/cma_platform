@@ -7,9 +7,11 @@
  */
 
 use App\Library\Arr;
+use App\Library\HackBlocker;
 use App\Library\NotFoundLists;
 use App\Library\Request;
 use App\Library\Server;
+use App\Library\Settings;
 use App\Library\Cookie;
 use Cma\SecurityHelper;
 use Cma\ToolbarHelper;
@@ -481,16 +483,18 @@ unset($setting); // break the reference — otherwise a later foreach corrupts t
 // pattern added today also re-sorts what was logged before it.
 $notFoundTabs = ['' => [], NotFoundLists::HACK => [], NotFoundLists::IGNORE => []];
 $notFoundLijsten = [];
+$notFoundBlokkades = [];
 if ($selectedLog === '404') {
     $lijsten = NotFoundLists::forSite($siteRoot);
     $notFoundLijsten = $lijsten->all();
+    $notFoundBlokkades = (new HackBlocker($siteRoot))->blocks();
     foreach ($logContent as $index => &$entry) {
         $entry['_lijst'] = $lijsten->classify(NotFoundLists::pathOf((string) ($entry['url'] ?? ''))) ?? '';
         $notFoundTabs[$entry['_lijst']][$index] = $entry;
     }
     unset($entry);
 }
-$notFoundTabIndex = ['hack' => 1, 'genegeerd' => 2, 'patronen' => 3][Request::query('tab', '')] ?? 0;
+$notFoundTabIndex = ['hack' => 1, 'genegeerd' => 2, 'patronen' => 3, 'blokkades' => 4][Request::query('tab', '')] ?? 0;
 
 // Build table data for lib-table
 $tableData = [];
@@ -905,6 +909,7 @@ document.addEventListener('click', function(e) {
         $notFoundTabJson[] = ['title' => $titel, 'count' => count($notFoundTabs[$lijst])];
     }
     $notFoundTabJson[] = ['title' => 'Patronen', 'count' => array_sum(array_map('count', $notFoundLijsten))];
+    $notFoundTabJson[] = ['title' => 'Blokkades', 'count' => count($notFoundBlokkades)];
     ?>
     <cma-tabs id="notFoundTabs" remember="hash" selected="<?= $notFoundTabIndex ?>" tabs="<?= Server::htmlEncode(json_encode($notFoundTabJson, JSON_UNESCAPED_UNICODE)) ?>">
     <?php $tabNr = 0; foreach ($notFoundTabTitels as $lijst => $titel): ?>
@@ -990,6 +995,31 @@ document.addEventListener('click', function(e) {
         <?php endif; ?>
         <?php endforeach; ?>
     </div>
+
+    <div slot="tab-4" class="notfound-tab notfound-patronen">
+        <p class="notfound-patronen__uitleg"><?php if (Settings::get('hack_block_enabled')): ?>Een IP dat meer dan <?= (int) Settings::get('hack_block_threshold') ?> hackpogingen doet binnen <?= (int) Settings::get('hack_block_window_minutes') ?> minuten, krijgt <?= (int) Settings::get('hack_block_duration_minutes') ?> minuten lang een 403 op elke pagina. Instellen via Systeeminstellingen → Beveiliging.<?php else: ?>Blokkeren staat uit (Systeeminstellingen → Beveiliging).<?php endif; ?></p>
+        <?php if (empty($notFoundBlokkades)): ?>
+        <p class="notfound-patronen__leeg">Geen actieve blokkades.</p>
+        <?php else: ?>
+        <table class="listtable notfound-patronen__tabel">
+            <thead><tr class="listheader"><th>IP</th><th>Sinds</th><th>Tot</th><th>Pogingen</th><th>Laatste URL</th><th></th></tr></thead>
+            <tbody>
+            <?php foreach ($notFoundBlokkades as $ip => $blokkade): ?>
+                <tr>
+                    <td><code><?= Server::htmlEncode($ip) ?></code></td>
+                    <td><?= date('d-m-Y H:i', (int) $blokkade['sinds']) ?></td>
+                    <td><?= date('d-m-Y H:i', (int) $blokkade['tot']) ?></td>
+                    <td><?= (int) $blokkade['pogingen'] ?></td>
+                    <td><code><?= Server::htmlEncode((string) $blokkade['laatste']) ?></code></td>
+                    <td class="notfound-patronen__actie">
+                        <button type="button" class="btn notfound-blokkade-opheffen" data-ip="<?= Server::htmlEncode($ip) ?>">Opheffen</button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
     </cma-tabs>
 
     <lib-dialog id="notFoundDetailDialog" heading="404 Error Details" size="large">
@@ -1003,10 +1033,14 @@ document.addEventListener('click', function(e) {
         // Eén aanroep voor toevoegen en verwijderen; na een wijziging laadt de pagina
         // opnieuw, want elke regel van de dag kan daardoor van tabblad wisselen.
         function wijzigLijst(actie, lijst, patroon) {
+            return stuur({ action: actie, lijst: lijst, patroon: patroon });
+        }
+
+        function stuur(verzoek) {
             return fetch('../api/notfound_lists.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: actie, lijst: lijst, patroon: patroon })
+                body: JSON.stringify(verzoek)
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -1044,6 +1078,17 @@ document.addEventListener('click', function(e) {
                     cancelText: 'Annuleren'
                 });
                 if (ok) wijzigLijst('remove', knop.dataset.lijst, knop.dataset.patroon);
+            });
+        });
+
+        document.querySelectorAll('.notfound-blokkade-opheffen').forEach(function(knop) {
+            knop.addEventListener('click', async function() {
+                var ok = await libConfirm('Blokkade van ' + knop.dataset.ip + ' opheffen?', {
+                    title: 'Blokkade opheffen',
+                    confirmText: 'Opheffen',
+                    cancelText: 'Annuleren'
+                });
+                if (ok) stuur({ action: 'unblock', ip: knop.dataset.ip });
             });
         });
 

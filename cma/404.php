@@ -11,6 +11,9 @@
 // Note: Direct $_SERVER access is used here because bootstrap is not loaded,
 // so Request/Session/Cookie wrapper classes are not available.
 
+// A client over the hack-URL limit stops here with a 403; a hack path counts.
+require __DIR__ . '/hackguard.inc';
+
 // Get the requested URL
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/unknown';
 $referrer = $_SERVER['HTTP_REFERER'] ?? '';

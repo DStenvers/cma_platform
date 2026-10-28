@@ -15662,3 +15662,7 @@ karaat-data en staat in de karaat-repo.
 ## 2026-10-28
 
 > 404 errors en gemiste urls worden gelogd. Daarbij wil ik aan kunnen geven dat iets een hackpoging is, die moeten in een aparte categorie komen te staan (via tabs) en onderhouden kunnen worden. Op termijn wil ik ip-blokkades kunnen zetten op clients die in x minuten meer dan y hack urls hebben opgeroepen
+
+> 1 PHP is prima, 2 voor de aanroep van 404.php kunnen we dat toch doen? In de bootstrap? 3 geen whitelist nodig want het betreft alleen hackpogingen y = 10 en x is 10,
+
+> blokkadeduur: 1 uur.

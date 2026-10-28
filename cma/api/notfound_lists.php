@@ -5,11 +5,13 @@
  *   GET  ?action=list                                  → {success, lijsten, labels}
  *   POST {action:"add",    lijst, patroon}             → {success, lijsten}
  *   POST {action:"remove", lijst, patroon}             → {success, lijsten}
+ *   POST {action:"unblock", ip}                        → {success}  (HackBlocker)
  *
  * Used by the 404 log in the logreader (marking a miss from its detail window,
- * and the tab "Patronen"). Administrators and up.
+ * and the tabs "Patronen" and "Blokkades"). Administrators and up.
  */
 
+use App\Library\HackBlocker;
 use App\Library\NotFoundLists;
 use App\Library\Request;
 use App\Library\Response;
@@ -63,6 +65,16 @@ switch ($action) {
             ? $lists->add($lijst, $patroon, SecurityHelper::getCurrentUserName())
             : $lists->remove($lijst, $patroon);
         $antwoord($ok, $ok ? '' : ($action === 'add' ? 'Dit patroon staat al op de lijst, of de lijst kon niet worden opgeslagen' : 'Patroon niet gevonden'));
+        break;
+
+    case 'unblock':
+        if (Request::server('REQUEST_METHOD') !== 'POST') {
+            http_response_code(405);
+            $antwoord(false, 'Alleen POST');
+            break;
+        }
+        $ok = (new HackBlocker(dirname(__DIR__, 2)))->unblock((string) ($input['ip'] ?? ''));
+        $antwoord($ok, $ok ? '' : 'Dit IP is niet (meer) geblokkeerd');
         break;
 
     default:

@@ -199,6 +199,14 @@ class CmaTabs extends HTMLElement {
             return;
         }
 
+        // Het beginblad. attributeChangedCallback laat selected liggen tot hier: de
+        // tabs (uit het tabs-attribuut of de <tab-item>-kinderen) en de root
+        // bestaan pas nu, dus pas nu valt de index te toetsen en te tekenen.
+        const gekozen = parseInt(this.getAttribute('selected'), 10);
+        if (gekozen >= 0 && gekozen < this._tabs.length) {
+            this._selectedIndex = gekozen;
+        }
+
         this._render();
         this._setupResponsive();
         this._updateContentPanels();
@@ -243,6 +251,9 @@ class CmaTabs extends HTMLElement {
         if (oldValue === newValue) return;
 
         if (name === 'selected') {
+            // Vóór de initialisatie is er nog geen root om in te tekenen;
+            // _initializeTabs() leest het attribuut dan zelf.
+            if (!this._initialized) return;
             const index = parseInt(newValue, 10);
             if (!isNaN(index) && index !== this._selectedIndex) {
                 this.selectTab(index, false);
