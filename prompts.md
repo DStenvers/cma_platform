@@ -15672,3 +15672,39 @@ karaat-data en staat in de karaat-repo.
 > bekeijk de laatste commits of daar zaken in staan die ook in de documentatie thuishoren.
 
 > commit and push please
+
+> please include require __DIR__ . '/cma/hackguard.inc' in all 404.php files (klei/karaat/template/mijnrino_php)
+
+## 2026-10-29
+
+> also do it for casa and rec please
+
+> yes please, change the local web.config for good measure
+
+> back to mijn rino, both versions: plan mode only: 
+>
+>
+> Er lijkt een klein verschil te zitten tussen de aantallen van de supervisie uren.
+> Als ik naar de praktijkuren in het dossioma kijk, zie ik bij bijvoorbeeld Elvira de Jong (25-G) 18 uur staan voor periode 1
+>
+> Echter als ik naar verslagen ga, en daar via de verslag periode de uren beoordeel staat er bij periode 1 een totaal van 25.
+> Het lijkt erop dat de persoonsgerichte supervisie uren niet meegenomen worden in het totaal in het dossioma. Zouden jullie hier naar willen kijken?
+
+> commit and push all changes with a nice commit message describing all changes
+
+> please chech the /mnt/c/repos/rino/rinoportal1.0 version for this uren bug as well
+
+> can you explain in simple terms what the issue was? I have to convince a product owner this has been in the codebase for many years without anyone noticing. Explain it to me like i am five.
+
+> for the rinoportal1.0 version, can you see if this problem exists there as well? 
+>
+> mijn rino php version: praktijktoetsen weergave. the difference between an ingevuld formulier and one that has been sent is too big. I want the ingevuld display (ccs wise) to be used in both versions, just the content of the line must remain the same
+
+> the checkbox that calls plaats_in_portfolio('11354', this) should be a switch and give feedback in the form of a toaster that dissapears
+
+> Inga Aarts has this issue
+>
+>
+> The portal does have the other case I mentioned: "Overige werkzaamheden" as the last hidden supervision row in template 1, so those hours appear nowhere in the dossioma. That one is still waiting for your choice (a/b/c). -> can you give an example record?
+
+> commit and push please
