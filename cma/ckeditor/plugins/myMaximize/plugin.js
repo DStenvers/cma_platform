@@ -92,9 +92,10 @@
 	}
 
 	CKEDITOR.plugins.add( 'myMaximize', {
-		// jscs:disable maximumLineLength
-		lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,de-ch,el,en,en-au,en-ca,en-gb,eo,es,et,eu,fa,fi,fo,fr,fr-ca,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,pl,pt,pt-br,ro,ru,si,sk,sl,sq,sr,sr-latn,sv,th,tr,tt,ug,uk,vi,zh,zh-cn', // %REMOVE_LINE_CORE%
-		// jscs:enable maximumLineLength
+		// Geen eigen `lang`: de teksten (editor.lang.maximize) staan al in de taalbestanden van
+		// de kern. De lang-bestanden van deze plugin registreren zich als 'maximize', niet als
+		// 'myMaximize'; met `lang` hier wachtte elke volgende editor op de pagina op teksten die
+		// onder die naam nooit kwamen en bleef hij op 'unloaded' staan.
 		icons: 'mymaximize', 
 		hidpi: true, 
 		init: function( editor ) {
