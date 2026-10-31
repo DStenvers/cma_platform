@@ -384,7 +384,7 @@ class ConfigFormService
                             break;
                         }
                     }
-                    $isIdReadOnly = ($idFieldDef['readOnly'] ?? false) === true;
+                    $isIdReadOnly = $idFieldDef !== null && JsonFormLoader::isReadonly($idFieldDef);
 
                     if ($isIdReadOnly) {
                         $recordExists = false;
@@ -508,7 +508,7 @@ class ConfigFormService
                         break;
                     }
                 }
-                $isIdReadOnly = ($idFieldDef['readOnly'] ?? false) === true;
+                $isIdReadOnly = $idFieldDef !== null && JsonFormLoader::isReadonly($idFieldDef);
 
                 if ($isIdReadOnly) {
                     $recordExists = false;

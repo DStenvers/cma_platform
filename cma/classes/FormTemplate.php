@@ -2315,7 +2315,7 @@ class FormTemplate
                         $features['controlTypes'][FormRenderer::TYPE_MEMO] = true;
                         // Check for memo with HTML (support both 'allowHtml' and 'html' properties)
                         // Readonly HTML memos render as a div, so they don't need CKEditor
-                        $isReadonly = !empty($field['readOnly']) || !empty($field['readonly']);
+                        $isReadonly = JsonFormLoader::isReadonly($field);
                         if ((!empty($field['allowHtml']) || !empty($field['html'])) && !$isReadonly) {
                             $features['hasMemoWithHtml'] = true;
                             // Check for block edit (HTML without limited)

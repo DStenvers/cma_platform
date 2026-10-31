@@ -161,7 +161,9 @@ class LibCombo extends HTMLElement {
                 this._setValueFromAttribute(newValue);
                 break;
             case 'disabled':
+            case 'readonly':
                 this._updateDisabledState();
+                this._updateDisplay();
                 break;
             case 'placeholder':
                 this._updatePlaceholder();
@@ -968,6 +970,10 @@ class LibCombo extends HTMLElement {
         const display = this.shadowRoot.querySelector('.combo-display');
         const placeholder = this.getAttribute('placeholder') || 'Selecteer...';
         const isMultiple = this.hasAttribute('multiple');
+        // A readonly or disabled combo shows its value but offers nothing to remove it:
+        // the clear button and the tag-remove buttons cleared the value and fired change,
+        // so the form saved an empty value for a field the user could not edit.
+        const isLocked = this.hasAttribute('readonly') || this.hasAttribute('disabled');
 
         // Remove existing content except arrow
         display.innerHTML = '';
@@ -987,12 +993,14 @@ class LibCombo extends HTMLElement {
                     tag.className = 'combo-tag';
                     tag.innerHTML = `
                         ${this._escapeHtml(option.label)}
-                        <span class="combo-tag-remove" data-value="${this._escapeHtml(val)}">&times;</span>
+                        ${isLocked ? '' : `<span class="combo-tag-remove" data-value="${this._escapeHtml(val)}">&times;</span>`}
                     `;
-                    tag.querySelector('.combo-tag-remove').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this._selectOption(val);
-                    });
+                    if (!isLocked) {
+                        tag.querySelector('.combo-tag-remove').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this._selectOption(val);
+                        });
+                    }
                     display.appendChild(tag);
                 } else {
                     unmatchedValues.push(val);
@@ -1009,7 +1017,7 @@ class LibCombo extends HTMLElement {
             display.innerHTML = `<span class="combo-value">${displayLabel}</span>`;
 
             // Add clear button for single select
-            if (option) {
+            if (option && !isLocked) {
                 const clear = document.createElement('span');
                 clear.className = 'combo-clear';
                 clear.addEventListener('click', (e) => {

@@ -832,7 +832,7 @@ class JsonFormService extends BaseFormService
                     'type' => $dataType,
                     'controlType' => $fieldType,
                     'required' => $field['required'] ?? false,
-                    'readonly' => $field['readonly'] ?? false,
+                    'readonly' => JsonFormLoader::isReadonly($field),
                     'newOnly' => isset($newOnlyFields[strtolower($fieldName)]),
                     'maxLength' => $field['maxLength'] ?? 255,
                 ];
@@ -2037,7 +2037,7 @@ class JsonFormService extends BaseFormService
                 'caption' => $field['caption'] ?? self::fieldNameCaption($fieldName),
                 'type' => $fieldType,
                 'required' => $field['required'] ?? false,
-                'readonly' => $field['readonly'] ?? false,
+                'readonly' => JsonFormLoader::isReadonly($field),
                 'newOnly' => $field['newOnly'] ?? false,
                 'maxLength' => $field['maxLength'] ?? 255,
             ];

@@ -16333,3 +16333,121 @@ karaat-data en staat in de karaat-repo.
 > wijzigen blokinformatie werkt nog niet (geen html veld), wijzigen van een roosteritem werkt 1x en daarna niet meer
 
 > the day may be a bit smaller, it is too large now and make the month a bit darker still
+
+> voor de weergave van het draaiboek naar docenten, kunnen we een knop maken 'Toon eigen lesdagen', die alleen de dagen toont dat die docent lesgeeft?
+
+> <task-notification>
+> <task-id>b9cv5hcrr</task-id>
+> <tool-use-id>toolu_01UKxGmMjsgnPGYLvqPVCFwy</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b9cv5hcrr.output</output-file>
+> <status>failed</status>
+> <summary>Background command "S=/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/scratchpad; cat &gt; $S/eigen.js &lt;&lt;'EOF'
+> const { chromium } = require('/mnt/c/repos/adam/mijnrino_php/node_modules/playwright');
+> const base = 'http://172.30.208.1:8090';
+> (async () =&gt; {
+>   const b = await chromium.launch(); const c = await b.newContext({ viewport: { width: 1200, height: 1000 }, deviceScaleFactor: 1.5 });
+>   await c.addCookies([{ name: 'USID', value: '278', url: base }, { name: 'CHK', value: '7285E0E2-E854-4AD9-B73D-0DEC0FD1BCEA', url: base }]);
+>   const p = await c.newPage();
+>   p.on('pageerror', e =&gt; console.log('PAGEERROR', e.message));
+>   await p.goto(base + '/index.php?pageaction=opleidingen&amp;opleidingid=11#Draaiboeken', { timeout: 120000 });
+>   await p.waitForSelector('vertical-timeline .tl-day', { timeout: 180000, state: 'attached' });
+>   const tel = () =&gt; p.evaluate(() =&gt; { const tl = document.querySelector('vertical-timeline'); const zicht = [...tl.querySelectorAll('.tl-day')].filter(d =&gt; d.style.display !== 'none');
+>     return { knop: (tl.querySelector('.tl-eigen-dagen') || {}).textContent || 'GEEN KNOP', dagen: tl.querySelectorAll('.tl-day').length, items: tl.querySelectorAll('.tl-item, [data-roosterid].tl-toolbar').length, eigenItems: tl._data.filter(i =&gt; i.isDocent).length, eigenDagen: new Set(tl._data.filter(i =&gt; i.isDocent).map(i =&gt; i.date)).size, allData: tl._data.length }; });
+>   await p.evaluate(() =&gt; { try { localStorage.removeItem('tl-alleen-eigen'); } catch (e) {} });
+>   console.log('start', JSON.stringify(await tel()));
+>   const shot = async (f) =&gt; { await p.evaluate(() =&gt; { const r = document.querySelector('vertical-timeline').getBoundingClientRect(); window.scrollBy(0, r.top - 200); }); await p.waitForTimeout(400);
+>     const box = await (await p.$('vertical-timeline')).boundingBox(); await p.screenshot({ path: f, clip: { x: box.x - 20, y: box.y - 10, width: Math.min(box.width + 40, 1150), height: 420 } }); };
+>   await shot(process.argv[2] + '_uit.png');
+>   await p.click('.tl-eigen-dagen');
+>   console.log('aan', JSON.stringify(await tel()));
+>   await shot(process.argv[2] + '_aan.png');
+>   await p.click('.tl-view-tab[data-view="block"]');
+>   console.log('aan, per lesblok', JSON.stringify(await tel()));
+>   await p.reload(); await p.waitForSelector('vertical-timeline .tl-day', { timeout: 180000, state: 'attached' });
+>   console.log('na herladen', JSON.stringify(await tel()));
+>   await p.click('.tl-eigen-dagen');
+>   console.log('weer uit', JSON.stringify(await tel()));
+>   await b.close();
+> })();
+> EOF
+> timeout 400 node $S/eigen.js $S/eigen" failed with exit code 1</summary>
+> </task-notification>
+
+> <task-notification>
+> <task-id>b3af7pn1g</task-id>
+> <tool-use-id>toolu_01MCwEpXLCd58HDu8TCuNS5W</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b3af7pn1g.output</output-file>
+> <status>completed</status>
+> <summary>Background command "until [ -s /tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b9cv5hcrr.output ] &amp;&amp; grep -q "weer uit\|Error\|PAGEERROR" /tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b9cv5hcrr.output; do sleep 3; done; cat /tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b9cv5hcrr.output | cut -c1-400" completed (exit code 0)</summary>
+> </task-notification>
+
+> <task-notification>
+> <task-id>b0u78axod</task-id>
+> <tool-use-id>toolu_01FNNinAjHX2borCw87mBjRZ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/b0u78axod.output</output-file>
+> <status>completed</status>
+> <summary>Background command "S=/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/scratchpad; python3 - "$S/eigen.js" &lt;&lt;'PYEOF'
+> import sys
+> p=sys.argv[1]; s=open(p).read()
+> s=s.replace("const base = 'http://172.30.208.1:8090';","const a = require('/mnt/c/repos/adam/mijnrino_php/.tests/e2e/.auth.json'); let x = a.accounts.assistent; x = Array.isArray(x) ? x[0] : x; const base = a.base;")
+> s=s.replace("[{ name: 'USID', value: '278', url: base }, { name: 'CHK', value: '7285E0E2-E854-4AD9-B73D-0DEC0FD1BCEA', url: base }]","[{ name: 'USID', value: String(x.id), url: base }, { name: 'CHK', value: x.guid, url: base }]")
+> s=s.replace("opleidingid=11#","opleidingid=319#")
+> mark="""  const markeer = () =&gt; p.evaluate(() =&gt; { const tl = document.querySelector('vertical-timeline'); const d = tl._data.map((i, k) =&gt; Object.assign({}, i, { isDocent: [3, 9, 20].includes(k) })); tl.data = d; });
+> """
+> s=s.replace("  await p.evaluate(() =&gt; { try { localStorage.removeItem('tl-alleen-eigen'); } catch (e) {} });","  await p.evaluate(() =&gt; { try { localStorage.removeItem('tl-alleen-eigen'); } catch (e) {} });\n"+mark+"  await markeer();")
+> s=s.replace("  console.log('na herladen', JSON.stringify(await tel()));","  await markeer();\n  console.log('na herladen', JSON.stringify(await tel()));")
+> s=s.replace("dagen: tl.querySelectorAll('.tl-day').length,","dagen: tl.querySelectorAll('.tl-day').length, zichtbareDagen: zicht.length, view: tl._view,")
+> open(p,'w').write(s)
+> PYEOF
+> timeout 500 node $S/eigen.js $S/eigen 2&gt;&amp;1 | grep -v "^\s*at " | head -12" completed (exit code 0)</summary>
+> </task-notification>
+
+> bij de _draaiboeken heb je de datums van bestaande opleidingen gebruikt, wil je daarbij de docenten ook meenemen? Dat is ook handiger voor de demo
+
+> kun je de php versie pushen?
+
+> de docenten, waar worden die weergegeven?
+
+> kun je een migratie magen voor draaiboeken_inser.sql ?
+
+> <task-notification>
+> <task-id>bo1eb4pta</task-id>
+> <tool-use-id>toolu_018VntkhbSvqhmXNZuYk9XGS</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/532f7dbe-445b-4671-80bf-c1606637f525/tasks/bo1eb4pta.output</output-file>
+> <status>completed</status>
+> <summary>Background command "Commit and push migration and README" completed (exit code 0)</summary>
+> </task-notification>
+
+> mijnrino has an api, what is the status of mijnrino_php ?
+
+> ja graag
+
+> ✗ Fout bij update mijnrino:0.21.0: HTTP 404: geen foutmelding in de response bij draaien migratie??
+
+> webhooks: can you create the .env in a migration?
+
+> graag de lock uitzoeken
+
+## 2026-10-31
+
+> in de root staan veel tijdelijke test-bestanden, graag weghalen of in de juiste map verplaatsen en noteer in claude.md wat het juiste pad is
+
+> haal die mdbs maar weg
+
+> op de server staan die scripts nog wel, een git commando kan die wel weghalen toch?
+
+> ik heb wel toegang tot de server. hope kom je daarbij? kan ik ook git clean -fd gebruiken in de root alleen?
+
+> error: unknown option `:(glob)*'
+
+> de lijst met - nn is okay, zonder --n is uitvoeren?
+
+> kun je deze achterhalen: SQL: Select [tblEvalDeelname].[fkEvalDocument],[tblEvalDeelname].[fkAgenda],[tblEvalDeelname].[fkdeelnemer],[tblEvalDeelname].[fkDocent],[tblEvalDeelname].[datum_verzonden],[tblEvalDeelname].[datum_ingevuld],[tblEvalDeelname].[datum_reminder],[tblEvalDeelname].[Evaluatie_statistieken_hoofddoc_verzonden],[tblEvalDeelname].[guid] from tblEvalDeelname where ID=16342? 
+>
+> canuit de cma Referer    https://mijn.rino.nl/cma/list.asp?SearchType=1&FormID=58&ID=&fkOpleiding=218&searchfield=fkOpleiding
+
+> commit and push to staging
+
+> wil je dat veld in de php versie op alleen lezen zetten?
+
+> wil je de update hier tonen?

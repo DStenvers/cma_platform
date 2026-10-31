@@ -883,7 +883,7 @@ class FormDataProvider
             $readOnlyDefaults = [];
             foreach ($jsonData['fields'] ?? [] as $fieldDef) {
                 $lcName = strtolower((string)($fieldDef['name'] ?? ''));
-                if ($lcName !== '' && !empty($fieldDef['readOnly'])) {
+                if ($lcName !== '' && JsonFormLoader::isReadonly($fieldDef)) {
                     $readOnlyFields[$lcName] = true;
                     if (array_key_exists('defaultValue', $fieldDef) && (string)$fieldDef['defaultValue'] !== '') {
                         $readOnlyDefaults[$lcName] = $fieldDef['defaultValue'];
@@ -2803,7 +2803,7 @@ class FormDataProvider
         foreach ($fieldDefs as $def) {
             $name = (string)($def['name'] ?? '');
             $type = strtolower((string)($def['type'] ?? ''));
-            if ($name === '' || in_array($type, $skipTypes, true) || !empty($def['readOnly'])) {
+            if ($name === '' || in_array($type, $skipTypes, true) || JsonFormLoader::isReadonly($def)) {
                 continue;
             }
             // find the posted value case-insensitively

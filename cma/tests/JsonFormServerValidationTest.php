@@ -18,6 +18,7 @@ require_once dirname(__DIR__) . '/classes/Services/RecordService.php';
 
 use App\Library\Application;
 use Cma\FormDataProvider;
+use Cma\JsonFormLoader;
 
 class JsonFormServerValidationTest extends TestCase
 {
@@ -35,6 +36,8 @@ class JsonFormServerValidationTest extends TestCase
         ['name' => 'code',     'type' => 'textbox',  'caption' => 'Code', 'readOnly' => true, 'defaultValue' => 'NIEUW'],
         ['name' => 'actief',   'type' => 'checkbox', 'caption' => 'Actief', 'required' => true],
         ['name' => 'ips',      'type' => 'textbox',  'caption' => 'IP Adressen', 'validation' => ['ip-address-list']],
+        // the schema spelling (lowercase), as the site forms write it
+        ['name' => 'rooster',  'type' => 'combobox', 'caption' => 'Roosteritem', 'readonly' => true, 'dataType' => 'integer'],
     ];
 
     public function setUp(): void
@@ -184,5 +187,23 @@ class JsonFormServerValidationTest extends TestCase
         $update = array_values(array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'UPDATE')));
         $this->assertTrue(count($update) > 0, 'UPDATE verwacht');
         $this->assertFalse(str_contains($update[0]['sql'], '[stamp]') || str_contains($update[0]['sql'], '[code]'), 'readonly niet in UPDATE: ' . $update[0]['sql']);
+    }
+
+    public function testReadonlyInSchemaSchrijfwijzeNietGeschreven(): void
+    {
+        // `readonly` (schema) and `readOnly` (platform definitions) are the same flag. The save
+        // path knew only `readOnly`, so a cleared read-only combo was written as NULL.
+        $this->assertTrue(JsonFormLoader::isReadonly(['readonly' => true]), 'readonly');
+        $this->assertTrue(JsonFormLoader::isReadonly(['readOnly' => true]), 'readOnly');
+        $this->assertFalse(JsonFormLoader::isReadonly(['readonly' => false]), 'readonly false');
+        $this->assertFalse(JsonFormLoader::isReadonly([]), 'geen vlag');
+
+        $this->conn->enqueueResult([['ID' => '1', 'naam' => 'a', 'rooster' => 5215]]);
+        $this->conn->enqueueResult([]);
+        $this->conn->enqueueResult([['cnt' => 1]]);
+        FormDataProvider::saveJsonFormRecord('val_form', '1', ['naam' => 'ok', 'rooster' => '']);
+        $update = array_values(array_filter($this->conn->getCalls(), fn($c) => str_starts_with($c['sql'], 'UPDATE')));
+        $this->assertTrue(count($update) > 0, 'UPDATE verwacht');
+        $this->assertFalse(str_contains($update[0]['sql'], '[rooster]'), 'readonly (schema) niet in UPDATE: ' . $update[0]['sql']);
     }
 }

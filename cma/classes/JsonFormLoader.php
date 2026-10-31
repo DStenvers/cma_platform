@@ -401,6 +401,17 @@ class JsonFormLoader
     }
 
     /**
+     * Is this field read-only? The schema key is `readonly`; the platform's own
+     * definitions write `readOnly`. Both mean the same, so every reader goes through
+     * here: the renderer honoured both while the save path only knew `readOnly`, and
+     * wrote whatever the browser posted for every `readonly` field.
+     */
+    public static function isReadonly(array $field): bool
+    {
+        return !empty($field['readonly']) || !empty($field['readOnly']);
+    }
+
+    /**
      * Check if a JSON form definition exists
      *
      * @param string $formName Form name (without .json extension)
@@ -1311,7 +1322,7 @@ class JsonFormLoader
             $legacy[Q_DATABASEID][$i] = $field['database'] ?? '';
             $legacy[Q_NOSPAMJS][$i] = $field['noSpamJs'] ?? false;
             $legacy[Q_NEWCHANGABLEONLY][$i] = $field['newOnly'] ?? $field['editableOnNewOnly'] ?? false;
-            $legacy[Q_FLDREADONLY][$i] = $field['readOnly'] ?? $field['readonly'] ?? false;
+            $legacy[Q_FLDREADONLY][$i] = self::isReadonly($field);
             $legacy[Q_FLDLIMITEDHTML][$i] = $field['limitedHtml'] ?? false;
             $legacy[Q_FLDMAXCHARS][$i] = $field['maxChars'] ?? 0;
             $legacy[Q_KEEPWITHNEXT][$i] = $field['combineWithNext'] ?? false;
