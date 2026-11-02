@@ -415,7 +415,7 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
             $json = $wortel . '/vendor/stenversonline/platform/composer.json';
             if (is_file($json)) {
                 $d = json_decode((string) @file_get_contents($json), true);
-                if (is_array($d) && hasValue($d['version'] ?? '')) { return (string) $d['version']; }
+                if (is_array($d) && (string)($d['version'] ?? '') !== '') { return (string) $d['version']; }
                 return 'onbekend (geen version in composer.json)';
             }
         }

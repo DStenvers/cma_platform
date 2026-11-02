@@ -16451,3 +16451,7 @@ karaat-data en staat in de karaat-repo.
 > wil je dat veld in de php versie op alleen lezen zetten?
 
 > wil je de update hier tonen?
+
+## 2026-11-02
+
+> kun je de 17 fouten proberen op te lossen? Dat duidt toch op bugs.

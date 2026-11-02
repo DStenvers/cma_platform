@@ -325,7 +325,7 @@ class LibTable
      */
     private function _rijDataAttributen(): string
     {
-        if (!hasValue($this->TableRowHref)) { return ''; }
+        if ((string)($this->TableRowHref ?? '') === '') { return ''; }
         if (!preg_match_all('/\[([a-z0-9_-]+)\]/i', (string)$this->TableRowHref, $treffers)) { return ''; }
         $uit = '';
         foreach (array_unique($treffers[1]) as $veld) {
@@ -725,8 +725,8 @@ class LibTable
                     if(x){x.className=(bOn?'" . $this->TableTRClass . "_hover':'libTableTR')}" . PHP_EOL . '  }' . PHP_EOL . '}</script>' . PHP_EOL;
                     if (!$this->TableIsChild) {
                         echo '<lib-table resizable'
-                            . (hasValue($this->TableRowHref) ? ' row-href="' . htmlspecialchars((string)$this->TableRowHref, ENT_QUOTES) . '"' : '')
-                            . (hasValue($this->TableRowTarget) ? ' row-target="' . htmlspecialchars((string)$this->TableRowTarget, ENT_QUOTES) . '"' : '')
+                            . ((string)($this->TableRowHref ?? '') !== '' ? ' row-href="' . htmlspecialchars((string)$this->TableRowHref, ENT_QUOTES) . '"' : '')
+                            . ((string)($this->TableRowTarget ?? '') !== '' ? ' row-target="' . htmlspecialchars((string)$this->TableRowTarget, ENT_QUOTES) . '"' : '')
                             . '>';
                     }
                     echo'<TABLE data-name="' . substr(str_replace('?','', str_replace('/','', $this->TableName)), 0, max(0, min(30, strlen(str_replace('?','', str_replace('/','', $this->TableName)))))) . chr(34) . ' ' . $this->TableAttrib .($this->TableIsChild ? '' : ($this->TableID !='' ?' id="' . $this->TableID . chr(34) : ($this->TableSortable ?' id=sorttable' . $Table_CtrlID :''))) .' onselectstart="return(false)"><THEAD><TR>';
