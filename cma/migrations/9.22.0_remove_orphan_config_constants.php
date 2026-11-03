@@ -35,12 +35,12 @@ if (!isset($siteRoot)) {
 
 $wees = $siteRoot . '/config/constants.php';
 if (!is_file($wees)) {
-    echo "  Overgeslagen: config/constants.php bestaat niet (al opgeruimd)\n";
+    echo "  ⊘ Overgeslagen: config/constants.php bestaat niet (al opgeruimd)\n";
     return;
 }
 
 if (!is_file($siteRoot . '/library/config/constants.php')) {
-    echo "  Overgeslagen: library/config/constants.php ontbreekt — zonder die bron is\n"
+    echo "  ⊘ Overgeslagen: library/config/constants.php ontbreekt — zonder die bron is\n"
        . "  config/constants.php mogelijk wél de enige plek waar de constanten staan.\n";
     return;
 }
@@ -76,7 +76,7 @@ foreach ($it as $bestand) {
 }
 
 if ($laders !== []) {
-    echo "  Overgeslagen: config/constants.php wordt hier wél geladen:\n";
+    echo "  ⊘ Overgeslagen: config/constants.php wordt hier wél geladen:\n";
     foreach (array_slice($laders, 0, 5) as $l) {
         echo "    - {$l}\n";
     }

@@ -56,7 +56,7 @@ try {
 
 } catch (Exception $e) {
     $result['message'] = 'Fout: ' . $e->getMessage();
-    echo "ERROR: " . $e->getMessage() . "\n";
+    echo "✗ ERROR: " . $e->getMessage() . "\n";
 }
 
 return $result;

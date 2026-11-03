@@ -44,7 +44,7 @@ foreach ([$appPhp, $bootstrap] as $f) {
         file_put_contents($f, str_replace($needle, $guard, $src));
         echo "  Afgeschermd: global.asa.php-require in " . basename($f) . " met file_exists-guard\n";
     } else {
-        echo "  Overgeslagen: " . basename($f) . " (require al afgeschermd of niet aanwezig)\n";
+        echo "  ⊘ Overgeslagen: " . basename($f) . " (require al afgeschermd of niet aanwezig)\n";
     }
 }
 
@@ -104,7 +104,7 @@ if (is_file($globalPhp)) {
             $hasKey = preg_match('/^' . preg_quote($envKey, '/') . '=(.*)$/m', $env, $cm);
             $cur = $hasKey ? trim($cm[1]) : '';
             if ($cur !== '') {
-                echo "  Overgeslagen .env: " . $envKey . " heeft al een waarde\n";
+                echo "  ⊘ Overgeslagen .env: " . $envKey . " heeft al een waarde\n";
                 continue;
             }
             if ($hasKey) {
@@ -128,7 +128,7 @@ if (is_file($globalPhp)) {
 if (is_file($globalPhp)) {
     $dest = $globalPhp . $suffix;
     if (is_file($dest)) {
-        echo "  Overgeslagen: global.php (al hernoemd)\n";
+        echo "  ⊘ Overgeslagen: global.php (al hernoemd)\n";
     } else {
         rename($globalPhp, $dest);
         echo "  Hernoemd: global.php -> global.php" . $suffix . "\n";
@@ -144,7 +144,7 @@ if (is_file($globalAsa)) {
         && (stripos($asa, 'conn_data') === false);
     $dest = $globalAsa . $suffix;
     if (is_file($dest)) {
-        echo "  Overgeslagen: global.asa.php (al hernoemd)\n";
+        echo "  ⊘ Overgeslagen: global.asa.php (al hernoemd)\n";
     } elseif ($trivial) {
         rename($globalAsa, $dest);
         echo "  Hernoemd: global.asa.php -> global.asa.php" . $suffix . " (Application_OnStart was leeg)\n";

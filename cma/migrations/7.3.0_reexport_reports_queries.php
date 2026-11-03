@@ -155,7 +155,7 @@ function reexportReportsWithQueries(): array
                 } else {
                     $queriesEmpty++;
                     if ($isDebug) {
-                        echo "  Warning: Report {$id} ({$row['Title']}) has no query\n";
+                        echo "  ⚠ Warning: Report {$id} ({$row['Title']}) has no query\n";
                     }
                 }
             }

@@ -479,7 +479,8 @@ class MigrationService
                 $this->log[] = "✗ Versie " . $migration['version'] . " MISLUKT";
                 $this->log[] = "  Fout: " . $result['error'];
                 if (!empty($result['details'])) {
-                    $this->log[] = "  Details: " . $result['details'];
+                    $this->log[] = "  Details:";
+                    $this->log[] = self::indent(self::indent($result['details']));
                 }
                 if (!empty($result['sql'])) {
                     $this->log[] = "  SQL: " . $result['sql'];
@@ -1762,7 +1763,8 @@ class MigrationService
             ];
         } else {
             $errorMsg = $result['details'] ?? $result['error'] ?? 'Onbekende fout';
-            $this->log[] = "✗ Migratie {$version} MISLUKT: " . $errorMsg;
+            $this->log[] = "✗ Migratie {$version} MISLUKT:";
+            $this->log[] = self::indent($errorMsg);
             return [
                 'success' => false,
                 'applied' => [],
@@ -1771,6 +1773,15 @@ class MigrationService
                 'log' => $this->log
             ];
         }
+    }
+
+    /**
+     * Indent every line of a failed migration's output, so the log reads it as
+     * belonging to the "MISLUKT" line above it.
+     */
+    private static function indent(string $text): string
+    {
+        return preg_replace('/^/m', '  ', rtrim($text));
     }
 
     /**
@@ -1817,7 +1828,8 @@ class MigrationService
                 'error' => null
             ];
         } else {
-            $this->log[] = "✗ Versie {$version} MISLUKT: " . ($result['details'] ?? $result['error'] ?? 'Onbekende fout');
+            $this->log[] = "✗ Versie {$version} MISLUKT:";
+            $this->log[] = self::indent($result['details'] ?? $result['error'] ?? 'Onbekende fout');
             return [
                 'success' => false,
                 'log' => $this->log,

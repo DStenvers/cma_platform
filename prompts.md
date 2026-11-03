@@ -16664,3 +16664,53 @@ karaat-data en staat in de karaat-repo.
 
 > 1 laten staan, liefst implementeren. 2 graag , 3 ja gooi maar weg
 > 6 ja beide al gedaan
+
+> the funnel character in libtable seems to be missing? 
+>
+> also when filtering the record 1-x van y staat dan nog op het scherm, wat adviseer je daarmee te doen? 
+>
+>
+>   
+>
+> <pasted_content id="a393">
+> 1 wijziging(en) uit te voeren...
+> ✗ Versie platform:2.7.1 MISLUKT: ⊘ Overgeslagen (bestaand bestand met tabel/velden): erkenningsaanvragen_praktijkopleidingsinstelling.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak_aanwezigen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak_bijlagen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): auditlog.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): evaluatie_template_evaluatie_document.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): evaluatie_template.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): ingeplande_tijdsblokken.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aankondigingen_uitnodiging_per_deelname.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aankondigingen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): gesprekstype_bijlagen_bij_gesprekstype.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): gesprekstype.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): kbt_templates.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aanmeldingsdocumenten_startdocumenten_per_differentiatie.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aanmeldingsdocumenten.json
+> ✗ Fout: COUNT field incorrect: -3010 Too few parameters. Expected 1.
+>   - COUNT field incorrect: -3010 Too few parameters. Expected 1.
+> ✗ Fout bij update platform:2.7.1: ⊘ Overgeslagen (bestaand bestand met tabel/velden): erkenningsaanvragen_praktijkopleidingsinstelling.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak_aanwezigen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak_bijlagen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): afspraak.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): auditlog.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): evaluatie_template_evaluatie_document.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): evaluatie_template.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): ingeplande_tijdsblokken.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aankondigingen_uitnodiging_per_deelname.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aankondigingen.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): gesprekstype_bijlagen_bij_gesprekstype.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): gesprekstype.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): kbt_templates.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aanmeldingsdocumenten_startdocumenten_per_differentiatie.json
+>   ⊘ Overgeslagen (bestaand bestand met tabel/velden): aanmeldingsdocumenten.json
+> ✗ Fout: COUNT field incorrect: -3010 Too few parameters. Expected 1.
+>   - COUNT field incorrect: -3010 Too few parameters. Expected 1.
+> </pasted_content id="a393">
+>
+>
+> migraties productiedatabase op T werkt niet goed. De overgeslagen records tonen rood, wat niet klopt want het is geen error. Kun je andere migraties ook herbeoordelen op kleur?
+
+> kun je committen en pushen?, die v= hoeft niet achter fonts, die veranderen niet

@@ -18,7 +18,7 @@ $old      = $dataDir . '/menu.json';
 $new      = $dataDir . '/cma_menu.json';
 
 if (file_exists($new)) {
-    echo "  Overgeslagen: data/cma_menu.json bestaat al\n";
+    echo "  ⊘ Overgeslagen: data/cma_menu.json bestaat al\n";
     // Legacy file lingering next to the new one -> remove it to avoid confusion.
     if (file_exists($old)) {
         @unlink($old);
@@ -31,5 +31,5 @@ if (file_exists($new)) {
     rename($old, $new);
     echo "  Hernoemd: data/menu.json -> data/cma_menu.json\n";
 } else {
-    echo "  Overgeslagen: geen data/menu.json aanwezig (niets te hernoemen)\n";
+    echo "  ⊘ Overgeslagen: geen data/menu.json aanwezig (niets te hernoemen)\n";
 }

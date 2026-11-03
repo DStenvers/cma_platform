@@ -161,6 +161,7 @@ $history = $migrationService->getMigrationHistory();
 $errors = $migrationService->getErrors();
 
 cma_html_header('Platform updates');
+cma_script('/cma/assets/js/migration-log.js');
 echo '<body class="contentbody tools migrations">';
 ToolbarHelper::report('Platform updates', false, false, false, false, 'Stappen die na een update van het platform op deze site worden uitgevoerd');
 echo '<div id="c" class="tools">';
@@ -183,24 +184,9 @@ if ($result !== null) {
     // Show log
     if (!empty($result['log'])) {
         echo '<h3>Uitvoeringslog</h3>';
-        echo '<div class="log-output" style="background:#1e1e1e;color:#d4d4d4;padding:15px;font-family:monospace;font-size:var(--font-size-sm);border-radius:4px;overflow-y:auto;white-space:pre-wrap;">';
-        foreach ($result['log'] as $line) {
-            $line = htmlspecialchars($line);
-            // Color coding
-            if (strpos($line, '✓') !== false) {
-                $line = '<span style="color:#4ec9b0">' . $line . '</span>';
-            } elseif (strpos($line, '✗') !== false || strpos($line, 'MISLUKT') !== false) {
-                $line = '<span style="color:#f14c4c">' . $line . '</span>';
-            } elseif (strpos($line, '⊘') !== false || strpos($line, 'Waarschuwing') !== false || strpos($line, '⚠') !== false) {
-                $line = '<span style="color:#cca700">' . $line . '</span>';
-            } elseif (strpos($line, '━') !== false || strpos($line, '═') !== false) {
-                $line = '<span style="color:#569cd6">' . $line . '</span>';
-            } elseif (strpos($line, 'Versie ') === 0) {
-                $line = '<span style="color:#9cdcfe">' . $line . '</span>';
-            }
-            echo $line . "\n";
-        }
-        echo '</div>';
+        // Coloured by the same cmaMigrationLogHtml() as the AJAX run (assets/js/migration-log.js).
+        echo '<div class="log-output" data-migration-log="' . htmlspecialchars(json_encode(array_values($result['log']), JSON_UNESCAPED_UNICODE)) . '"></div>';
+        echo '<script>document.querySelectorAll("[data-migration-log]").forEach(function (el) { el.innerHTML = cmaMigrationLogHtml(JSON.parse(el.getAttribute("data-migration-log"))); });</script>';
     }
 }
 
@@ -661,7 +647,9 @@ async function submitMigration(e) {
             failedVersion = version;
             // Store remaining migrations (including failed one) for retry
             remainingMigrations = migrationsToApply.slice(i);
-            if (result.error) {
+            // The log already ends with "✗ Versie … MISLUKT" and the script output;
+            // repeat the error only when there is no log to carry it.
+            if (result.error && !(result.log && result.log.length)) {
                 allLogs.push("✗ Fout bij update " + version + ": " + result.error);
             }
             if (result.sql) {
@@ -737,22 +725,7 @@ async function submitMigration(e) {
             logDiv.id = "migrationLog";
             resultDiv.parentNode.insertBefore(logDiv, resultDiv.nextSibling);
         }
-        logDiv.innerHTML = "<h3>Uitvoeringslog</h3><div class=\"log-output\" style=\"background:#1e1e1e;color:#d4d4d4;padding:15px;font-family:monospace;font-size:var(--font-size-sm);border-radius:4px;overflow-y:auto;white-space:pre-wrap;\">" +
-            allLogs.map(function(line) {
-                line = line.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                if (line.indexOf("✓") !== -1) {
-                    return "<span style=\"color:#4ec9b0\">" + line + "</span>";
-                } else if (line.indexOf("✗") !== -1 || line.indexOf("MISLUKT") !== -1) {
-                    return "<span style=\"color:#f14c4c\">" + line + "</span>";
-                } else if (line.indexOf("⊘") !== -1 || line.indexOf("Waarschuwing") !== -1 || line.indexOf("⚠") !== -1) {
-                    return "<span style=\"color:#cca700\">" + line + "</span>";
-                } else if (line.indexOf("━") !== -1 || line.indexOf("═") !== -1) {
-                    return "<span style=\"color:#569cd6\">" + line + "</span>";
-                } else if (line.indexOf("Versie ") === 0) {
-                    return "<span style=\"color:#9cdcfe\">" + line + "</span>";
-                }
-                return line;
-            }).join("\n") + "</div>";
+        logDiv.innerHTML = "<h3>Uitvoeringslog</h3><div class=\"log-output\">" + cmaMigrationLogHtml(allLogs) + "</div>";
     }
 
     return false;
@@ -842,22 +815,7 @@ async function rerunMigration(version) {
                 logDiv.id = "migrationLog";
                 resultDiv.parentNode.insertBefore(logDiv, resultDiv.nextSibling);
             }
-            logDiv.innerHTML = "<h3>Uitvoeringslog</h3><div class=\"log-output\" style=\"background:#1e1e1e;color:#d4d4d4;padding:15px;font-family:monospace;font-size:var(--font-size-sm);border-radius:4px;overflow-y:auto;white-space:pre-wrap;\">" +
-                result.log.map(function(line) {
-                    line = line.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    if (line.indexOf("✓") !== -1) {
-                        return "<span style=\"color:#4ec9b0\">" + line + "</span>";
-                    } else if (line.indexOf("✗") !== -1 || line.indexOf("MISLUKT") !== -1) {
-                        return "<span style=\"color:#f14c4c\">" + line + "</span>";
-                    } else if (line.indexOf("⊘") !== -1 || line.indexOf("Waarschuwing") !== -1 || line.indexOf("⚠") !== -1) {
-                        return "<span style=\"color:#cca700\">" + line + "</span>";
-                    } else if (line.indexOf("━") !== -1 || line.indexOf("═") !== -1) {
-                        return "<span style=\"color:#569cd6\">" + line + "</span>";
-                    } else if (line.indexOf("Versie ") === 0) {
-                        return "<span style=\"color:#9cdcfe\">" + line + "</span>";
-                    }
-                    return line;
-                }).join("\n") + "</div>";
+            logDiv.innerHTML = "<h3>Uitvoeringslog</h3><div class=\"log-output\">" + cmaMigrationLogHtml(result.log) + "</div>";
         }
 
     } catch (e) {

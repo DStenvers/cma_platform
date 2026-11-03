@@ -35,7 +35,7 @@ if (!isset($siteRoot)) {
 $schemaDir = $siteRoot . '/cma/config/schema';
 if (!is_dir($schemaDir)) {
     // A pre-sync site (or a test root without the cma/ tree): nothing to point at.
-    echo "  Overgeslagen: {$schemaDir} bestaat niet\n";
+    echo "  ⊘ Overgeslagen: {$schemaDir} bestaat niet\n";
     return;
 }
 

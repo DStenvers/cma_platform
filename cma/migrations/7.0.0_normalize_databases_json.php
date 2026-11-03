@@ -110,7 +110,7 @@ function runMigration(): array {
 if (php_sapi_name() === 'cli' || !defined('MIGRATION_CONTEXT')) {
     $result = runMigration();
     if (php_sapi_name() === 'cli') {
-        echo $result['success'] ? "OK: " : "FOUT: ";
+        echo $result['success'] ? "✓ OK: " : "✗ FOUT: ";
         echo $result['message'] . "\n";
         foreach ($result['changes'] as $change) {
             echo "  - $change\n";

@@ -1539,6 +1539,8 @@ span.info { color: var(--color-info); }
 .log-output .log-success { color: #6a9955; }
 .log-output .log-error { color: #f14c4c; }
 .log-output .log-warning { color: #cca700; }
+.log-output .log-heading { color: #569cd6; }
+.log-output .log-version { color: #9cdcfe; }
 
 .log-settings-info {
     background: #f5f5f5;

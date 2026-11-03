@@ -60,7 +60,7 @@ foreach ($result['messages'] as $line) {
     echo $line . "\n";
 }
 foreach ($result['errors'] as $line) {
-    echo "FOUT: " . $line . "\n";
+    echo "✗ FOUT: " . $line . "\n";
 }
 
 if ($result['status'] === 'error') {
@@ -150,10 +150,10 @@ if (!function_exists('curl_init')) {
         // breekt. Throw zodat de runner dit als MISLUKT rapporteert (niet
         // "✓ succesvol") — de patch is teruggerold.
         if ($rolledBack) {
-            echo "FOUT: $msg ROLLBACK uit backup voltooid.\n";
+            echo "✗ FOUT: $msg ROLLBACK uit backup voltooid.\n";
             throw new \RuntimeException("9.9.0: $msg Teruggerold uit $backup.");
         }
-        echo "FOUT: $msg ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
+        echo "✗ FOUT: $msg ROLLBACK FAALDE — kopieer handmatig: $backup → $webConfig\n";
         throw new \RuntimeException("9.9.0: $msg ROLLBACK FAALDE — herstel handmatig: $backup → $webConfig.");
     } else {
         echo "Live smoke-test: OK (HTTP $code op /cma/dashboard).\n";

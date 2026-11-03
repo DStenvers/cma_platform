@@ -148,7 +148,7 @@ if (!empty($issues)) {
     foreach ($issues as $issue) {
         echo "Parent form: {$issue['parent']}\n";
         echo "Subform: {$issue['title']} ({$issue['subform']})\n";
-        echo "Error: {$issue['error']}\n";
+        echo "⚠ Error: {$issue['error']}\n";
         if (!empty($issue['columns'])) {
             echo "Available columns in {$issue['subformTable']}:\n";
             $fkCandidates = [];

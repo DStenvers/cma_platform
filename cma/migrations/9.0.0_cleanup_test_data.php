@@ -134,7 +134,7 @@ try {
     }
     echo "Deleted $deletedNotif orphaned notification(s)\n";
 } catch (\Exception $e) {
-    echo "Skipped tblNotifications cleanup (table may not exist)\n";
+    echo "⊘ Skipped tblNotifications cleanup (table may not exist)\n";
 }
 
 // 7. Delete orphaned tblUserDataNotifications where fkUser not in tblUsers
@@ -151,7 +151,7 @@ try {
     }
     echo "Deleted $deletedDataNotif orphaned data notification(s)\n";
 } catch (\Exception $e) {
-    echo "Skipped tblUserDataNotifications cleanup (table may not exist)\n";
+    echo "⊘ Skipped tblUserDataNotifications cleanup (table may not exist)\n";
 }
 
 echo "\nCleanup complete.\n";

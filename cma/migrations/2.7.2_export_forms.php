@@ -798,30 +798,23 @@ function detectSubformParentField(int $subformId, string $parentTable): ?string
         return $foundField;
     }
 
-    // Method 2: Check the NameQuery SQL for FK patterns
-    $formSql = "SELECT SqlID FROM tblForms WHERE ID = $subformId";
-    $formRs = Database::openRS($formSql, $connrep);
-
+    // Method 2: Check the subform's NameQuery for FK patterns. The query lives in
+    // tblForms.NameQuery; tblSqlStatements only holds a name and a table.
+    $formRs = Database::openRS("SELECT NameQuery FROM tblForms WHERE ID = $subformId", $connrep);
     if ($formRs !== null && !$formRs->EOF) {
-        $sqlId = (int)($formRs->fields['SqlID'] ?? 0);
-        if ($sqlId > 0) {
-            $stmtSql = "SELECT SqlStatement FROM tblSqlStatements WHERE ID = $sqlId";
-            $stmtRs = Database::openRS($stmtSql, $connrep);
-            if ($stmtRs !== null && !$stmtRs->EOF) {
-                $nameQuery = $stmtRs->fields['SqlStatement'] ?? '';
-                foreach ($variations as $variation) {
-                    if (preg_match('/\b(' . preg_quote($variation, '/') . ')\b/i', $nameQuery, $match)) {
-                        return $match[1];
-                    }
-                }
+        $nameQuery = (string)($formRs->fields['NameQuery'] ?? '');
+        foreach ($variations as $variation) {
+            if (preg_match('/\b(' . preg_quote($variation, '/') . ')\b/i', $nameQuery, $match)) {
+                return $match[1];
             }
         }
     }
 
     // Method 3: Query the actual data table schema for FK columns
-    $dbSql = "SELECT m.fkDatabase, s.Table as TableName
-              FROM tblForms f
-              INNER JOIN tblModules m ON f.fkModule = m.ID
+    // Access requires each additional JOIN to be wrapped in parentheses.
+    $dbSql = "SELECT m.fkDatabase, s.[Table] AS TableName
+              FROM (tblForms f
+              INNER JOIN tblModules m ON f.fkModule = m.ID)
               LEFT JOIN tblSqlStatements s ON f.SqlID = s.ID
               WHERE f.ID = $subformId";
     $dbRs = Database::openRS($dbSql, $connrep);

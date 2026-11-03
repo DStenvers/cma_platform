@@ -37,12 +37,12 @@ $nieuw  = $siteRoot . '/data/.backup';
 $dataMap = $siteRoot . '/data';
 
 if (!is_dir($oud)) {
-    echo "  Overgeslagen: .backup/ bestaat niet (al verhuisd of nooit gebruikt)\n";
+    echo "  ⊘ Overgeslagen: .backup/ bestaat niet (al verhuisd of nooit gebruikt)\n";
     return;
 }
 
 if (!is_dir($dataMap)) {
-    echo "  Overgeslagen: data/ bestaat niet — dit lijkt geen siteroot.\n";
+    echo "  ⊘ Overgeslagen: data/ bestaat niet — dit lijkt geen siteroot.\n";
     return;
 }
 

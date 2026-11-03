@@ -123,7 +123,7 @@ foreach ($records as $record) {
     } catch (\Exception $e) {
         $errors++;
         if (!$isMigration) {
-            echo "Fout bij record $id: " . $e->getMessage() . "\n";
+            echo "✗ Fout bij record $id: " . $e->getMessage() . "\n";
         }
     }
 }

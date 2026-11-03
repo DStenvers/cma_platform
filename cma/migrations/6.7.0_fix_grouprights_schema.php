@@ -51,7 +51,7 @@ try {
     // That is a normal state here, not a failure — say so and carry on.
     echo $err === ''
         ? "  Updated secAccessType values.\n"
-        : "  Overgeslagen (oude kolommen bestaan niet meer): $err\n";
+        : "  ⊘ Overgeslagen (oude kolommen bestaan niet meer): $err\n";
 
     // Set secObjectType to 10 (menu) for all existing rows (default assumption)
     $updateTypeSql = "
@@ -63,13 +63,13 @@ try {
     $err = \App\Library\Database::getLastError();
     echo $err === ''
         ? "  Set default secObjectType values.\n"
-        : "  Overgeslagen: $err\n";
+        : "  ⊘ Overgeslagen: $err\n";
 
     echo "\n=== Migration Complete ===\n";
 
 } catch (Exception $e) {
     // Old columns (secCanRead, secCanUpdate, etc.) may not exist - that's OK
-    echo "Overgeslagen: " . $e->getMessage() . "\n";
-    echo "(Oude kolommen bestaan mogelijk niet meer - dit is normaal)\n";
+    echo "⊘ Overgeslagen: " . $e->getMessage() . "\n";
+    echo "  (Oude kolommen bestaan mogelijk niet meer - dit is normaal)\n";
     return true;
 }

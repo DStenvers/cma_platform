@@ -27,7 +27,7 @@ $ehDest = $libraryDir . '/css/errorhandler.css';
 if (file_exists($ehSrc)) {
     if (file_exists($ehDest)) {
         unlink($ehSrc);
-        echo "  Overgeslagen: errorhandler.css (bestaat al in library/css/)\n";
+        echo "  ⊘ Overgeslagen: errorhandler.css (bestaat al in library/css/)\n";
         $skipped++;
     } else {
         if (!is_dir($libraryDir . '/css')) mkdir($libraryDir . '/css', 0755, true);
@@ -47,7 +47,7 @@ $constDest = $libraryDir . '/constants.php';
 if (file_exists($constSrc)) {
     if (file_exists($constDest)) {
         unlink($constSrc);
-        echo "  Overgeslagen: constants.php (bestaat al in library/)\n";
+        echo "  ⊘ Overgeslagen: constants.php (bestaat al in library/)\n";
         $skipped++;
     } else {
         rename($constSrc, $constDest);
@@ -88,7 +88,7 @@ foreach ($siteFiles as $filename) {
     if (!file_exists($src)) continue;
 
     if (file_exists($dest)) {
-        echo "  Overgeslagen: {$filename} (bestaat al in data/)\n";
+        echo "  ⊘ Overgeslagen: {$filename} (bestaat al in data/)\n";
         unlink($src);
         $skipped++;
     } else {
@@ -111,7 +111,7 @@ foreach ($genericFiles as $filename) {
     $dest = $cmaDir . '/' . $filename;
 
     if (file_exists($dest)) {
-        echo "  Overgeslagen: {$filename} (bestaat al)\n";
+        echo "  ⊘ Overgeslagen: {$filename} (bestaat al)\n";
         unlink($src);
         $skipped++;
     } else {
@@ -161,7 +161,7 @@ if (empty($remaining)) {
     rmdir($configDir);
     echo "  Verwijderd: cma/config/\n";
 } else {
-    echo "  Let op: cma/config/ bevat nog bestanden: " . implode(', ', array_map('basename', $remaining)) . "\n";
+    echo "  ⚠ Let op: cma/config/ bevat nog bestanden: " . implode(', ', array_map('basename', $remaining)) . "\n";
 }
 
 // Clean up cma/data/ if now empty
