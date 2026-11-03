@@ -334,7 +334,21 @@ CMA.utils.formatRecordCount = function(loaded, total, hasMore) {
 CMA.utils.setRecordCount = function(text) {
     const countEl = document.getElementById('recordCount');
     if (!countEl) return;
+    // A column filter narrows only the rows loaded so far, so a count of the
+    // whole list beside it says nothing; the funnel in the header shows the
+    // filter is on. Checked here, where every writer passes, so a background
+    // batch arriving mid-filter cannot put the count back.
+    if (text && CMA.utils.listHasColumnFilter()) text = '';
     countEl.textContent = text || '';
+};
+
+/**
+ * Is a column filter on in the list? Asks the DOM: lib-table marks the header
+ * icon of a filtered column with .active.
+ * @returns {boolean}
+ */
+CMA.utils.listHasColumnFilter = function() {
+    return !!document.querySelector('#listContent .dropdown-filter-icon.active');
 };
 
 /**

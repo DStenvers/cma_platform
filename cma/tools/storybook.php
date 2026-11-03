@@ -2411,6 +2411,13 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>Export</dt>
                     <dd>Rechtsklik op tabel voor export naar Excel, CSV of Word</dd>
                 </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>lib-table-ready</dt>
+                    <dd>Na het opbouwen van de kolomkoppen, en opnieuw na <code>refresh()</code></dd>
+                    <dt>column-filter-change</dt>
+                    <dd>De tabel gaat van ongefilterd naar gefilterd of terug: <code>{ active }</code>. Een tweede filter erbij meldt niets nieuws. De CMA-lijst verbergt hiermee zijn recordteller.</dd>
+                </dl>
             </div>
         </div>
     </section>

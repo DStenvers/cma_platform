@@ -13421,6 +13421,33 @@ function initFoldBar() {}
 function initHorizontalFoldBar() {}
 
 
+// Record counter and column filters. CMA.utils.setRecordCount keeps the counter
+// empty while a column filter is on; the event clears it at once when a filter
+// is set, and writes it again when the last filter is removed. The owner of the
+// count is asked, not remembered: the table's infinite scroller when it has one,
+// otherwise the controller of the form on screen.
+if (!window._cmaKolomFilterTellerGebonden) {
+    window._cmaKolomFilterTellerGebonden = true;
+    document.addEventListener('column-filter-change', function (e) {
+        const listContent = document.getElementById('listContent');
+        if (!listContent || !listContent.contains(e.target)) return;
+        if (e.detail && e.detail.active) {
+            CMA.utils.setRecordCount(null);
+            return;
+        }
+        const table = e.target.querySelector('table');
+        if (table && table._cmaScroller && !table._cmaScroller.destroyed) {
+            table._cmaScroller.updateRecordCountDisplay();
+            return;
+        }
+        const formLayout = document.querySelector('.form-layout');
+        const ctrl = formLayout ? formLayout._cmaController : null;
+        if (ctrl && ctrl._tableData) {
+            ctrl.updateRecordCount(ctrl._tableData.count || 0, ctrl._tableData.totalCount);
+        }
+    });
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     // cmaLog.log('[FormState] DOMContentLoaded fired');

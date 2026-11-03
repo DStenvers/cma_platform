@@ -16714,3 +16714,5 @@ karaat-data en staat in de karaat-repo.
 > migraties productiedatabase op T werkt niet goed. De overgeslagen records tonen rood, wat niet klopt want het is geen error. Kun je andere migraties ook herbeoordelen op kleur?
 
 > kun je committen en pushen?, die v= hoeft niet achter fonts, die veranderen niet
+
+> ja graag, teller verbergen bij kolomfilter

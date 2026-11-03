@@ -2640,10 +2640,12 @@ class LibTable extends HTMLElement {
         // A filtered column swaps its chevron for a funnel. Sorted and filtered
         // used the same chevron in the same colour, so the header could not tell
         // you which of the two was on.
+        let ergensGefilterd = false;
         this._filterMenus.forEach(menu => {
+            const gefilterd = this._isColumnFiltered(menu);
+            if (gefilterd) ergensGefilterd = true;
             const icon = menu.th.querySelector('.dropdown-filter-icon');
             if (!icon) return;
-            const gefilterd = this._isColumnFiltered(menu);
             icon.classList.toggle('active', gefilterd);
             const glyph = icon.querySelector('.lnr');
             if (glyph) {
@@ -2651,6 +2653,16 @@ class LibTable extends HTMLElement {
                 glyph.classList.toggle('lnr-chevron-down', !gefilterd);
             }
         });
+
+        // Tell the page when the table goes from unfiltered to filtered or back,
+        // e.g. so the list can hide its record counter while a filter is on.
+        if (ergensGefilterd !== !!this._kolomFilterActief) {
+            this._kolomFilterActief = ergensGefilterd;
+            this.dispatchEvent(new CustomEvent('column-filter-change', {
+                bubbles: true,
+                detail: { active: ergensGefilterd }
+            }));
+        }
 
         // Update totals if present
         this._updateTotals();
