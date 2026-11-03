@@ -5,7 +5,7 @@
  * GET /cma/api/form_subform.php?formId=X&parentId=Y&subform=0
  * GET /cma/api/form_subform.php?form=formName&parentId=Y&subform=0
  *
- * Returns JSON subform data in the same format as tableData for lib-table web component.
+ * Returns JSON subform data for the <lib-data-table> in subform.php.
  * Supports pagination, sorting, and filtering.
  * Supports both numeric formId (legacy) and string form names (JSON forms).
  */

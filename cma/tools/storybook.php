@@ -4182,7 +4182,7 @@ group.setGrouping([{ table: 'tblOpleiding', field: 'Naam' }]);
         <div class="component-header">
             <h2>cma-query-preview</h2>
             <span class="tag cma">CMA</span>
-            <p class="component-description">Voorbeeld van een rapport met twee tabbladen: de SQL (met kleuring, bewerkbaar) en de opgehaalde rijen. De component haalt zelf niets op; de pagina luistert naar <code>refresh</code> en roept <code>setData()</code> aan (rapportgenerator, tabblad Resultaat).</p>
+            <p class="component-description">Voorbeeld van een rapport met twee tabbladen: de SQL (met kleuring, bewerkbaar) en de opgehaalde rijen. De component haalt zelf niets op; de pagina luistert naar <code>refresh</code> en roept <code>setData()</code> aan (rapportgenerator, tabblad Resultaat). Bewerken gebeurt in een <a href="#cma-sql-editor">cma-sql-editor</a>, dus de pagina laadt ook <code>cma-sql-editor.js</code> (en <code>library/sql-utils.js</code>).</p>
         </div>
         <div class="component-body">
             <div class="component-content">
@@ -4201,7 +4201,7 @@ preview.addEventListener('refresh', async () =&gt; {
                 <h4>Attributen</h4>
                 <dl>
                     <dt>editable</dt>
-                    <dd>De SQL is te bewerken; opslaan geeft <code>sql-change</code></dd>
+                    <dd>De SQL is te bewerken in een <code>cma-sql-editor</code>. Toepassen of Ctrl+Enter geeft <code>sql-change</code> (Ctrl+Enter daarna ook <code>refresh</code>); Annuleren laat de oude SQL staan. <code>sql</code> geeft tijdens het bewerken wat er nu in de editor staat.</dd>
                     <dt>active-tab</dt>
                     <dd><code>sql</code> of <code>data</code></dd>
                     <dt>collapsed</dt>
@@ -4245,7 +4245,7 @@ preview.addEventListener('refresh', async () =&gt; {
         <div class="component-header">
             <h2>cma-sql-editor</h2>
             <span class="tag cma">CMA</span>
-            <p class="component-description">SQL-invoerveld met regelnummers, kleuring en opmaakknop. <code>report-designer.php</code> laadt het script, maar plaatst de component nergens: het bewerken van SQL in de rapportgenerator loopt via <a href="#cma-query-preview">cma-query-preview</a> met <code>editable</code>.</p>
+            <p class="component-description">SQL-invoerveld met regelnummers, kleuring, automatisch inspringen en een opmaakknop. <a href="#cma-query-preview">cma-query-preview</a> gebruikt hem als bewerkmodus: in de rapportgenerator is dit het veld achter Bewerken en de SQL-modus.</p>
         </div>
         <div class="component-body">
             <div class="component-content">

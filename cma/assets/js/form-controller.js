@@ -1069,12 +1069,6 @@ class CmaFormController {
         // Load display mode from localStorage (default to table for JSON forms, tree for legacy forms)
         this.displayMode = this.loadDisplayMode();
 
-        // Web component table mode - use lib-table component for high-performance rendering
-        // Can be enabled via config.useWebComponentTable or localStorage preference
-        this.useWebComponentTable = this.config.useWebComponentTable ||
-            localStorage.getItem('cma_v2_use_web_component_table') === 'true';
-        this._libTableInstance = null;
-
         // Cleanup tracking - prevents memory leaks from accumulated event listeners and intervals
         this._abortController = null;           // AbortController for cancelling in-flight requests
         this._boundTreeHandler = null;          // Bound tree click handler for removal
@@ -6896,11 +6890,6 @@ class CmaFormController {
      * @param {boolean} forceRefresh - If true, bypass cache with timestamp parameter
      */
     async loadList(forceRefresh = false, skipRecordLoad = false) {
-        // Use web component for table mode if enabled
-        if (this.useWebComponentTable && this.displayMode === this.LIST_MODE.DISPLAY_TABLE) {
-            return this.loadListWebComponent(forceRefresh);
-        }
-
         // Performance tracking
         const perfId = 'loadList_' + Date.now();
         cmaPerf.start(perfId, { formId: this.formId, mode: this.displayMode });
@@ -7243,140 +7232,6 @@ class CmaFormController {
             if (listLoader && listLoader.hide) listLoader.hide();
             this.hideLoading('loadList-finally');
         }
-    }
-
-    /**
-     * Load list using lib-table web component
-     * High-performance alternative to HTML table rendering
-     */
-    async loadListWebComponent(forceRefresh = false) {
-        if (!this.listContent) {
-            this.listContent = document.getElementById('listContent');
-        }
-        if (!this.listContent) {
-            cmaLog.error('loadListWebComponent: listContent element not found');
-            return;
-        }
-
-        this.showLoading('loadListWebComponent');
-
-        try {
-            // If forceRefresh and we have an existing instance, refresh it
-            if (forceRefresh && this._libTableInstance && typeof this._libTableInstance.refresh === 'function') {
-                // cmaLog.log('loadListWebComponent: forcing refresh of existing instance');
-                await this._libTableInstance.refresh();
-                this.hideLoading('loadListWebComponent');
-                return;
-            }
-
-            // Create or reuse lib-table element
-            if (!this._libTableInstance) {
-                this._libTableInstance = document.createElement('lib-table');
-                this._libTableInstance.setAttribute('data-form-id', this.formId);
-                this._libTableInstance.setAttribute('data-url', `/cma/form_api.php?action=tableData&form=${this.jsonFormName}`);
-                this._libTableInstance.setAttribute('page-size', '50');
-                this._libTableInstance.setAttribute('row-height', '36');
-
-                // Enable features
-                this._libTableInstance.setAttribute('sortable', '');
-                this._libTableInstance.setAttribute('filterable', '');
-                this._libTableInstance.setAttribute('resizable', '');
-                this._libTableInstance.setAttribute('reorderable', '');
-
-                // Bind event listeners
-                const self = this;
-                this._libTableInstance.addEventListener('row-click', (e) => {
-                    const row = e.detail.row;
-                    if (row && row._id) {
-                        self.loadRecord(row._id);
-                    }
-                });
-
-                this._libTableInstance.addEventListener('row-dblclick', (e) => {
-                    const row = e.detail.row;
-                    if (row && row._id) {
-                        // Open in popup for editing
-                        self.openFormPopup(row._id);
-                    }
-                });
-
-                this._libTableInstance.addEventListener('filter-change', (e) => {
-                    // Update record count when lib-table column filters change
-                    const table = self._libTableInstance.querySelector('table.listtable') || self._libTableInstance;
-                    const allRows = table.querySelectorAll('tbody tr.listrow');
-                    const visibleRows = Array.from(allRows).filter(r => r.style.display !== 'none');
-                    if (allRows.length > 0) {
-                        const hasFilters = e.detail?.filters && Object.keys(e.detail.filters).length > 0;
-                        if (hasFilters && visibleRows.length === 0) {
-                            // No matches - say nothing rather than "0 van N"
-                            CMA.utils.setRecordCount(null);
-                        } else if (hasFilters) {
-                            CMA.utils.setRecordCount(`${visibleRows.length} van ${allRows.length} records`);
-                        } else {
-                            const totalCount = self._tableData?.totalCount;
-                            self.updateRecordCount(allRows.length, totalCount);
-                        }
-                    }
-                });
-
-                this._libTableInstance.addEventListener('sort-change', (e) => {
-                    // cmaLog.log('lib-table sort changed:', e.detail);
-                });
-
-                // Update record count when excelTableFilter column filters change
-                this._libTableInstance.addEventListener('column-filter-change', (e) => {
-                    const { visibleCount, totalCount } = e.detail;
-                    if (visibleCount === 0) {
-                        // No matches - say nothing rather than "0 van N"
-                        CMA.utils.setRecordCount(null);
-                    } else if (visibleCount < totalCount) {
-                        CMA.utils.setRecordCount(`${visibleCount} van ${totalCount} records`);
-                    } else {
-                        const serverTotal = self._tableData?.totalCount;
-                        self.updateRecordCount(totalCount, serverTotal);
-                    }
-                });
-
-                // Clear existing content and add web component
-                this.listContent.innerHTML = '';
-                this.listContent.appendChild(this._libTableInstance);
-            }
-
-            // Apply current search/filter state
-            if (this.searchTerm) {
-                this._libTableInstance.setFilter({ _search: this.searchTerm });
-            }
-            if (Object.keys(this.searchFilters).length > 0) {
-                this._libTableInstance.setFilter(this.searchFilters);
-            }
-
-            // Load data
-            await this._libTableInstance.load();
-
-        } catch (error) {
-            cmaLog.error('loadListWebComponent error:', error);
-            this.listContent.innerHTML = '<div class="list-error">Fout bij laden tabel: ' + error.message + '</div>';
-        } finally {
-            this.hideLoading('loadListWebComponent');
-        }
-    }
-
-    /**
-     * Toggle web component table mode
-     * @param {boolean} enable - Enable or disable web component mode
-     */
-    setWebComponentTableMode(enable) {
-        this.useWebComponentTable = !!enable;
-        localStorage.setItem('cma_v2_use_web_component_table', this.useWebComponentTable ? 'true' : 'false');
-
-        // Clear cached instance to force re-render
-        if (this._libTableInstance) {
-            this._libTableInstance.remove();
-            this._libTableInstance = null;
-        }
-
-        // Reload list with new mode
-        this.loadList(true);
     }
 
     /**
@@ -7855,9 +7710,6 @@ class CmaFormController {
         if (id === null || id === undefined || id === '') return false;
         const wanted = String(id);
 
-        if (this._libTableInstance) {
-            return !!this._libTableInstance.shadowRoot?.querySelector(`.lib-table-row[data-id="${wanted}"]`);
-        }
         if (!this.listContent) return false;
 
         if (this.listContent.querySelector(`.list-item[data-id="${wanted}"]`)) return true;
@@ -7882,22 +7734,6 @@ class CmaFormController {
      */
     selectListItem(id) {
         // cmaLog.log('selectListItem: selecting id=', id, 'type=', typeof id);
-
-        // Handle lib-table component (table mode)
-        if (this._libTableInstance) {
-            // Remove previous selection
-            this._libTableInstance.shadowRoot?.querySelectorAll('.lib-table-row.selected').forEach(row => {
-                row.classList.remove('selected');
-            });
-            // Select new row
-            const row = this._libTableInstance.shadowRoot?.querySelector(`.lib-table-row[data-id="${id}"]`);
-            // cmaLog.log('selectListItem: lib-table row found=', !!row);
-            if (row) {
-                row.classList.add('selected');
-                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-            return;
-        }
 
         // Remove previous selection (tree mode)
         this.listContent.querySelectorAll('.list-item.selected').forEach(item => {

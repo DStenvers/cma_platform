@@ -19,7 +19,7 @@
  *
  * Usage LibDataTable:
  * <lib-data-table
- *   data-url="api.php?action=tableData"
+ *   data-url="api/form_subform.php?formId=12&parentId=34&subform=0"
  *   data-form-id="123"
  *   page-size="50"
  *   density="normal"

@@ -1836,9 +1836,9 @@ describe('Report Designer', () => {
         it('should enter edit mode in SQL mode', () => {
             cy.get('.mode-option[data-mode="sql"]').click();
 
-            // SQL editor textarea should be visible (edit mode)
+            // The SQL editor should be visible (edit mode)
             cy.wait(200);
-            cy.get('#resultsQueryPreview').find('.sql-textarea').should('be.visible');
+            cy.get('#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea').should('be.visible');
         });
     });
 

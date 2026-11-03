@@ -139,8 +139,8 @@ describe('Report Designer - SQL Editing', () => {
         it('should enter edit mode when double-clicking SQL code', () => {
             cy.get('cma-query-preview#resultsQueryPreview .sql-code').dblclick();
 
-            // Should be in edit mode - textarea visible, edit button hidden
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            // Should be in edit mode - SQL editor visible, edit button hidden
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .should('be.visible');
             cy.get('cma-query-preview#resultsQueryPreview #editBtn')
                 .should('not.be.visible');
@@ -153,7 +153,7 @@ describe('Report Designer - SQL Editing', () => {
         it('should show textarea in edit mode', () => {
             cy.get('cma-query-preview#resultsQueryPreview #editBtn a').click();
 
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .should('be.visible');
         });
 
@@ -167,11 +167,11 @@ describe('Report Designer - SQL Editing', () => {
         it('should allow editing SQL in textarea', () => {
             cy.get('cma-query-preview#resultsQueryPreview #editBtn a').click();
 
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .clear()
                 .type('SELECT TOP 10 * FROM [tblUsers]');
 
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .should('have.value', 'SELECT TOP 10 * FROM [tblUsers]');
         });
 
@@ -180,7 +180,7 @@ describe('Report Designer - SQL Editing', () => {
             cy.get('cma-query-preview#resultsQueryPreview #editBtn a').click();
 
             // Make changes
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .clear()
                 .type('SELECT * FROM [different_table]');
 
@@ -202,7 +202,7 @@ describe('Report Designer - SQL Editing', () => {
 
             // Make changes
             const newSql = 'SELECT TOP 5 id, name FROM [tblUsers]';
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .clear()
                 .type(newSql);
 
@@ -221,12 +221,12 @@ describe('Report Designer - SQL Editing', () => {
         it('should support Tab key for indentation in edit mode', () => {
             cy.get('cma-query-preview#resultsQueryPreview #editBtn a').click();
 
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .clear()
                 .type('SELECT{enter}')
                 .trigger('keydown', { key: 'Tab' });
 
-            cy.get('cma-query-preview#resultsQueryPreview .sql-textarea')
+            cy.get('cma-query-preview#resultsQueryPreview cma-sql-editor').shadow().find('.sql-textarea')
                 .should('contain.value', '  ');
         });
     });

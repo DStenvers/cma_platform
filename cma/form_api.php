@@ -173,7 +173,7 @@ if (empty($action)) {
 }
 
 // Validate action against whitelist - prevents log pollution and potential enumeration
-$validActions = ['init', 'tree', 'record', 'get_form', 'save', 'delete', 'list', 'subform', 'subforms', 'combo', 'combos', 'checklist', 'renderer', 'columns', 'saveColumns', 'getRow', 'logJsError', 'tableData', 'debug_access'];
+$validActions = ['init', 'tree', 'record', 'get_form', 'save', 'delete', 'list', 'subform', 'subforms', 'combo', 'combos', 'checklist', 'renderer', 'columns', 'saveColumns', 'getRow', 'logJsError', 'debug_access'];
 if (!empty($action) && !in_array($action, $validActions, true)) {
     // Invalid action - respond with error and exit early
     outputJson(['success' => false, 'error' => 'Ongeldige actie']);
@@ -741,57 +741,6 @@ try {
             sendDebugHeader();
             outputJson($result);
             break;
-
-        case 'tableData':
-            addDebug('case:tableData');
-            // Get table data as JSON for lib-table web component
-            // Returns pure JSON rows with column definitions (no HTML)
-            $search = Request::query('search', '');
-            $filtersJson = Request::query('filters', '');
-            $lastId = Request::query('lastId', '');
-            $limit = Request::queryInt('limit') ?: 50;
-            $sortColumn = Request::query('sortColumn', '');
-            $sortDir = Request::query('sortDir', 'ASC');
-            $columnsJson = Request::query('columns', '');
-
-            $options = [
-                'limit' => $limit,
-            ];
-            if ($search !== '') {
-                $options['search'] = $search;
-            }
-            if ($filtersJson !== '') {
-                $filters = json_decode($filtersJson, true);
-                if (Arr::isArray($filters)) {
-                    $options['filters'] = $filters;
-                }
-            }
-            if ($lastId !== '') {
-                $options['lastId'] = $lastId;
-            }
-            if ($sortColumn !== '') {
-                $options['sortColumn'] = $sortColumn;
-                $options['sortDir'] = $sortDir;
-            }
-            if ($columnsJson !== '') {
-                $columns = json_decode($columnsJson, true);
-                if (Arr::isArray($columns)) {
-                    $options['columns'] = $columns;
-                }
-            }
-
-            addDebug("search=$search, lastId=$lastId, limit=$limit, sort=$sortColumn $sortDir");
-
-            // Note: getTableJson needs JSON form support
-            $result = \Cma\Services\ListService::getJsonFormTableJson($jsonFormName, $options);
-
-            addDebug('result: rows=' . count($result['rows'] ?? []) . ', hasMore=' . ($result['hasMore'] ?? 'null'));
-            sendDebugHeader();
-            outputJson($result);
-            break;
-
-        // Note: 'unifiedTable' action removed - use 'list' or 'tableData' instead
-        // getTableHtml now accepts both int (form ID) and string (JSON form name)
 
         case 'getRow':
             addDebug('case:getRow');

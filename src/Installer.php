@@ -139,6 +139,8 @@ class Installer
         // en alle documentatie hoort in cma/tools/documentation.php of de storybook.
         'library/webcomponents/lib-arrowsteps.md',
         'library/webcomponents/README.md',
+        // The two-pane cma-tree tools view; tools.php with <cma-launcher> replaced it.
+        'cma/tools_DEPRECATED.php',
         // Tweede LibTable, in de Cma-namespace. Geen enkele require_once noemt hem en
         // de Cma-namespace wordt niet ge-autoload, dus deze class draaide nooit. De
         // tabelklasse die wél draait is library/classes/class_table.inc.

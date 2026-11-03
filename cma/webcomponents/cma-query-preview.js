@@ -3,7 +3,9 @@
  *
  * Query preview component for the Report Designer.
  * Shows SQL preview with syntax highlighting and data preview with table view.
- * Supports editable SQL mode for direct SQL editing.
+ * Supports editable SQL mode for direct SQL editing; the editor is a
+ * <cma-sql-editor> (line numbers, highlighting, format button), so
+ * cma-sql-editor.js must be loaded on the page as well.
  *
  * Usage:
  *   <cma-query-preview id="queryPreview" editable></cma-query-preview>
@@ -59,7 +61,6 @@ class CmaQueryPreview extends HTMLElement {
         this._isEditing = false;
         this._sqlOnlyMode = false;
         this._sqlOnlyMessage = '';
-        this._editedSql = '';
     }
 
     connectedCallback() {
@@ -185,7 +186,7 @@ class CmaQueryPreview extends HTMLElement {
      * Get current SQL (including any edits)
      */
     get sql() {
-        return this._isEditing ? this._editedSql : this._sql;
+        return this._isEditing ? this._editorSql() : this._sql;
     }
 
     /**
@@ -194,8 +195,13 @@ class CmaQueryPreview extends HTMLElement {
     enterEditMode() {
         if (!this._editable || this._isEditing) return;
         this._isEditing = true;
-        this._editedSql = this._sql;
+        // Fill the editor once, here. A render while editing (setError after a
+        // failed run, for one) must leave what the user typed alone.
+        const sqlEditor = this.querySelector('#sqlEditor');
+        sqlEditor.sql = this._sql;
         this._renderSqlContent();
+        // Focus after a tick, once the editor is visible
+        setTimeout(() => sqlEditor.focus(), 0);
     }
 
     /**
@@ -204,7 +210,6 @@ class CmaQueryPreview extends HTMLElement {
     exitEditMode() {
         if (!this._isEditing) return;
         this._isEditing = false;
-        this._editedSql = '';
         this._renderSqlContent();
     }
 
@@ -470,35 +475,18 @@ class CmaQueryPreview extends HTMLElement {
                     align-items: center;
                 }
 
-                /* SQL Edit Mode */
-                .sql-textarea {
+                /* SQL Edit Mode: a <cma-sql-editor> replaces the highlighted code */
+                .sql-editor {
                     display: none;
-                    width: 100%;
-                    height: 100%;
-                    min-height: 150px;
-                    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-                    font-size: var(--font-size);
-                    line-height: 1.5;
-                    padding: 15px;
-                    border: 2px solid #204496;
-                    border-radius: 4px;
-                    resize: vertical;
-                    background: #fff;
-                    box-sizing: border-box;
                     flex: 1;
-                }
-
-                .sql-textarea:focus {
-                    outline: none;
-                    border-color: #1a3a7a;
-                    box-shadow: 0 0 0 3px rgba(32, 68, 150, 0.1);
+                    min-height: 200px;
                 }
 
                 cma-query-preview[editable] .sql-container.editing .sql-code {
                     display: none;
                 }
 
-                cma-query-preview[editable] .sql-container.editing .sql-textarea {
+                cma-query-preview[editable] .sql-container.editing .sql-editor {
                     display: block;
                 }
 
@@ -667,7 +655,7 @@ class CmaQueryPreview extends HTMLElement {
                         <div class="sql-error-container" id="sqlErrorContainer" style="display: none;"></div>
                         <div class="sql-container" id="sqlContainer">
                             <pre class="sql-code" id="sqlCode"><span class="nodata">Selecteer tabellen en velden om de query te zien</span></pre>
-                            <textarea class="sql-textarea" id="sqlTextarea" spellcheck="false" placeholder="Voer SQL-query in..."></textarea>
+                            <cma-sql-editor class="sql-editor" id="sqlEditor" placeholder="Voer SQL-query in..."></cma-sql-editor>
                         </div>
                     </div>
                     <div class="preview-data-content" id="dataContent">
@@ -696,7 +684,7 @@ class CmaQueryPreview extends HTMLElement {
         const cancelEditBtn = this.querySelector('#cancelEditBtn');
         const syncBtn = this.querySelector('#syncBtn');
         const executeBtn = this.querySelector('#executeBtn');
-        const sqlTextarea = this.querySelector('#sqlTextarea');
+        const sqlEditor = this.querySelector('#sqlEditor');
 
         if (editBtn) {
             editBtn.addEventListener('click', (e) => {
@@ -746,28 +734,18 @@ class CmaQueryPreview extends HTMLElement {
             });
         }
 
-        if (sqlTextarea) {
-            // Handle Ctrl+Enter to execute
-            sqlTextarea.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'Enter') {
-                    e.preventDefault();
-                    this._applyEdit();
-                    this.refresh();
-                }
-                // Handle Tab key - insert spaces
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    const start = sqlTextarea.selectionStart;
-                    const end = sqlTextarea.selectionEnd;
-                    sqlTextarea.value = sqlTextarea.value.substring(0, start) + '  ' + sqlTextarea.value.substring(end);
-                    sqlTextarea.selectionStart = sqlTextarea.selectionEnd = start + 2;
-                    this._editedSql = sqlTextarea.value;
-                }
+        if (sqlEditor) {
+            // Ctrl+Enter in the editor: apply the edit and run it.
+            sqlEditor.addEventListener('execute', (e) => {
+                e.stopPropagation();
+                this._applyEdit();
+                this.refresh();
             });
-
-            // Track changes
-            sqlTextarea.addEventListener('input', () => {
-                this._editedSql = sqlTextarea.value;
+            // The editor's own 'change' is internal to this component: the page
+            // hears about edits through 'sql-change' when they are applied. Left
+            // to bubble, it would reach every 'change' listener up the tree.
+            sqlEditor.addEventListener('change', (e) => {
+                e.stopPropagation();
             });
         }
 
@@ -803,7 +781,6 @@ class CmaQueryPreview extends HTMLElement {
         const sqlCode = this.querySelector('#sqlCode');
         const sqlContainer = this.querySelector('#sqlContainer');
         const sqlErrorContainer = this.querySelector('#sqlErrorContainer');
-        const sqlTextarea = this.querySelector('#sqlTextarea');
         if (!sqlCode) return;
 
         // Show or hide error container based on error state
@@ -826,13 +803,17 @@ class CmaQueryPreview extends HTMLElement {
             sqlCode.innerHTML = SqlUtils.highlightSql(this._sql);
         }
 
-        // Update textarea for edit mode
-        if (sqlTextarea && this._isEditing) {
-            sqlTextarea.value = this._editedSql;
-        }
-
         // Update edit mode UI
         this._updateEditModeUI();
+    }
+
+    /**
+     * The SQL as it stands in the editor right now. Read from the editor, not
+     * from its debounced 'change' event, so a click on Uitvoeren straight after
+     * typing runs what was typed.
+     */
+    _editorSql() {
+        return this.querySelector('#sqlEditor').sql;
     }
 
     /**
@@ -841,13 +822,8 @@ class CmaQueryPreview extends HTMLElement {
     _applyEdit() {
         if (!this._isEditing) return;
 
-        const sqlTextarea = this.querySelector('#sqlTextarea');
-        if (sqlTextarea) {
-            this._editedSql = sqlTextarea.value;
-        }
-
         // Update the SQL
-        this._sql = this._editedSql;
+        this._sql = this._editorSql();
         this._isEditing = false;
 
         // Render with new SQL
@@ -872,7 +848,6 @@ class CmaQueryPreview extends HTMLElement {
         const cancelEditBtn = this.querySelector('#cancelEditBtn');
         const syncBtn = this.querySelector('#syncBtn');
         const sqlContainer = this.querySelector('#sqlContainer');
-        const sqlTextarea = this.querySelector('#sqlTextarea');
 
         if (this._isEditing) {
             if (editBtn) editBtn.style.display = 'none';
@@ -880,11 +855,6 @@ class CmaQueryPreview extends HTMLElement {
             if (cancelEditBtn) cancelEditBtn.style.display = '';
             if (syncBtn) syncBtn.style.display = 'none';
             if (sqlContainer) sqlContainer.classList.add('editing');
-            if (sqlTextarea) {
-                sqlTextarea.value = this._editedSql;
-                // Focus after a tick to ensure it's visible
-                setTimeout(() => sqlTextarea.focus(), 0);
-            }
         } else {
             if (editBtn) editBtn.style.display = '';
             if (saveEditBtn) saveEditBtn.style.display = 'none';

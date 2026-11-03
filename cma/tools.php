@@ -6,7 +6,6 @@
  * embedded <cma-launcher> that fills the content host with
  * the searchable tools menu. Selecting a tool collapses the launcher and loads
  * it full-width in the same box (the #tools-content iframe).
- * The former two-pane cma-tree view is archived in tools_DEPRECATED.php.
  *
  * URL Parameters:
  * - tool: Tool page to load full-width (friendly name or path). Absent = empty

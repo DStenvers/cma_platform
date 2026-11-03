@@ -353,14 +353,6 @@ class ListService extends BaseFormService
         return JsonFormService::getAvailableColumns($formName);
     }
 
-    /**
-     * Get table JSON for JSON form
-     */
-    public static function getJsonFormTableJson(string $formName, array $options = []): array
-    {
-        return JsonFormService::getTableJson($formName, $options);
-    }
-
     // ==================== Backward Compatibility Methods ====================
 
     /**

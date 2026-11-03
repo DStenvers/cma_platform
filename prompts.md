@@ -16659,3 +16659,8 @@ karaat-data en staat in de karaat-repo.
 >
 >
 > wil je die punten oppakkken?
+
+> zijn er nog openstaande zaken?
+
+> 1 laten staan, liefst implementeren. 2 graag , 3 ja gooi maar weg
+> 6 ja beide al gedaan

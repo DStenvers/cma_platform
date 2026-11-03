@@ -3,9 +3,8 @@
  *
  * Comprehensive tests for the CMA tools page and its subtools.
  * The landing page is a toolbar with a single "Menu" button (#toolsMenuBtn)
- * that opens the shared launcher overlay (cma-launcher). Selecting a tool
- * shows it full-width in iframe#tools-content. (The former two-pane cma-tree
- * view is archived in tools_DEPRECATED.php.)
+ * that opens the shared launcher (cma-launcher). Selecting a tool
+ * shows it full-width in iframe#tools-content.
  *
  * Run: npx cypress run --spec "cypress/e2e/tools/tools-page.cy.js"
  */
