@@ -16644,3 +16644,18 @@ karaat-data en staat in de karaat-repo.
 > ja graag!
 
 > over 5: de rapport generator specifieke componenten meedocumenteren, 6 graag opruimen, 7: graag aanvullen, 8: graag fixen
+
+> 10: ja vind ik fijn om het actueel te houden. cma-sql-editor: klinkt goed, maar zie je waarom hij niet in gebruik is? 
+>
+>
+>
+> <pasted_content id="a393">
+> - Het attribuut database-id van cma-sql-editor doet niets.
+> - row-limit van cma-query-preview wordt nergens gelezen.
+> - nav-mode="shell" van cma-launcher is de standaard, maar elke pagina gebruikt iframe.
+> - Het attribuut row-height van lib-data-table wordt bij het laden overschreven door density.
+> - Het commentaar bovenin cma-group-config.js belooft aggregatie-opties, maar die bestaan niet.
+> </pasted_content id="a393">
+>
+>
+> wil je die punten oppakkken?

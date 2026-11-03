@@ -61,11 +61,10 @@ cma_script('webcomponents/cma-toolbar.js');
 <!-- #reports is "either empty or a menu": the embedded launcher fills it with
      the searchable report menu; picking a report collapses the launcher and
      shows the report full-width in the same box. Both are driven by the shared
-     <cma-launcher> component (nav-mode="iframe"), fed the reports catalog. -->
+     <cma-launcher> component, fed the reports catalog. -->
 <div id="reports" class="launcher-host">
     <cma-launcher
         catalog-url="/cma/api/reports-catalog.php"
-        nav-mode="iframe"
         target="#reports-content"
         search-placeholder="Zoek een rapport…"
         aria-label="Alle rapportages"

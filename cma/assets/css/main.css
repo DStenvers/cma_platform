@@ -584,7 +584,7 @@ a.cma-menu-item.active .cma-menu-icon::before {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    position: relative; /* anchor for the cma-launcher panel (fills #contentArea) */
+    position: relative;
 }
 
 .cma-header {
@@ -1328,7 +1328,7 @@ html.dark-mode.classic-mode {
 }
 
 /* ============================================================
-   Tools launcher — "Menu" header button + BIG menu overlay
+   Launcher — "Alle tools" / "Alle rapporten" button + BIG menu
    (cma-launcher web component; light DOM, namespaced classes)
    ============================================================ */
 .cma-launcher-btn {
@@ -1342,17 +1342,12 @@ html.dark-mode.classic-mode {
 .cma-launcher-btn:hover { background: var(--bg-hover); border-color: var(--border-hover); }
 .cma-launcher-btn .lnr { font-size: 16px; }
 
-cma-launcher { display: none; }
+/* The launcher fills its host box (.launcher-host, below) and overlays the
+   iframe there; closed it is display:none, revealing the iframe. */
+cma-launcher { display: none; position: absolute; inset: 0; z-index: 2; }
 cma-launcher.is-open { display: block; }
-/* The launcher fills #contentArea: absolute within .cma-main, starting just
-   below the header, so the header + sidebar stay visible and interactive. */
-.cma-launcher__backdrop {
-    position: absolute; inset: var(--header-height, 50px) 0 0 0;
-    background: rgba(0,0,0,.35); z-index: 998;
-}
 .cma-launcher__panel {
-    position: absolute; z-index: 999;
-    inset: var(--header-height, 50px) 0 0 0;
+    position: absolute; inset: 0;
     display: flex; flex-direction: column;
     background: var(--bg-surface); color: var(--text-primary);
     overflow: hidden;
@@ -1403,7 +1398,7 @@ cma-launcher.is-open { display: block; }
     color: var(--text-primary); font-size: var(--font-size-sm);
 }
 .cma-launcher__item:hover { background: var(--bg-hover); border-color: var(--border-hover); }
-/* The tool/form currently open in the shell. */
+/* The tool/form/report currently open in the iframe. */
 .cma-launcher__item.is-active {
     background-color: var(--tree-hover-bg, #e8f4fc);
     border-color: var(--color-info, #077ab2);
@@ -1416,16 +1411,8 @@ cma-launcher.is-open { display: block; }
     background: var(--bg-surface-alt); color: var(--text-muted);
 }
 .cma-launcher__loading, .cma-launcher__error { grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--text-muted); }
-body.cma-launcher-open { overflow: hidden; }
-
 @media (max-width: 768px) {
     .cma-launcher__body { grid-template-columns: 1fr; }
-    /* On mobile .cma-main uses overflow:visible and can be shorter than the
-       viewport, which clipped the absolutely-positioned panel (it stopped a few
-       rows down with white space below). Pin the panel + backdrop to the
-       viewport so they fill the screen below the header. */
-    .cma-launcher__backdrop,
-    .cma-launcher__panel { position: fixed; }
 }
 
 /* ============================================================
@@ -1446,7 +1433,7 @@ iframe.tools-content-area {
 }
 /* Launcher host (reports.php #reports, tools.php #tools) — the box below the toolbar that is
    "either empty or a menu". The report iframe stays mounted underneath (z-index
-   1); the embedded <cma-launcher> overlays it (z-index 2) when open and is
+   1); the <cma-launcher> overlays it (z-index 2) when open and is
    display:none when closed, revealing the iframe. No show/hide juggling — the
    panel is opaque, so an open menu fully covers whatever the iframe holds. */
 .launcher-host { flex: 1; min-height: 0; position: relative; overflow: hidden; }
@@ -1454,9 +1441,6 @@ iframe.tools-content-area {
     position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
 }
 
-/* Embedded launcher: fills its host box (100% h/w) and overlays the iframe,
-   instead of overlaying #contentArea from the header down like the shell tools
-   launcher does. */
 /* Loading spinner overlaid on the tool iframe while a selected tool loads
    (see cma-launcher._showIframeSpinner). Opaque so it hides the previous tool's
    content during the wait; z-index 3 sits above the iframe (1) and the closed
@@ -1467,10 +1451,3 @@ iframe.tools-content-area {
     background: var(--bg-body); color: var(--text-muted);
 }
 
-.cma-launcher--embedded { position: absolute; inset: 0; z-index: 2; }
-.cma-launcher--embedded .cma-launcher__panel { inset: 0; }
-@media (max-width: 768px) {
-    /* Stay inside the host box on mobile (the overlay launcher pins to the
-       viewport, but the embedded one must not escape its container). */
-    .cma-launcher--embedded .cma-launcher__panel { position: absolute; }
-}

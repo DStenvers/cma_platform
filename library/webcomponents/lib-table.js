@@ -22,7 +22,7 @@
  *   data-url="api.php?action=tableData"
  *   data-form-id="123"
  *   page-size="50"
- *   row-height="36"
+ *   density="normal"
  *   sortable
  *   filterable
  *   resizable
@@ -140,7 +140,7 @@ class LibDataTable extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['data-url', 'data-form-id', 'page-size', 'row-height'];
+        return ['data-url', 'data-form-id', 'page-size'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -156,9 +156,6 @@ class LibDataTable extends HTMLElement {
                 break;
             case 'page-size':
                 this.#config.pageSize = parseInt(newValue) || libTableDefaultPageSize();
-                break;
-            case 'row-height':
-                this.#config.rowHeight = parseInt(newValue) || 36;
                 break;
         }
     }

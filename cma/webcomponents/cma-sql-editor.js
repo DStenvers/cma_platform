@@ -11,7 +11,6 @@
  * Attributes:
  *   - placeholder: Placeholder text
  *   - readonly: Make editor read-only
- *   - database-id: Database ID for schema hints
  *
  * Events:
  *   - change: Fired when SQL changes (debounced 300ms)
@@ -31,7 +30,7 @@ if (!customElements.get('cma-sql-editor')) {
 
 class CmaSqlEditor extends HTMLElement {
     static get observedAttributes() {
-        return ['placeholder', 'readonly', 'database-id'];
+        return ['placeholder', 'readonly'];
     }
 
     constructor() {

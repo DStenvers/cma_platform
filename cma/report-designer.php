@@ -3161,7 +3161,7 @@ ToolbarHelper::end(true);
                 body: JSON.stringify({
                     database: state.databaseId,
                     sql: sql,
-                    limit: 1000
+                    limit: preview.rowLimit
                 })
             });
 

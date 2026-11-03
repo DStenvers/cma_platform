@@ -2,8 +2,8 @@
 /**
  * Reports Catalog API
  *
- * Returns the rights-checked reports catalog as JSON for <cma-launcher> running
- * in nav-mode="iframe" on reports.php — the reports counterpart of
+ * Returns the rights-checked reports catalog as JSON for <cma-launcher> on
+ * reports.php — the reports counterpart of
  * tools-catalog.php. Same node shape the launcher consumes
  * ({type:folder,label,icon,children:[{type:item,label,href,url,icon}]}), so the
  * one generalized component drives both menus.

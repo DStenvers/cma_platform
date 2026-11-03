@@ -2270,9 +2270,7 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>page-size</dt>
                     <dd>Rijen per verzoek (default: de instelling <code>LIST_PAGE_SIZE</code>, anders 50)</dd>
                     <dt>density</dt>
-                    <dd><code>compact</code> (28px), <code>normal</code> (36px) of <code>comfortable</code> (48px) rijhoogte (default: <code>normal</code>). Bepaalt de rijhoogte bij het laden.</dd>
-                    <dt>row-height</dt>
-                    <dd>Rijhoogte in px. Telt alleen als het attribuut ná het plaatsen verandert; bij het laden wint <code>density</code>.</dd>
+                    <dd>Rijhoogte: <code>compact</code> (28px), <code>normal</code> (36px) of <code>comfortable</code> (48px) (default: <code>normal</code>). De gebruiker kan wisselen met de knoppen onder de tabel; met <code>data-form-id</code> wordt die keuze onthouden.</dd>
                     <dt>sortable / filterable / resizable / reorderable</dt>
                     <dd>Sorteren op kolomkop, filtermenu per kolom, kolombreedte slepen, kolommen verplaatsen. Elk staat uit zonder het attribuut.</dd>
                     <dt>selectable</dt>
@@ -3506,7 +3504,6 @@ window.LIBLOG_CONFIG = {
                 <pre class="storybook__code"><code>&lt;div id="tools" class="launcher-host"&gt;
     &lt;cma-launcher
         catalog-url="/cma/api/tools-catalog.php"
-        nav-mode="iframe"
         target="#tools-content"
         search-placeholder="Zoek een tool…"
         aria-label="Alle beheerstools"
@@ -3523,10 +3520,8 @@ document.querySelector('#tools cma-launcher').open();
                 <dl>
                     <dt>catalog-url</dt>
                     <dd>Endpoint van de catalogus (default: <code>/cma/api/tools-catalog.php</code>; voor rapporten <code>/cma/api/reports-catalog.php</code>)</dd>
-                    <dt>nav-mode</dt>
-                    <dd><code>iframe</code>: het menu vult zijn eigen houder (<code>.launcher-host</code>) en laadt de keuze in het iframe van <code>target</code>. Zonder <code>iframe</code> geldt <code>shell</code>: een overlay met achtergrond die de pagina via <code>window.loadPage()</code> laadt. Alle huidige pagina's gebruiken <code>iframe</code>.</dd>
                     <dt>target</dt>
-                    <dd>CSS-selector van het iframe (alleen bij <code>nav-mode="iframe"</code>)</dd>
+                    <dd>CSS-selector van het iframe waarin een keuze laadt. Het menu vult zijn houder (<code>.launcher-host</code>) en ligt over dat iframe.</dd>
                     <dt>search-placeholder</dt>
                     <dd>Placeholder van het zoekveld (default: <code>"Zoek een tool…"</code>)</dd>
                     <dt>aria-label</dt>
@@ -4214,7 +4209,7 @@ preview.addEventListener('refresh', async () =&gt; {
                     <dt>sql-only</dt>
                     <dd>Toont dat de SQL niet meer terug te zetten is naar de visuele editor; zie <code>setSqlOnlyMode()</code></dd>
                     <dt>row-limit</dt>
-                    <dd>Leesbaar als <code>rowLimit</code> (default: 100). De component zelf gebruikt het niet; het is een waarde voor de pagina die de rijen ophaalt.</dd>
+                    <dd>Hoeveel rijen de pagina ophaalt, leesbaar als <code>rowLimit</code> (default: 100). De component haalt zelf niets op; <code>report-designer.php</code> stuurt de waarde als <code>limit</code> mee naar <code>api/report-query.php</code>, die maximaal 1000 rijen teruggeeft.</dd>
                 </dl>
                 <h4>Methodes</h4>
                 <dl>

@@ -3,7 +3,7 @@
  * Unified Tools Page — toolbar + embedded launcher.
  *
  * Mirrors the reports page: a slim toolbar with an "Alle tools" button plus an
- * embedded <cma-launcher> (nav-mode="iframe") that fills the content host with
+ * embedded <cma-launcher> that fills the content host with
  * the searchable tools menu. Selecting a tool collapses the launcher and loads
  * it full-width in the same box (the #tools-content iframe).
  * The former two-pane cma-tree view is archived in tools_DEPRECATED.php.
@@ -173,10 +173,13 @@ if ($formToLoad !== '') {
     }
 
     // Pass through any additional query parameters to the tool
-    // (e.g., sql parameter for query tool).
+    // (e.g., sql parameter for query tool). 'page' and 'nomenu' belong to the
+    // shell (main.php) and must not reach the iframe: a src that differs from
+    // the catalog href also stops the launcher from marking the open tool active.
     $extraParams = [];
+    $shellParams = ['tool', 'form', 'id', 'page', 'nomenu'];
     foreach (Request::queryAll() as $key => $value) {
-        if ($key !== 'tool' && $key !== 'form' && $key !== 'id' && !empty($value)) {
+        if (!in_array($key, $shellParams, true) && !empty($value)) {
             $extraParams[$key] = $value;
         }
     }
@@ -202,11 +205,10 @@ cma_script('webcomponents/cma-toolbar.js');
 <!-- #tools is "either empty or a menu": the embedded launcher fills it with
      the searchable tools menu; picking a tool collapses the launcher and
      shows the tool full-width in the same box. Both are driven by the shared
-     <cma-launcher> component (nav-mode="iframe"), fed the tools catalog. -->
+     <cma-launcher> component, fed the tools catalog. -->
 <div id="tools" class="launcher-host">
     <cma-launcher
         catalog-url="/cma/api/tools-catalog.php"
-        nav-mode="iframe"
         target="#tools-content"
         search-placeholder="Zoek een tool…"
         aria-label="Alle beheerstools"

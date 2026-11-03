@@ -11,7 +11,7 @@
  * Attributes:
  *   - collapsed: Collapse the preview panel
  *   - active-tab: Current active tab ('sql' or 'data')
- *   - row-limit: Maximum rows to fetch for preview (default: 100)
+ *   - row-limit: Maximum rows the page should fetch, read via .rowLimit (default: 100)
  *   - editable: Enable SQL editing mode
  *   - sql-only: Show "SQL only" mode indicator (when SQL can't be synced to visual)
  *

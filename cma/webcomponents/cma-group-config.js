@@ -2,7 +2,7 @@
  * cma-group-config Web Component
  *
  * Grouping configuration component for the Query Designer.
- * Allows adding fields for grouping with aggregation options.
+ * Allows adding fields to group by.
  * The field picker is a <lib-combo> (Shadow-DOM-safe searchable dropdown).
  *
  * Usage:
