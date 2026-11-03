@@ -135,6 +135,10 @@ class Installer
         // pagina haalde het op. Contextmenu's in de CMA zijn .cma-context-menu.
         'library/webcomponents/lib-menu.js',
         'library/webcomponents/lib-menu.min.js',
+        // Losse .md-documentatie: de inhoud staat in de storybook (lib-arrowsteps, lib-label)
+        // en alle documentatie hoort in cma/tools/documentation.php of de storybook.
+        'library/webcomponents/lib-arrowsteps.md',
+        'library/webcomponents/README.md',
         // Tweede LibTable, in de Cma-namespace. Geen enkele require_once noemt hem en
         // de Cma-namespace wordt niet ge-autoload, dus deze class draaide nooit. De
         // tabelklasse die wél draait is library/classes/class_table.inc.

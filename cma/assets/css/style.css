@@ -1983,6 +1983,21 @@ body.backup #c.tools {
 /* Storybook: a demo that renders nothing gets a muted note beside it. */
 .storybook__muted { color: var(--text-muted); font-style: italic; }
 
+/* Storybook: usage example for a component without a live demo, styled like the playground code. */
+.storybook__code {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 0 0 12px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+}
+.storybook__code code { font: inherit; color: inherit; background: none; padding: 0; border: 0; }
+
 /* Deploy-setup tool: muted hint text under form fields / tables. */
 .cma-tool__hint {
     color: var(--text-muted);

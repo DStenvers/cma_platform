@@ -465,6 +465,7 @@ html.dark-mode .hex-dark { display: inline; }
             label: 'Library componenten',
             children: [
                 { label: 'lib-combo', href: '#lib-combo', icon: 'lnr-list' },
+                { label: 'lib-data-table', href: '#lib-data-table', icon: 'lnr-database' },
                 { label: 'lib-datepicker', href: '#lib-datepicker', icon: 'lnr-history' },
                 { label: 'lib-dialog', href: '#lib-dialog', icon: 'lnr-layers' },
                 { label: 'lib-fileuploader', href: '#lib-fileuploader', icon: 'lnr-upload' },
@@ -508,12 +509,28 @@ html.dark-mode .hex-dark { display: inline; }
                 { label: 'cma-fold', href: '#cma-fold', icon: 'lnr-folder' },
                 { label: 'cma-groupbox', href: '#cma-groupbox', icon: 'lnr-layers' },
                 { label: 'cma-htmledit', href: '#cma-htmledit', icon: 'lnr-code' },
+                { label: 'cma-launcher', href: '#cma-launcher', icon: 'lnr-menu' },
                 { label: 'cma-sortlist', href: '#cma-sortlist', icon: 'lnr-list' },
                 { label: 'cma-combo', href: '#cma-combo', icon: 'lnr-list' },
                 { label: 'cma-tabs', href: '#cma-tabs', icon: 'lnr-layers' },
                 { label: 'cma-tabs light', href: '#cma-tabs-light', icon: 'lnr-layers' },
                 { label: 'cma-toolbar', href: '#cma-toolbar', icon: 'lnr-wrench' },
                 { label: 'cma-tree', href: '#cma-tree', icon: 'lnr-layers' }
+            ]
+        },
+        {
+            type: 'folder',
+            label: 'Rapportgenerator',
+            icon: 'lnr-chart-bars',
+            children: [
+                { label: 'cma-schema-canvas', href: '#cma-schema-canvas', icon: 'lnr-database' },
+                { label: 'cma-param-config', href: '#cma-param-config', icon: 'lnr-cog' },
+                { label: 'cma-field-config', href: '#cma-field-config', icon: 'lnr-list' },
+                { label: 'cma-conditions-panel', href: '#cma-conditions-panel', icon: 'lnr-funnel' },
+                { label: 'cma-sort-config', href: '#cma-sort-config', icon: 'lnr-sort-amount-asc' },
+                { label: 'cma-group-config', href: '#cma-group-config', icon: 'lnr-layers' },
+                { label: 'cma-query-preview', href: '#cma-query-preview', icon: 'lnr-eye' },
+                { label: 'cma-sql-editor', href: '#cma-sql-editor', icon: 'lnr-code' }
             ]
         },
         {
@@ -992,11 +1009,14 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Type: <code>info</code>, <code>warning</code>, <code>danger</code>, <code>success</code> (default: geen)</dd>
                     <dt>size</dt>
                     <dd>Grootte: <code>small</code>, <code>medium</code>, <code>large</code>, <code>xlarge</code>, <code>auto</code>, <code>fullscreen</code> (default: <code>"medium"</code>). <code>xlarge</code> is een vaste 80vw bij 90vh met behoud van de footer — voor inhoud die je bekijkt in plaats van leest (een kaart, een galerij, een brede tabel). <code>fullscreen</code> gaat verder (95vw bij 95vh) maar verbergt de footer.</dd>
+                    <dt>width / height</dt>
                     <dd><code>width</code> / <code>height</code>: een expliciete maat in elke CSS-lengte (<code>80%</code>, <code>900px</code>, <code>80vh</code>). Gaat vóór <code>size</code>, dat alleen een naam voor een voorinstelling is. Een <code>height</code> is een maat om te vullen, geen plafond — inhoud die zich naar zijn container schaalt (een kaart) heeft anders niets om zich naar te richten.</dd>
                     <dt>closable</dt>
                     <dd>Toon sluitknop. Stel in op <code>"false"</code> om te verbergen (default: <code>true</code>)</dd>
                     <dt>no-maximize</dt>
                     <dd>Verberg de maximaliseerknop. Standaard is de knop zichtbaar (default: <code>false</code>)</dd>
+                    <dt>maximized</dt>
+                    <dd>Staat de dialoog gemaximaliseerd. Wordt gezet en verwijderd door <code>maximize()</code> / <code>restore()</code> en de maximaliseerknop; zet het zelf om de dialoog meteen groot te openen. Werkt niet samen met <code>no-maximize</code>.</dd>
                 </dl>
                 <h4>Slots</h4>
                 <dl>
@@ -1290,6 +1310,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Label links naast de waarde</dd>
                     <dt>show-bar</dt>
                     <dd>Toon de balk (default: true)</dd>
+                    <dt>show-pct</dt>
+                    <dd>Toon het percentage rechts; <code>"false"</code> verbergt het (default: true)</dd>
                     <dt>min-width</dt>
                     <dd>Minimale breedte in px (default: 100)</dd>
                 </dl>
@@ -1490,7 +1512,7 @@ html.dark-mode .hex-dark { display: inline; }
         <div class="component-header">
             <h2>lib-label</h2>
             <span class="tag lib">library</span>
-            <p class="component-description">Pure CSS label/badge voor status en categorieën.</p>
+            <p class="component-description">Pure CSS label/badge voor status en categorieën. Bewust geen JavaScript-component: een custom element wordt opgebouwd voordat zijn tekst is ingelezen, zodat de inhoud op dat moment nog ontbreekt. Puur CSS heeft dat probleem niet.</p>
         </div>
         <div class="component-body">
             <div class="component-content">
@@ -1860,6 +1882,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Toon de waarde zonder bewerken: geen wisknop, Escape en <code>clear()</code> laten de waarde staan; Enter geeft nog wel <code>search</code></dd>
                     <dt>icon</dt>
                     <dd><code>"left"</code>, <code>"right"</code>, of <code>"none"</code> (default: <code>"left"</code>)</dd>
+                    <dt>autocomplete</dt>
+                    <dd>Waarde voor het <code>autocomplete</code>-attribuut van het invoerveld (default: <code>"off"</code>, zodat de browser geen eerdere zoektermen voorstelt)</dd>
                 </dl>
                 <h4>Methods</h4>
                 <dl>
@@ -2206,6 +2230,101 @@ html.dark-mode .hex-dark { display: inline; }
         </div>
     </section>
 
+    <!-- lib-data-table -->
+    <section class="component-section" id="lib-data-table">
+        <div class="component-header">
+            <h2>lib-data-table</h2>
+            <span class="tag lib">library</span>
+            <p class="component-description">Tabel op JSON-data met virtueel scrollen: alleen de zichtbare rijen staan in de DOM. De CMA gebruikt hem voor subformulieren (<code>cma/subform.php</code>). Voor een bestaande HTML-tabel is er <a href="#lib-table">lib-table</a>.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <div class="playground">
+                    <textarea><div style="height: 260px;">
+    <lib-data-table id="demoDataTable" sortable filterable selectable density="compact"></lib-data-table>
+</div>
+<script>
+(function () {
+    var namen = ['Jansen', 'de Vries', 'Bakker', 'Visser', 'Smit', 'Meijer'];
+    var plaatsen = ['Utrecht', 'Zwolle', 'Breda'];
+    var rijen = [];
+    for (var i = 1; i <= 500; i++) {
+        rijen.push({ id: i, naam: namen[i % 6] + ' ' + i, plaats: plaatsen[i % 3], uren: (i * 7) % 40 });
+    }
+    document.getElementById('demoDataTable').setData(rijen, [
+        { name: 'naam', caption: 'Naam' },
+        { name: 'plaats', caption: 'Plaats' },
+        { name: 'uren', caption: 'Uren', type: 'number' }
+    ]);
+})();
+</script></textarea>
+                </div>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>data-url</dt>
+                    <dd>Endpoint dat de rijen levert. Moet al een <code>?</code> bevatten: de tabel plakt er <code>&amp;pageSize=…</code> (en <code>lastId</code>, <code>formId</code>, <code>filters</code>, <code>sortColumn</code>, <code>sortDirection</code>) achter. Staat het attribuut er bij het plaatsen, dan laadt de tabel meteen.</dd>
+                    <dt>data-form-id</dt>
+                    <dd>Sleutel voor de voorkeuren in <code>localStorage</code> (<code>lib_table_prefs_&lt;waarde&gt;</code>): kolombreedtes, volgorde, verborgen kolommen en dichtheid. Zonder dit attribuut wordt niets onthouden. Gaat ook als <code>formId</code> mee naar <code>data-url</code>.</dd>
+                    <dt>page-size</dt>
+                    <dd>Rijen per verzoek (default: de instelling <code>LIST_PAGE_SIZE</code>, anders 50)</dd>
+                    <dt>density</dt>
+                    <dd><code>compact</code> (28px), <code>normal</code> (36px) of <code>comfortable</code> (48px) rijhoogte (default: <code>normal</code>). Bepaalt de rijhoogte bij het laden.</dd>
+                    <dt>row-height</dt>
+                    <dd>Rijhoogte in px. Telt alleen als het attribuut ná het plaatsen verandert; bij het laden wint <code>density</code>.</dd>
+                    <dt>sortable / filterable / resizable / reorderable</dt>
+                    <dd>Sorteren op kolomkop, filtermenu per kolom, kolombreedte slepen, kolommen verplaatsen. Elk staat uit zonder het attribuut.</dd>
+                    <dt>selectable</dt>
+                    <dd>Selectievakje per rij; zie <code>getSelection()</code></dd>
+                    <dt>no-virtual-scroll</dt>
+                    <dd>Alle rijen renderen in plaats van alleen de zichtbare</dd>
+                </dl>
+                <h4>Antwoord van data-url</h4>
+                <dl>
+                    <dt>JSON</dt>
+                    <dd><code>{ success, rows, columns, totalCount, hasMore, lastId }</code>. Bij <code>success: false</code> toont de tabel <code>error</code>. Een rij wordt herkend aan <code>id</code> of <code>ID</code>.</dd>
+                    <dt>columns</dt>
+                    <dd><code>[{ name, caption, type, width }]</code>; <code>type</code> <code>number</code>, <code>decimal</code>, <code>currency</code> of <code>integer</code> lijnt rechts uit</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>load({ append, filters })</dt>
+                    <dd>Haal rijen op van <code>data-url</code>; <code>append</code> laadt de volgende pagina erbij</dd>
+                    <dt>setData(rows, columns)</dt>
+                    <dd>Rijen direct zetten, zonder server</dd>
+                    <dt>setColumns(columns)</dt>
+                    <dd>Alleen de kolomdefinities vervangen</dd>
+                    <dt>setFilter(column, value) / clearFilters()</dt>
+                    <dd>Filter zetten of wissen; een lege waarde wist het filter van die kolom</dd>
+                    <dt>setSort(column, direction)</dt>
+                    <dd>Sorteer op een kolom, <code>asc</code> of <code>desc</code></dd>
+                    <dt>getSelection() / setSelection(ids)</dt>
+                    <dd>Geselecteerde rij-id's lezen of zetten</dd>
+                    <dt>setDensity(density) / getDensity()</dt>
+                    <dd>Dichtheid wisselen of lezen</dd>
+                    <dt>refresh()</dt>
+                    <dd>Opnieuw laden vanaf de eerste pagina</dd>
+                    <dt>getState()</dt>
+                    <dd>Aantallen, filters, sortering, selectie en dichtheid in één object</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>data-loaded</dt>
+                    <dd>Na een geslaagde <code>load()</code>: <code>{ rowCount, totalCount, hasMore }</code></dd>
+                    <dt>row-click</dt>
+                    <dd><code>{ id, row, element }</code></dd>
+                    <dt>selection-change</dt>
+                    <dd><code>{ selection }</code></dd>
+                    <dt>filter-change / sort-change / density-change</dt>
+                    <dd><code>{ filters }</code>, <code>{ sort }</code>, <code>{ density }</code></dd>
+                    <dt>column-resize / column-reorder</dt>
+                    <dd><code>{ field, width }</code>, <code>{ columns }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
     <section class="component-section" id="lib-table">
         <div class="component-header">
             <h2>lib-table</h2>
@@ -2264,6 +2383,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Waar <code>row-href</code> opent: leeg = hetzelfde venster, <code>_blank</code> = nieuw tabblad, of <code>popup</code> = het venster van de site zelf (<code>lib_OpenWindowCentered</code>), zo groot als het scherm toelaat. Bij <code>popup</code> blijft de lijst eronder zichtbaar en kom je bij sluiten terug op dezelfde plek. Ctrl/cmd-klik geeft altijd een echt nieuw tabblad, ongeacht deze instelling.</dd>
                     <dt>row-popup-title</dt>
                     <dd>Titel boven het venster bij <code>row-target="popup"</code> (default: geen)</dd>
+                    <dt>export="n"</dt>
+                    <dd>Geen exportmenu. Ook als <code>data-export="n"</code>, op de component of op de <code>&lt;table&gt;</code> zelf.</dd>
                 </dl>
                 <h4>Vanuit PHP</h4>
                 <dl>
@@ -2280,6 +2401,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Schakel filteren uit voor deze kolom</dd>
                     <dt>data-filter="N"</dt>
                     <dd>Alternatief voor data-no-filter</dd>
+                    <dt>data-no-search</dt>
+                    <dd>Het filtermenu van deze kolom krijgt geen zoekveld; de keuzevakjes en het sorteren blijven</dd>
                     <dt>data-sorted</dt>
                     <dd>Deze kolom is de sortering waarop de rijen al binnenkomen: <code>asc</code> of <code>desc</code>. De tabel zet alleen de indicatie in de kop en herschikt de rijen niet — gebruik het dus wanneer de query een <code>ORDER BY</code> heeft, zodat de gebruiker ziet waarop de lijst staat. Zonder dit attribuut toont de kop pas iets nadat er zelf gesorteerd is. Tabellen die via de gedeelde PHP-klasse <code>LibTable</code> gerenderd worden krijgen het attribuut vanzelf: die leest de <code>ORDER BY</code> uit de query met <code>SQL::sortedColumn()</code> en markeert de bijbehorende kolom, of laat het weg als die kolom niet getoond wordt.</dd>
                 </dl>
@@ -3185,6 +3308,10 @@ window.LIBLOG_CONFIG = {
                     <dd>Grootte bij ingeklapt (default: 0)</dd>
                     <dt>reverse</dt>
                     <dd>Keer sleeprichting om (gebruik als target NA de fold staat)</dd>
+                    <dt>min-voor</dt>
+                    <dd>Horizontaal met <code>reverse</code>: ruimte in px die vóór de balk (het hoofdscherm) altijd overblijft (default: 50)</dd>
+                    <dt>default-size</dt>
+                    <dd>Startmaat in px zolang er nog nooit aan de balk gesleept is. Zonder dit attribuut krijgt het doel geen maat en beslist de CSS; een subformulier met veel rijen kan het formulier erboven dan van het scherm duwen.</dd>
                 </dl>
                 <h4>Events</h4>
                 <dl>
@@ -3363,6 +3490,70 @@ window.LIBLOG_CONFIG = {
                     <dd><code>&lt;cma-htmledit name="x"&gt;&lt;textarea name="x"&gt;HTML&lt;/textarea&gt;&lt;/cma-htmledit&gt;</code></dd>
                     <dt>Met value attribuut</dt>
                     <dd><code>&lt;cma-htmledit name="x" value="&lt;p&gt;...&lt;/p&gt;"&gt;&lt;/cma-htmledit&gt;</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-launcher">
+        <div class="component-header">
+            <h2>cma-launcher</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Doorzoekbaar menu over de volle breedte, gevuld uit een catalogus. Het menu "Alle tools" (<code>tools.php</code>) en "Alle rapporten" (<code>reports.php</code>) zijn allebei deze component; een keuze laadt de pagina in een iframe eronder en zet de deeplink in de adresbalk.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;div id="tools" class="launcher-host"&gt;
+    &lt;cma-launcher
+        catalog-url="/cma/api/tools-catalog.php"
+        nav-mode="iframe"
+        target="#tools-content"
+        search-placeholder="Zoek een tool…"
+        aria-label="Alle beheerstools"
+        empty-text="Geen tools beschikbaar."&gt;&lt;/cma-launcher&gt;
+    &lt;iframe name="R" id="tools-content" class="tools-content-area"&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.querySelector('#tools cma-launcher').open();
+&lt;/script&gt;</code></pre>
+                <p>Geen live voorbeeld: de component haalt een echte catalogus op en navigeert de pagina weg. Open <a href="../tools.php">Alle beheerstools</a> om hem te zien.</p>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>catalog-url</dt>
+                    <dd>Endpoint van de catalogus (default: <code>/cma/api/tools-catalog.php</code>; voor rapporten <code>/cma/api/reports-catalog.php</code>)</dd>
+                    <dt>nav-mode</dt>
+                    <dd><code>iframe</code>: het menu vult zijn eigen houder (<code>.launcher-host</code>) en laadt de keuze in het iframe van <code>target</code>. Zonder <code>iframe</code> geldt <code>shell</code>: een overlay met achtergrond die de pagina via <code>window.loadPage()</code> laadt. Alle huidige pagina's gebruiken <code>iframe</code>.</dd>
+                    <dt>target</dt>
+                    <dd>CSS-selector van het iframe (alleen bij <code>nav-mode="iframe"</code>)</dd>
+                    <dt>search-placeholder</dt>
+                    <dd>Placeholder van het zoekveld (default: <code>"Zoek een tool…"</code>)</dd>
+                    <dt>aria-label</dt>
+                    <dd>Naam van het paneel voor schermlezers (default: <code>"Alle beheerstools"</code>)</dd>
+                    <dt>empty-text</dt>
+                    <dd>Tekst bij een lege catalogus (default: <code>"Geen items beschikbaar."</code>)</dd>
+                </dl>
+                <h4>Catalogus</h4>
+                <dl>
+                    <dt>JSON</dt>
+                    <dd><code>{ success: true, groups: [...] }</code>. Een groep is <code>{ type: 'folder', label, icon, children }</code>; een item is <code>{ type: 'item', label, href, url, icon, badge }</code>. Submappen worden platgeslagen tot eigen secties ("Developer · Testen").</dd>
+                    <dt>href / url</dt>
+                    <dd><code>href</code> is wat het iframe laadt, <code>url</code> de deeplink voor de adresbalk. Een <code>href</code> buiten <code>/cma/</code> of een volledige URL opent in een nieuw tabblad.</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>open() / close() / toggle()</dt>
+                    <dd>Menu tonen of verbergen. De eerste <code>open()</code> haalt de catalogus op.</dd>
+                    <dt>isOpen()</dt>
+                    <dd>Of het menu nu zichtbaar is</dd>
+                </dl>
+                <h4>Toetsenbord</h4>
+                <dl>
+                    <dt>Enter</dt>
+                    <dd>Opent het eerste item dat bij de zoekterm past</dd>
+                    <dt>Escape</dt>
+                    <dd>Wist eerst de zoekterm; zonder zoekterm sluit het menu</dd>
                 </dl>
             </div>
         </div>
@@ -3664,6 +3855,12 @@ document.getElementById('demoTree').setData([
                 <dl>
                     <dt>id</dt>
                     <dd>Element ID voor JavaScript referentie</dd>
+                    <dt>data</dt>
+                    <dd>De boom als JSON-string, hetzelfde formaat als <code>setData()</code>. Ongeldige JSON wordt gelogd en laat de boom ongewijzigd.</dd>
+                    <dt>storage-key</dt>
+                    <dd>Onthoudt welke mappen open staan in <code>localStorage</code> (sleutel <code>tree_&lt;waarde&gt;</code>). Mappen worden herkend aan hun labelpad ("Groep/Subgroep"), zodat een ingevoegd of verwijderd item niet de verkeerde mappen opent. Zonder attribuut wordt niets onthouden.</dd>
+                    <dt>item-icon</dt>
+                    <dd>Linearicons-klasse voor items zonder eigen <code>icon</code>, bijv. <code>lnr-file-empty</code></dd>
                 </dl>
                 <h4>Methodes</h4>
                 <dl>
@@ -3678,6 +3875,417 @@ document.getElementById('demoTree').setData([
                 <dl>
                     <dt>tree-select</dt>
                     <dd>Wordt getriggerd bij selectie van een item</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- RAPPORTGENERATOR -->
+    <!-- ================================================================ -->
+
+    <section class="component-section" id="cma-schema-canvas">
+        <div class="component-header">
+            <h2>cma-schema-canvas</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Stap Tabellen van de rapportgenerator (<code>report-designer.php</code>): tabellen op een canvas zetten, verslepen en met relaties (joins) verbinden, en per tabel de velden aanvinken. Net als de andere rapportgenerator-componenten niet in de standaardbundel; <code>report-designer.php</code> laadt ze met <code>cma_script()</code>.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-schema-canvas id="schemaCanvas" show-columns="true" max-columns="8" selectable-fields="true"&gt;&lt;/cma-schema-canvas&gt;
+&lt;script&gt;
+const canvas = document.getElementById('schemaCanvas');
+canvas.addEventListener('schema-loaded', () =&gt; canvas.addTable('tblDeelnemer'));
+canvas.loadSchema(1);
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>database-id</dt>
+                    <dd>Laadt het schema van die database via <code>api/report-schema.php?action=getTables</code>, bij plaatsen en bij elke wijziging</dd>
+                    <dt>show-columns</dt>
+                    <dd><code>"false"</code> toont alleen de tabelkoppen (default: kolommen zichtbaar)</dd>
+                    <dt>max-columns</dt>
+                    <dd>Kolommen per tabel voordat de lijst wordt afgekapt (default: 10)</dd>
+                    <dt>show-relationships</dt>
+                    <dd><code>"false"</code> verbergt de relatielijnen (default: zichtbaar)</dd>
+                    <dt>selectable-fields</dt>
+                    <dd><code>"true"</code>: een selectievakje per veld en per tabelkop</dd>
+                    <dt>advanced-mode</dt>
+                    <dd><code>"true"</code>: een potloodknop in de tabelkop om een alias te geven</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>loadSchema(databaseId)</dt>
+                    <dd>Schema ophalen; daarna volgt <code>schema-loaded</code></dd>
+                    <dt>addTable(name, schema) / removeTable(name)</dt>
+                    <dd>Tabel op het canvas zetten of weghalen. Met <code>schema</code> (<code>{ columns, primaryKeys, relationships }</code>) is er geen geladen schema nodig.</dd>
+                    <dt>getSelectedTables() / setSelectedTables(names)</dt>
+                    <dd>Tabellen op het canvas lezen of in één keer zetten</dd>
+                    <dt>getSelectedFields()</dt>
+                    <dd>Aangevinkte velden van alle tabellen</dd>
+                    <dt>getTablePositions() / setTablePositions(positions)</dt>
+                    <dd>Posities op het canvas, om een opgeslagen rapport terug te zetten. <code>preloadPositions()</code> zet ze klaar voor tabellen die nog moeten komen.</dd>
+                    <dt>setRelationshipsFromJoins(joins)</dt>
+                    <dd>Relatielijnen tekenen vanuit de joins van een opgeslagen rapport</dd>
+                    <dt>autoLayout()</dt>
+                    <dd>Tabellen automatisch schikken</dd>
+                    <dt>getTableSchema(name) / getAvailableTables()</dt>
+                    <dd>Schema van één tabel, of alle tabellen in de database</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>schema-loaded</dt>
+                    <dd><code>{ databaseId, tableCount }</code></dd>
+                    <dt>table-add / table-remove / table-select</dt>
+                    <dd><code>{ tableName }</code>, bij add en select ook <code>tableInfo</code></dd>
+                    <dt>change</dt>
+                    <dd>De set tabellen veranderde: <code>{ tables }</code></dd>
+                    <dt>field-selection-change</dt>
+                    <dd><code>{ tableName, selectedFields, allSelectedFields }</code></dd>
+                    <dt>relationship-add / relationship-delete</dt>
+                    <dd><code>{ from: { table, column }, to: { table, column } }</code>, bij add ook <code>innerJoin</code></dd>
+                    <dt>alias-change</dt>
+                    <dd><code>{ tableName, alias, allAliases }</code></dd>
+                    <dt>positions-change / table-size-change / panel-position-change / table-schema-loaded</dt>
+                    <dd>Opmaak van het canvas veranderde, of het schema van één tabel kwam binnen</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-param-config">
+        <div class="component-header">
+            <h2>cma-param-config</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Parameters van een rapport: waarden die de gebruiker invult bij het draaien (rapportgenerator, stap Parameters).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-param-config id="paramConfig"&gt;&lt;/cma-param-config&gt;
+&lt;script&gt;
+document.getElementById('paramConfig').setParameters([
+    { name: '@vanaf', label: 'Vanaf', type: 'date', required: true }
+]);
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>readonly</dt>
+                    <dd>Alleen tonen, niet bewerken</dd>
+                </dl>
+                <h4>Parameter</h4>
+                <dl>
+                    <dt>{ name, label, type, default, required }</dt>
+                    <dd><code>type</code> is <code>text</code>, <code>number</code>, <code>date</code> of <code>select</code> (default: <code>text</code>). Een nieuwe parameter heet <code>@param1</code>, <code>@param2</code>, …</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setParameters(params) / getParameters()</dt>
+                    <dd>Lijst zetten of lezen</dd>
+                    <dt>addParameter() / removeParameter(index)</dt>
+                    <dd>Parameter toevoegen of verwijderen</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>param-add / param-remove</dt>
+                    <dd><code>{ parameter, index }</code></dd>
+                    <dt>param-change</dt>
+                    <dd><code>{ index, property, … }</code> bij het bewerken van één veld</dd>
+                    <dt>change</dt>
+                    <dd><code>{ parameters }</code> na elke wijziging</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-field-config">
+        <div class="component-header">
+            <h2>cma-field-config</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Velden van de gekozen tabellen: tonen of verbergen, alias, totaal, en een knop die een filter toevoegt aan <a href="#cma-conditions-panel">cma-conditions-panel</a> (rapportgenerator, stap Velden).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-field-config id="fieldConfig"&gt;&lt;/cma-field-config&gt;
+&lt;script&gt;
+document.getElementById('fieldConfig').setFields([
+    { table: 'tblDeelnemer', field: 'Achternaam', typeCategory: 'text' },
+    { table: 'tblDeelnemer', field: 'fkOpleiding', typeCategory: 'number' }
+]);
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>readonly</dt>
+                    <dd>Alleen tonen, niet bewerken</dd>
+                </dl>
+                <h4>Veld</h4>
+                <dl>
+                    <dt>{ table, field, alias, dataType, typeCategory, visible, showTotal }</dt>
+                    <dd><code>typeCategory</code> is <code>text</code>, <code>number</code>, <code>date</code>, <code>boolean</code> of <code>binary</code>. Zonder alias krijgt een getalveld dat met <code>fk</code> begint de naam zonder <code>fk</code>. <code>visible</code> staat standaard aan.</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setFields(fields) / getFields() / getVisibleFields()</dt>
+                    <dd>Velden zetten of lezen, of alleen de zichtbare</dd>
+                    <dt>setFieldProperty(index, prop, value)</dt>
+                    <dd>Eén eigenschap van een veld wijzigen</dd>
+                    <dt>selectAll() / deselectAll()</dt>
+                    <dd>Alle velden tonen of verbergen</dd>
+                    <dt>setSearchFilter(term) / setShowSelectedOnly(bool)</dt>
+                    <dd>De lijst inperken tot een zoekterm of tot de zichtbare velden</dd>
+                    <dt>setSorting(sorting) / setGrouping(grouping)</dt>
+                    <dd>Toont bij elk veld of erop gesorteerd of gegroepeerd wordt</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>field-change</dt>
+                    <dd><code>{ index, property, value, field }</code></dd>
+                    <dt>change</dt>
+                    <dd><code>{ fields }</code></dd>
+                    <dt>add-condition</dt>
+                    <dd>Filterknop bij een veld: <code>{ table, field, alias, dataType, typeCategory }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-conditions-panel">
+        <div class="component-header">
+            <h2>cma-conditions-panel</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">De WHERE-voorwaarden van een rapport: per veld een operator en waarde, EN/OF ertussen en haakjes ervoor en erachter (rapportgenerator, stap Velden).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-conditions-panel id="conditionsPanel"&gt;&lt;/cma-conditions-panel&gt;
+&lt;script&gt;
+const panel = document.getElementById('conditionsPanel');
+panel.setConditions([
+    { table: 'tblDeelname', field: 'Startdatum', typeCategory: 'date', operator: 'after', value: '@vanaf' }
+]);
+panel.addEventListener('conditions-change', e =&gt; console.log(e.detail.conditions));
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Voorwaarde</h4>
+                <dl>
+                    <dt>{ field, table, alias, dataType, typeCategory, operator, value, value2, logic, prefix, suffix }</dt>
+                    <dd><code>logic</code> is <code>AND</code> of <code>OR</code>; <code>prefix</code> en <code>suffix</code> bevatten de haakjes; <code>value2</code> is de tweede grens bij <code>between</code></dd>
+                    <dt>Operatoren</dt>
+                    <dd>Tekst: <code>=</code> <code>&lt;&gt;</code> <code>contains</code> <code>starts</code> <code>ends</code> <code>empty</code> <code>notempty</code>. Getal: <code>=</code> <code>&lt;&gt;</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>between</code>. Datum: <code>=</code> <code>&lt;&gt;</code> <code>before</code> <code>after</code> <code>between</code> <code>today</code> <code>thisweek</code> <code>thismonth</code>. Ja/nee: <code>yes</code> <code>no</code>. Leeg, vandaag, deze week/maand en ja/nee hebben geen waarde nodig.</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setConditions(conditions) / getConditions()</dt>
+                    <dd>Voorwaarden zetten of lezen</dd>
+                    <dt>setAvailableFields(fields)</dt>
+                    <dd>Velden waarop een nieuwe voorwaarde kan: <code>{ table, field, alias, dataType, typeCategory }</code></dd>
+                    <dt>setDefaultLogic(logic)</dt>
+                    <dd><code>AND</code> of <code>OR</code> voor nieuwe voorwaarden (default: <code>AND</code>)</dd>
+                    <dt>validate()</dt>
+                    <dd>Controleert de haakjes: <code>{ valid, error }</code></dd>
+                    <dt>autoFixBrackets()</dt>
+                    <dd>Sluit openstaande haakjes achter de laatste voorwaarde</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>conditions-change</dt>
+                    <dd><code>{ conditions, defaultLogic }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-sort-config">
+        <div class="component-header">
+            <h2>cma-sort-config</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Sortering van een rapport: velden kiezen met een <a href="#lib-combo">lib-combo</a>, richting per veld, volgorde door slepen (rapportgenerator, stap Sortering).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-sort-config id="sortConfig"&gt;&lt;/cma-sort-config&gt;
+&lt;script&gt;
+const sort = document.getElementById('sortConfig');
+sort.setAvailableFields([{ table: 'tblDeelnemer', field: 'Achternaam' }]);
+sort.setSorting([{ table: 'tblDeelnemer', field: 'Achternaam', direction: 'ASC' }]);
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>readonly</dt>
+                    <dd>Alleen tonen, niet bewerken</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setAvailableFields(fields)</dt>
+                    <dd>Velden in de keuzelijst: <code>{ table, field, alias }</code></dd>
+                    <dt>setSorting(sorting) / getSorting()</dt>
+                    <dd><code>[{ table, field, alias, direction }]</code>, <code>direction</code> <code>ASC</code> of <code>DESC</code></dd>
+                    <dt>addSort(field, direction) / removeSort(index)</dt>
+                    <dd>Veld toevoegen (een veld dat er al staat wordt overgeslagen) of verwijderen</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>sort-add / sort-remove</dt>
+                    <dd><code>{ sort, index }</code></dd>
+                    <dt>change</dt>
+                    <dd><code>{ sorting }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-group-config">
+        <div class="component-header">
+            <h2>cma-group-config</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Groepering van een rapport: velden kiezen met een <a href="#lib-combo">lib-combo</a> (rapportgenerator, stap Sortering).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-group-config id="groupConfig"&gt;&lt;/cma-group-config&gt;
+&lt;script&gt;
+const group = document.getElementById('groupConfig');
+group.setAvailableFields([{ table: 'tblOpleiding', field: 'Naam' }]);
+group.setGrouping([{ table: 'tblOpleiding', field: 'Naam' }]);
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>readonly</dt>
+                    <dd>Alleen tonen, niet bewerken</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setAvailableFields(fields)</dt>
+                    <dd>Velden in de keuzelijst: <code>{ table, field, alias }</code></dd>
+                    <dt>setGrouping(grouping) / getGrouping()</dt>
+                    <dd><code>[{ table, field, alias }]</code></dd>
+                    <dt>addGroup(field) / removeGroup(index)</dt>
+                    <dd>Veld toevoegen (een veld dat er al staat wordt overgeslagen) of verwijderen</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>group-add / group-remove</dt>
+                    <dd><code>{ group, index }</code></dd>
+                    <dt>change</dt>
+                    <dd><code>{ grouping }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-query-preview">
+        <div class="component-header">
+            <h2>cma-query-preview</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">Voorbeeld van een rapport met twee tabbladen: de SQL (met kleuring, bewerkbaar) en de opgehaalde rijen. De component haalt zelf niets op; de pagina luistert naar <code>refresh</code> en roept <code>setData()</code> aan (rapportgenerator, tabblad Resultaat).</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-query-preview id="queryPreview" editable&gt;&lt;/cma-query-preview&gt;
+&lt;script&gt;
+const preview = document.getElementById('queryPreview');
+preview.setSql('SELECT Achternaam FROM tblDeelnemer');
+preview.addEventListener('refresh', async () =&gt; {
+    preview.setLoading(true);
+    const data = await haalRijenOp(preview.sql);   // eigen functie van de pagina
+    preview.setData(data.columns, data.rows, data.totalCount);
+});
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>editable</dt>
+                    <dd>De SQL is te bewerken; opslaan geeft <code>sql-change</code></dd>
+                    <dt>active-tab</dt>
+                    <dd><code>sql</code> of <code>data</code></dd>
+                    <dt>collapsed</dt>
+                    <dd>Paneel ingeklapt</dd>
+                    <dt>sql-only</dt>
+                    <dd>Toont dat de SQL niet meer terug te zetten is naar de visuele editor; zie <code>setSqlOnlyMode()</code></dd>
+                    <dt>row-limit</dt>
+                    <dd>Leesbaar als <code>rowLimit</code> (default: 100). De component zelf gebruikt het niet; het is een waarde voor de pagina die de rijen ophaalt.</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>setSql(sql) / sql</dt>
+                    <dd>SQL tonen of lezen</dd>
+                    <dt>setData(columns, rows, totalCount)</dt>
+                    <dd>Rijen tonen in het tabblad Data</dd>
+                    <dt>setLoading(bool) / setError(message)</dt>
+                    <dd>Laadtoestand of foutmelding</dd>
+                    <dt>toggle() / refresh()</dt>
+                    <dd>In- of uitklappen; <code>refresh</code> versturen</dd>
+                    <dt>enterEditMode() / exitEditMode()</dt>
+                    <dd>Bewerken van de SQL starten of stoppen</dd>
+                    <dt>setSqlOnlyMode(enabled, message)</dt>
+                    <dd>Melding dat het rapport alleen nog als SQL bestaat</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>refresh</dt>
+                    <dd><code>{ tab }</code></dd>
+                    <dt>sql-change</dt>
+                    <dd><code>{ sql, requestSync }</code></dd>
+                    <dt>sync-request</dt>
+                    <dd>Gebruiker wil de SQL terugzetten naar de visuele editor: <code>{ sql }</code></dd>
+                    <dt>tab-change / collapse-change</dt>
+                    <dd><code>{ tab }</code>, <code>{ collapsed }</code></dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="component-section" id="cma-sql-editor">
+        <div class="component-header">
+            <h2>cma-sql-editor</h2>
+            <span class="tag cma">CMA</span>
+            <p class="component-description">SQL-invoerveld met regelnummers, kleuring en opmaakknop. <code>report-designer.php</code> laadt het script, maar plaatst de component nergens: het bewerken van SQL in de rapportgenerator loopt via <a href="#cma-query-preview">cma-query-preview</a> met <code>editable</code>.</p>
+        </div>
+        <div class="component-body">
+            <div class="component-content">
+                <pre class="storybook__code"><code>&lt;cma-sql-editor id="sqlEditor" placeholder="SELECT * FROM ..."&gt;&lt;/cma-sql-editor&gt;
+&lt;script&gt;
+const editor = document.getElementById('sqlEditor');
+editor.sql = 'SELECT * FROM tblDeelnemer';
+editor.addEventListener('execute', e =&gt; console.log(e.detail.sql));
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>placeholder</dt>
+                    <dd>Default: <code>"SELECT * FROM ..."</code></dd>
+                    <dt>readonly</dt>
+                    <dd>Alleen tonen, niet bewerken</dd>
+                </dl>
+                <h4>Methodes</h4>
+                <dl>
+                    <dt>sql</dt>
+                    <dd>Property: SQL lezen of zetten</dd>
+                    <dt>setError(message) / clearError()</dt>
+                    <dd>Foutmelding onder het veld tonen of weghalen</dd>
+                    <dt>format()</dt>
+                    <dd>SQL inspringen</dd>
+                    <dt>focus()</dt>
+                    <dd>Cursor in het veld</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>change</dt>
+                    <dd><code>{ sql }</code>, 300 ms na de laatste toetsaanslag</dd>
+                    <dt>execute</dt>
+                    <dd>Ctrl+Enter: <code>{ sql }</code></dd>
                 </dl>
             </div>
         </div>
@@ -4879,7 +5487,44 @@ $origSize = filesize($demoPath);
                         <lib-arrowsteps current="4" steps='[{"label":"Winkelwagen","url":"#"},{"label":"Verzendkosten","url":"#"},{"label":"Afrekenen","url":"#"},{"label":"Betaling","url":"#"}]'></lib-arrowsteps>
                     </div>
                 </div>
-                <p class="component-description" style="margin-top: 12px;">Zie <code>library/webcomponents/lib-arrowsteps.md</code> voor attributen (current/steps/labels/linkable), properties en het <code>step-click</code> event.</p>
+            </div>
+            <div class="component-options">
+                <h4>Attributen</h4>
+                <dl>
+                    <dt>current</dt>
+                    <dd>Actieve stap, vanaf 1 (default: <code>1</code>)</dd>
+                    <dt>steps</dt>
+                    <dd>JSON-array met <code>{label, url}</code>-objecten</dd>
+                    <dt>labels</dt>
+                    <dd>Alternatief voor <code>steps</code>: labels gescheiden door <code>|</code>, zonder links</dd>
+                    <dt>linkable</dt>
+                    <dd><code>future</code>: ook stappen na de huidige zijn klikbaar. Standaard linken alleen afgeronde stappen.</dd>
+                </dl>
+                <h4>Properties</h4>
+                <dl>
+                    <dt>current</dt>
+                    <dd>Lezen en zetten; zetten tekent opnieuw</dd>
+                    <dt>steps</dt>
+                    <dd>Array met <code>{label, url}</code>; zetten tekent opnieuw</dd>
+                </dl>
+                <h4>Events</h4>
+                <dl>
+                    <dt>step-click</dt>
+                    <dd>Bij het aanklikken van een stap. <code>detail: { step, label, url }</code>, step vanaf 1.</dd>
+                </dl>
+                <h4>CSS-variabelen</h4>
+                <dl>
+                    <dt>--as-done</dt>
+                    <dd>Achtergrond afgeronde stap</dd>
+                    <dt>--as-current</dt>
+                    <dd>Achtergrond huidige stap</dd>
+                    <dt>--as-future</dt>
+                    <dd>Achtergrond volgende stappen</dd>
+                    <dt>--as-future-text</dt>
+                    <dd>Tekstkleur volgende stappen</dd>
+                    <dt>--as-text</dt>
+                    <dd>Tekstkleur afgeronde en huidige stap</dd>
+                </dl>
             </div>
         </div>
     </section>
