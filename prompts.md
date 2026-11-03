@@ -16716,3 +16716,16 @@ karaat-data en staat in de karaat-repo.
 > kun je committen en pushen?, die v= hoeft niet achter fonts, die veranderen niet
 
 > ja graag, teller verbergen bij kolomfilter
+
+> Hoi heren,
+>
+> Het lijkt erop dat de vervangende opdracht niet automatisch meer gekoppeld is aan de roosterregel.
+> Hierdoor komt de absentie niet automatisch op gecompenseerd te staan. Kunnen jullie dit zsm weer terug draaien om te voorkomen dat het aantal ontbrekende koppelingen beperkt blijft.
+>
+> Zie als voorbeeld Eleroa Rijfers van de GZ2026-H - Diagnostiek II  - 23 oktober
+>
+> Ook Maureen Marck en Felipe Hoyos hebben geen koppeling, echter hadden zij geen VO hoeven ontvangen. Wanneer ik deze wil verwijderen krijg ik de onderstaande melding: Het record kan niet wroden verwijderd omdat er gerelateerde gegevens staan in de tabel Afwezigheid
+>  
+> Maar er staat verder niks in de roosteregel:
+
+> Dus alle VO's die aangemaakt hadden moeten worden zijn dat ook?

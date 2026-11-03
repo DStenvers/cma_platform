@@ -22,9 +22,11 @@ if (!empty($add['sql'])) {
     echo "Added userLevel column\n";
 }
 
-// Find users without userLevel
+// Find users without userLevel. userLevel is an INTEGER column: comparing it with ''
+// fails on Access ("Data type mismatch in criteria expression", -3030), so only NULL
+// counts as "no level".
 $result = Database::fetchAll(
-    "SELECT ID, userFullName FROM tblUsers WHERE userLevel IS NULL OR userLevel = ''",
+    "SELECT ID, userFullName FROM tblUsers WHERE userLevel IS NULL",
     [],
     $conn
 );
