@@ -1980,6 +1980,9 @@ body.backup #c.tools {
 .cma-wizard__em,
 .storybook__em { font-style: italic; }
 
+/* Storybook: a demo that renders nothing gets a muted note beside it. */
+.storybook__muted { color: var(--text-muted); font-style: italic; }
+
 /* Deploy-setup tool: muted hint text under form fields / tables. */
 .cma-tool__hint {
     color: var(--text-muted);

@@ -16455,3 +16455,192 @@ karaat-data en staat in de karaat-repo.
 ## 2026-11-02
 
 > kun je de 17 fouten proberen op te lossen? Dat duidt toch op bugs.
+
+> enige tijd geleden hebben we een kba analyse gedaan ten opziochte van het toetsboek gz, heb je daar nog de samenvatting van? Wat ik nodig heb is een document met daarin de actiepunten en wat we daarmee gaan doen.
+
+> het rapport bevat aanbevelingen voor data, kun je de sql's daarvoor aanmaken en nadat ik ze heb gedraaid herbeoordelen?
+
+> En we hebben besloten dat de praktijkopleider alle KBA's integraal beoordeeld, dus dat hoeft niet per individuele KBA
+
+> Tonen we de Matig wel als deze niet meer in het lijstje voorkomt? Daar moet wel code voor worden geschreven.
+
+> ik heb de productiedatabase locaal gezet, wil je kijken of jouw sql's goed gaan?
+
+> de deelnemer-vragen zijn al geimplementeerd, die vult hij/zij in voordat er feedback aan de feedbackgever wordt gevraagd. Noteer dat ook in de .md voor toekomstige sessies.
+
+> de vragen voor de praktijkopleider: die heeft hier nu geen rol in. Anders moet het proces volledig anders. Wat zijn die vragen en wat kunnen we daarop verzinnen? Kunnen die tijdens de beoordeling worden gesteld?
+
+> waarom wil je dat een deelnemer alleen zijn deelnemervragen kan indienen, de feedbackgever moet juist daarop reageren
+
+> komt die beoordeling met kba wel overeen met het toetsboek?
+
+> kunnen we het document anders indelen: en dan per stap binnen het werkproces? 
+>
+> [aanvragen feedback]
+>
+> [geven feedback]
+>
+> [beoordeling kbs's door praktijkopleider]
+
+> noteer f4 maar in het document als vraag, ik kan niet inhoudelijk daarover oordelen
+
+> data is gewijzigd. bewaar die sql even separaat voor het archief.
+
+> bij een onvoldoende moet de deelnemer het opnieuw indienen, bestand heeft op productie gedraaid met dit resultaat: 
+>
+> <pasted_content id="a393">
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 0 record aangepast
+>
+> Resultaat:
+> 0 record aangepast
+>
+> Resultaat:
+> 7 records aangepast
+>
+> Resultaat:
+> 17 records aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 1 record aangepast
+>
+> Resultaat:
+> 5 records aangepast
+> </pasted_content id="a393">
+>
+>  , database staat weer lokaal bijgewerkt.
+
+> kun je het document opscheonen, geen gedane actiepunten erin, alleen wat openstaat en wat er nog moet worden besloten
+
+> F3 - voorstel: oplossen door de KBA 2x te laten versturen. opnemen in de hulptekst. kun je d4 meer uitleggen? heel cryptisch omschreven nu
+
+> ga door met je actiepunten
+
+> wil je de hulpteksten wijzigen en dan zeggen dat per beoordelaar er 1 formulier moet worden verzonden?
+
+> wil je in de code dubbelchecken dat de pauze-functionaliteit nu goed is geimplementeerd? Graag geen aannames doen maar vanaf 0 beginnen. Doe alsof je dit nog nooit  eerder hebt gezien. Het betreft een boolean bPAuze en een optionele einddatum. Zonder einddatum staat die deelnemer altijd op pauze.
+
+> cma platform; kijk of de storybook of de inyerne documentatie nog updates of aanvullingen behoeft
+
+> kun je alle afwijkingen oplossen?
+
+> <task-notification>
+> <task-type>artifact-watch-lifecycle</task-type>
+> <summary>Stopped watching Artifact: https://claude.ai/artifact/Qi2bDKCvFVxGU1BCsR99Eu (idle)</summary>
+> <event>Watch on https://claude.ai/artifact/Qi2bDKCvFVxGU1BCsR99Eu ended — it was armed automatically when you attached this artifact from /artifacts and has seen no activity for over 3h 30m (idle auto-armed watches are retired). This session no longer keeps track of new versions of it; watch it again when you next work on this artifact.</event>
+> </task-notification>
+
+> in de agenda ook testen op de datPauze ipv de einddatum
+
+> <task-notification>
+> <task-id>a9d12b8300ed8a0ef</task-id>
+> <tool-use-id>toolu_01RywjTgaNxfegkgqAqsyMGC</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/985ff5cd-43e4-4a26-b1a8-e66c823e124d/tasks/a9d12b8300ed8a0ef.output</output-file>
+> <status>failed</status>
+> <summary>Agent "Audit platform docs/storybook gaps" failed: Agent terminated early due to an API error: You've hit your 5-hour limit · resets 6:30pm (Europe/Amsterdam) (error type rate_limit, HTTP 429, request id req_011CgeQgNNP1rgXk6oUdj61m, model sent to the API: claude-opus-5-5)</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once. This agent's work so far is saved. The limit resets at 6:30pm (Europe/Amsterdam). Once its requests are accepted again, send the agent a message (SendMessage) to let it continue from where it stopped instead of starting a new agent.</note>
+> <result>Let me check the web_components topic for facts.</result>
+> </task-notification>
+
+## 2026-11-03
+
+> can you continue
+
+> <task-notification>
+> <task-id>a9d12b8300ed8a0ef</task-id>
+> <tool-use-id>toolu_01NXxbK9x7BtB9Wrcn1U1JBQ</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/985ff5cd-43e4-4a26-b1a8-e66c823e124d/tasks/a9d12b8300ed8a0ef.output</output-file>
+> <status>completed</status>
+> <summary>Agent "Audit platform docs/storybook gaps" finished</summary>
+> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+> <result>I've finished the audit. Nothing was edited, committed or pushed. The three newest fixes (v1.54.3 to v1.54.5) are documented correctly. What's left: one wrong setting name, one stale menu-icon section, three emphasis-tag violations in the storybook, and a set of storybook entries that are missing or incomplete.
+>
+> **Wrong or stale facts in documentation.php (fix first)**
+> 1. `cma/tools/documentation.php:4135` (topic database) says the password comes from `DB_PASS`. The real variable is `DB_PASSWORD` (`src/helpers/Settings.php:546`, read in `BackupService.php:390`). `DB_PASS` appears nowhere in the code, so an operator following the doc sets a variable nothing reads.
+> 2. `documentation.php:4855-4866` (topic web_components, "Menu-group iconen") is stale:
+>    - It describes a `$menuGroupIcons` array in `cma/main.php`. That array doesn't exist. The mapping is `menuGroupIcon()` in `cma/menurep.inc:90`.
+>    - Its example maps `'rapportages' =&gt; 'lnr-chart-bars'`; the real value is `lnr-document`.
+>    - "Zet `icon` in data/menu.json" for menu items is not true. `main.php:279-286` picks item icons from the href (form, report or tool), and nothing reads an `icon` key from the menu config.
+> 3. `documentation.php:5014` points readers to `memory/feedback_defensive_checks.md`. That is a Claude memory file outside the repo, so no reader can open it. Inline the rule or drop the reference.
+>
+> **Hard-rule violations (inline emphasis tags) in storybook.php**
+> 4. Line 1714: `&lt;em style="color:var(--text-muted)"&gt;(leeg)&lt;/em&gt;`, which is also inline CSS.
+> 5. Line 2256 (lib-table `row-href`): `&lt;strong&gt;hele rij&lt;/strong&gt;` and `&lt;em&gt;niet&lt;/em&gt;`. Replace them with `storybook__strong` / `storybook__em`.
+>
+> **Storybook gaps and drift**
+> 6. Ten components have no storybook entry at all:
+>    - `lib-data-table` is defined in `lib-table.js:1528` and used by `cma/subform.php:104`. It has its own attributes (`data-url`, `data-form-id`, `page-size`, `row-height`, `sortable`, `filterable`, `selectable`, `density`) and appears in neither the storybook nor documentation.php.
+>    - `cma-launcher` has a docs topic section but no storybook entry.
+>    - The report-designer components have neither: `cma-conditions-panel`, `cma-field-config`, `cma-group-config`, `cma-param-config`, `cma-query-preview`, `cma-schema-canvas`, `cma-sort-config`, `cma-sql-editor`. The web_components topic (around line 4825) says every new component needs a storybook entry.
+> 7. lib-arrowsteps (`storybook.php:4854-4878`) has demos but no options panel. Instead it points to `library/webcomponents/lib-arrowsteps.md`, which conflicts with the "no .md docs" rule. Its attributes (`current`, `steps`, `labels`, `linkable`) and the `step-click` event should go into the panel. `library/webcomponents/README.md` is another leftover .md.
+> 8. Attributes the components support that the storybook doesn't list:
+>    - cma-tree (around line 3618): only `id`. Missing `data`, `storage-key`, `item-icon` (observedAttributes, `cma-tree.js:35`).
+>    - lib-dialog: missing `width`, `height`, `maximized` (`lib-dialog.js:75,113`).
+>    - lib-table: missing `export="n"` / `data-export="n"` (`lib-table.js:2690`) and `data-no-search` on a column header (line 1881).
+>    - cma-fold: missing `min-voor` and `default-size` (`cma-fold.js:53,79,123`).
+>    - lib-gauge: missing `show-pct`. lib-search-input: missing `autocomplete`.
+> 9. The lib-combo story (lines 698-708) already has readonly and disabled variants, and since v1.54.4 the readonly one renders without a clear button. Two things would make the fix visible:
+>    - The disabled demo has no `value`, so the hidden clear button can't be seen there.
+>    - There is no `multiple readonly` demo for the hidden tag-remove buttons.
+>    - Also, the `readonly` description (around line 762) doesn't say it hides the clear and remove buttons.
+>
+> **Historical narration in documentation.php (minor; the rule is about describing current behaviour)**
+> 10. These passages tell the story of how things changed instead of what happens now:
+>     - Line 3644: "niet meer in cma/web.config. Eerdere pogingen … De definitieve fix is migration…"
+>     - Line 3748: "Niet meer nodig: …"
+>     - Line 4742: "Door niets meer gebruikt … is verwijderd; ook de tools-pagina gebruikt nu …". Separately, this suggests `nav-mode="shell"` is dead code.
+>     - Line 4746: "voormalige twee-paneel boomstructuur is gearchiveerd"
+>     - Line 2808: the retired deploy webhooks, "de oude … zijn vervallen".
+>     - Line 2877: "De oude /cma/tools/deploy_status.php … is vervallen".
+>     - Line 4148: "niet meer per geval naar preg_* herschrijven"
+>     - Line 4396: "De oude Data meldingen … zijn vervallen"
+>     - Line 5166: "nog maar één plek … niet meer telkens"
+>     - Lines 5221, 5225, 5342: troubleshooting fix columns written as change stories.
+>
+> **Checked and fine**
+> - **Recent commits:**
+>   - v1.54.3 (CKEditor `lang`) has a troubleshooting row.
+>   - v1.54.4 has both the `readonly`/`readOnly` field-property text and a troubleshooting row (lines 4413 and 5319). The test names it cites exist.
+>   - v1.54.5 has its `hasValue()` row (5320), and `GeenSiteFunctiesTest` exists.
+>   - v1.53.0 to v1.54.0 are covered by the hack_attempts topic: `HACK_BLOCK_*` names and defaults (10/10/60), `data/ip_blocks.json`, `.logs/404/hackhits.json`, `data/notfound_lists.json`, REMOTE_ADDR only, the 403 text and Retry-After all match `HackBlocker.php` and `Settings.php`.
+>   - The cma-tabs `selected` attribute is documented in the storybook.
+> - **`$topics` registry:** every `'render'` points to an existing function, every `render_doc_*` is registered, and storybook is an `href` entry.
+> - **Live checks:** all 52 `cma_doc_check_*` functions are defined and wired in.
+> - **documentation.php content:** no platform version numbers and no `&lt;strong&gt;`/`&lt;em&gt;`/`&lt;b&gt;`/`&lt;i&gt;` tags.
+> - **Code references:** every `Class::member` reference resolves. Every code path either exists or is a per-site or template file. Env and setting names are all valid except `DB_PASS`.
+> - **web_components topic:** `navData`, the "Library componenten"/"CMA componenten" groups, the cma-launcher attributes, `$MINIFY_ACTIVE` and `JS_DIRS`/`CSS_DIRS` all match the code.
+> - **Storybook attribute panels:** lib-combo, lib-datepicker, lib-timepicker, lib-fileuploader, lib-field, lib-histogram, lib-statusbars, lib-loader, lib-message, lib-pagination, lib-sheet, lib-switch, lib-radio-group, lib-toaster, cma-blockeditor, cma-groupbox, cma-htmledit, cma-sortlist, cma-tabs and cma-toolbar match what each component actually reads. lib-label is CSS-only and correctly presented that way.</result>
+> <usage><subagent_tokens>128603</subagent_tokens><tool_uses>2</tool_uses><duration_ms>40277</duration_ms></usage>
+> </task-notification>
+
+> ja graag!
+
+> over 5: de rapport generator specifieke componenten meedocumenteren, 6 graag opruimen, 7: graag aanvullen, 8: graag fixen

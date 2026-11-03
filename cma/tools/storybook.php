@@ -703,7 +703,7 @@ html.dark-mode .hex-dark { display: inline; }
 <div class="demo-row">
     <span class="demo-label">Disabled:</span>
     <div style="width: 250px;">
-        <lib-combo placeholder="Niet beschikbaar" disabled></lib-combo>
+        <lib-combo placeholder="Niet beschikbaar" value="2" disabled></lib-combo>
     </div>
 </div>
 <div class="demo-row">
@@ -722,6 +722,12 @@ html.dark-mode .hex-dark { display: inline; }
     <span class="demo-label">Multiple:</span>
     <div style="width: 350px;">
         <lib-combo id="comboMulti" placeholder="Selecteer meerdere..." multiple></lib-combo>
+    </div>
+</div>
+<div class="demo-row">
+    <span class="demo-label">Multiple, readonly:</span>
+    <div style="width: 350px;">
+        <lib-combo placeholder="Alleen lezen" value="1,2" multiple readonly></lib-combo>
     </div>
 </div>
 
@@ -758,9 +764,9 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>placeholder</dt>
                     <dd>Placeholder tekst (default: <code>"Selecteer..."</code>)</dd>
                     <dt>disabled</dt>
-                    <dd>Schakel component uit (default: <code>false</code>)</dd>
+                    <dd>Schakel component uit (default: <code>false</code>). Toont de waarde, zonder wis-kruisje en zonder verwijderknopjes bij een meervoudige keuze.</dd>
                     <dt>readonly</dt>
-                    <dd>Alleen lezen modus (default: <code>false</code>)</dd>
+                    <dd>Alleen lezen modus (default: <code>false</code>). De waarde blijft zichtbaar maar is niet te wijzigen of te wissen: geen wis-kruisje, en bij <code>multiple</code> geen verwijderknopje per tag. Ook als het attribuut later wordt gezet.</dd>
                     <dt>required</dt>
                     <dd>Markeer als verplicht veld, rode rand (default: <code>false</code>)</dd>
                     <dt>multiple</dt>
@@ -1711,7 +1717,7 @@ html.dark-mode .hex-dark { display: inline; }
 </div>
 <div class="demo-row">
     <span class="demo-label">Eén pagina (rendert niets):</span>
-    <lib-pagination page="1" pages="1" href="#p={page}"></lib-pagination><em style="color:var(--text-muted)">(leeg)</em>
+    <lib-pagination page="1" pages="1" href="#p={page}"></lib-pagination><span class="storybook__muted">(leeg)</span>
 </div>
 <div class="demo-row">
     <span class="demo-label">Eigen kleur:</span>
@@ -2253,7 +2259,7 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>storage-key</dt>
                     <dd>Sleutel voor opslaan van kolomvoorkeuren in localStorage (default: geen)</dd>
                     <dt>row-href</dt>
-                    <dd>Maakt de <strong>hele rij</strong> klikbaar. De waarde is een URL met plaatshouders tussen blokhaken die per rij uit de <code>data-</code>attributen van die <code>&lt;tr&gt;</code> worden gevuld: <code>[guid]</code> leest <code>data-guid</code>, <code>[id]</code> leest <code>data-id</code> (en valt terug op het rij-id <code>lt_row_&lt;n&gt;</code> dat <code>LibTable</code> al zet). Zo staat de URL één keer op de tabel in plaats van in elke rij. Een rij waarvoor een plaatshouder leeg blijft wordt <em>niet</em> klikbaar — een link naar <code>?code=</code> levert een leeg scherm op. Klikken op iets dat zelf al werkt (link, knop, invoerveld, schakelaar, filterbalkje) laat de rijklik met rust, tekst selecteren telt niet als klik, en ctrl/cmd-klik opent in een nieuw tabblad. De rij is met Tab bereikbaar en reageert op Enter. Voorbeeld: <code>row-href="formulier_dispensatie.php?pagepreview=Y&amp;code=[guid]"</code></dd>
+                    <dd>Maakt de <span class="storybook__strong">hele rij</span> klikbaar. De waarde is een URL met plaatshouders tussen blokhaken die per rij uit de <code>data-</code>attributen van die <code>&lt;tr&gt;</code> worden gevuld: <code>[guid]</code> leest <code>data-guid</code>, <code>[id]</code> leest <code>data-id</code> (en valt terug op het rij-id <code>lt_row_&lt;n&gt;</code> dat <code>LibTable</code> al zet). Zo staat de URL één keer op de tabel in plaats van in elke rij. Een rij waarvoor een plaatshouder leeg blijft wordt <span class="storybook__em">niet</span> klikbaar — een link naar <code>?code=</code> levert een leeg scherm op. Klikken op iets dat zelf al werkt (link, knop, invoerveld, schakelaar, filterbalkje) laat de rijklik met rust, tekst selecteren telt niet als klik, en ctrl/cmd-klik opent in een nieuw tabblad. De rij is met Tab bereikbaar en reageert op Enter. Voorbeeld: <code>row-href="formulier_dispensatie.php?pagepreview=Y&amp;code=[guid]"</code></dd>
                     <dt>row-target</dt>
                     <dd>Waar <code>row-href</code> opent: leeg = hetzelfde venster, <code>_blank</code> = nieuw tabblad, of <code>popup</code> = het venster van de site zelf (<code>lib_OpenWindowCentered</code>), zo groot als het scherm toelaat. Bij <code>popup</code> blijft de lijst eronder zichtbaar en kom je bij sluiten terug op dezelfde plek. Ctrl/cmd-klik geeft altijd een echt nieuw tabblad, ongeacht deze instelling.</dd>
                     <dt>row-popup-title</dt>

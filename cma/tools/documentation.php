@@ -4132,7 +4132,7 @@ SQL::processDdl($conn, $sql);     // schema-statements
             <tr><td>SQL Server</td><td><code>sqlsrv:Server=localhost;Database=mydata</code></td></tr>
         </tbody>
     </table>
-    <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASS</code>) of uit <code>app.php</code>.</p>
+    <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASSWORD</code>) of uit <code>app.php</code>.</p>
 
     <h2>Queryresultaten cachen: Cache::retrieve() en Cache::clearPrefix()</h2>
     <p><code>Cache::retrieve($identifier, 'data', $sql)</code> voert de query één keer uit en bewaart de rijen onder de sleutel <code>cache_</code> + identifier, tot de TTL (<code>CACHE_DEFAULT_TTL</code>, standaard een dag) verloopt. De SQL telt niet mee in de sleutel: wie de query verandert, verandert de identifier mee.</p>
@@ -4852,20 +4852,20 @@ npm run build                 # icons + minify
     <p>Beschikbare icon-namen staan in <code>library/css/linearicons.css</code>. De Storybook-pagina (sectie "Linearicons") rendert de complete lijst zodat je visueel kan kiezen.</p>
 
     <h2>Menu-group iconen</h2>
-    <p>Sidebar menu-groups krijgen automatisch een icon op basis van de slug. Het <code>$menuGroupIcons</code> array in <code>cma/main.php</code> mapt slug → lnr-class:</p>
-    <pre><code>$menuGroupIcons = [
+    <p>Een menugroep krijgt zijn icon op naam: <code>menuGroupIcon()</code> in <code>cma/menurep.inc</code> zoekt de groepsnaam op (hoofdletterongevoelig) en valt anders terug op <code>lnr-menu</code>. Dezelfde functie levert de iconen voor de dropdowns in de header (<code>main.php</code>) en voor de menukaarten op het dashboard. Een uittreksel:</p>
+    <pre><code>static $icons = [
     'dashboard'    =&gt; 'lnr-home',
     'systeem'      =&gt; 'lnr-cog',
     'beheer'       =&gt; 'lnr-database',
     'content'      =&gt; 'lnr-file-add',
-    'rapportages'  =&gt; 'lnr-chart-bars',
+    'rapportages'  =&gt; 'lnr-document',
     'tools'        =&gt; 'lnr-construction',
     'formulieren'  =&gt; 'lnr-layers',
     'opleidingen'  =&gt; 'lnr-graduation-hat',
     // …
 ];
 </code></pre>
-    <p>Voeg een entry toe wanneer je een nieuwe menu-group introduceert. Voor menu-items zelf: zet <code>"icon": "lnr-..."</code> in <code>data/menu.json</code>.</p>
+    <p>Voeg een regel toe wanneer je een nieuwe menugroep introduceert. Menu-items krijgen hun icon van het soort link (<code>cma/main.php</code>): een formulier <code>lnr-file-empty</code>, een rapport <code>lnr-chart-bars</code>, een tool <code>lnr-cog</code>. Een icon in de menuconfiguratie wordt niet gelezen.</p>
 
     <div class="seealso">
         Zie ook: <a href="storybook.php">Component Storybook</a> (levende voorbeelden), <a href="documentation.php?topic=architecture">Architectuur</a> (library/ vs cma/ scheiding).
@@ -5011,7 +5011,7 @@ PerformanceLogger::logMemory('checkpoint');
     <h2>Best practices</h2>
     <ul>
         <li>Structured logging: <span class="cma-tool__strong">altijd</span> context-array meegeven. <code>Logger::error('Save failed')</code> alleen is onbruikbaar; <code>Logger::error('Save failed', ['formId' =&gt; …, 'error' =&gt; …])</code> wel.</li>
-        <li>Errors die je catch't en niet opnieuw throw't moeten gelogd worden. Geen "silent catch" — zie <code>memory/feedback_defensive_checks.md</code>.</li>
+        <li>Errors die je catch't en niet opnieuw throw't moeten gelogd worden. Geen "silent catch": moet de bewerking doorgaan, meld de fout dan met <code>ErrorHandler::report($e, 'context')</code> (hierboven).</li>
         <li>JS-side: prefereer <code>libLog.error(…)</code> boven raw <code>console.error</code> — context is rijker en de error landt in het visuele paneel.</li>
     </ul>
 
