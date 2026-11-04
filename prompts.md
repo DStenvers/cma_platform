@@ -16729,3 +16729,19 @@ karaat-data en staat in de karaat-repo.
 > Maar er staat verder niks in de roosteregel:
 
 > Dus alle VO's die aangemaakt hadden moeten worden zijn dat ook?
+
+> - Het juiste ID gebruiken: de nieuwe toets ophalen via het ID van de eigen insert, in plaats van MAX(id). -> dat kan niet bij ms access, maar er kan wel een extra filter op op deelname/opleiding
+
+>   
+>
+> <pasted_content id="a393">
+> 1 wijziging(en) uit te voeren...
+> ✗ Versie platform:8.4.0 MISLUKT:
+>   PHP script uitvoering mislukt (migrations/8.4.0_set_default_userlevel.php): Invalid character value for cast specification: -3030 Data type mismatch in criteria expression.
+> </pasted_content id="a393">
+
+## 2026-11-04
+
+> change to /mnt/c/repos/rino/rino-portal
+
+> Eerder hebben we gekeken naar de implementatie van het toetsboek in mijnrino, dit moet ook in rino-portal worden beoordeeld. Kun je daar induiken?

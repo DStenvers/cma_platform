@@ -22,36 +22,12 @@ if (!empty($add['sql'])) {
     echo "Added userLevel column\n";
 }
 
-// Find users without userLevel. userLevel is an INTEGER column: comparing it with ''
-// fails on Access ("Data type mismatch in criteria expression", -3030), so only NULL
-// counts as "no level".
-$result = Database::fetchAll(
-    "SELECT ID, userFullName FROM tblUsers WHERE userLevel IS NULL",
-    [],
-    $conn
-);
-
-if (empty($result)) {
-    echo "All users already have a userLevel\n";
-    return true;
-}
-
-$updated = 0;
-foreach ($result as $row) {
-    $userId = $row['ID'];
-    $userName = $row['userFullName'];
-
-    $success = Database::query(
-        "UPDATE tblUsers SET userLevel = 0 WHERE ID = ?",
-        [$userId],
-        $conn
-    );
-
-    if ($success) {
-        echo "  Set userLevel=0 (Gebruiker) for: $userName\n";
-        $updated++;
-    }
-}
-
-echo "\nUpdated $updated users with default userLevel (Gebruiker)\n";
+// Users without a level get 0 (Gebruiker). userLevel is an INTEGER column: comparing it
+// with '' fails on Access ("Data type mismatch in criteria expression", -3030), so only
+// NULL counts as "no level". One statement without parameters: the ODBC driver binds a
+// parameter as text, and Access refuses that against the numeric ID with the same -3030.
+$updated = Database::executeOn($conn, "UPDATE tblUsers SET userLevel = 0 WHERE userLevel IS NULL");
+echo $updated > 0
+    ? "Updated $updated users with default userLevel (Gebruiker)\n"
+    : "All users already have a userLevel\n";
 return true;
