@@ -16745,3 +16745,7 @@ karaat-data en staat in de karaat-repo.
 > change to /mnt/c/repos/rino/rino-portal
 
 > Eerder hebben we gekeken naar de implementatie van het toetsboek in mijnrino, dit moet ook in rino-portal worden beoordeeld. Kun je daar induiken?
+
+> ja graag
+
+> comit en push alles graag.
