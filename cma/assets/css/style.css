@@ -220,6 +220,10 @@ body.contentbody #c.tools {padding:20px}
 /* Tools pages with lib-table need no padding - table fills the space */
 #c.tools:has(lib-table) {padding:0; overflow:visible}
 body.contentbody #c.tools:has(lib-table) {padding:0; overflow:visible}
+#c.tools:has(lib-table) p, body.contentbody #c.tools:has(lib-table) p {
+    padding-left: 12px;
+    padding-top: 12px;
+}
 /* Tool-specific overrides */
 body.tool-serverinfo.contentbody #c.tools {padding:0}
 /* Tool-page section titles: space above each heading + a roomy line-box so

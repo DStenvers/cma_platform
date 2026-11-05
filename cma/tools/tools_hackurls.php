@@ -23,7 +23,10 @@ $patronen = NotFoundLists::forSite(dirname(__DIR__, 2))->all()[NotFoundLists::HA
 
 cma_html_header("Hack-URL's");
 echo '<body class="contentbody tools tool-hackurls">';
-ToolbarHelper::report("Hack-URL's", false, false, false, false, 'Patronen waarvan een 404 als hackpoging telt');
+ob_start();
+ToolbarHelper::button('tools_blockedips.php', 'lnr-lock', true, "Geblokkeerde IP's", "Naar de geblokkeerde IP's");
+$zusterknop = ob_get_clean();
+ToolbarHelper::report("Hack-URL's", false, false, false, false, 'Patronen waarvan een 404 als hackpoging telt', $zusterknop);
 echo '<div id="c" class="tools">';
 
 echo '<p>Een 404 op een pad dat bij een van deze patronen past, telt als hackpoging en gaat mee in de IP-blokkade. '

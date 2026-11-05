@@ -16763,3 +16763,16 @@ karaat-data en staat in de karaat-repo.
 > system menu; kunnen we deployment forceren?
 
 > Alleen developers graag
+
+> kun je met iconen het zo maken dat je van de ip blokkade naar de hack url formuluer kan en visa versa? 
+>
+> css aanpassing: 
+>
+> <pasted_content id="27ea">
+> #c.tools:has(lib-table) p, body.contentbody #c.tools:has(lib-table) p {
+>     padding-left: 12px;
+>     padding-top: 12px;
+> }
+> </pasted_content id="27ea">
+
+> krijgt 60 minuten lang een 403 op elke pagina., klopt dat nog wel? Dat zouden we toch incrementeel doen?

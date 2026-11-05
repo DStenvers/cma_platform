@@ -25,7 +25,10 @@ $standaardMinuten = max(1, (int) Settings::get('hack_block_duration_minutes'));
 
 cma_html_header("Geblokkeerde IP's");
 echo '<body class="contentbody tools tool-blockedips">';
-ToolbarHelper::report("Geblokkeerde IP's", false, false, false, false, 'IP-adressen die nu een 403 krijgen');
+ob_start();
+ToolbarHelper::button('tools_hackurls.php', 'lnr-warning', true, "Hack-URL's", "Naar de hack-URL's");
+$zusterknop = ob_get_clean();
+ToolbarHelper::report("Geblokkeerde IP's", false, false, false, false, 'IP-adressen die nu een 403 krijgen', $zusterknop);
 echo '<div id="c" class="tools">';
 
 if (Settings::get('hack_block_enabled')) {
