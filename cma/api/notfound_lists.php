@@ -121,9 +121,9 @@ switch ($action) {
             break;
         }
         $ip = trim((string) ($input['ip'] ?? ''));
-        if ($ip !== '' && $ip === (string) Request::server('REMOTE_ADDR')) {
+        if ($ip !== '' && ($ip === (string) Request::server('REMOTE_ADDR') || HackBlocker::isOwnServer($ip, $_SERVER))) {
             http_response_code(400);
-            $antwoord(false, 'Je kunt je eigen IP-adres niet blokkeren');
+            $antwoord(false, 'Je kunt je eigen IP-adres of dat van deze server niet blokkeren');
             break;
         }
         $ok = (new HackBlocker(dirname(__DIR__, 2)))->blockManually($ip, (int) ($input['minuten'] ?? 0));

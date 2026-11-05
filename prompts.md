@@ -16793,3 +16793,5 @@ karaat-data en staat in de karaat-repo.
 > ja dus een analyse van de 404 logs. Prima
 
 > en een reminder als dat langer dan 3 maanden geleden is als je die scan heb laten uitvoeren, op het dashboard
+
+> vanwege een security audit moet de eigen server (hetzelfde ip adres als de site) buiten worden gesloten.

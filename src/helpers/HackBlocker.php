@@ -17,6 +17,9 @@ namespace App\Library;
  *   - the 404 handlers (site 404.php, cma/404.php) require cma/hackguard.inc,
  *     which calls guardNotFound(): the 403 too, and the hit is counted.
  *
+ * The server's own address (loopback, SERVER_ADDR/LOCAL_ADDR) is exempt: it
+ * is neither counted nor blocked.
+ *
  * The IP is REMOTE_ADDR, as in the 404 log. Never X-Forwarded-For: a client
  * sets that header itself, so it could dodge the block or get someone else
  * blocked.
@@ -101,7 +104,27 @@ final class HackBlocker
             return null;
         }
         $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-        return $ip === '' ? null : $ip;
+        return $ip === '' || self::isOwnServer($ip, $_SERVER) ? null : $ip;
+    }
+
+    /**
+     * Is $ip this server itself (loopback, or the address the site answers on)?
+     * The server never blocks itself: self-calls (deploy, health checks) and scans
+     * run from the box, e.g. a security audit, are neither counted nor stopped.
+     *
+     * @param array<string,mixed> $server the $_SERVER of the request
+     */
+    public static function isOwnServer(string $ip, array $server): bool
+    {
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            return true;
+        }
+        foreach (['SERVER_ADDR', 'LOCAL_ADDR'] as $key) {
+            if (($server[$key] ?? '') !== '' && strcasecmp((string) $server[$key], $ip) === 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -239,7 +262,7 @@ final class HackBlocker
     public function blockManually(string $ip, int $minutes, ?int $now = null): bool
     {
         $ip = trim($ip);
-        if (filter_var($ip, FILTER_VALIDATE_IP) === false || $minutes < 1) {
+        if (filter_var($ip, FILTER_VALIDATE_IP) === false || $minutes < 1 || self::isOwnServer($ip, $_SERVER)) {
             return false;
         }
         $now ??= time();

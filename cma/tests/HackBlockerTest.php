@@ -89,6 +89,17 @@ class HackBlockerTest extends TestCase
         $this->assertSame(3600, $blocker->recordHit('1.2.3.4', '/x', $later + 10, 10, 600, 3600) - ($later + 10));
     }
 
+    public function testTheServerItselfIsExempt(): void
+    {
+        $server = ['SERVER_ADDR' => '10.0.0.5', 'LOCAL_ADDR' => '10.0.0.6'];
+        $this->assertTrue(HackBlocker::isOwnServer('127.0.0.1', []));
+        $this->assertTrue(HackBlocker::isOwnServer('::1', []));
+        $this->assertTrue(HackBlocker::isOwnServer('10.0.0.5', $server));
+        $this->assertTrue(HackBlocker::isOwnServer('10.0.0.6', $server));
+        $this->assertFalse(HackBlocker::isOwnServer('10.0.0.7', $server));
+        $this->assertFalse(HackBlocker::isOwnServer('10.0.0.5', []));
+    }
+
     public function testHitsOutsideTheWindowDoNotCount(): void
     {
         $blocker = new HackBlocker($this->root);
