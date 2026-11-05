@@ -20,6 +20,9 @@ namespace App\Library;
  * The server's own address (loopback, SERVER_ADDR/LOCAL_ADDR) is exempt: it
  * is neither counted nor blocked.
  *
+ * A request whose User-Agent matches hack_block_exempt_user_agents (a security
+ * audit tag) is exempt in the same way.
+ *
  * The IP is REMOTE_ADDR, as in the 404 log. Never X-Forwarded-For: a client
  * sets that header itself, so it could dodge the block or get someone else
  * blocked.
@@ -104,7 +107,34 @@ final class HackBlocker
             return null;
         }
         $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-        return $ip === '' || self::isOwnServer($ip, $_SERVER) ? null : $ip;
+        if ($ip === '' || self::isOwnServer($ip, $_SERVER)
+            || self::isExemptUserAgent((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), (string) Settings::get('hack_block_exempt_user_agents'))) {
+            return null;
+        }
+        return $ip;
+    }
+
+    /**
+     * Does $userAgent match one of the comma-separated $patterns (case-insensitive,
+     * * = any text, whole user agent)? Such a request is neither counted nor blocked.
+     * The user agent is set by the visitor, so this is a door anyone who knows the
+     * pattern can use: the setting is empty by default.
+     */
+    public static function isExemptUserAgent(string $userAgent, string $patterns): bool
+    {
+        if ($userAgent === '') {
+            return false;
+        }
+        foreach (explode(',', $patterns) as $pattern) {
+            $pattern = trim($pattern);
+            if ($pattern === '' || trim($pattern, '*') === '') {
+                continue;
+            }
+            if (preg_match('#^' . str_replace('\*', '.*', preg_quote($pattern, '#')) . '$#is', $userAgent)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -100,6 +100,16 @@ class HackBlockerTest extends TestCase
         $this->assertFalse(HackBlocker::isOwnServer('10.0.0.5', []));
     }
 
+    public function testExemptUserAgentPatterns(): void
+    {
+        $this->assertTrue(HackBlocker::isExemptUserAgent('sec-audit/1.2 (acme)', 'sec-audit*'));
+        $this->assertTrue(HackBlocker::isExemptUserAgent('SEC-AUDIT', 'foo, sec-audit*'));
+        $this->assertFalse(HackBlocker::isExemptUserAgent('Mozilla/5.0 sec-audit', 'sec-audit*'));
+        $this->assertFalse(HackBlocker::isExemptUserAgent('sec-audit', ''));
+        $this->assertFalse(HackBlocker::isExemptUserAgent('Mozilla/5.0', '*'));
+        $this->assertFalse(HackBlocker::isExemptUserAgent('', 'sec-audit*'));
+    }
+
     public function testHitsOutsideTheWindowDoNotCount(): void
     {
         $blocker = new HackBlocker($this->root);

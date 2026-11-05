@@ -16795,3 +16795,7 @@ karaat-data en staat in de karaat-repo.
 > en een reminder als dat langer dan 3 maanden geleden is als je die scan heb laten uitvoeren, op het dashboard
 
 > vanwege een security audit moet de eigen server (hetzelfde ip adres als de site) buiten worden gesloten.
+
+> nee het is fysiek dezelfde server
+
+> en je mag de browser-tag sec-audit* uitzonderen van blokkades
