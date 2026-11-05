@@ -1231,10 +1231,11 @@
             if (oldScript.defer) {
                 newScript.defer = true;
             }
-            // Preserve async attribute if present
-            if (oldScript.async) {
-                newScript.async = true;
-            }
+            // A script inserted from JavaScript is async unless told otherwise, and async
+            // scripts run in whatever order they arrive. Pages list their scripts in
+            // dependency order (library/sql-utils.js before cma-sql-editor.js), so keep
+            // that order unless the original tag was async itself.
+            newScript.async = !!oldScript.async;
 
             // Track script loading for important scripts (CKEditor, components)
             const waitPatterns = ['ckeditor', 'cma-', 'lib-'];

@@ -16801,3 +16801,14 @@ karaat-data en staat in de karaat-repo.
 > en je mag de browser-tag sec-audit* uitzonderen van blokkades
 
 > de systeeminstelllingen laten een issue met valudatie zien; er komt 2x de tekst 'Vul een geheel getal in. Vul een geheel getal in.' Deze toont niet de veldnaam en deze naam wordt ook niet rood en de betreffende groupb-0x row wordt ook niet uitgeklapt indien noodzakelijk
+
+>
+>
+> <pasted_content id="27ea">
+> 13:55:43js Uncaught ReferenceError: SqlUtils is not defined
+> https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1
+> ReferenceError: SqlUtils is not defined
+>     at HTMLElement._render (https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1:8704)
+>     at HTMLElement.connectedCallback (https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1:271)
+>     at https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1:12432
+> </pasted_content id="27ea">
