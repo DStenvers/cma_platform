@@ -83,6 +83,7 @@ $toolNameMap = [
     'db_sync' => 'tools/tools_db_sync.php',
     'sync' => 'tools/tools_db_sync.php',
     'copymod' => 'tools/tools_dev_copymod.php',
+    'dev_copymod' => 'tools/tools_dev_copymod.php',
     'tests' => 'tools/tools_testrunner.php',
     'testrunner' => 'tools/tools_testrunner.php',
     'cypress' => 'tools/tools_testrunner.php',
@@ -110,6 +111,8 @@ $toolNameMap = [
     'sqlite_repair' => 'tools/tools_sqlite_repair.php',
     'generate_forms' => 'tools/tools_generate_forms.php',
     'form_defaults' => 'tools/tools_form_defaults.php',
+    'hackurls' => 'tools/tools_hackurls.php',
+    'blockedips' => 'tools/tools_blockedips.php',
     // Nested tool: the launcher's resolveNav() derives the key from the path
     // after "tools/", which for tools/tests/*.php keeps the "tests/" segment.
     // Map that exact key so the "Endpoint foutcontrole" tile resolves instead
