@@ -222,6 +222,37 @@ function cmaSettingsFilter(root, text) {
     });
 }
 /* settings-filter:end */
+/* settings-errors:start */
+// Validation feedback: names the setting an error belongs to (the message alone,
+// "Vul een geheel getal in.", does not), colours the invalid field and its label,
+// and opens the group the row sits in when that group is collapsed.
+function cmaSettingsLabelOf(el) {
+    var row = el.closest('tr[data-group-row]');
+    var label = row ? row.querySelector('.label-cell label') : null;
+    return label ? label.textContent.trim() : el.id;
+}
+function cmaSettingsMarkErrors(form, errors) {
+    form.querySelectorAll('.cma-tool__settings-invalid, .cma-tool__settings-invalid-row').forEach(function (el) {
+        el.classList.remove('cma-tool__settings-invalid', 'cma-tool__settings-invalid-row');
+    });
+    Object.keys(errors).forEach(function (key) {
+        var el = form.ownerDocument.getElementById(key);
+        if (!el) return;
+        el.classList.add('cma-tool__settings-invalid');
+        var row = el.closest('tr[data-group-row]');
+        if (!row) return;
+        row.classList.add('cma-tool__settings-invalid-row');
+        var head = form.querySelector('tr.groupbox-row[data-group="' + row.getAttribute('data-group-row') + '"] cma-groupbox');
+        if (head && typeof head.open === 'function') head.open(false);
+    });
+}
+function cmaSettingsErrorMessages(form, errors) {
+    return Object.keys(errors).map(function (key) {
+        var el = form.ownerDocument.getElementById(key);
+        return (el ? cmaSettingsLabelOf(el) : key) + ': ' + errors[key];
+    });
+}
+/* settings-errors:end */
 (function () {
     var form = document.getElementById('settingsForm');
     var button = document.getElementById('btnSaveSettings');
@@ -252,16 +283,6 @@ function cmaSettingsFilter(root, text) {
         return data;
     }
 
-    function markErrors(errors) {
-        form.querySelectorAll('.cma-tool__settings-invalid').forEach(function (el) {
-            el.classList.remove('cma-tool__settings-invalid');
-        });
-        Object.keys(errors).forEach(function (key) {
-            var el = document.getElementById(key);
-            if (el) el.classList.add('cma-tool__settings-invalid');
-        });
-    }
-
     function confirmed() {
         var els = form.querySelectorAll('[data-confirm]');
         for (var i = 0; i < els.length; i++) {
@@ -283,7 +304,7 @@ function cmaSettingsFilter(root, text) {
             .then(function (r) { return r.json(); })
             .then(function (result) {
                 var errors = result.errors || {};
-                markErrors(errors);
+                cmaSettingsMarkErrors(form, errors);
                 if (result.success) {
                     libToast.success('Instellingen opgeslagen');
                     // The console-logging switch is read from its cookie by libLog
@@ -291,8 +312,8 @@ function cmaSettingsFilter(root, text) {
                         window.libLog.refreshFromCookie();
                     }
                 } else {
-                    var messages = Object.keys(errors).map(function (k) { return errors[k]; });
-                    libToast.error(messages.join(' ') || 'Opslaan mislukt');
+                    var messages = cmaSettingsErrorMessages(form, errors);
+                    libToast.error(messages.join(' · ') || 'Opslaan mislukt');
                     var first = document.getElementById(Object.keys(errors)[0]);
                     if (first && typeof first.focus === 'function') first.focus();
                 }

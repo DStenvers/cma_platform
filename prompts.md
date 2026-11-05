@@ -16799,3 +16799,5 @@ karaat-data en staat in de karaat-repo.
 > nee het is fysiek dezelfde server
 
 > en je mag de browser-tag sec-audit* uitzonderen van blokkades
+
+> de systeeminstelllingen laten een issue met valudatie zien; er komt 2x de tekst 'Vul een geheel getal in. Vul een geheel getal in.' Deze toont niet de veldnaam en deze naam wordt ook niet rood en de betreffende groupb-0x row wordt ook niet uitgeklapt indien noodzakelijk

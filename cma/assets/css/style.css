@@ -626,6 +626,9 @@ cma-groupbox:hover .groupbox-chevron::before,
     border-color: var(--color-error, #c0392b);
     outline: 1px solid var(--color-error, #c0392b);
 }
+.tool-settings .cma-tool__settings-invalid-row .label-cell label {
+    color: var(--color-error, #c0392b);
+}
 
 /* Preferences table with groupbox sections - matches storybook pattern */
 .preferences-table {
