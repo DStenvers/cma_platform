@@ -5,6 +5,7 @@
  *   GET  ?action=list                                  → {success, lijsten, labels}
  *   POST {action:"add",    lijst, patroon}             → {success, lijsten}
  *   POST {action:"remove", lijst, patroon}             → {success, lijsten}
+ *   POST {action:"defaults"}                         → {success, lijsten}  (default hack list, only while the list holds <= 2)
  *   POST {action:"unblock", ip}                        → {success}  (HackBlocker)
  *   POST {action:"block",   ip, minuten}               → {success}  (HackBlocker, by hand)
  *
@@ -66,6 +67,16 @@ switch ($action) {
             ? $lists->add($lijst, $patroon, SecurityHelper::getCurrentUserName())
             : $lists->remove($lijst, $patroon);
         $antwoord($ok, $ok ? '' : ($action === 'add' ? 'Dit patroon staat al op de lijst, of de lijst kon niet worden opgeslagen' : 'Patroon niet gevonden'));
+        break;
+
+    case 'defaults':
+        if (Request::server('REQUEST_METHOD') !== 'POST') {
+            http_response_code(405);
+            $antwoord(false, 'Alleen POST');
+            break;
+        }
+        $ok = $lists->addDefaults(SecurityHelper::getCurrentUserName());
+        $antwoord($ok, 'De hacklijst is al gevuld, of de lijst kon niet worden opgeslagen');
         break;
 
     case 'unblock':

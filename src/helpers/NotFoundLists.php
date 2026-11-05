@@ -27,6 +27,16 @@ final class NotFoundLists
         self::IGNORE => "Genegeerde 404's",
     ];
 
+    /** Paths scanners ask for on any site; offered once, to an (almost) empty hack list. */
+    public const DEFAULT_HACK = [
+        '/wp-login.php', '/wp-admin*', '/wp-content*', '/wp-includes*', '/xmlrpc.php',
+        '*.env', '/.git*', '/phpmyadmin*', '/pma*', '/cgi-bin*', '*.php.bak',
+        '/vendor/phpunit*', '/boaform*', '/actuator*',
+    ];
+
+    /** The default list may be added while the hack list holds no more than this. */
+    public const DEFAULTS_MAX_EXISTING = 2;
+
     private string $file;
 
     /** @var array<string, list<array{patroon:string, toegevoegd:string, door:string}>>|null */
@@ -148,6 +158,31 @@ final class NotFoundLists
             }
         }
         $lists[$list][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
+        return $this->save($lists);
+    }
+
+    /** May the default hack list still be added? Only while the list is (nearly) empty. */
+    public function canAddDefaults(): bool
+    {
+        return count($this->all()[self::HACK]) <= self::DEFAULTS_MAX_EXISTING;
+    }
+
+    /**
+     * Add the default hack patterns, once: refused (false) when the hack list
+     * already holds more than DEFAULTS_MAX_EXISTING patterns.
+     */
+    public function addDefaults(string $by): bool
+    {
+        if (!$this->canAddDefaults()) {
+            return false;
+        }
+        $lists = $this->all();
+        $known = array_map('strtolower', array_column($lists[self::HACK], 'patroon'));
+        foreach (self::DEFAULT_HACK as $pattern) {
+            if (!in_array(strtolower($pattern), $known, true)) {
+                $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
+            }
+        }
         return $this->save($lists);
     }
 

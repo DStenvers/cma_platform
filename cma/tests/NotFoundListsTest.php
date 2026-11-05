@@ -32,6 +32,26 @@ class NotFoundListsTest extends TestCase
         }
     }
 
+    public function testDefaultsAreAddedOnceToAnAlmostEmptyList(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        $this->assertTrue($lists->canAddDefaults());
+        $this->assertTrue($lists->addDefaults('test'));
+        $this->assertSame(count(NotFoundLists::DEFAULT_HACK), count($lists->all()[NotFoundLists::HACK]));
+        $this->assertFalse($lists->canAddDefaults());
+        $this->assertFalse($lists->addDefaults('test'));
+    }
+
+    public function testDefaultsAreRefusedWhenTheListHasMoreThanTwo(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        foreach (['/a', '/b', '/c'] as $p) {
+            $lists->add(NotFoundLists::HACK, $p, 'test');
+        }
+        $this->assertFalse($lists->addDefaults('test'));
+        $this->assertSame(3, count($lists->all()[NotFoundLists::HACK]));
+    }
+
     public function testExactPatternMatchesWholePathCaseInsensitive(): void
     {
         $this->assertTrue(NotFoundLists::matches('/wp-login.php', '/WP-Login.php'));

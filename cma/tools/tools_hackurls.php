@@ -19,7 +19,8 @@ if (!SecurityHelper::isAdmin()) {
     exit;
 }
 
-$patronen = NotFoundLists::forSite(dirname(__DIR__, 2))->all()[NotFoundLists::HACK] ?? [];
+$lijsten = NotFoundLists::forSite(dirname(__DIR__, 2));
+$patronen = $lijsten->all()[NotFoundLists::HACK] ?? [];
 
 cma_html_header("Hack-URL's");
 echo '<body class="contentbody tools tool-hackurls">';
@@ -33,7 +34,9 @@ echo '<p>Een 404 op een pad dat bij een van deze patronen past, telt als hackpog
    . 'Een <code>*</code> staat voor elke tekst; een patroon zonder <code>*</code> moet het hele pad zijn. '
    . 'Houd patronen nauw: een te ruim patroon blokkeert ook gewone bezoekers met een kapotte link.</p>';
 
-echo '<p><button type="button" class="btn btn-primary" id="hackurlToevoegen"><span class="lnr lnr-plus-circle"></span> Patroon toevoegen</button></p>';
+echo '<p><button type="button" class="btn btn-primary" id="hackurlToevoegen"><span class="lnr lnr-plus-circle"></span> Patroon toevoegen</button>'
+   . ($lijsten->canAddDefaults() ? ' <button type="button" class="btn" id="hackurlStandaard"><span class="lnr lnr-layers"></span> Standaardlijst toevoegen</button>' : '')
+   . '</p>';
 
 if ($patronen === []) {
     echo '<p class="text-muted">Nog geen patronen.</p>';
@@ -71,6 +74,15 @@ document.addEventListener('DOMContentLoaded', function () {
             stuur({ action: 'add', patroon: patroon }).then(klaar);
         }
     });
+    var standaard = document.getElementById('hackurlStandaard');
+    if (standaard) {
+        standaard.addEventListener('click', async function () {
+            var ok = await libConfirm('De standaardlijst met gangbare aanvalspaden toevoegen (WordPress, .env, .git, phpMyAdmin, ...)? Dit kan maar één keer.', {
+                title: 'Standaardlijst toevoegen', confirmText: 'Toevoegen', cancelText: 'Annuleren'
+            });
+            if (ok) { stuur({ action: 'defaults' }).then(klaar); }
+        });
+    }
     document.querySelectorAll('.hackurl-verwijder').forEach(function (knop) {
         knop.addEventListener('click', async function () {
             var patroon = this.dataset.patroon;

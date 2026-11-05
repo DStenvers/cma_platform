@@ -16782,3 +16782,8 @@ karaat-data en staat in de karaat-repo.
 > ik wil de iconen naast het afdruk-icoon
 
 > .toolbar-right .toolbar-status should be right aligned
+
+> the geblokeerde ip's; hoe regelen we dat die wordt gevuld?
+
+> ja bouw die knop maar, maar zorg dat die maar eenmalig werkt. Dus bij meer dan 2 items in de lijst: hij is gevuld. 
+> Maar de 404 zou toch ook kunnen kijken of er iets een hackpoging is? Via AI zeker.
