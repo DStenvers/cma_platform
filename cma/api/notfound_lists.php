@@ -6,6 +6,7 @@
  *   POST {action:"add",    lijst, patroon}             → {success, lijsten}
  *   POST {action:"remove", lijst, patroon}             → {success, lijsten}
  *   POST {action:"defaults"}                         → {success, lijsten}  (default hack list, only while the list holds <= 2)
+ *   POST {action:"analyse"}                          → {success, voorstellen:[{patroon,reden,aantal,voorbeelden}]}  (LLM over de laatste dagen 404-log)
  *   POST {action:"unblock", ip}                        → {success}  (HackBlocker)
  *   POST {action:"block",   ip, minuten}               → {success}  (HackBlocker, by hand)
  *
@@ -14,6 +15,8 @@
  */
 
 use App\Library\HackBlocker;
+use App\Library\Llm;
+use App\Library\NotFoundAnalyzer;
 use App\Library\NotFoundLists;
 use App\Library\Request;
 use App\Library\Response;
@@ -77,6 +80,28 @@ switch ($action) {
         }
         $ok = $lists->addDefaults(SecurityHelper::getCurrentUserName());
         $antwoord($ok, 'De hacklijst is al gevuld, of de lijst kon niet worden opgeslagen');
+        break;
+
+    case 'analyse':
+        if (Request::server('REQUEST_METHOD') !== 'POST') {
+            http_response_code(405);
+            $antwoord(false, 'Alleen POST');
+            break;
+        }
+        if (!Llm::isConfigured()) {
+            $antwoord(false, 'Er is geen LLM ingesteld (Beheerstools → LLM management)');
+            break;
+        }
+        $siteRoot = dirname(__DIR__, 2);
+        $kandidaten = NotFoundAnalyzer::candidates(NotFoundAnalyzer::recentLines($siteRoot . '/.logs/404'), $lists);
+        $resultaat = NotFoundAnalyzer::suggest($kandidaten, $lists);
+        if ($resultaat['ok']) {
+            NotFoundAnalyzer::markRun($siteRoot);
+        }
+        echo json_encode(
+            ['success' => $resultaat['ok'], 'error' => $resultaat['error'], 'voorstellen' => $resultaat['suggestions'], 'paden' => count($kandidaten)],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+        );
         break;
 
     case 'unblock':

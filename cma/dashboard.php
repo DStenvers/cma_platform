@@ -1090,6 +1090,28 @@ if ($isAdmin) {
     </div>
     <?php endif; ?>
 
+    <?php
+    // Reminder to run the 404 analysis again (hack patterns), every three months
+    $analyseReminder = ($isAdmin || $isDeveloper)
+        && \App\Library\Llm::isConfigured()
+        && \App\Library\Settings::get('hack_block_enabled')
+        && \App\Library\NotFoundAnalyzer::reminderDue(dirname(__DIR__));
+    if ($analyseReminder):
+        $laatsteAnalyse = \App\Library\NotFoundAnalyzer::lastRun(dirname(__DIR__));
+    ?>
+    <div class="dashboard-card warning">
+        <div class="dashboard-card-header">
+            <span class="lnr lnr-warning"></span>
+            404-log laten analyseren
+        </div>
+        <div class="dashboard-card-body">
+            De hack-URL's zijn <?= $laatsteAnalyse ? 'voor het laatst op ' . date('d-m-Y', $laatsteAnalyse) . ' met de 404-analyse bijgewerkt' : 'nog nooit met de 404-analyse bijgewerkt' ?>. Draai hem opnieuw om nieuwe scanpatronen te vinden.
+            <br>
+            <a href="tools.php?tool=hackurls" class="migration-link">Naar Hack-URL's</a>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Debug logging notification - shown via JS when verbose logging is enabled -->
     <div class="dashboard-card warning" id="loggingNotice" style="display: none;">
         <div class="dashboard-card-header">

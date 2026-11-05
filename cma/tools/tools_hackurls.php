@@ -6,6 +6,8 @@
  * in the logreader uses. Administrators and up.
  */
 
+use App\Library\Llm;
+use App\Library\NotFoundAnalyzer;
 use App\Library\NotFoundLists;
 use App\Library\Server;
 use Cma\SecurityHelper;
@@ -20,6 +22,8 @@ if (!SecurityHelper::isAdmin()) {
 }
 
 $lijsten = NotFoundLists::forSite(dirname(__DIR__, 2));
+$analyseMogelijk = Llm::isConfigured();
+$laatsteAnalyse = NotFoundAnalyzer::lastRun(dirname(__DIR__, 2));
 $patronen = $lijsten->all()[NotFoundLists::HACK] ?? [];
 
 cma_html_header("Hack-URL's");
@@ -34,9 +38,14 @@ echo '<p>Een 404 op een pad dat bij een van deze patronen past, telt als hackpog
    . 'Een <code>*</code> staat voor elke tekst; een patroon zonder <code>*</code> moet het hele pad zijn. '
    . 'Houd patronen nauw: een te ruim patroon blokkeert ook gewone bezoekers met een kapotte link.</p>';
 
+if ($analyseMogelijk) {
+    echo '<p class="text-muted">Laatste 404-analyse: ' . ($laatsteAnalyse ? date('d-m-Y', $laatsteAnalyse) : 'nog nooit') . '. De analyse stuurt alleen paden en aantallen (geen IP\'s) naar de ingestelde LLM en doet voorstellen; er wordt niets automatisch toegevoegd.</p>';
+}
 echo '<p><button type="button" class="btn btn-primary" id="hackurlToevoegen"><span class="lnr lnr-plus-circle"></span> Patroon toevoegen</button>'
    . ($lijsten->canAddDefaults() ? ' <button type="button" class="btn" id="hackurlStandaard"><span class="lnr lnr-layers"></span> Standaardlijst toevoegen</button>' : '')
+   . ($analyseMogelijk ? ' <button type="button" class="btn" id="hackurlAnalyse"><span class="lnr lnr-magic-wand"></span> Analyseer 404-log</button>' : '')
    . '</p>';
+echo '<div id="hackurlVoorstellen"></div>';
 
 if ($patronen === []) {
     echo '<p class="text-muted">Nog geen patronen.</p>';
@@ -81,6 +90,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: 'Standaardlijst toevoegen', confirmText: 'Toevoegen', cancelText: 'Annuleren'
             });
             if (ok) { stuur({ action: 'defaults' }).then(klaar); }
+        });
+    }
+    var analyse = document.getElementById('hackurlAnalyse');
+    if (analyse) {
+        analyse.addEventListener('click', function () {
+            var uit = document.getElementById('hackurlVoorstellen');
+            analyse.disabled = true;
+            uit.textContent = 'Bezig met analyseren...';
+            stuur({ action: 'analyse' }).then(function (a) {
+                analyse.disabled = false;
+                uit.textContent = '';
+                if (!a.success) { libAlert(a.error || 'Analyse mislukt'); return; }
+                if (!a.voorstellen.length) { uit.textContent = 'Geen nieuwe hackpogingen gevonden in ' + a.paden + ' paden.'; return; }
+                var tabel = document.createElement('table');
+                tabel.className = 'table';
+                a.voorstellen.forEach(function (v) {
+                    var rij = tabel.insertRow();
+                    rij.insertCell().textContent = v.patroon;
+                    rij.insertCell().textContent = v.reden + ' (' + v.aantal + 'x: ' + v.voorbeelden.join(', ') + ')';
+                    var knop = document.createElement('button');
+                    knop.type = 'button';
+                    knop.className = 'btn';
+                    knop.textContent = 'Toevoegen';
+                    knop.addEventListener('click', function () {
+                        stuur({ action: 'add', patroon: v.patroon }).then(function (r) {
+                            if (r.success) { knop.disabled = true; knop.textContent = 'Toegevoegd'; } else { libAlert(r.error || 'Opslaan mislukt'); }
+                        });
+                    });
+                    rij.insertCell().appendChild(knop);
+                });
+                uit.appendChild(tabel);
+            }).catch(function () { analyse.disabled = false; uit.textContent = ''; libAlert('Analyse mislukt'); });
         });
     }
     document.querySelectorAll('.hackurl-verwijder').forEach(function (knop) {

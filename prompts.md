@@ -16787,3 +16787,9 @@ karaat-data en staat in de karaat-repo.
 
 > ja bouw die knop maar, maar zorg dat die maar eenmalig werkt. Dus bij meer dan 2 items in de lijst: hij is gevuld. 
 > Maar de 404 zou toch ook kunnen kijken of er iets een hackpoging is? Via AI zeker.
+
+> Een IP dat meer dan 10 hackpogingen doet binnen 10 minuten, krijgt 60 minuten lang een 403 op elke pagina; bij elke herhaling binnen een week wordt dat het dubbele, tot maximaal een week. Instellen via Systeeminstellingen → Beveiliging. _> dat is toch al gewijzigd?
+
+> ja dus een analyse van de 404 logs. Prima
+
+> en een reminder als dat langer dan 3 maanden geleden is als je die scan heb laten uitvoeren, op het dashboard
