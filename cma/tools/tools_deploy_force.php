@@ -18,7 +18,7 @@ use Cma\ToolbarHelper;
 
 require_once __DIR__ . '/../bootstrap.inc';
 
-if (!SecurityHelper::isAdmin()) {
+if (!SecurityHelper::isDeveloper()) {
     echo '<lib-message type="error">Geen toegang</lib-message>';
     exit;
 }
