@@ -16778,3 +16778,5 @@ karaat-data en staat in de karaat-repo.
 > krijgt 60 minuten lang een 403 op elke pagina., klopt dat nog wel? Dat zouden we toch incrementeel doen?
 
 > ja graag
+
+> ik wil de iconen naast het afdruk-icoon

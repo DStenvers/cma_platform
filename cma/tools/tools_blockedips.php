@@ -28,7 +28,7 @@ echo '<body class="contentbody tools tool-blockedips">';
 ob_start();
 ToolbarHelper::button('tools_hackurls.php', 'lnr-warning', true, "Hack-URL's", "Naar de hack-URL's");
 $zusterknop = ob_get_clean();
-ToolbarHelper::report("Geblokkeerde IP's", false, false, false, false, 'IP-adressen die nu een 403 krijgen', $zusterknop);
+ToolbarHelper::report("Geblokkeerde IP's", false, false, false, false, 'IP-adressen die nu een 403 krijgen', '', '', $zusterknop);
 echo '<div id="c" class="tools">';
 
 if (Settings::get('hack_block_enabled')) {

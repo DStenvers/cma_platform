@@ -430,13 +430,17 @@ class ToolbarHelper
      * @param string $subtitle Optional subtitle/description shown after title
      * @param string $extraHtml Optional extra HTML to render in the right section (e.g., database selector)
      * @param string $helpDialogId Optional ID of a lib-dialog to show a help button for
+     * @param string $afterPrintHtml Optional extra toolbar buttons rendered directly after the print button
      */
-    public static function report(string $title, bool $tableButtons, bool $tableGrouped, bool $excel, bool $showTimestamp = false, string $subtitle = '', string $extraHtml = '', string $helpDialogId = ''): void
+    public static function report(string $title, bool $tableButtons, bool $tableGrouped, bool $excel, bool $showTimestamp = false, string $subtitle = '', string $extraHtml = '', string $helpDialogId = '', string $afterPrintHtml = ''): void
     {
         self::start(true);
 
         // Print button first, as the old toolbar.inc ToolbarReport had it
         self::printButton(true);
+        if ($afterPrintHtml !== '') {
+            echo $afterPrintHtml . PHP_EOL;
+        }
         self::separator();
 
         // Title on the left
