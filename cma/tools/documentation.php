@@ -4103,16 +4103,16 @@ try {
     </ul>
     <p>Opnieuw uitvoeren is veilig: een statement dat op een vergrendeling stuit, is niet uitgevoerd. De ASP-versie van een site doet hetzelfde met <code>lib_db_IsLockFout</code> en <code>lib_db_OpenConnectie</code> in <code>library/lib_db.inc</code>.</p>
 
-    <h2>Dialecten: Access, SQL Server, SQLite</h2>
+    <h2>Dialecten: Access, SQL Server, SQLite, PostgreSQL</h2>
     <p>Het platform is uit Classic ASP omgezet en zijn SQL is dus in het <span class="cma-page__strong">Access-dialect</span> geschreven. Draaien op een ander backend is daarom een vertaling, geen modus — en die vertaling zit in de klasse, zodat een aanroeper niets over de driver hoeft te weten.</p>
     <pre><code>use App\Library\SQL;
 
-SQL::dialect($conn);              // 'access' | 'sqlserver' | 'sqlite'
+SQL::dialect($conn);              // 'access' | 'sqlserver' | 'sqlite' | 'postgres'
 SQL::processSQL($conn, $sql);     // queries — draait al vanuit élke Database-ingang
 SQL::processDdl($conn, $sql);     // schema-statements
 </code></pre>
     <p><code>processSQL()</code> hoef je niet zelf aan te roepen: <code>query()</code>, <code>fetchOne()</code>, <code>fetchAll()</code>, <code>execute()</code>, <code>executeOn()</code>, <code>openRS()</code>, <code>getFieldValue()</code>, <code>getIds()</code> en de <code>safe*</code>-helpers doen dat allemaal. Voor schema-wijzigingen is <code>Database::executeDdl($conn, $sql)</code> de ingang. Wat er per dialect vertaald wordt (en wat bewust níet), staat in <a href="documentation.php?topic=migrations">Platform updates schrijven</a>.</p>
-    <p>MySQL en PostgreSQL vallen op dit moment terug op het Access-pad: er wordt voor die twee niets vertaald. Dat is expliciet zo gelaten — doen alsof ze eigen behandeling krijgen zou de verrassing alleen verplaatsen.</p>
+    <p>MySQL valt op dit moment terug op het Access-pad: er wordt voor MySQL niets vertaald. Dat is expliciet zo gelaten — doen alsof het eigen behandeling krijgt zou de verrassing alleen verplaatsen. Wat PostgreSQL krijgt staat onder <a href="#doc-postgres">PostgreSQL</a>.</p>
 
     <h2>ODBC-modes</h2>
     <p>De Database-class ondersteunt twee ODBC-backends:</p>
@@ -4132,6 +4132,7 @@ SQL::processDdl($conn, $sql);     // schema-statements
             <tr><td>SQLite (PDO)</td><td><code>sqlite:[db/mydata.sqlite]</code></td></tr>
             <tr><td>MySQL (PDO)</td><td><code>mysql:host=localhost;dbname=mydata;charset=utf8mb4</code></td></tr>
             <tr><td>SQL Server</td><td><code>sqlsrv:Server=localhost;Database=mydata</code></td></tr>
+            <tr><td>PostgreSQL (PDO)</td><td><code>pgsql:host=localhost;port=5432;dbname=mydata</code> (vereist <code>pdo_pgsql</code>)</td></tr>
         </tbody>
     </table>
     <p>Paden tussen <code>[...]</code> worden opgelost relatief aan de site-root. Auth-credentials komen meestal uit env-vars (<code>DB_USER</code>, <code>DB_PASSWORD</code>) of uit <code>app.php</code>.</p>
@@ -4240,6 +4241,59 @@ function render_doc_migrations(): void
     <div class="docs-callout docs-callout--warn"><span class="cma-tool__strong">Een formaat dat niet te vertalen is, stopt de query.</span> SQLite heeft namelijk zijn eigen <code>format()</code> — een alias van <code>printf</code> sinds 3.38 — dus een onaangeraakte Access-aanroep geeft géén "no such function" maar bij elke rij letterlijk de formaatstring terug. Onvertaalbare formaten worden daarom herschreven naar <code>access_format_niet_vertaald(<span class="cma-tool__em">waarde</span>, '<span class="cma-tool__em">formaat</span>')</code>, wat SQLite weigert en het formaat in de foutmelding noemt. Aan de vorm van de aanroep wordt gezien welke <code>format()</code> bedoeld is: Access zet de formaatstring op de tweede plaats, SQLite op de eerste — <code>format('%d', x)</code> blijft dus gewoon werken.</div>
     <p>Een onbekend interval in <code>DateAdd</code>/<code>DateDiff</code> blijft staan; SQLite heeft die functies niet, dus "no such function: dateadd" wijst daar vanzelf de weg.</p>
     <div class="docs-callout"><span class="cma-tool__strong">Datum versus datum-met-tijd.</span> <code>DateAdd</code> levert een volledige tijdstempel op, net als in Access. SQLite vergelijkt datums echter als tekst, dus <code>datum &gt;= DateAdd('d',-30,Now())</code> tegen een kolom die alleen <code>'2026-08-13'</code> bevat laat de grensdag vallen: <code>'2026-07-14'</code> is als tekst kleiner dan <code>'2026-07-14 00:00:00'</code>. Bewaar datumkolommen op een SQLite-site dus met tijd (dat doen de migraties zelf ook), of vergelijk met <code>date(…)</code> om beide kanten op dagniveau te brengen.</div>
+
+    <h3 id="doc-postgres">PostgreSQL</h3>
+    <p>Dezelfde aanpak als bij SQLite: de SQL blijft in het Access-dialect staan en <code>SQL::processSQL()</code> / <code>SQL::processDdl()</code> vertalen op de weg naar de driver. Dat gebeurt alleen buiten stringliterals, met dezelfde scanner voor <code>DateAdd</code>, <code>DateDiff</code>, <code>Format</code> en <code>InStr</code> (haakjes en komma's in een literal tellen niet mee).</p>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Access schrijft</th><th>PostgreSQL krijgt</th></tr></thead>
+        <tbody>
+            <tr><td><code>[Naam]</code>, <code>[tblKlant].[ID]</code>, <code>[User]</code></td><td><code>"naam"</code>, <code>"tblklant"."id"</code>, <code>"user"</code> — kleine letters én tussen aanhalingstekens. PostgreSQL vouwt namen zonder aanhalingstekens naar kleine letters, dus <code>[Naam]</code>, <code>Naam</code> en <code>NAAM</code> blijven dezelfde kolom (zoals in Access) en gereserveerde woorden als <code>user</code> en <code>order</code> zijn veilig. <code>processDdl()</code> volgt dezelfde regel, dus de tabel die een migratie aanmaakt is de tabel die een query vindt.</td></tr>
+            <tr><td><code>"KBA"</code></td><td><code>'KBA'</code> — in PostgreSQL is <code>"x"</code> een identifier</td></tr>
+            <tr><td><code>SELECT TOP 5 …</code></td><td><code>SELECT … LIMIT 5</code></td></tr>
+            <tr><td><code>DELETE * FROM</code></td><td><code>DELETE FROM</code></td></tr>
+            <tr><td><code>= True</code>, <code>= -1</code>, <code>= False</code></td><td><code>= TRUE</code>, <code>= TRUE</code>, <code>= FALSE</code> (een echt booleantype; <code>= 1</code> is er een fout)</td></tr>
+            <tr><td><code>a LIKE 'x%'</code></td><td><code>a ILIKE 'x%'</code> — Access negeert hoofdletters, het PostgreSQL-<code>LIKE</code> niet</td></tr>
+            <tr><td><code>a &amp; b</code></td><td><code>a || b</code></td></tr>
+            <tr><td><code>Now()</code>, <code>Date()</code>, <code>GetDate()</code></td><td><code>LOCALTIMESTAMP</code>, <code>CURRENT_DATE</code>, <code>LOCALTIMESTAMP</code></td></tr>
+            <tr><td><code>#2026-08-13#</code></td><td><code>'2026-08-13'</code> — PostgreSQL zet de tekst om naar het type van de kolom</td></tr>
+            <tr><td><code>IIf(a,b,c)</code> (ook genest)</td><td><code>(CASE WHEN a THEN b ELSE c END)</code> — PostgreSQL kent geen IIF</td></tr>
+            <tr><td><code>Nz(a,b)</code>, <code>IsNull(a)</code>, <code>Int(a)</code></td><td><code>COALESCE(a,b)</code>, <code>(a IS NULL)</code>, <code>FLOOR(a)</code></td></tr>
+            <tr><td><code>ucase</code> <code>lcase</code> <code>len</code> <code>mid</code> <code>a MOD b</code></td><td><code>upper</code> <code>lower</code> <code>length</code> <code>substr</code> <code>a % b</code></td></tr>
+            <tr><td><code>InStr(s, x)</code> / <code>InStr(start, s, x)</code></td><td><code>strpos(s, x)</code> / de zoekactie op het staartstuk, teruggerekend naar de oorspronkelijke positie</td></tr>
+            <tr><td><code>Year(d)</code> <code>Month</code> <code>Day</code> <code>Hour</code> <code>Minute</code> <code>Second</code> <code>Weekday</code></td><td><code>EXTRACT(… FROM CAST(d AS timestamp))</code>; <code>Weekday</code> telt vanaf zondag = 1 zoals Access</td></tr>
+            <tr><td><code>CInt</code> <code>CLng</code> <code>CDbl</code> <code>CStr</code> <code>CDate</code> <code>CBool</code> …</td><td><code>CAST(x AS integer | double precision | text | timestamp | boolean)</code></td></tr>
+            <tr><td><code>DateAdd('d', -30, Now())</code></td><td><code>(CAST(… AS timestamp) + (-30) * INTERVAL '1 day')</code>; zelfde intervallen en dezelfde <code>m</code> = maanden, <code>n</code> = minuten als bij SQLite</td></tr>
+            <tr><td><code>DateDiff('h', a, b)</code></td><td>Het aantal <span class="cma-tool__strong">grenzen</span> (zoals Access), via <code>date_trunc</code> / datumverschil; niet de verstreken tijd</td></tr>
+            <tr><td><code>Format([Datum],'dd mmm yyyy')</code></td><td><code>to_char()</code> met een <code>CASE</code> voor de Nederlandse maand- en dagnamen (<code>to_char</code> gebruikt anders de serverlocale). Dezelfde tokens, benoemde formaten en <code>m</code>-versus-minuut-regel als bij SQLite; <code>0</code> en <code>0.00</code> werken ook.</td></tr>
+            <tr><td><code>SELECT @@IDENTITY</code></td><td><code>SELECT lastval()</code> — per verbinding, net als <code>@@IDENTITY</code></td></tr>
+        </tbody>
+    </table>
+    <table class="listtable">
+        <thead><tr class="listheader"><th>Schema (Access)</th><th>PostgreSQL</th></tr></thead>
+        <tbody>
+            <tr><td><code>ID AUTOINCREMENT PRIMARY KEY</code></td><td><code>ID INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY</code></td></tr>
+            <tr><td><code>MEMO</code> / <code>LONGTEXT</code> / <code>NVARCHAR(MAX)</code> / <code>TEXT(50)</code></td><td><code>TEXT</code> / <code>TEXT</code> / <code>TEXT</code> / <code>VARCHAR(50)</code></td></tr>
+            <tr><td><code>YESNO</code> / <code>BIT</code>, met <code>DEFAULT -1|0|True|False</code></td><td><code>BOOLEAN DEFAULT TRUE|FALSE</code></td></tr>
+            <tr><td><code>LONG</code> / <code>BYTE</code> / <code>CURRENCY</code> / <code>DOUBLE</code> / <code>SINGLE</code></td><td><code>INTEGER</code> / <code>SMALLINT</code> / <code>NUMERIC(19,4)</code> / <code>DOUBLE PRECISION</code> / <code>REAL</code></td></tr>
+            <tr><td><code>DATETIME</code> / <code>GUID</code></td><td><code>TIMESTAMP</code> / <code>UUID</code></td></tr>
+            <tr><td><code>ALTER COLUMN [x] VARCHAR(30) WITH COMPRESSION</code></td><td><code>ALTER COLUMN "x" TYPE VARCHAR(30)</code></td></tr>
+            <tr><td><code>DROP INDEX ix ON tbl</code></td><td><code>DROP INDEX ix</code></td></tr>
+        </tbody>
+    </table>
+
+    <h4>Wat bewust niet wordt vertaald</h4>
+    <p>Deze verschillen zijn niet met een patroon veilig te herschrijven; ze moeten bij de overstap in de data of de query worden opgelost.</p>
+    <ul>
+        <li><span class="cma-tool__strong">Hoofdletters in <code>=</code>.</span> Access vergelijkt tekst zonder hoofdlettergevoeligheid, PostgreSQL met. <code>WHERE naam = 'jansen'</code> vindt 'Jansen' dus niet meer. <code>LIKE</code> wordt wel <code>ILIKE</code>; voor <code>=</code> kies je per kolom: <code>lower(kolom) = lower(waarde)</code> in de query, of een <code>citext</code>-kolom.</li>
+        <li><span class="cma-tool__strong">Boolean <code>= 1</code> / <code>= 0</code>.</span> Een <code>BOOLEAN</code>-kolom vergelijk je met <code>TRUE</code>/<code>FALSE</code>. Alleen <code>-1</code> en <code>True</code>/<code>False</code> worden herkend; <code>= 0</code> en <code>= 1</code> kunnen ook een gewoon getal zijn en blijven staan, waarna PostgreSQL ze met <code>operator does not exist: boolean = integer</code> afwijst. En omgekeerd: <code>= -1</code> wordt <code>= TRUE</code>, ook op een kolom waar -1 een echte waarde is.</li>
+        <li><span class="cma-tool__strong">Booleans in PHP.</span> <code>pdo_pgsql</code> levert een boolean als <code>true</code>/<code>false</code>; Access leverde <code>-1</code>/<code>0</code>. Code die op <code>== -1</code> test, moet daarop nagekeken worden.</li>
+        <li><span class="cma-tool__strong">Delen.</span> <code>/</code> op twee integers kapt in PostgreSQL af (<code>5 / 2 = 2</code>), in Access levert het <code>2.5</code>. Cast een van beide naar <code>numeric</code>.</li>
+        <li><span class="cma-tool__strong">NULL in een samenstelling.</span> <code>'a' &amp; NULL</code> gaf in Access <code>'a'</code>; <code>'a' || NULL</code> geeft <code>NULL</code>. Gebruik <code>COALESCE(kolom, '')</code> of <code>concat_ws</code> waar een kolom leeg kan zijn.</li>
+        <li><span class="cma-tool__strong">Alleen die functies.</span> <code>Nz(x)</code> met één argument, <code>InStr</code> met vergelijkingsmodus, <code>First()</code>, <code>Round(x, n)</code> op een <code>double precision</code> en subquery's met <code>TOP</code> worden niet vertaald en geven een duidelijke PostgreSQL-fout (<code>function nz(…) does not exist</code>) in plaats van een stil verkeerd antwoord.</li>
+        <li><span class="cma-tool__strong">GROUP BY.</span> PostgreSQL eist dat elke niet-geaggregeerde kolom in de <code>GROUP BY</code> staat; Access was daar slapper in.</li>
+        <li><span class="cma-tool__strong">Kolomnamen in het resultaat</span> komen in kleine letters terug. <code>RecordSet</code> zoekt velden hoofdletterongevoelig, dus <code>$rs-&gt;Fields['Naam']</code> blijft werken; code die de ruwe PDO-rij als array leest, moet <code>naam</code> gebruiken.</li>
+    </ul>
+    <p>Controleer een nieuwe vertaalregel altijd één keer tegen een echte PostgreSQL-server: <code>PostgresDialectTest</code> bewijst welke tekst er naar de driver gaat, niet dat de server die accepteert.</p>
 
     <h2>Idempotent &amp; rerunnable</h2>
     <p>Een migratie kan opnieuw uitgevoerd worden via de "Rerun migration" knop op de Migraties-tool. Schrijf je migratie zó dat dat veilig is:</p>

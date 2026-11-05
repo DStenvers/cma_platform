@@ -16753,3 +16753,7 @@ karaat-data en staat in de karaat-repo.
 > wat bedoel je met 'De lijst mist vier tabellen met live-pagina's (tblOpleidingsplaatsen, tblPOInstellingen, tblUitnodigingGesprekken, tblUitnodigingPerDeelname), dus die vul ik eerst aan in ASP en PHP. Het Cypress-rapport verwijder ik als restafval in plaats van het te committen.'
 
 > wat bedoel je met 'De lijst mist vier tabellen met live-pagina's (tblOpleidingsplaatsen, tblPOInstellingen, tblUitnodigingGesprekken, tblUitnodigingPerDeelname), dus die vul ik eerst aan in ASP en PHP. Het Cypress-rapport verwijder ik als restafval in plaats van het te committen.'
+
+## 2026-11-05
+
+> we a re planning to mygrate to another database can we change the sql processor to support Postgress and sqllite ? Analyse the differences between the sql dialects and implement sql processor statements in regexp.

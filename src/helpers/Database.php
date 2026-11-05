@@ -658,6 +658,8 @@ class Database
                 $conn->exec('SET SESSION max_execution_time = ' . ((int) Settings::get('db_query_timeout') * 1000));
             } elseif ($actualDriver === 'sqlsrv') {
                 $conn->setAttribute(PDO::SQLSRV_ATTR_QUERY_TIMEOUT, (int) Settings::get('db_query_timeout'));
+            } elseif ($actualDriver === 'pgsql') {
+                $conn->exec('SET statement_timeout = ' . ((int) Settings::get('db_query_timeout') * 1000));
             }
 
             return $conn;
@@ -2626,13 +2628,20 @@ SQL: " . $sql : ''));
             $conn = $connectionString instanceof PDO ? $connectionString : self::getConnection();
             $driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-            if ($driver === 'mysql' || $driver === 'sqlsrv' || $driver === 'mssql') {
+            if ($driver === 'mysql' || $driver === 'sqlsrv' || $driver === 'mssql' || $driver === 'pgsql') {
                 // INFORMATION_SCHEMA: the field/table exists when a row comes back
                 $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?";
                 if ($driver === 'mysql') {
                     $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?";
                 }
                 $params = [$table];
+                if ($driver === 'pgsql') {
+                    // Names are stored lower case (SQL::toPostgres() folds identifiers), and
+                    // other schemas hold tables of the same name.
+                    $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = CURRENT_SCHEMA() AND TABLE_NAME = ?";
+                    $params = [strtolower($table)];
+                    $fieldName = strtolower($fieldName);
+                }
                 if (!empty($fieldName)) {
                     $sql .= " AND COLUMN_NAME = ?";
                     $params[] = $fieldName;
@@ -3256,6 +3265,10 @@ SQL: " . $sql : ''));
                 }
                 $stmt->fetchColumn();
                 return true;
+            } elseif ($driver === 'pgsql') {
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = CURRENT_SCHEMA() AND TABLE_NAME = ?");
+                $stmt->execute([strtolower($table)]);
+                return (int)$stmt->fetchColumn() > 0;
             } else {
                 $stmt = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '$table'");
                 return (int)$stmt->fetchColumn() > 0;
@@ -3477,6 +3490,8 @@ SQL: " . $sql : ''));
             } elseif ($driver === 'mysql') {
                 $sql = "RENAME TABLE [$oldName] TO [$newName]";
                 $conn->exec($sql);
+            } elseif ($driver === 'pgsql') {
+                $conn->exec(SQL::processSQL($conn, "ALTER TABLE [$oldName] RENAME TO [$newName]"));
             } else {
                 // SQL Server
                 $sql = "EXEC sp_rename '$oldName', '$newName'";
