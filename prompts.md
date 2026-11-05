@@ -16780,3 +16780,5 @@ karaat-data en staat in de karaat-repo.
 > ja graag
 
 > ik wil de iconen naast het afdruk-icoon
+
+> .toolbar-right .toolbar-status should be right aligned

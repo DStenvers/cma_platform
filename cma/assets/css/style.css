@@ -1208,6 +1208,10 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
     white-space: nowrap;
 }
 
+.toolbar-right .toolbar-status {
+    margin-left: auto;
+}
+
 /* Hide toolbar status on small screens to make room for buttons */
 @media (max-width: 1024px) {
     .toolbar-status {
