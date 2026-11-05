@@ -6,8 +6,8 @@
  * … that prevents it from being opened or locked" — Access wordt gecomprimeerd of gekopieerd, of
  * een ander proces heeft hem even exclusief open. Na een korte pauze gaat hij meestal weer open.
  * Nu lopen het openen van de verbinding (createPDOConnection, native odbc_connect) en alle
- * prepare+execute (prepareAndExecute, openRS) via withLockRetry: tot 5 pogingen met
- * 250/500/750/1000 ms ertussen; elke andere fout gaat meteen en ongewijzigd door.
+ * prepare+execute (prepareAndExecute, openRS) via withLockRetry: tot 8 pogingen met
+ * 250/500/.../1750 ms ertussen; elke andere fout gaat meteen en ongewijzigd door.
  *
  * Run met: php cma/tests/TestRunner.php DatabaseLockRetryTest
  */
@@ -59,8 +59,22 @@ class DatabaseLockRetryTest extends TestCase
         $this->assertTrue(Database::isLockError("The Microsoft Access database engine cannot open or write to the file. It is already opened exclusively … Could not use 'x.mdb'; file already in use."), 'file already in use');
         $this->assertTrue(Database::isLockError('Could not update; currently locked.'), 'currently locked');
         $this->assertTrue(Database::isLockError('SQLSTATE[HY000]: General error: 5 database is locked'), 'sqlite: database is locked');
+        // Nederlandstalig ODBC-stuurprogramma (Windows nl-NL), zoals op de ontwikkelmachine gemeten.
+        $nl = "SQLSTATE[HY000]: General error: -1102 [Microsoft][ODBC Microsoft Access-stuurprogramma] Bijwerken is niet mogelijk. Het object wordt momenteel gebruikt door de gebruiker admin op LAPTOP_DS en is vergrendeld. (SQLExecute[-1102] at ext\\pdo_odbc\\odbc_stmt.c:267)";
+        $this->assertTrue(Database::isLockError($nl), 'nl: -1102 bijwerken niet mogelijk');
+        $this->assertTrue(Database::isLockError('Het object is vergrendeld.'), 'nl: is vergrendeld');
+        $this->assertTrue(Database::isLockError('SQLSTATE[HY000]: General error: -1102 onbekende tekst'), 'foutcode -1102 alleen');
+        $this->assertFalse(Database::isLockError('Syntaxisfout in FROM-clausule.'), 'nl: een SQL-fout is geen vergrendeling');
         $this->assertFalse(Database::isLockError('Syntax error in FROM clause.'), 'een SQL-fout is geen vergrendeling');
         $this->assertFalse(Database::isLockError("Too few parameters. Expected 1."), 'een ontbrekend veld ook niet');
+    }
+
+    public function testLuktNaVergrendelingMetNederlandseMelding(): void
+    {
+        $nl = "SQLSTATE[HY000]: General error: -1102 [Microsoft][ODBC Microsoft Access-stuurprogramma] Bijwerken is niet mogelijk. Het object wordt momenteel gebruikt door de gebruiker admin op LAPTOP_DS en is vergrendeld.";
+        $pogingen = 0;
+        $this->assertEquals('gelukt', $this->probeer(3, $nl, $pogingen));
+        $this->assertEquals(4, $pogingen, 'de retry werkt ook voor de Nederlandse melding');
     }
 
     public function testLuktNaTweeVergrendelingen(): void
@@ -70,7 +84,7 @@ class DatabaseLockRetryTest extends TestCase
         $this->assertEquals(3, $pogingen, 'derde poging slaagt');
     }
 
-    public function testBlijftVergrendeldGeeftNaVijfPogingenDeFout(): void
+    public function testBlijftVergrendeldGeeftNaAllePogingenDeFout(): void
     {
         $pogingen = 0;
         $fout = null;
@@ -80,7 +94,7 @@ class DatabaseLockRetryTest extends TestCase
             $fout = $e;
         }
         $this->assertTrue($fout !== null && $fout->getMessage() === self::LOCK, 'de oorspronkelijke fout gaat door');
-        $this->assertEquals(5, $pogingen, 'vijf pogingen');
+        $this->assertEquals(8, $pogingen, 'acht pogingen');
     }
 
     public function testAndereFoutMeteenDoor(): void

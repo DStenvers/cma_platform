@@ -2069,9 +2069,13 @@ SQL: " . $sql : ''));
     }
 
     /** Aantal pogingen bij een vergrendelde database (de eerste meegeteld). */
-    private const LOCK_ATTEMPTS = 5;
+    private const LOCK_ATTEMPTS = 8;
 
-    /** Wachttijd vóór poging n+1 is n × deze waarde (250, 500, 750, 1000 ms: samen 2,5 s). */
+    /**
+     * Wachttijd vóór poging n+1 is n × deze waarde (250, 500, ... 1750 ms: samen 7 s). Een ander
+     * proces dat een transactie open heeft (bv. een presentielijst die mails verstuurt) houdt zijn
+     * recordvergrendelingen langer vast dan 2,5 s; die eerdere marge was voor een compact/back-up.
+     */
     private static int $lockWaitMs = 250;
 
     /**
@@ -2092,6 +2096,21 @@ SQL: " . $sql : ''));
             'currently locked',
             'cannot open database',
             'database is locked',
+            // Het ODBC-stuurprogramma meldt zich in de taal van het systeem. Nederlands, bv.:
+            // "-1102 ... Bijwerken is niet mogelijk. Het object wordt momenteel gebruikt door de
+            // gebruiker admin op LAPTOP_DS en is vergrendeld." - zonder deze regels kwam de retry
+            // op een Nederlandstalige Windows nooit in actie.
+            'is vergrendeld',
+            'momenteel gebruikt',
+            'bijwerken is niet mogelijk',
+            'kan het bestand niet vergrendelen',
+            'is al in gebruik',
+            'kan de database niet openen',
+            // Jet-foutcodes, taalonafhankelijk: -1102 (record/pagina vergrendeld), -1034 (database
+            // in een toestand geplaatst die openen/vergrendelen voorkomt).
+            'general error: -1102',
+            'general error: -1034',
+            'sqlexecute[-1102]',
         ] as $tekst) {
             if (str_contains($m, $tekst)) {
                 return true;
