@@ -6,6 +6,7 @@
  *   POST {action:"add",    lijst, patroon}             → {success, lijsten}
  *   POST {action:"remove", lijst, patroon}             → {success, lijsten}
  *   POST {action:"unblock", ip}                        → {success}  (HackBlocker)
+ *   POST {action:"block",   ip, minuten}               → {success}  (HackBlocker, by hand)
  *
  * Used by the 404 log in the logreader (marking a miss from its detail window,
  * and the tabs "Patronen" and "Blokkades"). Administrators and up.
@@ -75,6 +76,25 @@ switch ($action) {
         }
         $ok = (new HackBlocker(dirname(__DIR__, 2)))->unblock((string) ($input['ip'] ?? ''));
         $antwoord($ok, $ok ? '' : 'Dit IP is niet (meer) geblokkeerd');
+        break;
+
+    case 'block':
+        if (Request::server('REQUEST_METHOD') !== 'POST') {
+            http_response_code(405);
+            $antwoord(false, 'Alleen POST');
+            break;
+        }
+        $ip = trim((string) ($input['ip'] ?? ''));
+        if ($ip !== '' && $ip === (string) Request::server('REMOTE_ADDR')) {
+            http_response_code(400);
+            $antwoord(false, 'Je kunt je eigen IP-adres niet blokkeren');
+            break;
+        }
+        $ok = (new HackBlocker(dirname(__DIR__, 2)))->blockManually($ip, (int) ($input['minuten'] ?? 0));
+        if (!$ok) {
+            http_response_code(400);
+        }
+        $antwoord($ok, $ok ? '' : 'Geen geldig IP-adres of aantal minuten, of de blokkade kon niet worden opgeslagen');
         break;
 
     default:

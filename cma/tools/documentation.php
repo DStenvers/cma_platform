@@ -3354,6 +3354,7 @@ function render_doc_hack_attempts(): void
         </tbody>
     </table>
     <p>Een gemiste URL zet je op een lijst vanuit het detailvenster (klik de regel aan): <span class="cma-tool__strong">Markeer als hackpoging</span> of <span class="cma-tool__strong">Negeren</span>. Het pad staat al ingevuld; maak er eerst een patroon van als dat beter past (<code>/wp-login.php</code> → <code>/wp-*</code>). Na opslaan laadt de pagina opnieuw, want de nieuwe regel kan elke regel van de dag van tabblad laten wisselen. Staat een regel al op een lijst, dan brengt <span class="cma-tool__strong">Patronen beheren</span> je naar het tabblad Patronen.</p>
+    <p>Zonder de logreader kun je de lijsten ook beheren onder Beheerstools → <span class="cma-tool__strong">Beveiliging</span>: <span class="cma-tool__strong">Hack-URL's</span> (patronen toevoegen en weghalen) en <span class="cma-tool__strong">Geblokkeerde IP's</span> (blokkade opheffen, of een IP handmatig voor een aantal minuten blokkeren). Beide gebruiken dezelfde API en dezelfde bestanden als de tabbladen Patronen en Blokkades.</p>
     <p>Direct naar een tabblad: <code>tools.php?tool=logs&amp;log=404&amp;tab=hack</code> (ook <code>genegeerd</code>, <code>patronen</code> en <code>blokkades</code>).</p>
 
     <h2>Dashboard en dagelijks overzicht</h2>
@@ -3419,6 +3420,7 @@ function render_doc_hack_attempts(): void
             <tr><td><code>POST {"action":"add","lijst":"hack","patroon":"/wp-*"}</code></td><td>Patroon toevoegen (<code>lijst</code> is <code>hack</code> of <code>genegeerd</code>). Weigert een patroon dat al op die lijst staat.</td></tr>
             <tr><td><code>POST {"action":"remove","lijst":"hack","patroon":"/wp-*"}</code></td><td>Patroon weghalen.</td></tr>
             <tr><td><code>POST {"action":"unblock","ip":"185.1.2.3"}</code></td><td>Blokkade opheffen.</td></tr>
+            <tr><td><code>POST {"action":"block","ip":"185.1.2.3","minuten":60}</code></td><td>IP handmatig blokkeren. Weigert iets dat geen IP-adres is en het IP van de aanroeper zelf.</td></tr>
         </tbody>
     </table>
 
@@ -3801,7 +3803,7 @@ function render_doc_architecture(): void
         <li><span class="cma-tool__strong">_bootstrap.php</span> (auto-prepended) draait — laadt <code>vendor/autoload.php</code>, registreert <code>App\Library\</code> autoload, en roept <code>App\Library\Bootstrap::init()</code> aan.</li>
         <li><span class="cma-tool__strong">Bootstrap::init()</span> draait in volgorde: <code>initEncoding</code>, <code>initSession</code>, <code>loadConstants</code>, <code>detectAndLoadEnv</code> (kiest welke .env), <code>configureErrorDisplay</code> (op basis van omgeving), <code>sqliteEmergencyRecovery</code> (als de flag staat), <code>loadDotenv</code> (ingebouwde <code>EnvFile</code>-parser, geen phpdotenv), <code>initApplication</code> (zet <code>$GLOBALS['Application']</code> op), <code>registerErrorHandler</code>, en de loadLegacy* steps.</li>
         <li><span class="cma-tool__strong">cma/bootstrap.inc</span> wordt door tools/admin-pagina's met <code>require_once __DIR__ . '/../bootstrap.inc'</code> geladen — definieert <code>CMA_APP_VERSION</code>, laadt alle <code>Cma\</code> classes via require_once, registreert <code>EmailLogService</code> afterSend hook (met <code>class_exists</code> guard), doet migratie-controle voor admins.</li>
-        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker op <code>/cma/main.php</code> (niet op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat onder <span class="cma-tool__strong">Alle beheerstools → Gebruikers en groepen</span>.</li>
+        <li><span class="cma-tool__strong">Het target script</span> (de tool / form.php / main.php) draait. Na een succesvolle login landt de gebruiker op <code>/cma/main.php</code> (niet op de <code>/cma/dashboard</code> friendly-URL). Gebruikers- en groepenbeheer staat onder <span class="cma-tool__strong">Alle beheerstools → Beveiliging</span>.</li>
     </ol>
 
     <h2>Legacy ASP-erfenis</h2>

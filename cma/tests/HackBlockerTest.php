@@ -67,6 +67,25 @@ class HackBlockerTest extends TestCase
         }
     }
 
+    public function testBlockManuallyBlocksForTheGivenMinutes(): void
+    {
+        $blocker = new HackBlocker($this->root);
+        $now = 1_800_000_000;
+        $this->assertTrue($blocker->blockManually('9.9.9.9', 30, $now));
+        $this->assertSame($now + 1800, $blocker->blockedUntil('9.9.9.9', $now + 1));
+        $this->assertSame('handmatig geblokkeerd', $blocker->blocks($now + 1)['9.9.9.9']['laatste']);
+        $this->assertTrue($blocker->unblock('9.9.9.9'));
+    }
+
+    public function testBlockManuallyRefusesBadInput(): void
+    {
+        $blocker = new HackBlocker($this->root);
+        $this->assertFalse($blocker->blockManually('geen-ip', 30));
+        $this->assertFalse($blocker->blockManually('', 30));
+        $this->assertFalse($blocker->blockManually('9.9.9.9', 0));
+        $this->assertSame([], $blocker->blocks());
+    }
+
     public function testBlockExpiresAndCanBeLifted(): void
     {
         $blocker = new HackBlocker($this->root);

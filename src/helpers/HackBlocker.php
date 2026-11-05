@@ -197,6 +197,22 @@ final class HackBlocker
         return $this->saveBlocks($blocks);
     }
 
+    /**
+     * Block $ip by hand for $minutes minutes (the CMA screen "Geblokkeerde IP's").
+     * False for something that is not an IP address, or when the block cannot be saved.
+     */
+    public function blockManually(string $ip, int $minutes, ?int $now = null): bool
+    {
+        $ip = trim($ip);
+        if (filter_var($ip, FILTER_VALIDATE_IP) === false || $minutes < 1) {
+            return false;
+        }
+        $now ??= time();
+        $blocks = $this->blocks($now);
+        $blocks[$ip] = ['sinds' => $now, 'tot' => $now + $minutes * 60, 'pogingen' => 0, 'laatste' => 'handmatig geblokkeerd'];
+        return $this->saveBlocks($blocks);
+    }
+
     private function block(string $ip, int $now, int $until, int $hits, string $path): void
     {
         $blocks = $this->blocks($now);

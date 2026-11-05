@@ -70,15 +70,17 @@ function buildToolsTreeData(bool $isDeveloper): array
     ];
     $folders[] = $standardFolder;
 
-    // === GEBRUIKERS EN GROEPEN ===
+    // === BEVEILIGING ===
     $usersFolder = [
         'type' => 'folder',
-        'label' => 'Gebruikers en groepen',
+        'label' => 'Beveiliging',
         'badge' => 'A',
         'icon' => 'lnr-users',
         'children' => [
             ['type' => 'item', 'label' => 'Gebruikers', 'badge' => 'A', 'href' => 'form.php?form=users', 'target' => 'R', 'icon' => 'lnr-user'],
             ['type' => 'item', 'label' => 'Groepen', 'badge' => 'A', 'href' => 'form.php?form=groups', 'target' => 'R', 'icon' => 'lnr-users'],
+            ['type' => 'item', 'label' => 'Hack-URL\'s', 'badge' => 'A', 'href' => 'tools/tools_hackurls.php', 'target' => 'R', 'icon' => 'lnr-warning'],
+            ['type' => 'item', 'label' => 'Geblokkeerde IP\'s', 'badge' => 'A', 'href' => 'tools/tools_blockedips.php', 'target' => 'R', 'icon' => 'lnr-lock'],
         ]
     ];
     $folders[] = $usersFolder;
