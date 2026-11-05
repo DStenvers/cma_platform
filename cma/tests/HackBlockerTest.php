@@ -21,7 +21,7 @@ class HackBlockerTest extends TestCase
 
     public function tearDown(): void
     {
-        foreach (['/data/ip_blocks.json', '/.logs/404/hackhits.json'] as $file) {
+        foreach (['/data/ip_blocks.json', '/data/ip_block_history.json', '/.logs/404/hackhits.json'] as $file) {
             @unlink($this->root . $file);
         }
         foreach (['/data', '/.logs/404', '/.logs', ''] as $dir) {
@@ -44,6 +44,49 @@ class HackBlockerTest extends TestCase
         $blok = $blocker->blocks($now + 11)['1.2.3.4'];
         $this->assertSame(11, $blok['pogingen']);
         $this->assertSame('/.env', $blok['laatste']);
+    }
+
+    public function testRepeatedBlocksDoubleUntilTheCap(): void
+    {
+        $blocker = new HackBlocker($this->root);
+        $now = 1_800_000_000;
+        $duren = [];
+        for ($ronde = 0; $ronde < 6; $ronde++) {
+            $t = $now + $ronde * 16000;
+            for ($i = 0; $i < 10; $i++) {
+                $blocker->recordHit('1.2.3.4', '/x', $t + $i, 10, 600, 3600);
+            }
+            $duren[] = $blocker->recordHit('1.2.3.4', '/x', $t + 10, 10, 600, 3600) - ($t + 10);
+        }
+        $this->assertSame([3600, 7200, 14400, 28800, 57600, 115200], $duren);
+    }
+
+    public function testEscalationStopsAtAWeek(): void
+    {
+        $blocker = new HackBlocker($this->root);
+        $now = 1_800_000_000;
+        $duren = [];
+        foreach ([0, 1000, 2000] as $offset) {
+            for ($i = 0; $i <= 10; $i++) {
+                $until = $blocker->recordHit('1.2.3.4', '/x', $now + $offset + $i, 10, 600, 400000);
+            }
+            $duren[] = $until - ($now + $offset + 10);
+        }
+        $this->assertSame([400000, 604800, 604800], $duren);
+    }
+
+    public function testBlockHistoryExpiresAfterAWeek(): void
+    {
+        $blocker = new HackBlocker($this->root);
+        $now = 1_800_000_000;
+        for ($i = 0; $i <= 10; $i++) {
+            $blocker->recordHit('1.2.3.4', '/x', $now + $i, 10, 600, 3600);
+        }
+        $later = $now + 8 * 86400;
+        for ($i = 0; $i < 10; $i++) {
+            $blocker->recordHit('1.2.3.4', '/x', $later + $i, 10, 600, 3600);
+        }
+        $this->assertSame(3600, $blocker->recordHit('1.2.3.4', '/x', $later + 10, 10, 600, 3600) - ($later + 10));
     }
 
     public function testHitsOutsideTheWindowDoNotCount(): void

@@ -24,17 +24,27 @@ namespace App\Library;
  * Files:
  *   data/ip_blocks.json      active blocks  {ip: {sinds, tot, pogingen, laatste}}
  *   .logs/404/hackhits.json  hits inside the window  {ip: [unix time, ...]}
+ *   data/ip_block_history.json  automatic blocks of the last week  {ip: [unix time, ...]}
+ *
+ * A block lasts the configured duration the first time; every earlier automatic
+ * block of the same IP within a week doubles it, up to a week. A manual block
+ * lasts the minutes given and is not counted.
  */
 final class HackBlocker
 {
     private string $blockFile;
     private string $hitsFile;
+    private string $historyFile;
+
+    private const HISTORY_SECONDS = 604800;
+    private const MAX_SECONDS = 604800;
 
     public function __construct(string $siteRoot)
     {
         $siteRoot = rtrim($siteRoot, '/\\');
         $this->blockFile = $siteRoot . '/data/ip_blocks.json';
         $this->hitsFile  = $siteRoot . '/.logs/404/hackhits.json';
+        $this->historyFile = $siteRoot . '/data/ip_block_history.json';
     }
 
     /** The bootstrap's gate: a blocked IP stops here with a 403. One file check for everyone else. */
@@ -154,7 +164,7 @@ final class HackBlocker
             $hits[$ip][] = $now;
             $until = null;
             if (count($hits[$ip]) > $threshold) {
-                $until = $now + $duration;
+                $until = $now + $this->escalatedDuration($ip, $now, $duration);
                 $this->block($ip, $now, $until, count($hits[$ip]), $path);
                 unset($hits[$ip]);
             }
@@ -166,6 +176,31 @@ final class HackBlocker
             flock($fh, LOCK_UN);
             fclose($fh);
         }
+    }
+
+    /**
+     * The duration of the next automatic block of $ip: $base doubled once per
+     * automatic block in the last week, at most a week (never below $base).
+     * Records this block in the history.
+     */
+    private function escalatedDuration(string $ip, int $now, int $base): int
+    {
+        $history = json_decode(is_file($this->historyFile) ? (string) file_get_contents($this->historyFile) : '', true);
+        $history = is_array($history) ? $history : [];
+        foreach ($history as $historyIp => $times) {
+            $history[$historyIp] = array_values(array_filter((array) $times, static fn ($t): bool => (int) $t > $now - self::HISTORY_SECONDS));
+            if ($history[$historyIp] === []) {
+                unset($history[$historyIp]);
+            }
+        }
+        $earlier = count($history[$ip] ?? []);
+        $history[$ip][] = $now;
+        $dir = dirname($this->historyFile);
+        if ((is_dir($dir) || @mkdir($dir, 0775, true))
+            && @file_put_contents($this->historyFile, json_encode($history), LOCK_EX) === false) {
+            ErrorHandler::report(new \RuntimeException('Kan ' . $this->historyFile . ' niet schrijven'), 'HackBlocker');
+        }
+        return min(max($base, self::MAX_SECONDS), $base * (2 ** min($earlier, 20)));
     }
 
     /**

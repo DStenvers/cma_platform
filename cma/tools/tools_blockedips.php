@@ -34,7 +34,7 @@ echo '<div id="c" class="tools">';
 if (Settings::get('hack_block_enabled')) {
     echo '<p>Een IP dat meer dan ' . (int) Settings::get('hack_block_threshold') . ' hackpogingen doet binnen '
        . (int) Settings::get('hack_block_window_minutes') . ' minuten, krijgt '
-       . (int) Settings::get('hack_block_duration_minutes') . ' minuten lang een 403 op elke pagina. '
+       . (int) Settings::get('hack_block_duration_minutes') . ' minuten lang een 403 op elke pagina; bij elke herhaling binnen een week wordt dat het dubbele, tot maximaal een week. '
        . 'Instellen via Systeeminstellingen → Beveiliging.</p>';
 } else {
     echo '<lib-message type="warning" compact>Blokkeren staat uit (Systeeminstellingen → Beveiliging); handmatig geblokkeerde IP\'s worden dan ook niet tegengehouden.</lib-message>';

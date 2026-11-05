@@ -3367,7 +3367,8 @@ function render_doc_hack_attempts(): void
     </ul>
 
     <h2>IP-blokkades</h2>
-    <p>Een IP dat meer hackpogingen doet dan de drempel binnen het tijdvenster, krijgt voor de blokkadeduur op elke PHP-pagina een kale <code>403</code> met de tekst "Toegang tijdelijk geblokkeerd." en een <code>Retry-After</code>-header. Dat geldt voor de hele site, ook de CMA. De teller staat op de hit die de drempel overschrijdt: bij een drempel van 10 is de elfde poging binnen het venster de eerste 403. Een geblokkeerd verzoek komt niet meer in de 404-log.</p>
+    <p>Een IP dat meer hackpogingen doet dan de drempel binnen het tijdvenster, krijgt op elke PHP-pagina een kale <code>403</code> met de tekst "Toegang tijdelijk geblokkeerd." en een <code>Retry-After</code>-header. Dat geldt voor de hele site, ook de CMA. De teller staat op de hit die de drempel overschrijdt: bij een drempel van 10 is de elfde poging binnen het venster de eerste 403. Een geblokkeerd verzoek komt niet meer in de 404-log.</p>
+    <p>De blokkadeduur is oplopend: de eerste blokkade duurt de ingestelde blokkadeduur, en elke eerdere automatische blokkade van hetzelfde IP in de afgelopen zeven dagen verdubbelt dat (60, 120, 240, … minuten), tot maximaal zeven dagen. Een handmatige blokkade duurt precies het opgegeven aantal minuten en telt niet mee.</p>
     <p>Instellen via Beheerstools → Systeeminstellingen, groep <span class="cma-tool__strong">Beveiliging</span>:</p>
     <table class="listtable">
         <thead><tr class="listheader"><th>Variabele</th><th>Standaard</th><th>Nu op deze site</th><th>Betekenis</th></tr></thead>
@@ -3409,6 +3410,7 @@ function render_doc_hack_attempts(): void
         <tbody>
             <tr><td><code>data/notfound_lists.json</code></td><td>De twee lijsten (<code>hack</code>, <code>genegeerd</code>), per patroon met <code>toegevoegd</code> en <code>door</code>. De Installer blijft van <code>data/</code> af. Klasse: <code>App\Library\NotFoundLists</code>.</td></tr>
             <tr><td><code>data/ip_blocks.json</code></td><td>Actieve blokkades per IP: <code>sinds</code>, <code>tot</code> (unix-tijd), <code>pogingen</code>, <code>laatste</code>. Verlopen blokkades tellen niet meer mee en verdwijnen bij de volgende schrijfactie. Klasse: <code>App\Library\HackBlocker</code>.</td></tr>
+            <tr><td><code>data/ip_block_history.json</code></td><td>Tijdstippen van de automatische blokkades per IP van de laatste zeven dagen; daaruit volgt hoe vaak de duur is verdubbeld.</td></tr>
             <tr><td><code>.logs/404/hackhits.json</code></td><td>Hits per IP binnen het tijdvenster. Ouder dan het venster valt er bij elke schrijfactie uit, dus het bestand blijft klein.</td></tr>
         </tbody>
     </table>
