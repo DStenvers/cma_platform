@@ -111,6 +111,7 @@ $toolNameMap = [
     'sqlite_repair' => 'tools/tools_sqlite_repair.php',
     'generate_forms' => 'tools/tools_generate_forms.php',
     'form_defaults' => 'tools/tools_form_defaults.php',
+    'deploy_force' => 'tools/tools_deploy_force.php',
     'hackurls' => 'tools/tools_hackurls.php',
     'blockedips' => 'tools/tools_blockedips.php',
     // Nested tool: the launcher's resolveNav() derives the key from the path

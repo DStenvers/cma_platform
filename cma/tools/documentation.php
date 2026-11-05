@@ -2822,6 +2822,9 @@ function render_doc_deployment(): void
         <li><span class="cma-tool__strong">Logging + scream-loud</span> — alle output landt in <code>logs/deploy.log</code> (banner per run). Bij <code>FAILED</code> schreeuwt 'ie via álle dependency-vrije kanalen: <code>FAILED</code>-banner (zichtbaar via <code>deploy_status.php</code>), <code>error_log()</code>, een <code>logs/deploy.failed</code> marker-bestand, en — als <code>DEPLOY_ALERT_EMAIL</code> gezet is (ook instelbaar via Beheerstools → Systeeminstellingen) — een best-effort <code>mail()</code>. De marker wordt bij de eerstvolgende groene deploy gewist.</li>
     </ol>
 
+    <h2>Deployment forceren</h2>
+    <p>Zonder git push start je een deploy met <a href="tools.php?tool=deploy_force" target="_top">Alle beheertools → Standaard → Deployment forceren</a> (beheerders). De tool leest <code>DEPLOY_SECRET</code> server-side uit het actieve env-bestand en stuurt dezelfde ondertekende push-payload als GitHub naar <code>/deploy.php</code> van de eigen site, voor de geconfigureerde <code>DEPLOY_BRANCH</code>. Alle stappen hierboven draaien dus ongewijzigd. Twee vinkjes zetten <code>?forcerefresh=Y</code> (Composer-cache eerst legen) en <code>?nocomposer=Y</code> (composer-stap overslaan) op die aanroep. De voortgang komt uit <code>/deploy_status.php</code>. Is <code>DEPLOY_SECRET</code> niet ingesteld, dan meldt de tool dat en verwijst naar Deploy setup.</p>
+
     <h2>Handmatig onderhoudsscherm</h2>
     <p>Buiten een deploy zet je de site in onderhoud met de tool <span class="cma-tool__strong">Onderhoudsscherm</span> (<code>/cma/tools/onderhoud</code>, alleen beheerders). Die schrijft dezelfde <code>maintenance.flag</code> als de deploy, met <code>"manual": true</code>, het tijdstip en jouw bericht:</p>
     <ul>

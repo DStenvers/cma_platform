@@ -16759,3 +16759,5 @@ karaat-data en staat in de karaat-repo.
 > we a re planning to mygrate to another database can we change the sql processor to support Postgress and sqllite ? Analyse the differences between the sql dialects and implement sql processor statements in regexp.
 
 > the ip block form and the hacker urls's don;t show
+
+> system menu; kunnen we deployment forceren?
