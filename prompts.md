@@ -16812,3 +16812,11 @@ karaat-data en staat in de karaat-repo.
 >     at HTMLElement.connectedCallback (https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1:271)
 >     at https://test-mijn.rino.nl/cma/webcomponents/cma-sql-editor.min.js:1:12432
 > </pasted_content id="27ea">
+
+> the Agenda title is smaller than the Taken title, please investigate
+
+> yre please change
+
+## 2026-11-10
+
+> cma platform : de knoppen voor sortering op een datum moeten niet A-Z en Z-A heten maar nieuw-oud en oud-nieuw , bij nummers laag-hoog en hoog-laag

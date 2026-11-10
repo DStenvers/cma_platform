@@ -1928,8 +1928,14 @@ class LibTable extends HTMLElement {
 
         // Add sort options
         if (!noSort) {
-            const sortAZ = this._createSortOption('A - Z', 'a---z', column, index);
-            const sortZA = this._createSortOption('Z - A', 'z---a', column, index);
+            // De knoppen zeggen wat er gebeurt: bij een datum oud-nieuw / nieuw-oud, bij een getal
+            // laag-hoog / hoog-laag, en alleen bij tekst A-Z / Z-A. De volgorde en de interne
+            // sleutels (a---z = oplopend, z---a = aflopend) blijven gelijk.
+            const [labelOplopend, labelAflopend] = isDateColumn ? ['Oud - Nieuw', 'Nieuw - Oud']
+                : isNumberColumn ? ['Laag - Hoog', 'Hoog - Laag']
+                : ['A - Z', 'Z - A'];
+            const sortAZ = this._createSortOption(labelOplopend, 'a---z', column, index);
+            const sortZA = this._createSortOption(labelAflopend, 'z---a', column, index);
             content.appendChild(sortAZ);
             content.appendChild(sortZA);
         }
