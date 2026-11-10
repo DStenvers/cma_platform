@@ -16820,3 +16820,5 @@ karaat-data en staat in de karaat-repo.
 ## 2026-11-10
 
 > cma platform : de knoppen voor sortering op een datum moeten niet A-Z en Z-A heten maar nieuw-oud en oud-nieuw , bij nummers laag-hoog en hoog-laag
+
+> bij rapportage gesprekken is de datum niet herkent als een datum-veld. Hoe kunnen we dat realiseren?

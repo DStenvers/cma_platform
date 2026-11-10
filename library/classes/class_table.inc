@@ -49,6 +49,10 @@ class LibTable
         // klasse over. FieldFilters: per kolom de waarde van data-filter op de <th>
         // ('N' = geen filterkeuzelijst, voor icoon-/actiekolommen).
         'rowclassfield' => 'TableRowClassField', 'fieldfilters' => 'TableFieldFilters',
+        // FieldTypes: per kolom de waarde van data-type op de <th> (date, datetime, time, number, decimal,
+        // currency, integer). <lib-table> maakt daar een datum-, tijd- of getalfilter van en noemt de
+        // sorteerknoppen naar het type (oud - nieuw, laag - hoog). Zonder opgave blijft een kolom tekst.
+        'fieldtypes' => 'TableFieldTypes',
         'hidefields' => 'TableHideFields',
         // RowHref: maakt de HELE rij klikbaar. De waarde is een URL met plaatshouders
         // tussen blokhaken die per rij uit de recordset worden gevuld, bijvoorbeeld
@@ -114,6 +118,8 @@ class LibTable
     public $TableRowClassField = '';
     /** data-filter per kolomindex, bv. [0 => 'N', 1 => 'N']. */
     public $TableFieldFilters = [];
+    /** data-type per kolomindex, bv. [3 => 'date', 4 => 'number']. */
+    public $TableFieldTypes = [];
     /** ['index'=>int,'direction'=>'asc'|'desc'] van de kolom waarop de query sorteert, of null. */
     private $TableSortKolom = null;
     /** Expliciet opgegeven sorteerkolom: 'Groep' of 'Groep DESC'. Leeg = uit SQL afleiden. */
@@ -215,6 +221,20 @@ class LibTable
             return '';
         }
         return ' data-filter="' . Server::htmlEncode((string)$this->TableFieldFilters[$kolom]) . '"';
+    }
+
+    /**
+     * data-type voor de kop van kolom $kolom, of '' als er niets is opgegeven. Alleen de typen die
+     * <lib-table> kent komen door; al het andere blijft tekst.
+     */
+    private function _typeAttrib($kolom): string
+    {
+        $typen = ['date', 'datetime', 'time', 'number', 'decimal', 'currency', 'integer'];
+        if (!Arr::isArray($this->TableFieldTypes) || !isset($this->TableFieldTypes[$kolom])) {
+            return '';
+        }
+        $type = strtolower(trim((string)$this->TableFieldTypes[$kolom]));
+        return in_array($type, $typen, true) ? ' data-type="' . $type . '"' : '';
     }
 
     /**
@@ -737,7 +757,7 @@ class LibTable
                         }
                         if (Arr::isArray($this->TableFieldCaptions) && count($this->TableFieldCaptions) > 0) {
                             for ($x = 0; $x <= (count($this->TableFieldCaptions) - 1); $x++) {
-                                echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($x) . $this->_sortedAttrib($x) . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
+                                echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($x) . $this->_typeAttrib($x) . $this->_sortedAttrib($x) . '>' . Server::htmlEncode($this->TableFieldCaptions[$x]) . '</TH>';
                             }
                         } else {
                             $kopTel = 0;
@@ -748,7 +768,7 @@ class LibTable
                                 if ($this->_isVerborgenVeld($fld->name())) { continue; }
                                 if ((!!$this->TableShowIDField || (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableIDField) ? "" : strtolower($this->TableIDField))) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableGroupField) ? "" : strtolower($this->TableGroupField)) && (is_null($fld->name()) ? "" : strtolower($fld->name())) != (is_null($this->TableDeleteField) ? "" : strtolower($this->TableDeleteField))) {
                                     $sNiceField = Str::firstUpper(str_replace('_', ' ', $fld->name()));
-                                    echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($kopTel) . $this->_sortedAttrib($kopTel) . '>' . Server::htmlEncode($sNiceField) . '</TH>';
+                                    echo '<TH nowrap ' . $this->TableTHAttrib . $this->_filterAttrib($kopTel) . $this->_typeAttrib($kopTel) . $this->_sortedAttrib($kopTel) . '>' . Server::htmlEncode($sNiceField) . '</TH>';
                                     $kopTel++;
                                 }
                             }

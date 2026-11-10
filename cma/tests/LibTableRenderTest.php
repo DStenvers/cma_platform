@@ -190,4 +190,27 @@ class LibTableRenderTest extends TestCase
         $this->assertStringContainsString('data-filter="N"', $html, 'data-filter ontbreekt op de eerste kop');
         $this->assertEquals(1, substr_count($html, 'data-filter'), 'alleen de opgegeven kolom hoort een filter-attribuut te krijgen');
     }
+
+    /**
+     * FieldTypes zet data-type op de kop, zodat <lib-table> er een datum- of getalfilter van maakt.
+     * Onbekende typen blijven tekst (geen attribuut).
+     */
+    public function testFieldTypesZetDataTypeOpDeKop(): void
+    {
+        $rows = [['ID' => 1, 'Naam' => 'Jan', 'Datum' => '2026-12-14', 'Aantal' => 5, 'Rest' => 'x']];
+        $t = new \LibTable();
+        $t->Recordset     = new RecordSet(new \ArrayIterator($rows), false, true);
+        $t->IDField       = 'ID';
+        $t->ShowIDField   = false;
+        $t->FieldCaptions = ['Naam', 'Datum', 'Aantal', 'Rest'];
+        $t->FieldTypes    = [1 => 'date', 2 => 'number', 3 => 'onzin'];
+        $t->RowsPerPage   = 99999;
+        ob_start();
+        $t->Render();
+        $html = ob_get_clean();
+
+        $this->assertStringContainsString('data-type="date"', $html, 'de datumkolom mist data-type');
+        $this->assertStringContainsString('data-type="number"', $html, 'de getalkolom mist data-type');
+        $this->assertEquals(2, substr_count($html, 'data-type'), 'een onbekend type of een kolom zonder type krijgt geen data-type');
+    }
 }
