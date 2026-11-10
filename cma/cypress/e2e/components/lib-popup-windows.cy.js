@@ -54,9 +54,32 @@ describe('Popup Window System', () => {
             });
 
             cy.get('.lib_window_container', { timeout: 5000 }).should('exist');
-            // Click on the container (backdrop), not the dialog
-            cy.get('.lib_window_container').click('topLeft');
+            // De achtergrond is de shim onder het venster (#__lib_shim); de container laat klikken door.
+            cy.get('#__lib_shim').click('topLeft', { force: true });
             cy.get('.lib_window_container').should('not.exist');
+            cy.get('#__lib_shim').should('not.exist');
+        });
+
+        it('should keep the shim just below the topmost popup', () => {
+            cy.window().then(win => {
+                win.lib_OpenWindowCentered('about:blank', '', 400, 300, 'Window 1', '<p>First</p>');
+                win.lib_OpenWindowCentered('about:blank', '', 400, 300, 'Window 2', '<p>Second</p>');
+            });
+            cy.get('.lib_window_container').should('have.length', 2);
+            cy.get('.lib_window_container').last().then($top => {
+                cy.get('#__lib_shim').should('have.length', 1).then($shim => {
+                    expect(parseInt($shim.css('z-index'))).to.equal(parseInt($top.css('z-index')) - 1);
+                });
+            });
+            // Het bovenste sluiten: de shim zakt mee naar het venster eronder.
+            cy.get('.lib_window_container').last().find('.lib_window_close').click();
+            cy.get('.lib_window_container').should('have.length', 1).then($rest => {
+                cy.get('#__lib_shim').then($shim => {
+                    expect(parseInt($shim.css('z-index'))).to.equal(parseInt($rest.css('z-index')) - 1);
+                });
+            });
+            cy.get('.lib_window_close').click();
+            cy.get('#__lib_shim').should('not.exist');
         });
 
         it('should have draggable caption bar', () => {

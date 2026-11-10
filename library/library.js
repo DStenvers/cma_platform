@@ -321,6 +321,103 @@ var lib_zindex_manager = (function() {
 })();
 
 /**
+ * Shim onder de bovenste popup.
+ *
+ * Een venster (lib_OpenWindowCentered) is een volledig scherm dekkende container met een
+ * gedimde achtergrond. Scrollen op die achtergrond - muiswiel, trackpad, aanraking - werd door
+ * de browser doorgegeven aan de pagina erachter (scroll chaining), met als gevolg dat de pagina
+ * onder het venster verschoof terwijl het venster open stond.
+ *
+ * De shim is één transparante, schermvullende laag (id __lib_shim) die direct ONDER de bovenste
+ * popup ligt en alles daaronder afschermt: de pagina en de lager gestapelde vensters. Hij neemt
+ * wiel en aanraking over zonder ze door te geven, en een klik erop sluit de bovenste popup (zo
+ * werkte de achtergrond van het venster al). Daarom laat de container (library.css) zijn klikken
+ * door en pakt alleen het dialoogvenster zelf ze op.
+ *
+ * Vensters kunnen worden gestapeld. De shim hoort altijd bij de HOOGSTE popup: zijn z-index is
+ * die van de bovenste container min 1. Bij elk openen en sluiten wordt die opnieuw bepaald uit
+ * de DOM (lib_screen_fade roept bijwerken() aan, en een MutationObserver vangt vensters die op
+ * een andere manier verdwijnen), dus na het sluiten van het bovenste venster zakt de shim mee
+ * naar het venster eronder, en na het sluiten van het laatste venster verdwijnt hij.
+ *
+ * De shim staat in het TOP-document, zoals de vensters zelf.
+ */
+var lib_popup_shim = (function() {
+    var SHIM_ID = '__lib_shim';
+    var OBSERVER_VLAG = '__libShimObserver';
+
+    function zIndexVan(el) {
+        var z = parseInt(el.style.zIndex, 10);
+        return isNaN(z) ? 0 : z;
+    }
+
+    /** Het venster met de hoogste z-index in dit document, of null. */
+    function hoogsteVenster(doc) {
+        var lijst = doc.querySelectorAll('.lib_window_container');
+        var hoogste = null;
+        var hoogsteZ = -1;
+        for (var i = 0; i < lijst.length; i++) {
+            var z = zIndexVan(lijst[i]);
+            if (z >= hoogsteZ) { hoogste = lijst[i]; hoogsteZ = z; }
+        }
+        return hoogste ? { element: hoogste, zIndex: hoogsteZ } : null;
+    }
+
+    function blokkeer(e) {
+        if (e.cancelable) { e.preventDefault(); }
+    }
+
+    function maak(doc) {
+        var shim = doc.createElement('div');
+        shim.id = SHIM_ID;
+        shim.className = 'lib_popup_shim';
+        // Niet-passief: preventDefault moet kunnen, anders scrolt de pagina toch mee.
+        shim.addEventListener('wheel', blokkeer, { passive: false });
+        shim.addEventListener('touchmove', blokkeer, { passive: false });
+        shim.addEventListener('click', function(e) {
+            if (e.target !== shim) { return; }
+            // De sluitfunctie van het TOP-venster: de shim kan door een iframe zijn aangemaakt.
+            var w = doc.defaultView;
+            if (w && typeof w.lib_OpenWindowCenteredClose === 'function') { w.lib_OpenWindowCenteredClose(); }
+        });
+        doc.body.appendChild(shim);
+        return shim;
+    }
+
+    /**
+     * Zet de shim onder de bovenste popup, of haal hem weg als er geen popup meer is.
+     * @param {Document} [doc] het TOP-document (standaard dat van lib_alertbox_getbody_doc_element)
+     * @returns {Element|null} de shim, of null als er geen is
+     */
+    function bijwerken(doc) {
+        try {
+            doc = doc || lib_alertbox_getbody_doc_element();
+        } catch (e) {
+            doc = document;
+        }
+        if (!doc || !doc.body) { return null; }
+        var shim = doc.getElementById(SHIM_ID);
+        var boven = hoogsteVenster(doc);
+        if (!boven) {
+            if (shim) { shim.parentNode.removeChild(shim); }
+            return null;
+        }
+        if (!shim) { shim = maak(doc); }
+        shim.style.zIndex = String(boven.zIndex - 1);
+        return shim;
+    }
+
+    /** Houdt de shim bij vensters bij die buiten de gewone sluitroute om verdwijnen (eenmalig per document). */
+    function bewaak(doc) {
+        if (!doc || !doc.body || doc[OBSERVER_VLAG] || typeof MutationObserver === 'undefined') { return; }
+        doc[OBSERVER_VLAG] = true;
+        new MutationObserver(function() { bijwerken(doc); }).observe(doc.body, { childList: true });
+    }
+
+    return { bijwerken: bijwerken, bewaak: bewaak, id: SHIM_ID };
+})();
+
+/**
  * Walk a document (shadow roots included) and return the highest numeric z-index
  * currently applied to any element. Returns 0 when nothing is stacked.
  *
@@ -1225,6 +1322,8 @@ function lib_OpenWindowCentered(adres, naam, win_width, win_height, title, win_c
 						// libLog.log('lib_OpenWindowCentered: iframe onload fired');
 						try {
 							var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+							// Aan het eind van de inhoud scrollen geeft anders de pagina erachter een zetje.
+							iframeDoc.documentElement.style.overscrollBehavior = 'contain';
 							var contentHeight = iframeDoc.body.scrollHeight;
 							var containerHeight = win_height;
 							// libLog.log('lib_OpenWindowCentered: iframe contentHeight =', contentHeight, 'containerHeight =', containerHeight);
@@ -1622,6 +1721,15 @@ function lib_screen_fade( ) {
 		if (fader) {
 			$(fader).remove();
 		}
+	} catch (e) {
+		// Ignore errors
+	}
+
+	// De shim onder de bovenste popup volgt elke wijziging in de stapel vensters.
+	try {
+		var shim_doc = lib_alertbox_getbody_doc_element();
+		lib_popup_shim.bijwerken(shim_doc);
+		lib_popup_shim.bewaak(shim_doc);
 	} catch (e) {
 		// Ignore errors
 	}

@@ -16822,3 +16822,5 @@ karaat-data en staat in de karaat-repo.
 > cma platform : de knoppen voor sortering op een datum moeten niet A-Z en Z-A heten maar nieuw-oud en oud-nieuw , bij nummers laag-hoog en hoog-laag
 
 > bij rapportage gesprekken is de datum niet herkent als een datum-veld. Hoe kunnen we dat realiseren?
+
+> cma platform: ik kan de achtergrond van een popup dialoog nu scrollen waarmee de dialoog ook verdwijnt. We moeten dat via een shim zien te vermijden. Let erop dat dialogen kunnen worden gestapeld en de shim altijd de hoogste popup moet vrijgeven, bij het sliuiten van popups dus de z-index van de shim herberekenen

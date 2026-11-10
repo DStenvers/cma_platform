@@ -401,9 +401,13 @@ DIV.lib_window_container {
     align-items: center;
     justify-content: center;
     background-color: rgba(128, 128, 156, 0.3);
+    /* Klikken en scrollen op de achtergrond gaan naar de shim (#__lib_shim) eronder; alleen het dialoogvenster pakt ze zelf op. */
+    pointer-events: none;
 }
+/* Eén transparante laag direct onder de bovenste popup: schermt pagina en lager gestapelde vensters af (zie lib_popup_shim in library.js). */
+div.lib_popup_shim { position:fixed; inset:0; background:transparent; touch-action:none; overscroll-behavior:contain }
 /* Dialog is positioned relative for drag functionality - initial position is (0,0) centered by flexbox */
-div.lib_window_dialog {position:relative; top:0; left:0; height:100%; background-color:var(--popup-bg, #ffffff); background-size:100px auto; overflow:hidden; border-radius:8px; background-image:url(images/wait_indicator.gif); background-position:center center; background-repeat:no-repeat; box-shadow:var(--popup-shadow, 0.4em 0.4em 1em rgba(0,0,0,0.4)); max-height:calc(100vh - 20px)}
+div.lib_window_dialog {pointer-events:auto; overscroll-behavior:contain; position:relative; top:0; left:0; height:100%; background-color:var(--popup-bg, #ffffff); background-size:100px auto; overflow:hidden; border-radius:8px; background-image:url(images/wait_indicator.gif); background-position:center center; background-repeat:no-repeat; box-shadow:var(--popup-shadow, 0.4em 0.4em 1em rgba(0,0,0,0.4)); max-height:calc(100vh - 20px)}
 DIV.lib_window_caption { width:100%; height:32px; background-color: var(--popup-caption-bg, #eef6ff); padding-left:5px; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 div.lib_window_caption_title { float:left; line-height:24px; padding-top:8px; padding-left:6px; color:var(--popup-caption-text, #204496); font:normal 15px "Trebuchet MS",Verdana,arial }
 div.lib_window_caption div.lib_window_max {  cursor:pointer; float: right;   position:relative;   height: 32px;     width: 32px;  text-align: center; line-height:32px   }
@@ -438,7 +442,7 @@ div.lib_window_caption div.lib_window_close::before { transform: rotate(45deg) }
 div.lib_window_caption div.lib_window_close::after { transform: rotate(-45deg) }
 
 /* Popup content area - used by JS to avoid hardcoded colors */
-.popup-content { background-color: var(--popup-bg, #ffffff); }
+.popup-content { background-color: var(--popup-bg, #ffffff); overscroll-behavior: contain; }
 
 #notification_top {background-color: #E84F18; opacity:.75;box-shadow: 6px 6px 6px rgba(128, 128, 128, 0.5);color: #ffffff;height: auto;left:50%;	display:none;margin-left: -200px;min-height: 60px;padding:20px 10px 10px;position: fixed;text-align: center;top:50px;width:400px;z-index: 999998;border-radius:4px}
 
