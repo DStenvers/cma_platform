@@ -22,7 +22,13 @@
     const MAX_ERRORS_PER_MINUTE = 10;
     const MAX_ERRORS_IN_PANEL = 50;
     const DEDUP_WINDOW_MS = 60000;
-    const STORAGE_KEY = 'cma_v2_js_errors';
+    // Errors are persisted per SCOPE: this script is loaded by the CMA (/cma/...) AND by the site's front-end, and both share one
+    // origin, hence one localStorage. One shared key made an error from the CMA show up on the front-end (and the other way round).
+    // A CMA error is only shown inside /cma, a site error only outside it.
+    const SCOPE = /^\/cma(\/|$)/i.test(window.location.pathname || '') ? 'cma' : 'site';
+    const STORAGE_KEY_PREFIX = 'cma_v2_js_errors_';
+    const STORAGE_KEY = STORAGE_KEY_PREFIX + SCOPE;
+    const LEGACY_STORAGE_KEY = 'cma_v2_js_errors'; // one shared list, scope unknown: dropped
     const ERROR_TTL_MS = 3600000; // Keep errors for 1 hour
 
     // State
@@ -38,6 +44,11 @@
     // =========================================================================
 
     function loadErrorsFromStorage() {
+        try {
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+        } catch (e) {
+            // Ignore storage errors
+        }
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (!stored) return;
@@ -59,6 +70,19 @@
             }));
         } catch (e) {
             // Ignore storage errors (quota exceeded, etc)
+        }
+    }
+
+    // Append an error to the stored list of another scope (an iframe of the other scope reporting to this top window).
+    function saveErrorToOtherScope(scope, errorInfo) {
+        try {
+            const key = STORAGE_KEY_PREFIX + scope;
+            const stored = localStorage.getItem(key);
+            const data = stored ? JSON.parse(stored) : {};
+            const errors = (data.errors || []).concat([errorInfo]).slice(-MAX_ERRORS_IN_PANEL);
+            localStorage.setItem(key, JSON.stringify({ errors: errors }));
+        } catch (e) {
+            // Ignore storage errors
         }
     }
 
@@ -357,6 +381,7 @@
 
     function addToPanel(errorInfo) {
         // If in iframe, delegate to top-level window's error handler
+        errorInfo.scope = errorInfo.scope || SCOPE;
         const topHandler = getTopErrorHandler();
         if (topHandler && topHandler !== window.CmaErrorHandler) {
             // Add source indicator for iframe errors
@@ -668,6 +693,7 @@
     window.CmaErrorHandler = {
         revealAncestors: revealAncestors,
         revealHiddenErrors: revealHiddenErrors,
+        scope: SCOPE,
         getErrors: function() { return [...panelErrors]; },
         getCount: function() { return panelErrors.length; },
 
@@ -675,6 +701,11 @@
         _addToPanel: function(errorInfo) {
             errorInfo.time = new Date().toLocaleTimeString();
             errorInfo.timestamp = Date.now();
+            // An error of the other scope (CMA vs. front-end) is stored for that scope, never shown here.
+            if (errorInfo.scope && errorInfo.scope !== SCOPE) {
+                saveErrorToOtherScope(errorInfo.scope, errorInfo);
+                return;
+            }
 
             if (panelErrors.length >= MAX_ERRORS_IN_PANEL) {
                 panelErrors.shift();
