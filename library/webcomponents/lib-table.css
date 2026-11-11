@@ -168,6 +168,11 @@ lib-table table thead th[data-type="number"],
     white-space: nowrap;
 }
 
+/* Columns marked data-no-wrap on their th */
+.listtable td.no-wrap {
+    white-space: nowrap;
+}
+
 /* Boolean columns - no word wrap */
 .listtable td[data-type="boolean"] {
     white-space: nowrap;

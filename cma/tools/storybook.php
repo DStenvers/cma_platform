@@ -2395,6 +2395,8 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Kolomtype: <code>text</code>, <code>number</code>, <code>date</code>, <code>currency</code></dd>
                     <dt>data-no-sort</dt>
                     <dd>Schakel sorteren uit voor deze kolom</dd>
+                    <dt>data-no-wrap</dt>
+                    <dd>De waarden in deze kolom breken nooit af naar een tweede regel</dd>
                     <dt>data-no-filter</dt>
                     <dd>Schakel filteren uit voor deze kolom</dd>
                     <dt>data-filter="N"</dt>

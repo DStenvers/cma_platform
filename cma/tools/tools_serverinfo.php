@@ -401,7 +401,8 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
     $simulation = (bool)Application::get('local', false);
     $testWrap   = (bool)Application::get('test', false);
     $mailServer = (string)Application::get('mail_server', 'localhost');
-    $adminMail  = (string)Application::get('app_beheerder_email', '');
+    // Wat Email echt gebruikt (ADMIN_EMAIL / Systeeminstellingen); app_beheerder_email in app.php is geen terugval meer.
+    $adminMail  = (string) \App\Library\Settings::get('admin_email');
     $llmUrl     = (string) \App\Library\Settings::get('llm_url');
     $deployKey  = trim((string)(getenv('DEPLOY_SECRET') ?: ($_ENV['DEPLOY_SECRET'] ?? '')));
     // Wát de deploy met composer doet, is minstens zo belangrijk als of het geheim er is:

@@ -133,8 +133,9 @@ class EmailResolveSenderTest extends TestCase
         $this->assertStringContainsString('geen afzenderadres', $body);
     }
 
-    public function testAdminEmailSettingBeatsAppPhpAndTakesAList(): void
+    public function testAdminEmailSettingTakesAListAndIgnoresAppPhp(): void
     {
+        // app_beheerder_email (alarmadres) is geen terugval meer: alleen ADMIN_EMAIL telt.
         $GLOBALS['Application'] = ['app_beheerder_email' => 'oud@site.nl'];
         $_ENV['ADMIN_EMAIL'] = 'a@site.nl, b@site.nl';
         $e = new Email();

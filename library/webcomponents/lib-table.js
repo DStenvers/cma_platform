@@ -1546,6 +1546,7 @@ customElements.define('lib-data-table', LibDataTable);
 //   - name="tableName" - Name for exported files
 //   - data-type="date|number|text" on TH - Column type for sorting
 //   - data-no-sort on TH - Disable sorting for column
+//   - data-no-wrap on TH - Cell values in this column never wrap onto a second line
 //   - data-no-filter on TH - Disable filter dropdown for column (no icon shown)
 //   - data-filter="N" on TH - Alias for data-no-filter (backward compatibility)
 //   - resizable - Enable column resizing (requires CmaTableColumnManager)
@@ -1666,6 +1667,8 @@ class LibTable extends HTMLElement {
 
         // Hele rij klikbaar maken wanneer row-href is gezet
         this._initializeRowLinks();
+
+        this._applyNoWrap();
 
         // Initialize filtering on each column
         this._initializeFilters();
@@ -1866,6 +1869,15 @@ class LibTable extends HTMLElement {
         if (span) {
             span.classList.add('active');
         }
+    }
+
+    // Cells under a <th data-no-wrap> get the class that keeps their value on one line.
+    _applyNoWrap() {
+        this._table.querySelectorAll(':scope > thead th').forEach((th, column) => {
+            if (!th.hasAttribute('data-no-wrap')) return;
+            this._table.querySelectorAll(`:scope > tbody > tr > td:nth-child(${column + 1})`)
+                .forEach(td => td.classList.add('no-wrap'));
+        });
     }
 
     _createFilterMenu(th, column, index) {
@@ -2947,6 +2959,7 @@ class LibTable extends HTMLElement {
         });
         // Re-collect rows and rebuild filters
         this._rows = Array.from(this._table.querySelectorAll('tbody tr'));
+        this._applyNoWrap();
         this._initializeFilters();
         this._restoreFilters();
         // Resetting th.innerHTML above also wiped the export menu (it lives in the

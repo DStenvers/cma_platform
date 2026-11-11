@@ -32,6 +32,8 @@ class EmailTest extends TestCase
 
     public function tearDown(): void
     {
+        unset($_ENV['ADMIN_EMAIL']);
+        \App\Library\Settings::reset();
         if ($this->appSnapshot === null) {
             unset($GLOBALS['Application']);
         } else {
@@ -86,7 +88,8 @@ class EmailTest extends TestCase
     public function testOpgevangenTestmailZetDeBeheerderInTo(): void
     {
         $GLOBALS['Application']['test'] = true;
-        $GLOBALS['Application']['app_beheerder_email'] = 'beheer@example.com';
+        $_ENV['ADMIN_EMAIL'] = 'beheer@example.com';
+        \App\Library\Settings::reset();
 
         $e = new Email();
         $e->addRecipient('deelnemer@example.com');
@@ -155,11 +158,27 @@ class EmailTest extends TestCase
 
     public function testConstructorAddsAdminBcc(): void
     {
-        $GLOBALS['Application'] = ['app_beheerder_email' => 'admin@example.com'];
+        $_ENV['ADMIN_EMAIL'] = 'admin@example.com';
+        \App\Library\Settings::reset();
         $e = new Email();
         $bcc = $this->mailer($e)->getBccAddresses();
         $this->assertCount(1, $bcc);
         $this->assertEquals('admin@example.com', $bcc[0][0]);
+    }
+
+    /**
+     * app_beheerder_email in app.php is een alarmadres (kritieke meldingen) en is GEEN terugval
+     * voor ADMIN_EMAIL: anders kreeg dat adres een blinde kopie van elke mail, en ging buiten
+     * productie alle mail ernaartoe.
+     */
+    public function testAppBeheerderEmailIsGeenTerugvalVoorAdminEmail(): void
+    {
+        unset($_ENV['ADMIN_EMAIL']);
+        \App\Library\Settings::reset();
+        $GLOBALS['Application'] = ['app_beheerder_email' => 'ict-alert@example.com'];
+        $e = new Email();
+        $this->assertCount(0, $this->mailer($e)->getBccAddresses(), 'het alarmadres staat in BCC');
+        $this->assertEquals('', (string) \App\Library\Settings::get('admin_email'));
     }
 
     public function testCreateFactoryReturnsEmail(): void

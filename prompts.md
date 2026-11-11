@@ -16824,3 +16824,11 @@ karaat-data en staat in de karaat-repo.
 > bij rapportage gesprekken is de datum niet herkent als een datum-veld. Hoe kunnen we dat realiseren?
 
 > cma platform: ik kan de achtergrond van een popup dialoog nu scrollen waarmee de dialoog ook verdwijnt. We moeten dat via een shim zien te vermijden. Let erop dat dialogen kunnen worden gestapeld en de shim altijd de hoogste popup moet vrijgeven, bij het sliuiten van popups dus de z-index van de shim herberekenen
+
+## 2026-11-11
+
+> can we create a porperty for lib_table that says NOT to wrap a column value
+
+> ja bereid de platformwijziging voor admin_email voor
+
+> investigate if all features from the last 3 months we added or changed have been noted in the storybook as well
