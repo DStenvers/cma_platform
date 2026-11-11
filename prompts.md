@@ -16832,3 +16832,13 @@ karaat-data en staat in de karaat-repo.
 > ja bereid de platformwijziging voor admin_email voor
 
 > investigate if all features from the last 3 months we added or changed have been noted in the storybook as well
+
+> <task-notification>
+> <task-id>bwxqeou08</task-id>
+> <tool-use-id>toolu_01HEoucHH3CNfdgoXvNfp83h</tool-use-id>
+> <output-file>/tmp/claude-1000/-mnt-c-repos-cma-platform/170124ac-bbff-4fd6-9992-f1d6d84b3c3a/tasks/bwxqeou08.output</output-file>
+> <status>completed</status>
+> <summary>Background command "S=2026-08-11; echo "commits touching components:"; git log --since=$S --oneline -- library/webcomponents/*.js cma/webcomponents/*.js ':!*.min.js' | wc -l; echo "commits touching storybook:"; git log --since=$S --oneline -- cma/tools/storybook.php | wc -l; echo; for f in $(ls library/webcomponents/*.js cma/webcomponents/*.js | grep -v min.js); do n=$(git log --since=$S --oneline -- $f | wc -l); [ $n -gt 0 ] &amp;&amp; echo "$n $f"; done | sort -rn" completed (exit code 0)</summary>
+> </task-notification>
+
+> yes add the missing entries

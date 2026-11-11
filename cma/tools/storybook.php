@@ -910,6 +910,13 @@ html.dark-mode .hex-dark { display: inline; }
                     <dt>required</dt>
                     <dd>Verplicht veld (default: <code>false</code>)</dd>
                 </dl>
+                <h4>Verkorte invoer</h4>
+                <dl>
+                    <dt>Dag-eerst formaten</dt>
+                    <dd>Bij <code>dd-mm-yyyy</code> (default) leidt het veld de rest af: <code>5</code> wordt de 5e van deze maand, <code>0101</code> wordt 1 januari van dit jaar, <code>010126</code> en <code>01012026</code> zijn volledige datums. Een spatie telt als scheidingsteken. Bij <code>yyyy-mm-dd</code> en <code>mm-dd-yyyy</code> geldt dit niet.</dd>
+                    <dt>Foutmelding</dt>
+                    <dd>Een ongeldige invoer blijft in het veld staan en het veld noemt het probleem ("Ongeldige maand 13", "Ongeldige dag 31 voor maand 2", "Ongeldig jaar"), zodat de gebruiker het kan corrigeren. De melding verdwijnt na 2,5 seconde.</dd>
+                </dl>
                 <h4>Methodes</h4>
                 <dl>
                     <dt>open()</dt>
@@ -2410,6 +2417,12 @@ html.dark-mode .hex-dark { display: inline; }
                 <dl>
                     <dt>Filtering</dt>
                     <dd>Klik op kolomkop voor sorteer/filter opties</dd>
+                    <dt>Sorteerknoppen</dt>
+                    <dd>De twee knoppen bovenin het kolommenu volgen het kolomtype (<code>data-type</code> op de kop): <code>Oud - Nieuw</code> / <code>Nieuw - Oud</code> bij een datum, <code>Laag - Hoog</code> / <code>Hoog - Laag</code> bij een getal, anders <code>A - Z</code> / <code>Z - A</code>. Zonder <code>data-type</code> staat er dus altijd A - Z; de PHP-klasse <code>LibTable</code> zet het type vanuit de veldtypes.</dd>
+                    <dt>Vinkjes of zoekveld</dt>
+                    <dd>Per kolom beslist het aantal verschillende waarden: tot 30 krijgt de kolom een lijst met vinkjes, daarboven een zoekveld. Het aantal rijen speelt daarbij geen rol, dus ook een lange lijst houdt de vinkjes bij een kolom als ja/nee. In een tabel met <code>data-continuous="true"</code> (de server bepaalt de rijen) is er geen kolomfilter.</dd>
+                    <dt>Filter en sortering onthouden</dt>
+                    <dd>De actieve kolomfilters en de gekozen sortering staan in <code>localStorage</code> (sleutel <code>cma_tableFilter_&hellip;</code>) en worden bij de volgende opbouw teruggezet. Zoeken in een filtermenu wordt niet bewaard.</dd>
                     <dt>Export</dt>
                     <dd>Rechtsklik op tabel voor export naar Excel, CSV of Word</dd>
                 </dl>
@@ -2496,6 +2509,13 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Verplicht veld (default: <code>false</code>)</dd>
                     <dt>small</dt>
                     <dd>Compacte variant (default: <code>false</code>)</dd>
+                </dl>
+                <h4>Verkorte invoer</h4>
+                <dl>
+                    <dt>Uur en minuten</dt>
+                    <dd><code>9</code> en <code>9:</code> worden 09:00; <code>930</code> en <code>1730</code> worden 09:30 en 17:30; <code>9.3</code> en <code>9 3</code> worden 09:30. Een enkel cijfer als minuten telt als kwartier: <code>9:1</code> is 09:15, <code>9:3</code> is 09:30, <code>9:4</code> is 09:45.</dd>
+                    <dt>Foutmelding</dt>
+                    <dd>Een tijd buiten 00:00-23:59 of onleesbare invoer wordt teruggezet naar de vorige waarde, met de melding "'&lt;invoer&gt;' is geen geldige tijd (uu:mm)". De melding verdwijnt na 2,5 seconde.</dd>
                 </dl>
                 <h4>Events</h4>
                 <dl>
@@ -3607,6 +3627,13 @@ document.querySelector('#tools cma-launcher').open();
                     <dd>Component uitschakelen</dd>
                     <dt>max-height</dt>
                     <dd>Maximum hoogte in px (default: 400)</dd>
+                </dl>
+                <h4>Bediening</h4>
+                <dl>
+                    <dt>A&rarr;Z / Z&rarr;A</dt>
+                    <dd>Knoppen in de kop sorteren alle items op label (Nederlandse sortering, hoofdletters tellen niet mee). Het <code>change</code>-event volgt.</dd>
+                    <dt>Ctrl+pijl omhoog/omlaag</dt>
+                    <dd>Verplaatst het item met focus een plek, als alternatief voor slepen. De focus blijft op het verplaatste item. Bij <code>disabled</code> doen knoppen en toetsen niets.</dd>
                 </dl>
                 <h4>Child elements</h4>
                 <dl>
