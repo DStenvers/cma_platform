@@ -192,6 +192,9 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
   .help { margin-top: 1.75rem; font-size: .95rem; }
   a { color: var(--accent); font-weight: 600; text-decoration: none; }
   a:hover { text-decoration: underline; }
+  .vernieuw { display: inline-block; margin-top: 1.25rem; padding: .6rem 1.6rem; border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--accent); color: #fff; font: inherit; font-weight: 600; }
+  .vernieuw:hover { filter: brightness(.92); }
   @media (max-width: 30rem) {
     .content { padding: 2rem 1.25rem; }
     .art img { width: 5.5rem; height: 5.5rem; }
@@ -218,6 +221,7 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
       <h1><?= $h($message) ?></h1>
 <?php if ($cmaMaintRetry): ?>
       <p>Probeer het over een paar minuten opnieuw.</p>
+      <button type="button" class="vernieuw" onclick="location.reload()">Vernieuwen</button>
 <?php endif; ?>
 <?php if ($cmaMaintContactLine !== ''): ?>
       <p class="help"><?= $cmaMaintRetry ? 'Blijft u deze melding langer dan 10 minuten zien?' : 'Vragen?' ?><br><?= $cmaMaintContactLine ?></p>
