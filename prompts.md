@@ -16842,3 +16842,19 @@ karaat-data en staat in de karaat-repo.
 > </task-notification>
 
 > yes add the missing entries
+
+> wil je in taak_getlijst.php de nowrap toevoegen bij de kolom Soort, ik zie daar overigens al iets dat op nowrap duidt
+
+> commit en push graag
+
+> de kolom soort in het takenoverzicht wrapt nog steeds, kun je dat fixen?
+
+> wil je committen en pushen, wil het even testen
+
+> kun je naar /mnt/c/repos/rino/rino-portal en op zoek gaan naar het scherm /presentie die een lijst toont met de presentielijsten van vandaag?
+
+> Het punt is, als ik de url open wordt ik naar / doorverwezen, dus kennelijk vindt de routing het geen goed idee vanwege rechten?
+
+> graag zonder login
+
+> Bij de GZ2027-A heb ik het vinkje aangezet, daar kunnen we dus mee testen

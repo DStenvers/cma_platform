@@ -612,7 +612,9 @@ try {
                 $columnCount = count($formDef['columns'] ?? $formDef['fields'] ?? []);
                 // Base: 300 rows, reduce by ~20 rows per column over 5 columns
                 // Min 100, Max 500
-                $limit = 200; // Smaller initial page for fast first render; background prefetch loads more
+                // The tree filters client-side, so search only finds what is loaded: it gets the first 1000 records.
+                // The table searches server-side, so a small first page is enough there.
+                $limit = $displayMode == 2 ? 200 : 1000;
                 addDebug("calculated limit=$limit based on $columnCount columns");
             }
             $options['limit'] = $limit;
