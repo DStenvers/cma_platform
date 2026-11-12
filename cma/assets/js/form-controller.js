@@ -6085,6 +6085,37 @@ class CmaFormController {
         this._searchAsYouTypeTimer = setTimeout(() => {
             this._doSearchAsYouType(value);
         }, 100); // 100ms debounce for responsive feel
+
+        this._scheduleServerSearch();
+    }
+
+    /**
+     * Na het typen ook op de SERVER zoeken, zodat een treffer die niet in de geladen rijen zit (de lijst laadt
+     * maar een deel van de records) zonder Enter verschijnt. Debounce 300 ms, vanaf 2 tekens; wordt het veld leeg,
+     * dan komt de volledige lijst terug. De client-side filtering hierboven blijft de directe reactie.
+     *
+     * Alleen in tabelweergave: een zoekterm geeft de server een platte lijst terug, en dat haalt een boom weg
+     * (zie handleSearch); een boom filtert dus alleen client-side.
+     */
+    _scheduleServerSearch() {
+        clearTimeout(this._serverSearchTimer);
+        if (!this.isTableMode()) return;
+        this._serverSearchTimer = setTimeout(() => this._doServerSearch(), 300);
+    }
+
+    async _doServerSearch() {
+        const searchInput = document.getElementById('searchfor');
+        if (!searchInput || !this.isTableMode()) return;
+        const typed = (searchInput.value || '').trim();
+        // Eén teken filtert alleen client-side; leeg of 2+ tekens gaat naar de server.
+        if (typed.length === 1) return;
+        // De lijst staat al op deze term (bijvoorbeeld na Enter of een eerdere zoekactie).
+        if (typed === (this._lastListTerm || '')) return;
+        this.searchTerm = typed;
+        this.currentPage = 1;
+        // skipRecordLoad: een geopend record blijft zoals het is. skipAutoSelect: bij één treffer opent er geen
+        // record terwijl de gebruiker nog typt.
+        await this.loadList(false, true, true);
     }
 
     /**
@@ -6277,7 +6308,9 @@ class CmaFormController {
                 searchInput.disabled = false;
                 // Keep the server's "Zoeken in '<formulier>'..." placeholder
                 // Restore search term if we have one (important when switching views)
-                if (this.searchTerm && searchInput.value !== this.searchTerm) {
+                // Niet terwijl de gebruiker in het veld typt: een antwoord van de server voor een eerdere term
+                // zou anders de net getypte tekens overschrijven.
+                if (this.searchTerm && searchInput.value !== this.searchTerm && !searchInput.contains(document.activeElement)) {
                     searchInput.value = this.searchTerm;
                 }
                 // Focus search input if visible and no search term active
@@ -6889,7 +6922,7 @@ class CmaFormController {
      * Uses AbortController to cancel in-flight requests and prevent race conditions
      * @param {boolean} forceRefresh - If true, bypass cache with timestamp parameter
      */
-    async loadList(forceRefresh = false, skipRecordLoad = false) {
+    async loadList(forceRefresh = false, skipRecordLoad = false, skipAutoSelect = false) {
         // Performance tracking
         const perfId = 'loadList_' + Date.now();
         cmaPerf.start(perfId, { formId: this.formId, mode: this.displayMode });
@@ -6952,6 +6985,8 @@ class CmaFormController {
                 params.set('search', this.searchTerm);
                 // cmaLog.log('loadList: searchTerm =', this.searchTerm);
             }
+            // Onthouden waarop de lijst nu staat, zodat zoeken tijdens het typen niet dezelfde term nog eens laadt.
+            this._lastListTerm = this.searchTerm || '';
 
             // Add search panel filters
             if (this.searchFilters && Object.keys(this.searchFilters).length > 0) {
@@ -7110,7 +7145,7 @@ class CmaFormController {
                     this.selectListItem(currentRecordIdForLoad);
                 }
                 // Auto-select single record: if only 1 result and no record selected yet
-                else if (data.count === 1) {
+                else if (data.count === 1 && !skipAutoSelect) {
                     // cmaLog.log('Auto-select: count=1, isTableMode=', this.isTableMode(), 'currentRecordId=', this.currentRecordId);
 
                     if (!this.isTableMode()) {

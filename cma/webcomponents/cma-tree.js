@@ -159,6 +159,9 @@ class CmaTree extends HTMLElement {
         const root = this.shadowRoot;
         if (!root) return;
         const needle = (term || '').toLowerCase().trim();
+        // Onthouden: een herrender (een record kiezen, nieuwe data) bouwt de lijst opnieuw op en zou
+        // anders de hele boom tonen terwijl het zoekveld zijn term nog heeft. _render() past hem weer toe.
+        this._filterTerm = needle;
 
         // Clear filter
         if (!needle) {
@@ -768,6 +771,11 @@ class CmaTree extends HTMLElement {
             };
             tree.addEventListener('mouseover', this._mouseoverHandler);
             tree.addEventListener('mouseout', this._mouseoutHandler);
+        }
+
+        // Het filter van de zoekbalk overleeft een herrender.
+        if (this._filterTerm) {
+            this.filter(this._filterTerm);
         }
     }
 }
