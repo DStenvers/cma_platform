@@ -240,6 +240,11 @@ html.dark-mode {
     color: var(--color-info, #077ab2);
 }
 
+/* Het actieve menu-item blijft bij hover wit: de blauwe hoverkleur hierboven stond op de paarse achtergrond van het actieve item. */
+.cma-menu-item.active:hover .cma-menu-group-title {
+    color: #ffffff;
+}
+
 .cma-menu-group-icon .lnr-graduation-hat::before {
     font-size: 17px;
 }
