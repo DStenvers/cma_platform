@@ -2091,7 +2091,7 @@ SQL: " . $sql : ''));
     {
         $m = strtolower($message);
         foreach ([
-            'has been placed in a state by user',
+            'has been placed in a state by',   // met naam ('by user ...') en zonder ('by an unknown user')
             'could not lock file',
             'file already in use',
             'could not use',
@@ -2108,10 +2108,12 @@ SQL: " . $sql : ''));
             'kan het bestand niet vergrendelen',
             'is al in gebruik',
             'kan de database niet openen',
+            'toestand gebracht',   // nl: "door een onbekende gebruiker in een toestand gebracht waarin deze niet kan worden geopend of vergrendeld"
             // Jet-foutcodes, taalonafhankelijk: -1102 (record/pagina vergrendeld), -1034 (database
             // in een toestand geplaatst die openen/vergrendelen voorkomt).
             'general error: -1102',
             'general error: -1034',
+            'sqldriverconnect: -3810',   // dezelfde melding bij het OPENEN van de verbinding (geen 'general error')
             'sqlexecute[-1102]',
         ] as $tekst) {
             if (str_contains($m, $tekst)) {

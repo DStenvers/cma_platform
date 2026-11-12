@@ -64,6 +64,14 @@ class DatabaseLockRetryTest extends TestCase
         $this->assertTrue(Database::isLockError($nl), 'nl: -1102 bijwerken niet mogelijk');
         $this->assertTrue(Database::isLockError('Het object is vergrendeld.'), 'nl: is vergrendeld');
         $this->assertTrue(Database::isLockError('SQLSTATE[HY000]: General error: -1102 onbekende tekst'), 'foutcode -1102 alleen');
+        // Bij parallelle processen (IIS + CLI) gemeten: de database is 'door een onbekende gebruiker' in een toestand gebracht; zonder naam, en bij het openen.
+        $nl3810 = 'SQLSTATE[HY000] SQLDriverConnect: -3810 [Microsoft][ODBC Microsoft Access-stuurprogramma] De database is door een onbekende gebruiker in een toestand gebracht waarin deze niet kan worden geopend of vergrendeld.';
+        $this->assertTrue(Database::isLockError($nl3810), 'nl: -3810 onbekende gebruiker bij het openen');
+        $this->assertTrue(Database::isLockError('The database has been placed in a state by an unknown user that prevents it from being opened or locked.'), 'en: onbekende gebruiker');
+        $this->assertTrue(Database::isLockError('SQLSTATE[HY000] SQLDriverConnect: -3810 onbekende tekst'), 'foutcode -3810 alleen');
+        $pogingen = 0;
+        $this->assertEquals('gelukt', $this->probeer(2, $nl3810, $pogingen));
+        $this->assertEquals(3, $pogingen, 'de retry werkt ook voor -3810');
         $this->assertFalse(Database::isLockError('Syntaxisfout in FROM-clausule.'), 'nl: een SQL-fout is geen vergrendeling');
         $this->assertFalse(Database::isLockError('Syntax error in FROM clause.'), 'een SQL-fout is geen vergrendeling');
         $this->assertFalse(Database::isLockError("Too few parameters. Expected 1."), 'een ontbrekend veld ook niet');
