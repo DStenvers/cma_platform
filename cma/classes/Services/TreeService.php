@@ -409,7 +409,13 @@ class TreeService extends BaseFormService
             // beyond the limit to know whether it was hit; the tree then ends with a
             // note instead of silently rendering every row of a large table.
             $limit = (int)($jsonData['listLimit'] ?? $options['limit'] ?? ListMode::listLimit());
-            if ($limit > 0) {
+            // A DISTINCT query is NOT limited with SELECT DISTINCT TOP n: with a join and an ORDER BY
+            // Access then returns the joined rows undistincted (measured: deelnemers, 1001 rows of which
+            // 409 distinct ids; the tree showed every name 3-5 times while the table view was fine).
+            // The limit is applied while reading instead, after dropping rows identical to an earlier one,
+            // which is what DISTINCT is meant to do.
+            $bDistinct = self::isDistinctQuery($sql);
+            if ($limit > 0 && !$bDistinct) {
                 $sql = SQL::addTop($sql, $limit + 1, $conn);
             }
             // Execute query
@@ -498,6 +504,7 @@ class TreeService extends BaseFormService
 
             $fieldMapBuilt = false;
             $fieldMap = [];
+            $seenRows = [];   // rows already seen, for a DISTINCT query (see $bDistinct)
 
             while (!$rs->EOF) {
                 if ($limit > 0 && $count >= $limit) {
@@ -505,6 +512,15 @@ class TreeService extends BaseFormService
                     break;
                 }
                 $fields = \App\Library\Str::toUtf8($rs->fetchAssoc());
+
+                if ($bDistinct) {
+                    $rowKey = self::distinctRowKey($fields);
+                    if (isset($seenRows[$rowKey])) {
+                        $rs->MoveNext();   // the loop advances at its end; skipping must too, or it never ends
+                        continue;
+                    }
+                    $seenRows[$rowKey] = true;
+                }
 
                 if (!$fieldMapBuilt) {
                     foreach ($fields as $key => $value) {
@@ -628,6 +644,24 @@ class TreeService extends BaseFormService
         } catch (\Exception $e) {
             return self::error($e->getMessage());
         }
+    }
+
+    /**
+     * Does this query ask for DISTINCT rows? (DISTINCTROW is a different Access keyword and does not count.)
+     */
+    public static function isDistinctQuery(string $sql): bool
+    {
+        return (bool)preg_match('/^\s*SELECT\s+DISTINCT\b/i', $sql);
+    }
+
+    /**
+     * The identity of a fetched row, to drop rows identical to an earlier one: the values of the
+     * named columns (the numeric duplicates of an associative fetch are ignored).
+     */
+    public static function distinctRowKey(array $fields): string
+    {
+        $named = array_filter($fields, static fn($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
+        return md5(json_encode($named, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR));
     }
 
     /**
