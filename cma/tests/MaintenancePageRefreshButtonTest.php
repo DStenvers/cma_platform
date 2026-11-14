@@ -19,6 +19,15 @@ class MaintenancePageRefreshButtonTest extends TestCase
         return 0;
     }
 
+    public function testPageRefreshesItselfEveryMinute(): int
+    {
+        foreach (['/maintenance_page.inc', '/../templates/src/pages/maintenance.php.template'] as $bestand) {
+            $src = (string) file_get_contents(dirname(__DIR__) . $bestand);
+            $this->assertTrue(strpos($src, '<meta http-equiv="refresh" content="60">') !== false, basename($bestand) . ' refreshes itself every 60 seconds');
+        }
+        return 0;
+    }
+
     public function testRenderedPageHasTheButton(): int
     {
         $message = 'Test';

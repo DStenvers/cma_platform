@@ -160,6 +160,7 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="60">
 <title>Even geduld<?= $cmaMaintName !== '' ? ' — ' . $h($cmaMaintName) : '' ?></title>
 <style>
   :root { color-scheme: light; --accent: <?= $h($cmaMaintAccent) ?>; }
