@@ -32,6 +32,7 @@ function maakController(win, opties) {
     const ctrl = {
         searchTerm: '', currentPage: 3, _lastListTerm: '', _tableMode: !!opties.tabel,
         isTableMode() { return this._tableMode; },
+        isTreeMode() { return !!opties.boom; },
         aanroepen: [],
         async loadList(a, b, c) { this.aanroepen.push({ a, b, c, term: this.searchTerm }); this._lastListTerm = this.searchTerm || ''; },
         _doSearchAsYouType() {},
@@ -114,9 +115,36 @@ test('dezelfde term als waarop de lijst al staat (Enter, eerdere zoekactie) laad
     assert.gelijk(c.aanroepen.length, 0);
 });
 
-test('boomweergave filtert alleen client-side (een zoekterm geeft de server een platte lijst)', async () => {
+test('boomweergave zoekt ook op de server (de boom laadt maar een deel van de records: bij Logins staat Docenten na Deelnemers)', async () => {
     const { win, veld } = pagina();
-    const c = maakController(win, { tabel: false });
+    const c = maakController(win, { tabel: false, boom: true });
+    veld.value = 'abc';
+    c.searchAsYouType('abc');
+    await wacht(500);
+    assert.gelijk(c.aanroepen.length, 1, 'ook in de boom een serveraanroep');
+    assert.gelijk(c.aanroepen[0].term, 'abc');
+    assert.gelijk(c.aanroepen[0].b, true, 'geopend record blijft staan');
+});
+
+test('Enter in de boom filtert direct en zoekt daarna op de server', async () => {
+    const { win, veld } = pagina('Borghouts');
+    const c = maakController(win, { tabel: false, boom: true });
+    const gefilterd = [];
+    c.listContent = { querySelector: () => ({ filter: (t) => gefilterd.push(t) }) };
+    const bron = methode('handleSearch');
+    const handleSearch = new win.Function('return ({' + bron + '})')().handleSearch;
+    veld.value = 'Borghouts';
+    handleSearch.call(c, null);
+    await wacht(10);
+    assert.gelijk(gefilterd.join(), 'borghouts', 'de geladen knopen worden meteen gefilterd');
+    await wacht(400);
+    assert.gelijk(c.aanroepen.length, 1, 'en de server zoekt in alle records');
+    assert.gelijk(c.aanroepen[0].term, 'Borghouts');
+});
+
+test('een weergave die geen tabel en geen boom is zoekt niet op de server', async () => {
+    const { win, veld } = pagina();
+    const c = maakController(win, { tabel: false, boom: false });
     veld.value = 'abc';
     c.searchAsYouType('abc');
     await wacht(500);

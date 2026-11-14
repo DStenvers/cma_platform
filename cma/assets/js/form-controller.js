@@ -6068,6 +6068,10 @@ class CmaFormController {
             const cmaTree = this.listContent ? this.listContent.querySelector('cma-tree') : null;
             if (cmaTree && typeof cmaTree.filter === 'function') {
                 cmaTree.filter(this.searchTerm.toLowerCase());
+                // De boom laadt maar een deel van de records (de lijstlimiet). Filteren alleen in de geladen
+                // knopen vindt een record in een andere groep dan de eerste niet (bij Logins: Docenten staat na
+                // Deelnemers). De server zoekt in alle records en geeft dezelfde groepen terug, alleen met de treffers.
+                this._doServerSearch();
                 return false;
             }
 
@@ -6094,18 +6098,18 @@ class CmaFormController {
      * maar een deel van de records) zonder Enter verschijnt. Debounce 300 ms, vanaf 2 tekens; wordt het veld leeg,
      * dan komt de volledige lijst terug. De client-side filtering hierboven blijft de directe reactie.
      *
-     * Alleen in tabelweergave: een zoekterm geeft de server een platte lijst terug, en dat haalt een boom weg
-     * (zie handleSearch); een boom filtert dus alleen client-side.
+     * Ook in de boomweergave: de boom laadt maar een deel van de records, dus filteren in de geladen knopen vindt
+     * niet alles. De server geeft de boom terug met alleen de treffers.
      */
     _scheduleServerSearch() {
         clearTimeout(this._serverSearchTimer);
-        if (!this.isTableMode()) return;
+        if (!this.isTableMode() && !this.isTreeMode()) return;
         this._serverSearchTimer = setTimeout(() => this._doServerSearch(), 300);
     }
 
     async _doServerSearch() {
         const searchInput = document.getElementById('searchfor');
-        if (!searchInput || !this.isTableMode()) return;
+        if (!searchInput || (!this.isTableMode() && !this.isTreeMode())) return;
         const typed = (searchInput.value || '').trim();
         // Eén teken filtert alleen client-side; leeg of 2+ tekens gaat naar de server.
         if (typed.length === 1) return;
