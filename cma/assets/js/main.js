@@ -805,11 +805,9 @@
         // Cache miss — fetch from server
         cmaPerf.count('loadPage.cacheMiss');
 
-        // Cache the current page before destroying it (if cacheable)
-        if (currentPage && shouldCachePage(currentPage)) {
-            cacheCurrentPage(currentPage);
-        }
-
+        // De huidige pagina blijft zichtbaar tot het antwoord er is (na 2 seconden gedimd, zie .loading-delayed in main.css); hij wordt pas gecachet
+        // als de nieuwe inhoud binnen is. Eerder cachen haalde hem direct uit beeld: een wit scherm gedurende de hele aanvraag. Het menu wijst wel meteen aan waar je heen gaat.
+        setActiveMenuItem(page);
         contentArea.classList.add('loading');
 
         // Clear any existing delayed spinner timeout
@@ -828,6 +826,9 @@
 
         if (isExternalUrl(page)) {
             // cmaLog.log('[loadPage] External URL, using iframe');
+            if (currentPage && shouldCachePage(currentPage)) {
+                cacheCurrentPage(currentPage);
+            }
             loadPageInIframe(page, updateHistory);
             return;
         }
@@ -888,6 +889,11 @@
             })
             .then(html => {
                 cmaPerf.mark('loadPage_renderStart');
+
+                // Nu de nieuwe inhoud binnen is: de huidige pagina in de cache zetten (dat haalt hem uit beeld en pauzeert zijn controller).
+                if (currentPage && shouldCachePage(currentPage)) {
+                    cacheCurrentPage(currentPage);
+                }
 
                 // Destroy previous form controller IF it wasn't already cached/suspended
                 // cacheCurrentPage() detaches the DOM, so querySelector won't find it if cached
@@ -1054,6 +1060,11 @@
             })
             .catch(error => {
                 cmaPerf.count('loadPage.errors');
+
+                // De foutmelding vervangt de inhoud: de oude pagina daarvoor netjes wegzetten (cache, controller gepauzeerd) als dat nog niet is gebeurd.
+                if (currentPage && shouldCachePage(currentPage) && contentArea.querySelector('.cma-content-inner')) {
+                    cacheCurrentPage(currentPage);
+                }
 
                 // Report to dev error panel
                 if (typeof CmaErrorHandler !== 'undefined') {
