@@ -134,8 +134,9 @@ echo '</lib-message>';
 echo '<p>Bezoekers van de <span class="cma-tool__strong">publieke site</span> krijgen dan de onderhoudspagina. '
    . 'De CMA (<code>/cma/</code>) blijft voor jou bereikbaar, dus je kunt het hier altijd weer uitzetten.</p>';
 
-// Turn ON (with message)
-echo '<form method="post" style="margin:1rem 0;max-width:40rem;">';
+// Turn ON (with message): het formulier links, het voorbeeld rechts ernaast (onder elkaar op een smal scherm).
+echo '<div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-start;">';
+echo '<form method="post" style="margin:1rem 0;flex:1 1 24rem;max-width:40rem;">';
 echo '<input type="hidden" name="action" value="on">';
 echo '<label for="maintmsg" style="display:block;font-weight:600;margin-bottom:.35rem;">Bericht voor bezoekers</label>';
 echo '<textarea id="maintmsg" name="message" rows="3" required style="width:100%;padding:.6rem;border:1px solid #ccc;border-radius:4px;font:inherit;margin-bottom:.75rem;">'
@@ -148,11 +149,12 @@ echo '<button type="submit" class="btn btn-primary"><span class="lnr lnr-warning
 echo '</form>';
 
 // Voorbeeld: zo ziet een bezoeker het scherm. Het ververst zich terwijl je typt of het vinkje wijzigt; er wordt niets aangezet.
-echo '<div id="maint-preview" style="margin:1rem 0;max-width:40rem;">';
+echo '<div id="maint-preview" style="margin:1rem 0;flex:1 1 24rem;max-width:40rem;">';
 echo '<div style="font-weight:600;margin-bottom:.35rem;">Voorbeeld van het onderhoudsscherm</div>';
 echo '<iframe id="maint-preview-frame" title="Voorbeeld van het onderhoudsscherm" style="width:100%;height:420px;border:1px solid #ccc;border-radius:4px;background:#fff;" '
    . 'src="?preview=1&amp;message=' . rawurlencode($msgValue) . '&amp;retry=' . ($retryChecked ? '1' : '0') . '"></iframe>';
 echo '</div>';
+echo '</div>';   // einde van de rij formulier + voorbeeld
 echo '<script>(function(){var t=document.getElementById("maintmsg"),r=document.querySelector("input[name=retry]"),f=document.getElementById("maint-preview-frame"),w;'
    . 'function u(){f.src="?preview=1&message="+encodeURIComponent(t.value)+"&retry="+(r&&r.checked?"1":"0");}'
    . 'function d(){clearTimeout(w);w=setTimeout(u,350);}'
