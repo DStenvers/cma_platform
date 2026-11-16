@@ -3077,6 +3077,26 @@ class CmaFormController {
         try {
             const response = await fetch(url);
             const data = await response.json();
+            if (data.success && data.requires_search) {
+                // Too many rows to list: the combo searches through its ajax-url, and the server returns no options here.
+                // Replacing the options with that empty list would drop the label of the selected value (the field then shows
+                // the bare id). So keep the selected option(s), and make the search follow the parent value.
+                const behouden = preserveValue
+                    ? (combo.selectedOptions || []).map(function(o) { return { value: String(o.value), label: o.label, group: o.group || null }; })
+                    : [];
+                if (!preserveValue) {
+                    combo.value = '';
+                }
+                combo.setOptions(behouden);
+                const ajaxUrl = combo.getAttribute('ajax-url');
+                if (ajaxUrl) {
+                    const zoekUrl = new URL(ajaxUrl, window.location.origin);
+                    zoekUrl.searchParams.set('filterField', filterByField);
+                    zoekUrl.searchParams.set('filterValue', filterValue);
+                    combo.setAttribute('ajax-url', zoekUrl.pathname + zoekUrl.search);
+                }
+                return;
+            }
             if (data.success && data.options) {
                 const options = data.options.map(function(o) {
                     return { value: String(o.id), label: o.text, group: o.group || null };
