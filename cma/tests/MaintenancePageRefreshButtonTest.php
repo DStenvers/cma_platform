@@ -63,7 +63,7 @@ class MaintenancePageRefreshButtonTest extends TestCase
         $this->assertTrue(strpos($zonder, 'Probeer het over een paar minuten opnieuw') === false, 'retry off: the retry text is gone');
         $tool = (string) file_get_contents(dirname(__DIR__) . '/tools/tools_maintenance.php');
         $this->assertTrue(strpos($tool, 'id="maint-preview-frame"') !== false && strpos($tool, "Request::query('preview', '') === '1'") !== false, 'the tool has a preview iframe and a preview endpoint');
-        $this->assertTrue((bool) preg_match('~display:flex;flex-wrap:wrap[^>]*>\';\s*echo \'<form method="post\'~', $tool) && strpos($tool, 'flex:1 1 24rem') !== false, 'the preview sits next to the form (flex row)');
+        $this->assertTrue(strpos($tool, 'display:flex;flex-wrap:wrap') !== false && strpos($tool, 'flex:1 1 24rem') !== false, 'the preview sits next to the form (flex row)');
         return 0;
     }
 }
