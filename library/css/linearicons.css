@@ -863,7 +863,7 @@
 .lnr-notification-circle::before { content: "\e956"; }
 .lnr-question-circle::before { content: "\e957"; }
 .lnr-menu-circle::before { content: "\e958"; }
-.lnr-checkmark-circle::before { content: "\e959"; }
+.lnr-checkmark-circle::before { content: "\e959"; color: darkgreen; }
 .lnr-cross-circle::before { content: "\e95a"; }
 .lnr-plus-circle::before { content: "\e95b"; }
 .lnr-circle-minus::before { content: "\e95c"; }

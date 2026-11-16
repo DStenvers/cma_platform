@@ -52,7 +52,7 @@ table.tb_but:hover td.tb_but_txt a { color: var(--color-accent) }
 .lnr-refresh::before {content:"\e8da"}
 .lnr-pencil::before {content:"\e60d"}
 .lnr-trash::before {content:"\e681"}
-.lnr-checkmark-circle::before {content:"\e959"}
+.lnr-checkmark-circle::before {content:"\e959"; color: darkgreen}
 .lnr-cross::before {content:"\e92a"}
 .lnr-cross-circle::before {content:"\e95a"}
 .lnr-frame-expand::before {content:"\e952"}
