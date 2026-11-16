@@ -75,6 +75,12 @@ if (!isset($message) || !is_string($message) || trim($message) === '') {
 // onderhoud van onbekende duur. Een handmatige vlag kan het uitzetten met
 // "retry": false; zonder die sleutel (zoals bij een deploy) blijft het staan.
 $cmaMaintRetry = !(is_array($cmaMaintFlagJson) && ($cmaMaintFlagJson['retry'] ?? true) === false);
+// Voorbeeld in de CMA (tools_maintenance.php): de tool zet $cmaMaintPreview en kan "retry" meegeven, want er is dan nog geen vlag.
+// Een voorbeeld ververst zichzelf niet (de pagina staat in een iframe onder het formulier).
+$cmaMaintPreview = !empty($cmaMaintPreview);
+if ($cmaMaintPreview && isset($cmaMaintPreviewRetry)) {
+    $cmaMaintRetry = (bool) $cmaMaintPreviewRetry;
+}
 
 // "cma" is de placeholder-bedrijfsnaam van een kaal platform, geen sitenaam.
 // Zonder deze uitzondering stond er "cma" op de onderhoudspagina van een site
@@ -160,7 +166,7 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="60">
+<?php if (!$cmaMaintPreview): ?><meta http-equiv="refresh" content="60"><?php endif; ?>
 <title>Even geduld<?= $cmaMaintName !== '' ? ' — ' . $h($cmaMaintName) : '' ?></title>
 <style>
   :root { color-scheme: light; --accent: <?= $h($cmaMaintAccent) ?>; }

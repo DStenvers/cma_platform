@@ -25,6 +25,16 @@ if (!SecurityHelper::isAdmin()) {
     exit;
 }
 
+// Voorbeeld (iframe onder het formulier): dezelfde pagina als bezoekers zien, met het bericht dat nu in het formulier staat; er wordt niets opgeslagen of aangezet.
+if (Request::query('preview', '') === '1') {
+    $message = trim((string) Request::query('message', ''));
+    $cmaMaintPreview = true;
+    $cmaMaintPreviewRetry = Request::query('retry', '') === '1';
+    header('Content-Type: text/html; charset=utf-8');
+    include dirname(__DIR__) . '/maintenance_page.inc';
+    exit;
+}
+
 $flagPath = dirname(__DIR__, 2) . '/maintenance.flag';
 $notice   = null;
 
@@ -136,6 +146,17 @@ echo '<label style="display:block;margin-bottom:.75rem;"><input type="checkbox" 
 echo '<button type="submit" class="btn btn-primary"><span class="lnr lnr-warning"></span> '
    . ($isOn && $isManual ? 'Bericht bijwerken' : 'Onderhoud AANzetten') . '</button>';
 echo '</form>';
+
+// Voorbeeld: zo ziet een bezoeker het scherm. Het ververst zich terwijl je typt of het vinkje wijzigt; er wordt niets aangezet.
+echo '<div id="maint-preview" style="margin:1rem 0;max-width:40rem;">';
+echo '<div style="font-weight:600;margin-bottom:.35rem;">Voorbeeld van het onderhoudsscherm</div>';
+echo '<iframe id="maint-preview-frame" title="Voorbeeld van het onderhoudsscherm" style="width:100%;height:420px;border:1px solid #ccc;border-radius:4px;background:#fff;" '
+   . 'src="?preview=1&amp;message=' . rawurlencode($msgValue) . '&amp;retry=' . ($retryChecked ? '1' : '0') . '"></iframe>';
+echo '</div>';
+echo '<script>(function(){var t=document.getElementById("maintmsg"),r=document.querySelector("input[name=retry]"),f=document.getElementById("maint-preview-frame"),w;'
+   . 'function u(){f.src="?preview=1&message="+encodeURIComponent(t.value)+"&retry="+(r&&r.checked?"1":"0");}'
+   . 'function d(){clearTimeout(w);w=setTimeout(u,350);}'
+   . 't.addEventListener("input",d);if(r)r.addEventListener("change",u);})();</script>';
 
 // Turn OFF
 if ($isOn) {

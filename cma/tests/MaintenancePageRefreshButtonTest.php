@@ -43,4 +43,26 @@ class MaintenancePageRefreshButtonTest extends TestCase
         $this->assertTrue(strpos($html, '>Vernieuwen</button>') !== false, 'the rendered page has the Vernieuwen button');
         return 0;
     }
+
+    /** Het voorbeeld in de CMA-tool: dezelfde pagina, met het bericht uit het formulier, zonder zichzelf te verversen en met de keuze voor "opnieuw proberen". */
+    public function testPreviewShowsMessageWithoutAutoRefreshAndHonoursRetry(): int
+    {
+        $render = function (bool $retry): string {
+            $message = 'Voorbeeldbericht XYZ';
+            $cmaMaintPreview = true;
+            $cmaMaintPreviewRetry = $retry;
+            ob_start();
+            include dirname(__DIR__) . '/maintenance_page.inc';
+            return (string) ob_get_clean();
+        };
+        $met = $render(true);
+        $zonder = $render(false);
+        $this->assertTrue(strpos($met, 'Voorbeeldbericht XYZ') !== false, 'the preview shows the message typed in the form');
+        $this->assertTrue(strpos($met, 'http-equiv="refresh"') === false, 'a preview does not refresh itself');
+        $this->assertTrue(strpos($met, 'Probeer het over een paar minuten opnieuw') !== false, 'retry on: the retry text shows');
+        $this->assertTrue(strpos($zonder, 'Probeer het over een paar minuten opnieuw') === false, 'retry off: the retry text is gone');
+        $tool = (string) file_get_contents(dirname(__DIR__) . '/tools/tools_maintenance.php');
+        $this->assertTrue(strpos($tool, 'id="maint-preview-frame"') !== false && strpos($tool, "Request::query('preview', '') === '1'") !== false, 'the tool has a preview iframe and a preview endpoint');
+        return 0;
+    }
 }
