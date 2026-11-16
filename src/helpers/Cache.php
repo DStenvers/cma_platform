@@ -616,18 +616,42 @@ class Cache
      * @param bool $isHit True if cache hit, false if miss
      * @param string $backend The backend used (redis, file, apcu, disabled, error)
      */
+    /**
+     * Het cache-logbestand: standaard <site>/.logs/cache/cache.log, waar de CMA (dashboard, logreader) het ook zoekt;
+     * een site kan het met Application 'cache_log_file' verleggen.
+     */
+    public static function logFile(): string
+    {
+        $eigen = Application::get('cache_log_file', '');
+        if (is_string($eigen) && $eigen !== '') {
+            return $eigen;
+        }
+        // De site-root: de Cache staat in vendor/, dus niet relatief aan dit bestand.
+        $root = rtrim(str_replace('\\', '/', (string) ($_SERVER['DOCUMENT_ROOT'] ?? '')), '/');
+        if ($root === '' || !is_dir($root . '/cma')) {
+            $root = dirname(__DIR__, 2);
+        }
+        return $root . '/.logs/cache/cache.log';
+    }
+
     private static function logAccess(string $key, bool $isHit, string $backend): void
     {
         // Initialize log setting from config if not set
         if (self::$logEnabled === null) {
-            self::$logEnabled = Application::get('cache_log_enabled', false);
+            // De schakelaar uit de CMA (Systeeminstellingen > Logging) geldt; zonder CMA de Application-instelling.
+            self::$logEnabled = class_exists('\\Cma\\Services\\SystemSettings')
+                ? \Cma\Services\SystemSettings::isCacheLogEnabled()
+                : (bool) Application::get('cache_log_enabled', false);
         }
 
         if (!self::$logEnabled) {
             return;
         }
 
-        $logFile = Application::get('cache_log_file', sys_get_temp_dir() . '/cache.log');
+        $logFile = self::logFile();
+        if (!is_dir(dirname($logFile))) {
+            @mkdir(dirname($logFile), 0755, true);
+        }
         $timestamp = date('Y-m-d H:i:s');
         $hitMiss = $isHit ? 'HIT' : 'MISS';
 

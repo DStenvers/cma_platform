@@ -359,8 +359,7 @@ function getCacheStats(): array
  */
 function getRecentCacheMisses(int $limit = 10): array
 {
-    $siteRoot = dirname(__DIR__, 2);
-    $cacheLogFile = $siteRoot . '/cache/cache.log';
+    $cacheLogFile = \App\Library\Cache::logFile();
 
     if (!file_exists($cacheLogFile) || !is_readable($cacheLogFile)) {
         return [];
@@ -925,7 +924,7 @@ function getLogSettings(): array
     $cacheEnabled = $sysSettings['cache_log_enabled'] ?? false;
     $settings['cache_log']['enabled'] = $cacheEnabled;
     if ($cacheEnabled) {
-        $cacheLogFile = dirname(__DIR__, 2) . '/cache/cache.log';
+        $cacheLogFile = \App\Library\Cache::logFile();
         $settings['cache_log']['path'] = $cacheLogFile;
         $settings['cache_log']['exists'] = file_exists($cacheLogFile);
     }
@@ -934,7 +933,7 @@ function getLogSettings(): array
     $debugEnabled = $sysSettings['debug_log_enabled'] ?? false;
     $settings['debug_log']['enabled'] = $debugEnabled;
     if ($debugEnabled) {
-        $debugLogFile = dirname(__DIR__, 2) . '/cache/debug.log';
+        $debugLogFile = dirname(__DIR__, 2) . '/.logs/debug/debug_' . date('Y-m-d') . '.log';
         $settings['debug_log']['path'] = $debugLogFile;
         $settings['debug_log']['exists'] = file_exists($debugLogFile);
     }
