@@ -2695,8 +2695,10 @@ class LibTable extends HTMLElement {
      * @param {boolean} ergensGefilterd - whether any column filter is on
      */
     _updateFilterEmptyNotice(ergensGefilterd) {
-        const alleenFilterVerbergt = ergensGefilterd && this._rows.length > 0
-            && !this._rows.some(row => row.style.display !== 'none');
+        // The rows in the DOM right now, not the snapshot in this._rows: a list that loads more rows while scrolling has more of them.
+        const rijen = this._table ? Array.from(this._table.querySelectorAll('tbody tr')) : [];
+        const alleenFilterVerbergt = ergensGefilterd && rijen.length > 0
+            && !rijen.some(row => row.style.display !== 'none');
         let notice = this._filterEmptyNotice;
         if (!alleenFilterVerbergt) {
             if (notice) notice.remove();

@@ -14,7 +14,7 @@ class TableFilterEmptyNoticeTest extends TestCase
     {
         $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
         $this->assertTrue(strpos($js, '_updateFilterEmptyNotice(ergensGefilterd)') !== false, '_updateView() refreshes the notice');
-        $this->assertTrue(strpos($js, "this._rows.length > 0\n            && !this._rows.some(row => row.style.display !== 'none')") !== false, 'only when rows exist and all are hidden');
+        $this->assertTrue(strpos($js, "rijen.length > 0\n            && !rijen.some(row => row.style.display !== 'none')") !== false, 'only when rows exist and all are hidden (the rows in the DOM, also those loaded while scrolling)');
         $this->assertTrue(strpos($js, 'Filter uitzetten') !== false, 'the button text');
         $this->assertTrue(strpos($js, "this.clearFilters();\n            this._saveFilters();") !== false, 'the button clears the filters and the remembered filter state');
     }
