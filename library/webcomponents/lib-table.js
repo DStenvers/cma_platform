@@ -2682,8 +2682,44 @@ class LibTable extends HTMLElement {
             }));
         }
 
+        this._updateFilterEmptyNotice(ergensGefilterd);
+
         // Update totals if present
         this._updateTotals();
+    }
+
+    /**
+     * When the rows are there but every one of them is hidden by a column filter, say so and offer
+     * to switch the filter off: an empty list with a filter funnel in a header reads as "nothing
+     * found". With no rows at all (a search without matches) the table stays as it is.
+     * @param {boolean} ergensGefilterd - whether any column filter is on
+     */
+    _updateFilterEmptyNotice(ergensGefilterd) {
+        const alleenFilterVerbergt = ergensGefilterd && this._rows.length > 0
+            && !this._rows.some(row => row.style.display !== 'none');
+        let notice = this._filterEmptyNotice;
+        if (!alleenFilterVerbergt) {
+            if (notice) notice.remove();
+            this._filterEmptyNotice = null;
+            return;
+        }
+        if (notice && notice.isConnected) return;
+        if (!this._table) return;
+        notice = document.createElement('div');
+        notice.className = 'lib-table-filter-empty';
+        const tekst = document.createElement('p');
+        tekst.textContent = 'Geen resultaten: een kolomfilter verbergt alle gevonden regels.';
+        const knop = document.createElement('button');
+        knop.type = 'button';
+        knop.className = 'lib-table-filter-empty__button';
+        knop.textContent = 'Filter uitzetten';
+        knop.addEventListener('click', () => {
+            this.clearFilters();
+            this._saveFilters();
+        });
+        notice.append(tekst, knop);
+        this._table.insertAdjacentElement('afterend', notice);
+        this._filterEmptyNotice = notice;
     }
 
     _updateTotals() {
