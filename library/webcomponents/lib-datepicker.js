@@ -417,6 +417,22 @@ class LibDatepicker extends HTMLElement {
                     animation: slideDown 0.15s ease;
                 }
 
+                /* Compact variant: used when the regular calendar fits neither below nor above the field
+                   (a short popup or iframe). Smaller cells and paddings, same content. */
+                .datepicker-calendar.compact { min-width: 224px; }
+                .datepicker-calendar.compact .datepicker-header { padding: 4px 8px; }
+                .datepicker-calendar.compact .datepicker-weekdays { padding: 4px 8px 0; }
+                .datepicker-calendar.compact .datepicker-weekday { padding: 2px; }
+                .datepicker-calendar.compact .datepicker-days { gap: 1px; padding: 4px 8px 6px; }
+                .datepicker-calendar.compact .datepicker-day {
+                    aspect-ratio: auto;
+                    height: 24px;
+                    font-size: var(--font-size-xs);
+                    border-radius: 4px;
+                }
+                .datepicker-calendar.compact .datepicker-footer { padding: 4px 8px; }
+                .datepicker-calendar.compact .datepicker-btn { padding: 2px 6px; }
+
                 @keyframes slideDown {
                     from { opacity: 0; transform: translateY(-8px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -691,6 +707,51 @@ class LibDatepicker extends HTMLElement {
         }
     }
 
+    /**
+     * Decide where the calendar goes, in viewport coordinates (pure function, no DOM access).
+     * Order of preference: regular size below the field, regular size above it, compact size
+     * below, compact size above. When none of them fits, the compact calendar goes on the side
+     * with the most room and is clamped into the viewport (scrollable if the viewport is even
+     * shorter than the compact calendar). The top is never negative.
+     *
+     * @param {{top:number,bottom:number}} fieldRect  bounding box of the field
+     * @param {number} viewportHeight  height of the visible area (window.innerHeight)
+     * @param {number} fullHeight      height of the regular calendar
+     * @param {number} compactHeight   height of the compact calendar
+     * @returns {{placement:string, compact:boolean, top:number, maxHeight:(number|null)}}
+     */
+    static computePlacement(fieldRect, viewportHeight, fullHeight, compactHeight) {
+        // The calendar overlaps the field by 1px so both share one border line.
+        const belowTop = fieldRect.bottom - 1;
+        const spaceBelow = viewportHeight - belowTop;
+        const spaceAbove = fieldRect.top + 1;
+        const clamp = (top, height) => Math.max(0, Math.min(top, viewportHeight - height));
+
+        const attempt = (height, compact) => {
+            if (height <= spaceBelow) {
+                return { placement: 'below', compact, top: clamp(belowTop, height), maxHeight: null };
+            }
+            if (height <= spaceAbove) {
+                return { placement: 'above', compact, top: clamp(fieldRect.top - height + 1, height), maxHeight: null };
+            }
+            return null;
+        };
+
+        const result = attempt(fullHeight, false) || attempt(compactHeight, true);
+        if (result) {
+            return result;
+        }
+        // Nothing fits: most room wins, clamped into the viewport.
+        const height = Math.min(compactHeight, viewportHeight);
+        const below = spaceBelow >= spaceAbove;
+        return {
+            placement: below ? 'below' : 'above',
+            compact: true,
+            top: clamp(below ? belowTop : fieldRect.top - height + 1, height),
+            maxHeight: compactHeight > viewportHeight ? viewportHeight : null
+        };
+    }
+
     _positionCalendar(calendar) {
         // Use the visible wrapper element for positioning (not the host,
         // which may have different dimensions depending on layout context)
@@ -703,6 +764,10 @@ class LibDatepicker extends HTMLElement {
         // Reset position to origin to measure the containing block offset.
         // Transforms on ancestors shift the fixed-positioning origin away
         // from the viewport, so we need to detect and compensate for that.
+        calendar.style.maxHeight = '';
+        calendar.style.overflowY = '';
+        calendar.style.boxSizing = '';
+        calendar.classList.remove('compact');
         calendar.style.top = '0';
         calendar.style.left = '0';
         calendar.offsetHeight; // force reflow
@@ -710,24 +775,29 @@ class LibDatepicker extends HTMLElement {
         const offsetX = calendarRect.left;
         const offsetY = calendarRect.top;
 
-        const calendarHeight = calendar.offsetHeight || 300;
         const calendarWidth = calendar.offsetWidth || 280;
+        const fullHeight = calendar.offsetHeight || 300;
+        calendar.classList.add('compact');
+        const compactHeight = calendar.offsetHeight || 250;
+        calendar.classList.remove('compact');
 
-        // Position: left-aligned with the input field, directly below it
-        let top = wrapperRect.bottom - offsetY - 1;
-        let left = wrapperRect.left - offsetX;
-
-        // Flip above if it would overflow the viewport bottom
-        if (wrapperRect.bottom + calendarHeight > window.innerHeight) {
-            top = wrapperRect.top - calendarHeight - offsetY + 1;
-            calendar.style.borderRadius = '8px 8px 0 0';
-        } else {
-            calendar.style.borderRadius = '0 8px 8px 8px';
+        const placement = LibDatepicker.computePlacement(wrapperRect, window.innerHeight, fullHeight, compactHeight);
+        if (placement.compact) {
+            calendar.classList.add('compact');
         }
+        if (placement.maxHeight !== null) {
+            calendar.style.boxSizing = 'border-box';   // the max height includes the border
+            calendar.style.maxHeight = placement.maxHeight + 'px';
+            calendar.style.overflowY = 'auto';
+        }
+        calendar.style.borderRadius = placement.placement === 'above' ? '8px 8px 0 0' : '0 8px 8px 8px';
+
+        let left = wrapperRect.left - offsetX;
+        const widthNow = calendar.offsetWidth || calendarWidth;
 
         // Prevent overflow right
-        if (wrapperRect.left + calendarWidth > window.innerWidth) {
-            left = window.innerWidth - calendarWidth - 10 - offsetX;
+        if (wrapperRect.left + widthNow > window.innerWidth) {
+            left = window.innerWidth - widthNow - 10 - offsetX;
         }
 
         // Prevent overflow left
@@ -735,7 +805,7 @@ class LibDatepicker extends HTMLElement {
             left = 10 - offsetX;
         }
 
-        calendar.style.top = top + 'px';
+        calendar.style.top = (placement.top - offsetY) + 'px';
         calendar.style.left = left + 'px';
     }
 
@@ -839,6 +909,11 @@ class LibDatepicker extends HTMLElement {
         calendar.querySelector('[data-action="clear"]').addEventListener('click', () => {
             this.selectDate('');
         });
+
+        // A month with five weeks is shorter than one with six: keep the calendar inside the visible area after navigating.
+        if (this._isOpen) {
+            this._positionCalendar(calendar);
+        }
     }
 
     selectDate(dateStr) {

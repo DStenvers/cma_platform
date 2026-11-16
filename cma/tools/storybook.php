@@ -835,7 +835,7 @@ html.dark-mode .hex-dark { display: inline; }
         <div class="component-header">
             <h2>lib-datepicker</h2>
             <span class="tag lib">library</span>
-            <p class="component-description">Datumkiezer met kalender popup</p>
+            <p class="component-description">Datumkiezer met kalender popup. De kalender blijft binnen het zichtbare vlak (ook in een kort popup of iframe): onder het veld, anders erboven, en past hij dan nog niet, dan wordt hij compact weergegeven.</p>
         </div>
         <div class="component-body">
             <div class="component-content">
