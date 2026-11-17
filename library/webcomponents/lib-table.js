@@ -1953,6 +1953,25 @@ class LibTable extends HTMLElement {
             content.appendChild(sortZA);
         }
 
+        // The eye, next to the sort options: hide this column (kept per list; the "Kolommen kiezen" entry of
+        // the export menu brings it back).
+        if (!th.hasAttribute('data-no-hide')) {
+            const eyeItem = document.createElement('div');
+            eyeItem.className = 'dropdown-filter-sort lib-table-col-eye-item';
+            const eye = document.createElement('span');
+            eye.className = 'lib-table-col-eye';
+            eye.setAttribute('role', 'button');
+            eye.title = 'Kolom verbergen';
+            eye.innerHTML = '<span class="lnr lnr-eye"></span>';
+            eye.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._closeAllFilterMenus();
+                this._hideColumn(menu);
+            });
+            eyeItem.appendChild(eye);
+            content.appendChild(eyeItem);
+        }
+
         // Add filter content
         if (!noFilter) {
             if (isDateColumn) {
@@ -2042,20 +2061,6 @@ class LibTable extends HTMLElement {
             wrapper.insertBefore(dropdown, clicker);
         } else {
             wrapper.appendChild(dropdown);
-        }
-
-        // The eye: hide this column (kept per list; the "Kolommen kiezen" entry of the export menu brings it back).
-        if (!th.hasAttribute('data-no-hide')) {
-            const eye = document.createElement('span');
-            eye.className = 'lib-table-col-eye';
-            eye.setAttribute('role', 'button');
-            eye.title = 'Kolom verbergen';
-            eye.innerHTML = '<span class="lnr lnr-eye"></span>';
-            eye.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this._hideColumn(menu);
-            });
-            wrapper.insertBefore(eye, dropdown.nextSibling);
         }
 
         // Append wrapper to th

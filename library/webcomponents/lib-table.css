@@ -1028,19 +1028,14 @@ lib-table .lib-table-filter-empty__button:hover { filter: brightness(1.1); }
 /* ==========================================================================
    Column visibility: the eye per column, the "n kolommen verborgen" line, the field chooser
    ========================================================================== */
-lib-table .lib-table-col-eye {
+lib-table .dropdown-filter-content div.lib-table-col-eye-item span.lib-table-col-eye {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
     cursor: pointer;
-    opacity: .55;
 }
-lib-table .lib-table-col-eye:hover { opacity: 1 }
-lib-table .lib-table-col-eye .lnr::before { font-size: 11px; color: #2196F3 }
-lib-table th:has(.menutrigger) .lib-table-col-eye { display: none }
+lib-table .lib-table-col-eye .lnr::before { font-size: 13px; color: var(--color-primary, #077ab2) }
+lib-table th:has(.menutrigger) .lib-table-col-eye-item { display: none }
 
 lib-table .lib-table-cols-notice {
     display: flex;
