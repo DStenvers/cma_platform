@@ -1675,6 +1675,7 @@ class LibTable extends HTMLElement {
 
         // Re-apply the last saved column filters for this list (if any)
         this._restoreFilters();
+        this._restoreHiddenColumns();
 
         // Initialize export menu
         this._initializeExportMenu();
@@ -2041,6 +2042,20 @@ class LibTable extends HTMLElement {
             wrapper.insertBefore(dropdown, clicker);
         } else {
             wrapper.appendChild(dropdown);
+        }
+
+        // The eye: hide this column (kept per list; the "Kolommen kiezen" entry of the export menu brings it back).
+        if (!th.hasAttribute('data-no-hide')) {
+            const eye = document.createElement('span');
+            eye.className = 'lib-table-col-eye';
+            eye.setAttribute('role', 'button');
+            eye.title = 'Kolom verbergen';
+            eye.innerHTML = '<span class="lnr lnr-eye"></span>';
+            eye.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._hideColumn(menu);
+            });
+            wrapper.insertBefore(eye, dropdown.nextSibling);
         }
 
         // Append wrapper to th
@@ -2774,6 +2789,7 @@ class LibTable extends HTMLElement {
                     <li class="exportXLS"><span class="lnr lnr-excel"></span>Export naar Excel</li>
                     <li class="exportCSV"><span class="lnr lnr-csv"></span>Export naar CSV</li>
                     <li class="exportDOC"><span class="lnr lnr-word"></span>Export naar Word</li>
+                    <li class="chooseColumns"><span class="lnr lnr-eye"></span>Kolommen kiezen</li>
                 </ul>
             </div>
         `;
@@ -2838,6 +2854,10 @@ class LibTable extends HTMLElement {
         });
         trigger.querySelector('.exportDOC').addEventListener('click', () => {
             this._export('doc', tableName);
+        });
+        trigger.querySelector('.chooseColumns').addEventListener('click', () => {
+            this._closeExportMenu();
+            this.openFieldChooser();
         });
 
         // The menu column is usually an action/id column whose header is just a
@@ -3000,6 +3020,7 @@ class LibTable extends HTMLElement {
         this._applyNoWrap();
         this._initializeFilters();
         this._restoreFilters();
+        this._restoreHiddenColumns();
         // Resetting th.innerHTML above also wiped the export menu (it lives in the
         // first th's .th-header-wrapper); rebuild it like the first initialisation does.
         this._initializeExportMenu();
@@ -3009,38 +3030,236 @@ class LibTable extends HTMLElement {
         this.dispatchEvent(new CustomEvent('lib-table-ready', { bubbles: true }));
     }
 
+    // Reset the filter of one column to "everything".
+    _clearMenuFilter(menu) {
+        if (menu.selectAllCheckbox) {
+            menu.selectAllCheckbox.checked = true;
+        }
+        this._toggleAll(menu, true);
+        if (menu.searchFilter) {
+            menu.searchFilter.value = '';
+        }
+        if (menu.textFilter) {
+            menu.textFilter.value = '';
+        }
+        if (menu.dateFromInput) {
+            menu.dateFromInput.value = '';
+        }
+        if (menu.dateToInput) {
+            menu.dateToInput.value = '';
+        }
+        if (menu.timeFromInput) {
+            menu.timeFromInput.value = '';
+        }
+        if (menu.timeToInput) {
+            menu.timeToInput.value = '';
+        }
+        if (menu.numberFromInput) {
+            menu.numberFromInput.value = '';
+        }
+        if (menu.numberToInput) {
+            menu.numberToInput.value = '';
+        }
+    }
+
     clearFilters() {
-        this._filterMenus.forEach(menu => {
-            if (menu.selectAllCheckbox) {
-                menu.selectAllCheckbox.checked = true;
-            }
-            this._toggleAll(menu, true);
-            if (menu.searchFilter) {
-                menu.searchFilter.value = '';
-            }
-            if (menu.textFilter) {
-                menu.textFilter.value = '';
-            }
-            if (menu.dateFromInput) {
-                menu.dateFromInput.value = '';
-            }
-            if (menu.dateToInput) {
-                menu.dateToInput.value = '';
-            }
-            if (menu.timeFromInput) {
-                menu.timeFromInput.value = '';
-            }
-            if (menu.timeToInput) {
-                menu.timeToInput.value = '';
-            }
-            if (menu.numberFromInput) {
-                menu.numberFromInput.value = '';
-            }
-            if (menu.numberToInput) {
-                menu.numberToInput.value = '';
-            }
-        });
+        this._filterMenus.forEach(menu => this._clearMenuFilter(menu));
         this._updateRowVisibility();
+    }
+
+    // --- Column visibility (the eye per column + the field chooser) -----------
+    // Hidden columns are remembered per list (same key scheme as the column filters, prefix
+    // cma_tableCols_) and hidden with one generated <style> rule per column index, so rows that
+    // load later (scrolling, refresh) are hidden too and the column indexes the filters work
+    // on do not shift. The column holding the export menu cannot be hidden: the menu lives in
+    // its header.
+
+    _colsStorageKey() {
+        const key = this._filterStorageKey();
+        return key ? key.replace('cma_tableFilter_', 'cma_tableCols_') : null;
+    }
+
+    // One entry per header cell that can be identified: {id, th, column, caption, menu}.
+    _columnInfo() {
+        if (!this._table) return [];
+        const out = [];
+        this._table.querySelectorAll(':scope > thead th').forEach((th) => {
+            const menu = this._filterMenus.find(fm => fm.th === th) || null;
+            const clicker = th.querySelector('.clicker');
+            const caption = ((menu && menu.caption) || (clicker ? clicker.textContent : th.textContent) || '')
+                .replace(/\s+/g, ' ').trim();
+            const id = (th.dataset && th.dataset.field) || caption;
+            if (!id) return;
+            out.push({ id, th, column: th.cellIndex, caption, menu });
+        });
+        return out;
+    }
+
+    _restoreHiddenColumns() {
+        this._hiddenCols = [];
+        const key = this._colsStorageKey();
+        if (key) {
+            try {
+                const raw = localStorage.getItem(key);
+                const list = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(list)) this._hiddenCols = list.filter(x => typeof x === 'string');
+            } catch (e) { /* no localStorage: nothing remembered */ }
+        }
+        this._applyHiddenColumns();
+    }
+
+    _saveHiddenColumns() {
+        const key = this._colsStorageKey();
+        if (!key) return;
+        try {
+            if (this._hiddenCols.length) localStorage.setItem(key, JSON.stringify(this._hiddenCols));
+            else localStorage.removeItem(key);
+        } catch (e) { /* quota / unavailable: non-fatal */ }
+    }
+
+    _applyHiddenColumns() {
+        if (!this._table) return;
+        const hidden = this._hiddenCols || [];
+        if (!this._table.dataset.ltId) {
+            LibTable._colSeq = (LibTable._colSeq || 0) + 1;
+            this._table.dataset.ltId = 'lt' + LibTable._colSeq;
+        }
+        let style = this._colStyle;
+        if (!style || !style.isConnected) {
+            style = document.createElement('style');
+            style.setAttribute('data-lib-table-cols', '');
+            this.appendChild(style);
+            this._colStyle = style;
+        }
+        const base = 'table[data-lt-id="' + this._table.dataset.ltId + '"] > ';
+        const rules = [];
+        let verborgen = 0;
+        this._columnInfo().forEach((c) => {
+            if (!hidden.includes(c.id)) return;
+            verborgen++;
+            ['thead', 'tbody', 'tfoot'].forEach(sec => rules.push(base + sec + ' > tr > :nth-child(' + (c.column + 1) + ')'));
+        });
+        style.textContent = rules.length ? rules.join(',\n') + ' { display: none !important; }' : '';
+        this._updateHiddenColumnsNotice(verborgen);
+    }
+
+    // Under the table: how many columns are hidden, with a way back.
+    _updateHiddenColumnsNotice(aantal) {
+        let notice = this._colsNotice;
+        if (!aantal) {
+            if (notice) notice.remove();
+            this._colsNotice = null;
+            return;
+        }
+        const tekst = aantal === 1 ? '1 kolom verborgen' : aantal + ' kolommen verborgen';
+        if (notice && notice.isConnected) {
+            notice.querySelector('span').textContent = tekst;
+            return;
+        }
+        notice = document.createElement('div');
+        notice.className = 'lib-table-cols-notice';
+        const span = document.createElement('span');
+        span.textContent = tekst;
+        const knop = document.createElement('button');
+        knop.type = 'button';
+        knop.textContent = 'Kolommen kiezen';
+        knop.addEventListener('click', () => this.openFieldChooser());
+        notice.append(span, knop);
+        this._table.insertAdjacentElement('afterend', notice);
+        this._colsNotice = notice;
+    }
+
+    // Which of these column ids has an active filter? Returns the column infos.
+    _filteredColumns(ids) {
+        const state = this._serializeFilters();
+        return this._columnInfo().filter(c => ids.includes(c.id) && state[c.id] && c.menu);
+    }
+
+    /**
+     * Ask before hiding columns that carry an active filter: a filter on a column you can no
+     * longer see keeps hiding rows without any sign of why. Confirming also switches those
+     * filters off. Resolves to false when the user backs out.
+     */
+    async _confirmHideFiltered(ids) {
+        const gefilterd = this._filteredColumns(ids);
+        if (!gefilterd.length) return true;
+        const namen = gefilterd.map(c => "'" + c.caption + "'").join(', ');
+        const vraag = (gefilterd.length === 1 ? 'Op de kolom ' + namen + ' staat een filter.' : 'Op de kolommen ' + namen + ' staat een filter.')
+            + ' Verbergen en het filter uitzetten?';
+        let ok;
+        if (window.LibDialog && typeof window.LibDialog.confirm === 'function') {
+            ok = await window.LibDialog.confirm(vraag, { title: 'Kolom verbergen', confirmText: 'Verbergen', cancelText: 'Annuleren' });
+        } else {
+            ok = window.confirm(vraag);
+        }
+        if (!ok) return false;
+        gefilterd.forEach(c => this._clearMenuFilter(c.menu));
+        this._updateRowVisibility();
+        this._saveFilters();
+        return true;
+    }
+
+    async _hideColumn(menu) {
+        const info = this._columnInfo().find(c => c.th === menu.th);
+        if (!info || info.th.querySelector('.menutrigger, .export-menu')) return;
+        if (!(await this._confirmHideFiltered([info.id]))) return;
+        this._hiddenCols = (this._hiddenCols || []).filter(x => x !== info.id).concat(info.id);
+        this._saveHiddenColumns();
+        this._applyHiddenColumns();
+    }
+
+    /** Public: show every column again. */
+    showAllColumns() {
+        this._hiddenCols = [];
+        this._saveHiddenColumns();
+        this._applyHiddenColumns();
+    }
+
+    /** Public: the field chooser, a dialog with a checkbox per column. */
+    openFieldChooser() {
+        if (!this._table || document.querySelector('.lt-chooser-modal')) return;
+        const hidden = this._hiddenCols || [];
+        const kolommen = this._columnInfo();
+        const modal = document.createElement('div');
+        modal.className = 'lt-chooser-modal';
+        const esc = (t) => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        modal.innerHTML = '<div class="lt-chooser-backdrop"></div>'
+            + '<div class="lt-chooser-dialog" role="dialog" aria-label="Kolommen kiezen">'
+            + '<div class="lt-chooser-header"><h3>Kolommen kiezen</h3><button type="button" class="lt-chooser-close" aria-label="Sluiten">&times;</button></div>'
+            + '<div class="lt-chooser-body"><p class="lt-chooser-hint">Vink aan welke kolommen je wilt zien.</p><ul class="lt-chooser-list">'
+            + kolommen.map((c, i) => {
+                const vast = !!c.th.querySelector('.menutrigger, .export-menu');
+                return '<li class="lt-chooser-item"><label><input type="checkbox" data-i="' + i + '"'
+                    + (hidden.includes(c.id) ? '' : ' checked') + (vast ? ' disabled' : '') + '> ' + esc(c.caption || c.id) + '</label></li>';
+            }).join('')
+            + '</ul></div>'
+            + '<div class="lt-chooser-footer"><button type="button" class="lt-chooser-all">Alles tonen</button>'
+            + '<button type="button" class="lt-chooser-cancel">Annuleren</button><button type="button" class="lt-chooser-save">Opslaan</button></div>'
+            + '</div>';
+        const sluit = () => { modal.remove(); document.removeEventListener('keydown', onKey, true); };
+        const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); sluit(); } };
+        document.addEventListener('keydown', onKey, true);
+        modal.querySelector('.lt-chooser-backdrop').addEventListener('click', sluit);
+        modal.querySelector('.lt-chooser-close').addEventListener('click', sluit);
+        modal.querySelector('.lt-chooser-cancel').addEventListener('click', sluit);
+        modal.querySelector('.lt-chooser-all').addEventListener('click', () => {
+            modal.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = true; });
+        });
+        modal.querySelector('.lt-chooser-save').addEventListener('click', async () => {
+            const nieuw = [];
+            modal.querySelectorAll('input[type=checkbox]').forEach((cb) => {
+                if (!cb.checked && !cb.disabled) nieuw.push(kolommen[parseInt(cb.dataset.i, 10)].id);
+            });
+            const erbijVerborgen = nieuw.filter(id => !hidden.includes(id));
+            sluit();
+            if (!(await this._confirmHideFiltered(erbijVerborgen))) return;
+            this._hiddenCols = nieuw;
+            this._saveHiddenColumns();
+            this._applyHiddenColumns();
+        });
+        document.body.appendChild(modal);
+        const eerste = modal.querySelector('input:not([disabled])');
+        if (eerste) eerste.focus();
     }
 
     // --- Column-filter persistence (localStorage) --------------------------

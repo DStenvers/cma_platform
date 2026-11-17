@@ -36,4 +36,17 @@ class TableFilterEmptyNoticeTest extends TestCase
         $fc = (string) file_get_contents(__DIR__ . '/../assets/js/form-controller.js');
         $this->assertTrue(strpos($fc, '} else if (this.searchTerm) {') !== false, 'a search without matches keeps the search field enabled and filled (list and tree)');
     }
+
+    public function testFieldChooserAndEyeLiveInLibTable(): void
+    {
+        $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
+        $this->assertTrue(strpos($js, "eye.className = 'lib-table-col-eye'") !== false, 'an eye per column header');
+        $this->assertTrue(strpos($js, 'openFieldChooser() {') !== false, 'the field chooser is a method of lib-table');
+        $this->assertTrue(strpos($js, 'Verbergen en het filter uitzetten?') !== false, 'asks before hiding a filtered column');
+        $this->assertTrue(strpos($js, 'this._restoreHiddenColumns();') !== false, 'hidden columns come back after a render');
+        $prefs = (string) file_get_contents(__DIR__ . '/../assets/js/table-preferences.js');
+        $this->assertTrue(strpos($prefs, 'class CmaFieldChooser') === false, 'the old CMA chooser is gone');
+        $css = (string) file_get_contents(__DIR__ . '/../assets/css/form.css');
+        $this->assertTrue(strpos($css, '.field-chooser-modal') === false, 'its styles moved to lib-table.css');
+    }
 }

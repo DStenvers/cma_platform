@@ -5946,50 +5946,14 @@ class CmaFormController {
      * Show field chooser modal
      */
     showFieldChooser() {
-        if (typeof CmaFieldChooser === 'undefined') {
-            cmaLog.warn('CmaFieldChooser not loaded');
-            return;
+        // The field chooser is part of <lib-table> (library/webcomponents/lib-table.js).
+        const lijst = document.getElementById('listTable');
+        const tabel = lijst ? lijst.closest('lib-table') : document.querySelector('lib-table');
+        if (tabel && typeof tabel.openFieldChooser === 'function') {
+            tabel.openFieldChooser();
+        } else {
+            cmaLog.warn('showFieldChooser: no <lib-table> on the page');
         }
-
-        const formId = this.jsonForm;
-        const allFields = this._allFields || [];
-
-        if (allFields.length === 0) {
-            // Try to get fields from current table headers
-            const table = document.getElementById('listTable');
-            if (table) {
-                const headers = table.querySelectorAll('thead th[data-field]');
-                headers.forEach(th => {
-                    allFields.push({
-                        name: th.dataset.field,
-                        caption: th.textContent.trim(),
-                        visible: true
-                    });
-                });
-            }
-        }
-
-        const chooser = new CmaFieldChooser({
-            formId: formId,
-            allFields: allFields,
-            onSave: (result) => {
-                // Ensure table mode stays active after save
-                this.displayMode = this.LIST_MODE.DISPLAY_TABLE;
-                this.saveDisplayMode(this.LIST_MODE.DISPLAY_TABLE);
-                this.setDisplayModeClass('table');
-                // cmaLog.log('[FieldChooser] onSave - forced displayMode to TABLE (2), result:', result);
-                // Reload table to apply new column settings
-                this.loadList(true);
-            },
-            onClose: () => {
-                // Ensure table mode stays active even if cancelled
-                this.displayMode = this.LIST_MODE.DISPLAY_TABLE;
-                this.saveDisplayMode(this.LIST_MODE.DISPLAY_TABLE);
-                this.setDisplayModeClass('table');
-            }
-        });
-
-        chooser.show();
     }
 
     /**
