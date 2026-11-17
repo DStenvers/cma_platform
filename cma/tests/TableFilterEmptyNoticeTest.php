@@ -28,4 +28,12 @@ class TableFilterEmptyNoticeTest extends TestCase
         $minJs = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.min.js');
         $this->assertTrue(strpos($minJs, 'lib-table-filter-empty') !== false, 'the minified script carries it too');
     }
+
+    public function testSearchWithoutMatchesKeepsFilterAndSearchTerm(): void
+    {
+        $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
+        $this->assertTrue(strpos($js, 'if (!this._rows || this._rows.length === 0) return;') !== false, 'an empty table does not overwrite the saved column filter');
+        $fc = (string) file_get_contents(__DIR__ . '/../assets/js/form-controller.js');
+        $this->assertTrue(strpos($fc, '} else if (this.searchTerm) {') !== false, 'a search without matches keeps the search field enabled and filled (list and tree)');
+    }
 }

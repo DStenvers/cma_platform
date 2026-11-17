@@ -6341,6 +6341,13 @@ class CmaFormController {
                 if (searchInput.offsetParent !== null && !this.searchTerm) {
                     searchInput.focus();
                 }
+            } else if (this.searchTerm) {
+                // A search without matches: keep the field enabled and filled, or the user can neither
+                // see what was searched for nor correct it.
+                searchInput.disabled = false;
+                if (searchInput.value !== this.searchTerm && !searchInput.contains(document.activeElement)) {
+                    searchInput.value = this.searchTerm;
+                }
             } else {
                 searchInput.disabled = true;
                 searchInput.placeholder = 'Geen gegevens';

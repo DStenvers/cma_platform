@@ -3110,6 +3110,9 @@ class LibTable extends HTMLElement {
 
     _saveFilters() {
         if (this._restoringFilters) return;
+        // No rows (a search without matches): there are no values to build the filter menus from, so the
+        // state read from them is empty. Keep the saved filter; it is applied again when rows come back.
+        if (!this._rows || this._rows.length === 0) return;
         var key = this._filterStorageKey();
         if (!key) return;
         try {
