@@ -1962,7 +1962,7 @@ class LibTable extends HTMLElement {
             eye.className = 'lib-table-col-eye';
             eye.setAttribute('role', 'button');
             eye.title = 'Kolom verbergen';
-            eye.innerHTML = '<span class="lnr lnr-eye"></span>';
+            eye.innerHTML = '<i class="lnr lnr-eye"></i>';
             eye.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this._closeAllFilterMenus();
