@@ -3143,12 +3143,15 @@ class LibTable extends HTMLElement {
         const base = 'table[data-lt-id="' + this._table.dataset.ltId + '"] > ';
         const rules = [];
         let verborgen = 0;
-        this._columnInfo().forEach((c) => {
+        const kolommen = this._columnInfo();
+        kolommen.forEach((c) => {
             if (!hidden.includes(c.id)) return;
             verborgen++;
             ['thead', 'tbody', 'tfoot'].forEach(sec => rules.push(base + sec + ' > tr > :nth-child(' + (c.column + 1) + ')'));
         });
         style.textContent = rules.length ? rules.join(',\n') + ' { display: none !important; }' : '';
+        // The last visible column cannot be hidden: with one left, the eyes go away.
+        this._table.classList.toggle('lib-table-one-col', kolommen.length - verborgen <= 1);
         this._updateHiddenColumnsNotice(verborgen);
     }
 
@@ -3212,6 +3215,9 @@ class LibTable extends HTMLElement {
     async _hideColumn(menu) {
         const info = this._columnInfo().find(c => c.th === menu.th);
         if (!info || info.th.querySelector('.menutrigger, .export-menu')) return;
+        // Never hide the last visible column.
+        const zichtbaar = this._columnInfo().filter(c => !(this._hiddenCols || []).includes(c.id)).length;
+        if (zichtbaar <= 1) return;
         if (!(await this._confirmHideFiltered([info.id]))) return;
         this._hiddenCols = (this._hiddenCols || []).filter(x => x !== info.id).concat(info.id);
         this._saveHiddenColumns();
@@ -3333,8 +3339,14 @@ class LibTable extends HTMLElement {
         const boxes = () => items().map(it => it.querySelector('input')).filter(cb => !cb.disabled);
         const syncAll = () => { const b = boxes(); allCb.checked = b.length > 0 && b.every(cb => cb.checked); };
         syncAll();
-        allCb.addEventListener('change', () => { boxes().forEach(cb => { cb.checked = allCb.checked; }); });
-        lijst.addEventListener('change', syncAll);
+        // At least one column stays checked: a table without columns is useless.
+        const minstensEen = (laatste) => {
+            const alle = items().map(it => it.querySelector('input'));
+            if (alle.some(cb => cb.checked)) return;
+            (laatste || alle[0]).checked = true;
+        };
+        allCb.addEventListener('change', () => { boxes().forEach(cb => { cb.checked = allCb.checked; }); minstensEen(); syncAll(); });
+        lijst.addEventListener('change', (e) => { minstensEen(e.target); syncAll(); });
         // Select a row (click outside the checkbox) to move it with the arrows.
         let gekozen = null;
         const kies = (it) => { items().forEach(x => x.classList.remove('focused')); gekozen = it; if (it) it.classList.add('focused'); };

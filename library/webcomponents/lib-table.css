@@ -1031,7 +1031,8 @@ lib-table .lib-table-filter-empty__button:hover { filter: brightness(1.1); }
 /* The eye looks like a sort option (div.dropdown-filter-sort span): same padding, border and hover, icon at text size. */
 lib-table .lib-table-col-eye i.lnr { font-style: normal; font-size: inherit; line-height: inherit }
 lib-table .lib-table-col-eye i.lnr::before { font-size: inherit; color: inherit }
-lib-table th:has(.menutrigger) .lib-table-col-eye-item { display: none }
+lib-table th:has(.menutrigger) .lib-table-col-eye-item,
+lib-table table.lib-table-one-col .lib-table-col-eye-item { display: none }
 
 /* "n kolommen verborgen": a plain explanation line under the table. A host page styles it as it styles its
    own explanations (the front-end: p.toelichting); this is only the fallback. */

@@ -61,4 +61,12 @@ class TableFilterEmptyNoticeTest extends TestCase
         $tpl = (string) file_get_contents(__DIR__ . '/../classes/FormTemplate.php');
         $this->assertTrue(strpos($tpl, 'id="btn_columns"') === false, 'the toolbar button is gone');
     }
+
+    public function testTheLastVisibleColumnCannotBeHidden(): void
+    {
+        $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
+        $this->assertTrue(strpos($js, "toggle('lib-table-one-col'") !== false, 'with one column left the eyes go away');
+        $this->assertTrue(strpos($js, 'if (zichtbaar <= 1) return;') !== false, 'the eye refuses to hide the last column');
+        $this->assertTrue(strpos($js, 'const minstensEen = ') !== false, 'the chooser keeps at least one column checked');
+    }
 }
