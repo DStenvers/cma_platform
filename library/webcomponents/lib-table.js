@@ -3322,8 +3322,8 @@ class LibTable extends HTMLElement {
             + '<a href="javascript:void(0)" class="lt-chooser-up" title="Omhoog"><i class="lnr lnr-chevron-up"></i></a>'
             + '<a href="javascript:void(0)" class="lt-chooser-down" title="Omlaag"><i class="lnr lnr-chevron-down"></i></a></div>'
             + '<div class="lt-chooser-list" tabindex="0">' + kolommen.map(rij).join('') + '</div>'
-            + '<div slot="footer">'
-            + '<button type="button" class="lt-chooser-reset">Standaard</button>'
+            + '<div slot="footer" style="display:flex;gap:8px;justify-content:flex-end;width:100%">'
+            + '<button type="button" class="btn-cancel lt-chooser-reset">Standaard</button>'
             + '<button type="button" class="btn-cancel" onclick="this.closest(\'lib-dialog\').close(false)">Annuleren</button>'
             + '<button type="button" class="btn-primary" onclick="this.closest(\'lib-dialog\').close(true)">Opslaan</button>'
             + '</div>';
