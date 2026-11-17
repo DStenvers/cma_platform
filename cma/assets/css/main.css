@@ -333,10 +333,6 @@ html.dark-mode {
     border-right-color: var(--bg-surface, #fff);
 }
 
-.cma-menu-group.single-item .cma-menu-group-header.active::after {
-    display: none;
-}
-
 .cma-menu-icon {
     font-size: 14px;
     width: 24px;
