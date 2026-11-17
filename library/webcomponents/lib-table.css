@@ -1056,7 +1056,6 @@ lib-table .lib-table-cols-notice button {
     font: inherit;
 }
 
-.lt-chooser-hint { margin: 0 0 12px; color: var(--text-muted, #666) }
 .lt-chooser-list { list-style: none; margin: 0; padding: 0 }
 .lt-chooser-item { margin-bottom: 4px; background: var(--bg-surface-alt, #f8f9fa); border: 1px solid var(--border-color, #ddd); border-radius: 4px }
 .lt-chooser-item:hover { background: var(--bg-hover, #eef1f4) }

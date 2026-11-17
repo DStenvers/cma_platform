@@ -3231,7 +3231,7 @@ class LibTable extends HTMLElement {
         dialog.setAttribute('no-maximize', '');
         dialog.setAttribute('heading', 'Kolommen kiezen');
         dialog.setAttribute('size', 'small');
-        dialog.innerHTML = '<p class="lt-chooser-hint">Vink aan welke kolommen je wilt zien.</p><ul class="lt-chooser-list">'
+        dialog.innerHTML = '<ul class="lt-chooser-list">'
             + kolommen.map((c, i) => {
                 const vast = !!c.th.querySelector('.menutrigger, .export-menu');
                 return '<li class="lt-chooser-item"><label><input type="checkbox" data-i="' + i + '"'
