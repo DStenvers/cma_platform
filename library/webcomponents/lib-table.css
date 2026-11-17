@@ -1056,29 +1056,9 @@ lib-table .lib-table-cols-notice button {
     font: inherit;
 }
 
-.lt-chooser-modal { position: fixed; inset: 0; z-index: 100001; display: flex; align-items: center; justify-content: center }
-.lt-chooser-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5) }
-.lt-chooser-dialog {
-    position: relative;
-    background: var(--bg-surface, #fff);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
-    width: 400px;
-    max-width: 90vw;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-.lt-chooser-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color, #ddd) }
-.lt-chooser-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary, #333) }
-.lt-chooser-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted, #666); padding: 0; line-height: 1 }
-.lt-chooser-body { flex: 1; overflow-y: auto; padding: 16px 20px }
 .lt-chooser-hint { margin: 0 0 12px; color: var(--text-muted, #666) }
 .lt-chooser-list { list-style: none; margin: 0; padding: 0 }
 .lt-chooser-item { margin-bottom: 4px; background: var(--bg-surface-alt, #f8f9fa); border: 1px solid var(--border-color, #ddd); border-radius: 4px }
 .lt-chooser-item:hover { background: var(--bg-hover, #eef1f4) }
 .lt-chooser-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; padding: 10px 12px }
-.lt-chooser-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border-color, #ddd) }
-.lt-chooser-footer button { cursor: pointer; border: 1px solid var(--border-color, #ccc); background: #fff; border-radius: 4px; padding: 6px 14px; font: inherit }
-.lt-chooser-footer .lt-chooser-save { background: var(--color-primary, #077ab2); border-color: var(--color-primary, #077ab2); color: #fff }
-.lt-chooser-footer .lt-chooser-all { margin-right: auto }
+.lt-chooser-all { margin-right: auto }

@@ -3220,51 +3220,45 @@ class LibTable extends HTMLElement {
         this._applyHiddenColumns();
     }
 
-    /** Public: the field chooser, a dialog with a checkbox per column. */
-    openFieldChooser() {
-        if (!this._table || document.querySelector('.lt-chooser-modal')) return;
+    /** Public: the field chooser, a standard <lib-dialog> with a checkbox per column. */
+    async openFieldChooser() {
+        if (!this._table || document.querySelector('lib-dialog[data-lt-chooser]')) return;
         const hidden = this._hiddenCols || [];
         const kolommen = this._columnInfo();
-        const modal = document.createElement('div');
-        modal.className = 'lt-chooser-modal';
         const esc = (t) => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-        modal.innerHTML = '<div class="lt-chooser-backdrop"></div>'
-            + '<div class="lt-chooser-dialog" role="dialog" aria-label="Kolommen kiezen">'
-            + '<div class="lt-chooser-header"><h3>Kolommen kiezen</h3><button type="button" class="lt-chooser-close" aria-label="Sluiten">&times;</button></div>'
-            + '<div class="lt-chooser-body"><p class="lt-chooser-hint">Vink aan welke kolommen je wilt zien.</p><ul class="lt-chooser-list">'
+        const dialog = document.createElement('lib-dialog');
+        dialog.setAttribute('data-lt-chooser', '');
+        dialog.setAttribute('no-maximize', '');
+        dialog.setAttribute('heading', 'Kolommen kiezen');
+        dialog.setAttribute('size', 'small');
+        dialog.innerHTML = '<p class="lt-chooser-hint">Vink aan welke kolommen je wilt zien.</p><ul class="lt-chooser-list">'
             + kolommen.map((c, i) => {
                 const vast = !!c.th.querySelector('.menutrigger, .export-menu');
                 return '<li class="lt-chooser-item"><label><input type="checkbox" data-i="' + i + '"'
                     + (hidden.includes(c.id) ? '' : ' checked') + (vast ? ' disabled' : '') + '> ' + esc(c.caption || c.id) + '</label></li>';
             }).join('')
-            + '</ul></div>'
-            + '<div class="lt-chooser-footer"><button type="button" class="lt-chooser-all">Alles tonen</button>'
-            + '<button type="button" class="lt-chooser-cancel">Annuleren</button><button type="button" class="lt-chooser-save">Opslaan</button></div>'
+            + '</ul>'
+            + '<div slot="footer">'
+            + '<button type="button" class="lt-chooser-all">Alles tonen</button>'
+            + '<button type="button" class="btn-cancel" onclick="this.closest(\'lib-dialog\').close(false)">Annuleren</button>'
+            + '<button type="button" class="btn-primary" onclick="this.closest(\'lib-dialog\').close(true)">Opslaan</button>'
             + '</div>';
-        const sluit = () => { modal.remove(); document.removeEventListener('keydown', onKey, true); };
-        const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); sluit(); } };
-        document.addEventListener('keydown', onKey, true);
-        modal.querySelector('.lt-chooser-backdrop').addEventListener('click', sluit);
-        modal.querySelector('.lt-chooser-close').addEventListener('click', sluit);
-        modal.querySelector('.lt-chooser-cancel').addEventListener('click', sluit);
-        modal.querySelector('.lt-chooser-all').addEventListener('click', () => {
-            modal.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = true; });
+        dialog.querySelector('.lt-chooser-all').addEventListener('click', () => {
+            dialog.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = true; });
         });
-        modal.querySelector('.lt-chooser-save').addEventListener('click', async () => {
-            const nieuw = [];
-            modal.querySelectorAll('input[type=checkbox]').forEach((cb) => {
-                if (!cb.checked && !cb.disabled) nieuw.push(kolommen[parseInt(cb.dataset.i, 10)].id);
-            });
-            const erbijVerborgen = nieuw.filter(id => !hidden.includes(id));
-            sluit();
-            if (!(await this._confirmHideFiltered(erbijVerborgen))) return;
-            this._hiddenCols = nieuw;
-            this._saveHiddenColumns();
-            this._applyHiddenColumns();
+        document.body.appendChild(dialog);
+        const ok = await dialog.open();
+        const nieuw = [];
+        dialog.querySelectorAll('input[type=checkbox]').forEach((cb) => {
+            if (!cb.checked && !cb.disabled) nieuw.push(kolommen[parseInt(cb.dataset.i, 10)].id);
         });
-        document.body.appendChild(modal);
-        const eerste = modal.querySelector('input:not([disabled])');
-        if (eerste) eerste.focus();
+        dialog.remove();
+        if (!ok) return;
+        const erbijVerborgen = nieuw.filter(id => !hidden.includes(id));
+        if (!(await this._confirmHideFiltered(erbijVerborgen))) return;
+        this._hiddenCols = nieuw;
+        this._saveHiddenColumns();
+        this._applyHiddenColumns();
     }
 
     // --- Column-filter persistence (localStorage) --------------------------
