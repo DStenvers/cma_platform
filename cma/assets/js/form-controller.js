@@ -13458,6 +13458,18 @@ function initHorizontalFoldBar() {}
 // otherwise the controller of the form on screen.
 if (!window._cmaKolomFilterTellerGebonden) {
     window._cmaKolomFilterTellerGebonden = true;
+    // "Kolommen kiezen" in a table's menu opens the side panel instead of lib-table's own dialog.
+    document.addEventListener('lib-table-choose-columns', function (e) {
+        const listContent = document.getElementById('listContent');
+        if (!listContent || !listContent.contains(e.target)) return;
+        const formLayout = document.querySelector('.form-layout');
+        const ctrl = formLayout ? formLayout._cmaController : null;
+        if (ctrl && typeof ctrl.showColumnSelector === 'function') {
+            e.preventDefault();
+            ctrl.showColumnSelector();
+        }
+    });
+
     document.addEventListener('column-filter-change', function (e) {
         const listContent = document.getElementById('listContent');
         if (!listContent || !listContent.contains(e.target)) return;

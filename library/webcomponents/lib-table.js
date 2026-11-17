@@ -2862,7 +2862,9 @@ class LibTable extends HTMLElement {
         });
         trigger.querySelector('.chooseColumns').addEventListener('click', () => {
             this._closeExportMenu();
-            this.openFieldChooser();
+            // A host page can take over (the CMA opens its side panel): cancel the event and the built-in dialog stays closed.
+            const ev = new CustomEvent('lib-table-choose-columns', { bubbles: true, cancelable: true, detail: { table: this } });
+            if (this.dispatchEvent(ev)) this.openFieldChooser();
         });
 
         // The menu column is usually an action/id column whose header is just a

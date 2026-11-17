@@ -716,8 +716,8 @@ class FormTemplate
         $html .= '<span class="tb-btn" id="btn_treeview" title="Groepeer/Boom weergave"><a href="#" data-action="setlistmode" data-mode="1"><span class="lnr lnr-grouped"></span></a></span>' . PHP_EOL;
         $html .= '<span class="tb-btn" id="btn_tableview" title="Tabel weergave"><a href="#" data-action="setlistmode" data-mode="2"><span class="lnr lnr-table"></span></a></span>' . PHP_EOL;
 
-        // Column selector button (only visible in table mode via CSS)
-        $html .= '<span class="tb-btn" id="btn_columns" title="Selecteer kolommen en hun volgorde"><a href="#" data-action="selectColumns"><span class="lnr lnr-select"></span></a></span>' . PHP_EOL;
+        // The column selector is no longer a toolbar button: it lives in the table's menu (lib-table "Kolommen kiezen"),
+        // which opens the side panel (form-controller showColumnSelector).
 
         // Tree expand/collapse buttons - only render if form has grouping configured
         // Render hidden by default - JavaScript will show them when tree has expandable folders

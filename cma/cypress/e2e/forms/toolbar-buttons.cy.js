@@ -91,8 +91,8 @@ describe('Toolbar Button Visibility', () => {
             // Ensure we are in table mode (default after localStorage clear)
             cy.get('body').should('have.class', 'mode-table');
 
-            // Column selector should be visible in table mode
-            cy.get('#btn_columns').should('be.visible');
+            // The column selector is no longer a toolbar button (it is in the table menu, "Kolommen kiezen")
+            cy.get('#btn_columns').should('not.exist');
 
             // Switch to tree mode - click the anchor inside the button to trigger the handler
             cy.get('#btn_treeview a[data-action]').click({ force: true });

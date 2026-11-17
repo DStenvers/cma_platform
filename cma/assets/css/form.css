@@ -2819,15 +2819,6 @@ lib-dialog .select2-container {
     border-bottom: 1px solid var(--border-color, #ddd);
 }
 
-/* Column selector button in toolbar (only shows in table mode) */
-body.mode-tree #btn_columns {
-    display: none;
-}
-
-body.mode-table #btn_columns {
-    display: inline-flex;
-}
-
 /* Alleen de LIJST scrollt. De knoppenbalk erboven blijft staan, en de kop van de
    tabel blijft staan via position:sticky (zie .subform-table hieronder) - want die
    kop scrollt nu mee IN dezelfde scrollbox, dus hij kan niet meer uit de pas lopen

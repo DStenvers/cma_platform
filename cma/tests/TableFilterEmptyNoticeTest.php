@@ -49,4 +49,14 @@ class TableFilterEmptyNoticeTest extends TestCase
         $css = (string) file_get_contents(__DIR__ . '/../assets/css/form.css');
         $this->assertTrue(strpos($css, '.field-chooser-modal') === false, 'its styles moved to lib-table.css');
     }
+
+    public function testColumnsMenuOpensTheSidePanelInTheCma(): void
+    {
+        $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
+        $this->assertTrue(strpos($js, "new CustomEvent('lib-table-choose-columns'") !== false, 'the menu entry asks the host page first');
+        $fc = (string) file_get_contents(__DIR__ . '/../assets/js/form-controller.js');
+        $this->assertTrue(strpos($fc, "addEventListener('lib-table-choose-columns'") !== false && strpos($fc, 'ctrl.showColumnSelector()') !== false, 'the CMA answers with its side panel');
+        $tpl = (string) file_get_contents(__DIR__ . '/../classes/FormTemplate.php');
+        $this->assertTrue(strpos($tpl, 'id="btn_columns"') === false, 'the toolbar button is gone');
+    }
 }

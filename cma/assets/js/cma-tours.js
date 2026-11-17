@@ -313,15 +313,6 @@
             });
         }
 
-        // 4. Column selector
-        if (document.querySelector('#btn_columns')) {
-            steps.push({
-                target: '#btn_columns',
-                title: 'Kolommen kiezen',
-                content: '<p>Selecteer welke kolommen zichtbaar zijn en pas de volgorde aan.</p>',
-                position: 'bottom'
-            });
-        }
 
         // 5. Add button
         if (document.querySelector('#btn_add')) {
