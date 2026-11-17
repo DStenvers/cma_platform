@@ -42,6 +42,8 @@ class TableFilterEmptyNoticeTest extends TestCase
         $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
         $this->assertTrue(strpos($js, "eye.className = 'lib-table-col-eye'") !== false, 'an eye per column header');
         $this->assertTrue(strpos($js, 'openFieldChooser() {') !== false, 'the field chooser is a method of lib-table');
+        $this->assertTrue(strpos($js, '_applyColumnOrder() {') !== false && strpos($js, "draggable=\"true\"") !== false, 'columns can be reordered (drag in the chooser)');
+        $this->assertTrue(strpos($js, "lib-table-cols-notice toelichting") !== false, 'the notice carries the front-end explanation class');
         $this->assertTrue(strpos($js, 'Verbergen en het filter uitzetten?') !== false, 'asks before hiding a filtered column');
         $this->assertTrue(strpos($js, 'this._restoreHiddenColumns();') !== false, 'hidden columns come back after a render');
         $prefs = (string) file_get_contents(__DIR__ . '/../assets/js/table-preferences.js');

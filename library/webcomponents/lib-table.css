@@ -1033,27 +1033,34 @@ lib-table .lib-table-col-eye i.lnr { font-style: normal; font-size: inherit; lin
 lib-table .lib-table-col-eye i.lnr::before { font-size: inherit; color: inherit }
 lib-table th:has(.menutrigger) .lib-table-col-eye-item { display: none }
 
-lib-table .lib-table-cols-notice {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 8px;
-    font-size: 12px;
-    color: var(--text-muted, #666);
-}
-lib-table .lib-table-cols-notice button {
+/* "n kolommen verborgen": a plain explanation line under the table. A host page styles it as it styles its
+   own explanations (the front-end: p.toelichting); this is only the fallback. */
+lib-table .lib-table-cols-notice { margin: 8px 0 0; font-size: 12px; color: var(--text-muted, #666) }
+lib-table .lib-table-cols-notice button.lib-table-cols-link {
     cursor: pointer;
-    border: 1px solid var(--color-primary, #077ab2);
-    background: transparent;
-    color: var(--color-primary, #077ab2);
-    border-radius: 4px;
-    padding: 2px 10px;
+    border: 0;
+    background: none;
+    padding: 0;
     font: inherit;
+    color: inherit;
+    text-decoration: underline;
 }
 
-.lt-chooser-list { list-style: none; margin: 0; padding: 0 }
-.lt-chooser-item { margin-bottom: 4px; background: var(--bg-surface-alt, #f8f9fa); border: 1px solid var(--border-color, #ddd); border-radius: 4px }
-.lt-chooser-item:hover { background: var(--bg-hover, #eef1f4) }
-.lt-chooser-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; padding: 10px 12px }
-.lt-chooser-all { margin-right: auto }
+/* Field chooser (inside <lib-dialog>): a toolbar with "Alles" and the move arrows, then flat rows with a drag handle. */
+.lt-chooser-toolbar { display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 8px; border-bottom: 1px solid var(--border-color, #ddd); background: var(--bg-surface-alt, #f8f8f8) }
+.lt-chooser-toolbar label { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; cursor: pointer }
+.lt-chooser-toolbar .lt-chooser-spacer { flex: 1 }
+.lt-chooser-toolbar a { cursor: pointer; color: inherit; text-decoration: none; padding: 2px 4px }
+.lt-chooser-toolbar a:hover { color: var(--color-primary, #077ab2) }
+.lt-chooser-list { margin: 0; padding: 0; max-height: 50vh; overflow-y: auto }
+.lt-chooser-list:focus { outline: none }
+.lt-chooser-item { display: flex; align-items: center; margin: 0; padding: 5px 8px; border: 1px solid transparent; border-bottom: 1px solid #eee; background: var(--bg-surface, #fff); cursor: grab }
+.lt-chooser-item:hover { background: var(--bg-hover, #d0e8f8) }
+.lt-chooser-item.focused { background: var(--bg-hover, #d0e8f8); border-color: var(--border-hover, #077ab2) }
+.lt-chooser-item.dragging { opacity: .5 }
+.lt-chooser-item.drag-over { border-top: 2px solid var(--color-primary, #077ab2) }
+.lt-chooser-item.fixed { cursor: default; background: var(--bg-surface-alt, #f8f8f8) }
+.lt-chooser-handle { color: #999; margin-right: 8px; min-width: 1em }
+.lt-chooser-item label { display: flex; align-items: center; gap: 8px; flex: 1; margin: 0; padding: 0; cursor: pointer }
+.lt-chooser-item input[type=checkbox], .lt-chooser-toolbar input[type=checkbox] { margin: 0 }
+.lt-chooser-reset { margin-right: auto }

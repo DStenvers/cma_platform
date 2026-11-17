@@ -1668,6 +1668,7 @@ class LibTable extends HTMLElement {
         // Hele rij klikbaar maken wanneer row-href is gezet
         this._initializeRowLinks();
 
+        this._restoreColumnOrder();
         this._applyNoWrap();
 
         // Initialize filtering on each column
@@ -3024,6 +3025,7 @@ class LibTable extends HTMLElement {
         });
         // Re-collect rows and rebuild filters
         this._rows = Array.from(this._table.querySelectorAll('tbody tr'));
+        this._restoreColumnOrder();
         this._applyNoWrap();
         this._initializeFilters();
         this._restoreFilters();
@@ -3163,15 +3165,16 @@ class LibTable extends HTMLElement {
             notice.querySelector('span').textContent = tekst;
             return;
         }
-        notice = document.createElement('div');
-        notice.className = 'lib-table-cols-notice';
+        notice = document.createElement('p');
+        notice.className = 'lib-table-cols-notice toelichting';
         const span = document.createElement('span');
         span.textContent = tekst;
         const knop = document.createElement('button');
         knop.type = 'button';
+        knop.className = 'lib-table-cols-link';
         knop.textContent = 'Kolommen kiezen';
         knop.addEventListener('click', () => this.openFieldChooser());
-        notice.append(span, knop);
+        notice.append(span, document.createTextNode('. '), knop);
         this._table.insertAdjacentElement('afterend', notice);
         this._colsNotice = notice;
     }
@@ -3222,7 +3225,83 @@ class LibTable extends HTMLElement {
         this._applyHiddenColumns();
     }
 
-    /** Public: the field chooser, a standard <lib-dialog> with a checkbox per column. */
+    // --- Column order ---------------------------------------------------------
+    // The chosen order is remembered per list (cma_tableColOrder_*). Cells are moved in the header and in every
+    // row; each row carries the order it is in now (data-lt-order), so rows that arrive later in the server's
+    // order (scrolling, refresh) are brought in line too. The first column (export menu / row actions) stays put.
+
+    _headerIds() {
+        return Array.from(this._table.querySelectorAll(':scope > thead th')).map((th) => {
+            const clicker = th.querySelector('.clicker');
+            const caption = ((clicker ? clicker.textContent : th.textContent) || '').replace(/\s+/g, ' ').trim();
+            return (th.dataset && th.dataset.field) || caption;
+        });
+    }
+
+    _colOrderKey() {
+        const key = this._filterStorageKey();
+        return key ? key.replace('cma_tableFilter_', 'cma_tableColOrder_') : null;
+    }
+
+    _restoreColumnOrder() {
+        if (!this._table) return;
+        if (!this._colOrigIds) this._colOrigIds = this._headerIds();
+        this._colOrder = [];
+        const key = this._colOrderKey();
+        if (key) {
+            try {
+                const raw = localStorage.getItem(key);
+                const list = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(list)) this._colOrder = list.filter(x => typeof x === 'string');
+            } catch (e) { /* nothing remembered */ }
+        }
+        this._applyColumnOrder();
+    }
+
+    _saveColumnOrder() {
+        const key = this._colOrderKey();
+        if (!key) return;
+        try {
+            if (this._colOrder.length) localStorage.setItem(key, JSON.stringify(this._colOrder));
+            else localStorage.removeItem(key);
+        } catch (e) { /* non-fatal */ }
+    }
+
+    _applyColumnOrder() {
+        if (!this._table) return;
+        const ids = this._headerIds();
+        const n = ids.length;
+        const orig = this._colOrigIds || ids;
+        // The columns that may move: identified ones, not the first.
+        const slots = [];
+        ids.forEach((id, i) => { if (i > 0 && id) slots.push(i); });
+        const movable = slots.map(i => ids[i]);
+        const origMovable = orig.filter(id => id && movable.includes(id) && orig.indexOf(id) > 0);
+        const saved = (this._colOrder || []).filter(id => movable.includes(id));
+        const wanted = saved.concat(origMovable.filter(id => !saved.includes(id)));
+        const target = ids.slice();
+        slots.forEach((slot, k) => { target[slot] = wanted[k]; });
+        const sig = target.join('\u0001');
+        const rows = this._table.querySelectorAll(':scope > thead > tr, :scope > tbody > tr, :scope > tfoot > tr');
+        rows.forEach((row) => {
+            const cells = Array.from(row.children);
+            if (cells.length !== n) return;
+            const rowIds = row.dataset.ltOrder ? row.dataset.ltOrder.split('\u0001') : (row.parentElement.tagName === 'THEAD' ? ids : orig);
+            if (rowIds.length !== n) return;
+            if (rowIds.join('\u0001') === sig) { row.dataset.ltOrder = sig; return; }
+            const byId = {};
+            rowIds.forEach((id, i) => { if (id) byId[id] = cells[i]; });
+            const next = cells.slice();
+            for (const slot of slots) {
+                if (!byId[target[slot]]) return;
+                next[slot] = byId[target[slot]];
+            }
+            next.forEach(c => row.appendChild(c));
+            row.dataset.ltOrder = sig;
+        });
+    }
+
+    /** Public: the field chooser, a standard <lib-dialog>: show/hide per column and drag to reorder. */
     async openFieldChooser() {
         if (!this._table || document.querySelector('lib-dialog[data-lt-chooser]')) return;
         const hidden = this._hiddenCols || [];
@@ -3233,34 +3312,86 @@ class LibTable extends HTMLElement {
         dialog.setAttribute('no-maximize', '');
         dialog.setAttribute('heading', 'Kolommen kiezen');
         dialog.setAttribute('size', 'small');
-        dialog.innerHTML = '<ul class="lt-chooser-list">'
-            + kolommen.map((c, i) => {
-                const vast = !!c.th.querySelector('.menutrigger, .export-menu');
-                return '<li class="lt-chooser-item"><label><input type="checkbox" data-i="' + i + '"'
-                    + (hidden.includes(c.id) ? '' : ' checked') + (vast ? ' disabled' : '') + '> ' + esc(c.caption || c.id) + '</label></li>';
-            }).join('')
-            + '</ul>'
+        const vast = (c) => c.column === 0;
+        const rij = (c, i) => '<div class="lt-chooser-item' + (vast(c) ? ' fixed' : '') + '" data-i="' + i + '"' + (vast(c) ? '' : ' draggable="true"') + '>'
+            + '<span class="lt-chooser-handle">' + (vast(c) ? '&nbsp;' : '&#9776;') + '</span>'
+            + '<label><input type="checkbox"' + (hidden.includes(c.id) ? '' : ' checked')
+            + (c.th.querySelector('.menutrigger, .export-menu') ? ' disabled' : '') + '> <span class="lt-chooser-name">' + esc(c.caption || c.id) + '</span></label></div>';
+        dialog.innerHTML = '<div class="lt-chooser-toolbar"><label><input type="checkbox" class="lt-chooser-allcb"> Alles</label>'
+            + '<span class="lt-chooser-spacer"></span>'
+            + '<a href="javascript:void(0)" class="lt-chooser-up" title="Omhoog"><i class="lnr lnr-chevron-up"></i></a>'
+            + '<a href="javascript:void(0)" class="lt-chooser-down" title="Omlaag"><i class="lnr lnr-chevron-down"></i></a></div>'
+            + '<div class="lt-chooser-list" tabindex="0">' + kolommen.map(rij).join('') + '</div>'
             + '<div slot="footer">'
-            + '<button type="button" class="lt-chooser-all">Alles tonen</button>'
+            + '<button type="button" class="lt-chooser-reset">Standaard</button>'
             + '<button type="button" class="btn-cancel" onclick="this.closest(\'lib-dialog\').close(false)">Annuleren</button>'
             + '<button type="button" class="btn-primary" onclick="this.closest(\'lib-dialog\').close(true)">Opslaan</button>'
             + '</div>';
-        dialog.querySelector('.lt-chooser-all').addEventListener('click', () => {
-            dialog.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = true; });
+        const lijst = dialog.querySelector('.lt-chooser-list');
+        const allCb = dialog.querySelector('.lt-chooser-allcb');
+        const items = () => Array.from(lijst.querySelectorAll('.lt-chooser-item'));
+        const boxes = () => items().map(it => it.querySelector('input')).filter(cb => !cb.disabled);
+        const syncAll = () => { const b = boxes(); allCb.checked = b.length > 0 && b.every(cb => cb.checked); };
+        syncAll();
+        allCb.addEventListener('change', () => { boxes().forEach(cb => { cb.checked = allCb.checked; }); });
+        lijst.addEventListener('change', syncAll);
+        // Select a row (click outside the checkbox) to move it with the arrows.
+        let gekozen = null;
+        const kies = (it) => { items().forEach(x => x.classList.remove('focused')); gekozen = it; if (it) it.classList.add('focused'); };
+        lijst.addEventListener('click', (e) => { const it = e.target.closest('.lt-chooser-item'); if (it && !e.target.closest('input')) kies(it); });
+        const verplaats = (richting) => {
+            if (!gekozen || gekozen.classList.contains('fixed')) return;
+            const buur = richting < 0 ? gekozen.previousElementSibling : gekozen.nextElementSibling;
+            if (!buur || buur.classList.contains('fixed')) return;
+            if (richting < 0) lijst.insertBefore(gekozen, buur); else lijst.insertBefore(buur, gekozen);
+            gekozen.scrollIntoView({ block: 'nearest' });
+        };
+        dialog.querySelector('.lt-chooser-up').addEventListener('click', () => verplaats(-1));
+        dialog.querySelector('.lt-chooser-down').addEventListener('click', () => verplaats(1));
+        // Drag and drop.
+        let sleep = null;
+        lijst.addEventListener('dragstart', (e) => { const it = e.target.closest('.lt-chooser-item'); if (!it || it.classList.contains('fixed')) return; sleep = it; it.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+        lijst.addEventListener('dragend', () => { if (sleep) sleep.classList.remove('dragging'); sleep = null; lijst.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over')); });
+        lijst.addEventListener('dragover', (e) => { const it = e.target.closest('.lt-chooser-item'); if (!sleep || !it || it === sleep) return; e.preventDefault(); lijst.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over')); if (!it.classList.contains('fixed')) it.classList.add('drag-over'); });
+        lijst.addEventListener('drop', (e) => {
+            const it = e.target.closest('.lt-chooser-item');
+            if (!sleep || !it || it === sleep || it.classList.contains('fixed')) return;
+            e.preventDefault();
+            const alle = items();
+            if (alle.indexOf(sleep) < alle.indexOf(it)) lijst.insertBefore(sleep, it.nextSibling); else lijst.insertBefore(sleep, it);
         });
+        let standaard = false;
+        dialog.querySelector('.lt-chooser-reset').addEventListener('click', () => { standaard = true; dialog.close(true); });
         document.body.appendChild(dialog);
         const ok = await dialog.open();
-        const nieuw = [];
-        dialog.querySelectorAll('input[type=checkbox]').forEach((cb) => {
-            if (!cb.checked && !cb.disabled) nieuw.push(kolommen[parseInt(cb.dataset.i, 10)].id);
+        const nieuwVerborgen = [];
+        const nieuweVolgorde = [];
+        items().forEach((it) => {
+            const c = kolommen[parseInt(it.dataset.i, 10)];
+            if (!vast(c)) nieuweVolgorde.push(c.id);
+            const cb = it.querySelector('input');
+            if (!cb.checked && !cb.disabled) nieuwVerborgen.push(c.id);
         });
         dialog.remove();
         if (!ok) return;
-        const erbijVerborgen = nieuw.filter(id => !hidden.includes(id));
+        const verborgen = standaard ? [] : nieuwVerborgen;
+        const volgorde = standaard ? [] : nieuweVolgorde;
+        const erbijVerborgen = verborgen.filter(id => !hidden.includes(id));
         if (!(await this._confirmHideFiltered(erbijVerborgen))) return;
-        this._hiddenCols = nieuw;
+        const huidig = kolommen.filter(c => !vast(c)).map(c => c.id);
+        const doel = standaard ? (this._colOrigIds || huidig).filter(id => huidig.includes(id)) : volgorde;
+        const orderChanged = huidig.join('\u0001') !== doel.join('\u0001');
+        this._hiddenCols = verborgen;
         this._saveHiddenColumns();
-        this._applyHiddenColumns();
+        if (orderChanged) {
+            this._saveFilters();
+            this._colOrder = volgorde;
+            this._saveColumnOrder();
+            this._applyColumnOrder();
+            this.refresh();
+        } else {
+            this._applyHiddenColumns();
+        }
     }
 
     // --- Column-filter persistence (localStorage) --------------------------
@@ -3277,7 +3408,11 @@ class LibTable extends HTMLElement {
         var form = this._table.getAttribute('data-json-form') ||
                    this._table.getAttribute('data-name') || '';
         if (form) return 'cma_tableFilter_' + form;
-        var caps = this._filterMenus.map(function(fm) { return fm.caption || ''; }).join('|');
+        // Captions from the header cells (the menus may not exist yet), sorted: moving a column must not change the key.
+        var caps = Array.from(this._table.querySelectorAll(':scope > thead th')).map(function(th) {
+            var c = th.querySelector('.clicker') || th;
+            return (c.textContent || '').replace(/\s+/g, ' ').trim();
+        }).sort().join('|');
         if (!caps.replace(/\|/g, '')) return null;
         return 'cma_tableFilter_' + location.pathname + '::' + caps;
     }
