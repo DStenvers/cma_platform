@@ -1,6 +1,9 @@
 /**
  * lib-fileuploader Web Component
  *
+ * Voor nieuwe schermen: gebruik <lib-uploader> (lib-uploader.js): dezelfde attributen, in de standaardopmaak (lichtpaars, dropzone, bestandsnaam als link) en met dezelfde gebeurtenissen.
+ * Dit bestand blijft bestaan voor de plekken die het al gebruiken (o.a. het CMA).
+ *
  * Modern replacement for the FineUploader jQuery plugin.
  * Uses native fetch() + FormData for file uploads with Shadow DOM encapsulation.
  *
