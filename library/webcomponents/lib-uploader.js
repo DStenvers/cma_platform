@@ -31,6 +31,7 @@
  *   --lib-uploader-tint     vulling van de knop        (standaard rgba(178, 92, 255, .10))
  *   --lib-uploader-hover    vulling bij hover/slepen   (standaard #ead9ff)
  *   --lib-uploader-danger   foutmelding                (standaard var(--btn-delete, #c0392b))
+ *   --lib-uploader-max-width maximale breedte          (standaard 100%: de volle breedte van de plek waar hij staat)
  *   Pictogrammen: het lettertype "LinearIcons" van de pagina (upload e8f4, bestand e6b3, afbeelding e90d, kruis e92a); is dat er niet, dan staan er geen pictogrammen.
  *
  * Gebeurtenissen (bubbelen):
@@ -305,7 +306,7 @@ class LibUploader extends HTMLElement {
 }
 
 LibUploader.CSS = [
-    ':host { display: block; max-width: 420px; margin: 3px 0 12px; font: inherit; color: var(--lib-uploader-text, var(--dark_purple, #220037)) }',
+    ':host { display: block; max-width: var(--lib-uploader-max-width, 100%); margin: 3px 0 12px; font: inherit; color: var(--lib-uploader-text, var(--dark_purple, #220037)) }',
     ':host([hidden]) { display: none }',
     '.uploader { position: relative; --a: var(--lib-uploader-accent, var(--lighter_purple, #b25cff)); --t: var(--lib-uploader-text, var(--dark_purple, #220037)); --tint: var(--lib-uploader-tint, rgba(178, 92, 255, .10)); --hover: var(--lib-uploader-hover, #ead9ff); --danger: var(--lib-uploader-danger, var(--btn-delete, #c0392b)) }',
     '.uploader.iconen .icon::before { font-family: "LinearIcons"; font-style: normal; font-weight: 400; speak: none }',

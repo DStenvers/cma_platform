@@ -57,6 +57,14 @@ class LibUploaderTest extends TestCase
         }
     }
 
+    public function testDeUploaderIsStandaardVolleBreedte(): void
+    {
+        foreach (['lib-uploader.js', 'lib-uploader.min.js'] as $bestand) {
+            $js = $this->bron($bestand);
+            $this->assertTrue(strpos($js, '--lib-uploader-max-width') !== false && strpos($js, '420px') === false, "$bestand: volle breedte, geen vaste 420px");
+        }
+    }
+
     public function testMinifiedVersieHeeftHetElement(): void
     {
         $min = $this->bron('lib-uploader.min.js');
