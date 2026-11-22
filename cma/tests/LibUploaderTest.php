@@ -48,6 +48,15 @@ class LibUploaderTest extends TestCase
         $this->assertTrue(strpos($css, 'font-family: "LinearIcons"') !== false && strpos($css, '\\\\e8f4') !== false, 'pictogrammen uit het lettertype LinearIcons');
     }
 
+    public function testDeMeldingBijEenOnbekendTypeIsVriendelijk(): void
+    {
+        foreach (['lib-uploader.js', 'lib-uploader.min.js', 'lib-fileuploader.js', 'lib-fileuploader.min.js'] as $bestand) {
+            $js = $this->bron($bestand);
+            $this->assertTrue(strpos($js, 'De volgende bestandstypen worden ondersteund') !== false, "$bestand zegt \"worden ondersteund\"");
+            $this->assertTrue(strpos($js, 'zijn toegestaan') === false, "$bestand zegt niet meer \"zijn toegestaan\"");
+        }
+    }
+
     public function testMinifiedVersieHeeftHetElement(): void
     {
         $min = $this->bron('lib-uploader.min.js');

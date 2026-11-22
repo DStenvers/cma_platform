@@ -646,7 +646,7 @@ class LibFileUploader extends HTMLElement {
             items.push('- ' + label);
         }
 
-        return 'De volgende bestandstypen zijn toegestaan:<br>' + items.join('<br>');
+        return 'De volgende bestandstypen worden ondersteund:<br>' + items.join('<br>');
     }
 
     _escHtml(str) {

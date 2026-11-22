@@ -19,7 +19,7 @@
  *   - max-size:    maximale grootte in bytes (standaard 10 MB; of window.CMA.settings.uploadMaxMb in het CMA)
  *   - button-text: tekst op de knop (standaard "Plaats bestand")
  *   - drop-text:   tekst tijdens het slepen (standaard "Laat het bestand hier los")
- *   - type-error:  eigen melding bij een niet toegestaan type (html); standaard uit de extensies
+ *   - type-error:  eigen melding bij een niet ondersteund type (html); standaard uit de extensies
  *   - multiple:    meerdere bestanden; het veld krijgt de namen gescheiden door ";"
  *   - link-base:   adres waarop een geplaatst bestand te openen is (standaard `path`)
  *   - removable:   toon een kruisje om een geplaatst bestand te verwijderen (uit de lijst en uit het veld)
@@ -295,7 +295,7 @@ class LibUploader extends HTMLElement {
             gezien[e] = true;
             regels.push('- ' + (namen[e] || '.' + e));
         });
-        return 'De volgende bestandstypen zijn toegestaan:<br>' + regels.join('<br>');
+        return 'De volgende bestandstypen worden ondersteund:<br>' + regels.join('<br>');
     }
 
     _grootte(bytes) {
