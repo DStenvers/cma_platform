@@ -14,7 +14,7 @@
  * Het beheerscherm is de weg via de browser.
  *
  *   php cma/migrate.php                 openstaande migraties toepassen
- *   php cma/migrate.php --check         alleen tonen wat openstaat (past niets toe)
+ *   php cma/migrate.php --check         alleen tonen wat openstaat (past niets toe); zet of wist wel het vlagbestand migrations_pending.flag
  *   php cma/migrate.php --no-backup     zonder databaseback-up vooraf
  *
  * Exitcodes: 0 = niets te doen of alles toegepast, 1 = migratie mislukt,
@@ -63,6 +63,8 @@ if ($onbekend !== []) {
 
 $service = new MigrationService($backup);
 $pending = $service->getPendingMigrations();
+// De vlag migrations_pending.flag volgt wat er openstaat, ook met --check: zo zet de deploy hem na een update (migraties uit, of mislukt) en wist hij hem na een geslaagde uitvoer.
+\App\Library\MigrationFlag::sync(count($pending));
 
 if ($pending === []) {
     echo "Geen openstaande migraties.\n";

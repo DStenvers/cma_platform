@@ -69,6 +69,10 @@
  *                            the pool is never recycled onto a schema that isn't
  *                            there yet. 0 or "-" runs no migrations (then apply
  *                            them by hand in Beheer -> Migraties).
+ *                            Either way the file migrations_pending.flag (site root) follows what
+ *                            is still pending (`php cma/migrate.php` / `--check` sync it, so does the
+ *                            CMA migration screen too): present = the front-end can show a banner via
+ *                            App\Library\MigrationFlag::bannerHtml(), absent = nothing pending.
  *   DEPLOY_MIGRATE_BACKUP    1 (default) = back up the databases before migrating.
  *                            0 skips the backup (faster, no safety net).
  *   DEPLOY_RECYCLE_TOUCH     file to touch on success (IIS app-pool recycle).
@@ -608,6 +612,23 @@ if (!$failed && $migrate !== '0' && $migrate !== '-' && $migrate !== '') {
                 $log('FAIL: migrations failed — skipping recycle + post-hook (production stays on old code)');
             }
         }
+    }
+} elseif (!$failed && is_file($ROOT . '/cma/migrate.php')) {
+    // De deploy past de migraties zelf niet toe (DEPLOY_MIGRATE=0): zet toch de vlag migrations_pending.flag als er iets openstaat, zodat de site dat laat zien. `--check` past niets toe
+    // en werkt het vlagbestand bij (zie App\Library\MigrationFlag). Best effort: een fout hier laat de deploy niet mislukken.
+    $phpCheck = null;
+    foreach (['php', '"' . PHP_BINDIR . DIRECTORY_SEPARATOR . 'php' . ($isWin ? '.exe' : '') . '"', '"' . PHP_BINARY . '"'] as $candidate) {
+        $probe = [];
+        $pexit = 0;
+        @exec($isWin ? 'cmd /c "' . $candidate . ' -v" 2>&1' : $candidate . ' -v 2>&1', $probe, $pexit);
+        if ($pexit === 0) {
+            $phpCheck = $candidate;
+            break;
+        }
+    }
+    if ($phpCheck !== null) {
+        $run($phpCheck . ' cma/migrate.php --check');
+        $log('migrations not applied by the deploy (DEPLOY_MIGRATE off): pending-migrations flag updated');
     }
 }
 

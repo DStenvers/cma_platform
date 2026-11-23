@@ -11,6 +11,7 @@ namespace Cma\Services;
 
 use App\Library\Arr;
 use App\Library\Database;
+use App\Library\MigrationFlag;
 use App\Library\SQL;
 
 class MigrationService
@@ -447,6 +448,7 @@ class MigrationService
 
         if (empty($pending)) {
             $this->log[] = "Geen openstaande migraties gevonden.";
+            $this->syncFlag();
             return [
                 'success' => true,
                 'applied' => [],
@@ -497,6 +499,8 @@ class MigrationService
             $this->log[] = "Alle migraties succesvol toegepast!";
             $this->log[] = "════════════════════════════════════════════════";
         }
+
+        $this->syncFlag();
 
         return [
             'success' => empty($errors),
@@ -1752,6 +1756,7 @@ class MigrationService
         $this->log[] = "Versie {$version}: {$migration['description']}";
 
         $result = $this->applyMigration($migration);
+        $this->syncFlag();
 
         if ($result['success']) {
             $this->log[] = "✓ Migratie {$version} succesvol opnieuw uitgevoerd";
@@ -1819,6 +1824,7 @@ class MigrationService
         $this->log[] = "Versie {$version}: {$migration['description']}";
 
         $result = $this->applyMigration($migration);
+        $this->syncFlag();
 
         if ($result['success']) {
             $this->log[] = "✓ Versie {$version} succesvol toegepast";
@@ -1887,6 +1893,23 @@ class MigrationService
     public function hasPendingMigrations(): bool
     {
         return count($this->getPendingMigrations()) > 0;
+    }
+
+    /**
+     * Zet of wist het vlagbestand migrations_pending.flag naar het aantal migraties dat nu openstaat (zie MigrationFlag). Wordt na elke uitvoer aangeroepen, dus ook na een
+     * uitvoer in het CMA of op de opdrachtregel; de front-end-banner leest alleen dat bestand. Een fout hier mag een migratie nooit laten mislukken.
+     *
+     * @return int het aantal openstaande migraties (0 als het niet te bepalen was)
+     */
+    public function syncFlag(): int
+    {
+        try {
+            $aantal = count($this->getPendingMigrations());
+            MigrationFlag::sync($aantal);
+            return $aantal;
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     // =========================================================================
