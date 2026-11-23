@@ -8,6 +8,7 @@
  */
 
 use App\Library\Error;
+use App\Library\MigrationFlag;
 use App\Library\Request;
 use App\Library\Response;
 use App\Library\Session;
@@ -139,6 +140,22 @@ $migrationService = new MigrationService(); // Reload to get fresh state
 $pendingMigrations = $migrationService->getPendingMigrations();
 $allMigrations = $migrationService->getAllMigrations();
 
+// De vlag migrations_pending.flag (zie MigrationFlag) hoort te volgen wat er echt openstaat. Dit scherm weet dat het nauwkeurigst en herstelt een afwijking zelf, zonder knop,
+// en meldt het: een vlag zonder openstaande migraties (de banner in de site bleef onterecht staan) wordt gewist, een ontbrekende vlag bij openstaande migraties wordt gezet.
+$vlagMelding = '';
+try {
+    $vlagStond = MigrationFlag::exists();
+    $aantalOpen = count($pendingMigrations);
+    MigrationFlag::sync($aantalOpen);
+    if ($vlagStond && $aantalOpen === 0) {
+        $vlagMelding = 'De vlag "er staan migraties open" stond er onterecht en is automatisch gereset: er staan geen migraties open. De melding in de site verdwijnt hiermee.';
+    } elseif (!$vlagStond && $aantalOpen > 0) {
+        $vlagMelding = 'De vlag "er staan migraties open" ontbrak terwijl er ' . $aantalOpen . ' migratie' . ($aantalOpen === 1 ? ' openstaat' : 's openstaan') . ' en is automatisch gezet. De melding in de site is hiermee weer zichtbaar.';
+    }
+} catch (\Throwable $e) {
+    // De vlag is een hulpmiddel: het scherm gaat altijd door.
+}
+
 // Per bron (platform eerst, dan de site), en binnen een bron de nieuwste bovenaan.
 // Niet alle bronnen op versie door elkaar: 0.1.0 van de site en 9.23.0 van het platform
 // zijn geen punten op één lijn.
@@ -209,6 +226,11 @@ if (!empty($warnings)) {
         echo '<li style="white-space:pre-wrap;margin-bottom:10px;">' . nl2br(htmlspecialchars($warning)) . '</li>';
     }
     echo '</ul></lib-message>';
+}
+
+// De vlag stond er onterecht (of ontbrak) en is hersteld: melden.
+if ($vlagMelding !== '') {
+    echo '<lib-message type="info" closable><span class="cma-tool__strong">Migratievlag hersteld.</span> ' . htmlspecialchars($vlagMelding) . '</lib-message>';
 }
 
 // HIDDEN: Current Versions Section - commented out per user request
