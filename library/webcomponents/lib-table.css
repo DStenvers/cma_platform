@@ -148,12 +148,6 @@ lib-table table thead th,
     margin-top: 0px;
 }
 
-/* Number header padding */
-lib-table table thead th[data-type="number"],
-.listtable thead th[data-type="number"] {
-    padding-right: 0px !important;
-}
-
 /* ==========================================================================
    4. Cell styling (td, data-types)
    ========================================================================== */
