@@ -967,6 +967,16 @@ lib-table td[data-type="decimal"],
 lib-table td[data-type="currency"],
 lib-table td[data-type="integer"] { text-align: right; min-width: 40px }
 
+/* Columns lib-table recognised as numeric (see _applyNumericAlignment): header and cells */
+lib-table th.lt-num,
+lib-table td.lt-num,
+.listtable th.lt-num,
+.listtable td.lt-num { text-align: right }
+
+lib-table th.lt-num .clicker { display: inline-block }
+
+lib-table th.lt-num .dropdown-filter-dropdown { float: none; margin-right: 4px }
+
 /* .listtable scoped (standalone tables) */
 .listtable th[data-type="number"],
 .listtable th[data-type="int"],

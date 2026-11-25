@@ -1681,6 +1681,8 @@ class LibTable extends HTMLElement {
         // Initialize export menu
         this._initializeExportMenu();
 
+        this._applyNumericAlignment();
+
         // Update row striping
         this._updateView();
 
@@ -1879,6 +1881,26 @@ class LibTable extends HTMLElement {
             if (!th.hasAttribute('data-no-wrap')) return;
             this._table.querySelectorAll(`:scope > tbody > tr > td:nth-child(${column + 1})`)
                 .forEach(td => td.classList.add('no-wrap'));
+        });
+    }
+
+    // Numeric columns are right-aligned, header and cells alike: a column is numeric when its <th> says so
+    // (data-type number/integer/int/decimal/float/currency) or, when the <th> names no type, when every filled
+    // cell holds a plain number, amount or percentage. data-type="text" (or any other type) opts out.
+    _applyNumericAlignment() {
+        const typed = ['number', 'integer', 'int', 'decimal', 'float', 'currency'];
+        const looksNumeric = /^[-+\u2212]?\s*(?:[\u20ac$\u00a3]\s*)?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?\s*%?$/;
+        const rows = Array.from(this._table.querySelectorAll(':scope > tbody > tr'));
+        this._table.querySelectorAll(':scope > thead th').forEach((th, column) => {
+            const type = th.dataset.type;
+            const cells = rows.map(tr => tr.children[column]).filter(td => td && td.tagName === 'TD' && td.colSpan === 1);
+            let numeric = typed.includes(type);
+            if (!type) {
+                const filled = cells.map(td => td.textContent.replace(/\s+/g, ' ').trim()).filter(t => t !== '');
+                numeric = filled.length > 0 && filled.every(t => looksNumeric.test(t));
+            }
+            th.classList.toggle('lt-num', numeric);
+            cells.forEach(td => td.classList.toggle('lt-num', numeric));
         });
     }
 
@@ -3030,6 +3052,7 @@ class LibTable extends HTMLElement {
         this._initializeFilters();
         this._restoreFilters();
         this._restoreHiddenColumns();
+        this._applyNumericAlignment();
         // Resetting th.innerHTML above also wiped the export menu (it lives in the
         // first th's .th-header-wrapper); rebuild it like the first initialisation does.
         this._initializeExportMenu();

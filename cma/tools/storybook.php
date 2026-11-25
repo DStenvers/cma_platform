@@ -2399,7 +2399,7 @@ html.dark-mode .hex-dark { display: inline; }
                 <h4>Kolom attributen (th)</h4>
                 <dl>
                     <dt>data-type</dt>
-                    <dd>Kolomtype: <code>text</code>, <code>number</code>, <code>date</code>, <code>currency</code></dd>
+                    <dd>Kolomtype: <code>text</code>, <code>number</code>, <code>date</code>, <code>currency</code>. Getalkolommen (<code>number</code>, <code>integer</code>, <code>decimal</code>, <code>currency</code>) staan rechts uitgelijnd, kop en cellen. Heeft de kop geen <code>data-type</code>, dan is de kolom ook rechts uitgelijnd als alle gevulde cellen een getal, bedrag of percentage zijn. <code>data-type="text"</code> zet dat uit.</dd>
                     <dt>data-no-sort</dt>
                     <dd>Schakel sorteren uit voor deze kolom</dd>
                     <dt>data-no-wrap</dt>
