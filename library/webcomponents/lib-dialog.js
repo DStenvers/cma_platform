@@ -40,6 +40,14 @@
  *           map, a gallery, a wide table. It takes a fixed 80vw x 90vh and keeps
  *           its footer, which is what separates it from fullscreen.
  *   - closable: If "false", hides close button AND disables Escape/backdrop close (default: true)
+ *   - stack: "true" | "false" - overrides LibDialog.stack for this dialog (see Stacking)
+ *
+ * Stacking:
+ *   Opening a dialog while another one is open puts it on top. With LibDialog.stack = true (default: false) the
+ *   dialog underneath stays recognisable: every dialog above the first is shifted LibDialog.stackOffset px
+ *   (default 24) down and to the right per level, so the edge and title bar of the one below remain visible, and
+ *   its own backdrop is lighter so the dialogs below are dimmed instead of blacked out. Escape, Enter and a click
+ *   next to the dialog always act on the top dialog only, with or without stacking.
  *
  * Events:
  *   - dialog-open: Fired when dialog opens
@@ -214,6 +222,7 @@ class LibDialog extends HTMLElement {
         //     z-index sources. max(manager, walker+1) reconciles them.
         // With no library.js loaded at all, the CSS default (max int) still wins.
         this._dialogId = 'lib-dialog-' + Date.now();
+        LibDialog._register(this);
         const backdrop = this.shadowRoot.querySelector('.dialog-backdrop');
         if (backdrop) {
             // Neutralise our own backdrop first so the walker doesn't count it.
@@ -260,6 +269,8 @@ class LibDialog extends HTMLElement {
             this._updateMaximizeButton(false);
         }
 
+        LibDialog._unregister(this);
+
         // Remove from z-index manager
         if (this._dialogId && typeof lib_zindex_manager !== 'undefined') {
             lib_zindex_manager.pop(this._dialogId);
@@ -282,6 +293,51 @@ class LibDialog extends HTMLElement {
             this._resolvePromise(confirmed);
             this._resolvePromise = null;
         }
+    }
+
+    // --- stacking ----------------------------------------------------------------------------------
+
+    /** Does this dialog show itself as part of a stack? The attribute wins over LibDialog.stack. */
+    get _stacks() {
+        const attr = this.getAttribute('stack');
+        if (attr === 'false') return false;
+        if (attr === 'true') return true;
+        return LibDialog.stack === true;
+    }
+
+    static _register(dialog) {
+        const open = LibDialog._open;
+        const i = open.indexOf(dialog);
+        if (i >= 0) open.splice(i, 1);
+        open.push(dialog);
+        LibDialog._refreshStack();
+    }
+
+    static _unregister(dialog) {
+        const open = LibDialog._open;
+        const i = open.indexOf(dialog);
+        if (i >= 0) open.splice(i, 1);
+        LibDialog._refreshStack();
+        dialog._applyStack(0);
+    }
+
+    static _isTop(dialog) {
+        const open = LibDialog._open;
+        return open.length === 0 || open[open.length - 1] === dialog;
+    }
+
+    /** Give every open dialog its level in the stack (0 = the bottom one, or not stacked). */
+    static _refreshStack() {
+        LibDialog._open.forEach((d, level) => d._applyStack(level));
+    }
+
+    _applyStack(level) {
+        const backdrop = this.shadowRoot && this.shadowRoot.querySelector('.dialog-backdrop');
+        if (!backdrop) return;
+        const stacked = level > 0 && this._stacks;
+        backdrop.classList.toggle('stacked', stacked);
+        const offset = (Number(LibDialog.stackOffset) || 24) * level;
+        backdrop.style.setProperty('--lib-dialog-stack-offset', stacked ? offset + 'px' : '0px');
     }
 
     _updateType(type) {
@@ -338,6 +394,8 @@ class LibDialog extends HTMLElement {
         this._keydownDoc = this.ownerDocument || document;
         this._keydownHandler = (e) => {
             if (!this._isOpen) return;
+            // Only the top dialog reacts: with several open, Escape/Enter must not close them all at once.
+            if (!LibDialog._isTop(this)) return;
             if (e.key === 'Escape' && this.isClosable) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -443,6 +501,17 @@ class LibDialog extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     animation: dialogFadeIn 0.15s ease;
+                }
+
+                /* Stacked (LibDialog.stack): a lighter backdrop so the dialog below is dimmed rather than blacked out,
+                   and the content shifted down and to the right so the edge of the dialog below stays visible.
+                   'translate' is separate from 'transform', so the slide-in animation and dragging are unaffected. */
+                .dialog-backdrop.stacked {
+                    background: rgba(0, 0, 0, 0.18);
+                }
+
+                .dialog-backdrop.stacked .dialog-content {
+                    translate: var(--lib-dialog-stack-offset, 0px) var(--lib-dialog-stack-offset, 0px);
                 }
 
                 .dialog-backdrop.closing {
@@ -1382,6 +1451,11 @@ class LibDialog extends HTMLElement {
 }
 
 // Register the component
+// Open dialogs, bottom to top (see Stacking in the header). stack: show a dialog on top of another one as a stack.
+LibDialog._open = [];
+LibDialog.stack = false;
+LibDialog.stackOffset = 24;
+
 customElements.define('lib-dialog', LibDialog);
 
 // Expose LibDialog globally for programmatic usage

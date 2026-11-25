@@ -1024,6 +1024,15 @@ html.dark-mode .hex-dark { display: inline; }
                     <dd>Verberg de maximaliseerknop. Standaard is de knop zichtbaar (default: <code>false</code>)</dd>
                     <dt>maximized</dt>
                     <dd>Staat de dialoog gemaximaliseerd. Wordt gezet en verwijderd door <code>maximize()</code> / <code>restore()</code> en de maximaliseerknop; zet het zelf om de dialoog meteen groot te openen. Werkt niet samen met <code>no-maximize</code>.</dd>
+                    <dt>stack</dt>
+                    <dd><code>"true"</code> of <code>"false"</code>: voor dit dialoog de stapelweergave aan of uit, ongeacht <code>LibDialog.stack</code>.</dd>
+                </dl>
+                <h4>Stapelen</h4>
+                <dl>
+                    <dt>LibDialog.stack</dt>
+                    <dd><code>true</code> laat een dialoog dat boven een ander dialoog opent zien dat er een dialoog onder ligt: per niveau schuift het <code>LibDialog.stackOffset</code> pixels (default 24) naar rechts en omlaag, zodat de rand en titelbalk van het dialoog eronder zichtbaar blijven, en de achtergrond is lichter zodat de dialogen eronder gedimd worden in plaats van zwart. Default <code>false</code>: dan ligt een nieuw dialoog gewoon midden op het scherm. Zet het één keer voor de hele site, bijvoorbeeld in je eigen script: <code>LibDialog.stack = true;</code></dd>
+                    <dt>Escape, Enter, klik ernaast</dt>
+                    <dd>Werken altijd alleen op het bovenste dialoog, met of zonder stapelen. Sluit je een dialoog midden in de stapel, dan schuiven de andere dialogen mee op.</dd>
                 </dl>
                 <h4>Slots</h4>
                 <dl>
