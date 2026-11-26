@@ -1967,7 +1967,7 @@ class LibTable extends HTMLElement {
             // De knoppen zeggen wat er gebeurt: bij een datum oud-nieuw / nieuw-oud, bij een getal
             // laag-hoog / hoog-laag, en alleen bij tekst A-Z / Z-A. De volgorde en de interne
             // sleutels (a---z = oplopend, z---a = aflopend) blijven gelijk.
-            const [labelOplopend, labelAflopend] = isDateColumn ? ['Oud - Nieuw', 'Nieuw - Oud']
+            const [labelOplopend, labelAflopend] = isDateColumn || this._isDateSortColumn(column) ? ['Oud - Nieuw', 'Nieuw - Oud']
                 : isNumberColumn ? ['Laag - Hoog', 'Hoog - Laag']
                 : ['A - Z', 'Z - A'];
             const sortAZ = this._createSortOption(labelOplopend, 'a---z', column, index);
@@ -2414,7 +2414,21 @@ class LibTable extends HTMLElement {
         const tbody = this._table.querySelector('tbody');
         const rows = Array.from(tbody.querySelectorAll('tr'));
 
-        rows.sort((a, b) => {
+        // A date column sorts on the date itself, whatever way it is written (24-11-2026, 2026-11-24,
+        // 24 november 2026, with or without a time); rows without a date always go last.
+        if (this._isDateSortColumn(column)) {
+            const key = (row) => {
+                const cell = row.children[column];
+                if (!cell) return null;
+                return this._dateSortKey(cell.dataset && cell.dataset.sort ? cell.dataset.sort : this._getCellValue(cell));
+            };
+            const keyed = rows.map((row, i) => ({ row, i, k: key(row) }));
+            keyed.sort((a, b) => {
+                if (a.k === null || b.k === null) return a.k === b.k ? a.i - b.i : (a.k === null ? 1 : -1);
+                return (a.k - b.k) * flip || a.i - b.i;
+            });
+            keyed.forEach(x => tbody.appendChild(x.row));
+        } else rows.sort((a, b) => {
             const aCell = a.children[column];
             const bCell = b.children[column];
             let A = aCell ? this._getCellValue(aCell).toUpperCase().replace(/[%€£$]/g, '') : '';
@@ -2442,7 +2456,7 @@ class LibTable extends HTMLElement {
             return A.localeCompare(B) * flip;
         });
 
-        rows.forEach(row => tbody.appendChild(row));
+        if (!this._isDateSortColumn(column)) rows.forEach(row => tbody.appendChild(row));
 
         // Update active state
         this._table.querySelectorAll('.dropdown-filter-sort span.active').forEach(el => {
@@ -2468,6 +2482,58 @@ class LibTable extends HTMLElement {
 
         this._updateView();
         this._saveFilters();
+    }
+
+    /**
+     * Is this a date column for sorting? Yes when the <th> says so (data-type date / datetime), no when it names any other
+     * type, and for a column without a type: when every filled cell holds a date.
+     */
+    _isDateSortColumn(column) {
+        const th = this._table.querySelector(`:scope > thead th:nth-child(${column + 1})`);
+        const type = th && th.dataset ? th.dataset.type : undefined;
+        if (type === 'date' || type === 'datetime') return true;
+        if (type) return false;
+        let gevonden = 0;
+        for (const row of this._table.querySelectorAll(':scope > tbody > tr')) {
+            const cell = row.children[column];
+            if (!cell) continue;
+            const waarde = (cell.dataset && cell.dataset.sort ? cell.dataset.sort : this._getCellValue(cell)).trim();
+            if (waarde === '') continue;
+            if (this._dateSortKey(waarde) === null) return false;
+            gevonden++;
+        }
+        return gevonden > 0;
+    }
+
+    /**
+     * A sortable number for a date written as 24-11-2026, 24/11/2026, 24.11.26, 2026-11-24, 24 november 2026 or 24 nov. 2026,
+     * optionally with a weekday in front and a time behind it (14:30 or 14:30:15), or null when the text is not a date.
+     */
+    _dateSortKey(tekst) {
+        if (tekst === null || tekst === undefined) return null;
+        const t = String(tekst).replace(/\u00a0/g, ' ').trim().toLowerCase();
+        if (t === '') return null;
+        const tijd = '(?:[ t,]+(?:om\\s+)?(\\d{1,2})[:.](\\d{2})(?::(\\d{2}))?(?:\\s*u(?:ur)?)?)?';
+        let d, m, y, uu, mm, ss;
+        let r = new RegExp('^(?:[a-z]+\\.?\\s+)?(\\d{1,2})[-/.](\\d{1,2})[-/.](\\d{4}|\\d{2})' + tijd + '$').exec(t);
+        if (r) {
+            [, d, m, y, uu, mm, ss] = r;
+        } else if ((r = new RegExp('^(\\d{4})-(\\d{2})-(\\d{2})' + tijd + '$').exec(t))) {
+            [, y, m, d, uu, mm, ss] = r;
+        } else if ((r = new RegExp('^(?:[a-z]+\\.?\\s+)?(\\d{1,2})\\s+([a-z]+)\\.?\\s+(\\d{4})' + tijd + '$').exec(t))) {
+            let maand;
+            [, d, maand, y, uu, mm, ss] = r;
+            m = LibTable._maanden[maand];
+            if (!m) return null;
+        } else {
+            return null;
+        }
+        d = Number(d); m = Number(m); y = Number(y);
+        if (y < 100) y += 2000;
+        if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+        uu = Number(uu || 0); mm = Number(mm || 0); ss = Number(ss || 0);
+        if (uu > 23 || mm > 59 || ss > 59) return null;
+        return y * 1e10 + m * 1e8 + d * 1e6 + uu * 1e4 + mm * 1e2 + ss;
     }
 
     _sortableDate(dateStr) {
@@ -3569,6 +3635,13 @@ class LibTable extends HTMLElement {
 }
 
 // Register the HTML table wrapper component
+// Month names for _dateSortKey (Dutch, with the usual abbreviations, and the English ones that differ).
+LibTable._maanden = {
+    januari: 1, jan: 1, februari: 2, feb: 2, maart: 3, mrt: 3, mar: 3, maa: 3, march: 3, april: 4, apr: 4, mei: 5, may: 5,
+    juni: 6, jun: 6, juli: 7, jul: 7, augustus: 8, aug: 8, september: 9, sep: 9, sept: 9, oktober: 10, okt: 10, oct: 10,
+    november: 11, nov: 11, december: 12, dec: 12
+};
+
 customElements.define('lib-table', LibTable);
 
 } // end guard
