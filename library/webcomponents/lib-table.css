@@ -975,6 +975,9 @@ lib-table td.lt-num,
 
 lib-table th.lt-num .clicker { display: inline-block }
 
+/* Header content of a numeric column (title, sort and filter icons) sits at the right edge, above the right-aligned numbers */
+lib-table th.lt-num .th-header-wrapper { justify-content: flex-end }
+
 lib-table th.lt-num .dropdown-filter-dropdown { float: none; margin-right: 4px }
 
 /* .listtable scoped (standalone tables) */

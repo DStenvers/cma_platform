@@ -33,6 +33,13 @@ class LibTableNumericAlignTest extends TestCase
         $this->assertTrue((bool) preg_match('/th\.lt-num,[^{]*td\.lt-num[^{]*\{\s*text-align:\s*right/s', $css));
     }
 
+    public function testKopInhoudStaatRechtsBijGetalkolommen(): void
+    {
+        $css = $this->lees('lib-table.css');
+        $this->assertTrue((bool) preg_match('/lib-table th\.lt-num \.th-header-wrapper\s*\{\s*justify-content:\s*flex-end/', $css));
+        $this->assertStringContainsString('lt-num .th-header-wrapper', $this->lees('lib-table.min.css'));
+    }
+
     public function testMinBestandenZijnBijgewerkt(): void
     {
         $this->assertStringContainsString('lt-num', $this->lees('lib-table.min.js'));
