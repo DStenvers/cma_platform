@@ -25,6 +25,8 @@ class HttpClient
         $this->ch = curl_init();
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
+        // Sommige IdP-proxies (nginx/WAF) weigeren aanvragen zonder User-Agent met een 403.
+        curl_setopt($this->ch, CURLOPT_USERAGENT, 'mijnRINO/1.0 (+https://mijn.rino.nl)');
     }
 
     /**

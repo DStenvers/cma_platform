@@ -25,7 +25,7 @@ function main()
     global $lang_LoginInvalid, $lang_welcome, $lang_password_change;
     Response::noCache();
     $strError = '';
-    $sIPAdres = Request::server('REMOTE_HOST', '');
+    $sIPAdres = Request::cloudflareIp() ?: Request::server('REMOTE_HOST', '');
     // App-wide allowlist (old default.asp cma_ip_adresses): with IP-controle on and
     // a list configured, other addresses do not even get the login screen
     $cmaIpList = trim((string)\App\Library\Settings::get('cma_ip_addresses'));

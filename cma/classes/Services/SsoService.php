@@ -274,6 +274,8 @@ class SsoService
             ],
             CURLOPT_TIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true,
+            // Zonder User-Agent geeft de IdP-proxy (nginx) een 403.
+            CURLOPT_USERAGENT => 'mijnRINO/1.0 (+https://mijn.rino.nl)',
         ]);
 
         $response = curl_exec($ch);

@@ -717,6 +717,38 @@ class RequestCoreTest extends TestCase
         $this->assertSame('203.0.113.7', Request::ip());
     }
 
+    public function testIpPrefersCloudflareHeader(): void
+    {
+        $_SERVER['HTTP_CF_CONNECTING_IP'] = '198.51.100.9';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '203.0.113.7';
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        $this->assertSame('198.51.100.9', Request::ip());
+        unset($_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
+
+    public function testCloudflareIpAcceptsIpv6(): void
+    {
+        $_SERVER['HTTP_CF_CONNECTING_IP'] = '2001:db8::1';
+        $this->assertSame('2001:db8::1', Request::cloudflareIp());
+        unset($_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
+
+    public function testCloudflareIpIgnoresInvalidValue(): void
+    {
+        $_SERVER['HTTP_CF_CONNECTING_IP'] = "1.2.3.4'; DROP TABLE x";
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        $this->assertSame('', Request::cloudflareIp());
+        $this->assertSame('10.0.0.5', Request::ip());
+        unset($_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
+
+    public function testCloudflareIpMissingIsEmptyString(): void
+    {
+        unset($_SERVER['HTTP_CF_CONNECTING_IP']);
+        $this->assertSame('', Request::cloudflareIp());
+    }
+
     public function testIpMissingIsEmptyString(): void
     {
         unset($_SERVER['HTTP_X_FORWARDED_FOR'], $_SERVER['REMOTE_ADDR']);

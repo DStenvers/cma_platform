@@ -487,12 +487,34 @@ class Request
     }
 
     /**
+     * IP address from the Cloudflare header CF-Connecting-IP.
+     *
+     * Only a valid IPv4/IPv6 address counts. Empty string when the header is missing
+     * or not an IP address, so callers can fall back to their own method.
+     * The header is only trustworthy when the server accepts traffic from Cloudflare
+     * alone: anyone who reaches the origin directly can send it themselves.
+     *
+     * @return string The IP address, or '' without a valid header
+     */
+    public static function cloudflareIp(): string
+    {
+        $ip = trim((string) self::server('HTTP_CF_CONNECTING_IP', ''));
+        return filter_var($ip, FILTER_VALIDATE_IP) !== false ? $ip : '';
+    }
+
+    /**
      * Get client IP address
      *
      * @return string The client IP address
      */
     public static function ip(): string
     {
+        // Behind Cloudflare the real visitor is in CF-Connecting-IP
+        $cf = self::cloudflareIp();
+        if ($cf !== '') {
+            return $cf;
+        }
+
         // Check for forwarded IP (behind proxy/load balancer)
         $ip = self::server('HTTP_X_FORWARDED_FOR', '');
         if (!empty($ip)) {
