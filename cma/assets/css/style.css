@@ -894,7 +894,7 @@ form#login .login-row:has(input:focus) label span::before { border-style:dashed}
 form#login label span::before { font-family:'Linearicons';margin-left: -30px;border: 1px solid #dedede;background-color: var(--input-bg);position:absolute;font-size:15px;width:28px;height:26px;text-align:center;color:var(--color-primary)}
 form#login label.password span::before { content: "\e66b" }
 form#login label.naam span::before { content: "\e71e" }
-form#login label.email span::before { content: "\e695"}
+form#login label.email span::before { content: "\e696"}
 form#login input:focus {border:0px; background-color:var(--bg-body) !important; box-shadow:none}
 form#login input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"]) { border: 1px solid #dedede;border-radius: 2px;display: block;line-height: 26px !important;margin: 0;padding: 0 28px 0 36px;width:100% !important;box-sizing:border-box;color: var(--text-primary)}
 form#login input[type="checkbox"] { display:none}
