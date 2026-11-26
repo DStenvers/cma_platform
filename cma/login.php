@@ -12,6 +12,8 @@ use App\Library\SQL;
 use App\Library\Email;
 use Cma\SchemaHelper;
 use Cma\SecurityHelper;
+use Cma\Services\LoginCodeService;
+use Cma\Services\Logger;
 use Cma\Services\SsoService;
 
 require_once __DIR__ . '/bootstrap.inc';
@@ -58,7 +60,33 @@ function main()
     // SSO verplicht (SSO_ENABLED + CMA_SSO_FORCE): geen wachtwoordlogin. Wie niet is ingelogd,
     // gaat meteen naar de IdP — behalve als er een SSO-fout te tonen is (anders een lus).
     $bSsoForced = SsoService::isEnabled() && SsoService::isForced();
-    if ($bSsoForced && $intUserID == '' && Request::query('sso_error', '') === '') {
+    // SSO down (vlag van de site-taak): geen redirect naar de IdP, de SSO-knop vervalt en de gebruiker
+    // kan een inlogcode naar zijn e-mailadres laten sturen (Cma\Services\LoginCodeService).
+    $bSsoDown = SsoService::isDown();
+    $strCodeMelding = '';
+    $strCodeFout = '';
+    $strCodeEmail = '';
+    if ($bSsoDown && $intUserID == '') {
+        $strCodeActie = Request::post('actie', '');
+        $strCodeEmail = trim((string) Request::post('codeemail', ''));
+        if ($strCodeActie === 'logincode_aanvragen') {
+            LoginCodeService::aanvragen($strCodeEmail);
+            // Nooit prijsgeven of het adres bestaat.
+            $strCodeMelding = 'Als dit e-mailadres bij een gebruiker hoort, hebben we een inlogcode gestuurd. De code is ' . LoginCodeService::GELDIG_MIN . ' minuten geldig.';
+        } elseif ($strCodeActie === 'logincode_inloggen') {
+            $strReden = '';
+            $rijCode = LoginCodeService::gebruik($strCodeEmail, (string) Request::post('logincode', ''), $strReden);
+            if ($rijCode !== null) {
+                LoginCodeService::login($rijCode);
+                Logger::info('CMA login met e-mailcode (SSO down)', ['user' => $rijCode['userLogin']]);
+                header('Location: main.php');
+                exit;
+            }
+            Logger::warning('CMA login met e-mailcode mislukt', ['reden' => $strReden]);
+            $strCodeFout = 'Inloggen met de code is niet gelukt. Controleer het e-mailadres en de code, of vraag een nieuwe code aan.';
+        }
+    }
+    if ($bSsoForced && !$bSsoDown && $intUserID == '' && Request::query('sso_error', '') === '') {
         Response::noCache();
         header('Location: ' . SsoService::forcedLoginUrl());
         exit;
@@ -328,7 +356,23 @@ function main()
                 echo '</lib-message>' . PHP_EOL;
             }
             // SSO Login knop (indien ingeschakeld)
-            if (SsoService::isEnabled()) {
+            if ($bSsoDown) {
+                // Controls horen via form= bij de twee formulieren onderaan (geneste forms mogen niet);
+                // stopPropagation: de Enter-handler van het inlogformulier mag hier niet meedoen.
+                echo '<div class="sso-down" onkeydown="event.stopPropagation()" style="padding:0 20px 10px;">';
+                echo '<lib-message type="warning" style="text-align:left;">Single Sign-On is niet actief. Vraag een inlogcode aan: we sturen die naar je e-mailadres.</lib-message>';
+                if ($strCodeMelding !== '') {
+                    echo '<lib-message type="info" style="text-align:left;">' . htmlspecialchars($strCodeMelding) . '</lib-message>';
+                }
+                if ($strCodeFout !== '') {
+                    echo '<lib-message type="error" style="text-align:left;">' . htmlspecialchars($strCodeFout) . '</lib-message>';
+                }
+                echo '<div class="login-row"><label class=email for=codeemail_id><span>email adres</span></label><input type=email class=email id=codeemail_id name=codeemail form=codeAanvraagFrm placeholder="email adres" autocomplete="email" maxlength=100 value="' . htmlspecialchars($strCodeEmail) . '"></div>';
+                echo '<div class="login-row login-actions"><button type="submit" class="btn btn-primary" form=codeAanvraagFrm>Verstuur inlogcode</button></div>';
+                echo '<div class="login-row"><label class=password for=logincode_id><span>code</span></label><input type=text inputmode=numeric class=wachtwoord id=logincode_id name=logincode form=codeInlogFrm placeholder="6-cijferige code" autocomplete="one-time-code" maxlength=12></div>';
+                echo '<div class="login-row login-actions"><button type="submit" class="btn btn-primary" form=codeInlogFrm>Inloggen met code</button></div>';
+                echo '</div>' . PHP_EOL;
+            } elseif (SsoService::isEnabled()) {
                 $ssoProviderName = SsoService::getProviderName();
                 echo '<div class="sso-login" style="padding:20px;text-align:center;">';
                 echo '<a href="sso_login.php' . ($bSsoForced ? '?prompt=login' : '') . '" class="btn btn-primary sso-button">';
@@ -398,6 +442,11 @@ function main()
                 echo '</div>' . PHP_EOL;
             echo '</form>' . PHP_EOL;
             echo '</div>' . PHP_EOL;
+            }
+            if ($bSsoDown) {
+                // De velden staan in .sso-down (form=); het e-mailadres gaat bij beide formulieren mee.
+                echo '<form id="codeAanvraagFrm" action="login.php" method="post"><input type=hidden name=actie value=logincode_aanvragen></form>' . PHP_EOL;
+                echo '<form id="codeInlogFrm" action="login.php" method="post" onsubmit="document.getElementById(\'codeInlogEmail\').value=document.getElementById(\'codeemail_id\').value"><input type=hidden name=actie value=logincode_inloggen><input type=hidden id=codeInlogEmail name=codeemail value=""></form>' . PHP_EOL;
             }
             echo '<script>';
             echo 'jQuery(document).ready(function() { ';

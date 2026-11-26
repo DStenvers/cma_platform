@@ -41,7 +41,7 @@ class CmaSsoForceTest extends TestCase
     {
         $src = $this->src('login.php');
         $this->assertTrue(str_contains($src, '$bSsoForced = SsoService::isEnabled() && SsoService::isForced();'));
-        $this->assertTrue(str_contains($src, "if (\$bSsoForced && \$intUserID == '' && Request::query('sso_error', '') === '') {"), 'niet ingelogd -> IdP, behalve bij een te tonen fout');
+        $this->assertTrue(str_contains($src, "if (\$bSsoForced && !\$bSsoDown && \$intUserID == '' && Request::query('sso_error', '') === '') {"), 'niet ingelogd -> IdP, behalve bij een te tonen fout of als de SSO down is');
         $this->assertTrue(str_contains($src, "header('Location: ' . SsoService::forcedLoginUrl());"));
         $this->assertTrue(str_contains($src, "if (Request::post('naam', '') != '' && !\$bSsoForced) {"), 'geposte naam/wachtwoord genegeerd');
         $this->assertTrue(str_contains($src, "if (\$bSsoForced) {\n                // Alleen de foutmelding en de SSO-knop"), 'geen wachtwoordformulier');

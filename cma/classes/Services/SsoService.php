@@ -42,6 +42,28 @@ class SsoService
     }
 
     /**
+     * Staat de SSO down? De site bewaakt de IdP (task_sso_check.php) en zet dan de vlag
+     * <cache_directory>/sso_status.json; het CMA leest die alleen en beoordeelt hem nooit zelf op leeftijd.
+     * Buiten productie simuleert ?sso_down=1 een storing.
+     */
+    public static function isDown(): bool
+    {
+        if (!self::isEnabled()) {
+            return false;
+        }
+        if ((string) Request::query('sso_down', '') === '1' && strtoupper((string) Application::get('omgeving', '')) !== 'P') {
+            return true;
+        }
+        $dir = rtrim((string) \App\Library\Settings::get('cache_directory'), '/\\');
+        $pad = $dir . DIRECTORY_SEPARATOR . 'sso_status.json';
+        if ($dir === '' || !is_file($pad)) {
+            return false;
+        }
+        $vlag = json_decode((string) @file_get_contents($pad), true);
+        return is_array($vlag) && !empty($vlag['down']);
+    }
+
+    /**
      * Genereer een random string voor state/nonce
      */
     public static function generateRandomString(int $length = 32): string
