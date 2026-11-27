@@ -101,6 +101,93 @@ class WebConfigCmaRoutes
 
 EOT;
 
+    /** Idempotency marker of the .well-known rule. */
+    public const WELLKNOWN_MARKER = 'cma_platform: well-known rule applied';
+
+    /** Rule name; a hand-written rule with this name counts as already applied. */
+    public const WELLKNOWN_RULE = 'Well-known zonder bestand';
+
+    /**
+     * Answers requests under /.well-known/ that have no file with an empty 200.
+     *
+     * Browsers ask for /.well-known/passkey-endpoints, change-password and
+     * similar paths all day. Without a file each one is a 404 that fills the
+     * 404 log and, on a site with a hack guard, counts toward a block. Files
+     * that do exist (acme-challenge, security.txt, assetlinks.json) are never
+     * touched: the rule only fires when no file matches.
+     */
+    private const WELLKNOWN_RULES = <<<'EOT'
+                <!-- cma_platform: well-known rule applied -->
+                <rule name="Well-known zonder bestand" stopProcessing="true">
+                    <match url="^\.well-known/.*" />
+                    <conditions>
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                    </conditions>
+                    <action type="CustomResponse" statusCode="200" statusReason="OK" statusDescription="OK" />
+                </rule>
+
+EOT;
+
+    /**
+     * Add the .well-known rule to $webConfig with the same safeguards as
+     * applyToParent(): XML validation before and after, no new duplicate rule
+     * names, backup, atomic write, rollback. Idempotent.
+     *
+     * @return array{status:string,messages:string[],backup:?string,errors:string[]}
+     *   status: 'patched', 'noop' (already there), 'skipped', 'manual' (no <rules>), 'error'
+     */
+    public static function applyWellKnown(string $webConfig): array
+    {
+        $messages = [];
+        $errors   = [];
+
+        if (!function_exists('simplexml_load_string')) {
+            $messages[] = 'ext-simplexml niet geladen — .well-known-regel overgeslagen (kan XML niet valideren).';
+            return self::result('skipped', $messages, null, $errors);
+        }
+        if (!is_file($webConfig)) {
+            $messages[] = 'parent web.config niet gevonden (' . $webConfig . ') — overgeslagen.';
+            return self::result('skipped', $messages, null, $errors);
+        }
+        $content = @file_get_contents($webConfig);
+        if ($content === false) {
+            $errors[] = 'kan parent web.config niet lezen: ' . $webConfig;
+            return self::result('error', $messages, null, $errors);
+        }
+        if (strpos($content, self::WELLKNOWN_MARKER) !== false
+            || strpos($content, 'name="' . self::WELLKNOWN_RULE . '"') !== false
+            || strpos($content, '\\.well-known') !== false) {
+            $messages[] = '.well-known-regel al aanwezig.';
+            return self::result('noop', $messages, null, $errors);
+        }
+        if (@simplexml_load_string($content) === false) {
+            $errors[] = 'parent web.config is GEEN valid XML — fix dat eerst handmatig. .well-known-regel niet toegepast.';
+            return self::result('error', $messages, null, $errors);
+        }
+        if (!preg_match('|<rules>\s*\R|', $content, $m, PREG_OFFSET_CAPTURE)) {
+            $messages[] = 'Kan <rules> opening-tag niet vinden — handmatige patch nodig (zie documentation.php?topic=iis_config).';
+            return self::result('manual', $messages, null, $errors);
+        }
+        $patched = substr_replace($content, self::WELLKNOWN_RULES, $m[0][1] + strlen($m[0][0]), 0);
+
+        $validation = self::validatePatched($patched, $content);
+        foreach ($validation['warnings'] as $w) {
+            $messages[] = $w;
+        }
+        if (!empty($validation['errors'])) {
+            foreach ($validation['errors'] as $e) {
+                $errors[] = $e;
+            }
+            return self::result('error', $messages, null, $errors);
+        }
+        $backup = self::safeWrite($webConfig, $patched, $errors);
+        if ($backup === false) {
+            return self::result('error', $messages, null, $errors);
+        }
+        $messages[] = '.well-known-regel toegevoegd (XML + duplicate-name gevalideerd, atomic write). Backup: ' . $backup;
+        return self::result('patched', $messages, $backup, $errors);
+    }
+
     /**
      * Apply the CMA routes to $webConfig, idempotently and fail-safe.
      *

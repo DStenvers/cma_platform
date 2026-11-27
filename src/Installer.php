@@ -1049,6 +1049,14 @@ class Installer
             foreach ($res['errors'] as $line) {
                 $io->write('  - <warning>web.config: ' . $line . '</warning>');
             }
+            // Same safeguards for the .well-known rule (200 for paths without a file).
+            $res = WebConfigCmaRoutes::applyWellKnown($parentWebConfig);
+            foreach ($res['messages'] as $line) {
+                $io->write('  - web.config: ' . $line);
+            }
+            foreach ($res['errors'] as $line) {
+                $io->write('  - <warning>web.config: ' . $line . '</warning>');
+            }
         }
 
         // 6. Copy _bootstrap_constants.inc (from platform)

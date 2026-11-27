@@ -42,6 +42,34 @@ class NotFoundListsTest extends TestCase
         $this->assertFalse($lists->addDefaults('test'));
     }
 
+    public function testMergeDefaultsAddsOnlyMissingPatternsAndIsIdempotent(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        foreach (['/a', '/b', '/c', '/wp-login.php'] as $p) {
+            $lists->add(NotFoundLists::HACK, $p, 'oud');
+        }
+        $added = $lists->mergeDefaults('migratie');
+        $this->assertSame(count(NotFoundLists::DEFAULT_HACK) - 1, $added);
+        $hack = $lists->all()[NotFoundLists::HACK];
+        $this->assertSame(count(NotFoundLists::DEFAULT_HACK) + 3, count($hack));
+        $this->assertSame('oud', $hack[0]['door']);
+        $this->assertSame(0, $lists->mergeDefaults('migratie'));
+    }
+
+    public function testDefaultHackListLeavesLegitimatePathsAlone(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        $lists->mergeDefaults('test');
+        foreach (['/', '/index.php', '/cma/dashboard', '/cma/ckeditor/ckeditor.js', '/opleiding/12/owasp-training',
+                  '/.well-known/passkey-endpoints', '/pagina.php', '/zoeken/s=console', '/robots.txt'] as $path) {
+            $this->assertNull($lists->classify($path), $path);
+        }
+        foreach (['/wp-login.php', '/.env', '/phpinfo.php', '/owa/auth.php', '/vendor/composer/x', '/a/.git/config',
+                  '/backup.sql', '/dana-na/auth/url_default/login.cgi'] as $path) {
+            $this->assertSame(NotFoundLists::HACK, $lists->classify($path), $path);
+        }
+    }
+
     public function testDefaultsAreRefusedWhenTheListHasMoreThanTwo(): void
     {
         $lists = new NotFoundLists($this->file);

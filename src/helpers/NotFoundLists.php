@@ -27,11 +27,53 @@ final class NotFoundLists
         self::IGNORE => "Genegeerde 404's",
     ];
 
-    /** Paths scanners ask for on any site; offered once, to an (almost) empty hack list. */
+    /**
+     * Paths scanners ask for on any site; offered once, to an (almost) empty
+     * hack list, and merged into an existing list by mergeDefaults().
+     *
+     * Only paths that never exist on a site of ours. A bare `*.php` is far too
+     * broad (real pages end in .php); known script names are listed one by one.
+     * `/.well-known` is deliberately absent: browsers ask for it all day.
+     */
     public const DEFAULT_HACK = [
+        // WordPress
         '/wp-login.php', '/wp-admin*', '/wp-content*', '/wp-includes*', '/xmlrpc.php',
-        '*.env', '/.git*', '/phpmyadmin*', '/pma*', '/cgi-bin*', '*.php.bak',
-        '/vendor/phpunit*', '/boaform*', '/actuator*',
+        '/wp-*', '/wordpress*', '/wp/*', '*/wp-includes/*', '*/wp-content/*', '*/wp-admin/*',
+        // Environment files and dotfiles
+        '*.env', '/.env*', '*/.env', '/.git*', '*/.git/*', '/.svn*', '*/.svn/*', '/.hg*', '/.aws*', '/.ssh*', '/.docker*',
+        '/.vscode*', '/.idea*', '/.ds_store', '/.htaccess', '/.htpasswd', '/.npmrc', '/.bash_history',
+        '/.kube*', '/id_rsa*', '/authorized_keys',
+        // Backups and dumps
+        '*.php.bak', '*.bak', '*.old', '*.orig', '*.swp', '*~', '*.sql', '*.sql.gz', '/backup/*', '/backup.*', '/dump.*',
+        // Known scanner and web-shell scripts
+        '/phpinfo.php', '/info.php', '/test.php', '/pi.php', '/shell.php', '/c99.php', '/r57.php',
+        '/wso.php', '/cmd.php', '/eval.php', '/backdoor*', '/alfa*.php', '/adminfuns.php',
+        '/wp_filemanager.php', '/this_is_a_new_hello_world*',
+        // Configuration and secrets
+        '/config.json', '/config.yml', '/config.yaml', '/secrets.*', '/credentials.*', '/appsettings*.json',
+        '/composer.json', '/composer.lock', '/package.json', '/web.config.bak',
+        // Server scripts and traversal
+        '/cgi-bin*', '*/../*', '*%2e%2e*', '*..%2f*',
+        // Appliances, mail and VPN gateways
+        '/owa/*', '/ecp/*', '/autodiscover*', '/remote/login*', '/+cscoe+*', '/global-protect*',
+        '/dana-na*', '/sslvpn*', '/mgmt/*', '/vpn/*',
+        // Java and devops endpoints
+        '/actuator*', '/jolokia*', '/solr/*', '/struts/*', '/jenkins/*', '/manager/html*', '/console/*',
+        '/druid/*', '/nacos/*', '/jmx-console*', '/web-console*', '/invoker*', '/server-status*',
+        '/server-info*', '/telescope/*', '/_ignition*',
+        // PHP frameworks and dependencies
+        '/vendor/phpunit*', '/vendor/*', '/laravel*', '/storage/logs*', '/artisan', '/_profiler*',
+        '/app_dev.php*', '/phpunit*',
+        // Database tools
+        '/phpmyadmin*', '/pma*', '/myadmin*', '/mysql/*', '/sqladmin*', '/adminer*', '/dbadmin*',
+        // Other CMSs
+        '/administrator/*', '/joomla*', '/drupal*', '/typo3*', '/sites/default/files*', '/magento*',
+        '/bitrix*', '/changelog.txt', '/readme.html', '/license.txt',
+        // Editors and uploaders
+        '/fckeditor*', '/ckfinder*', '/elfinder*', '/filemanager*', '/kcfinder*', '/uploadify*',
+        '/jquery-file-upload*',
+        // Routers and IoT
+        '/boaform*', '/gponform*', '/hnap1*', '/setup.cgi', '/login.cgi',
     ];
 
     /** The default list may be added while the hack list holds no more than this. */
@@ -184,6 +226,31 @@ final class NotFoundLists
             }
         }
         return $this->save($lists);
+    }
+
+    /**
+     * Add the default hack patterns that are not on the list yet, whatever the
+     * list holds. Existing patterns, their dates and their authors stay
+     * untouched, so running it again changes nothing.
+     *
+     * @return int|false number of patterns added (0 = nothing to do), false when saving failed
+     */
+    public function mergeDefaults(string $by)
+    {
+        $lists = $this->all();
+        $known = array_map('strtolower', array_column($lists[self::HACK], 'patroon'));
+        $added = 0;
+        foreach (self::DEFAULT_HACK as $pattern) {
+            if (!in_array(strtolower($pattern), $known, true)) {
+                $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
+                $known[] = strtolower($pattern);
+                $added++;
+            }
+        }
+        if ($added === 0) {
+            return 0;
+        }
+        return $this->save($lists) ? $added : false;
     }
 
     /** Remove a pattern (exact, case-insensitive). False when it was not there. */
