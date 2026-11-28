@@ -1153,6 +1153,16 @@ td.tb_but_txt_d, td.tb_but_txt {display:none}
     z-index: 100;
 }
 
+/* Tool and report pages scroll with the body while the toolbar stays on top (sticky, z-index 100). The sticky table header of a lib-table
+   (top: 0, z-index 10) would then slide away behind the toolbar; it has to stick right below it. Only here: a lib-table inside a container that
+   scrolls itself keeps top: 0. */
+body.contentbody.tools:has(> .toolbar-top) lib-table table thead,
+body.contentbody.reportdetails:has(> .toolbar-top) lib-table table thead,
+body.contentbody.tools:has(> .toolbar-top) .listtable thead,
+body.contentbody.reportdetails:has(> .toolbar-top) .listtable thead {
+    top: var(--toolbar-height);
+}
+
 .tb-btn a:hover {
     color: var(--color-accent);
 }
