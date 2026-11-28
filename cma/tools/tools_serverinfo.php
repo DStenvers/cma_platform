@@ -457,7 +457,7 @@ function renderEnvironmentTab(?array $testMailResult, ?array $envSwitchResult, s
         ['Omgeving',            '<lib-label type="' . $envBadgeType . '">' . htmlspecialchars($envCode . ' — ' . $envName) . '</lib-label>' . $envSwitchCell],
         ['Actief .env bestand', $envFileCell],
         ['CMA platform versie', $code('v' . $cmaVersion)],
-        ['Applicatie naam',     htmlspecialchars((string)Application::get('app_name', '?'))],
+        ['Applicatie naam',     ($appNaam = trim(strip_tags((string) \App\Library\Settings::get('app_name')))) !== '' ? htmlspecialchars($appNaam) : $unset],
         ['Debug mode',          Application::get('debug', false) ? 'Aan' : 'Uit'],
     ]);
 
