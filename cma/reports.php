@@ -55,7 +55,7 @@ cma_script('webcomponents/cma-toolbar.js');
         <button type="button" class="cma-launcher-btn" id="reportsMenuBtn" aria-haspopup="dialog" title="Alle rapportages">
             <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle rapporten</span>
         </button>
-        <lib-search-input id="reportsSearch" class="tools-toolbar__search" icon="left" placeholder="Zoek een rapport…" aria-label="Zoek een rapport"></lib-search-input>
+        <lib-search-input id="reportsSearch" class="tools-toolbar__search"<?= $repId > 0 ? ' hidden' : '' ?> icon="left" placeholder="Zoek een rapport…" aria-label="Zoek een rapport"></lib-search-input>
     </left>
 </cma-toolbar>
 

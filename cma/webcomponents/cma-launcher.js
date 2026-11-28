@@ -70,6 +70,7 @@
             this._emptyText = this.getAttribute('empty-text') || 'Geen items beschikbaar.';
             this._searchSource = this.getAttribute('search-source') || '';
             this._bindExternalSearch();
+            this._syncExternalSearch();
         }
 
         // Het zoekveld: een extern veld (search-source, bv. in de toolbar) of het veld in het menu zelf.
@@ -79,6 +80,13 @@
 
         _searchEl() {
             return this._externalSearch() || this.querySelector('.cma-launcher__search');
+        }
+
+        // Een zoekveld buiten het menu hoort bij het menu: alleen zichtbaar als het menu open is. Staat er een tool in het venster, dan is het
+        // veld weg; Alle tools / Alle rapporten opent het menu weer en daarmee het veld.
+        _syncExternalSearch() {
+            var ext = this._externalSearch();
+            if (ext) ext.hidden = !this._open;
         }
 
         _searchTerm(search, e) {
@@ -123,6 +131,7 @@
         async open() {
             if (this._open) return;
             this._open = true;
+            this._syncExternalSearch();
             // The menu sits over its host box; the target iframe stays mounted
             // underneath, so there is no iframe show/hide state to keep in sync.
             this.classList.add('is-open');
@@ -166,6 +175,7 @@
         close() {
             if (!this._open) return;
             this._open = false;
+            this._syncExternalSearch();
             this.classList.remove('is-open');
             document.removeEventListener('keydown', this._onKeydown, true);
             // Nothing else to do: closing just hides the panel (display:none via the

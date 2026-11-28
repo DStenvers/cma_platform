@@ -6,6 +6,10 @@
  * - Column visibility
  * - Selected columns in field chooser
  */
+// Guard against double loading: de bundel kan in één pagina twee keer worden uitgevoerd (de pagina laadt hem zelf nog eens, of een export/AJAX-pagina
+// voert scripts opnieuw uit). Een klasse op het hoogste niveau geeft dan "Identifier ... has already been declared".
+if (!window.CmaTablePreferences) {
+
 class CmaTablePreferences {
     constructor(formId) {
         this.formId = formId;
@@ -1268,3 +1272,5 @@ class CmaInfiniteScroll {
 window.CmaTablePreferences = CmaTablePreferences;
 window.CmaTableColumnManager = CmaTableColumnManager;
 window.CmaInfiniteScroll = CmaInfiniteScroll;
+
+} // einde guard against double loading

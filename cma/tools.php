@@ -202,7 +202,7 @@ cma_script('webcomponents/cma-toolbar.js');
         <button type="button" class="cma-launcher-btn" id="toolsMenuBtn" aria-haspopup="dialog" title="Alle beheerstools">
             <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle tools</span>
         </button>
-        <lib-search-input id="toolsSearch" class="tools-toolbar__search" icon="left" placeholder="Zoek een tool…" aria-label="Zoek een tool"></lib-search-input>
+        <lib-search-input id="toolsSearch" class="tools-toolbar__search"<?= !empty($initialTool) ? ' hidden' : '' ?> icon="left" placeholder="Zoek een tool…" aria-label="Zoek een tool"></lib-search-input>
     </left>
 </cma-toolbar>
 

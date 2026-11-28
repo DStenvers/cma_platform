@@ -1431,6 +1431,8 @@ cma-launcher.is-open { display: block; }
 .tools-page .tools-toolbar .cma-launcher-btn { margin-left: 0; padding-left: 0; }
 /* The tool/report search sits in the toolbar next to the menu button; the launcher panel has no search field of its own. */
 .tools-page .tools-toolbar .tools-toolbar__search { width: 280px; max-width: 40vw; margin-left: 12px; }
+/* The search field belongs to the menu: <cma-launcher> sets [hidden] while the menu is closed. The component's own :host display would otherwise win. */
+.tools-toolbar__search[hidden] { display: none !important; }
 iframe.tools-content-area {
     flex: 1; height: 100%; width: 100%; border: none; background: var(--bg-body);
 }

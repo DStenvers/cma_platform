@@ -3967,7 +3967,7 @@ ToolbarHelper::button('?reset=1', 'lnr-sync', true, 'Reset');
 ToolbarHelper::end();
 </code></pre>
     <p>Een knop die een download start — een antwoord met <code>Content-Disposition: attachment</code> — krijgt een nieuw venster via de laatste parameter: <code>ToolbarHelper::button('?export=word', 'filetype_doc', true, 'Word', 'Word export', '', '', true)</code>. Dat venster schildert nooit: de browser geeft het bestand aan Word of Excel en de pagina eronder blijft ongemoeid staan.</p>
-    <p>Voor "report-style" pagina's met een title-block kun je <code>ToolbarHelper::report('Title', false, false, false, false, 'subtitle', $extraButtonHtml)</code> in één call doen.</p>
+    <p>Voor "report-style" pagina's met een title-block kun je <code>ToolbarHelper::report('Title', false, false, false, false, 'subtitle', $extraButtonHtml)</code> in één call doen. De volgorde is: titel links, omschrijving, exportknoppen (Excel, CSV, Word), een scheiding en dan de printknop; rechts de extra knoppen en de datum.</p>
 
     <h2>Registreren in de catalogus</h2>
     <p>Voeg een entry toe aan <code>buildToolsTreeData()</code> in <code>cma/tools_catalog.inc</code> (de gedeelde bron voor de launcher):</p>

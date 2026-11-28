@@ -216,3 +216,23 @@ test('een site-tool met target R laadt in het tools-venster, zonder target opent
     assert.gelijk(m.iframe.getAttribute('src'), '/beheer/sso.php', 'het iframe laadt de site-tool');
     assert.onwaar(m.el.isOpen(), 'menu dicht na een keuze');
 });
+
+test('het toolbar-zoekveld is alleen zichtbaar als het menu open is', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    assert.waar(m.veld.hidden, 'menu dicht bij het laden: het veld is verborgen');
+    await m.el.open();
+    assert.onwaar(m.veld.hidden, 'menu open: het veld is zichtbaar');
+    m.el.close();
+    assert.waar(m.veld.hidden, 'menu dicht: het veld is weer verborgen');
+    m.el.toggle();
+    assert.onwaar(m.veld.hidden, 'opnieuw openen (Alle tools): het veld is er weer');
+});
+
+test('een keuze sluit het menu en verbergt het zoekveld', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    m.typ('gebr');
+    await m.wacht();
+    assert.onwaar(m.veld.hidden, 'typend geopend: veld zichtbaar');
+    m.el.querySelector('.cma-launcher__item:not([hidden])').click();
+    assert.waar(m.veld.hidden, 'na een keuze staat de tool in het venster en het veld is verborgen');
+});

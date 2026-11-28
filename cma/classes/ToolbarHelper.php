@@ -436,14 +436,7 @@ class ToolbarHelper
     {
         self::start(true);
 
-        // Print button first, as the old toolbar.inc ToolbarReport had it
-        self::printButton(true);
-        if ($afterPrintHtml !== '') {
-            echo $afterPrintHtml . PHP_EOL;
-        }
-        self::separator();
-
-        // Title on the left
+        // Title on the left; the print button comes last, after the export buttons
         self::title($title);
 
         // Subtitle if provided
@@ -476,6 +469,13 @@ class ToolbarHelper
             self::button(Request::addToURL('', 'export', 'csv'), 'lnr-list', true, 'CSV', 'CSV export', '', '', true);
             self::separator();
             self::button(Request::addToURL('', 'export', 'word'), 'filetype_doc', true, 'Word', 'Word export', '', '', true);
+        }
+
+        // Print last, after the export buttons (Word), separated from them
+        self::separator();
+        self::printButton(true);
+        if ($afterPrintHtml !== '') {
+            echo $afterPrintHtml . PHP_EOL;
         }
 
         self::startRight();
