@@ -44,7 +44,7 @@ class InstallerMaintenanceGateTest extends TestCase
         // verscheept is — als deze test breekt, is de aanname "het oude blok
         // stond zó op de sites" zelf onwaar geworden.
         $oud = shell_exec('git -C ' . escapeshellarg(dirname(__DIR__, 2))
-            . ' show v1.29.254:templates/_bootstrap.php.template 2>/dev/null');
+            . ' show 75e3b56:templates/_bootstrap.php.template 2>/dev/null');
         if (!is_string($oud) || $oud === '') {
             $this->markTestSkipped('geen git-historie beschikbaar');
             return;

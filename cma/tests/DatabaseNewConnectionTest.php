@@ -53,7 +53,7 @@ class DatabaseNewConnectionTest extends TestCase
     private function sqlite(): string
     {
         $this->requireExtensions('pdo_sqlite');
-        $this->bestand = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cma_newconn_' . getmypid() . '.sqlite';
+        $this->bestand = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cma_newconn_' . getmypid() . '_' . uniqid() . '.sqlite';
         @unlink($this->bestand);
         $dsn = 'sqlite:' . $this->bestand;
         Database::initConnections(['data' => $dsn]);
