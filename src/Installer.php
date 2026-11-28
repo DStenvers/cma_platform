@@ -88,6 +88,14 @@ class Installer
      * no-ops once the file isn't there anymore.
      */
     private const REMOVED_PATHS = [
+        // Retired: the editable-pages tool (page templates with <!-- #beginedit --> regions, indexed in
+        // tblSiteFiles). Self-contained and unused: the tool, its handlers and its service go; the table stays.
+        'cma/listTemplates.php',
+        'cma/template_edit.php',
+        'cma/template_fillrep.php',
+        'cma/template_post.php',
+        'cma/classes/Services/TemplateService.php',
+        'cma/tests/TemplateServiceTest.php',
         // Retired: the classic-frameset menu-rendering page. It
         // emitted the l/n/f JS arrays into a `parent.window.frames['C']` frameset
         // (glow_tabs / menu_init()) — dead since the CMA moved to the sidebar

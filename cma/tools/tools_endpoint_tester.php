@@ -194,7 +194,6 @@ $skipRootFiles = [
     'logout',        // Auth flow (destroys session)
     'sso_login',     // Auth flow (external redirect)
     'sso_callback',  // Auth flow (external redirect)
-    'template_post', // POST-only handler
     'details_getdata', // Requires formId + recordId
     'form_api',      // Tested separately via Combo/Legacy API sections
     'task',          // Daily batch job (sends e-mail, flushes cache) — must not be GET-probed
@@ -217,9 +216,7 @@ foreach ($rootFiles as $file) {
 
     // Categorize by function
     $category = 'Hoofdpaginas';
-    if (strpos($name, 'template_') === 0 || $name === 'listTemplates') {
-        $category = 'Templates';
-    } elseif (strpos($name, 'imageupload') === 0) {
+    if (strpos($name, 'imageupload') === 0) {
         $category = 'Image Upload';
     } elseif (strpos($name, 'report') === 0) {
         $category = 'Rapporten';

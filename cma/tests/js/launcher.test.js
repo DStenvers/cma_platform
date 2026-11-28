@@ -108,3 +108,74 @@ test('het item dat in het iframe staat is actief bij opnieuw openen', async () =
     assert.waar(m.item('Gebruikers').classList.contains('is-active'), 'Gebruikers actief');
     assert.onwaar(m.item('Cache leegmaken').classList.contains('is-active'), 'Cache niet actief');
 });
+
+// Zoekveld in de toolbar (search-source): het menu rendert dan geen eigen zoekveld.
+function maakMenuMetToolbarZoekveld() {
+    const dom = new JSDOM(
+        '<!doctype html><html><body>' +
+        '<input id="toolsSearch" type="text">' +
+        '<div id="tools" class="launcher-host">' +
+        '<cma-launcher catalog-url="/cma/api/tools-catalog.php" target="#tools-content" search-source="#toolsSearch"></cma-launcher>' +
+        '<iframe id="tools-content" src="about:blank"></iframe>' +
+        '</div>' +
+        '<script>' + fs.readFileSync(BRON, 'utf8') + '</script>' +
+        '</body></html>',
+        { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/cma/tools' }
+    );
+    const win = dom.window;
+    win.fetch = () => Promise.resolve({ json: () => Promise.resolve(CATALOGUS) });
+    const el = win.document.querySelector('cma-launcher');
+    const veld = win.document.getElementById('toolsSearch');
+    const zichtbaar = () => Array.from(el.querySelectorAll('.cma-launcher__item:not([hidden])'))
+        .map((a) => a.querySelector('.cma-launcher__item-label').textContent);
+    const typ = (tekst) => { veld.value = tekst; veld.dispatchEvent(new win.Event('input', { bubbles: true })); };
+    const wacht = () => new Promise((klaar) => setTimeout(klaar, 20));
+    return { win, el, veld, zichtbaar, typ, wacht };
+}
+
+test('met search-source heeft het menu geen eigen zoekveld', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    await m.el.open();
+    assert.onwaar(!!m.el.querySelector('.cma-launcher__search'), 'geen zoekveld in het menu');
+    assert.waar(!!m.el.querySelector('.cma-launcher__close'), 'sluitknop blijft');
+});
+
+test('typen in het toolbar-zoekveld opent het menu en filtert op de term', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    assert.onwaar(m.el.isOpen(), 'menu dicht');
+    m.typ('cache');
+    await m.wacht();
+    assert.waar(m.el.isOpen(), 'menu open na typen');
+    assert.diepgelijk(m.zichtbaar(), ['Cache leegmaken']);
+    assert.gelijk(m.veld.value, 'cache', 'de ingetypte term blijft staan');
+});
+
+test('verder typen in een open menu filtert opnieuw, een lege term toont alles', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    await m.el.open();
+    m.typ('geb');
+    assert.diepgelijk(m.zichtbaar(), ['Gebruikers']);
+    m.typ('');
+    assert.diepgelijk(m.zichtbaar(), ['Cache leegmaken', 'Gebruikers', 'Site-tool', 'Rapport 7']);
+});
+
+test('Escape wist eerst de term in het toolbar-zoekveld en sluit pas daarna het menu', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    m.typ('cache');
+    await m.wacht();
+    const esc = () => m.win.document.dispatchEvent(new m.win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    esc();
+    assert.gelijk(m.veld.value, '', 'term gewist');
+    assert.waar(m.el.isOpen(), 'menu blijft open bij de eerste Escape');
+    esc();
+    assert.onwaar(m.el.isOpen(), 'tweede Escape sluit het menu');
+});
+
+test('een keuze maakt het toolbar-zoekveld leeg', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    m.typ('gebr');
+    await m.wacht();
+    m.el.querySelector('.cma-launcher__item:not([hidden])').click();
+    assert.gelijk(m.veld.value, '', 'zoekveld leeg na een keuze');
+    assert.onwaar(m.el.isOpen(), 'menu dicht na een keuze');
+});

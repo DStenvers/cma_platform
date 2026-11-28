@@ -8,6 +8,7 @@
  * `url` to the address bar.
  *
  * Attributes: catalog-url, target (iframe selector), search-placeholder,
+ *   search-source (CSS-selector van een zoekveld buiten het menu, bv. in de toolbar: het menu rendert dan geen eigen zoekveld),
  * aria-label, empty-text.
  *
  * Light DOM on purpose: document CSS provides the lnr icon glyphs and theme
@@ -67,6 +68,50 @@
             this._searchPlaceholder = this.getAttribute('search-placeholder') || 'Zoek een tool…';
             this._ariaLabel = this.getAttribute('aria-label') || 'Alle beheerstools';
             this._emptyText = this.getAttribute('empty-text') || 'Geen items beschikbaar.';
+            this._searchSource = this.getAttribute('search-source') || '';
+            this._bindExternalSearch();
+        }
+
+        // Het zoekveld: een extern veld (search-source, bv. in de toolbar) of het veld in het menu zelf.
+        _externalSearch() {
+            return this._searchSource ? document.querySelector(this._searchSource) : null;
+        }
+
+        _searchEl() {
+            return this._externalSearch() || this.querySelector('.cma-launcher__search');
+        }
+
+        _searchTerm(search, e) {
+            // <lib-search-input> levert de term via detail.value; de native <input> erin laat hem zonder detail
+            // bubbelen. Zonder terugval krijgt het filter stil '' en werkt zoeken-tijdens-typen niet meer.
+            return (e && e.detail && typeof e.detail.value === 'string') ? e.detail.value
+                : (e && e.target && typeof e.target.value === 'string') ? e.target.value
+                : (search && typeof search.value === 'string' ? search.value : '');
+        }
+
+        // Extern zoekveld: typen filtert en opent het menu (de resultaten staan in het menu); Enter opent het
+        // eerste treffer; Escape wist eerst de term en sluit daarna pas het menu. Eén keer per veld gekoppeld.
+        _bindExternalSearch() {
+            var search = this._externalSearch();
+            var self = this;
+            if (!search || search.__cmaLauncherBound === this) return;
+            search.__cmaLauncherBound = this;
+            search.addEventListener('input', function (e) {
+                var term = self._searchTerm(search, e);
+                if (!self._open) {
+                    self.open(); // laadt de catalogus en past de term toe (zie open())
+                    return;
+                }
+                self._applyFilter(term);
+            });
+            search.addEventListener('search', function () {
+                var first = self.querySelector('.cma-launcher__item:not([hidden])');
+                if (first) first.click();
+            });
+            search.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape' || self._open) return; // open: _onKeydown (capture) handelt het af
+                if (self._searchTerm(search) && typeof search.clear === 'function') search.clear();
+            });
         }
 
         isOpen() { return this._open; }
@@ -89,10 +134,15 @@
                 if (!this._open) return;
             }
             document.addEventListener('keydown', this._onKeydown, true);
-            var search = this.querySelector('.cma-launcher__search');
+            var search = this._searchEl();
             if (search) {
-                if (typeof search.clear === 'function') search.clear();
-                this._applyFilter('');
+                if (this._externalSearch()) {
+                    // Wie typend het menu opent, houdt zijn term: filter op wat er al staat.
+                    this._applyFilter(this._searchTerm(search));
+                } else {
+                    if (typeof search.clear === 'function') search.clear();
+                    this._applyFilter('');
+                }
                 if (typeof search.focus === 'function') search.focus();
             }
             // Highlight the item for whatever is currently open.
@@ -132,7 +182,7 @@
             // menu terwijl de gebruiker alleen zijn zoekterm wilde wissen. Juist bij een
             // term zonder treffers is dat de eerste reflex, en dan moet je het menu
             // opnieuw openen om verder te zoeken.
-            var search = this.querySelector('.cma-launcher__search');
+            var search = this._searchEl();
             var term = (search && typeof search.value === 'string') ? search.value : '';
             if (term) {
                 e.preventDefault();
@@ -171,7 +221,8 @@
             this.innerHTML =
                 '<div class="cma-launcher__panel" role="dialog" aria-modal="false" aria-label="' + this._esc(this._ariaLabel) + '">' +
                     '<div class="cma-launcher__head">' +
-                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="' + this._esc(this._searchPlaceholder) + '" aria-label="' + this._esc(this._searchPlaceholder) + '"></lib-search-input>' +
+                        (this._externalSearch() ? '' :
+                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="' + this._esc(this._searchPlaceholder) + '" aria-label="' + this._esc(this._searchPlaceholder) + '"></lib-search-input>') +
                         '<a href="javascript:void(0)" class="cma-launcher__close" data-close aria-label="Sluiten" title="Sluiten"><span class="cma-launcher__close-x"></span></a>' +
                     '</div>' +
                     '<div class="cma-launcher__body">' + bodyHtml + '</div>' +
@@ -243,15 +294,7 @@
                 // <lib-search-input> emits 'input' (detail.value) per keystroke and
                 // 'search' on Enter.
                 search.addEventListener('input', function (e) {
-                    // Read the term robustly: <lib-search-input> may deliver it via
-                    // a custom event (detail.value), or the inner native <input>'s
-                    // 'input' may bubble up here with no detail — in which case use
-                    // target.value / the component's own .value. (Without this
-                    // fallback the filter silently receives '' and quick-find dies.)
-                    var v = (e.detail && typeof e.detail.value === 'string') ? e.detail.value
-                        : (e.target && typeof e.target.value === 'string') ? e.target.value
-                        : (typeof search.value === 'string' ? search.value : '');
-                    self._applyFilter(v);
+                    self._applyFilter(self._searchTerm(search, e));
                 });
                 search.addEventListener('search', function () {
                     var first = self.querySelector('.cma-launcher__item:not([hidden])');
@@ -290,6 +333,11 @@
             }
             // Closing hides the panel, revealing the iframe (now loading `src`).
             this.close();
+            var ext = this._externalSearch();
+            if (ext) {
+                if (typeof ext.clear === 'function') { ext.clear(); } else { ext.value = ''; }
+                this._applyFilter('');
+            }
             if (url) { try { history.replaceState(null, '', url); } catch (e) {} }
         }
 

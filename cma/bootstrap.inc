@@ -913,17 +913,6 @@ function cma_get_app_logo(): array {
 }
 
 // =========================================================================
-// SECTION: Template Constants (from template.inc)
-// =========================================================================
-
-define("CONSTEDITSTART", '<!-- #beginedit ');
-define("CONSTEDITEND", '<!-- #endedit -->');
-define("CONSTFILENAMEFLD", '__filename');
-define("CONSTIDFLD", '__ID');
-define("CONSTFORREADING", 1);
-define("CONSTFORWRITING", 2);
-
-// =========================================================================
 // SECTION: Subform Constants (from subform.inc)
 // =========================================================================
 
