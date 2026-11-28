@@ -743,6 +743,42 @@ class QueryBuilder
     }
 
     /**
+     * Put `TOP n` into a SELECT in the place Access wants it: after DISTINCT / DISTINCTROW (`SELECT DISTINCT TOP 5 a`), not before
+     * (`SELECT TOP 5 DISTINCT a` is a syntax error). A query that already has a TOP is left alone.
+     */
+    public static function addTop(string $sql, int $limit): string
+    {
+        if ($limit < 1 || preg_match('/\bTOP\s+\d+\b/i', $sql)) {
+            return $sql;
+        }
+        return preg_replace('/^(\s*SELECT\s+(?:DISTINCTROW\s+|DISTINCT\s+)?)/i', '$1TOP ' . $limit . ' ', $sql, 1);
+    }
+
+    /**
+     * May this raw SQL be run by the report designer? Null when it may, else the reason. Only a single SELECT: no statements that change
+     * data or structure, no `SELECT ... INTO` (creates a table in Access) and no second statement after a semicolon.
+     */
+    public static function rawSqlError(string $sql): ?string
+    {
+        $trimmed = trim($sql);
+        if ($trimmed === '') {
+            return 'SQL-query is verplicht';
+        }
+        if (!preg_match('/^SELECT\b/i', $trimmed)) {
+            return 'Alleen SELECT-queries zijn toegestaan';
+        }
+        foreach (['INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE', 'EXEC', 'EXECUTE', 'GRANT', 'REVOKE', 'INTO'] as $keyword) {
+            if (preg_match('/\b' . $keyword . '\b/i', $trimmed)) {
+                return "Query bevat niet-toegestaan keyword: $keyword";
+            }
+        }
+        if (preg_match('/;\s*\S/', $trimmed)) {
+            return 'Er mag maar één query tegelijk worden uitgevoerd';
+        }
+        return null;
+    }
+
+    /**
      * Build the complete SQL query
      *
      * @param int|null $limit Optional row limit (overrides topN from definition for preview)
@@ -755,8 +791,8 @@ class QueryBuilder
             $sql = $this->definition['rawSql'];
 
             // Add TOP limit if not present and limit is specified
-            if ($limit !== null && $limit > 0 && !preg_match('/\bTOP\s+\d+\b/i', $sql)) {
-                $sql = preg_replace('/^SELECT\s+/i', 'SELECT TOP ' . $limit . ' ', $sql);
+            if ($limit !== null && $limit > 0) {
+                $sql = self::addTop($sql, $limit);
             }
 
             return $sql;

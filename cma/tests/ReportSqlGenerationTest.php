@@ -27,8 +27,10 @@ foreach ([dirname(__DIR__, 2) . '/vendor/autoload.php', dirname(__DIR__) . '/ven
 }
 require_once dirname(__DIR__) . '/classes/SchemaHelper.php';
 require_once dirname(__DIR__) . '/classes/QueryBuilder.php';
+require_once dirname(__DIR__) . '/classes/SqlParser.php';
 
 use Cma\QueryBuilder;
+use Cma\SqlParser;
 
 class ReportSqlGenerationTest extends TestCase
 {
@@ -559,5 +561,84 @@ class ReportSqlGenerationTest extends TestCase
     {
         $def = ['tables' => $this->keten(), 'fields' => [$this->veld('tblKlant', 'Naam')], 'conditions' => [$this->cond('tblKlant', 'Naam', 'contains', 'a')]];
         $this->assertSame((new QueryBuilder($def))->toSql(), (new QueryBuilder($def))->toSql());
+    }
+
+    // ---------- 9. heen en terug: SQL die de ontwerper maakt, leest de parser weer in ----------
+
+    public function testSqlUitDeOntwerperKomtStructureelTerugUitDeParser(): void
+    {
+        $def = ['tables' => $this->keten('LEFT'), 'distinct' => true, 'topN' => 5,
+            'fields' => [$this->veld('tblKlant', 'Naam'), $this->veld('tblProduct', 'Omschrijving', 'Product')],
+            'sorting' => [['table' => 'tblKlant', 'field' => 'Naam', 'direction' => 'DESC']]];
+        $p = SqlParser::parse((new QueryBuilder($def))->toSql());
+        $this->assertNotNull($p, 'de parser leest zijn eigen bron');
+        $this->assertSame(['tblKlant', 'tblOrder', 'tblOrderRegel', 'tblProduct', 'tblCategorie'], array_map(fn($t) => $t['name'] ?? $t, $p['tables']));
+        $this->assertCount(4, $p['joins']);
+        $this->assertSame('LEFT', $p['joins'][0]['type']);
+        $this->assertTrue((bool) $p['distinct']);
+        $this->assertSame(5, $p['topN']);
+        $this->assertSame('desc', $p['sorting'][0]['direction']);
+        $this->assertSame('Product', $p['fields'][1]['alias']);
+    }
+
+    public function testParserHerbouwdTotDezelfdeSql(): void
+    {
+        $def = ['tables' => $this->keten(), 'fields' => [$this->veld('tblKlant', 'Naam'), $this->veld('tblOrderRegel', 'Aantal', 'Stuks')],
+            'sorting' => [['table' => 'tblKlant', 'field' => 'Naam', 'direction' => 'ASC']]];
+        $sql = (new QueryBuilder($def))->toSql();
+        $p = SqlParser::parse($sql);
+        $tables = [];
+        foreach ($p['tables'] as $i => $t) {
+            $naam = $t['name'] ?? $t;
+            $tables[] = $i === 0 ? ['name' => $naam, 'joins' => $p['joins']] : ['name' => $naam];
+        }
+        $terug = ['tables' => $tables, 'fields' => $p['fields'], 'sorting' => $p['sorting'], 'grouping' => $p['grouping']];
+        $this->assertSame($sql, (new QueryBuilder($terug))->toSql(), 'definitie -> SQL -> parser -> definitie -> SQL is stabiel');
+    }
+
+    public function testNogNietOndersteundVoorwaardenWordenNietTeruggelezen(): void
+    {
+        // Wat de parser niet teruglas, valt weg zodra de gebruiker van SQL-modus terug naar het ontwerp gaat. Dit legt dat vast; wie
+        // WHERE-parsing bouwt, mag deze test omdraaien.
+        $sql = (new QueryBuilder(['tables' => [['name' => 'tblKlant']], 'fields' => [$this->veld('tblKlant', 'Naam')],
+            'conditions' => [$this->cond('tblKlant', 'Naam', '=', 'x')]]))->toSql();
+        $this->assertStringContainsString('WHERE', $sql);
+        $this->assertFalse(array_key_exists('conditions', SqlParser::parse($sql)));
+    }
+
+    public function testParserWeigertWatHijNietKan(): void
+    {
+        $this->assertNull(SqlParser::parse('SELECT a FROM t UNION SELECT b FROM u'));
+        $this->assertNull(SqlParser::parse('WITH x AS (SELECT 1) SELECT * FROM x'));
+        $this->assertNull(SqlParser::parse('SELECT a INTO nieuw FROM t'));
+    }
+
+    // ---------- 10. SQL-modus: TOP op de goede plek en alleen een enkele SELECT ----------
+
+    public function testTopKomtNaDistinctInSqlModus(): void
+    {
+        $this->assertSame('SELECT DISTINCT TOP 5 Naam FROM tblKlant', QueryBuilder::addTop('SELECT DISTINCT Naam FROM tblKlant', 5));
+        $this->assertSame('SELECT DISTINCTROW TOP 5 Naam FROM tblKlant', QueryBuilder::addTop('SELECT DISTINCTROW Naam FROM tblKlant', 5));
+        $this->assertSame('SELECT TOP 5 Naam FROM tblKlant', QueryBuilder::addTop('SELECT Naam FROM tblKlant', 5));
+        $this->assertSame('SELECT DISTINCT TOP 2 Naam FROM tblKlant', QueryBuilder::addTop('SELECT DISTINCT TOP 2 Naam FROM tblKlant', 5), 'een bestaande TOP blijft');
+        $this->assertSame('select TOP 3 a from t', QueryBuilder::addTop('select a from t', 3));
+        $this->assertSame('SELECT a FROM t', QueryBuilder::addTop('SELECT a FROM t', 0));
+        $b = new QueryBuilder(['mode' => 'sql', 'rawSql' => 'SELECT DISTINCT Plaats FROM tblKlant']);
+        $r = $this->pdo->query($this->sqlVoorSqlite($b->toSql(2)))->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertStringContainsString('SELECT DISTINCT TOP 2 ', $b->toSql(2), 'vroeger: SELECT TOP 2 DISTINCT (ongeldig in Access)');
+        $this->assertCount(2, $r);
+    }
+
+    public function testRawSqlAlleenEenEnkeleSelect(): void
+    {
+        $this->assertNull(QueryBuilder::rawSqlError('SELECT Naam FROM tblKlant WHERE Plaats = \'Utrecht\''));
+        $this->assertNull(QueryBuilder::rawSqlError("  select * from tblKlant;  "), 'een afsluitende puntkomma mag');
+        $this->assertSame('SQL-query is verplicht', QueryBuilder::rawSqlError('  '));
+        $this->assertSame('Alleen SELECT-queries zijn toegestaan', QueryBuilder::rawSqlError('DELETE FROM tblKlant'));
+        foreach (['SELECT * INTO nieuw FROM tblKlant', 'SELECT 1; DROP TABLE tblKlant', 'SELECT * FROM t WHERE a=1 UPDATE x SET y=1',
+                  'SELECT * FROM tblKlant; SELECT * FROM tblOrder'] as $gevaarlijk) {
+            $this->assertNotNull(QueryBuilder::rawSqlError($gevaarlijk), $gevaarlijk);
+        }
+        $this->assertStringContainsString('INTO', (string) QueryBuilder::rawSqlError('SELECT * INTO nieuw FROM tblKlant'), 'SELECT ... INTO maakt een tabel aan in Access');
     }
 }

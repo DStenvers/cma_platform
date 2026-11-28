@@ -538,27 +538,15 @@ function handleExecuteRawSql(): void
     // Validate limit
     $limit = min(max((int)$limit, 1), 1000);
 
-    // Security: Only allow SELECT statements
-    $trimmedSql = strtoupper(trim($sql));
-    if (!str_starts_with($trimmedSql, 'SELECT')) {
-        sendJson(['success' => false, 'error' => 'Alleen SELECT-queries zijn toegestaan'], 400);
+    // Security: a single SELECT, nothing that changes data or structure (see QueryBuilder::rawSqlError)
+    $sqlError = \Cma\QueryBuilder::rawSqlError($sql);
+    if ($sqlError !== null) {
+        sendJson(['success' => false, 'error' => $sqlError], 400);
         return;
     }
 
-    // Block dangerous keywords
-    $blocked = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE', 'EXEC', 'EXECUTE', 'GRANT', 'REVOKE'];
-    foreach ($blocked as $keyword) {
-        if (preg_match('/\b' . $keyword . '\b/i', $sql)) {
-            sendJson(['success' => false, 'error' => "Query bevat niet-toegestaan keyword: $keyword"], 400);
-            return;
-        }
-    }
-
-    // Add TOP limit if not present (MS Access syntax)
-    $processedSql = $sql;
-    if (!preg_match('/\bTOP\s+\d+\b/i', $sql)) {
-        $processedSql = preg_replace('/^SELECT\s+/i', "SELECT TOP $limit ", $sql);
-    }
+    // Add TOP limit if not present (MS Access syntax; after DISTINCT)
+    $processedSql = \Cma\QueryBuilder::addTop($sql, $limit);
 
     try {
         // Get database connection
