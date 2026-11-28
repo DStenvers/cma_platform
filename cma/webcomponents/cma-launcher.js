@@ -247,6 +247,10 @@
         // Resolve one catalog item to its navigation descriptor: the iframe src,
         // or a new tab for site-root / absolute hrefs.
         _resolveNav(it) {
+            // Site-tool met target "R" en een href vanaf de site-root: in het tools-venster laden i.p.v. een nieuw tabblad.
+            if (it.target === 'R' && it.href && it.href.charAt(0) === '/' && it.href.charAt(1) !== '/') {
+                return { src: it.href, url: it.url || null };
+            }
             var nav = resolveNav(it.href);
             if (nav && nav.external) return nav;
             // The deep-link comes from the item's own url, falling back to the

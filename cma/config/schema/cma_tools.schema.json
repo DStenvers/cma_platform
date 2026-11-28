@@ -53,12 +53,17 @@
         },
         "href": {
           "type": "string",
-          "description": "Target. An absolute href (/tools/x.php, https://...) opens in a new tab; a relative one loads in the CMA shell. An item without an href is skipped."
+          "description": "Target. An absolute href (/tools/x.php, https://...) opens in a new tab, unless target is R; a relative one loads in the CMA shell. An item without an href is skipped."
         },
         "icon": {
           "type": "string",
           "default": "lnr-cog",
           "description": "Linearicons class"
+        },
+        "target": {
+          "type": "string",
+          "enum": ["R"],
+          "description": "R = load a site-root href (/beheer/x.php) in the tools window instead of a new tab. Ignored for hrefs on another host."
         },
         "badge": {
           "type": "string",

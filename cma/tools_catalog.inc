@@ -184,9 +184,11 @@ function buildToolsTreeData(bool $isDeveloper): array
     // scripts in the launcher by dropping a data/tools.json. Kept generic — the
     // platform never hardcodes a site's filenames. Format:
     //   { "groups": [ { "label": "...", "icon": "lnr-...", "items": [
-    //       { "label": "...", "href": "/tools/x.php", "icon": "lnr-...", "badge": "A|D" } ] } ] }
+    //       { "label": "...", "href": "/tools/x.php", "icon": "lnr-...", "badge": "A|D", "target": "R" } ] } ] }
     // Items with an absolute href (/tools/…, http…) open in a new tab (they are
-    // plain scripts at the site root, not shell pages). A "D" badge is dev-only.
+    // plain scripts at the site root, not shell pages), unless the item has
+    // "target": "R" and a site-root href: then it loads in the tools window, like
+    // the CMA's own tools. A "D" badge is dev-only.
     // Site root is one level above cma/ (this file is cma/tools_catalog.inc);
     // the per-site data/ lives there (same as ReportsService's config path).
     // Prefer data/cma_tools.json (cma_-prefixed, consistent with cma_menu.json);
@@ -217,6 +219,9 @@ function buildToolsTreeData(bool $isDeveloper): array
                 ];
                 if (!empty($it['badge'])) {
                     $child['badge'] = (string) $it['badge'];
+                }
+                if (($it['target'] ?? '') === 'R') {
+                    $child['target'] = 'R';
                 }
                 $children[] = $child;
             }

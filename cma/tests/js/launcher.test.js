@@ -179,3 +179,21 @@ test('een keuze maakt het toolbar-zoekveld leeg', async () => {
     assert.gelijk(m.veld.value, '', 'zoekveld leeg na een keuze');
     assert.onwaar(m.el.isOpen(), 'menu dicht na een keuze');
 });
+
+test('een site-tool met target R laadt in het tools-venster, zonder target opent hij in een nieuw tabblad', async () => {
+    const m = maakMenu();
+    m.win.fetch = () => Promise.resolve({ json: () => Promise.resolve({ success: true, groups: [{ type: 'folder', label: 'Site', children: [
+        { type: 'item', label: 'In venster', href: '/beheer/sso.php', target: 'R' },
+        { type: 'item', label: 'Nieuw tabblad', href: '/beheer/log.php' },
+        { type: 'item', label: 'Extern met R', href: 'https://elders.example/x', target: 'R' }
+    ] }] }) });
+    await m.el.open();
+    const inVenster = m.item('In venster');
+    assert.onwaar(inVenster.hasAttribute('data-external'), 'target R: geen nieuw tabblad');
+    assert.gelijk(inVenster.getAttribute('data-src'), '/beheer/sso.php', 'src voor het iframe');
+    assert.waar(m.item('Nieuw tabblad').hasAttribute('data-external'), 'zonder target: nieuw tabblad zoals voorheen');
+    assert.waar(m.item('Extern met R').hasAttribute('data-external'), 'een andere host blijft altijd een nieuw tabblad');
+    inVenster.click();
+    assert.gelijk(m.iframe.getAttribute('src'), '/beheer/sso.php', 'het iframe laadt de site-tool');
+    assert.onwaar(m.el.isOpen(), 'menu dicht na een keuze');
+});
