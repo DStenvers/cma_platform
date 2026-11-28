@@ -55,8 +55,12 @@ class SsoService
             return true;
         }
         $dir = rtrim((string) \App\Library\Settings::get('cache_directory'), '/\\');
+        if ($dir === '') {
+            // Geen cache_directory ingesteld: dezelfde standaard als de site (.cache in de site-root), anders ziet het CMA de vlag nooit
+            $dir = dirname(__DIR__, 3) . '/.cache';
+        }
         $pad = $dir . DIRECTORY_SEPARATOR . 'sso_status.json';
-        if ($dir === '' || !is_file($pad)) {
+        if (!is_file($pad)) {
             return false;
         }
         $vlag = json_decode((string) @file_get_contents($pad), true);
