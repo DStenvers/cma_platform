@@ -48,6 +48,7 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'run') {
     Response::noCache();
     if ($secret === '') {
         Response::json(['success' => false, 'error' => 'DEPLOY_SECRET is niet ingesteld (Deploy setup).']);
+        exit;
     }
     $query = [];
     if (Request::post('forcerefresh', '') === 'Y') {
@@ -74,8 +75,11 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'run') {
     curl_close($ch);
     Response::json([
         'success' => $err === '' && $code >= 200 && $code < 300,
-        'error'   => $err !== '' ? $err : ($code >= 300 ? 'deploy.php antwoordde HTTP ' . $code . ': ' . trim($body) : ''),
+        'error'   => $err !== '' ? $err : ($code < 200 || $code >= 300 ? 'deploy.php antwoordde HTTP ' . $code . ': ' . trim(strip_tags($body)) : ''),
     ]);
+    // Response::json() stops nothing: without this exit the whole tool page followed the JSON, so the browser could not read the
+    // answer and said "Starten mislukt" while the deploy had started.
+    exit;
 }
 
 cma_html_header('Deployment forceren');
@@ -124,12 +128,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (document.getElementById('forcerefresh').checked) { body.set('forcerefresh', 'Y'); }
         if (document.getElementById('nocomposer').checked) { body.set('nocomposer', 'Y'); }
         fetch(location.pathname, { method: 'POST', body: body })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                return r.text().then(function (tekst) {
+                    try { return JSON.parse(tekst); }
+                    catch (e) { throw new Error('HTTP ' + r.status + ', geen leesbaar antwoord: ' + tekst.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)); }
+                });
+            })
             .then(function (a) {
                 if (a.success) { toon('info', 'Deployment gestart.'); setTimeout(volg, 3000); }
-                else { toon('error', a.error || 'Starten mislukt'); knop.disabled = false; }
+                else { toon('error', 'Starten mislukt: ' + (a.error || 'onbekende reden')); knop.disabled = false; }
             })
-            .catch(function () { toon('error', 'Starten mislukt'); knop.disabled = false; });
+            .catch(function (e) { toon('error', 'Starten mislukt: ' + (e && e.message ? e.message : 'geen verbinding')); knop.disabled = false; });
     });
 });
 </script>
