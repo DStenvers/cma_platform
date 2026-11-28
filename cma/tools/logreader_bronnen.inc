@@ -62,3 +62,42 @@ function cma_logreader_beschikbare_bronnen(array $bronnen, string $selectedLog, 
     }
     return $beschikbaar;
 }
+
+/**
+ * De laatste $aantal niet-lege regels van een logbestand, oudste eerst. Leest hoogstens $maxBytes van het einde van het bestand.
+ *
+ * Met $filter blijven alleen de regels over waarin die tekst voorkomt (hoofdletterongevoelig), gekozen uit het hele gelezen stuk en
+ * niet alleen uit de laatste regels: zoeken moet ook iets vinden dat een paar honderd regels terug staat.
+ *
+ * Vroeger las de logreader vanaf het BEGIN van dat stuk en stopte na drie keer het aantal gevraagde regels; een log met meer regels
+ * (het deploy-log met de composer-uitvoer is zo'n log) toonde daardoor oude regels in plaats van de nieuwste.
+ *
+ * @return list<string>
+ */
+function LogreaderLaatsteRegels(string $pad, int $aantal, string $filter = '', int $maxBytes = 2097152): array
+{
+    $grootte = @filesize($pad);
+    if ($grootte === false || $grootte === 0 || $aantal < 1) {
+        return [];
+    }
+    $handle = @fopen($pad, 'r');
+    if (!$handle) {
+        return [];
+    }
+    if ($grootte > $maxBytes) {
+        fseek($handle, -$maxBytes, SEEK_END);
+        fgets($handle); // de aangesneden eerste regel
+    }
+    $regels = [];
+    while (($regel = fgets($handle)) !== false) {
+        if (trim($regel) === '' || ($filter !== '' && stripos($regel, $filter) === false)) {
+            continue;
+        }
+        $regels[] = $regel;
+        if (count($regels) > $aantal * 2) {
+            $regels = array_slice($regels, -$aantal); // houd het geheugen klein: alleen de staart telt
+        }
+    }
+    fclose($handle);
+    return count($regels) > $aantal ? array_slice($regels, -$aantal) : $regels;
+}

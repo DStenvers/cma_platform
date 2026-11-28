@@ -362,38 +362,11 @@ if ($selectedLog === 'jserrors') {
         $fileSize = filesize($currentLog['path']);
         $fileSizeMB = round($fileSize / 1024 / 1024, 1);
 
-        // Hard limit: max 2MB chunk to read (prevents memory issues)
-        $maxChunkSize = 2 * 1024 * 1024; // 2MB
-        $chunkSize = min($fileSize, $maxChunkSize);
-
-        $handle = fopen($currentLog['path'], 'r');
+        // Last N lines (of the last 2 MB), newest at the end; the filter is applied over everything that was read
+        $rawLines = LogreaderLaatsteRegels($currentLog['path'], $lines, (string) $filter);
+        $handle = true;
 
         if ($handle) {
-            // Seek to near end of file
-            if ($fileSize > $chunkSize) {
-                fseek($handle, -$chunkSize, SEEK_END);
-                // Skip partial first line
-                fgets($handle);
-            }
-
-            // Read lines with a hard limit to prevent memory issues
-            $rawLines = [];
-            $maxRawLines = $lines * 3; // Read up to 3x requested in case of filtering
-            $lineCount = 0;
-            while (($line = fgets($handle)) !== false && $lineCount < $maxRawLines) {
-                $trimmed = trim($line);
-                if (!empty($trimmed)) {
-                    $rawLines[] = $line;
-                    $lineCount++;
-                }
-            }
-            fclose($handle);
-
-            // Take only the last N lines
-            if (count($rawLines) > $lines) {
-                $rawLines = array_slice($rawLines, -$lines);
-            }
-
             // Process lines (filter, parse JSON, etc.)
             foreach ($rawLines as $line) {
                 // Apply filter if set
