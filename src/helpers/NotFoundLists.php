@@ -37,21 +37,20 @@ final class NotFoundLists
      */
     public const DEFAULT_HACK = [
         // WordPress
-        '/wp-login.php', '/wp-admin*', '/wp-content*', '/wp-includes*', '/xmlrpc.php',
-        '/wp-*', '/wordpress*', '/wp/*', '*/wp-includes/*', '*/wp-content/*', '*/wp-admin/*',
+        '/wp-*', '/xmlrpc.php', '/wordpress*', '/wp/*', '*/wp-includes/*', '*/wp-content/*', '*/wp-admin/*',
         // Environment files and dotfiles
-        '*.env', '/.env*', '*/.env', '/.git*', '*/.git/*', '/.svn*', '*/.svn/*', '/.hg*', '/.aws*', '/.ssh*', '/.docker*',
+        '*.env', '/.env*', '/.git*', '*/.git/*', '/.svn*', '*/.svn/*', '/.hg*', '/.aws*', '/.ssh*', '/.docker*',
         '/.vscode*', '/.idea*', '/.ds_store', '/.htaccess', '/.htpasswd', '/.npmrc', '/.bash_history',
         '/.kube*', '/id_rsa*', '/authorized_keys',
         // Backups and dumps
-        '*.php.bak', '*.bak', '*.old', '*.orig', '*.swp', '*~', '*.sql', '*.sql.gz', '/backup/*', '/backup.*', '/dump.*',
+        '*.bak', '*.old', '*.orig', '*.swp', '*~', '*.sql', '*.sql.gz', '/backup/*', '/backup.*', '/dump.*',
         // Known scanner and web-shell scripts
         '/phpinfo.php', '/info.php', '/test.php', '/pi.php', '/shell.php', '/c99.php', '/r57.php',
         '/wso.php', '/cmd.php', '/eval.php', '/backdoor*', '/alfa*.php', '/adminfuns.php',
         '/wp_filemanager.php', '/this_is_a_new_hello_world*',
         // Configuration and secrets
         '/config.json', '/config.yml', '/config.yaml', '/secrets.*', '/credentials.*', '/appsettings*.json',
-        '/composer.json', '/composer.lock', '/package.json', '/web.config.bak',
+        '/composer.json', '/composer.lock', '/package.json',
         // Server scripts and traversal
         '/cgi-bin*', '*/../*', '*%2e%2e*', '*..%2f*',
         // Appliances, mail and VPN gateways
@@ -62,7 +61,7 @@ final class NotFoundLists
         '/druid/*', '/nacos/*', '/jmx-console*', '/web-console*', '/invoker*', '/server-status*',
         '/server-info*', '/telescope/*', '/_ignition*',
         // PHP frameworks and dependencies
-        '/vendor/phpunit*', '/vendor/*', '/laravel*', '/storage/logs*', '/artisan', '/_profiler*',
+        '/vendor/*', '/laravel*', '/storage/logs*', '/artisan', '/_profiler*',
         '/app_dev.php*', '/phpunit*',
         // Database tools
         '/phpmyadmin*', '/pma*', '/myadmin*', '/mysql/*', '/sqladmin*', '/adminer*', '/dbadmin*',
@@ -164,6 +163,43 @@ final class NotFoundLists
         return (bool) preg_match($regex, $path);
     }
 
+    /**
+     * Is $pattern already covered by one of $others (a different pattern that matches it as a whole)? `/wp-*` covers `/wp-login.php`
+     * and `/wp-admin*`, so adding those would only clutter the list. Mutual cover (the same pattern in other spelling) is not "covered".
+     *
+     * @param list<string> $others
+     */
+    public static function isCovered(string $pattern, array $others): bool
+    {
+        foreach ($others as $other) {
+            if (strcasecmp($other, $pattern) !== 0 && self::matches($other, $pattern) && !self::matches($pattern, $other)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The default patterns that still have to be added to a list holding $existing: not there yet and not covered by anything on the list
+     * (a pattern the site added itself, such as `/wp-*`, takes the narrower defaults with it). Defaults that cover each other inside
+     * the default list are dropped as well.
+     *
+     * @param list<string> $existing
+     * @return list<string>
+     */
+    public static function defaultsToAdd(array $existing): array
+    {
+        $known = array_map('strtolower', $existing);
+        $out = [];
+        foreach (self::DEFAULT_HACK as $pattern) {
+            if (in_array(strtolower($pattern), $known, true) || self::isCovered($pattern, array_merge($existing, self::DEFAULT_HACK))) {
+                continue;
+            }
+            $out[] = $pattern;
+        }
+        return $out;
+    }
+
     /** Which list a path is on (hack wins over genegeerd), or null for a real miss. */
     public function classify(string $path): ?string
     {
@@ -219,11 +255,8 @@ final class NotFoundLists
             return false;
         }
         $lists = $this->all();
-        $known = array_map('strtolower', array_column($lists[self::HACK], 'patroon'));
-        foreach (self::DEFAULT_HACK as $pattern) {
-            if (!in_array(strtolower($pattern), $known, true)) {
-                $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
-            }
+        foreach (self::defaultsToAdd(array_column($lists[self::HACK], 'patroon')) as $pattern) {
+            $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
         }
         return $this->save($lists);
     }
@@ -238,14 +271,10 @@ final class NotFoundLists
     public function mergeDefaults(string $by)
     {
         $lists = $this->all();
-        $known = array_map('strtolower', array_column($lists[self::HACK], 'patroon'));
         $added = 0;
-        foreach (self::DEFAULT_HACK as $pattern) {
-            if (!in_array(strtolower($pattern), $known, true)) {
-                $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
-                $known[] = strtolower($pattern);
-                $added++;
-            }
+        foreach (self::defaultsToAdd(array_column($lists[self::HACK], 'patroon')) as $pattern) {
+            $lists[self::HACK][] = ['patroon' => $pattern, 'toegevoegd' => date('Y-m-d H:i'), 'door' => $by];
+            $added++;
         }
         if ($added === 0) {
             return 0;

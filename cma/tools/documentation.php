@@ -3342,6 +3342,7 @@ function render_doc_hack_attempts(): void
             <tr><td><code>*.env</code></td><td><code>/.env</code>, <code>/api/.env</code></td><td><code>/.env.bak</code></td></tr>
         </tbody>
     </table>
+    <p>Een patroon dat al onder een breder patroon valt is overbodig: <code>/wp-*</code> dekt ook <code>/wp-login.php</code> en <code>/wp-admin*</code>. De standaardlijst en de migratie voegen zulke patronen daarom niet toe, ook niet als jouw eigen lijst het brede patroon al bevat.</p>
     <p>Houd patronen op de hacklijst nauw. Een te ruim patroon (<code>/admin*</code> op een site met een echte <code>/administratie</code>) telt gewone bezoekers die een kapotte link volgen als hackpoging, en blokkeert ze ook.</p>
 
     <h2>Werken in de logreader</h2>

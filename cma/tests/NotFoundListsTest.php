@@ -45,7 +45,7 @@ class NotFoundListsTest extends TestCase
     public function testMergeDefaultsAddsOnlyMissingPatternsAndIsIdempotent(): void
     {
         $lists = new NotFoundLists($this->file);
-        foreach (['/a', '/b', '/c', '/wp-login.php'] as $p) {
+        foreach (['/a', '/b', '/c', '/wp-*'] as $p) {
             $lists->add(NotFoundLists::HACK, $p, 'oud');
         }
         $added = $lists->mergeDefaults('migratie');
@@ -54,6 +54,55 @@ class NotFoundListsTest extends TestCase
         $this->assertSame(count(NotFoundLists::DEFAULT_HACK) + 3, count($hack));
         $this->assertSame('oud', $hack[0]['door']);
         $this->assertSame(0, $lists->mergeDefaults('migratie'));
+    }
+
+    public function testDefaultsHaveNoPatternThatAnotherDefaultAlreadyCovers(): void
+    {
+        foreach (NotFoundLists::DEFAULT_HACK as $pattern) {
+            $this->assertFalse(NotFoundLists::isCovered($pattern, NotFoundLists::DEFAULT_HACK), $pattern . ' valt al onder een ander standaardpatroon');
+        }
+        $this->assertSame(count(NotFoundLists::DEFAULT_HACK), count(array_unique(array_map('strtolower', NotFoundLists::DEFAULT_HACK))), 'dubbele standaardpatronen');
+    }
+
+    public function testIsCoveredRecognisesWildcardCover(): void
+    {
+        $this->assertTrue(NotFoundLists::isCovered('/wp-login.php', ['/wp-*']));
+        $this->assertTrue(NotFoundLists::isCovered('/wp-admin*', ['/a', '/wp-*']));
+        $this->assertTrue(NotFoundLists::isCovered('/vendor/phpunit*', ['/vendor/*']));
+        $this->assertTrue(NotFoundLists::isCovered('*.php.bak', ['*.bak']));
+        $this->assertFalse(NotFoundLists::isCovered('/wp-*', ['/wp-login.php']), 'de smalle dekt de brede niet');
+        $this->assertFalse(NotFoundLists::isCovered('/wp-*', ['/wp-*']), 'hetzelfde patroon is niet "gedekt"');
+        $this->assertFalse(NotFoundLists::isCovered('/wp/*', ['/wp-*']), 'een ander pad');
+        $this->assertFalse(NotFoundLists::isCovered('/a*c', ['/a*b']));
+    }
+
+    public function testMergeSkipsDefaultsCoveredByWhatTheSiteAlreadyHas(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        $lists->add(NotFoundLists::HACK, '/wp-*', 'beheerder');
+        $lists->add(NotFoundLists::HACK, '/.env*', 'beheerder');
+        $lists->mergeDefaults('migratie');
+        $patterns = array_column($lists->all()[NotFoundLists::HACK], 'patroon');
+        foreach (['/wp-login.php', '/wp-admin*', '/wp-content*', '/wp-includes*'] as $dubbel) {
+            $this->assertFalse(in_array($dubbel, $patterns, true), $dubbel . ' hoort er niet bij: /wp-* dekt het');
+        }
+        $this->assertSame(1, count(array_keys($patterns, '/wp-*', true)), '/wp-* blijft een keer staan');
+        $this->assertTrue(in_array('/xmlrpc.php', $patterns, true));
+        $this->assertSame(0, $lists->mergeDefaults('migratie'), 'tweede keer: niets te doen');
+    }
+
+    public function testDefaultsToAddOnEmptyListIsTheWholeDefaultList(): void
+    {
+        $this->assertSame(NotFoundLists::DEFAULT_HACK, NotFoundLists::defaultsToAdd([]));
+    }
+
+    public function testDefaultHackListStillBlocksWhatTheRemovedPatternsCovered(): void
+    {
+        $lists = new NotFoundLists($this->file);
+        $lists->addDefaults('test');
+        foreach (['/wp-login.php', '/wp-admin/', '/wp-content/uploads/x.php', '/wp-includes/js/a.js', '/a/b/.env', '/x.php.bak', '/web.config.bak', '/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'] as $path) {
+            $this->assertSame(NotFoundLists::HACK, $lists->classify($path), $path);
+        }
     }
 
     public function testDefaultHackListLeavesLegitimatePathsAlone(): void
