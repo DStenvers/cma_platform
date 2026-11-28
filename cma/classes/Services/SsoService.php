@@ -12,7 +12,7 @@ use App\Library\SQL;
 /**
  * SSO Service voor OAuth2 authenticatie
  *
- * Implementeert OAuth2 Authorization Code flow met STB Identity Provider.
+ * Implementeert OAuth2 Authorization Code flow met Eudonet Identity Provider.
  * Hergebruikt configuratie uit .env bestanden.
  */
 class SsoService
@@ -78,7 +78,7 @@ class SsoService
 
     /**
      * PKCE code_verifier (RFC 7636): 64 tekens uit [A-Za-z0-9-_], bewaard in een cookie tot
-     * de callback hem bij het token-verzoek meestuurt. STB CRM weigert een autorisatie zonder
+     * de callback hem bij het token-verzoek meestuurt. Eudonet CRM weigert een autorisatie zonder
      * ("Only code challenge method 'S256' is supported"); andere IdP's negeren hem.
      */
     public static function generateCodeVerifier(): string

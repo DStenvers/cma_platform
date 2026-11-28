@@ -4,7 +4,7 @@
  *
  * Run with: php tests/TestRunner.php SsoPkceTest
  *
- * STB CRM (de nieuwe IdP van mijnRINO) weigert een autorisatie zonder PKCE:
+ * Eudonet CRM (de nieuwe IdP van mijnRINO) weigert een autorisatie zonder PKCE:
  * "Only code challenge method 'S256' is supported". De authorize-URL moet daarom een
  * code_challenge + code_challenge_method=S256 bevatten, en het token-verzoek de
  * bijbehorende code_verifier (uit een cookie).

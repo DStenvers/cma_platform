@@ -243,7 +243,7 @@
         },
         {
             "id": 41,
-            "title": "Import: Deelnemers zonder STB ID",
+            "title": "Import: Deelnemers zonder Eudonet ID",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -253,7 +253,7 @@
         },
         {
             "id": 38,
-            "title": "Import: Docenten zonder STB ID",
+            "title": "Import: Docenten zonder Eudonet ID",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -263,7 +263,7 @@
         },
         {
             "id": 42,
-            "title": "Import: Logins zonder STB ID",
+            "title": "Import: Logins zonder Eudonet ID",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -273,7 +273,7 @@
         },
         {
             "id": 40,
-            "title": "Import: Opleidingen zonder STB ID",
+            "title": "Import: Opleidingen zonder Eudonet ID",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -283,7 +283,7 @@
         },
         {
             "id": 39,
-            "title": "Import: Praktijkopleiders zonder STB ID",
+            "title": "Import: Praktijkopleiders zonder Eudonet ID",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -536,7 +536,7 @@
         },
         {
             "id": 44,
-            "title": "STB koppeling: dubbele deelnames",
+            "title": "Eudonet koppeling: dubbele deelnames",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
@@ -546,7 +546,7 @@
         },
         {
             "id": 45,
-            "title": "STB koppeling: dubbele deelnemers",
+            "title": "Eudonet koppeling: dubbele deelnemers",
             "module": "PDO",
             "databaseId": 6,
             "visible": true,
