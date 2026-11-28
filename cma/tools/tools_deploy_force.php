@@ -97,7 +97,8 @@ if ($secret === '') {
     echo '<p><button type="button" class="btn btn-primary" id="deployStart"><span class="lnr lnr-rocket"></span> Deployment starten</button></p>';
     echo '<div id="deployStatus"></div>';
 }
-echo '<p>Het volledige verloop staat in <a href="logreader.php?log=deploy">het deploy-log</a>.</p>';
+echo '<p>Het volledige verloop van een deployment staat in het deploy-log. '
+   . '<a class="btn" href="logreader.php?log=deploy"><span class="lnr lnr-file-empty"></span> Deploy-log openen</a></p>';
 ?>
 </div>
 <script>
