@@ -1625,7 +1625,34 @@ class LibTable extends HTMLElement {
         document.head.appendChild(link);
     }
 
+    // Shadow under the sticky header while the table scrolls underneath it: the class lt-stuck is set as soon as the header has been pushed
+    // away from the top of the table, wherever that scroll happens (the page or a container). Capture phase because scroll does not bubble.
+    _initStickyShadow() {
+        if (this._stickyScrollHandler) return;
+        let pending = false;
+        const update = () => {
+            pending = false;
+            const table = this.querySelector('table');
+            const thead = table && table.tHead;
+            if (!thead) return;
+            const stuck = thead.getBoundingClientRect().top - table.getBoundingClientRect().top > 0.5;
+            this.classList.toggle('lt-stuck', stuck);
+        };
+        this._stickyScrollHandler = () => {
+            if (!pending) {
+                pending = true;
+                requestAnimationFrame(update);
+            }
+        };
+        document.addEventListener('scroll', this._stickyScrollHandler, { capture: true, passive: true });
+        update();
+    }
+
     disconnectedCallback() {
+        if (this._stickyScrollHandler) {
+            document.removeEventListener('scroll', this._stickyScrollHandler, { capture: true });
+            this._stickyScrollHandler = null;
+        }
         if (this._documentClickHandler) {
             document.removeEventListener('click', this._documentClickHandler);
         }
@@ -1680,6 +1707,8 @@ class LibTable extends HTMLElement {
 
         // Initialize export menu
         this._initializeExportMenu();
+
+        this._initStickyShadow();
 
         this._applyNumericAlignment();
 

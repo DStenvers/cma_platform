@@ -111,6 +111,11 @@ lib-table table thead,
     background: linear-gradient(to bottom, var(--bg-surface) 0%, var(--bg-surface-alt) 100%);
 }
 
+/* While the table scrolls under the sticky header (lib-table.js sets .lt-stuck) the header gets a shadow along its lower edge. */
+lib-table.lt-stuck table thead th {
+    box-shadow: 0 5px 8px -3px rgba(0, 0, 0, 0.35);
+}
+
 lib-table .listheader,
 .listtable .listheader {
     height: var(--toolbar-height);

@@ -22,4 +22,13 @@ class LibTableStickyKopTest extends TestCase
         $css = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.css');
         $this->assertTrue(preg_match('/lib-table table thead,\s*\.listtable thead\s*\{[^}]*top:\s*0;/s', $css) === 1);
     }
+
+    public function testSchaduwOnderDeKopAlsDeTabelScrolt(): void
+    {
+        $css = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.css');
+        $this->assertTrue(preg_match('/lib-table\.lt-stuck table thead th\s*\{[^}]*box-shadow:/s', $css) === 1, 'schaduw bij .lt-stuck');
+        $js = (string) file_get_contents(__DIR__ . '/../../library/webcomponents/lib-table.js');
+        $this->assertStringContainsString("classList.toggle('lt-stuck'", $js);
+        $this->assertStringContainsString("removeEventListener('scroll', this._stickyScrollHandler", $js, 'de luisteraar wordt opgeruimd');
+    }
 }
