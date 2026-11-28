@@ -1327,6 +1327,27 @@ ToolbarHelper::end(true);
 
     // Load tables from API
     // skipBackgroundTasks: skip cache building when loading a report (defer until after load)
+    // JSON uit een API-antwoord. Staat er tekst voor de JSON (een PHP-waarschuwing of deprecation), dan wordt de JSON eruit gelezen en de tekst
+    // gelogd; is er geen JSON, dan een fout met het begin van het antwoord (HTML van een foutpagina, de inlogpagina) in plaats van
+    // "Unexpected token <".
+    async function leesJson(response) {
+        const ruw = await response.text();
+        try {
+            return JSON.parse(ruw);
+        } catch (e) {
+            const start = ruw.indexOf('{"success"');
+            if (start > 0) {
+                try {
+                    const data = JSON.parse(ruw.slice(start));
+                    cmaLog.warn('API gaf tekst vóór de JSON: ' + ruw.slice(0, start).trim().slice(0, 300));
+                    return data;
+                } catch (e2) { /* hieronder */ }
+            }
+            const begin = ruw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+            throw new Error('HTTP ' + response.status + ', onleesbaar antwoord' + (begin ? ': ' + begin : ''));
+        }
+    }
+
     let loadTablesSeq = 0;  // laatste aanroep wint: een trager antwoord van een eerdere aanroep mag de lijst niet meer overschrijven
 
     // Toon een fout op de plek van de tabellijst, met "Opnieuw proberen". De loader gaat weg: een spinner die blijft draaien
@@ -1357,10 +1378,21 @@ ToolbarHelper::end(true);
         try {
             const response = await fetch(`api/report-schema.php?action=getTables&database=${state.databaseId}`, { signal: controller.signal });
             let data = null;
+            let ruw = '';
             try {
-                data = await response.json();
+                ruw = await response.text();
+                data = JSON.parse(ruw);
             } catch (e) {
-                data = null;  // geen JSON: bijvoorbeeld een PHP-fout of een inlogpagina
+                // Tekst vóór de JSON (een PHP-waarschuwing of deprecation): lees de JSON eruit en log wat ervoor stond, anders is de
+                // hele ontwerper onbruikbaar door een melding die er niet toe doet.
+                const start = ruw.indexOf('{"success"');
+                data = null;
+                if (start > 0) {
+                    try {
+                        data = JSON.parse(ruw.slice(start));
+                        cmaLog.warn('report-schema.php gaf tekst vóór de JSON: ' + ruw.slice(0, start).trim().slice(0, 300));
+                    } catch (e2) { data = null; }
+                }
             }
             if (seq !== loadTablesSeq) return;  // er is intussen een nieuwere aanroep
 
@@ -1374,7 +1406,8 @@ ToolbarHelper::end(true);
                     buildFieldCacheInBackground();
                 }
             } else {
-                const reden = data && data.error ? data.error : (response.ok ? 'het antwoord van de server is geen geldige JSON' : 'HTTP ' + response.status);
+                const begin = ruw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+                const reden = data && data.error ? data.error : (response.ok ? 'het antwoord van de server is geen geldige JSON' : 'HTTP ' + response.status) + (begin ? ' (' + begin + ')' : '');
                 showTableListError('Tabellen laden mislukt: ' + reden);
                 showError('Fout bij laden tabellen: ' + reden);
             }
@@ -1391,7 +1424,7 @@ ToolbarHelper::end(true);
     // Build field description cache in background (non-blocking)
     function buildFieldCacheInBackground() {
         fetch(`api/report-schema.php?action=buildFieldCache&database=${state.databaseId}`)
-            .then(r => r.json())
+            .then(leesJson)
             .then(data => {
                 if (data.success && data.cached) {
                     cmaLog.log('[report-designer] Field cache built:', data.fieldCount, 'fields');
@@ -2057,7 +2090,7 @@ ToolbarHelper::end(true);
                 body: JSON.stringify({ sql, database: state.databaseId })
             });
 
-            const result = await response.json();
+            const result = await leesJson(response);
 
             if (result.success && result.parsed) {
                 // Batch events during SQL→visual sync
@@ -2355,7 +2388,7 @@ ToolbarHelper::end(true);
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(definition)
             });
-            const data = await response.json();
+            const data = await leesJson(response);
 
             if (data.success) {
                 state.reportId = data.id;
@@ -2422,7 +2455,7 @@ ToolbarHelper::end(true);
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(definition)
             });
-            const data = await response.json();
+            const data = await leesJson(response);
 
             if (data.success) {
                 state.reportId = data.id;
@@ -2555,7 +2588,7 @@ ToolbarHelper::end(true);
 
         // Load report list
         fetch('api/report-save.php?action=list')
-            .then(r => r.json())
+            .then(leesJson)
             .then(data => {
                 elements.reportListLoader.removeAttribute('active');
 
@@ -2597,7 +2630,7 @@ ToolbarHelper::end(true);
     async function loadReportById(reportId) {
         try {
             const response = await fetch(`api/report-save.php?action=load&id=${encodeURIComponent(reportId)}`);
-            const data = await response.json();
+            const data = await leesJson(response);
 
             if (data.success) {
                 state.existingReport = data.report;
@@ -2648,61 +2681,21 @@ ToolbarHelper::end(true);
         }
 
         try {
-            // Send SQL to API for parsing
-            const response = await fetch('api/report-query.php?action=parseSQL', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sql: sql,
-                    databaseId: state.databaseId
-                })
-            });
+            dialog.close();
 
-            const data = await response.json();
+            // The tables have to be loaded before syncSqlToVisualEditor() can select them. That function is the one that already handles
+            // "SQL in the editor -> designer" (action parseSql, answer in parsed.*, fall back to SQL-only mode when it cannot parse);
+            // this dialog used to call the API itself with a misspelled action (parseSQL), the wrong body key and the wrong answer shape,
+            // so a pasted query never arrived.
+            state.mode = 'advanced';
+            await loadTables();
+            await syncSqlToVisualEditor(sql);
+            updateWizardForMode();
 
-            if (data.success) {
-                dialog.close();
-
-                // Set mode to advanced
-                state.mode = 'advanced';
-                state.rawSql = sql;
-
-                // Load parsed structure
-                if (data.tables && data.tables.length > 0) {
-                    // First load tables to get schema
-                    await loadTables();
-
-                    // Select the parsed tables
-                    for (const tableName of data.tables) {
-                        const table = state.tables.find(t =>
-                            t.name.toLowerCase() === tableName.toLowerCase()
-                        );
-                        if (table) {
-                            toggleTableSelection(table);
-                        }
-                    }
-
-                    // Set parsed fields
-                    if (data.fields && data.fields.length > 0) {
-                        state.fields = data.fields;
-                        if (elements.fieldConfigComponent) {
-                            elements.fieldConfigComponent.setFields(state.fields);
-                        }
-                    }
-
-                    // Set parsed conditions
-                    if (data.conditions && data.conditions.length > 0 && elements.conditionsPanel) {
-                        elements.conditionsPanel.setConditions(data.conditions);
-                    }
-
-                    updateWizardForMode();
-                    dispatchCmaEvent(CmaEvents.FIELDS_CHANGED, { fields: state.fields, source: 'pastedSql' });
-                    showSuccess('SQL succesvol geanalyseerd');
-                } else {
-                    showWarning('Geen tabellen herkend in de query');
-                }
+            if (state.mode === 'sql') {
+                showWarning('De query is te complex om te vertalen naar het ontwerp; hij staat als SQL op het tabblad Resultaat.');
             } else {
-                showError('Fout bij analyseren SQL: ' + (data.error || 'Onbekende fout'));
+                showSuccess('SQL succesvol geanalyseerd');
             }
         } catch (err) {
             showError('Fout bij analyseren SQL: ' + err.message);
@@ -2987,7 +2980,7 @@ ToolbarHelper::end(true);
 
         try {
             const response = await fetch(`api/report-schema.php?action=searchFields&database=${state.databaseId}&q=${encodeURIComponent(query)}`);
-            const data = await response.json();
+            const data = await leesJson(response);
 
             if (data.success) {
                 if (data.results.length === 0) {
@@ -3162,7 +3155,7 @@ ToolbarHelper::end(true);
                 body: JSON.stringify({ definition })
             });
 
-            const data = await response.json();
+            const data = await leesJson(response);
             if (data.success) {
                 elements.resultsQueryPreview.setSql(data.sql || '');
             } else {
@@ -3200,7 +3193,7 @@ ToolbarHelper::end(true);
                 })
             });
 
-            const result = await response.json();
+            const result = await leesJson(response);
 
             if (!result.success) {
                 throw new Error(result.error || 'Query uitvoeren mislukt');

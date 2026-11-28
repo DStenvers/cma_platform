@@ -122,12 +122,22 @@ class SqlParser
     {
         $tables = [];
 
-        // First try to match simple FROM clause (FROM [table] or FROM table)
-        if (preg_match('/\bFROM\s+(\[[\w]+\]|\w+)(?:\s+(?:AS\s+)?(\w+))?/i', $sql, $fromMatch)) {
-            $firstChar = $fromMatch[1][0] ?? '';
-            if ($firstChar !== '(') {
-                $tableName = trim($fromMatch[1], '[]');
-                $tables[] = $tableName;
+        // The base table: the first name after FROM, also behind the opening parentheses Access writes around nested joins
+        // (`FROM ((tblA INNER JOIN tblB ON ...) INNER JOIN tblC ON ...)`; without this the base table was lost and the designer built a
+        // different query). A derived table (`FROM (SELECT ...`) cannot be shown in the designer.
+        if (preg_match('/\bFROM\s*\(*\s*(\[[^\]]+\]|\w+)/i', $sql, $fromMatch)) {
+            $tableName = trim($fromMatch[1], '[]');
+            if (strcasecmp($tableName, 'SELECT') === 0) {
+                return null;
+            }
+            $tables[] = $tableName;
+        }
+
+        // `FROM a, b` (a comma join) names more tables than the designer can represent: say so instead of dropping the second table
+        if (preg_match('/\bFROM\b(.*?)(?:\bWHERE\b|\bGROUP\s+BY\b|\bORDER\s+BY\b|\bHAVING\b|$)/is', $sql, $fromSection)) {
+            $fromOnly = preg_replace('/\bON\b.*?(?=\b(?:INNER|LEFT|RIGHT|FULL|OUTER|CROSS|JOIN)\b|\)|$)/is', ' ', $fromSection[1]);
+            if (strpos((string) $fromOnly, ',') !== false) {
+                return null;
             }
         }
 

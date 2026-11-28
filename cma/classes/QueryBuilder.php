@@ -223,6 +223,13 @@ class QueryBuilder
                     $joinType = 'INNER';
                 }
 
+                // Access has no FULL JOIN ("De JOIN-bewerking bevat een syntaxisfout"). Without a connection the target is Access, the
+                // platform default; the join becomes a LEFT JOIN and the designer shows why, instead of the database refusing the query.
+                if ($joinType === 'FULL' && $this->targetIsAccess()) {
+                    $this->errors[] = "FULL JOIN met '" . $joinTable . "' wordt door Access niet ondersteund en is als LEFT JOIN uitgevoerd; kies LEFT of RIGHT.";
+                    $joinType = 'LEFT';
+                }
+
                 $allJoins[] = [
                     'table' => $joinTable,
                     'type' => $joinType,
@@ -308,6 +315,19 @@ class QueryBuilder
         }
         foreach ($used as $name) {
             $this->errors[] = "Tabel '" . $name . "' wordt gebruikt maar is niet verbonden met de andere tabellen; leg een relatie met een tabel uit het rapport.";
+        }
+    }
+
+    /** Is the query meant for Access? True without a connection (the platform default) and for an ODBC connection. */
+    private function targetIsAccess(): bool
+    {
+        if (!($this->connection instanceof \PDO)) {
+            return true;
+        }
+        try {
+            return SQL::dialect($this->connection) === SQL::DIALECT_ACCESS;
+        } catch (\Throwable $e) {
+            return true;
         }
     }
 
@@ -767,12 +787,15 @@ class QueryBuilder
         if (!preg_match('/^SELECT\b/i', $trimmed)) {
             return 'Alleen SELECT-queries zijn toegestaan';
         }
+        // Text values and [bracketed names] are data, not commands: `WHERE Status = 'update'` and a column called [Update] are fine
+        $scan = preg_replace("/'(?:[^']|'')*'/", "''", $trimmed);
+        $scan = preg_replace('/\[[^\]]*\]/', '[]', (string) $scan);
         foreach (['INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE', 'EXEC', 'EXECUTE', 'GRANT', 'REVOKE', 'INTO'] as $keyword) {
-            if (preg_match('/\b' . $keyword . '\b/i', $trimmed)) {
+            if (preg_match('/\b' . $keyword . '\b/i', (string) $scan)) {
                 return "Query bevat niet-toegestaan keyword: $keyword";
             }
         }
-        if (preg_match('/;\s*\S/', $trimmed)) {
+        if (preg_match('/;\s*\S/', (string) $scan)) {
             return 'Er mag maar één query tegelijk worden uitgevoerd';
         }
         return null;
@@ -789,6 +812,14 @@ class QueryBuilder
         // If SQL mode, return the raw SQL directly
         if (($this->definition['mode'] ?? '') === 'sql' && !empty($this->definition['rawSql'])) {
             $sql = $this->definition['rawSql'];
+
+            // The raw SQL comes from the browser. Preview, count and export all run what this returns, so the check lives here: anything
+            // but a single SELECT is reported as an error and no SQL is returned (callers refuse to run an empty query or one with errors).
+            $rawError = is_string($sql) ? self::rawSqlError($sql) : 'SQL-query is verplicht';
+            if ($rawError !== null) {
+                $this->errors[] = $rawError;
+                return '';
+            }
 
             // Add TOP limit if not present and limit is specified
             if ($limit !== null && $limit > 0) {

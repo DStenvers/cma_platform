@@ -17,6 +17,20 @@ class ReportStorage
      */
     private const REPORTS_DIR = __DIR__ . '/../../data/reports';
 
+    /** @var string|null Other base directory (tests); null = the site's data/reports */
+    private static ?string $baseDirOverride = null;
+
+    /** Use another base directory for reports (tests), or null for the default. */
+    public static function useDirectory(?string $dir): void
+    {
+        self::$baseDirOverride = $dir === null ? null : rtrim(str_replace('\\', '/', $dir), '/');
+    }
+
+    private static function baseDir(): string
+    {
+        return self::$baseDirOverride ?? self::REPORTS_DIR;
+    }
+
     /**
      * Global reports subdirectory
      */
@@ -37,7 +51,11 @@ class ReportStorage
     public static function save(array $definition, ?string $userId = null): array
     {
         // Generate or use existing ID
-        $id = $definition['id'] ?? self::generateId();
+        // The id from the browser ends up in a file name: keep only safe characters (an id that is all "../" becomes empty and gets a new one)
+        $id = self::sanitizeId((string) ($definition['id'] ?? ''));
+        if ($id === '') {
+            $id = self::generateId();
+        }
         $definition['id'] = $id;
 
         // Determine if global or personal
@@ -87,7 +105,11 @@ class ReportStorage
             ];
         }
 
-        if (file_put_contents($filePath, $json) === false) {
+        // Write to a temporary file and rename it over the report: a crash or a second save at the same moment can no longer leave
+        // a half-written (unreadable) report behind.
+        $tmp = $filePath . '.' . bin2hex(random_bytes(4)) . '.tmp';
+        if (file_put_contents($tmp, $json, LOCK_EX) === false || !@rename($tmp, $filePath)) {
+            @unlink($tmp);
             return [
                 'success' => false,
                 'id' => null,
@@ -152,7 +174,7 @@ class ReportStorage
 
         // List global reports
         if ($includeGlobal) {
-            $globalDir = self::REPORTS_DIR . '/' . self::GLOBAL_DIR;
+            $globalDir = self::baseDir() . '/' . self::GLOBAL_DIR;
             if (is_dir($globalDir)) {
                 $files = glob($globalDir . '/*.json');
                 foreach ($files as $file) {
@@ -167,7 +189,7 @@ class ReportStorage
 
         // List personal reports
         if ($userId !== null) {
-            $personalDir = self::REPORTS_DIR . '/' . self::PERSONAL_DIR . '/' . self::sanitizeUserId($userId);
+            $personalDir = self::baseDir() . '/' . self::PERSONAL_DIR . '/' . self::sanitizeUserId($userId);
             if (is_dir($personalDir)) {
                 $files = glob($personalDir . '/*.json');
                 foreach ($files as $file) {
@@ -253,11 +275,11 @@ class ReportStorage
         $sanitizedId = self::sanitizeId($id);
 
         if ($isGlobal) {
-            return self::REPORTS_DIR . '/' . self::GLOBAL_DIR . '/' . $sanitizedId . '.json';
+            return self::baseDir() . '/' . self::GLOBAL_DIR . '/' . $sanitizedId . '.json';
         }
 
         $sanitizedUser = self::sanitizeUserId($userId ?? 'anonymous');
-        return self::REPORTS_DIR . '/' . self::PERSONAL_DIR . '/' . $sanitizedUser . '/' . $sanitizedId . '.json';
+        return self::baseDir() . '/' . self::PERSONAL_DIR . '/' . $sanitizedUser . '/' . $sanitizedId . '.json';
     }
 
     /**

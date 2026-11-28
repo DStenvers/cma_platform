@@ -104,20 +104,11 @@ function handleSave(string $userId): void
             exit;
         }
 
-        // Security check: ensure only SELECT is allowed
-        $trimmedSql = strtoupper(trim($definition['rawSql']));
-        if (!str_starts_with($trimmedSql, 'SELECT')) {
-            Response::json(['success' => false, 'error' => 'Alleen SELECT-queries zijn toegestaan'], 400);
+        // Security check: a single SELECT (the same rule the designer applies when it runs the query)
+        $sqlError = is_string($definition['rawSql']) ? \Cma\QueryBuilder::rawSqlError($definition['rawSql']) : 'SQL-query is verplicht voor SQL-mode rapporten';
+        if ($sqlError !== null) {
+            Response::json(['success' => false, 'error' => $sqlError], 400);
             exit;
-        }
-
-        // Block dangerous keywords
-        $blocked = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE', 'EXEC', 'EXECUTE', 'GRANT', 'REVOKE'];
-        foreach ($blocked as $keyword) {
-            if (preg_match('/\b' . $keyword . '\b/i', $definition['rawSql'])) {
-                Response::json(['success' => false, 'error' => "Query bevat niet-toegestaan keyword: $keyword"], 400);
-                exit;
-            }
         }
     }
 

@@ -641,4 +641,48 @@ class ReportSqlGenerationTest extends TestCase
         }
         $this->assertStringContainsString('INTO', (string) QueryBuilder::rawSqlError('SELECT * INTO nieuw FROM tblKlant'), 'SELECT ... INTO maakt een tabel aan in Access');
     }
+
+    public function testFullJoinBestaatNietInAccessEnWordtLeftMetEenMelding(): void
+    {
+        $def = ['tables' => [['name' => 'tblKlant', 'joins' => [$this->join('tblOrder', '[tblKlant].[ID] = [tblOrder].[fkKlant]', 'FULL')]]], 'fields' => [$this->veld('tblKlant', 'Naam')]];
+        $b = new QueryBuilder($def);
+        $sql = $b->toSql();
+        $this->assertStringContainsString('LEFT JOIN', $sql);
+        $this->assertStringNotContainsString('FULL', $sql);
+        $this->assertCount(1, $b->getErrors());
+        $this->assertStringContainsString('Access', $b->getErrors()[0]);
+        // op SQLite (heeft FULL JOIN sinds 3.39) blijft het een FULL JOIN
+        $b = new QueryBuilder($def, $this->pdo);
+        $sql = $b->toSql();
+        $this->assertStringContainsString('FULL JOIN', $sql);
+        $this->assertEmpty($b->getErrors());
+    }
+
+    // ---------- 11. SQL zoals Access hem schrijft: zonder blokhaken, met geneste haakjes ----------
+
+    public function testBasistabelBlijftBehoudenBijGenesteHaakjesZonderBlokhaken(): void
+    {
+        $sql = 'SELECT tblKlant.Naam, tblProduct.Omschrijving FROM ((tblKlant INNER JOIN tblOrder ON tblKlant.ID = tblOrder.fkKlant) '
+             . 'INNER JOIN tblOrderRegel ON tblOrder.ID = tblOrderRegel.fkOrder) INNER JOIN tblProduct ON tblOrderRegel.fkProduct = tblProduct.ID';
+        $p = SqlParser::parse($sql);
+        $this->assertNotNull($p);
+        $this->assertSame(['tblKlant', 'tblOrder', 'tblOrderRegel', 'tblProduct'], array_map(fn($t) => $t['name'] ?? $t, $p['tables']), 'vroeger ontbrak tblKlant');
+        $this->assertCount(3, $p['joins']);
+    }
+
+    public function testEnkeleHaakjesEnGeenHaakjesGevenDezelfdeTabellen(): void
+    {
+        $zonder = SqlParser::parse('SELECT a.x FROM tblA INNER JOIN tblB ON tblA.id = tblB.fk INNER JOIN tblC ON tblB.id = tblC.fk');
+        $met = SqlParser::parse('SELECT a.x FROM (tblA INNER JOIN tblB ON tblA.id = tblB.fk) INNER JOIN tblC ON tblB.id = tblC.fk');
+        $this->assertSame(['tblA', 'tblB', 'tblC'], array_map(fn($t) => $t['name'] ?? $t, $zonder['tables']));
+        $this->assertSame(array_map(fn($t) => $t['name'] ?? $t, $zonder['tables']), array_map(fn($t) => $t['name'] ?? $t, $met['tables']));
+    }
+
+    public function testKommaJoinWordtNietStilletjesAfgekapt(): void
+    {
+        $this->assertNull(SqlParser::parse('SELECT tblA.n FROM tblA, tblB WHERE tblA.id = tblB.fk'), 'meer tabellen dan het ontwerp kan tonen: SQL-modus');
+        $this->assertNull(SqlParser::parse('SELECT x FROM (SELECT y FROM t) AS d'), 'een afgeleide tabel kan het ontwerp niet tonen');
+        $p = SqlParser::parse('SELECT tblA.n FROM tblA INNER JOIN tblB ON tblA.id = tblB.fk AND tblB.x = 1 WHERE tblA.n = 1');
+        $this->assertNotNull($p, 'een komma in de WHERE of een AND in de ON is geen komma-join');
+    }
 }
