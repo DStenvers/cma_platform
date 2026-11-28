@@ -133,11 +133,30 @@ function maakMenuMetToolbarZoekveld() {
     return { win, el, veld, zichtbaar, typ, wacht };
 }
 
-test('met search-source heeft het menu geen eigen zoekveld', async () => {
+test('met search-source heeft het menu geen kop: geen zoekveld en geen sluitkruisje', async () => {
     const m = maakMenuMetToolbarZoekveld();
     await m.el.open();
+    assert.onwaar(!!m.el.querySelector('.cma-launcher__head'), 'geen kop in het menu');
     assert.onwaar(!!m.el.querySelector('.cma-launcher__search'), 'geen zoekveld in het menu');
-    assert.waar(!!m.el.querySelector('.cma-launcher__close'), 'sluitknop blijft');
+    assert.onwaar(!!m.el.querySelector('.cma-launcher__close'), 'geen sluitkruisje');
+    assert.waar(!!m.el.querySelector('.cma-launcher__body'), 'de lijst zelf blijft');
+});
+
+test('met search-source sluit het menu opnieuw door op de toolbarknop te drukken (toggle) en met Escape', async () => {
+    const m = maakMenuMetToolbarZoekveld();
+    await m.el.open();
+    assert.waar(m.el.isOpen(), 'open');
+    m.el.toggle();
+    assert.onwaar(m.el.isOpen(), 'toggle sluit het menu');
+    await m.el.open();
+    m.win.document.dispatchEvent(new m.win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.onwaar(m.el.isOpen(), 'Escape sluit het menu (zonder term in het zoekveld)');
+});
+
+test('zonder search-source blijft de kop met zoekveld en sluitkruisje staan', async () => {
+    const m = maakMenu();
+    await m.el.open();
+    assert.waar(!!m.el.querySelector('.cma-launcher__head') && !!m.el.querySelector('.cma-launcher__search') && !!m.el.querySelector('.cma-launcher__close'), 'kop, zoekveld en kruisje');
 });
 
 test('typen in het toolbar-zoekveld opent het menu en filtert op de term', async () => {

@@ -220,11 +220,13 @@
         _renderShell(bodyHtml) {
             this.innerHTML =
                 '<div class="cma-launcher__panel" role="dialog" aria-modal="false" aria-label="' + this._esc(this._ariaLabel) + '">' +
+                    // Met het zoekveld in de toolbar (search-source) is er geen kop: het menu sluit via de knop in de toolbar (Alle tools / Alle
+                    // rapporten, die schakelt) en met Escape. Alleen met een eigen zoekveld in het menu staat de kop er, met het veld en het kruisje.
+                    (this._externalSearch() ? '' :
                     '<div class="cma-launcher__head">' +
-                        (this._externalSearch() ? '' :
-                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="' + this._esc(this._searchPlaceholder) + '" aria-label="' + this._esc(this._searchPlaceholder) + '"></lib-search-input>') +
+                        '<lib-search-input class="cma-launcher__search" icon="left" placeholder="' + this._esc(this._searchPlaceholder) + '" aria-label="' + this._esc(this._searchPlaceholder) + '"></lib-search-input>' +
                         '<a href="javascript:void(0)" class="cma-launcher__close" data-close aria-label="Sluiten" title="Sluiten"><span class="cma-launcher__close-x"></span></a>' +
-                    '</div>' +
+                    '</div>') +
                     '<div class="cma-launcher__body">' + bodyHtml + '</div>' +
                 '</div>';
             this._wire();
