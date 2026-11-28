@@ -1327,16 +1327,44 @@ ToolbarHelper::end(true);
 
     // Load tables from API
     // skipBackgroundTasks: skip cache building when loading a report (defer until after load)
+    let loadTablesSeq = 0;  // laatste aanroep wint: een trager antwoord van een eerdere aanroep mag de lijst niet meer overschrijven
+
+    // Toon een fout op de plek van de tabellijst, met "Opnieuw proberen". De loader gaat weg: een spinner die blijft draaien
+    // zegt niets, en de melding bovenin verdwijnt na 8 seconden.
+    function showTableListError(message) {
+        elements.tableListItems.innerHTML = '';
+        const box = document.createElement('div');
+        box.className = 'empty-state';
+        box.innerHTML = '<div class="empty-text">' + escapeHtml(message) + '</div>';
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'btn';
+        retry.textContent = 'Opnieuw proberen';
+        retry.addEventListener('click', () => loadTables());
+        box.appendChild(retry);
+        elements.tableListItems.appendChild(box);
+    }
+
     async function loadTables(skipBackgroundTasks = false) {
+        const seq = ++loadTablesSeq;
         elements.tableLoader.setAttribute('active', '');
         elements.tableListItems.innerHTML = '';
         elements.tableListItems.appendChild(elements.tableLoader);
 
+        // Een vastlopende aanvraag (bv. een Access-database die niet opent) mag de spinner niet eeuwig laten staan
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 30000);
         try {
-            const response = await fetch(`api/report-schema.php?action=getTables&database=${state.databaseId}`);
-            const data = await response.json();
+            const response = await fetch(`api/report-schema.php?action=getTables&database=${state.databaseId}`, { signal: controller.signal });
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = null;  // geen JSON: bijvoorbeeld een PHP-fout of een inlogpagina
+            }
+            if (seq !== loadTablesSeq) return;  // er is intussen een nieuwere aanroep
 
-            if (data.success) {
+            if (data && data.success) {
                 state.tables = data.tables;
                 renderTableList();
 
@@ -1346,10 +1374,17 @@ ToolbarHelper::end(true);
                     buildFieldCacheInBackground();
                 }
             } else {
-                showError('Fout bij laden tabellen: ' + (data.error || 'Onbekende fout'));
+                const reden = data && data.error ? data.error : (response.ok ? 'het antwoord van de server is geen geldige JSON' : 'HTTP ' + response.status);
+                showTableListError('Tabellen laden mislukt: ' + reden);
+                showError('Fout bij laden tabellen: ' + reden);
             }
         } catch (err) {
-            showError('Fout bij laden tabellen: ' + err.message);
+            if (seq !== loadTablesSeq) return;
+            const reden = err && err.name === 'AbortError' ? 'geen antwoord binnen 30 seconden (de database reageert niet)' : err.message;
+            showTableListError('Tabellen laden mislukt: ' + reden);
+            showError('Fout bij laden tabellen: ' + reden);
+        } finally {
+            clearTimeout(timer);
         }
     }
 

@@ -443,10 +443,10 @@ $builder = new QueryBuilder([
     ]]
 ]);
 $sql = $builder->toSql();
-// quoteValue('number') falls back to '0' for non-numeric input — the
-// "OR 1=1" payload can never reach the SQL. (Contrast SQL::postNumber,
-// which passes non-numeric input through unquoted — see SQLTest.)
-assertContains('[t].[n] = 0', $sql, "Non-numeric number value must collapse to 0");
+// A non-numeric value never reaches the SQL: the condition is skipped and the error is reported (it used to become
+// `= 0` in silence, so the report ran with the wrong rows). Contrast SQL::postNumber, which passes it through unquoted.
+assertTrue(strpos($sql, 'OR 1=1') === false && strpos($sql, 'WHERE') === false, "Non-numeric number value is not in the SQL");
+assertTrue(count($builder->getErrors()) === 1, "Non-numeric number value is reported");
 assertNotContains('OR 1=1', $sql, "Injection payload must not appear in SQL");
 echo "\n";
 

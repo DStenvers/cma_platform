@@ -2750,6 +2750,8 @@ function render_doc_json_config(): void
     <?php cma_doc_render_check_table('Controle op deze site', cma_doc_run_checks(['cma_doc_check_db_config_source'])); ?>
 
     <h3>Welke database staat voorgeselecteerd</h3>
+    <h3>Rapportontwerper: hoe de SQL ontstaat</h3>
+    <p><code>Cma\QueryBuilder</code> bouwt de SQL uit de definitie. Wat hij niet kan omzetten in geldige SQL, meldt hij in <code>getErrors()</code> in plaats van SQL door te geven die de database weigert: een tabel die in velden, voorwaarden of sortering voorkomt maar geen relatie met de andere tabellen heeft, een tabel die twee keer in de FROM staat, een getal of datum die er niet uitziet als getal of datum (de voorwaarde vervalt). Haakjes bij een voorwaarde mogen alleen <code>(</code> en <code>)</code> zijn. "Is leeg" op een getal-, datum- of ja/nee-veld controleert alleen op NULL. De periodes vandaag, deze week en deze maand lopen tot het begin van de volgende dag, week of maand. Nog niet ondersteund: aggregaties bij groeperen, tabelaliassen (zelfkoppeling), geneste voorwaardegroepen, HAVING en berekende velden. De tests (<code>ReportSqlGenerationTest</code>) laten elke definitie op een SQLite-database draaien en controleren de rijen.</p>
     <p>Zet <code>"default": true</code> op één entry in <code>data/databases.json</code> en elke databasekeuzelijst in de CMA — SQL uitvoeren, Databasestructuur, de rapportontwerper — start daarop. Let op dat de keuzelijsten via <code>Cma\ConfigLoader</code> lopen en dus <span class="cma-tool__em">alleen</span> <code>data/databases.json</code> lezen.</p>
     <pre><code>{ "id": 6, "name": "data", "type": "access", "default": true,
   "connectionString": "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=[data/db/pdodomain.mdb]" }</code></pre>

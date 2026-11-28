@@ -163,7 +163,7 @@ class QueryBuilder
 
             // Add alias if different from field name
             if (!empty($alias) && $alias !== $fieldName) {
-                $qualifiedName .= ' AS ' . $this->quoteIdentifier($alias);
+                $qualifiedName .= ' AS ' . $this->quoteAlias($alias);
             }
 
             $selectParts[] = $qualifiedName;
@@ -235,6 +235,8 @@ class QueryBuilder
             return '';
         }
 
+        $this->checkTablesAreConnected($baseTable, $allJoins);
+
         // No joins - simple FROM clause
         if (empty($allJoins)) {
             return 'FROM ' . $this->quoteIdentifier($baseTable);
@@ -271,6 +273,42 @@ class QueryBuilder
         }
 
         return $result;
+    }
+
+    /**
+     * Report tables that fields, conditions, sorting or grouping use but that the FROM clause does not contain (no relationship to
+     * the base table), and a table that is joined twice. Both give SQL the database rejects ("no such column", "ambiguous column"),
+     * so the designer shows the reason instead of a database error.
+     *
+     * @param string $baseTable
+     * @param array  $allJoins
+     */
+    private function checkTablesAreConnected(string $baseTable, array $allJoins): void
+    {
+        $inFrom = [strtolower($baseTable) => true];
+        foreach ($allJoins as $join) {
+            $key = strtolower($join['table']);
+            if (isset($inFrom[$key])) {
+                $this->errors[] = "Tabel '" . $join['table'] . "' komt twee keer in de FROM voor; een tabel twee keer gebruiken (zelfkoppeling) wordt nog niet ondersteund.";
+            }
+            $inFrom[$key] = true;
+        }
+
+        $used = [];
+        foreach (['fields', 'conditions', 'sorting', 'grouping'] as $section) {
+            foreach (($this->definition[$section] ?? []) as $item) {
+                if (!is_array($item) || ($section === 'fields' && !($item['visible'] ?? true))) {
+                    continue;
+                }
+                $name = trim((string)($item['table'] ?? ''));
+                if ($name !== '' && !isset($inFrom[strtolower($name)])) {
+                    $used[strtolower($name)] = $name;
+                }
+            }
+        }
+        foreach ($used as $name) {
+            $this->errors[] = "Tabel '" . $name . "' wordt gebruikt maar is niet verbonden met de andere tabellen; leg een relatie met een tabel uit het rapport.";
+        }
     }
 
     /**
@@ -355,14 +393,18 @@ class QueryBuilder
             // Get type category from condition or default to text
             $typeCategory = $cond['typeCategory'] ?? 'text';
 
+            if (!$this->valuesAreValid($qualifiedName, $operator, $value, $value2, $typeCategory)) {
+                continue;
+            }
+
             $conditionSql = $this->buildCondition($qualifiedName, $operator, $value, $value2, $typeCategory);
             if (empty($conditionSql)) {
                 continue;
             }
 
             // Add brackets (prefix/suffix)
-            $prefix = $cond['prefix'] ?? '';
-            $suffix = $cond['suffix'] ?? '';
+            $prefix = $this->sanitizeBrackets($cond['prefix'] ?? '');
+            $suffix = $this->sanitizeBrackets($cond['suffix'] ?? '');
             $conditionSql = $prefix . $conditionSql . $suffix;
 
             // Add logic (AND/OR) for conditions after first
@@ -431,12 +473,16 @@ class QueryBuilder
             $dataType = $field['dataType'] ?? 0;
             $typeCategory = SchemaHelper::categorizeType((int)$dataType);
 
+            if (!$this->valuesAreValid($qualifiedName, $operator, $value, $value2, $typeCategory)) {
+                continue;
+            }
+
             // Build condition with brackets and logic
             $condition = $this->buildCondition($qualifiedName, $operator, $value, $value2, $typeCategory);
             if (!empty($condition)) {
                 // Add brackets from filter
-                $prefix = $filter['prefix'] ?? '';
-                $suffix = $filter['suffix'] ?? '';
+                $prefix = $this->sanitizeBrackets($filter['prefix'] ?? '');
+                $suffix = $this->sanitizeBrackets($filter['suffix'] ?? '');
                 $condition = $prefix . $condition . $suffix;
 
                 // Add logic for conditions after first
@@ -457,6 +503,31 @@ class QueryBuilder
         }
 
         return 'WHERE ' . implode("\n", $conditions);
+    }
+
+    /**
+     * Does a condition carry values that fit its type? A number that is not a number or a date that does not parse used to become
+     * `0` or `NULL` in silence, so the report ran and returned the wrong rows. Now the condition is skipped and the error is reported.
+     * `between` without a second value is not an error: buildCondition() turns it into `>=`.
+     */
+    private function valuesAreValid(string $field, string $operator, string $value, string $value2, string $typeCategory): bool
+    {
+        $noValue = ['empty', 'notempty', 'today', 'thisweek', 'thismonth', 'yes', 'no'];
+        if (in_array($operator, $noValue, true) || in_array($operator, ['contains', 'starts', 'ends'], true)) {
+            return true;
+        }
+        $values = ($operator === 'between' && $value2 !== '') ? [$value, $value2] : [$value];
+        foreach ($values as $v) {
+            if ($typeCategory === 'number' && !is_numeric(str_replace(',', '.', $v))) {
+                $this->errors[] = "De waarde '" . $v . "' bij " . $field . ' is geen getal; de voorwaarde is overgeslagen.';
+                return false;
+            }
+            if ($typeCategory === 'date' && SQL::postDateStr($v) === 'NULL') {
+                $this->errors[] = "De waarde '" . $v . "' bij " . $field . ' is geen datum; de voorwaarde is overgeslagen.';
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -489,13 +560,17 @@ class QueryBuilder
             case 'ends':
                 return $field . ' LIKE ' . $this->quoteValue('%' . $value, 'text');
 
+            // Only a text column can hold '': comparing a number, date or yes/no column with '' is a data type mismatch in Access
             case 'empty':
-                return '(' . $field . ' IS NULL OR ' . $field . ' = \'\')';
+                return $typeCategory === 'text' ? '(' . $field . ' IS NULL OR ' . $field . ' = \'\')' : $field . ' IS NULL';
 
             case 'notempty':
-                return '(' . $field . ' IS NOT NULL AND ' . $field . ' <> \'\')';
+                return $typeCategory === 'text' ? '(' . $field . ' IS NOT NULL AND ' . $field . ' <> \'\')' : $field . ' IS NOT NULL';
 
             case 'between':
+                if ($value2 === '') {
+                    return $field . ' >= ' . $this->quoteValue($value, $typeCategory);
+                }
                 return $field . ' BETWEEN ' . $this->quoteValue($value, $typeCategory) .
                        ' AND ' . $this->quoteValue($value2, $typeCategory);
 
@@ -505,22 +580,19 @@ class QueryBuilder
             case 'after':
                 return $field . ' > ' . $this->quoteValue($value, $typeCategory);
 
+            // A date literal holds no time, so "until 23:59:59" collapsed to the day itself and the range was empty for today. Half-open
+            // ranges (>= start AND < the day after the end) include the whole last day, and the brackets keep AND/OR next to it correct.
             case 'today':
-                $today = date('Y-m-d');
-                return $field . ' >= ' . $this->quoteValue($today . ' 00:00:00', 'date') .
-                       ' AND ' . $field . ' < ' . $this->quoteValue($today . ' 23:59:59', 'date');
+                return '(' . $field . ' >= ' . $this->quoteValue(date('Y-m-d'), 'date') .
+                       ' AND ' . $field . ' < ' . $this->quoteValue(date('Y-m-d', strtotime('tomorrow')), 'date') . ')';
 
             case 'thisweek':
-                $monday = date('Y-m-d', strtotime('monday this week'));
-                $sunday = date('Y-m-d', strtotime('sunday this week'));
-                return $field . ' BETWEEN ' . $this->quoteValue($monday, 'date') .
-                       ' AND ' . $this->quoteValue($sunday . ' 23:59:59', 'date');
+                return '(' . $field . ' >= ' . $this->quoteValue(date('Y-m-d', strtotime('monday this week')), 'date') .
+                       ' AND ' . $field . ' < ' . $this->quoteValue(date('Y-m-d', strtotime('monday next week')), 'date') . ')';
 
             case 'thismonth':
-                $firstDay = date('Y-m-01');
-                $lastDay = date('Y-m-t');
-                return $field . ' BETWEEN ' . $this->quoteValue($firstDay, 'date') .
-                       ' AND ' . $this->quoteValue($lastDay . ' 23:59:59', 'date');
+                return '(' . $field . ' >= ' . $this->quoteValue(date('Y-m-01'), 'date') .
+                       ' AND ' . $field . ' < ' . $this->quoteValue(date('Y-m-01', strtotime('first day of next month')), 'date') . ')';
 
             case 'yes':
                 return $field . ' = 1';
@@ -890,6 +962,30 @@ class QueryBuilder
         }
 
         return '[' . $cleaned . ']';
+    }
+
+    /**
+     * Quote a column alias. Unlike quoteIdentifier() a dot is not a table separator here: `a.b` becomes `[a_b]`, because
+     * `AS [a].[b]` is not valid SQL. Brackets and control characters are removed.
+     */
+    private function quoteAlias(string $alias): string
+    {
+        $clean = trim(preg_replace('/[\[\]\x00-\x1f]/', '', str_replace('.', '_', $alias)));
+        return '[' . ($clean === '' ? 'veld' : $clean) . ']';
+    }
+
+    /**
+     * Brackets around a condition: only parentheses (and spaces) are allowed. The text comes from the browser and
+     * ends up in the WHERE clause as it is, so anything else would be SQL typed by the user.
+     */
+    private function sanitizeBrackets($value): string
+    {
+        $value = is_string($value) ? $value : '';
+        if (preg_match('/^[\s()]*$/', $value)) {
+            return $value;
+        }
+        $this->errors[] = 'Ongeldige haakjes bij een voorwaarde: alleen ( en ) zijn toegestaan.';
+        return '';
     }
 
     /**
