@@ -107,6 +107,8 @@ if ($defaultMsg === '') {
     $defaultMsg = 'We zijn even bezig met de website, duurt niet lang.';
 }
 $msgValue = $curMsg !== '' ? $curMsg : $defaultMsg;
+// A literal <br> in a configured default text becomes a real new line in the textarea (the page shows line breaks, not HTML).
+$msgValue = preg_replace('#<br\s*/?>#i', "\n", $msgValue);
 
 // ---- render -------------------------------------------------------------
 cma_html_header('Onderhoudsscherm');

@@ -2831,6 +2831,7 @@ function render_doc_deployment(): void
     <ul>
         <li>Een <span class="cma-tool__strong">bericht</span> is verplicht; het staat op het onderhoudsscherm in plaats van de standaardtekst.</li>
         <li>Het vinkje <span class="cma-tool__strong">Toon 'Probeer het over een paar minuten opnieuw'</span> bepaalt of het scherm die regel en "Blijft u deze melding langer dan 10 minuten zien?" toont (<code>"retry"</code> in de vlag). Bij onderhoud van onbekende duur zet je het uit. Een deploy-vlag heeft die sleutel niet en toont de regels altijd.</li>
+        <li>Een nieuwe regel in het bericht (of een letterlijke <code>&lt;br&gt;</code> in de standaardtekst) wordt op het scherm een regelafbreking; andere HTML wordt getoond als tekst. Onder het bericht staat "Zodra de site weer online is, ziet u dat vanzelf.": de pagina ververst zichzelf elke 60 seconden, een knop "Vernieuwen" is er niet meer.</li>
         <li>Een handmatige vlag blijft staan tot je hem uitzet; een deploy-vlag verdwijnt na twintig minuten vanzelf.</li>
         <li><code>/cma/</code> blijft achter een handmatige vlag bereikbaar, zodat je het onderhoud ook weer kunt uitzetten. Achter een deploy-vlag niet: dan is <code>cma/</code> zelf half bijgewerkt.</li>
     </ul>

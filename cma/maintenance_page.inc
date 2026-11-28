@@ -103,6 +103,9 @@ $message = $cmaMaintFirst(
     $cmaMaintBlock['message'] ?? '',
     'We zijn even bezig met de website, duurt niet lang.'
 );
+// Regeleinden in het bericht komen op het scherm: een nieuwe regel in het formulier, of een letterlijke <br> (zoals in de standaardtekst
+// van een site), wordt een regelafbreking. Verder wordt alles geëscaped; dit is geen vrije HTML.
+$cmaMaintMessageHtml = nl2br($h(preg_replace('#<br\s*/?>#i', "\n", str_replace(["\r\n", "\r"], "\n", $message))), false);
 $cmaMaintAccent = $cmaMaintFirst(
     $cmaMaintJson['accent'] ?? '',
     $cmaMaintBlock['accent'] ?? '',
@@ -199,9 +202,10 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
   .help { margin-top: 1.75rem; font-size: .95rem; }
   a { color: var(--accent); font-weight: 600; text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .vernieuw { display: inline-block; margin-top: 1.25rem; padding: .6rem 1.6rem; border: 0; border-radius: 999px; cursor: pointer;
-    background: var(--accent); color: #fff; font: inherit; font-weight: 600; }
-  .vernieuw:hover { filter: brightness(.92); }
+  .wacht { margin-top: 1.1rem; font-size: .92rem; color: #7a7064; display: flex; align-items: center; justify-content: center; gap: .55rem; }
+  .wacht i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); animation: puls 1.8s ease-in-out infinite; }
+  @keyframes puls { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .wacht i { animation: none; } }
   @media (max-width: 30rem) {
     .content { padding: 2rem 1.25rem; }
     .art img { width: 5.5rem; height: 5.5rem; }
@@ -225,11 +229,11 @@ $cmaMaintContactLine = $cmaMaintContact ? implode(' ', $cmaMaintContact) . '.' :
 <?php if ($cmaMaintArt !== ''): ?>
       <div class="art"><img src="<?= $h($cmaMaintArt) ?>" alt="" width="120" height="120"></div>
 <?php endif; ?>
-      <h1><?= $h($message) ?></h1>
+      <h1><?= $cmaMaintMessageHtml ?></h1>
 <?php if ($cmaMaintRetry): ?>
       <p>Probeer het over een paar minuten opnieuw.</p>
-      <button type="button" class="vernieuw" onclick="location.reload()">Vernieuwen</button>
 <?php endif; ?>
+      <div class="wacht"><i></i><span>Zodra de site weer online is, ziet u dat vanzelf.</span></div>
 <?php if ($cmaMaintContactLine !== ''): ?>
       <p class="help"><?= $cmaMaintRetry ? 'Blijft u deze melding langer dan 10 minuten zien?' : 'Vragen?' ?><br><?= $cmaMaintContactLine ?></p>
 <?php endif; ?>
