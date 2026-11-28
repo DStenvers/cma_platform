@@ -73,12 +73,12 @@ if (Request::method() === 'POST' && Request::post('action', '') === 'run') {
     $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
     $err  = curl_error($ch);
     curl_close($ch);
+    // The JSON helper does not stop the script: without this exit the whole tool page followed the JSON, so the browser could not read the
+    // answer and said "Starten mislukt" while the deploy had started.
     Response::json([
         'success' => $err === '' && $code >= 200 && $code < 300,
         'error'   => $err !== '' ? $err : ($code < 200 || $code >= 300 ? 'deploy.php antwoordde HTTP ' . $code . ': ' . trim(strip_tags($body)) : ''),
     ]);
-    // Response::json() stops nothing: without this exit the whole tool page followed the JSON, so the browser could not read the
-    // answer and said "Starten mislukt" while the deploy had started.
     exit;
 }
 
