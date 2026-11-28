@@ -55,6 +55,7 @@ cma_script('webcomponents/cma-toolbar.js');
         <button type="button" class="cma-launcher-btn" id="reportsMenuBtn" aria-haspopup="dialog" title="Alle rapportages">
             <span class="lnr lnr-menu"></span><span class="cma-launcher-btn__label">Alle rapporten</span>
         </button>
+        <lib-search-input id="reportsSearch" class="tools-toolbar__search" icon="left" placeholder="Zoek een rapport…" aria-label="Zoek een rapport"></lib-search-input>
     </left>
 </cma-toolbar>
 
@@ -66,6 +67,7 @@ cma_script('webcomponents/cma-toolbar.js');
     <cma-launcher
         catalog-url="/cma/api/reports-catalog.php"
         target="#reports-content"
+        search-source="#reportsSearch"
         search-placeholder="Zoek een rapport…"
         aria-label="Alle rapportages"
         empty-text="Geen rapportages beschikbaar."></cma-launcher>
